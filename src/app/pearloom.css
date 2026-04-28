@@ -2048,6 +2048,115 @@ html { scroll-behavior: smooth; }
   color: var(--peach-ink, #C6703D);
 }
 
+/* Section anchor offset — when a guest clicks a nav link to a
+   section, scrollIntoView lands at the section's top edge. The
+   sticky nav covers ~72-80px of that, so the heading sits behind
+   the nav and the guest doesn't see what they jumped to. The
+   scroll-margin-top utility tells the browser to leave room
+   above the section when an anchor jump happens. The 96px buffer
+   covers the v8 nav height + a little breathing room. */
+.pl8-guest section[id] {
+  scroll-margin-top: 96px;
+}
+
+/* Print stylesheet — when guests hit ⌘P / Ctrl+P, they probably
+   want a hand-out: date, time, venue, address, dress code,
+   schedule, FAQ, registry. We strip every piece of chrome that
+   doesn't print well: animation, sticky nav, RSVP CTAs, photo
+   lightboxes, ambient atmosphere, weather widgets, audio players,
+   the back-to-top pill, the reading-progress hairline, and any
+   editor overlay that snuck onto the production view.
+
+   Type drops to high-contrast ink on white (the cream paper
+   doesn't print well on most printers — too much toner). Display
+   headings drop the letterpress shadow because it muddies on
+   paper. Anchors print as inline text with their URL footnoted. */
+@media print {
+  /* Force light-on-paper baseline. */
+  html, body, .pl8-guest {
+    background: #FFFFFF !important;
+    color: #0E0D0B !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  /* Ensure photos + section backgrounds actually print. By
+     default Chrome / Firefox skip background colours and images
+     to save toner — the host's hero photo would print blank. */
+  .pl8-guest * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  /* Hide chrome that's actively unhelpful on paper. */
+  .pl8-reading-progress,
+  .pl8-broadcast-bar,
+  .pl8-day-of-broadcast,
+  .pl8-guest nav,
+  .pl8-site-nav,
+  .pl8-sticky-rsvp,
+  .pl8-confetti-burst,
+  .pl8-living-atmosphere,
+  .pl8-mascot,
+  .pl8-spotify-player,
+  .pl8-ambient-audio,
+  .pl8-language-switcher,
+  .pl8-decor-divider {
+    display: none !important;
+  }
+  /* Back-to-top pill + owner-edit pill. */
+  button[aria-label="Back to top"],
+  .pl8-owner-edit-pill {
+    display: none !important;
+  }
+  /* Map iframes + interactive embeds — print as a small note. */
+  .pl8-guest iframe {
+    display: none !important;
+  }
+  /* RSVP form on print: hide the form itself, keep the deadline
+     blurb so guests still see when they need to respond by. */
+  .pl8-rsvp-form,
+  .pl8-rsvp-cta {
+    display: none !important;
+  }
+  /* No more letterpress shadow / scroll animations / hover
+     transforms on paper. */
+  .pl8-guest * {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  .pl8-guest .display {
+    text-shadow: none !important;
+  }
+  /* Section reveal animation — force visible state. */
+  .pl8-guest section {
+    opacity: 1 !important;
+    page-break-inside: avoid;
+    margin-bottom: 24pt !important;
+  }
+  /* Cards — white background + thin black border so they read
+     as blocks on paper. */
+  .pl8-hotel-card,
+  .pl8-card-lift,
+  .pl8-guest section [data-pl-block-styled] {
+    background: #FFFFFF !important;
+    border: 1px solid #DCDCDC !important;
+  }
+  /* Print page margins. */
+  @page {
+    margin: 0.75in;
+  }
+  /* Footnote URLs inline — printed paper can't be clicked, so
+     guests need the URL on the page. Targets only links that go
+     to external URLs (not anchors within the same site). */
+  .pl8-guest a[href^="http"]:not([href*="pearloom"])::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #666;
+    word-break: break-all;
+  }
+}
+
 /* Section reveal on scroll. Each <section> inside the published
    site fades + rises a small distance as it scrolls into view.
    Uses the modern animation-timeline feature where supported, so
@@ -2072,6 +2181,30 @@ html { scroll-behavior: smooth; }
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
+  }
+}
+
+/* Hero photo Ken Burns — slow zoom + drift on the PhotoFirst
+   hero variant. 18s loop, scale 1 → 1.06, drift along a small
+   cubic path so the motion never reads as a perfect zoom. The
+   photo's `background-size: cover` + `background-position: var`
+   means the host's coverFocalPoint still anchors the zoom to
+   the right part of the photo. Honours prefers-reduced-motion
+   (locks to scale 1.02 with no drift). */
+@keyframes pl8-hero-kenburns {
+  0%   { transform: scale(1) translate3d(0, 0, 0); }
+  50%  { transform: scale(1.05) translate3d(-1.4%, 0.4%, 0); }
+  100% { transform: scale(1.06) translate3d(0.6%, -0.6%, 0); }
+}
+.pl8-hero-kenburns {
+  animation: pl8-hero-kenburns 22s ease-in-out infinite alternate;
+  will-change: transform;
+  transform-origin: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-hero-kenburns {
+    animation: none;
+    transform: scale(1.02);
   }
 }
 

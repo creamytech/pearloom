@@ -52,6 +52,7 @@ export function HeroPhotoFirst({ manifest, names, siteSlug, onEditField, onEditN
               <div
                 role="img"
                 aria-label="Cover photo"
+                className="pl8-hero-kenburns"
                 style={{
                   width: '100%', height: '100%', minHeight: 'inherit',
                   backgroundImage: `url(${photoSrc})`,

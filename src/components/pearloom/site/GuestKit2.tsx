@@ -10,7 +10,6 @@
    - <GuestPhotoUploader />  : mobile-first uploader for guest photo wall
    - <VoiceToastRecorder />  : 30-second in-browser audio recorder for toasts
    - <LiveWallDiscover />    : auto-shows when broadcast is active
-   - <WeatherWidget />       : 7-day forecast for the venue
    ======================================================================== */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -949,86 +948,12 @@ export function VoiceToastRecorder({
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Weather widget — Open-Meteo, no API key
-// ─────────────────────────────────────────────────────────────
-
-export function WeatherWidget({ city, eventDate }: { city?: string; eventDate?: string }) {
-  const [forecast, setForecast] = useState<{ tempMax: number; tempMin: number; precip: number; code: number } | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!city || !eventDate) return;
-    // Show only when event is within 14 days.
-    const days = Math.ceil((new Date(eventDate + 'T00:00:00').getTime() - Date.now()) / 86_400_000);
-    if (days > 14 || days < -1) return;
-    setLoading(true);
-    (async () => {
-      try {
-        // Geocode via Open-Meteo (no API key).
-        const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
-        const geo = await geoRes.json();
-        const r = geo?.results?.[0];
-        if (!r?.latitude) return;
-        const fcRes = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${r.latitude}&longitude=${r.longitude}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code&start_date=${eventDate}&end_date=${eventDate}&temperature_unit=fahrenheit&timezone=auto`,
-        );
-        const fc = await fcRes.json();
-        const day = fc?.daily;
-        if (!day) return;
-        setForecast({
-          tempMax: Math.round(day.temperature_2m_max?.[0] ?? 0),
-          tempMin: Math.round(day.temperature_2m_min?.[0] ?? 0),
-          precip: day.precipitation_probability_max?.[0] ?? 0,
-          code: day.weather_code?.[0] ?? 0,
-        });
-      } catch {}
-      setLoading(false);
-    })();
-  }, [city, eventDate]);
-
-  if (loading) return null;
-  if (!forecast) return null;
-
-  const emoji = weatherEmoji(forecast.code);
-  return (
-    <div
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: '8px 14px',
-        background: 'var(--cream-2)',
-        border: '1px solid var(--line)',
-        borderRadius: 12,
-        fontSize: 13,
-        color: 'var(--ink-soft)',
-      }}
-    >
-      <span style={{ fontSize: 22 }}>{emoji}</span>
-      <span>
-        <strong style={{ color: 'var(--ink)' }}>
-          {forecast.tempMax}°
-        </strong>{' '}
-        / {forecast.tempMin}°F
-      </span>
-      <span style={{ opacity: 0.5 }}>·</span>
-      <span>{forecast.precip}% chance of rain</span>
-    </div>
-  );
-}
-
-function weatherEmoji(code: number): string {
-  if (code === 0) return '☀️';
-  if (code >= 1 && code <= 3) return '⛅';
-  if (code === 45 || code === 48) return '🌫️';
-  if (code >= 51 && code <= 57) return '🌦️';
-  if (code >= 61 && code <= 67) return '🌧️';
-  if (code >= 71 && code <= 77) return '❄️';
-  if (code >= 80 && code <= 86) return '🌧️';
-  if (code >= 95) return '⛈️';
-  return '🌤️';
-}
+// WeatherWidget removed (2026-04-30) — replaced by the editorial
+// WeatherStrip in src/components/pearloom/site/WeatherStrip.tsx,
+// which uses custom SVG glyphs instead of system emoji and reads
+// as a single Fraunces italic line rather than a stat tile. The
+// old export is gone from this file's barrel; if any external
+// consumer still imports it, that path needs updating.
 
 // Pass-through provider — kept for future hooks composition.
 export function GuestKit2Provider({ children }: { children: ReactNode }) {
