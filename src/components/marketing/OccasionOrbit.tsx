@@ -24,7 +24,7 @@ export function OccasionOrbit() {
         overflow: 'hidden',
         borderTop: '1px solid rgba(31,36,24,0.12)',
         borderBottom: '1px solid rgba(31,36,24,0.12)',
-        padding: '120px 24px',
+        padding: 'clamp(48px, 10vw, 120px) clamp(20px, 5vw, 24px)',
       }}
     >
       {/* Worms across top and bottom of the section */}

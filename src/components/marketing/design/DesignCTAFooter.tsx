@@ -28,7 +28,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
   return (
     <Fragment>
       {/* ── Pear's Promise ───────────────────────────────────── */}
-      <section style={{ padding: '100px 24px 40px', position: 'relative', background: PD.paper }}>
+      <section style={{ padding: 'clamp(48px, 10vw, 100px) clamp(20px, 5vw, 24px) 40px', position: 'relative', background: PD.paper }}>
         <div
           className="pd-promise-grid"
           style={{
@@ -107,7 +107,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
 
       {/* ── Giant CTA ───────────────────────────────────────── */}
       <section
-        style={{ padding: '80px 24px 100px', position: 'relative', overflow: 'hidden', background: PD.paper }}
+        style={{ padding: 'clamp(40px, 8vw, 80px) clamp(20px, 5vw, 24px) clamp(48px, 10vw, 100px)', position: 'relative', overflow: 'hidden', background: PD.paper }}
       >
         <div
           aria-hidden
@@ -199,7 +199,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
         style={{
           background: PD.ink,
           color: PD.paper,
-          padding: '72px 24px 40px',
+          padding: 'clamp(40px, 7vw, 72px) clamp(20px, 5vw, 24px) 40px',
           position: 'relative',
           overflow: 'hidden',
         }}

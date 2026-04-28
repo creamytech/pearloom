@@ -42,7 +42,7 @@ export function DesignTestimonials() {
   return (
     <section
       style={{
-        padding: '140px 24px',
+        padding: 'clamp(56px, 12vw, 140px) clamp(20px, 5vw, 24px)',
         background: PD.ink,
         color: PD.paper,
         position: 'relative',

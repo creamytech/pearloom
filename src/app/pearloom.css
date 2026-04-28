@@ -816,6 +816,106 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   MARKETING + DASHBOARD MOBILE PASS — scale down hardcoded
+   padding, scale up tiny body text. Targets the patterns the
+   audit found that can't be cleanly fixed inline (inline styles
+   beat global CSS without !important).
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Marketing sections — many use inline `padding: '140px 24px'`
+   etc. without clamp. Cap section vertical padding at 64px on
+   ≤640px and 48px on ≤480px so a phone scroll doesn't feel like
+   it's wading through gutters. Targets `.pl8-marketing` and
+   landing-page wrappers; dashboard shell uses its own padding
+   tokens already. */
+@media (max-width: 640px) {
+  .pl8-marketing section,
+  .pl8-design-page section,
+  .pl-design-root section {
+    padding-top: clamp(40px, 12vw, 80px) !important;
+    padding-bottom: clamp(40px, 12vw, 80px) !important;
+    padding-left: clamp(16px, 5vw, 24px) !important;
+    padding-right: clamp(16px, 5vw, 24px) !important;
+  }
+}
+
+/* Dashboard pages — empty states sometimes set padding: 60px 56px
+   which is way too much horizontal on phone. Scope a generic
+   override: any element flagged with data-pl-page-pad (added in
+   future) or a generic padding cap on the main content column.
+   For now, target the dash shell's main column directly. */
+@media (max-width: 640px) {
+  .pl8-dash main,
+  .pl8-dash-main {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  .pl8-dash main > section,
+  .pl8-dash-main > section {
+    padding-top: 24px !important;
+    padding-bottom: 24px !important;
+  }
+}
+
+/* Body text minimum on phone. Marketing copy at 11–13px reads as
+   fine-print on a 360px screen. Floor body text at 14px (still
+   below the 16px input threshold) so paragraphs read comfortably.
+   Display headings + tracked uppercase labels are exempt — they
+   carry their own typography. */
+@media (max-width: 640px) {
+  .pl8-marketing p,
+  .pl8-marketing li,
+  .pl8-marketing span:not(.eyebrow),
+  .pl8-design-page p,
+  .pl8-design-page li {
+    font-size: max(14px, 1em);
+    line-height: 1.6;
+  }
+}
+
+/* maxWidth containers — many marketing components set
+   maxWidth: 1200-1320 + margin: 0 auto without horizontal
+   padding. On a 360px phone the container just sits flush to
+   the edges, no breathing room. Add a default margin/padding
+   pair so any element with maxWidth pulls back from the edge. */
+@media (max-width: 640px) {
+  .pl8-marketing [style*="maxWidth"],
+  .pl8-design-page [style*="maxWidth"] {
+    padding-left: clamp(0px, 4vw, 20px);
+    padding-right: clamp(0px, 4vw, 20px);
+  }
+}
+
+/* Sub-375px collapse — older / smaller phones (iPhone SE 1st gen,
+   Galaxy Fold cover screen). At < 375px any 2-column grid feels
+   cramped. Force single-column on the most common multi-column
+   patterns. */
+@media (max-width: 374px) {
+  .pl8-cols-2,
+  .pl8-cols-3,
+  .pl8-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+  .pl8-guest .pl8-hotel-card {
+    grid-template-columns: 1fr !important;
+  }
+  .pl8-guest .pl8-hotel-card > * {
+    width: 100% !important;
+  }
+}
+
+/* Forms — labels often render at 11px. Bump to 13px on phone so
+   form labels are scannable. Inputs already at 16px (iOS zoom
+   prevention rule above). */
+@media (max-width: 640px) {
+  .pl8-marketing label,
+  .pl8-design-page label,
+  .pl8-dash label {
+    font-size: max(13px, 1em);
+  }
+}
+
 /* ── Editor mobile-preview container queries ──────────────────
    When the canvas device frame switches to phone/tablet, the
    site's media-query breakpoints don't fire because the *window*

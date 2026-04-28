@@ -45,7 +45,7 @@ export function DirectorTimeline({ onGetStarted }: DirectorTimelineProps) {
     <section
       id="director"
       style={{
-        padding: '140px 24px',
+        padding: 'clamp(56px, 12vw, 140px) clamp(20px, 5vw, 24px)',
         position: 'relative',
         overflow: 'hidden',
         background: PD.paper,

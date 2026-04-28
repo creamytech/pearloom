@@ -215,7 +215,7 @@ export function DesignOccasions({ onGetStarted }: DesignOccasionsProps) {
     <section
       id="occasions"
       style={{
-        padding: '120px 24px',
+        padding: 'clamp(48px, 10vw, 120px) clamp(20px, 5vw, 24px)',
         background: PD.paper3,
         borderTop: '1px solid rgba(31,36,24,0.1)',
         borderBottom: '1px solid rgba(31,36,24,0.1)',

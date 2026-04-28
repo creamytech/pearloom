@@ -86,7 +86,7 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
   return (
     <section
       id="pricing"
-      style={{ padding: '140px 24px', position: 'relative', overflow: 'hidden', background: PD.paper }}
+      style={{ padding: 'clamp(56px, 12vw, 140px) clamp(20px, 5vw, 24px)', position: 'relative', overflow: 'hidden', background: PD.paper }}
     >
       <div style={{ maxWidth: 1320, margin: '0 auto', position: 'relative' }}>
         <div style={{ textAlign: 'center', marginBottom: 64, maxWidth: 760, marginInline: 'auto' }}>
