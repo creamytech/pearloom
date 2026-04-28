@@ -17,7 +17,7 @@
 // per-nudge-id) so the host doesn't see the same tip twice.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Pear } from '../motifs';
 
@@ -39,7 +39,16 @@ interface Props {
 export function PearNudges({ manifest, siteSlug }: Props) {
   const nudges = useMemo(() => computeNudges(manifest), [manifest]);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
-  const [hover, setHover] = useState(false);
+  // Two separate states so the bubble doesn't disappear the moment
+  // the host's cursor crosses the 8px gap between button + bubble:
+  //   • `pinned` — set by clicking the avatar; only closes via Got
+  //     it / take-me-there / outside-click / Esc.
+  //   • `hovering` — set by hover, with a leave-delay so passing
+  //     through the visual gap doesn't snap the bubble shut.
+  const [pinned, setPinned] = useState(false);
+  const [hovering, setHovering] = useState(false);
+  const leaveTimer = useRef<number | null>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
   const memoryKey = `pearloom:pear-nudges:${siteSlug}`;
 
   // Hydrate dismissed list per site.
@@ -60,14 +69,62 @@ export function PearNudges({ manifest, siteSlug }: Props) {
   }
 
   const visible = nudges.find((n) => !dismissed.has(n.id));
+
+  // Click-outside + Esc close the pinned bubble. Mounted before the
+  // early-return so the hooks order is stable across renders.
+  useEffect(() => {
+    if (!pinned) return;
+    function onDoc(e: MouseEvent) {
+      if (!wrapperRef.current) return;
+      if (wrapperRef.current.contains(e.target as Node)) return;
+      setPinned(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setPinned(false);
+    }
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [pinned]);
+
+  // Cancel any in-flight leave-delay on unmount so we don't leak.
+  useEffect(() => () => {
+    if (leaveTimer.current) window.clearTimeout(leaveTimer.current);
+  }, []);
+
   if (!visible) return null;
+
+  const open = pinned || hovering;
+
+  function handleEnter() {
+    if (leaveTimer.current) {
+      window.clearTimeout(leaveTimer.current);
+      leaveTimer.current = null;
+    }
+    setHovering(true);
+  }
+
+  function handleLeave() {
+    if (leaveTimer.current) window.clearTimeout(leaveTimer.current);
+    // 220ms grace covers the 8px gap between button and bubble + a
+    // moment for the host's cursor to settle on the bubble. Shorter
+    // and the bubble flickers; longer and it feels sticky.
+    leaveTimer.current = window.setTimeout(() => {
+      setHovering(false);
+      leaveTimer.current = null;
+    }, 220);
+  }
 
   function dismiss() {
     const next = new Set(dismissed);
     next.add(visible!.id);
     setDismissed(next);
     persist(next);
-    setHover(false);
+    setPinned(false);
+    setHovering(false);
   }
 
   function takeMeThere() {
@@ -79,14 +136,16 @@ export function PearNudges({ manifest, siteSlug }: Props) {
 
   return (
     <div
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
+      ref={wrapperRef}
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
       style={{ position: 'relative', flexShrink: 0 }}
     >
       <button
         type="button"
-        onClick={() => setHover((h) => !h)}
+        onClick={() => setPinned((p) => !p)}
         aria-label="Pear has a tip"
+        aria-expanded={open}
         title={visible.message}
         style={{
           width: 32,
@@ -118,27 +177,46 @@ export function PearNudges({ manifest, siteSlug }: Props) {
           }}
         />
       </button>
-      {hover && (
-        <div
-          role="tooltip"
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 8px)',
-            right: 0,
-            minWidth: 260,
-            maxWidth: 320,
-            padding: 14,
-            background: 'var(--card, #FBF7EE)',
-            border: '1px solid var(--card-ring, rgba(61,74,31,0.16))',
-            borderRadius: 14,
-            boxShadow: '0 14px 32px rgba(14,13,11,0.18)',
-            zIndex: 100,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 10,
-            animation: 'pl-pear-nudge-fade 180ms cubic-bezier(0.22, 1, 0.36, 1)',
-          }}
-        >
+      {open && (
+        <>
+          {/* Invisible bridge that fills the visual gap between the
+              avatar and the bubble. Without it, the wrapper's hit-box
+              has a "hole" at the 8px gap and the cursor passing
+              through fires mouseleave on the wrapper, snapping the
+              bubble shut mid-read. */}
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              top: '100%',
+              right: 0,
+              width: 320,
+              height: 12,
+              background: 'transparent',
+              pointerEvents: 'auto',
+              zIndex: 99,
+            }}
+          />
+          <div
+            role="tooltip"
+            style={{
+              position: 'absolute',
+              top: 'calc(100% + 8px)',
+              right: 0,
+              minWidth: 260,
+              maxWidth: 320,
+              padding: 14,
+              background: 'var(--card, #FBF7EE)',
+              border: '1px solid var(--card-ring, rgba(61,74,31,0.16))',
+              borderRadius: 14,
+              boxShadow: '0 14px 32px rgba(14,13,11,0.18)',
+              zIndex: 100,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+              animation: 'pl-pear-nudge-fade 180ms cubic-bezier(0.22, 1, 0.36, 1)',
+            }}
+          >
           <div
             style={{
               fontSize: 9.5,
@@ -203,7 +281,8 @@ export function PearNudges({ manifest, siteSlug }: Props) {
               Got it
             </button>
           </div>
-        </div>
+          </div>
+        </>
       )}
       <style jsx global>{`
         @keyframes pl-pear-nudge-pulse {
