@@ -1814,7 +1814,7 @@ function DetailsCard({
       style={{
         background: 'var(--card)',
         border: '1px solid var(--card-ring)',
-        borderRadius: 'var(--pl-card-radius, 20px)',
+        borderRadius: 'var(--pl-block-card-radius, var(--pl-card-radius, 20px))',
         padding: 28,
         position: 'relative',
         color: 'var(--ink)',
@@ -3247,7 +3247,12 @@ function HotelsList({
                     hotelId={item.id}
                     editMode={editMode}
                     onRemove={() => onRemove?.(i, item)}
-                    onFocus={() => jumpToPanelRow('travel', 'pearloom:focus-hotel-row', { hotelId: item.id })}
+                    onFocus={() => {
+                      if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('pearloom:hotel-quick-edit', { detail: { hotelId: item.id } }));
+                      }
+                      jumpToPanelRow('travel', 'pearloom:focus-hotel-row', { hotelId: item.id });
+                    }}
                     dragHandleProps={ctx.dragHandleProps}
                   />
                 );
@@ -3268,7 +3273,12 @@ function HotelsList({
               hotelId={h.id}
               editMode={editMode}
               onRemove={editMode ? () => onRemove?.(i, h) : undefined}
-              onFocus={editMode ? () => jumpToPanelRow('travel', 'pearloom:focus-hotel-row', { hotelId: h.id }) : undefined}
+              onFocus={editMode ? () => {
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('pearloom:hotel-quick-edit', { detail: { hotelId: h.id } }));
+                }
+                jumpToPanelRow('travel', 'pearloom:focus-hotel-row', { hotelId: h.id });
+              } : undefined}
             />
           );
         });
@@ -4176,7 +4186,7 @@ function HotelCard({
         gridTemplateColumns: '120px 1fr',
         gap: 16,
         padding: 14,
-        borderRadius: 'var(--pl-card-radius, 18px)',
+        borderRadius: 'var(--pl-block-card-radius, var(--pl-card-radius, 18px))',
         background: 'var(--card)',
         border: isTop ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid var(--card-ring)',
         boxShadow: isTop
@@ -4689,7 +4699,7 @@ function RegistryCard({
         position: 'relative',
         background: 'var(--card)',
         border: showMostLoved ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid var(--card-ring)',
-        borderRadius: 'var(--pl-card-radius, 20px)',
+        borderRadius: 'var(--pl-block-card-radius, var(--pl-card-radius, 20px))',
         padding: 24,
         display: 'flex',
         flexDirection: 'column',

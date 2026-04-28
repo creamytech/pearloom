@@ -6,6 +6,7 @@ import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, SelectI
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { BadgesEditor } from './BadgesEditor';
+import { focusPanelRow } from './focus-row';
 
 // Registry auto-tags one badge: 'mostLoved' on the first card so
 // the host's preferred order surfaces visually. Hosts can hide it
@@ -22,15 +23,9 @@ function useRegistryRowFocus() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     function onFocus(e: Event) {
-      const detail = (e as CustomEvent<{ url?: string }>).detail;
-      const url = detail?.url;
+      const url = (e as CustomEvent<{ url?: string }>).detail?.url;
       if (!url) return;
-      const target = document.querySelector(`[data-pl-registry-row-url="${CSS.escape(url)}"]`) as HTMLElement | null;
-      if (!target) return;
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      target.classList.remove('pl8-canvas-focus-flash');
-      void target.offsetWidth;
-      target.classList.add('pl8-canvas-focus-flash');
+      focusPanelRow(`[data-pl-registry-row-url="${CSS.escape(url)}"]`);
     }
     window.addEventListener('pearloom:focus-registry-row', onFocus);
     return () => window.removeEventListener('pearloom:focus-registry-row', onFocus);

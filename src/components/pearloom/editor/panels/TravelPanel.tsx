@@ -7,6 +7,7 @@ import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { PlaceAutocomplete } from './PlaceAutocomplete';
 import { stableHotelId } from '@/lib/hotel-id';
+import { focusPanelRow } from './focus-row';
 
 import { BadgesEditor } from './BadgesEditor';
 
@@ -405,17 +406,10 @@ export function TravelPanel({
   useEffect(() => {
     if (typeof window === 'undefined') return;
     function onFocus(e: Event) {
-      const detail = (e as CustomEvent<{ hotelId?: string }>).detail;
-      const hid = detail?.hotelId;
+      const hid = (e as CustomEvent<{ hotelId?: string }>).detail?.hotelId;
       if (!hid) return;
-      const target = document.querySelector(`[data-pl-hotel-row-id="${CSS.escape(hid)}"]`) as HTMLElement | null;
-      if (!target) return;
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      target.classList.remove('pl8-canvas-focus-flash');
-      // Force reflow so the animation restarts when clicked twice
-      // in quick succession.
-      void target.offsetWidth;
-      target.classList.add('pl8-canvas-focus-flash');
+      // Shared helper handles section auto-expand + scroll + flash.
+      focusPanelRow(`[data-pl-hotel-row-id="${CSS.escape(hid)}"]`);
     }
     window.addEventListener('pearloom:focus-hotel-row', onFocus);
     return () => window.removeEventListener('pearloom:focus-hotel-row', onFocus);

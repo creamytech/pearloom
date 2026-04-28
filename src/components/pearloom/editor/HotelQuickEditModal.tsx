@@ -1,0 +1,578 @@
+'use client';
+
+// ─────────────────────────────────────────────────────────────
+// HotelQuickEditModal — listens for `pearloom:hotel-quick-edit`
+// events from the canvas and opens a paper-styled modal with:
+//
+//   • A scrollable left sidebar listing every hotel — clicking
+//     a row swaps focus to that hotel inside the modal without
+//     closing it. Acts like a tabbed editor.
+//   • A wide right pane with the focused hotel's full editor:
+//     name (Google Places search), address, photo URL, price,
+//     distance, booking URL, description, badge editor.
+//   • A search row at the very top — pick a Google Place and a
+//     fully-enriched hotel slots in (and the modal selects it).
+//
+// Why a modal instead of just routing to the side panel: the
+// inspector is fixed at ~380px wide, which crowds long fields
+// like booking URLs and addresses. The modal opens to ~960px so
+// the host has real space + can compare hotels in the sidebar.
+//
+// All writes route through the same setTravel pattern the panel
+// uses so manifest.travel.hotels + manifest.travelInfo.hotels
+// stay in lockstep — published canvas updates live on every edit.
+// ─────────────────────────────────────────────────────────────
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { StoryManifest } from '@/types';
+import { Field, TextArea, TextInput } from './atoms';
+import { BadgesEditor } from './panels/BadgesEditor';
+import { PlaceAutocomplete } from './panels/PlaceAutocomplete';
+import { Icon } from '../motifs';
+import { stableHotelId } from '@/lib/hotel-id';
+
+interface HotelLike {
+  id: string;
+  name: string;
+  address?: string;
+  distance?: string;
+  price?: string;
+  description?: string;
+  bookingUrl?: string;
+  photoUrl?: string;
+  photoUrls?: string[];
+  rating?: number;
+  ratingCount?: number;
+  amenities?: string;
+  lat?: number;
+  lng?: number;
+  badges?: {
+    hideAuto?: Array<'top' | 'closest' | 'value'>;
+    custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }>;
+  };
+}
+
+const AUTO_BADGE_LABELS: Record<'top' | 'closest' | 'value', string> = {
+  top: "Pear's pick",
+  closest: 'Closest',
+  value: 'Best value',
+};
+
+interface Props {
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+}
+
+export function HotelQuickEditModal({ manifest, onChange }: Props) {
+  const [openHotelId, setOpenHotelId] = useState<string | null>(null);
+
+  // Listen for canvas → modal open requests.
+  useEffect(() => {
+    function onOpen(e: Event) {
+      const detail = (e as CustomEvent<{ hotelId?: string }>).detail;
+      if (!detail?.hotelId) return;
+      setOpenHotelId(detail.hotelId);
+    }
+    window.addEventListener('pearloom:hotel-quick-edit', onOpen);
+    return () => window.removeEventListener('pearloom:hotel-quick-edit', onOpen);
+  }, []);
+
+  // Escape to close, freeze body scroll while open.
+  useEffect(() => {
+    if (!openHotelId) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpenHotelId(null);
+    }
+    document.addEventListener('keydown', onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [openHotelId]);
+
+  const hotels = useMemo<HotelLike[]>(() => {
+    const raw = ((manifest as unknown as { travel?: { hotels?: HotelLike[] } }).travel?.hotels ?? []);
+    // Same id-rehydration the panel does — defensive. Without it,
+    // legacy hotels without an id all collide on findIndex.
+    return raw.map((h, i) => ({ ...h, id: h.id || stableHotelId(h, i) }));
+  }, [manifest]);
+
+  const focused = hotels.find((h) => h.id === openHotelId) ?? hotels[0] ?? null;
+
+  const setTravel = useCallback((nextHotels: HotelLike[]) => {
+    const existingLegacy = (manifest as unknown as { travel?: Record<string, unknown> }).travel ?? {};
+    const withIds = nextHotels.map((h, i) => ({ ...h, id: h.id || stableHotelId(h, i) }));
+    const legacyTravel = { ...existingLegacy, hotels: withIds };
+    const existingInfo = manifest.travelInfo ?? { airports: [], hotels: [] };
+    // Project to the renderer shape too — same projection setTravel
+    // uses in the panel so the canvas updates immediately.
+    const hotelsForRender = withIds.map((h, i) => ({
+      id: h.id || stableHotelId(h, i),
+      name: h.name,
+      address: h.address ?? '',
+      bookingUrl: h.bookingUrl,
+      groupRate: h.price,
+      notes: h.description,
+      photoUrl: h.photoUrl,
+      photoUrls: h.photoUrls,
+      lat: h.lat,
+      lng: h.lng,
+      rating: h.rating,
+      ratingCount: h.ratingCount,
+      amenities: h.amenities,
+      distance: h.distance,
+      priceLevel: h.price,
+      description: h.description,
+      badges: h.badges,
+    }));
+    onChange({
+      ...manifest,
+      travel: legacyTravel,
+      travelInfo: {
+        ...existingInfo,
+        airports: existingInfo.airports ?? [],
+        hotels: hotelsForRender as typeof existingInfo.hotels,
+      },
+    } as unknown as StoryManifest);
+  }, [manifest, onChange]);
+
+  const updateHotel = useCallback((id: string, patch: Partial<HotelLike>) => {
+    setTravel(hotels.map((h) => (h.id === id ? { ...h, ...patch } : h)));
+  }, [hotels, setTravel]);
+
+  const removeHotel = useCallback((id: string) => {
+    const idx = hotels.findIndex((h) => h.id === id);
+    const next = hotels.filter((h) => h.id !== id);
+    setTravel(next);
+    // Switch focus to a neighbouring hotel so the modal stays
+    // useful after a delete.
+    if (next.length === 0) {
+      setOpenHotelId(null);
+      return;
+    }
+    const fallback = next[Math.min(idx, next.length - 1)];
+    setOpenHotelId(fallback.id);
+  }, [hotels, setTravel]);
+
+  const addHotel = useCallback((h: HotelLike) => {
+    const id = h.id || stableHotelId(h, hotels.length);
+    setTravel([...hotels, { ...h, id }]);
+    setOpenHotelId(id);
+  }, [hotels, setTravel]);
+
+  if (!openHotelId || !focused) return null;
+
+  return (
+    <div
+      role="dialog"
+      aria-label="Edit hotel"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(14,13,11,0.55)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        zIndex: 360,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 24,
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) setOpenHotelId(null); }}
+    >
+      <div
+        style={{
+          width: 'min(960px, 100%)',
+          height: 'min(720px, 92vh)',
+          background: 'var(--paper, #FBF7EE)',
+          borderRadius: 18,
+          boxShadow: '0 32px 80px rgba(14,13,11,0.42)',
+          fontFamily: 'var(--font-ui)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            padding: '16px 20px',
+            borderBottom: '1px solid var(--line-soft)',
+            background: 'var(--cream, #FBF7EE)',
+          }}
+        >
+          <div style={{ flex: 1 }}>
+            <div className="eyebrow" style={{ color: 'var(--peach-ink, #C6703D)', fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+              Places to stay
+            </div>
+            <h2 className="display" style={{ fontSize: 22, margin: 0, color: 'var(--ink)' }}>
+              {focused.name || 'Untitled hotel'}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => setOpenHotelId(null)}
+            aria-label="Close"
+            style={{
+              width: 30, height: 30, borderRadius: 999,
+              background: 'transparent',
+              border: '1.5px solid var(--line)',
+              cursor: 'pointer',
+              fontSize: 16,
+              color: 'var(--ink)',
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Add-a-hotel search row — sits above the editor + sidebar
+            so it's always accessible regardless of what's focused. */}
+        <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--line-soft)', background: 'var(--cream-2, #F5EFE2)' }}>
+          <Field label="Add another hotel" help="Real Google Places search. Picking enriches the row with rating + amenities + distance from venue.">
+            <ModalHotelSearch
+              manifest={manifest}
+              onAdd={addHotel}
+            />
+          </Field>
+        </div>
+
+        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+          {/* Sidebar */}
+          <div
+            style={{
+              width: 260,
+              flexShrink: 0,
+              borderRight: '1px solid var(--line-soft)',
+              overflowY: 'auto',
+              padding: '12px 10px',
+              background: 'var(--cream, #FBF7EE)',
+            }}
+          >
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.18em',
+                color: 'var(--ink-muted)',
+                textTransform: 'uppercase',
+                padding: '4px 8px 8px',
+              }}
+            >
+              All hotels · {hotels.length}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {hotels.map((h) => {
+                const active = h.id === focused.id;
+                return (
+                  <button
+                    key={h.id}
+                    type="button"
+                    onClick={() => setOpenHotelId(h.id)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '10px 10px',
+                      borderRadius: 10,
+                      border: active ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid transparent',
+                      background: active ? 'rgba(198,112,61,0.08)' : 'transparent',
+                      color: 'var(--ink)',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      width: '100%',
+                      fontFamily: 'var(--font-ui)',
+                      transition: 'background 140ms ease, border-color 140ms ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!active) e.currentTarget.style.background = 'var(--cream-2, #F5EFE2)';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!active) e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    <div
+                      aria-hidden
+                      style={{
+                        width: 36,
+                        height: 36,
+                        flexShrink: 0,
+                        borderRadius: 8,
+                        backgroundImage: h.photoUrl ? `url(${h.photoUrl})` : undefined,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        background: h.photoUrl ? `url(${h.photoUrl}) center/cover no-repeat var(--cream-2)` : 'var(--cream-2, #F5EFE2)',
+                        display: 'grid',
+                        placeItems: 'center',
+                        color: 'var(--ink-muted)',
+                      }}
+                    >
+                      {!h.photoUrl && <Icon name="moon" size={14} />}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: 12.5,
+                          fontWeight: 700,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {h.name || 'Untitled'}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 10.5,
+                          color: 'var(--ink-soft)',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {h.distance ?? h.address ?? ''}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Editor pane */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+            <HotelEditor
+              hotel={focused}
+              manifest={manifest}
+              onChange={(patch) => updateHotel(focused.id, patch)}
+              onRemove={() => removeHotel(focused.id)}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HotelEditor({
+  hotel,
+  manifest,
+  onChange,
+  onRemove,
+}: {
+  hotel: HotelLike;
+  manifest: StoryManifest;
+  onChange: (patch: Partial<HotelLike>) => void;
+  onRemove: () => void;
+}) {
+  const venueLat = manifest.logistics?.venueLat;
+  const venueLng = manifest.logistics?.venueLng;
+  const venueNear = venueLat != null && venueLng != null ? { lat: venueLat, lng: venueLng } : null;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* Photo + meta strip */}
+      {(hotel.photoUrl || hotel.rating) && (
+        <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+          {hotel.photoUrl && (
+            <div
+              aria-hidden
+              style={{
+                width: 120, height: 90, borderRadius: 12,
+                background: `url(${hotel.photoUrl}) center/cover no-repeat`,
+                flexShrink: 0,
+                border: '1px solid var(--line-soft)',
+              }}
+            />
+          )}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {typeof hotel.rating === 'number' && (
+              <span
+                style={{
+                  alignSelf: 'flex-start',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '3px 9px',
+                  background: 'var(--peach-bg, rgba(198,112,61,0.10))',
+                  color: 'var(--peach-ink, #C6703D)',
+                  borderRadius: 999,
+                  fontSize: 11,
+                  fontWeight: 700,
+                }}
+              >
+                ★ {hotel.rating.toFixed(1)}
+                {hotel.ratingCount ? ` · ${hotel.ratingCount.toLocaleString()} reviews` : ''}
+              </span>
+            )}
+            {hotel.amenities && (
+              <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>{hotel.amenities}</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <Field label="Name" help="Type to search Google Places — picking re-fills distance, blurb, photos.">
+        <PlaceAutocomplete
+          kind="hotel"
+          value={hotel.name}
+          onChangeText={(name) => onChange({ name })}
+          onSelect={(place) => {
+            onChange({
+              name: place.name || hotel.name,
+              address: place.address ?? hotel.address,
+              lat: place.lat,
+              lng: place.lng,
+              bookingUrl: place.websiteUri ?? hotel.bookingUrl,
+            });
+          }}
+          near={venueNear}
+          nearLabel="Near venue"
+          placeholder="Search hotels"
+        />
+      </Field>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <Field label="Distance">
+          <TextInput
+            value={hotel.distance ?? ''}
+            onChange={(e) => onChange({ distance: e.target.value })}
+            placeholder="0.4 mi · ~1 min"
+          />
+        </Field>
+        <Field label="Price">
+          <TextInput
+            value={hotel.price ?? ''}
+            onChange={(e) => onChange({ price: e.target.value })}
+            placeholder="$189/night"
+          />
+        </Field>
+      </div>
+
+      <Field label="Booking URL">
+        <TextInput
+          value={hotel.bookingUrl ?? ''}
+          onChange={(e) => onChange({ bookingUrl: e.target.value })}
+          placeholder="https://…"
+        />
+      </Field>
+
+      <Field label="Address">
+        <TextInput
+          value={hotel.address ?? ''}
+          onChange={(e) => onChange({ address: e.target.value })}
+          placeholder="100 Las Olas Blvd, Fort Lauderdale, FL"
+        />
+      </Field>
+
+      <Field label="Short description">
+        <TextArea
+          rows={3}
+          value={hotel.description ?? ''}
+          onChange={(e) => onChange({ description: e.target.value })}
+          placeholder="Six rooms, a library, a very good porch."
+        />
+      </Field>
+
+      <BadgesEditor<'top' | 'closest' | 'value'>
+        badges={hotel.badges ?? {}}
+        onChange={(next) => onChange({ badges: next as HotelLike['badges'] })}
+        autoLabels={AUTO_BADGE_LABELS}
+        placeholder="Couple's pick, Pet-friendly, Walk to venue…"
+      />
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 8, borderTop: '1px solid var(--line-soft)', marginTop: 6 }}>
+        <button
+          type="button"
+          onClick={onRemove}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '8px 14px',
+            borderRadius: 999,
+            border: '1px solid rgba(122,45,45,0.25)',
+            background: 'transparent',
+            color: '#7A2D2D',
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontFamily: 'var(--font-ui)',
+          }}
+        >
+          <Icon name="close" size={11} />
+          Remove this hotel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Inline search row — same shape as the panel's HotelSearchRow,
+// but lives inside the modal so a host can grow the list without
+// closing it. Calls the same /api/hotels/enrich endpoint to
+// hydrate amenities / distance / blurb / photos on pick.
+function ModalHotelSearch({
+  manifest,
+  onAdd,
+}: {
+  manifest: StoryManifest;
+  onAdd: (h: HotelLike) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const venueLat = manifest.logistics?.venueLat;
+  const venueLng = manifest.logistics?.venueLng;
+  const venueNear = venueLat != null && venueLng != null ? { lat: venueLat, lng: venueLng } : null;
+
+  return (
+    <PlaceAutocomplete
+      kind="hotel"
+      value=""
+      onChangeText={() => {}}
+      onSelect={async (place) => {
+        if (busy) return;
+        setBusy(true);
+        try {
+          const res = await fetch('/api/hotels/enrich', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              placeId: place.id,
+              venueLat,
+              venueLng,
+              venueCity: manifest.logistics?.venue,
+              eventDate: manifest.logistics?.date,
+            }),
+          });
+          const data = res.ok ? (await res.json()) as { hotel?: Partial<HotelLike> & { distanceText?: string; priceLevel?: string; blurb?: string } } : null;
+          const h = data?.hotel;
+          onAdd({
+            id: stableHotelId({ name: place.name, address: place.address }, 0),
+            name: h?.name || place.name,
+            address: h?.address || place.address,
+            bookingUrl: h?.bookingUrl,
+            description: h?.blurb || h?.description || '',
+            distance: h?.distanceText ?? h?.distance,
+            price: h?.priceLevel ?? h?.price,
+            photoUrl: h?.photoUrl,
+            photoUrls: h?.photoUrls,
+            lat: h?.lat ?? place.lat,
+            lng: h?.lng ?? place.lng,
+            rating: h?.rating,
+            ratingCount: h?.ratingCount,
+            amenities: h?.amenities,
+          });
+        } finally {
+          setBusy(false);
+        }
+      }}
+      near={venueNear}
+      nearLabel="Near venue"
+      placeholder="Search a hotel by name…"
+    />
+  );
+}

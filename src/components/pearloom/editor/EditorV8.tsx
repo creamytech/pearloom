@@ -40,6 +40,7 @@ import { FirstThreadTour } from './FirstThreadTour';
 import { DecorGenerationToast } from './DecorGenerationToast';
 import { DecorRecolorModal } from './DecorRecolorModal';
 import { IconSwapModal } from './IconSwapModal';
+import { HotelQuickEditModal } from './HotelQuickEditModal';
 import { ThemeQuickBar } from './canvas/ThemeQuickBar';
 import { EditorCanvasProvider } from './canvas/EditorCanvasContext';
 import { AssetLibraryPanel } from './panels/AssetLibraryPanel';
@@ -602,6 +603,7 @@ export function EditorV8({
       <DecorGenerationToast />
       <DecorRecolorModal manifest={manifest} onEditField={(patch) => setManifest((m) => patch(m))} />
       <IconSwapModal manifest={manifest} onEditField={(patch) => setManifest((m) => patch(m))} />
+      <HotelQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
       {publishError && (
         <div
           role="alert"

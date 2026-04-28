@@ -5,6 +5,7 @@ import type { StoryManifest, WeddingEvent } from '@/types';
 import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PanelSmartActions, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { BadgesEditor } from './BadgesEditor';
+import { focusPanelRow } from './focus-row';
 
 // Schedule auto-tags one badge today: 'main' for the highlighted
 // "main moment" event (ceremony or main-event-of-the-day). Hosts
@@ -20,15 +21,9 @@ function useScheduleRowFocus() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     function onFocus(e: Event) {
-      const detail = (e as CustomEvent<{ eventId?: string }>).detail;
-      const eid = detail?.eventId;
+      const eid = (e as CustomEvent<{ eventId?: string }>).detail?.eventId;
       if (!eid) return;
-      const target = document.querySelector(`[data-pl-event-row-id="${CSS.escape(eid)}"]`) as HTMLElement | null;
-      if (!target) return;
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      target.classList.remove('pl8-canvas-focus-flash');
-      void target.offsetWidth;
-      target.classList.add('pl8-canvas-focus-flash');
+      focusPanelRow(`[data-pl-event-row-id="${CSS.escape(eid)}"]`);
     }
     window.addEventListener('pearloom:focus-schedule-row', onFocus);
     return () => window.removeEventListener('pearloom:focus-schedule-row', onFocus);

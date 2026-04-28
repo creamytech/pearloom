@@ -6,6 +6,7 @@ import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, TextAre
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { BadgesEditor } from './BadgesEditor';
+import { focusPanelRow } from './focus-row';
 
 // Local FAQ row shape — mirror of the manifest's FaqItem (which
 // also carries `order`) plus the new badges field. Both panels
@@ -29,15 +30,9 @@ function useFaqRowFocus() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     function onFocus(e: Event) {
-      const detail = (e as CustomEvent<{ faqId?: string }>).detail;
-      const fid = detail?.faqId;
+      const fid = (e as CustomEvent<{ faqId?: string }>).detail?.faqId;
       if (!fid) return;
-      const target = document.querySelector(`[data-pl-faq-row-id="${CSS.escape(fid)}"]`) as HTMLElement | null;
-      if (!target) return;
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      target.classList.remove('pl8-canvas-focus-flash');
-      void target.offsetWidth;
-      target.classList.add('pl8-canvas-focus-flash');
+      focusPanelRow(`[data-pl-faq-row-id="${CSS.escape(fid)}"]`);
     }
     window.addEventListener('pearloom:focus-faq-row', onFocus);
     return () => window.removeEventListener('pearloom:focus-faq-row', onFocus);
