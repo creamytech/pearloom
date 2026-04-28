@@ -205,14 +205,18 @@ export function PanelSection({
   // users can toggle. Otherwise it's a passive div.
   const Header = collapsible ? 'button' : 'div';
   return (
-    <div
+    <section
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: expanded ? 14 : 0,
-        marginBottom: expanded ? 28 : 18,
-        paddingBottom: expanded ? 22 : 0,
-        borderBottom: expanded ? '1px solid var(--line-soft)' : 'none',
+        // Less crammed: sections breathe whether collapsed or open.
+        // Closed sections still get a soft hairline so the inspector
+        // reads as a list of stacked headings, not a single column
+        // of dashes-and-uppercase noise.
+        gap: expanded ? 16 : 0,
+        marginBottom: expanded ? 24 : 6,
+        paddingBottom: expanded ? 20 : 12,
+        borderBottom: '1px solid var(--line-soft)',
         transition: 'gap 200ms ease, margin-bottom 200ms ease, padding-bottom 200ms ease',
         ...style,
       }}
@@ -229,11 +233,11 @@ export function PanelSection({
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            gap: 8,
+            alignItems: 'center',
+            gap: 12,
             background: 'transparent',
             border: 'none',
-            padding: 0,
+            padding: '6px 0 0',
             textAlign: 'left',
             cursor: collapsible ? 'pointer' : 'default',
             color: 'var(--ink)',
@@ -243,64 +247,34 @@ export function PanelSection({
         >
           <div style={{ flex: 1, minWidth: 0 }}>
             {label && (
-              <div
+              <h3
                 style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  letterSpacing: '0.16em',
+                  margin: 0,
+                  // Fraunces display heading, sentence case — reads
+                  // as editorial chapter heads rather than a SaaS
+                  // panel of all-caps tracked labels.
+                  fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+                  fontSize: 17,
+                  fontWeight: 500,
+                  letterSpacing: '-0.005em',
                   color: 'var(--ink)',
-                  textTransform: 'uppercase',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 8,
-                  fontFamily: 'var(--font-ui)',
+                  lineHeight: 1.2,
                 }}
               >
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  <span
-                    aria-hidden
-                    style={{
-                      display: 'inline-block',
-                      width: 10,
-                      height: 1,
-                      background: 'var(--peach-ink, #C6703D)',
-                      flexShrink: 0,
-                    }}
-                  />
-                  {label}
-                </span>
-                {collapsible && (
-                  <span
-                    aria-hidden
-                    style={{
-                      display: 'inline-flex',
-                      width: 16,
-                      height: 16,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'var(--ink-muted)',
-                      transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
-                    }}
-                  >
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </span>
-                )}
-              </div>
+                {label}
+              </h3>
             )}
             {hint && expanded && (
               <div
                 style={{
                   fontSize: 12.5,
                   color: 'var(--ink-muted)',
-                  marginTop: 6,
+                  marginTop: 4,
                   fontWeight: 400,
                   letterSpacing: 0,
                   textTransform: 'none',
-                  lineHeight: 1.45,
+                  lineHeight: 1.5,
+                  fontFamily: 'var(--font-ui)',
                 }}
               >
                 {hint}
@@ -308,6 +282,28 @@ export function PanelSection({
             )}
           </div>
           {action && <div style={{ flexShrink: 0 }}>{action}</div>}
+          {collapsible && (
+            <span
+              aria-hidden
+              style={{
+                display: 'inline-flex',
+                width: 26,
+                height: 26,
+                borderRadius: 999,
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--ink-muted)',
+                background: expanded ? 'var(--cream-2, #F5EFE2)' : 'transparent',
+                transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1), background 160ms ease',
+                flexShrink: 0,
+              }}
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </span>
+          )}
         </Header>
       )}
       {expanded && (
@@ -315,7 +311,7 @@ export function PanelSection({
           {children}
         </div>
       )}
-    </div>
+    </section>
   );
 }
 

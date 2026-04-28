@@ -1723,6 +1723,38 @@ function DetailsStripImpl({ manifest, siteSlug }: { manifest: StoryManifest; sit
     });
   }
 
+  // Parking & arrival — when the host fills the field in the
+  // DetailsPanel it lands here as its own card. Lavender tone +
+  // pin glyph because guests scan the strip for "where do I
+  // park?" before they look at the dress code.
+  if (details?.parking) {
+    items.push({
+      id: 'parking',
+      label: 'Parking + arrival',
+      value: '',
+      subtitle: details.parking,
+      icon: 'pin',
+      tone: 'lavender',
+      address: ceremonyAddress,
+      expand: expandMap.parking,
+    });
+  }
+
+  // Accessibility — separate card so it doesn't get buried in
+  // the parking copy. Sage tone + leaf glyph keeps the editorial
+  // feel without bolding accessibility as an afterthought.
+  if (details?.accessibility) {
+    items.push({
+      id: 'accessibility',
+      label: 'Accessibility',
+      value: '',
+      subtitle: details.accessibility,
+      icon: 'leaf',
+      tone: 'sage',
+      expand: expandMap.accessibility,
+    });
+  }
+
   // Host-authored custom cards. Any number; render after the
   // preset 3 in declaration order.
   for (const c of details?.customCards ?? []) {
@@ -1821,6 +1853,13 @@ function DetailsCard({
         color: 'var(--ink)',
         display: 'flex',
         flexDirection: 'column',
+        // Text alignment ALSO controls flex-children alignment so
+        // the icon medallion, eyebrow, value, subtitle, golden-hour
+        // chip, and "what to expect" pill all follow the host's
+        // text-align pick. Without this var, picking "center" on
+        // Details left the icon glued to the left edge while the
+        // text centered — looked broken.
+        alignItems: 'var(--pl-block-align-items, flex-start)' as React.CSSProperties['alignItems'],
       }}
     >
       <div
@@ -1833,6 +1872,7 @@ function DetailsCard({
           placeItems: 'center',
           color: 'var(--ink)',
           marginBottom: 16,
+          flexShrink: 0,
         }}
       >
         <Icon name={item.icon} size={20} />
@@ -4715,6 +4755,10 @@ function RegistryCard({
         display: 'flex',
         flexDirection: 'column',
         gap: 14,
+        // Match Details cards — flex children align with the host's
+        // text-align pick, so the gift icon + label + body all
+        // center / right-align together when picked.
+        alignItems: 'var(--pl-block-align-items, flex-start)' as React.CSSProperties['alignItems'],
         boxShadow: showMostLoved
           ? '0 8px 24px -10px rgba(198,112,61,0.30), 0 0 0 4px rgba(198,112,61,0.06)'
           : 'var(--pl-block-card-shadow, none)',

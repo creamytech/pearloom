@@ -122,6 +122,20 @@ export function BlockStyleWrapper({ manifest, blockId, children, as: Tag = 'div'
   if (override.cardPadding && CARD_PADDING_PX[override.cardPadding] != null) {
     cssVars['--pl-block-card-padding'] = `${CARD_PADDING_PX[override.cardPadding]}px`;
   }
+  // Mirror text-align as a flex align-items var so card layouts
+  // (Details strip, custom cards, etc.) can opt in. text-align
+  // alone affects text content but not flex children — without
+  // this, picking "center" on Details centers the eyebrow/value
+  // text but leaves the icon medallion + golden-hour chip
+  // glued to the left edge.
+  if (override.textAlign) {
+    const alignMap: Record<'left' | 'center' | 'right', string> = {
+      left: 'flex-start',
+      center: 'center',
+      right: 'flex-end',
+    };
+    cssVars['--pl-block-align-items'] = alignMap[override.textAlign];
+  }
 
   // Spacing: additive padding on top of any explicit paddingY
   // override. The total stacks: paddingY (raw) + spacing delta.
