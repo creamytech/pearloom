@@ -668,6 +668,154 @@
   .pl8-guest .pl8-cols-3 { grid-template-columns: 1fr !important; }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE POLISH PASS — readable, tappable, breathing on phone
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Tighter section padding on phone. Sections defaulting to 32px
+   horizontal feels claustrophobic at 360px viewport (only 296px
+   left for content). Drop to 20px so the eye has more text width
+   without losing the editorial rhythm. */
+@media (max-width: 640px) {
+  .pl8-guest section[id] {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+  /* Hero needs even less horizontal padding so big display
+     names breathe. The clamp() in the inline style still wins
+     vertically; we only override horizontal. */
+  .pl8-guest #top {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  /* Section reveal animation drops the 28px translate on phone
+     so flicking the page doesn't feel laggy. */
+  .pl8-guest section {
+    animation-duration: 0ms !important;
+    transform: none !important;
+  }
+}
+
+/* iOS zoom prevention — inputs with font-size < 16px trigger a
+   zoom gesture on focus. Set a baseline 16px on every form
+   control inside the published site so taps don't yank the view.
+   Editor chrome can still use smaller fonts (it's desktop-first). */
+.pl8-guest input,
+.pl8-guest textarea,
+.pl8-guest select {
+  font-size: 16px;
+}
+@media (min-width: 768px) {
+  .pl8-guest input,
+  .pl8-guest textarea,
+  .pl8-guest select {
+    font-size: inherit; /* Restore tighter sizes on tablet+ */
+  }
+}
+
+/* Touch target minimum — buttons, links, and role=button need
+   to be at least 44×44px to meet WCAG 2.5.5 AAA + iOS HIG.
+   We target only published-site interactive elements and use
+   min-height (not height) so editorial pills with extra padding
+   stay flexible. */
+@media (max-width: 768px) {
+  .pl8-guest button,
+  .pl8-guest a.btn,
+  .pl8-guest [role="button"] {
+    min-height: 44px;
+  }
+}
+
+/* Body line-height on phone — bumps from 1.55 → 1.65 so paragraph
+   reading flow improves on narrow screens. Display headings keep
+   their tight 1.02 line-height because shorter heading lines
+   don't suffer the same way. */
+@media (max-width: 640px) {
+  .pl8-guest p,
+  .pl8-guest li {
+    line-height: 1.65;
+  }
+}
+
+/* Hero strip — three or fewer photos fit cleanly at phone width;
+   the existing rule caps at 3, but the photos themselves still
+   carry desktop padding. Shrink polaroid borders on phone so the
+   strip doesn't blow past the viewport. */
+@media (max-width: 640px) {
+  .pl8-guest .pl8-hero-strip {
+    gap: 6px !important;
+  }
+  .pl8-guest .pl8-hero-strip > div {
+    padding: 4px !important;
+  }
+}
+
+/* Hotel card grid — gridTemplateColumns "120px 1fr" is the photo
+   + content split. On phone, drop the photo column to 84px so
+   the content has more horizontal space without becoming a
+   single-column stack (which would lose the photo orientation). */
+@media (max-width: 480px) {
+  .pl8-guest .pl8-hotel-card {
+    grid-template-columns: 84px 1fr !important;
+    gap: 10px !important;
+    padding: 10px !important;
+  }
+}
+
+/* Modal full-bleed on phone. Quick Edit modals at 960px are
+   useless at 360px — drop the 24px outer padding so the modal
+   takes the full viewport, and the inner 18px border-radius
+   becomes 0 so the corners read as a true page take-over. */
+@media (max-width: 640px) {
+  div[role="dialog"][aria-label*="Edit"],
+  div[role="dialog"][aria-label*="Swap"] {
+    padding: 0 !important;
+  }
+  div[role="dialog"][aria-label*="Edit"] > div,
+  div[role="dialog"][aria-label*="Swap"] > div {
+    width: 100% !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+  }
+}
+
+/* Quick Edit modal sidebar — at 260px on a 360px phone it
+   leaves 100px for the editor pane. Stack vertically instead:
+   sidebar above, editor below, both full width. */
+@media (max-width: 640px) {
+  div[role="dialog"][aria-label*="Edit"] > div > div:last-child {
+    flex-direction: column !important;
+  }
+  div[role="dialog"][aria-label*="Edit"] > div > div:last-child > div:first-child {
+    width: 100% !important;
+    max-height: 200px !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--line-soft) !important;
+  }
+}
+
+/* Sticky floating elements — back-to-top + sticky RSVP CTA can
+   collide at the bottom-right of mobile. Push back-to-top to
+   the bottom-LEFT on small screens so the RSVP CTA owns the
+   right corner (which is where guests' thumbs naturally land
+   on right-handed phone holds). */
+@media (max-width: 640px) {
+  body > button[aria-label="Back to top"] {
+    right: auto !important;
+    left: 16px !important;
+    bottom: 16px !important;
+  }
+}
+
+/* Reading-progress hairline — beef up to 3px on phone so the
+   subtle peach line doesn't disappear on 1px-DPR screens. */
+@media (max-width: 640px) {
+  .pl8-reading-progress {
+    height: 3px;
+  }
+}
+
 /* ── Editor mobile-preview container queries ──────────────────
    When the canvas device frame switches to phone/tablet, the
    site's media-query breakpoints don't fire because the *window*
