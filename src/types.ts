@@ -173,7 +173,19 @@ export interface StoryManifest {
     cashFundMessage?: string;
     message?: string;
     // Multi-registry support
-    entries?: Array<{ name: string; url: string; note?: string }>;
+    entries?: Array<{
+      name: string;
+      url: string;
+      note?: string;
+      /** Per-row badges. The "Most loved" auto-badge lives in
+       *  hideAuto when the host wants it suppressed; custom labels
+       *  ("Couple's pick", "Group gift", "Already bought") under
+       *  custom. */
+      badges?: {
+        hideAuto?: string[];
+        custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }>;
+      };
+    }>;
   };
   // AI-generated visual skin — cached on publish so it's not re-generated on every load
   vibeSkin?: VibeSkin;
@@ -918,6 +930,14 @@ export interface WeddingEvent {
     foodStyle?: string;             // e.g. "Casual cocktails and bites"
     kidsWelcome?: boolean;
   };
+
+  /** Per-row badges. Auto-tagged badges (e.g. "Main moment" for
+   *  the highlighted ceremony) live under `hideAuto`; host labels
+   *  ("Optional", "After-party", "Photographer") under `custom`. */
+  badges?: {
+    hideAuto?: string[];
+    custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }>;
+  };
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1073,6 +1093,13 @@ export interface FaqItem {
   question: string;
   answer: string;
   order: number;
+  /** Per-row badges. The FAQ section doesn't ship auto-tagged
+   *  badges yet, so `hideAuto` is unused — `custom` carries the
+   *  host's labels (e.g. "Most asked", "Important", "Update"). */
+  badges?: {
+    hideAuto?: string[];
+    custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }>;
+  };
 }
 
 export interface AirportEntry {

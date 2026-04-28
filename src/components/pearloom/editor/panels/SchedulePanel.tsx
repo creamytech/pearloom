@@ -4,6 +4,15 @@ import { useEffect } from 'react';
 import type { StoryManifest, WeddingEvent } from '@/types';
 import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PanelSmartActions, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
+import { BadgesEditor } from './BadgesEditor';
+
+// Schedule auto-tags one badge today: 'main' for the highlighted
+// "main moment" event (ceremony or main-event-of-the-day). Hosts
+// can suppress it via the BadgesEditor's hideAuto toggle.
+type ScheduleAutoBadge = 'main';
+const SCHEDULE_AUTO_LABELS: Record<ScheduleAutoBadge, string> = {
+  main: 'Main moment',
+};
 
 // Listen for canvas → panel focus jumps. Renderer emits
 // `pearloom:focus-schedule-row` with { eventId }.
@@ -216,6 +225,12 @@ export function SchedulePanel({
                     placeholder="Forty minutes, give or take a few happy tears."
                   />
                 </Field>
+                <BadgesEditor<ScheduleAutoBadge>
+                  badges={(it.badges ?? {}) as { hideAuto?: ScheduleAutoBadge[]; custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }> }}
+                  onChange={(next) => update(i, { badges: next as WeddingEvent['badges'] })}
+                  autoLabels={SCHEDULE_AUTO_LABELS}
+                  placeholder="Optional, After-party, Photographer…"
+                />
               </SortableRowCard>
             );
           }}

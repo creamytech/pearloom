@@ -5,6 +5,15 @@ import type { StoryManifest } from '@/types';
 import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, SelectInput, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
+import { BadgesEditor } from './BadgesEditor';
+
+// Registry auto-tags one badge: 'mostLoved' on the first card so
+// the host's preferred order surfaces visually. Hosts can hide it
+// per-row via the BadgesEditor.
+type RegistryAutoBadge = 'mostLoved';
+const REGISTRY_AUTO_LABELS: Record<RegistryAutoBadge, string> = {
+  mostLoved: 'Most loved',
+};
 
 // Listen for canvas → panel focus jumps. Renderer emits
 // `pearloom:focus-registry-row` with { url } since registry
@@ -28,7 +37,17 @@ function useRegistryRowFocus() {
   }, []);
 }
 
-type RegistryItem = { id: string; label: string; url: string; description?: string; kind?: 'fund' | 'registry' | 'link' };
+type RegistryItem = {
+  id: string;
+  label: string;
+  url: string;
+  description?: string;
+  kind?: 'fund' | 'registry' | 'link';
+  badges?: {
+    hideAuto?: RegistryAutoBadge[];
+    custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }>;
+  };
+};
 
 function RegistryImportAI({ onResult }: { onResult: (items: RegistryItem[]) => void }) {
   const [url, setUrl] = useState('');
@@ -186,6 +205,12 @@ export function RegistryPanel({
                     placeholder="Kyoto in October. Thank you, truly."
                   />
                 </Field>
+                <BadgesEditor<RegistryAutoBadge>
+                  badges={it.badges ?? {}}
+                  onChange={(next) => update(i, { badges: next })}
+                  autoLabels={REGISTRY_AUTO_LABELS}
+                  placeholder="Couple's pick, Group gift, Already bought…"
+                />
               </SortableRowCard>
             );
           }}

@@ -5,8 +5,21 @@ import type { StoryManifest } from '@/types';
 import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
+import { BadgesEditor } from './BadgesEditor';
 
-type FaqItem = { id: string; question: string; answer: string };
+// Local FAQ row shape — mirror of the manifest's FaqItem (which
+// also carries `order`) plus the new badges field. Both panels
+// and renderer write through this shape; the manifest just stores
+// it more strictly.
+type FaqItem = {
+  id: string;
+  question: string;
+  answer: string;
+  badges?: {
+    hideAuto?: string[];
+    custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }>;
+  };
+};
 
 // Listen for canvas → panel focus jumps. The site renderer emits
 // `pearloom:focus-faq-row` with { faqId } when a host clicks a
@@ -128,6 +141,11 @@ export function FaqPanel({
                         placeholder="Cocktail attire — elevated but comfortable. Think elegant dinner party."
                       />
                     </Field>
+                    <BadgesEditor
+                      badges={it.badges ?? {}}
+                      onChange={(next) => update(i, { badges: next })}
+                      placeholder="Most asked, Important, Update…"
+                    />
                   </SortableRowCard>
                 );
               }}

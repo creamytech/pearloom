@@ -25,6 +25,7 @@ import { EditorCanvasProvider, useIsEditMode } from '../editor/canvas/EditorCanv
 import { terminologyFor } from '@/lib/event-terminology';
 import { sunriseSunsetFor } from '@/lib/sunset';
 import { stableHotelId } from '@/lib/hotel-id';
+import { CustomBadgePill as SectionCustomBadge } from '@/components/pearloom/editor/panels/BadgesEditor';
 import { EditableText } from '../editor/canvas/EditableText';
 import { EditableField } from '../editor/canvas/EditableField';
 import { SortableBlockList } from '../editor/canvas/CanvasBlockSortable';
@@ -2240,6 +2241,7 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
     cur: e.type === 'ceremony',
     isMain: i === mainIdx,
     isLive: i === liveIdx,
+    badges: e.badges,
   }));
   void names;
 
@@ -2398,62 +2400,74 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
                 </div>
               )}
               <div>
-                {(r.isLive || r.isMain) && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 5 }}>
-                    {r.isLive && (
-                      <span
-                        className="pl8-live-pill"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 5,
-                          padding: '2px 9px 2px 6px',
-                          background: 'var(--peach-ink, #C6703D)',
-                          color: '#FFFFFF',
-                          borderRadius: 999,
-                          fontSize: 9.5,
-                          fontWeight: 800,
-                          letterSpacing: '0.14em',
-                          textTransform: 'uppercase',
-                          boxShadow: '0 4px 10px -3px rgba(198,112,61,0.45)',
-                        }}
-                      >
+                {(() => {
+                  // Auto-tagged + host-authored badges share one row.
+                  // Host can suppress 'main' via badges.hideAuto. Custom
+                  // labels render as v8 chips after the auto-tags.
+                  const evBadges = (r as { badges?: { hideAuto?: string[]; custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }> } }).badges;
+                  const showMain = r.isMain && !r.isLive && !evBadges?.hideAuto?.includes('main');
+                  const customBadges = evBadges?.custom ?? [];
+                  if (!r.isLive && !showMain && customBadges.length === 0) return null;
+                  return (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 5 }}>
+                      {r.isLive && (
                         <span
-                          aria-hidden
+                          className="pl8-live-pill"
                           style={{
-                            width: 6,
-                            height: 6,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            padding: '2px 9px 2px 6px',
+                            background: 'var(--peach-ink, #C6703D)',
+                            color: '#FFFFFF',
                             borderRadius: 999,
-                            background: '#FFFFFF',
-                            animation: 'pl8-live-pulse 1.4s ease-in-out infinite',
+                            fontSize: 9.5,
+                            fontWeight: 800,
+                            letterSpacing: '0.14em',
+                            textTransform: 'uppercase',
+                            boxShadow: '0 4px 10px -3px rgba(198,112,61,0.45)',
                           }}
-                        />
-                        Live now
-                      </span>
-                    )}
-                    {r.isMain && !r.isLive && (
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          padding: '2px 9px',
-                          background: 'rgba(198,112,61,0.10)',
-                          color: 'var(--peach-ink, #C6703D)',
-                          border: '1px solid rgba(198,112,61,0.32)',
-                          borderRadius: 999,
-                          fontSize: 9.5,
-                          fontWeight: 800,
-                          letterSpacing: '0.14em',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        <span aria-hidden style={{ fontSize: 9 }}>★</span>
-                        Main moment
-                      </span>
-                    )}
-                  </div>
-                )}
+                        >
+                          <span
+                            aria-hidden
+                            style={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: 999,
+                              background: '#FFFFFF',
+                              animation: 'pl8-live-pulse 1.4s ease-in-out infinite',
+                            }}
+                          />
+                          Live now
+                        </span>
+                      )}
+                      {showMain && (
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            padding: '2px 9px',
+                            background: 'rgba(198,112,61,0.10)',
+                            color: 'var(--peach-ink, #C6703D)',
+                            border: '1px solid rgba(198,112,61,0.32)',
+                            borderRadius: 999,
+                            fontSize: 9.5,
+                            fontWeight: 800,
+                            letterSpacing: '0.14em',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          <span aria-hidden style={{ fontSize: 9 }}>★</span>
+                          Main moment
+                        </span>
+                      )}
+                      {customBadges.map((cb) => (
+                        <SectionCustomBadge key={cb.id} label={cb.label} tone={cb.tone ?? 'peach'} />
+                      ))}
+                    </div>
+                  );
+                })()}
                 <EditableField
                   as="div"
                   context={`Schedule item ${i + 1} title`}
@@ -4649,6 +4663,7 @@ function RegistryCard({
   editMode,
   onRemove,
   onFocus,
+  badges,
 }: {
   gift: RegistryCardGift;
   isMostLoved?: boolean;
@@ -4656,7 +4671,11 @@ function RegistryCard({
   editMode?: boolean;
   onRemove?: () => void;
   onFocus?: () => void;
+  badges?: { hideAuto?: string[]; custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }> };
 }) {
+  const hideMostLoved = badges?.hideAuto?.includes('mostLoved');
+  const showMostLoved = isMostLoved && !hideMostLoved;
+  const customBadges = badges?.custom ?? [];
   return (
     <div
       className={editMode ? 'pl8-canvas-row' : undefined}
@@ -4669,13 +4688,13 @@ function RegistryCard({
       style={{
         position: 'relative',
         background: 'var(--card)',
-        border: isMostLoved ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid var(--card-ring)',
+        border: showMostLoved ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid var(--card-ring)',
         borderRadius: 'var(--pl-card-radius, 20px)',
         padding: 24,
         display: 'flex',
         flexDirection: 'column',
         gap: 14,
-        boxShadow: isMostLoved
+        boxShadow: showMostLoved
           ? '0 8px 24px -10px rgba(198,112,61,0.30), 0 0 0 4px rgba(198,112,61,0.06)'
           : 'none',
         cursor: editMode ? 'pointer' : 'default',
@@ -4710,29 +4729,46 @@ function RegistryCard({
           ×
         </button>
       )}
-      {isMostLoved && (
-        <span
+      {/* Auto + custom badges stacked top-right. The auto "Most
+          loved" lights up first; host-authored chips render below
+          it so the resting card stays visually clean. */}
+      {(showMostLoved || customBadges.length > 0) && (
+        <div
           style={{
             position: 'absolute',
             top: 14,
             right: 14,
             display: 'inline-flex',
-            alignItems: 'center',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
             gap: 4,
-            padding: '3px 9px',
-            background: 'var(--peach-ink, #C6703D)',
-            color: '#FFFFFF',
-            borderRadius: 999,
-            fontSize: 9.5,
-            fontWeight: 800,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            boxShadow: '0 4px 10px -3px rgba(198,112,61,0.45)',
           }}
         >
-          <span aria-hidden style={{ fontSize: 9 }}>★</span>
-          Most loved
-        </span>
+          {showMostLoved && (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '3px 9px',
+                background: 'var(--peach-ink, #C6703D)',
+                color: '#FFFFFF',
+                borderRadius: 999,
+                fontSize: 9.5,
+                fontWeight: 800,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                boxShadow: '0 4px 10px -3px rgba(198,112,61,0.45)',
+              }}
+            >
+              <span aria-hidden style={{ fontSize: 9 }}>★</span>
+              Most loved
+            </span>
+          )}
+          {customBadges.map((cb) => (
+            <SectionCustomBadge key={cb.id} label={cb.label} tone={cb.tone ?? 'peach'} />
+          ))}
+        </div>
       )}
       <div
         style={{
@@ -4927,6 +4963,7 @@ function RegistrySectionImpl({ manifest, onEditField }: { manifest: StoryManifes
                       editMode={edit}
                       onRemove={edit ? () => removeRegistry(g.url) : undefined}
                       onFocus={edit ? () => focusRegistry(g.url) : undefined}
+                      badges={(g as { badges?: { hideAuto?: string[]; custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }> } }).badges}
                     />
                   ))}
                 </div>
@@ -4944,6 +4981,7 @@ function RegistrySectionImpl({ manifest, onEditField }: { manifest: StoryManifes
                 editMode={edit}
                 onRemove={edit ? () => removeRegistry(g.url) : undefined}
                 onFocus={edit ? () => focusRegistry(g.url) : undefined}
+                badges={(g as { badges?: { hideAuto?: string[]; custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }> } }).badges}
               />
             ))}
           </div>
@@ -5563,7 +5601,11 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
                 {edit && dragHandleProps && (
                   <CanvasGripHandle dragHandleProps={dragHandleProps} ariaLabel="Drag to reorder question" position="top-left" />
                 )}
-                {i === 0 && filter === 'All' && (
+                {/* Auto badge: "Most asked" on the first row when no
+                    topic filter is applied. The host can suppress it
+                    via the BadgesEditor's Hide pill (badges.hideAuto
+                    contains 'mostAsked'). */}
+                {i === 0 && filter === 'All' && !((item as { badges?: { hideAuto?: string[] } }).badges?.hideAuto?.includes('mostAsked')) && (
                   <span
                     style={{
                       display: 'inline-flex',
@@ -5579,12 +5621,27 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
                       letterSpacing: '0.14em',
                       textTransform: 'uppercase',
                       marginBottom: 8,
+                      marginRight: 6,
                     }}
                   >
                     <span aria-hidden style={{ fontSize: 9 }}>★</span>
                     Most asked
                   </span>
                 )}
+                {/* Custom host-authored badges. Render inline above
+                    the question copy so they read as labels for the
+                    row, not chrome stuck to the side. */}
+                {(() => {
+                  const customBadges = (item as { badges?: { custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }> } }).badges?.custom ?? [];
+                  if (customBadges.length === 0) return null;
+                  return (
+                    <div style={{ display: 'inline-flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
+                      {customBadges.map((cb) => (
+                        <SectionCustomBadge key={cb.id} label={cb.label} tone={cb.tone ?? 'peach'} />
+                      ))}
+                    </div>
+                  );
+                })()}
                 <EditableField
                   as="div"
                   className="display"
