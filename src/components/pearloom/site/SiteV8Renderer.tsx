@@ -5106,6 +5106,16 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
       return { ...(m as unknown as Record<string, unknown>), faq: arr } as unknown as StoryManifest;
     });
   };
+  // Drag-to-reorder. CanvasSortable hands back the new order;
+  // we rewrite manifest.faq verbatim. The current filter UI is
+  // a non-destructive view filter — reordering applies to the
+  // full list regardless of which chip is active.
+  const reorderFaq = (next: FaqItem[]) => {
+    onEditField?.((m) => ({
+      ...(m as unknown as Record<string, unknown>),
+      faq: next,
+    }) as unknown as StoryManifest);
+  };
   return (
     <section id="faq" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="faq" />
@@ -5180,12 +5190,20 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
             overflow: 'hidden',
           }}
         >
-          {faq.map((item, i) => {
-            const cat = categorizeFaq(item.question ?? '');
-            const visible = filter === 'All' || filter === cat;
-            if (!visible) return null;
-            const fid = item.id ?? `faq-${i}`;
-            return (
+          {(() => {
+            // Drag-to-reorder is only safe with filter === 'All' —
+            // dragging while a topic chip is filtering would let
+            // the host visually move row B above row A even though
+            // the underlying full list still has A before B
+            // (because we'd persist the visible-only order). When
+            // filtered, we render the inline map; when 'All' +
+            // editing, we wrap in CanvasSortable.
+            const renderRow = (item: FaqItem, i: number, dragHandleProps?: React.HTMLAttributes<HTMLElement> & { ref: (el: HTMLElement | null) => void }) => {
+              const cat = categorizeFaq(item.question ?? '');
+              const visible = filter === 'All' || filter === cat;
+              if (!visible) return null;
+              const fid = item.id ?? `faq-${i}`;
+              return (
               <div
                 key={item.id ?? i}
                 className={edit ? 'pl8-canvas-row' : undefined}
@@ -5235,6 +5253,9 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
                     ×
                   </button>
                 )}
+                {edit && dragHandleProps && (
+                  <CanvasGripHandle dragHandleProps={dragHandleProps} ariaLabel="Drag to reorder question" position="top-left" />
+                )}
                 {i === 0 && filter === 'All' && (
                   <span
                     style={{
@@ -5280,8 +5301,35 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
                   style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.65 }}
                 />
               </div>
-            );
-          })}
+              );
+            };
+            // FAQ items need stable ids for CanvasSortable. Synthesize
+            // when missing, just like we do for hotels.
+            const itemsWithIds = faq.map((it, i) => ({ ...it, id: it.id ?? `faq-idx-${i}` }));
+            if (edit && onEditField && filter === 'All') {
+              return (
+                <CanvasSortable
+                  items={itemsWithIds}
+                  onReorder={(next) => {
+                    // Re-resolve synthetic ids back to manifest entries
+                    // (otherwise we'd grow temp ids).
+                    const reordered = next.map((nh) => {
+                      const nid = (nh as { id?: string }).id;
+                      if (nid && !nid.startsWith('faq-idx-')) {
+                        return faq.find((x) => (x.id ?? '') === nid) ?? nh;
+                      }
+                      return faq.find(
+                        (x) => x.question === nh.question && x.answer === nh.answer,
+                      ) ?? nh;
+                    });
+                    reorderFaq(reordered);
+                  }}
+                  renderItem={(item, ctx) => renderRow(item, ctx.index, ctx.dragHandleProps)}
+                />
+              );
+            }
+            return faq.map((item, i) => renderRow(item, i));
+          })()}
           {edit && (
             <button
               type="button"

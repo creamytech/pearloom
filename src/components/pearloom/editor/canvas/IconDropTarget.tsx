@@ -74,7 +74,12 @@ export function IconDropTarget({ editMode, onEditField, canvasRoot }: Props) {
       e.stopPropagation();
       e.preventDefault();
       window.dispatchEvent(new CustomEvent('pearloom:icon-swap', {
-        detail: { purpose: `icon:${originalName}`, currentName },
+        // Use the bare original name as the key so it matches the
+        // lookup the renderer does in motifs.tsx (`iconOverrides[name]`).
+        // Earlier this was prefixed with "icon:" which meant clicking
+        // an icon → picking a swap → saved to `iconOverrides['icon:heart']`
+        // → renderer never found it because it looks up `iconOverrides['heart']`.
+        detail: { purpose: originalName, currentName },
       }));
     }
     canvasRoot.addEventListener('click', onClick, true);
