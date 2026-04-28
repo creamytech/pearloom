@@ -957,6 +957,14 @@ export interface WeddingEvent {
    *  thumbnail. Stored as a full URL (R2 / external). */
   photoUrl?: string;
 
+  /** Host explicitly marks this event as the "main moment". When
+   *  set, overrides auto-detection from event type + name (which
+   *  was unreliable for non-wedding occasions like graduations or
+   *  memorials where the renderer's heuristic missed). The
+   *  renderer reads this first; falls back to auto-detect when
+   *  omitted across the whole list. */
+  isMain?: boolean;
+
   /** Per-row badges. Auto-tagged badges (e.g. "Main moment" for
    *  the highlighted ceremony) live under `hideAuto`; host labels
    *  ("Optional", "After-party", "Photographer") under `custom`. */

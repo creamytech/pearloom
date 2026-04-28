@@ -230,17 +230,64 @@ export function SchedulePanel({
                     placeholder="Forty minutes, give or take a few happy tears."
                   />
                 </Field>
+                {/* Main-moment toggle — explicit host control beats
+                    the renderer's name/type heuristic. Click here
+                    promotes this event to "Main moment" on the
+                    canvas and clears the flag from any sibling
+                    that had it. The auto-badge then renders unless
+                    the host also hides it via the Hide pill below. */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '8px 12px',
+                    background: 'var(--cream-2, #F5EFE2)',
+                    border: '1px dashed var(--line-soft)',
+                    borderRadius: 10,
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Promote this event; demote everyone else.
+                      const promoting = !it.isMain;
+                      set(items.map((x, ii) => ({
+                        ...x,
+                        isMain: ii === i ? promoting : false,
+                      })));
+                    }}
+                    aria-pressed={!!it.isMain}
+                    style={{
+                      padding: '5px 11px',
+                      borderRadius: 999,
+                      background: it.isMain ? 'var(--peach-ink, #C6703D)' : 'transparent',
+                      color: it.isMain ? '#FFFFFF' : 'var(--peach-ink, #C6703D)',
+                      border: `1px solid var(--peach-ink, #C6703D)`,
+                      fontSize: 10.5,
+                      fontWeight: 700,
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                      fontFamily: 'var(--font-ui)',
+                    }}
+                  >
+                    {it.isMain ? '★ Main moment' : 'Mark as main'}
+                  </button>
+                  <span style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>
+                    {it.isMain
+                      ? 'This event gets the spotlight badge on the schedule.'
+                      : 'Click to spotlight this event.'}
+                  </span>
+                </div>
                 <BadgesEditor<ScheduleAutoBadge>
                   badges={(it.badges ?? {}) as { hideAuto?: ScheduleAutoBadge[]; custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }> }}
                   onChange={(next) => {
                     // Coerce hideAuto back to the canonical string[] shape
                     // (BadgesEditor narrows it to AutoKey[] for the input
-                    // chips). Without this round-trip the patch's
-                    // hideAuto is typed `'main'[]`, which spreads onto
-                    // the WeddingEvent's `string[]` cleanly but tripped
-                    // up some downstream readers when the array was
-                    // empty — they treated the missing-string narrowing
-                    // as "no badges configured" and dropped writes.
+                    // chips). Round-trip ensures downstream readers see
+                    // the canonical empty array, not a narrow-typed
+                    // `'main'[]` that some treated as "unset".
                     update(i, {
                       badges: {
                         hideAuto: (next.hideAuto ?? []) as string[],

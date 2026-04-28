@@ -2202,7 +2202,14 @@ function ScheduleTimeEditor({
 //      "wedding mass", "I do", "exchange of vows".
 //   3. Otherwise no main moment — the strip just renders without
 //      the badge (host hasn't said which is centre).
-function computeMainEventIndex(events: Array<{ name?: string; type?: string }>): number {
+function computeMainEventIndex(events: Array<{ name?: string; type?: string; isMain?: boolean }>): number {
+  // Host wins. When any event has isMain=true, that one is the
+  // main moment regardless of type/name heuristics. Auto-detection
+  // is the fallback for sites that haven't picked yet — it kept
+  // mismatching graduations / memorials where "ceremony" doesn't
+  // mean what the heuristic thinks.
+  const explicitHost = events.findIndex((e) => e.isMain === true);
+  if (explicitHost >= 0) return explicitHost;
   const explicit = events.findIndex((e) => e.type === 'ceremony');
   if (explicit >= 0) return explicit;
   const NAME_HINTS = /\b(ceremony|service|vows|nuptials|exchange|i do)\b/i;
