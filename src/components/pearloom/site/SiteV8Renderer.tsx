@@ -1304,6 +1304,21 @@ function StoryVariantSectionImpl({
     : 'parallax';
   const themeFonts = manifest?.theme?.fonts;
 
+  // Edit-mode click hook — every chapter card opens the
+  // StoryQuickEditModal scoped to that chapter. Mirrors the
+  // schedule-row pattern: ignore clicks on inputs / inline-editable
+  // text so EditableField still works inline.
+  const editMode = useIsEditMode();
+  function chapterClick(id: string | undefined) {
+    return (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!editMode || !id) return;
+      const target = e.target as Element;
+      if (target.closest('a, button, input, textarea, [contenteditable="true"], [role="button"]')) return;
+      if (typeof window === 'undefined') return;
+      window.dispatchEvent(new CustomEvent('pearloom:story-quick-edit', { detail: { chapterId: id } }));
+    };
+  }
+
   if (!Comp) {
     // Fall back to the timeline render while the chunk loads. Avoids
     // an empty section flash on first navigation.
@@ -1341,18 +1356,24 @@ function StoryVariantSectionImpl({
               .filter((img) => img && img.url)
               .map((img) => ({ url: img.url, alt: img.alt, caption: img.caption }));
             return (
-              <Comp
+              <div
                 key={c.id ?? i}
-                type={safeLayout}
-                title={c.title}
-                subtitle={c.subtitle ?? c.location?.label ?? ''}
-                body={c.description}
-                date={c.date}
-                location={c.location?.label ?? null}
-                index={i}
-                photos={photos}
-                themeFonts={themeFonts}
-              />
+                data-pl-chapter-id={c.id}
+                onClick={chapterClick(c.id)}
+                style={editMode ? { cursor: 'pointer' } : undefined}
+              >
+                <Comp
+                  type={safeLayout}
+                  title={c.title}
+                  subtitle={c.subtitle ?? c.location?.label ?? ''}
+                  body={c.description}
+                  date={c.date}
+                  location={c.location?.label ?? null}
+                  index={i}
+                  photos={photos}
+                  themeFonts={themeFonts}
+                />
+              </div>
             );
           })}
         </div>

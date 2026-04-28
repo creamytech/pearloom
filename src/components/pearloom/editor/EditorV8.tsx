@@ -47,6 +47,7 @@ import { PearWelcome } from './PearWelcome';
 import { FaqQuickEditModal } from './FaqQuickEditModal';
 import { ScheduleQuickEditModal } from './ScheduleQuickEditModal';
 import { RegistryQuickEditModal } from './RegistryQuickEditModal';
+import { StoryQuickEditModal } from './StoryQuickEditModal';
 import { FindInSite } from './FindInSite';
 import { MobileSaveIndicator } from './MobileSaveIndicator';
 import { ThemeQuickBar } from './canvas/ThemeQuickBar';
@@ -642,6 +643,7 @@ export function EditorV8({
       <FaqQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
       <ScheduleQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
       <RegistryQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
+      <StoryQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
       <FindInSite
         manifest={manifest}
         open={findOpen}
