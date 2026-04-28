@@ -11,6 +11,7 @@
 //   • items             — sidebar list shape
 //   • focusedId         — which row the editor pane shows
 //   • onFocusChange     — switching focus inside the modal
+//   • onReorder?        — drag-to-reorder callback, optional
 //   • searchSlot?       — top "Add another …" affordance
 //   • editorSlot        — the focused row's full editor
 //   • onClose           — host pressed × or escape or backdrop
@@ -21,6 +22,23 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, type ReactNode } from 'react';
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Icon } from '../motifs';
 
 export interface QuickEditModalItem {
@@ -44,6 +62,10 @@ interface Props {
   items: QuickEditModalItem[];
   focusedId: string | null;
   onFocusChange: (id: string) => void;
+  /** Drag-to-reorder callback. Receives the visible array in
+   *  the new order. When provided, sidebar tiles get a small
+   *  grip glyph + dnd-kit wiring. */
+  onReorder?: (orderedIds: string[]) => void;
   /** Optional search / add-row component pinned above the
    *  sidebar + editor so the host can grow the list without
    *  closing the modal. */
@@ -62,11 +84,26 @@ export function QuickEditModalShell({
   items,
   focusedId,
   onFocusChange,
+  onReorder,
   searchSlot,
   editorSlot,
   onClose,
   emptyHint,
 }: Props) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+  function handleDragEnd(e: DragEndEvent) {
+    if (!onReorder) return;
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const from = items.findIndex((it) => it.id === active.id);
+    const to = items.findIndex((it) => it.id === over.id);
+    if (from < 0 || to < 0) return;
+    const next = arrayMove(items, from, to);
+    onReorder(next.map((it) => it.id));
+  }
   // Escape to close, freeze body scroll while open.
   useEffect(() => {
     if (!open) return;
@@ -221,6 +258,28 @@ export function QuickEditModalShell({
               >
                 {emptyHint}
               </div>
+            ) : onReorder ? (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={items.map((it) => it.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {items.map((it) => (
+                      <SortableSidebarTile
+                        key={it.id}
+                        item={it}
+                        active={it.id === focusedId}
+                        onClick={() => onFocusChange(it.id)}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {items.map((it) => (
@@ -335,5 +394,138 @@ function SidebarTile({
         )}
       </div>
     </button>
+  );
+}
+
+// Sortable variant of SidebarTile. Wraps the same chrome but adds
+// dnd-kit's setNodeRef + transform + a small grip glyph anchored
+// to the right edge that the host can drag without losing the
+// click-to-focus behaviour on the rest of the tile.
+function SortableSidebarTile({
+  item,
+  active,
+  onClick,
+}: {
+  item: QuickEditModalItem;
+  active: boolean;
+  onClick: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging, setActivatorNodeRef } = useSortable({ id: item.id });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        position: 'relative',
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.45 : 1,
+      }}
+    >
+      <button
+        type="button"
+        onClick={onClick}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '10px 30px 10px 10px',
+          borderRadius: 10,
+          border: active ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid transparent',
+          background: active ? 'rgba(198,112,61,0.08)' : 'transparent',
+          color: 'var(--ink)',
+          cursor: 'pointer',
+          textAlign: 'left',
+          width: '100%',
+          fontFamily: 'var(--font-ui)',
+          transition: 'background 140ms ease, border-color 140ms ease',
+        }}
+        onMouseEnter={(e) => {
+          if (!active) e.currentTarget.style.background = 'var(--cream-2, #F5EFE2)';
+        }}
+        onMouseLeave={(e) => {
+          if (!active) e.currentTarget.style.background = 'transparent';
+        }}
+      >
+        <div
+          aria-hidden
+          style={{
+            width: 36,
+            height: 36,
+            flexShrink: 0,
+            borderRadius: 8,
+            background: item.photoUrl
+              ? `url(${item.photoUrl}) center/cover no-repeat var(--cream-2)`
+              : 'var(--cream-2, #F5EFE2)',
+            display: 'grid',
+            placeItems: 'center',
+            color: 'var(--ink-muted)',
+          }}
+        >
+          {!item.photoUrl && <Icon name={item.icon ?? 'star'} size={14} />}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: 12.5,
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {item.label || 'Untitled'}
+          </div>
+          {item.sublabel && (
+            <div
+              style={{
+                fontSize: 10.5,
+                color: 'var(--ink-soft)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {item.sublabel}
+            </div>
+          )}
+        </div>
+      </button>
+      {/* Grip handle — sits at the right edge over the click
+          target so dragging starts here and clicks elsewhere on
+          the tile still focus. */}
+      <button
+        type="button"
+        ref={setActivatorNodeRef}
+        {...attributes}
+        {...listeners}
+        aria-label="Drag to reorder"
+        style={{
+          position: 'absolute',
+          top: '50%',
+          right: 6,
+          transform: 'translateY(-50%)',
+          width: 22,
+          height: 22,
+          padding: 0,
+          background: 'transparent',
+          border: 'none',
+          color: 'var(--ink-muted)',
+          cursor: 'grab',
+          display: 'grid',
+          placeItems: 'center',
+          opacity: 0.55,
+          touchAction: 'none',
+        }}
+      >
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+          <circle cx="9" cy="6" r="1.4" />
+          <circle cx="15" cy="6" r="1.4" />
+          <circle cx="9" cy="12" r="1.4" />
+          <circle cx="15" cy="12" r="1.4" />
+          <circle cx="9" cy="18" r="1.4" />
+          <circle cx="15" cy="18" r="1.4" />
+        </svg>
+      </button>
+    </div>
   );
 }

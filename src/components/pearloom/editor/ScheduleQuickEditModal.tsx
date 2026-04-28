@@ -102,6 +102,13 @@ export function ScheduleQuickEditModal({ manifest, onChange }: Props) {
       }))}
       focusedId={focused?.id ?? null}
       onFocusChange={(id) => setOpenEventId(id)}
+      onReorder={(orderedIds) => {
+        const byId = new Map(items.map((it) => [it.id, it]));
+        const next = orderedIds.map((id) => byId.get(id)).filter((it): it is WeddingEvent => Boolean(it));
+        const seen = new Set(orderedIds);
+        const tail = items.filter((it) => !seen.has(it.id));
+        setItems([...next, ...tail]);
+      }}
       onClose={() => setOpenEventId(null)}
       emptyHint="No events yet. Add one to start."
       searchSlot={

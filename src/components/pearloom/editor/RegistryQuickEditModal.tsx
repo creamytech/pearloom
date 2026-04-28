@@ -114,6 +114,13 @@ export function RegistryQuickEditModal({ manifest, onChange }: Props) {
       }))}
       focusedId={focused?.id ?? null}
       onFocusChange={(id) => setOpenId(id)}
+      onReorder={(orderedIds) => {
+        const byId = new Map(items.map((it) => [it.id, it]));
+        const next = orderedIds.map((id) => byId.get(id)).filter((it): it is RegistryRow => Boolean(it));
+        const seen = new Set(orderedIds);
+        const tail = items.filter((it) => !seen.has(it.id));
+        setItems([...next, ...tail]);
+      }}
       onClose={() => setOpenId(null)}
       emptyHint="No registry entries yet."
       searchSlot={

@@ -97,6 +97,13 @@ export function FaqQuickEditModal({ manifest, onChange }: Props) {
       }))}
       focusedId={focused?.id ?? null}
       onFocusChange={(id) => setOpenFaqId(id)}
+      onReorder={(orderedIds) => {
+        const byId = new Map(items.map((it) => [it.id, it]));
+        const next = orderedIds.map((id) => byId.get(id)).filter((it): it is FaqRow => Boolean(it));
+        const seen = new Set(orderedIds);
+        const tail = items.filter((it) => !seen.has(it.id));
+        setItems([...next, ...tail]);
+      }}
       onClose={() => setOpenFaqId(null)}
       emptyHint="No questions yet. Add one to get started."
       searchSlot={

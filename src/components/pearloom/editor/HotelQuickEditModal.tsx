@@ -177,6 +177,14 @@ export function HotelQuickEditModal({ manifest, onChange }: Props) {
       }))}
       focusedId={focused?.id ?? null}
       onFocusChange={(id) => setOpenHotelId(id)}
+      onReorder={(orderedIds) => {
+        const byId = new Map(hotels.map((h) => [h.id, h]));
+        const next = orderedIds.map((id) => byId.get(id)).filter((h): h is HotelLike => Boolean(h));
+        // Keep any hotel that wasn't in the visible window — defensive.
+        const seen = new Set(orderedIds);
+        const tail = hotels.filter((h) => !seen.has(h.id));
+        setTravel([...next, ...tail]);
+      }}
       onClose={() => setOpenHotelId(null)}
       searchSlot={
         <Field label="Add another hotel" help="Real Google Places search. Picking enriches the row with rating + amenities + distance from venue.">
