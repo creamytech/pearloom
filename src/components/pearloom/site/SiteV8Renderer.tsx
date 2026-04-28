@@ -23,6 +23,7 @@ import {
 } from '../motifs';
 import { EditorCanvasProvider, useIsEditMode } from '../editor/canvas/EditorCanvasContext';
 import { terminologyFor } from '@/lib/event-terminology';
+import { sunriseSunsetFor } from '@/lib/sunset';
 import { EditableText } from '../editor/canvas/EditableText';
 import { EditableField } from '../editor/canvas/EditableField';
 import { SortableBlockList } from '../editor/canvas/CanvasBlockSortable';
@@ -1628,7 +1629,7 @@ function ChapterCard({
 }
 
 /* ==================== DETAILS STRIP ==================== */
-function DetailsStripImpl({ manifest }: { manifest: StoryManifest }) {
+function DetailsStripImpl({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug?: string }) {
   const l = manifest.logistics ?? {};
   const dateInfo = fmtEventDate(l.date, manifest.dateFormat, l.timezone);
   const events = manifest.events ?? [];
@@ -1640,50 +1641,98 @@ function DetailsStripImpl({ manifest }: { manifest: StoryManifest }) {
   const term = terminologyFor((manifest as unknown as { occasion?: string }).occasion);
   const formatTime = (t?: string) => (t ? term.formatTime(t) : '');
   const ceremonyLabel = term.ceremonyLabel;
+  const details = manifest.details;
+  const expandMap = details?.expand ?? {};
 
-  // Build items from actual manifest data — only surface what the
-  // host has filled in. If they haven't set anything, the whole
-  // strip hides rather than advertising demo copy.
-  type Item = { t: string; v: string; s: string; icon: string; tone: 'lavender' | 'peach' | 'sage' };
-  const items: Item[] = [];
+  // Sunset / golden-hour for the ceremony card. Skip when we
+  // don't have lat/lng — the chip stays out rather than guessing.
+  const sun = (l.venueLat != null && l.venueLng != null && l.date)
+    ? sunriseSunsetFor(l.venueLat, l.venueLng, l.date, l.timezone)
+    : null;
+
+  type DetailsItem = {
+    id: string;
+    label: string;
+    value: string;
+    subtitle: string;
+    icon: string;
+    tone: 'lavender' | 'peach' | 'sage';
+    /** Card has a real time + venue → render Calendar / Directions chips. */
+    address?: string;
+    /** Show the golden-hour chip (only on the ceremony / main-event card). */
+    showGoldenHour?: boolean;
+    /** When set, an expandable "What to expect" body. */
+    expand?: string;
+  };
+  const items: DetailsItem[] = [];
 
   const ceremony = events.find((e) => e.type === 'ceremony');
+  const ceremonyVenue = ceremony?.venue || l.venue || '';
+  const ceremonyAddress = ceremony?.address || l.venueAddress;
   if (ceremony) {
     items.push({
-      t: ceremonyLabel,
-      v: formatTime(ceremony.time) || (dateInfo?.pretty ?? ''),
-      s: ceremony.venue || l.venue || '',
+      id: 'ceremony',
+      label: ceremonyLabel,
+      value: formatTime(ceremony.time) || (dateInfo?.pretty ?? ''),
+      subtitle: ceremonyVenue,
       icon: 'calendar-check',
       tone: 'lavender',
+      address: ceremonyAddress,
+      showGoldenHour: !!sun,
+      expand: expandMap.ceremony,
     });
   } else if (l.time || l.venue) {
     items.push({
-      t: ceremonyLabel,
-      v: formatTime(l.time) || (dateInfo?.pretty ?? ''),
-      s: l.venue ?? '',
+      id: 'ceremony',
+      label: ceremonyLabel,
+      value: formatTime(l.time) || (dateInfo?.pretty ?? ''),
+      subtitle: ceremonyVenue,
       icon: 'calendar-check',
       tone: 'lavender',
+      address: ceremonyAddress,
+      showGoldenHour: !!sun,
+      expand: expandMap.ceremony,
     });
   }
 
   const reception = events.find((e) => e.type === 'reception');
   if (reception) {
     items.push({
-      t: term.receptionLabel,
-      v: formatTime(reception.time),
-      s: reception.venue || '',
+      id: 'reception',
+      label: term.receptionLabel,
+      value: formatTime(reception.time),
+      subtitle: reception.venue || '',
       icon: 'sparkles',
       tone: 'peach',
+      address: reception.address || (reception.venue === l.venue ? l.venueAddress : undefined),
+      expand: expandMap.reception,
     });
   }
 
   if (l.dresscode) {
     items.push({
-      t: 'Dress code',
-      v: l.dresscode,
-      s: l.notes ?? '',
+      id: 'dressCode',
+      label: 'Dress code',
+      value: l.dresscode,
+      subtitle: l.notes ?? '',
       icon: 'type',
       tone: 'sage',
+      expand: expandMap.dressCode,
+    });
+  }
+
+  // Host-authored custom cards. Any number; render after the
+  // preset 3 in declaration order.
+  for (const c of details?.customCards ?? []) {
+    items.push({
+      id: c.id,
+      label: c.title,
+      value: c.time ? formatTime(c.time) : '',
+      subtitle: c.body,
+      icon: c.icon || 'star',
+      tone: c.tone || 'sage',
+      address: c.address,
+      expand: expandMap[c.id],
     });
   }
 
@@ -1694,10 +1743,9 @@ function DetailsStripImpl({ manifest }: { manifest: StoryManifest }) {
   // first comma in the venue address — most "Address, City, State"
   // formats land on the right token; fall back to venue name.
   const weatherCity = (() => {
-    const addr = (l as unknown as { venueAddress?: string }).venueAddress;
+    const addr = l.venueAddress;
     if (addr) {
       const parts = addr.split(',').map((s) => s.trim()).filter(Boolean);
-      // index 1 is usually city; fall back to 0 then venue.
       return parts[1] ?? parts[0] ?? l.venue;
     }
     return l.venue;
@@ -1711,54 +1759,14 @@ function DetailsStripImpl({ manifest }: { manifest: StoryManifest }) {
       <SectionBackground manifest={manifest} sectionId="details" />
       <div style={{ maxWidth: 1160, margin: '0 auto', position: 'relative' }}>
         <div className="pl8-cols-3" style={{ gap: 28 }}>
-          {items.map((it, i) => (
-            <div
-              key={i}
-              style={{
-                background: 'var(--card)',
-                border: '1px solid var(--card-ring)',
-                borderRadius: 'var(--pl-card-radius, 20px)',
-                padding: 28,
-                position: 'relative',
-                color: 'var(--ink)',
-              }}
-            >
-              <div
-                style={{
-                  width: 46,
-                  height: 46,
-                  borderRadius: 12,
-                  background:
-                    it.tone === 'lavender'
-                      ? 'var(--lavender-2)'
-                      : it.tone === 'peach'
-                        ? 'var(--peach-2)'
-                        : 'var(--sage-2)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  color: 'var(--ink)',
-                  marginBottom: 16,
-                }}
-              >
-                <Icon name={it.icon} size={20} />
-              </div>
-              <div
-                style={{
-                  fontSize: 11.5,
-                  fontWeight: 700,
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  color: 'var(--ink-muted)',
-                  marginBottom: 6,
-                }}
-              >
-                {it.t}
-              </div>
-              <div className="display" style={{ fontSize: 34, color: 'var(--ink)', marginBottom: 6 }}>
-                {it.v}
-              </div>
-              <div style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5 }}>{it.s}</div>
-            </div>
+          {items.map((it) => (
+            <DetailsCard
+              key={it.id}
+              item={it}
+              sun={sun}
+              manifest={manifest}
+              siteSlug={siteSlug}
+            />
           ))}
         </div>
         {weatherCity && l.date && (
@@ -1770,6 +1778,228 @@ function DetailsStripImpl({ manifest }: { manifest: StoryManifest }) {
     </section>
   );
 }
+
+interface DetailsCardItem {
+  id: string;
+  label: string;
+  value: string;
+  subtitle: string;
+  icon: string;
+  tone: 'lavender' | 'peach' | 'sage';
+  address?: string;
+  showGoldenHour?: boolean;
+  expand?: string;
+}
+
+function DetailsCard({
+  item,
+  sun,
+  manifest,
+  siteSlug,
+}: {
+  item: DetailsCardItem;
+  sun: { sunset: string; goldenHour: string } | null;
+  manifest: StoryManifest;
+  siteSlug?: string;
+}) {
+  const [showExpand, setShowExpand] = useState(false);
+  const toneVar =
+    item.tone === 'lavender' ? 'var(--lavender-2)'
+      : item.tone === 'peach' ? 'var(--peach-2)'
+      : 'var(--sage-2)';
+  return (
+    <div
+      style={{
+        background: 'var(--card)',
+        border: '1px solid var(--card-ring)',
+        borderRadius: 'var(--pl-card-radius, 20px)',
+        padding: 28,
+        position: 'relative',
+        color: 'var(--ink)',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <div
+        style={{
+          width: 46,
+          height: 46,
+          borderRadius: 12,
+          background: toneVar,
+          display: 'grid',
+          placeItems: 'center',
+          color: 'var(--ink)',
+          marginBottom: 16,
+        }}
+      >
+        <Icon name={item.icon} size={20} />
+      </div>
+      <div
+        style={{
+          fontSize: 11.5,
+          fontWeight: 700,
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          color: 'var(--ink-muted)',
+          marginBottom: 6,
+        }}
+      >
+        {item.label}
+      </div>
+      {item.value && (
+        <div className="display" style={{ fontSize: 34, color: 'var(--ink)', marginBottom: 6 }}>
+          {item.value}
+        </div>
+      )}
+      {item.subtitle && (
+        <div style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5 }}>{item.subtitle}</div>
+      )}
+      {/* Golden-hour chip — italic editorial note under the time
+          on the ceremony card when the venue has lat/lng. */}
+      {item.showGoldenHour && sun && (
+        <div
+          style={{
+            marginTop: 10,
+            fontSize: 12,
+            fontStyle: 'italic',
+            color: 'var(--gold, #B8935A)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+          }}
+        >
+          <Icon name="sun" size={12} color="var(--gold)" />
+          golden hour {sun.goldenHour} &middot; sunset {sun.sunset}
+        </div>
+      )}
+      {/* "What to expect" expand — reveals an editorial paragraph
+          with a soft border-top so the resting card stays clean. */}
+      {item.expand && (
+        <div style={{ marginTop: 14 }}>
+          <button
+            type="button"
+            onClick={() => setShowExpand((s) => !s)}
+            aria-expanded={showExpand}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: 0,
+              border: 'none',
+              background: 'transparent',
+              color: 'var(--peach-ink, #C6703D)',
+              fontSize: 11.5,
+              fontWeight: 700,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            What to expect
+            <Icon name={showExpand ? 'chev-up' : 'chev-down'} size={11} />
+          </button>
+          {showExpand && (
+            <p
+              style={{
+                marginTop: 10,
+                fontSize: 13.5,
+                lineHeight: 1.55,
+                color: 'var(--ink-soft)',
+                paddingTop: 10,
+                borderTop: '1px solid var(--line-soft)',
+              }}
+            >
+              {item.expand}
+            </p>
+          )}
+        </div>
+      )}
+      {/* Calendar + Directions chips — render only when actionable.
+          Calendar needs a date; Directions needs an address. The
+          spacer above pushes them to the bottom of the card so cards
+          of varied content height still align their action rows. */}
+      {(item.address || (manifest.logistics?.date && item.id === 'ceremony')) && (
+        <>
+          <div style={{ flex: 1, minHeight: 14 }} />
+          <div
+            style={{
+              marginTop: 14,
+              paddingTop: 14,
+              borderTop: '1px solid var(--line-soft)',
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 8,
+            }}
+          >
+            {/* Calendar chip — only on the ceremony card or any custom
+                card with an address (treat address-bearing cards as
+                location-anchored events worth saving). */}
+            {manifest.logistics?.date && (item.id === 'ceremony' || item.address) && siteSlug && (
+              <DetailsCalendarChip manifest={manifest} siteSlug={siteSlug} />
+            )}
+            {item.address && <DetailsDirectionsChip address={item.address} />}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function DetailsCalendarChip({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug: string }) {
+  const date = manifest.logistics?.date;
+  if (!date) return null;
+  const ics = `/sites/${siteSlug}/event.ics`;
+  return (
+    <a
+      href={ics}
+      download
+      className="pl8-details-chip"
+      title="Download .ics — adds to Apple / Google / Outlook"
+      style={chipStyle}
+    >
+      <Icon name="calendar" size={12} />
+      Add to calendar
+    </a>
+  );
+}
+
+function DetailsDirectionsChip({ address }: { address: string }) {
+  const enc = encodeURIComponent(address);
+  const ios = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const href = ios ? `https://maps.apple.com/?q=${enc}` : `https://www.google.com/maps/search/?api=1&query=${enc}`;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="pl8-details-chip"
+      title={`Open in ${ios ? 'Apple' : 'Google'} Maps`}
+      style={chipStyle}
+    >
+      <Icon name="pin" size={12} />
+      Directions
+    </a>
+  );
+}
+
+const chipStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  padding: '6px 12px',
+  borderRadius: 999,
+  background: 'transparent',
+  border: '1px solid var(--line)',
+  color: 'var(--ink)',
+  fontSize: 11.5,
+  fontWeight: 700,
+  letterSpacing: '0.04em',
+  textDecoration: 'none',
+  fontFamily: 'var(--font-ui)',
+  transition: 'background 160ms ease, border-color 160ms ease',
+};
 
 /* ==================== SCHEDULE ==================== */
 // ScheduleTimeEditor — click the time on a canvas schedule row
@@ -5978,10 +6208,12 @@ const TimelineSection = memo(TimelineSectionImpl, (p, n) => {
 });
 
 const DetailsStrip = memo(DetailsStripImpl, (p, n) => {
+  if (p.siteSlug !== n.siteSlug) return false;
   return manifestSlicesEqual(p.manifest, n.manifest, [
     ...COMMON_CHROME_KEYS,
     'logistics',
     'events',
+    'details',
   ] as unknown as ReadonlyArray<keyof StoryManifest>);
 });
 
@@ -6757,7 +6989,7 @@ export function SiteV8Renderer({
         return <StoryVariantSection key="story" chapters={chapters} layout={layout} manifest={manifest} />;
       }
       case 'details':
-        return <DetailsStrip key="details" manifest={manifest} />;
+        return <DetailsStrip key="details" manifest={manifest} siteSlug={siteSlug} />;
       case 'schedule':
         return <ScheduleSection key="schedule" manifest={manifest} names={names} onEditField={onEditField} />;
       case 'travel':

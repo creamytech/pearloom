@@ -1926,3 +1926,13 @@ html { scroll-behavior: smooth; }
   border-color: rgba(198, 112, 61, 0.75) !important;
   outline: none;
 }
+
+/* Details-card action chips — Calendar / Directions. Resting
+   state is a thin ink ring; hover lifts to a soft cream wash with
+   peach edge so the affordance reads at a glance without ever
+   feeling shouty on the editorial card. */
+.pl8-details-chip:hover {
+  background: rgba(255, 244, 232, 0.85);
+  border-color: rgba(198, 112, 61, 0.5);
+  color: var(--peach-ink, #C6703D);
+}

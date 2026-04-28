@@ -137,6 +137,36 @@ export interface StoryManifest {
      *  time for the event. Falls back to the viewer's local zone. */
     timezone?: string;
   };
+  /** Optional Details-strip extensions. The default 3 cards
+   *  (ceremony, reception, dress code) are always built from
+   *  logistics + events; this opens up:
+   *    • per-card "what to expect" expand text
+   *    • host-authored custom cards beyond the preset 3 */
+  details?: {
+    /** Free-form parking & arrival blurb shown on a dedicated card. */
+    parking?: string;
+    /** Accessibility blurb shown on a dedicated card. */
+    accessibility?: string;
+    /** Per-card "what to expect" expand body. Keyed by the card id
+     *  ('ceremony' | 'reception' | 'dressCode' | the custom card's
+     *  uuid) so re-titling doesn't lose the body. */
+    expand?: Record<string, string>;
+    /** Host-authored custom cards. Render after the preset 3, in
+     *  order. Title + body are required; everything else is optional. */
+    customCards?: Array<{
+      id: string;
+      title: string;
+      body: string;
+      icon?: string;
+      tone?: 'lavender' | 'peach' | 'sage';
+      /** When set, an "Add to calendar" + "Directions" chip appears. */
+      address?: string;
+      /** Optional explicit time (e.g. "5:00 PM" — only used as
+       *  display; calendar/directions chips key off the venue
+       *  date + address). */
+      time?: string;
+    }>;
+  };
   registry?: {
     enabled: boolean;
     cashFundUrl?: string;
