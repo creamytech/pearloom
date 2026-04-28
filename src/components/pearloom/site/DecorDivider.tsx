@@ -66,8 +66,40 @@ export function DecorDivider({ url, index = 0, compact, strength = 'standard', h
     );
   }
 
-  // Fallback Filigree — stroke-drawable on scroll-reveal. Each
-  // index picks a different variant so adjacent dividers vary.
+  // Default fallback — woven thread band. Two interlocking
+  // strokes (olive + gold) with the brand's loom-shuttle motion
+  // animating the dash offset. Reads as the "thread as the
+  // visual atom" rule from BRAND.md §3 — once a guest sees it
+  // three times they know they're in a Pearloom product.
+  // Even-index instances flip the phase for variety; odd-index
+  // instances pull a Filigree variant so the visual rhythm down
+  // the page alternates thread / filigree / thread.
+  if (index % 2 === 1) {
+    return (
+      <div
+        aria-hidden="true"
+        className="pl8-decor-divider"
+        data-pl-stroke-draw
+        style={{
+          width: '100%',
+          height,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          opacity: 0.65,
+          pointerEvents: 'none',
+          ...style,
+        }}
+      >
+        <Filigree
+          variant={index}
+          width={Math.max(220, height * 4)}
+          height={height * 0.7}
+          strokeWidth={1.2}
+        />
+      </div>
+    );
+  }
   return (
     <div
       aria-hidden="true"
@@ -79,17 +111,104 @@ export function DecorDivider({ url, index = 0, compact, strength = 'standard', h
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        opacity: 0.65,
+        opacity: 0.7,
         pointerEvents: 'none',
         ...style,
       }}
     >
-      <Filigree
-        variant={index}
-        width={Math.max(220, height * 4)}
-        height={height * 0.7}
-        strokeWidth={1.2}
+      <ThreadWeave
+        width={Math.max(260, height * 4)}
+        height={height * 0.55}
+        phaseOffset={index * 0.18}
       />
     </div>
+  );
+}
+
+/** Two-strand woven thread divider — olive warp + gold weft.
+ *  Each strand runs as a sine wave, offset 180° from the other
+ *  so they cross every quarter-period. Stroke-dasharray + the
+ *  pl-weave-travel keyframe scrolls a "pulse" of dash along the
+ *  strand so it reads as a loom in motion. Honours
+ *  prefers-reduced-motion via the global keyframe rule. */
+function ThreadWeave({
+  width,
+  height,
+  phaseOffset = 0,
+}: {
+  width: number;
+  height: number;
+  phaseOffset?: number;
+}) {
+  const cy = height / 2;
+  const amp = Math.max(4, height * 0.22);
+  const periods = 4;
+  const period = width / periods;
+  const phase = (phaseOffset * Math.PI * 2) % (Math.PI * 2);
+  // Build the two paths — sin and -sin offset so they weave.
+  const strand = (sign: 1 | -1) => {
+    const steps = 60;
+    let d = `M 0 ${cy + sign * amp * Math.sin(phase)}`;
+    for (let i = 1; i <= steps; i++) {
+      const x = (i / steps) * width;
+      const y = cy + sign * amp * Math.sin(phase + (i / steps) * periods * Math.PI * 2);
+      d += ` L ${x.toFixed(1)} ${y.toFixed(1)}`;
+    }
+    return d;
+  };
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      role="presentation"
+    >
+      <defs>
+        <linearGradient id="pl-thread-fade" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="rgba(0,0,0,0)" />
+          <stop offset="14%" stopColor="rgba(0,0,0,1)" />
+          <stop offset="86%" stopColor="rgba(0,0,0,1)" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+        </linearGradient>
+        <mask id="pl-thread-mask">
+          <rect width="100%" height="100%" fill="url(#pl-thread-fade)" />
+        </mask>
+      </defs>
+      <g mask="url(#pl-thread-mask)" fill="none" strokeLinecap="round">
+        {/* Olive warp */}
+        <path
+          d={strand(1)}
+          stroke="var(--olive, #5C6B3F)"
+          strokeWidth={1.4}
+          strokeDasharray={`${period * 0.6} ${period * 0.4}`}
+          pathLength={1}
+          style={{
+            // pathLength normalisation so the keyframe's 1 → -0.32
+            // dashoffset travel works regardless of actual length.
+            animation: 'pl-weave-travel 9s linear infinite',
+          }}
+        />
+        {/* Gold weft, opposite phase + slower */}
+        <path
+          d={strand(-1)}
+          stroke="var(--gold, #B8935A)"
+          strokeWidth={1.1}
+          strokeDasharray={`${period * 0.45} ${period * 0.55}`}
+          opacity={0.9}
+          pathLength={1}
+          style={{
+            animation: 'pl-weave-travel 14s linear infinite reverse',
+          }}
+        />
+        {/* Center dot — a single bead the threads weave through. */}
+        <circle
+          cx={width / 2}
+          cy={cy}
+          r={2.4}
+          fill="var(--peach-ink, #C6703D)"
+          opacity={0.7}
+        />
+      </g>
+    </svg>
   );
 }

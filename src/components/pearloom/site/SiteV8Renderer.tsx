@@ -74,12 +74,11 @@ import {
   TimeZoneCountdown,
   ScrollSpy,
   LiveWallDiscover,
-  WeatherWidget,
   GuestPhotoUploader,
   VoiceToastRecorder,
 } from './GuestKit2';
 import { CanvasSortable, CanvasGripHandle } from './canvas-sortable';
-import { WeatherClimateCard } from './WeatherClimateCard';
+import { WeatherStrip } from './WeatherStrip';
 import { ReadingProgress } from './ReadingProgress';
 import { SectionStamp } from './SectionStamp';
 import { StickerLayer } from './StickerLayer';
@@ -1619,6 +1618,11 @@ function ChapterCard({
             ariaLabel={`Chapter ${chapterIndex + 1} description`}
             multiline
             maxLength={800}
+            // First chapter gets a Fraunces-italic dropcap on the
+            // opening glyph — pure editorial flourish that signals
+            // "this is a story, not a CMS." Skipped for chapter 2+
+            // so the page doesn't read like a serial novel.
+            className={chapterIndex === 0 ? 'pl-dropcap' : undefined}
             style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.55, margin: 0 }}
           />
         </HoverToolbar>
@@ -1805,25 +1809,18 @@ function DetailsStripImpl({ manifest, siteSlug }: { manifest: StoryManifest; sit
             />
           ))}
         </div>
-        {/* Weather rail — short-term forecast (≤14 days) on the
-            left, climate normals card on the right when the venue
-            has lat/lng. Both fall through cleanly when their data
-            isn't available so the rail just hides. */}
-        {(weatherCity || (l.venueLat != null && l.venueLng != null)) && l.date && (
-          <div
-            style={{
-              marginTop: 28,
-              display: 'flex',
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-              gap: 18,
-            }}
-          >
-            {weatherCity && <WeatherWidget city={weatherCity} eventDate={l.date} />}
-            {l.venueLat != null && l.venueLng != null && (
-              <WeatherClimateCard lat={l.venueLat} lng={l.venueLng} date={l.date} />
-            )}
-          </div>
+        {/* Weather strip — single editorial row that combines the
+            short-term forecast (≤14 days) and the climate normals
+            into one horizontal layout, separated by peach hairlines.
+            Replaces the awkward two-card rail. Falls through
+            cleanly when data isn't available. */}
+        {l.date && l.venueLat != null && l.venueLng != null && (
+          <WeatherStrip
+            lat={l.venueLat}
+            lng={l.venueLng}
+            date={l.date}
+            city={weatherCity}
+          />
         )}
       </div>
     </section>

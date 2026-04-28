@@ -1410,6 +1410,15 @@ function SaveDot({
   saveStatus: 'idle' | 'saving' | 'saved' | 'error';
   lastSavedAt: number | null;
 }) {
+  // Tick every 30s so the "Saved 2 min ago" label updates live.
+  // Cheap — the SaveDot is one of ~5 elements in the topbar.
+  const [, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (!lastSavedAt) return;
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, [lastSavedAt]);
+
   const colour =
     saveStatus === 'saved'
       ? 'var(--sage-deep)'
@@ -1427,53 +1436,98 @@ function SaveDot({
           ? 'Save failed'
           : 'Editing';
   const showCheck = saveStatus === 'saved';
-  // Title text shown on hover. When idle but we know the last save,
-  // show "Saved 2 min ago" so the host can confirm at a glance —
-  // matches the trust-building patterns in Notion/Linear.
+
+  // Inline relative-time tag — visible next to the label so the
+  // host can confirm save freshness at a glance without hovering.
+  // Fraunces italic + ink-muted reads like a quiet timestamp,
+  // not a status bar element.
+  const relativeAgo = (() => {
+    if (!lastSavedAt) return '';
+    const ago = Date.now() - lastSavedAt;
+    if (ago < 5_000) return 'just now';
+    if (ago < 60_000) return `${Math.floor(ago / 1000)}s ago`;
+    if (ago < 3_600_000) return `${Math.floor(ago / 60_000)} min ago`;
+    return `${Math.floor(ago / 3_600_000)}h ago`;
+  })();
   const tooltipText = (() => {
     if (saveStatus === 'saving') return 'Saving your draft…';
     if (saveStatus === 'error') return 'Last save failed — your edits are local until network returns';
     if (lastSavedAt) {
-      const ago = Date.now() - lastSavedAt;
       const wallClock = new Date(lastSavedAt).toLocaleTimeString([], {
         hour: 'numeric',
         minute: '2-digit',
       });
-      const relative =
-        ago < 5_000 ? 'just now' :
-        ago < 60_000 ? `${Math.floor(ago / 1000)}s ago` :
-        ago < 3_600_000 ? `${Math.floor(ago / 60_000)} min ago` :
-        `${Math.floor(ago / 3_600_000)}h ago`;
-      return `Saved ${relative} (${wallClock})`;
+      return `Saved ${relativeAgo} (${wallClock})`;
     }
     return 'Edits autosave every keystroke';
   })();
+
   return (
     <span
       title={tooltipText}
-      style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: colour, fontWeight: 600, cursor: 'help' }}
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: colour, fontWeight: 600, cursor: 'help' }}
     >
       <span
         aria-hidden
         style={{
-          width: showCheck ? 12 : 6,
-          height: showCheck ? 12 : 6,
+          width: showCheck ? 14 : 6,
+          height: showCheck ? 14 : 6,
           borderRadius: 999,
           background: colour,
           display: 'inline-grid',
           placeItems: 'center',
           color: '#fff',
           animation: saveStatus === 'saving' ? 'pl-dot-pulse 1.4s ease-in-out infinite' : 'none',
-          transition: 'width 200ms ease, height 200ms ease',
+          transition: 'width 200ms cubic-bezier(0.34, 1.56, 0.64, 1), height 200ms cubic-bezier(0.34, 1.56, 0.64, 1)',
         }}
       >
         {showCheck && (
-          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="9"
+            height="9"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ animation: 'pl-save-check 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
+          >
             <polyline points="20 6 9 17 4 12" />
           </svg>
         )}
       </span>
-      {label}
+      <span style={{ fontFamily: 'var(--font-ui)' }}>{label}</span>
+      {saveStatus === 'saved' && relativeAgo && (
+        <span
+          aria-hidden
+          style={{
+            fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+            fontStyle: 'italic',
+            fontWeight: 400,
+            fontSize: 11.5,
+            color: 'var(--ink-muted)',
+            letterSpacing: '0.005em',
+            opacity: 0.85,
+          }}
+        >
+          · {relativeAgo}
+        </span>
+      )}
+      <style jsx global>{`
+        @keyframes pl-save-check {
+          0%   { stroke-dashoffset: 22; opacity: 0; transform: scale(0.6); }
+          60%  { opacity: 1; }
+          100% { stroke-dashoffset: 0; opacity: 1; transform: scale(1); }
+        }
+        @keyframes pl-save-check {
+          /* Fallback for browsers without stroke-dashoffset support
+             — just scale-in the check. */
+          0%   { opacity: 0; transform: scale(0.4) rotate(-12deg); }
+          70%  { opacity: 1; transform: scale(1.08) rotate(2deg); }
+          100% { opacity: 1; transform: scale(1) rotate(0); }
+        }
+      `}</style>
     </span>
   );
 }
