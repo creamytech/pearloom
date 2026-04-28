@@ -2528,10 +2528,14 @@ function HotelsList({
   manifest,
   hotels,
   hotelTones,
+  editMode = false,
+  onRemove,
 }: {
   manifest: StoryManifest;
   hotels: HotelCardModel[];
   hotelTones: ('peach' | 'lavender' | 'sage')[];
+  editMode?: boolean;
+  onRemove?: (idxInVisible: number, hotel: HotelCardModel) => void;
 }) {
   const [sort, setSort] = useState<HotelSort>('pearPick');
   const [amenitySet, setAmenitySet] = useState<Set<string>>(new Set());
@@ -2678,13 +2682,26 @@ function HotelsList({
       ) : (
         visible.map((h, i) => {
           const tone = hotelTones[i % hotelTones.length] as 'peach' | 'lavender' | 'sage';
+          // hotelId comes from the underlying record when present; we
+          // need it for both the canvas focus jump and the panel's
+          // matching scroll target. Fall back to a stable index-based
+          // id when the manifest's hotel doesn't carry one yet.
+          const hid = (h as { id?: string }).id ?? `htl-idx-${i}`;
           return (
             <HotelCard
-              key={i}
+              key={hid}
               hotel={h}
               tone={tone}
               display={display}
               badges={badges[i] ?? []}
+              eventDate={manifest.logistics?.date}
+              hotelId={hid}
+              editMode={editMode}
+              onRemove={editMode ? () => onRemove?.(i, h) : undefined}
+              onFocus={editMode ? () => {
+                if (typeof window === 'undefined') return;
+                window.dispatchEvent(new CustomEvent('pearloom:focus-hotel-row', { detail: { hotelId: hid } }));
+              } : undefined}
             />
           );
         })
@@ -3396,6 +3413,11 @@ function HotelCard({
   tone,
   display = 'photo',
   badges = [],
+  eventDate,
+  hotelId,
+  editMode = false,
+  onRemove,
+  onFocus,
 }: {
   hotel: HotelCardModel;
   tone: 'peach' | 'lavender' | 'sage';
@@ -3403,10 +3425,66 @@ function HotelCard({
    *  Google photoUrl is present. */
   display?: 'photo' | 'icon';
   badges?: HotelBadge[];
+  /** Event date (YYYY-MM-DD) — when set, the Book button gets
+   *  `?checkin=DATE&checkout=DATE+1` deep-link params so the
+   *  booking site lands on the right night. Param names match
+   *  major chains (booking.com, marriott, hilton, etc). */
+  eventDate?: string;
+  /** Stable id for the canvas-side click-to-focus jump. Stamped
+   *  as `data-pl-hotel-id` so the editor can scroll the panel to
+   *  the matching row. */
+  hotelId?: string;
+  /** When true, render canvas chrome: hover-reveal × button +
+   *  whole card becomes a click target that focuses the panel. */
+  editMode?: boolean;
+  onRemove?: () => void;
+  onFocus?: () => void;
 }) {
   // Old manifests stored the formatted distance in km/m. Convert
   // at render time so guests always see miles + minutes.
   const distanceLabel = reformatDistanceToMiles(hotel.distance);
+
+  // Booking deeplink — when host has an event date, append
+  // checkin/checkout params so the booking page opens on the
+  // right night. Different chains use different param names; we
+  // detect the domain and use the right one. Booking.com style
+  // is the default for unrecognised domains since most modern
+  // sites accept it (and ignore unknown params).
+  const bookingHref = (() => {
+    const url = hotel.bookingUrl;
+    if (!url || !eventDate) return url;
+    try {
+      const u = new URL(url);
+      const host = u.hostname.replace(/^www\./, '').toLowerCase();
+      const checkin = eventDate;
+      const next = new Date(eventDate + 'T00:00:00');
+      next.setDate(next.getDate() + 1);
+      const checkout = next.toISOString().slice(0, 10);
+      // Per-chain param mapping. When in doubt, fall through to
+      // the booking.com style — Marriott, Hilton, IHG, Hyatt,
+      // Choice, Best Western, Accor all accept it (or ignore).
+      if (host.includes('marriott')) {
+        u.searchParams.set('fromDate', checkin);
+        u.searchParams.set('toDate', checkout);
+      } else if (host.includes('hilton')) {
+        u.searchParams.set('arrivalDate', checkin);
+        u.searchParams.set('departureDate', checkout);
+      } else if (host.includes('hotels.com') || host.includes('expedia')) {
+        u.searchParams.set('startDate', checkin);
+        u.searchParams.set('endDate', checkout);
+      } else if (host.includes('airbnb')) {
+        u.searchParams.set('check_in', checkin);
+        u.searchParams.set('check_out', checkout);
+      } else {
+        // Booking.com + the long tail.
+        u.searchParams.set('checkin', checkin);
+        u.searchParams.set('checkout', checkout);
+      }
+      return u.toString();
+    } catch {
+      return url;
+    }
+  })();
 
   // Photo carousel — up to 5 Google Places photos, flipped
   // through with prev/next buttons. Guest-side state, resets on
@@ -3446,7 +3524,14 @@ function HotelCard({
   // so the card never reads as half-full.
   return (
     <article
-      className={`pl8-hotel-card${isTop ? ' pl8-hotel-card-top' : ''}`}
+      className={`pl8-hotel-card${isTop ? ' pl8-hotel-card-top' : ''}${editMode ? ' pl8-hotel-card-edit' : ''}`}
+      data-pl-hotel-id={hotelId}
+      onClick={editMode ? (e) => {
+        // Don't hijack clicks on inner buttons/links/inputs.
+        const target = e.target as Element;
+        if (target.closest('a, button, input, textarea, [role="button"]')) return;
+        onFocus?.();
+      } : undefined}
       style={{
         position: 'relative',
         display: 'grid',
@@ -3460,8 +3545,38 @@ function HotelCard({
           ? '0 8px 24px -10px rgba(198,112,61,0.30), 0 0 0 4px rgba(198,112,61,0.06)'
           : '0 4px 12px -8px rgba(14,13,11,0.18)',
         overflow: 'hidden',
+        cursor: editMode ? 'pointer' : 'default',
       }}
     >
+      {editMode && onRemove && (
+        <button
+          type="button"
+          aria-label="Remove this hotel"
+          onClick={(e) => { e.stopPropagation(); onRemove(); }}
+          className="pl8-hotel-card-remove"
+          style={{
+            position: 'absolute',
+            top: 10,
+            right: 10,
+            width: 28,
+            height: 28,
+            borderRadius: 999,
+            background: 'rgba(14,13,11,0.85)',
+            color: '#FFFFFF',
+            border: '1px solid rgba(255,255,255,0.15)',
+            cursor: 'pointer',
+            zIndex: 4,
+            display: 'grid',
+            placeItems: 'center',
+            fontSize: 14,
+            lineHeight: 1,
+            opacity: 0,
+            transition: 'opacity 160ms ease, transform 160ms ease',
+          }}
+        >
+          ×
+        </button>
+      )}
       {/* Badges row was previously absolute-positioned in the
           top-right of the article — that overlapped longer hotel
           names ("Hyatt Centric Las Olas Fort Lauderdale" wrapped
@@ -3701,7 +3816,7 @@ function HotelCard({
         >
           {hotel.bookingUrl && (
             <a
-              href={hotel.bookingUrl}
+              href={bookingHref}
               target="_blank"
               rel="noreferrer"
               style={{
@@ -3800,7 +3915,34 @@ function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest;
                   Nothing yet. Add hotel blocks from the Travel panel.
                 </p>
               )}
-              {hotels.length > 0 && <HotelsList manifest={manifest} hotels={hotels as unknown as HotelCardModel[]} hotelTones={hotelTones as Array<'peach' | 'lavender' | 'sage'>} />}
+              {hotels.length > 0 && (
+                <HotelsList
+                  manifest={manifest}
+                  hotels={hotels as unknown as HotelCardModel[]}
+                  hotelTones={hotelTones as Array<'peach' | 'lavender' | 'sage'>}
+                  editMode={edit}
+                  onRemove={edit && onEditField ? (_idxInVisible, target) => {
+                    onEditField((m) => {
+                      const cur = (m.travelInfo?.hotels ?? []) as Array<HotelCardModel & { id?: string }>;
+                      // Match by id when possible, otherwise by name+address as a soft fallback.
+                      const tid = (target as { id?: string }).id;
+                      const next = cur.filter((x) => {
+                        const xid = (x as { id?: string }).id;
+                        if (tid && xid) return xid !== tid;
+                        return !(x.name === target.name && (x.address ?? '') === (target.address ?? ''));
+                      });
+                      // Mirror the editor's two-write pattern so legacy `travel.hotels`
+                      // and canonical `travelInfo.hotels` stay in sync.
+                      const legacyTravel = (m as unknown as { travel?: { hotels?: unknown[] } }).travel ?? {};
+                      return {
+                        ...m,
+                        travel: { ...legacyTravel, hotels: next },
+                        travelInfo: { ...(m.travelInfo ?? { airports: [], hotels: [] }), hotels: next },
+                      } as StoryManifest;
+                    });
+                  } : undefined}
+                />
+              )}
             </div>
           )}
           <AirportsBlock manifest={manifest} />

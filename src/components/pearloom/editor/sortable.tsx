@@ -153,14 +153,19 @@ export function SortableRowCard({
   onDelete,
   children,
   highlighted,
+  rootProps,
 }: {
   handle: ReactNode;
   onDelete?: () => void;
   children: ReactNode;
   highlighted?: boolean;
+  /** Extra DOM props on the outer card — used by the canvas
+   *  click-to-focus pattern to stamp data-pl-*-row-id attributes. */
+  rootProps?: Record<string, unknown>;
 }) {
   return (
     <div
+      {...rootProps}
       style={{
         display: 'grid',
         gridTemplateColumns: '28px 1fr auto',
@@ -170,7 +175,7 @@ export function SortableRowCard({
         border: `1px solid ${highlighted ? 'var(--sage-deep)' : 'var(--card-ring)'}`,
         borderRadius: 14,
         alignItems: 'start',
-        transition: 'border-color 180ms, box-shadow 180ms',
+        transition: 'border-color 180ms, box-shadow 180ms, transform 180ms ease, box-shadow 180ms ease',
       }}
     >
       <div style={{ paddingTop: 4 }}>{handle}</div>

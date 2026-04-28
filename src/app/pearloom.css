@@ -1874,3 +1874,29 @@ html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) {
   .pl8-live-pill > [aria-hidden] { animation: none !important; }
 }
+
+/* Edit-mode chrome: hover-reveal × on canvas-edited rows. The
+   button is rendered always but starts at opacity 0 so it doesn't
+   read as decorative when not hovered. Used by hotels, registry,
+   FAQ, schedule, story chapters. */
+.pl8-hotel-card-edit:hover .pl8-hotel-card-remove,
+.pl8-canvas-row:hover .pl8-canvas-remove {
+  opacity: 1 !important;
+}
+.pl8-hotel-card-edit:hover {
+  transform: translateY(-1px);
+}
+.pl8-hotel-card-edit {
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Click-to-focus flash — fires on a hotel/registry/faq row in
+   the panel when the host clicks the matching card on canvas. */
+@keyframes pl8-canvas-focus-flash {
+  0%   { box-shadow: 0 0 0 0 rgba(198,112,61,0); }
+  20%  { box-shadow: 0 0 0 6px rgba(198,112,61,0.30); }
+  100% { box-shadow: 0 0 0 0 rgba(198,112,61,0); }
+}
+.pl8-canvas-focus-flash {
+  animation: pl8-canvas-focus-flash 1.6s ease-out;
+}

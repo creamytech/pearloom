@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, SegmentedToggle, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
@@ -359,6 +359,30 @@ export function TravelPanel({
   const meta = getTravelMeta(manifest);
   const logistics = manifest.logistics ?? {};
 
+  // Listen for canvas → panel focus jumps. The site renderer
+  // emits `pearloom:focus-hotel-row` with { hotelId } when a host
+  // clicks a hotel card on the canvas; we find the matching
+  // [data-pl-hotel-row-id] in the panel, scroll it into view, and
+  // flash a peach ring around it for 1.6s.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    function onFocus(e: Event) {
+      const detail = (e as CustomEvent<{ hotelId?: string }>).detail;
+      const hid = detail?.hotelId;
+      if (!hid) return;
+      const target = document.querySelector(`[data-pl-hotel-row-id="${CSS.escape(hid)}"]`) as HTMLElement | null;
+      if (!target) return;
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.classList.remove('pl8-canvas-focus-flash');
+      // Force reflow so the animation restarts when clicked twice
+      // in quick succession.
+      void target.offsetWidth;
+      target.classList.add('pl8-canvas-focus-flash');
+    }
+    window.addEventListener('pearloom:focus-hotel-row', onFocus);
+    return () => window.removeEventListener('pearloom:focus-hotel-row', onFocus);
+  }, []);
+
   function setTravel(patch: { hotels?: Hotel[]; intro?: string; blockCode?: string }) {
     // Write to BOTH the legacy shape (manifest.travel) used by older
     // consumers AND the canonical shape (manifest.travelInfo) that the
@@ -552,45 +576,35 @@ export function TravelPanel({
           renderItem={(h, { handle }) => {
             const i = hotels.findIndex((x) => x.id === h.id);
             return (
-              <SortableRowCard handle={handle} onDelete={() => setTravel({ hotels: hotels.filter((_, idx) => idx !== i) })}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <Field label="Name" help="Type to search Google Places — picking re-fills distance + blurb.">
-                    <HotelRowName
-                      manifest={manifest}
-                      hotel={h}
-                      onText={(name) => updateHotel(i, { name })}
-                      onPick={(enriched) => updateHotel(i, enriched)}
-                    />
-                  </Field>
-                  <Field label="Distance">
-                    <TextInput
-                      value={h.distance ?? ''}
-                      onChange={(e) => updateHotel(i, { distance: e.target.value })}
-                      placeholder="10 min drive"
-                    />
-                  </Field>
-                  <Field label="Price">
-                    <TextInput
-                      value={h.price ?? ''}
-                      onChange={(e) => updateHotel(i, { price: e.target.value })}
-                      placeholder="$189/night"
-                    />
-                  </Field>
-                  <Field label="Booking URL">
-                    <TextInput
-                      value={h.bookingUrl ?? ''}
-                      onChange={(e) => updateHotel(i, { bookingUrl: e.target.value })}
-                      placeholder="https://…"
-                    />
-                  </Field>
-                </div>
+              <SortableRowCard
+                handle={handle}
+                onDelete={() => setTravel({ hotels: hotels.filter((_, idx) => idx !== i) })}
+                rootProps={{ 'data-pl-hotel-row-id': h.id }}
+              >
+                {/* Name spans full width — it's the primary edit
+                    surface and was getting truncated to a 50%
+                    column on narrow inspector widths. Distance +
+                    Price share a row underneath since they're
+                    short. Booking URL + Address keep their own
+                    rows because URLs/addresses are long. */}
+                <Field
+                  label="Name"
+                  help="Type to search Google Places — picking re-fills distance + blurb."
+                >
+                  <HotelRowName
+                    manifest={manifest}
+                    hotel={h}
+                    onText={(name) => updateHotel(i, { name })}
+                    onPick={(enriched) => updateHotel(i, enriched)}
+                  />
+                </Field>
                 {(h.rating || h.amenities) && (
                   <div
                     style={{
                       display: 'flex',
                       flexWrap: 'wrap',
                       gap: 6,
-                      padding: '4px 0',
+                      padding: '4px 0 8px',
                       fontSize: 11,
                       color: 'var(--ink-soft)',
                     }}
@@ -618,6 +632,29 @@ export function TravelPanel({
                     )}
                   </div>
                 )}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <Field label="Distance">
+                    <TextInput
+                      value={h.distance ?? ''}
+                      onChange={(e) => updateHotel(i, { distance: e.target.value })}
+                      placeholder="0.4 mi · ~1 min"
+                    />
+                  </Field>
+                  <Field label="Price">
+                    <TextInput
+                      value={h.price ?? ''}
+                      onChange={(e) => updateHotel(i, { price: e.target.value })}
+                      placeholder="$189/night"
+                    />
+                  </Field>
+                </div>
+                <Field label="Booking URL">
+                  <TextInput
+                    value={h.bookingUrl ?? ''}
+                    onChange={(e) => updateHotel(i, { bookingUrl: e.target.value })}
+                    placeholder="https://…"
+                  />
+                </Field>
                 <Field label="Address">
                   <TextInput
                     value={h.address ?? ''}
