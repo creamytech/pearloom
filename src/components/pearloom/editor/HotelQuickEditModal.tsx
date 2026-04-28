@@ -221,46 +221,45 @@ function HotelEditor({
   const venueNear = venueLat != null && venueLng != null ? { lat: venueLat, lng: venueLng } : null;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      {/* Photo + meta strip */}
-      {(hotel.photoUrl || hotel.rating) && (
-        <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-          {hotel.photoUrl && (
-            <div
-              aria-hidden
+      {/* Meta strip: rating + amenities */}
+      {(hotel.rating || hotel.amenities) && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+          {typeof hotel.rating === 'number' && (
+            <span
               style={{
-                width: 120, height: 90, borderRadius: 12,
-                background: `url(${hotel.photoUrl}) center/cover no-repeat`,
-                flexShrink: 0,
-                border: '1px solid var(--line-soft)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '3px 9px',
+                background: 'var(--peach-bg, rgba(198,112,61,0.10))',
+                color: 'var(--peach-ink, #C6703D)',
+                borderRadius: 999,
+                fontSize: 11,
+                fontWeight: 700,
               }}
-            />
+            >
+              ★ {hotel.rating.toFixed(1)}
+              {hotel.ratingCount ? ` · ${hotel.ratingCount.toLocaleString()} reviews` : ''}
+            </span>
           )}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {typeof hotel.rating === 'number' && (
-              <span
-                style={{
-                  alignSelf: 'flex-start',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  padding: '3px 9px',
-                  background: 'var(--peach-bg, rgba(198,112,61,0.10))',
-                  color: 'var(--peach-ink, #C6703D)',
-                  borderRadius: 999,
-                  fontSize: 11,
-                  fontWeight: 700,
-                }}
-              >
-                ★ {hotel.rating.toFixed(1)}
-                {hotel.ratingCount ? ` · ${hotel.ratingCount.toLocaleString()} reviews` : ''}
-              </span>
-            )}
-            {hotel.amenities && (
-              <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>{hotel.amenities}</div>
-            )}
-          </div>
+          {hotel.amenities && (
+            <span style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>{hotel.amenities}</span>
+          )}
         </div>
       )}
+
+      <Field label="Photos" help="Drag a tile to reorder — the first one is the primary thumbnail. Tap × to remove, + to upload.">
+        <HotelPhotoStrip
+          photoUrl={hotel.photoUrl}
+          photoUrls={hotel.photoUrls ?? []}
+          onChange={(next) => {
+            // The renderer reads `photoUrls[0]` for its carousel
+            // and `photoUrl` for the legacy single-photo path; keep
+            // both in sync so older renderers and the v8 card agree.
+            onChange({ photoUrl: next[0], photoUrls: next });
+          }}
+        />
+      </Field>
 
       <Field label="Name" help="Type to search Google Places — picking re-fills distance, blurb, photos.">
         <PlaceAutocomplete
@@ -422,3 +421,211 @@ function ModalHotelSearch({
     />
   );
 }
+
+// HotelPhotoStrip — drag-to-reorder + remove + upload row of
+// thumbnails. The first tile is the primary photo (used as
+// hotel.photoUrl on the renderer card); the rest fill the in-card
+// carousel guests can flip through. Up to 5 photos — extras get
+// dropped on add.
+function HotelPhotoStrip({
+  photoUrl,
+  photoUrls,
+  onChange,
+}: {
+  photoUrl?: string;
+  photoUrls: string[];
+  onChange: (next: string[]) => void;
+}) {
+  // Merge legacy single photoUrl into the array if it's not already
+  // there. Keeps the strip in sync with both shapes.
+  const all = useMemo(() => {
+    const list = [...photoUrls];
+    if (photoUrl && !list.includes(photoUrl)) list.unshift(photoUrl);
+    return list.slice(0, 5);
+  }, [photoUrl, photoUrls]);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+
+  const remove = useCallback((idx: number) => {
+    const next = all.filter((_, i) => i !== idx);
+    onChange(next);
+  }, [all, onChange]);
+
+  const reorder = useCallback((from: number, to: number) => {
+    if (from === to) return;
+    const next = [...all];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onChange(next);
+  }, [all, onChange]);
+
+  const upload = useCallback(async (file: File) => {
+    setUploading(true);
+    setError(null);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+        reader.onerror = () => reject(new Error('Could not read file'));
+        reader.readAsDataURL(file);
+      });
+      const res = await fetch('/api/photos/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          photos: [{
+            id: `hotel-${Date.now()}`,
+            filename: file.name || 'hotel.jpg',
+            mimeType: file.type || 'image/jpeg',
+            base64,
+            capturedAt: new Date(file.lastModified || Date.now()).toISOString(),
+          }],
+        }),
+      });
+      if (!res.ok) throw new Error(`Upload failed (${res.status})`);
+      const data = (await res.json()) as { photos?: Array<{ baseUrl?: string }> };
+      const url = data.photos?.[0]?.baseUrl;
+      if (!url) throw new Error('No URL returned');
+      onChange([...all, url].slice(0, 5));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Upload failed');
+      setTimeout(() => setError(null), 2400);
+    } finally {
+      setUploading(false);
+    }
+  }, [all, onChange]);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {all.map((url, i) => (
+          <div
+            key={`${url}-${i}`}
+            draggable
+            onDragStart={() => setDragIdx(i)}
+            onDragOver={(e) => { e.preventDefault(); }}
+            onDrop={() => {
+              if (dragIdx == null) return;
+              reorder(dragIdx, i);
+              setDragIdx(null);
+            }}
+            onDragEnd={() => setDragIdx(null)}
+            style={{
+              position: 'relative',
+              width: 96,
+              height: 80,
+              borderRadius: 10,
+              background: `url(${url}) center/cover no-repeat var(--cream-2)`,
+              border: i === 0
+                ? '1.5px solid var(--peach-ink, #C6703D)'
+                : '1px solid var(--line-soft)',
+              cursor: 'grab',
+              flexShrink: 0,
+              opacity: dragIdx === i ? 0.4 : 1,
+              transition: 'opacity 140ms ease',
+            }}
+            title={i === 0 ? 'Primary photo (drag to reorder)' : 'Drag to reorder'}
+          >
+            {i === 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 4,
+                  left: 4,
+                  padding: '1px 6px',
+                  background: 'var(--peach-ink, #C6703D)',
+                  color: '#FFFFFF',
+                  borderRadius: 999,
+                  fontSize: 9,
+                  fontWeight: 800,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Primary
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => remove(i)}
+              aria-label="Remove photo"
+              style={{
+                position: 'absolute',
+                top: 4,
+                right: 4,
+                width: 22,
+                height: 22,
+                borderRadius: 999,
+                background: 'rgba(14,13,11,0.78)',
+                color: '#FFFFFF',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 12,
+                lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
+          </div>
+        ))}
+        {all.length < 5 && (
+          <label
+            style={{
+              width: 96,
+              height: 80,
+              borderRadius: 10,
+              background: 'var(--cream-2, #F5EFE2)',
+              border: '1.5px dashed var(--peach-ink, #C6703D)',
+              color: 'var(--peach-ink, #C6703D)',
+              cursor: uploading ? 'wait' : 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 4,
+              fontSize: 11,
+              fontWeight: 700,
+              fontFamily: 'var(--font-ui)',
+              textAlign: 'center',
+              flexShrink: 0,
+              opacity: uploading ? 0.6 : 1,
+            }}
+          >
+            <Icon name={uploading ? 'sparkles' : 'plus'} size={14} />
+            <span>{uploading ? 'Uploading…' : 'Add photo'}</span>
+            <input
+              type="file"
+              accept="image/*"
+              hidden
+              disabled={uploading}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void upload(file);
+                e.target.value = '';
+              }}
+            />
+          </label>
+        )}
+      </div>
+      {error && (
+        <div
+          role="alert"
+          style={{
+            fontSize: 11,
+            color: '#7A2D2D',
+            padding: '4px 8px',
+            background: 'rgba(122,45,45,0.08)',
+            border: '1px solid rgba(122,45,45,0.18)',
+            borderRadius: 6,
+          }}
+        >
+          {error}
+        </div>
+      )}
+    </div>
+  );
+}
+
