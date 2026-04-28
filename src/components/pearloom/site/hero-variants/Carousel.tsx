@@ -79,7 +79,7 @@ export function HeroCarousel({ manifest, names, siteSlug, onEditField, onEditNam
       <div style={{ textAlign: 'center', position: 'relative' }}>
         <HeroNames n1={n1} n2={n2} onEditNames={onEditNames} />
       </div>
-      <HeroDateVenue dateInfo={dateInfo} venue={venue} />
+      <HeroDateVenue dateInfo={dateInfo} venue={venue} manifest={manifest} onEditField={onEditField} />
       <HeroTagline manifest={manifest} onEditField={onEditField} />
       <HeroPrimaryCta deadlineStr={deadlineStr} />
       <HeroLinkTray siteSlug={siteSlug} manifest={manifest} names={names} />

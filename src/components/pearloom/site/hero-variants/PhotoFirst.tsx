@@ -99,6 +99,8 @@ export function HeroPhotoFirst({ manifest, names, siteSlug, onEditField, onEditN
             dateInfo={dateInfo}
             venue={venue}
             color="var(--cream, #FBF7EE)"
+            manifest={manifest}
+            onEditField={onEditField}
           />
           <HeroTagline manifest={manifest} onEditField={onEditField} color="rgba(251, 247, 238, 0.88)" />
           <HeroPrimaryCta deadlineStr={deadlineStr} />

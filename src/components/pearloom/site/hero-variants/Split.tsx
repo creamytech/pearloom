@@ -64,7 +64,7 @@ export function HeroSplit({ manifest, names, siteSlug, onEditField, onEditNames,
           <HeroNames n1={n1} n2={n2} onEditNames={onEditNames} scale={0.78} />
         </div>
         <div style={{ textAlign: 'left' }}>
-          <HeroDateVenue dateInfo={dateInfo} venue={venue} />
+          <HeroDateVenue dateInfo={dateInfo} venue={venue} manifest={manifest} onEditField={onEditField} />
         </div>
         <div style={{ textAlign: 'left' }}>
           <HeroTagline manifest={manifest} onEditField={onEditField} />

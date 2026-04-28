@@ -6,8 +6,10 @@
 // rewrite affordances stay consistent across all 5.
 // ──────────────────────────────────────────────────────────────
 
+import { forwardRef, useRef, useState } from 'react';
 import { EditableText } from '@/components/pearloom/editor/canvas/EditableText';
 import { HoverToolbar } from '@/components/pearloom/editor/canvas/HoverToolbar';
+import { HeroFieldPopover } from '@/components/pearloom/editor/canvas/HeroFieldPopover';
 import { Icon } from '@/components/pearloom/motifs';
 import { CalendarAddButton, SaveContactButton } from '@/components/pearloom/site/GuestKit';
 import type { HeroVariantProps } from './types';
@@ -104,38 +106,131 @@ export function HeroNames({ n1, n2, onEditNames, scale = 1, color, italicColor }
   );
 }
 
-export function HeroDateVenue({ dateInfo, venue, color }: {
+export function HeroDateVenue({ dateInfo, venue, color, manifest, onEditField }: {
   dateInfo: { pretty: string; weekday: string } | null;
   venue: string;
   color?: string;
+  /** Manifest + patcher are passed through in edit mode so each
+   *  pill becomes a clickable popover trigger. When unset, the
+   *  pills render as plain spans (published-site path). */
+  manifest?: StoryManifest;
+  onEditField?: HeroVariantProps['onEditField'];
 }) {
-  if (!dateInfo && !venue) return null;
+  const editMode = !!onEditField;
+  const [openField, setOpenField] = useState<'date' | 'venue' | null>(null);
+  const dateRef = useRef<HTMLButtonElement | null>(null);
+  const venueRef = useRef<HTMLButtonElement | null>(null);
+  const placeholderDate = !dateInfo && editMode;
+  const placeholderVenue = !venue && editMode;
+
+  if (!dateInfo && !venue && !editMode) return null;
+
+  const dateLabel = dateInfo
+    ? `${dateInfo.weekday}, ${dateInfo.pretty}`
+    : 'Add a date';
+  const venueLabel = venue || 'Add a venue';
+
   return (
-    <div
-      style={{
-        textAlign: 'center', marginTop: 28,
-        display: 'flex', justifyContent: 'center', alignItems: 'center',
-        gap: 18, flexWrap: 'wrap', color: color ?? 'var(--ink)',
-      }}
-    >
-      {dateInfo && (
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 15 }}>
-          <Icon name="calendar" size={16} color="var(--gold)" />
-          <span style={{ fontWeight: 600 }}>{dateInfo.weekday}, {dateInfo.pretty}</span>
-        </div>
+    <>
+      <div
+        style={{
+          textAlign: 'center', marginTop: 28,
+          display: 'flex', justifyContent: 'center', alignItems: 'center',
+          gap: 18, flexWrap: 'wrap', color: color ?? 'var(--ink)',
+        }}
+      >
+        {(dateInfo || editMode) && (
+          editMode ? (
+            <HeroFieldPill
+              ref={dateRef}
+              icon="calendar"
+              label={dateLabel}
+              placeholder={placeholderDate}
+              onClick={() => setOpenField((f) => (f === 'date' ? null : 'date'))}
+              ariaLabel="Edit date and time"
+              color={color}
+            />
+          ) : (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 15 }}>
+              <Icon name="calendar" size={16} color="var(--gold)" />
+              <span style={{ fontWeight: 600 }}>{dateLabel}</span>
+            </div>
+          )
+        )}
+        {(dateInfo || (editMode && !placeholderDate)) && (venue || (editMode && !placeholderVenue)) && (
+          <span aria-hidden style={{ width: 4, height: 4, borderRadius: '50%', background: 'currentColor', opacity: 0.45 }} />
+        )}
+        {(venue || editMode) && (
+          editMode ? (
+            <HeroFieldPill
+              ref={venueRef}
+              icon="pin"
+              label={venueLabel}
+              placeholder={placeholderVenue}
+              onClick={() => setOpenField((f) => (f === 'venue' ? null : 'venue'))}
+              ariaLabel="Edit venue"
+              color={color}
+            />
+          ) : (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 15 }}>
+              <Icon name="pin" size={16} color="var(--gold)" />
+              <span style={{ fontWeight: 600 }}>{venueLabel}</span>
+            </div>
+          )
+        )}
+      </div>
+      {editMode && manifest && onEditField && openField && (
+        <HeroFieldPopover
+          anchor={openField === 'date' ? dateRef.current : venueRef.current}
+          field={openField}
+          manifest={manifest}
+          onEditField={onEditField}
+          onClose={() => setOpenField(null)}
+        />
       )}
-      {dateInfo && venue && (
-        <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'currentColor', opacity: 0.45 }} />
-      )}
-      {venue && (
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 15 }}>
-          <Icon name="pin" size={16} color="var(--gold)" />
-          <span style={{ fontWeight: 600 }}>{venue}</span>
-        </div>
-      )}
-    </div>
+    </>
   );
 }
+
+// forwardRef keeps the trigger element exposed to the popover for
+// anchor positioning (getBoundingClientRect on the pill). Hover
+// reveals a dashed peach ring + soft cream wash so hosts know it's
+// editable; placeholder copy ("Add a date") shows when empty.
+const HeroFieldPill = forwardRef<HTMLButtonElement, {
+  icon: 'calendar' | 'pin';
+  label: string;
+  placeholder?: boolean;
+  onClick: () => void;
+  ariaLabel: string;
+  color?: string;
+}>(function HeroFieldPill({ icon, label, placeholder, onClick, ariaLabel, color }, ref) {
+  return (
+    <button
+      ref={ref}
+      type="button"
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      aria-label={ariaLabel}
+      className="pl8-hero-field-pill"
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 8,
+        fontSize: 15, fontWeight: 600,
+        color: color ?? 'inherit',
+        padding: '4px 10px',
+        borderRadius: 999,
+        border: '1px dashed transparent',
+        background: 'transparent',
+        cursor: 'pointer',
+        fontFamily: 'inherit',
+        transition: 'background-color 160ms ease, border-color 160ms ease',
+        opacity: placeholder ? 0.78 : 1,
+        fontStyle: placeholder ? 'italic' : 'normal',
+      }}
+    >
+      <Icon name={icon} size={16} color="var(--gold)" />
+      <span>{label}</span>
+    </button>
+  );
+});
 
 export function HeroTagline({ manifest, onEditField, color }: {
   manifest: StoryManifest;

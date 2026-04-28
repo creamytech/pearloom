@@ -1912,3 +1912,17 @@ html { scroll-behavior: smooth; }
   cursor: grabbing !important;
   background: rgba(198,112,61,0.85) !important;
 }
+
+/* Hero date/venue pills — clickable in edit mode. Resting state
+   is invisible chrome so the published-look stays untouched; hover
+   reveals a soft cream wash + dashed peach ring so hosts know
+   they can click to open the popover. */
+.pl8-hero-field-pill:hover {
+  background: rgba(255, 244, 232, 0.65) !important;
+  border-color: rgba(198, 112, 61, 0.45) !important;
+}
+.pl8-hero-field-pill:focus-visible {
+  background: rgba(255, 244, 232, 0.85) !important;
+  border-color: rgba(198, 112, 61, 0.75) !important;
+  outline: none;
+}

@@ -19,7 +19,7 @@ export function HeroMinimal({ manifest, names, siteSlug, onEditField, onEditName
     <div style={{ maxWidth: 760, margin: '0 auto', textAlign: 'center', padding: '40px 0' }}>
       <HeroKicker manifest={manifest} dateInfo={dateInfo} onEditField={onEditField} />
       <HeroNames n1={n1} n2={n2} onEditNames={onEditNames} scale={0.92} />
-      <HeroDateVenue dateInfo={dateInfo} venue={venue} />
+      <HeroDateVenue dateInfo={dateInfo} venue={venue} manifest={manifest} onEditField={onEditField} />
       <HeroTagline manifest={manifest} onEditField={onEditField} />
       <HeroPrimaryCta deadlineStr={deadlineStr} />
       <HeroLinkTray siteSlug={siteSlug} manifest={manifest} names={names} />
