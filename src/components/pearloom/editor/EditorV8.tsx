@@ -41,6 +41,7 @@ import { DecorGenerationToast } from './DecorGenerationToast';
 import { DecorRecolorModal } from './DecorRecolorModal';
 import { IconSwapModal } from './IconSwapModal';
 import { HotelQuickEditModal } from './HotelQuickEditModal';
+import { PearNudges } from './PearNudges';
 import { FaqQuickEditModal } from './FaqQuickEditModal';
 import { ScheduleQuickEditModal } from './ScheduleQuickEditModal';
 import { RegistryQuickEditModal } from './RegistryQuickEditModal';
@@ -678,6 +679,8 @@ export function EditorV8({
           onTogglePreview={() => setPreviewMode((p) => !p)}
           currentBlock={block}
           onJumpBlock={(k) => setBlock(k)}
+          manifest={manifest}
+          siteSlug={siteSlug}
         />
       )}
       {previewMode && (
@@ -806,7 +809,14 @@ export function EditorV8({
           rail's tabs now, so no floating instances live here. The
           legacy floating versions still exist as a fallback (other
           surfaces can mount them with `docked={false}`). */}
-      <DesignAdvisor manifest={manifest} names={names} open={advisorOpen} onClose={() => setAdvisorOpen(false)} />
+      <DesignAdvisor
+        manifest={manifest}
+        names={names}
+        siteSlug={siteSlug}
+        open={advisorOpen}
+        onClose={() => setAdvisorOpen(false)}
+        onApplyPatch={(next) => setManifest(() => next)}
+      />
     </div>
   );
 }
@@ -1161,6 +1171,8 @@ function EditorTopbar({
   onTogglePreview,
   currentBlock,
   onJumpBlock,
+  manifest,
+  siteSlug,
 }: {
   displayNames: string;
   prettyUrl: string;
@@ -1174,6 +1186,9 @@ function EditorTopbar({
    *  topbar as a breadcrumb chip with a quick-jump menu. */
   currentBlock: BlockKey;
   onJumpBlock: (k: BlockKey) => void;
+  /** Manifest + slug threaded in for the proactive Pear pip. */
+  manifest: StoryManifest;
+  siteSlug: string;
   /** Absolute URL of the most-recently-published version. Null until
    *  the user publishes once this session, after which the topbar
    *  shows a "View live" pearl pill that opens it in a new tab. */
@@ -1356,6 +1371,11 @@ function EditorTopbar({
         </button>
         <span style={{ width: 1, height: 18, background: 'var(--line-soft)', margin: '0 4px' }} aria-hidden />
         <DesignMenu />
+        {/* Proactive Pear pip — surfaces a single context-aware
+            nudge based on what's missing on the site. Sits next
+            to the explicit "Ask Pear" button so the host has
+            both a passive (pip) and active (button) entry point. */}
+        <PearNudges manifest={manifest} siteSlug={siteSlug} />
         <button type="button" onClick={onOpenAdvisor} style={ghostBtn}>
           <Icon name="sparkles" size={12} /> Ask Pear
         </button>

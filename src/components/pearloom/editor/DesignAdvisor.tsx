@@ -20,10 +20,29 @@
 // nudges that surface without the host clicking, edit-on-accept.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { AISuggestButton, useAICall } from './ai';
 import { Icon, Pear } from '../motifs';
+import {
+  applyPearPatchEnvelope,
+  extractPatch,
+  stripPatchFromText,
+  type PearPatchEnvelope,
+} from './pear/patch';
+
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'pear';
+  content: string;
+  /** When Pear's response includes a pearloom:patch block, this
+   *  is the parsed envelope so the UI can render an "Apply"
+   *  button. Once applied, set to undefined. */
+  patch?: PearPatchEnvelope | null;
+  /** Becomes true after the host clicks Apply. Keeps the chip
+   *  visible as confirmation but disables further taps. */
+  patchApplied?: boolean;
+}
 
 type SuggestionCategory = 'palette' | 'typography' | 'content' | 'layout' | 'voice' | 'accessibility';
 type SuggestionSeverity = 'info' | 'nice-to-have' | 'should-fix';
@@ -93,20 +112,151 @@ export function DesignAdvisor({
   names,
   open,
   onClose,
+  onApplyPatch,
+  siteSlug,
 }: {
   manifest: StoryManifest;
   names: [string, string];
   open: boolean;
   onClose: () => void;
+  /** Apply Pear's manifest patch (optional). When omitted the
+   *  "Apply" button is hidden. */
+  onApplyPatch?: (next: StoryManifest) => void;
+  /** Used to namespace conversation memory in localStorage so
+   *  reopening Pear on the same site picks up where it left off. */
+  siteSlug?: string;
 }) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [activeAction, setActiveAction] = useState<QuickActionKey>('review');
+  const [chat, setChat] = useState<ChatMessage[]>([]);
+  const [draft, setDraft] = useState('');
+  const [streaming, setStreaming] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
+  const chatScrollRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // Reset suggestions when the panel closes so reopening starts
-  // with a fresh slate.
+  // Persist + rehydrate chat per-site so reopening Pear feels
+  // like a continuing thread, not a fresh session each time.
+  // Cap the history at 30 turns so localStorage doesn't bloat.
+  const memoryKey = siteSlug ? `pearloom:pear-chat:${siteSlug}` : null;
   useEffect(() => {
-    if (!open) setSuggestions([]);
+    if (!memoryKey) return;
+    try {
+      const raw = window.localStorage.getItem(memoryKey);
+      if (raw) {
+        const parsed = JSON.parse(raw) as ChatMessage[];
+        if (Array.isArray(parsed)) setChat(parsed.slice(-30));
+      }
+    } catch { /* ignore */ }
+  }, [memoryKey]);
+  useEffect(() => {
+    if (!memoryKey) return;
+    try {
+      const trimmed = chat.slice(-30);
+      window.localStorage.setItem(memoryKey, JSON.stringify(trimmed));
+    } catch { /* ignore quota */ }
+  }, [chat, memoryKey]);
+
+  // Auto-scroll the chat to the bottom when a new message lands.
+  useEffect(() => {
+    if (!open) return;
+    const el = chatScrollRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [chat, open]);
+
+  // Reset suggestions when the panel closes; chat persists in
+  // localStorage so it's not blown away.
+  useEffect(() => {
+    if (!open) {
+      setSuggestions([]);
+      setChatError(null);
+    }
   }, [open]);
+
+  const sendChat = useCallback(async (prompt: string) => {
+    if (!prompt.trim() || streaming) return;
+    setStreaming(true);
+    setChatError(null);
+    const userMsg: ChatMessage = {
+      id: `u-${Date.now().toString(36)}`,
+      role: 'user',
+      content: prompt.trim(),
+    };
+    const pearId = `p-${Date.now().toString(36)}`;
+    const pearStub: ChatMessage = { id: pearId, role: 'pear', content: '' };
+    setChat((prev) => [...prev, userMsg, pearStub]);
+    setDraft('');
+
+    try {
+      const res = await fetch('/api/pear-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          manifest,
+          coupleNames: names,
+          prompt: userMsg.content,
+          history: chat.slice(-6).map((m) => ({ role: m.role, content: m.content })),
+        }),
+      });
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? `Pear couldn't reply (${res.status})`);
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let acc = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const frames = buffer.split('\n\n');
+        buffer = frames.pop() ?? '';
+        for (const frame of frames) {
+          const line = frame.split('\n').find((l) => l.startsWith('data: '));
+          if (!line) continue;
+          try {
+            const ev = JSON.parse(line.slice(6)) as { delta?: string; done?: boolean; error?: string };
+            if (ev.error) throw new Error(ev.error);
+            if (ev.delta) {
+              acc += ev.delta;
+              const display = stripPatchFromText(acc);
+              setChat((prev) => prev.map((m) => (m.id === pearId ? { ...m, content: display } : m)));
+            }
+          } catch (e) {
+            if (e instanceof Error && e.message) throw e;
+          }
+        }
+      }
+      // Final pass — extract patch envelope after the stream
+      // ends so partial JSON during streaming doesn't trip
+      // extraction.
+      const finalEnvelope = extractPatch(acc);
+      const finalDisplay = stripPatchFromText(acc);
+      setChat((prev) => prev.map((m) => (m.id === pearId ? { ...m, content: finalDisplay, patch: finalEnvelope } : m)));
+    } catch (e) {
+      setChatError(e instanceof Error ? e.message : 'Pear lost the thread');
+      setChat((prev) => prev.filter((m) => m.id !== pearId));
+    } finally {
+      setStreaming(false);
+    }
+  }, [manifest, names, chat, streaming]);
+
+  function applyChatPatch(messageId: string) {
+    const target = chat.find((m) => m.id === messageId);
+    if (!target?.patch || !onApplyPatch) return;
+    const next = applyPearPatchEnvelope(manifest, target.patch);
+    onApplyPatch(next);
+    setChat((prev) => prev.map((m) => (m.id === messageId ? { ...m, patchApplied: true } : m)));
+  }
+
+  function clearMemory() {
+    setChat([]);
+    if (memoryKey) {
+      try { window.localStorage.removeItem(memoryKey); } catch { /* ignore */ }
+    }
+  }
 
   // Greeting flexes with the manifest. If the host has barely
   // started, Pear nudges them to fill in basics. If the site is
@@ -347,6 +497,49 @@ export function DesignAdvisor({
             </div>
           )}
 
+          {/* Chat surface — free-text "ask Pear anything" with
+              streaming response and edit-on-accept patches. */}
+          {(chat.length > 0 || streaming) && (
+            <div
+              ref={chatScrollRef}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 10,
+                marginTop: 4,
+              }}
+            >
+              {chat.map((m) => (
+                <ChatBubble
+                  key={m.id}
+                  message={m}
+                  canApply={!!onApplyPatch}
+                  onApply={() => applyChatPatch(m.id)}
+                />
+              ))}
+              {streaming && chat[chat.length - 1]?.role === 'pear' && chat[chat.length - 1].content === '' && (
+                <PearTypingIndicator />
+              )}
+            </div>
+          )}
+
+          {chatError && (
+            <div
+              role="alert"
+              style={{
+                padding: '10px 12px',
+                background: 'rgba(122,45,45,0.08)',
+                border: '1px solid rgba(122,45,45,0.18)',
+                borderRadius: 10,
+                color: '#7A2D2D',
+                fontSize: 12.5,
+                lineHeight: 1.45,
+              }}
+            >
+              {chatError}
+            </div>
+          )}
+
           {suggestions.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {suggestions.map((s) => (
@@ -458,6 +651,129 @@ export function DesignAdvisor({
           )}
         </div>
 
+        {/* Chat input footer — fixed to the bottom so the host
+            can keep typing while suggestions scroll. ⌘/Ctrl+Enter
+            sends. */}
+        <footer
+          style={{
+            padding: '12px 18px 16px',
+            borderTop: '1px solid var(--line-soft)',
+            background: 'var(--cream-2)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+          }}
+        >
+          {chat.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{
+                  fontSize: 9.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.18em',
+                  color: 'var(--ink-muted)',
+                  textTransform: 'uppercase',
+                  fontFamily: 'var(--font-ui)',
+                }}
+              >
+                Conversation · {chat.length}
+              </div>
+              <button
+                type="button"
+                onClick={clearMemory}
+                style={{
+                  fontSize: 10.5,
+                  color: 'var(--ink-soft)',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontFamily: 'var(--font-ui)',
+                  padding: '2px 4px',
+                }}
+              >
+                Clear
+              </button>
+            </div>
+          )}
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              alignItems: 'flex-end',
+              padding: '10px 12px',
+              background: 'var(--card)',
+              border: '1px solid var(--line-soft)',
+              borderRadius: 14,
+              transition: 'border-color 160ms ease, box-shadow 160ms ease',
+            }}
+          >
+            <textarea
+              ref={inputRef}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey && !streaming) {
+                  e.preventDefault();
+                  void sendChat(draft);
+                }
+              }}
+              placeholder={chat.length === 0 ? 'Ask Pear anything — “rewrite my hero tagline warmer” or “draft 3 FAQs”' : 'Reply to Pear…'}
+              rows={1}
+              style={{
+                flex: 1,
+                resize: 'none',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                fontFamily: 'var(--font-ui)',
+                fontSize: 13.5,
+                color: 'var(--ink)',
+                lineHeight: 1.5,
+                minHeight: 22,
+                maxHeight: 120,
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => void sendChat(draft)}
+              disabled={!draft.trim() || streaming}
+              aria-label="Send message"
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 999,
+                background: draft.trim() && !streaming ? 'var(--peach-ink, #C6703D)' : 'var(--cream-2)',
+                color: draft.trim() && !streaming ? '#FFFFFF' : 'var(--ink-muted)',
+                border: 'none',
+                cursor: draft.trim() && !streaming ? 'pointer' : 'not-allowed',
+                display: 'grid',
+                placeItems: 'center',
+                flexShrink: 0,
+                transition: 'background 160ms ease, color 160ms ease',
+              }}
+            >
+              {streaming ? (
+                <span
+                  aria-hidden
+                  style={{
+                    width: 12, height: 12,
+                    borderRadius: '50%',
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    animation: 'pl-pear-spin 700ms linear infinite',
+                  }}
+                />
+              ) : (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" stroke="none" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </footer>
+
         <style jsx global>{`
           @keyframes pl-pear-fade {
             from { opacity: 0; }
@@ -471,6 +787,14 @@ export function DesignAdvisor({
             0%, 100% { transform: scale(1); }
             50%      { transform: scale(1.04); }
           }
+          @keyframes pl-pear-spin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+          }
+          @keyframes pl-pear-typing-dot {
+            0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
+            30%           { opacity: 1; transform: translateY(-2px); }
+          }
           @media (prefers-reduced-motion: reduce) {
             [aria-label="Pear, your design advisor"] aside { animation: none; }
             [aria-label="Pear, your design advisor"] { animation: none; }
@@ -478,6 +802,163 @@ export function DesignAdvisor({
           }
         `}</style>
       </aside>
+    </div>
+  );
+}
+
+function ChatBubble({
+  message,
+  canApply,
+  onApply,
+}: {
+  message: ChatMessage;
+  canApply: boolean;
+  onApply: () => void;
+}) {
+  const isUser = message.role === 'user';
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+        alignSelf: isUser ? 'flex-end' : 'flex-start',
+        maxWidth: '85%',
+      }}
+    >
+      <div
+        style={{
+          padding: '10px 14px',
+          borderRadius: 14,
+          background: isUser ? 'var(--peach-bg, rgba(198,112,61,0.12))' : 'var(--card)',
+          border: isUser ? '1px solid rgba(198,112,61,0.22)' : '1px solid var(--card-ring)',
+          color: 'var(--ink)',
+          fontSize: 13.5,
+          lineHeight: 1.55,
+          fontFamily: isUser ? 'var(--font-ui)' : 'var(--font-display, "Fraunces", Georgia, serif)',
+          fontStyle: isUser ? 'normal' : 'italic',
+          letterSpacing: isUser ? 0 : '-0.005em',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+        }}
+      >
+        {message.content || (
+          <span style={{ opacity: 0.6 }}>Pear is thinking…</span>
+        )}
+      </div>
+      {message.patch && (
+        <div
+          style={{
+            padding: '10px 12px',
+            background: 'var(--cream-2)',
+            border: '1px dashed var(--peach-ink, #C6703D)',
+            borderRadius: 12,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 9.5,
+              fontWeight: 700,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--peach-ink, #C6703D)',
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            Pear can apply this
+          </div>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12.5,
+              color: 'var(--ink)',
+              lineHeight: 1.45,
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            {message.patch.summary}
+          </p>
+          {!message.patchApplied ? (
+            <button
+              type="button"
+              onClick={onApply}
+              disabled={!canApply}
+              style={{
+                alignSelf: 'flex-start',
+                padding: '6px 14px',
+                borderRadius: 999,
+                background: canApply ? 'var(--ink)' : 'var(--cream-2)',
+                color: canApply ? 'var(--cream)' : 'var(--ink-muted)',
+                border: 'none',
+                fontSize: 11.5,
+                fontWeight: 700,
+                fontFamily: 'var(--font-ui)',
+                cursor: canApply ? 'pointer' : 'not-allowed',
+                letterSpacing: '0.04em',
+              }}
+            >
+              {canApply ? `Apply ${message.patch.patches.length} edit${message.patch.patches.length === 1 ? '' : 's'}` : 'Read-only mode'}
+            </button>
+          ) : (
+            <div
+              style={{
+                alignSelf: 'flex-start',
+                padding: '4px 12px',
+                borderRadius: 999,
+                background: 'rgba(92,107,63,0.12)',
+                color: 'var(--sage-deep, #5C6B3F)',
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                fontFamily: 'var(--font-ui)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <Icon name="check" size={11} color="var(--sage-deep)" />
+              Applied
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PearTypingIndicator() {
+  return (
+    <div
+      aria-label="Pear is thinking"
+      style={{
+        display: 'inline-flex',
+        gap: 4,
+        padding: '8px 14px',
+        background: 'var(--card)',
+        border: '1px solid var(--card-ring)',
+        borderRadius: 14,
+        alignSelf: 'flex-start',
+        marginTop: -8,
+      }}
+    >
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          aria-hidden
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: '50%',
+            background: 'var(--peach-ink, #C6703D)',
+            animation: 'pl-pear-typing-dot 1.4s ease-in-out infinite',
+            animationDelay: `${i * 160}ms`,
+          }}
+        />
+      ))}
     </div>
   );
 }
