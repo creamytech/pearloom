@@ -21,7 +21,7 @@
 // its own data plumbing — the shell is purely presentational.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   DndContext,
   KeyboardSensor,
@@ -66,6 +66,11 @@ interface Props {
    *  the new order. When provided, sidebar tiles get a small
    *  grip glyph + dnd-kit wiring. */
   onReorder?: (orderedIds: string[]) => void;
+  /** Bulk-delete callback. When provided, the modal header
+   *  surfaces a Select toggle; in select mode, sidebar tiles
+   *  toggle membership instead of focusing, and a bottom action
+   *  bar offers "Delete N" + "Cancel". */
+  onBulkDelete?: (ids: string[]) => void;
   /** Optional search / add-row component pinned above the
    *  sidebar + editor so the host can grow the list without
    *  closing the modal. */
@@ -85,6 +90,7 @@ export function QuickEditModalShell({
   focusedId,
   onFocusChange,
   onReorder,
+  onBulkDelete,
   searchSlot,
   editorSlot,
   onClose,
@@ -94,6 +100,19 @@ export function QuickEditModalShell({
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
+  // Multi-select state. `selectMode` enables the per-tile checkbox
+  // affordance and routes click → toggle instead of focus. Reset
+  // every time the modal closes so a stale selection never leaks
+  // into the next open.
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    if (!open) {
+      setSelectMode(false);
+      setSelectedIds(new Set());
+    }
+  }, [open]);
+
   function handleDragEnd(e: DragEndEvent) {
     if (!onReorder) return;
     const { active, over } = e;
@@ -103,6 +122,22 @@ export function QuickEditModalShell({
     if (from < 0 || to < 0) return;
     const next = arrayMove(items, from, to);
     onReorder(next.map((it) => it.id));
+  }
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+  function exitSelectMode() {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  }
+  function handleBulkDelete() {
+    if (!onBulkDelete || selectedIds.size === 0) return;
+    onBulkDelete(Array.from(selectedIds));
+    exitSelectMode();
   }
   // Escape to close, freeze body scroll while open.
   useEffect(() => {
@@ -192,6 +227,38 @@ export function QuickEditModalShell({
               {focusedTitle}
             </h2>
           </div>
+          {/* Select toggle — only renders when the section
+              supports bulk delete. Shows the active state in peach
+              so the host can see they're in a different mode. */}
+          {onBulkDelete && (
+            <button
+              type="button"
+              onClick={() => {
+                if (selectMode) exitSelectMode();
+                else setSelectMode(true);
+              }}
+              aria-pressed={selectMode}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                height: 30,
+                padding: '0 12px',
+                borderRadius: 999,
+                background: selectMode ? 'var(--peach-ink, #C6703D)' : 'transparent',
+                color: selectMode ? '#FFFFFF' : 'var(--ink-soft)',
+                border: selectMode ? '1.5px solid var(--peach-ink, #C6703D)' : '1.5px solid var(--line)',
+                cursor: 'pointer',
+                fontSize: 11.5,
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                fontFamily: 'var(--font-ui)',
+                transition: 'all 160ms ease',
+              }}
+            >
+              {selectMode ? `${selectedIds.size} selected` : 'Select'}
+            </button>
+          )}
           <button
             type="button"
             onClick={onClose}
@@ -229,67 +296,125 @@ export function QuickEditModalShell({
               width: 260,
               flexShrink: 0,
               borderRight: '1px solid var(--line-soft)',
-              overflowY: 'auto',
-              padding: '12px 10px',
+              display: 'flex',
+              flexDirection: 'column',
               background: 'var(--cream, #FBF7EE)',
             }}
           >
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: '0.18em',
-                color: 'var(--ink-muted)',
-                textTransform: 'uppercase',
-                padding: '4px 8px 8px',
-              }}
-            >
-              {title} · {items.length}
-            </div>
-            {items.length === 0 && emptyHint ? (
+            <div style={{ flex: 1, overflowY: 'auto', padding: '12px 10px' }}>
               <div
                 style={{
-                  padding: 16,
-                  fontSize: 12,
-                  color: 'var(--ink-soft)',
-                  lineHeight: 1.5,
-                  textAlign: 'center',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '0.18em',
+                  color: 'var(--ink-muted)',
+                  textTransform: 'uppercase',
+                  padding: '4px 8px 8px',
                 }}
               >
-                {emptyHint}
+                {title} · {items.length}
               </div>
-            ) : onReorder ? (
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={items.map((it) => it.id)}
-                  strategy={verticalListSortingStrategy}
+              {items.length === 0 && emptyHint ? (
+                <div
+                  style={{
+                    padding: 16,
+                    fontSize: 12,
+                    color: 'var(--ink-soft)',
+                    lineHeight: 1.5,
+                    textAlign: 'center',
+                  }}
                 >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    {items.map((it) => (
-                      <SortableSidebarTile
-                        key={it.id}
-                        item={it}
-                        active={it.id === focusedId}
-                        onClick={() => onFocusChange(it.id)}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
-              </DndContext>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {items.map((it) => (
-                  <SidebarTile
-                    key={it.id}
-                    item={it}
-                    active={it.id === focusedId}
-                    onClick={() => onFocusChange(it.id)}
-                  />
-                ))}
+                  {emptyHint}
+                </div>
+              ) : onReorder && !selectMode ? (
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={items.map((it) => it.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {items.map((it) => (
+                        <SortableSidebarTile
+                          key={it.id}
+                          item={it}
+                          active={it.id === focusedId}
+                          onClick={() => onFocusChange(it.id)}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {items.map((it) => (
+                    <SidebarTile
+                      key={it.id}
+                      item={it}
+                      active={it.id === focusedId}
+                      selectMode={selectMode}
+                      selected={selectedIds.has(it.id)}
+                      onClick={() => {
+                        if (selectMode) toggleSelected(it.id);
+                        else onFocusChange(it.id);
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+            {/* Bottom action bar — slides up when ≥1 row is
+                selected. Sticky to the sidebar so the host can
+                scroll the list freely without losing the bar. */}
+            {selectMode && selectedIds.size > 0 && onBulkDelete && (
+              <div
+                style={{
+                  borderTop: '1px solid var(--line-soft)',
+                  padding: 10,
+                  display: 'flex',
+                  gap: 6,
+                  background: 'var(--cream-2, #F5EFE2)',
+                  animation: 'pl8-bulk-bar-rise 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={handleBulkDelete}
+                  style={{
+                    flex: 1,
+                    padding: '9px 12px',
+                    borderRadius: 999,
+                    border: '1px solid rgba(122,45,45,0.3)',
+                    background: '#7A2D2D',
+                    color: '#FFFFFF',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-ui)',
+                  }}
+                >
+                  Delete {selectedIds.size}
+                </button>
+                <button
+                  type="button"
+                  onClick={exitSelectMode}
+                  style={{
+                    padding: '9px 14px',
+                    borderRadius: 999,
+                    border: '1px solid var(--line)',
+                    background: 'transparent',
+                    color: 'var(--ink-soft)',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-ui)',
+                  }}
+                >
+                  Cancel
+                </button>
               </div>
             )}
           </div>
@@ -310,6 +435,10 @@ export function QuickEditModalShell({
           from { opacity: 0; transform: translateY(12px) scale(0.985); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
         }
+        @keyframes pl8-bulk-bar-rise {
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
       `}</style>
     </div>
   );
@@ -318,12 +447,19 @@ export function QuickEditModalShell({
 function SidebarTile({
   item,
   active,
+  selectMode = false,
+  selected = false,
   onClick,
 }: {
   item: QuickEditModalItem;
   active: boolean;
+  selectMode?: boolean;
+  selected?: boolean;
   onClick: () => void;
 }) {
+  // In select mode the visual hierarchy flips — the checkbox state
+  // controls the peach edge, focused-row highlight goes muted.
+  const showActive = !selectMode && active;
   return (
     <button
       type="button"
@@ -334,8 +470,12 @@ function SidebarTile({
         gap: 10,
         padding: '10px 10px',
         borderRadius: 10,
-        border: active ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid transparent',
-        background: active ? 'rgba(198,112,61,0.08)' : 'transparent',
+        border: selected
+          ? '1.5px solid var(--peach-ink, #C6703D)'
+          : showActive ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid transparent',
+        background: selected
+          ? 'rgba(198,112,61,0.12)'
+          : showActive ? 'rgba(198,112,61,0.08)' : 'transparent',
         color: 'var(--ink)',
         cursor: 'pointer',
         textAlign: 'left',
@@ -344,12 +484,35 @@ function SidebarTile({
         transition: 'background 140ms ease, border-color 140ms ease',
       }}
       onMouseEnter={(e) => {
-        if (!active) e.currentTarget.style.background = 'var(--cream-2, #F5EFE2)';
+        if (!selected && !showActive) e.currentTarget.style.background = 'var(--cream-2, #F5EFE2)';
       }}
       onMouseLeave={(e) => {
-        if (!active) e.currentTarget.style.background = 'transparent';
+        if (!selected && !showActive) e.currentTarget.style.background = 'transparent';
       }}
     >
+      {selectMode && (
+        <span
+          aria-hidden
+          style={{
+            width: 18,
+            height: 18,
+            flexShrink: 0,
+            borderRadius: 4,
+            border: selected ? '1.5px solid var(--peach-ink, #C6703D)' : '1.5px solid var(--line)',
+            background: selected ? 'var(--peach-ink, #C6703D)' : 'transparent',
+            display: 'grid',
+            placeItems: 'center',
+            color: '#FFFFFF',
+            transition: 'all 140ms ease',
+          }}
+        >
+          {selected && (
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          )}
+        </span>
+      )}
       <div
         aria-hidden
         style={{

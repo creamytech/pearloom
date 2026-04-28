@@ -121,6 +121,13 @@ export function RegistryQuickEditModal({ manifest, onChange }: Props) {
         const tail = items.filter((it) => !seen.has(it.id));
         setItems([...next, ...tail]);
       }}
+      onBulkDelete={(ids) => {
+        const idSet = new Set(ids);
+        const next = items.filter((it) => !idSet.has(it.id));
+        setItems(next);
+        if (next.length === 0) setOpenId(null);
+        else if (focused && idSet.has(focused.id)) setOpenId(next[0].id);
+      }}
       onClose={() => setOpenId(null)}
       emptyHint="No registry entries yet."
       searchSlot={

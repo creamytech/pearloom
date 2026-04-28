@@ -104,6 +104,13 @@ export function FaqQuickEditModal({ manifest, onChange }: Props) {
         const tail = items.filter((it) => !seen.has(it.id));
         setItems([...next, ...tail]);
       }}
+      onBulkDelete={(ids) => {
+        const idSet = new Set(ids);
+        const next = items.filter((it) => !idSet.has(it.id));
+        setItems(next);
+        if (next.length === 0) setOpenFaqId(null);
+        else if (focused && idSet.has(focused.id)) setOpenFaqId(next[0].id);
+      }}
       onClose={() => setOpenFaqId(null)}
       emptyHint="No questions yet. Add one to get started."
       searchSlot={

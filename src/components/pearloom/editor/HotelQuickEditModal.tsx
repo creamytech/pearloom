@@ -185,6 +185,15 @@ export function HotelQuickEditModal({ manifest, onChange }: Props) {
         const tail = hotels.filter((h) => !seen.has(h.id));
         setTravel([...next, ...tail]);
       }}
+      onBulkDelete={(ids) => {
+        const idSet = new Set(ids);
+        const next = hotels.filter((h) => !idSet.has(h.id));
+        setTravel(next);
+        // Drop the focused row to a survivor so the editor pane
+        // doesn't render a stale hotel after a bulk wipe.
+        if (next.length === 0) setOpenHotelId(null);
+        else if (focused && idSet.has(focused.id)) setOpenHotelId(next[0].id);
+      }}
       onClose={() => setOpenHotelId(null)}
       searchSlot={
         <Field label="Add another hotel" help="Real Google Places search. Picking enriches the row with rating + amenities + distance from venue.">
