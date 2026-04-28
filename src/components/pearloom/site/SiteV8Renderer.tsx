@@ -75,6 +75,7 @@ import {
   GuestPhotoUploader,
   VoiceToastRecorder,
 } from './GuestKit2';
+import { CanvasSortable, CanvasGripHandle } from './canvas-sortable';
 import { SectionStamp } from './SectionStamp';
 import { StickerLayer } from './StickerLayer';
 import { FooterBouquet } from './FooterBouquet';
@@ -2732,12 +2733,17 @@ function HotelsList({
   hotelTones,
   editMode = false,
   onRemove,
+  onReorder,
 }: {
   manifest: StoryManifest;
   hotels: HotelCardModel[];
   hotelTones: ('peach' | 'lavender' | 'sage')[];
   editMode?: boolean;
   onRemove?: (idxInVisible: number, hotel: HotelCardModel) => void;
+  /** Drag-to-reorder callback. Receives the visible array in
+   *  the new order. Only honoured when display === 'photo' or
+   *  'icon' — map mode uses pin order from the array, not drag. */
+  onReorder?: (next: HotelCardModel[]) => void;
 }) {
   const [sort, setSort] = useState<HotelSort>('pearPick');
   const [amenitySet, setAmenitySet] = useState<Set<string>>(new Set());
@@ -2881,33 +2887,72 @@ function HotelsList({
           tones={hotelTones}
           badges={badges}
         />
-      ) : (
-        visible.map((h, i) => {
+      ) : (() => {
+        const cardItems = visible.map((h, i) => ({
+          ...h,
+          id: (h as { id?: string }).id ?? `htl-idx-${i}`,
+        }));
+        // Drag-to-reorder turns on when editMode + the parent
+        // supplied an onReorder. We feed CanvasSortable the same
+        // visible array; it tracks order locally during the
+        // gesture and calls onReorder with the post-drop order
+        // when the host releases. Map mode early-returns above
+        // so display here is narrowed to 'photo' | 'icon'.
+        if (editMode && onReorder) {
+          return (
+            <CanvasSortable
+              items={cardItems}
+              onReorder={(next) => {
+                // Strip the synthetic id back out before handing
+                // back to the section caller — the manifest hotel
+                // shape already carries its own id (or doesn't).
+                onReorder(next as unknown as HotelCardModel[]);
+              }}
+              renderItem={(item, ctx) => {
+                const i = ctx.index;
+                const tone = hotelTones[i % hotelTones.length] as 'peach' | 'lavender' | 'sage';
+                return (
+                  <HotelCard
+                    hotel={item}
+                    tone={tone}
+                    display={display}
+                    badges={badges[i] ?? []}
+                    eventDate={manifest.logistics?.date}
+                    hotelId={item.id}
+                    editMode={editMode}
+                    onRemove={() => onRemove?.(i, item)}
+                    onFocus={() => {
+                      if (typeof window === 'undefined') return;
+                      window.dispatchEvent(new CustomEvent('pearloom:focus-hotel-row', { detail: { hotelId: item.id } }));
+                    }}
+                    dragHandleProps={ctx.dragHandleProps}
+                  />
+                );
+              }}
+            />
+          );
+        }
+        return cardItems.map((h, i) => {
           const tone = hotelTones[i % hotelTones.length] as 'peach' | 'lavender' | 'sage';
-          // hotelId comes from the underlying record when present; we
-          // need it for both the canvas focus jump and the panel's
-          // matching scroll target. Fall back to a stable index-based
-          // id when the manifest's hotel doesn't carry one yet.
-          const hid = (h as { id?: string }).id ?? `htl-idx-${i}`;
           return (
             <HotelCard
-              key={hid}
+              key={h.id}
               hotel={h}
               tone={tone}
               display={display}
               badges={badges[i] ?? []}
               eventDate={manifest.logistics?.date}
-              hotelId={hid}
+              hotelId={h.id}
               editMode={editMode}
               onRemove={editMode ? () => onRemove?.(i, h) : undefined}
               onFocus={editMode ? () => {
                 if (typeof window === 'undefined') return;
-                window.dispatchEvent(new CustomEvent('pearloom:focus-hotel-row', { detail: { hotelId: hid } }));
+                window.dispatchEvent(new CustomEvent('pearloom:focus-hotel-row', { detail: { hotelId: h.id } }));
               } : undefined}
             />
           );
-        })
-      )}
+        });
+      })()}
     </div>
   );
 }
@@ -3652,6 +3697,7 @@ function HotelCard({
   editMode = false,
   onRemove,
   onFocus,
+  dragHandleProps,
 }: {
   hotel: HotelCardModel;
   tone: 'peach' | 'lavender' | 'sage';
@@ -3673,6 +3719,9 @@ function HotelCard({
   editMode?: boolean;
   onRemove?: () => void;
   onFocus?: () => void;
+  /** dnd-kit activator props — when supplied, the card adds a
+   *  hover-reveal grip handle that drives canvas drag-to-reorder. */
+  dragHandleProps?: React.HTMLAttributes<HTMLElement> & { ref: (el: HTMLElement | null) => void };
 }) {
   // Old manifests stored the formatted distance in km/m. Convert
   // at render time so guests always see miles + minutes.
@@ -3845,6 +3894,9 @@ function HotelCard({
         >
           ×
         </button>
+      )}
+      {editMode && dragHandleProps && (
+        <CanvasGripHandle dragHandleProps={dragHandleProps} ariaLabel="Drag to reorder hotel" position="top-left" />
       )}
       {/* Badges row was previously absolute-positioned in the
           top-right of the article — that overlapped longer hotel
@@ -4229,6 +4281,32 @@ function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest;
                         ...m,
                         travel: { ...legacyTravel, hotels: next },
                         travelInfo: { ...(m.travelInfo ?? { airports: [], hotels: [] }), hotels: next },
+                      } as StoryManifest;
+                    });
+                  } : undefined}
+                  onReorder={edit && onEditField ? (next) => {
+                    onEditField((m) => {
+                      // Reorder by id mapping. The reordered list
+                      // contains synthetic ids like "htl-idx-N" for
+                      // entries that didn't carry a real one — we
+                      // resolve those back to the matching original
+                      // by name + address before persisting so the
+                      // manifest never grows synthetic ids.
+                      const cur = (m.travelInfo?.hotels ?? []) as Array<HotelCardModel & { id?: string }>;
+                      const reordered = next.map((nh) => {
+                        const nhid = (nh as { id?: string }).id;
+                        if (nhid && !nhid.startsWith('htl-idx-')) {
+                          return cur.find((x) => (x as { id?: string }).id === nhid) ?? nh;
+                        }
+                        return cur.find(
+                          (x) => x.name === nh.name && (x.address ?? '') === (nh.address ?? ''),
+                        ) ?? nh;
+                      });
+                      const legacyTravel = (m as unknown as { travel?: { hotels?: unknown[] } }).travel ?? {};
+                      return {
+                        ...m,
+                        travel: { ...legacyTravel, hotels: reordered },
+                        travelInfo: { ...(m.travelInfo ?? { airports: [], hotels: [] }), hotels: reordered },
                       } as StoryManifest;
                     });
                   } : undefined}

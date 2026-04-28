@@ -1900,3 +1900,15 @@ html { scroll-behavior: smooth; }
 .pl8-canvas-focus-flash {
   animation: pl8-canvas-focus-flash 1.6s ease-out;
 }
+
+/* Canvas drag-to-reorder grip. Sits in the same hover-reveal
+   bucket as the × remove button — fades in when the parent row
+   is hovered, swaps cursor to grabbing while held. */
+.pl8-canvas-row:hover .pl8-canvas-grip,
+.pl8-hotel-card-edit:hover .pl8-canvas-grip {
+  opacity: 1 !important;
+}
+.pl8-canvas-grip:active {
+  cursor: grabbing !important;
+  background: rgba(198,112,61,0.85) !important;
+}
