@@ -24,6 +24,7 @@ import {
 import { EditorCanvasProvider, useIsEditMode } from '../editor/canvas/EditorCanvasContext';
 import { terminologyFor } from '@/lib/event-terminology';
 import { sunriseSunsetFor } from '@/lib/sunset';
+import { stableHotelId } from '@/lib/hotel-id';
 import { EditableText } from '../editor/canvas/EditableText';
 import { EditableField } from '../editor/canvas/EditableField';
 import { SortableBlockList } from '../editor/canvas/CanvasBlockSortable';
@@ -1635,8 +1636,8 @@ function DetailsStripImpl({ manifest, siteSlug }: { manifest: StoryManifest; sit
   const events = manifest.events ?? [];
   // Run every time string through the occasion-aware formatter.
   // Wedding panels were rendering "17:00" because the host typed
-  // it from the 24h TimePicker; weddings expect "five o'clock in
-  // the afternoon". Casual events get "5pm". Empty/garbage values
+  // it from the 24h TimePicker; weddings expect "Five o'clock in
+  // the afternoon". Casual events get "5 PM". Empty/garbage values
   // fall through unchanged so the formatter never destroys input.
   const term = terminologyFor((manifest as unknown as { occasion?: string }).occasion);
   const formatTime = (t?: string) => (t ? term.formatTime(t) : '');
@@ -1870,7 +1871,7 @@ function DetailsCard({
           }}
         >
           <Icon name="sun" size={12} color="var(--gold)" />
-          golden hour {sun.goldenHour} &middot; sunset {sun.sunset}
+          Golden hour {sun.goldenHour} &middot; Sunset {sun.sunset}
         </div>
       )}
       {/* "What to expect" expand — reveals an editorial paragraph
@@ -2315,7 +2316,7 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
           </h2>
         </div>
 
-        <div style={{ background: 'var(--card)', border: '1px solid var(--card-ring)', borderRadius: 'var(--pl-card-radius, 24px)', overflow: 'hidden' }}>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--card-ring)', borderRadius: 24, overflow: 'hidden' }}>
           {(() => {
             const renderRow = (r: typeof rows[number], i: number, dragHandleProps?: React.HTMLAttributes<HTMLElement> & { ref: (el: HTMLElement | null) => void }) => (
             <div
@@ -3191,9 +3192,14 @@ function HotelsList({
           badges={badges}
         />
       ) : (() => {
+        // Stable, content-derived ids. Two hotels with the same
+        // name+address will share an id (which is a duplicate the
+        // host should fix anyway). Critical: the id must be the
+        // same id the *panel* will compute on its side so click +
+        // drag-reorder + badge writes all align.
         const cardItems = visible.map((h, i) => ({
           ...h,
-          id: (h as { id?: string }).id ?? `htl-idx-${i}`,
+          id: stableHotelId(h, i),
         }));
         // Drag-to-reorder turns on when editMode + the parent
         // supplied an onReorder. We feed CanvasSortable the same
@@ -4566,47 +4572,50 @@ function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest;
                   editMode={edit}
                   onRemove={edit && onEditField ? (_idxInVisible, target) => {
                     onEditField((m) => {
-                      const cur = (m.travelInfo?.hotels ?? []) as Array<HotelCardModel & { id?: string }>;
-                      // Match by id when possible, otherwise by name+address as a soft fallback.
-                      const tid = (target as { id?: string }).id;
-                      const next = cur.filter((x) => {
-                        const xid = (x as { id?: string }).id;
-                        if (tid && xid) return xid !== tid;
-                        return !(x.name === target.name && (x.address ?? '') === (target.address ?? ''));
-                      });
-                      // Mirror the editor's two-write pattern so legacy `travel.hotels`
-                      // and canonical `travelInfo.hotels` stay in sync.
-                      const legacyTravel = (m as unknown as { travel?: { hotels?: unknown[] } }).travel ?? {};
+                      // Resolve on BOTH sides — legacy travel.hotels
+                      // and canonical travelInfo.hotels — by stable id.
+                      // Both are kept in lockstep so the panel's
+                      // findIndex(x => x.id === h.id) keeps working.
+                      const tid = stableHotelId(target as { id?: string; name?: string; address?: string });
+                      const filterByStableId = (list: Array<{ id?: string; name?: string; address?: string }>) =>
+                        list.filter((x, i) => stableHotelId(x, i) !== tid);
+                      const legacyTravel = (m as unknown as { travel?: { hotels?: Array<{ id?: string; name?: string; address?: string }> } }).travel ?? {};
+                      const legacyHotels = legacyTravel.hotels ?? [];
+                      const infoHotels = m.travelInfo?.hotels ?? [];
                       return {
                         ...m,
-                        travel: { ...legacyTravel, hotels: next },
-                        travelInfo: { ...(m.travelInfo ?? { airports: [], hotels: [] }), hotels: next },
+                        travel: { ...legacyTravel, hotels: filterByStableId(legacyHotels) },
+                        travelInfo: { ...(m.travelInfo ?? { airports: [], hotels: [] }), hotels: filterByStableId(infoHotels) as typeof infoHotels },
                       } as StoryManifest;
                     });
                   } : undefined}
                   onReorder={edit && onEditField ? (next) => {
                     onEditField((m) => {
-                      // Reorder by id mapping. The reordered list
-                      // contains synthetic ids like "htl-idx-N" for
-                      // entries that didn't carry a real one — we
-                      // resolve those back to the matching original
-                      // by name + address before persisting so the
-                      // manifest never grows synthetic ids.
-                      const cur = (m.travelInfo?.hotels ?? []) as Array<HotelCardModel & { id?: string }>;
-                      const reordered = next.map((nh) => {
-                        const nhid = (nh as { id?: string }).id;
-                        if (nhid && !nhid.startsWith('htl-idx-')) {
-                          return cur.find((x) => (x as { id?: string }).id === nhid) ?? nh;
-                        }
-                        return cur.find(
-                          (x) => x.name === nh.name && (x.address ?? '') === (nh.address ?? ''),
-                        ) ?? nh;
-                      });
-                      const legacyTravel = (m as unknown as { travel?: { hotels?: unknown[] } }).travel ?? {};
+                      // Reorder both sides by stable id. Critical:
+                      // we DO NOT overwrite the panel's richer Hotel
+                      // records with the canvas's HotelBlock projection
+                      // (that strips fields like the panel-only
+                      // `description` and the Hotel.id we want to
+                      // preserve). Instead, build the new order by
+                      // matching ids and pulling the originals through.
+                      const orderIds = next.map((nh, i) => stableHotelId(nh as { id?: string; name?: string; address?: string }, i));
+                      const reorderList = <T extends { id?: string; name?: string; address?: string }>(list: T[]): T[] => {
+                        const byId = new Map(list.map((x, i) => [stableHotelId(x, i), x]));
+                        const reordered = orderIds.map((id) => byId.get(id)).filter((x): x is T => Boolean(x));
+                        // Append anything that wasn't in the visible
+                        // window (sort + slice(0, 6)) so we don't lose
+                        // hotels 7+.
+                        const visibleIds = new Set(orderIds);
+                        const tail = list.filter((x, i) => !visibleIds.has(stableHotelId(x, i)));
+                        return [...reordered, ...tail];
+                      };
+                      const legacyTravel = (m as unknown as { travel?: { hotels?: Array<{ id?: string; name?: string; address?: string }> } }).travel ?? {};
+                      const legacyHotels = legacyTravel.hotels ?? [];
+                      const infoHotels = m.travelInfo?.hotels ?? [];
                       return {
                         ...m,
-                        travel: { ...legacyTravel, hotels: reordered },
-                        travelInfo: { ...(m.travelInfo ?? { airports: [], hotels: [] }), hotels: reordered },
+                        travel: { ...legacyTravel, hotels: reorderList(legacyHotels) },
+                        travelInfo: { ...(m.travelInfo ?? { airports: [], hotels: [] }), hotels: reorderList(infoHotels) as typeof infoHotels },
                       } as StoryManifest;
                     });
                   } : undefined}
@@ -5485,7 +5494,7 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
           style={{
             background: 'var(--card)',
             border: '1px solid var(--card-ring)',
-            borderRadius: 'var(--pl-card-radius, 20px)',
+            borderRadius: 20,
             overflow: 'hidden',
           }}
         >

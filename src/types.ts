@@ -1114,6 +1114,13 @@ export interface TravelInfo {
 }
 
 export interface HotelBlock {
+  /** Stable identifier — round-tripped between the editor's Hotel
+   *  type and the renderer's HotelBlock type so click-to-focus,
+   *  drag-to-reorder, and per-hotel badge edits all resolve to the
+   *  same record. Optional for backward-compat; the panel + renderer
+   *  derive a content-stable fallback id from name+address when this
+   *  is missing. */
+  id?: string;
   name: string;
   address: string;
   bookingUrl?: string;

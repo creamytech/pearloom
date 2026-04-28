@@ -102,9 +102,19 @@ function parseHHMM(time: string): [number, number] | null {
   return null;
 }
 
-/** Formal time: "half past four in the afternoon",
- *  "a quarter past nine in the morning", "five o'clock in the
- *  evening", or "four-thirty-seven in the afternoon" for off
+/** Sentence-case the first character of a string. Display-time
+ *  outputs ("Nine o'clock at night", "Golden hour 6:42 PM") need
+ *  proper grammar; the formatters build lowercase fragments
+ *  internally and capitalize at the boundary. Apostrophes and
+ *  Unicode-safe — only touches the leading character. */
+function properStart(s: string): string {
+  if (!s) return s;
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** Formal time: "Half past four in the afternoon",
+ *  "A quarter past nine in the morning", "Five o'clock in the
+ *  evening", or "Four-thirty-seven in the afternoon" for off
  *  minutes. Falls back to the input string when unparseable. */
 function formalTime(time: string): string {
   const parsed = parseHHMM(time);
@@ -113,19 +123,24 @@ function formalTime(time: string): string {
   const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
   const hourWord = HOUR_WORDS[h12 % 12];
   const part = partOfDay(h24);
-  if (m === 0) return `${hourWord} o'clock ${part}`;
-  if (m === 15) return `a quarter past ${hourWord} ${part}`;
-  if (m === 30) return `half past ${hourWord} ${part}`;
-  if (m === 45) {
+  let out: string;
+  if (m === 0) out = `${hourWord} o'clock ${part}`;
+  else if (m === 15) out = `a quarter past ${hourWord} ${part}`;
+  else if (m === 30) out = `half past ${hourWord} ${part}`;
+  else if (m === 45) {
     const nextH = (h12 % 12) + 1;
-    return `a quarter to ${HOUR_WORDS[nextH % 12]} ${part}`;
+    out = `a quarter to ${HOUR_WORDS[nextH % 12]} ${part}`;
+  } else {
+    out = `${hourWord}-${spellMinute(m)} ${part}`;
   }
-  return `${hourWord}-${spellMinute(m)} ${part}`;
+  return properStart(out);
 }
 
 /** Modern time: "4:30 PM in the afternoon" → "4:30 PM" with a
- *  soft "in the afternoon" suffix when the slot reads naturally
- *  with one (e.g. evening reception). */
+ *  soft "In the afternoon" suffix when the slot reads naturally
+ *  with one (e.g. evening reception). Already starts with a
+ *  numeral so capitalization only matters for the part-of-day
+ *  suffix when withPart is true. */
 function modernTime(time: string, withPart = false): string {
   const parsed = parseHHMM(time);
   if (!parsed) return time;
@@ -136,15 +151,16 @@ function modernTime(time: string, withPart = false): string {
   return withPart ? `${base} ${partOfDay(h24)}` : base;
 }
 
-/** Casual time: "7 PM" or "7:30 PM" — no part-of-day, no spelled
- *  numerals. Used by birthdays / bachelor parties / brunches. */
+/** Casual time: "7 PM" or "7:30 PM" — uppercase AM/PM since the
+ *  string is used as a display headline (sits in a card where
+ *  "5pm" reads as a typo, not a style). */
 function casualTime(time: string): string {
   const parsed = parseHHMM(time);
   if (!parsed) return time;
   const [h24, m] = parsed;
   const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
-  const ampm = h24 < 12 ? 'am' : 'pm';
-  return m === 0 ? `${h12}${ampm}` : `${h12}:${m.toString().padStart(2, '0')}${ampm}`;
+  const ampm = h24 < 12 ? 'AM' : 'PM';
+  return m === 0 ? `${h12} ${ampm}` : `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
 }
 
 const NUMBER_WORDS_BELOW_HUNDRED = [

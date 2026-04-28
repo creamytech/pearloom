@@ -6,6 +6,7 @@ import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, Segment
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { PlaceAutocomplete } from './PlaceAutocomplete';
+import { stableHotelId } from '@/lib/hotel-id';
 
 // BadgesEditor — per-hotel toggles + custom-text adder. Hosts
 // can suppress any of the auto-tagged badges (Pear's pick /
@@ -561,7 +562,16 @@ function HotelsAI({ manifest, onResult }: { manifest: StoryManifest; onResult: (
 }
 
 function getHotels(manifest: StoryManifest): Hotel[] {
-  return ((manifest as unknown as { travel?: { hotels?: Hotel[] } }).travel?.hotels ?? []) as Hotel[];
+  const raw = ((manifest as unknown as { travel?: { hotels?: Hotel[] } }).travel?.hotels ?? []) as Hotel[];
+  // Defensive id rehydration. Legacy manifests + a brief window
+  // where the canvas's onReorder wrote back HotelBlock-shape that
+  // stripped `id` left some records id-less. Without an id, the
+  // panel's findIndex resolved every row to index 0 — badge edits
+  // landed on hotel #0 regardless of which row the host clicked,
+  // and dnd-kit treated all rows as a single "active" item so the
+  // whole list rendered at 35% opacity. Mint a content-stable id
+  // here in-memory; the next setTravel persists it to the manifest.
+  return raw.map((h, i) => ({ ...h, id: h.id || stableHotelId(h, i) }));
 }
 
 function getTravelMeta(manifest: StoryManifest) {
@@ -612,15 +622,27 @@ export function TravelPanel({
     // v8 canvas reads. Without this second write hotels added here
     // never rendered on the site — the canvas only reads travelInfo.
     const existingLegacy = (manifest as unknown as { travel?: Record<string, unknown> }).travel ?? {};
-    const nextLegacy = { ...existingLegacy, ...patch };
+    // Re-hydrate any missing ids on the panel-shape Hotel[] before
+    // we write — keeps `manifest.travel.hotels` id-bearing so the
+    // panel's own re-renders can findIndex by id reliably.
+    const patchWithIds = patch.hotels
+      ? { ...patch, hotels: patch.hotels.map((h, i) => ({ ...h, id: h.id || stableHotelId(h, i) })) }
+      : patch;
+    const nextLegacy = { ...existingLegacy, ...patchWithIds };
 
     // Project Hotel[] → HotelBlock[] for the renderer. Carry every
     // rich field so the live card can render photo + stars +
     // amenities + distance + booking CTA without re-fetching from
     // Google. The legacy `notes` channel duplicates description so
     // older renderers still read something useful.
-    const hotelsForRender = patch.hotels
-      ? patch.hotels.map((h) => ({
+    const hotelsForRender = patchWithIds.hotels
+      ? patchWithIds.hotels.map((h, i) => ({
+          // Carry the panel's stable id through — the renderer
+          // and panel both key off this same id for click-to-focus,
+          // drag-reorder, and per-hotel badge writes. Legacy records
+          // without an id get a content-stable hash so the same
+          // hotel resolves to the same id across renders.
+          id: h.id || stableHotelId(h, i),
           name: h.name,
           address: h.address ?? '',
           bookingUrl: h.bookingUrl,

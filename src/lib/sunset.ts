@@ -90,15 +90,17 @@ function rad(d: number) { return (d * Math.PI) / 180; }
 function deg(r: number) { return (r * 180) / Math.PI; }
 
 function formatLocal(d: Date, tz?: string): string {
+  // Intl returns "6:42 PM" with uppercase AM/PM by default, which
+  // is exactly the "proper grammar" we want for display headlines.
   try {
     return new Intl.DateTimeFormat('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
       timeZone: tz,
-    }).format(d).toLowerCase();
+    }).format(d);
   } catch {
     // Bad tz string — fall back to the viewer's local zone.
-    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase();
+    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
   }
 }
