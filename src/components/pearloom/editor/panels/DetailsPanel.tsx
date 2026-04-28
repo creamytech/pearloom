@@ -16,6 +16,7 @@
 import type { StoryManifest } from '@/types';
 import { Field, PanelGroup, PanelSection, PanelSmartActions, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { TimePicker } from '../v8-forms';
+import { PolishThisButton } from '../PolishThisButton';
 import { Icon } from '../../motifs';
 
 const DRESS_CODES = [
@@ -120,6 +121,9 @@ export function DetailsPanel({
   return (
     <PanelGroup>
       <PanelSmartActions actions={smartActions} />
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 16px' }}>
+        <PolishThisButton block="details" label="Pear, polish my details" />
+      </div>
 
       <PanelSection label="The ceremony" hint="Guests see these three cards in the Details strip.">
         <Field label="Ceremony start" help="Displays as the first card. Pulls from the hero time by default.">

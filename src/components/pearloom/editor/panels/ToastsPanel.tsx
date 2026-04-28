@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Field, PanelSection, SegmentedToggle, TextArea } from '../atoms';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
@@ -28,18 +28,63 @@ const TONES = [
   { value: 'quiet', label: 'Quiet' },
 ];
 
+interface ToastsDraft {
+  id: string;
+  kind: Kind;
+  length: string;
+  tone: string;
+  notes: string;
+  text: string;
+  savedAt: number;
+}
+
 export function ToastsPanel({
   manifest,
   names,
+  onChange,
 }: {
   manifest: StoryManifest;
   names: [string, string];
+  onChange: (m: StoryManifest) => void;
 }) {
   const [kind, setKind] = useState<Kind>('vows');
   const [length, setLength] = useState<string>('medium');
   const [tone, setTone] = useState<string>('warm');
   const [notes, setNotes] = useState<string>('');
   const [draft, setDraft] = useState<string>('');
+
+  // Persisted drafts live on the manifest so a host who closes the
+  // editor doesn't lose what Pear wrote them. Keyed array — the
+  // most recent is at the head.
+  const savedDrafts = ((manifest as unknown as { toastsDrafts?: ToastsDraft[] }).toastsDrafts) ?? [];
+  // Hydrate the current draft area with the most recent saved draft
+  // matching the current kind, so swapping kinds restores the right
+  // copy without re-running Pear.
+  useEffect(() => {
+    const match = savedDrafts.find((d) => d.kind === kind);
+    if (match) {
+      setDraft(match.text);
+      setLength(match.length);
+      setTone(match.tone);
+      setNotes(match.notes);
+    } else {
+      setDraft('');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kind]);
+
+  function persistDraft(text: string) {
+    const entry: ToastsDraft = {
+      id: `td-${Date.now().toString(36)}`,
+      kind, length, tone, notes, text, savedAt: Date.now(),
+    };
+    // Keep one entry per kind plus a small history (max 10 total).
+    const others = savedDrafts.filter((d) => d.kind !== kind).slice(0, 9);
+    onChange({
+      ...manifest,
+      toastsDrafts: [entry, ...others],
+    } as unknown as StoryManifest);
+  }
 
   const { state, error, run } = useAICall(async () => {
     const occasion = (manifest as unknown as { occasion?: string }).occasion ?? 'wedding';
@@ -80,6 +125,10 @@ export function ToastsPanel({
     const text = (data.text ?? data.draft ?? data.toast ?? data.vows ?? '').trim();
     if (!text) throw new Error('Empty response');
     setDraft(text);
+    // Persist on the manifest so the draft survives panel close +
+    // editor refresh. The audit flagged the previous version as
+    // "broken affordance" — every draft died with the component.
+    persistDraft(text);
     return text;
   });
 

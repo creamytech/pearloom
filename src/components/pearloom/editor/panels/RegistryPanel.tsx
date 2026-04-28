@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, SelectInput, TextArea, TextInput } from '../atoms';
+import { PolishThisButton } from '../PolishThisButton';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { BadgesEditor } from './BadgesEditor';
@@ -132,6 +133,9 @@ export function RegistryPanel({
 
   return (
     <PanelGroup>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 16px' }}>
+        <PolishThisButton block="registry" label="Pear, polish my registry" />
+      </div>
       <PanelSection label="Import from a URL" hint="Paste a Zola, Amazon, or Target registry link — Pear reads it and imports.">
         <RegistryImportAI onResult={(items2) => set([...items, ...items2])} />
       </PanelSection>

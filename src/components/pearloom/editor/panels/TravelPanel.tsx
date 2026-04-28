@@ -10,6 +10,7 @@ import { stableHotelId } from '@/lib/hotel-id';
 import { focusPanelRow } from './focus-row';
 
 import { BadgesEditor } from './BadgesEditor';
+import { PolishThisButton } from '../PolishThisButton';
 
 // Hotels carry three auto-detected badges. The shared BadgesEditor
 // is parametric over the auto-key set; we type the call site here
@@ -498,6 +499,9 @@ export function TravelPanel({
 
   return (
     <PanelGroup>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 16px' }}>
+        <PolishThisButton block="travel" label="Pear, polish my travel" />
+      </div>
       <PanelSection label="The venue" hint="Pulls from the hero section.">
         <Field label="Venue" help="Search by name — picks fill the address + lat/lng for the map.">
           <PlaceAutocomplete

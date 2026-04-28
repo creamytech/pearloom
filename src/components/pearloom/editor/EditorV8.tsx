@@ -2757,7 +2757,7 @@ function PanelSwitch({
     case 'faq':
       return <FaqPanel manifest={manifest} names={names} onChange={onChange} />;
     case 'toasts':
-      return <ToastsPanel manifest={manifest} names={names} />;
+      return <ToastsPanel manifest={manifest} names={names} onChange={onChange} />;
     case 'theme':
       return <ThemePanel manifest={manifest} onChange={onChange} />;
     default:
