@@ -601,7 +601,7 @@ export function EditorV8({
       <FirstThreadTour siteSlug={siteSlug} />
       <DecorGenerationToast />
       <DecorRecolorModal manifest={manifest} onEditField={(patch) => setManifest((m) => patch(m))} />
-      <IconSwapModal onEditField={(patch) => setManifest((m) => patch(m))} />
+      <IconSwapModal manifest={manifest} onEditField={(patch) => setManifest((m) => patch(m))} />
       {publishError && (
         <div
           role="alert"

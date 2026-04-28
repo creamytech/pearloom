@@ -26,6 +26,13 @@ import { Icon } from '../../motifs';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 import { focusDecorLibrary } from '../../site/focusDecorLibrary';
 import { EDITORIAL_GROUPS, animModesFor, type EditorialAnim } from '../../editorial-icons';
+import {
+  ICON_LIBRARY,
+  flattenDecorAssets,
+  ASSET_DRAG_MIME,
+  ICON_DRAG_MIME,
+  type DecorAsset,
+} from '../asset-library-data';
 
 interface LibraryPhoto {
   id: string;
@@ -36,137 +43,9 @@ interface LibraryPhoto {
   created_at?: string;
 }
 
-const DRAG_MIME = 'application/x-pearloom-asset';
-const ICON_DRAG_MIME = 'text/x-pearloom-icon';
+const DRAG_MIME = ASSET_DRAG_MIME;
 
 type LibraryTab = 'photos' | 'decor';
-
-// Curated motif catalog — every glyph the editor ships with. Order
-// is grouped by purpose so the icon picker doesn't read like a
-// dictionary dump. Mirrors the catalog in IconSwapModal but adds a
-// few more domain-specific entries.
-const ICON_LIBRARY: Array<{ group: string; names: string[] }> = [
-  { group: 'Action', names: ['arrow-right', 'arrow-left', 'arrow-up', 'arrow-down', 'arrow-ur', 'send', 'upload', 'download', 'share', 'link', 'play', 'pause'] },
-  { group: 'UI', names: ['plus', 'minus', 'check', 'close', 'dot', 'eye', 'eye-off', 'lock', 'undo', 'redo', 'search', 'filter', 'settings', 'sliders'] },
-  { group: 'Content', names: ['image', 'gallery', 'camera', 'video', 'music', 'mic', 'mic-wave', 'mail', 'bell', 'page', 'file', 'folder', 'type', 'text'] },
-  { group: 'Place', names: ['pin', 'map', 'compass', 'globe', 'home', 'clock', 'calendar', 'calendar-check', 'ticket'] },
-  { group: 'People', names: ['user', 'users', 'user-plus', 'heart-icon'] },
-  { group: 'Brand', names: ['leaf', 'sparkles', 'sun', 'moon', 'star', 'wand', 'gift', 'fleuron', 'asterism'] },
-  { group: 'Layout', names: ['grid', 'list', 'layers', 'layout', 'section', 'block', 'phone', 'tablet', 'desktop'] },
-];
-
-interface DecorAsset {
-  id: string;
-  url: string;
-  /** Asset family — drives the badge label + filter group.
-   *  'upload' is for host-supplied SVG/PNG monograms — they don't
-   *  belong to a slot until the host drags them onto a target. */
-  kind: 'stamp' | 'divider' | 'confetti' | 'footer' | 'accent' | 'invite' | 'upload';
-  /** Where this asset is wired into the manifest right now —
-   *  surfaces an "In use" badge on the tile. */
-  usage?: string;
-  /** Human-readable label shown in the tile caption. */
-  label: string;
-}
-
-// Walk the manifest's decor library + drafts and produce a flat
-// list of every AI-generated asset with usage info. Per-section
-// stamps are split into individual tiles (was the user's specific
-// complaint — six were generated but only one tile showed). Drafts
-// surface as "Saved" — older alternates the host can swap back to
-// without re-spending image credits.
-function flattenDecorAssets(manifest: StoryManifest | null | undefined): DecorAsset[] {
-  if (!manifest) return [];
-  const out: DecorAsset[] = [];
-  const lib = manifest.decorLibrary as
-    | {
-        divider?: string;
-        sectionStamps?: Record<string, string>;
-        confetti?: string;
-        footerBouquet?: string;
-        uploads?: Array<{ id: string; url: string; label: string; mime?: string; addedAt?: string }>;
-      }
-    | undefined;
-  const drafts = (manifest as unknown as { decorDrafts?: Record<string, unknown> }).decorDrafts ?? {};
-  const aiAccentUrl = (manifest as unknown as { aiAccentUrl?: string }).aiAccentUrl;
-
-  // Section stamps — one tile per section so the host can see
-  // every generated mark and pick which one to use where.
-  if (lib?.sectionStamps) {
-    for (const [section, url] of Object.entries(lib.sectionStamps)) {
-      if (!url) continue;
-      out.push({
-        id: `stamp-${section}`,
-        url,
-        kind: 'stamp',
-        usage: `${section[0]?.toUpperCase()}${section.slice(1)} eyebrow`,
-        label: `${section[0]?.toUpperCase()}${section.slice(1)} stamp`,
-      });
-    }
-  }
-
-  if (lib?.divider) {
-    out.push({ id: 'divider', url: lib.divider, kind: 'divider', usage: 'Section divider', label: 'Divider band' });
-  }
-  if (lib?.confetti) {
-    out.push({ id: 'confetti', url: lib.confetti, kind: 'confetti', usage: 'RSVP burst', label: 'Confetti burst' });
-  }
-  if (lib?.footerBouquet) {
-    out.push({ id: 'footer', url: lib.footerBouquet, kind: 'footer', usage: 'Footer flourish', label: 'Closing bouquet' });
-  }
-  if (aiAccentUrl) {
-    out.push({ id: 'accent', url: aiAccentUrl, kind: 'accent', usage: 'Hero flourish', label: 'Hero accent' });
-  }
-
-  // Drafts (alternates) — older generations the host kept around.
-  // Each draft type stores a list of { id, url, prompt? }.
-  type Draft = { id: string; url: string; prompt?: string };
-  type StampsDraft = { id: string; stamps: Record<string, string>; prompt?: string };
-  function pushDrafts(slot: 'divider' | 'confetti' | 'footerBouquet' | 'accent', label: string, kind: DecorAsset['kind']) {
-    const list = (drafts as Record<string, Draft[] | undefined>)[slot] ?? [];
-    for (const d of list) {
-      // Don't double-count the active asset.
-      const live =
-        slot === 'divider' ? lib?.divider :
-        slot === 'confetti' ? lib?.confetti :
-        slot === 'footerBouquet' ? lib?.footerBouquet :
-        aiAccentUrl;
-      if (d.url === live) continue;
-      out.push({ id: `${slot}-${d.id}`, url: d.url, kind, label: `${label} · saved`, usage: undefined });
-    }
-  }
-  pushDrafts('divider', 'Divider', 'divider');
-  pushDrafts('confetti', 'Confetti', 'confetti');
-  pushDrafts('footerBouquet', 'Bouquet', 'footer');
-  pushDrafts('accent', 'Accent', 'accent');
-
-  // Host-uploaded SVG/PNG decor — surfaces as 'upload' kind so it
-  // groups separately under "Your uploads" rather than mixing into
-  // the AI-generated tiles.
-  const uploads = lib?.uploads ?? [];
-  for (const u of uploads) {
-    out.push({ id: `upload-${u.id}`, url: u.url, kind: 'upload', label: u.label });
-  }
-  // Section stamp drafts are stored as a list of full stamp sets;
-  // surface each set's six stamps as individual saved tiles so
-  // the host can swap back to a previous look.
-  const stampDrafts = (drafts as Record<string, StampsDraft[] | undefined>).sectionStamps ?? [];
-  for (const set of stampDrafts) {
-    for (const [section, url] of Object.entries(set.stamps)) {
-      if (!url) continue;
-      const live = lib?.sectionStamps?.[section];
-      if (url === live) continue;
-      out.push({
-        id: `stamp-draft-${set.id}-${section}`,
-        url,
-        kind: 'stamp',
-        label: `${section[0]?.toUpperCase()}${section.slice(1)} · saved`,
-      });
-    }
-  }
-
-  return out;
-}
 
 export function AssetLibraryPanel({
   manifest,

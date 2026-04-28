@@ -921,6 +921,41 @@ export function Icon({
   // "this heart should pulse" preference survives if they later
   // swap the heart for sparkles — same icon slot, same intent.
   const animations = ctx.iconAnimations;
+  // Asset-library override path: hosts can swap an icon for any AI
+  // decor or upload from the asset picker. When the override is a
+  // URL/data URI rather than a motif name, render an <img> at the
+  // requested size. Same data attributes survive so a third swap
+  // keys off the original name and resolves cleanly.
+  const isUrlOverride =
+    effectiveName.startsWith('http://') ||
+    effectiveName.startsWith('https://') ||
+    effectiveName.startsWith('data:') ||
+    effectiveName.startsWith('/');
+  if (isUrlOverride) {
+    const editStyleImg: CSSProperties | undefined = ctx.editMode
+      ? ({ cursor: 'pointer', ...style })
+      : style;
+    return (
+      <img
+        src={effectiveName}
+        alt=""
+        width={size}
+        height={size}
+        className={className}
+        style={{
+          width: size,
+          height: size,
+          objectFit: 'contain',
+          display: 'inline-block',
+          verticalAlign: 'middle',
+          ...editStyleImg,
+        }}
+        data-pl-icon-name={effectiveName}
+        data-pl-icon-original={name}
+        draggable={false}
+      />
+    );
+  }
   const editorial = getEditorialIcon(effectiveName);
   const animMode: EditorialAnim =
     (animations && animations[name])
