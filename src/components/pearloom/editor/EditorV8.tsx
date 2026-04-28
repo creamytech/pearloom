@@ -67,7 +67,7 @@ import { FaqPanel } from './panels/FaqPanel';
 import { ToastsPanel } from './panels/ToastsPanel';
 import { ThemePanel } from './panels/ThemePanel';
 import { PanelSearch } from './atoms';
-import { blockFillState, FILL_STATE_COLORS, type ScoredBlockKey } from '@/lib/site-progress';
+import { blockFillState, FILL_STATE_COLORS, siteProgressPct, type ScoredBlockKey } from '@/lib/site-progress';
 import { PearCommand } from './PearCommand';
 import { DesignAdvisor } from './DesignAdvisor';
 import { PearCopilot } from './pear/PearCopilot';
@@ -1878,6 +1878,7 @@ function KbdHint() {
           <div style={{ fontWeight: 700, marginBottom: 8 }}>Keyboard shortcuts</div>
           {[
             ['Command palette', '⌘K / Ctrl K'],
+            ['Find in site', '⌘F / Ctrl F'],
             ['Next block', '⌘↓ / Ctrl↓'],
             ['Previous block', '⌘↑ / Ctrl↑'],
             ['Section tab', '⌘1 / Ctrl 1'],
@@ -1938,6 +1939,14 @@ function Outline({
   // Theme entry removed from the outline — Theme moved to the
   // inspector rail's tab. One source of truth for palette controls.
 
+  // Aggregate completion across the 10 scored blocks (excludes nav +
+  // theme). Drives the small olive thread that runs above the outline
+  // — at-a-glance answer to "how done is my site?". Memoized so we
+  // don't re-walk every render of an unrelated state change.
+  const progressPct = useMemo(() => siteProgressPct(manifest), [manifest]);
+  const progressLabel =
+    progressPct >= 95 ? 'Ready to publish' : progressPct >= 60 ? 'Coming together' : progressPct >= 25 ? 'Underway' : 'Just started';
+
   return (
     <aside
       className="pl8-editor-outline"
@@ -1953,6 +1962,76 @@ function Outline({
         gap: 14,
       }}
     >
+      {/* Site-progress thread — a calm olive bar that answers
+          "how done is my site?" at a glance. Idle hosts read this
+          before they read the section list. Olive when things are
+          progressing, peach when nearly done so the colour shift
+          rewards the home stretch. */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+          padding: '0 12px 4px',
+          borderBottom: '1px solid var(--line-soft)',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'baseline',
+            gap: 8,
+          }}
+        >
+          <span
+            style={{
+              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+              fontStyle: 'italic',
+              fontSize: 13,
+              color: 'var(--ink)',
+              letterSpacing: '-0.005em',
+            }}
+          >
+            {progressLabel}
+          </span>
+          <span
+            style={{
+              fontFamily: 'var(--font-ui)',
+              fontSize: 10.5,
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              color: progressPct >= 95 ? 'var(--peach-ink, #C6703D)' : 'var(--ink-muted)',
+            }}
+          >
+            {progressPct}%
+          </span>
+        </div>
+        <div
+          aria-hidden
+          style={{
+            position: 'relative',
+            height: 3,
+            borderRadius: 999,
+            background: 'rgba(14,13,11,0.06)',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              right: `${100 - Math.max(2, Math.min(100, progressPct))}%`,
+              background: progressPct >= 95
+                ? 'linear-gradient(90deg, var(--sage-deep, #5C6B3F), var(--peach-ink, #C6703D))'
+                : 'var(--sage-deep, #5C6B3F)',
+              transition: 'right 360ms cubic-bezier(0.22, 1, 0.36, 1), background 240ms ease',
+              borderRadius: 999,
+            }}
+          />
+        </div>
+      </div>
+
       {/* Identity group — Hero is structurally pinned at the top
           since the section never moves. Wrapped in its own micro-
           group so the pearl outline + drag-to-reorder hint reads

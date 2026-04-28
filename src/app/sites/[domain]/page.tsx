@@ -255,15 +255,42 @@ export default async function SubdomainSite({
     const siteMode = (manifest as unknown as { siteMode?: string }).siteMode === 'multi-page'
       ? 'multi-page'
       : 'scroll';
+    // ── LCP preload ──────────────────────────────────────────────
+    // The hero/cover photo is the largest contentful paint on most
+    // sites. Emitting <link rel="preload"> in the initial HTML lets
+    // the browser's preload scanner kick the fetch off before it has
+    // even parsed the CSS that references the URL via background-
+    // image. Drops first-meaningful-paint on cold loads measurably.
+    // Only inserted when we have a usable absolute URL — preloading
+    // a relative /api/ proxy would just race with the renderer's own
+    // fetch and waste bandwidth.
+    const heroPreloadUrl = (() => {
+      const cover = (manifest as unknown as { coverPhoto?: string }).coverPhoto;
+      if (cover && /^https?:\/\//i.test(cover)) return cover;
+      const firstChapter = manifest?.chapters?.[0]?.images?.[0]?.url;
+      if (firstChapter && /^https?:\/\//i.test(firstChapter)) return firstChapter;
+      return null;
+    })();
     return (
-      <SiteV8Renderer
-        manifest={manifest}
-        names={names}
-        siteSlug={domain}
-        prettyUrl={prettyUrl}
-        creatorEmail={creatorEmail}
-        pageFilter={siteMode === 'multi-page' ? 'home' : undefined}
-      />
+      <>
+        {heroPreloadUrl && (
+          // eslint-disable-next-line @next/next/no-head-element
+          <link
+            rel="preload"
+            as="image"
+            href={heroPreloadUrl}
+            fetchPriority="high"
+          />
+        )}
+        <SiteV8Renderer
+          manifest={manifest}
+          names={names}
+          siteSlug={domain}
+          prettyUrl={prettyUrl}
+          creatorEmail={creatorEmail}
+          pageFilter={siteMode === 'multi-page' ? 'home' : undefined}
+        />
+      </>
     );
   }
 }
