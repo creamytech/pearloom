@@ -40,8 +40,12 @@ export function SectionActionMenu({
       aria-label={`${label} actions`}
       style={{
         position: 'absolute',
-        top: 10,
-        left: 10,
+        // Pin to top-right rather than top-left. Section kickers
+        // ("THE VENUE", "OUR STORY") sit centered or left-aligned,
+        // and a left-docked chip kept clipping them. Right-pinning
+        // keeps the chip far from any title copy across all blocks.
+        top: 12,
+        right: 12,
         zIndex: 30,
         display: 'inline-flex',
         alignItems: 'center',
@@ -62,7 +66,7 @@ export function SectionActionMenu({
         fontWeight: 600,
         letterSpacing: '0.06em',
         textTransform: 'uppercase',
-        maxWidth: 'calc(100% - 20px)',
+        maxWidth: 'calc(100% - 24px)',
       }}
     >
       {dragHandle}

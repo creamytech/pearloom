@@ -84,15 +84,21 @@ interface ApiCritique {
   level: 'warning' | 'suggestion';
   title: string;
   description: string;
-  tab: 'details' | 'events' | 'story' | 'registry' | 'travel' | 'faq' | 'chapters';
+  // Stays aligned with VALID_TABS in /api/pear-critique. Adding a
+  // tab here without adding it server-side (or vice versa) means
+  // suggestions silently drop or land on the wrong block.
+  tab: 'hero' | 'details' | 'events' | 'story' | 'registry' | 'travel' | 'gallery' | 'rsvp' | 'faq' | 'chapters';
 }
 
 const TAB_TO_CATEGORY: Record<ApiCritique['tab'], SuggestionCategory> = {
+  hero: 'voice',
   details: 'content',
   events: 'content',
   story: 'voice',
   registry: 'content',
   travel: 'content',
+  gallery: 'content',
+  rsvp: 'content',
   faq: 'content',
   chapters: 'voice',
 };
@@ -101,11 +107,14 @@ const TAB_TO_CATEGORY: Record<ApiCritique['tab'], SuggestionCategory> = {
 // expects a BlockKey from the editor's BLOCKS list. The story
 // API tab maps to the editor's 'story' block.
 const TAB_TO_BLOCK: Record<ApiCritique['tab'], string> = {
+  hero: 'hero',
   details: 'details',
   events: 'schedule',
   story: 'story',
   registry: 'registry',
   travel: 'travel',
+  gallery: 'gallery',
+  rsvp: 'rsvp',
   faq: 'faq',
   chapters: 'story',
 };
@@ -412,12 +421,23 @@ export function DesignAdvisor({
   function jumpToTab(tab: ApiCritique['tab']) {
     if (typeof window === 'undefined') return;
     const block = TAB_TO_BLOCK[tab];
-    if (!block) return;
-    window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { block } }));
-    // Closing the panel here is intentional — once the host taps
-    // "Take me there" they want to see the section, not sit on
-    // Pear's panel obscuring it.
+    if (!block) {
+      // Belt-and-braces — the API route already validates against
+      // VALID_TABS, but if the two go out of sync the event would
+      // dispatch with `block: undefined` and the listener would
+      // silently no-op. Bail loud instead.
+      console.warn('[DesignAdvisor] No BlockKey mapping for tab:', tab);
+      return;
+    }
+    // Close FIRST so the panel's exit animation runs in parallel
+    // with the canvas scroll. Then defer the dispatch by one frame
+    // so the editor's design-jump listener fires after the panel
+    // has unmounted — without the rAF, the listener occasionally
+    // got swallowed by re-renders during the close transition.
     onClose();
+    requestAnimationFrame(() => {
+      window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { block } }));
+    });
   }
 
   function runAction(action: QuickActionKey) {

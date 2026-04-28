@@ -80,6 +80,11 @@ export function SchedulePanel({
         address: '',
         description: '',
         order: items.length,
+        // Initialize badges so the BadgesEditor never receives a
+        // freshly-minted `{}` whose reference identity changes on
+        // every render — that was causing the editor to forget
+        // edits between strokes for newly-added rows.
+        badges: { hideAuto: [], custom: [] },
       } as WeddingEvent,
     ]);
   }
@@ -89,6 +94,7 @@ export function SchedulePanel({
     const occ = (manifest as unknown as { occasion?: string }).occasion ?? 'wedding';
     const make = (id: string, name: string, type: WeddingEvent['type'], time: string, description: string): WeddingEvent => ({
       id, name, type, date: d, time, venue: '', address: '', description, order: 0,
+      badges: { hideAuto: [], custom: [] },
     } as WeddingEvent);
     // Presets tuned to occasion. Single-person events use shorter
     // sequences; memorials are reverent; birthdays are punchy.
@@ -222,7 +228,22 @@ export function SchedulePanel({
                 </Field>
                 <BadgesEditor<ScheduleAutoBadge>
                   badges={(it.badges ?? {}) as { hideAuto?: ScheduleAutoBadge[]; custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }> }}
-                  onChange={(next) => update(i, { badges: next as WeddingEvent['badges'] })}
+                  onChange={(next) => {
+                    // Coerce hideAuto back to the canonical string[] shape
+                    // (BadgesEditor narrows it to AutoKey[] for the input
+                    // chips). Without this round-trip the patch's
+                    // hideAuto is typed `'main'[]`, which spreads onto
+                    // the WeddingEvent's `string[]` cleanly but tripped
+                    // up some downstream readers when the array was
+                    // empty — they treated the missing-string narrowing
+                    // as "no badges configured" and dropped writes.
+                    update(i, {
+                      badges: {
+                        hideAuto: (next.hideAuto ?? []) as string[],
+                        custom: next.custom ?? [],
+                      },
+                    });
+                  }}
                   autoLabels={SCHEDULE_AUTO_LABELS}
                   placeholder="Optional, After-party, Photographer…"
                 />

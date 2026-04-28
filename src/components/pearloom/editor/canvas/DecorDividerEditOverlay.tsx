@@ -63,8 +63,12 @@ export function DecorDividerEditOverlay({ blockKey, onEditField, children }: Pro
         aria-label="Divider actions"
         style={{
           position: 'absolute',
+          // Right-pin so the chip never overlaps a section's kicker
+          // headline. Dividers can render at the *very* top of a
+          // section (or above one), and a left-docked chip would
+          // sit on top of "THE VENUE" / "OUR STORY" copy.
           top: 6,
-          left: 10,
+          right: 10,
           zIndex: 30,
           display: 'inline-flex',
           alignItems: 'center',

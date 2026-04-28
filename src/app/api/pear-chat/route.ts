@@ -86,17 +86,67 @@ Each suggestion is a short imperative (under 36 chars). Skip the block when noth
 
 Keep responses under 180 words unless the host explicitly asks for more.`;
 
+// Default tagline shipped by the wizard. Kept in sync with the
+// pear-critique route's check; both surfaces have to agree on what
+// "the host hasn't edited the hero" means.
+const DEFAULT_TAGLINE = "We'd love you there. Come celebrate with us — the day will be better for it.";
+
+function isPlaceholderTagline(value: string | undefined): boolean {
+  if (!value) return true;
+  const trimmed = value.trim().toLowerCase();
+  if (!trimmed) return true;
+  if (trimmed === DEFAULT_TAGLINE.toLowerCase()) return true;
+  return trimmed.includes("celebrate with us") && trimmed.includes("the day will be better");
+}
+
 function summariseManifest(manifest: StoryManifest, names: [string, string]): string {
   const couple = `${names[0]} & ${names[1]}`;
-  const date = manifest.logistics?.date ?? '(none)';
-  const venue = manifest.logistics?.venue ?? '(none)';
-  const tagline = manifest.poetry?.heroTagline ?? '(none)';
+  const l = manifest.logistics ?? {};
+  const date = l.date ?? '(none)';
+  const rsvp = l.rsvpDeadline ?? '(none)';
+  const venue = l.venue ?? '(none)';
+  const dresscode = l.dresscode ?? '(none)';
+  const tagline = manifest.poetry?.heroTagline ?? '';
+  const taglineNote = isPlaceholderTagline(tagline) ? ' (DEFAULT PLACEHOLDER)' : '';
+  const welcome = (manifest.poetry?.welcomeStatement ?? '').slice(0, 100) || '(none)';
+  const closing = (manifest.poetry?.closingLine ?? '').slice(0, 100) || '(none)';
+
   const chapters = (manifest.chapters ?? []).map((c, i) =>
-    `  [${i}] "${c.title ?? '(untitled)'}" — ${(c.description ?? '').slice(0, 80)}`
+    `  [${i}] "${c.title ?? '(untitled)'}" — ${(c.description ?? '').slice(0, 80) || '(no body)'} | ${c.images?.length ?? 0} photo(s)`
   ).slice(0, 8).join('\n') || '  (none)';
-  const events = (manifest.events ?? []).map(e => `  - ${e.name ?? '(unnamed)'}@${e.time ?? '?'}`).join('\n') || '  (none)';
-  const faqs = (manifest.faqs ?? []).slice(0, 6).map((f, i) => `  [${i}] Q: ${f.question}`).join('\n') || '  (none)';
-  return `Couple: ${couple}\nDate: ${date}\nVenue: ${venue}\nHero tagline: ${tagline}\n\nCHAPTERS:\n${chapters}\n\nEVENTS:\n${events}\n\nFAQS:\n${faqs}`;
+
+  const events = (manifest.events ?? []).map((e) =>
+    `  - "${e.name ?? '(unnamed)'}"@${e.time ?? '?'} | ${(e.description ?? '').slice(0, 60) || '(no description)'}`
+  ).join('\n') || '  (none)';
+
+  const hotels = manifest.travelInfo?.hotels ?? [];
+  const hotelLines = hotels.slice(0, 6).map((h) => {
+    const desc = ((h as { description?: string; notes?: string }).description ?? (h as { notes?: string }).notes ?? '').slice(0, 50);
+    return `  - "${(h as { name?: string }).name ?? '(unnamed)'}" | ${desc || '(no description)'}`;
+  }).join('\n') || '  (none)';
+
+  const faqs = (manifest.faqs ?? []).slice(0, 6).map((f, i) =>
+    `  [${i}] Q: "${(f.question ?? '').slice(0, 60)}" | A: ${(f.answer ?? '').slice(0, 50) || '(empty)'}`
+  ).join('\n') || '  (none)';
+
+  return `Couple: ${couple}
+Date: ${date} | RSVP deadline: ${rsvp}
+Venue: ${venue} | Dress code: ${dresscode}
+Hero tagline: "${tagline.slice(0, 100)}"${taglineNote}
+Welcome line: ${welcome}
+Closing line: ${closing}
+
+CHAPTERS (${manifest.chapters?.length ?? 0}):
+${chapters}
+
+EVENTS:
+${events}
+
+HOTELS:
+${hotelLines}
+
+FAQS (${manifest.faqs?.length ?? 0}):
+${faqs}`;
 }
 
 export async function POST(req: NextRequest) {

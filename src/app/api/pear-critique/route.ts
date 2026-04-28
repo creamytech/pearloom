@@ -12,7 +12,22 @@ import type { StoryManifest } from '@/types';
 // ─────────────────────────────────────────────────────────────
 
 type SuggestionLevel = 'warning' | 'suggestion';
-type EditorTab = 'details' | 'events' | 'story' | 'registry' | 'travel' | 'faq' | 'chapters';
+// Editor-side block keys that the design-jump listener understands.
+// Stay aligned with the BLOCKS list in EditorV8.tsx (minus nav/theme/
+// toasts which are chrome rather than content surfaces). Adding new
+// tabs here without updating TAB_TO_BLOCK on the client will silently
+// drop suggestions, so keep both files in sync.
+type EditorTab =
+  | 'hero'
+  | 'details'
+  | 'events'
+  | 'story'
+  | 'registry'
+  | 'travel'
+  | 'gallery'
+  | 'rsvp'
+  | 'faq'
+  | 'chapters';
 
 interface Suggestion {
   id: string;
@@ -23,7 +38,7 @@ interface Suggestion {
 }
 
 const VALID_TABS: ReadonlySet<EditorTab> = new Set([
-  'details', 'events', 'story', 'registry', 'travel', 'faq', 'chapters',
+  'hero', 'details', 'events', 'story', 'registry', 'travel', 'gallery', 'rsvp', 'faq', 'chapters',
 ]);
 
 interface CritiqueRequest {
@@ -43,38 +58,232 @@ const INTENT_HINTS: Record<NonNullable<CritiqueRequest['intent']>, string> = {
 };
 
 const SYSTEM = `You are Pear, a warm and concise editor for a wedding/celebration site builder.
-You read a site manifest (JSON summary) and return 3–8 specific, actionable improvements.
-Focus on: missing critical info (date, RSVP deadline, ceremony time), narrative gaps (chapters, photos),
-hospitality (travel, FAQs, registry), and tone/voice consistency.
-Each suggestion must reference SOMETHING SPECIFIC about THIS site (chapter title, event name, etc).
-Never lecture, never repeat yourself. Be friendly but direct. Each title <= 60 chars, description <= 140 chars.
+You read a site manifest summary that includes a per-section COMPLETENESS map.
+Return 3–8 specific, actionable improvements that ONLY reference sections marked
+incomplete=true OR sections with placeholder copy. NEVER suggest improving a
+section that's marked complete=true unless you can name a specific phrase from
+its content that needs fixing — vague "your X is great, polish it" suggestions
+are not allowed.
+
+Each suggestion must reference SOMETHING SPECIFIC about THIS site (chapter
+title, event name, the actual placeholder text it still has, etc).
+Never lecture, never repeat yourself. Be friendly but direct. Each title <= 60
+chars, description <= 140 chars.
+
 Output ONLY a JSON array. Each item shape:
-{"id":"kebab-case-id","level":"warning"|"suggestion","title":"...","description":"...","tab":"details|events|story|registry|travel|faq|chapters"}
+{"id":"kebab-case-id","level":"warning"|"suggestion","title":"...","description":"...","tab":"hero|details|events|story|registry|travel|gallery|rsvp|faq|chapters"}
+
+Tab values:
+  hero      — the cover (names, date, tagline, hero photo)
+  details   — venue, dress code, arrival notes, RSVP deadline
+  events    — schedule / order of the day
+  story     — chapter-by-chapter narrative
+  chapters  — same as story; pick whichever the suggestion targets
+  registry  — gift links / cash fund
+  travel    — hotels / airports / directions
+  gallery   — photo grid
+  rsvp      — the RSVP block (separate from logistics)
+  faq      — FAQ questions
+
 Use "warning" for missing critical info; "suggestion" for nice-to-haves.
 Return [] if the site is genuinely complete.`;
+
+const DEFAULT_TAGLINE = "We'd love you there. Come celebrate with us — the day will be better for it.";
+const DEFAULT_TAGLINE_FRAGMENTS = [
+  'celebrate with us',
+  'the day will be better for it',
+  "we'd love you there",
+];
+
+interface SectionStatus {
+  /** Internal name (matches one of the EditorTab values). */
+  name: EditorTab;
+  /** True when the section has enough real content to publish. */
+  complete: boolean;
+  /** One-line note explaining the status — fed to the model so it
+   *  can quote it back. */
+  note: string;
+}
+
+/** Placeholder check for the hero tagline. The wizard ships a
+ *  default line on every site; if the host never edited it, count
+ *  the hero as "still placeholder" so Pear flags it. */
+function isPlaceholderTagline(value: string | undefined): boolean {
+  if (!value) return true;
+  const trimmed = value.trim().toLowerCase();
+  if (!trimmed) return true;
+  if (trimmed === DEFAULT_TAGLINE.toLowerCase()) return true;
+  // Substring match catches lightly-edited variants.
+  return DEFAULT_TAGLINE_FRAGMENTS.some((f) => trimmed.includes(f));
+}
+
+/** Build a structured per-section completeness map. The model reads
+ *  this BEFORE it reads the rest of the summary, so its suggestions
+ *  are anchored to real gaps rather than imagined ones. Mirrors the
+ *  heuristics in PearNudges so the two surfaces agree. */
+function computeSectionStatuses(manifest: StoryManifest): SectionStatus[] {
+  const l = manifest.logistics ?? {};
+  const poetry = manifest.poetry;
+  const chapters = manifest.chapters ?? [];
+  const events = manifest.events ?? [];
+  const faqs = manifest.faqs ?? [];
+  const hotels = manifest.travelInfo?.hotels ?? [];
+  const tagline = poetry?.heroTagline;
+
+  const out: SectionStatus[] = [];
+
+  // Hero — date + venue + non-placeholder tagline + names.
+  const heroPlaceholder = isPlaceholderTagline(tagline);
+  const heroComplete = !!l.date && !!l.venue && !heroPlaceholder;
+  out.push({
+    name: 'hero',
+    complete: heroComplete,
+    note: heroComplete
+      ? `OK (date=${l.date}, venue="${l.venue}", tagline non-default)`
+      : `${!l.date ? 'MISSING DATE; ' : ''}${!l.venue ? 'MISSING VENUE; ' : ''}${heroPlaceholder ? 'TAGLINE IS STILL THE DEFAULT PLACEHOLDER LINE' : ''}`.trim(),
+  });
+
+  // Details — at least venue + dresscode or notes set, RSVP deadline.
+  const detailsComplete = !!l.venue && (!!l.dresscode || !!l.notes) && !!l.rsvpDeadline;
+  out.push({
+    name: 'details',
+    complete: detailsComplete,
+    note: detailsComplete
+      ? 'OK'
+      : `${!l.dresscode && !l.notes ? 'MISSING dress code AND notes; ' : ''}${!l.rsvpDeadline ? 'MISSING RSVP DEADLINE; ' : ''}`.trim() || 'incomplete',
+  });
+
+  // Story / chapters — at least 2 chapters, each with a title and at
+  // least one with a photo.
+  const titledChapters = chapters.filter((c) => (c.title ?? '').trim().length > 0);
+  const chaptersWithPhotos = chapters.filter((c) => (c.images ?? []).length > 0);
+  const storyComplete = titledChapters.length >= 2 && chaptersWithPhotos.length >= 1;
+  out.push({
+    name: 'story',
+    complete: storyComplete,
+    note: storyComplete
+      ? `OK (${titledChapters.length} titled chapters, ${chaptersWithPhotos.length} have photos)`
+      : `Only ${titledChapters.length} titled chapters; ${chaptersWithPhotos.length} have photos`,
+  });
+
+  // Schedule / events — at least 2 events with descriptions.
+  const eventsWithDesc = events.filter((e) => (e.description ?? '').trim().length >= 8);
+  const eventsComplete = events.length >= 2 && eventsWithDesc.length >= 2;
+  out.push({
+    name: 'events',
+    complete: eventsComplete,
+    note: eventsComplete
+      ? `OK (${events.length} events, ${eventsWithDesc.length} have descriptions)`
+      : `${events.length} event(s) — ${eventsWithDesc.length} have a description`,
+  });
+
+  // Travel — at least 1 hotel with a description.
+  const hotelsWithBlurb = hotels.filter((h) => {
+    const note = (h as { description?: string; notes?: string }).description ?? (h as { notes?: string }).notes;
+    return !!note && note.length >= 8;
+  });
+  const travelComplete = hotels.length >= 1 && hotelsWithBlurb.length >= 1;
+  out.push({
+    name: 'travel',
+    complete: travelComplete,
+    note: travelComplete
+      ? `OK (${hotels.length} hotels, ${hotelsWithBlurb.length} described)`
+      : `${hotels.length} hotel(s) — ${hotelsWithBlurb.length} have a one-liner`,
+  });
+
+  // Registry — enabled and at least one entry OR a cash fund URL.
+  const registryComplete = !!manifest.registry?.enabled && (
+    (manifest.registry?.entries?.length ?? 0) > 0 ||
+    !!manifest.registry?.cashFundUrl
+  );
+  out.push({
+    name: 'registry',
+    complete: registryComplete,
+    note: registryComplete
+      ? `OK (${manifest.registry?.entries?.length ?? 0} entries${manifest.registry?.cashFundUrl ? ' + cash fund' : ''})`
+      : `Disabled or empty`,
+  });
+
+  // FAQ — at least 4 questions.
+  const faqComplete = faqs.length >= 4;
+  out.push({
+    name: 'faq',
+    complete: faqComplete,
+    note: faqComplete ? `OK (${faqs.length} questions)` : `Only ${faqs.length} question(s)`,
+  });
+
+  // Gallery — at least one chapter with photos OR a coverPhoto.
+  const galleryComplete = chaptersWithPhotos.length >= 1 || !!(manifest as unknown as { coverPhoto?: string }).coverPhoto;
+  out.push({
+    name: 'gallery',
+    complete: galleryComplete,
+    note: galleryComplete ? 'OK' : 'No photos uploaded',
+  });
+
+  // RSVP — block enabled and a deadline set.
+  const rsvpComplete = !!l.rsvpDeadline;
+  out.push({
+    name: 'rsvp',
+    complete: rsvpComplete,
+    note: rsvpComplete ? `OK (deadline ${l.rsvpDeadline})` : 'No RSVP deadline',
+  });
+
+  return out;
+}
 
 function summariseManifest(manifest: StoryManifest, names: [string, string]): string {
   const couple = `${names[0]} & ${names[1]}`;
   const date = manifest.logistics?.date ?? '(none)';
   const rsvp = manifest.logistics?.rsvpDeadline ?? '(none)';
+  const tagline = manifest.poetry?.heroTagline ?? '';
+  const taglineNote = isPlaceholderTagline(tagline) ? ' (DEFAULT PLACEHOLDER — host has not edited)' : '';
+  const welcomeLine = manifest.poetry?.welcomeStatement ?? '(none)';
+  const closingLine = manifest.poetry?.closingLine ?? '(none)';
+  const dresscode = manifest.logistics?.dresscode ?? '(none)';
+  const notes = manifest.logistics?.notes ?? '(none)';
+  const venue = manifest.logistics?.venue ?? '(none)';
+
   const events = (manifest.events ?? []).map(e =>
-    `  - ${e.type ?? 'event'}: ${e.name ?? '(unnamed)'}${e.date ? ` on ${e.date}` : ''}${e.time ? ` @ ${e.time}` : ''}${e.venue ? ` — ${e.venue}` : ''}`
+    `  - ${e.type ?? 'event'}: "${e.name ?? '(unnamed)'}"${e.time ? ` @ ${e.time}` : ''}${e.venue ? ` — ${e.venue}` : ''} | desc: ${(e.description ?? '').slice(0, 70) || '(empty)'}`
   ).join('\n') || '  (none)';
-  const chapters = (manifest.chapters ?? []).map(c =>
-    `  - "${c.title ?? '(untitled)'}" — ${c.description?.slice(0, 80) ?? '(no description)'} | ${c.images?.length ?? 0} photo(s)`
+
+  const chapters = (manifest.chapters ?? []).map((c, i) =>
+    `  - ch${i}: "${c.title ?? '(untitled)'}"${c.subtitle ? ` — ${c.subtitle}` : ''} | desc: ${(c.description ?? '').slice(0, 70) || '(empty)'} | ${c.images?.length ?? 0} photo(s)`
   ).join('\n') || '  (none)';
+
   const registryEnabled = !!manifest.registry?.enabled;
   const registryEntries = manifest.registry?.entries?.length ?? 0;
   const registryFund = !!manifest.registry?.cashFundUrl;
-  const hotels = manifest.travelInfo?.hotels?.length ?? 0;
+
+  const hotels = manifest.travelInfo?.hotels ?? [];
+  const hotelLines = hotels.map((h) => {
+    const desc = ((h as { description?: string; notes?: string }).description ?? (h as { notes?: string }).notes ?? '').slice(0, 60);
+    return `  - "${(h as { name?: string }).name ?? '(unnamed)'}" | ${desc || '(no description)'}`;
+  }).join('\n') || '  (none)';
   const airports = manifest.travelInfo?.airports?.length ?? 0;
-  const faqs = manifest.faqs?.length ?? 0;
-  const intro = (manifest.poetry?.heroTagline || manifest.poetry?.welcomeStatement || '').slice(0, 120) || '(none)';
+
+  const faqs = manifest.faqs ?? [];
+  const faqLines = faqs.slice(0, 6).map((f) =>
+    `  - Q: "${(f.question ?? '').slice(0, 60)}" | A: ${(f.answer ?? '').slice(0, 50) || '(empty)'}`
+  ).join('\n') || '  (none)';
+
+  const statuses = computeSectionStatuses(manifest);
+  const statusLines = statuses.map((s) =>
+    `  - ${s.name}: complete=${s.complete} | ${s.note}`
+  ).join('\n');
 
   return `Couple: ${couple}
 Date: ${date}
 RSVP deadline: ${rsvp}
-Intro line: ${intro}
+Venue: ${venue}
+Hero tagline: "${tagline.slice(0, 120)}"${taglineNote}
+Welcome line: ${welcomeLine.slice(0, 100)}
+Closing line: ${closingLine.slice(0, 100)}
+Dress code: ${dresscode}
+Logistics notes: ${notes.slice(0, 80)}
+
+SECTION COMPLETENESS (the model MUST anchor suggestions to incomplete=true rows):
+${statusLines}
 
 EVENTS:
 ${events}
@@ -83,8 +292,13 @@ CHAPTERS (${manifest.chapters?.length ?? 0}):
 ${chapters}
 
 REGISTRY: enabled=${registryEnabled}, entries=${registryEntries}, cashFund=${registryFund}
-TRAVEL: hotels=${hotels}, airports=${airports}, parking=${!!manifest.travelInfo?.parkingInfo}, directions=${!!manifest.travelInfo?.directions}
-FAQS: ${faqs}`;
+
+TRAVEL — hotels (${hotels.length}):
+${hotelLines}
+airports: ${airports} | parking: ${!!manifest.travelInfo?.parkingInfo} | directions: ${!!manifest.travelInfo?.directions}
+
+FAQS (${faqs.length}):
+${faqLines}`;
 }
 
 export async function POST(req: NextRequest) {
@@ -137,6 +351,7 @@ export async function POST(req: NextRequest) {
     const cleaned = raw.replace(/^```json?\n?/, '').replace(/\n?```$/, '').trim();
 
     let suggestions: Suggestion[] = [];
+    let droppedCount = 0;
     try {
       const parsed = JSON.parse(cleaned);
       if (Array.isArray(parsed)) {
@@ -145,8 +360,17 @@ export async function POST(req: NextRequest) {
             if (typeof s !== 'object' || s === null) return null;
             const o = s as Record<string, unknown>;
             const level = o.level === 'warning' ? 'warning' : 'suggestion';
-            const tab = typeof o.tab === 'string' && VALID_TABS.has(o.tab as EditorTab)
-              ? (o.tab as EditorTab) : 'details';
+            // Validate the tab strictly. Previously an unrecognized
+            // tab silently fell through to 'details', which meant
+            // every "polish hero" / gallery / rsvp suggestion landed
+            // the host on the wrong panel. Now: drop the suggestion
+            // if the tab isn't valid — better to show nothing than to
+            // mislead.
+            if (typeof o.tab !== 'string' || !VALID_TABS.has(o.tab as EditorTab)) {
+              droppedCount += 1;
+              return null;
+            }
+            const tab = o.tab as EditorTab;
             const title = typeof o.title === 'string' ? o.title.slice(0, 80) : '';
             const description = typeof o.description === 'string' ? o.description.slice(0, 200) : '';
             const id = typeof o.id === 'string' && o.id.length > 0
@@ -160,6 +384,10 @@ export async function POST(req: NextRequest) {
       }
     } catch {
       // model returned non-JSON — fall through to empty
+    }
+
+    if (droppedCount > 0) {
+      console.warn(`[pear-critique] dropped ${droppedCount} suggestion(s) with invalid tab — keep VALID_TABS in sync with editor BLOCKS`);
     }
 
     return NextResponse.json({ suggestions, source: 'ai' });
