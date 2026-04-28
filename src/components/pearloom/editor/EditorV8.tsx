@@ -46,6 +46,8 @@ import { PearWelcome } from './PearWelcome';
 import { FaqQuickEditModal } from './FaqQuickEditModal';
 import { ScheduleQuickEditModal } from './ScheduleQuickEditModal';
 import { RegistryQuickEditModal } from './RegistryQuickEditModal';
+import { FindInSite } from './FindInSite';
+import { MobileSaveIndicator } from './MobileSaveIndicator';
 import { ThemeQuickBar } from './canvas/ThemeQuickBar';
 import { EditorCanvasProvider } from './canvas/EditorCanvasContext';
 import { AssetLibraryPanel } from './panels/AssetLibraryPanel';
@@ -171,6 +173,10 @@ export function EditorV8({
   // topbar eye button or ⌘P. Inspector + outline rail collapse
   // away at the same time so the canvas takes the whole width.
   const [previewMode, setPreviewMode] = useState(false);
+  // ⌘F / Ctrl+F overlay — searches every text field in the manifest and
+  // jumps to the matching block. The browser's native ⌘F still works for
+  // in-viewport text; this overlay surfaces matches across the whole site.
+  const [findOpen, setFindOpen] = useState(false);
   // Resizable inspector rail. Default 380px (the value we shipped as
   // a static width before this session). Clamped to 320–620px so the
   // canvas always has room and the panel never collapses below the
@@ -551,6 +557,15 @@ export function EditorV8({
         target.isContentEditable ||
         ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
       );
+      // ⌘F — open Find-in-site. We override the browser's in-page
+      // find because most of the manifest is off-screen (collapsed
+      // sections, future scroll positions) and the native search
+      // can't reach it. The overlay still lets Esc close + retype.
+      if (!e.shiftKey && !e.altKey && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault();
+        setFindOpen(true);
+        return;
+      }
       const all: BlockKey[] = ['hero', ...blockOrder, 'theme'];
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -612,6 +627,22 @@ export function EditorV8({
       <FaqQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
       <ScheduleQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
       <RegistryQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
+      <FindInSite
+        manifest={manifest}
+        open={findOpen}
+        onClose={() => setFindOpen(false)}
+        onJump={(b) => {
+          // FindInSite returns the same canvas section keys our outline
+          // already understands (hero/story/details/schedule/travel/
+          // registry/faq) — no remapping needed.
+          setBlock(b as BlockKey);
+          setInspectorTab('section');
+        }}
+      />
+      <MobileSaveIndicator
+        saveStatus={saveStatus}
+        onRetry={() => queueSave(manifest, names)}
+      />
       {publishError && (
         <div
           role="alert"

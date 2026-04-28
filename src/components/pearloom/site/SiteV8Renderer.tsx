@@ -2724,9 +2724,12 @@ function VenueHero({ venue, address, manifest, onEditField }: { venue: string; a
       }}
     >
       {photoSrc && status !== 'error' && (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={photoSrc}
           alt={`A photo of ${venue}`}
+          loading="lazy"
+          decoding="async"
           onLoad={() => setStatus('ready')}
           onError={() => setStatus('error')}
           style={{
@@ -3413,6 +3416,8 @@ function HotelsMapView({
         <img
           src={mapSrc}
           alt={venueName ? `Map of ${venueName} and nearby hotels` : 'Map of nearby hotels'}
+          loading="lazy"
+          decoding="async"
           style={{
             width: '100%',
             aspectRatio: '720 / 420',
