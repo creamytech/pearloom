@@ -188,11 +188,37 @@ export function HotelQuickEditModal({ manifest, onChange }: Props) {
       onBulkDelete={(ids) => {
         const idSet = new Set(ids);
         const next = hotels.filter((h) => !idSet.has(h.id));
+        const snapshot = hotels;
         setTravel(next);
         // Drop the focused row to a survivor so the editor pane
         // doesn't render a stale hotel after a bulk wipe.
         if (next.length === 0) setOpenHotelId(null);
         else if (focused && idSet.has(focused.id)) setOpenHotelId(next[0].id);
+        // Return the restore callback the shell will wire to the
+        // undo toast — clicking Undo writes the snapshot back.
+        return () => setTravel(snapshot);
+      }}
+      onBulkTag={(ids, badge) => {
+        const idSet = new Set(ids);
+        const next = hotels.map((h) => {
+          if (!idSet.has(h.id)) return h;
+          const cur = h.badges?.custom ?? [];
+          return {
+            ...h,
+            badges: {
+              ...(h.badges ?? {}),
+              custom: [
+                ...cur,
+                {
+                  id: `bdg-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`,
+                  label: badge.label,
+                  tone: badge.tone,
+                },
+              ],
+            },
+          };
+        });
+        setTravel(next);
       }}
       onClose={() => setOpenHotelId(null)}
       searchSlot={

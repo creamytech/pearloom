@@ -107,9 +107,32 @@ export function FaqQuickEditModal({ manifest, onChange }: Props) {
       onBulkDelete={(ids) => {
         const idSet = new Set(ids);
         const next = items.filter((it) => !idSet.has(it.id));
+        const snapshot = items;
         setItems(next);
         if (next.length === 0) setOpenFaqId(null);
         else if (focused && idSet.has(focused.id)) setOpenFaqId(next[0].id);
+        return () => setItems(snapshot);
+      }}
+      onBulkTag={(ids, badge) => {
+        const idSet = new Set(ids);
+        setItems(items.map((it) => {
+          if (!idSet.has(it.id)) return it;
+          const cur = it.badges?.custom ?? [];
+          return {
+            ...it,
+            badges: {
+              ...(it.badges ?? {}),
+              custom: [
+                ...cur,
+                {
+                  id: `bdg-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`,
+                  label: badge.label,
+                  tone: badge.tone,
+                },
+              ],
+            },
+          };
+        }));
       }}
       onClose={() => setOpenFaqId(null)}
       emptyHint="No questions yet. Add one to get started."

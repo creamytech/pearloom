@@ -653,25 +653,63 @@ export function EditorV8({
           onClose={() => setPublishToast(null)}
         />
       )}
-      <EditorTopbar
-        displayNames={displayNames}
-        prettyUrl={prettyUrl}
-        prettyPath={prettyPath}
-        device={device}
-        setDevice={setDevice}
-        showDeviceToggle={!isNarrow}
-        saveStatus={saveStatus}
-        lastSavedAt={lastSavedAt}
-        liveUrl={publishedAt?.url ?? null}
-        onPublish={handlePublish}
-        onOpenAdvisor={() => setAdvisorOpen(true)}
-        canUndo={history.canUndo}
-        canRedo={history.canRedo}
-        onUndo={history.undo}
-        onRedo={history.redo}
-        previewMode={previewMode}
-        onTogglePreview={() => setPreviewMode((p) => !p)}
-      />
+      {/* Compose mode hides the topbar entirely so the host sees
+          a full-bleed canvas — same view a guest would see. A tiny
+          floating "Done" pill replaces the topbar's Preview toggle
+          so the host can return to editing without needing the bar. */}
+      {!previewMode && (
+        <EditorTopbar
+          displayNames={displayNames}
+          prettyUrl={prettyUrl}
+          prettyPath={prettyPath}
+          device={device}
+          setDevice={setDevice}
+          showDeviceToggle={!isNarrow}
+          saveStatus={saveStatus}
+          lastSavedAt={lastSavedAt}
+          liveUrl={publishedAt?.url ?? null}
+          onPublish={handlePublish}
+          onOpenAdvisor={() => setAdvisorOpen(true)}
+          canUndo={history.canUndo}
+          canRedo={history.canRedo}
+          onUndo={history.undo}
+          onRedo={history.redo}
+          previewMode={previewMode}
+          onTogglePreview={() => setPreviewMode((p) => !p)}
+        />
+      )}
+      {previewMode && (
+        <button
+          type="button"
+          onClick={() => setPreviewMode(false)}
+          aria-label="Exit compose mode (⌘P)"
+          title="Exit compose mode (⌘P)"
+          style={{
+            position: 'fixed',
+            top: 14,
+            right: 14,
+            zIndex: 200,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '8px 14px',
+            borderRadius: 999,
+            background: 'var(--ink, #0E0D0B)',
+            color: 'var(--cream, #FBF7EE)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            fontSize: 12,
+            fontWeight: 700,
+            letterSpacing: '0.04em',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-ui)',
+            boxShadow: '0 12px 30px rgba(14,13,11,0.36)',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <Icon name="eye" size={12} />
+          Done
+        </button>
+      )}
       <div className="pl8-editor-main" style={{ display: 'flex', flex: 1, minHeight: 0, position: 'relative' }}>
         {!isNarrow && !previewMode && (
           <Outline

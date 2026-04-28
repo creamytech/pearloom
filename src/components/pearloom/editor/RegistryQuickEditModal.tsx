@@ -13,6 +13,7 @@ import { Field, SelectInput, TextArea, TextInput } from './atoms';
 import { BadgesEditor } from './panels/BadgesEditor';
 import { Icon } from '../motifs';
 import { QuickEditModalShell } from './QuickEditModalShell';
+import { SinglePhotoField } from './SinglePhotoField';
 
 interface RegistryRow {
   id: string;
@@ -20,6 +21,7 @@ interface RegistryRow {
   url: string;
   description?: string;
   kind?: 'fund' | 'registry' | 'link';
+  photoUrl?: string;
   badges?: {
     hideAuto?: Array<'mostLoved'>;
     custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }>;
@@ -111,6 +113,7 @@ export function RegistryQuickEditModal({ manifest, onChange }: Props) {
         label: it.label || 'Untitled',
         sublabel: it.kind === 'fund' ? 'Cash fund' : it.kind === 'registry' ? 'Registry' : (it.url || ''),
         icon: it.kind === 'fund' ? 'gift' : it.kind === 'registry' ? 'home' : 'link',
+        photoUrl: it.photoUrl,
       }))}
       focusedId={focused?.id ?? null}
       onFocusChange={(id) => setOpenId(id)}
@@ -124,9 +127,32 @@ export function RegistryQuickEditModal({ manifest, onChange }: Props) {
       onBulkDelete={(ids) => {
         const idSet = new Set(ids);
         const next = items.filter((it) => !idSet.has(it.id));
+        const snapshot = items;
         setItems(next);
         if (next.length === 0) setOpenId(null);
         else if (focused && idSet.has(focused.id)) setOpenId(next[0].id);
+        return () => setItems(snapshot);
+      }}
+      onBulkTag={(ids, badge) => {
+        const idSet = new Set(ids);
+        setItems(items.map((it) => {
+          if (!idSet.has(it.id)) return it;
+          const cur = it.badges?.custom ?? [];
+          return {
+            ...it,
+            badges: {
+              ...(it.badges ?? {}),
+              custom: [
+                ...cur,
+                {
+                  id: `bdg-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`,
+                  label: badge.label,
+                  tone: badge.tone,
+                },
+              ],
+            },
+          };
+        }));
       }}
       onClose={() => setOpenId(null)}
       emptyHint="No registry entries yet."
@@ -212,6 +238,12 @@ function RegistryEditor({
           onChange={(e) => onChange({ description: e.target.value })}
           rows={4}
           placeholder="Kyoto in October. Thank you, truly."
+        />
+      </Field>
+      <Field label="Thumbnail" help="Optional. Renders on the registry card + sidebar tile.">
+        <SinglePhotoField
+          value={row.photoUrl}
+          onChange={(url) => onChange({ photoUrl: url })}
         />
       </Field>
       <BadgesEditor<'mostLoved'>

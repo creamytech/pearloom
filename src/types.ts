@@ -185,6 +185,9 @@ export interface StoryManifest {
       name: string;
       url: string;
       note?: string;
+      /** Optional product / registry-host thumbnail. Renders on
+       *  the registry card + sidebar tile in the Quick Edit modal. */
+      photoUrl?: string;
       /** Per-row badges. The "Most loved" auto-badge lives in
        *  hideAuto when the host wants it suppressed; custom labels
        *  ("Couple's pick", "Group gift", "Already bought") under
@@ -938,6 +941,11 @@ export interface WeddingEvent {
     foodStyle?: string;             // e.g. "Casual cocktails and bites"
     kidsWelcome?: boolean;
   };
+
+  /** Single representative photo for the event — sidebar tile in
+   *  the Quick Edit modal + the schedule strip can show it as a
+   *  thumbnail. Stored as a full URL (R2 / external). */
+  photoUrl?: string;
 
   /** Per-row badges. Auto-tagged badges (e.g. "Main moment" for
    *  the highlighted ceremony) live under `hideAuto`; host labels

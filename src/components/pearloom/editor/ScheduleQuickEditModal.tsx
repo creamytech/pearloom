@@ -14,6 +14,7 @@ import { TimePicker } from './v8-forms';
 import { BadgesEditor } from './panels/BadgesEditor';
 import { Icon } from '../motifs';
 import { QuickEditModalShell } from './QuickEditModalShell';
+import { SinglePhotoField } from './SinglePhotoField';
 
 interface Props {
   manifest: StoryManifest;
@@ -99,6 +100,7 @@ export function ScheduleQuickEditModal({ manifest, onChange }: Props) {
         label: it.name || 'Untitled',
         sublabel: it.time ? `${it.time} · ${it.venue || ''}` : (it.venue || ''),
         icon: it.type === 'ceremony' ? 'sparkles' : it.type === 'reception' ? 'sparkles' : 'calendar',
+        photoUrl: it.photoUrl,
       }))}
       focusedId={focused?.id ?? null}
       onFocusChange={(id) => setOpenEventId(id)}
@@ -112,9 +114,32 @@ export function ScheduleQuickEditModal({ manifest, onChange }: Props) {
       onBulkDelete={(ids) => {
         const idSet = new Set(ids);
         const next = items.filter((it) => !idSet.has(it.id));
+        const snapshot = items;
         setItems(next);
         if (next.length === 0) setOpenEventId(null);
         else if (focused && idSet.has(focused.id)) setOpenEventId(next[0].id);
+        return () => setItems(snapshot);
+      }}
+      onBulkTag={(ids, badge) => {
+        const idSet = new Set(ids);
+        setItems(items.map((it) => {
+          if (!idSet.has(it.id)) return it;
+          const cur = it.badges?.custom ?? [];
+          return {
+            ...it,
+            badges: {
+              ...(it.badges ?? {}),
+              custom: [
+                ...cur,
+                {
+                  id: `bdg-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`,
+                  label: badge.label,
+                  tone: badge.tone,
+                },
+              ],
+            },
+          } as WeddingEvent;
+        }));
       }}
       onClose={() => setOpenEventId(null)}
       emptyHint="No events yet. Add one to start."
@@ -207,6 +232,12 @@ function ScheduleEditor({
           onChange={(e) => onChange({ description: e.target.value })}
           rows={4}
           placeholder="Forty minutes, give or take a few happy tears."
+        />
+      </Field>
+      <Field label="Photo" help="Optional. Renders as a thumbnail in the schedule strip + the modal sidebar.">
+        <SinglePhotoField
+          value={event.photoUrl}
+          onChange={(url) => onChange({ photoUrl: url })}
         />
       </Field>
       <Field label="Notes for guests" help="Optional. Lands in the schedule strip when present.">

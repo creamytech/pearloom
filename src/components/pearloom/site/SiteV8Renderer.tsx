@@ -79,6 +79,7 @@ import {
   VoiceToastRecorder,
 } from './GuestKit2';
 import { CanvasSortable, CanvasGripHandle } from './canvas-sortable';
+import { WeatherClimateCard } from './WeatherClimateCard';
 import { SectionStamp } from './SectionStamp';
 import { StickerLayer } from './StickerLayer';
 import { FooterBouquet } from './FooterBouquet';
@@ -1803,9 +1804,24 @@ function DetailsStripImpl({ manifest, siteSlug }: { manifest: StoryManifest; sit
             />
           ))}
         </div>
-        {weatherCity && l.date && (
-          <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center' }}>
-            <WeatherWidget city={weatherCity} eventDate={l.date} />
+        {/* Weather rail — short-term forecast (≤14 days) on the
+            left, climate normals card on the right when the venue
+            has lat/lng. Both fall through cleanly when their data
+            isn't available so the rail just hides. */}
+        {(weatherCity || (l.venueLat != null && l.venueLng != null)) && l.date && (
+          <div
+            style={{
+              marginTop: 28,
+              display: 'flex',
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+              gap: 18,
+            }}
+          >
+            {weatherCity && <WeatherWidget city={weatherCity} eventDate={l.date} />}
+            {l.venueLat != null && l.venueLng != null && (
+              <WeatherClimateCard lat={l.venueLat} lng={l.venueLng} date={l.date} />
+            )}
           </div>
         )}
       </div>

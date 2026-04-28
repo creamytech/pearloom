@@ -41,6 +41,16 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Icon } from '../motifs';
 
+// V8 tone palette — mirrors BadgesEditor's tones so the inline
+// composer in the bulk-tag bar paints the same colours hosts see
+// elsewhere in the editor.
+const TONE_SWATCH: Record<'peach' | 'sage' | 'lavender' | 'ink', { bg: string; fg: string }> = {
+  peach:    { bg: 'rgba(198,112,61,0.18)',  fg: 'var(--peach-ink, #C6703D)' },
+  sage:     { bg: 'rgba(123,138,93,0.22)',  fg: '#3D4A1F' },
+  lavender: { bg: 'rgba(149,141,176,0.22)', fg: '#5C4F8C' },
+  ink:      { bg: 'rgba(14,13,11,0.85)',    fg: '#FFFFFF' },
+};
+
 export interface QuickEditModalItem {
   id: string;
   label: string;
@@ -69,8 +79,16 @@ interface Props {
   /** Bulk-delete callback. When provided, the modal header
    *  surfaces a Select toggle; in select mode, sidebar tiles
    *  toggle membership instead of focusing, and a bottom action
-   *  bar offers "Delete N" + "Cancel". */
-  onBulkDelete?: (ids: string[]) => void;
+   *  bar offers "Delete N" + "Cancel". May return a `restore`
+   *  function — when provided, the shell shows a 6-second undo
+   *  toast that calls it on click. Without restore, no toast. */
+  onBulkDelete?: (ids: string[]) => void | (() => void);
+  /** Bulk-tag callback. When provided alongside onBulkDelete, the
+   *  bottom action bar gets a "Tag N" button that opens an inline
+   *  picker (label + tone) and applies the chip to every selected
+   *  row. Saves a lot of clicks for "mark these 4 hotels as
+   *  Couple's pick". */
+  onBulkTag?: (ids: string[], badge: { label: string; tone: 'peach' | 'sage' | 'lavender' | 'ink' }) => void;
   /** Optional search / add-row component pinned above the
    *  sidebar + editor so the host can grow the list without
    *  closing the modal. */
@@ -91,6 +109,7 @@ export function QuickEditModalShell({
   onFocusChange,
   onReorder,
   onBulkDelete,
+  onBulkTag,
   searchSlot,
   editorSlot,
   onClose,
@@ -106,12 +125,31 @@ export function QuickEditModalShell({
   // into the next open.
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  // Bulk-tag inline picker state. When the host clicks "Tag N",
+  // the action bar swaps to a label + tone composer.
+  const [tagOpen, setTagOpen] = useState(false);
+  const [tagDraft, setTagDraft] = useState('');
+  const [tagTone, setTagTone] = useState<'peach' | 'sage' | 'lavender' | 'ink'>('peach');
+  // Undo toast state. Bulk delete keeps the restore callback
+  // from the section around for ~6s so the host can roll back.
+  const [pendingUndo, setPendingUndo] = useState<{
+    count: number;
+    restore: () => void;
+  } | null>(null);
   useEffect(() => {
     if (!open) {
       setSelectMode(false);
       setSelectedIds(new Set());
+      setTagOpen(false);
+      setTagDraft('');
+      setPendingUndo(null);
     }
   }, [open]);
+  useEffect(() => {
+    if (!pendingUndo) return;
+    const t = setTimeout(() => setPendingUndo(null), 6000);
+    return () => clearTimeout(t);
+  }, [pendingUndo]);
 
   function handleDragEnd(e: DragEndEvent) {
     if (!onReorder) return;
@@ -136,7 +174,20 @@ export function QuickEditModalShell({
   }
   function handleBulkDelete() {
     if (!onBulkDelete || selectedIds.size === 0) return;
-    onBulkDelete(Array.from(selectedIds));
+    const ids = Array.from(selectedIds);
+    const restore = onBulkDelete(ids);
+    if (typeof restore === 'function') {
+      setPendingUndo({ count: ids.length, restore });
+    }
+    exitSelectMode();
+  }
+  function handleBulkTag() {
+    if (!onBulkTag || selectedIds.size === 0) return;
+    const label = tagDraft.trim();
+    if (!label) return;
+    onBulkTag(Array.from(selectedIds), { label, tone: tagTone });
+    setTagDraft('');
+    setTagOpen(false);
     exitSelectMode();
   }
   // Escape to close, freeze body scroll while open.
@@ -186,6 +237,9 @@ export function QuickEditModalShell({
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
+          // Positioned ancestor so the undo toast can be placed
+          // absolutely against the card's bottom edge.
+          position: 'relative',
           animation: 'pl8-quick-edit-rise 220ms cubic-bezier(0.22, 1, 0.36, 1)',
         }}
       >
@@ -368,53 +422,179 @@ export function QuickEditModalShell({
             </div>
             {/* Bottom action bar — slides up when ≥1 row is
                 selected. Sticky to the sidebar so the host can
-                scroll the list freely without losing the bar. */}
-            {selectMode && selectedIds.size > 0 && onBulkDelete && (
+                scroll the list freely without losing the bar.
+                Two modes: action chooser + tag composer. */}
+            {selectMode && selectedIds.size > 0 && (onBulkDelete || onBulkTag) && (
               <div
                 style={{
                   borderTop: '1px solid var(--line-soft)',
                   padding: 10,
                   display: 'flex',
+                  flexDirection: 'column',
                   gap: 6,
                   background: 'var(--cream-2, #F5EFE2)',
                   animation: 'pl8-bulk-bar-rise 200ms cubic-bezier(0.22, 1, 0.36, 1)',
                 }}
               >
-                <button
-                  type="button"
-                  onClick={handleBulkDelete}
-                  style={{
-                    flex: 1,
-                    padding: '9px 12px',
-                    borderRadius: 999,
-                    border: '1px solid rgba(122,45,45,0.3)',
-                    background: '#7A2D2D',
-                    color: '#FFFFFF',
-                    fontSize: 12,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    fontFamily: 'var(--font-ui)',
-                  }}
-                >
-                  Delete {selectedIds.size}
-                </button>
-                <button
-                  type="button"
-                  onClick={exitSelectMode}
-                  style={{
-                    padding: '9px 14px',
-                    borderRadius: 999,
-                    border: '1px solid var(--line)',
-                    background: 'transparent',
-                    color: 'var(--ink-soft)',
-                    fontSize: 12,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    fontFamily: 'var(--font-ui)',
-                  }}
-                >
-                  Cancel
-                </button>
+                {!tagOpen ? (
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {onBulkDelete && (
+                      <button
+                        type="button"
+                        onClick={handleBulkDelete}
+                        style={{
+                          flex: onBulkTag ? 'unset' : 1,
+                          padding: '9px 14px',
+                          borderRadius: 999,
+                          border: '1px solid rgba(122,45,45,0.3)',
+                          background: '#7A2D2D',
+                          color: '#FFFFFF',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          fontFamily: 'var(--font-ui)',
+                        }}
+                      >
+                        Delete {selectedIds.size}
+                      </button>
+                    )}
+                    {onBulkTag && (
+                      <button
+                        type="button"
+                        onClick={() => setTagOpen(true)}
+                        style={{
+                          flex: 1,
+                          padding: '9px 14px',
+                          borderRadius: 999,
+                          border: '1px solid var(--peach-ink, #C6703D)',
+                          background: 'var(--peach-ink, #C6703D)',
+                          color: '#FFFFFF',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          fontFamily: 'var(--font-ui)',
+                        }}
+                      >
+                        Tag {selectedIds.size}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={exitSelectMode}
+                      style={{
+                        padding: '9px 14px',
+                        borderRadius: 999,
+                        border: '1px solid var(--line)',
+                        background: 'transparent',
+                        color: 'var(--ink-soft)',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        fontFamily: 'var(--font-ui)',
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <input
+                      type="text"
+                      autoFocus
+                      value={tagDraft}
+                      onChange={(e) => setTagDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') { e.preventDefault(); handleBulkTag(); }
+                        if (e.key === 'Escape') { e.preventDefault(); setTagOpen(false); }
+                      }}
+                      placeholder="Couple's pick, Group gift, Updated…"
+                      maxLength={28}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: 8,
+                        border: '1px solid var(--line)',
+                        background: 'var(--card)',
+                        fontSize: 12,
+                        fontFamily: 'var(--font-ui)',
+                        color: 'var(--ink)',
+                        outline: 'none',
+                      }}
+                    />
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      {(['peach', 'sage', 'lavender', 'ink'] as const).map((tone) => {
+                        const swatch = TONE_SWATCH[tone];
+                        const on = tagTone === tone;
+                        return (
+                          <button
+                            key={tone}
+                            type="button"
+                            onClick={() => setTagTone(tone)}
+                            aria-pressed={on}
+                            title={tone[0].toUpperCase() + tone.slice(1)}
+                            style={{
+                              flex: 1,
+                              height: 26,
+                              borderRadius: 6,
+                              background: swatch.bg,
+                              border: on ? '1.5px solid var(--ink)' : '1px solid var(--line)',
+                              cursor: 'pointer',
+                              padding: 0,
+                              display: 'grid',
+                              placeItems: 'center',
+                              color: swatch.fg,
+                              fontSize: 9.5,
+                              fontWeight: 700,
+                              letterSpacing: '0.06em',
+                              textTransform: 'uppercase',
+                              fontFamily: 'var(--font-ui)',
+                            }}
+                          >
+                            {tone}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button
+                        type="button"
+                        onClick={handleBulkTag}
+                        disabled={!tagDraft.trim()}
+                        style={{
+                          flex: 1,
+                          padding: '9px 14px',
+                          borderRadius: 999,
+                          border: 'none',
+                          background: 'var(--ink, #0E0D0B)',
+                          color: 'var(--cream, #FBF7EE)',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: tagDraft.trim() ? 'pointer' : 'not-allowed',
+                          opacity: tagDraft.trim() ? 1 : 0.5,
+                          fontFamily: 'var(--font-ui)',
+                        }}
+                      >
+                        Tag {selectedIds.size}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setTagOpen(false); setTagDraft(''); }}
+                        style={{
+                          padding: '9px 14px',
+                          borderRadius: 999,
+                          border: '1px solid var(--line)',
+                          background: 'transparent',
+                          color: 'var(--ink-soft)',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          fontFamily: 'var(--font-ui)',
+                        }}
+                      >
+                        Back
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -424,6 +604,77 @@ export function QuickEditModalShell({
             {editorSlot}
           </div>
         </div>
+
+        {/* Undo toast — stays for 6s after a bulk delete with an
+            available restore callback. Editorial paper pill at the
+            bottom centre, peach Undo button. Click outside or wait
+            6s and the toast dismisses. */}
+        {pendingUndo && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              position: 'absolute',
+              bottom: 18,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '10px 14px 10px 18px',
+              background: 'var(--ink, #0E0D0B)',
+              color: 'var(--cream, #FBF7EE)',
+              borderRadius: 999,
+              boxShadow: '0 14px 36px rgba(14,13,11,0.42)',
+              animation: 'pl8-undo-rise 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+              fontFamily: 'var(--font-ui)',
+              fontSize: 12.5,
+              fontWeight: 600,
+              zIndex: 5,
+            }}
+          >
+            Removed {pendingUndo.count}
+            <button
+              type="button"
+              onClick={() => {
+                pendingUndo.restore();
+                setPendingUndo(null);
+              }}
+              style={{
+                padding: '4px 12px',
+                borderRadius: 999,
+                background: 'var(--peach-ink, #C6703D)',
+                color: '#FFFFFF',
+                border: 'none',
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-ui)',
+              }}
+            >
+              Undo
+            </button>
+            <button
+              type="button"
+              onClick={() => setPendingUndo(null)}
+              aria-label="Dismiss"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--cream, #FBF7EE)',
+                opacity: 0.6,
+                fontSize: 14,
+                cursor: 'pointer',
+                padding: 2,
+                lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
+          </div>
+        )}
       </div>
 
       <style jsx global>{`
@@ -438,6 +689,10 @@ export function QuickEditModalShell({
         @keyframes pl8-bulk-bar-rise {
           from { opacity: 0; transform: translateY(8px); }
           to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pl8-undo-rise {
+          from { opacity: 0; transform: translate(-50%, 12px); }
+          to   { opacity: 1; transform: translate(-50%, 0); }
         }
       `}</style>
     </div>
