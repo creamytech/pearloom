@@ -270,6 +270,10 @@ type Hotel = {
   rating?: number;
   /** Total Google review count behind that rating. */
   ratingCount?: number;
+  /** Real nightly-rate range from Google (USD or local). When
+   *  Google didn't publish one, the renderer falls back to a
+   *  priceLevel-tiered estimate ("$$$ · ~$200-380/night est."). */
+  priceRange?: { start?: number; end?: number; currency?: string };
   /** Host-authored badge overrides. Optional `hideAuto` array
    *  suppresses Pear's pick / Closest / Best value; `custom` is
    *  free-text chips ("Couple's pick", "Mom's favourite"). */
@@ -311,6 +315,7 @@ async function enrichPickedHotel(
         rating?: number;
         ratingCount?: number;
         priceLevel?: string;
+        priceRange?: { start?: number; end?: number; currency?: string };
         amenities?: string;
         distanceText?: string;
         photoUrl?: string;
@@ -332,6 +337,7 @@ async function enrichPickedHotel(
       bookingUrl: h.websiteUri ?? '',
       distance: h.distanceText ?? '',
       price: h.priceLevel ?? '',
+      priceRange: h.priceRange,
       photoUrl: h.photoUrl,
       photoUrls: h.photoUrls,
       amenities: h.amenities,
@@ -506,6 +512,7 @@ function HotelsAI({ manifest, onResult }: { manifest: StoryManifest; onResult: (
       hotels?: Array<{
         id: string; name: string; address: string;
         distanceText?: string; priceLevel?: string;
+        priceRange?: { start?: number; end?: number; currency?: string };
         websiteUri?: string; phone?: string; rating?: number;
         ratingCount?: number; photoUrl?: string; photoUrls?: string[];
         blurb?: string; types?: string[]; editorialSummary?: string;
@@ -518,6 +525,7 @@ function HotelsAI({ manifest, onResult }: { manifest: StoryManifest; onResult: (
       address: h.address,
       description: h.blurb || h.editorialSummary || '',
       price: h.priceLevel,
+      priceRange: h.priceRange,
       distance: h.distanceText,
       bookingUrl: h.websiteUri,
       rating: h.rating,
@@ -627,6 +635,7 @@ export function TravelPanel({
           amenities: h.amenities,
           distance: h.distance,
           priceLevel: h.price,
+          priceRange: h.priceRange,
           description: h.description,
           badges: h.badges,
         }))

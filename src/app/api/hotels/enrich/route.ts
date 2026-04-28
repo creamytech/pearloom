@@ -105,6 +105,10 @@ interface PlaceDetailsResult {
   rating?: number;
   userRatingCount?: number;
   priceLevel?: string;
+  priceRange?: {
+    startPrice?: { units?: string; currencyCode?: string };
+    endPrice?: { units?: string; currencyCode?: string };
+  };
   types?: string[];
   editorialSummary?: { text?: string };
   photos?: Array<{ name: string }>;
@@ -118,7 +122,7 @@ async function fetchDetails(placeId: string, apiKey: string): Promise<PlaceDetai
         'X-Goog-FieldMask': [
           'id', 'displayName', 'formattedAddress', 'location',
           'websiteUri', 'internationalPhoneNumber', 'rating',
-          'userRatingCount', 'priceLevel', 'types',
+          'userRatingCount', 'priceLevel', 'priceRange', 'types',
           'editorialSummary', 'photos',
         ].join(','),
       },
@@ -220,6 +224,20 @@ export async function POST(req: NextRequest) {
     { venueCity: body.venueCity, eventDate: body.eventDate },
   );
 
+  // Pull a real nightly-rate range when Google has one.
+  const priceRange = (() => {
+    const r = details.priceRange;
+    if (!r?.startPrice && !r?.endPrice) return undefined;
+    const startUnits = r.startPrice?.units ? Number(r.startPrice.units) : undefined;
+    const endUnits = r.endPrice?.units ? Number(r.endPrice.units) : undefined;
+    if (!Number.isFinite(startUnits) && !Number.isFinite(endUnits)) return undefined;
+    return {
+      start: Number.isFinite(startUnits) ? startUnits : undefined,
+      end: Number.isFinite(endUnits) ? endUnits : undefined,
+      currency: r.startPrice?.currencyCode ?? r.endPrice?.currencyCode,
+    };
+  })();
+
   return NextResponse.json({
     ok: true,
     hotel: {
@@ -231,6 +249,7 @@ export async function POST(req: NextRequest) {
       rating: details.rating,
       ratingCount: details.userRatingCount,
       priceLevel: details.priceLevel,
+      priceRange,
       amenities,
       distanceText,
       photoUrl,

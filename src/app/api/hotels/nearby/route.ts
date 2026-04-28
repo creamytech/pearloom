@@ -38,6 +38,11 @@ interface PlaceHotel {
   rating?: number;
   ratingCount?: number;
   priceLevel?: string;
+  /** When Google has it, an actual nightly-rate range (USD or
+   *  local currency). Coverage is patchy — many hotels just have
+   *  priceLevel. We render `priceRange` when present and fall
+   *  back to a priceLevel-tiered estimate otherwise. */
+  priceRange?: { start?: number; end?: number; currency?: string };
   distanceMeters?: number;
   websiteUri?: string;
   internationalPhoneNumber?: string;
@@ -126,6 +131,7 @@ async function searchNearbyHotels(lat: number, lng: number, apiKey: string): Pro
           'places.rating',
           'places.userRatingCount',
           'places.priceLevel',
+          'places.priceRange',
           'places.location',
           'places.websiteUri',
           'places.internationalPhoneNumber',
@@ -145,6 +151,10 @@ async function searchNearbyHotels(lat: number, lng: number, apiKey: string): Pro
         rating?: number;
         userRatingCount?: number;
         priceLevel?: string;
+        priceRange?: {
+          startPrice?: { units?: string; currencyCode?: string };
+          endPrice?: { units?: string; currencyCode?: string };
+        };
         location?: { latitude: number; longitude: number };
         websiteUri?: string;
         internationalPhoneNumber?: string;
@@ -161,6 +171,23 @@ async function searchNearbyHotels(lat: number, lng: number, apiKey: string): Pro
       const dist = p.location
         ? Math.round(haversine(lat, lng, p.location.latitude, p.location.longitude))
         : undefined;
+      // Pull a real nightly-rate range when Google has one. The
+      // shape is `{ startPrice: { units: '150', currencyCode: 'USD' },
+      // endPrice: { ... } }`. We fold it into a flat
+      // { start, end, currency } so the renderer doesn't have to
+      // parse the Money struct twice.
+      const priceRange = (() => {
+        const r = p.priceRange;
+        if (!r?.startPrice && !r?.endPrice) return undefined;
+        const startUnits = r.startPrice?.units ? Number(r.startPrice.units) : undefined;
+        const endUnits = r.endPrice?.units ? Number(r.endPrice.units) : undefined;
+        if (!Number.isFinite(startUnits) && !Number.isFinite(endUnits)) return undefined;
+        return {
+          start: Number.isFinite(startUnits) ? startUnits : undefined,
+          end: Number.isFinite(endUnits) ? endUnits : undefined,
+          currency: r.startPrice?.currencyCode ?? r.endPrice?.currencyCode,
+        };
+      })();
       return {
         id: p.id,
         name: p.displayName?.text ?? 'Hotel',
@@ -168,6 +195,7 @@ async function searchNearbyHotels(lat: number, lng: number, apiKey: string): Pro
         rating: p.rating,
         ratingCount: p.userRatingCount,
         priceLevel: p.priceLevel,
+        priceRange,
         distanceMeters: dist,
         websiteUri: p.websiteUri,
         internationalPhoneNumber: p.internationalPhoneNumber,
@@ -327,6 +355,7 @@ export async function POST(req: NextRequest) {
     photoUrls: h.photoUrls,
     lat: h.lat,
     lng: h.lng,
+    priceRange: h.priceRange,
     blurb: blurbs[h.id] ?? h.editorialSummary ?? '',
     types: h.types,
     editorialSummary: h.editorialSummary,

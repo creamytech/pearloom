@@ -2510,6 +2510,7 @@ interface HotelCardModel {
   amenities?: string;
   distance?: string;
   priceLevel?: string;
+  priceRange?: { start?: number; end?: number; currency?: string };
   description?: string;
   lat?: number;
   lng?: number;
@@ -3750,6 +3751,32 @@ function HotelCard({
     if (p.includes('INEXPENSIVE') || p === '$') return '$';
     return p;  // host-typed nightly rate — show as-is
   })();
+  // Real nightly-rate range when Google has one. Falls back to a
+  // priceLevel-tiered estimate (USD) when missing — better to show
+  // "~$200-380/night" than just "$$$" the user has to mentally
+  // translate. Empty string when there's no signal at all.
+  const priceRangeLabel = (() => {
+    const r = hotel.priceRange;
+    const fmt = (n: number, cur?: string) => {
+      const symbol = (cur === 'USD' || !cur) ? '$' : `${cur} `;
+      // Drop dollar-cents on whole-numbered rates.
+      return `${symbol}${Math.round(n)}`;
+    };
+    if (r && (typeof r.start === 'number' || typeof r.end === 'number')) {
+      if (typeof r.start === 'number' && typeof r.end === 'number') {
+        return `${fmt(r.start, r.currency)}–${Math.round(r.end)}/night`;
+      }
+      const single = (r.start ?? r.end) as number;
+      return `${fmt(single, r.currency)}/night`;
+    }
+    // Fallback estimate from priceLevel. Coarse but useful.
+    const tier = priceGlyph;
+    if (tier === '$')    return '~$80–150/night est.';
+    if (tier === '$$')   return '~$130–220/night est.';
+    if (tier === '$$$')  return '~$200–380/night est.';
+    if (tier === '$$$$') return '~$350–700/night est.';
+    return '';
+  })();
   // Filter auto-badges per host overrides — Pearloom auto-tags
   // Pear's pick / Closest / Best value, but the host can suppress
   // any of them via the BadgesEditor in the Travel panel.
@@ -3952,7 +3979,7 @@ function HotelCard({
         >
           {hotel.name || 'Hotel'}
         </h3>
-        {(typeof hotel.rating === 'number' || priceGlyph || distanceLabel) && (
+        {(typeof hotel.rating === 'number' || priceRangeLabel || priceGlyph || distanceLabel) && (
           <div
             style={{
               display: 'flex',
@@ -3988,7 +4015,26 @@ function HotelCard({
                 ) : null}
               </span>
             )}
-            {priceGlyph && (
+            {priceRangeLabel ? (
+              <span
+                title={priceGlyph ? `${priceGlyph} tier` : undefined}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  fontWeight: 700,
+                  color: 'var(--ink)',
+                  fontFamily: 'var(--font-ui)',
+                  letterSpacing: '0.01em',
+                  fontSize: 11.5,
+                }}
+              >
+                {priceRangeLabel.includes('est.') && (
+                  <span aria-hidden style={{ opacity: 0.55, fontWeight: 600, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.12em' }}>est</span>
+                )}
+                {priceRangeLabel.replace(' est.', '')}
+              </span>
+            ) : priceGlyph && (
               <span
                 style={{
                   fontWeight: 700,

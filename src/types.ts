@@ -1111,6 +1111,10 @@ export interface HotelBlock {
   distance?: string;
   /** Google price level — formatted "$" / "$$" / "$$$" / "$$$$". */
   priceLevel?: string;
+  /** Real nightly-rate range from Google Places when available
+   *  ("priceRange" field). When missing, the renderer falls back
+   *  to a priceLevel-tiered estimate. */
+  priceRange?: { start?: number; end?: number; currency?: string };
   /** Editorial blurb or host note (12-22 words ideal). */
   description?: string;
   /** Per-hotel badge customization. Hosts can:
