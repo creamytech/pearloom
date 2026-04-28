@@ -80,6 +80,7 @@ import {
 } from './GuestKit2';
 import { CanvasSortable, CanvasGripHandle } from './canvas-sortable';
 import { WeatherClimateCard } from './WeatherClimateCard';
+import { ReadingProgress } from './ReadingProgress';
 import { SectionStamp } from './SectionStamp';
 import { StickerLayer } from './StickerLayer';
 import { FooterBouquet } from './FooterBouquet';
@@ -1859,6 +1860,7 @@ function DetailsCard({
       : 'var(--sage-2)';
   return (
     <div
+      className="pl8-card-lift"
       style={{
         background: 'var(--card)',
         border: 'var(--pl-block-card-border-width, 1px) solid var(--card-ring)',
@@ -4232,7 +4234,7 @@ function HotelCard({
   // so the card never reads as half-full.
   return (
     <article
-      className={`pl8-hotel-card${isTop ? ' pl8-hotel-card-top' : ''}${editMode ? ' pl8-hotel-card-edit' : ''}`}
+      className={`pl8-hotel-card pl8-card-lift${isTop ? ' pl8-hotel-card-top' : ''}${editMode ? ' pl8-hotel-card-edit' : ''}`}
       data-pl-hotel-id={hotelId}
       onClick={editMode ? (e) => {
         // Don't hijack clicks on inner buttons/links/inputs.
@@ -4753,7 +4755,7 @@ function RegistryCard({
   const customBadges = badges?.custom ?? [];
   return (
     <div
-      className={editMode ? 'pl8-canvas-row' : undefined}
+      className={`pl8-card-lift${editMode ? ' pl8-canvas-row' : ''}`}
       data-pl-registry-id={registryId}
       onClick={editMode ? (e) => {
         const target = e.target as Element;
@@ -7302,6 +7304,10 @@ export function SiteV8Renderer({
   return (
     <EditorCanvasProvider value={canvasCtxValue}>
       <div className="pl8-guest" style={{ ...themeStyle, ...radiusVars }}>
+        {/* Reading progress hairline — peach-to-gold gradient that
+            fills L → R as guests scroll. Only on the published view
+            (the editor's own scrollbar handles its own progress). */}
+        {!editMode && <ReadingProgress />}
         {!editMode && <BroadcastBar subdomain={siteSlug} />}
         {!editMode && <PersonalGuestGreeting domain={siteSlug} />}
         {!editMode && creatorEmail && (

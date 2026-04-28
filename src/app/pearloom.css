@@ -489,8 +489,77 @@
 .pl8-guest img, .pl8-guest svg { max-width: 100%; }
 .pl8-guest a { color: inherit; text-decoration: none; }
 .pl8-guest button { cursor: pointer; }
-.pl8-guest .display { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.02em; line-height: 1.02; color: var(--ink); }
-.pl8-guest .display-italic { font-family: var(--font-display); font-style: italic; font-weight: 500; letter-spacing: -0.01em; }
+.pl8-guest .display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  color: var(--ink);
+  /* Smart typography: kerning + standard ligatures + discretionary
+     ligatures + Fraunces stylistic set 1 (rounded terminals).
+     Fraunces is loaded with `kern` + `liga` on by default but
+     `dlig` + `ss01` need explicit opt-in. */
+  font-feature-settings: "kern" 1, "liga" 1, "dlig" 1, "ss01" 1;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+  /* Letterpress press-into-paper feel by default on all display
+     headings (BRAND.md §3 — "Letterpress display type. Variable
+     Fraunces with a soft inset shadow on display sizes so the
+     glyphs feel pressed into the paper"). Subtle enough to scale
+     from 18px stat numbers to 72px hero names. */
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55),
+    0 -1px 1px rgba(14, 13, 11, 0.10),
+    0 2px 3px rgba(14, 13, 11, 0.05);
+}
+@media (prefers-color-scheme: dark) {
+  .pl8-guest .display {
+    text-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.45),
+      0 -1px 1px rgba(255, 255, 255, 0.06),
+      0 2px 4px rgba(0, 0, 0, 0.32);
+  }
+}
+.pl8-guest .display-italic {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  font-feature-settings: "kern" 1, "liga" 1, "dlig" 1, "ss01" 1;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+}
+/* Body — Geist. Old-style figures + ligatures keep numerals
+   feeling editorial alongside the Fraunces display. Smart quotes
+   come from text content (we already use Unicode quotes), but
+   tabular nums + fractions help when prices/dates render. */
+.pl8-guest, .pl8-guest p, .pl8-guest span, .pl8-guest li {
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+/* Letterpress press-into-paper feel for display headings. The
+   shadow direction implies overhead light + the soft inset gives
+   the impression of glyphs bitten into cream paper. Honours
+   reduced-motion (no animation, just static depth). */
+.pl8-guest .display.pl-letterpress,
+.pl8-guest .pl-letterpress {
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55),
+    0 -1px 1px rgba(14, 13, 11, 0.10),
+    0 2px 3px rgba(14, 13, 11, 0.05);
+}
+@media (prefers-color-scheme: dark) {
+  .pl8-guest .display.pl-letterpress,
+  .pl8-guest .pl-letterpress {
+    text-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.45),
+      0 -1px 1px rgba(255, 255, 255, 0.06),
+      0 2px 4px rgba(0, 0, 0, 0.32);
+  }
+}
 .pl8-guest .btn, .pl8-guest .chip, .pl8-guest .pill, .pl8-guest .card { all: revert; }
 .pl8-guest .btn {
   display: inline-flex; align-items: center; gap: 10px;
@@ -1935,4 +2004,116 @@ html { scroll-behavior: smooth; }
   background: rgba(255, 244, 232, 0.85);
   border-color: rgba(198, 112, 61, 0.5);
   color: var(--peach-ink, #C6703D);
+}
+
+/* Card hover lift — applied to every editorial card surface so
+   the canvas feels alive without each card reinventing the
+   transition. The transform is GPU-accelerated (translate3d) and
+   the shadow lift uses a fast spring-out ease so cards land cleanly
+   when the cursor leaves. */
+.pl8-card-lift {
+  transition:
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 240ms ease;
+  will-change: transform;
+}
+.pl8-card-lift:hover {
+  transform: translate3d(0, -2px, 0);
+  box-shadow:
+    0 12px 28px -12px rgba(14, 13, 11, 0.18),
+    0 4px 12px -6px rgba(14, 13, 11, 0.10);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-card-lift,
+  .pl8-card-lift:hover {
+    transform: none !important;
+    transition: box-shadow 200ms ease;
+  }
+}
+
+/* Reading-progress hairline. Fixed at the top of the canvas, fills
+   left → right as the host scrolls. Peach line on a cream ground —
+   subtle enough to ignore, distinct enough that returning visitors
+   know where they were. The width is driven by an inline
+   `--pl-progress` CSS var the React component updates on scroll. */
+.pl8-reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  z-index: 60;
+  pointer-events: none;
+  background: rgba(14, 13, 11, 0.04);
+}
+.pl8-reading-progress::after {
+  content: '';
+  display: block;
+  height: 100%;
+  width: var(--pl-progress, 0%);
+  background: linear-gradient(
+    90deg,
+    var(--peach-ink, #C6703D) 0%,
+    var(--gold, #B8935A) 100%
+  );
+  transition: width 80ms linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-reading-progress::after {
+    transition: none;
+  }
+}
+
+/* Inline "+ section" affordance between blocks in edit mode.
+   A 2px peach hairline appears on hover with a centered plus
+   pill — clicking opens the block picker. Resting state is fully
+   invisible so the published canvas never sees it. */
+.pl8-block-gap {
+  position: relative;
+  height: 14px;
+  margin: -7px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: auto;
+}
+.pl8-block-gap:hover,
+.pl8-block-gap:focus-within {
+  opacity: 1;
+}
+.pl8-block-gap::before {
+  content: '';
+  position: absolute;
+  left: 32px;
+  right: 32px;
+  height: 1.5px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--peach-ink, #C6703D) 18%,
+    var(--peach-ink, #C6703D) 82%,
+    transparent 100%
+  );
+  opacity: 0.55;
+}
+.pl8-block-gap-button {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--ink, #0E0D0B);
+  color: var(--cream, #FBF7EE);
+  border: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  box-shadow: 0 6px 18px -4px rgba(14, 13, 11, 0.4);
 }
