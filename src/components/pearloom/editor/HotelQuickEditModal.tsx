@@ -30,6 +30,7 @@ import { BadgesEditor } from './panels/BadgesEditor';
 import { PlaceAutocomplete } from './panels/PlaceAutocomplete';
 import { Icon } from '../motifs';
 import { stableHotelId } from '@/lib/hotel-id';
+import { QuickEditModalShell } from './QuickEditModalShell';
 
 interface HotelLike {
   id: string;
@@ -162,200 +163,37 @@ export function HotelQuickEditModal({ manifest, onChange }: Props) {
     setOpenHotelId(id);
   }, [hotels, setTravel]);
 
-  if (!openHotelId || !focused) return null;
-
   return (
-    <div
-      role="dialog"
-      aria-label="Edit hotel"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(14,13,11,0.55)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        zIndex: 360,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 24,
-      }}
-      onClick={(e) => { if (e.target === e.currentTarget) setOpenHotelId(null); }}
-    >
-      <div
-        style={{
-          width: 'min(960px, 100%)',
-          height: 'min(720px, 92vh)',
-          background: 'var(--paper, #FBF7EE)',
-          borderRadius: 18,
-          boxShadow: '0 32px 80px rgba(14,13,11,0.42)',
-          fontFamily: 'var(--font-ui)',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Header */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            padding: '16px 20px',
-            borderBottom: '1px solid var(--line-soft)',
-            background: 'var(--cream, #FBF7EE)',
-          }}
-        >
-          <div style={{ flex: 1 }}>
-            <div className="eyebrow" style={{ color: 'var(--peach-ink, #C6703D)', fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-              Places to stay
-            </div>
-            <h2 className="display" style={{ fontSize: 22, margin: 0, color: 'var(--ink)' }}>
-              {focused.name || 'Untitled hotel'}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={() => setOpenHotelId(null)}
-            aria-label="Close"
-            style={{
-              width: 30, height: 30, borderRadius: 999,
-              background: 'transparent',
-              border: '1.5px solid var(--line)',
-              cursor: 'pointer',
-              fontSize: 16,
-              color: 'var(--ink)',
-            }}
-          >
-            ×
-          </button>
-        </div>
-
-        {/* Add-a-hotel search row — sits above the editor + sidebar
-            so it's always accessible regardless of what's focused. */}
-        <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--line-soft)', background: 'var(--cream-2, #F5EFE2)' }}>
-          <Field label="Add another hotel" help="Real Google Places search. Picking enriches the row with rating + amenities + distance from venue.">
-            <ModalHotelSearch
-              manifest={manifest}
-              onAdd={addHotel}
-            />
-          </Field>
-        </div>
-
-        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-          {/* Sidebar */}
-          <div
-            style={{
-              width: 260,
-              flexShrink: 0,
-              borderRight: '1px solid var(--line-soft)',
-              overflowY: 'auto',
-              padding: '12px 10px',
-              background: 'var(--cream, #FBF7EE)',
-            }}
-          >
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: '0.18em',
-                color: 'var(--ink-muted)',
-                textTransform: 'uppercase',
-                padding: '4px 8px 8px',
-              }}
-            >
-              All hotels · {hotels.length}
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {hotels.map((h) => {
-                const active = h.id === focused.id;
-                return (
-                  <button
-                    key={h.id}
-                    type="button"
-                    onClick={() => setOpenHotelId(h.id)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10,
-                      padding: '10px 10px',
-                      borderRadius: 10,
-                      border: active ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid transparent',
-                      background: active ? 'rgba(198,112,61,0.08)' : 'transparent',
-                      color: 'var(--ink)',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      width: '100%',
-                      fontFamily: 'var(--font-ui)',
-                      transition: 'background 140ms ease, border-color 140ms ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!active) e.currentTarget.style.background = 'var(--cream-2, #F5EFE2)';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!active) e.currentTarget.style.background = 'transparent';
-                    }}
-                  >
-                    <div
-                      aria-hidden
-                      style={{
-                        width: 36,
-                        height: 36,
-                        flexShrink: 0,
-                        borderRadius: 8,
-                        backgroundImage: h.photoUrl ? `url(${h.photoUrl})` : undefined,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        background: h.photoUrl ? `url(${h.photoUrl}) center/cover no-repeat var(--cream-2)` : 'var(--cream-2, #F5EFE2)',
-                        display: 'grid',
-                        placeItems: 'center',
-                        color: 'var(--ink-muted)',
-                      }}
-                    >
-                      {!h.photoUrl && <Icon name="moon" size={14} />}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontSize: 12.5,
-                          fontWeight: 700,
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}
-                      >
-                        {h.name || 'Untitled'}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 10.5,
-                          color: 'var(--ink-soft)',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}
-                      >
-                        {h.distance ?? h.address ?? ''}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Editor pane */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
-            <HotelEditor
-              hotel={focused}
-              manifest={manifest}
-              onChange={(patch) => updateHotel(focused.id, patch)}
-              onRemove={() => removeHotel(focused.id)}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+    <QuickEditModalShell
+      open={!!openHotelId && !!focused}
+      title="Places to stay"
+      focusedTitle={focused?.name || 'Untitled hotel'}
+      items={hotels.map((h) => ({
+        id: h.id,
+        label: h.name || 'Untitled',
+        sublabel: h.distance ?? h.address ?? '',
+        photoUrl: h.photoUrl,
+        icon: 'moon',
+      }))}
+      focusedId={focused?.id ?? null}
+      onFocusChange={(id) => setOpenHotelId(id)}
+      onClose={() => setOpenHotelId(null)}
+      searchSlot={
+        <Field label="Add another hotel" help="Real Google Places search. Picking enriches the row with rating + amenities + distance from venue.">
+          <ModalHotelSearch manifest={manifest} onAdd={addHotel} />
+        </Field>
+      }
+      editorSlot={
+        focused ? (
+          <HotelEditor
+            hotel={focused}
+            manifest={manifest}
+            onChange={(patch) => updateHotel(focused.id, patch)}
+            onRemove={() => removeHotel(focused.id)}
+          />
+        ) : null
+      }
+    />
   );
 }
 

@@ -2328,6 +2328,9 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
               onClick={edit && r.id ? (e) => {
                 const target = e.target as Element;
                 if (target.closest('a, button, input, textarea, [contenteditable="true"], [role="button"]')) return;
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('pearloom:schedule-quick-edit', { detail: { eventId: r.id } }));
+                }
                 jumpToPanelRow('schedule', 'pearloom:focus-schedule-row', { eventId: r.id });
               } : undefined}
               style={{
@@ -4844,6 +4847,9 @@ function RegistrySectionImpl({ manifest, onEditField }: { manifest: StoryManifes
     });
   }
   function focusRegistry(url: string) {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('pearloom:registry-quick-edit', { detail: { url } }));
+    }
     jumpToPanelRow('registry', 'pearloom:focus-registry-row', { url });
   }
   // Pull from the real manifest shape: registry.entries[] +
@@ -5567,6 +5573,9 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
                 onClick={edit ? (e) => {
                   const target = e.target as Element;
                   if (target.closest('a, button, input, textarea, [contenteditable="true"], [role="button"]')) return;
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('pearloom:faq-quick-edit', { detail: { faqId: fid } }));
+                  }
                   jumpToPanelRow('faq', 'pearloom:focus-faq-row', { faqId: fid });
                 } : undefined}
                 style={{

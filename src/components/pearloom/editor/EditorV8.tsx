@@ -41,6 +41,9 @@ import { DecorGenerationToast } from './DecorGenerationToast';
 import { DecorRecolorModal } from './DecorRecolorModal';
 import { IconSwapModal } from './IconSwapModal';
 import { HotelQuickEditModal } from './HotelQuickEditModal';
+import { FaqQuickEditModal } from './FaqQuickEditModal';
+import { ScheduleQuickEditModal } from './ScheduleQuickEditModal';
+import { RegistryQuickEditModal } from './RegistryQuickEditModal';
 import { ThemeQuickBar } from './canvas/ThemeQuickBar';
 import { EditorCanvasProvider } from './canvas/EditorCanvasContext';
 import { AssetLibraryPanel } from './panels/AssetLibraryPanel';
@@ -604,6 +607,9 @@ export function EditorV8({
       <DecorRecolorModal manifest={manifest} onEditField={(patch) => setManifest((m) => patch(m))} />
       <IconSwapModal manifest={manifest} onEditField={(patch) => setManifest((m) => patch(m))} />
       <HotelQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
+      <FaqQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
+      <ScheduleQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
+      <RegistryQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
       {publishError && (
         <div
           role="alert"
