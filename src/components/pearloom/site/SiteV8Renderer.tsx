@@ -4686,6 +4686,16 @@ function GallerySectionImpl({
               </div>
             );
           })}
+          {/* Inline + tile in edit mode — host can add a photo
+              without diving into the Story panel. Clicking
+              triggers a file picker; on pick we POST the bytes
+              to /api/photos/upload and append to the first
+              chapter's images so it lands in the gallery
+              immediately. Tile sits inside the grid so the
+              spacing matches the surrounding mosaic. */}
+          {edit && onEditField && photos.length > 0 && (
+            <GalleryAddTile manifest={manifest} onEditField={onEditField} chapters={chapters} />
+          )}
         </div>
       </div>
       <PhotoLightbox
@@ -4698,6 +4708,129 @@ function GallerySectionImpl({
         onToggleReaction={siteSlug ? (url) => void toggleReaction(url) : undefined}
       />
     </section>
+  );
+}
+
+// + tile inside the gallery grid. Uploads via /api/photos/upload
+// and appends to the first chapter's images[]. Keeps grid spacing
+// consistent with surrounding mosaic. Falls back to a quick error
+// state when the upload fails so the host doesn't think the
+// click did nothing.
+function GalleryAddTile({
+  manifest,
+  onEditField,
+  chapters,
+}: {
+  manifest?: StoryManifest;
+  onEditField: FieldEditor;
+  chapters: Chapter[];
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  void manifest;
+
+  async function pickFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const accepted = Array.from(files).filter((f) => f.type.startsWith('image/'));
+      if (accepted.length === 0) throw new Error('Pick image files only.');
+      const payload = await Promise.all(
+        accepted.map(async (file) => {
+          const dataUrl = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+            reader.onerror = () => reject(new Error('read failed'));
+            reader.readAsDataURL(file);
+          });
+          return {
+            id: `gal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            filename: file.name,
+            mimeType: file.type || 'image/jpeg',
+            base64: dataUrl,
+            capturedAt: file.lastModified ? new Date(file.lastModified).toISOString() : undefined,
+          };
+        }),
+      );
+      const res = await fetch('/api/photos/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photos: payload, source: 'gallery-add' }),
+      });
+      if (!res.ok) throw new Error(`Upload ${res.status}`);
+      const data = (await res.json()) as { photos?: Array<{ url?: string }> };
+      const urls = (data.photos ?? [])
+        .map((p) => p.url)
+        .filter((u): u is string => Boolean(u));
+      if (urls.length === 0) throw new Error('Upload returned no URLs.');
+      onEditField((m) => {
+        const arr = [...(m.chapters ?? [])];
+        if (arr.length === 0) {
+          // Mint a chapter for the new photos when the manifest
+          // doesn't have one yet (fresh sites).
+          arr.push({ id: `ch-${Date.now()}`, title: 'Favourites', images: [] } as unknown as Chapter);
+        }
+        const target = arr[0];
+        const imgs = [
+          ...((target.images ?? []) as Array<{ url: string }>),
+          ...urls.map((url) => ({ url })),
+        ];
+        arr[0] = { ...target, images: imgs } as Chapter;
+        return { ...m, chapters: arr };
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed');
+      window.setTimeout(() => setError(null), 3500);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  void chapters;
+  return (
+    <button
+      type="button"
+      onClick={() => inputRef.current?.click()}
+      aria-label="Add photo to gallery"
+      style={{
+        position: 'relative',
+        gridColumn: 'auto',
+        gridRow: 'auto',
+        borderRadius: 14,
+        overflow: 'hidden',
+        background: 'var(--cream-2)',
+        border: '1.5px dashed var(--peach-ink, #C6703D)',
+        color: 'var(--peach-ink, #C6703D)',
+        cursor: busy ? 'wait' : 'pointer',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        fontFamily: 'var(--font-ui)',
+        fontSize: 13,
+        fontWeight: 700,
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase',
+        transition: 'background 160ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+        minHeight: 180,
+      }}
+      onMouseEnter={(e) => { if (!busy) e.currentTarget.style.background = 'var(--peach-bg, rgba(198,112,61,0.10))'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--cream-2)'; }}
+    >
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={(e) => { void pickFiles(e.target.files); e.target.value = ''; }}
+        style={{ display: 'none' }}
+      />
+      <span style={{ fontSize: 32, lineHeight: 1, fontWeight: 300 }} aria-hidden>+</span>
+      {busy ? 'Uploading…' : error ? 'Try again' : 'Add photo'}
+    </button>
   );
 }
 
