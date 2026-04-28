@@ -27,6 +27,7 @@ import {
   type DecorAsset,
 } from './asset-library-data';
 import { EDITORIAL_GROUPS } from '../editorial-icons';
+import { IconifyBrowser } from './IconifyBrowser';
 
 interface SwapEvent {
   purpose: string;
@@ -55,6 +56,11 @@ const DECOR_GROUP_ORDER: DecorAsset['kind'][] = [
 export function IconSwapModal({ manifest, onEditField }: Props) {
   const [pending, setPending] = useState<SwapEvent | null>(null);
   const [query, setQuery] = useState('');
+  // Two browse modes: the curated Pearloom library (default — keeps
+  // hosts on-brand) and the Iconify long-tail (200k+ free icons
+  // across Phosphor / Lucide / Tabler). Hosts only reach Iconify
+  // when they explicitly tap "Browse more".
+  const [mode, setMode] = useState<'library' | 'iconify'>('library');
 
   useEffect(() => {
     function onEvt(e: Event) {
@@ -62,6 +68,7 @@ export function IconSwapModal({ manifest, onEditField }: Props) {
       if (!detail) return;
       setPending(detail);
       setQuery('');
+      setMode('library');
     }
     window.addEventListener('pearloom:icon-swap', onEvt);
     return () => window.removeEventListener('pearloom:icon-swap', onEvt);
@@ -222,28 +229,84 @@ export function IconSwapModal({ manifest, onEditField }: Props) {
           </div>
         </div>
 
-        {/* Search */}
-        <div style={{ padding: '10px 20px', borderBottom: '1px solid var(--line-soft)' }}>
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search decor, icons, or labels"
-            autoFocus
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              borderRadius: 8,
-              border: '1px solid var(--line-soft)',
-              background: 'var(--card)',
-              fontSize: 13,
-              fontFamily: 'var(--font-ui)',
-              outline: 'none',
-              color: 'var(--ink)',
-            }}
-          />
+        {/* Mode tabs — Library (curated Pearloom set) vs. Browse more
+            (Iconify long-tail). Tabs keep the brand-curated set first
+            so most hosts never leave it. */}
+        <div
+          role="tablist"
+          aria-label="Picker mode"
+          style={{
+            display: 'flex',
+            gap: 4,
+            padding: '8px 20px 0',
+            borderBottom: '1px solid var(--line-soft)',
+          }}
+        >
+          {(['library', 'iconify'] as const).map((m) => {
+            const on = mode === m;
+            return (
+              <button
+                key={m}
+                type="button"
+                role="tab"
+                aria-selected={on}
+                onClick={() => setMode(m)}
+                style={{
+                  padding: '8px 14px',
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: on
+                    ? '2px solid var(--peach-ink, #C6703D)'
+                    : '2px solid transparent',
+                  color: on ? 'var(--ink)' : 'var(--ink-muted)',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  letterSpacing: '0.04em',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-ui)',
+                  marginBottom: -1,
+                }}
+              >
+                {m === 'library' ? 'Your library' : 'Browse more'}
+              </button>
+            );
+          })}
         </div>
 
+        {/* Search — only relevant for library mode (Iconify has its
+            own internal search since it queries a live API). */}
+        {mode === 'library' && (
+          <div style={{ padding: '10px 20px', borderBottom: '1px solid var(--line-soft)' }}>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search decor, icons, or labels"
+              autoFocus
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                borderRadius: 8,
+                border: '1px solid var(--line-soft)',
+                background: 'var(--card)',
+                fontSize: 13,
+                fontFamily: 'var(--font-ui)',
+                outline: 'none',
+                color: 'var(--ink)',
+              }}
+            />
+          </div>
+        )}
+
         {/* Content */}
+        {mode === 'iconify' ? (
+          <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
+            <IconifyBrowser
+              onPick={(dataUrl) => {
+                pick(dataUrl);
+              }}
+            />
+          </div>
+        ) : (
         <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
           {!hasAnyMatch ? (
             <div style={{ color: 'var(--ink-soft)', textAlign: 'center', padding: 32, fontSize: 13 }}>
@@ -322,6 +385,7 @@ export function IconSwapModal({ manifest, onEditField }: Props) {
             </div>
           )}
         </div>
+        )}
       </div>
     </div>
   );
