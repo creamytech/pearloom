@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';
+import { V8ColorPicker } from './v8-color-picker';
 
 type DecorKind = 'divider' | 'stamp' | 'flourish' | 'bouquet' | 'confetti' | 'sticker';
 
@@ -353,11 +354,10 @@ function ColorRow({ label, value, onChange }: { label: string; value: string; on
       <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--ink-soft)' }}>
         {label}
       </span>
-      <input
-        type="color"
+      <V8ColorPicker
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        style={{ width: 36, height: 30, padding: 0, border: '1px solid var(--line)', borderRadius: 6, background: 'transparent', cursor: 'pointer' }}
+        onChange={onChange}
+        ariaLabel={`${label} colour`}
       />
       <input
         type="text"

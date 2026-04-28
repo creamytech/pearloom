@@ -14,6 +14,7 @@
 
 import { useRef } from 'react';
 import { Icon } from '../../motifs';
+import { V8ColorPicker } from '../../editor/v8-color-picker';
 import {
   CANVAS_HEIGHT, CANVAS_WIDTH, isBackground, isPhoto, isShape, isText, newId,
   type CanvasElement, type CanvasScene, type PhotoFilter,
@@ -715,11 +716,10 @@ function ColorRow({ value, onChange }: { value: string; onChange: (next: string)
       border: '1.5px solid var(--line)',
       borderRadius: 9,
     }}>
-      <input
-        type="color"
+      <V8ColorPicker
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        style={{ width: 26, height: 26, padding: 0, border: 'none', borderRadius: 6, background: 'transparent', cursor: 'pointer' }}
+        onChange={onChange}
+        size="sm"
       />
       <input
         type="text"

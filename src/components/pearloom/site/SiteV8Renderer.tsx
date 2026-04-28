@@ -157,6 +157,25 @@ type Tone = 'warm' | 'field' | 'dusk' | 'lavender' | 'peach' | 'sage' | 'cream';
 
 const CHAPTER_TONES: Tone[] = ['lavender', 'sage', 'peach', 'cream', 'lavender', 'peach'];
 
+/**
+ * Click a structured row on the canvas (hotel, FAQ, schedule
+ * event, registry entry) → land in the matching editor panel
+ * with the row scrolled into view. Without this, the focus-row
+ * event lands on a panel that isn't even mounted (host was on
+ * "Hero" or "Details") and the click looks dead.
+ *
+ * Pattern: dispatch design-jump first to switch the active
+ * block; defer the focus-row event 80ms so the panel has time
+ * to mount before we ask it to scroll.
+ */
+function jumpToPanelRow(block: 'travel' | 'faq' | 'schedule' | 'registry', focusEvent: string, detail: Record<string, unknown>) {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { block } }));
+  setTimeout(() => {
+    window.dispatchEvent(new CustomEvent(focusEvent, { detail }));
+  }, 80);
+}
+
 function fmtEventDate(
   iso?: string | null,
   format?: 'long' | 'short' | 'numeric' | 'iso' | 'month-year',
@@ -1613,6 +1632,14 @@ function DetailsStripImpl({ manifest }: { manifest: StoryManifest }) {
   const l = manifest.logistics ?? {};
   const dateInfo = fmtEventDate(l.date, manifest.dateFormat, l.timezone);
   const events = manifest.events ?? [];
+  // Run every time string through the occasion-aware formatter.
+  // Wedding panels were rendering "17:00" because the host typed
+  // it from the 24h TimePicker; weddings expect "five o'clock in
+  // the afternoon". Casual events get "5pm". Empty/garbage values
+  // fall through unchanged so the formatter never destroys input.
+  const term = terminologyFor((manifest as unknown as { occasion?: string }).occasion);
+  const formatTime = (t?: string) => (t ? term.formatTime(t) : '');
+  const ceremonyLabel = term.ceremonyLabel;
 
   // Build items from actual manifest data — only surface what the
   // host has filled in. If they haven't set anything, the whole
@@ -1623,16 +1650,16 @@ function DetailsStripImpl({ manifest }: { manifest: StoryManifest }) {
   const ceremony = events.find((e) => e.type === 'ceremony');
   if (ceremony) {
     items.push({
-      t: 'Ceremony',
-      v: ceremony.time || (dateInfo?.pretty ?? ''),
+      t: ceremonyLabel,
+      v: formatTime(ceremony.time) || (dateInfo?.pretty ?? ''),
       s: ceremony.venue || l.venue || '',
       icon: 'calendar-check',
       tone: 'lavender',
     });
   } else if (l.time || l.venue) {
     items.push({
-      t: 'Ceremony',
-      v: l.time ?? (dateInfo?.pretty ?? ''),
+      t: ceremonyLabel,
+      v: formatTime(l.time) || (dateInfo?.pretty ?? ''),
       s: l.venue ?? '',
       icon: 'calendar-check',
       tone: 'lavender',
@@ -1642,8 +1669,8 @@ function DetailsStripImpl({ manifest }: { manifest: StoryManifest }) {
   const reception = events.find((e) => e.type === 'reception');
   if (reception) {
     items.push({
-      t: 'Reception',
-      v: reception.time || '',
+      t: term.receptionLabel,
+      v: formatTime(reception.time),
       s: reception.venue || '',
       icon: 'sparkles',
       tone: 'peach',
@@ -1690,7 +1717,7 @@ function DetailsStripImpl({ manifest }: { manifest: StoryManifest }) {
               style={{
                 background: 'var(--card)',
                 border: '1px solid var(--card-ring)',
-                borderRadius: 20,
+                borderRadius: 'var(--pl-card-radius, 20px)',
                 padding: 28,
                 position: 'relative',
                 color: 'var(--ink)',
@@ -2058,7 +2085,7 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
           </h2>
         </div>
 
-        <div style={{ background: 'var(--card)', border: '1px solid var(--card-ring)', borderRadius: 24, overflow: 'hidden' }}>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--card-ring)', borderRadius: 'var(--pl-card-radius, 24px)', overflow: 'hidden' }}>
           {(() => {
             const renderRow = (r: typeof rows[number], i: number, dragHandleProps?: React.HTMLAttributes<HTMLElement> & { ref: (el: HTMLElement | null) => void }) => (
             <div
@@ -2068,8 +2095,7 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
               onClick={edit && r.id ? (e) => {
                 const target = e.target as Element;
                 if (target.closest('a, button, input, textarea, [contenteditable="true"], [role="button"]')) return;
-                if (typeof window === 'undefined') return;
-                window.dispatchEvent(new CustomEvent('pearloom:focus-schedule-row', { detail: { eventId: r.id } }));
+                jumpToPanelRow('schedule', 'pearloom:focus-schedule-row', { eventId: r.id });
               } : undefined}
               style={{
                 position: 'relative',
@@ -2559,9 +2585,10 @@ interface HotelCardModel {
   };
 }
 
-type HotelSort = 'pearPick' | 'closest' | 'rating' | 'priceAsc';
+type HotelSort = 'manual' | 'pearPick' | 'closest' | 'rating' | 'priceAsc';
 
 const HOTEL_SORT_LABELS: Record<HotelSort, string> = {
+  manual: 'Custom order',
   pearPick: "Pear's pick",
   closest: 'Closest to venue',
   rating: 'Highest rated',
@@ -2579,7 +2606,7 @@ function SortDropdown({ value, onChange }: { value: HotelSort; onChange: (v: Hot
   const [activeIdx, setActiveIdx] = useState(-1);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
-  const options: HotelSort[] = ['pearPick', 'closest', 'rating', 'priceAsc'];
+  const options: HotelSort[] = ['manual', 'pearPick', 'closest', 'rating', 'priceAsc'];
 
   // Close on outside click + esc, focus the active option on open.
   useEffect(() => {
@@ -2783,7 +2810,11 @@ function HotelsList({
    *  'icon' — map mode uses pin order from the array, not drag. */
   onReorder?: (next: HotelCardModel[]) => void;
 }) {
-  const [sort, setSort] = useState<HotelSort>('pearPick');
+  // Default sort: in edit mode, "Custom order" — the host's drag
+  // sequence is what they expect to see after dropping. On the
+  // published site, "Pear's pick" so guests see the best options
+  // first regardless of how the host arranged the panel.
+  const [sort, setSort] = useState<HotelSort>(editMode && onReorder ? 'manual' : 'pearPick');
   const [amenitySet, setAmenitySet] = useState<Set<string>>(new Set());
   const display = (manifest.travelInfo?.hotelDisplay ?? 'photo') as 'photo' | 'icon' | 'map';
   const badgesEnabled = manifest.travelInfo?.hotelBadges !== false;
@@ -2803,15 +2834,19 @@ function HotelsList({
     }
     return true;
   });
-  const sorted = [...filtered].sort((a, b) => {
-    if (sort === 'closest') return hotelDistanceMeters(a) - hotelDistanceMeters(b);
-    if (sort === 'rating') return (b.rating ?? 0) - (a.rating ?? 0);
-    if (sort === 'priceAsc') return hotelPriceTier(a) - hotelPriceTier(b);
-    // pearPick — same scoring as the auto-badges
-    const score = (h: HotelCardModel) =>
-      (h.rating ?? 0) * 1000 + Math.log10((h.ratingCount ?? 0) + 1) * 100;
-    return score(b) - score(a);
-  });
+  // 'manual' preserves manifest order — the host's drag sequence.
+  // Anything else applies a comparator. We never mutate `filtered`.
+  const sorted = sort === 'manual'
+    ? filtered
+    : [...filtered].sort((a, b) => {
+        if (sort === 'closest') return hotelDistanceMeters(a) - hotelDistanceMeters(b);
+        if (sort === 'rating') return (b.rating ?? 0) - (a.rating ?? 0);
+        if (sort === 'priceAsc') return hotelPriceTier(a) - hotelPriceTier(b);
+        // pearPick — same scoring as the auto-badges
+        const score = (h: HotelCardModel) =>
+          (h.rating ?? 0) * 1000 + Math.log10((h.ratingCount ?? 0) + 1) * 100;
+        return score(b) - score(a);
+      });
   const visible = sorted.slice(0, 6);
   const badges = badgesEnabled ? computeHotelBadges(visible) : visible.map(() => [] as HotelBadge[]);
 
@@ -2941,9 +2976,12 @@ function HotelsList({
             <CanvasSortable
               items={cardItems}
               onReorder={(next) => {
-                // Strip the synthetic id back out before handing
-                // back to the section caller — the manifest hotel
-                // shape already carries its own id (or doesn't).
+                // Drag-to-reorder flips the local sort to 'manual'
+                // so the manifest order persists through subsequent
+                // re-renders. Without this, sorting re-applies on
+                // the next pass and snaps the cards back to the
+                // pearPick / rating / closest order.
+                setSort('manual');
                 onReorder(next as unknown as HotelCardModel[]);
               }}
               renderItem={(item, ctx) => {
@@ -2959,10 +2997,7 @@ function HotelsList({
                     hotelId={item.id}
                     editMode={editMode}
                     onRemove={() => onRemove?.(i, item)}
-                    onFocus={() => {
-                      if (typeof window === 'undefined') return;
-                      window.dispatchEvent(new CustomEvent('pearloom:focus-hotel-row', { detail: { hotelId: item.id } }));
-                    }}
+                    onFocus={() => jumpToPanelRow('travel', 'pearloom:focus-hotel-row', { hotelId: item.id })}
                     dragHandleProps={ctx.dragHandleProps}
                   />
                 );
@@ -2983,10 +3018,7 @@ function HotelsList({
               hotelId={h.id}
               editMode={editMode}
               onRemove={editMode ? () => onRemove?.(i, h) : undefined}
-              onFocus={editMode ? () => {
-                if (typeof window === 'undefined') return;
-                window.dispatchEvent(new CustomEvent('pearloom:focus-hotel-row', { detail: { hotelId: h.id } }));
-              } : undefined}
+              onFocus={editMode ? () => jumpToPanelRow('travel', 'pearloom:focus-hotel-row', { hotelId: h.id }) : undefined}
             />
           );
         });
@@ -3894,7 +3926,7 @@ function HotelCard({
         gridTemplateColumns: '120px 1fr',
         gap: 16,
         padding: 14,
-        borderRadius: 18,
+        borderRadius: 'var(--pl-card-radius, 18px)',
         background: 'var(--card)',
         border: isTop ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid var(--card-ring)',
         boxShadow: isTop
@@ -4399,7 +4431,7 @@ function RegistryCard({
         position: 'relative',
         background: 'var(--card)',
         border: isMostLoved ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid var(--card-ring)',
-        borderRadius: 20,
+        borderRadius: 'var(--pl-card-radius, 20px)',
         padding: 24,
         display: 'flex',
         flexDirection: 'column',
@@ -4527,8 +4559,7 @@ function RegistrySectionImpl({ manifest, onEditField }: { manifest: StoryManifes
     });
   }
   function focusRegistry(url: string) {
-    if (typeof window === 'undefined') return;
-    window.dispatchEvent(new CustomEvent('pearloom:focus-registry-row', { detail: { url } }));
+    jumpToPanelRow('registry', 'pearloom:focus-registry-row', { url });
   }
   // Pull from the real manifest shape: registry.entries[] +
   // registry.cashFundUrl / message. When nothing is set, the
@@ -5224,7 +5255,7 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
           style={{
             background: 'var(--card)',
             border: '1px solid var(--card-ring)',
-            borderRadius: 20,
+            borderRadius: 'var(--pl-card-radius, 20px)',
             overflow: 'hidden',
           }}
         >
@@ -5249,8 +5280,7 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
                 onClick={edit ? (e) => {
                   const target = e.target as Element;
                   if (target.closest('a, button, input, textarea, [contenteditable="true"], [role="button"]')) return;
-                  if (typeof window === 'undefined') return;
-                  window.dispatchEvent(new CustomEvent('pearloom:focus-faq-row', { detail: { faqId: fid } }));
+                  jumpToPanelRow('faq', 'pearloom:focus-faq-row', { faqId: fid });
                 } : undefined}
                 style={{
                   position: 'relative',
@@ -6852,9 +6882,41 @@ export function SiteV8Renderer({
     .decorLibrary?.dividerStrength ?? 'standard';
   const bouquetUrl = manifest.decorLibrary?.footerBouquet;
 
+  // Global card + photo radius. SpacingPanel writes these to
+  // manifest.theme.{cardRadius,photoRadius}; we mirror them as
+  // CSS vars on the site root so every card surface that opts
+  // into var(--pl-card-radius, …) follows the host's pick. The
+  // fallback (14 / 18) matches the v8 default ("rounded").
+  const themeRadius = (manifest as unknown as { theme?: { cardRadius?: string; photoRadius?: string } }).theme;
+  const cardRadiusPx = (() => {
+    switch (themeRadius?.cardRadius) {
+      case 'sharp': return 0;
+      case 'soft': return 6;
+      case 'pillow': return 24;
+      case 'rounded': return 14;
+      default: return undefined;
+    }
+  })();
+  const photoRadiusPx = (() => {
+    switch (themeRadius?.photoRadius) {
+      case 'sharp': return 0;
+      case 'soft': return 8;
+      case 'circle': return 9999;
+      case 'rounded': return 18;
+      default: return undefined;
+    }
+  })();
+  const radiusVars: React.CSSProperties = {};
+  if (cardRadiusPx != null) {
+    (radiusVars as Record<string, string>)['--pl-card-radius'] = `${cardRadiusPx}px`;
+  }
+  if (photoRadiusPx != null) {
+    (radiusVars as Record<string, string>)['--pl-photo-radius'] = photoRadiusPx === 9999 ? '50%' : `${photoRadiusPx}px`;
+  }
+
   return (
     <EditorCanvasProvider value={canvasCtxValue}>
-      <div className="pl8-guest" style={themeStyle}>
+      <div className="pl8-guest" style={{ ...themeStyle, ...radiusVars }}>
         {!editMode && <BroadcastBar subdomain={siteSlug} />}
         {!editMode && <PersonalGuestGreeting domain={siteSlug} />}
         {!editMode && creatorEmail && (

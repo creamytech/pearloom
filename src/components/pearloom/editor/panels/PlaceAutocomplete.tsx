@@ -82,6 +82,14 @@ export function PlaceAutocomplete({
   const [searching, setSearching] = useState(false);
   const [activeIdx, setActiveIdx] = useState(-1);
   const [geoNear, setGeoNear] = useState<string | null>(null);
+  // Tracks whether the host has actually engaged with the input.
+  // Without this, mounting the panel with a pre-filled venue
+  // (e.g. "The Wildflower Barn") triggers the debounced search on
+  // first render and pops the dropdown unprompted — which surprised
+  // hosts who clicked a hotel card on the canvas and saw a venue
+  // search dropdown they never asked for. Only the user's own
+  // typing or focus gestures should ever open the popover.
+  const [engaged, setEngaged] = useState(false);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -120,6 +128,9 @@ export function PlaceAutocomplete({
   // ── Debounced search ──────────────────────────────────────
   useEffect(() => {
     if (searchDisabled) return;
+    // Don't search until the host has actually focused / typed in
+    // this input — pre-filled values shouldn't open the dropdown.
+    if (!engaged) return;
     const q = value.trim();
     if (q.length < 2) {
       setPredictions([]);
@@ -144,7 +155,7 @@ export function PlaceAutocomplete({
       }
     }, 250);
     return () => window.clearTimeout(handle);
-  }, [value, effectiveNear, kind, searchDisabled]);
+  }, [value, effectiveNear, kind, searchDisabled, engaged]);
 
   // ── Outside-click closes the popover ──────────────────────
   useEffect(() => {
@@ -227,8 +238,9 @@ export function PlaceAutocomplete({
           id={id}
           type="text"
           value={value}
-          onChange={(e) => onChangeText(e.target.value)}
+          onChange={(e) => { setEngaged(true); onChangeText(e.target.value); }}
           onFocus={() => {
+            setEngaged(true);
             requestGeo();
             if (predictions.length > 0) setOpen(true);
           }}

@@ -14,6 +14,7 @@ import { useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Field, PanelSection, TextInput } from '../atoms';
 import { Icon } from '../../motifs';
+import { V8ColorPicker } from '../v8-color-picker';
 
 type TokenKey = 'background' | 'foreground' | 'accent' | 'accentLight' | 'muted' | 'cardBg';
 
@@ -103,20 +104,10 @@ export function ColorTokenInspector({
         >
           <Field label={`Edit ${TOKENS.find((t) => t.key === activeToken)?.label}`}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <input
-                type="color"
+              <V8ColorPicker
                 value={themeColors?.[activeToken] ?? '#FFFFFF'}
-                onChange={(e) => setColor(activeToken, e.target.value)}
-                style={{
-                  width: 44,
-                  height: 38,
-                  padding: 2,
-                  border: '1px solid var(--line)',
-                  borderRadius: 8,
-                  background: 'var(--card)',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                }}
+                onChange={(v) => setColor(activeToken, v)}
+                ariaLabel={`Edit ${TOKENS.find((t) => t.key === activeToken)?.label} colour`}
               />
               <TextInput
                 value={(themeColors?.[activeToken] ?? '#FFFFFF').toUpperCase()}

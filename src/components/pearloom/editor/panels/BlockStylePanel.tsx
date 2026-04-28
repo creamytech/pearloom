@@ -12,6 +12,7 @@ import type { StoryManifest, BlockStyleOverride } from '@/types';
 import { Field, PanelSection } from '../atoms';
 import { Icon } from '../../motifs';
 import { Switch, V8Slider } from '../v8-forms';
+import { V8ColorPicker } from '../v8-color-picker';
 
 interface Props {
   manifest: StoryManifest;
@@ -256,23 +257,14 @@ export function BlockStylePanel({ manifest, blockId, label = 'Section style', on
           })}
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input
-            type="color"
+          <V8ColorPicker
             value={
               current.background && current.background.startsWith('#')
                 ? current.background
                 : '#FBF7EE'
             }
-            onChange={(e) => set({ background: e.target.value })}
-            style={{
-              width: 38,
-              height: 32,
-              padding: 2,
-              border: '1px solid var(--line)',
-              borderRadius: 6,
-              background: 'var(--card)',
-              cursor: 'pointer',
-            }}
+            onChange={(v) => set({ background: v })}
+            ariaLabel="Section background colour"
           />
           <span style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>
             Custom colour — text contrast auto-adjusts.
@@ -283,19 +275,10 @@ export function BlockStylePanel({ manifest, blockId, label = 'Section style', on
       {/* Text colour */}
       <Field label="Text colour">
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input
-            type="color"
+          <V8ColorPicker
             value={current.textColor ?? '#000000'}
-            onChange={(e) => set({ textColor: e.target.value })}
-            style={{
-              width: 38,
-              height: 32,
-              padding: 2,
-              border: '1px solid var(--line)',
-              borderRadius: 6,
-              background: 'var(--card)',
-              cursor: 'pointer',
-            }}
+            onChange={(v) => set({ textColor: v })}
+            ariaLabel="Section text colour"
           />
           <button
             type="button"

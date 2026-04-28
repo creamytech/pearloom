@@ -21,6 +21,7 @@ import {
 } from '../../site/LivingAtmosphere';
 import { AMBIENT_PRESETS, type AmbientPresetId } from '../../site/AmbientAudio';
 import { CustomSelect, Switch } from '../v8-forms';
+import { V8ColorPicker } from '../v8-color-picker';
 
 const KINDS: Array<{ id: AtmosphereKind; label: string; hint: string }> = [
   { id: 'motes',       label: 'Motes',         hint: 'Slow gold particles drifting up.' },
@@ -215,18 +216,10 @@ export function AtmospherePanel({
         <div>
           <div style={LABEL}>Accent override</div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <input
-              type="color"
+            <V8ColorPicker
               value={atmosphere.accent ?? '#D4A95D'}
-              onChange={(e) => setAtmosphere({ accent: e.target.value })}
-              style={{
-                width: 36,
-                height: 28,
-                border: '1px solid var(--line)',
-                borderRadius: 6,
-                padding: 2,
-                background: 'var(--card)',
-              }}
+              onChange={(v) => setAtmosphere({ accent: v })}
+              ariaLabel="Atmosphere accent colour"
             />
             <button
               type="button"

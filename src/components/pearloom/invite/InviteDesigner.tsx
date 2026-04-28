@@ -18,6 +18,7 @@ import { buildSiteUrl, formatSiteDisplayUrl, normalizeOccasion } from '@/lib/sit
 import { AISuggestButton, useAICall } from '../editor/ai';
 import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';
 import { DecorGenerationToast } from '../editor/DecorGenerationToast';
+import { V8ColorPicker } from '../editor/v8-color-picker';
 import { ARCHETYPES, type ArchetypeId } from '@/lib/invite-engine/archetypes';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 import { PrintMailModal } from './PrintMailModal';
@@ -1259,20 +1260,10 @@ function StyleControls({
                     borderRadius: 9,
                   }}
                 >
-                  <input
-                    type="color"
+                  <V8ColorPicker
                     value={value}
-                    onChange={(e) => setColor(slot, e.target.value)}
-                    style={{
-                      width: 26,
-                      height: 26,
-                      padding: 0,
-                      border: 'none',
-                      borderRadius: 6,
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                      background: 'transparent',
-                    }}
+                    onChange={(v) => setColor(slot, v)}
+                    size="sm"
                   />
                   <code
                     style={{

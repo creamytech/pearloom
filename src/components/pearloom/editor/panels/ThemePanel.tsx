@@ -10,6 +10,7 @@ import { StickerTrayPanel } from './StickerTrayPanel';
 import { AtmospherePanel } from './AtmospherePanel';
 import { FontPicker } from './FontPicker';
 import { ColorTokenInspector } from './ColorTokenInspector';
+import { V8ColorPicker } from '../v8-color-picker';
 import { SpacingPanel } from './SpacingPanel';
 import { SnapshotsPanel } from './SnapshotsPanel';
 import {
@@ -1198,19 +1199,11 @@ function CustomPaletteEditor({
           { label: 'Muted',  value: muted,       set: setMuted },
         ].map((row) => (
           <label key={row.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <input
-              type="color"
+            <V8ColorPicker
               value={row.value}
-              onChange={(e) => row.set(e.target.value)}
-              style={{
-                width: '100%',
-                height: 38,
-                border: '1px solid var(--line)',
-                borderRadius: 8,
-                padding: 2,
-                background: 'var(--card)',
-                cursor: 'pointer',
-              }}
+              onChange={(v) => row.set(v)}
+              ariaLabel={`${row.label} colour`}
+              style={{ width: '100%', height: 38 }}
             />
             <span style={{ fontSize: 10.5, color: 'var(--ink-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
               {row.label}
