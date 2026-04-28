@@ -468,6 +468,7 @@ export function EditorV8({
         el.style.outline = '';
         el.style.outlineOffset = '';
         el.style.transition = '';
+        el.style.boxShadow = '';
       });
     } catch {}
 
@@ -488,10 +489,22 @@ export function EditorV8({
     }
     if (!el) return;
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Arrival flash — a soft peach ring that breathes in, holds for
+    // ~600ms, then fades out. The previous version painted a hard
+    // 3px lavender border that stayed on the section forever, which
+    // read as an error state when the host's eye returned later.
+    // The fade-out gives the host a moment of "yes, that's the one"
+    // without leaving a permanent mark on the canvas.
     el.setAttribute('data-pl8-active', '1');
-    el.style.transition = 'outline 220ms cubic-bezier(0.16, 1, 0.3, 1), outline-offset 220ms';
-    el.style.outline = '3px solid var(--lavender-ink, #6B5A8C)';
-    el.style.outlineOffset = '-8px';
+    el.style.transition = 'box-shadow 280ms cubic-bezier(0.16, 1, 0.3, 1)';
+    el.style.boxShadow = 'inset 0 0 0 1px rgba(198,112,61,0.55), 0 0 0 6px rgba(198,112,61,0.10)';
+    const flashEl = el;
+    const t = setTimeout(() => {
+      try {
+        flashEl.style.boxShadow = 'inset 0 0 0 0 rgba(198,112,61,0), 0 0 0 0 rgba(198,112,61,0)';
+      } catch {}
+    }, 700);
+    return () => clearTimeout(t);
   }, [block]);
 
   // When a block section on the canvas is clicked, select the

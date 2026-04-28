@@ -39,18 +39,56 @@ interface Props {
 
 export function FindInSite({ manifest, open, onClose, onJump }: Props) {
   const [query, setQuery] = useState('');
+  // Cursor for arrow-key navigation. Resets to 0 whenever the
+  // overlay opens or the query changes, so the first match is
+  // always pre-selected and Enter jumps without further nav.
+  const [cursor, setCursor] = useState(0);
+
+  const matches = useMemo(() => collectMatches(manifest, query), [manifest, query]);
 
   useEffect(() => {
     if (!open) return;
     setQuery('');
+    setCursor(0);
+  }, [open]);
+
+  useEffect(() => {
+    setCursor(0);
+  }, [query]);
+
+  useEffect(() => {
+    if (!open) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+      if (e.key === 'ArrowDown') {
+        if (matches.length === 0) return;
+        e.preventDefault();
+        setCursor((c) => (c + 1) % matches.length);
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        if (matches.length === 0) return;
+        e.preventDefault();
+        setCursor((c) => (c - 1 + matches.length) % matches.length);
+        return;
+      }
+      if (e.key === 'Enter') {
+        if (matches.length === 0) return;
+        e.preventDefault();
+        const m = matches[cursor];
+        if (m) {
+          onJump(m.block);
+          onClose();
+        }
+      }
     }
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
-
-  const matches = useMemo(() => collectMatches(manifest, query), [manifest, query]);
+  }, [open, onClose, matches, cursor, onJump]);
 
   if (!open) return null;
   return (
@@ -161,10 +199,20 @@ export function FindInSite({ manifest, open, onClose, onJump }: Props) {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {matches.map((m) => (
+              {matches.map((m, i) => (
                 <button
                   key={m.id}
                   type="button"
+                  ref={(el) => {
+                    // Scroll the keyboard-highlighted row into view as
+                    // the cursor moves through the list. `nearest` keeps
+                    // the cursor stable when the user is already viewing
+                    // the row — no jumpy snap-to-center.
+                    if (el && i === cursor) {
+                      el.scrollIntoView({ block: 'nearest' });
+                    }
+                  }}
+                  onMouseEnter={() => setCursor(i)}
                   onClick={() => {
                     onJump(m.block);
                     onClose();
@@ -176,15 +224,16 @@ export function FindInSite({ manifest, open, onClose, onJump }: Props) {
                     gap: 4,
                     padding: '12px 18px',
                     borderBottom: '1px solid var(--line-soft)',
-                    background: 'transparent',
+                    background: i === cursor ? 'var(--cream-2, #F5EFE2)' : 'transparent',
                     border: 'none',
+                    borderLeft: i === cursor
+                      ? '2px solid var(--peach-ink, #C6703D)'
+                      : '2px solid transparent',
                     cursor: 'pointer',
                     textAlign: 'left',
                     fontFamily: 'var(--font-ui)',
-                    transition: 'background 140ms ease',
+                    transition: 'background 140ms ease, border-color 140ms ease',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--cream-2, #F5EFE2)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                 >
                   <div
                     style={{
@@ -225,7 +274,7 @@ export function FindInSite({ manifest, open, onClose, onJump }: Props) {
           }}
         >
           <span>{matches.length} {matches.length === 1 ? 'match' : 'matches'}</span>
-          <span>↵ jump · Esc close</span>
+          <span>↑↓ navigate · ↵ jump · Esc close</span>
         </div>
       </div>
 
