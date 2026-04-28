@@ -20,8 +20,11 @@ import { Filigree } from '../motifs';
 
 interface Props {
   url?: string;
-  /** Even instances flip vertically so two adjacent dividers don't
-   *  read identical. Pass `index` from the block loop. */
+  /** Index in the block loop — used to vary the inline-SVG fallback
+   *  variant so adjacent dividers don't read identical. The raster
+   *  divider used to flip on even instances; the user found that
+   *  upside-down houses read as broken (Santorini divider has a
+   *  clear "ground line"), so all instances are now upright. */
   index?: number;
   /** Renders dramatically smaller/softer — used between tighter sections. */
   compact?: boolean;
@@ -39,7 +42,6 @@ export function DecorDivider({ url, index = 0, compact, strength = 'standard', h
     strength === 'tall' ? 120 :
     84;
   const height = compact ? Math.max(32, baseHeight - 28) : baseHeight;
-  const flip = index % 2 === 1;
 
   // AI-generated divider available — render the original raster band.
   if (url) {
@@ -54,7 +56,6 @@ export function DecorDivider({ url, index = 0, compact, strength = 'standard', h
           backgroundSize: 'auto 100%',
           backgroundRepeat: 'repeat-x',
           backgroundPosition: 'center',
-          transform: flip ? 'scaleY(-1)' : undefined,
           maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
           WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
           opacity: 0.92,

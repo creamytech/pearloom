@@ -2320,6 +2320,172 @@ interface HotelCardModel {
 
 type HotelSort = 'pearPick' | 'closest' | 'rating' | 'priceAsc';
 
+const HOTEL_SORT_LABELS: Record<HotelSort, string> = {
+  pearPick: "Pear's pick",
+  closest: 'Closest to venue',
+  rating: 'Highest rated',
+  priceAsc: 'Price: low to high',
+};
+
+// V8-styled sort picker — replaces the native <select> the
+// browser would otherwise paint with platform chrome (white
+// blocky options, blue OS highlight) that read as borrowed
+// against the rest of the cream/peach palette. Behaviour
+// matches a native select: arrow keys navigate, Enter picks,
+// Escape closes, click-outside dismisses.
+function SortDropdown({ value, onChange }: { value: HotelSort; onChange: (v: HotelSort) => void }) {
+  const [open, setOpen] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const popoverRef = useRef<HTMLDivElement | null>(null);
+  const options: HotelSort[] = ['pearPick', 'closest', 'rating', 'priceAsc'];
+
+  // Close on outside click + esc, focus the active option on open.
+  useEffect(() => {
+    if (!open) return;
+    setActiveIdx(options.indexOf(value));
+    function onDocClick(e: MouseEvent) {
+      if (
+        !buttonRef.current?.contains(e.target as Node) &&
+        !popoverRef.current?.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        buttonRef.current?.focus();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActiveIdx((i) => Math.min(options.length - 1, i + 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActiveIdx((i) => Math.max(0, i - 1));
+      } else if (e.key === 'Enter' && activeIdx >= 0) {
+        e.preventDefault();
+        onChange(options[activeIdx]);
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
+    }
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onKey);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, activeIdx, value]);
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <button
+        ref={buttonRef}
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '6px 12px',
+          borderRadius: 8,
+          border: '1px solid var(--line)',
+          background: 'var(--card)',
+          color: 'var(--ink)',
+          fontSize: 11.5,
+          fontWeight: 600,
+          fontFamily: 'var(--font-ui)',
+          cursor: 'pointer',
+          minWidth: 158,
+          justifyContent: 'space-between',
+          transition: 'border-color 160ms ease, background 160ms ease',
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; }}
+      >
+        <span>{HOTEL_SORT_LABELS[value]}</span>
+        <svg
+          width="10" height="10" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          aria-hidden style={{ opacity: 0.6, transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 160ms ease' }}
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+      {open && (
+        <div
+          ref={popoverRef}
+          role="listbox"
+          aria-label="Sort hotels"
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            right: 0,
+            minWidth: 200,
+            zIndex: 20,
+            padding: 6,
+            background: 'var(--paper)',
+            border: '1px solid var(--card-ring)',
+            borderRadius: 12,
+            boxShadow: '0 14px 40px -10px rgba(14,13,11,0.30)',
+            animation: 'pl8-sort-pop 160ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        >
+          {options.map((opt, i) => {
+            const selected = value === opt;
+            const active = activeIdx === i;
+            return (
+              <button
+                key={opt}
+                type="button"
+                role="option"
+                aria-selected={selected}
+                onClick={() => {
+                  onChange(opt);
+                  setOpen(false);
+                  buttonRef.current?.focus();
+                }}
+                onMouseEnter={() => setActiveIdx(i)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  width: '100%',
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: active ? 'var(--cream-2)' : 'transparent',
+                  color: 'var(--ink)',
+                  fontSize: 12.5,
+                  fontWeight: selected ? 700 : 500,
+                  fontFamily: 'var(--font-ui)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'background 120ms ease',
+                }}
+              >
+                <span>{HOTEL_SORT_LABELS[opt]}</span>
+                {selected && (
+                  <span aria-hidden style={{ color: 'var(--peach-ink, #C6703D)', fontSize: 13 }}>✓</span>
+                )}
+              </button>
+            );
+          })}
+          <style jsx global>{`
+            @keyframes pl8-sort-pop {
+              from { opacity: 0; transform: translateY(-4px); }
+              to   { opacity: 1; transform: translateY(0); }
+            }
+          `}</style>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const AMENITY_FILTERS: Array<{ key: string; label: string; matches: RegExp }> = [
   { key: 'pool',    label: 'Pool',    matches: /pool/i },
   { key: 'spa',     label: 'Spa',     matches: /spa/i },
@@ -2462,43 +2628,27 @@ function HotelsList({
             </div>
           )}
           {showSort && (
-            <label
+            <div
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 6,
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-                color: 'var(--ink-soft)',
+                gap: 8,
                 marginLeft: 'auto',
               }}
             >
-              Sort
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value as HotelSort)}
+              <span
                 style={{
-                  padding: '5px 10px',
-                  borderRadius: 8,
-                  border: '1px solid var(--line)',
-                  background: 'var(--card)',
-                  fontSize: 11.5,
-                  fontWeight: 600,
-                  color: 'var(--ink)',
-                  fontFamily: 'var(--font-ui)',
-                  letterSpacing: 'normal',
-                  textTransform: 'none',
-                  cursor: 'pointer',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  color: 'var(--ink-soft)',
                 }}
               >
-                <option value="pearPick">Pear&apos;s pick</option>
-                <option value="closest">Closest to venue</option>
-                <option value="rating">Highest rated</option>
-                <option value="priceAsc">Price: low to high</option>
-              </select>
-            </label>
+                Sort
+              </span>
+              <SortDropdown value={sort} onChange={setSort} />
+            </div>
           )}
         </div>
       )}
