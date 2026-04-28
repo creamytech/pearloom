@@ -2278,13 +2278,45 @@ function VenueHero({ venue, address, manifest, onEditField }: { venue: string; a
         const body = await stylRes.json().catch(() => ({}));
         throw new Error((body as { error?: string }).error ?? `Stylize ${stylRes.status}`);
       }
-      const data = (await stylRes.json()) as { url?: string };
-      if (!data.url) throw new Error('Stylize returned no url');
+      const data = (await stylRes.json()) as { url?: string; jobId?: string; async?: boolean };
+
+      // Async path — server returned a jobId. Poll the stylize
+      // job route every 2s for up to 4 minutes. Was a hard 504
+      // before this — gpt-image-2 quality='high' takes 60-120s,
+      // longer than Vercel's request gateway will hold.
+      let finalUrl = data.url ?? null;
+      if (data.async && data.jobId) {
+        const startedAt = Date.now();
+        const ceiling = 240_000;
+        let consecutiveErrors = 0;
+        while (Date.now() - startedAt < ceiling) {
+          await new Promise((r) => setTimeout(r, 2000));
+          let pollRes: Response;
+          try {
+            pollRes = await fetch(`/api/photos/stylize/${encodeURIComponent(data.jobId)}`, { cache: 'no-store' });
+          } catch {
+            consecutiveErrors += 1;
+            if (consecutiveErrors >= 3) throw new Error('Lost connection to Pear. Try again.');
+            continue;
+          }
+          consecutiveErrors = 0;
+          if (!pollRes.ok) {
+            if (pollRes.status === 404) throw new Error('Pear lost the canvas. Try again.');
+            continue;
+          }
+          const poll = (await pollRes.json()) as { status?: string; url?: string; error?: string };
+          if (poll.status === 'complete' && poll.url) { finalUrl = poll.url; break; }
+          if (poll.status === 'failed') throw new Error(poll.error ?? 'Stylize failed.');
+        }
+        if (!finalUrl) throw new Error('Pear is still painting. Try again in a minute.');
+      }
+      if (!finalUrl) throw new Error('Stylize returned no url');
+
       onEditField?.((m) => {
         const l = (m.logistics ?? {}) as Record<string, unknown>;
         return {
           ...m,
-          logistics: { ...l, venuePhotoStylized: data.url, venuePhotoMode: 'stylized' },
+          logistics: { ...l, venuePhotoStylized: finalUrl, venuePhotoMode: 'stylized' },
         } as StoryManifest;
       });
     } catch (err) {
@@ -2481,6 +2513,10 @@ interface HotelCardModel {
   description?: string;
   lat?: number;
   lng?: number;
+  badges?: {
+    hideAuto?: Array<'top' | 'closest' | 'value'>;
+    custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }>;
+  };
 }
 
 type HotelSort = 'pearPick' | 'closest' | 'rating' | 'priceAsc';
@@ -3513,6 +3549,38 @@ function GroupBlockCodeBanner({ code }: { code: string }) {
   );
 }
 
+// Host-authored badge — same pearl pill shape as the auto ones,
+// but the host picks both the label and the v8 tone. Renders
+// without the ★ prefix since "Couple's pick" reads with the
+// same authority the host put behind it.
+function CustomBadgePill({ label, tone }: { label: string; tone: 'peach' | 'sage' | 'lavender' | 'ink' }) {
+  const config =
+    tone === 'sage'     ? { bg: 'var(--sage-tint, rgba(123,138,93,0.18))',     fg: '#3D4A1F', border: 'rgba(123,138,93,0.4)' } :
+    tone === 'lavender' ? { bg: 'var(--lavender-bg, rgba(149,141,176,0.16))',  fg: '#5C4F8C', border: 'rgba(149,141,176,0.4)' } :
+    tone === 'ink'      ? { bg: 'var(--ink, #0E0D0B)',                         fg: '#FFFFFF', border: 'var(--ink, #0E0D0B)' } :
+                          { bg: 'var(--peach-bg, rgba(198,112,61,0.10))',      fg: 'var(--peach-ink, #C6703D)', border: 'rgba(198,112,61,0.32)' };
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        padding: '3px 9px',
+        background: config.bg,
+        color: config.fg,
+        border: `1px solid ${config.border}`,
+        borderRadius: 999,
+        fontSize: 9.5,
+        fontWeight: 800,
+        letterSpacing: '0.12em',
+        textTransform: 'uppercase',
+        lineHeight: 1.2,
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
 function HotelBadgePill({ kind }: { kind: HotelBadge }) {
   const config = (
     kind === 'top'     ? { label: "Pear's pick", bg: 'var(--peach-ink, #C6703D)', fg: '#FFFFFF', border: 'var(--peach-ink, #C6703D)' } :
@@ -3682,9 +3750,18 @@ function HotelCard({
     if (p.includes('INEXPENSIVE') || p === '$') return '$';
     return p;  // host-typed nightly rate — show as-is
   })();
+  // Filter auto-badges per host overrides — Pearloom auto-tags
+  // Pear's pick / Closest / Best value, but the host can suppress
+  // any of them via the BadgesEditor in the Travel panel.
+  const hideAutoSet = new Set<HotelBadge>(hotel.badges?.hideAuto ?? []);
+  const visibleAutoBadges = badges.filter((b) => !hideAutoSet.has(b));
+  const customBadges = hotel.badges?.custom ?? [];
+  const totalBadges = visibleAutoBadges.length + customBadges.length;
   // Pearl-pick gets a pearl-accent border so the eye lands there
   // first; closest + value just stay as small pills in the corner.
-  const isTop = badges.includes('top');
+  // Honor the override — if the host hid the top badge, drop the
+  // ring too.
+  const isTop = visibleAutoBadges.includes('top');
   // Stack the three meta rails into chips. Hide rails that are empty
   // so the card never reads as half-full.
   return (
@@ -3847,7 +3924,7 @@ function HotelCard({
         )}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
-        {badges.length > 0 && (
+        {totalBadges > 0 && (
           <div
             style={{
               display: 'flex',
@@ -3856,9 +3933,12 @@ function HotelCard({
               marginBottom: 2,
             }}
           >
-            {badges.includes('top') && <HotelBadgePill kind="top" />}
-            {badges.includes('closest') && <HotelBadgePill kind="closest" />}
-            {badges.includes('value') && <HotelBadgePill kind="value" />}
+            {visibleAutoBadges.includes('top') && <HotelBadgePill kind="top" />}
+            {visibleAutoBadges.includes('closest') && <HotelBadgePill kind="closest" />}
+            {visibleAutoBadges.includes('value') && <HotelBadgePill kind="value" />}
+            {customBadges.map((cb) => (
+              <CustomBadgePill key={cb.id} label={cb.label} tone={cb.tone ?? 'peach'} />
+            ))}
           </div>
         )}
         <h3

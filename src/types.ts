@@ -1113,6 +1113,23 @@ export interface HotelBlock {
   priceLevel?: string;
   /** Editorial blurb or host note (12-22 words ideal). */
   description?: string;
+  /** Per-hotel badge customization. Hosts can:
+   *    - hide any of the auto-tagged badges (top, closest, value)
+   *    - add their own — "Couple's pick", "Mom's pick", "Best for
+   *      kids", "Pet-friendly", "Walkable to ceremony", etc.
+   *  Each custom badge picks a v8 tone. Auto-badges still compute
+   *  from data; the override layer just decides what to render. */
+  badges?: {
+    /** Auto-badges to suppress on this hotel. */
+    hideAuto?: Array<'top' | 'closest' | 'value'>;
+    /** Host-authored badges that always render in addition to the
+     *  auto ones (unless hideAuto removes those). */
+    custom?: Array<{
+      id: string;
+      label: string;
+      tone?: 'peach' | 'sage' | 'lavender' | 'ink';
+    }>;
+  };
 }
 
 // ─────────────────────────────────────────────────────────────

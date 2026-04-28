@@ -15,6 +15,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
+import { after } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
@@ -22,9 +23,16 @@ import { uploadToR2 } from '@/lib/r2';
 import { persistUserMedia } from '@/lib/user-media';
 import { generateImage } from '@/lib/memory-engine/image-router';
 import { env } from '@/lib/env';
+import {
+  createJob,
+  markRunning,
+  markComplete,
+  markFailed,
+  renderJobsAvailable,
+} from '@/lib/render-jobs';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 90;
+export const maxDuration = 300;
 
 // ── Style presets ────────────────────────────────────────────
 // Two subject families: 'couple' (Save-the-Date portraits — preserve
@@ -184,59 +192,99 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // ── Image-gen call (gpt-image-2 preferred, Gemini fallback) ─
-  let result;
+  // ── Async path ────────────────────────────────────────────
+  // gpt-image-2 quality='high' on 1024×1024 stylize takes 60-120s.
+  // Vercel's request gateway times out the held connection well
+  // before that — same fix as /api/invite/render: kick off via
+  // Next's after(), return a jobId immediately, client polls
+  // /api/photos/stylize/[jobId] until status flips.
+  if (renderJobsAvailable()) {
+    const job = await createJob({
+      ownerEmail: session.user.email,
+      surface: 'other',
+      payload: { kind: 'stylize', subject, style, photoUrl },
+    });
+    if (job) {
+      const ownerEmail = session.user.email;
+      const promptText = preset.prompt;
+      after(async () => {
+        try {
+          await markRunning(job.id);
+          const url = await runStylize({
+            apiKey,
+            prompt: promptText,
+            sourceMime,
+            sourceBuf,
+            ownerEmail,
+            style,
+          });
+          await markComplete(job.id, { url, mime: 'image/png' });
+        } catch (err) {
+          const detail = err instanceof Error ? err.message : 'unknown error';
+          console.error('[stylize][async]', detail);
+          await markFailed(job.id, detail);
+        }
+      });
+      return NextResponse.json({ ok: true, jobId: job.id, async: true, style });
+    }
+  }
+
+  // ── Sync fallback ─────────────────────────────────────────
   try {
-    result = await generateImage({
+    const url = await runStylize({
       apiKey,
       prompt: preset.prompt,
-      inputImage: { mimeType: sourceMime, base64: sourceBuf.toString('base64') },
-      purpose: 'stylize',
-      quality: 'high',
-      size: '1024x1024',
-      // `low` moderation keeps the edit flexible on wedding portraits
-      // (rehearsal-dinner dress, beach attire) where `auto` was over-eager.
-      moderation: 'low',
+      sourceMime,
+      sourceBuf,
+      ownerEmail: session.user.email,
+      style,
     });
-  } catch (err) {
-    console.error('[stylize] image-gen call failed:', err);
-    return NextResponse.json(
-      { error: 'Style renderer is busy. Try again in a moment.' },
-      { status: 502 },
-    );
-  }
-  if (!result) {
-    return NextResponse.json(
-      { error: 'The style renderer couldn\u2019t use this photo. Try a clearer shot.' },
-      { status: 502 },
-    );
-  }
-
-  // ── Upload to R2 ───────────────────────────────────────────
-  const userSlug = session.user.email.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 48);
-  const ext = result.mimeType.includes('png') ? 'png' : 'jpg';
-  const key = `stylized/${userSlug}/${Date.now().toString(36)}-${style}.${ext}`;
-  const outBuf = Buffer.from(result.base64, 'base64');
-
-  try {
-    const url = await uploadToR2(key, outBuf, result.mimeType);
-
-    // Persist the stylised photo into the user's library.
-    void persistUserMedia([{
-      owner_email: session.user!.email!,
-      url,
-      source: 'ai-stylize',
-      mime_type: result.mimeType,
-      filename: `stylized-${style}-${Date.now()}.${ext}`,
-      caption: `Stylised: ${preset.prompt.slice(0, 80)}`,
-    }]);
-
     return NextResponse.json({ url, style });
   } catch (err) {
-    console.error('[stylize] R2 upload failed:', err);
+    console.error('[stylize][sync]', err);
     return NextResponse.json(
-      { error: 'Stylized image couldn\u2019t be saved. Try again.' },
-      { status: 500 },
+      { error: err instanceof Error ? err.message : 'Stylize failed.' },
+      { status: 502 },
     );
   }
+}
+
+// Shared painter. Throws on failure so async + sync paths share
+// error handling.
+async function runStylize(opts: {
+  apiKey: string;
+  prompt: string;
+  sourceMime: string;
+  sourceBuf: Buffer;
+  ownerEmail: string;
+  style: string;
+}): Promise<string> {
+  const result = await generateImage({
+    apiKey: opts.apiKey,
+    prompt: opts.prompt,
+    inputImage: { mimeType: opts.sourceMime, base64: opts.sourceBuf.toString('base64') },
+    purpose: 'stylize',
+    quality: 'high',
+    size: '1024x1024',
+    moderation: 'low',
+  });
+  if (!result) {
+    throw new Error('The style renderer could not use this photo. Try a clearer shot.');
+  }
+  const userSlug = opts.ownerEmail.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 48);
+  const ext = result.mimeType.includes('png') ? 'png' : 'jpg';
+  const key = `stylized/${userSlug}/${Date.now().toString(36)}-${opts.style}.${ext}`;
+  const outBuf = Buffer.from(result.base64, 'base64');
+  const url = await uploadToR2(key, outBuf, result.mimeType);
+
+  void persistUserMedia([{
+    owner_email: opts.ownerEmail,
+    url,
+    source: 'ai-stylize',
+    mime_type: result.mimeType,
+    filename: `stylized-${opts.style}-${Date.now()}.${ext}`,
+    caption: `Stylised: ${opts.prompt.slice(0, 80)}`,
+  }]);
+
+  return url;
 }

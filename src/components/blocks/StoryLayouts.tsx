@@ -10,7 +10,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { colors, radius, shadow, ease, text as textScale } from '@/lib/design-tokens';
 import { formatLocalDate } from '@/lib/date';
-import { getImageBrightness, textColorForBrightness } from '@/lib/smart-features';
 import { InlineArtHoverToolbar } from './InlineArtHoverToolbar';
 import { SEPARATOR_PRESETS } from '@/lib/separator-presets';
 
@@ -225,18 +224,20 @@ function useAutoTextColor(
     // not photographs, and the detector often mis-reads them.
     if (photoUrl.startsWith('data:') || photoUrl.includes('/api/hero-art')) return;
 
+    // Route through the same-origin /api/img-brightness so we don't
+    // need CORS headers from R2 / Google Places. The previous
+    // crossOrigin='anonymous' programmatic Image() was producing a
+    // wall of console errors even though the visible <img> rendered
+    // fine. See src/app/api/img-brightness/route.ts.
     let cancelled = false;
-    const img = new window.Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      if (cancelled) return;
-      const brightness = getImageBrightness(img);
-      if (brightness !== null) setChoice(textColorForBrightness(brightness));
-    };
-    img.onerror = () => {
-      if (!cancelled) setChoice(null);
-    };
-    img.src = photoUrl;
+    void (async () => {
+      try {
+        const res = await fetch(`/api/img-brightness?url=${encodeURIComponent(photoUrl)}`, { cache: 'force-cache' });
+        if (!res.ok) return;
+        const data = (await res.json()) as { brightness?: 'light' | 'dark' };
+        if (!cancelled && data.brightness) setChoice(data.brightness);
+      } catch { /* silent — fall through to default text colour */ }
+    })();
     return () => {
       cancelled = true;
     };

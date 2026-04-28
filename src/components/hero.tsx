@@ -12,7 +12,7 @@ import { CountdownWidget } from '@/components/countdown-widget';
 
 import type { VibeSkin } from '@/lib/vibe-engine';
 import { parseLocalDate } from '@/lib/date';
-import { smartNameFontSize, getImageBrightness, textColorForBrightness } from '@/lib/smart-features';
+import { smartNameFontSize } from '@/lib/smart-features';
 
 interface HeroProps {
   names: [string, string];
@@ -135,17 +135,25 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
   // Illustrated hero (SVG data URI or API-generated) needs lighter overlay than real photos
   const isIllustratedHero = !!(coverPhoto && (coverPhoto.startsWith('data:image/svg') || coverPhoto.includes('/api/hero-art')));
 
-  // Smart brightness detection: analyze cover photo to pick optimal text color
+  // Smart brightness detection: analyze cover photo to pick optimal
+  // text color. Routes through /api/img-brightness so the request is
+  // same-origin — avoids the noisy "Access-Control-Allow-Origin
+  // missing" console wall when the photo lives on R2 / Google
+  // Places without CORS headers. (The visible <img> tag itself
+  // doesn't need CORS to render; only the pixel sample does.)
   const [photoBrightness, setPhotoBrightness] = useState<'light' | 'dark' | null>(null);
   useEffect(() => {
     if (!coverPhoto || coverPhoto.startsWith('data:') || coverPhoto.includes('/api/hero-art')) return;
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      const brightness = getImageBrightness(img);
-      if (brightness !== null) setPhotoBrightness(textColorForBrightness(brightness));
-    };
-    img.src = coverPhoto;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch(`/api/img-brightness?url=${encodeURIComponent(coverPhoto)}`, { cache: 'force-cache' });
+        if (!res.ok) return;
+        const data = (await res.json()) as { brightness?: 'light' | 'dark' };
+        if (!cancelled && data.brightness) setPhotoBrightness(data.brightness);
+      } catch { /* silent — fall through to default text styling */ }
+    })();
+    return () => { cancelled = true; };
   }, [coverPhoto]);
 
   // Text color: override > auto (white on photos, theme ink on illustrated/no-photo hero)

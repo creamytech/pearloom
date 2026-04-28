@@ -7,6 +7,214 @@ import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { PlaceAutocomplete } from './PlaceAutocomplete';
 
+// BadgesEditor — per-hotel toggles + custom-text adder. Hosts
+// can suppress any of the auto-tagged badges (Pear's pick /
+// Closest / Best value) and add their own ("Couple's pick",
+// "Mom's favourite", "Pet-friendly", "Best for kids", etc.).
+// Custom badges pick a v8 tone — peach matches the auto-pick
+// look; sage / lavender / ink give variety.
+type BadgeOverrides = NonNullable<Hotel['badges']>;
+type CustomBadge = NonNullable<BadgeOverrides['custom']>[number];
+type AutoBadgeKey = NonNullable<BadgeOverrides['hideAuto']>[number];
+
+const AUTO_BADGE_LABELS: Record<AutoBadgeKey, string> = {
+  top: "Pear's pick",
+  closest: 'Closest',
+  value: 'Best value',
+};
+const BADGE_TONES: Array<{ value: NonNullable<CustomBadge['tone']>; label: string; bg: string; fg: string }> = [
+  { value: 'peach',    label: 'Peach',    bg: 'rgba(198,112,61,0.10)',  fg: 'var(--peach-ink, #C6703D)' },
+  { value: 'sage',     label: 'Sage',     bg: 'rgba(123,138,93,0.18)',  fg: '#3D4A1F' },
+  { value: 'lavender', label: 'Lavender', bg: 'rgba(149,141,176,0.16)', fg: '#5C4F8C' },
+  { value: 'ink',      label: 'Ink',      bg: 'rgba(14,13,11,0.85)',    fg: '#FFFFFF' },
+];
+
+function BadgesEditor({ badges, onChange }: { badges: BadgeOverrides; onChange: (next: BadgeOverrides) => void }) {
+  const hideAuto = badges.hideAuto ?? [];
+  const custom = badges.custom ?? [];
+  const [draft, setDraft] = useState('');
+  const [draftTone, setDraftTone] = useState<NonNullable<CustomBadge['tone']>>('peach');
+
+  function toggleAuto(key: AutoBadgeKey) {
+    const set = new Set(hideAuto);
+    if (set.has(key)) set.delete(key); else set.add(key);
+    onChange({ ...badges, hideAuto: Array.from(set) });
+  }
+  function addCustom() {
+    const label = draft.trim();
+    if (!label) return;
+    const next: CustomBadge = {
+      id: `bdg-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`,
+      label,
+      tone: draftTone,
+    };
+    onChange({ ...badges, custom: [...custom, next] });
+    setDraft('');
+  }
+  function removeCustom(id: string) {
+    onChange({ ...badges, custom: custom.filter((c) => c.id !== id) });
+  }
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        padding: '10px 12px',
+        background: 'var(--cream-2)',
+        border: '1px dashed var(--line-soft)',
+        borderRadius: 12,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 10.5,
+          fontWeight: 700,
+          letterSpacing: '0.16em',
+          textTransform: 'uppercase',
+          color: 'var(--ink-muted)',
+        }}
+      >
+        Badges
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {(Object.keys(AUTO_BADGE_LABELS) as AutoBadgeKey[]).map((key) => {
+          const hidden = hideAuto.includes(key);
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => toggleAuto(key)}
+              title={hidden ? `Show ${AUTO_BADGE_LABELS[key]} when it auto-tags` : `Hide ${AUTO_BADGE_LABELS[key]} on this hotel`}
+              style={{
+                padding: '4px 10px',
+                borderRadius: 999,
+                fontSize: 10.5,
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                border: hidden ? '1px dashed var(--line)' : '1px solid var(--peach-ink, #C6703D)',
+                background: hidden ? 'transparent' : 'var(--peach-ink, #C6703D)',
+                color: hidden ? 'var(--ink-muted)' : '#FFFFFF',
+                textDecoration: hidden ? 'line-through' : 'none',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-ui)',
+                transition: 'all 160ms ease',
+              }}
+            >
+              {AUTO_BADGE_LABELS[key]}
+            </button>
+          );
+        })}
+      </div>
+      {custom.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+          {custom.map((c) => {
+            const tone = BADGE_TONES.find((t) => t.value === (c.tone ?? 'peach')) ?? BADGE_TONES[0];
+            return (
+              <span
+                key={c.id}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '3px 4px 3px 9px',
+                  borderRadius: 999,
+                  background: tone.bg,
+                  color: tone.fg,
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.04em',
+                  border: '1px solid rgba(0,0,0,0.06)',
+                }}
+              >
+                {c.label}
+                <button
+                  type="button"
+                  onClick={() => removeCustom(c.id)}
+                  aria-label={`Remove ${c.label} badge`}
+                  style={{
+                    width: 16, height: 16,
+                    borderRadius: 999,
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'inherit',
+                    fontSize: 11,
+                    lineHeight: 1,
+                  }}
+                >
+                  ×
+                </button>
+              </span>
+            );
+          })}
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 6 }}>
+        <input
+          type="text"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustom(); } }}
+          placeholder="Couple's pick, Mom's favourite, Pet-friendly..."
+          maxLength={28}
+          style={{
+            flex: 1,
+            padding: '6px 10px',
+            borderRadius: 8,
+            border: '1px solid var(--line)',
+            background: 'var(--card)',
+            fontSize: 12,
+            fontFamily: 'var(--font-ui)',
+            color: 'var(--ink)',
+            outline: 'none',
+          }}
+        />
+        <select
+          value={draftTone}
+          onChange={(e) => setDraftTone(e.target.value as NonNullable<CustomBadge['tone']>)}
+          aria-label="Badge tone"
+          style={{
+            padding: '6px 8px',
+            borderRadius: 8,
+            border: '1px solid var(--line)',
+            background: 'var(--card)',
+            fontSize: 11,
+            fontFamily: 'var(--font-ui)',
+            color: 'var(--ink)',
+            cursor: 'pointer',
+          }}
+        >
+          {BADGE_TONES.map((t) => (
+            <option key={t.value} value={t.value}>{t.label}</option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={addCustom}
+          disabled={!draft.trim()}
+          style={{
+            padding: '6px 14px',
+            borderRadius: 8,
+            border: 'none',
+            background: 'var(--ink)',
+            color: 'var(--cream)',
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.04em',
+            cursor: draft.trim() ? 'pointer' : 'not-allowed',
+            opacity: draft.trim() ? 1 : 0.5,
+            fontFamily: 'var(--font-ui)',
+          }}
+        >
+          Add
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // Mirrors the AMENITY_HINTS map in /api/hotels/enrich so a hotel
 // pulled via "Find real hotels" and one picked via Search-by-name
 // produce the same human-readable amenities line.
@@ -62,6 +270,13 @@ type Hotel = {
   rating?: number;
   /** Total Google review count behind that rating. */
   ratingCount?: number;
+  /** Host-authored badge overrides. Optional `hideAuto` array
+   *  suppresses Pear's pick / Closest / Best value; `custom` is
+   *  free-text chips ("Couple's pick", "Mom's favourite"). */
+  badges?: {
+    hideAuto?: Array<'top' | 'closest' | 'value'>;
+    custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }>;
+  };
 };
 
 // Enrich a Place pick into a full Hotel row: amenities, distance
@@ -413,6 +628,7 @@ export function TravelPanel({
           distance: h.distance,
           priceLevel: h.price,
           description: h.description,
+          badges: h.badges,
         }))
       : undefined;
 
@@ -670,6 +886,10 @@ export function TravelPanel({
                     placeholder="Six rooms, a library, a very good porch."
                   />
                 </Field>
+                <BadgesEditor
+                  badges={h.badges ?? {}}
+                  onChange={(next) => updateHotel(i, { badges: next })}
+                />
               </SortableRowCard>
             );
           }}
