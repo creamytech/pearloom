@@ -1,8 +1,30 @@
 'use client';
 
+import { useEffect } from 'react';
 import type { StoryManifest, WeddingEvent } from '@/types';
 import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PanelSmartActions, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
+
+// Listen for canvas → panel focus jumps. Renderer emits
+// `pearloom:focus-schedule-row` with { eventId }.
+function useScheduleRowFocus() {
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    function onFocus(e: Event) {
+      const detail = (e as CustomEvent<{ eventId?: string }>).detail;
+      const eid = detail?.eventId;
+      if (!eid) return;
+      const target = document.querySelector(`[data-pl-event-row-id="${CSS.escape(eid)}"]`) as HTMLElement | null;
+      if (!target) return;
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.classList.remove('pl8-canvas-focus-flash');
+      void target.offsetWidth;
+      target.classList.add('pl8-canvas-focus-flash');
+    }
+    window.addEventListener('pearloom:focus-schedule-row', onFocus);
+    return () => window.removeEventListener('pearloom:focus-schedule-row', onFocus);
+  }, []);
+}
 
 // The canvas renderer reads `manifest.events` — keep this panel on
 // the same shape so edits flow through. (Earlier versions wrote to
@@ -31,6 +53,7 @@ export function SchedulePanel({
   onChange: (m: StoryManifest) => void;
 }) {
   const items = getEvents(manifest);
+  useScheduleRowFocus();
 
   function set(next: WeddingEvent[]) {
     onChange({ ...manifest, events: next.map((e, i) => ({ ...e, order: i })) } as unknown as StoryManifest);
@@ -165,7 +188,11 @@ export function SchedulePanel({
             const it = itRaw as unknown as WeddingEvent;
             const i = items.findIndex((x) => x.id === it.id);
             return (
-              <SortableRowCard handle={handle} onDelete={() => set(items.filter((_, idx) => idx !== i))}>
+              <SortableRowCard
+                handle={handle}
+                onDelete={() => set(items.filter((_, idx) => idx !== i))}
+                rootProps={{ 'data-pl-event-row-id': it.id }}
+              >
                 <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr 130px', gap: 10 }}>
                   <Field label="Time">
                     <TextInput value={it.time ?? ''} onChange={(e) => update(i, { time: e.target.value })} placeholder="4:00" />

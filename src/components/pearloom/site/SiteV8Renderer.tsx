@@ -1744,6 +1744,109 @@ function DetailsStripImpl({ manifest }: { manifest: StoryManifest }) {
 }
 
 /* ==================== SCHEDULE ==================== */
+// ScheduleTimeEditor — click the time on a canvas schedule row
+// to inline-edit it. Displays the formatted time (per terminology
+// — "half past four in the afternoon" or "4:30pm"); on click,
+// reveals a tiny native-time-input behind a v8 wrapper. We use
+// the native time control here because picking a wall-clock is
+// the one place native UI is genuinely better than custom — it's
+// keyboard-accessible, mobile-aware, and supported everywhere.
+function ScheduleTimeEditor({
+  rawTime,
+  formattedTime,
+  formal,
+  isLive,
+  emphasized,
+  onChange,
+}: {
+  rawTime: string;
+  formattedTime: string;
+  formal: boolean;
+  isLive: boolean;
+  emphasized: boolean;
+  onChange: (next: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  // Coerce arbitrary input into HH:MM if possible — empty when
+  // we can't parse so the input shows blank rather than garbage.
+  const inputValue = (() => {
+    const m = /^(\d{1,2}):(\d{2})/.exec(rawTime);
+    if (!m) return '';
+    const hh = String(Math.min(23, parseInt(m[1], 10))).padStart(2, '0');
+    const mm = String(Math.min(59, parseInt(m[2], 10))).padStart(2, '0');
+    return `${hh}:${mm}`;
+  })();
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        type="time"
+        defaultValue={inputValue}
+        autoFocus
+        onClick={(e) => e.stopPropagation()}
+        onBlur={(e) => {
+          if (e.target.value !== rawTime) onChange(e.target.value);
+          setEditing(false);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            (e.target as HTMLInputElement).blur();
+          }
+          if (e.key === 'Escape') {
+            setEditing(false);
+          }
+        }}
+        style={{
+          width: '100%',
+          maxWidth: 130,
+          padding: '8px 10px',
+          borderRadius: 8,
+          border: '1.5px solid var(--peach-ink, #C6703D)',
+          background: 'var(--card)',
+          color: 'var(--ink)',
+          fontSize: 18,
+          fontWeight: 600,
+          fontFamily: 'var(--font-ui)',
+          outline: 'none',
+        }}
+      />
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      className="display"
+      onClick={(e) => { e.stopPropagation(); setEditing(true); }}
+      title="Click to edit time"
+      style={{
+        background: 'transparent',
+        border: 'none',
+        padding: 0,
+        margin: 0,
+        cursor: 'pointer',
+        textAlign: 'left',
+        fontSize: rawTime && formal ? 14 : 28,
+        fontStyle: formal ? 'italic' : 'normal',
+        fontWeight: 600,
+        lineHeight: 1.15,
+        color: isLive ? 'var(--peach-ink)' : (emphasized ? 'var(--peach-ink)' : 'var(--ink)'),
+        fontFamily: 'inherit',
+        borderBottom: '1px dashed transparent',
+        transition: 'border-color 160ms ease',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderBottomColor = 'var(--peach-ink, #C6703D)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderBottomColor = 'transparent'; }}
+    >
+      {formattedTime || 'set time'}
+    </button>
+  );
+}
+
 // Pick the row to spotlight as the day's "main moment" — the
 // ceremony / service / centre-piece event. Strategy:
 //   1. Explicit type=='ceremony' wins.
@@ -1884,6 +1987,20 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
   // Patch a single event by ID — the sorted array decoupled
   // display order from manifest order, so we always go through
   // the canonical id lookup.
+  const removeEvent = (eventId: string) => {
+    onEditField?.((m) => {
+      const arr = (m.events ?? []).filter((e) => e.id !== eventId);
+      return { ...m, events: arr };
+    });
+  };
+  const patchEventTime = (eventId: string) => (nextTime: string) => {
+    onEditField?.((m) => {
+      const arr = (m.events ?? []).map((e) =>
+        e.id === eventId ? { ...e, time: nextTime } : e,
+      );
+      return { ...m, events: arr };
+    });
+  };
   const patchEvent = (eventId: string, field: 'name' | 'description') => (next: string) => {
     onEditField?.((m) => {
       const arr = (m.events ?? []).map((e) =>
@@ -1923,7 +2040,14 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
           {rows.map((r, i) => (
             <div
               key={i}
-              className="pl8-schedule-row"
+              className={`pl8-schedule-row${edit ? ' pl8-canvas-row' : ''}`}
+              data-pl-event-id={r.id}
+              onClick={edit && r.id ? (e) => {
+                const target = e.target as Element;
+                if (target.closest('a, button, input, textarea, [contenteditable="true"], [role="button"]')) return;
+                if (typeof window === 'undefined') return;
+                window.dispatchEvent(new CustomEvent('pearloom:focus-schedule-row', { detail: { eventId: r.id } }));
+              } : undefined}
               style={{
                 position: 'relative',
                 display: 'grid',
@@ -1935,20 +2059,61 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
                 background: r.isLive ? 'var(--peach-bg)' : (r.isMain && r.cur) ? 'rgba(198,112,61,0.05)' : 'transparent',
                 borderLeft: r.isLive ? '3px solid var(--peach-ink, #C6703D)' : (r.isMain ? '3px solid rgba(198,112,61,0.45)' : '3px solid transparent'),
                 transition: 'background 220ms ease, border-color 220ms ease',
+                cursor: edit ? 'pointer' : 'default',
               }}
             >
-              <div
-                className="display"
-                style={{
-                  fontSize: r.rawTime && term.tone === 'formal' ? 14 : 28,
-                  fontStyle: term.tone === 'formal' ? 'italic' : 'normal',
-                  fontWeight: 600,
-                  lineHeight: 1.15,
-                  color: r.isLive ? 'var(--peach-ink)' : (r.cur || r.isMain ? 'var(--peach-ink)' : 'var(--ink)'),
-                }}
-              >
-                {r.time}
-              </div>
+              {edit && r.id && onEditField && (
+                <button
+                  type="button"
+                  aria-label="Remove this event"
+                  onClick={(e) => { e.stopPropagation(); removeEvent(r.id!); }}
+                  className="pl8-canvas-remove"
+                  style={{
+                    position: 'absolute',
+                    top: 10,
+                    right: 10,
+                    width: 26,
+                    height: 26,
+                    borderRadius: 999,
+                    background: 'rgba(14,13,11,0.85)',
+                    color: '#FFFFFF',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    cursor: 'pointer',
+                    zIndex: 4,
+                    display: 'grid',
+                    placeItems: 'center',
+                    fontSize: 13,
+                    lineHeight: 1,
+                    opacity: 0,
+                    transition: 'opacity 160ms ease',
+                  }}
+                >
+                  ×
+                </button>
+              )}
+              {edit && r.id ? (
+                <ScheduleTimeEditor
+                  rawTime={r.rawTime}
+                  formattedTime={r.time}
+                  formal={term.tone === 'formal'}
+                  isLive={r.isLive}
+                  emphasized={r.cur || r.isMain}
+                  onChange={patchEventTime(r.id)}
+                />
+              ) : (
+                <div
+                  className="display"
+                  style={{
+                    fontSize: r.rawTime && term.tone === 'formal' ? 14 : 28,
+                    fontStyle: term.tone === 'formal' ? 'italic' : 'normal',
+                    fontWeight: 600,
+                    lineHeight: 1.15,
+                    color: r.isLive ? 'var(--peach-ink)' : (r.cur || r.isMain ? 'var(--peach-ink)' : 'var(--ink)'),
+                  }}
+                >
+                  {r.time}
+                </div>
+              )}
               <div>
                 {(r.isLive || r.isMain) && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 5 }}>
@@ -3964,9 +4129,30 @@ interface RegistryCardGift {
   icon: string;
   tone: 'peach' | 'sage' | 'lavender';
 }
-function RegistryCard({ gift, isMostLoved }: { gift: RegistryCardGift; isMostLoved?: boolean }) {
+function RegistryCard({
+  gift,
+  isMostLoved,
+  registryId,
+  editMode,
+  onRemove,
+  onFocus,
+}: {
+  gift: RegistryCardGift;
+  isMostLoved?: boolean;
+  registryId?: string;
+  editMode?: boolean;
+  onRemove?: () => void;
+  onFocus?: () => void;
+}) {
   return (
     <div
+      className={editMode ? 'pl8-canvas-row' : undefined}
+      data-pl-registry-id={registryId}
+      onClick={editMode ? (e) => {
+        const target = e.target as Element;
+        if (target.closest('a, button')) return;
+        onFocus?.();
+      } : undefined}
       style={{
         position: 'relative',
         background: 'var(--card)',
@@ -3979,8 +4165,38 @@ function RegistryCard({ gift, isMostLoved }: { gift: RegistryCardGift; isMostLov
         boxShadow: isMostLoved
           ? '0 8px 24px -10px rgba(198,112,61,0.30), 0 0 0 4px rgba(198,112,61,0.06)'
           : 'none',
+        cursor: editMode ? 'pointer' : 'default',
       }}
     >
+      {editMode && onRemove && (
+        <button
+          type="button"
+          aria-label="Remove this registry"
+          onClick={(e) => { e.stopPropagation(); onRemove(); }}
+          className="pl8-canvas-remove"
+          style={{
+            position: 'absolute',
+            top: 10,
+            right: 10,
+            width: 26,
+            height: 26,
+            borderRadius: 999,
+            background: 'rgba(14,13,11,0.85)',
+            color: '#FFFFFF',
+            border: '1px solid rgba(255,255,255,0.15)',
+            cursor: 'pointer',
+            zIndex: 4,
+            display: 'grid',
+            placeItems: 'center',
+            fontSize: 13,
+            lineHeight: 1,
+            opacity: 0,
+            transition: 'opacity 160ms ease',
+          }}
+        >
+          ×
+        </button>
+      )}
       {isMostLoved && (
         <span
           style={{
@@ -4046,7 +4262,32 @@ function categorizeRegistry(name: string, d: string, url: string): string {
   return 'Shop';
 }
 
-function RegistrySectionImpl({ manifest }: { manifest: StoryManifest }) {
+function RegistrySectionImpl({ manifest, onEditField }: { manifest: StoryManifest; onEditField?: FieldEditor }) {
+  const edit = useIsEditMode();
+  function removeRegistry(url: string) {
+    if (!onEditField) return;
+    onEditField((m) => {
+      const reg = (m as unknown as { registry?: { entries?: Array<{ url?: string }>; cashFundUrl?: string } }).registry;
+      if (!reg) return m;
+      const isCashFund = reg.cashFundUrl === url;
+      const entries = (reg.entries ?? []).filter((e) => e.url !== url);
+      const next = { ...reg, entries };
+      if (isCashFund) {
+        (next as { cashFundUrl?: string }).cashFundUrl = undefined;
+        (next as { cashFundMessage?: string }).cashFundMessage = undefined;
+      }
+      // Also strip from the legacy flat-array shape if present.
+      const legacy = (m as unknown as { registry?: Array<{ url?: string }> }).registry;
+      const legacyArr = Array.isArray(legacy) ? legacy.filter((r) => r.url !== url) : undefined;
+      const out: StoryManifest = { ...m, registry: next as StoryManifest['registry'] };
+      if (legacyArr) (out as unknown as { registry?: unknown }).registry = legacyArr;
+      return out;
+    });
+  }
+  function focusRegistry(url: string) {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('pearloom:focus-registry-row', { detail: { url } }));
+  }
   // Pull from the real manifest shape: registry.entries[] +
   // registry.cashFundUrl / message. When nothing is set, the
   // whole section hides so we never ship "Honeymoon fund / A
@@ -4170,6 +4411,10 @@ function RegistrySectionImpl({ manifest }: { manifest: StoryManifest }) {
                       key={`${key}-${i}`}
                       gift={g}
                       isMostLoved={g === grouped[0] && i === 0 && key === bucketKeys[0]}
+                      registryId={g.url}
+                      editMode={edit}
+                      onRemove={edit ? () => removeRegistry(g.url) : undefined}
+                      onFocus={edit ? () => focusRegistry(g.url) : undefined}
                     />
                   ))}
                 </div>
@@ -4179,7 +4424,15 @@ function RegistrySectionImpl({ manifest }: { manifest: StoryManifest }) {
         ) : (
           <div className="pl8-cols-3" style={{ gap: 20 }}>
             {grouped.map((g, i) => (
-              <RegistryCard key={i} gift={g} isMostLoved={i === 0} />
+              <RegistryCard
+                key={i}
+                gift={g}
+                isMostLoved={i === 0}
+                registryId={g.url}
+                editMode={edit}
+                onRemove={edit ? () => removeRegistry(g.url) : undefined}
+                onFocus={edit ? () => focusRegistry(g.url) : undefined}
+              />
             ))}
           </div>
         )}
@@ -4509,6 +4762,13 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
       return { ...(m as unknown as Record<string, unknown>), faq: arr } as unknown as StoryManifest;
     });
   };
+  const removeFaq = (index: number) => {
+    onEditField?.((m) => {
+      const arr = [...(((m as unknown as { faq?: FaqItem[] }).faq ?? []))];
+      arr.splice(index, 1);
+      return { ...(m as unknown as Record<string, unknown>), faq: arr } as unknown as StoryManifest;
+    });
+  };
   return (
     <section id="faq" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="faq" />
@@ -4587,14 +4847,57 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
             const cat = categorizeFaq(item.question ?? '');
             const visible = filter === 'All' || filter === cat;
             if (!visible) return null;
+            const fid = item.id ?? `faq-${i}`;
             return (
               <div
                 key={item.id ?? i}
+                className={edit ? 'pl8-canvas-row' : undefined}
+                data-pl-faq-id={fid}
+                onClick={edit ? (e) => {
+                  const target = e.target as Element;
+                  if (target.closest('a, button, input, textarea, [contenteditable="true"], [role="button"]')) return;
+                  if (typeof window === 'undefined') return;
+                  window.dispatchEvent(new CustomEvent('pearloom:focus-faq-row', { detail: { faqId: fid } }));
+                } : undefined}
                 style={{
+                  position: 'relative',
                   padding: '22px 26px',
                   borderBottom: i < faq.length - 1 ? '1px solid var(--line-soft)' : 'none',
+                  cursor: edit ? 'pointer' : 'default',
+                  transition: 'background 160ms ease',
                 }}
+                onMouseEnter={edit ? (e) => { e.currentTarget.style.background = 'rgba(198,112,61,0.04)'; } : undefined}
+                onMouseLeave={edit ? (e) => { e.currentTarget.style.background = 'transparent'; } : undefined}
               >
+                {edit && onEditField && (
+                  <button
+                    type="button"
+                    aria-label="Remove this question"
+                    onClick={(e) => { e.stopPropagation(); removeFaq(i); }}
+                    className="pl8-canvas-remove"
+                    style={{
+                      position: 'absolute',
+                      top: 12,
+                      right: 12,
+                      width: 26,
+                      height: 26,
+                      borderRadius: 999,
+                      background: 'rgba(14,13,11,0.85)',
+                      color: '#FFFFFF',
+                      border: '1px solid rgba(255,255,255,0.15)',
+                      cursor: 'pointer',
+                      zIndex: 4,
+                      display: 'grid',
+                      placeItems: 'center',
+                      fontSize: 13,
+                      lineHeight: 1,
+                      opacity: 0,
+                      transition: 'opacity 160ms ease',
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
                 {i === 0 && filter === 'All' && (
                   <span
                     style={{
@@ -5255,7 +5558,7 @@ const TravelSection = memo(TravelSectionImpl, (p, n) => {
 });
 
 const RegistrySection = memo(RegistrySectionImpl, (p, n) => {
-  return manifestSlicesEqual(p.manifest, n.manifest, [
+  return p.onEditField === n.onEditField && manifestSlicesEqual(p.manifest, n.manifest, [
     ...COMMON_CHROME_KEYS,
     'registry',
   ] as unknown as ReadonlyArray<keyof StoryManifest>);
@@ -6007,7 +6310,7 @@ export function SiteV8Renderer({
       case 'travel':
         return <TravelSection key="travel" manifest={manifest} onEditField={onEditField} />;
       case 'registry':
-        return <RegistrySection key="registry" manifest={manifest} />;
+        return <RegistrySection key="registry" manifest={manifest} onEditField={onEditField} />;
       case 'gallery':
         return <GallerySection key="gallery" chapters={chapters} manifest={manifest} onEditField={onEditField} siteSlug={siteSlug} />;
       case 'faq':

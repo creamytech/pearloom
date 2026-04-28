@@ -1,11 +1,35 @@
 'use client';
 
+import { useEffect } from 'react';
 import type { StoryManifest } from '@/types';
 import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 
 type FaqItem = { id: string; question: string; answer: string };
+
+// Listen for canvas → panel focus jumps. The site renderer emits
+// `pearloom:focus-faq-row` with { faqId } when a host clicks a
+// question on the canvas; we find the matching row, scroll it
+// into view, and flash a peach ring.
+function useFaqRowFocus() {
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    function onFocus(e: Event) {
+      const detail = (e as CustomEvent<{ faqId?: string }>).detail;
+      const fid = detail?.faqId;
+      if (!fid) return;
+      const target = document.querySelector(`[data-pl-faq-row-id="${CSS.escape(fid)}"]`) as HTMLElement | null;
+      if (!target) return;
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.classList.remove('pl8-canvas-focus-flash');
+      void target.offsetWidth;
+      target.classList.add('pl8-canvas-focus-flash');
+    }
+    window.addEventListener('pearloom:focus-faq-row', onFocus);
+    return () => window.removeEventListener('pearloom:focus-faq-row', onFocus);
+  }, []);
+}
 
 function get(m: StoryManifest): FaqItem[] {
   const arr = (m as unknown as { faq?: FaqItem[] }).faq;
@@ -22,6 +46,7 @@ export function FaqPanel({
   onChange: (m: StoryManifest) => void;
 }) {
   const items = get(manifest);
+  useFaqRowFocus();
 
   function set(next: FaqItem[]) {
     onChange({ ...manifest, faq: next } as unknown as StoryManifest);
@@ -83,7 +108,11 @@ export function FaqPanel({
               renderItem={(it, { handle }) => {
                 const i = items.findIndex((x) => x.id === it.id);
                 return (
-                  <SortableRowCard handle={handle} onDelete={() => set(items.filter((_, idx) => idx !== i))}>
+                  <SortableRowCard
+                    handle={handle}
+                    onDelete={() => set(items.filter((_, idx) => idx !== i))}
+                    rootProps={{ 'data-pl-faq-row-id': it.id }}
+                  >
                     <Field label="Question">
                       <TextInput
                         value={it.question}

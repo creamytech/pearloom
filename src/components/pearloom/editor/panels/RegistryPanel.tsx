@@ -1,10 +1,32 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, SelectInput, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
+
+// Listen for canvas → panel focus jumps. Renderer emits
+// `pearloom:focus-registry-row` with { url } since registry
+// entries are keyed by URL on the canvas tile.
+function useRegistryRowFocus() {
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    function onFocus(e: Event) {
+      const detail = (e as CustomEvent<{ url?: string }>).detail;
+      const url = detail?.url;
+      if (!url) return;
+      const target = document.querySelector(`[data-pl-registry-row-url="${CSS.escape(url)}"]`) as HTMLElement | null;
+      if (!target) return;
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.classList.remove('pl8-canvas-focus-flash');
+      void target.offsetWidth;
+      target.classList.add('pl8-canvas-focus-flash');
+    }
+    window.addEventListener('pearloom:focus-registry-row', onFocus);
+    return () => window.removeEventListener('pearloom:focus-registry-row', onFocus);
+  }, []);
+}
 
 type RegistryItem = { id: string; label: string; url: string; description?: string; kind?: 'fund' | 'registry' | 'link' };
 
@@ -79,6 +101,7 @@ export function RegistryPanel({
   onChange: (m: StoryManifest) => void;
 }) {
   const items = get(manifest);
+  useRegistryRowFocus();
 
   function set(next: RegistryItem[]) {
     onChange({ ...manifest, registry: next } as unknown as StoryManifest);
@@ -126,7 +149,11 @@ export function RegistryPanel({
           renderItem={(it, { handle }) => {
             const i = items.findIndex((x) => x.id === it.id);
             return (
-              <SortableRowCard handle={handle} onDelete={() => set(items.filter((_, idx) => idx !== i))}>
+              <SortableRowCard
+                handle={handle}
+                onDelete={() => set(items.filter((_, idx) => idx !== i))}
+                rootProps={{ 'data-pl-registry-row-url': it.url }}
+              >
                 <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 140px', gap: 10 }}>
                   <Field label="Label">
                     <TextInput
