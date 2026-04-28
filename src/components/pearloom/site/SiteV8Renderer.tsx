@@ -80,6 +80,7 @@ import {
 import { CanvasSortable, CanvasGripHandle } from './canvas-sortable';
 import { WeatherStrip } from './WeatherStrip';
 import { ReadingProgress } from './ReadingProgress';
+import { BackToTop } from './BackToTop';
 import { SectionStamp } from './SectionStamp';
 import { StickerLayer } from './StickerLayer';
 import { FooterBouquet } from './FooterBouquet';
@@ -7305,6 +7306,10 @@ export function SiteV8Renderer({
             fills L → R as guests scroll. Only on the published view
             (the editor's own scrollbar handles its own progress). */}
         {!editMode && <ReadingProgress />}
+        {/* Back-to-top pill — appears after 60% scroll, fixed
+            bottom-right. Skipped in edit mode (the editor has its
+            own outline rail for jumping anywhere). */}
+        {!editMode && <BackToTop />}
         {!editMode && <BroadcastBar subdomain={siteSlug} />}
         {!editMode && <PersonalGuestGreeting domain={siteSlug} />}
         {!editMode && creatorEmail && (

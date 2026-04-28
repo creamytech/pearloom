@@ -458,6 +458,48 @@
 }
 
 .pl8 ::selection { background: var(--peach); color: var(--ink); }
+/* Published-site selection — peach wash + ink text. The same
+   editorial pick that signals "Pearloom paper" instead of the
+   default OS blue highlight. ::selection inherits don't cascade,
+   so we re-declare on the guest scope. */
+.pl8-guest ::selection {
+  background: rgba(198, 112, 61, 0.28);
+  color: var(--ink);
+  text-shadow: none;
+}
+.pl8-guest ::-moz-selection {
+  background: rgba(198, 112, 61, 0.28);
+  color: var(--ink);
+  text-shadow: none;
+}
+
+/* Focus rings — peach hairline + soft peach-tinted glow on
+   anything keyboard-focused inside a Pearloom site. Only appears
+   on :focus-visible so mouse interactions stay clean. The 2px
+   offset keeps the ring outside the element so rounded buttons
+   read as enclosed. */
+.pl8-guest a:focus-visible,
+.pl8-guest button:focus-visible,
+.pl8-guest input:focus-visible,
+.pl8-guest textarea:focus-visible,
+.pl8-guest select:focus-visible,
+.pl8-guest [role="button"]:focus-visible {
+  outline: 2px solid var(--peach-ink, #C6703D);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(198, 112, 61, 0.18);
+  border-radius: inherit;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pl8-guest a:focus-visible,
+  .pl8-guest button:focus-visible,
+  .pl8-guest input:focus-visible,
+  .pl8-guest textarea:focus-visible,
+  .pl8-guest select:focus-visible {
+    transition:
+      box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1),
+      outline-color 200ms ease;
+  }
+}
 
 /* Util */
 .pl8 .rot-n3 { transform: rotate(-3deg); }

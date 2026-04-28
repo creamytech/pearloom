@@ -676,6 +676,8 @@ export function EditorV8({
           onRedo={history.redo}
           previewMode={previewMode}
           onTogglePreview={() => setPreviewMode((p) => !p)}
+          currentBlock={block}
+          onJumpBlock={(k) => setBlock(k)}
         />
       )}
       {previewMode && (
@@ -1157,6 +1159,8 @@ function EditorTopbar({
   onRedo,
   previewMode,
   onTogglePreview,
+  currentBlock,
+  onJumpBlock,
 }: {
   displayNames: string;
   prettyUrl: string;
@@ -1166,6 +1170,10 @@ function EditorTopbar({
   showDeviceToggle: boolean;
   saveStatus: 'idle' | 'saving' | 'saved' | 'error';
   lastSavedAt: number | null;
+  /** Current section the host is editing — surfaced in the
+   *  topbar as a breadcrumb chip with a quick-jump menu. */
+  currentBlock: BlockKey;
+  onJumpBlock: (k: BlockKey) => void;
   /** Absolute URL of the most-recently-published version. Null until
    *  the user publishes once this session, after which the topbar
    *  shows a "View live" pearl pill that opens it in a new tab. */
@@ -1272,6 +1280,13 @@ function EditorTopbar({
           )}
         </div>
       </div>
+
+      {/* Zone 1.5 — Section breadcrumb. Shows the current block
+          name + a dropdown of every other section so the host can
+          jump anywhere without leaving the topbar. Pinned just
+          after the identity zone — close to where the eye lands
+          when scanning "where am I editing right now?". */}
+      <SectionBreadcrumb currentBlock={currentBlock} onJump={onJumpBlock} />
 
       {/* Zone 2 — Device toggle (centered). Hidden on narrow viewports
           where the editor forces phone preview anyway. */}
@@ -1403,6 +1418,230 @@ function EditorTopbar({
  *  reassurance every time autosave completes. Hover surfaces the
  *  exact wall-clock timestamp of the most recent successful save
  *  via the title attribute (fast, native, no popover overhead). */
+// SectionBreadcrumb — small chip in the topbar showing the
+// section the host is currently editing + a dropdown of every
+// other available section. Click outside / Escape closes the
+// menu. Items use the same icon + label pair the outline rail
+// uses so the host's mental model stays in sync.
+function SectionBreadcrumb({
+  currentBlock,
+  onJump,
+}: {
+  currentBlock: BlockKey;
+  onJump: (k: BlockKey) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    function onDoc(e: MouseEvent) {
+      if (!wrapperRef.current) return;
+      if (wrapperRef.current.contains(e.target as Node)) return;
+      setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const current = BLOCKS_BY_KEY[currentBlock];
+  if (!current) return null;
+  return (
+    <div
+      ref={wrapperRef}
+      style={{ position: 'relative', flexShrink: 0 }}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        title={`Currently editing: ${current.label}`}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '6px 10px 6px 8px',
+          borderRadius: 999,
+          background: open ? 'var(--cream-2)' : 'transparent',
+          border: '1px solid var(--line-soft)',
+          cursor: 'pointer',
+          color: 'var(--ink)',
+          fontSize: 12,
+          fontWeight: 600,
+          fontFamily: 'var(--font-ui)',
+          transition: 'background 160ms ease, border-color 160ms ease',
+        }}
+        onMouseEnter={(e) => {
+          if (!open) e.currentTarget.style.background = 'var(--cream-2)';
+        }}
+        onMouseLeave={(e) => {
+          if (!open) e.currentTarget.style.background = 'transparent';
+        }}
+      >
+        <span
+          aria-hidden
+          style={{
+            width: 22,
+            height: 22,
+            borderRadius: 6,
+            background: 'rgba(198,112,61,0.10)',
+            color: 'var(--peach-ink, #C6703D)',
+            display: 'grid',
+            placeItems: 'center',
+          }}
+        >
+          <Icon name={current.icon} size={11} />
+        </span>
+        <span
+          style={{
+            fontSize: 9.5,
+            fontWeight: 700,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--ink-muted)',
+          }}
+        >
+          Editing
+        </span>
+        <span
+          style={{
+            fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+            fontSize: 14,
+            fontWeight: 500,
+            letterSpacing: '-0.005em',
+            color: 'var(--ink)',
+          }}
+        >
+          {current.label}
+        </span>
+        <svg
+          width="9"
+          height="9"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{
+            color: 'var(--ink-muted)',
+            transform: open ? 'rotate(180deg)' : 'none',
+            transition: 'transform 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div
+          role="menu"
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            left: 0,
+            minWidth: 240,
+            zIndex: 90,
+            background: 'var(--card, #fff)',
+            border: '1px solid var(--card-ring, rgba(61,74,31,0.16))',
+            borderRadius: 12,
+            boxShadow: '0 24px 48px rgba(14,13,11,0.18)',
+            padding: 6,
+            animation: 'pl8-breadcrumb-pop 180ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        >
+          <div
+            style={{
+              padding: '6px 10px',
+              fontSize: 9.5,
+              fontWeight: 700,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-muted)',
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            Jump to section
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {BLOCKS.map((b) => {
+              const isCurrent = b.key === currentBlock;
+              return (
+                <button
+                  key={b.key}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => { onJump(b.key); setOpen(false); }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '8px 10px',
+                    borderRadius: 8,
+                    background: isCurrent ? 'rgba(198,112,61,0.10)' : 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-ui)',
+                    fontSize: 13,
+                    color: 'var(--ink)',
+                    textAlign: 'left',
+                    transition: 'background 140ms ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isCurrent) e.currentTarget.style.background = 'var(--cream-2)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isCurrent) e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  <span
+                    aria-hidden
+                    style={{
+                      width: 22, height: 22,
+                      borderRadius: 6,
+                      background: isCurrent ? 'rgba(198,112,61,0.18)' : 'var(--cream-2)',
+                      color: isCurrent ? 'var(--peach-ink, #C6703D)' : 'var(--ink-muted)',
+                      display: 'grid',
+                      placeItems: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Icon name={b.icon} size={11} />
+                  </span>
+                  <span style={{ flex: 1, fontWeight: isCurrent ? 700 : 500 }}>{b.label}</span>
+                  {isCurrent && (
+                    <span
+                      aria-hidden
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: 999,
+                        background: 'var(--peach-ink, #C6703D)',
+                      }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <style jsx global>{`
+            @keyframes pl8-breadcrumb-pop {
+              from { opacity: 0; transform: translateY(-4px); }
+              to   { opacity: 1; transform: translateY(0); }
+            }
+          `}</style>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SaveDot({
   saveStatus,
   lastSavedAt,
