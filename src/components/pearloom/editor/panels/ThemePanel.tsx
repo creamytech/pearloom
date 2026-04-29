@@ -345,12 +345,36 @@ export function ThemePanel({
         <AtmospherePanel manifest={manifest} onChange={onChange} />
       </div>
 
+      {/* Decor library + Stickers — both are "extra flair" power
+          features that only some hosts ever touch. Wrapped in one
+          shared <details> so the theme scroll stays focused on
+          palette/type/colors/atmosphere. Audited 2026-04-30. */}
       <div data-pl-design-anchor="decor">
-        <DecorLibraryPanel manifest={manifest} onChange={onChange} />
-      </div>
-
-      <div data-pl-design-anchor="stickers">
-        <StickerTrayPanel manifest={manifest} onChange={onChange} />
+        <details>
+          <summary
+            style={{
+              cursor: 'pointer',
+              padding: '10px 14px',
+              borderRadius: 10,
+              background: 'var(--cream-2)',
+              border: '1px dashed var(--line)',
+              fontSize: 12.5,
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              color: 'var(--ink-soft)',
+              userSelect: 'none',
+              margin: '6px 0',
+            }}
+          >
+            ✦ Decor extras — AI-drafted dividers, stamps, stickers
+          </summary>
+          <div style={{ paddingTop: 6 }}>
+            <DecorLibraryPanel manifest={manifest} onChange={onChange} />
+            <div data-pl-design-anchor="stickers">
+              <StickerTrayPanel manifest={manifest} onChange={onChange} />
+            </div>
+          </div>
+        </details>
       </div>
 
       <div data-pl-design-anchor="layout-mode">
