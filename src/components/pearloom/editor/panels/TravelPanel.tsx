@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, SegmentedToggle, TextArea, TextInput } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PanelTabs, SegmentedToggle, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { PlaceAutocomplete } from './PlaceAutocomplete';
@@ -496,7 +496,61 @@ export function TravelPanel({
     });
   }
 
-  return (
+  // Layout slot — display toggles only. Photo / icon / map for the
+  // hotel list and the auto-highlights badges. Lifted out of the
+  // "Places to stay" content section so the hotel list itself
+  // stays focused on data, not visual treatment.
+  const layout = (
+    <PanelGroup>
+      <PanelSection label="Hotel display" hint="How the hotel list renders for guests.">
+        <Field
+          label="Cards"
+          help="Photo cards show real Google photos. Icon cards are cleaner and editorial."
+        >
+          <SegmentedToggle<'photo' | 'icon' | 'map'>
+            value={(manifest.travelInfo?.hotelDisplay as 'photo' | 'icon' | 'map' | undefined) ?? 'photo'}
+            onChange={(v) =>
+              onChange({
+                ...manifest,
+                travelInfo: {
+                  ...(manifest.travelInfo ?? { airports: [], hotels: [] }),
+                  hotelDisplay: v,
+                },
+              } as unknown as StoryManifest)
+            }
+            options={[
+              { value: 'photo', label: 'Photo cards' },
+              { value: 'icon', label: 'Icon cards' },
+              { value: 'map', label: 'Map' },
+            ]}
+          />
+        </Field>
+        <Field
+          label="Highlights"
+          help="Auto-tag the top option, the closest, and the best value. Off for minimalist sites."
+        >
+          <SegmentedToggle<'on' | 'off'>
+            value={(manifest.travelInfo?.hotelBadges ?? true) ? 'on' : 'off'}
+            onChange={(v) =>
+              onChange({
+                ...manifest,
+                travelInfo: {
+                  ...(manifest.travelInfo ?? { airports: [], hotels: [] }),
+                  hotelBadges: v === 'on',
+                },
+              } as unknown as StoryManifest)
+            }
+            options={[
+              { value: 'on', label: 'Show' },
+              { value: 'off', label: 'Hide' },
+            ]}
+          />
+        </Field>
+      </PanelSection>
+    </PanelGroup>
+  );
+
+  const content = (
     <PanelGroup>
       <PanelSection label="The venue" hint="Pulls from the hero section.">
         <Field label="Venue" help="Search by name — picks fill the address + lat/lng for the map.">
@@ -546,49 +600,6 @@ export function TravelPanel({
         hint="Drag to reorder. Guests get rooms + a booking link if you add one."
         action={hotels.length > 0 ? <AddRowButton label="Add hotel" onClick={addHotel} /> : null}
       >
-        <Field
-          label="Display"
-          help="Photo cards show real Google photos. Icon cards are cleaner and editorial."
-        >
-          <SegmentedToggle<'photo' | 'icon' | 'map'>
-            value={(manifest.travelInfo?.hotelDisplay as 'photo' | 'icon' | 'map' | undefined) ?? 'photo'}
-            onChange={(v) =>
-              onChange({
-                ...manifest,
-                travelInfo: {
-                  ...(manifest.travelInfo ?? { airports: [], hotels: [] }),
-                  hotelDisplay: v,
-                },
-              } as unknown as StoryManifest)
-            }
-            options={[
-              { value: 'photo', label: 'Photo cards' },
-              { value: 'icon', label: 'Icon cards' },
-              { value: 'map', label: 'Map' },
-            ]}
-          />
-        </Field>
-        <Field
-          label="Highlights"
-          help="Auto-tag the top option, the closest, and the best value. Off for minimalist sites."
-        >
-          <SegmentedToggle<'on' | 'off'>
-            value={(manifest.travelInfo?.hotelBadges ?? true) ? 'on' : 'off'}
-            onChange={(v) =>
-              onChange({
-                ...manifest,
-                travelInfo: {
-                  ...(manifest.travelInfo ?? { airports: [], hotels: [] }),
-                  hotelBadges: v === 'on',
-                },
-              } as unknown as StoryManifest)
-            }
-            options={[
-              { value: 'on', label: 'Show' },
-              { value: 'off', label: 'Hide' },
-            ]}
-          />
-        </Field>
         <Field label="Group block code" help="Optional — if you negotiated a rate, drop the code here.">
           <TextInput
             value={meta.blockCode ?? ''}
@@ -736,6 +747,8 @@ export function TravelPanel({
       </PanelSection>
     </PanelGroup>
   );
+
+  return <PanelTabs slots={{ content, layout }} />;
 }
 
 // ── AirportsField ──────────────────────────────────────────

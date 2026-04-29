@@ -905,6 +905,7 @@ export function EditorV8({
             onToggleHidden={toggleBlockHidden}
             width={inspectorWidth}
             onResize={setInspectorWidth}
+            prettyUrl={prettyUrl}
           />
         )}
         {isNarrow && mobileDrawer && (
@@ -943,6 +944,7 @@ export function EditorV8({
                 onPublish={() => void handlePublish()}
                 hiddenBlocks={hiddenBlocks}
                 onToggleHidden={toggleBlockHidden}
+                prettyUrl={prettyUrl}
                 fluid
               />
             )}
@@ -2052,6 +2054,55 @@ function KbdHint() {
   );
 }
 
+/* ---------- Block-row subtitle helper ---------- *
+ *  Returns a manifest-aware subtitle for a section row, e.g.
+ *  "5 chapters" / "12 photos" / "3 hotels". Falls back to the
+ *  static def.subtitle when there's nothing to count yet — empty
+ *  story still reads "How you got here", not "0 chapters". */
+function blockSubtitle(def: BlockDef, manifest: StoryManifest): string | undefined {
+  const m = manifest as unknown as {
+    chapters?: unknown[];
+    events?: unknown[];
+    faqs?: unknown[];
+    travel?: { hotels?: unknown[] };
+    registry?: { entries?: unknown[] };
+  };
+  const plural = (n: number, singular: string, pluralForm?: string) =>
+    `${n} ${n === 1 ? singular : (pluralForm ?? `${singular}s`)}`;
+  switch (def.key) {
+    case 'story': {
+      const n = m.chapters?.length ?? 0;
+      return n > 0 ? plural(n, 'chapter') : def.subtitle;
+    }
+    case 'schedule': {
+      const n = m.events?.length ?? 0;
+      return n > 0 ? plural(n, 'moment') : def.subtitle;
+    }
+    case 'travel': {
+      const n = m.travel?.hotels?.length ?? 0;
+      return n > 0 ? plural(n, 'hotel') : def.subtitle;
+    }
+    case 'registry': {
+      const n = m.registry?.entries?.length ?? 0;
+      return n > 0 ? plural(n, 'store') : def.subtitle;
+    }
+    case 'gallery': {
+      let count = 0;
+      const chapters = (m.chapters ?? []) as Array<{ images?: Array<{ url?: string }> }>;
+      for (const c of chapters) {
+        for (const img of c.images ?? []) if (img.url) count++;
+      }
+      return count > 0 ? plural(count, 'photo') : def.subtitle;
+    }
+    case 'faq': {
+      const n = m.faqs?.length ?? 0;
+      return n > 0 ? plural(n, 'question') : def.subtitle;
+    }
+    default:
+      return def.subtitle;
+  }
+}
+
 /* ---------- Left outline ---------- */
 function Outline({
   block,
@@ -2353,6 +2404,7 @@ function Outline({
           hidden={false}
           onSelect={() => setBlock(hero.key)}
           fillState={blockFillState(hero.key as ScoredBlockKey, manifest)}
+          subtitle={blockSubtitle(hero, manifest)}
         />
       </div>
 
@@ -2402,6 +2454,7 @@ function Outline({
                   onSelect={() => setBlock(key)}
                   onToggleHidden={() => onToggleHidden(key)}
                   fillState={blockFillState(key as ScoredBlockKey, manifest)}
+                  subtitle={blockSubtitle(def, manifest)}
                 />
               );
             })}
@@ -2455,6 +2508,7 @@ function SortableBlockRow({
   onSelect,
   onToggleHidden,
   fillState,
+  subtitle,
 }: {
   def: BlockDef;
   active: boolean;
@@ -2462,6 +2516,9 @@ function SortableBlockRow({
   onSelect: () => void;
   onToggleHidden: () => void;
   fillState?: ReturnType<typeof blockFillState>;
+  /** Override for the row's subtitle line — falls back to def.subtitle.
+   *  Outline computes a manifest-aware label (e.g. "5 chapters") here. */
+  subtitle?: string;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({ id: def.key });
   const style: React.CSSProperties = {
@@ -2504,6 +2561,7 @@ function SortableBlockRow({
         onToggleHidden={onToggleHidden}
         dragHandleProps={{ attributes, listeners }}
         fillState={fillState}
+        subtitle={subtitle}
       />
     </div>
   );
@@ -2522,6 +2580,7 @@ function BlockRow({
   onToggleHidden,
   dragHandleProps,
   fillState,
+  subtitle,
 }: {
   def: BlockDef;
   active: boolean;
@@ -2530,6 +2589,8 @@ function BlockRow({
   onToggleHidden?: () => void;
   dragHandleProps?: DragHandleProps;
   fillState?: ReturnType<typeof blockFillState>;
+  /** Override the static def.subtitle (e.g. "5 chapters"). */
+  subtitle?: string;
 }) {
   // Hidden rows are draggable onto the canvas via HTML5 DnD. We
   // *don't* enable native drag on visible rows because dnd-kit owns
@@ -2662,7 +2723,7 @@ function BlockRow({
           )}
           <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{def.label}</span>
         </div>
-        {def.subtitle && (
+        {(subtitle ?? def.subtitle) && (
           <div
             style={{
               fontSize: 11,
@@ -2674,7 +2735,7 @@ function BlockRow({
               marginTop: 1,
             }}
           >
-            {def.subtitle}
+            {subtitle ?? def.subtitle}
           </div>
         )}
       </div>
@@ -2737,6 +2798,7 @@ function Inspector({
   fluid = false,
   width,
   onResize,
+  prettyUrl,
 }: {
   block: BlockKey;
   manifest: StoryManifest;
@@ -2763,6 +2825,9 @@ function Inspector({
   width?: number;
   /** Called with each px while the host drags the resize handle. */
   onResize?: (w: number) => void;
+  /** "pearloom.com/wedding/scott" — used as the deep-link base for
+   *  the section overflow menu's "Copy section link" action. */
+  prettyUrl?: string;
 }) {
   const meta = BLOCKS.find((b) => b.key === block)!;
   const resolvedWidth = fluid ? '100%' : (width ?? 380);
@@ -2984,6 +3049,7 @@ function Inspector({
                   <Icon name={isHidden ? 'eye-off' : 'eye'} size={14} />
                 </button>
               )}
+              <SectionOverflowMenu meta={meta} prettyUrl={prettyUrl} />
             </div>
             {meta.description && (
               <p style={{ margin: '6px 0 0', fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
@@ -3052,6 +3118,182 @@ function blockToSectionId(block: BlockKey): string {
   if (block === 'story') return 'our-story';
   if (block === 'details') return 'details';
   return block;
+}
+
+/* ---------- SectionOverflowMenu ---------- *
+ *  The ⋯ button next to the eye in the inspector header. Opens
+ *  a small popover with two actions:
+ *    • Copy section link  — copies pearloom.com/…#anchor to the
+ *      clipboard so co-hosts can deep-link to this exact section.
+ *    • Reveal in canvas   — scrolls the in-DOM canvas to the
+ *      section's anchor (handy when you've scrolled the canvas
+ *      away from where you were editing).
+ *  Click-outside + Escape close. Confirmation lasts ~1.4s on
+ *  copy so the host knows it landed. */
+function SectionOverflowMenu({
+  meta,
+  prettyUrl,
+}: {
+  meta: BlockDef;
+  prettyUrl?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e: MouseEvent) {
+      if (!ref.current) return;
+      if (ref.current.contains(e.target as Node)) return;
+      setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  function copyLink() {
+    const base = prettyUrl ? (prettyUrl.startsWith('http') ? prettyUrl : `https://${prettyUrl}`) : '';
+    const url = `${base}#${meta.anchor}`;
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      void navigator.clipboard.writeText(url);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1400);
+    setTimeout(() => setOpen(false), 600);
+  }
+
+  function reveal() {
+    if (typeof document === 'undefined') return;
+    // Prefer the v8 canvas section marker; fall back to a plain
+    // element id which both the canvas and the published renderer
+    // emit. Different surfaces use different selectors so we try
+    // both before giving up.
+    const target =
+      document.querySelector(`[data-pe-section="${meta.anchor}"]`)
+      ?? document.getElementById(meta.anchor);
+    if (target instanceof HTMLElement) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    setOpen(false);
+  }
+
+  return (
+    <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label="Section actions"
+        aria-expanded={open}
+        title="Section actions"
+        style={{
+          width: 30,
+          height: 30,
+          padding: 0,
+          borderRadius: 8,
+          background: open ? 'var(--cream-2)' : 'transparent',
+          border: '1px solid var(--line-soft)',
+          color: 'var(--ink-soft)',
+          cursor: 'pointer',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 16,
+          lineHeight: 1,
+          fontFamily: 'var(--font-ui)',
+          transition: 'background 140ms ease',
+        }}
+      >
+        ⋯
+      </button>
+      {open && (
+        <div
+          role="menu"
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            right: 0,
+            zIndex: 60,
+            background: 'var(--card, #FBF7EE)',
+            border: '1px solid var(--card-ring, rgba(14,13,11,0.08))',
+            borderRadius: 10,
+            boxShadow: '0 12px 28px rgba(14,13,11,0.16)',
+            padding: 4,
+            minWidth: 200,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1,
+            fontFamily: 'var(--font-ui)',
+          }}
+        >
+          <OverflowMenuItem
+            icon="link"
+            label={copied ? 'Copied' : 'Copy section link'}
+            onClick={copyLink}
+            disabled={!prettyUrl}
+            highlighted={copied}
+          />
+          <OverflowMenuItem
+            icon="eye"
+            label="Reveal in canvas"
+            onClick={reveal}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OverflowMenuItem({
+  icon,
+  label,
+  onClick,
+  disabled,
+  highlighted,
+}: {
+  icon: string;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  highlighted?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '8px 12px',
+        borderRadius: 7,
+        background: highlighted ? 'var(--sage-tint)' : 'transparent',
+        color: highlighted ? 'var(--sage-deep)' : 'var(--ink)',
+        border: 'none',
+        textAlign: 'left',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        fontSize: 12.5,
+        fontWeight: 500,
+        opacity: disabled ? 0.45 : 1,
+        fontFamily: 'var(--font-ui)',
+        transition: 'background 140ms ease',
+      }}
+      onMouseEnter={(e) => { if (!disabled && !highlighted) e.currentTarget.style.background = 'var(--cream-2)'; }}
+      onMouseLeave={(e) => { if (!disabled && !highlighted) e.currentTarget.style.background = 'transparent'; }}
+    >
+      <Icon name={icon} size={13} />
+      {label}
+    </button>
+  );
 }
 
 function PanelSwitch({

@@ -1,7 +1,7 @@
 'use client';
 
 import type { StoryManifest, MealOption } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelDisclosure, PanelGroup, PanelSection, PanelSmartActions, TextArea, TextInput, Toggle, type PanelSmartAction } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelDisclosure, PanelGroup, PanelSection, PanelSmartActions, PanelTabs, TextArea, TextInput, Toggle, type PanelSmartAction } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 
@@ -109,9 +109,18 @@ export function RsvpPanel({
     },
   ];
 
-  return (
+  // Layout slot — the Send-button look (Pearl / Crisp / Editorial /
+  // Paper tag), pulse, custom label, sticky-on-mobile. Everything
+  // here is about the CTA's visual treatment, not the data the
+  // RSVP form collects.
+  const layout = (
     <PanelGroup>
-      <PanelSmartActions actions={smartActions} />
+      <RsvpButtonStyleSection manifest={manifest} onChange={onChange} />
+    </PanelGroup>
+  );
+
+  const content = (
+    <PanelGroup>
       <PanelSection label="Deadline + gating" hint="Controls the RSVP CTA on your site.">
         <Field label="RSVP deadline" help="Shown as 'Kindly respond by …' above the form.">
           <div data-pl-rsvp-deadline>
@@ -175,8 +184,6 @@ export function RsvpPanel({
           />
         </fieldset>
       </PanelSection>
-
-      <RsvpButtonStyleSection manifest={manifest} onChange={onChange} />
 
       <PanelSection
         label="Meal options"
@@ -247,6 +254,13 @@ export function RsvpPanel({
         />
       </PanelSection>
     </PanelGroup>
+  );
+
+  return (
+    <>
+      <PanelSmartActions actions={smartActions} />
+      <PanelTabs slots={{ content, layout }} />
+    </>
   );
 }
 
