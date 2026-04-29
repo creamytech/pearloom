@@ -91,21 +91,33 @@ type BlockKey =
 
 type DeviceKey = 'desktop' | 'tablet' | 'phone';
 
-type BlockDef = { key: BlockKey; label: string; icon: string; anchor: string; description: string; reorderable: boolean; togglable: boolean };
+type BlockDef = {
+  key: BlockKey;
+  label: string;
+  icon: string;
+  anchor: string;
+  /** Long-form description. Surfaces in the inspector header. */
+  description: string;
+  /** Short tagline shown below the label in the outline rail. Kept
+   *  to ~3-4 words so it fits the 252px rail without truncating. */
+  subtitle?: string;
+  reorderable: boolean;
+  togglable: boolean;
+};
 
 const BLOCKS: BlockDef[] = [
-  { key: 'nav', label: 'Nav', icon: 'menu', anchor: 'top', description: 'Top navigation: brand icon, layout style, links.', reorderable: false, togglable: false },
-  { key: 'hero', label: 'Hero', icon: 'image', anchor: 'top', description: 'Names, date, venue, tagline, cover photo.', reorderable: false, togglable: false },
-  { key: 'story', label: 'Story', icon: 'text', anchor: 'our-story', description: 'How you got here — chapter by chapter.', reorderable: true, togglable: true },
-  { key: 'details', label: 'Details', icon: 'section', anchor: 'details', description: 'Ceremony time, dress code, arrival notes.', reorderable: true, togglable: true },
-  { key: 'schedule', label: 'Schedule', icon: 'clock', anchor: 'schedule', description: 'The flow of the day, minute by minute.', reorderable: true, togglable: true },
-  { key: 'travel', label: 'Travel', icon: 'pin', anchor: 'travel', description: 'Venue map, directions, hotels.', reorderable: true, togglable: true },
-  { key: 'registry', label: 'Registry', icon: 'gift', anchor: 'registry', description: 'Gift buckets and fund links.', reorderable: true, togglable: true },
-  { key: 'gallery', label: 'Gallery', icon: 'gallery', anchor: 'gallery', description: 'The bento mosaic of favorites.', reorderable: true, togglable: true },
-  { key: 'rsvp', label: 'RSVP', icon: 'mail', anchor: 'rsvp', description: 'Meal options, deadline, plus-ones.', reorderable: true, togglable: true },
-  { key: 'faq', label: 'FAQ', icon: 'heart-icon', anchor: 'faq', description: 'Questions Pear anticipates from guests.', reorderable: true, togglable: true },
-  { key: 'toasts', label: 'Vows & toasts', icon: 'mic', anchor: 'top', description: 'Drafts you can read from your phone.', reorderable: false, togglable: false },
-  { key: 'theme', label: 'Theme', icon: 'palette', anchor: 'top', description: 'Palette, motif, spacing, typography.', reorderable: false, togglable: false },
+  { key: 'nav', label: 'Nav', icon: 'menu', anchor: 'top', description: 'Top navigation: brand icon, layout style, links.', subtitle: 'Brand + links', reorderable: false, togglable: false },
+  { key: 'hero', label: 'Hero', icon: 'image', anchor: 'top', description: 'Names, date, venue, tagline, cover photo.', subtitle: 'Names, date, cover photo', reorderable: false, togglable: false },
+  { key: 'story', label: 'Story', icon: 'text', anchor: 'our-story', description: 'How you got here — chapter by chapter.', subtitle: 'How you got here', reorderable: true, togglable: true },
+  { key: 'details', label: 'Details', icon: 'section', anchor: 'details', description: 'Ceremony time, dress code, arrival notes.', subtitle: 'Dress code, FAQ-lite', reorderable: true, togglable: true },
+  { key: 'schedule', label: 'Schedule', icon: 'clock', anchor: 'schedule', description: 'The flow of the day, minute by minute.', subtitle: 'Day-of timeline', reorderable: true, togglable: true },
+  { key: 'travel', label: 'Travel', icon: 'pin', anchor: 'travel', description: 'Venue map, directions, hotels.', subtitle: 'Hotels, transit, tips', reorderable: true, togglable: true },
+  { key: 'registry', label: 'Registry', icon: 'gift', anchor: 'registry', description: 'Gift buckets and fund links.', subtitle: 'Linked stores', reorderable: true, togglable: true },
+  { key: 'gallery', label: 'Gallery', icon: 'gallery', anchor: 'gallery', description: 'The bento mosaic of favorites.', subtitle: 'Photos + captions', reorderable: true, togglable: true },
+  { key: 'rsvp', label: 'RSVP', icon: 'mail', anchor: 'rsvp', description: 'Meal options, deadline, plus-ones.', subtitle: 'Meals + plus-ones', reorderable: true, togglable: true },
+  { key: 'faq', label: 'FAQ', icon: 'heart-icon', anchor: 'faq', description: 'Questions Pear anticipates from guests.', subtitle: 'Common questions', reorderable: true, togglable: true },
+  { key: 'toasts', label: 'Vows & toasts', icon: 'mic', anchor: 'top', description: 'Drafts you can read from your phone.', subtitle: 'Vows + speeches', reorderable: false, togglable: false },
+  { key: 'theme', label: 'Theme', icon: 'palette', anchor: 'top', description: 'Palette, motif, spacing, typography.', subtitle: 'Palette + type', reorderable: false, togglable: false },
 ];
 
 const BLOCKS_BY_KEY: Record<BlockKey, BlockDef> = BLOCKS.reduce((acc, b) => ({ ...acc, [b.key]: b }), {} as Record<BlockKey, BlockDef>);
@@ -2650,6 +2662,21 @@ function BlockRow({
           )}
           <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{def.label}</span>
         </div>
+        {def.subtitle && (
+          <div
+            style={{
+              fontSize: 11,
+              color: 'var(--ink-muted)',
+              fontFamily: 'var(--font-ui)',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              marginTop: 1,
+            }}
+          >
+            {def.subtitle}
+          </div>
+        )}
       </div>
       {onToggleHidden && (
         <button
