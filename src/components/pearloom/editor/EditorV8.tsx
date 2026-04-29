@@ -73,6 +73,7 @@ import { pearSuggestionsFor } from './panels/pear-suggestions';
 import { blockFillState, FILL_STATE_COLORS, siteProgressPct, type ScoredBlockKey } from '@/lib/site-progress';
 import { PearCommand } from './PearCommand';
 import { DesignAdvisor } from './DesignAdvisor';
+import { PearApplyToast } from './pear/PearApplyToast';
 import { PearCopilot } from './pear/PearCopilot';
 
 type BlockKey =
@@ -981,6 +982,10 @@ export function EditorV8({
         onApplyPatch={(next) => setManifest(() => next)}
         intent={advisorIntent}
       />
+      {/* Top-center peach pill that fires when Pear applies a
+          patch — gives the host visual confirmation on the canvas
+          without making them look at the chat. */}
+      <PearApplyToast />
       {/* First-paint Pear welcome — fires once per site. Accept
           opens the Companion + biases it toward "what's missing"
           so fresh sites get a guided start. */}

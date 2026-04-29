@@ -25,12 +25,12 @@ import type { StoryManifest } from '@/types';
 import { AISuggestButton, useAICall } from './ai';
 import { Icon, Pear } from '../motifs';
 import {
-  applyPearPatchEnvelope,
   extractFollowups,
   extractPatch,
   stripPatchFromText,
   type PearPatchEnvelope,
 } from './pear/patch';
+import { PatchProposalCard } from './pear/PatchProposalCard';
 import { pearPromptFor } from './panels/pear-passes';
 
 // Minimal Web Speech API typing — TS doesn't ship a built-in
@@ -55,12 +55,16 @@ interface ChatMessage {
   role: 'user' | 'pear';
   content: string;
   /** When Pear's response includes a pearloom:patch block, this
-   *  is the parsed envelope so the UI can render an "Apply"
-   *  button. Once applied, set to undefined. */
+   *  is the parsed envelope. The PatchProposalCard renders + applies
+   *  it directly; this field stays around so re-renders don't lose
+   *  the proposal. Set to undefined after the host dismisses. */
   patch?: PearPatchEnvelope | null;
-  /** Becomes true after the host clicks Apply. Keeps the chip
+  /** Becomes true after the host clicks Apply. Keeps the card
    *  visible as confirmation but disables further taps. */
   patchApplied?: boolean;
+  /** Becomes true when the host dismisses the proposal without
+   *  applying. The card is removed; the prose stays. */
+  patchDismissed?: boolean;
   /** Up to 3 short suggested follow-ups Pear emitted after the
    *  prose. Rendered as chips below the bubble; clicking sends
    *  the follow-up text as the next prompt. */
@@ -399,12 +403,22 @@ export function DesignAdvisor({
     void sendChat(prompt);
   }, [open, intent, streaming, sendChat]);
 
-  function applyChatPatch(messageId: string) {
-    const target = chat.find((m) => m.id === messageId);
-    if (!target?.patch || !onApplyPatch) return;
-    const next = applyPearPatchEnvelope(manifest, target.patch);
-    onApplyPatch(next);
+  function applyChatPatch(messageId: string, nextManifest: StoryManifest) {
+    if (!onApplyPatch) return;
+    onApplyPatch(nextManifest);
     setChat((prev) => prev.map((m) => (m.id === messageId ? { ...m, patchApplied: true } : m)));
+    // Fire a global event so EditorV8 can flash a confirmation
+    // toast on the canvas — gives the host visual proof the change
+    // landed, and keeps the eye on the canvas instead of the chat.
+    if (typeof window !== 'undefined') {
+      const target = chat.find((m) => m.id === messageId);
+      window.dispatchEvent(new CustomEvent('pearloom:patch-applied', {
+        detail: { summary: target?.patch?.summary ?? 'Pear applied a change' },
+      }));
+    }
+  }
+  function dismissChatPatch(messageId: string) {
+    setChat((prev) => prev.map((m) => (m.id === messageId ? { ...m, patchDismissed: true } : m)));
   }
 
   function clearMemory() {
@@ -680,8 +694,10 @@ export function DesignAdvisor({
                 <ChatBubble
                   key={m.id}
                   message={m}
+                  manifest={manifest}
                   canApply={!!onApplyPatch}
-                  onApply={() => applyChatPatch(m.id)}
+                  onApply={(next) => applyChatPatch(m.id, next)}
+                  onDismiss={() => dismissChatPatch(m.id)}
                   onPickFollowup={(text) => {
                     setDraft(text);
                     void sendChat(text);
@@ -1058,16 +1074,21 @@ export function DesignAdvisor({
 
 function ChatBubble({
   message,
+  manifest,
   canApply,
   onApply,
+  onDismiss,
   onPickFollowup,
 }: {
   message: ChatMessage;
+  manifest: StoryManifest;
   canApply: boolean;
-  onApply: () => void;
+  onApply: (next: StoryManifest) => void;
+  onDismiss: () => void;
   onPickFollowup: (text: string) => void;
 }) {
   const isUser = message.role === 'user';
+  const showPatchCard = message.patch && !message.patchDismissed;
   return (
     <div
       style={{
@@ -1098,85 +1119,15 @@ function ChatBubble({
           <span style={{ opacity: 0.6 }}>Pear is thinking…</span>
         )}
       </div>
-      {message.patch && (
-        <div
-          style={{
-            padding: '10px 12px',
-            background: 'var(--cream-2)',
-            border: '1px dashed var(--peach-ink, #C6703D)',
-            borderRadius: 12,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 6,
-          }}
-        >
-          <div
-            style={{
-              fontSize: 9.5,
-              fontWeight: 700,
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              color: 'var(--peach-ink, #C6703D)',
-              fontFamily: 'var(--font-ui)',
-            }}
-          >
-            Pear can apply this
-          </div>
-          <p
-            style={{
-              margin: 0,
-              fontSize: 12.5,
-              color: 'var(--ink)',
-              lineHeight: 1.45,
-              fontFamily: 'var(--font-ui)',
-            }}
-          >
-            {message.patch.summary}
-          </p>
-          {!message.patchApplied ? (
-            <button
-              type="button"
-              onClick={onApply}
-              disabled={!canApply}
-              style={{
-                alignSelf: 'flex-start',
-                padding: '6px 14px',
-                borderRadius: 999,
-                background: canApply ? 'var(--ink)' : 'var(--cream-2)',
-                color: canApply ? 'var(--cream)' : 'var(--ink-muted)',
-                border: 'none',
-                fontSize: 11.5,
-                fontWeight: 700,
-                fontFamily: 'var(--font-ui)',
-                cursor: canApply ? 'pointer' : 'not-allowed',
-                letterSpacing: '0.04em',
-              }}
-            >
-              {canApply ? `Apply ${message.patch.patches.length} edit${message.patch.patches.length === 1 ? '' : 's'}` : 'Read-only mode'}
-            </button>
-          ) : (
-            <div
-              style={{
-                alignSelf: 'flex-start',
-                padding: '4px 12px',
-                borderRadius: 999,
-                background: 'rgba(92,107,63,0.12)',
-                color: 'var(--sage-deep, #5C6B3F)',
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-                fontFamily: 'var(--font-ui)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              <Icon name="check" size={11} color="var(--sage-deep)" />
-              Applied
-            </div>
-          )}
-        </div>
+      {showPatchCard && message.patch && (
+        <PatchProposalCard
+          envelope={message.patch}
+          manifest={manifest}
+          applied={!!message.patchApplied}
+          canApply={canApply}
+          onApply={onApply}
+          onDismiss={onDismiss}
+        />
       )}
       {/* Suggested follow-ups — Pear's "what next?" chip rail.
           Only on Pear bubbles, only when the model emitted a

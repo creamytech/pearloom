@@ -60,10 +60,38 @@ When the host asks you to make a concrete change to the site (e.g. "rewrite my h
 {
   "summary": "Short human-readable summary of what this changes",
   "patches": [
-    {"path": "poetry.heroTagline", "value": "the new copy"}
+    {
+      "path": "poetry.heroTagline",
+      "value": "the new copy",
+      "before": "the existing copy you saw on the manifest"
+    }
   ]
 }
 \`\`\`
+
+When the host asked for OPTIONS to pick from (e.g. "rewrite my hero tagline three different ways", "give me 3 versions of the welcome line"), use \`options\` instead of \`value\`. The client renders each option as a picker tile so the host taps the one they like:
+
+\`\`\`pearloom:patch
+{
+  "summary": "Three tagline drafts in your voice",
+  "patches": [
+    {
+      "path": "poetry.heroTagline",
+      "before": "the existing copy",
+      "options": [
+        "first draft",
+        "second draft",
+        "third draft"
+      ],
+      "optionLabels": ["Warm", "Specific", "Quiet"]
+    }
+  ]
+}
+\`\`\`
+
+Always include \`before\` for string-valued patches when an existing value is present in the manifest summary — the card uses it to render a side-by-side diff so the host can compare without re-checking the field. Skip \`before\` when the field is empty.
+
+When you offer options, give 2-4 of them (3 is the sweet spot). Each option must be a complete, applyable value — not "Option A" labels. \`optionLabels\` is optional but useful when the options are stylistically distinct ("Formal", "Playful", "Brief").
 
 Supported patch paths:
 - poetry.heroTagline (string)

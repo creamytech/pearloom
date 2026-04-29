@@ -30,12 +30,33 @@ import type { StoryManifest } from '@/types';
 
 export interface PearPatch {
   path: string;
-  value: unknown;
+  /** The new value Pear proposes for this path. Required unless
+   *  `options` is set; in that case, value is set when the host
+   *  picks one. */
+  value?: unknown;
+  /** When present, the host picks one of these — the proposal card
+   *  renders as a picker grid. Used for rewrites where Pear offers
+   *  several alternates ("3 tagline drafts"). After pick, the
+   *  chosen option becomes the patch's value. */
+  options?: unknown[];
+  /** Optional human label per option. If present, must match
+   *  options.length. Renders as the headline on each picker tile. */
+  optionLabels?: string[];
+  /** Optional: the existing value at `path`. Pear emits this so the
+   *  card can show before/after without re-reading the manifest.
+   *  Skipping it falls the card back to a "summary only" view. */
+  before?: unknown;
 }
 
 export interface PearPatchEnvelope {
   summary: string;
   patches: PearPatch[];
+}
+
+/** True when this patch is a picker (host must choose an option
+ *  before it can be applied). */
+export function isPickerPatch(patch: PearPatch): boolean {
+  return Array.isArray(patch.options) && patch.options.length > 1;
 }
 
 const FENCE_RX = /```(?:pearloom:patch|json)?\s*\n([\s\S]*?)\n```/;
@@ -100,8 +121,10 @@ export function extractFollowups(text: string): string[] {
 }
 
 /** Apply a single patch path → value to the manifest. Returns a
- *  shallow-cloned manifest with the patch applied. */
+ *  shallow-cloned manifest with the patch applied. Picker patches
+ *  whose value is still unset (host hasn't chosen) are skipped. */
 export function applyPearPatch(manifest: StoryManifest, patch: PearPatch): StoryManifest {
+  if (patch.value === undefined) return manifest;
   const segments = parsePath(patch.path);
   return setDeep(manifest as unknown as Record<string, unknown>, segments, patch.value) as unknown as StoryManifest;
 }
@@ -109,6 +132,24 @@ export function applyPearPatch(manifest: StoryManifest, patch: PearPatch): Story
 /** Apply a whole envelope of patches in order. */
 export function applyPearPatchEnvelope(manifest: StoryManifest, env: PearPatchEnvelope): StoryManifest {
   return env.patches.reduce(applyPearPatch, manifest);
+}
+
+/** Read the existing value at a patch's path. Used by the
+ *  proposal card to show a before/after when Pear didn't include
+ *  an explicit `before` field. Returns undefined for missing
+ *  paths. */
+export function readPearPatchTarget(manifest: StoryManifest, path: string): unknown {
+  const segments = parsePath(path);
+  let cur: unknown = manifest;
+  for (const seg of segments) {
+    if (cur === null || cur === undefined) return undefined;
+    if (seg.kind === 'key') {
+      cur = (cur as Record<string, unknown>)[seg.value];
+    } else {
+      cur = (cur as unknown[])[seg.value];
+    }
+  }
+  return cur;
 }
 
 // ── Path parsing ──────────────────────────────────────────────

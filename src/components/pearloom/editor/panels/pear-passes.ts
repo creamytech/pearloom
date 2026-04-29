@@ -21,7 +21,7 @@
 export const PEAR_PASS_PROMPTS: Record<string, string> = {
   // Hero
   'rewrite-tagline':
-    'Rewrite my hero tagline three different ways. Each one warm, specific, in our voice — no "celebrate with us" cliché, no exclamation marks. Show all three; I\'ll pick.',
+    'Rewrite my hero tagline three different ways. Each one warm, specific, in our voice — no "celebrate with us" cliché, no exclamation marks. Return them as `options` on a single patch at `poetry.heroTagline` with `optionLabels` like ["Warm", "Specific", "Quiet"] — I\'ll tap the one I like.',
   'suggest-cover':
     'Look at my photos and suggest the best one for the hero cover. Tell me why it works — composition, mood, what it says about the day.',
 
@@ -35,7 +35,7 @@ export const PEAR_PASS_PROMPTS: Record<string, string> = {
   'draft-faq':
     'Draft 5 FAQ items guests would actually ask about my event. Reference my venue, dress code, and arrival logistics.',
   'suggest-dress-code':
-    'Suggest dress-code copy — formal but warm, with one specific line about footwear or weather that fits my venue.',
+    'Suggest dress-code copy three different ways — formal but warm, each with one specific line about footwear or weather that fits my venue. Return them as `options` on a patch at `logistics.notes` with `optionLabels` like ["Formal", "Warm", "Brief"] — I\'ll tap one.',
 
   // Schedule
   'fill-schedule-gaps':
@@ -53,7 +53,7 @@ export const PEAR_PASS_PROMPTS: Record<string, string> = {
   'suggest-registry-stores':
     'Look at my style + occasion and suggest 3-4 registry stores that match. Tell me what each is good for so I can pick.',
   'draft-registry-blurb':
-    'Draft a short, warm blurb for the registry section — your presence is the gift, but if you want to add to our home, here\'s where to look. Avoid the cliché.',
+    'Draft a short, warm blurb for the registry section three different ways — your presence is the gift, but if you want to add to our home, here\'s where to look. Avoid the cliché. Return them as `options` so I can tap one.',
 
   // Gallery
   'pick-best-photos':
@@ -63,7 +63,7 @@ export const PEAR_PASS_PROMPTS: Record<string, string> = {
 
   // RSVP
   'rewrite-rsvp-prompt':
-    'Rewrite the RSVP prompt copy — short, warm, with the deadline. Plain language, no "kindly respond" stiffness.',
+    'Rewrite the RSVP prompt copy three different ways — short, warm, with the deadline. Plain language, no "kindly respond" stiffness. Return them as `options` so I can tap one.',
   'add-rsvp-questions':
     'Suggest 2-3 useful follow-up questions to add to the RSVP form for my event — meal preference, dietary, song request, or whatever fits.',
 
