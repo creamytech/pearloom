@@ -200,6 +200,61 @@ export async function GET(req: NextRequest) {
       // skip
     }
 
+    // ── Tribute / advice wall submissions ─────────────────
+    // Guest-typed words on adviceWall, tribute walls — tracked in
+    // tribute_submissions (block_id scopes them to a specific
+    // wall on the site). Surface unread + recent so hosts hear
+    // about every memory the moment it lands. Treat as guestbook
+    // for visual style — the dashboard submissions page handles
+    // both.
+    try {
+      const { data: tribs } = await supabase
+        .from('tribute_submissions')
+        .select('id, author_name, body, created_at, state')
+        .eq('site_id', siteId)
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      for (const t of (tribs ?? []) as Array<{ id: string; author_name: string; body: string; created_at: string; state: string }>) {
+        if (t.state === 'hidden') continue;
+        items.push({
+          id: `trib-${t.id}`,
+          kind: 'guestbook',
+          label: `${t.author_name} added to the wall`,
+          preview: (t.body ?? '').slice(0, 80),
+          href: `/dashboard/submissions`,
+          createdAt: t.created_at,
+        });
+      }
+    } catch {
+      // table missing on this deployment — silent skip
+    }
+
+    // ── Toast signups ──────────────────────────────────────
+    // Someone volunteering to give a toast is high-signal — the
+    // host needs to know to expect them in the rundown. Cheap
+    // ping; volume is naturally low (≤ a dozen per event).
+    try {
+      const { data: toasts } = await supabase
+        .from('toast_signups')
+        .select('id, claimed_by, slot_index, created_at')
+        .eq('site_id', siteId)
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      for (const t of (toasts ?? []) as Array<{ id: string; claimed_by: string; slot_index: number; created_at: string }>) {
+        items.push({
+          id: `toast-${t.id}`,
+          kind: 'whisper',
+          label: `${t.claimed_by} signed up to toast`,
+          href: `/dashboard/submissions`,
+          createdAt: t.created_at,
+        });
+      }
+    } catch {
+      // skip
+    }
+
     // ── Registry link claims ───────────────────────────────
     // Honor-system "I got this" claims on link-out registry
     // entries. The host wants to know who's giving what so they
