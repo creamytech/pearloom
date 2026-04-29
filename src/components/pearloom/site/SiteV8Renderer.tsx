@@ -40,7 +40,6 @@ import { LiveNowHero } from './LiveNowHero';
 import { DayOfBroadcastDock } from './DayOfBroadcastDock';
 import { computeDayOfState } from '@/lib/day-of/state';
 import { DecorDivider } from './DecorDivider';
-import { DecorDividerEditOverlay } from '../editor/canvas/DecorDividerEditOverlay';
 import { DecorEditOverlay } from '../editor/canvas/DecorEditOverlay';
 import { LivingAtmosphere, defaultAtmosphereForOccasion, type AtmosphereKind, type AtmosphereIntensity } from './LivingAtmosphere';
 import { AmbientAudio } from './AmbientAudio';
@@ -7593,14 +7592,20 @@ export function SiteV8Renderer({
             const dividerHidden = decorVis?.[`divider-${k}`] === false;
             return (
               <>
-                <DecorDividerEditOverlay blockKey={k} onEditField={onEditField}>
+                <DecorEditOverlay
+                  visibilityKey={`divider-${k}`}
+                  kind="divider"
+                  url={dividerUrl}
+                  onEditField={onEditField}
+                  label="Divider"
+                >
                   <DecorDivider
                     url={dividerUrl}
                     index={i}
                     strength={dividerStrength}
                     hidden={dividerHidden}
                   />
-                </DecorDividerEditOverlay>
+                </DecorEditOverlay>
                 <StickerLayer
                   blockId={k}
                   stickers={manifest.stickers}
