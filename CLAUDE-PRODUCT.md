@@ -498,22 +498,34 @@ Everything below is shipped (commits on main, awaiting push).
   via `/api/guests/draft-nudge` + send via `/api/guests/nudge`).
 - `email_sent_at` stamps on invite + rsvp-email send paths.
 
+**Plus (also shipped this session, after the initial summary):**
+- Memory book aggregator now also pulls `tribute_submissions`
+  + `guestbook` (with safe-fetch wrappers for older deployments).
+  The "wall" and "guestbook" sections render in the printable
+  keepsake. Closes the advice-wall loop end-to-end:
+  guest posts → bell pings → host moderates → it lives in the
+  printed book.
+- Speech composer now embeds an "Words from your guests" panel
+  fed by the same memory-book endpoint (memories + tributes +
+  guestbook). Tap "Quote" on any row to drop the line into the
+  draft with attribution. Closes the gap between guest material
+  and the surfaces that mine it for toasts/vows.
+
 **What's deliberately deferred (next session candidates):**
 
 1. **Guestbook → guest attribution**: `guestbook` table has no
    `guest_id` column, so guestbook entries don't surface in the
-   Words feed. Migration + route + form-prop changes.
-2. **Speech composer ⇆ memory_prompts**: the speech composer
-   page should pull guest-typed memories about the couple as
-   inspiration material. Single-page wire-up.
-3. **Broadcast emails on day-of**: BroadcastBar posts only
+   per-guest Words feed on `/g/[token]` (they DO surface in the
+   memory book + speech composer, both of which work by name).
+   Migration + route + form-prop changes for the deeper link.
+2. **Broadcast emails on day-of**: BroadcastBar posts only
    reach guests on the site at that moment (30s polling). An
    email-broadcast path for "ceremony moved to 6pm" reaches
    everyone immediately. Bigger product feature.
-4. **Dashboard registry claims feed**: claims feed view
+3. **Dashboard registry claims feed**: claims feed view
    already exists inside editor RegistryPanel. Lift to a
    shared component + mount on `/dashboard/registry`.
-5. **Pear advisor → "draft a nudge" intent**: Pear now sees
+4. **Pear advisor → "draft a nudge" intent**: Pear now sees
    pending counts; next step is recognising the host saying
    "yes, send the nudge" and having it call the bulk-nudge
    API directly via a patch envelope.
