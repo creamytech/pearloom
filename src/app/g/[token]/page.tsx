@@ -23,6 +23,7 @@ import { getOrGeneratePersonalization } from '@/lib/event-os/personalize';
 import type { StoryManifest } from '@/types';
 import { PersonalGuestHero } from '@/components/guest-experience/PersonalGuestHero';
 import { VoiceToastRecorder } from '@/components/guest-experience/VoiceToastRecorder';
+import { YourRsvpCard } from '@/components/guest-experience/YourRsvpCard';
 import { PassportSections } from '@/components/pearloom/passport/PassportSections';
 import { GuestPhaseStrip } from '@/components/pearloom/passport/GuestPhaseStrip';
 
@@ -58,6 +59,31 @@ export default async function PersonalGuestPage({
     .maybeSingle();
 
   if (!site?.site_config) notFound();
+
+  // Fetch the guest's existing RSVP from public.guests, if any.
+  // pearloom_guests + guests are separate tables — pearloom_guests
+  // is the identity/personalization record, guests is the RSVP
+  // submission record. They link via (site_id, lower(email)) so
+  // a single guest who's both invited and RSVP'd shows up in both.
+  type GuestRsvp = {
+    status: string | null;
+    plus_one: boolean | null;
+    plus_one_name: string | null;
+    meal_preference: string | null;
+    dietary_restrictions: string | null;
+    message: string | null;
+    responded_at: string | null;
+  };
+  let rsvp: GuestRsvp | null = null;
+  if (guest.email) {
+    const { data: rsvpRow } = await sb()
+      .from('guests')
+      .select('status, plus_one, plus_one_name, meal_preference, dietary_restrictions, message, responded_at')
+      .eq('site_id', site.id)
+      .eq('email', guest.email)
+      .maybeSingle<GuestRsvp>();
+    rsvp = rsvpRow ?? null;
+  }
 
   const manifest = (site.site_config as { manifest?: StoryManifest }).manifest;
   if (!manifest) notFound();
@@ -135,6 +161,29 @@ export default async function PersonalGuestPage({
         eventDate={manifest.logistics?.date ?? ''}
         venue={manifest.logistics?.venue ?? ''}
       />
+
+      {/* "Your RSVP" card — surfaces the guest's current answer
+          and gives them a one-tap way to update without leaving
+          the page. Lifted above the chapter highlights because
+          for most guests "did I RSVP?" is the first question. */}
+      <section style={{ padding: '2rem 1.5rem 0', maxWidth: 720, margin: '0 auto' }}>
+        <YourRsvpCard
+          siteId={site.id}
+          guestName={guest.display_name}
+          guestEmail={guest.email}
+          initialStatus={(rsvp?.status as 'attending' | 'declined' | 'maybe' | 'pending' | null) ?? 'pending'}
+          initial={{
+            plusOne: rsvp?.plus_one ?? false,
+            plusOneName: rsvp?.plus_one_name ?? null,
+            mealPreference: rsvp?.meal_preference ?? null,
+            dietaryRestrictions: rsvp?.dietary_restrictions ?? null,
+            message: rsvp?.message ?? null,
+          }}
+          respondedAt={rsvp?.responded_at ?? null}
+          accent={theme?.accent ?? '#5C6B3F'}
+          headingFont={headingFont}
+        />
+      </section>
 
       <section style={{ padding: '3rem 1.5rem', maxWidth: 720, margin: '0 auto' }}>
         {personalization.chapter_highlights.length > 0 && (
