@@ -58,6 +58,7 @@ export const DASH_SECTIONS: Record<string, { label: string; tabs: Array<{ id: st
       { id: 'sites',     label: 'My sites',  href: '/dashboard/event' },
       { id: 'weekend',   label: 'Weekend',   href: '/dashboard/weekend' },
       { id: 'connections', label: 'Linked',  href: '/dashboard/connections' },
+      { id: 'director',  label: 'AI planner', href: '/dashboard/director' },
       { id: 'templates', label: 'Templates', href: '/templates' },
     ],
   },
