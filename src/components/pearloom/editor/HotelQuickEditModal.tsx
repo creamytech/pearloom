@@ -83,20 +83,26 @@ export function HotelQuickEditModal({ manifest, onChange, dock = 'modal' }: Prop
     return () => window.removeEventListener('pearloom:hotel-quick-edit', onOpen);
   }, []);
 
-  // Escape to close, freeze body scroll while open.
+  // Escape to close, freeze body scroll while open. Panel mode
+  // skips the body-scroll lock — the editor lives inside the
+  // inspector and shouldn't trap the page's scroll.
   useEffect(() => {
     if (!openHotelId) return;
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') setOpenHotelId(null);
     }
     document.addEventListener('keydown', onKey);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    let restore: (() => void) | undefined;
+    if (dock !== 'panel') {
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      restore = () => { document.body.style.overflow = prevOverflow; };
+    }
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prevOverflow;
+      restore?.();
     };
-  }, [openHotelId]);
+  }, [openHotelId, dock]);
 
   const hotels = useMemo<HotelLike[]>(() => {
     const raw = ((manifest as unknown as { travel?: { hotels?: HotelLike[] } }).travel?.hotels ?? []);

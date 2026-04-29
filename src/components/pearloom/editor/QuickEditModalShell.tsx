@@ -34,6 +34,7 @@ import {
 import {
   SortableContext,
   arrayMove,
+  horizontalListSortingStrategy,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
@@ -196,20 +197,26 @@ export function QuickEditModalShell({
     setTagOpen(false);
     exitSelectMode();
   }
-  // Escape to close, freeze body scroll while open.
+  // Escape to close, freeze body scroll while open. Panel mode
+  // skips the body-scroll lock — it lives inside its parent and
+  // shouldn't trap the page's scroll.
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
     }
     document.addEventListener('keydown', onKey);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    let restore: (() => void) | undefined;
+    if (dock !== 'panel') {
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      restore = () => { document.body.style.overflow = prevOverflow; };
+    }
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prevOverflow;
+      restore?.();
     };
-  }, [open, onClose]);
+  }, [open, onClose, dock]);
 
   if (!open) return null;
 
@@ -357,7 +364,7 @@ export function QuickEditModalShell({
         {searchSlot && (
           <div
             style={{
-              padding: '12px 20px',
+              padding: isPanel ? '10px 14px' : '12px 20px',
               borderBottom: '1px solid var(--line-soft)',
               background: 'var(--cream-2, #F5EFE2)',
             }}
@@ -366,35 +373,56 @@ export function QuickEditModalShell({
           </div>
         )}
 
-        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-          {/* Sidebar */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: isPanel ? 'column' : 'row', overflow: 'hidden' }}>
+          {/* Sidebar — vertical column in modal mode, horizontal
+              strip in panel mode so the editor pane gets the full
+              inspector width below. */}
           <div
             style={{
-              width: 260,
-              flexShrink: 0,
-              borderRight: '1px solid var(--line-soft)',
-              display: 'flex',
-              flexDirection: 'column',
-              background: 'var(--cream, #FBF7EE)',
+              ...(isPanel
+                ? {
+                    width: '100%',
+                    flexShrink: 0,
+                    borderBottom: '1px solid var(--line-soft)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    background: 'var(--cream, #FBF7EE)',
+                  }
+                : {
+                    width: 260,
+                    flexShrink: 0,
+                    borderRight: '1px solid var(--line-soft)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    background: 'var(--cream, #FBF7EE)',
+                  }),
             }}
           >
-            <div style={{ flex: 1, overflowY: 'auto', padding: '12px 10px' }}>
-              <div
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: '0.18em',
-                  color: 'var(--ink-muted)',
-                  textTransform: 'uppercase',
-                  padding: '4px 8px 8px',
-                }}
-              >
-                {title} · {items.length}
-              </div>
+            <div
+              style={{
+                ...(isPanel
+                  ? { padding: '8px 12px', overflowX: 'auto', overflowY: 'hidden' }
+                  : { flex: 1, overflowY: 'auto', padding: '12px 10px' }),
+              }}
+            >
+              {!isPanel && (
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: '0.18em',
+                    color: 'var(--ink-muted)',
+                    textTransform: 'uppercase',
+                    padding: '4px 8px 8px',
+                  }}
+                >
+                  {title} · {items.length}
+                </div>
+              )}
               {items.length === 0 && emptyHint ? (
                 <div
                   style={{
-                    padding: 16,
+                    padding: isPanel ? '8px 4px' : 16,
                     fontSize: 12,
                     color: 'var(--ink-soft)',
                     lineHeight: 1.5,
@@ -411,14 +439,15 @@ export function QuickEditModalShell({
                 >
                   <SortableContext
                     items={items.map((it) => it.id)}
-                    strategy={verticalListSortingStrategy}
+                    strategy={isPanel ? horizontalListSortingStrategy : verticalListSortingStrategy}
                   >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div style={{ display: 'flex', flexDirection: isPanel ? 'row' : 'column', gap: isPanel ? 6 : 4 }}>
                       {items.map((it) => (
                         <SortableSidebarTile
                           key={it.id}
                           item={it}
                           active={it.id === focusedId}
+                          compact={isPanel}
                           onClick={() => onFocusChange(it.id)}
                         />
                       ))}
@@ -426,7 +455,7 @@ export function QuickEditModalShell({
                   </SortableContext>
                 </DndContext>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ display: 'flex', flexDirection: isPanel ? 'row' : 'column', gap: isPanel ? 6 : 4 }}>
                   {items.map((it) => (
                     <SidebarTile
                       key={it.id}
@@ -434,6 +463,7 @@ export function QuickEditModalShell({
                       active={it.id === focusedId}
                       selectMode={selectMode}
                       selected={selectedIds.has(it.id)}
+                      compact={isPanel}
                       onClick={() => {
                         if (selectMode) toggleSelected(it.id);
                         else onFocusChange(it.id);
@@ -623,7 +653,7 @@ export function QuickEditModalShell({
           </div>
 
           {/* Editor pane */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: isPanel ? '14px 16px' : '20px 24px', minWidth: 0 }}>
             {editorSlot}
           </div>
         </div>
@@ -727,17 +757,77 @@ function SidebarTile({
   active,
   selectMode = false,
   selected = false,
+  compact = false,
   onClick,
 }: {
   item: QuickEditModalItem;
   active: boolean;
   selectMode?: boolean;
   selected?: boolean;
+  compact?: boolean;
   onClick: () => void;
 }) {
   // In select mode the visual hierarchy flips — the checkbox state
   // controls the peach edge, focused-row highlight goes muted.
   const showActive = !selectMode && active;
+  if (compact) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        title={item.label}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '6px 10px 6px 6px',
+          borderRadius: 999,
+          border: selected
+            ? '1.5px solid var(--peach-ink, #C6703D)'
+            : showActive ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid var(--line)',
+          background: selected
+            ? 'rgba(198,112,61,0.12)'
+            : showActive ? 'rgba(198,112,61,0.08)' : 'var(--cream-2, #F5EFE2)',
+          color: 'var(--ink)',
+          cursor: 'pointer',
+          textAlign: 'left',
+          fontFamily: 'var(--font-ui)',
+          flexShrink: 0,
+          maxWidth: 160,
+          transition: 'background 140ms ease, border-color 140ms ease',
+        }}
+      >
+        <div
+          aria-hidden
+          style={{
+            width: 22,
+            height: 22,
+            flexShrink: 0,
+            borderRadius: 999,
+            background: item.photoUrl
+              ? `url(${item.photoUrl}) center/cover no-repeat var(--cream-2)`
+              : 'var(--cream, #FBF7EE)',
+            display: 'grid',
+            placeItems: 'center',
+            color: 'var(--ink-muted)',
+          }}
+        >
+          {!item.photoUrl && <Icon name={item.icon ?? 'star'} size={11} />}
+        </div>
+        <span
+          style={{
+            fontSize: 11.5,
+            fontWeight: 700,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {item.label || 'Untitled'}
+        </span>
+      </button>
+    );
+  }
   return (
     <button
       type="button"
@@ -845,13 +935,83 @@ function SidebarTile({
 function SortableSidebarTile({
   item,
   active,
+  compact = false,
   onClick,
 }: {
   item: QuickEditModalItem;
   active: boolean;
+  compact?: boolean;
   onClick: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging, setActivatorNodeRef } = useSortable({ id: item.id });
+  if (compact) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={{
+          position: 'relative',
+          transform: CSS.Transform.toString(transform),
+          transition,
+          opacity: isDragging ? 0.45 : 1,
+          flexShrink: 0,
+        }}
+      >
+        <button
+          type="button"
+          onClick={onClick}
+          {...attributes}
+          {...listeners}
+          ref={setActivatorNodeRef}
+          title={item.label}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '6px 10px 6px 6px',
+            borderRadius: 999,
+            border: active ? '1.5px solid var(--peach-ink, #C6703D)' : '1px solid var(--line)',
+            background: active ? 'rgba(198,112,61,0.08)' : 'var(--cream-2, #F5EFE2)',
+            color: 'var(--ink)',
+            cursor: 'pointer',
+            textAlign: 'left',
+            fontFamily: 'var(--font-ui)',
+            maxWidth: 160,
+            touchAction: 'none',
+            transition: 'background 140ms ease, border-color 140ms ease',
+          }}
+        >
+          <div
+            aria-hidden
+            style={{
+              width: 22,
+              height: 22,
+              flexShrink: 0,
+              borderRadius: 999,
+              background: item.photoUrl
+                ? `url(${item.photoUrl}) center/cover no-repeat var(--cream-2)`
+                : 'var(--cream, #FBF7EE)',
+              display: 'grid',
+              placeItems: 'center',
+              color: 'var(--ink-muted)',
+            }}
+          >
+            {!item.photoUrl && <Icon name={item.icon ?? 'star'} size={11} />}
+          </div>
+          <span
+            style={{
+              fontSize: 11.5,
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {item.label || 'Untitled'}
+          </span>
+        </button>
+      </div>
+    );
+  }
   return (
     <div
       ref={setNodeRef}
