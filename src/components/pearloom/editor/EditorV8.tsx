@@ -319,14 +319,25 @@ export function EditorV8({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [advisorOpen, setAdvisorOpen] = useState(false);
-  // Inline "Pear, polish this" buttons in section panels dispatch
-  // pearloom:open-pear-for with the block they belong to. We open
-  // the advisor + jump the outline so Pear's first pass is scoped.
+  // Per-field pear glyph + the PearSuggestionsStrip dispatch
+  // pearloom:open-pear-for with { block, pass?, intent? }. We open
+  // the advisor, jump to the right block, and forward the pass as
+  // an intent so DesignAdvisor can auto-fire the matching prompt
+  // template (registered in panels/pear-passes.ts). Each click
+  // bumps the intent key so identical-pass repeats still re-run.
+  const [advisorIntent, setAdvisorIntent] = useState<{ pass: string; block?: string; key: number } | null>(null);
   useEffect(() => {
     function onOpen(e: Event) {
-      const detail = (e as CustomEvent<{ block?: string }>).detail;
+      const detail = (e as CustomEvent<{ block?: string; pass?: string }>).detail;
       if (detail?.block && BLOCKS.some((b) => b.key === detail.block)) {
         setBlock(detail.block as BlockKey);
+      }
+      if (detail?.pass) {
+        setAdvisorIntent({
+          pass: detail.pass,
+          block: detail.block,
+          key: Date.now(),
+        });
       }
       setAdvisorOpen(true);
     }
@@ -950,8 +961,9 @@ export function EditorV8({
         siteSlug={siteSlug}
         currentBlock={block}
         open={advisorOpen}
-        onClose={() => setAdvisorOpen(false)}
+        onClose={() => { setAdvisorOpen(false); setAdvisorIntent(null); }}
         onApplyPatch={(next) => setManifest(() => next)}
+        intent={advisorIntent}
       />
       {/* First-paint Pear welcome — fires once per site. Accept
           opens the Companion + biases it toward "what's missing"

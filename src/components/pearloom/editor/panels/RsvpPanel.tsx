@@ -336,7 +336,11 @@ function RsvpButtonStyleSection({
             })}
           </div>
         </Field>
-        <Field label="Button label" help="Defaults to 'Send RSVP'. Try 'Tell us you're coming' for a warmer voice.">
+        <Field
+          label="Button label"
+          help="Defaults to 'Send RSVP'. Try 'Tell us you're coming' for a warmer voice."
+          pearAction={{ block: 'rsvp', pass: 'rewrite-rsvp-prompt', label: 'Rewrite the RSVP prompt' }}
+        >
           <TextInput
             value={cfg.customLabel ?? ''}
             onChange={(e) => set({ customLabel: e.target.value })}

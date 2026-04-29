@@ -31,6 +31,7 @@ import {
   stripPatchFromText,
   type PearPatchEnvelope,
 } from './pear/patch';
+import { pearPromptFor } from './panels/pear-passes';
 
 // Minimal Web Speech API typing — TS doesn't ship a built-in
 // declaration. Only the subset we use is modelled.
@@ -152,6 +153,20 @@ const SLASH_COMMANDS: Array<{ command: string; label: string; template: string }
   { command: '/help',        label: 'List the slash commands',                            template: 'List the slash commands available in this chat.' },
 ];
 
+/** Pre-loaded prompt the advisor should fire on next open. The
+ *  per-field pear glyph + the PearSuggestionsStrip both dispatch
+ *  pearloom:open-pear-for with a `pass` id; EditorV8 forwards that
+ *  here as an intent. The unique `key` lets back-to-back invocations
+ *  on the same pass still re-fire (each click bumps the key). */
+export interface AdvisorIntent {
+  /** Pass id from panels/pear-passes.ts — looked up to a prompt. */
+  pass: string;
+  /** Block context the chat handler binds to. */
+  block?: string;
+  /** Bumped per click so React's effect dep array fires every time. */
+  key: number;
+}
+
 export function DesignAdvisor({
   manifest,
   names,
@@ -161,6 +176,7 @@ export function DesignAdvisor({
   siteSlug,
   currentBlock,
   selectedBlockIds,
+  intent,
 }: {
   manifest: StoryManifest;
   names: [string, string];
@@ -178,6 +194,10 @@ export function DesignAdvisor({
   currentBlock?: string;
   /** Specific block ids the host has selected on canvas. */
   selectedBlockIds?: string[];
+  /** Pre-load + auto-fire a specific pass when the advisor opens.
+   *  Each new click should increment intent.key so the effect
+   *  re-runs even if the same pass id arrives twice in a row. */
+  intent?: AdvisorIntent | null;
 }) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [activeAction, setActiveAction] = useState<QuickActionKey>('review');
@@ -362,6 +382,22 @@ export function DesignAdvisor({
       setStreaming(false);
     }
   }, [manifest, names, chat, streaming, currentBlock, selectedBlockIds]);
+
+  // Intent auto-fire — when EditorV8 forwards a `pearloom:open-pear-for`
+  // event with a `pass` id (from a per-field pear glyph or the
+  // suggestions strip), look up the prompt template and submit it
+  // automatically so the host doesn't see an empty advisor.
+  // Re-fires every time intent.key changes — back-to-back clicks
+  // on the same pass still queue a new run.
+  const lastIntentKeyRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!open || !intent || streaming) return;
+    if (lastIntentKeyRef.current === intent.key) return;
+    const prompt = pearPromptFor(intent.pass);
+    if (!prompt) return;
+    lastIntentKeyRef.current = intent.key;
+    void sendChat(prompt);
+  }, [open, intent, streaming, sendChat]);
 
   function applyChatPatch(messageId: string) {
     const target = chat.find((m) => m.id === messageId);

@@ -128,7 +128,10 @@ export function FaqPanel({
                         placeholder="What should I wear?"
                       />
                     </Field>
-                    <Field label="Answer">
+                    <Field
+                      label="Answer"
+                      pearAction={{ block: 'faq', pass: 'draft-faq-answers', label: 'Draft a warm answer with Pear' }}
+                    >
                       <TextArea
                         rows={3}
                         value={it.answer}

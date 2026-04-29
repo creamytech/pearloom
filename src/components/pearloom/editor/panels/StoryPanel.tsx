@@ -306,7 +306,10 @@ export function StoryPanel({
                     </Field>
                   </div>
                 </div>
-                <Field label="What happened">
+                <Field
+                  label="What happened"
+                  pearAction={{ block: 'story', pass: 'tighten-prose', label: 'Tighten this with Pear' }}
+                >
                   <TextArea
                     value={c.description}
                     onChange={(e) => updateChapter(i, { description: e.target.value })}

@@ -192,7 +192,10 @@ export function RegistryPanel({
                     placeholder="https://honeyfund.com/…"
                   />
                 </Field>
-                <Field label="Short description">
+                <Field
+                  label="Short description"
+                  pearAction={{ block: 'registry', pass: 'draft-registry-blurb', label: 'Draft a short blurb with Pear' }}
+                >
                   <TextArea
                     rows={2}
                     value={it.description ?? ''}
