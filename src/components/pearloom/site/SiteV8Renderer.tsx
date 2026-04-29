@@ -4822,6 +4822,8 @@ function RegistryCard({
   onRemove,
   onFocus,
   badges,
+  claim,
+  onMarkBought,
 }: {
   gift: RegistryCardGift;
   isMostLoved?: boolean;
@@ -4830,6 +4832,12 @@ function RegistryCard({
   onRemove?: () => void;
   onFocus?: () => void;
   badges?: { hideAuto?: string[]; custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }> };
+  /** Claim summary for this entry from /api/registry-link-claims —
+   *  count of claimers + first names of the first 3. When present
+   *  with count > 0, the card surfaces a "Linda got this" pill. */
+  claim?: { count: number; top: Array<{ name: string }> };
+  /** Opens the claim modal scoped to this entry. */
+  onMarkBought?: () => void;
 }) {
   const hideMostLoved = badges?.hideAuto?.includes('mostLoved');
   const showMostLoved = isMostLoved && !hideMostLoved;
@@ -4989,11 +4997,299 @@ function RegistryCard({
         )}
       </div>
       <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5, margin: 0 }}>{gift.d}</p>
-      <a href={gift.url} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm" style={{ justifyContent: 'center' }}>
-        Contribute <Icon name="arrow-right" size={12} />
-      </a>
+      {claim && claim.count > 0 && (
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '5px 10px',
+            borderRadius: 999,
+            background: 'rgba(139,156,90,0.18)',
+            color: 'var(--sage-deep, #6d7d3f)',
+            fontSize: 11.5,
+            fontWeight: 600,
+            fontFamily: 'var(--font-ui)',
+            alignSelf: 'flex-start',
+          }}
+        >
+          <span aria-hidden style={{ fontSize: 10 }}>✓</span>
+          {claimPillCopy(claim)}
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+        <a
+          href={gift.url}
+          target="_blank"
+          rel="noreferrer"
+          className="btn btn-outline btn-sm"
+          style={{ justifyContent: 'center', flex: 1 }}
+        >
+          Contribute <Icon name="arrow-right" size={12} />
+        </a>
+        {onMarkBought && !editMode && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onMarkBought(); }}
+            title="Tell the couple you got this so no one doubles up"
+            style={{
+              padding: '7px 14px',
+              borderRadius: 999,
+              border: '1px dashed rgba(139,156,90,0.55)',
+              background: 'transparent',
+              color: 'var(--sage-deep, #6d7d3f)',
+              fontSize: 12,
+              fontWeight: 600,
+              fontFamily: 'var(--font-ui)',
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            I got this
+          </button>
+        )}
+      </div>
     </div>
   );
+}
+
+// Modal a guest taps after they get a registry item from the
+// retailer. Captures name + email + optional note so the host
+// can see who's covered what; future ships use the email for
+// thank-you note generation. Honor-system — Pearloom doesn't
+// verify the purchase, just records the claim.
+function RegistryClaimModal({
+  siteSlug,
+  entryUrl,
+  entryName,
+  onClose,
+  onClaimed,
+}: {
+  siteSlug: string;
+  entryUrl: string;
+  entryName: string;
+  onClose: () => void;
+  onClaimed: (name: string) => void;
+}) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit() {
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await fetch('/api/registry-link-claims', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId: siteSlug,
+          entryUrl,
+          claimerEmail: email.trim(),
+          claimerName: name.trim() || undefined,
+          message: message.trim() || undefined,
+        }),
+      });
+      if (!r.ok) {
+        const data = await r.json().catch(() => ({}));
+        throw new Error((data as { error?: string }).error ?? `Couldn't save (${r.status})`);
+      }
+      onClaimed(name.trim());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save your claim.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      role="dialog"
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(14,13,11,0.55)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        zIndex: 360,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 'min(440px, 100%)',
+          background: 'var(--card, #FBF7EE)',
+          borderRadius: 18,
+          padding: 24,
+          boxShadow: '0 32px 60px rgba(14,13,11,0.4)',
+          fontFamily: 'var(--font-ui)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+        }}
+      >
+        <div>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--sage-deep, #6d7d3f)',
+            }}
+          >
+            Got it!
+          </div>
+          <h3
+            style={{
+              fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+              fontStyle: 'italic',
+              fontSize: 22,
+              margin: '4px 0 0',
+              color: 'var(--ink, #0E0D0B)',
+              lineHeight: 1.2,
+            }}
+          >
+            {entryName}
+          </h3>
+          <p
+            style={{
+              margin: '8px 0 0',
+              fontSize: 12.5,
+              color: 'var(--ink-soft, #3A332C)',
+              lineHeight: 1.5,
+            }}
+          >
+            Mark this as bought so no one doubles up. The couple sees your
+            name; we keep your email for their thank-you list.
+          </p>
+        </div>
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-muted, #6F6557)', letterSpacing: '0.04em' }}>
+            Your name (optional)
+          </span>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Linda Chen"
+            style={modalInputStyle}
+          />
+        </label>
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-muted, #6F6557)', letterSpacing: '0.04em' }}>
+            Email (for the thank-you)
+          </span>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="linda@example.com"
+            required
+            style={modalInputStyle}
+          />
+        </label>
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-muted, #6F6557)', letterSpacing: '0.04em' }}>
+            A note (optional)
+          </span>
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows={2}
+            placeholder="From the Patel family — congratulations!"
+            maxLength={300}
+            style={{ ...modalInputStyle, resize: 'vertical', minHeight: 64, fontFamily: 'inherit' }}
+          />
+        </label>
+        {error && (
+          <div
+            role="alert"
+            style={{
+              padding: '8px 12px',
+              borderRadius: 8,
+              background: 'rgba(122,45,45,0.08)',
+              border: '1px solid rgba(122,45,45,0.22)',
+              color: '#7A2D2D',
+              fontSize: 12,
+            }}
+          >
+            {error}
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+          <button
+            type="button"
+            onClick={submit}
+            disabled={busy || !email.includes('@')}
+            style={{
+              flex: 1,
+              padding: '10px 16px',
+              borderRadius: 999,
+              background: busy || !email.includes('@') ? 'var(--cream-2, #F5EFE2)' : 'var(--ink, #0E0D0B)',
+              color: busy || !email.includes('@') ? 'var(--ink-muted, #6F6557)' : 'var(--cream, #FBF7EE)',
+              border: 'none',
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: busy ? 'wait' : !email.includes('@') ? 'not-allowed' : 'pointer',
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            {busy ? 'Saving…' : 'Mark as bought'}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={busy}
+            style={{
+              padding: '10px 16px',
+              borderRadius: 999,
+              background: 'transparent',
+              color: 'var(--ink-soft, #3A332C)',
+              border: '1px solid var(--line, rgba(14,13,11,0.14))',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const modalInputStyle: React.CSSProperties = {
+  padding: '10px 12px',
+  borderRadius: 8,
+  border: '1px solid var(--line, rgba(14,13,11,0.14))',
+  background: 'var(--paper, #FBF7EE)',
+  fontSize: 13.5,
+  color: 'var(--ink, #0E0D0B)',
+  outline: 'none',
+  fontFamily: 'var(--font-ui)',
+};
+
+// "Linda got this" / "Linda + 2 others got this" — keeps the
+// pill copy short by only naming first names and collapsing
+// long lists into "+ N others".
+function claimPillCopy(c: { count: number; top: Array<{ name: string }> }): string {
+  if (c.count === 0) return '';
+  const names = c.top.map((t) => t.name).filter(Boolean);
+  if (names.length === 0) return `${c.count} ${c.count === 1 ? 'guest' : 'guests'} got this`;
+  if (c.count === 1) return `${names[0]} got this`;
+  if (c.count === 2) return `${names[0]} & ${names[1] ?? 'another'} got this`;
+  const remaining = c.count - 1;
+  return `${names[0]} + ${remaining} ${remaining === 1 ? 'other' : 'others'} got this`;
 }
 
 // Cash-fund progress strip. Renders above the registry grid when
@@ -5165,8 +5461,42 @@ function categorizeRegistry(name: string, d: string, url: string): string {
   return 'Shop';
 }
 
-function RegistrySectionImpl({ manifest, onEditField }: { manifest: StoryManifest; onEditField?: FieldEditor }) {
+function RegistrySectionImpl({ manifest, onEditField, siteSlug }: { manifest: StoryManifest; onEditField?: FieldEditor; siteSlug?: string }) {
   const edit = useIsEditMode();
+
+  // Fetch existing claims so each card knows whether to show the
+  // "Linda Chen got this" pill. Skips entirely in edit mode (no
+  // claims on a draft preview) and when no siteSlug is available.
+  type ClaimSummary = { count: number; top: Array<{ name: string }> };
+  const [claims, setClaims] = useState<Record<string, ClaimSummary>>({});
+  // The card opens this with the entry it represents; state moves
+  // up here so a single modal renders per section.
+  const [activeClaim, setActiveClaim] = useState<{ url: string; name: string } | null>(null);
+  useEffect(() => {
+    if (edit || !siteSlug) return;
+    let cancelled = false;
+    fetch(`/api/registry-link-claims?siteId=${encodeURIComponent(siteSlug)}`, { cache: 'no-store' })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data: { claims?: Record<string, ClaimSummary> } | null) => {
+        if (cancelled || !data?.claims) return;
+        setClaims(data.claims);
+      })
+      .catch(() => { /* degrade silently */ });
+    return () => { cancelled = true; };
+  }, [edit, siteSlug]);
+  function recordClaim(url: string, name: string) {
+    setClaims((c) => {
+      const cur = c[url] ?? { count: 0, top: [] };
+      const firstName = (name || 'A guest').split(/\s+/)[0];
+      return {
+        ...c,
+        [url]: {
+          count: cur.count + 1,
+          top: cur.top.length < 3 ? [...cur.top, { name: firstName }] : cur.top,
+        },
+      };
+    });
+  }
   function removeRegistry(url: string) {
     if (!onEditField) return;
     onEditField((m) => {
@@ -5349,6 +5679,8 @@ function RegistrySectionImpl({ manifest, onEditField }: { manifest: StoryManifes
                       onRemove={edit ? () => removeRegistry(g.url) : undefined}
                       onFocus={edit ? () => focusRegistry(g.url) : undefined}
                       badges={(g as { badges?: { hideAuto?: string[]; custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }> } }).badges}
+                      claim={claims[g.url]}
+                      onMarkBought={!edit && siteSlug ? () => setActiveClaim({ url: g.url, name: g.name }) : undefined}
                     />
                   ))}
                 </div>
@@ -5367,11 +5699,25 @@ function RegistrySectionImpl({ manifest, onEditField }: { manifest: StoryManifes
                 onRemove={edit ? () => removeRegistry(g.url) : undefined}
                 onFocus={edit ? () => focusRegistry(g.url) : undefined}
                 badges={(g as { badges?: { hideAuto?: string[]; custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }> } }).badges}
+                claim={claims[g.url]}
+                onMarkBought={!edit && siteSlug ? () => setActiveClaim({ url: g.url, name: g.name }) : undefined}
               />
             ))}
           </div>
         )}
       </div>
+      {activeClaim && siteSlug && (
+        <RegistryClaimModal
+          siteSlug={siteSlug}
+          entryUrl={activeClaim.url}
+          entryName={activeClaim.name}
+          onClose={() => setActiveClaim(null)}
+          onClaimed={(name) => {
+            recordClaim(activeClaim.url, name);
+            setActiveClaim(null);
+          }}
+        />
+      )}
     </section>
   );
 }
@@ -6738,10 +7084,12 @@ const TravelSection = memo(TravelSectionImpl, (p, n) => {
 });
 
 const RegistrySection = memo(RegistrySectionImpl, (p, n) => {
-  return p.onEditField === n.onEditField && manifestSlicesEqual(p.manifest, n.manifest, [
-    ...COMMON_CHROME_KEYS,
-    'registry',
-  ] as unknown as ReadonlyArray<keyof StoryManifest>);
+  return p.onEditField === n.onEditField
+    && p.siteSlug === n.siteSlug
+    && manifestSlicesEqual(p.manifest, n.manifest, [
+      ...COMMON_CHROME_KEYS,
+      'registry',
+    ] as unknown as ReadonlyArray<keyof StoryManifest>);
 });
 
 const GallerySection = memo(GallerySectionImpl, (p, n) => {
@@ -7490,7 +7838,7 @@ export function SiteV8Renderer({
       case 'travel':
         return <TravelSection key="travel" manifest={manifest} onEditField={onEditField} />;
       case 'registry':
-        return <RegistrySection key="registry" manifest={manifest} onEditField={onEditField} />;
+        return <RegistrySection key="registry" manifest={manifest} onEditField={onEditField} siteSlug={siteSlug} />;
       case 'gallery':
         return <GallerySection key="gallery" chapters={chapters} manifest={manifest} onEditField={onEditField} siteSlug={siteSlug} />;
       case 'faq':
