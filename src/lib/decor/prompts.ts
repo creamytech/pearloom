@@ -185,6 +185,48 @@ export function sectionStampsPrompt(ctx: DecorContext): string {
     .join('\n');
 }
 
+/** Mega-sheet — 12 cells in a 4×3 grid covering every decor slot
+ *  the host could want, in a single API call. The cells are
+ *  laid out row-major as:
+ *    Row 1 (stamps 1-4): hero · story · details · schedule
+ *    Row 2 (stamps 5-8): travel · registry · gallery · rsvp
+ *    Row 3 (mixed):      faq stamp · divider · footer · hero accent
+ *
+ *  ~75% cost reduction vs. running the four single-shot routes.
+ *  The slicer (sheet.ts) crops each cell to its content bounding
+ *  box so the caller doesn't waste pixels on the model's loose
+ *  spacing. */
+export function megaSheetPrompt(ctx: DecorContext): string {
+  const styleDirective = ctx.customPrompt && ctx.customPrompt.trim()
+    ? `Style direction from the user: ${ctx.customPrompt.trim()}.`
+    : '';
+  return [
+    `A 4-column 3-row grid of twelve small editorial illustrations for a ${ctx.occasion.replace(/-/g, ' ')} site. The illustrations together form ONE cohesive set — every cell uses the same line weight, the same single ink colour, and the same hand. This sheet will be sliced into twelve PNGs.`,
+    styleDirective,
+    ...STYLE_RAILS,
+    'Each cell holds ONE motif sitting on a flat #FFFFFF background, with at least 30% empty margin around the drawing.',
+    '- Cell 1  (hero stamp): a single small wreath OR a single pair of crossed olive branches in a thin hairline circle.',
+    '- Cell 2  (story stamp): a single quill OR a single open book corner in a thin hairline circle.',
+    '- Cell 3  (details stamp): a single envelope OR a single key in a thin hairline circle.',
+    '- Cell 4  (schedule stamp): a single clock face OR a single sun-over-horizon in a thin hairline circle.',
+    '- Cell 5  (travel stamp): a single compass OR a single map pin in a thin hairline circle.',
+    '- Cell 6  (registry stamp): a single small gift box with a ribbon in a thin hairline circle.',
+    '- Cell 7  (gallery stamp): a single vintage camera silhouette in a thin hairline circle.',
+    '- Cell 8  (rsvp stamp): a single sealed envelope with a ribbon in a thin hairline circle.',
+    '- Cell 9  (faq stamp): a single question-mark glyph nested in a single laurel sprig, in a thin hairline circle.',
+    '- Cell 10 (divider): a single horizontal ornament — a centre fleuron with a thin hairline rule extending left and right. WIDE, not tall — fills the cell horizontally.',
+    '- Cell 11 (closing flourish): a single small hand-drawn bouquet — three to five stems, gathered, no vase. TALL, not wide — fills the cell vertically.',
+    '- Cell 12 (hero accent): a single asymmetric flourish — one curling vine OR one sprig of leaves, off-centre, intended to sit beside a heading.',
+    'Cells 1-9 are square and feel like wax-seal stamps. Cell 10 is a horizontal band. Cells 11 and 12 are taller than wide.',
+    'Each illustration uses ONE ink colour from the palette accent. All twelve sit on the SAME flat #FFFFFF background.',
+    paletteLine(ctx.paletteHex),
+    'Arrange as a clean 4-columns × 3-rows grid with visible gaps. Leave plenty of breathing room between every cell. The grid is REGULAR — equal spacing, no overlap, no diagonal flow.',
+    NEGATIVE_PROMPT,
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
 /** RSVP confetti — single burst, transparent-ish paper.*/
 export function confettiPrompt(ctx: DecorContext): string {
   const customLine = ctx.customPrompt && ctx.customPrompt.trim()

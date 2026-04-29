@@ -46,7 +46,7 @@ interface LibraryPhoto {
   created_at?: string;
 }
 
-type LibraryTab = 'mine' | 'editorial' | 'iconify';
+type LibraryTab = 'mine' | 'editorial' | 'community' | 'iconify';
 
 // Decor "slots" — the manifest fields the host can apply a piece
 // to. Each tile's hover overlay surfaces the right list of
@@ -200,7 +200,7 @@ export function LibraryPanelV2({
         aria-label="Library tabs"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns: 'repeat(4, 1fr)',
           padding: 4,
           margin: '12px 16px 8px',
           background: 'var(--cream-2)',
@@ -212,6 +212,7 @@ export function LibraryPanelV2({
         {([
           { v: 'mine' as const, l: 'Your stuff', n: photoCount + decorCount },
           { v: 'editorial' as const, l: 'Editorial', n: editorialCount },
+          { v: 'community' as const, l: 'Community', n: 0 },
           { v: 'iconify' as const, l: 'Browse more', n: 0 },
         ]).map((o) => {
           const on = tab === o.v;
@@ -266,6 +267,7 @@ export function LibraryPanelV2({
           placeholder={
             tab === 'mine' ? 'Search your photos + AI marks…'
             : tab === 'editorial' ? 'Search editorial motifs…'
+            : tab === 'community' ? 'Search community marks…'
             : 'Search Iconify…'
           }
           style={{
@@ -302,6 +304,13 @@ export function LibraryPanelV2({
           <EditorialTab
             groups={editorialFiltered}
             stdGroups={ICON_LIBRARY}
+            onPickSlot={applyToSlot}
+          />
+        )}
+        {tab === 'community' && (
+          <CommunityTab
+            manifest={manifest}
+            query={q}
             onPickSlot={applyToSlot}
           />
         )}
@@ -508,6 +517,293 @@ function EditorialTab({
         </Section>
       ))}
     </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Community tab — browse approved marks from other hosts.
+// Filtered by the current site's palette + occasion so the
+// results actually fit. Click a tile, choose a slot, and we
+// bump the mark's downloads counter as we apply it.
+// ─────────────────────────────────────────────────────────────
+interface CommunityMark {
+  id: string;
+  asset_url: string;
+  kind: 'stamp' | 'divider' | 'footer' | 'accent' | 'confetti' | 'megasheet';
+  cell_key?: string | null;
+  occasion?: string | null;
+  vibe_tags?: string[];
+  palette_hex?: string[];
+  source_prompt?: string | null;
+  downloads?: number;
+  hearts?: number;
+}
+
+function CommunityTab({
+  manifest,
+  query,
+  onPickSlot,
+}: {
+  manifest?: StoryManifest;
+  query: string;
+  onPickSlot: (url: string, slot: DecorSlot) => void;
+}) {
+  const [marks, setMarks] = useState<CommunityMark[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [matchPalette, setMatchPalette] = useState(true);
+
+  const occasion = (manifest as unknown as { occasion?: string })?.occasion;
+  const paletteHex = useMemo(() => {
+    const colors = (manifest as unknown as { theme?: { colors?: Record<string, string> } })?.theme?.colors ?? {};
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const v of Object.values(colors)) {
+      if (typeof v !== 'string') continue;
+      const h = v.trim().toLowerCase();
+      if (!/^#?[0-9a-f]{6}$/.test(h)) continue;
+      const norm = h.startsWith('#') ? h : `#${h}`;
+      if (seen.has(norm)) continue;
+      seen.add(norm);
+      out.push(norm);
+    }
+    return out;
+  }, [manifest]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams();
+        if (occasion) params.set('occasion', occasion);
+        if (matchPalette && paletteHex.length > 0) params.set('palette', paletteHex.join(','));
+        if (query) params.set('q', query);
+        params.set('limit', '36');
+        const r = await fetch(`/api/community/marks?${params.toString()}`, { cache: 'no-store' });
+        if (!r.ok) throw new Error(`Failed (${r.status})`);
+        const d = (await r.json()) as { marks?: CommunityMark[]; note?: string };
+        if (cancelled) return;
+        setMarks(d.marks ?? []);
+        if ((d.marks?.length ?? 0) === 0 && d.note) setError(d.note);
+      } catch (err) {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : 'Failed to browse');
+        setMarks([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    void load();
+    return () => { cancelled = true; };
+  }, [occasion, matchPalette, paletteHex, query]);
+
+  // Bump the mark's downloads counter, then apply.
+  async function pickWithSlot(mark: CommunityMark, slot: DecorSlot) {
+    onPickSlot(mark.asset_url, slot);
+    // Best-effort — don't block the apply on the counter call.
+    try { await fetch(`/api/community/marks/${mark.id}/use`, { method: 'POST' }); } catch { /* silent */ }
+  }
+
+  // Group by kind so the host can scan: stamps · dividers · …
+  const grouped = useMemo(() => {
+    const out: Record<string, CommunityMark[]> = {};
+    for (const m of marks ?? []) {
+      // Megasheet parents are big preview tiles; render them as
+      // their own group so hosts can see the full sheet, not the
+      // cells (cells appear as their own kind rows).
+      const k = m.kind;
+      out[k] = out[k] ?? [];
+      out[k].push(m);
+    }
+    return out;
+  }, [marks]);
+
+  const KIND_LABELS: Record<string, string> = {
+    stamp: 'Section stamps',
+    divider: 'Dividers',
+    footer: 'Closing flourishes',
+    accent: 'Hero accents',
+    confetti: 'Confetti',
+    megasheet: 'Whole sheets',
+  };
+  const KIND_ORDER = ['stamp', 'divider', 'footer', 'accent', 'confetti', 'megasheet'];
+
+  return (
+    <>
+      {/* Palette filter toggle */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '0 2px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-muted)', fontFamily: 'var(--font-ui)' }}>
+            From the community
+          </span>
+          <span style={{ fontSize: 11, color: 'var(--ink-muted)', fontStyle: 'italic', lineHeight: 1.4 }}>
+            Marks other hosts have shared. Free to use.
+          </span>
+        </div>
+        {paletteHex.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setMatchPalette((v) => !v)}
+            style={{
+              fontSize: 10.5,
+              fontWeight: 700,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              padding: '5px 10px',
+              borderRadius: 999,
+              background: matchPalette ? 'var(--ink)' : 'transparent',
+              color: matchPalette ? 'var(--cream)' : 'var(--ink-soft)',
+              border: `1px solid ${matchPalette ? 'var(--ink)' : 'var(--line)'}`,
+              cursor: 'pointer',
+              fontFamily: 'var(--font-ui)',
+              whiteSpace: 'nowrap',
+            }}
+            title={matchPalette ? 'Showing marks that match your palette' : 'Showing all marks'}
+          >
+            {matchPalette ? 'Palette match' : 'All marks'}
+          </button>
+        )}
+      </div>
+
+      {loading && (
+        <div style={{ padding: 24, textAlign: 'center', color: 'var(--ink-muted)', fontSize: 13, fontStyle: 'italic' }}>
+          Threading…
+        </div>
+      )}
+
+      {!loading && (marks?.length ?? 0) === 0 && (
+        <div
+          style={{
+            padding: '14px 16px',
+            background: 'var(--cream-2)',
+            border: '1px dashed var(--line)',
+            borderRadius: 10,
+            fontSize: 12.5,
+            color: 'var(--ink-soft)',
+            fontStyle: 'italic',
+            fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+            lineHeight: 1.5,
+          }}
+        >
+          {error
+            ? error
+            : matchPalette && paletteHex.length > 0
+              ? 'No matches for your palette yet. Tap "All marks" to widen the search.'
+              : 'Nothing yet. Be the first — paint a mark, then opt it in to share.'}
+        </div>
+      )}
+
+      {!loading && (marks?.length ?? 0) > 0 && KIND_ORDER.map((k) => {
+        const items = grouped[k];
+        if (!items || items.length === 0) return null;
+        return (
+          <Section key={k} label={KIND_LABELS[k] ?? k} count={items.length}>
+            <TileGrid>
+              {items.map((m) => (
+                <CommunityTile
+                  key={m.id}
+                  mark={m}
+                  onPick={(slot) => { void pickWithSlot(m, slot); }}
+                />
+              ))}
+            </TileGrid>
+          </Section>
+        );
+      })}
+    </>
+  );
+}
+
+function CommunityTile({
+  mark,
+  onPick,
+}: {
+  mark: CommunityMark;
+  onPick: (slot: DecorSlot) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  // Slot list mirrors slotsForKind, but megasheet parents collapse
+  // into "use as anything" — host picks per-cell elsewhere.
+  const slots: DecorSlot[] = (() => {
+    switch (mark.kind) {
+      case 'stamp':    return ['sectionStamps:hero', 'sectionStamps:our-story', 'sectionStamps:details', 'sectionStamps:schedule', 'sectionStamps:travel', 'sectionStamps:registry', 'sectionStamps:gallery', 'sectionStamps:rsvp', 'sectionStamps:faq'];
+      case 'divider':  return ['divider'];
+      case 'footer':   return ['footerBouquet'];
+      case 'accent':   return ['accent'];
+      case 'confetti': return ['confetti'];
+      default:         return [...COMMON_SLOTS];
+    }
+  })();
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        aspectRatio: '1 / 1',
+        borderRadius: 10,
+        overflow: 'visible',
+        background: 'var(--cream)',
+        border: '1px solid var(--line)',
+        transition: 'border-color 160ms ease, transform 160ms cubic-bezier(0.22, 1, 0.36, 1)',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+    >
+      <div
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.setData(ASSET_DRAG_MIME, mark.asset_url);
+          e.dataTransfer.setData('text/uri-list', mark.asset_url);
+          e.dataTransfer.effectAllowed = 'copy';
+        }}
+        onClick={() => setOpen((v) => !v)}
+        title={mark.source_prompt ?? `${mark.kind} from the community`}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          padding: 8,
+          display: 'grid',
+          placeItems: 'center',
+          cursor: 'pointer',
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={mark.asset_url} alt={mark.source_prompt ?? mark.kind} loading="lazy" decoding="async" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+      </div>
+
+      {/* Tiny downloads pill — social proof. Only shows once it's
+          got >0 to avoid the lonely zero. */}
+      {(mark.downloads ?? 0) > 0 && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 4, right: 4,
+            padding: '2px 6px',
+            borderRadius: 999,
+            background: 'rgba(14,13,11,0.7)',
+            color: 'var(--cream, #FBF7EE)',
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: '0.04em',
+            fontFamily: 'var(--font-ui)',
+            pointerEvents: 'none',
+          }}
+        >
+          ↓ {mark.downloads}
+        </div>
+      )}
+
+      {open && (
+        <SlotPicker
+          slots={slots}
+          onPick={(slot) => { onPick(slot); setOpen(false); }}
+          onClose={() => setOpen(false)}
+          label={mark.source_prompt ?? mark.kind}
+        />
+      )}
+    </div>
   );
 }
 
@@ -903,14 +1199,29 @@ function AtelierModal({
   onChange: (m: StoryManifest) => void;
   onClose: () => void;
 }) {
+  // 'single' = paint one slot at a time (legacy flow, 1 OpenAI call
+  // per slot). 'sheet' = paint a 4×3 megasheet, slice into 12 cells
+  // (1 OpenAI call total).
+  const [mode, setMode] = useState<'single' | 'sheet'>('single');
   const [slot, setSlot] = useState<AtelierSlot>('divider');
   const [prompt, setPrompt] = useState('');
+  const [shareToCommunity, setShareToCommunity] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sheetResult, setSheetResult] = useState<{
+    okCount: number;
+    totalCells: number;
+    failed: string[];
+  } | null>(null);
   const ctx = useDecorContext(manifest);
-  const autoSummary = buildAutoSummary(ctx);
+  const autoSummary = buildAutoSummary({
+    occasion: ctx.occasion,
+    venue: ctx.venue,
+    vibe: ctx.vibe,
+  });
 
-  async function paint() {
+  // ── Single-slot path (legacy) ────────────────────────────────
+  async function paintSingle() {
     setBusy(true);
     setError(null);
     const jobId = startDecorJob(slot, ATELIER_SLOT_META[slot].label);
@@ -919,7 +1230,11 @@ function AtelierModal({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...ctx,
+          siteId: ctx.siteId,
+          occasion: ctx.occasion,
+          venue: ctx.venue,
+          paletteHex: ctx.paletteHex,
+          vibe: ctx.vibe,
           slots: [slot],
           customPrompts: prompt.trim() ? { [slot]: prompt.trim() } : undefined,
         }),
@@ -965,6 +1280,39 @@ function AtelierModal({
         decorLibrary: { ...(manifest.decorLibrary ?? {}), ...incoming },
         decorDrafts: nextDrafts,
       });
+
+      // Optional opt-in: share each painted slot to the community.
+      if (shareToCommunity) {
+        const sharePromises: Promise<unknown>[] = [];
+        for (const [k, v] of Object.entries(incoming)) {
+          if (k === 'sectionStamps') {
+            const stamps = v as Record<string, string>;
+            for (const [, url] of Object.entries(stamps)) {
+              sharePromises.push(publishMark({
+                asset_url: url,
+                kind: 'stamp',
+                occasion: ctx.occasion,
+                vibe_tags: ctx.vibe ? ctx.vibe.split(',').map((s) => s.trim()).filter(Boolean) : [],
+                palette_hex: ctx.paletteHex,
+                source_prompt: prompt.trim() || undefined,
+              }));
+            }
+          } else if (typeof v === 'string') {
+            const kind = k === 'divider' ? 'divider' : k === 'confetti' ? 'confetti' : k === 'footerBouquet' ? 'footer' : 'stamp';
+            sharePromises.push(publishMark({
+              asset_url: v,
+              kind,
+              occasion: ctx.occasion,
+              vibe_tags: ctx.vibe ? ctx.vibe.split(',').map((s) => s.trim()).filter(Boolean) : [],
+              palette_hex: ctx.paletteHex,
+              source_prompt: prompt.trim() || undefined,
+            }));
+          }
+        }
+        // Best-effort — don't fail the paint if community is down.
+        await Promise.allSettled(sharePromises);
+      }
+
       completeDecorJob(jobId, true);
       onClose();
     } catch (err) {
@@ -974,6 +1322,124 @@ function AtelierModal({
     } finally {
       setBusy(false);
     }
+  }
+
+  // ── Megasheet path (one call, 12 cells) ──────────────────────
+  async function paintSheet() {
+    setBusy(true);
+    setError(null);
+    setSheetResult(null);
+    const jobId = startDecorJob('sectionStamps', 'Whole sheet');
+    try {
+      const res = await fetch('/api/decor/megasheet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId: ctx.siteId,
+          occasion: ctx.occasion,
+          venue: ctx.venue,
+          paletteHex: ctx.paletteHex,
+          vibe: ctx.vibe,
+          customPrompt: prompt.trim() || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error ?? `Failed (${res.status})`);
+      }
+      const data = (await res.json()) as {
+        ok: boolean;
+        okCount: number;
+        totalCells: number;
+        assets: Record<string, { url: string | null; ok: boolean; contentRatio: number }>;
+        sheetUrl: string;
+        prompt: string;
+      };
+
+      // Slice the sheet into manifest decorLibrary slots.
+      const stamps: Record<string, string> = {};
+      for (const [k, v] of Object.entries(manifest.decorLibrary?.sectionStamps ?? {})) {
+        if (typeof v === 'string') stamps[k] = v;
+      }
+      const incoming: Partial<NonNullable<StoryManifest['decorLibrary']>> = {};
+      const failed: string[] = [];
+      const cellsForCommunity: { asset_url: string; cell_key: string }[] = [];
+
+      for (const [cellKey, asset] of Object.entries(data.assets)) {
+        if (!asset.ok || !asset.url) {
+          failed.push(cellKey);
+          continue;
+        }
+        if (cellKey in SHEET_CELL_TO_SECTION) {
+          stamps[SHEET_CELL_TO_SECTION[cellKey]] = asset.url;
+        } else if (cellKey === 'divider') {
+          incoming.divider = asset.url;
+        } else if (cellKey === 'footerBouquet') {
+          incoming.footerBouquet = asset.url;
+        } else if (cellKey === 'accent') {
+          // Accent lives at top-level. Attach later.
+        }
+        cellsForCommunity.push({ asset_url: asset.url, cell_key: cellKey });
+      }
+
+      if (Object.keys(stamps).length > 0) {
+        incoming.sectionStamps = stamps;
+      }
+
+      const accentUrl = data.assets['accent']?.url ?? null;
+      const ts = new Date().toISOString();
+      const nextDrafts = { ...(manifest.decorDrafts ?? {}) };
+      // Stash the full sheet as a sectionStamps draft so the host
+      // can recall the entire batch later.
+      if (Object.keys(stamps).length > 0) {
+        nextDrafts.sectionStamps = pushSectionStampsDraft(nextDrafts.sectionStamps, {
+          id: `sheet-${Date.now()}`,
+          stamps,
+          prompt: data.prompt,
+          customPrompt: prompt.trim() || undefined,
+          createdAt: ts,
+        });
+      }
+
+      const next: StoryManifest = {
+        ...manifest,
+        decorLibrary: { ...(manifest.decorLibrary ?? {}), ...incoming },
+        decorDrafts: nextDrafts,
+        ...(accentUrl ? { aiAccentUrl: accentUrl } as Partial<StoryManifest> : {}),
+      };
+      onChange(next);
+      setSheetResult({ okCount: data.okCount, totalCells: data.totalCells, failed });
+
+      // Optional opt-in: publish the megasheet as a parent + cells.
+      if (shareToCommunity) {
+        try {
+          await publishMark({
+            asset_url: data.sheetUrl,
+            kind: 'megasheet',
+            occasion: ctx.occasion,
+            vibe_tags: ctx.vibe ? ctx.vibe.split(',').map((s) => s.trim()).filter(Boolean) : [],
+            palette_hex: ctx.paletteHex,
+            source_prompt: data.prompt,
+            megasheet_cells: cellsForCommunity,
+          });
+        } catch { /* silent — sheet is on-site, sharing is bonus */ }
+      }
+
+      completeDecorJob(jobId, true);
+      // Don't auto-close — show the result so the host can see
+      // "9 of 12 came out clean" + retry if needed.
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed';
+      setError(msg);
+      completeDecorJob(jobId, false, msg);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function paint() {
+    if (mode === 'sheet') return paintSheet();
+    return paintSingle();
   }
 
   return (
@@ -1011,42 +1477,79 @@ function AtelierModal({
             Paint with Pear
           </h2>
           <p style={{ margin: '6px 0 0', fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
-            Pick a slot, write a few words. Pear paints in your palette + style.
+            {mode === 'sheet'
+              ? 'One painter call → twelve motifs at once. Stamps for every section plus divider, flourish, and accent.'
+              : 'Pick a slot, write a few words. Pear paints in your palette + style.'}
           </p>
         </div>
 
-        <div>
-          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 6 }}>
-            Slot
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
-            {(Object.keys(ATELIER_SLOT_META) as AtelierSlot[]).map((s) => {
-              const on = slot === s;
-              return (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setSlot(s)}
-                  title={ATELIER_SLOT_META[s].hint}
-                  style={{
-                    padding: '8px 10px',
-                    borderRadius: 10,
-                    background: on ? 'var(--ink)' : 'var(--cream-2)',
-                    color: on ? 'var(--cream)' : 'var(--ink)',
-                    border: `1px solid ${on ? 'var(--ink)' : 'var(--line)'}`,
-                    fontSize: 12,
-                    fontWeight: on ? 700 : 600,
-                    fontFamily: 'var(--font-ui)',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                  }}
-                >
-                  {ATELIER_SLOT_META[s].label}
-                </button>
-              );
-            })}
-          </div>
+        {/* Mode toggle */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, padding: 4, background: 'var(--cream-2)', borderRadius: 10, border: '1px solid var(--line-soft)' }}>
+          {([
+            { v: 'single' as const, l: 'One slot', sub: 'Pick a single piece' },
+            { v: 'sheet' as const, l: 'Whole sheet', sub: '12 motifs · 1 call' },
+          ]).map((o) => {
+            const on = mode === o.v;
+            return (
+              <button
+                key={o.v}
+                type="button"
+                onClick={() => setMode(o.v)}
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: 8,
+                  background: on ? 'var(--ink)' : 'transparent',
+                  color: on ? 'var(--cream)' : 'var(--ink-soft)',
+                  border: 0,
+                  fontFamily: 'var(--font-ui)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                }}
+              >
+                <span style={{ fontSize: 12.5, fontWeight: 700 }}>{o.l}</span>
+                <span style={{ fontSize: 10.5, opacity: on ? 0.85 : 0.7, fontWeight: 500 }}>{o.sub}</span>
+              </button>
+            );
+          })}
         </div>
+
+        {mode === 'single' && (
+          <div>
+            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 6 }}>
+              Slot
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
+              {(Object.keys(ATELIER_SLOT_META) as AtelierSlot[]).map((s) => {
+                const on = slot === s;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setSlot(s)}
+                    title={ATELIER_SLOT_META[s].hint}
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: 10,
+                      background: on ? 'var(--ink)' : 'var(--cream-2)',
+                      color: on ? 'var(--cream)' : 'var(--ink)',
+                      border: `1px solid ${on ? 'var(--ink)' : 'var(--line)'}`,
+                      fontSize: 12,
+                      fontWeight: on ? 700 : 600,
+                      fontFamily: 'var(--font-ui)',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                    }}
+                  >
+                    {ATELIER_SLOT_META[s].label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div>
           <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 6 }}>
@@ -1082,6 +1585,61 @@ function AtelierModal({
           </div>
         )}
 
+        {sheetResult && (
+          <div
+            style={{
+              padding: '10px 12px',
+              background: sheetResult.okCount >= 8 ? 'rgba(92,107,63,0.08)' : 'rgba(184,147,90,0.10)',
+              border: `1px solid ${sheetResult.okCount >= 8 ? 'rgba(92,107,63,0.25)' : 'rgba(184,147,90,0.30)'}`,
+              borderRadius: 10,
+              fontSize: 12.5,
+              color: 'var(--ink)',
+              lineHeight: 1.5,
+            }}
+          >
+            <div style={{ fontWeight: 700, marginBottom: 2 }}>
+              {sheetResult.okCount} of {sheetResult.totalCells} came out clean
+            </div>
+            {sheetResult.failed.length > 0 ? (
+              <div style={{ color: 'var(--ink-soft)', fontSize: 11.5 }}>
+                Some cells didn&apos;t isolate cleanly: {sheetResult.failed.join(', ')}. You can paint them individually in One slot mode.
+              </div>
+            ) : (
+              <div style={{ color: 'var(--ink-soft)', fontSize: 11.5 }}>
+                Marks landed in your library. Close the modal to see them.
+              </div>
+            )}
+          </div>
+        )}
+
+        <label
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 8,
+            padding: '8px 10px',
+            background: 'var(--cream-2)',
+            border: '1px solid var(--line)',
+            borderRadius: 10,
+            cursor: 'pointer',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={shareToCommunity}
+            onChange={(e) => setShareToCommunity(e.target.checked)}
+            style={{ marginTop: 2 }}
+          />
+          <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', fontFamily: 'var(--font-ui)' }}>
+              Share with the community
+            </span>
+            <span style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.4 }}>
+              Other hosts on similar palettes can use {mode === 'sheet' ? 'these motifs' : 'this mark'} for free. We&apos;ll review before it goes live.
+            </span>
+          </span>
+        </label>
+
         <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
           <button
             type="button"
@@ -1099,7 +1657,9 @@ function AtelierModal({
               fontFamily: 'var(--font-ui)',
             }}
           >
-            {busy ? 'Pear is painting…' : 'Paint it'}
+            {busy
+              ? (mode === 'sheet' ? 'Pear is painting the sheet…' : 'Pear is painting…')
+              : (mode === 'sheet' ? 'Paint the sheet' : 'Paint it')}
           </button>
           <button
             type="button"
@@ -1117,7 +1677,7 @@ function AtelierModal({
               fontFamily: 'var(--font-ui)',
             }}
           >
-            Cancel
+            {sheetResult ? 'Done' : 'Cancel'}
           </button>
         </div>
       </div>
@@ -1138,6 +1698,53 @@ function useDecorContext(manifest: StoryManifest) {
     const vibes = ((manifest as unknown as { vibes?: string[] }).vibes ?? []).join(', ');
     const venue = manifest.logistics?.venue ?? '';
     const venueAddress = manifest.logistics?.venueAddress ?? '';
-    return { palette, occasion, vibes, venue, venueAddress };
+    const siteId = (manifest as unknown as { subdomain?: string }).subdomain ?? 'preview';
+    const vibe = (manifest as unknown as { vibeString?: string }).vibeString ?? vibes;
+    // Hex array form (matches DecorLibraryPanel.useContext) — the
+    // megasheet route reads it as `paletteHex`.
+    const paletteHex = palette
+      ? (([palette.background, palette.accent, palette.accentLight, palette.foreground, palette.muted].filter(Boolean) as string[]))
+      : [];
+    return { siteId, palette, paletteHex, occasion, vibe, vibes, venue, venueAddress };
   }, [manifest]);
+}
+
+// Maps a megasheet cell key (e.g. 'stamp:story') to the manifest
+// `decorLibrary` slot it should land in. Story is the one rename
+// — sheet uses 'stamp:story', manifest uses 'sectionStamps.our-story'.
+const SHEET_CELL_TO_SECTION: Record<string, string> = {
+  'stamp:hero': 'hero',
+  'stamp:story': 'our-story',
+  'stamp:details': 'details',
+  'stamp:schedule': 'schedule',
+  'stamp:travel': 'travel',
+  'stamp:registry': 'registry',
+  'stamp:gallery': 'gallery',
+  'stamp:rsvp': 'rsvp',
+  'stamp:faq': 'faq',
+};
+
+// Publishes a single mark (or a megasheet + child cells) to the
+// community marketplace. Returns the new mark id; throws on
+// non-2xx so callers can decide whether to retry.
+async function publishMark(body: {
+  asset_url: string;
+  kind: 'stamp' | 'divider' | 'footer' | 'accent' | 'confetti' | 'megasheet';
+  occasion?: string;
+  vibe_tags?: string[];
+  palette_hex?: string[];
+  source_prompt?: string;
+  megasheet_cells?: { asset_url: string; cell_key: string }[];
+}): Promise<string> {
+  const r = await fetch('/api/community/marks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    throw new Error((e as { error?: string }).error ?? `Share failed (${r.status})`);
+  }
+  const data = (await r.json()) as { id: string };
+  return data.id;
 }
