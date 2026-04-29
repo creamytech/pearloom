@@ -218,3 +218,50 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ ok: true, id: data.id });
 }
+
+// ── DELETE ───────────────────────────────────────────────────
+// Soft-revoke a claim. Owner-only. Sets revoked_at; the row stays
+// for analytics but stops showing up in the public pill aggregate
+// and the host feed. Use cases: guest claimed wrong item, guest
+// changed mind and unsent the gift, host wants to merge dupes.
+export async function DELETE(req: NextRequest) {
+  const id = req.nextUrl.searchParams.get('id');
+  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const sb = getSupabase();
+  if (!sb) return NextResponse.json({ error: 'Storage unavailable' }, { status: 503 });
+
+  // Look up the claim's site to check ownership before touching it.
+  const { data: claim } = await sb
+    .from('registry_link_claims')
+    .select('site_id')
+    .eq('id', id)
+    .maybeSingle();
+  if (!claim) return NextResponse.json({ error: 'Claim not found' }, { status: 404 });
+
+  const { data: site } = await sb
+    .from('sites')
+    .select('creator_email')
+    .eq('id', claim.site_id)
+    .maybeSingle();
+  const ownerEmail = (site as { creator_email?: string } | null)?.creator_email?.toLowerCase();
+  if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase()) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  const { error } = await sb
+    .from('registry_link_claims')
+    .update({ revoked_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) {
+    console.error('[registry-link-claims DELETE]', error);
+    return NextResponse.json({ error: 'Could not revoke' }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}

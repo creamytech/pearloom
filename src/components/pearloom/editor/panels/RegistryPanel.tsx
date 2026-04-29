@@ -165,6 +165,24 @@ function RecentClaimsSection({ manifest, items }: { manifest: StoryManifest; ite
     try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
   }
 
+  // Optimistic revoke — drop locally first, hit the network, restore
+  // on failure. Host gets the snappy feel even on a slow link.
+  function onRevoke(id: string) {
+    setRows((prev) => prev?.filter((r) => r.id !== id) ?? null);
+    void fetch(`/api/registry-link-claims?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+      .then((r) => {
+        if (r.ok) return;
+        // Network rolled back — refetch to recover the row.
+        if (subdomain) {
+          fetch(`/api/registry-link-claims?siteId=${encodeURIComponent(subdomain)}&host=1`, { cache: 'no-store' })
+            .then((res) => res.ok ? res.json() : null)
+            .then((data: { claims?: ClaimRow[] } | null) => { if (data?.claims) setRows(data.claims); })
+            .catch(() => { /* silent */ });
+        }
+      })
+      .catch(() => { /* silent */ });
+  }
+
   if (!rows || rows.length === 0) return null;
   return (
     <PanelSection
@@ -174,7 +192,7 @@ function RecentClaimsSection({ manifest, items }: { manifest: StoryManifest; ite
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {rows.slice(0, 10).map((c) => (
-          <ClaimCard key={c.id} claim={c} manifest={manifest} entryLabel={labelFor(c.entry_url)} />
+          <ClaimCard key={c.id} claim={c} manifest={manifest} entryLabel={labelFor(c.entry_url)} onRevoke={() => onRevoke(c.id)} />
         ))}
         {rows.length > 10 && (
           <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', textAlign: 'center', padding: 4 }}>
@@ -193,10 +211,12 @@ function ClaimCard({
   claim,
   manifest,
   entryLabel,
+  onRevoke,
 }: {
   claim: ClaimRow;
   manifest: StoryManifest;
   entryLabel: string;
+  onRevoke: () => void;
 }) {
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -261,9 +281,37 @@ function ClaimCard({
         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>
           {claim.claimer_name ?? claim.claimer_email.split('@')[0]}
         </span>
-        <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
-          {relativeTime(claim.created_at)}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
+            {relativeTime(claim.created_at)}
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== 'undefined' && !window.confirm('Revoke this claim? It stops showing on the public registry but stays in your records.')) return;
+              onRevoke();
+            }}
+            aria-label="Revoke claim"
+            title="Revoke claim — useful if a guest claimed by mistake"
+            style={{
+              width: 22,
+              height: 22,
+              padding: 0,
+              borderRadius: 999,
+              border: '1px solid var(--line-soft)',
+              background: 'transparent',
+              color: 'var(--ink-muted)',
+              cursor: 'pointer',
+              fontSize: 13,
+              lineHeight: 1,
+              display: 'grid',
+              placeItems: 'center',
+              flexShrink: 0,
+            }}
+          >
+            ×
+          </button>
+        </div>
       </div>
       <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>
         got <strong style={{ fontWeight: 600 }}>{entryLabel}</strong>
