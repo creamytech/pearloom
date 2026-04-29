@@ -122,6 +122,17 @@ interface Guest {
   token: string | null;
   /** True when invited >7 days ago and still pending. */
   stale: boolean;
+  /** Events the guest opted into (manifest.events ids). When the
+   *  site has more than one event, the per-event headcount strip
+   *  groups guests by these. */
+  eventIds: string[];
+}
+
+interface ManifestEvent {
+  id: string;
+  name?: string;
+  time?: string;
+  type?: string;
 }
 
 const STALE_DAYS = 7;
@@ -186,6 +197,7 @@ function shapeGuest(g: ApiGuest): Guest {
     respondedAt: g.respondedAt,
     token: g.guestToken ?? null,
     stale,
+    eventIds: g.eventIds ?? [],
   };
 }
 
@@ -239,6 +251,34 @@ export function DashGuests() {
     }
     return base;
   }, [rows]);
+
+  // Per-event roster from the manifest. When a site has 2+ events
+  // (rehearsal dinner / ceremony / reception / brunch), the host
+  // gets a headcount strip per event so caterers / venues / bars
+  // can plan from real numbers instead of "everyone's coming".
+  const events = useMemo<ManifestEvent[]>(() => {
+    const m = site?.manifest as { events?: ManifestEvent[] } | undefined | null;
+    return Array.isArray(m?.events) ? m!.events : [];
+  }, [site?.manifest]);
+  const showPerEvent = events.length > 1;
+  // For each event, count how many "yes" guests have it on their
+  // selected list. Only attending guests count — declined guests
+  // technically have an event_ids array but they're not coming, so
+  // including them would be misleading.
+  const perEventCounts = useMemo(() => {
+    const out: Record<string, { yes: number; maybe: number }> = {};
+    if (!rows || !showPerEvent) return out;
+    for (const ev of events) out[ev.id] = { yes: 0, maybe: 0 };
+    for (const g of rows) {
+      if (g.rsvp !== 'yes' && g.rsvp !== 'maybe') continue;
+      const ids = g.eventIds.length > 0 ? g.eventIds : events.map((e) => e.id);
+      for (const id of ids) {
+        if (!out[id]) continue;
+        out[id][g.rsvp] += 1;
+      }
+    }
+    return out;
+  }, [rows, events, showPerEvent]);
 
   const filtered = useMemo(() => {
     if (!rows) return [];
@@ -385,6 +425,68 @@ export function DashGuests() {
               </Panel>
             ))}
           </div>
+
+          {/* PER-EVENT HEADCOUNT — only when there are 2+ events.
+              Each card shows the event name + "X yes · Y maybe"
+              so caterers + venues see the real numbers per moment. */}
+          {showPerEvent && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.6, padding: '0 4px' }}>
+                BY EVENT
+              </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(${Math.min(4, events.length)}, 1fr)`,
+                  gap: 10,
+                }}
+              >
+                {events.map((ev) => {
+                  const c = perEventCounts[ev.id] ?? { yes: 0, maybe: 0 };
+                  return (
+                    <Panel key={ev.id} bg={PD.paperCard} style={{ padding: '12px 14px' }}>
+                      <div
+                        style={{
+                          fontSize: 11.5,
+                          fontWeight: 600,
+                          color: PD.ink,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {ev.name ?? 'Event'}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 6 }}>
+                        <span
+                          style={{
+                            ...DISPLAY_STYLE,
+                            fontSize: 26,
+                            lineHeight: 1,
+                            color: PD.olive,
+                            fontWeight: 400,
+                          }}
+                        >
+                          {c.yes}
+                        </span>
+                        <span style={{ fontSize: 11, color: '#6A6A56' }}>yes</span>
+                        {c.maybe > 0 && (
+                          <>
+                            <span style={{ fontSize: 11, color: PD.gold, marginLeft: 8 }}>· {c.maybe} maybe</span>
+                          </>
+                        )}
+                      </div>
+                      {ev.time && (
+                        <div style={{ fontSize: 10.5, color: '#9A9488', marginTop: 4 }}>
+                          {ev.time}
+                        </div>
+                      )}
+                    </Panel>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* TABLE */}
           <Panel bg={PD.paper} padding={0} style={{ overflow: 'hidden' }}>
@@ -641,9 +743,37 @@ export function DashGuests() {
                           color: PD.inkSoft,
                           lineHeight: 1.4,
                           fontFamily: 'var(--pl-font-body)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 4,
                         }}
                       >
-                        {g.note || <span style={{ opacity: 0.3 }}>—</span>}
+                        {g.note ? <span>{g.note}</span> : !showPerEvent || g.eventIds.length === 0 || g.eventIds.length === events.length ? (
+                          <span style={{ opacity: 0.3 }}>—</span>
+                        ) : null}
+                        {/* Event chips — only when the guest opted INTO a
+                            specific subset (skipped at least one event).
+                            Default-all selections render as the dash
+                            instead of a noisy full-row of chips. */}
+                        {showPerEvent && g.eventIds.length > 0 && g.eventIds.length < events.length && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                            {events.filter((ev) => g.eventIds.includes(ev.id)).slice(0, 4).map((ev) => (
+                              <span
+                                key={ev.id}
+                                style={{
+                                  ...MONO_STYLE,
+                                  fontSize: 9,
+                                  padding: '2px 7px',
+                                  borderRadius: 999,
+                                  background: 'rgba(139,156,90,0.18)',
+                                  color: PD.oliveDeep,
+                                }}
+                              >
+                                {ev.name ?? 'Event'}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div
                         style={{

@@ -73,12 +73,13 @@ export default async function PersonalGuestPage({
     dietary_restrictions: string | null;
     message: string | null;
     responded_at: string | null;
+    event_ids: string[] | null;
   };
   let rsvp: GuestRsvp | null = null;
   if (guest.email) {
     const { data: rsvpRow } = await sb()
       .from('guests')
-      .select('status, plus_one, plus_one_name, meal_preference, dietary_restrictions, message, responded_at')
+      .select('status, plus_one, plus_one_name, meal_preference, dietary_restrictions, message, responded_at, event_ids')
       .eq('site_id', site.id)
       .eq('email', guest.email)
       .maybeSingle<GuestRsvp>();
@@ -178,8 +179,16 @@ export default async function PersonalGuestPage({
             mealPreference: rsvp?.meal_preference ?? null,
             dietaryRestrictions: rsvp?.dietary_restrictions ?? null,
             message: rsvp?.message ?? null,
+            selectedEventIds: rsvp?.event_ids ?? [],
           }}
           respondedAt={rsvp?.responded_at ?? null}
+          events={
+            (manifest.events ?? []).map((ev) => ({
+              id: ev.id,
+              name: ev.name,
+              time: ev.time,
+            }))
+          }
           accent={theme?.accent ?? '#5C6B3F'}
           headingFont={headingFont}
         />

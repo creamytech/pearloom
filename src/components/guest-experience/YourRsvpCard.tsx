@@ -22,6 +22,12 @@ import { useState } from 'react';
 
 type Status = 'attending' | 'declined' | 'maybe' | 'pending';
 
+interface RsvpEvent {
+  id: string;
+  name?: string;
+  time?: string;
+}
+
 interface Props {
   /** Site UUID for /api/rsvp's onConflict match. */
   siteId: string;
@@ -35,9 +41,16 @@ interface Props {
     mealPreference: string | null;
     dietaryRestrictions: string | null;
     message: string | null;
+    /** Events the guest already opted into. Defaults to all events
+     *  when the host hasn't sent a per-event RSVP yet. */
+    selectedEventIds: string[];
   };
   /** ISO timestamp of last RSVP. Surfaced as "Updated 3h ago". */
   respondedAt: string | null;
+  /** Multi-event roster from the manifest. When length > 1, the
+   *  card shows a per-event checklist so the guest can opt in to
+   *  the reception but skip the brunch. */
+  events?: RsvpEvent[];
   /** Site theme accent for the active pill. */
   accent?: string;
   /** Heading font for the eyebrow + greeting (matches /g page). */
@@ -65,6 +78,7 @@ export function YourRsvpCard({
   initialStatus,
   initial,
   respondedAt,
+  events = [],
   accent = '#5C6B3F',
   headingFont = 'Playfair Display',
 }: Props) {
@@ -75,9 +89,18 @@ export function YourRsvpCard({
   const [meal, setMeal] = useState(initial.mealPreference ?? '');
   const [dietary, setDietary] = useState(initial.dietaryRestrictions ?? '');
   const [message, setMessage] = useState(initial.message ?? '');
+  // Default a guest who hasn't selected events to "all events"
+  // so a one-tap "Going" reads as "going to everything" — they
+  // narrow the selection only if they want to skip something.
+  const [selectedEventIds, setSelectedEventIds] = useState<string[]>(
+    initial.selectedEventIds.length > 0
+      ? initial.selectedEventIds
+      : events.map((e) => e.id),
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(respondedAt);
+  const showEventChecklist = events.length > 1;
 
   async function submit(nextStatus: Status, includeDetails = false) {
     if (busy) return;
@@ -103,6 +126,13 @@ export function YourRsvpCard({
           mealPreference: includeDetails ? meal : initial.mealPreference,
           dietaryRestrictions: includeDetails ? dietary : initial.dietaryRestrictions,
           message: includeDetails ? message : initial.message,
+          // Always send the event list when the site has multiple
+          // events — even on the first quick toggle — so the host's
+          // per-event headcount stays accurate. Declined guests
+          // send an empty array (they're not coming to anything).
+          selectedEvents: showEventChecklist
+            ? (nextStatus === 'declined' ? [] : selectedEventIds)
+            : undefined,
         }),
       });
       if (!r.ok) {
@@ -241,6 +271,69 @@ export function YourRsvpCard({
 
       {expanded && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {/* Per-event checklist — multi-day events only. Default
+              "all events" is shown as all-checked; toggling one off
+              reads as "I'll skip the brunch" without forcing the
+              guest to think about every event. */}
+          {showEventChecklist && (
+            <Field label="Which events?">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {events.map((ev) => {
+                  const on = selectedEventIds.includes(ev.id);
+                  return (
+                    <button
+                      type="button"
+                      key={ev.id}
+                      onClick={() => setSelectedEventIds((prev) =>
+                        prev.includes(ev.id) ? prev.filter((id) => id !== ev.id) : [...prev, ev.id]
+                      )}
+                      aria-pressed={on}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '10px 12px',
+                        borderRadius: 10,
+                        border: on ? `1.5px solid ${accent}` : '1px solid rgba(14,13,11,0.12)',
+                        background: on ? `${accent}1f` : 'transparent',
+                        cursor: 'pointer',
+                        fontFamily: 'var(--font-ui)',
+                        textAlign: 'left',
+                        transition: 'background 160ms ease, border-color 160ms ease',
+                      }}
+                    >
+                      <span
+                        aria-hidden
+                        style={{
+                          width: 18,
+                          height: 18,
+                          borderRadius: 5,
+                          flexShrink: 0,
+                          border: on ? `1.5px solid ${accent}` : '1.5px solid rgba(14,13,11,0.2)',
+                          background: on ? accent : 'transparent',
+                          display: 'grid',
+                          placeItems: 'center',
+                          color: '#FFFFFF',
+                          fontSize: 11,
+                          lineHeight: 1,
+                        }}
+                      >
+                        {on && '✓'}
+                      </span>
+                      <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, color: 'var(--ink, #2B2B2B)' }}>
+                        {ev.name ?? 'Event'}
+                      </span>
+                      {ev.time && (
+                        <span style={{ fontSize: 11, color: 'var(--ink-muted, #9A9488)', flexShrink: 0 }}>
+                          {ev.time}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
+          )}
           <Toggle
             label="Bringing a +1?"
             on={plusOne}
