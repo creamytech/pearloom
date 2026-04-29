@@ -299,12 +299,31 @@ export function AtmospherePanel({
         )}
       </PanelSection>
 
-      {/* ── Per-section backgrounds ─────────────────────────────── */}
-      <PanelSection
-        label="Section backgrounds"
-        hint="Override the cream paper for any section. Apply 'atmosphere' to repeat the hero animation through the page."
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {/* ── Per-section backgrounds — collapsed by default ───────
+            Audited 2026-04-30: an 8-row × 5-option button grid
+            visible by default was overwhelming. Most hosts leave
+            every section on 'paper'. Tucked behind a disclosure
+            so power users can still reach it; the main flow
+            stays focused on the hero atmosphere. */}
+      <PanelSection label="Section backgrounds" hint="Per-section override. Most hosts leave this alone — the hero atmosphere fills naturally.">
+       <details>
+        <summary
+          style={{
+            cursor: 'pointer',
+            padding: '6px 10px',
+            borderRadius: 8,
+            background: 'var(--cream-2)',
+            border: '1px dashed var(--line)',
+            fontSize: 11.5,
+            fontWeight: 600,
+            color: 'var(--ink-soft)',
+            userSelect: 'none',
+            marginBottom: 8,
+          }}
+        >
+          Override the paper for individual sections
+        </summary>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 6 }}>
           {SECTIONS.map((s) => {
             const value = sectionBackgrounds[s.id] ?? 'paper';
             const sectAtmos = sectionAtmosphere[s.id];
@@ -386,6 +405,7 @@ export function AtmospherePanel({
             );
           })}
         </div>
+       </details>
       </PanelSection>
 
       {/* ── Decor visibility — collapsed by default ────────────

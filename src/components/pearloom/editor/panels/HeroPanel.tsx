@@ -242,38 +242,62 @@ export function HeroPanel({
             ariaLabel="Event start time"
           />
         </Field>
-        <Field
-          label="Time zone"
-          help="The countdown anchors here so a guest in Tokyo and a host in NYC see the same wall-clock time."
-        >
-          <SelectInput
-            value={manifest.logistics?.timezone ?? ''}
-            onChange={(v) =>
-              onChange({
-                ...manifest,
-                logistics: { ...(manifest.logistics ?? {}), timezone: v || undefined },
-              })
-            }
-            options={TIMEZONE_OPTIONS}
-            placeholder="Use the viewer's local zone"
-          />
-        </Field>
-        <Field
-          label="Date format"
-          help="How dates render in chapter headers and section meta. Defaults to 'September 14, 2026'."
-        >
-          <SelectInput
-            value={(manifest as unknown as { dateFormat?: string }).dateFormat ?? ''}
-            onChange={(v) =>
-              onChange({
-                ...manifest,
-                dateFormat: (v as 'long' | 'short' | 'numeric' | 'iso' | 'month-year' | '') || undefined,
-              } as unknown as StoryManifest)
-            }
-            options={DATE_FORMAT_OPTIONS}
-            placeholder="Long — September 14, 2026"
-          />
-        </Field>
+        {/* Audited 2026-04-30: tucked Time zone + Date format into a
+            disclosure. Both default fine for 95%+ of hosts; the
+            countdown auto-uses the viewer's local zone, and the
+            'long' date format is what most templates expect. */}
+        <details>
+          <summary
+            style={{
+              cursor: 'pointer',
+              padding: '6px 10px',
+              borderRadius: 8,
+              background: 'var(--cream-2)',
+              border: '1px dashed var(--line)',
+              fontSize: 11.5,
+              fontWeight: 600,
+              color: 'var(--ink-soft)',
+              userSelect: 'none',
+              marginBottom: 10,
+            }}
+          >
+            Time zone &amp; date format (optional)
+          </summary>
+          <div style={{ paddingTop: 4 }}>
+            <Field
+              label="Time zone"
+              help="The countdown anchors here so a guest in Tokyo and a host in NYC see the same wall-clock time."
+            >
+              <SelectInput
+                value={manifest.logistics?.timezone ?? ''}
+                onChange={(v) =>
+                  onChange({
+                    ...manifest,
+                    logistics: { ...(manifest.logistics ?? {}), timezone: v || undefined },
+                  })
+                }
+                options={TIMEZONE_OPTIONS}
+                placeholder="Use the viewer's local zone"
+              />
+            </Field>
+            <Field
+              label="Date format"
+              help="How dates render in chapter headers and section meta. Defaults to 'September 14, 2026'."
+            >
+              <SelectInput
+                value={(manifest as unknown as { dateFormat?: string }).dateFormat ?? ''}
+                onChange={(v) =>
+                  onChange({
+                    ...manifest,
+                    dateFormat: (v as 'long' | 'short' | 'numeric' | 'iso' | 'month-year' | '') || undefined,
+                  } as unknown as StoryManifest)
+                }
+                options={DATE_FORMAT_OPTIONS}
+                placeholder="Long — September 14, 2026"
+              />
+            </Field>
+          </div>
+        </details>
         <Field
           label="Venue"
           help="Type to search — picking from the list fills the address, lat/lng, and place ID in one shot."
