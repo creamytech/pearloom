@@ -598,13 +598,34 @@ function SlotCard({
         </div>
       </div>
       <div style={{ padding: '0 10px 10px' }}>
-        <DecorPromptComposer
-          value={customPrompt}
-          onChange={onCustomPromptChange}
-          autoSummary={buildAutoSummary(ctx)}
-          disabled={status === 'running'}
-          label={`${meta.label} — direction (optional)`}
-        />
+        {/* Audited 2026-04-30: per-slot custom prompt textarea
+            tucked behind a native <details>. Hosts who want
+            "with olive sprigs" can still write it; the default
+            path uses the motif suggestions above and stays clean. */}
+        <details style={{ marginBottom: 6 }}>
+          <summary
+            style={{
+              cursor: 'pointer',
+              padding: '4px 8px',
+              borderRadius: 6,
+              fontSize: 11,
+              color: 'var(--ink-muted)',
+              fontWeight: 500,
+              userSelect: 'none',
+            }}
+          >
+            Custom direction (optional)
+          </summary>
+          <div style={{ marginTop: 6 }}>
+            <DecorPromptComposer
+              value={customPrompt}
+              onChange={onCustomPromptChange}
+              autoSummary={buildAutoSummary(ctx)}
+              disabled={status === 'running'}
+              label={`${meta.label} — direction (optional)`}
+            />
+          </div>
+        </details>
         <DecorAlternatesStrip
           drafts={stripDrafts}
           activeUrl={url}
