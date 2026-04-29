@@ -2,18 +2,22 @@
 
 // ─────────────────────────────────────────────────────────────
 // YourContributionsCard — surfaces what THIS guest has done
-// for this couple. Two layers:
+// for this couple. Three layers:
 //
 //   • Photos uploaded via /sites/[domain]/upload?t=token
 //     (tagged with guest_id at insert time)
 //   • Registry claims via /api/registry-link-claims
 //     (matched by claimer_email = guest.email)
+//   • Words: memory-prompt responses, whispers, song requests,
+//     time-capsule notes — anything keyed to the guest's
+//     pearloom_guests.id where the guest typed the content.
 //
 // Renders only when there's at least one contribution. Below
 // the YourRsvpCard on /g/[token] so the personal page reads as
-// a hub: "what you said + what you brought + what you sent."
+// a hub: "what you said + what you brought + what you sent +
+// what you wrote."
 //
-// Both feeds are read-only on the guest side. The host can
+// All feeds are read-only on the guest side. The host can
 // revoke a claim or moderate a photo from their dashboard;
 // changes propagate through normal channels.
 // ─────────────────────────────────────────────────────────────
@@ -36,9 +40,30 @@ interface ContribClaim {
   createdAt: string;
 }
 
+/** A single moment-of-words: response to a memory prompt, a
+ *  whisper sent during the event, a song request, a time-capsule
+ *  note. The card renders them in a unified "Words you wrote"
+ *  strip with a small kind label so the guest can tell at a
+ *  glance which conversation each came from. */
+export interface ContribMoment {
+  id: string;
+  kind: 'memory' | 'whisper' | 'song' | 'timeCapsule';
+  /** Short heading the row leads with — the prompt question for
+   *  memory; song title + artist for songs; "you whispered" for
+   *  whispers; "Letter to your future self" for time-capsule. */
+  heading: string;
+  /** The body the guest typed — the response, the whisper, the
+   *  song note, the time-capsule body. Empty allowed when the
+   *  contribution is a fact (a song without a note). */
+  body: string;
+  /** ISO timestamp; the row renders relative time. */
+  createdAt: string;
+}
+
 interface Props {
   photos: ContribPhoto[];
   claims: ContribClaim[];
+  moments?: ContribMoment[];
   accent?: string;
   headingFont?: string;
 }
@@ -46,10 +71,11 @@ interface Props {
 export function YourContributionsCard({
   photos,
   claims,
+  moments = [],
   accent = '#5C6B3F',
   headingFont = 'Playfair Display',
 }: Props) {
-  if (photos.length === 0 && claims.length === 0) return null;
+  if (photos.length === 0 && claims.length === 0 && moments.length === 0) return null;
 
   return (
     <div
@@ -86,7 +112,7 @@ export function YourContributionsCard({
             color: 'var(--ink, #2B2B2B)',
           }}
         >
-          {summary(photos.length, claims.length)}
+          {summary(photos.length, claims.length, moments.length)}
         </h3>
       </div>
 
@@ -182,16 +208,83 @@ export function YourContributionsCard({
           </div>
         </Section>
       )}
+
+      {moments.length > 0 && (
+        <Section label="Words you wrote" count={moments.length}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {moments.slice(0, 8).map((m) => (
+              <div
+                key={`${m.kind}-${m.id}`}
+                style={{
+                  padding: '8px 10px',
+                  background: 'var(--cream-2, #F5EFE2)',
+                  border: '1px solid rgba(14,13,11,0.06)',
+                  borderRadius: 8,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 3,
+                }}
+              >
+                <span style={{
+                  fontSize: 9.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  color: accent,
+                }}>
+                  {kindLabel(m.kind)}
+                </span>
+                <span style={{ fontSize: 12.5, color: 'var(--ink, #2B2B2B)', fontWeight: 500 }}>
+                  {m.heading}
+                </span>
+                {m.body && (
+                  <span style={{
+                    fontSize: 12,
+                    color: 'var(--ink-soft, #3A332C)',
+                    fontStyle: 'italic',
+                    lineHeight: 1.5,
+                    borderLeft: `2px solid ${accent}55`,
+                    paddingLeft: 8,
+                    marginTop: 1,
+                  }}>
+                    &ldquo;{m.body.length > 200 ? m.body.slice(0, 200) + '…' : m.body}&rdquo;
+                  </span>
+                )}
+                <span style={{ fontSize: 10.5, color: 'var(--ink-muted, #9A9488)' }}>
+                  {relativeTime(m.createdAt)}
+                </span>
+              </div>
+            ))}
+            {moments.length > 8 && (
+              <div style={{ fontSize: 11, color: 'var(--ink-muted, #9A9488)', textAlign: 'center', marginTop: 2 }}>
+                + {moments.length - 8} more
+              </div>
+            )}
+          </div>
+        </Section>
+      )}
     </div>
   );
 }
 
-function summary(photoCount: number, claimCount: number): string {
+function kindLabel(kind: ContribMoment['kind']): string {
+  switch (kind) {
+    case 'memory': return 'Memory';
+    case 'whisper': return 'Whisper';
+    case 'song': return 'Song request';
+    case 'timeCapsule': return 'Time capsule';
+  }
+}
+
+function summary(photoCount: number, claimCount: number, momentCount: number = 0): string {
   const parts: string[] = [];
   if (photoCount > 0) parts.push(`${photoCount} ${photoCount === 1 ? 'photo' : 'photos'}`);
   if (claimCount > 0) parts.push(`${claimCount} ${claimCount === 1 ? 'gift' : 'gifts'}`);
+  if (momentCount > 0) parts.push(`${momentCount} ${momentCount === 1 ? 'moment' : 'moments'}`);
   if (parts.length === 0) return 'You haven\'t added anything yet.';
-  return parts.join(' & ') + '. Thank you, truly.';
+  if (parts.length === 1) return parts[0] + '. Thank you, truly.';
+  if (parts.length === 2) return parts.join(' & ') + '. Thank you, truly.';
+  return parts.slice(0, -1).join(', ') + ' & ' + parts[parts.length - 1] + '. Thank you, truly.';
 }
 
 function Section({ label, count, children }: { label: string; count: number; children: ReactNode }) {

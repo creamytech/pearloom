@@ -90,13 +90,19 @@ export default async function PersonalGuestPage({
     rsvp = rsvpRow ?? null;
   }
 
-  // ── Guest contributions: photos uploaded + gifts claimed ──
+  // ── Guest contributions: photos + gifts + words ──────────
   // Photos: tagged by guest_id when /upload?t=token was used.
   // Claims: matched by claimer_email = guest.email.
-  // Both feeds power the YourContributionsCard hub.
+  // Words: memory_prompts / whispers / song_requests /
+  // time_capsule rows where guest_id = pearloom_guests.id.
+  // All feeds power the YourContributionsCard hub.
   type PhotoRow = { id: string; url: string; caption: string | null; status: string; created_at: string };
   type ClaimRow = { id: string; entry_url: string; message: string | null; created_at: string };
-  const [photosRes, claimsRes] = await Promise.all([
+  type MemoryRow = { id: string; prompt: string; response: string | null; responded_at: string | null; created_at: string };
+  type WhisperRow = { id: string; body: string; created_at: string };
+  type SongRow = { id: string; song_title: string; artist: string | null; note: string | null; created_at: string };
+  type CapsuleRow = { id: string; body: string; reveal_years: number; created_at: string };
+  const [photosRes, claimsRes, memoriesRes, whispersRes, songsRes, capsuleRes] = await Promise.all([
     sb().from('guest_photos')
       .select('id, url, caption, status, created_at')
       .eq('guest_id', guest.id)
@@ -110,9 +116,39 @@ export default async function PersonalGuestPage({
           .is('revoked_at', null)
           .order('created_at', { ascending: false })
       : Promise.resolve({ data: null as ClaimRow[] | null }),
+    // Memory prompts only count if the guest actually responded.
+    sb().from('memory_prompts')
+      .select('id, prompt, response, responded_at, created_at')
+      .eq('guest_id', guest.id)
+      .not('response', 'is', null)
+      .order('responded_at', { ascending: false })
+      .limit(12),
+    sb().from('whispers')
+      .select('id, body, created_at')
+      .eq('guest_id', guest.id)
+      .order('created_at', { ascending: false })
+      .limit(12),
+    // Song requests with state != hidden so post-moderation
+    // removals don't surface back to the guest as if they were
+    // still in the queue.
+    sb().from('song_requests')
+      .select('id, song_title, artist, note, created_at, state')
+      .eq('guest_id', guest.id)
+      .neq('state', 'hidden')
+      .order('created_at', { ascending: false })
+      .limit(12),
+    sb().from('time_capsule')
+      .select('id, body, reveal_years, created_at')
+      .eq('guest_id', guest.id)
+      .order('created_at', { ascending: false })
+      .limit(8),
   ]);
   const photos = (photosRes.data ?? []) as PhotoRow[];
   const claims = (claimsRes.data ?? []) as ClaimRow[];
+  const memories = (memoriesRes.data ?? []) as MemoryRow[];
+  const whispers = (whispersRes.data ?? []) as WhisperRow[];
+  const songs = ((songsRes.data ?? []) as Array<SongRow & { state?: string }>);
+  const capsules = (capsuleRes.data ?? []) as CapsuleRow[];
 
   const manifest = (site.site_config as { manifest?: StoryManifest }).manifest;
   if (!manifest) notFound();
@@ -236,11 +272,47 @@ export default async function PersonalGuestPage({
           status: (p.status === 'approved' || p.status === 'rejected' ? p.status : 'pending') as 'approved' | 'rejected' | 'pending',
           createdAt: p.created_at,
         }));
-        return (photosForCard.length > 0 || claimsForCard.length > 0) ? (
+        // Build the unified "Words you wrote" feed by merging all
+        // four guest-keyed text tables into one ContribMoment[]
+        // sorted newest-first. Empty bodies (e.g. song requests
+        // with no note) still surface — the heading carries the
+        // signal in those cases.
+        const momentsForCard = [
+          ...memories.map((m) => ({
+            id: m.id,
+            kind: 'memory' as const,
+            heading: m.prompt,
+            body: m.response ?? '',
+            createdAt: m.responded_at ?? m.created_at,
+          })),
+          ...whispers.map((w) => ({
+            id: w.id,
+            kind: 'whisper' as const,
+            heading: 'You whispered to the couple',
+            body: w.body,
+            createdAt: w.created_at,
+          })),
+          ...songs.map((s) => ({
+            id: s.id,
+            kind: 'song' as const,
+            heading: s.artist ? `${s.song_title} — ${s.artist}` : s.song_title,
+            body: s.note ?? '',
+            createdAt: s.created_at,
+          })),
+          ...capsules.map((c) => ({
+            id: c.id,
+            kind: 'timeCapsule' as const,
+            heading: `For ${c.reveal_years === 1 ? 'their first anniversary' : `their ${c.reveal_years}-year anniversary`}`,
+            body: c.body,
+            createdAt: c.created_at,
+          })),
+        ].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        return (photosForCard.length > 0 || claimsForCard.length > 0 || momentsForCard.length > 0) ? (
           <section style={{ padding: '2rem 1.5rem 0', maxWidth: 720, margin: '0 auto' }}>
             <YourContributionsCard
               photos={photosForCard}
               claims={claimsForCard}
+              moments={momentsForCard}
               accent={theme?.accent ?? '#5C6B3F'}
               headingFont={headingFont}
             />
