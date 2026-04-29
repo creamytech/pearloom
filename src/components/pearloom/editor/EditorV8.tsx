@@ -2982,7 +2982,16 @@ function Inspector({
            *  Mobile (fluid) falls back to the centered modal at
            *  editor root. */}
           {!fluid && block === 'travel' && (
-            <div style={{ position: 'absolute', inset: 0, zIndex: 5, display: 'flex', flexDirection: 'column' }}>
+            // Bug fix 2026-04-30: pointerEvents:'none' on the
+            // wrapper. HotelQuickEditModal returns null when no
+            // hotel is selected, but the wrapper itself was
+            // covering the entire Travel panel with inset:0 and
+            // intercepting every click — making the panel feel
+            // dead. The QuickEditModalShell sets pointerEvents:
+            // 'auto' on its own root when open, so the modal is
+            // still interactive. Closed → clicks fall through to
+            // the panel content beneath.
+            <div style={{ position: 'absolute', inset: 0, zIndex: 5, display: 'flex', flexDirection: 'column', pointerEvents: 'none' }}>
               <HotelQuickEditModal manifest={manifest} onChange={onChange} dock="panel" />
             </div>
           )}

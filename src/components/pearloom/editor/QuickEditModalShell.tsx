@@ -225,8 +225,12 @@ export function QuickEditModalShell({
   // (used when the host's inspector is wide enough to host the
   // editor inline — single source of UI between the two flows).
   const isPanel = dock === 'panel';
+  // Re-enable pointer events on the panel-mode root. The parent
+  // wrapper in EditorV8 sets pointerEvents:'none' on the absolute
+  // container so a closed shell doesn't block clicks to the panel
+  // beneath; when we ARE open, this opt-in restores interaction.
   const outerStyle: React.CSSProperties = isPanel
-    ? { display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }
+    ? { display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, pointerEvents: 'auto' }
     : {
         position: 'fixed',
         inset: 0,

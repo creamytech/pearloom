@@ -41,6 +41,12 @@ interface SortableBlockListProps {
   blockKeys: string[];
   /** Renders each block. Called once per key. */
   renderItem: (key: string, idx: number) => ReactNode;
+  /** Optional pre-block render — sits BETWEEN the inline-add zone
+   *  and the sortable item itself. Used for dividers / decor that
+   *  visually separate sections but shouldn't be claimed by either
+   *  section's bounding box (so hover highlights + section labels
+   *  don't overlap with the divider art). */
+  renderBefore?: (key: string, idx: number) => ReactNode;
   /** Called when reorder happens. Receives the new order. */
   onReorder?: (next: string[]) => void;
   /** Called when "× remove" is clicked on a section. The host
@@ -64,7 +70,7 @@ interface SortableBlockListProps {
 }
 
 export function SortableBlockList({
-  blockKeys, renderItem, onReorder, onRemove, onEdit, onAddAt, pickerBlocks = [], onDropOutlineBlock, blockLabels,
+  blockKeys, renderItem, renderBefore, onReorder, onRemove, onEdit, onAddAt, pickerBlocks = [], onDropOutlineBlock, blockLabels,
 }: SortableBlockListProps) {
   const edit = useIsEditMode();
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -151,6 +157,13 @@ export function SortableBlockList({
                   : undefined}
               />
             )}
+            {/* Pre-block render — dividers / decor that visually
+                separate sections. Sits OUTSIDE the sortable item so
+                the section's bounding box (hover ring, label badge,
+                grip handle) starts where the actual content does,
+                not where the divider art begins. Fixes the overlap
+                issue reported in the canvas. */}
+            {renderBefore?.(key, i)}
             <CanvasSortableItem
               id={key}
               label={blockLabels?.[key]}

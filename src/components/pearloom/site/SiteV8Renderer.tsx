@@ -8172,45 +8172,60 @@ export function SiteV8Renderer({
               .map((k) => ({ key: k, label: meta[k].label, description: meta[k].description }));
             return renderableHidden;
           })()}
-          renderItem={(key, i) => {
+          renderBefore={(key, i) => {
+            // Divider art lives BETWEEN sections, not inside either
+            // one. Rendering it via renderBefore (sibling of the
+            // CanvasSortableItem) means the section's bounding box
+            // starts where its content actually does — so the
+            // section label, grip, and hover ring don't overlap
+            // the compass-rose divider art at the top. Bug fix
+            // 2026-04-30: the user reported "all sections say they
+            // start at same place of the dividers and art so it
+            // overlaps."
+            const k = key as SiteBlockKey;
+            const sectionId = k === 'story' ? 'our-story' : k;
+            if (isBlockHidden(manifest, sectionId)) return null;
+            if (!renderBlock(k)) return null;
+            const decorVis = (manifest as unknown as { decorVisibility?: Record<string, boolean> }).decorVisibility;
+            const dividerHidden = decorVis?.[`divider-${k}`] === false;
+            return (
+              <DecorEditOverlay
+                visibilityKey={`divider-${k}`}
+                kind="divider"
+                url={dividerUrl}
+                onEditField={onEditField}
+                label="Divider"
+              >
+                <DecorDivider
+                  url={dividerUrl}
+                  index={i}
+                  strength={dividerStrength}
+                  hidden={dividerHidden}
+                />
+              </DecorEditOverlay>
+            );
+          }}
+          renderItem={(key) => {
             const k = key as SiteBlockKey;
             // Honour per-block hidden flag.
             const sectionId = k === 'story' ? 'our-story' : k;
             if (isBlockHidden(manifest, sectionId)) return null;
             const block = renderBlock(k);
             if (!block) return null;
-            const decorVis = (manifest as unknown as { decorVisibility?: Record<string, boolean> }).decorVisibility;
-            const dividerHidden = decorVis?.[`divider-${k}`] === false;
             return (
-              <>
-                <DecorEditOverlay
-                  visibilityKey={`divider-${k}`}
-                  kind="divider"
-                  url={dividerUrl}
-                  onEditField={onEditField}
-                  label="Divider"
-                >
-                  <DecorDivider
-                    url={dividerUrl}
-                    index={i}
-                    strength={dividerStrength}
-                    hidden={dividerHidden}
-                  />
-                </DecorEditOverlay>
-                <StickerLayer
-                  blockId={k}
-                  stickers={manifest.stickers}
-                  onEditField={onEditField}
-                >
-                  {/* Apply per-section visual overrides (padding /
-                      maxWidth / textAlign / textColor) from
-                      manifest.blockStyles[sectionId]. The wrapper
-                      is a no-op when no override is set. */}
-                  <BlockStyleWrapper manifest={manifest} blockId={sectionId}>
-                    {block}
-                  </BlockStyleWrapper>
-                </StickerLayer>
-              </>
+              <StickerLayer
+                blockId={k}
+                stickers={manifest.stickers}
+                onEditField={onEditField}
+              >
+                {/* Apply per-section visual overrides (padding /
+                    maxWidth / textAlign / textColor) from
+                    manifest.blockStyles[sectionId]. The wrapper
+                    is a no-op when no override is set. */}
+                <BlockStyleWrapper manifest={manifest} blockId={sectionId}>
+                  {block}
+                </BlockStyleWrapper>
+              </StickerLayer>
             );
           }}
         />
