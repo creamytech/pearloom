@@ -53,8 +53,7 @@ import { FindInSite } from './FindInSite';
 import { MobileSaveIndicator } from './MobileSaveIndicator';
 import { ThemeQuickBar } from './canvas/ThemeQuickBar';
 import { EditorCanvasProvider } from './canvas/EditorCanvasContext';
-import { AssetLibraryPanel } from './panels/AssetLibraryPanel';
-import { DecorLibraryPanel } from './panels/DecorLibraryPanel';
+import { LibraryPanelV2 } from './panels/LibraryPanelV2';
 import { useEditorHistory } from './canvas/useEditorHistory';
 import { HeroPanel } from './panels/HeroPanel';
 import { NavPanel } from './panels/NavPanel';
@@ -623,9 +622,12 @@ export function EditorV8({
         // immediately by re-queueing with the latest state.
         e.preventDefault();
         queueSave(manifest, names);
-      } else if (!isTyping && !e.shiftKey && !e.altKey && (e.key === '1' || e.key === '2' || e.key === '3' || e.key === '4' || e.key === '5')) {
+      } else if (!isTyping && !e.shiftKey && !e.altKey && (e.key === '1' || e.key === '2' || e.key === '3' || e.key === '4')) {
         e.preventDefault();
-        const map: Record<string, InspectorTab> = { '1': 'section', '2': 'theme', '3': 'decor', '4': 'library', '5': 'pear' };
+        // ⌘3 used to land on the Decor tab; merged into Library so
+        // both keys route to the same panel during the deprecation
+        // window. ⌘4 is Pear (was '5' before Library merged).
+        const map: Record<string, InspectorTab> = { '1': 'section', '2': 'theme', '3': 'library', '4': 'pear' };
         setInspectorTab(map[e.key]);
       }
     }
@@ -1916,9 +1918,8 @@ function KbdHint() {
             ['Previous block', '⌘↑ / Ctrl↑'],
             ['Section tab', '⌘1 / Ctrl 1'],
             ['Theme tab', '⌘2 / Ctrl 2'],
-            ['Decor tab', '⌘3 / Ctrl 3'],
-            ['Library tab', '⌘4 / Ctrl 4'],
-            ['Pear tab', '⌘5 / Ctrl 5'],
+            ['Library tab', '⌘3 / Ctrl 3'],
+            ['Pear tab', '⌘4 / Ctrl 4'],
             ['Preview as guest', '⌘P / Ctrl P'],
             ['Save & publish', '⌘⇧P / Ctrl⇧P'],
             ['Force-save draft', '⌘S / Ctrl S'],
@@ -2541,13 +2542,10 @@ function Inspector({
             // when they're inside it.
             { key: 'section', label: 'Section', icon: 'sliders' },
             { key: 'theme', label: 'Theme', icon: 'palette' },
-            // Decor used to be a sub-anchor inside Theme. It's so
-            // important to the v8 visual identity (stamps, dividers,
-            // bouquets, the AI accent) that it gets its own tab now —
-            // hosts no longer have to scroll past palette / fonts /
-            // motif before they reach it.
-            { key: 'decor', label: 'Decor', icon: 'fleuron' },
-            { key: 'library', label: 'Library', icon: 'image' },
+            // Library is the unified asset drawer (was Decor + Library
+            // until the v2 redesign folded them together). Tabs inside
+            // the panel cover Your stuff / Editorial / Browse more.
+            { key: 'library', label: 'Library', icon: 'fleuron' },
             { key: 'pear', label: 'Pear', icon: 'sparkles' },
           ] as Array<{ key: InspectorTab; label: string; icon: string }>
         ).map((t) => {
@@ -2681,18 +2679,13 @@ function Inspector({
         </div>
       )}
 
-      {tab === 'decor' && (
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflowY: 'auto' }}>
-          <EditorCanvasProvider value={{ editMode: true, onEditField: (patch) => onChange(patch(manifest)) }}>
-            <div style={{ padding: '20px 22px' }}>
-              <DecorLibraryPanel manifest={manifest} onChange={onChange} />
-            </div>
-          </EditorCanvasProvider>
-        </div>
-      )}
-
-      {tab === 'library' && (
-        <AssetLibraryPanel manifest={manifest} onChange={onChange} />
+      {/* Decor tab merged into Library; LibraryPanelV2 covers
+          AI marks, photos, editorial motifs, and Iconify search
+          in one drawer. The 'decor' inspector tab key stays on
+          the union for now (keyboard shortcut ⌘3 also lands here)
+          so old jumps don't 404. */}
+      {(tab === 'decor' || tab === 'library') && (
+        <LibraryPanelV2 manifest={manifest} onChange={onChange} />
       )}
 
       {tab === 'pear' && (
