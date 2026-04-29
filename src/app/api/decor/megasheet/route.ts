@@ -87,7 +87,12 @@ export async function POST(req: NextRequest) {
       size: '1536x1024',
       quality: 'high',
       format: 'png',
-      background: 'transparent',
+      // We deliberately DO NOT request `background: 'transparent'`
+      // here. gpt-image-2 rejects the flag for some sizes/accounts
+      // ("Transparent background is not supported for this model"),
+      // and we don't need it — the prompt mandates a flat #FFFFFF
+      // backdrop and `sliceSheet()` runs `removeWhiteBackground()`
+      // per cell, which converts the white to transparent.
     });
     if (!result?.base64) {
       return NextResponse.json(
