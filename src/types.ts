@@ -190,6 +190,15 @@ export interface StoryManifest {
     cashFundUrl?: string;
     cashFundMessage?: string;
     message?: string;
+    /** Optional cash-fund progress display. When set, the public
+     *  registry shows a "we've raised X of Y" thread above the
+     *  cash-fund card. `target` is the dollar goal; `raised` is
+     *  the running total credited to the fund (host-edited or
+     *  webhook-incremented). Pearloom doesn't do bookkeeping —
+     *  just a presentation field. */
+    cashFundTarget?: number;
+    cashFundRaised?: number;
+    cashFundCurrency?: string;
     // Multi-registry support
     entries?: Array<{
       name: string;
@@ -198,6 +207,10 @@ export interface StoryManifest {
       /** Optional product / registry-host thumbnail. Renders on
        *  the registry card + sidebar tile in the Quick Edit modal. */
       photoUrl?: string;
+      /** Optional price hint as a free-form string ("$120", "Group
+       *  gift", "From $40"). Free-form so non-USD or "from-X"
+       *  patterns work without a number column. */
+      priceLabel?: string;
       /** Per-row badges. The "Most loved" auto-badge lives in
        *  hideAuto when the host wants it suppressed; custom labels
        *  ("Couple's pick", "Group gift", "Already bought") under

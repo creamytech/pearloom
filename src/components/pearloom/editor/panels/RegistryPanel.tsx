@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, SelectInput, TextArea, TextInput } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PhotoSlot, SelectInput, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { BadgesEditor } from './BadgesEditor';
@@ -38,6 +38,11 @@ type RegistryItem = {
   url: string;
   description?: string;
   kind?: 'fund' | 'registry' | 'link';
+  /** Optional product / retailer thumbnail. Replaces the abstract
+   *  icon block on the public card when set. */
+  photoUrl?: string;
+  /** Optional free-form price label ("$120", "Group gift", "From $40"). */
+  priceLabel?: string;
   badges?: {
     hideAuto?: RegistryAutoBadge[];
     custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }>;
@@ -102,9 +107,57 @@ const KINDS = [
   { value: 'link', label: 'Link' },
 ];
 
-function get(m: StoryManifest): RegistryItem[] {
-  const arr = (m as unknown as { registry?: RegistryItem[] }).registry;
-  return Array.isArray(arr) ? arr : [];
+const CURRENCIES = [
+  { value: 'USD', label: '$ USD' },
+  { value: 'EUR', label: '€ EUR' },
+  { value: 'GBP', label: '£ GBP' },
+  { value: 'CAD', label: 'CAD' },
+  { value: 'AUD', label: 'AUD' },
+  { value: 'NZD', label: 'NZD' },
+  { value: 'JPY', label: '¥ JPY' },
+];
+
+// The renderer reads `manifest.registry` as either a legacy flat
+// array OR the canonical object shape `{ entries, cashFundUrl, ... }`.
+// New writes always use the object shape so cash-fund + entries
+// can coexist on the same key. Reads are forgiving — sites stuck
+// on the old array shape keep working until the host saves once.
+type RegistryEnvelope = {
+  entries?: RegistryItem[];
+  cashFundUrl?: string;
+  cashFundMessage?: string;
+  cashFundTarget?: number;
+  cashFundRaised?: number;
+  cashFundCurrency?: string;
+};
+function readRegistry(m: StoryManifest): RegistryEnvelope {
+  const reg = (m as unknown as { registry?: unknown }).registry;
+  if (Array.isArray(reg)) return { entries: reg as RegistryItem[] };
+  if (reg && typeof reg === 'object') {
+    const r = reg as RegistryEnvelope;
+    return {
+      entries: Array.isArray(r.entries) ? r.entries : [],
+      cashFundUrl: r.cashFundUrl,
+      cashFundMessage: r.cashFundMessage,
+      cashFundTarget: r.cashFundTarget,
+      cashFundRaised: r.cashFundRaised,
+      cashFundCurrency: r.cashFundCurrency,
+    };
+  }
+  return {};
+}
+function writeRegistry(m: StoryManifest, env: RegistryEnvelope): StoryManifest {
+  const cleaned: RegistryEnvelope = {};
+  if (env.entries && env.entries.length > 0) cleaned.entries = env.entries;
+  if (env.cashFundUrl) cleaned.cashFundUrl = env.cashFundUrl;
+  if (env.cashFundMessage) cleaned.cashFundMessage = env.cashFundMessage;
+  if (env.cashFundTarget && env.cashFundTarget > 0) cleaned.cashFundTarget = env.cashFundTarget;
+  if (env.cashFundRaised && env.cashFundRaised > 0) cleaned.cashFundRaised = env.cashFundRaised;
+  if (env.cashFundCurrency) cleaned.cashFundCurrency = env.cashFundCurrency;
+  return {
+    ...m,
+    registry: Object.keys(cleaned).length ? cleaned : undefined,
+  } as unknown as StoryManifest;
 }
 
 export function RegistryPanel({
@@ -114,11 +167,16 @@ export function RegistryPanel({
   manifest: StoryManifest;
   onChange: (m: StoryManifest) => void;
 }) {
-  const items = get(manifest);
+  const env = readRegistry(manifest);
+  const items = env.entries ?? [];
   useRegistryRowFocus();
 
   function set(next: RegistryItem[]) {
-    onChange({ ...manifest, registry: next } as unknown as StoryManifest);
+    onChange(writeRegistry(manifest, { ...env, entries: next }));
+  }
+
+  function setFund(patch: Partial<RegistryEnvelope>) {
+    onChange(writeRegistry(manifest, { ...env, ...patch }));
   }
 
   function update(idx: number, patch: Partial<RegistryItem>) {
@@ -132,6 +190,65 @@ export function RegistryPanel({
 
   return (
     <PanelGroup>
+      {/* Cash fund — surfaces at the top of the public registry as
+          a peach progress strip when a target is set. Honeyfund /
+          Venmo / Zelle URLs all work here; we just present the
+          progress, the host updates `raised` as gifts arrive (or
+          a Stripe webhook can in a future ship). */}
+      <PanelSection
+        label="Cash fund"
+        hint="When you set a target, the public registry shows a progress thread above the cards."
+        defaultOpen={false}
+      >
+        <Field label="Cash fund link" help="Honeyfund, Venmo, Zelle — wherever guests should send a contribution.">
+          <TextInput
+            type="url"
+            value={env.cashFundUrl ?? ''}
+            onChange={(e) => setFund({ cashFundUrl: e.target.value || undefined })}
+            placeholder="https://honeyfund.com/…"
+          />
+        </Field>
+        <Field label="Headline" help="One short line guests read first. 'Kyoto in October.'">
+          <TextInput
+            value={env.cashFundMessage ?? ''}
+            onChange={(e) => setFund({ cashFundMessage: e.target.value || undefined })}
+            placeholder="Kyoto in October. Thank you, truly."
+          />
+        </Field>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 100px', gap: 10 }}>
+          <Field label="Target">
+            <TextInput
+              type="number"
+              min={0}
+              value={env.cashFundTarget ?? ''}
+              onChange={(e) => {
+                const n = Number(e.target.value);
+                setFund({ cashFundTarget: Number.isFinite(n) && n > 0 ? n : undefined });
+              }}
+              placeholder="5000"
+            />
+          </Field>
+          <Field label="Raised so far">
+            <TextInput
+              type="number"
+              min={0}
+              value={env.cashFundRaised ?? ''}
+              onChange={(e) => {
+                const n = Number(e.target.value);
+                setFund({ cashFundRaised: Number.isFinite(n) && n >= 0 ? n : undefined });
+              }}
+              placeholder="0"
+            />
+          </Field>
+          <Field label="Currency">
+            <SelectInput
+              value={env.cashFundCurrency ?? 'USD'}
+              onChange={(v) => setFund({ cashFundCurrency: v })}
+              options={CURRENCIES}
+            />
+          </Field>
+        </div>
+      </PanelSection>
       <PanelSection label="Import from a URL" hint="Paste a Zola, Amazon, or Target registry link — Pear reads it and imports.">
         <RegistryImportAI onResult={(items2) => set([...items, ...items2])} />
       </PanelSection>
@@ -168,21 +285,43 @@ export function RegistryPanel({
                 onDelete={() => set(items.filter((_, idx) => idx !== i))}
                 rootProps={{ 'data-pl-registry-row-url': it.url }}
               >
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 140px', gap: 10 }}>
-                  <Field label="Label">
-                    <TextInput
-                      value={it.label}
-                      onChange={(e) => update(i, { label: e.target.value })}
-                      placeholder="Honeymoon fund"
+                <div style={{ display: 'grid', gridTemplateColumns: '96px 1fr', gap: 12, alignItems: 'flex-start' }}>
+                  <Field label="Photo">
+                    <PhotoSlot
+                      src={it.photoUrl}
+                      onChange={(url) => update(i, { photoUrl: url })}
+                      aspect="1/1"
+                      label=""
                     />
                   </Field>
-                  <Field label="Type">
-                    <SelectInput
-                      value={it.kind ?? 'fund'}
-                      onChange={(v) => update(i, { kind: v as RegistryItem['kind'] })}
-                      options={KINDS}
-                    />
-                  </Field>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 140px', gap: 10 }}>
+                      <Field label="Label">
+                        <TextInput
+                          value={it.label}
+                          onChange={(e) => update(i, { label: e.target.value })}
+                          placeholder="Honeymoon fund"
+                        />
+                      </Field>
+                      <Field label="Type">
+                        <SelectInput
+                          value={it.kind ?? 'fund'}
+                          onChange={(v) => update(i, { kind: v as RegistryItem['kind'] })}
+                          options={KINDS}
+                        />
+                      </Field>
+                    </div>
+                    <Field
+                      label="Price"
+                      help="Free-form: $120, From $40, Group gift, etc."
+                    >
+                      <TextInput
+                        value={it.priceLabel ?? ''}
+                        onChange={(e) => update(i, { priceLabel: e.target.value })}
+                        placeholder="$120"
+                      />
+                    </Field>
+                  </div>
                 </div>
                 <Field label="Link">
                   <TextInput

@@ -4806,6 +4806,13 @@ interface RegistryCardGift {
   url: string;
   icon: string;
   tone: 'peach' | 'sage' | 'lavender';
+  /** Optional product / retailer thumbnail. Replaces the colored
+   *  icon block when set; the card reads as a polished wishlist
+   *  tile rather than a generic link. */
+  photoUrl?: string;
+  /** Free-form price label ("$120", "Group gift", "From $40"). */
+  priceLabel?: string;
+  badges?: { hideAuto?: string[]; custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }> };
 }
 function RegistryCard({
   gift,
@@ -4927,29 +4934,219 @@ function RegistryCard({
           ))}
         </div>
       )}
-      <div
-        style={{
-          width: 56,
-          height: 56,
-          borderRadius: 14,
-          background:
-            gift.tone === 'peach' ? 'var(--peach-bg)' : gift.tone === 'sage' ? 'var(--sage-tint)' : 'var(--lavender-bg)',
-          color:
-            gift.tone === 'peach' ? 'var(--peach-ink)' : gift.tone === 'sage' ? 'var(--sage-deep)' : 'var(--lavender-ink)',
-          display: 'grid',
-          placeItems: 'center',
-        }}
-      >
-        <Icon name={gift.icon} size={24} />
-      </div>
-      <div className="display" style={{ fontSize: 26 }}>
-        {gift.name}
+      {/* Thumbnail / icon block. Real product photo when the host
+          uploaded one, retailer favicon when the URL is well-known
+          and no photo is set, abstract tone block as last resort. */}
+      {gift.photoUrl ? (
+        <div
+          style={{
+            width: '100%',
+            aspectRatio: '4/3',
+            borderRadius: 12,
+            background: `var(--cream-2, #F5EFE2) center/cover no-repeat url(${gift.photoUrl})`,
+            border: '1px solid rgba(14,13,11,0.06)',
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: 14,
+            background:
+              gift.tone === 'peach' ? 'var(--peach-bg)' : gift.tone === 'sage' ? 'var(--sage-tint)' : 'var(--lavender-bg)',
+            color:
+              gift.tone === 'peach' ? 'var(--peach-ink)' : gift.tone === 'sage' ? 'var(--sage-deep)' : 'var(--lavender-ink)',
+            display: 'grid',
+            placeItems: 'center',
+            position: 'relative',
+          }}
+        >
+          <Icon name={gift.icon} size={24} />
+          <RetailerFavicon url={gift.url} />
+        </div>
+      )}
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, width: '100%' }}>
+        <div className="display" style={{ fontSize: 26 }}>
+          {gift.name}
+        </div>
+        {gift.priceLabel && (
+          <span
+            style={{
+              fontSize: 11.5,
+              fontWeight: 700,
+              letterSpacing: '0.06em',
+              padding: '3px 10px',
+              borderRadius: 999,
+              background: 'var(--cream-2, #F5EFE2)',
+              color: 'var(--ink, #0E0D0B)',
+              flexShrink: 0,
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            {gift.priceLabel}
+          </span>
+        )}
       </div>
       <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5, margin: 0 }}>{gift.d}</p>
       <a href={gift.url} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm" style={{ justifyContent: 'center' }}>
         Contribute <Icon name="arrow-right" size={12} />
       </a>
     </div>
+  );
+}
+
+// Cash-fund progress strip. Renders above the registry grid when
+// the host set a target. Shows the fraction raised + a peach
+// thread that fills proportionally. Pure presentation — Pearloom
+// doesn't reconcile actual transactions. Hosts edit the raised
+// amount as they receive contributions, OR a future webhook
+// updates it on Stripe success.
+function CashFundProgress({
+  target,
+  raised,
+  currency,
+  label,
+  url,
+}: {
+  target: number;
+  raised: number;
+  currency: string;
+  label?: string;
+  url: string;
+}) {
+  const pct = Math.max(0, Math.min(100, Math.round((raised / target) * 100)));
+  const fmt = (n: number) =>
+    new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(n);
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      style={{
+        display: 'block',
+        margin: '0 auto 32px',
+        maxWidth: 560,
+        padding: '18px 22px',
+        borderRadius: 18,
+        background: 'linear-gradient(135deg, rgba(251,232,214,0.7) 0%, rgba(232,224,240,0.6) 100%)',
+        border: '1px solid rgba(198,112,61,0.22)',
+        textDecoration: 'none',
+        color: 'var(--ink)',
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
+        <span
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--peach-ink, #C6703D)',
+          }}
+        >
+          Cash fund
+        </span>
+        <span style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
+          <strong style={{ color: 'var(--ink)', fontWeight: 700 }}>{fmt(raised)}</strong> of {fmt(target)}
+        </span>
+      </div>
+      {label && (
+        <div
+          style={{
+            fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+            fontStyle: 'italic',
+            fontSize: 17,
+            color: 'var(--ink)',
+            marginTop: 4,
+            lineHeight: 1.3,
+          }}
+        >
+          {label}
+        </div>
+      )}
+      <div
+        aria-hidden
+        style={{
+          height: 6,
+          marginTop: 14,
+          borderRadius: 999,
+          background: 'rgba(14,13,11,0.08)',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            width: `${pct}%`,
+            height: '100%',
+            background: 'linear-gradient(90deg, var(--sage-deep, #6d7d3f), var(--peach-ink, #C6703D))',
+            borderRadius: 999,
+            transition: 'width 480ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        />
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
+          marginTop: 6,
+          fontSize: 11.5,
+          color: 'var(--ink-muted)',
+        }}
+      >
+        <span>{pct}% there</span>
+        <span style={{ color: 'var(--peach-ink, #C6703D)', fontWeight: 600 }}>
+          Chip in →
+        </span>
+      </div>
+    </a>
+  );
+}
+
+// Tiny circular favicon overlay on the bottom-right of the icon
+// block. Pulls the retailer's hostname favicon via Google's S2
+// service so common stores (Zola, Amazon, Crate & Barrel) get a
+// real-feeling brand cue without the host uploading anything.
+// Hides when the favicon 404s (img onError sets aria-hidden true
+// — we just collapse the wrapper instead).
+function RetailerFavicon({ url }: { url: string }) {
+  const host = (() => {
+    try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return null; }
+  })();
+  if (!host) return null;
+  return (
+    <span
+      style={{
+        position: 'absolute',
+        bottom: -4,
+        right: -4,
+        width: 22,
+        height: 22,
+        borderRadius: 999,
+        background: '#FFFFFF',
+        boxShadow: '0 2px 6px rgba(14,13,11,0.18)',
+        display: 'grid',
+        placeItems: 'center',
+        overflow: 'hidden',
+      }}
+      aria-hidden
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`https://www.google.com/s2/favicons?sz=32&domain=${encodeURIComponent(host)}`}
+        alt=""
+        width={14}
+        height={14}
+        loading="lazy"
+        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+      />
+    </span>
   );
 }
 
@@ -5000,12 +5197,23 @@ function RegistrySectionImpl({ manifest, onEditField }: { manifest: StoryManifes
   // registry.cashFundUrl / message. When nothing is set, the
   // whole section hides so we never ship "Honeymoon fund / A
   // good kitchen" demo copy.
-  type RegistryEntry = { name?: string; label?: string; url: string; note?: string };
+  type RegistryEntry = {
+    name?: string;
+    label?: string;
+    url: string;
+    note?: string;
+    photoUrl?: string;
+    priceLabel?: string;
+    badges?: { hideAuto?: string[]; custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }> };
+  };
   const reg = manifest.registry as undefined | {
     enabled?: boolean;
     entries?: RegistryEntry[];
     cashFundUrl?: string;
     cashFundMessage?: string;
+    cashFundTarget?: number;
+    cashFundRaised?: number;
+    cashFundCurrency?: string;
     message?: string;
   };
   const entries = reg?.entries ?? [];
@@ -5017,7 +5225,7 @@ function RegistrySectionImpl({ manifest, onEditField }: { manifest: StoryManifes
   // nested shape AND the legacy flat array, we don't want to render
   // it twice. The nested shape wins (has name + note).
   const seenUrls = new Set<string>();
-  const combined: Array<{ name: string; d: string; url: string; icon: string; tone: 'peach' | 'sage' | 'lavender' }> = [];
+  const combined: RegistryCardGift[] = [];
   entries.forEach((e, i) => {
     if (!e.url || seenUrls.has(e.url)) return;
     seenUrls.add(e.url);
@@ -5027,6 +5235,9 @@ function RegistrySectionImpl({ manifest, onEditField }: { manifest: StoryManifes
       url: e.url,
       icon: ['gift', 'compass', 'image'][i % 3],
       tone: (['peach', 'sage', 'lavender'] as const)[i % 3],
+      photoUrl: e.photoUrl,
+      priceLabel: e.priceLabel,
+      badges: e.badges,
     });
   });
   legacyEntries.forEach((r, i) => {
@@ -5095,6 +5306,20 @@ function RegistrySectionImpl({ manifest, onEditField }: { manifest: StoryManifes
             Your presence really is the gift. But if you&apos;d like to mark the day, here&apos;s where to find us.
           </p>
         </div>
+
+        {/* Cash fund progress thread — when the host set a target,
+            show how the fund's filling up. Reads as encouragement
+            ("we're at 60%") rather than a dunning chart. Hidden
+            when target is unset or zero. */}
+        {reg?.cashFundUrl && reg.cashFundTarget && reg.cashFundTarget > 0 && (
+          <CashFundProgress
+            target={reg.cashFundTarget}
+            raised={reg.cashFundRaised ?? 0}
+            currency={reg.cashFundCurrency ?? 'USD'}
+            label={reg.cashFundMessage}
+            url={reg.cashFundUrl}
+          />
+        )}
 
         {showGroups ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
