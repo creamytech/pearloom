@@ -102,6 +102,11 @@ interface ApiGuest {
   invitedAt?: string | null;
   createdAt?: string | null;
   guestToken?: string | null;
+  emailSentAt?: string | null;
+  emailDeliveredAt?: string | null;
+  emailOpenedAt?: string | null;
+  emailClickedAt?: string | null;
+  emailBouncedAt?: string | null;
   eventIds: string[];
 }
 
@@ -118,10 +123,18 @@ interface Guest {
   invitedAt: string | null;
   /** ISO timestamp the guest replied. */
   respondedAt: string | null;
+  /** Email lifecycle from the Resend webhook. */
+  emailSentAt: string | null;
+  emailDeliveredAt: string | null;
+  emailOpenedAt: string | null;
+  emailBouncedAt: string | null;
   /** Per-guest token, used to deep-link to /g/[token]. */
   token: string | null;
   /** True when invited >7 days ago and still pending. */
   stale: boolean;
+  /** True when the email opened the invite but didn't reply. The
+   *  funnel surfaces these as "ready for a nudge". */
+  opened: boolean;
   /** Events the guest opted into (manifest.events ids). When the
    *  site has more than one event, the per-event headcount strip
    *  groups guests by these. */
@@ -143,6 +156,82 @@ function isStale(invitedAtIso: string | null | undefined, status: RsvpKey, now =
   const t = new Date(invitedAtIso).getTime();
   if (Number.isNaN(t)) return false;
   return now - t > STALE_MS;
+}
+
+/** Inline email lifecycle pips: 📨 sent → ✓ delivered → 👁 opened.
+ *  Bounced overrides the chain with a single terra pip. Each pip
+ *  is small (~6px) so the row stays visually quiet. Hovering any
+ *  pip shows its exact timestamp. */
+function EmailTrackingStrip({
+  sentAt,
+  deliveredAt,
+  openedAt,
+  bouncedAt,
+}: {
+  sentAt: string | null;
+  deliveredAt: string | null;
+  openedAt: string | null;
+  bouncedAt: string | null;
+}) {
+  if (bouncedAt) {
+    return (
+      <div
+        style={{
+          fontSize: 10,
+          color: PD.terra,
+          fontWeight: 700,
+          letterSpacing: '0.04em',
+          marginTop: 1,
+        }}
+        title={`Bounced ${new Date(bouncedAt).toLocaleString()}`}
+      >
+        ⚠ bounced — wrong address?
+      </div>
+    );
+  }
+  type Pip = { label: string; ts: string | null; tone: string };
+  const pips: Pip[] = [
+    { label: 'sent', ts: sentAt, tone: '#9A9488' },
+    { label: 'delivered', ts: deliveredAt, tone: '#9A9488' },
+    { label: 'opened', ts: openedAt, tone: PD.olive },
+  ];
+  if (!pips.some((p) => p.ts)) return null;
+  return (
+    <div
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
+        marginTop: 2,
+        fontSize: 9.5,
+        color: '#9A9488',
+        letterSpacing: '0.04em',
+      }}
+    >
+      {pips.map((p, i) => {
+        const lit = !!p.ts;
+        return (
+          <span key={p.label} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <span
+              aria-hidden
+              title={p.ts ? `${p.label} ${new Date(p.ts).toLocaleString()}` : `not ${p.label} yet`}
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: 999,
+                background: lit ? p.tone : 'rgba(14,13,11,0.12)',
+                transition: 'background 200ms ease',
+              }}
+            />
+            {lit && (
+              <span style={{ color: p.tone, fontWeight: 600 }}>{p.label}</span>
+            )}
+            {i < pips.length - 1 && lit && <span aria-hidden style={{ opacity: 0.4 }}>→</span>}
+          </span>
+        );
+      })}
+    </div>
+  );
 }
 
 function relativeTime(iso: string): string {
@@ -182,7 +271,9 @@ function shapeGuest(g: ApiGuest): Guest {
   const status = normaliseStatus(g.status);
   const invitedAt = g.invitedAt ?? g.createdAt ?? null;
   const stale = isStale(invitedAt, status);
+  const opened = !!g.emailOpenedAt && status === 'pending';
   if (stale) tags.push('stale');
+  if (opened) tags.push('opened');
   return {
     id: g.id,
     n: g.name,
@@ -195,8 +286,13 @@ function shapeGuest(g: ApiGuest): Guest {
     tags,
     invitedAt,
     respondedAt: g.respondedAt,
+    emailSentAt: g.emailSentAt ?? null,
+    emailDeliveredAt: g.emailDeliveredAt ?? null,
+    emailOpenedAt: g.emailOpenedAt ?? null,
+    emailBouncedAt: g.emailBouncedAt ?? null,
     token: g.guestToken ?? null,
     stale,
+    opened,
     eventIds: g.eventIds ?? [],
   };
 }
@@ -242,12 +338,14 @@ export function DashGuests() {
   }, [site?.id, refreshKey]);
 
   const counts = useMemo(() => {
-    const base = { all: 0, yes: 0, no: 0, maybe: 0, pending: 0, stale: 0 };
+    const base = { all: 0, yes: 0, no: 0, maybe: 0, pending: 0, stale: 0, opened: 0, bounced: 0 };
     if (!rows) return base;
     base.all = rows.length;
     for (const g of rows) {
       base[g.rsvp] += 1;
       if (g.stale) base.stale += 1;
+      if (g.opened) base.opened += 1;
+      if (g.emailBouncedAt) base.bounced += 1;
     }
     return base;
   }, [rows]);
@@ -488,6 +586,49 @@ export function DashGuests() {
             </div>
           )}
 
+          {/* NUDGE — when N guests opened the invite but haven't
+              replied, surface a one-line peach pill that filters
+              the table to those rows in one tap. Reads as Pear
+              telling the host the actionable bucket without making
+              them mentally sort. */}
+          {counts.opened > 0 && (
+            <button
+              type="button"
+              onClick={() => setFilter('pending')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px 14px',
+                background: 'linear-gradient(135deg, rgba(251,232,214,0.85) 0%, rgba(232,224,240,0.65) 100%)',
+                border: '1px solid rgba(198,112,61,0.28)',
+                borderRadius: 12,
+                fontFamily: 'inherit',
+                cursor: 'pointer',
+                textAlign: 'left',
+              }}
+            >
+              <span
+                aria-hidden
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 999,
+                  background: 'var(--peach-ink, #C6703D)',
+                  flexShrink: 0,
+                }}
+              />
+              <span style={{ fontSize: 12.5, color: 'var(--ink, #0E0D0B)' }}>
+                <strong style={{ fontWeight: 700 }}>{counts.opened}</strong>
+                {' '}
+                {counts.opened === 1 ? 'guest opened' : 'guests opened'} the invite but haven&apos;t replied. Ready for a nudge.
+              </span>
+              <span style={{ marginLeft: 'auto', fontSize: 11.5, color: 'var(--peach-ink, #C6703D)', fontWeight: 700 }}>
+                See pending →
+              </span>
+            </button>
+          )}
+
           {/* TABLE */}
           <Panel bg={PD.paper} padding={0} style={{ overflow: 'hidden' }}>
             <div
@@ -718,6 +859,20 @@ export function DashGuests() {
                                 </span>
                               )}
                             </div>
+                          )}
+                          {/* Email tracking pips — sent → delivered →
+                              opened → clicked. Each pip lights up
+                              when the timestamp lands. Bounced shows
+                              a single peach pip + "bounced" label
+                              instead of the chain (the message
+                              never made it). */}
+                          {(g.emailSentAt || g.emailDeliveredAt || g.emailOpenedAt || g.emailBouncedAt) && (
+                            <EmailTrackingStrip
+                              sentAt={g.emailSentAt}
+                              deliveredAt={g.emailDeliveredAt}
+                              openedAt={g.emailOpenedAt}
+                              bouncedAt={g.emailBouncedAt}
+                            />
                           )}
                         </div>
                       </div>

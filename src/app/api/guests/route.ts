@@ -55,10 +55,16 @@ export async function GET(req: NextRequest) {
       respondedAt: row.responded_at,
       // Lifecycle timestamps for the host's timeline + stale-guest
       // detection. invitedAt is set when the host imports / sends
-      // an invite cadence; respondedAt is set on RSVP submit.
+      // an invite cadence; respondedAt is set on RSVP submit; the
+      // email_* timestamps come from the Resend webhook.
       invitedAt: row.invited_at,
       createdAt: row.created_at,
       guestToken: row.guest_token,
+      emailSentAt: row.email_sent_at,
+      emailDeliveredAt: row.email_delivered_at,
+      emailOpenedAt: row.email_opened_at,
+      emailClickedAt: row.email_clicked_at,
+      emailBouncedAt: row.email_bounced_at,
       eventIds: Array.isArray(row.event_ids) ? row.event_ids : [],
       mailingAddress: row.mailing_address_line1 ? {
         line1: row.mailing_address_line1,
