@@ -16,6 +16,8 @@ type LiveUpdate = {
   message: string;
   type?: string;
   created_at: string;
+  email_broadcast_at?: string | null;
+  email_recipient_count?: number | null;
 };
 
 interface Props {
@@ -36,6 +38,10 @@ export function BroadcastComposer({ subdomain }: Props) {
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // When true, the next send fans out to all attending guests'
+  // email inboxes. Capped server-side at 3/day per site.
+  const [alsoEmail, setAlsoEmail] = useState(false);
+  const [lastEmailSummary, setLastEmailSummary] = useState<string | null>(null);
 
   async function refresh() {
     try {
@@ -60,19 +66,43 @@ export function BroadcastComposer({ subdomain }: Props) {
 
   async function send(message: string, type = 'misc') {
     if (!message.trim()) return;
+    // Email broadcast is a real-money action — confirm before
+    // hitting hundreds of inboxes, and only when the toggle is on.
+    if (alsoEmail) {
+      const ok = typeof window !== 'undefined'
+        ? window.confirm("Email this update to every attending guest? It'll land in their inbox right now.")
+        : true;
+      if (!ok) return;
+    }
     setBusy(true);
     setError(null);
+    setLastEmailSummary(null);
     try {
       const res = await fetch('/api/sites/live-updates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subdomain, message: message.trim(), type }),
+        body: JSON.stringify({ subdomain, message: message.trim(), type, email: alsoEmail }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error((body as { error?: string }).error ?? `Send failed (${res.status})`);
       }
+      const data = (await res.json()) as { emailedTo?: number | null; emailLimited?: boolean };
+      if (alsoEmail) {
+        if (data.emailLimited) {
+          setLastEmailSummary("Daily email cap reached (3/24h) — message posted, but no emails sent.");
+        } else if (typeof data.emailedTo === 'number') {
+          setLastEmailSummary(
+            data.emailedTo > 0
+              ? `Emailed ${data.emailedTo} guest${data.emailedTo === 1 ? '' : 's'}.`
+              : "No attending guests with email — message posted on-site only."
+          );
+        }
+      }
       setDraft('');
+      // Reset email toggle so a follow-up post doesn't accidentally
+      // re-email when the host meant "just on-site".
+      setAlsoEmail(false);
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to broadcast');
@@ -171,7 +201,52 @@ export function BroadcastComposer({ subdomain }: Props) {
           {busy ? 'Sending…' : 'Send'}
         </button>
       </div>
+
+      {/* Email-also toggle. Off by default so a fast-typed quick-
+          pick doesn't accidentally email everyone. The 3/24h cap
+          is enforced server-side. */}
+      <label
+        style={{
+          marginTop: 10,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          fontSize: 13,
+          color: 'var(--ink-soft)',
+          cursor: 'pointer',
+          userSelect: 'none',
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={alsoEmail}
+          onChange={(e) => setAlsoEmail(e.target.checked)}
+          disabled={busy}
+        />
+        <span>
+          Also email everyone attending
+          <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--ink-muted)' }}>
+            · max 3/day, prompts to confirm
+          </span>
+        </span>
+      </label>
+
       {error && <div style={{ marginTop: 8, fontSize: 12, color: '#7A2D2D' }}>{error}</div>}
+      {lastEmailSummary && (
+        <div
+          style={{
+            marginTop: 8,
+            fontSize: 12,
+            padding: '6px 10px',
+            borderRadius: 8,
+            background: 'rgba(92,107,63,0.10)',
+            color: 'var(--sage-deep, #5C6B3F)',
+            border: '1px solid rgba(92,107,63,0.18)',
+          }}
+        >
+          ✓ {lastEmailSummary}
+        </div>
+      )}
 
       {updates.length > 0 && (
         <div style={{ marginTop: 18 }}>
@@ -203,7 +278,28 @@ export function BroadcastComposer({ subdomain }: Props) {
                   gap: 12,
                 }}
               >
-                <span>{u.message}</span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  {u.message}
+                  {u.email_broadcast_at && (
+                    <span
+                      title={`Emailed to ${u.email_recipient_count ?? 0} guests`}
+                      style={{
+                        marginLeft: 8,
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        padding: '1px 6px',
+                        borderRadius: 999,
+                        background: 'rgba(92,107,63,0.12)',
+                        color: 'var(--sage-deep, #5C6B3F)',
+                        verticalAlign: 'middle',
+                      }}
+                    >
+                      ✉ {u.email_recipient_count ?? '·'}
+                    </span>
+                  )}
+                </span>
                 <span style={{ fontSize: 11, color: 'var(--ink-muted)', flexShrink: 0 }}>
                   {new Date(u.created_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                 </span>
