@@ -318,7 +318,31 @@ export function ThemePanel({
         <SpacingPanel manifest={manifest} onChange={onChange} />
       </div>
 
-      <SnapshotsPanel manifest={manifest} onChange={onChange} />
+      {/* Snapshots — version-history power feature. Visible only on
+          demand so the Theme scroll doesn't surface a giant version
+          list to hosts who just want to pick a palette. Audited 2026-04-30. */}
+      <details>
+        <summary
+          style={{
+            cursor: 'pointer',
+            padding: '10px 14px',
+            borderRadius: 10,
+            background: 'var(--cream-2)',
+            border: '1px dashed var(--line)',
+            fontSize: 12.5,
+            fontWeight: 700,
+            letterSpacing: '0.04em',
+            color: 'var(--ink-soft)',
+            userSelect: 'none',
+            margin: '6px 0',
+          }}
+        >
+          ↺ Version history (snapshots)
+        </summary>
+        <div style={{ paddingTop: 6 }}>
+          <SnapshotsPanel manifest={manifest} onChange={onChange} />
+        </div>
+      </details>
 
       <div data-pl-design-anchor="hero-decor">
         <PanelSection
