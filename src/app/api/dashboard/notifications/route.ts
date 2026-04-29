@@ -200,6 +200,35 @@ export async function GET(req: NextRequest) {
       // skip
     }
 
+    // ── Song requests ──────────────────────────────────────
+    // song_requests is keyed by sites.id (uuid). New rows ship
+    // in 'queued' state; only those bubble up so the host knows
+    // there's something to triage. Hidden + accepted rows have
+    // already been handled and don't need a re-ping.
+    try {
+      const { data: songs } = await supabase
+        .from('song_requests')
+        .select('id, guest_name, song_title, artist, state, created_at')
+        .eq('site_id', siteId)
+        .eq('state', 'queued')
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      for (const s of (songs ?? []) as Array<{ id: string; guest_name: string; song_title: string; artist: string | null; created_at: string }>) {
+        const songLabel = s.artist ? `${s.song_title} — ${s.artist}` : s.song_title;
+        items.push({
+          id: `song-${s.id}`,
+          kind: 'whisper',
+          label: `${s.guest_name} added a song`,
+          preview: songLabel.slice(0, 80),
+          href: `/dashboard/music`,
+          createdAt: s.created_at,
+        });
+      }
+    } catch {
+      // skip
+    }
+
     // ── Tribute / advice wall submissions ─────────────────
     // Guest-typed words on adviceWall, tribute walls — tracked in
     // tribute_submissions (block_id scopes them to a specific

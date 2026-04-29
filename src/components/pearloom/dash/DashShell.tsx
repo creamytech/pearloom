@@ -87,6 +87,7 @@ export const DASH_SECTIONS: Record<string, { label: string; tabs: Array<{ id: st
       { id: 'print',     label: 'Print orders', href: '/dashboard/print' },
       { id: 'qr-poster', label: 'QR poster',   href: '/dashboard/qr-poster' },
       { id: 'library',   label: 'Photo library', href: '/dashboard/library' },
+      { id: 'music',     label: 'Music',       href: '/dashboard/music' },
       { id: 'speech',    label: 'Speech',      href: '/dashboard/speech' },
       { id: 'voice',     label: 'Voice DNA',   href: '/dashboard/voice' },
       { id: 'passport-cards', label: 'Passport cards', href: '/dashboard/passport-cards' },

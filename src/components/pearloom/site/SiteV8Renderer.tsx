@@ -99,6 +99,7 @@ import { ProgramBlock } from '@/components/site/ProgramBlock';
 import { ToastSignupBlock } from '@/components/site/ToastSignupBlock';
 import { RegistryItemsBlock } from '@/components/site/RegistryItemsBlock';
 import { CashGiftBlock } from '@/components/site/CashGiftBlock';
+import { SpotifySection } from '@/components/site/SpotifySection';
 import type { PageBlock } from '@/types';
 
 // Callback passed down for inline edits. Parent (CanvasStage)
@@ -7399,13 +7400,13 @@ function CustomBlocksRail({ manifest, siteSlug }: { manifest: StoryManifest; sit
   return (
     <div className="pl8-custom-blocks">
       {ordered.map((block) => (
-        <CustomBlockCase key={block.id} block={block} siteSlug={siteSlug} editMode={edit} />
+        <CustomBlockCase key={block.id} block={block} siteSlug={siteSlug} editMode={edit} manifest={manifest} />
       ))}
     </div>
   );
 }
 
-function CustomBlockCase({ block, siteSlug, editMode }: { block: PageBlock; siteSlug: string; editMode: boolean }) {
+function CustomBlockCase({ block, siteSlug, editMode, manifest }: { block: PageBlock; siteSlug: string; editMode: boolean; manifest: StoryManifest }) {
   const cfg = (block.config ?? {}) as Record<string, unknown>;
   const str = (k: string) => (typeof cfg[k] === 'string' ? (cfg[k] as string) : undefined);
   const arr = <T,>(k: string): T[] => (Array.isArray(cfg[k]) ? (cfg[k] as T[]) : []);
@@ -7618,6 +7619,34 @@ function CustomBlockCase({ block, siteSlug, editMode }: { block: PageBlock; site
           label={str('label')}
           presetAmounts={presetAmounts.length ? presetAmounts : undefined}
         />
+      );
+    }
+    case 'spotify': {
+      // Block config wins, then manifest.spotifyUrl as fallback so
+      // hosts with a top-level URL (legacy / wizard-stamped) get
+      // the embed without re-saving in the editor. SpotifySection
+      // self-handles the no-URL case with a CTA empty state.
+      const spotifyUrl =
+        str('spotifyUrl')
+        ?? str('url')
+        ?? (manifest as unknown as { spotifyUrl?: string }).spotifyUrl
+        ?? '';
+      const playlistName = str('playlistName') ?? str('title');
+      const vibeSkin = (manifest as unknown as { vibeSkin?: import('@/lib/vibe-engine').VibeSkin }).vibeSkin;
+      // Without a vibeSkin SpotifySection won't theme correctly —
+      // skip the section in that case (rare; v8 sites generate it
+      // on publish).
+      if (!vibeSkin) return null;
+      if (!spotifyUrl && !editMode) return null;
+      return (
+        <section data-pl-block={block.type} data-pl-block-id={block.id}>
+          <SpotifySection
+            spotifyUrl={spotifyUrl}
+            playlistName={playlistName}
+            vibeSkin={vibeSkin}
+            subdomain={siteSlug}
+          />
+        </section>
       );
     }
     default:

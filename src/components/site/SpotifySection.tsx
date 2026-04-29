@@ -3,9 +3,12 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/site/SpotifySection.tsx
 // "Our Soundtrack" — Spotify playlist/track embed section.
+// Below the curated embed, surfaces the "Songs your guests
+// added" strip — accepted song_requests from /api/song-requests
+// in public mode (no PII). Hides itself when nothing accepted.
 // ─────────────────────────────────────────────────────────────
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import type { VibeSkin } from '@/lib/vibe-engine';
 
@@ -13,6 +16,18 @@ export interface SpotifySectionProps {
   spotifyUrl: string;       // e.g. https://open.spotify.com/playlist/37i9dQZF1DX...
   playlistName?: string;
   vibeSkin: VibeSkin;
+  /** Site subdomain. When set, the section fetches accepted
+   *  guest song requests and renders them below the playlist
+   *  embed. Without it, only the curated playlist shows. */
+  subdomain?: string;
+}
+
+interface AcceptedSong {
+  song_title: string;
+  artist: string | null;
+  spotify_url: string | null;
+  guest_name: string;
+  created_at: string;
 }
 
 // Convert public Spotify URL → embed URL
@@ -26,8 +41,25 @@ function isValidSpotifyUrl(url: string): boolean {
   return typeof url === 'string' && url.includes('open.spotify.com/');
 }
 
-export function SpotifySection({ spotifyUrl, playlistName, vibeSkin }: SpotifySectionProps) {
+export function SpotifySection({ spotifyUrl, playlistName, vibeSkin, subdomain }: SpotifySectionProps) {
   const { palette, fonts, accentSymbol, sectionGradient } = vibeSkin;
+  const [guestSongs, setGuestSongs] = useState<AcceptedSong[]>([]);
+
+  // Pull accepted song_requests from the public-mode endpoint.
+  // Fails silently — the curated embed still renders if the
+  // backend can't reach Supabase.
+  useEffect(() => {
+    if (!subdomain) return;
+    let cancelled = false;
+    fetch(`/api/song-requests?subdomain=${encodeURIComponent(subdomain)}&public=1`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: null | { songs?: AcceptedSong[] }) => {
+        if (cancelled || !data?.songs) return;
+        setGuestSongs(data.songs);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [subdomain]);
 
   const headingStyle: React.CSSProperties = {
     fontFamily: `${fonts.heading}, Georgia, serif`,
@@ -180,6 +212,103 @@ export function SpotifySection({ spotifyUrl, playlistName, vibeSkin }: SpotifySe
             title={playlistName ? `${playlistName} — Spotify` : 'Our Soundtrack — Spotify'}
           />
         </motion.div>
+
+        {/* Songs your guests added — surfaces accepted
+            song_requests so guests see their contribution land
+            and feel ownership. Hidden when nothing's been
+            accepted yet (don't dangle an empty section). */}
+        {guestSongs.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            style={{ marginTop: '2.5rem' }}
+          >
+            <div
+              style={{
+                fontFamily: `${fonts.body}, Inter, sans-serif`,
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: palette.muted,
+                marginBottom: '1rem',
+                textAlign: 'center',
+              }}
+            >
+              Songs your guests added · {guestSongs.length}
+            </div>
+            <ul
+              style={{
+                listStyle: 'none',
+                padding: 0,
+                margin: 0,
+                display: 'grid',
+                gap: '0.5rem',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+              }}
+            >
+              {guestSongs.slice(0, 24).map((s, i) => (
+                <li
+                  key={`${s.song_title}-${i}`}
+                  style={{
+                    padding: '0.6rem 0.85rem',
+                    borderRadius: 'var(--pl-radius-md)',
+                    background: `${palette.card}`,
+                    border: `1px solid ${palette.accent}1a`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                    fontFamily: `${fonts.body}, Inter, sans-serif`,
+                  }}
+                >
+                  {s.spotify_url ? (
+                    <a
+                      href={s.spotify_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        fontSize: '0.92rem',
+                        fontWeight: 600,
+                        color: palette.ink,
+                        textDecoration: 'none',
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {s.song_title}
+                    </a>
+                  ) : (
+                    <span style={{ fontSize: '0.92rem', fontWeight: 600, color: palette.ink, wordBreak: 'break-word' }}>
+                      {s.song_title}
+                    </span>
+                  )}
+                  {s.artist && (
+                    <span style={{ fontSize: '0.78rem', color: palette.muted }}>
+                      {s.artist}
+                    </span>
+                  )}
+                  <span style={{ fontSize: '0.7rem', color: palette.muted, fontStyle: 'italic', marginTop: 2 }}>
+                    — {s.guest_name}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {guestSongs.length > 24 && (
+              <div
+                style={{
+                  textAlign: 'center',
+                  marginTop: '0.75rem',
+                  fontSize: '0.78rem',
+                  color: palette.muted,
+                  fontStyle: 'italic',
+                }}
+              >
+                + {guestSongs.length - 24} more
+              </div>
+            )}
+          </motion.div>
+        )}
 
         {/* Bottom accent divider */}
         <div
