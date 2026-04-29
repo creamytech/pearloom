@@ -382,6 +382,85 @@ export function PanelSmartActions({ actions }: { actions: PanelSmartAction[] }) 
   );
 }
 
+/* ---------- PanelDisclosure ---------- *
+ *
+ * Inline "Advanced" / "More" collapsible block used inside a
+ * PanelSection. Different from PanelSection itself: it doesn't
+ * draw a divider, doesn't have its own search semantics, and
+ * defaults to closed. Use to hide power-user fields that bloat
+ * the panel when they're not in use.
+ *
+ * Usage:
+ *   <PanelDisclosure label="Advanced">
+ *     <Field>…</Field>
+ *     <Field>…</Field>
+ *   </PanelDisclosure>
+ */
+export function PanelDisclosure({
+  label,
+  defaultOpen = false,
+  children,
+}: {
+  label: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: open ? 12 : 0,
+        marginTop: 4,
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          alignSelf: 'flex-start',
+          padding: '4px 8px 4px 4px',
+          background: 'transparent',
+          border: 'none',
+          color: 'var(--ink-muted)',
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          cursor: 'pointer',
+          fontFamily: 'var(--font-ui)',
+          lineHeight: 1.2,
+        }}
+      >
+        <span
+          aria-hidden
+          style={{
+            display: 'inline-block',
+            width: 12,
+            transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
+            transition: 'transform 180ms cubic-bezier(0.22, 1, 0.36, 1)',
+            color: 'var(--ink-muted)',
+            fontSize: 10,
+          }}
+        >
+          ▸
+        </span>
+        {label}
+      </button>
+      {open && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ---------- Field wrapper (label + help text + error slot) ---------- */
 export function Field({
   label,

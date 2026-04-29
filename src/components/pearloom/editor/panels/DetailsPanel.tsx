@@ -14,7 +14,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { StoryManifest } from '@/types';
-import { Field, PanelGroup, PanelSection, PanelSmartActions, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
+import { Field, PanelDisclosure, PanelGroup, PanelSection, PanelSmartActions, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { TimePicker } from '../v8-forms';
 import { PolishThisButton } from '../PolishThisButton';
 import { Icon } from '../../motifs';
@@ -294,7 +294,8 @@ function WeatherStyleSection({
   return (
     <PanelSection
       label="Weather strip"
-      hint="The single editorial line below the cards. Voice + glyph + when to hide."
+      hint="The single editorial line below the cards."
+      defaultOpen={false}
     >
       <Field label="Voice">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
@@ -313,37 +314,39 @@ function WeatherStyleSection({
           })}
         </div>
       </Field>
-      <Field label="Glyph">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
-          {(['line', 'filled', 'none'] as const).map((g) => {
-            const on = (ws.glyph ?? 'line') === g;
-            return (
-              <button
-                key={g}
-                type="button"
-                onClick={() => set({ glyph: g === 'line' ? undefined : g })}
-                style={voiceBtn(on)}
-              >
-                {g[0].toUpperCase() + g.slice(1)}
-              </button>
-            );
-          })}
-        </div>
-      </Field>
-      <Field label="Day-of">
-        <button
-          type="button"
-          onClick={() => set({ hideOnDay: ws.hideOnDay ? undefined : true })}
-          style={{
-            ...voiceBtn(!!ws.hideOnDay),
-            width: '100%',
-            justifyContent: 'flex-start',
-            padding: '8px 12px',
-          }}
-        >
-          {ws.hideOnDay ? '✓ Hide the strip on the day-of' : 'Keep the strip showing on the day-of'}
-        </button>
-      </Field>
+      <PanelDisclosure label="Advanced">
+        <Field label="Glyph">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
+            {(['line', 'filled', 'none'] as const).map((g) => {
+              const on = (ws.glyph ?? 'line') === g;
+              return (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => set({ glyph: g === 'line' ? undefined : g })}
+                  style={voiceBtn(on)}
+                >
+                  {g[0].toUpperCase() + g.slice(1)}
+                </button>
+              );
+            })}
+          </div>
+        </Field>
+        <Field label="Day-of">
+          <button
+            type="button"
+            onClick={() => set({ hideOnDay: ws.hideOnDay ? undefined : true })}
+            style={{
+              ...voiceBtn(!!ws.hideOnDay),
+              width: '100%',
+              justifyContent: 'flex-start',
+              padding: '8px 12px',
+            }}
+          >
+            {ws.hideOnDay ? '✓ Hide the strip on the day-of' : 'Keep the strip showing on the day-of'}
+          </button>
+        </Field>
+      </PanelDisclosure>
     </PanelSection>
   );
 }

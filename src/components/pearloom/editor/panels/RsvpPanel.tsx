@@ -1,7 +1,7 @@
 'use client';
 
 import type { StoryManifest, MealOption } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PanelSmartActions, TextArea, TextInput, Toggle, type PanelSmartAction } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelDisclosure, PanelGroup, PanelSection, PanelSmartActions, TextArea, TextInput, Toggle, type PanelSmartAction } from '../atoms';
 import { PolishThisButton } from '../PolishThisButton';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
@@ -255,9 +255,10 @@ export function RsvpPanel({
 }
 
 // ── RsvpButtonStyleSection ───────────────────────────────────
-// Per-host RSVP CTA controls — shape, pulse animation, custom
-// label. Stored at manifest.rsvpButton so the renderer can read
-// it without touching global theme tokens.
+// One named-look picker + everything else under Advanced.
+// Looks: Pearl (default — iridescent), Crisp (ink pill), Editorial
+// (hairline outline), Tag (peach paper-tag). Pulse + custom label
+// + sticky live one click deeper for hosts who want them.
 type RsvpButtonShape = 'pearl' | 'pill' | 'hairline' | 'tag';
 type RsvpButtonPulse = 'none' | 'breathe' | 'urgent';
 
@@ -267,6 +268,13 @@ interface RsvpButtonConfig {
   customLabel?: string;
   sticky?: boolean;
 }
+
+const RSVP_LOOKS: Array<{ id: RsvpButtonShape; label: string; hint: string }> = [
+  { id: 'pearl',    label: 'Pearl',     hint: 'Iridescent fill — the editorial default.' },
+  { id: 'pill',     label: 'Crisp',     hint: 'Solid ink pill. Reads architectural.' },
+  { id: 'hairline', label: 'Editorial', hint: 'Hairline outline, ink type. Quietest option.' },
+  { id: 'tag',      label: 'Paper tag', hint: 'Peach paper-tag silhouette. Playful + warm.' },
+];
 
 function RsvpButtonStyleSection({
   manifest,
@@ -288,66 +296,72 @@ function RsvpButtonStyleSection({
     } as unknown as StoryManifest);
   }
 
+  const currentShape = cfg.shape ?? 'pearl';
+
   return (
     <PanelSection
       label="Send button"
-      hint="The primary RSVP CTA on every page. Shape, pulse, copy."
+      hint="The primary RSVP CTA. Pick a look; tune the rest under Advanced."
     >
-      <Field label="Shape">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
-          {(['pearl', 'pill', 'hairline', 'tag'] as RsvpButtonShape[]).map((s) => {
-            const on = (cfg.shape ?? 'pearl') === s;
+      <Field label="Look">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 4 }}>
+          {RSVP_LOOKS.map((l) => {
+            const on = currentShape === l.id;
             return (
               <button
-                key={s}
+                key={l.id}
                 type="button"
-                onClick={() => set({ shape: s === 'pearl' ? undefined : s })}
+                onClick={() => set({ shape: l.id === 'pearl' ? undefined : l.id })}
+                title={l.hint}
                 style={shapeBtn(on)}
               >
-                {s === 'pearl' ? 'Pearl' : s === 'pill' ? 'Pill' : s === 'hairline' ? 'Hairline' : 'Paper tag'}
+                {l.label}
               </button>
             );
           })}
         </div>
       </Field>
-      <Field label="Pulse" help="Pulls the eye; reserve 'urgent' for the week before the deadline.">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
-          {(['none', 'breathe', 'urgent'] as RsvpButtonPulse[]).map((p) => {
-            const on = (cfg.pulse ?? 'none') === p;
-            return (
-              <button
-                key={p}
-                type="button"
-                onClick={() => set({ pulse: p === 'none' ? undefined : p })}
-                style={shapeBtn(on)}
-              >
-                {p[0].toUpperCase() + p.slice(1)}
-              </button>
-            );
-          })}
-        </div>
-      </Field>
-      <Field label="Button label" help="Defaults to 'Send RSVP'. Try 'Tell us you're coming' for a warmer voice.">
-        <TextInput
-          value={cfg.customLabel ?? ''}
-          onChange={(e) => set({ customLabel: e.target.value })}
-          placeholder="Send RSVP"
-        />
-      </Field>
-      <Field label="Sticky on mobile" help="A floating RSVP pill follows the guest as they scroll.">
-        <button
-          type="button"
-          onClick={() => set({ sticky: cfg.sticky ? undefined : true })}
-          style={{
-            ...shapeBtn(!!cfg.sticky),
-            width: '100%',
-            justifyContent: 'flex-start',
-            padding: '8px 12px',
-          }}
-        >
-          {cfg.sticky ? '✓ Floating pill enabled on mobile' : 'Show only inline (default)'}
-        </button>
-      </Field>
+
+      <PanelDisclosure label="Advanced">
+        <Field label="Pulse" help="Pulls the eye. Reserve 'urgent' for the week before the deadline.">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
+            {(['none', 'breathe', 'urgent'] as RsvpButtonPulse[]).map((p) => {
+              const on = (cfg.pulse ?? 'none') === p;
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => set({ pulse: p === 'none' ? undefined : p })}
+                  style={shapeBtn(on)}
+                >
+                  {p[0].toUpperCase() + p.slice(1)}
+                </button>
+              );
+            })}
+          </div>
+        </Field>
+        <Field label="Button label" help="Defaults to 'Send RSVP'. Try 'Tell us you're coming' for a warmer voice.">
+          <TextInput
+            value={cfg.customLabel ?? ''}
+            onChange={(e) => set({ customLabel: e.target.value })}
+            placeholder="Send RSVP"
+          />
+        </Field>
+        <Field label="Sticky on mobile" help="Floating RSVP pill follows the guest as they scroll.">
+          <button
+            type="button"
+            onClick={() => set({ sticky: cfg.sticky ? undefined : true })}
+            style={{
+              ...shapeBtn(!!cfg.sticky),
+              width: '100%',
+              justifyContent: 'flex-start',
+              padding: '8px 12px',
+            }}
+          >
+            {cfg.sticky ? '✓ Floating pill enabled' : 'Inline only (default)'}
+          </button>
+        </Field>
+      </PanelDisclosure>
     </PanelSection>
   );
 }

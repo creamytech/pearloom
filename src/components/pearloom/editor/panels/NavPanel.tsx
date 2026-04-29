@@ -12,7 +12,7 @@
 
 import { useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
-import { Field, PanelGroup, PanelSection } from '../atoms';
+import { Field, PanelDisclosure, PanelGroup, PanelSection } from '../atoms';
 import { NAV_ICON_LIBRARY } from '@/components/pearloom/assets/nav-icons';
 
 interface Props {
@@ -306,9 +306,11 @@ export function NavPanel({ manifest, onChange }: Props) {
 }
 
 // ── NavMotionSection ─────────────────────────────────────────
-// Motion + animation options for the top nav. Stored at
-// manifest.navStyle so the renderer reads it directly. Defaults
-// match pre-config behaviour so existing sites are unchanged.
+// One named-mood picker that packs the four nav motion axes
+// (shrink-on-scroll, link underline, brand hover, frosted-on-
+// scroll) into three intentful presets. Power users can still
+// tune each axis under "Advanced" — but the default scan reads
+// as one decision, not four.
 type ScrollShrink = 'off' | 'subtle' | 'compact';
 type LinkUnderline = 'static' | 'hover' | 'active' | 'none';
 
@@ -319,6 +321,25 @@ interface NavStyleConfig {
   blurOnScroll?: boolean;
 }
 
+type NavMood = 'calm' | 'crisp' | 'loud';
+const NAV_MOODS: Record<NavMood, NavStyleConfig> = {
+  calm:  { shrinkOnScroll: undefined, linkUnderline: 'hover',  brandHover: undefined, blurOnScroll: undefined },
+  crisp: { shrinkOnScroll: 'subtle',  linkUnderline: 'hover',  brandHover: undefined, blurOnScroll: true },
+  loud:  { shrinkOnScroll: 'compact', linkUnderline: 'active', brandHover: 'pulse',   blurOnScroll: true },
+};
+
+function moodFromConfig(cfg: NavStyleConfig): NavMood | null {
+  for (const [name, vals] of Object.entries(NAV_MOODS) as Array<[NavMood, NavStyleConfig]>) {
+    if (
+      (cfg.shrinkOnScroll ?? undefined) === vals.shrinkOnScroll &&
+      (cfg.linkUnderline ?? 'static') === (vals.linkUnderline ?? 'static') &&
+      (cfg.brandHover ?? undefined) === vals.brandHover &&
+      (cfg.blurOnScroll ?? undefined) === vals.blurOnScroll
+    ) return name;
+  }
+  return null;
+}
+
 function NavMotionSection({
   manifest,
   onChange,
@@ -327,69 +348,99 @@ function NavMotionSection({
   onChange: (m: StoryManifest) => void;
 }) {
   const cfg = (manifest as unknown as { navStyle?: NavStyleConfig }).navStyle ?? {};
-  function set(patch: Partial<NavStyleConfig>) {
-    const next: NavStyleConfig = { ...cfg, ...patch };
-    Object.keys(next).forEach((k) => {
-      const v = (next as Record<string, unknown>)[k];
-      if (v === undefined || v === '' || v === false) delete (next as Record<string, unknown>)[k];
+  function setConfig(next: NavStyleConfig) {
+    const cleaned: NavStyleConfig = { ...next };
+    (Object.keys(cleaned) as Array<keyof NavStyleConfig>).forEach((k) => {
+      const v = cleaned[k] as unknown;
+      if (v === undefined || v === false || v === '') {
+        delete cleaned[k];
+      }
     });
     onChange({
       ...manifest,
-      navStyle: Object.keys(next).length ? next : undefined,
+      navStyle: Object.keys(cleaned).length ? cleaned : undefined,
     } as unknown as StoryManifest);
   }
+  function set(patch: Partial<NavStyleConfig>) {
+    setConfig({ ...cfg, ...patch });
+  }
+  function applyMood(m: NavMood) {
+    setConfig(NAV_MOODS[m]);
+  }
+  const currentMood = moodFromConfig(cfg);
+
   return (
     <PanelSection label="Motion" hint="How the nav reacts to scroll + hover. Honors prefers-reduced-motion.">
-      <Field label="Shrink on scroll" help="Once the guest scrolls past the hero, the nav contracts to a slim strip.">
+      <Field label="Mood">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
-          {(['off', 'subtle', 'compact'] as ScrollShrink[]).map((v) => {
-            const on = (cfg.shrinkOnScroll ?? 'off') === v;
+          {(['calm', 'crisp', 'loud'] as NavMood[]).map((m) => {
+            const on = currentMood === m;
+            const hint = m === 'calm'
+              ? 'Static, no shrink, hover underline.'
+              : m === 'crisp'
+                ? 'Subtle shrink, frosted, hover underline.'
+                : 'Compact shrink, brand pulses, frosted.';
             return (
-              <button key={v} type="button" onClick={() => set({ shrinkOnScroll: v === 'off' ? undefined : v })} style={navMotionBtn(on)}>
-                {v[0].toUpperCase() + v.slice(1)}
+              <button key={m} type="button" onClick={() => applyMood(m)} title={hint} style={navMotionBtn(on)}>
+                {m[0].toUpperCase() + m.slice(1)}
               </button>
             );
           })}
         </div>
       </Field>
-      <Field label="Link underline">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
-          {(['static', 'hover', 'active', 'none'] as LinkUnderline[]).map((v) => {
-            const on = (cfg.linkUnderline ?? 'static') === v;
-            return (
-              <button key={v} type="button" onClick={() => set({ linkUnderline: v === 'static' ? undefined : v })} style={navMotionBtn(on)}>
-                {v[0].toUpperCase() + v.slice(1)}
-              </button>
-            );
-          })}
-        </div>
-      </Field>
-      <Field label="Brand icon hover">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
-          {(['none', 'pulse', 'tilt', 'breathe'] as Array<'none'|'pulse'|'tilt'|'breathe'>).map((v) => {
-            const on = (cfg.brandHover ?? 'none') === v;
-            return (
-              <button key={v} type="button" onClick={() => set({ brandHover: v === 'none' ? undefined : v })} style={navMotionBtn(on)}>
-                {v[0].toUpperCase() + v.slice(1)}
-              </button>
-            );
-          })}
-        </div>
-      </Field>
-      <Field label="Blur on scroll" help="Frosted-glass effect once the page scrolls — quietly tells the eye the nav is floating.">
-        <button
-          type="button"
-          onClick={() => set({ blurOnScroll: cfg.blurOnScroll ? undefined : true })}
-          style={{
-            ...navMotionBtn(!!cfg.blurOnScroll),
-            width: '100%',
-            justifyContent: 'flex-start',
-            padding: '8px 12px',
-          }}
-        >
-          {cfg.blurOnScroll ? '✓ Frosted-glass on scroll' : 'Solid (default)'}
-        </button>
-      </Field>
+
+      <PanelDisclosure label="Advanced">
+        <Field label="Shrink on scroll">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
+            {(['off', 'subtle', 'compact'] as ScrollShrink[]).map((v) => {
+              const on = (cfg.shrinkOnScroll ?? 'off') === v;
+              return (
+                <button key={v} type="button" onClick={() => set({ shrinkOnScroll: v === 'off' ? undefined : v })} style={navMotionBtn(on)}>
+                  {v[0].toUpperCase() + v.slice(1)}
+                </button>
+              );
+            })}
+          </div>
+        </Field>
+        <Field label="Link underline">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
+            {(['static', 'hover', 'active', 'none'] as LinkUnderline[]).map((v) => {
+              const on = (cfg.linkUnderline ?? 'static') === v;
+              return (
+                <button key={v} type="button" onClick={() => set({ linkUnderline: v === 'static' ? undefined : v })} style={navMotionBtn(on)}>
+                  {v[0].toUpperCase() + v.slice(1)}
+                </button>
+              );
+            })}
+          </div>
+        </Field>
+        <Field label="Brand icon hover">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
+            {(['none', 'pulse', 'tilt', 'breathe'] as Array<'none'|'pulse'|'tilt'|'breathe'>).map((v) => {
+              const on = (cfg.brandHover ?? 'none') === v;
+              return (
+                <button key={v} type="button" onClick={() => set({ brandHover: v === 'none' ? undefined : v })} style={navMotionBtn(on)}>
+                  {v[0].toUpperCase() + v.slice(1)}
+                </button>
+              );
+            })}
+          </div>
+        </Field>
+        <Field label="Blur on scroll">
+          <button
+            type="button"
+            onClick={() => set({ blurOnScroll: cfg.blurOnScroll ? undefined : true })}
+            style={{
+              ...navMotionBtn(!!cfg.blurOnScroll),
+              width: '100%',
+              justifyContent: 'flex-start',
+              padding: '8px 12px',
+            }}
+          >
+            {cfg.blurOnScroll ? '✓ Frosted-glass on scroll' : 'Solid (default)'}
+          </button>
+        </Field>
+      </PanelDisclosure>
     </PanelSection>
   );
 }

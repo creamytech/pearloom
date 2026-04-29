@@ -10,7 +10,7 @@
 
 import { useMemo, useState } from 'react';
 import type { StoryManifest, BlockStyleOverride } from '@/types';
-import { Field, PanelSection } from '../atoms';
+import { Field, PanelDisclosure, PanelSection } from '../atoms';
 import { Icon } from '../../motifs';
 import { Switch, V8Slider } from '../v8-forms';
 import { V8ColorPicker } from '../v8-color-picker';
@@ -265,73 +265,59 @@ export function BlockStylePanel({ manifest, blockId, label = 'Section style', on
         </div>
       </Field>
 
-      {/* Spacing */}
-      <Field label="Section spacing">
-        <SegRow
-          value={current.spacing ?? ''}
-          options={SPACING_OPTIONS as readonly { id: string; label: string }[]}
-          onChange={(v) => set({ spacing: v || undefined })}
-        />
-      </Field>
+      <PanelDisclosure label="Card details">
+        <Field label="Card radius">
+          <SegRow
+            value={current.cardRadius ?? ''}
+            options={RADIUS_OPTIONS as readonly { id: string; label: string }[]}
+            onChange={(v) => set({ cardRadius: v || undefined })}
+          />
+        </Field>
+        <Field label="Card shadow" help="From flat to floating — pick what reads with the rest of the section's chrome.">
+          <SegRow
+            value={current.cardShadow ?? ''}
+            options={SHADOW_OPTIONS as readonly { id: string; label: string }[]}
+            onChange={(v) => set({ cardShadow: v ? (v as 'none' | 'soft' | 'lifted' | 'floating') : undefined })}
+          />
+        </Field>
+        <Field label="Card border">
+          <SegRow
+            value={current.cardBorder ?? ''}
+            options={BORDER_OPTIONS as readonly { id: string; label: string }[]}
+            onChange={(v) => set({ cardBorder: v ? (v as 'none' | 'hairline' | 'heavy') : undefined })}
+          />
+        </Field>
+        <Field label="Card padding">
+          <SegRow
+            value={current.cardPadding ?? ''}
+            options={PADDING_OPTIONS as readonly { id: string; label: string }[]}
+            onChange={(v) => set({ cardPadding: v ? (v as 'compact' | 'default' | 'generous') : undefined })}
+          />
+        </Field>
+        <Field label="Card shape" help="Goes beyond corner radius — scallop gives wavy edges, arch curves only the top.">
+          <SegRow
+            value={current.cardShape ?? ''}
+            options={SHAPE_OPTIONS as readonly { id: string; label: string }[]}
+            onChange={(v) => set({ cardShape: v ? (v as 'pillow' | 'sharp' | 'scallop' | 'arch') : undefined })}
+          />
+        </Field>
+        <Field label="Card backdrop">
+          <SegRow
+            value={current.cardBackdrop ?? ''}
+            options={BACKDROP_OPTIONS as readonly { id: string; label: string }[]}
+            onChange={(v) => set({ cardBackdrop: v ? (v as 'paper' | 'cream-2' | 'vellum' | 'gold-mist') : undefined })}
+          />
+        </Field>
+      </PanelDisclosure>
 
-      {/* Card radius */}
-      <Field label="Card radius">
-        <SegRow
-          value={current.cardRadius ?? ''}
-          options={RADIUS_OPTIONS as readonly { id: string; label: string }[]}
-          onChange={(v) => set({ cardRadius: v || undefined })}
-        />
-      </Field>
-
-      {/* Card shadow */}
-      <Field label="Card shadow" help="From flat to floating — pick what reads with the rest of the section's chrome.">
-        <SegRow
-          value={current.cardShadow ?? ''}
-          options={SHADOW_OPTIONS as readonly { id: string; label: string }[]}
-          onChange={(v) => set({ cardShadow: v ? (v as 'none' | 'soft' | 'lifted' | 'floating') : undefined })}
-        />
-      </Field>
-
-      {/* Card border */}
-      <Field label="Card border">
-        <SegRow
-          value={current.cardBorder ?? ''}
-          options={BORDER_OPTIONS as readonly { id: string; label: string }[]}
-          onChange={(v) => set({ cardBorder: v ? (v as 'none' | 'hairline' | 'heavy') : undefined })}
-        />
-      </Field>
-
-      {/* Card padding */}
-      <Field label="Card padding">
-        <SegRow
-          value={current.cardPadding ?? ''}
-          options={PADDING_OPTIONS as readonly { id: string; label: string }[]}
-          onChange={(v) => set({ cardPadding: v ? (v as 'compact' | 'default' | 'generous') : undefined })}
-        />
-      </Field>
-
-      {/* Card silhouette — different language than radius. Pillow
-          rounds harder than 'rounded' radius; scallop gives a wavy
-          edge; arch keeps the bottom flat with a rounded top. */}
-      <Field label="Card shape" help="Goes beyond corner radius — scallop gives wavy edges, arch curves only the top.">
-        <SegRow
-          value={current.cardShape ?? ''}
-          options={SHAPE_OPTIONS as readonly { id: string; label: string }[]}
-          onChange={(v) => set({ cardShape: v ? (v as 'pillow' | 'sharp' | 'scallop' | 'arch') : undefined })}
-        />
-      </Field>
-
-      {/* Card backdrop — adds a subtle tint layer behind the card
-          without affecting any other style. Useful when cards live
-          on a section's main background and need separation. */}
-      <Field label="Card backdrop">
-        <SegRow
-          value={current.cardBackdrop ?? ''}
-          options={BACKDROP_OPTIONS as readonly { id: string; label: string }[]}
-          onChange={(v) => set({ cardBackdrop: v ? (v as 'paper' | 'cream-2' | 'vellum' | 'gold-mist') : undefined })}
-        />
-      </Field>
-
+      <PanelDisclosure label="Layout">
+        <Field label="Section spacing">
+          <SegRow
+            value={current.spacing ?? ''}
+            options={SPACING_OPTIONS as readonly { id: string; label: string }[]}
+            onChange={(v) => set({ spacing: v || undefined })}
+          />
+        </Field>
       {/* Text alignment */}
       <Field label="Text alignment">
         <div style={{ display: 'flex', gap: 4 }}>
@@ -366,33 +352,31 @@ export function BlockStylePanel({ manifest, blockId, label = 'Section style', on
         </div>
       </Field>
 
-      {/* Max width */}
-      <Field label="Max width">
-        <SegRow
-          value={String(current.maxWidth ?? 0)}
-          options={MAX_WIDTH_OPTIONS.map((m) => ({ id: String(m.id), label: m.label }))}
-          onChange={(v) => set({ maxWidth: Number(v) || undefined })}
-        />
-      </Field>
+        <Field label="Max width">
+          <SegRow
+            value={String(current.maxWidth ?? 0)}
+            options={MAX_WIDTH_OPTIONS.map((m) => ({ id: String(m.id), label: m.label }))}
+            onChange={(v) => set({ maxWidth: Number(v) || undefined })}
+          />
+        </Field>
+        <Field label={`Extra padding (${current.paddingY ?? 0}px)`}>
+          <V8Slider
+            value={current.paddingY ?? 0}
+            onChange={(n) => set({ paddingY: n || undefined })}
+            min={-40}
+            max={120}
+            step={4}
+            unit="px"
+            ariaLabel="Extra section padding"
+          />
+        </Field>
+      </PanelDisclosure>
 
-      {/* Padding Y */}
-      <Field label={`Extra padding (${current.paddingY ?? 0}px)`}>
-        <V8Slider
-          value={current.paddingY ?? 0}
-          onChange={(n) => set({ paddingY: n || undefined })}
-          min={-40}
-          max={120}
-          step={4}
-          unit="px"
-          ariaLabel="Extra section padding"
-        />
-      </Field>
-
-      {/* Background */}
-      <Field
-        label="Background"
-        help="Tap a swatch for a quick wash, or pick a custom colour. Pear flips text contrast automatically."
-      >
+      <PanelDisclosure label="Colors">
+        <Field
+          label="Background"
+          help="Tap a swatch for a quick wash, or pick a custom colour. Pear flips text contrast automatically."
+        >
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
           {[
             { id: '', label: 'Inherit', sw: 'transparent', border: '1px dashed var(--line)' },
@@ -483,6 +467,7 @@ export function BlockStylePanel({ manifest, blockId, label = 'Section style', on
           textColor={current.textColor}
         />
       </Field>
+      </PanelDisclosure>
 
       {hasOverride && (
         <div
