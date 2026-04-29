@@ -280,6 +280,17 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [voiceToast, setVoiceToast] = useState(false);
+  // pearloom_guests.guest_token — captured from ?g= or ?guest=
+  // when the visitor arrived via their personalized link. Threaded
+  // into POSTs so guestbook entries get tagged with guest_id and
+  // surface in the per-guest "Words you wrote" feed on /g/[token].
+  const [guestToken, setGuestToken] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URL(window.location.href).searchParams;
+    const t = params.get('g') || params.get('guest');
+    if (t) setGuestToken(t);
+  }, []);
 
   const charsLeft = MAX_CHARS - message.length;
   const isOverLimit = charsLeft < 0;
@@ -310,7 +321,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
       const res = await fetch('/api/guestbook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteId, guestName: name, message }),
+        body: JSON.stringify({ siteId, guestName: name, message, guestToken }),
       });
       if (res.ok) {
         setSubmitStatus('success');

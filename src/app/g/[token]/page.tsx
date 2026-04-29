@@ -102,7 +102,8 @@ export default async function PersonalGuestPage({
   type WhisperRow = { id: string; body: string; created_at: string };
   type SongRow = { id: string; song_title: string; artist: string | null; note: string | null; created_at: string };
   type CapsuleRow = { id: string; body: string; reveal_years: number; created_at: string };
-  const [photosRes, claimsRes, memoriesRes, whispersRes, songsRes, capsuleRes] = await Promise.all([
+  type GuestbookRow = { id: string; message: string; created_at: string };
+  const [photosRes, claimsRes, memoriesRes, whispersRes, songsRes, capsuleRes, gbRes] = await Promise.all([
     sb().from('guest_photos')
       .select('id, url, caption, status, created_at')
       .eq('guest_id', guest.id)
@@ -142,6 +143,14 @@ export default async function PersonalGuestPage({
       .eq('guest_id', guest.id)
       .order('created_at', { ascending: false })
       .limit(8),
+    // Guestbook entries the guest signed since the 2026-04-29
+    // attribution migration. Older deployments may not have
+    // guest_id on guestbook yet — the .eq just returns empty.
+    sb().from('guestbook')
+      .select('id, message, created_at')
+      .eq('guest_id', guest.id)
+      .order('created_at', { ascending: false })
+      .limit(8),
   ]);
   const photos = (photosRes.data ?? []) as PhotoRow[];
   const claims = (claimsRes.data ?? []) as ClaimRow[];
@@ -149,6 +158,7 @@ export default async function PersonalGuestPage({
   const whispers = (whispersRes.data ?? []) as WhisperRow[];
   const songs = ((songsRes.data ?? []) as Array<SongRow & { state?: string }>);
   const capsules = (capsuleRes.data ?? []) as CapsuleRow[];
+  const guestbookEntries = (gbRes.data ?? []) as GuestbookRow[];
 
   const manifest = (site.site_config as { manifest?: StoryManifest }).manifest;
   if (!manifest) notFound();
@@ -305,6 +315,13 @@ export default async function PersonalGuestPage({
             heading: `For ${c.reveal_years === 1 ? 'their first anniversary' : `their ${c.reveal_years}-year anniversary`}`,
             body: c.body,
             createdAt: c.created_at,
+          })),
+          ...guestbookEntries.map((g) => ({
+            id: g.id,
+            kind: 'guestbook' as const,
+            heading: 'You signed the guestbook',
+            body: g.message,
+            createdAt: g.created_at,
           })),
         ].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
         return (photosForCard.length > 0 || claimsForCard.length > 0 || momentsForCard.length > 0) ? (

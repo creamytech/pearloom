@@ -47,7 +47,7 @@ interface ContribClaim {
  *  glance which conversation each came from. */
 export interface ContribMoment {
   id: string;
-  kind: 'memory' | 'whisper' | 'song' | 'timeCapsule';
+  kind: 'memory' | 'whisper' | 'song' | 'timeCapsule' | 'guestbook';
   /** Short heading the row leads with — the prompt question for
    *  memory; song title + artist for songs; "you whispered" for
    *  whispers; "Letter to your future self" for time-capsule. */
@@ -273,6 +273,7 @@ function kindLabel(kind: ContribMoment['kind']): string {
     case 'whisper': return 'Whisper';
     case 'song': return 'Song request';
     case 'timeCapsule': return 'Time capsule';
+    case 'guestbook': return 'Guestbook';
   }
 }
 
