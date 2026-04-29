@@ -381,8 +381,6 @@ export interface StoryManifest {
   backgroundPatternCss?: string;
   // User-created custom pages (photo gallery, our venue, etc.)
   customPages?: CustomPage[];
-  // Last asset selected from the asset library (for canvas insertion)
-  lastAsset?: { id: string; type: 'dividers' | 'illustrations' | 'accents'; name: string };
   // Poetry pass — 4th AI generation pass: hero tagline, footer closing line, RSVP intro, welcome statement
   poetry?: {
     heroTagline: string;         // 5-8 word poetic subtitle for the hero section
@@ -456,8 +454,6 @@ export interface StoryManifest {
   seoTitle?: string;
   seoDescription?: string;
   ogImage?: string;
-  // Site protection
-  sitePassword?: string;
   // Celebration — groups this site with sibling Pearloom sites
   // that belong to the same real-world celebration (e.g. a
   // wedding weekend with its own bachelor party + rehearsal +
@@ -488,10 +484,6 @@ export interface StoryManifest {
   postEventMode?: 'active' | 'thank-you' | 'archive';
   // Parchment tint filter applied to site photos
   parchmentTint?: 'none' | 'ivory' | 'linen' | 'parchment' | 'sepia';
-  // Show "Hand-curated with Pearloom" watermark on published site
-  watermark?: boolean;
-  // Private gallery — hide photo gallery from public visitors
-  privateGallery?: boolean;
   // Typography pair preset for the site
   typographyPair?: 'serif-sans' | 'mono-serif' | 'display-body' | 'editorial';
   /**
@@ -603,12 +595,6 @@ export interface StoryManifest {
     accentBlob?:       { opacity?: number; scale?: number; color?: string };
     heroPattern?:      { opacity?: number; scale?: number; color?: string };
   };
-  // Hero badge style (pill = default pill, outlined = border-only, card = card-style, minimal = text-only dots)
-  heroBadgeStyle?: 'pill' | 'outlined' | 'card' | 'minimal';
-  // Hero countdown widget style
-  heroCountdownStyle?: 'cards' | 'minimal' | 'large';
-  // Hero text color override (overrides automatic dark/light based on photo presence)
-  heroTextColorOverride?: string;
   /** Site customization options (borders, frames, transitions, etc.) */
   customization?: import("./types").SiteCustomization;
   /** Saved reusable components (symbols) */
