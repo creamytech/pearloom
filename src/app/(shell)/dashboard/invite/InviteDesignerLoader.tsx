@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { StoryManifest } from '@/types';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
-import { InviteDesigner } from '@/components/pearloom/invite/InviteDesigner';
+import { StudioApp } from '@/components/pearloom/studio/StudioApp';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { DashEmpty } from '@/components/pearloom/dash/DashEmpty';
 
@@ -110,5 +110,5 @@ export function InviteDesignerLoader({ initialSlug }: Props) {
     );
   }
 
-  return <InviteDesigner siteSlug={slug!} manifest={data.manifest} names={data.names} />;
+  return <StudioApp siteSlug={slug!} manifest={data.manifest} names={data.names} />;
 }

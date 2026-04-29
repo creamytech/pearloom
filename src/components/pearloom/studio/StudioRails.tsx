@@ -1,0 +1,721 @@
+'use client';
+
+// ─────────────────────────────────────────────────────────────
+// Studio rails:
+//   - StudioTopbar: brand · stationery type tabs · view toggle · Send
+//   - DraftsRail (left): Pear's 3 drafts + asset palette + send history
+//   - RemixRail (right): Design / Copy / Pear tabs
+// ─────────────────────────────────────────────────────────────
+
+import { useState } from 'react';
+import {
+  PALETTES, FONT_PAIRS, LAYOUTS, MOTIFS, COPY_TONES,
+  type StationeryType, type CardView, type StudioContent, type StudioDraft, type AssetEntry,
+} from './studio-constants';
+import type { StudioState, SetStudioField } from './useStudioState';
+import { Pear, Stamp, Squiggle, Icon } from '../motifs';
+import { AssetGlyph } from './StudioAssetGlyph';
+
+interface RailProps {
+  state: StudioState;
+  setField: SetStudioField;
+  content: StudioContent;
+  nameA: string;
+  nameB: string;
+  /** Action callbacks owned by the parent app. */
+  onPickDraft: (draft: StudioDraft) => void;
+  onAskPearForDraft?: () => Promise<void>;
+  onAskPearForAsset?: (kind: AssetEntry['kind']) => Promise<void>;
+  onRewriteField?: (fieldId: string, hint: string) => Promise<void>;
+  onMatchSiteTheme?: () => Promise<void>;
+  onSavingNudge?: string | null;
+  /** AI generation status — surfaces as a "Pear is drafting…"
+   *  banner near the rail header. */
+  aiBusy?: boolean;
+  /** Send-history live counts. */
+  sendStats?: { sent?: number; ready?: number; total?: number };
+}
+
+interface TopbarProps {
+  state: StudioState;
+  setField: SetStudioField;
+  nameA: string;
+  nameB: string;
+  dateShort: string;
+  savedAt?: number | null;
+}
+
+const TYPE_TABS: Array<{ id: StationeryType; label: string; icon: string; sub: string }> = [
+  { id: 'std',    label: 'Save the date', icon: 'calendar-check', sub: 'Send 6–9 months out' },
+  { id: 'invite', label: 'Invitation',    icon: 'mail',           sub: 'Send 8 weeks out' },
+  { id: 'thanks', label: 'Thank-you',     icon: 'heart-icon',     sub: 'Send the day after' },
+];
+
+export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt }: TopbarProps) {
+  const savedLabel = savedAt
+    ? formatRelative(savedAt)
+    : 'Unsaved';
+  return (
+    <header style={{
+      gridArea: 'top',
+      display: 'grid',
+      gridTemplateColumns: '296px 1fr auto',
+      alignItems: 'center', gap: 16,
+      padding: '0 16px 0 0',
+      borderBottom: '1px solid var(--line-soft)',
+      background: 'var(--cream)',
+      position: 'relative', zIndex: 5,
+    }}>
+      {/* Left: brand cluster */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px', borderRight: '1px solid var(--line-soft)', height: '100%' }}>
+        <a href="/dashboard/event" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--ink-soft)', textDecoration: 'none' }}>
+          <Icon name="chev-left" size={13} />
+        </a>
+        <Pear size={26} tone="sage" shadow={false} />
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            Studio · {nameA} & {nameB}
+          </div>
+          <div style={{ fontSize: 10.5, color: 'var(--ink-muted)' }}>
+            {dateShort} · {savedLabel}
+          </div>
+        </div>
+      </div>
+
+      {/* Middle: stationery type tabs */}
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div style={{
+          display: 'flex', gap: 4, padding: 4,
+          background: 'var(--card)', borderRadius: 999,
+          border: '1px solid var(--line-soft)',
+          boxShadow: 'var(--shadow-sm)',
+        }}>
+          {TYPE_TABS.map(tp => {
+            const on = state.type === tp.id;
+            return (
+              <button key={tp.id}
+                onClick={() => setField('type', tp.id)}
+                title={tp.sub}
+                style={{
+                  padding: '8px 16px', borderRadius: 999,
+                  fontSize: 13, fontWeight: 600,
+                  background: on ? 'var(--ink)' : 'transparent',
+                  color: on ? 'var(--cream)' : 'var(--ink)',
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  cursor: 'pointer', border: 'none',
+                  transition: 'all 200ms ease',
+                  fontFamily: 'inherit',
+                }}>
+                <Icon name={tp.icon} size={13} color={on ? 'var(--cream)' : 'currentColor'} />
+                {tp.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Right: view toggle + send */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{
+          display: 'flex', gap: 2, padding: 3,
+          background: 'var(--card)', borderRadius: 999,
+          border: '1px solid var(--line-soft)',
+        }}>
+          {([
+            { id: 'front',    label: 'Front',    icon: 'page' },
+            { id: 'back',     label: 'Back',     icon: 'layout' },
+            { id: 'envelope', label: 'Envelope', icon: 'mail' },
+          ] as Array<{ id: CardView; label: string; icon: string }>).map(v => {
+            const on = state.view === v.id;
+            return (
+              <button key={v.id} onClick={() => setField('view', v.id)} style={{
+                padding: '6px 12px', borderRadius: 999,
+                fontSize: 12, fontWeight: 600,
+                background: on ? 'var(--ink)' : 'transparent',
+                color: on ? 'var(--cream)' : 'var(--ink-soft)',
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+                <Icon name={v.icon} size={11} color={on ? 'var(--cream)' : 'var(--ink-soft)'} />
+                {v.label}
+              </button>
+            );
+          })}
+        </div>
+        <button className="btn btn-outline btn-sm" onClick={() => window.print()}>
+          <Icon name="download" size={12} /> Export
+        </button>
+        <button className="btn btn-primary btn-sm" onClick={() => setField('showSend', true)}>
+          <Icon name="send" size={12} color="var(--cream)" />
+          Send
+        </button>
+      </div>
+    </header>
+  );
+}
+
+function formatRelative(ts: number): string {
+  const delta = Date.now() - ts;
+  if (delta < 5_000) return 'Saved just now';
+  if (delta < 60_000) return `Saved ${Math.round(delta / 1000)}s ago`;
+  if (delta < 3_600_000) return `Saved ${Math.round(delta / 60_000)}m ago`;
+  return 'Saved earlier';
+}
+
+export function DraftsRail({ state, setField, content, nameA, nameB, onPickDraft, onAskPearForDraft, onAskPearForAsset, sendStats, aiBusy }: RailProps) {
+  const drafts = content.drafts;
+  return (
+    <aside style={{
+      gridArea: 'left',
+      background: 'var(--cream-2)',
+      borderRight: '1px solid var(--line-soft)',
+      padding: '16px 14px',
+      display: 'flex', flexDirection: 'column', gap: 14,
+      overflow: 'auto',
+    }}>
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <Pear size={20} tone="sage" shadow={false} sparkle />
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>Pear&apos;s drafts</div>
+        </div>
+        <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
+          Three directions, all editable. Click one to make it the canvas.
+        </div>
+        {aiBusy && (
+          <div style={{ marginTop: 8, padding: '6px 10px', background: 'var(--peach-bg)', color: 'var(--peach-ink)', borderRadius: 8, fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <Pear size={12} tone="peach" shadow={false} sparkle /> Pear is drafting…
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {drafts.map((d) => {
+          const on = state.draft === d.id;
+          return (
+            <button key={d.id}
+              onClick={() => onPickDraft(d)}
+              style={{
+                textAlign: 'left',
+                padding: 0, borderRadius: 14,
+                background: 'transparent',
+                border: on ? '2px solid var(--ink)' : '2px solid transparent',
+                transition: 'all 220ms ease',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}>
+              <DraftThumb draft={d} active={on} nameA={nameA} nameB={nameB} />
+              <div style={{
+                padding: '8px 10px',
+                background: on ? 'var(--ink)' : 'transparent',
+                color: on ? 'var(--cream)' : 'var(--ink)',
+                borderBottomLeftRadius: 12, borderBottomRightRadius: 12,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+              }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700 }}>{d.name}</div>
+                  <div style={{ fontSize: 10.5, opacity: on ? 0.75 : 0.6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.tone}</div>
+                </div>
+                {on && <Icon name="check" size={13} color="var(--cream)" />}
+              </div>
+            </button>
+          );
+        })}
+        {onAskPearForDraft && (
+          <button
+            type="button"
+            onClick={() => void onAskPearForDraft()}
+            disabled={aiBusy}
+            style={{
+              padding: '10px 12px', borderRadius: 12,
+              fontSize: 12, fontWeight: 600,
+              color: 'var(--ink-soft)',
+              border: '1.5px dashed var(--line)',
+              background: 'transparent',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              cursor: aiBusy ? 'wait' : 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            <Pear size={14} tone="sage" shadow={false} />
+            Draft another direction
+          </button>
+        )}
+      </div>
+
+      <AssetPalette state={state} setField={setField} onAskPearForAsset={onAskPearForAsset} />
+
+      <div style={{
+        marginTop: 'auto', padding: 12,
+        background: 'var(--card)', border: '1px solid var(--line-soft)', borderRadius: 12,
+      }}>
+        <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 6 }}>This send</div>
+        <div style={{ fontSize: 12, color: 'var(--ink)', marginBottom: 2 }}>
+          {sendStats?.sent != null
+            ? `${sendStats.sent} sent · ${sendStats.total ?? 0} guests`
+            : `${sendStats?.total ?? 0} guests on the list`}
+        </div>
+        <div style={{ fontSize: 10.5, color: 'var(--ink-muted)' }}>
+          {state.type === 'std' && 'Save-the-date · 6–9 months ahead'}
+          {state.type === 'invite' && 'Invitation · ~8 weeks before'}
+          {state.type === 'thanks' && 'Thank-you · day after'}
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+type StampTone = 'lavender' | 'peach' | 'sage' | 'cream';
+function stampToneFor(accent: string): StampTone {
+  if (accent === 'peach' || accent === 'sage' || accent === 'cream' || accent === 'lavender') return accent;
+  // 'twilight' / 'rose' fall back to lavender's mid-tone since the
+  // <Stamp> primitive only ships 4 tone presets.
+  return 'lavender';
+}
+
+function DraftThumb({ draft, active, nameA, nameB }: { draft: StudioDraft; active: boolean; nameA: string; nameB: string }) {
+  const palette = PALETTES.find(p => p.id === draft.accent) ?? PALETTES[0];
+  const isPhoto = draft.layout === 'photo';
+  return (
+    <div style={{
+      aspectRatio: '4 / 3', borderRadius: '12px 12px 0 0',
+      background: palette.paper, position: 'relative', overflow: 'hidden',
+      borderBottom: '1px solid ' + (active ? 'var(--ink)' : 'var(--line-soft)'),
+    }}>
+      {isPhoto ? (
+        <div style={{ position: 'absolute', inset: 6, background: `linear-gradient(135deg, ${palette.accent}, ${palette.accent2})`, borderRadius: 4 }} />
+      ) : (
+        <>
+          <div style={{
+            position: 'absolute', top: '36%', left: 0, right: 0, textAlign: 'center',
+            fontFamily: draft.id === 'modern' ? "'Inter', sans-serif" : "'Fraunces', serif",
+            fontStyle: draft.id === 'garden' || draft.id === 'editorial' ? 'italic' : 'normal',
+            fontSize: 13, fontWeight: 600, color: palette.ink, lineHeight: 1.05, letterSpacing: '-0.02em',
+            padding: '0 8px',
+          }}>
+            {nameA} & {nameB}
+          </div>
+          {draft.motif === 'stamp' && (
+            <div style={{ position: 'absolute', top: 6, right: 6, transform: 'rotate(8deg)' }}>
+              <Stamp size={28} tone={stampToneFor(draft.accent)} text="SAVE THE DATE" icon="heart" rotation={0} />
+            </div>
+          )}
+          {draft.motif === 'leaves' && (
+            <svg viewBox="0 0 60 30" width={50} height={25} style={{ position: 'absolute', bottom: 4, left: 4, opacity: 0.7 }}>
+              <path d="M5 25 Q 20 5 35 20 Q 45 28 55 22" stroke={palette.accent} strokeWidth="1" fill="none" />
+              <ellipse cx="14" cy="16" rx="3" ry="1.5" fill={palette.accent} transform="rotate(-30 14 16)" />
+              <ellipse cx="28" cy="12" rx="3" ry="1.5" fill={palette.accent} transform="rotate(20 28 12)" />
+            </svg>
+          )}
+          {draft.motif === 'tape' && (
+            <div style={{ position: 'absolute', top: -4, left: '50%', transform: 'translateX(-50%) rotate(-3deg)', width: 30, height: 9, background: 'rgba(234,178,134,0.5)' }} />
+          )}
+          {draft.motif === 'monogram' && (
+            <div style={{ position: 'absolute', top: 6, left: 6, fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 16, color: palette.accent, fontWeight: 600 }}>
+              S&amp;S
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function AssetPalette({ state, setField, onAskPearForAsset }: { state: StudioState; setField: SetStudioField; onAskPearForAsset?: (kind: AssetEntry['kind']) => Promise<void> }) {
+  return (
+    <div style={{ marginTop: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>Drag onto card</div>
+        <button onClick={() => setField('showAssets', !state.showAssets)} style={{ fontSize: 10.5, color: 'var(--ink-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
+          <Icon name={state.showAssets ? 'chev-up' : 'chev-down'} size={12} />
+        </button>
+      </div>
+      {state.showAssets && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6,
+            padding: 10, background: 'var(--card)', border: '1px solid var(--line-soft)', borderRadius: 10,
+          }}>
+            {state.assets.map(a => (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => {
+                  // Use this asset as the active motif. AI URLs flow through customMotifUrl.
+                  if (a.url) {
+                    setField('customMotifUrl', a.url);
+                    setField('motif', 'stamp');
+                  } else if (a.kind === 'wax') {
+                    setField('motif', 'wax');
+                    setField('customMotifUrl', null);
+                  } else if (a.kind === 'leaf' || a.kind === 'leaf2') {
+                    setField('motif', 'leaves');
+                    setField('customMotifUrl', null);
+                  } else if (a.kind === 'tape') {
+                    setField('motif', 'tape');
+                    setField('customMotifUrl', null);
+                  } else if (a.kind === 'doodle') {
+                    setField('motif', 'doodle');
+                    setField('customMotifUrl', null);
+                  } else if (a.kind === 'mono') {
+                    setField('motif', 'monogram');
+                    setField('customMotifUrl', null);
+                  } else {
+                    setField('motif', 'stamp');
+                    setField('customMotifUrl', null);
+                  }
+                }}
+                style={{
+                  aspectRatio: '1', display: 'grid', placeItems: 'center',
+                  background: 'var(--cream)', borderRadius: 8,
+                  cursor: 'pointer', border: '1px solid var(--line-soft)',
+                  padding: 4, transition: 'transform 160ms ease',
+                }}
+                title={a.kind}
+              >
+                <AssetGlyph asset={a} />
+              </button>
+            ))}
+          </div>
+          {onAskPearForAsset && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+              {(['stamp', 'wax', 'leaf', 'doodle'] as AssetEntry['kind'][]).map(kind => (
+                <button
+                  key={kind}
+                  type="button"
+                  onClick={() => void onAskPearForAsset(kind)}
+                  style={{
+                    padding: '4px 10px', borderRadius: 999,
+                    background: 'var(--peach-bg)', color: 'var(--peach-ink)',
+                    fontSize: 11, fontWeight: 600,
+                    border: '1px dashed var(--peach-ink)',
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  ✦ Pear · {kind}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function RemixRail({ state, setField, content, nameA, nameB, onRewriteField, onMatchSiteTheme }: RailProps) {
+  const [tab, setTab] = useState<'design' | 'copy' | 'pear'>('design');
+  return (
+    <aside style={{
+      gridArea: 'right',
+      background: 'var(--cream)',
+      borderLeft: '1px solid var(--line-soft)',
+      display: 'flex', flexDirection: 'column',
+      overflow: 'hidden',
+    }}>
+      <div style={{
+        display: 'flex', padding: '12px 12px 0', gap: 4,
+        borderBottom: '1px solid var(--line-soft)',
+      }}>
+        {([
+          { id: 'design', label: 'Design', icon: 'palette' },
+          { id: 'copy',   label: 'Copy',   icon: 'text' },
+          { id: 'pear',   label: 'Pear',   icon: 'sparkles' },
+        ] as const).map(x => {
+          const on = tab === x.id;
+          return (
+            <button key={x.id} onClick={() => setTab(x.id)} style={{
+              flex: 1, padding: '10px 4px',
+              fontSize: 12, fontWeight: 600,
+              color: on ? 'var(--ink)' : 'var(--ink-muted)',
+              borderBottom: on ? '2px solid var(--ink)' : '2px solid transparent',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              marginBottom: -1,
+              background: 'transparent', borderTop: 0, borderLeft: 0, borderRight: 0,
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}>
+              <Icon name={x.icon} size={12} color="currentColor" />
+              {x.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="pl-studio-scroll" style={{ flex: 1, overflow: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 22 }}>
+        {tab === 'design' && <DesignTab state={state} setField={setField} />}
+        {tab === 'copy' && <CopyTab content={content} state={state} setField={setField} onRewriteField={onRewriteField} />}
+        {tab === 'pear' && <PearTab state={state} content={content} nameA={nameA} nameB={nameB} onMatchSiteTheme={onMatchSiteTheme} />}
+      </div>
+    </aside>
+  );
+}
+
+function RailGroup({ label, sub, children }: { label: string; sub?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+        <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>{label}</div>
+        {sub && <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{sub}</div>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function DesignTab({ state, setField }: { state: StudioState; setField: SetStudioField }) {
+  return (
+    <>
+      <RailGroup label="Palette" sub={PALETTES.find(p => p.id === state.palette)?.sub}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+          {PALETTES.map(p => {
+            const on = state.palette === p.id;
+            return (
+              <button key={p.id} onClick={() => setField('palette', p.id)} title={p.name} style={{
+                padding: 4, borderRadius: 10,
+                border: on ? '2px solid var(--ink)' : '2px solid transparent',
+                background: 'transparent', cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+                <div style={{ borderRadius: 6, overflow: 'hidden', display: 'flex', height: 36 }}>
+                  <div style={{ flex: 2, background: p.paper }} />
+                  <div style={{ flex: 1, background: p.accent }} />
+                  <div style={{ flex: 1, background: p.accent2 }} />
+                </div>
+                <div style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--ink)', marginTop: 4, textAlign: 'center' }}>{p.name}</div>
+              </button>
+            );
+          })}
+        </div>
+      </RailGroup>
+
+      <RailGroup label="Layout">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
+          {LAYOUTS.map(l => {
+            const on = state.layout === l.id;
+            return (
+              <button key={l.id} onClick={() => setField('layout', l.id)} style={{
+                padding: 8, borderRadius: 8,
+                background: on ? 'var(--ink)' : 'var(--card)',
+                color: on ? 'var(--cream)' : 'var(--ink)',
+                border: '1px solid ' + (on ? 'var(--ink)' : 'var(--line-soft)'),
+                textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 2,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+                <div style={{ fontSize: 11.5, fontWeight: 700 }}>{l.name}</div>
+                <div style={{ fontSize: 10, opacity: on ? 0.75 : 0.6 }}>{l.sub}</div>
+              </button>
+            );
+          })}
+        </div>
+      </RailGroup>
+
+      <RailGroup label="Typography" sub={FONT_PAIRS.find(f => f.id === state.fontPair)?.sub}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {FONT_PAIRS.map(f => {
+            const on = state.fontPair === f.id;
+            return (
+              <button key={f.id} onClick={() => setField('fontPair', f.id)} style={{
+                padding: '10px 12px', borderRadius: 8,
+                background: on ? 'var(--ink)' : 'var(--card)',
+                color: on ? 'var(--cream)' : 'var(--ink)',
+                border: '1px solid ' + (on ? 'var(--ink)' : 'var(--line-soft)'),
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                textAlign: 'left',
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+                <div>
+                  <div style={{
+                    fontFamily: f.display, fontStyle: f.italic ? 'italic' : 'normal',
+                    fontWeight: f.weight, fontSize: 18, lineHeight: 1, letterSpacing: '-0.02em',
+                  }}>Aa Bb</div>
+                  <div style={{ fontSize: 10, opacity: on ? 0.7 : 0.55, marginTop: 4 }}>{f.name}</div>
+                </div>
+                {on && <Icon name="check" size={13} color="var(--cream)" />}
+              </button>
+            );
+          })}
+        </div>
+      </RailGroup>
+
+      <RailGroup label="Motif">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+          {MOTIFS.map(m => {
+            const on = state.motif === m.id;
+            return (
+              <button key={m.id} onClick={() => { setField('motif', m.id); setField('customMotifUrl', null); }} style={{
+                padding: 4, borderRadius: 8, aspectRatio: '1',
+                background: on ? 'var(--ink)' : 'var(--card)',
+                color: on ? 'var(--cream)' : 'var(--ink-soft)',
+                border: '1px solid ' + (on ? 'var(--ink)' : 'var(--line-soft)'),
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+                <MiniMotif id={m.id} on={on} />
+                <div style={{ fontSize: 9, fontWeight: 600 }}>{m.name}</div>
+              </button>
+            );
+          })}
+        </div>
+      </RailGroup>
+    </>
+  );
+}
+
+function MiniMotif({ id, on }: { id: string; on: boolean }) {
+  const c = on ? 'var(--cream)' : 'var(--ink)';
+  if (id === 'stamp') return <Stamp size={20} tone="lavender" text="" icon="heart" rotation={-6} />;
+  if (id === 'leaves') return (
+    <svg viewBox="0 0 30 30" width={20} height={20}>
+      <path d="M5 25 Q 15 5 25 18" stroke={c} strokeWidth="1" fill="none" />
+      <ellipse cx="11" cy="16" rx="3" ry="1.4" fill={c} transform="rotate(-30 11 16)" />
+      <ellipse cx="20" cy="14" rx="3" ry="1.4" fill={c} transform="rotate(20 20 14)" />
+    </svg>
+  );
+  if (id === 'tape') return <div style={{ width: 22, height: 8, background: 'var(--peach)', opacity: 0.7, transform: 'rotate(-6deg)' }} />;
+  if (id === 'monogram') return <div style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 16, color: c, fontWeight: 700, lineHeight: 1 }}>S&amp;S</div>;
+  if (id === 'wax') return <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#C97A6E' }} />;
+  if (id === 'doodle') return <Squiggle width={22} height={10} variant={1} stroke={c} />;
+  return <div style={{ width: 18, height: 18, border: '1.5px solid ' + c }} />;
+}
+
+function CopyTab({ content, state, setField, onRewriteField }: { content: StudioContent; state: StudioState; setField: SetStudioField; onRewriteField?: (id: string, hint: string) => Promise<void> }) {
+  const [openField, setOpenField] = useState<string | null>(null);
+  const fields = [
+    { id: 'eyebrow',  label: 'Eyebrow',    value: content.eyebrow },
+    { id: 'headline', label: 'Headline',   value: content.headline, locked: true, sub: 'Pulled from your event' },
+    { id: 'line2',    label: 'Body line',  value: content.line2 },
+    { id: 'line3',    label: 'Date / time', value: content.line3, locked: true, sub: 'Edits on the site flow here' },
+    { id: 'line4',    label: 'Place',      value: content.line4 },
+    { id: 'cta',      label: 'Footer line', value: content.cta },
+  ];
+  return (
+    <>
+      <RailGroup label="Tone" sub="Pear rewrites every line">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
+          {COPY_TONES.map(c => {
+            const on = state.tone === c.id;
+            return (
+              <button key={c.id} onClick={() => setField('tone', c.id)} style={{
+                padding: 10, borderRadius: 8, textAlign: 'left',
+                background: on ? 'var(--ink)' : 'var(--card)',
+                color: on ? 'var(--cream)' : 'var(--ink)',
+                border: '1px solid ' + (on ? 'var(--ink)' : 'var(--line-soft)'),
+                display: 'flex', flexDirection: 'column', gap: 2,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+                <div style={{ fontSize: 12, fontWeight: 700 }}>{c.label}</div>
+                <div style={{ fontSize: 10, opacity: on ? 0.75 : 0.6, fontStyle: 'italic' }}>{c.sub}</div>
+              </button>
+            );
+          })}
+        </div>
+      </RailGroup>
+
+      <RailGroup label="Fields">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {fields.map(f => (
+            <div key={f.id} style={{
+              padding: '10px 12px', borderRadius: 8,
+              background: 'var(--card)', border: '1px solid var(--line-soft)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>{f.label}</div>
+                {f.locked ? (
+                  <Icon name="link" size={11} color="var(--ink-muted)" />
+                ) : (
+                  <button onClick={() => setOpenField(openField === f.id ? null : f.id)} style={{
+                    fontSize: 10, color: 'var(--peach-ink)', fontWeight: 600,
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                    background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                  }}>
+                    <Pear size={10} tone="sage" shadow={false} />
+                    Rewrite
+                  </button>
+                )}
+              </div>
+              <div style={{ fontSize: 12.5, color: f.locked ? 'var(--ink-muted)' : 'var(--ink)', lineHeight: 1.4 }}>
+                {f.value || <span style={{ fontStyle: 'italic', color: 'var(--ink-muted)' }}>empty</span>}
+              </div>
+              {f.sub && <div style={{ fontSize: 10, color: 'var(--ink-muted)', marginTop: 4 }}>{f.sub}</div>}
+
+              {openField === f.id && !f.locked && onRewriteField && (
+                <div className="pl-studio-nudge-in" style={{ marginTop: 10, paddingTop: 10, borderTop: '1px dashed var(--line-soft)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {[
+                    'A different angle on the same idea',
+                    'Trim it to half the length',
+                    'Make it sound spoken-aloud',
+                  ].map(hint => (
+                    <button key={hint}
+                      onClick={() => void onRewriteField(f.id, hint)}
+                      style={{
+                        padding: '6px 10px', borderRadius: 6,
+                        background: 'var(--peach-bg)', color: 'var(--peach-ink)',
+                        fontSize: 11, fontWeight: 500, textAlign: 'left',
+                        border: '1px solid transparent', cursor: 'pointer', fontFamily: 'inherit',
+                      }}>{hint}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </RailGroup>
+    </>
+  );
+}
+
+function PearTab({ state, content, nameA, nameB, onMatchSiteTheme }: { state: StudioState; content: StudioContent; nameA: string; nameB: string; onMatchSiteTheme?: () => Promise<void> }) {
+  return (
+    <>
+      <div style={{
+        padding: 14, background: 'linear-gradient(135deg, #FBE8D6, #E8E0F0)',
+        borderRadius: 12, border: '1px solid var(--line-soft)',
+        display: 'flex', flexDirection: 'column', gap: 10,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Pear size={32} tone="sage" sparkle />
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700 }}>Pear&apos;s read on this</div>
+            <div style={{ fontSize: 10.5, color: 'var(--ink-soft)' }}>Looking at your {content.eyebrow.toLowerCase()}</div>
+          </div>
+        </div>
+        <div style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.5 }}>
+          The <strong>{state.layout}</strong> layout reads warm and confident. With{' '}
+          <strong>{PALETTES.find(p => p.id === state.palette)?.name ?? 'this'}</strong> and the{' '}
+          <strong>{content.stamp.toLowerCase()}</strong> stamp, this lands in the editorial-classic neighborhood for {nameA} & {nameB}.
+        </div>
+      </div>
+
+      <RailGroup label="Pear can do this">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {[
+            { l: 'Match this card to your site theme',  i: 'palette',  tone: 'lavender', onPress: onMatchSiteTheme },
+            { l: 'Suggest a stamp + accent that pair',   i: 'sparkles', tone: 'peach' },
+            { l: 'Translate every word to the venue’s language', i: 'globe', tone: 'lavender' },
+          ].map(s => (
+            <button key={s.l}
+              onClick={() => void s.onPress?.()}
+              disabled={!s.onPress}
+              style={{
+                padding: '10px 12px', borderRadius: 10,
+                background: 'var(--card)', border: '1px solid var(--line-soft)',
+                display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
+                transition: 'all 200ms ease',
+                opacity: s.onPress ? 1 : 0.55,
+                cursor: s.onPress ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
+              }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+                background: s.tone === 'peach' ? 'var(--peach-bg)' : 'var(--lavender-bg, #E8E0F0)',
+                color: s.tone === 'peach' ? 'var(--peach-ink)' : 'var(--lavender-ink, #6B5784)',
+                display: 'grid', placeItems: 'center',
+              }}>
+                <Icon name={s.i} size={14} color="currentColor" />
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--ink)', lineHeight: 1.35, flex: 1 }}>{s.l}</div>
+              <Icon name="arrow-right" size={12} color="var(--ink-muted)" />
+            </button>
+          ))}
+        </div>
+      </RailGroup>
+    </>
+  );
+}
