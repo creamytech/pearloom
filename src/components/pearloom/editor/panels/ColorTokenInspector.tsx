@@ -46,53 +46,106 @@ export function ColorTokenInspector({
     } as unknown as StoryManifest);
   }
 
+  // Most hosts only ever tweak the accent. Surface that one
+  // inline; tuck the other five tokens behind an "Other colors"
+  // disclosure so the panel stays glanceable. Audited 2026-04-30.
+  const ACCENT_KEY: TokenKey = 'accent';
+  const accentMeta = TOKENS.find((t) => t.key === ACCENT_KEY)!;
+  const otherTokens = TOKENS.filter((t) => t.key !== ACCENT_KEY);
+  const accentValue = themeColors?.[ACCENT_KEY] ?? '#FFFFFF';
+
   return (
     <PanelSection
-      label="Color tokens"
-      hint="Tweak any individual color in the active palette. Useful when you love a preset but want to warm up the accent."
+      label="Tweak colors"
+      hint="Nudge the accent (or any other token) without picking a new palette."
     >
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-        {TOKENS.map((t) => {
-          const value = themeColors?.[t.key] ?? '#FFFFFF';
-          const on = activeToken === t.key;
-          return (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => setActiveToken(on ? null : t.key)}
-              title={t.hint}
-              style={{
-                all: 'unset',
-                cursor: 'pointer',
-                padding: 10,
-                borderRadius: 10,
-                background: on ? 'var(--cream-2)' : 'var(--card)',
-                border: on ? '2px solid var(--ink)' : '1px solid var(--line)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              <div
-                style={{
-                  width: '100%',
-                  height: 36,
-                  borderRadius: 8,
-                  background: value,
-                  border: '1px solid var(--line)',
-                }}
-              />
-              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink)' }}>{t.label}</div>
-              <div style={{ fontSize: 9.5, fontFamily: 'ui-monospace, monospace', color: 'var(--ink-muted)' }}>
-                {value.toUpperCase()}
-              </div>
-            </button>
-          );
-        })}
+      {/* Primary control — accent. The one most hosts actually
+          want to adjust. Inline picker, no disclosure needed. */}
+      <Field label={accentMeta.label}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <V8ColorPicker
+            value={accentValue}
+            onChange={(v) => setColor(ACCENT_KEY, v)}
+            ariaLabel="Edit accent colour"
+          />
+          <TextInput
+            value={accentValue.toUpperCase()}
+            onChange={(e) => {
+              const v = e.target.value.trim();
+              if (/^#[0-9a-fA-F]{6}$/.test(v) || /^#[0-9a-fA-F]{3}$/.test(v)) {
+                setColor(ACCENT_KEY, v);
+              }
+            }}
+            placeholder="#3D4A1F"
+          />
+        </div>
+      </Field>
+      <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 4, marginBottom: 12, lineHeight: 1.45 }}>
+        <Icon name="sparkles" size={11} /> {accentMeta.hint}
       </div>
 
-      {activeToken && (
+      {/* Other five tokens behind a disclosure. Each is still
+          edit-on-click via the same activeToken pattern. */}
+      <details>
+        <summary
+          style={{
+            cursor: 'pointer',
+            padding: '6px 10px',
+            borderRadius: 8,
+            background: 'var(--cream-2)',
+            border: '1px dashed var(--line)',
+            fontSize: 11.5,
+            fontWeight: 600,
+            color: 'var(--ink-soft)',
+            userSelect: 'none',
+            marginBottom: 8,
+          }}
+        >
+          Other colors — paper, ink, soft, muted, card
+        </summary>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, paddingTop: 6 }}>
+          {otherTokens.map((t) => {
+            const value = themeColors?.[t.key] ?? '#FFFFFF';
+            const on = activeToken === t.key;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => setActiveToken(on ? null : t.key)}
+                title={t.hint}
+                style={{
+                  all: 'unset',
+                  cursor: 'pointer',
+                  padding: 10,
+                  borderRadius: 10,
+                  background: on ? 'var(--cream-2)' : 'var(--card)',
+                  border: on ? '2px solid var(--ink)' : '1px solid var(--line)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                <div
+                  style={{
+                    width: '100%',
+                    height: 36,
+                    borderRadius: 8,
+                    background: value,
+                    border: '1px solid var(--line)',
+                  }}
+                />
+                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink)' }}>{t.label}</div>
+                <div style={{ fontSize: 9.5, fontFamily: 'ui-monospace, monospace', color: 'var(--ink-muted)' }}>
+                  {value.toUpperCase()}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </details>
+
+      {activeToken && activeToken !== ACCENT_KEY && (
         <div
           style={{
             marginTop: 12,
