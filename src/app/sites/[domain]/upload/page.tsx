@@ -44,10 +44,13 @@ interface SiteRow {
 
 export default async function GuestUploadPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ domain: string }>;
+  searchParams: Promise<{ t?: string }>;
 }) {
   const { domain } = await params;
+  const { t: guestToken } = await searchParams;
   const sb = getSupabase();
   if (!sb) notFound();
 
@@ -61,5 +64,25 @@ export default async function GuestUploadPage({
   const names = (site.ai_manifest?.names ?? site.site_config?.names ?? []).filter(Boolean);
   const couple = names.length >= 2 ? `${names[0]} & ${names[1]}` : (names[0] ?? 'the celebration');
 
-  return <GuestUploadClient siteId={site.subdomain} couple={couple} />;
+  // Pre-fill the uploader name + email from the personalized guest
+  // record when /upload?t=<guest_token> is used. The form stays
+  // editable in case the guest's borrowing someone's phone.
+  let prefillName: string | null = null;
+  if (guestToken && guestToken.length >= 6) {
+    const { data: guestRow } = await sb
+      .from('pearloom_guests')
+      .select('display_name')
+      .eq('guest_token', guestToken)
+      .maybeSingle();
+    prefillName = (guestRow as { display_name?: string } | null)?.display_name ?? null;
+  }
+
+  return (
+    <GuestUploadClient
+      siteId={site.subdomain}
+      couple={couple}
+      guestToken={guestToken ?? null}
+      prefillName={prefillName}
+    />
+  );
 }

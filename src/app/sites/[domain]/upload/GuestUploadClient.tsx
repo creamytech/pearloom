@@ -17,13 +17,20 @@ import { useRef, useState } from 'react';
 interface Props {
   siteId: string; // subdomain — guest-photos API accepts this
   couple: string;
+  /** Per-guest token from /upload?t=… When present, the upload
+   *  is attributed to the guest's pearloom_guests row so it
+   *  surfaces on /g/[token] as their contribution. */
+  guestToken: string | null;
+  /** Pre-fill the uploader name when we resolved the token to
+   *  a guest record server-side. Form stays editable. */
+  prefillName: string | null;
 }
 
 type Stage = 'idle' | 'uploading' | 'sent' | 'error';
 
-export function GuestUploadClient({ siteId, couple }: Props) {
+export function GuestUploadClient({ siteId, couple, guestToken, prefillName }: Props) {
   const [stage, setStage] = useState<Stage>('idle');
-  const [name, setName] = useState('');
+  const [name, setName] = useState(prefillName ?? '');
   const [caption, setCaption] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +73,7 @@ export function GuestUploadClient({ siteId, couple }: Props) {
       fd.append('siteId', siteId);
       fd.append('uploaderName', name.trim());
       if (caption.trim()) fd.append('caption', caption.trim());
+      if (guestToken) fd.append('guestToken', guestToken);
       const r = await fetch('/api/guest-photos', { method: 'POST', body: fd });
       if (!r.ok) {
         const data = await r.json().catch(() => ({}));

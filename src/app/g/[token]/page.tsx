@@ -24,6 +24,8 @@ import type { StoryManifest } from '@/types';
 import { PersonalGuestHero } from '@/components/guest-experience/PersonalGuestHero';
 import { VoiceToastRecorder } from '@/components/guest-experience/VoiceToastRecorder';
 import { YourRsvpCard } from '@/components/guest-experience/YourRsvpCard';
+import { YourContributionsCard } from '@/components/guest-experience/YourContributionsCard';
+import { GuestPearChat } from '@/components/pearloom/site/GuestPearChat';
 import { PassportSections } from '@/components/pearloom/passport/PassportSections';
 import { GuestPhaseStrip } from '@/components/pearloom/passport/GuestPhaseStrip';
 
@@ -85,6 +87,30 @@ export default async function PersonalGuestPage({
       .maybeSingle<GuestRsvp>();
     rsvp = rsvpRow ?? null;
   }
+
+  // ── Guest contributions: photos uploaded + gifts claimed ──
+  // Photos: tagged by guest_id when /upload?t=token was used.
+  // Claims: matched by claimer_email = guest.email.
+  // Both feeds power the YourContributionsCard hub.
+  type PhotoRow = { id: string; url: string; caption: string | null; status: string; created_at: string };
+  type ClaimRow = { id: string; entry_url: string; message: string | null; created_at: string };
+  const [photosRes, claimsRes] = await Promise.all([
+    sb().from('guest_photos')
+      .select('id, url, caption, status, created_at')
+      .eq('guest_id', guest.id)
+      .order('created_at', { ascending: false })
+      .limit(24),
+    guest.email
+      ? sb().from('registry_link_claims')
+          .select('id, entry_url, message, created_at')
+          .eq('site_id', site.id)
+          .eq('claimer_email', guest.email)
+          .is('revoked_at', null)
+          .order('created_at', { ascending: false })
+      : Promise.resolve({ data: null as ClaimRow[] | null }),
+  ]);
+  const photos = (photosRes.data ?? []) as PhotoRow[];
+  const claims = (claimsRes.data ?? []) as ClaimRow[];
 
   const manifest = (site.site_config as { manifest?: StoryManifest }).manifest;
   if (!manifest) notFound();
@@ -163,10 +189,54 @@ export default async function PersonalGuestPage({
         venue={manifest.logistics?.venue ?? ''}
       />
 
-      {/* "Your RSVP" card — surfaces the guest's current answer
-          and gives them a one-tap way to update without leaving
-          the page. Lifted above the chapter highlights because
-          for most guests "did I RSVP?" is the first question. */}
+      {/* "Your RSVP" card + "What you've added" hub. Surfacing
+          both at the top makes /g/[token] the personal hub it's
+          named for: see what you said, see what you brought. */}
+      {(() => {
+        // Resolve registry entry URL → label using the manifest's
+        // own entries list. Falls back to the URL host when the
+        // entry has been removed since the claim landed.
+        type RegEntry = { name?: string; label?: string; url?: string };
+        const entries: RegEntry[] = (() => {
+          const reg = (manifest as unknown as { registry?: unknown }).registry;
+          if (Array.isArray(reg)) return reg as RegEntry[];
+          if (reg && typeof reg === 'object') {
+            const r = reg as { entries?: RegEntry[] };
+            return Array.isArray(r.entries) ? r.entries : [];
+          }
+          return [];
+        })();
+        const labelFor = (url: string): string => {
+          const match = entries.find((e) => e.url === url);
+          if (match) return match.name ?? match.label ?? new URL(url).hostname.replace(/^www\./, '');
+          try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
+        };
+        const claimsForCard = claims.map((c) => ({
+          id: c.id,
+          entryUrl: c.entry_url,
+          entryLabel: labelFor(c.entry_url),
+          message: c.message,
+          createdAt: c.created_at,
+        }));
+        const photosForCard = photos.map((p) => ({
+          id: p.id,
+          url: p.url,
+          caption: p.caption,
+          status: (p.status === 'approved' || p.status === 'rejected' ? p.status : 'pending') as 'approved' | 'rejected' | 'pending',
+          createdAt: p.created_at,
+        }));
+        return (photosForCard.length > 0 || claimsForCard.length > 0) ? (
+          <section style={{ padding: '2rem 1.5rem 0', maxWidth: 720, margin: '0 auto' }}>
+            <YourContributionsCard
+              photos={photosForCard}
+              claims={claimsForCard}
+              accent={theme?.accent ?? '#5C6B3F'}
+              headingFont={headingFont}
+            />
+          </section>
+        ) : null;
+      })()}
+
       <section style={{ padding: '2rem 1.5rem 0', maxWidth: 720, margin: '0 auto' }}>
         <YourRsvpCard
           siteId={site.id}
@@ -324,6 +394,31 @@ export default async function PersonalGuestPage({
       <footer style={{ padding: '2rem 1rem', textAlign: 'center', fontSize: '0.75rem', color: theme?.muted ?? '#9A9488' }}>
         Personalized for {guest.display_name} · <a href="https://pearloom.com" style={{ color: 'inherit' }}>Pearloom</a>
       </footer>
+
+      {/* Guest-aware Pear concierge — same chat pill as the public
+          site, but Pear now knows the guest's RSVP, seat, and
+          dietary so questions like "what time should I get there?"
+          land with their personal context baked in. */}
+      <GuestPearChat
+        manifest={manifest}
+        coupleNames={coupleNames}
+        guest={{
+          name: guest.display_name,
+          status: ((rsvp?.status as 'attending' | 'declined' | 'maybe' | null) ?? null) ?? undefined,
+          seat: typeof personalization.seat_summary === 'string' && personalization.seat_summary.length < 200
+            ? personalization.seat_summary
+            : null,
+          dietary: Array.isArray(guest.dietary) ? guest.dietary : null,
+          selectedEventNames: (() => {
+            const ids = rsvp?.event_ids ?? [];
+            if (!ids.length) return null;
+            const events = manifest.events ?? [];
+            return ids
+              .map((id) => events.find((e) => e.id === id)?.name)
+              .filter((n): n is string => !!n);
+          })(),
+        }}
+      />
     </div>
   );
 }

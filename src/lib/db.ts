@@ -705,13 +705,20 @@ function toGuestPhoto(row: Record<string, unknown>): GuestPhoto {
   };
 }
 
-export async function addGuestPhoto(data: Omit<GuestPhoto, 'id' | 'createdAt'>): Promise<GuestPhoto | null> {
+export async function addGuestPhoto(
+  data: Omit<GuestPhoto, 'id' | 'createdAt'> & { guestId?: string | null }
+): Promise<GuestPhoto | null> {
   const supabase = getSupabase();
   const { data: row, error } = await supabase
     .from('guest_photos')
     .insert({
       site_id: data.siteId,
       uploader_name: data.uploaderName,
+      // Optional attribution to a pearloom_guests row. When set,
+      // the /g/[token] page surfaces this photo as part of "your
+      // contributions" — the guest revisits and sees what they
+      // added without hunting through the wall.
+      guest_id: data.guestId ?? null,
       url: data.url,
       thumbnail_url: data.thumbnailUrl ?? null,
       caption: data.caption ?? null,

@@ -158,6 +158,333 @@ function isStale(invitedAtIso: string | null | undefined, status: RsvpKey, now =
   return now - t > STALE_MS;
 }
 
+/** Nudge strip + Pear-drafted composer modal. */
+function NudgeStrip({
+  count,
+  recipients,
+  siteId,
+  onSeePending,
+}: {
+  count: number;
+  recipients: Guest[];
+  siteId: string;
+  onSeePending: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '10px 14px',
+          background: 'linear-gradient(135deg, rgba(251,232,214,0.85) 0%, rgba(232,224,240,0.65) 100%)',
+          border: '1px solid rgba(198,112,61,0.28)',
+          borderRadius: 12,
+        }}
+      >
+        <span
+          aria-hidden
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: 999,
+            background: 'var(--peach-ink, #C6703D)',
+            flexShrink: 0,
+          }}
+        />
+        <span style={{ fontSize: 12.5, color: 'var(--ink, #0E0D0B)', flex: 1 }}>
+          <strong style={{ fontWeight: 700 }}>{count}</strong>
+          {' '}
+          {count === 1 ? 'guest opened' : 'guests opened'} the invite but haven&apos;t replied. Ready for a nudge.
+        </span>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          style={{
+            padding: '6px 12px',
+            borderRadius: 999,
+            background: 'var(--peach-ink, #C6703D)',
+            color: '#FFFFFF',
+            border: 'none',
+            fontSize: 11.5,
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          ✦ Send a nudge
+        </button>
+        <button
+          type="button"
+          onClick={onSeePending}
+          style={{
+            padding: '6px 10px',
+            background: 'transparent',
+            color: 'var(--peach-ink, #C6703D)',
+            border: 'none',
+            fontSize: 11.5,
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          See pending →
+        </button>
+      </div>
+      {open && (
+        <NudgeComposer
+          siteId={siteId}
+          recipients={recipients}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </>
+  );
+}
+
+function NudgeComposer({
+  siteId,
+  recipients,
+  onClose,
+}: {
+  siteId: string;
+  recipients: Guest[];
+  onClose: () => void;
+}) {
+  const [body, setBody] = useState('');
+  const [drafting, setDrafting] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState<number | null>(null);
+
+  // Auto-fire Pear draft on open. Skip when we already have a body
+  // (the host re-opens to send to a different selection).
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/guests/draft-nudge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ siteId, pendingCount: recipients.length }),
+    })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data: { body?: string } | null) => {
+        if (cancelled) return;
+        if (data?.body) setBody(data.body);
+      })
+      .catch(() => { /* keep textarea empty so the host can write their own */ })
+      .finally(() => { if (!cancelled) setDrafting(false); });
+    return () => { cancelled = true; };
+  }, [siteId, recipients.length]);
+
+  async function send() {
+    if (busy) return;
+    if (!body.trim()) {
+      setError('Write a body first.');
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await fetch('/api/guests/nudge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId,
+          guestIds: recipients.map((g) => g.id),
+          bodyText: body,
+        }),
+      });
+      const data = (await r.json()) as { sent?: number; error?: string };
+      if (!r.ok) throw new Error(data.error ?? `Failed (${r.status})`);
+      setSent(data.sent ?? 0);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Send failed.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      role="dialog"
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(14,13,11,0.5)',
+        backdropFilter: 'blur(8px)',
+        zIndex: 360,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 'min(540px, 100%)',
+          background: 'var(--card, #FBF7EE)',
+          borderRadius: 18,
+          padding: 24,
+          boxShadow: '0 32px 60px rgba(14,13,11,0.4)',
+          fontFamily: 'inherit',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+        }}
+      >
+        <div>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--peach-ink, #C6703D)',
+            }}
+          >
+            Pear&apos;s nudge
+          </div>
+          <h3
+            style={{
+              fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+              fontStyle: 'italic',
+              fontSize: 22,
+              margin: '4px 0 0',
+              color: 'var(--ink, #0E0D0B)',
+              lineHeight: 1.2,
+            }}
+          >
+            {sent !== null
+              ? `Nudge sent to ${sent} ${sent === 1 ? 'guest' : 'guests'}.`
+              : `To ${recipients.length} ${recipients.length === 1 ? 'guest' : 'guests'}`}
+          </h3>
+          {sent === null && (
+            <p style={{ fontSize: 12.5, color: 'var(--ink-soft, #3A332C)', margin: '6px 0 0', lineHeight: 1.5 }}>
+              Pear drafted a body in your voice. Edit anything you want, then send.
+              Each email lands in the recipient&apos;s inbox with their personal RSVP link.
+            </p>
+          )}
+        </div>
+
+        {sent === null && (
+          <>
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              rows={6}
+              placeholder={drafting ? 'Pear is drafting…' : 'Write your nudge…'}
+              maxLength={4000}
+              style={{
+                padding: '12px 14px',
+                borderRadius: 10,
+                border: '1.5px solid rgba(14,13,11,0.14)',
+                background: 'var(--paper, #FBF7EE)',
+                fontSize: 13.5,
+                color: 'var(--ink, #0E0D0B)',
+                fontFamily: 'inherit',
+                outline: 'none',
+                resize: 'vertical',
+                minHeight: 120,
+              }}
+              disabled={drafting}
+            />
+            {/* Recipient preview row — first 3 names + count. */}
+            <div style={{ fontSize: 11, color: 'var(--ink-muted, #6F6557)', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <span style={{ fontWeight: 700, letterSpacing: '0.04em' }}>RECIPIENTS:</span>
+              {recipients.slice(0, 3).map((g) => (
+                <span key={g.id}>{g.n.split(' ')[0]}</span>
+              ))}
+              {recipients.length > 3 && <span>+ {recipients.length - 3} more</span>}
+            </div>
+            {error && (
+              <div
+                role="alert"
+                style={{
+                  padding: '8px 12px',
+                  background: 'rgba(122,45,45,0.08)',
+                  border: '1px solid rgba(122,45,45,0.22)',
+                  borderRadius: 8,
+                  color: '#7A2D2D',
+                  fontSize: 12,
+                }}
+              >
+                {error}
+              </div>
+            )}
+          </>
+        )}
+
+        <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+          {sent !== null ? (
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                flex: 1,
+                padding: '10px 16px',
+                borderRadius: 999,
+                background: 'var(--ink, #0E0D0B)',
+                color: 'var(--cream, #FBF7EE)',
+                border: 'none',
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              Done
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={send}
+                disabled={busy || drafting || !body.trim()}
+                style={{
+                  flex: 1,
+                  padding: '10px 16px',
+                  borderRadius: 999,
+                  background: busy || drafting || !body.trim() ? 'var(--cream-2, #F5EFE2)' : 'var(--ink, #0E0D0B)',
+                  color: busy || drafting || !body.trim() ? 'var(--ink-muted, #6F6557)' : 'var(--cream, #FBF7EE)',
+                  border: 'none',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: busy ? 'wait' : drafting ? 'wait' : !body.trim() ? 'not-allowed' : 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {busy ? 'Sending…' : `Send to ${recipients.length}`}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={busy}
+                style={{
+                  padding: '10px 16px',
+                  borderRadius: 999,
+                  background: 'transparent',
+                  color: 'var(--ink-soft, #3A332C)',
+                  border: '1px solid var(--line, rgba(14,13,11,0.14))',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Cancel
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** Inline email lifecycle pips: 📨 sent → ✓ delivered → 👁 opened.
  *  Bounced overrides the chain with a single terra pip. Each pip
  *  is small (~6px) so the row stays visually quiet. Hovering any
@@ -587,46 +914,18 @@ export function DashGuests() {
           )}
 
           {/* NUDGE — when N guests opened the invite but haven't
-              replied, surface a one-line peach pill that filters
-              the table to those rows in one tap. Reads as Pear
-              telling the host the actionable bucket without making
-              them mentally sort. */}
-          {counts.opened > 0 && (
-            <button
-              type="button"
-              onClick={() => setFilter('pending')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '10px 14px',
-                background: 'linear-gradient(135deg, rgba(251,232,214,0.85) 0%, rgba(232,224,240,0.65) 100%)',
-                border: '1px solid rgba(198,112,61,0.28)',
-                borderRadius: 12,
-                fontFamily: 'inherit',
-                cursor: 'pointer',
-                textAlign: 'left',
-              }}
-            >
-              <span
-                aria-hidden
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: 999,
-                  background: 'var(--peach-ink, #C6703D)',
-                  flexShrink: 0,
-                }}
-              />
-              <span style={{ fontSize: 12.5, color: 'var(--ink, #0E0D0B)' }}>
-                <strong style={{ fontWeight: 700 }}>{counts.opened}</strong>
-                {' '}
-                {counts.opened === 1 ? 'guest opened' : 'guests opened'} the invite but haven&apos;t replied. Ready for a nudge.
-              </span>
-              <span style={{ marginLeft: 'auto', fontSize: 11.5, color: 'var(--peach-ink, #C6703D)', fontWeight: 700 }}>
-                See pending →
-              </span>
-            </button>
+              replied, surface a one-line peach pill. Tapping
+              "Send a nudge" opens the composer with Pear's draft
+              pre-loaded and the recipient list set to those guests.
+              "See pending" still filters the table for hosts who
+              prefer to handle each one manually. */}
+          {counts.opened > 0 && rows && (
+            <NudgeStrip
+              count={counts.opened}
+              recipients={rows.filter((g) => g.opened)}
+              siteId={site?.id ?? site?.domain ?? ''}
+              onSeePending={() => setFilter('pending')}
+            />
           )}
 
           {/* TABLE */}

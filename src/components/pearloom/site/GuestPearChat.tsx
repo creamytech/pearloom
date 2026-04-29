@@ -22,6 +22,17 @@ import type { StoryManifest } from '@/types';
 interface Props {
   manifest: StoryManifest;
   coupleNames: [string, string];
+  /** When the visitor is on /g/[token] we know exactly who they
+   *  are. Pear gets their RSVP status + seat + dietary so it can
+   *  answer "what time should I get there?" with their context
+   *  baked in instead of generic copy. */
+  guest?: {
+    name: string;
+    status?: 'attending' | 'declined' | 'maybe' | 'pending';
+    seat?: string | null;
+    dietary?: string[] | null;
+    selectedEventNames?: string[] | null;
+  };
 }
 
 interface Message {
@@ -37,7 +48,7 @@ const STARTER_PROMPTS = [
   "What time's the ceremony?",
 ];
 
-export function GuestPearChat({ manifest, coupleNames }: Props) {
+export function GuestPearChat({ manifest, coupleNames, guest }: Props) {
   const [open, setOpen] = useState(false);
   const [chat, setChat] = useState<Message[]>([]);
   const [draft, setDraft] = useState('');
@@ -67,13 +78,32 @@ export function GuestPearChat({ manifest, coupleNames }: Props) {
     setStreaming(true);
     setError(null);
     try {
+      // Bake the guest's context into the prompt as a preface so
+      // Pear can answer "what time should I get there?" with their
+      // RSVP'd events instead of guessing.
+      let scopedPrompt = trimmed;
+      if (guest) {
+        const lines: string[] = [`(About me: I'm ${guest.name}.`];
+        if (guest.status === 'attending') lines.push("I've RSVP'd yes.");
+        else if (guest.status === 'declined') lines.push("I've RSVP'd no.");
+        else if (guest.status === 'maybe') lines.push("I've RSVP'd maybe.");
+        else lines.push("I haven't RSVP'd yet.");
+        if (guest.seat) lines.push(`My seat: ${guest.seat}.`);
+        if (guest.dietary && guest.dietary.length > 0) lines.push(`My dietary notes: ${guest.dietary.join(', ')}.`);
+        if (guest.selectedEventNames && guest.selectedEventNames.length > 0) {
+          lines.push(`I'm coming to: ${guest.selectedEventNames.join(', ')}.`);
+        }
+        const last = lines.pop() ?? '';
+        lines.push(last.replace(/\.$/, ')'));
+        scopedPrompt = `${lines.join(' ')} ${trimmed}`;
+      }
       const r = await fetch('/api/pear-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           manifest,
           coupleNames,
-          prompt: trimmed,
+          prompt: scopedPrompt,
           history: chat.slice(-6).map((m) => ({ role: m.role, content: m.content })),
           mode: 'guest',
         }),
