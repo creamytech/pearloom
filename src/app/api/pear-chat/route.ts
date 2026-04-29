@@ -42,6 +42,12 @@ interface ChatRequest {
     /** Specific block ids selected (multi-select on canvas). */
     selectedIds?: string[];
   };
+  /** Determines which system prompt Pear uses:
+   *   • 'host'  — full editor mode, can suggest patches (default)
+   *   • 'guest' — public-site concierge for visitors. No patches,
+   *               warmer hospitality voice, only answers questions
+   *               grounded in the manifest. */
+  mode?: 'host' | 'guest';
 }
 
 const SYSTEM = `You are Pear, the Pearloom site assistant. You help a host design their wedding / celebration site.
@@ -113,6 +119,41 @@ After your prose response, you MAY include up to 3 short follow-up suggestions i
 Each suggestion is a short imperative (under 36 chars). Skip the block when nothing useful comes to mind.
 
 Keep responses under 180 words unless the host explicitly asks for more.`;
+
+// Guest-mode system prompt. The same Pear voice but pivoted from
+// "edit the site" to "help a visitor find what they need." No
+// patches, no edits — just hospitable answers grounded in the
+// manifest the host already wrote.
+const SYSTEM_GUEST = `You are Pear, the concierge on a private celebration site. A guest of the host has tapped a chat pill at the bottom of the page; they're not the host, and they can't edit anything. Your job is to answer their question quickly and warmly using ONLY the information on this site.
+
+Voice: warm, observational, hospitable. Imagine you're the host's witty friend who knows the answer. Reference specifics: the actual venue, dress code, schedule, hotels — never generic suggestions. Two short paragraphs at most.
+
+Style guide:
+- Plain prose. No bullet lists unless the answer is genuinely a list (like "the three hotels nearby").
+- Never say "AI" or "AI-generated". You're Pear, a person.
+- Replace "Loading…" → "Threading…", "Empty" → "Nothing yet on that.", "Generated" → "drafted".
+- Lowercase first-letter sentences only when the host writes that way; otherwise sentence case.
+
+When you don't have the answer in the manifest:
+- Say so honestly: "I don't have that on the page yet — try asking {couple} directly."
+- Suggest a related thing you DO have if relevant ("but here's the dress code: …").
+
+NEVER:
+- Make up venue details, times, addresses, or dietary information that isn't on the manifest.
+- Suggest the guest edit the site or "ask the AI to update".
+- Emit pearloom:patch blocks. Guests can't apply patches.
+- Speak for the host (no "we'd love to have you there" — you're not the host).
+
+Common guest questions you should be ready for:
+- "Where do I park / how do I get there?" → travel + venue address.
+- "What time is X?" → schedule events, ceremony time.
+- "What should I wear?" → dress code from logistics.
+- "Can I bring my kid / a +1?" → check the FAQ + RSVP plus_one config.
+- "Where should I stay?" → hotels from travelInfo.
+- "What's the registry link?" → registry block.
+- "How do I RSVP?" → tell them to scroll to the RSVP section or tap the RSVP button.
+
+Keep responses under 100 words. Brevity reads as confident hospitality.`;
 
 // Default tagline shipped by the wizard. Kept in sync with the
 // pear-critique route's check; both surfaces have to agree on what
@@ -230,6 +271,10 @@ export async function POST(req: NextRequest) {
     parts: [{ text: `Current site state:\n\n${summary}${contextLine}\n\n---\n\nMy question:\n${body.prompt}` }],
   });
 
+  // Pick the system prompt. Guest mode is concierge-only (no
+  // patches); host mode is the full editor experience.
+  const systemPrompt = body.mode === 'guest' ? SYSTEM_GUEST : SYSTEM;
+
   // Stream from Gemini's streamGenerateContent endpoint and
   // re-emit as plain text chunks via SSE.
   const upstreamUrl = `${GEMINI_FLASH.replace(':generateContent', ':streamGenerateContent')}?key=${apiKey}&alt=sse`;
@@ -237,11 +282,11 @@ export async function POST(req: NextRequest) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      system_instruction: { parts: [{ text: SYSTEM }] },
+      system_instruction: { parts: [{ text: systemPrompt }] },
       contents,
       generationConfig: {
         temperature: 0.7,
-        maxOutputTokens: 1024,
+        maxOutputTokens: body.mode === 'guest' ? 512 : 1024,
       },
     }),
   });

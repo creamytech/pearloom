@@ -38,6 +38,7 @@ import { OccasionDecor } from './OccasionDecor';
 import { OwnerEditPill } from './OwnerEditPill';
 import { BroadcastBar } from './BroadcastBar';
 import { DayOfBanner } from './DayOfBanner';
+import { GuestPearChat } from './GuestPearChat';
 import { LiveNowHero } from './LiveNowHero';
 import { DayOfBroadcastDock } from './DayOfBroadcastDock';
 import { computeDayOfState } from '@/lib/day-of/state';
@@ -7426,6 +7427,7 @@ export function SiteV8Renderer({
             bottom-right. Skipped in edit mode (the editor has its
             own outline rail for jumping anywhere). */}
         {!editMode && <BackToTop />}
+        {!editMode && <GuestPearChat manifest={manifest} coupleNames={names} />}
         {!editMode && <DayOfBanner manifest={manifest} />}
         {!editMode && <BroadcastBar subdomain={siteSlug} />}
         {!editMode && <PersonalGuestGreeting domain={siteSlug} />}
