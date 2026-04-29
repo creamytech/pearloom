@@ -1,7 +1,7 @@
 'use client';
 
 import type { StoryManifest } from '@/types';
-import { AddRowButton, Field, ListRow, PanelGroup, PanelSection, PanelSmartActions, PhotoSlot, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
+import { AddRowButton, Field, ListRow, PanelGroup, PanelSection, PanelSmartActions, PanelTabs, PhotoSlot, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { PlaceAutocomplete } from './PlaceAutocomplete';
 import { FocalPointPicker } from './FocalPointPicker';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
@@ -167,17 +167,11 @@ export function HeroPanel({
     },
   ];
 
-  return (
+  // Content tab — what the section says: lockup, tagline, when &
+  // where, hero photo. Per-field Pear glyphs land on Tagline +
+  // Cover photo where Pear has a real pass to run.
+  const content = (
     <PanelGroup>
-      <PanelSmartActions actions={smartActions} />
-      <BlockStylePicker
-        blockType="hero"
-        manifest={manifest}
-        onChange={onChange}
-        defaultStyleId="postcard"
-        label="Hero layout"
-        hint="Pick how the hero composes your names + cover photo."
-      />
       <PanelSection label="The lockup" hint="The big names that anchor your hero.">
         <Field label="Name 1" htmlFor="pl8-hero-n1">
           <TextInput
@@ -198,7 +192,11 @@ export function HeroPanel({
       </PanelSection>
 
       <PanelSection label="Tagline" hint="A short line underneath the names — sets the tone in one breath.">
-        <Field label="Hero tagline" htmlFor="pl8-hero-tagline">
+        <Field
+          label="Hero tagline"
+          htmlFor="pl8-hero-tagline"
+          pearAction={{ block: 'hero', pass: 'rewrite-tagline', label: 'Rewrite tagline with Pear' }}
+        >
           <TextArea
             id="pl8-hero-tagline"
             value={heroTagline}
@@ -336,12 +334,17 @@ export function HeroPanel({
       </PanelSection>
 
       <PanelSection label="Hero photo" hint="Shown as the featured portrait on the cover polaroid.">
-        <PhotoSlot
-          src={manifest.coverPhoto}
-          onChange={(url) => onChange({ ...manifest, coverPhoto: url })}
-          aspect="4/5"
+        <Field
           label="Cover photo"
-        />
+          pearAction={{ block: 'hero', pass: 'suggest-cover', label: 'Suggest a cover photo from your gallery' }}
+        >
+          <PhotoSlot
+            src={manifest.coverPhoto}
+            onChange={(url) => onChange({ ...manifest, coverPhoto: url })}
+            aspect="4/5"
+            label=""
+          />
+        </Field>
         {manifest.coverPhoto && (
           <Field
             label="Focal point"
@@ -366,10 +369,27 @@ export function HeroPanel({
           </Field>
         )}
       </PanelSection>
+    </PanelGroup>
+  );
 
+  // Layout tab — variant + slideshow. The variant chooser changes
+  // the hero's structural composition; slideshow only matters for
+  // the slideshow-style variants. Section style (paper / palette
+  // / spacing) is handled by the auto-mounted BlockStylePanel
+  // beneath the tabs, so panels don't need a Style slot today.
+  const layout = (
+    <PanelGroup>
+      <BlockStylePicker
+        blockType="hero"
+        manifest={manifest}
+        onChange={onChange}
+        defaultStyleId="postcard"
+        label="Hero layout"
+        hint="Pick how the hero composes your names + cover photo."
+      />
       <PanelSection
         label="Hero slideshow"
-        hint="Up to 5 photos. The v8 hero renders these as a rotating polaroid strip."
+        hint="Up to 5 photos. Slideshow-style hero variants render these as a rotating polaroid strip."
         action={
           slideshow.length < 5 ? (
             <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{5 - slideshow.length} slots left</span>
@@ -420,5 +440,12 @@ export function HeroPanel({
         )}
       </PanelSection>
     </PanelGroup>
+  );
+
+  return (
+    <>
+      <PanelSmartActions actions={smartActions} />
+      <PanelTabs slots={{ content, layout }} />
+    </>
   );
 }

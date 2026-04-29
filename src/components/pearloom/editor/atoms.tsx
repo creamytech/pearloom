@@ -461,7 +461,24 @@ export function PanelDisclosure({
   );
 }
 
-/* ---------- Field wrapper (label + help text + error slot) ---------- */
+/* ---------- Field wrapper (label + help text + error slot) ---------- *
+ *  `pearAction` (optional) renders a small pear glyph next to the
+ *  label. Click dispatches `pearloom:open-pear-for` carrying the
+ *  block + pass id, so the advisor opens pre-scoped to that field's
+ *  AI capability (rewrite tagline · suggest cover · translate, etc.).
+ *
+ *  Curate carefully — a glyph on every field reads as decoration and
+ *  loses its meaning. Only set `pearAction` where Pear has a real
+ *  pass that's worth a one-tap entry. */
+export interface PearFieldAction {
+  /** Block id this field belongs to (matches BlockKey contract). */
+  block: string;
+  /** Pass id the advisor should pre-load. Convention is verb-noun:
+   *  'rewrite-tagline', 'suggest-cover', 'translate', etc. */
+  pass: string;
+  /** Optional human label to override the default tooltip. */
+  label?: string;
+}
 export function Field({
   label,
   help,
@@ -469,6 +486,7 @@ export function Field({
   children,
   htmlFor,
   right,
+  pearAction,
 }: {
   label: string;
   help?: string;
@@ -476,12 +494,16 @@ export function Field({
   children: ReactNode;
   htmlFor?: string;
   right?: ReactNode;
+  pearAction?: PearFieldAction;
 }) {
   return (
     <label htmlFor={htmlFor} style={{ display: 'flex', flexDirection: 'column', gap: 8, cursor: htmlFor ? 'default' : 'inherit' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
         <span
           style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
             fontSize: 13,
             fontWeight: 600,
             color: 'var(--ink)',
@@ -490,6 +512,7 @@ export function Field({
           }}
         >
           {label}
+          {pearAction && <PearFieldButton action={pearAction} />}
         </span>
         {right}
       </div>
@@ -501,6 +524,251 @@ export function Field({
         <span style={{ fontSize: 12, color: '#7A2D2D', lineHeight: 1.45 }}>{error}</span>
       )}
     </label>
+  );
+}
+
+/* ---------- PearFieldButton ----------
+ *  Small pear glyph next to a field label. Click fires the
+ *  `pearloom:open-pear-for` event with the field's pass id; the
+ *  advisor opens scoped to that pass on that block. Stops the
+ *  click from toggling the wrapping <label> when the button is
+ *  pressed (which would otherwise focus + click-through). */
+export function PearFieldButton({ action }: { action: PearFieldAction }) {
+  function fire(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('pearloom:open-pear-for', {
+      detail: { block: action.block, pass: action.pass, intent: 'field' },
+    }));
+  }
+  return (
+    <button
+      type="button"
+      onClick={fire}
+      title={action.label ?? 'Ask Pear about this'}
+      aria-label={action.label ?? 'Ask Pear about this'}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 18,
+        height: 18,
+        padding: 0,
+        borderRadius: 999,
+        border: 'none',
+        background: 'transparent',
+        color: 'var(--peach-ink, #C6703D)',
+        cursor: 'pointer',
+        opacity: 0.75,
+        transition: 'opacity 140ms ease, background 140ms ease',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.opacity = '1';
+        e.currentTarget.style.background = 'var(--peach-bg, rgba(198,112,61,0.12))';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.opacity = '0.75';
+        e.currentTarget.style.background = 'transparent';
+      }}
+    >
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+        <path d="M12 3.4c.6 0 1 .5 1 1.1v.4c2.6.4 4.5 2 4.5 4.4v.5c1.6.7 2.5 2 2.5 4 0 4-2.5 7.4-7 7.7H11c-4.5-.3-7-3.7-7-7.7 0-2 .9-3.3 2.5-4v-.5c0-2.4 1.9-4 4.5-4.4v-.4c0-.6.4-1.1 1-1.1z"/>
+      </svg>
+    </button>
+  );
+}
+
+/* ---------- PanelTabs ----------
+ *  Three-tab inspector strip — Content / Layout / Style. Tabs whose
+ *  slot is omitted are hidden, so a panel can opt in incrementally
+ *  (just `content` is fine; that's the default no-op shape).
+ *
+ *  Renders a sticky tab strip at the top of the panel body, then the
+ *  selected slot below. The shell stays the same across panels —
+ *  HeroPanel, DetailsPanel, etc. all surface the same three concepts:
+ *
+ *   • Content — what does it say? (tagline, names, dates, fields)
+ *   • Layout  — where does it go? (variant picker, spacing, hide/show)
+ *   • Style   — how does it look? (per-section background, palette)
+ *
+ *  Maps directly to how non-designers think about editing. The
+ *  underlying field components are reused across tabs so authors
+ *  just split their existing PanelSections into the three buckets. */
+export interface PanelTabsSlots {
+  content?: ReactNode;
+  layout?: ReactNode;
+  style?: ReactNode;
+}
+const PANEL_TAB_LABELS: Record<keyof PanelTabsSlots, { label: string; icon: string }> = {
+  content: { label: 'Content', icon: 'type' },
+  layout:  { label: 'Layout',  icon: 'layout' },
+  style:   { label: 'Style',   icon: 'palette' },
+};
+export function PanelTabs({
+  slots,
+  defaultTab = 'content',
+}: {
+  slots: PanelTabsSlots;
+  defaultTab?: keyof PanelTabsSlots;
+}) {
+  const order: Array<keyof PanelTabsSlots> = ['content', 'layout', 'style'];
+  const available = order.filter((k) => slots[k] != null);
+  const initial = available.includes(defaultTab) ? defaultTab : available[0] ?? 'content';
+  const [tab, setTab] = useState<keyof PanelTabsSlots>(initial);
+  // Single-tab panels skip the strip — the redundant "Content" pill
+  // is just chrome when there's nothing to switch to.
+  if (available.length <= 1) {
+    return <>{slots[available[0] ?? 'content']}</>;
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div
+        role="tablist"
+        aria-label="Panel sections"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${available.length}, 1fr)`,
+          gap: 2,
+          padding: 4,
+          marginBottom: 16,
+          background: 'var(--cream-2, #F5EFE2)',
+          border: '1px solid var(--line-soft)',
+          borderRadius: 10,
+        }}
+      >
+        {available.map((k) => {
+          const meta = PANEL_TAB_LABELS[k];
+          const on = tab === k;
+          return (
+            <button
+              key={k}
+              type="button"
+              role="tab"
+              aria-selected={on}
+              onClick={() => setTab(k)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                padding: '7px 8px',
+                borderRadius: 7,
+                border: 0,
+                background: on ? 'var(--ink)' : 'transparent',
+                color: on ? 'var(--cream)' : 'var(--ink-soft)',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'var(--font-ui)',
+                transition: 'background 160ms ease, color 160ms ease',
+              }}
+            >
+              <Icon name={meta.icon} size={11} />
+              {meta.label}
+            </button>
+          );
+        })}
+      </div>
+      <div>{slots[tab]}</div>
+    </div>
+  );
+}
+
+/* ---------- PearSuggestionsStrip ----------
+ *  Peach gradient card with up to 3 contextual one-tap actions —
+ *  the "Pear can help" footer block from the redesign. Each action
+ *  fires `pearloom:open-pear-for` with a pass id. Returns null when
+ *  `suggestions` is empty so blocks without registered helpers stay
+ *  uncluttered. The Inspector mounts this at the bottom of every
+ *  section panel; suggestions come from `panels/pear-suggestions.ts`. */
+export interface PearSuggestion {
+  id: string;
+  label: string;
+  /** Pass id the advisor should pre-load when this is clicked. */
+  pass: string;
+}
+export function PearSuggestionsStrip({
+  block,
+  suggestions,
+}: {
+  block: string;
+  suggestions: PearSuggestion[];
+}) {
+  if (!suggestions || suggestions.length === 0) return null;
+  return (
+    <div
+      style={{
+        background: 'linear-gradient(165deg, var(--peach-bg, #FBE8D6) 0%, var(--lavender-bg, #E8E0F0) 100%)',
+        border: '1px solid rgba(198,112,61,0.18)',
+        borderRadius: 14,
+        padding: 14,
+        marginTop: 18,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        fontFamily: 'var(--font-ui)',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          fontSize: 12,
+          fontWeight: 700,
+          color: 'var(--peach-ink, #C6703D)',
+          letterSpacing: '0.04em',
+        }}
+      >
+        <PearGlyph size={14} />
+        Pear can help
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {suggestions.slice(0, 3).map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => {
+              if (typeof window === 'undefined') return;
+              window.dispatchEvent(new CustomEvent('pearloom:open-pear-for', {
+                detail: { block, pass: s.pass, intent: 'suggestion' },
+              }));
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 8,
+              padding: '8px 10px',
+              borderRadius: 8,
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--ink)',
+              fontSize: 12.5,
+              fontWeight: 500,
+              cursor: 'pointer',
+              fontFamily: 'var(--font-ui)',
+              textAlign: 'left',
+              transition: 'background 140ms ease',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.45)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+          >
+            <span>{s.label}</span>
+            <span aria-hidden style={{ color: 'var(--peach-ink, #C6703D)' }}>→</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PearGlyph({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M12 3.4c.6 0 1 .5 1 1.1v.4c2.6.4 4.5 2 4.5 4.4v.5c1.6.7 2.5 2 2.5 4 0 4-2.5 7.4-7 7.7H11c-4.5-.3-7-3.7-7-7.7 0-2 .9-3.3 2.5-4v-.5c0-2.4 1.9-4 4.5-4.4v-.4c0-.6.4-1.1 1-1.1z"/>
+    </svg>
   );
 }
 

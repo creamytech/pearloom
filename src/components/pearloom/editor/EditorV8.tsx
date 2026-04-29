@@ -68,7 +68,8 @@ import { RsvpPanel } from './panels/RsvpPanel';
 import { FaqPanel } from './panels/FaqPanel';
 import { ToastsPanel } from './panels/ToastsPanel';
 import { ThemePanel } from './panels/ThemePanel';
-import { PanelSearch } from './atoms';
+import { PanelSearch, PearSuggestionsStrip } from './atoms';
+import { pearSuggestionsFor } from './panels/pear-suggestions';
 import { blockFillState, FILL_STATE_COLORS, siteProgressPct, type ScoredBlockKey } from '@/lib/site-progress';
 import { PearCommand } from './PearCommand';
 import { DesignAdvisor } from './DesignAdvisor';
@@ -848,6 +849,8 @@ export function EditorV8({
             onJumpBlock={(b) => setBlock(b)}
             onOpenPreview={() => window.open(prettyPath, '_blank')}
             onPublish={() => void handlePublish()}
+            hiddenBlocks={hiddenBlocks}
+            onToggleHidden={toggleBlockHidden}
             width={inspectorWidth}
             onResize={setInspectorWidth}
           />
@@ -880,6 +883,8 @@ export function EditorV8({
                 onJumpBlock={(b) => setBlock(b)}
                 onOpenPreview={() => window.open(prettyPath, '_blank')}
                 onPublish={() => void handlePublish()}
+                hiddenBlocks={hiddenBlocks}
+                onToggleHidden={toggleBlockHidden}
                 fluid
               />
             )}
@@ -1408,48 +1413,84 @@ function EditorTopbar({
           when scanning "where am I editing right now?". */}
       <SectionBreadcrumb currentBlock={currentBlock} onJump={onJumpBlock} />
 
-      {/* Zone 2 — Device toggle (centered). Hidden on narrow viewports
-          where the editor forces phone preview anyway. */}
-      <div
-        role="tablist"
-        aria-label="Preview device"
-        style={{
-          display: showDeviceToggle ? 'flex' : 'none',
-          gap: 2,
-          margin: '0 auto',
-          padding: 3,
-          background: 'var(--cream-2)',
-          borderRadius: 999,
-        }}
-      >
-        {(['desktop', 'tablet', 'phone'] as const).map((n) => {
-          const on = device === n;
-          return (
-            <button
-              key={n}
-              type="button"
-              role="tab"
-              aria-selected={on}
-              onClick={() => setDevice(n)}
-              aria-label={n}
-              title={n.charAt(0).toUpperCase() + n.slice(1)}
-              style={{
-                padding: '6px 14px',
-                borderRadius: 999,
-                background: on ? 'var(--ink)' : 'transparent',
-                color: on ? 'var(--cream)' : 'var(--ink-soft)',
-                border: 0,
-                cursor: 'pointer',
-                display: 'grid',
-                placeItems: 'center',
-                transition: 'background 180ms ease, color 180ms ease',
-              }}
-            >
-              <Icon name={n} size={13} />
-            </button>
-          );
-        })}
-      </div>
+      {/* Zone 2 — Mode toggle (centered). Edit / Preview / Mobile.
+          Hidden on narrow viewports where the editor forces phone
+          preview anyway. The toggle is derived state across two
+          underlying knobs:
+            • previewMode — chrome-on / chrome-off
+            • device      — 'desktop' | 'tablet' | 'phone'
+          The three pills collapse them into the conceptual modes
+          hosts actually think in: "I'm editing", "I'm reading it
+          like a guest", or "I'm checking the phone view." Tablet
+          stays available via keyboard or the resize handle for the
+          rare host who needs it; the toggle just doesn't surface it. */}
+      {(() => {
+        const mode: 'edit' | 'preview' | 'mobile' =
+          device === 'phone' ? 'mobile' : previewMode ? 'preview' : 'edit';
+        function setMode(next: 'edit' | 'preview' | 'mobile') {
+          if (next === 'edit') {
+            if (device !== 'desktop') setDevice('desktop');
+            if (previewMode) onTogglePreview();
+          } else if (next === 'preview') {
+            if (device !== 'desktop') setDevice('desktop');
+            if (!previewMode) onTogglePreview();
+          } else {
+            if (device !== 'phone') setDevice('phone');
+            if (previewMode) onTogglePreview();
+          }
+        }
+        const pills: Array<{ key: 'edit' | 'preview' | 'mobile'; label: string; icon: string }> = [
+          { key: 'edit',    label: 'Edit',    icon: 'brush' },
+          { key: 'preview', label: 'Preview', icon: 'eye' },
+          { key: 'mobile',  label: 'Mobile',  icon: 'phone' },
+        ];
+        return (
+          <div
+            role="tablist"
+            aria-label="Editor mode"
+            style={{
+              display: showDeviceToggle ? 'flex' : 'none',
+              gap: 2,
+              margin: '0 auto',
+              padding: 3,
+              background: 'var(--cream-2)',
+              borderRadius: 999,
+            }}
+          >
+            {pills.map((p) => {
+              const on = mode === p.key;
+              return (
+                <button
+                  key={p.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={on}
+                  onClick={() => setMode(p.key)}
+                  title={p.label}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '6px 14px',
+                    borderRadius: 999,
+                    background: on ? 'var(--ink)' : 'transparent',
+                    color: on ? 'var(--cream)' : 'var(--ink-soft)',
+                    border: 0,
+                    cursor: 'pointer',
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    fontFamily: 'var(--font-ui)',
+                    transition: 'background 180ms ease, color 180ms ease',
+                  }}
+                >
+                  <Icon name={p.icon} size={12} />
+                  {p.label}
+                </button>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       {/* Zone 3 — Action cluster (auto-margin keeps it right-aligned
           even when the device toggle is hidden). */}
@@ -1483,20 +1524,6 @@ function EditorTopbar({
         <PearNudges manifest={manifest} siteSlug={siteSlug} />
         <button type="button" onClick={onOpenAdvisor} style={ghostBtn}>
           <Icon name="sparkles" size={12} /> Ask Pear
-        </button>
-        <button
-          type="button"
-          onClick={onTogglePreview}
-          aria-pressed={previewMode}
-          title={previewMode ? 'Back to editing (⌘P)' : 'Preview as a guest (⌘P)'}
-          style={{
-            ...ghostBtn,
-            background: previewMode ? 'var(--ink)' : 'transparent',
-            color: previewMode ? 'var(--cream)' : 'var(--ink-soft)',
-            borderColor: previewMode ? 'var(--ink)' : 'var(--line-soft)',
-          }}
-        >
-          <Icon name="eye" size={12} /> {previewMode ? 'Editing' : 'Preview'}
         </button>
         <Link
           href={prettyPath}
@@ -2464,6 +2491,8 @@ function Inspector({
   onJumpBlock,
   onOpenPreview,
   onPublish,
+  hiddenBlocks,
+  onToggleHidden,
   fluid = false,
   width,
   onResize,
@@ -2479,6 +2508,12 @@ function Inspector({
   onJumpBlock: (k: BlockKey) => void;
   onOpenPreview: () => void;
   onPublish: () => void;
+  /** Currently-hidden blocks. Drives the eye-toggle's pressed state
+   *  in the section header. */
+  hiddenBlocks: BlockKey[];
+  /** Toggles the active block's visibility. Hero / Nav / Theme /
+   *  Toasts pass `togglable=false` and the eye doesn't render. */
+  onToggleHidden: (k: BlockKey) => void;
   /** When true, the inspector fills its container instead of being
    *  fixed-width. Used in the mobile drawer where the parent is
    *  full-width. */
@@ -2490,6 +2525,8 @@ function Inspector({
 }) {
   const meta = BLOCKS.find((b) => b.key === block)!;
   const resolvedWidth = fluid ? '100%' : (width ?? 380);
+  const isHidden = hiddenBlocks.includes(block);
+  const sectionSuggestions = pearSuggestionsFor(block);
 
   // Drag-to-resize. Pointer events on a 6px hit-strip flush against
   // the rail's left edge. We compute width from the right edge of the
@@ -2652,28 +2689,67 @@ function Inspector({
               zIndex: 2,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                color: 'var(--ink-muted)',
+                fontFamily: 'var(--font-ui)',
+                marginBottom: 6,
+              }}
+            >
+              Editing section
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <h2
+                className="display"
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 9,
-                  background: 'var(--cream-2)',
-                  border: '1px solid var(--line-soft)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  flexShrink: 0,
-                  color: 'var(--peach-ink, #C6703D)',
+                  fontSize: 24,
+                  margin: 0,
+                  lineHeight: 1.05,
+                  letterSpacing: '-0.01em',
+                  flex: 1,
+                  minWidth: 0,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  opacity: isHidden ? 0.55 : 1,
+                  textDecoration: isHidden ? 'line-through' : 'none',
                 }}
               >
-                <Icon name={meta.icon} size={15} />
-              </div>
-              <h2 className="display" style={{ fontSize: 22, margin: 0, lineHeight: 1.05, letterSpacing: '-0.01em' }}>
                 {meta.label}
               </h2>
+              {meta.togglable && (
+                <button
+                  type="button"
+                  onClick={() => onToggleHidden(block)}
+                  aria-pressed={isHidden}
+                  aria-label={isHidden ? `Show ${meta.label} section` : `Hide ${meta.label} section`}
+                  title={isHidden ? `Show ${meta.label}` : `Hide ${meta.label} on the live site`}
+                  style={{
+                    width: 30,
+                    height: 30,
+                    padding: 0,
+                    borderRadius: 8,
+                    background: isHidden ? 'var(--peach-bg, rgba(198,112,61,0.14))' : 'transparent',
+                    border: '1px solid var(--line-soft)',
+                    color: isHidden ? 'var(--peach-ink, #C6703D)' : 'var(--ink-soft)',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    transition: 'background 140ms ease, color 140ms ease',
+                  }}
+                >
+                  <Icon name={isHidden ? 'eye-off' : 'eye'} size={14} />
+                </button>
+              )}
             </div>
             {meta.description && (
-              <p style={{ margin: '8px 0 0 44px', fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
+              <p style={{ margin: '6px 0 0', fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
                 {meta.description}
               </p>
             )}
@@ -2695,6 +2771,7 @@ function Inspector({
                 onChange={onChange}
               />
             )}
+            <PearSuggestionsStrip block={block} suggestions={sectionSuggestions} />
           </div>
         </div>
       )}
