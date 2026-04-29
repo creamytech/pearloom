@@ -131,6 +131,12 @@ Just write the body paragraph(s).`;
       to: guestEmail,
       subject,
       html: htmlBody,
+      tags: [
+        { name: 'channel', value: 'rsvp-confirmation' },
+        { name: 'site_id', value: String(siteId) },
+        // No guest_id here — this endpoint is fire-and-forget after
+        // an RSVP submit and the webhook can match by (site,email).
+      ],
     });
 
     return NextResponse.json({ sent: true });

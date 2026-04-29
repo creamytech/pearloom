@@ -192,6 +192,15 @@ export async function POST(req: NextRequest) {
         to: guestEmail,
         subject,
         html,
+        // Tag with site_id + guest_id so the Resend webhook
+        // (/api/webhooks/resend) lands delivered/opened events
+        // on the right guests row. The dashboard's tracking pips
+        // and "X opened" nudge depend on this match.
+        tags: [
+          { name: 'channel', value: 'invite' },
+          { name: 'site_id', value: String(siteId) },
+          { name: 'guest_id', value: String((guest as Record<string, unknown>).id) },
+        ],
       });
 
       if (emailError) {
@@ -200,6 +209,13 @@ export async function POST(req: NextRequest) {
       } else {
         sent++;
         tokens.push(token);
+        // Stamp email_sent_at so the dashboard timeline pip lights
+        // up immediately. The webhook will set delivered/opened
+        // later as events arrive.
+        await supabase
+          .from('guests')
+          .update({ email_sent_at: new Date().toISOString() })
+          .eq('id', (guest as Record<string, unknown>).id);
       }
     }
 

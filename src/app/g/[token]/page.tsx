@@ -26,6 +26,8 @@ import { VoiceToastRecorder } from '@/components/guest-experience/VoiceToastReco
 import { YourRsvpCard } from '@/components/guest-experience/YourRsvpCard';
 import { YourContributionsCard } from '@/components/guest-experience/YourContributionsCard';
 import { GuestPearChat } from '@/components/pearloom/site/GuestPearChat';
+import { BroadcastBar } from '@/components/pearloom/site/BroadcastBar';
+import { DayOfBanner } from '@/components/pearloom/site/DayOfBanner';
 import { PassportSections } from '@/components/pearloom/passport/PassportSections';
 import { GuestPhaseStrip } from '@/components/pearloom/passport/GuestPhaseStrip';
 
@@ -158,6 +160,15 @@ export default async function PersonalGuestPage({
         fontFamily: bodyFont,
       }}
     >
+      {/* Day-of banner + host's broadcast bar at the very top so a
+          guest who lands on their personal page during the event
+          gets the live state without having to navigate to the
+          public site. The day-of banner self-hides when the event
+          isn't today; broadcast bar only renders when the host has
+          posted a recent live update. */}
+      <DayOfBanner manifest={manifest} />
+      <BroadcastBar subdomain={site.subdomain} />
+
       {/* Year-round phase strip — flips copy + CTAs based on lifecycle
           (upcoming → live → fresh-memory → year-ago → archived). Also
           surfaces day-of push pings + add-to-home-screen + dietary /
