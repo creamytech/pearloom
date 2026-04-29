@@ -400,11 +400,6 @@ export interface StoryManifest {
   spotifyPlaylistName?: string;
   // Vibe discovery tags — shown in public vibe gallery
   vibeTags?: string[];
-  // Preview share token (unpublished preview link)
-  previewToken?: string;
-  // Anniversary mode — transforms site after wedding date passes
-  anniversaryMode?: boolean;
-  anniversaryPhotos?: ChapterImage[];
   // Multi-language: translated content keyed by locale (e.g. 'es',
   // 'fr', 'ja'). Replaces the runtime DOM-walk translate hack with a
   // proper persisted shape — published sites read from
@@ -427,8 +422,6 @@ export interface StoryManifest {
     updatedAt?: string;
   }>;
   activeLocale?: string;
-  // Real-time collab: current editor session info
-  collaborators?: Array<{ userId: string; name: string; color: string; cursor?: string }>;
   // Site analytics — lightweight view counter
   analytics?: { views: number; lastViewed?: string };
   // RSVP responses collected for this site
