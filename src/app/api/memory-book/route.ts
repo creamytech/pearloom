@@ -42,7 +42,20 @@ export async function GET(req: NextRequest) {
   const cfg = await getSiteConfig(siteId).catch(() => null);
   if (!cfg?.manifest) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
 
-  const [memoryRes, whispersRes, capsuleRes, songsRes] = await Promise.all([
+  // tribute_submissions + guestbook may be missing on older
+  // deployments; wrap their fetches in try/catch so a missing
+  // table doesn't fail the whole memory book.
+  type AnyRow = Record<string, unknown>;
+  const safeFetch = async (p: PromiseLike<{ data: AnyRow[] | null }>): Promise<AnyRow[]> => {
+    try {
+      const r = await (p as unknown as Promise<{ data: AnyRow[] | null }>);
+      return Array.isArray(r.data) ? r.data : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const [memoryRes, whispersRes, capsuleRes, songsRes, tributesData, guestbookData] = await Promise.all([
     supabase
       .from('memory_prompts')
       .select('guest_name, prompt, response, responded_at')
@@ -63,7 +76,28 @@ export async function GET(req: NextRequest) {
       .select('guest_name, song_title, artist, spotify_url')
       .eq('site_id', siteId)
       .eq('state', 'accepted'),
+    safeFetch(supabase
+      .from('tribute_submissions')
+      .select('author_name, body, created_at, state, block_id')
+      .eq('site_id', siteId)
+      .neq('state', 'hidden')
+      .order('created_at', { ascending: true }) as unknown as PromiseLike<{ data: AnyRow[] | null }>),
+    safeFetch(supabase
+      .from('guestbook')
+      .select('guest_name, message, created_at')
+      .eq('site_id', siteId)
+      .order('created_at', { ascending: true }) as unknown as PromiseLike<{ data: AnyRow[] | null }>),
   ]);
+
+  const tributes = tributesData.map((t) => ({
+    guest_name: (t.author_name as string) ?? 'A guest',
+    body: (t.body as string) ?? '',
+    block_id: (t.block_id as string) ?? '',
+  })).filter((t) => t.body);
+  const guestbookEntries = guestbookData.map((g) => ({
+    guest_name: (g.guest_name as string) ?? 'A guest',
+    message: (g.message as string) ?? '',
+  })).filter((g) => g.message);
 
   // Pull the hero photo from the manifest + chapter covers.
   const manifestAny = cfg.manifest as unknown as {
@@ -98,5 +132,7 @@ export async function GET(req: NextRequest) {
     whispers: whispersRes.data ?? [],
     capsule: capsuleRes.data ?? [],
     songs: songsRes.data ?? [],
+    tributes,
+    guestbook: guestbookEntries,
   });
 }

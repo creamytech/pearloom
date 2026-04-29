@@ -16,6 +16,8 @@ type Memory = { guest_name: string; prompt: string; response: string };
 type Whisper = { guest_name: string; body: string };
 type Capsule = { guest_name: string; body: string; reveal_years: number; reveal_on: string };
 type Song = { guest_name: string; song_title: string; artist?: string | null; spotify_url?: string | null };
+type Tribute = { guest_name: string; body: string; block_id?: string };
+type GuestbookEntry = { guest_name: string; message: string };
 
 interface Payload {
   site: {
@@ -33,6 +35,8 @@ interface Payload {
   whispers: Whisper[];
   capsule: Capsule[];
   songs: Song[];
+  tributes?: Tribute[];
+  guestbook?: GuestbookEntry[];
 }
 
 function fmtDate(iso?: string | null) {
@@ -230,6 +234,30 @@ export function MemoryBookPage() {
                       {c.guest_name} · Year {c.reveal_years} · opened {fmtDate(c.reveal_on)}
                     </div>
                     <p style={{ fontSize: 15, margin: 0 }}>{c.body}</p>
+                  </div>
+                ))}
+              </section>
+            )}
+
+            {data.tributes && data.tributes.length > 0 && (
+              <section style={{ marginBottom: 48 }}>
+                <h2 className="display" style={{ fontSize: 32, margin: '0 0 20px' }}>The wall</h2>
+                {data.tributes.map((t, i) => (
+                  <div key={i} style={{ marginBottom: 18, breakInside: 'avoid' }}>
+                    <p style={{ fontSize: 15, margin: '0 0 4px' }}>&ldquo;{t.body}&rdquo;</p>
+                    <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>— {t.guest_name}</div>
+                  </div>
+                ))}
+              </section>
+            )}
+
+            {data.guestbook && data.guestbook.length > 0 && (
+              <section style={{ marginBottom: 48 }}>
+                <h2 className="display" style={{ fontSize: 32, margin: '0 0 20px' }}>Guestbook</h2>
+                {data.guestbook.map((g, i) => (
+                  <div key={i} style={{ marginBottom: 18, breakInside: 'avoid' }}>
+                    <p style={{ fontSize: 15, margin: '0 0 4px', fontStyle: 'italic' }}>&ldquo;{g.message}&rdquo;</p>
+                    <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>— {g.guest_name}</div>
                   </div>
                 ))}
               </section>
