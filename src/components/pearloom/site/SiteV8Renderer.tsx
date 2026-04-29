@@ -8000,7 +8000,7 @@ export function SiteV8Renderer({
             bottom-right. Skipped in edit mode (the editor has its
             own outline rail for jumping anywhere). */}
         {!editMode && <BackToTop />}
-        {!editMode && <GuestPearChat manifest={manifest} coupleNames={names} />}
+        {!editMode && <GuestPearChat manifest={manifest} coupleNames={names} domain={siteSlug} />}
         {!editMode && <DayOfBanner manifest={manifest} />}
         {!editMode && <BroadcastBar subdomain={siteSlug} />}
         {!editMode && <PersonalGuestGreeting domain={siteSlug} />}

@@ -33,6 +33,13 @@ interface Props {
     dietary?: string[] | null;
     selectedEventNames?: string[] | null;
   };
+  /** When set on the public site, GuestPearChat self-resolves
+   *  the visitor's identity from a `?g=<passport>` (or `?guest=`)
+   *  URL param via /api/sites/guest-passport — same path
+   *  PersonalGuestGreeting uses. Lets a guest who clicks "view
+   *  the full site" from /g/[token] get the same personalized
+   *  concierge there too, without anything mounted twice. */
+  domain?: string;
 }
 
 interface Message {
@@ -48,14 +55,49 @@ const STARTER_PROMPTS = [
   "What time's the ceremony?",
 ];
 
-export function GuestPearChat({ manifest, coupleNames, guest }: Props) {
+export function GuestPearChat({ manifest, coupleNames, guest, domain }: Props) {
   const [open, setOpen] = useState(false);
   const [chat, setChat] = useState<Message[]>([]);
   const [draft, setDraft] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resolvedGuest, setResolvedGuest] = useState<Props['guest'] | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  // When mounted on /sites/[domain] without an explicit guest prop,
+  // try to self-resolve from `?g=<token>` so guests who arrived via
+  // their personal link get the same concierge they had on /g/[token].
+  useEffect(() => {
+    if (guest || !domain || typeof window === 'undefined') return;
+    const params = new URL(window.location.href).searchParams;
+    const token = params.get('g') || params.get('guest');
+    if (!token) return;
+    const ctrl = new AbortController();
+    fetch(`/api/sites/guest-passport?siteSlug=${encodeURIComponent(domain)}&token=${encodeURIComponent(token)}`, {
+      cache: 'no-store',
+      signal: ctrl.signal,
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: null | { guest?: { name?: string; table?: string; meal?: string; dietary?: string; attending?: boolean | null } }) => {
+        const name = data?.guest?.name;
+        if (!name) return;
+        const g = data!.guest!;
+        const status: 'attending' | 'declined' | 'pending' =
+          g.attending === true ? 'attending' : g.attending === false ? 'declined' : 'pending';
+        setResolvedGuest({
+          name,
+          status,
+          seat: g.table ?? null,
+          dietary: g.dietary ? [g.dietary] : null,
+          selectedEventNames: null,
+        });
+      })
+      .catch(() => {});
+    return () => ctrl.abort();
+  }, [guest, domain]);
+
+  const effectiveGuest = guest ?? resolvedGuest ?? undefined;
 
   useEffect(() => {
     if (!open) return;
@@ -82,16 +124,16 @@ export function GuestPearChat({ manifest, coupleNames, guest }: Props) {
       // Pear can answer "what time should I get there?" with their
       // RSVP'd events instead of guessing.
       let scopedPrompt = trimmed;
-      if (guest) {
-        const lines: string[] = [`(About me: I'm ${guest.name}.`];
-        if (guest.status === 'attending') lines.push("I've RSVP'd yes.");
-        else if (guest.status === 'declined') lines.push("I've RSVP'd no.");
-        else if (guest.status === 'maybe') lines.push("I've RSVP'd maybe.");
+      if (effectiveGuest) {
+        const lines: string[] = [`(About me: I'm ${effectiveGuest.name}.`];
+        if (effectiveGuest.status === 'attending') lines.push("I've RSVP'd yes.");
+        else if (effectiveGuest.status === 'declined') lines.push("I've RSVP'd no.");
+        else if (effectiveGuest.status === 'maybe') lines.push("I've RSVP'd maybe.");
         else lines.push("I haven't RSVP'd yet.");
-        if (guest.seat) lines.push(`My seat: ${guest.seat}.`);
-        if (guest.dietary && guest.dietary.length > 0) lines.push(`My dietary notes: ${guest.dietary.join(', ')}.`);
-        if (guest.selectedEventNames && guest.selectedEventNames.length > 0) {
-          lines.push(`I'm coming to: ${guest.selectedEventNames.join(', ')}.`);
+        if (effectiveGuest.seat) lines.push(`My seat: ${effectiveGuest.seat}.`);
+        if (effectiveGuest.dietary && effectiveGuest.dietary.length > 0) lines.push(`My dietary notes: ${effectiveGuest.dietary.join(', ')}.`);
+        if (effectiveGuest.selectedEventNames && effectiveGuest.selectedEventNames.length > 0) {
+          lines.push(`I'm coming to: ${effectiveGuest.selectedEventNames.join(', ')}.`);
         }
         const last = lines.pop() ?? '';
         lines.push(last.replace(/\.$/, ')'));

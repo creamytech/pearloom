@@ -174,7 +174,9 @@ function summariseManifest(manifest: StoryManifest, names: [string, string]): st
   const date = l.date ?? '(none)';
   const rsvp = l.rsvpDeadline ?? '(none)';
   const venue = l.venue ?? '(none)';
+  const venueAddress = l.venueAddress ?? '';
   const dresscode = l.dresscode ?? '(none)';
+  const logisticsNotes = (l.notes ?? '').slice(0, 120);
   const tagline = manifest.poetry?.heroTagline ?? '';
   const taglineNote = isPlaceholderTagline(tagline) ? ' (DEFAULT PLACEHOLDER)' : '';
   const welcome = (manifest.poetry?.welcomeStatement ?? '').slice(0, 100) || '(none)';
@@ -190,18 +192,65 @@ function summariseManifest(manifest: StoryManifest, names: [string, string]): st
 
   const hotels = manifest.travelInfo?.hotels ?? [];
   const hotelLines = hotels.slice(0, 6).map((h) => {
-    const desc = ((h as { description?: string; notes?: string }).description ?? (h as { notes?: string }).notes ?? '').slice(0, 50);
-    return `  - "${(h as { name?: string }).name ?? '(unnamed)'}" | ${desc || '(no description)'}`;
+    const hh = h as { name?: string; address?: string; description?: string; notes?: string; groupRate?: string; bookingUrl?: string };
+    const addr = hh.address ? ` @ ${hh.address.slice(0, 60)}` : '';
+    const desc = (hh.description ?? hh.notes ?? '').slice(0, 60);
+    const rate = hh.groupRate ? ` | rate: ${hh.groupRate.slice(0, 30)}` : '';
+    const booking = hh.bookingUrl ? ` | booking link available` : '';
+    return `  - "${hh.name ?? '(unnamed)'}"${addr} | ${desc || '(no description)'}${rate}${booking}`;
   }).join('\n') || '  (none)';
 
+  // Travel intro/parking/directions — guests asking "how do I get there?"
+  // need this in Pear's context, otherwise it answers generically.
+  const travel = manifest.travelInfo;
+  const travelLines: string[] = [];
+  if (travel?.parkingInfo) travelLines.push(`  Parking: ${travel.parkingInfo.slice(0, 200)}`);
+  if (travel?.directions) travelLines.push(`  Directions: ${travel.directions.slice(0, 200)}`);
+  const airports = (travel?.airports ?? []).slice(0, 4).map((a) => {
+    if (typeof a === 'string') return a;
+    return (a as { name?: string; code?: string }).name ?? (a as { code?: string }).code ?? '';
+  }).filter(Boolean);
+  if (airports.length) travelLines.push(`  Airports: ${airports.join(', ')}`);
+  const travelBlock = travelLines.length ? travelLines.join('\n') : '  (none)';
+
+  // Registry — guests asking "what's the registry?" need entry names + URLs.
+  const reg = manifest.registry;
+  const regLines: string[] = [];
+  if (reg?.enabled) {
+    const entries = (reg.entries ?? []).slice(0, 6);
+    if (entries.length) {
+      regLines.push(...entries.map((e) =>
+        `  - "${(e.name ?? '(unnamed)').slice(0, 50)}" → ${(e.url ?? '').slice(0, 80) || '(no link)'}${e.note ? ` | ${e.note.slice(0, 40)}` : ''}`
+      ));
+    }
+    if (reg.cashFundUrl) {
+      regLines.push(`  - Cash fund: ${reg.cashFundUrl.slice(0, 80)}${reg.cashFundMessage ? ` | ${reg.cashFundMessage.slice(0, 60)}` : ''}`);
+    }
+    if (reg.message) regLines.push(`  Note from couple: ${reg.message.slice(0, 120)}`);
+  }
+  const regBlock = regLines.length ? regLines.join('\n') : '  (none)';
+
+  // Details — parking/accessibility/custom cards. Guests routinely ask
+  // about accessibility ("can my mom park close?") and Pear should know.
+  const det = manifest.details;
+  const detailLines: string[] = [];
+  if (det?.parking) detailLines.push(`  Parking card: ${det.parking.slice(0, 150)}`);
+  if (det?.accessibility) detailLines.push(`  Accessibility: ${det.accessibility.slice(0, 150)}`);
+  for (const card of (det?.customCards ?? []).slice(0, 4)) {
+    const at = card.address ? ` @ ${card.address.slice(0, 50)}` : '';
+    const t = card.time ? ` (${card.time})` : '';
+    detailLines.push(`  - ${card.title}${t}${at}: ${(card.body ?? '').slice(0, 100)}`);
+  }
+  const detailBlock = detailLines.length ? detailLines.join('\n') : '  (none)';
+
   const faqs = (manifest.faqs ?? []).slice(0, 6).map((f, i) =>
-    `  [${i}] Q: "${(f.question ?? '').slice(0, 60)}" | A: ${(f.answer ?? '').slice(0, 50) || '(empty)'}`
+    `  [${i}] Q: "${(f.question ?? '').slice(0, 60)}" | A: ${(f.answer ?? '').slice(0, 80) || '(empty)'}`
   ).join('\n') || '  (none)';
 
   return `Couple: ${couple}
 Date: ${date} | RSVP deadline: ${rsvp}
-Venue: ${venue} | Dress code: ${dresscode}
-Hero tagline: "${tagline.slice(0, 100)}"${taglineNote}
+Venue: ${venue}${venueAddress ? ` (${venueAddress})` : ''} | Dress code: ${dresscode}
+${logisticsNotes ? `Logistics notes: ${logisticsNotes}\n` : ''}Hero tagline: "${tagline.slice(0, 100)}"${taglineNote}
 Welcome line: ${welcome}
 Closing line: ${closing}
 
@@ -211,8 +260,17 @@ ${chapters}
 EVENTS:
 ${events}
 
+TRAVEL:
+${travelBlock}
+
 HOTELS:
 ${hotelLines}
+
+REGISTRY:
+${regBlock}
+
+DETAILS:
+${detailBlock}
 
 FAQS (${manifest.faqs?.length ?? 0}):
 ${faqs}`;
