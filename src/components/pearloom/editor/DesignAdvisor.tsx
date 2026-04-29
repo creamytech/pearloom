@@ -336,6 +336,12 @@ export function DesignAdvisor({
             block: currentBlock,
             selectedIds: selectedBlockIds,
           },
+          // Pass the site slug so the host-mode pear-chat handler
+          // can pull live activity stats (RSVPs, photos, claims)
+          // and bake them into Pear's context. Lets Pear say
+          // things like "12 guests still haven't replied" instead
+          // of giving generic suggestions.
+          siteSlug,
         }),
       });
       if (!res.ok || !res.body) {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { GEMINI_FLASH } from '@/lib/memory-engine/gemini-client';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import type { StoryManifest } from '@/types';
@@ -48,6 +49,11 @@ interface ChatRequest {
    *               warmer hospitality voice, only answers questions
    *               grounded in the manifest. */
   mode?: 'host' | 'guest';
+  /** Site subdomain. When present in host mode, the route fetches
+   *  live activity stats (RSVP counts, photo uploads, registry
+   *  claims) and surfaces them to Pear so it can give specific
+   *  next-step nudges instead of generic copy suggestions. */
+  siteSlug?: string;
 }
 
 const SYSTEM = `You are Pear, the Pearloom site assistant. You help a host design their wedding / celebration site.
@@ -59,6 +65,8 @@ Style guide:
 - Never say "AI" or "AI-generated". You're Pear, a person.
 - Replace "Loading…" → "Threading…", "Generated" → "drafted", "Empty" → "Nothing yet".
 - Lowercase first-letter sentences only when the host writes that way; otherwise sentence case.
+
+When LIVE ACTIVITY counts are present in the site state, treat them as up-to-date facts. If the host asks "what should I focus on?" or "what's left?", lead with the most actionable number — e.g. "12 guests still haven't RSVP'd; want me to draft a nudge?" — instead of generic copy advice. Don't fabricate counts that aren't shown.
 
 When the host asks you to make a concrete change to the site (e.g. "rewrite my hero tagline", "add a fun FAQ", "polish my first chapter"), include a single JSON code block at the END of your response prefixed with the marker line "pearloom:patch":
 
@@ -154,6 +162,101 @@ Common guest questions you should be ready for:
 - "How do I RSVP?" → tell them to scroll to the RSVP section or tap the RSVP button.
 
 Keep responses under 100 words. Brevity reads as confident hospitality.`;
+
+// ─── Live activity stats for host mode ────────────────────────
+// Pulls cheap counts for RSVPs / photos / claims / submissions /
+// guestbook so Pear can answer "what should I focus on next?"
+// with specifics. Cached per slug for STATS_TTL_MS so chat
+// volume doesn't pound Supabase on every keystroke.
+
+interface ActivityStats {
+  rsvp: { attending: number; declined: number; pending: number; total: number };
+  photos: number;
+  claims: number;
+  guestbook: number;
+  submissions: number;
+}
+
+const STATS_TTL_MS = 30_000;
+const statsCache = new Map<string, { at: number; stats: ActivityStats }>();
+
+function getStatsSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key, { auth: { persistSession: false } });
+}
+
+async function fetchActivityStats(siteSlug: string): Promise<ActivityStats | null> {
+  const cached = statsCache.get(siteSlug);
+  if (cached && Date.now() - cached.at < STATS_TTL_MS) return cached.stats;
+
+  const sb = getStatsSupabase();
+  if (!sb) return null;
+
+  // Resolve slug → uuid once.
+  const { data: site } = await sb
+    .from('sites')
+    .select('id')
+    .eq('subdomain', siteSlug)
+    .maybeSingle();
+  const siteId = (site as { id?: string } | null)?.id;
+  if (!siteId) return null;
+
+  // Fan out cheap counts in parallel. Each query is awaited
+  // inside its own try so a missing table on a deployment doesn't
+  // break the whole stats block.
+  type CountResult = { count: number | null } | null;
+  async function countOf(builder: PromiseLike<{ count: number | null }>): Promise<CountResult> {
+    try {
+      return await builder;
+    } catch {
+      return null;
+    }
+  }
+  const [
+    attendingRes,
+    declinedRes,
+    pendingRes,
+    photosRes,
+    claimsRes,
+    gbRes,
+    subsRes,
+  ] = await Promise.all([
+    countOf(sb.from('guests').select('id', { count: 'exact', head: true }).eq('site_id', siteId).eq('status', 'attending')),
+    countOf(sb.from('guests').select('id', { count: 'exact', head: true }).eq('site_id', siteId).eq('status', 'declined')),
+    countOf(sb.from('guests').select('id', { count: 'exact', head: true }).eq('site_id', siteId).is('responded_at', null)),
+    countOf(sb.from('guest_photos').select('id', { count: 'exact', head: true }).eq('site_id', siteId)),
+    countOf(sb.from('registry_link_claims').select('id', { count: 'exact', head: true }).eq('site_id', siteId).is('revoked_at', null)),
+    countOf(sb.from('guestbook').select('id', { count: 'exact', head: true }).eq('site_id', siteId)),
+    countOf(sb.from('tribute_submissions').select('id', { count: 'exact', head: true }).eq('site_id', siteId)),
+  ]);
+
+  const c = (r: CountResult): number => r?.count ?? 0;
+  const stats: ActivityStats = {
+    rsvp: {
+      attending: c(attendingRes),
+      declined: c(declinedRes),
+      pending: c(pendingRes),
+      total: c(attendingRes) + c(declinedRes) + c(pendingRes),
+    },
+    photos: c(photosRes),
+    claims: c(claimsRes),
+    guestbook: c(gbRes),
+    submissions: c(subsRes),
+  };
+  statsCache.set(siteSlug, { at: Date.now(), stats });
+  return stats;
+}
+
+function summariseStats(stats: ActivityStats): string {
+  return `LIVE ACTIVITY (current state, source-of-truth):
+  - RSVPs: ${stats.rsvp.attending} attending, ${stats.rsvp.declined} declined, ${stats.rsvp.pending} pending of ${stats.rsvp.total} invited
+  - Guest photos uploaded: ${stats.photos}
+  - Registry gift claims: ${stats.claims}
+  - Guestbook entries: ${stats.guestbook}
+  - Wall submissions (advice/tribute): ${stats.submissions}`;
+}
 
 // Default tagline shipped by the wizard. Kept in sync with the
 // pear-critique route's check; both surfaces have to agree on what
@@ -302,6 +405,14 @@ export async function POST(req: NextRequest) {
   const summary = summariseManifest(body.manifest, body.coupleNames);
   const history = (body.history ?? []).slice(-6);
 
+  // Host mode + a known site slug → fetch live stats (cached 30s).
+  // Guest mode skips this; visitors don't need RSVP counts.
+  let statsBlock = '';
+  if (body.mode !== 'guest' && body.siteSlug) {
+    const stats = await fetchActivityStats(body.siteSlug).catch(() => null);
+    if (stats) statsBlock = '\n\n' + summariseStats(stats);
+  }
+
   // Stitch a short "you're currently looking at X" line into the
   // user turn so Pear naturally biases responses toward that
   // section. Skipped when no context — chat falls back to
@@ -326,7 +437,7 @@ export async function POST(req: NextRequest) {
   }
   contents.push({
     role: 'user',
-    parts: [{ text: `Current site state:\n\n${summary}${contextLine}\n\n---\n\nMy question:\n${body.prompt}` }],
+    parts: [{ text: `Current site state:\n\n${summary}${statsBlock}${contextLine}\n\n---\n\nMy question:\n${body.prompt}` }],
   });
 
   // Pick the system prompt. Guest mode is concierge-only (no
