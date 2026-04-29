@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
+import { DEFAULT_HOME_BLOCKS, type SiteMode } from '@/lib/site-mode';
 import { Field, PanelSection, SegmentedToggle, SelectInput, TextInput } from '../atoms';
 import { Blob, Pear, Sparkle, Squiggle, Icon } from '../../motifs';
 import { DecorLibraryPanel } from './DecorLibraryPanel';
@@ -383,15 +384,15 @@ function SiteModeSection({
   onChange: (m: StoryManifest) => void;
 }) {
   const m = manifest as unknown as {
-    siteMode?: 'scroll' | 'multi-page';
+    siteMode?: SiteMode;
     homePageBlocks?: string[];
   };
-  const mode: 'scroll' | 'multi-page' = m.siteMode === 'multi-page' ? 'multi-page' : 'scroll';
+  const mode: SiteMode = m.siteMode === 'multi-page' ? 'multi-page' : 'scroll';
   const homeBlocks: string[] = Array.isArray(m.homePageBlocks) && m.homePageBlocks.length
     ? m.homePageBlocks
-    : ['story', 'gallery'];
+    : DEFAULT_HOME_BLOCKS;
 
-  function setMode(next: 'scroll' | 'multi-page') {
+  function setMode(next: SiteMode) {
     onChange({ ...manifest, siteMode: next } as unknown as StoryManifest);
   }
   function toggleHomeBlock(key: string) {

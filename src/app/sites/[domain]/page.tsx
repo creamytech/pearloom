@@ -252,9 +252,8 @@ export default async function SubdomainSite({
     // (default: story + gallery). All other sections live on their
     // own routes at /{occasion}/{slug}/{block}. SiteV8Renderer
     // honours pageFilter='home' to filter blockOrder accordingly.
-    const siteMode = (manifest as unknown as { siteMode?: string }).siteMode === 'multi-page'
-      ? 'multi-page'
-      : 'scroll';
+    const { readSiteMode } = await import('@/lib/site-mode');
+    const siteMode = readSiteMode(manifest);
     // ── LCP preload ──────────────────────────────────────────────
     // The hero/cover photo is the largest contentful paint on most
     // sites. Emitting <link rel="preload"> in the initial HTML lets

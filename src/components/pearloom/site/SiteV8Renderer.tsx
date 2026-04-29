@@ -100,6 +100,16 @@ import { ToastSignupBlock } from '@/components/site/ToastSignupBlock';
 import { RegistryItemsBlock } from '@/components/site/RegistryItemsBlock';
 import { CashGiftBlock } from '@/components/site/CashGiftBlock';
 import { SpotifySection } from '@/components/site/SpotifySection';
+import {
+  type SiteMode,
+  type SiteBlockKey,
+  DEFAULT_BLOCK_ORDER as DEFAULT_ORDER,
+  DEFAULT_HOME_BLOCKS,
+  MULTI_PAGE_BLOCKS,
+  BLOCK_PAGE_SLUG,
+  readSiteMode,
+  readHomePageBlocks,
+} from '@/lib/site-mode';
 import type { PageBlock } from '@/types';
 
 // Callback passed down for inline edits. Parent (CanvasStage)
@@ -7340,33 +7350,11 @@ function FooterColumn({ heading, links }: { heading: string; links: Array<[strin
 }
 
 /* ==================== RENDERER ==================== */
-type SiteBlockKey = 'story' | 'details' | 'schedule' | 'travel' | 'registry' | 'gallery' | 'faq' | 'rsvp';
-const DEFAULT_ORDER: SiteBlockKey[] = ['story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'faq', 'rsvp'];
-
-// Multi-page mode constants. When manifest.siteMode === 'multi-page',
-// the home page renders only manifest.homePageBlocks (default story +
-// gallery) and every other section becomes its own route at
-// /{occasion}/{slug}/{block}. Sub-page renders skip the hero and show
-// only the requested block. EventNav wires links to the right path
-// vs. anchor based on which mode + filter is active.
-type SiteMode = 'scroll' | 'multi-page';
-const DEFAULT_HOME_BLOCKS: SiteBlockKey[] = ['story', 'gallery'];
-// Sections that get their own dedicated page in multi-page mode.
-// 'details' stays on home — it's a summary strip, not a destination.
-const MULTI_PAGE_BLOCKS: SiteBlockKey[] = ['story', 'schedule', 'travel', 'registry', 'gallery', 'faq', 'rsvp'];
-
-// Block → URL slug for sub-pages. Keep these stable; they're the
-// public URL surface for multi-page sites.
-const BLOCK_PAGE_SLUG: Record<SiteBlockKey, string> = {
-  story: 'story',
-  details: 'details',
-  schedule: 'schedule',
-  travel: 'travel',
-  registry: 'registry',
-  gallery: 'gallery',
-  faq: 'faq',
-  rsvp: 'rsvp',
-};
+// SiteBlockKey, SiteMode, DEFAULT_ORDER, DEFAULT_HOME_BLOCKS,
+// MULTI_PAGE_BLOCKS, BLOCK_PAGE_SLUG, readSiteMode, readHomePageBlocks
+// are imported from '@/lib/site-mode' at the top of the file —
+// single source of truth for layout-mode wiring across editor +
+// route layer + renderer.
 
 // Event-OS block types that live on manifest.blocks[]. These
 // weren't rendered before — hosts could add them in the editor
@@ -7796,22 +7784,11 @@ export function SiteV8Renderer({
   );
 
   // ── Multi-page mode resolution ──
-  // siteMode: 'scroll' | 'multi-page'. Defaults to scroll.
-  // homePageBlocks: which blocks render on the home page when in
-  // multi-page mode. Defaults to story + gallery — the editorial
-  // reading experience the user wants. Always implicitly includes
-  // the hero (rendered separately from blockOrder).
-  const siteMode: SiteMode =
-    (manifest as unknown as { siteMode?: SiteMode }).siteMode === 'multi-page'
-      ? 'multi-page'
-      : 'scroll';
-  const rawHomeBlocks =
-    (manifest as unknown as { homePageBlocks?: SiteBlockKey[] }).homePageBlocks;
-  const homePageBlocks: SiteBlockKey[] = Array.isArray(rawHomeBlocks) && rawHomeBlocks.length
-    ? rawHomeBlocks.filter((k): k is SiteBlockKey =>
-        DEFAULT_ORDER.includes(k as SiteBlockKey)
-      )
-    : DEFAULT_HOME_BLOCKS;
+  // Single source of truth for both reads is @/lib/site-mode. The
+  // editor's LayoutModeSection writes the same fields these helpers
+  // read, so the two surfaces can never drift.
+  const siteMode: SiteMode = readSiteMode(manifest);
+  const homePageBlocks: SiteBlockKey[] = readHomePageBlocks(manifest);
 
   // Apply pageFilter to blockOrder.
   const blockOrder: SiteBlockKey[] = (() => {

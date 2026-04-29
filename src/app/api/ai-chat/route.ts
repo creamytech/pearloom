@@ -74,7 +74,7 @@ After ANY action, check if the site is missing critical things and mention ONE s
 { action: "update_registry", data: { entries?: [{ name, url, note }], message?, cashFundUrl?, cashFundMessage? }, reply: "string" }
 { action: "message", data: null, reply: "string" }
 
-Manifest paths: poetry.heroTagline, poetry.closingLine, poetry.welcomeStatement, poetry.rsvpIntro, logistics.venue, logistics.venueAddress, logistics.date, logistics.time, logistics.dresscode, vibeString, navStyle, pageMode, coverPhoto
+Manifest paths: poetry.heroTagline, poetry.closingLine, poetry.welcomeStatement, poetry.rsvpIntro, logistics.venue, logistics.venueAddress, logistics.date, logistics.time, logistics.dresscode, vibeString, navStyle, siteMode, coverPhoto
 
 Block types: hero, story, event, countdown, rsvp, registry, travel, faq, photos, guestbook, quote, text, video, spotify, hashtag, divider, weddingParty, welcome, vibeQuote, map, quiz, anniversary, storymap, footer
 
@@ -221,7 +221,7 @@ CURRENT SITE STATE:
 - Couple names: ${manifest?.coupleId ?? 'unknown'}
 - Occasion: ${manifest?.occasion ?? 'wedding'}
 - Vibe: ${manifest?.vibeString ?? '(none)'}
-- Page mode: ${manifest?.pageMode ?? 'multi-page'}
+- Site mode: ${manifest?.siteMode ?? 'scroll'}
 - Nav style: ${manifest?.navStyle ?? 'glass'}
 
 CONTENT:

@@ -9,6 +9,7 @@ import { WaveDivider } from '@/components/vibe/WaveDivider';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
 import { SiteClientSections } from '@/components/site/SiteClientSections';
+import { readSiteMode } from '@/lib/site-mode';
 
 // ─────────────────────────────────────────────────────────────
 // [domain]/[page] — Sub-page router (v8)
@@ -145,6 +146,25 @@ export default async function SiteSubPage(
 
   // ── v8 sub-page ──
   if (!isV8PageKey(page)) return notFound();
+
+  // Scroll-mode hosts may have shared an old multi-page link
+  // (/wedding/site/story) before flipping their site to single-
+  // scroll. Redirect to the home anchor so guests land on the
+  // long page they're expecting instead of a thin sub-page that
+  // doesn't match the rest of the site's nav behavior.
+  if (readSiteMode(manifest) === 'scroll') {
+    const ANCHOR_BY_PAGE: Record<V8PageKey, string> = {
+      story: 'our-story',
+      schedule: 'schedule',
+      travel: 'travel',
+      registry: 'registry',
+      gallery: 'gallery',
+      faq: 'faq',
+      rsvp: 'rsvp',
+    };
+    const target = buildSiteUrl(domain, '', undefined, manifest.occasion);
+    redirect(`${target}#${ANCHOR_BY_PAGE[page]}`);
+  }
 
   const names: [string, string] = Array.isArray(siteConfig.names) && siteConfig.names.length >= 2
     ? [siteConfig.names[0], siteConfig.names[1]]
