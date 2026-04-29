@@ -441,6 +441,54 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-04-30 — Mass dead-code prune (~13,000 lines deleted)
+
+After the surface prune, the user said "keep going don't stop".
+Pivoted from "hide settings" to "delete orphan files". A
+systematic per-folder grep confirmed which files no consumer
+imported, deleted them in batches with type-check between each.
+
+**51 components / utilities deleted across 5 batches:**
+
+Round A — editor + site (3 files, ~1532 lines):
+  • editor/panels/AssetLibraryPanel.tsx — v1 of LibraryPanelV2
+  • editor/BlockMiniature.tsx — never imported
+  • site/VideoChapterPlayer.tsx — never imported
+
+Round B — V1 marketing landing components (29 files, ~8082 lines):
+  Production HomeV8 imports from `marketing/v2/*` and
+  `marketing/design/dash/*`. Everything at `marketing/<Top>.tsx`
+  was an old design that was never swapped back to:
+    BlocksLibrary, BlockTypesGrid, DirectorTimeline, EditorShowcase,
+    EditorialHero, EventOSPillars, FAQSection, GuestExperience,
+    HeroAtmosphere, HowItWorks, InteractiveFeatureGrid, MarketingFooter,
+    MarketingNav, OccasionOrbit, PearsPromise, PricingPreview,
+    ShowroomParallax, SiteMockup, SiteShowroom, SocialProofBar,
+    Testimonials, TheLoomShowcase, TrustSignals, WeavingScrollSection,
+    WovenDivider + the four Groove* siblings.
+
+Round C — brand + shell (7 files, ~1148 lines):
+  • brand/ AmbientNav, KineticHeading, Pull, WeaveLoader (BRAND
+    primitives that were catalogued but never wired up)
+  • shell/ AppShell+NavGroup+NavItem, ResponsiveTable, SiteSelector
+    (superseded by DashShell / DashLayout)
+
+Round D — root-level legacy (5 files, ~1806 lines):
+  • mood-decorator, rsvp-insights, session-provider (dup of
+    auth-provider), travel-guide, visual-timeline.
+
+Round E — lib/ utilities (17 files, ~2570 lines):
+  • assets, block-catalogue, breakpoint-utils, card-illustrations,
+    clipboard, corner-presets, editor-ids, editor-log,
+    marketplace-assets, patterns, plan-tiers, realtime-collab,
+    referrals, use-reduced-motion, use-site-role, wedding-graph,
+    wizard-state.
+
+Net: ~15,138 lines of dead code obliterated. Type-check clean
+throughout. The codebase is dramatically smaller and easier to
+navigate. Nothing user-facing changed — these were all files
+nothing imported.
+
 ### 2026-04-30 — Editor surface prune (round 4) + schema cleanup
 
 Continuing the user's "cut down" direction.
