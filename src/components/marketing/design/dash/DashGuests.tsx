@@ -99,6 +99,9 @@ interface ApiGuest {
   dietaryRestrictions: string | null;
   message: string | null;
   respondedAt: string | null;
+  invitedAt?: string | null;
+  createdAt?: string | null;
+  guestToken?: string | null;
   eventIds: string[];
 }
 
@@ -111,6 +114,39 @@ interface Guest {
   meal: string;
   note: string;
   tags: string[];
+  /** ISO timestamp the guest was invited (or imported). */
+  invitedAt: string | null;
+  /** ISO timestamp the guest replied. */
+  respondedAt: string | null;
+  /** Per-guest token, used to deep-link to /g/[token]. */
+  token: string | null;
+  /** True when invited >7 days ago and still pending. */
+  stale: boolean;
+}
+
+const STALE_DAYS = 7;
+const STALE_MS = STALE_DAYS * 86_400_000;
+function isStale(invitedAtIso: string | null | undefined, status: RsvpKey, now = Date.now()): boolean {
+  if (status !== 'pending') return false;
+  if (!invitedAtIso) return false;
+  const t = new Date(invitedAtIso).getTime();
+  if (Number.isNaN(t)) return false;
+  return now - t > STALE_MS;
+}
+
+function relativeTime(iso: string): string {
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return '';
+  const delta = Date.now() - t;
+  const min = Math.round(delta / 60_000);
+  if (min < 1) return 'just now';
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const d = Math.round(hr / 24);
+  if (d === 1) return 'yesterday';
+  if (d < 30) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 const rsvpMap: Record<RsvpKey, { bg: string; fg: string; label: string }> = {
@@ -132,16 +168,24 @@ function shapeGuest(g: ApiGuest): Guest {
   const tags: string[] = [];
   if (g.dietaryRestrictions) tags.push('dietary');
   if (g.plusOne) tags.push('plus-one');
+  const status = normaliseStatus(g.status);
+  const invitedAt = g.invitedAt ?? g.createdAt ?? null;
+  const stale = isStale(invitedAt, status);
+  if (stale) tags.push('stale');
   return {
     id: g.id,
     n: g.name,
     em: g.email || '—',
     party: g.plusOne ? `${g.name.split(' ')[0]} + 1${g.plusOneName ? ` (${g.plusOneName})` : ''}` : g.name,
-    rsvp: normaliseStatus(g.status),
+    rsvp: status,
     meal: g.mealPreference || '—',
     note:
       (g.dietaryRestrictions ? `${g.dietaryRestrictions}. ` : '') + (g.message ?? ''),
     tags,
+    invitedAt,
+    respondedAt: g.respondedAt,
+    token: g.guestToken ?? null,
+    stale,
   };
 }
 
@@ -151,7 +195,10 @@ export function DashGuests() {
   const [rows, setRows] = useState<Guest[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<RsvpKey | 'all'>('all');
+  // 'stale' is a virtual filter — not on the row's RSVP status,
+  // but on its lifecycle (invited >7d ago, no response). Lives
+  // alongside the rsvp keys so the same pill UI handles both.
+  const [filter, setFilter] = useState<RsvpKey | 'all' | 'stale'>('all');
   const [q, setQ] = useState('');
   const [importOpen, setImportOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
@@ -183,19 +230,27 @@ export function DashGuests() {
   }, [site?.id, refreshKey]);
 
   const counts = useMemo(() => {
-    const base = { all: 0, yes: 0, no: 0, maybe: 0, pending: 0 };
+    const base = { all: 0, yes: 0, no: 0, maybe: 0, pending: 0, stale: 0 };
     if (!rows) return base;
     base.all = rows.length;
-    for (const g of rows) base[g.rsvp] += 1;
+    for (const g of rows) {
+      base[g.rsvp] += 1;
+      if (g.stale) base.stale += 1;
+    }
     return base;
   }, [rows]);
 
   const filtered = useMemo(() => {
     if (!rows) return [];
     return rows.filter(
-      (g) =>
-        (filter === 'all' || g.rsvp === filter) &&
-        (q === '' || (g.n + g.note + g.tags.join(' ')).toLowerCase().includes(q.toLowerCase())),
+      (g) => {
+        const rsvpMatch =
+          filter === 'all' ? true
+          : filter === 'stale' ? g.stale
+          : g.rsvp === filter;
+        const queryMatch = q === '' || (g.n + g.note + g.tags.join(' ')).toLowerCase().includes(q.toLowerCase());
+        return rsvpMatch && queryMatch;
+      }
     );
   }, [rows, filter, q]);
 
@@ -282,14 +337,15 @@ export function DashGuests() {
           {/* STATS */}
           <div
             className="pd-guests-stats pl8-dash-stagger"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 10 }}
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 10 }}
           >
             {[
               { l: 'Invited', v: counts.all, c: PD.stone },
               { l: 'Yes', v: counts.yes, c: PD.olive },
               { l: 'Maybe', v: counts.maybe, c: PD.gold },
               { l: 'Pending', v: counts.pending, c: PD.plum },
-              { l: 'Declined', v: counts.no, c: PD.terra },
+              { l: 'Stale', v: counts.stale, c: PD.terra, hint: '> 7 days, no reply' },
+              { l: 'Declined', v: counts.no, c: PD.stone },
             ].map((s) => (
               <Panel key={s.l} bg={PD.paperCard} style={{ padding: '14px 16px' }}>
                 <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 6 }}>
@@ -346,6 +402,7 @@ export function DashGuests() {
                 { k: 'all', l: `All · ${counts.all}` },
                 { k: 'yes', l: `Yes · ${counts.yes}` },
                 { k: 'pending', l: `Pending · ${counts.pending}` },
+                { k: 'stale', l: `Stale · ${counts.stale}` },
                 { k: 'maybe', l: `Maybe · ${counts.maybe}` },
                 { k: 'no', l: `No · ${counts.no}` },
               ] as const).map((t) => (
@@ -489,6 +546,9 @@ export function DashGuests() {
                         <div style={{ minWidth: 0 }}>
                           <div
                             style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6,
                               fontSize: 13.5,
                               fontWeight: 500,
                               overflow: 'hidden',
@@ -496,7 +556,17 @@ export function DashGuests() {
                               whiteSpace: 'nowrap',
                             }}
                           >
-                            {g.n}
+                            {g.token ? (
+                              <a
+                                href={`/g/${g.token}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={{ color: 'inherit', textDecoration: 'none' }}
+                                title="Open this guest's personal page"
+                              >
+                                {g.n}
+                              </a>
+                            ) : g.n}
                           </div>
                           <div
                             style={{
@@ -509,6 +579,44 @@ export function DashGuests() {
                           >
                             {g.em}
                           </div>
+                          {(g.invitedAt || g.respondedAt) && (
+                            <div
+                              style={{
+                                fontSize: 10.5,
+                                color: g.stale ? PD.terra : '#9A9488',
+                                marginTop: 2,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}
+                            >
+                              {g.invitedAt && (
+                                <span title={`Invited ${new Date(g.invitedAt).toLocaleString()}`}>
+                                  Invited {relativeTime(g.invitedAt)}
+                                </span>
+                              )}
+                              {g.invitedAt && g.respondedAt && <span aria-hidden>·</span>}
+                              {g.respondedAt && (
+                                <span title={`Replied ${new Date(g.respondedAt).toLocaleString()}`}>
+                                  Replied {relativeTime(g.respondedAt)}
+                                </span>
+                              )}
+                              {g.stale && !g.respondedAt && (
+                                <span
+                                  style={{
+                                    color: PD.terra,
+                                    fontWeight: 700,
+                                    letterSpacing: '0.04em',
+                                  }}
+                                >
+                                  · stale
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div style={{ fontSize: 13 }}>{g.party}</div>
