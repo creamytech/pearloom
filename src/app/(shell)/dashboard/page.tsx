@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { TodayHome } from '@/components/pearloom/pages/TodayHome';
+import { WelcomeHome } from '@/components/pearloom/pages/WelcomeHome';
 
 export const metadata: Metadata = {
   title: 'Dashboard · Pearloom',
@@ -7,8 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardPage() {
-  // /dashboard is the focused "today" view. The old kitchen-sink
-  // DashHomeV8 stays in the codebase but is no longer routed here —
-  // each of its sections moved to its proper tab.
-  return <TodayHome />;
+  return <WelcomeHome />;
 }
