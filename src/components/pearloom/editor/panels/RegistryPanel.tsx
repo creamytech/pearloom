@@ -107,6 +107,67 @@ const KINDS = [
   { value: 'link', label: 'Link' },
 ];
 
+// "Pear, draft my registry" — calls /api/draft-registry which
+// reads occasion + venue + vibes and returns 8 starter items in
+// the editor's canonical shape, ready to insert without further
+// mapping. Used for fresh sites where the host hasn't picked any
+// items yet (or wants more ideas).
+function DraftRegistryAI({
+  manifest,
+  existingNames,
+  onResult,
+}: {
+  manifest: StoryManifest;
+  existingNames: string[];
+  onResult: (items: RegistryItem[]) => void;
+}) {
+  const { state, error, run } = useAICall(async () => {
+    const occasion = (manifest as unknown as { occasion?: string }).occasion;
+    const vibes = (manifest as unknown as { vibes?: string[] }).vibes;
+    const names = (manifest as unknown as { names?: [string, string] }).names;
+    const venue = manifest.logistics?.venue;
+    const res = await fetch('/api/draft-registry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ occasion, vibes, venue, names, existingNames }),
+    });
+    if (!res.ok) {
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      throw new Error(data?.error ?? `Pear couldn't draft (${res.status})`);
+    }
+    const data = (await res.json()) as {
+      items?: Array<{ label: string; description?: string; kind?: 'fund' | 'registry' | 'link'; priceLabel?: string; url?: string }>;
+    };
+    const now = Date.now();
+    const drafted: RegistryItem[] = (data.items ?? []).map((it, i) => ({
+      id: `reg-pear-${now.toString(36)}-${i}`,
+      label: it.label,
+      url: it.url ?? '',
+      description: it.description,
+      kind: it.kind ?? 'link',
+      priceLabel: it.priceLabel,
+    }));
+    if (drafted.length === 0) throw new Error('Pear didn\'t come up with anything — try setting your vibe in Theme first.');
+    onResult(drafted);
+    return drafted;
+  });
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <AIHint>
+        Pear reads your occasion, venue, and vibes — drafts 8 starter items across cash funds, kitchen, home, and experiences. Edit or remove anything you don&apos;t want.
+      </AIHint>
+      <AISuggestButton
+        label="Draft a starter registry"
+        runningLabel="Pear is drafting…"
+        state={state}
+        onClick={() => void run()}
+        error={error ?? undefined}
+      />
+    </div>
+  );
+}
+
 const CURRENCIES = [
   { value: 'USD', label: '$ USD' },
   { value: 'EUR', label: '€ EUR' },
@@ -248,6 +309,17 @@ export function RegistryPanel({
             />
           </Field>
         </div>
+      </PanelSection>
+      <PanelSection
+        label="Start with Pear"
+        hint="No registry yet? Pear drafts a starter set you can refine."
+        defaultOpen={items.length === 0}
+      >
+        <DraftRegistryAI
+          manifest={manifest}
+          existingNames={items.map((it) => it.label).filter(Boolean)}
+          onResult={(drafted) => set([...items, ...drafted])}
+        />
       </PanelSection>
       <PanelSection label="Import from a URL" hint="Paste a Zola, Amazon, or Target registry link — Pear reads it and imports.">
         <RegistryImportAI onResult={(items2) => set([...items, ...items2])} />
