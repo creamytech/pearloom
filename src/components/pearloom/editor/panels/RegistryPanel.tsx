@@ -169,56 +169,12 @@ function RecentClaimsSection({ manifest, items }: { manifest: StoryManifest; ite
   return (
     <PanelSection
       label="Recent claims"
-      hint="Guests who clicked 'I got this' on your registry. Use the emails for thank-yous."
+      hint="Guests who clicked 'I got this' on your registry. Tap Draft to have Pear write a thank-you."
       defaultOpen={true}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {rows.slice(0, 10).map((c) => (
-          <div
-            key={c.id}
-            style={{
-              padding: '10px 12px',
-              borderRadius: 10,
-              background: 'var(--cream-2)',
-              border: '1px solid var(--line-soft)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 4,
-              fontFamily: 'var(--font-ui)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>
-                {c.claimer_name ?? c.claimer_email.split('@')[0]}
-              </span>
-              <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
-                {relativeTime(c.created_at)}
-              </span>
-            </div>
-            <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>
-              got <strong style={{ fontWeight: 600 }}>{labelFor(c.entry_url)}</strong>
-            </div>
-            <a
-              href={`mailto:${c.claimer_email}`}
-              style={{ fontSize: 11, color: 'var(--peach-ink, #C6703D)', fontWeight: 600, textDecoration: 'none' }}
-            >
-              {c.claimer_email} →
-            </a>
-            {c.message && (
-              <div
-                style={{
-                  fontSize: 12,
-                  color: 'var(--ink-soft)',
-                  fontStyle: 'italic',
-                  borderLeft: '2px solid var(--peach-ink, #C6703D)',
-                  paddingLeft: 8,
-                  marginTop: 2,
-                }}
-              >
-                &ldquo;{c.message}&rdquo;
-              </div>
-            )}
-          </div>
+          <ClaimCard key={c.id} claim={c} manifest={manifest} entryLabel={labelFor(c.entry_url)} />
         ))}
         {rows.length > 10 && (
           <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', textAlign: 'center', padding: 4 }}>
@@ -227,6 +183,198 @@ function RecentClaimsSection({ manifest, items }: { manifest: StoryManifest; ite
         )}
       </div>
     </PanelSection>
+  );
+}
+
+// One claim row with an optional "Draft thank-you" affordance.
+// Click → calls /api/ai-thankyou with the claim's gift + guest +
+// couple context. Result expands inline with a Copy button.
+function ClaimCard({
+  claim,
+  manifest,
+  entryLabel,
+}: {
+  claim: ClaimRow;
+  manifest: StoryManifest;
+  entryLabel: string;
+}) {
+  const [note, setNote] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  async function draft() {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const names = (manifest as unknown as { names?: [string, string] }).names ?? ['', ''];
+      const occasion = (manifest as unknown as { occasion?: string }).occasion ?? 'wedding';
+      const vibes = ((manifest as unknown as { vibes?: string[] }).vibes ?? []).join(' ');
+      const r = await fetch('/api/ai-thankyou', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          guestName: claim.claimer_name || claim.claimer_email.split('@')[0],
+          giftDescription: claim.message ? `${entryLabel} — they noted: "${claim.message}"` : entryLabel,
+          coupleNames: names.filter(Boolean).join(' & '),
+          occasion,
+          vibe: vibes,
+        }),
+      });
+      if (!r.ok) {
+        const data = await r.json().catch(() => ({}));
+        throw new Error((data as { error?: string }).error ?? `Pear couldn't draft (${r.status})`);
+      }
+      const data = (await r.json()) as { note?: string };
+      if (!data.note) throw new Error('Pear returned an empty note.');
+      setNote(data.note);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not draft.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function copy() {
+    if (!note) return;
+    navigator.clipboard.writeText(note).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    }).catch(() => { /* clipboard blocked — host can manual-copy */ });
+  }
+
+  return (
+    <div
+      style={{
+        padding: '10px 12px',
+        borderRadius: 10,
+        background: 'var(--cream-2)',
+        border: '1px solid var(--line-soft)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 4,
+        fontFamily: 'var(--font-ui)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>
+          {claim.claimer_name ?? claim.claimer_email.split('@')[0]}
+        </span>
+        <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
+          {relativeTime(claim.created_at)}
+        </span>
+      </div>
+      <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>
+        got <strong style={{ fontWeight: 600 }}>{entryLabel}</strong>
+      </div>
+      <a
+        href={`mailto:${claim.claimer_email}`}
+        style={{ fontSize: 11, color: 'var(--peach-ink, #C6703D)', fontWeight: 600, textDecoration: 'none' }}
+      >
+        {claim.claimer_email} →
+      </a>
+      {claim.message && (
+        <div
+          style={{
+            fontSize: 12,
+            color: 'var(--ink-soft)',
+            fontStyle: 'italic',
+            borderLeft: '2px solid var(--peach-ink, #C6703D)',
+            paddingLeft: 8,
+            marginTop: 2,
+          }}
+        >
+          &ldquo;{claim.message}&rdquo;
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+        {!note && !busy && (
+          <button
+            type="button"
+            onClick={draft}
+            style={{
+              padding: '5px 12px',
+              borderRadius: 999,
+              border: '1px dashed var(--peach-ink, #C6703D)',
+              background: 'transparent',
+              color: 'var(--peach-ink, #C6703D)',
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            ✦ Draft thank-you
+          </button>
+        )}
+        {busy && (
+          <span style={{ fontSize: 11, color: 'var(--ink-muted)', fontStyle: 'italic' }}>
+            Pear is writing…
+          </span>
+        )}
+        {error && (
+          <span style={{ fontSize: 11, color: '#7A2D2D' }}>{error}</span>
+        )}
+      </div>
+      {note && (
+        <div
+          style={{
+            marginTop: 6,
+            padding: '10px 12px',
+            background: 'rgba(255,255,255,0.6)',
+            border: '1px solid rgba(198,112,61,0.22)',
+            borderRadius: 10,
+            fontSize: 13,
+            color: 'var(--ink)',
+            fontStyle: 'italic',
+            fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+            lineHeight: 1.5,
+          }}
+        >
+          {note}
+          <div style={{ display: 'flex', gap: 6, marginTop: 8, alignItems: 'center' }}>
+            <button
+              type="button"
+              onClick={copy}
+              style={{
+                padding: '5px 12px',
+                borderRadius: 999,
+                background: 'var(--ink, #0E0D0B)',
+                color: 'var(--cream, #FBF7EE)',
+                border: 'none',
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-ui)',
+              }}
+            >
+              {copied ? '✓ Copied' : 'Copy'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setNote(null); }}
+              style={{
+                padding: '5px 12px',
+                borderRadius: 999,
+                background: 'transparent',
+                color: 'var(--ink-muted)',
+                border: '1px solid var(--line)',
+                fontSize: 11,
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'var(--font-ui)',
+              }}
+            >
+              Try another
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
