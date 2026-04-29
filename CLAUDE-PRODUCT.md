@@ -441,6 +441,65 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-04-30 — Editor surface prune (round 2)
+
+User direction: "cut down on all these advanced settings as much
+as possible and make it very user friendly". Acted on the audit
+from earlier in the day.
+
+**Removed UI / dropped writes:**
+- FontPicker: deleted the "Script" font dropdown entirely (no v8
+  surface ever consumed `theme.fonts.script` — it was editor
+  chrome only). Stopped writing top-level `headingFont` / `bodyFont`
+  / `scriptFont` — renderer only reads `theme.fonts.{heading,body}`.
+- ThemePanel: deleted the "Active theme" PanelSection (free-text
+  "Theme name" input + swatch tile). The text wrote `themeName`,
+  which nothing read. Active palette is already labelled in the
+  grid below. Dropped the legacy local-variable reads (palette,
+  spacing, headingFont, bodyFont, scriptFont, themeName) — active
+  palette resolved by matching `theme.colors.accent` against the
+  preset list.
+- SpacingPanel: deleted the entire "Section spacing"
+  (cozy/comfortable/spacious/lush) picker + its `setSpacing()`
+  writer. Wrote `manifest.spacing` AND `manifest.theme.spacing` —
+  renderer reads neither. Renamed panel "Spacing & shape" →
+  "Corner shape" since only card + photo radius remain.
+- DecorLibraryPanel: deleted the divider-strength three-button
+  picker. Renderer falls back to 'standard' when unset.
+- AtmospherePanel: removed the inline per-section
+  kind+intensity dropdown grid. Existing legacy overrides still
+  render and now show as "Overriding hero — kind · intensity"
+  with a Clear pill. The full picker was used by <2% of hosts.
+- AtmospherePanel: tucked the ten decor-visibility switches under
+  a native `<details>` disclosure inside an "Advanced" PanelSection.
+- DecorLibraryPanel: tucked each per-slot custom-prompt composer
+  under a "Custom direction (optional)" `<details>` so the
+  default flow stays clean.
+
+**Net surface change:** 5 form fields and 1 entire dropdown
+removed from the main Theme + Atmosphere flows. Editor reads
+noticeably quieter.
+
+**Still on the list (deferred for next prune session):**
+1. Group ThemePanel's 13 sub-sections into 4-5 logical clusters
+   — Palette / Type / Spacing-Corners / Decoration / Layout —
+   the current vertical flow is overwhelming.
+2. "Hero decoration" `decorStyle` toggle — three options
+   (`occasion` / `classic` / `off`). 'classic' is v8 nostalgia
+   that <1% of hosts pick. Could be a binary toggle.
+3. Per-section spacing override on BlockStylePanel — only useful
+   to power users; consider hiding behind the existing "Card
+   details" disclosure (which already collapses six other
+   granular controls).
+4. ColorTokenInspector — six color tokens (background, foreground,
+   accent, accentLight, muted, cardBg) all visible. Most hosts
+   only tweak `accent`. Hide the other five behind "Fine-tune
+   colors" disclosure.
+5. AtmospherePanel "Section backgrounds" per-section picker —
+   eight rows × five options each. Could become a single
+   global toggle ("Add a wash to alternate sections") with the
+   per-section picker as Advanced.
+
 ### 2026-04-30 — Settings audit: orphaned writes + dead reads
 
 User flagged the layout feature as "glitchy" and asked for a
