@@ -180,6 +180,8 @@ export function RsvpPanel({
         </fieldset>
       </PanelSection>
 
+      <RsvpButtonStyleSection manifest={manifest} onChange={onChange} />
+
       <PanelSection
         label="Meal options"
         hint="Drag to reorder. Guests who RSVP yes pick one."
@@ -251,3 +253,113 @@ export function RsvpPanel({
     </PanelGroup>
   );
 }
+
+// ── RsvpButtonStyleSection ───────────────────────────────────
+// Per-host RSVP CTA controls — shape, pulse animation, custom
+// label. Stored at manifest.rsvpButton so the renderer can read
+// it without touching global theme tokens.
+type RsvpButtonShape = 'pearl' | 'pill' | 'hairline' | 'tag';
+type RsvpButtonPulse = 'none' | 'breathe' | 'urgent';
+
+interface RsvpButtonConfig {
+  shape?: RsvpButtonShape;
+  pulse?: RsvpButtonPulse;
+  customLabel?: string;
+  sticky?: boolean;
+}
+
+function RsvpButtonStyleSection({
+  manifest,
+  onChange,
+}: {
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+}) {
+  const cfg = (manifest as unknown as { rsvpButton?: RsvpButtonConfig }).rsvpButton ?? {};
+  function set(patch: Partial<RsvpButtonConfig>) {
+    const next: RsvpButtonConfig = { ...cfg, ...patch };
+    Object.keys(next).forEach((k) => {
+      const v = (next as Record<string, unknown>)[k];
+      if (v === undefined || v === '') delete (next as Record<string, unknown>)[k];
+    });
+    onChange({
+      ...manifest,
+      rsvpButton: Object.keys(next).length ? next : undefined,
+    } as unknown as StoryManifest);
+  }
+
+  return (
+    <PanelSection
+      label="Send button"
+      hint="The primary RSVP CTA on every page. Shape, pulse, copy."
+    >
+      <Field label="Shape">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
+          {(['pearl', 'pill', 'hairline', 'tag'] as RsvpButtonShape[]).map((s) => {
+            const on = (cfg.shape ?? 'pearl') === s;
+            return (
+              <button
+                key={s}
+                type="button"
+                onClick={() => set({ shape: s === 'pearl' ? undefined : s })}
+                style={shapeBtn(on)}
+              >
+                {s === 'pearl' ? 'Pearl' : s === 'pill' ? 'Pill' : s === 'hairline' ? 'Hairline' : 'Paper tag'}
+              </button>
+            );
+          })}
+        </div>
+      </Field>
+      <Field label="Pulse" help="Pulls the eye; reserve 'urgent' for the week before the deadline.">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
+          {(['none', 'breathe', 'urgent'] as RsvpButtonPulse[]).map((p) => {
+            const on = (cfg.pulse ?? 'none') === p;
+            return (
+              <button
+                key={p}
+                type="button"
+                onClick={() => set({ pulse: p === 'none' ? undefined : p })}
+                style={shapeBtn(on)}
+              >
+                {p[0].toUpperCase() + p.slice(1)}
+              </button>
+            );
+          })}
+        </div>
+      </Field>
+      <Field label="Button label" help="Defaults to 'Send RSVP'. Try 'Tell us you're coming' for a warmer voice.">
+        <TextInput
+          value={cfg.customLabel ?? ''}
+          onChange={(e) => set({ customLabel: e.target.value })}
+          placeholder="Send RSVP"
+        />
+      </Field>
+      <Field label="Sticky on mobile" help="A floating RSVP pill follows the guest as they scroll.">
+        <button
+          type="button"
+          onClick={() => set({ sticky: cfg.sticky ? undefined : true })}
+          style={{
+            ...shapeBtn(!!cfg.sticky),
+            width: '100%',
+            justifyContent: 'flex-start',
+            padding: '8px 12px',
+          }}
+        >
+          {cfg.sticky ? '✓ Floating pill enabled on mobile' : 'Show only inline (default)'}
+        </button>
+      </Field>
+    </PanelSection>
+  );
+}
+
+const shapeBtn = (on: boolean): React.CSSProperties => ({
+  padding: '6px 8px',
+  borderRadius: 6,
+  background: on ? 'var(--ink, #0E0D0B)' : 'var(--card)',
+  color: on ? 'var(--cream, #FBF7EE)' : 'var(--ink-soft)',
+  border: `1px solid ${on ? 'var(--ink, #0E0D0B)' : 'var(--line)'}`,
+  cursor: 'pointer',
+  fontSize: 11,
+  fontWeight: on ? 700 : 600,
+  fontFamily: 'var(--font-ui)',
+});

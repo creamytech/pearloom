@@ -52,7 +52,10 @@ const TIMEZONE_OPTIONS: Array<{ value: string; label: string }> = [
 // Sample copy uses Sept 14, 2026 so the host sees what each preset
 // will look like on the live site without leaving the panel.
 const DATE_FORMAT_OPTIONS: Array<{ value: string; label: string }> = [
-  { value: '',           label: 'Long — September 14, 2026' },
+  // Empty value = "inherit theme default" (which renders 'long' today).
+  // The first row used to also say "Long — September 14, 2026" which
+  // looked like a dupe of the second row.
+  { value: '',           label: 'Default — match the theme' },
   { value: 'long',       label: 'Long — September 14, 2026' },
   { value: 'short',      label: 'Short — Sep 14, 2026' },
   { value: 'numeric',    label: 'Numeric — 9/14/2026' },

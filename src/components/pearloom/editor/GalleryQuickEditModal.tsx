@@ -218,6 +218,10 @@ function PhotoEditor({
           rows={2}
           placeholder="A short line that lands under the photo on the gallery."
         />
+        <PearCaptionSuggest
+          photo={photo}
+          onAccept={(caption) => onPatch({ caption })}
+        />
       </Field>
 
       <Field label="Alt text" help="Read by screen readers + used as the file name on download.">
@@ -259,6 +263,116 @@ function PhotoEditor({
           Remove this photo
         </button>
       </div>
+    </div>
+  );
+}
+
+// ── PearCaptionSuggest ───────────────────────────────────────
+// Drafts a 4-10 word editorial caption via /api/pear-caption.
+// Host can accept the suggestion or click "another" for a new
+// draft. Lives below the caption textarea so it doesn't compete
+// for layout space when the host is typing manually.
+function PearCaptionSuggest({
+  photo,
+  onAccept,
+}: {
+  photo: FlatPhoto;
+  onAccept: (caption: string) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [draft, setDraft] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function suggest() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/pear-caption', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          photoUrl: photo.url,
+          context: {
+            chapterTitle: photo.chapterTitle,
+            altText: photo.alt,
+          },
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = (await res.json()) as { caption?: string };
+      setDraft(data.caption ?? null);
+    } catch {
+      setError('Pear hesitated. Try again?');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      style={{
+        marginTop: 6,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+        padding: '8px 10px',
+        background: 'var(--cream-2, #F5EFE2)',
+        border: '1px dashed var(--line-soft)',
+        borderRadius: 10,
+      }}
+    >
+      {!draft ? (
+        <button
+          type="button"
+          onClick={suggest}
+          disabled={busy}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '5px 10px',
+            borderRadius: 999,
+            background: 'transparent',
+            border: '1px dashed var(--peach-ink, #C6703D)',
+            color: 'var(--peach-ink, #C6703D)',
+            fontSize: 11,
+            fontWeight: 700,
+            cursor: busy ? 'wait' : 'pointer',
+            fontFamily: 'var(--font-ui)',
+            opacity: busy ? 0.7 : 1,
+            alignSelf: 'flex-start',
+          }}
+        >
+          <Icon name="sparkles" size={11} /> {busy ? 'Pear is reading…' : 'Pear, draft a caption'}
+        </button>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <p
+            style={{
+              margin: 0,
+              fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+              fontStyle: 'italic',
+              fontSize: 13.5,
+              color: 'var(--ink)',
+              lineHeight: 1.4,
+            }}
+          >
+            “{draft}”
+          </p>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button type="button" onClick={() => { onAccept(draft); setDraft(null); }} style={{ padding: '4px 10px', borderRadius: 999, background: 'var(--ink, #0E0D0B)', color: 'var(--cream)', border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-ui)' }}>
+              Use it
+            </button>
+            <button type="button" onClick={suggest} disabled={busy} style={{ padding: '4px 10px', borderRadius: 999, background: 'transparent', color: 'var(--ink-soft)', border: '1px solid var(--line)', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-ui)' }}>
+              Try another
+            </button>
+            <button type="button" onClick={() => setDraft(null)} style={{ padding: '4px 10px', borderRadius: 999, background: 'transparent', color: 'var(--ink-muted)', border: 'none', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-ui)' }}>
+              Skip
+            </button>
+          </div>
+        </div>
+      )}
+      {error && <div role="alert" style={{ fontSize: 11, color: '#7A2D2D' }}>{error}</div>}
     </div>
   );
 }

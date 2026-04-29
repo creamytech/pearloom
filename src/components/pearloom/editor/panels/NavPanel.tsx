@@ -12,7 +12,7 @@
 
 import { useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
-import { PanelGroup, PanelSection } from '../atoms';
+import { Field, PanelGroup, PanelSection } from '../atoms';
 import { NAV_ICON_LIBRARY } from '@/components/pearloom/assets/nav-icons';
 
 interface Props {
@@ -299,6 +299,109 @@ export function NavPanel({ manifest, onChange }: Props) {
           <div role="alert" style={{ marginTop: 8, fontSize: 12, color: '#7A2D2D' }}>{aiError}</div>
         )}
       </PanelSection>
+
+      <NavMotionSection manifest={manifest} onChange={onChange} />
     </PanelGroup>
   );
 }
+
+// ── NavMotionSection ─────────────────────────────────────────
+// Motion + animation options for the top nav. Stored at
+// manifest.navStyle so the renderer reads it directly. Defaults
+// match pre-config behaviour so existing sites are unchanged.
+type ScrollShrink = 'off' | 'subtle' | 'compact';
+type LinkUnderline = 'static' | 'hover' | 'active' | 'none';
+
+interface NavStyleConfig {
+  shrinkOnScroll?: ScrollShrink;
+  linkUnderline?: LinkUnderline;
+  brandHover?: 'none' | 'pulse' | 'tilt' | 'breathe';
+  blurOnScroll?: boolean;
+}
+
+function NavMotionSection({
+  manifest,
+  onChange,
+}: {
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+}) {
+  const cfg = (manifest as unknown as { navStyle?: NavStyleConfig }).navStyle ?? {};
+  function set(patch: Partial<NavStyleConfig>) {
+    const next: NavStyleConfig = { ...cfg, ...patch };
+    Object.keys(next).forEach((k) => {
+      const v = (next as Record<string, unknown>)[k];
+      if (v === undefined || v === '' || v === false) delete (next as Record<string, unknown>)[k];
+    });
+    onChange({
+      ...manifest,
+      navStyle: Object.keys(next).length ? next : undefined,
+    } as unknown as StoryManifest);
+  }
+  return (
+    <PanelSection label="Motion" hint="How the nav reacts to scroll + hover. Honors prefers-reduced-motion.">
+      <Field label="Shrink on scroll" help="Once the guest scrolls past the hero, the nav contracts to a slim strip.">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
+          {(['off', 'subtle', 'compact'] as ScrollShrink[]).map((v) => {
+            const on = (cfg.shrinkOnScroll ?? 'off') === v;
+            return (
+              <button key={v} type="button" onClick={() => set({ shrinkOnScroll: v === 'off' ? undefined : v })} style={navMotionBtn(on)}>
+                {v[0].toUpperCase() + v.slice(1)}
+              </button>
+            );
+          })}
+        </div>
+      </Field>
+      <Field label="Link underline">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
+          {(['static', 'hover', 'active', 'none'] as LinkUnderline[]).map((v) => {
+            const on = (cfg.linkUnderline ?? 'static') === v;
+            return (
+              <button key={v} type="button" onClick={() => set({ linkUnderline: v === 'static' ? undefined : v })} style={navMotionBtn(on)}>
+                {v[0].toUpperCase() + v.slice(1)}
+              </button>
+            );
+          })}
+        </div>
+      </Field>
+      <Field label="Brand icon hover">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
+          {(['none', 'pulse', 'tilt', 'breathe'] as Array<'none'|'pulse'|'tilt'|'breathe'>).map((v) => {
+            const on = (cfg.brandHover ?? 'none') === v;
+            return (
+              <button key={v} type="button" onClick={() => set({ brandHover: v === 'none' ? undefined : v })} style={navMotionBtn(on)}>
+                {v[0].toUpperCase() + v.slice(1)}
+              </button>
+            );
+          })}
+        </div>
+      </Field>
+      <Field label="Blur on scroll" help="Frosted-glass effect once the page scrolls — quietly tells the eye the nav is floating.">
+        <button
+          type="button"
+          onClick={() => set({ blurOnScroll: cfg.blurOnScroll ? undefined : true })}
+          style={{
+            ...navMotionBtn(!!cfg.blurOnScroll),
+            width: '100%',
+            justifyContent: 'flex-start',
+            padding: '8px 12px',
+          }}
+        >
+          {cfg.blurOnScroll ? '✓ Frosted-glass on scroll' : 'Solid (default)'}
+        </button>
+      </Field>
+    </PanelSection>
+  );
+}
+
+const navMotionBtn = (on: boolean): React.CSSProperties => ({
+  padding: '6px 8px',
+  borderRadius: 6,
+  background: on ? 'var(--ink, #0E0D0B)' : 'var(--card)',
+  color: on ? 'var(--cream, #FBF7EE)' : 'var(--ink-soft)',
+  border: `1px solid ${on ? 'var(--ink, #0E0D0B)' : 'var(--line)'}`,
+  cursor: 'pointer',
+  fontSize: 11,
+  fontWeight: on ? 700 : 600,
+  fontFamily: 'var(--font-ui)',
+});

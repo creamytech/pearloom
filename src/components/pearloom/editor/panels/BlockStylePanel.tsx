@@ -8,11 +8,13 @@
    is set. Reset returns the section to defaults.
    ======================================================================== */
 
+import { useMemo, useState } from 'react';
 import type { StoryManifest, BlockStyleOverride } from '@/types';
 import { Field, PanelSection } from '../atoms';
 import { Icon } from '../../motifs';
 import { Switch, V8Slider } from '../v8-forms';
 import { V8ColorPicker } from '../v8-color-picker';
+import { contrastRatio } from '@/lib/color-utils';
 
 interface Props {
   manifest: StoryManifest;
@@ -226,6 +228,15 @@ export function BlockStylePanel({ manifest, blockId, label = 'Section style', on
           })}
         </div>
       </Field>
+
+      <PearSceneSuggest
+        manifest={manifest}
+        blockId={blockId}
+        onPick={(sceneId) => {
+          const scene = SCENES.find((s) => s.id === sceneId);
+          if (scene) set(scene.apply);
+        }}
+      />
 
       {/* Hide toggle */}
       <Field label="Visibility">
@@ -467,6 +478,10 @@ export function BlockStylePanel({ manifest, blockId, label = 'Section style', on
             Inherit
           </button>
         </div>
+        <ContrastWarning
+          background={current.background}
+          textColor={current.textColor}
+        />
       </Field>
 
       {hasOverride && (
@@ -525,6 +540,179 @@ function SegRow({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+// ── ContrastWarning ──────────────────────────────────────────
+// Reads the current background + textColor overrides, computes
+// the WCAG contrast ratio, and surfaces a warning when it falls
+// below the 4.5 AA threshold for body text. Silent when colors
+// pass, when colors aren't set, or when the background isn't a
+// hex (e.g. 'paper' / 'wash' / 'mesh' presets — those are theme-
+// driven and the renderer auto-picks an ink family for them).
+function ContrastWarning({
+  background,
+  textColor,
+}: {
+  background?: string;
+  textColor?: string;
+}) {
+  // contrastRatio only handles hex pairs; the string presets
+  // 'paper' / 'wash' / 'mesh' are theme-driven and the renderer
+  // already auto-picks a readable ink family for them, so we
+  // skip checks when either side isn't a #RRGGBB literal.
+  const ratio = useMemo(() => {
+    if (!background || !textColor) return null;
+    if (!/^#[0-9a-fA-F]{6}$/.test(background)) return null;
+    if (!/^#[0-9a-fA-F]{6}$/.test(textColor)) return null;
+    return contrastRatio(background, textColor);
+  }, [background, textColor]);
+
+  if (!background || !textColor) return null;
+  if (ratio === null) return null;
+  if (ratio >= 4.5) {
+    return (
+      <div style={{ fontSize: 10.5, color: 'var(--sage-deep, #5C6B3F)', marginTop: 4, fontFamily: 'var(--font-ui)' }}>
+        ✓ Contrast {ratio.toFixed(1)} — easy to read.
+      </div>
+    );
+  }
+  const label = ratio < 3 ? 'Hard to read' : 'Tight';
+  return (
+    <div
+      role="alert"
+      style={{
+        marginTop: 6,
+        padding: '6px 10px',
+        background: 'rgba(122,45,45,0.08)',
+        border: '1px solid rgba(122,45,45,0.22)',
+        borderRadius: 8,
+        fontSize: 11,
+        color: '#7A2D2D',
+        fontFamily: 'var(--font-ui)',
+        lineHeight: 1.4,
+      }}
+    >
+      {label} — {ratio.toFixed(1)}:1 contrast. Body text needs at least 4.5:1 for AA.
+      Try a darker text color, or pick a lighter background.
+    </div>
+  );
+}
+
+// ── Pear scene suggester ─────────────────────────────────────
+// Calls /api/pear-scene with the section + manifest context and
+// surfaces a single recommended preset with a one-line reason.
+// Click the suggestion → applies it via the existing scene-apply
+// path. Network failures fall back to "Linen" with a calm note.
+function PearSceneSuggest({
+  manifest,
+  blockId,
+  onPick,
+}: {
+  manifest: StoryManifest;
+  blockId: string;
+  onPick: (sceneId: 'letterpress' | 'carved' | 'scrapbook' | 'linen' | 'slate' | 'vellum') => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [scene, setScene] = useState<string | null>(null);
+  const [reason, setReason] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function suggest() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/pear-scene', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ manifest, blockId }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = (await res.json()) as { scene?: string; reason?: string };
+      if (!data.scene) throw new Error('Empty response');
+      setScene(data.scene);
+      setReason(data.reason ?? null);
+    } catch {
+      setError('Pear hesitated. Try again?');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function apply() {
+    if (!scene) return;
+    onPick(scene as 'letterpress' | 'carved' | 'scrapbook' | 'linen' | 'slate' | 'vellum');
+    setScene(null);
+    setReason(null);
+  }
+
+  return (
+    <div
+      style={{
+        marginTop: 6,
+        padding: '8px 10px',
+        background: 'var(--cream-2, #F5EFE2)',
+        border: '1px dashed var(--line-soft)',
+        borderRadius: 10,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+      }}
+    >
+      {!scene ? (
+        <button
+          type="button"
+          onClick={suggest}
+          disabled={busy}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '6px 10px',
+            borderRadius: 999,
+            background: 'transparent',
+            border: '1px dashed var(--peach-ink, #C6703D)',
+            color: 'var(--peach-ink, #C6703D)',
+            fontSize: 11.5,
+            fontWeight: 700,
+            cursor: busy ? 'wait' : 'pointer',
+            fontFamily: 'var(--font-ui)',
+            opacity: busy ? 0.7 : 1,
+          }}
+        >
+          <Icon name="sparkles" size={11} /> {busy ? 'Pear is reading…' : 'Pear, pick a scene for this section'}
+        </button>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--peach-ink, #C6703D)' }}>
+            Pear suggests · {scene[0].toUpperCase() + scene.slice(1)}
+          </div>
+          {reason && (
+            <p
+              style={{
+                margin: 0,
+                fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+                fontStyle: 'italic',
+                fontSize: 13,
+                color: 'var(--ink)',
+                lineHeight: 1.4,
+              }}
+            >
+              {reason}
+            </p>
+          )}
+          <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+            <button type="button" onClick={apply} style={{ flex: 1, padding: '5px 10px', borderRadius: 999, background: 'var(--ink, #0E0D0B)', color: 'var(--cream)', border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-ui)' }}>
+              Apply
+            </button>
+            <button type="button" onClick={() => { setScene(null); setReason(null); }} style={{ padding: '5px 10px', borderRadius: 999, background: 'transparent', color: 'var(--ink-soft)', border: '1px solid var(--line)', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-ui)' }}>
+              Skip
+            </button>
+          </div>
+        </div>
+      )}
+      {error && <div role="alert" style={{ fontSize: 11, color: '#7A2D2D' }}>{error}</div>}
     </div>
   );
 }

@@ -714,6 +714,17 @@ function EventNav({ names, hasRsvp, manifest, siteSlug, basePath, siteMode, home
   const coupleLabel = names.filter(Boolean).join(' & ') || 'Our celebration';
   const [scrolled, setScrolled] = useState(false);
   const navStyle = manifest.nav?.style ?? 'classic';
+  // Per-host motion overrides set in NavPanel → manifest.navStyle.
+  // Defaults match the pre-config behaviour exactly.
+  const navMotion = (manifest as unknown as {
+    navStyle?: {
+      shrinkOnScroll?: 'off' | 'subtle' | 'compact';
+      linkUnderline?: 'static' | 'hover' | 'active' | 'none';
+      brandHover?: 'none' | 'pulse' | 'tilt' | 'breathe';
+      blurOnScroll?: boolean;
+    };
+  }).navStyle ?? {};
+  const shrinkMode = navMotion.shrinkOnScroll ?? 'off';
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 32);
@@ -749,21 +760,35 @@ function EventNav({ names, hasRsvp, manifest, siteSlug, basePath, siteMode, home
     '--nav-divider': ink.divider,
   } as React.CSSProperties & Record<string, string>;
 
+  // Shrink-on-scroll: scale the nav down once the host scrolled
+  // past the hero. 'subtle' = 92% scale + slight padding cut;
+  // 'compact' = 80% scale + tighter padding.
+  const shrinkScale = shrinkMode === 'compact' ? 0.86 : shrinkMode === 'subtle' ? 0.94 : 1;
+  // Frosted-on-scroll opt-in. When off, scrolled state still
+  // tightens the surface but doesn't lean into the heavy blur.
+  const blurAmount = navMotion.blurOnScroll
+    ? (scrolled ? 'blur(22px) saturate(170%)' : 'blur(14px) saturate(140%)')
+    : (scrolled ? 'blur(18px) saturate(160%)' : 'blur(12px) saturate(140%)');
+
   return (
     <header
       className={`pl8-site-nav${scrolled ? ' pl8-site-nav-scrolled' : ''}`}
+      data-pl-link-underline={navMotion.linkUnderline ?? 'static'}
+      data-pl-brand-hover={navMotion.brandHover ?? 'none'}
       style={{
         ...cssVars,
         position: 'sticky',
         top: 0,
         zIndex: 40,
         background: scrolled ? navSurfaceScrolled : navSurfaceTop,
-        backdropFilter: scrolled ? 'blur(18px) saturate(160%)' : 'blur(12px) saturate(140%)',
-        WebkitBackdropFilter: scrolled ? 'blur(18px) saturate(160%)' : 'blur(12px) saturate(140%)',
+        backdropFilter: blurAmount,
+        WebkitBackdropFilter: blurAmount,
         borderBottom: scrolled ? `1px solid ${navBorder}` : '1px solid transparent',
         boxShadow: scrolled ? '0 8px 24px -16px rgba(14,13,11,0.18)' : 'none',
+        transformOrigin: 'top center',
+        transform: scrolled && shrinkMode !== 'off' ? `scaleY(${shrinkScale})` : undefined,
         transition:
-          'background 380ms cubic-bezier(0.22, 1, 0.36, 1), backdrop-filter 380ms cubic-bezier(0.22, 1, 0.36, 1), border-color 380ms ease, box-shadow 380ms ease',
+          'background 380ms cubic-bezier(0.22, 1, 0.36, 1), backdrop-filter 380ms cubic-bezier(0.22, 1, 0.36, 1), border-color 380ms ease, box-shadow 380ms ease, transform 380ms cubic-bezier(0.22, 1, 0.36, 1)',
       }}
     >
       <NavBody
@@ -6349,18 +6374,50 @@ function RSVPSectionImpl({
               </div>
             )}
 
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={state === 'submitting'}
-              style={{ width: '100%', justifyContent: 'center', padding: '16px' }}
-            >
-              {state === 'submitting' ? 'Sending…' : (
-                <>
-                  Send RSVP <Icon name="send" size={14} />
-                </>
-              )}
-            </button>
+            {(() => {
+              // Per-host RSVP button style — shape, pulse animation, label.
+              // Stored at manifest.rsvpButton from RsvpPanel. Defaults
+              // ('pearl' shape, no pulse, "Send RSVP" label) match the
+              // pre-config behaviour exactly so existing sites are
+              // visually unchanged.
+              const rsvpBtn = (manifest as unknown as {
+                rsvpButton?: { shape?: 'pearl'|'pill'|'hairline'|'tag'; pulse?: 'none'|'breathe'|'urgent'; customLabel?: string };
+              }).rsvpButton ?? {};
+              const shape = rsvpBtn.shape ?? 'pearl';
+              const pulse = rsvpBtn.pulse ?? 'none';
+              const labelText = (rsvpBtn.customLabel || '').trim() || 'Send RSVP';
+              const shapeStyles: Record<string, React.CSSProperties> = {
+                pearl:    {},
+                pill:     { borderRadius: 999, background: 'var(--ink)', color: 'var(--cream)' },
+                hairline: { borderRadius: 4, background: 'transparent', color: 'var(--ink)', border: '1px solid var(--ink)' },
+                tag:      { borderRadius: '12px 4px 12px 4px', background: 'var(--peach-ink, #C6703D)', color: '#FFFFFF', border: 'none', boxShadow: '0 4px 12px -4px rgba(198,112,61,0.5)' },
+              };
+              const pulseAnim: Record<string, string | undefined> = {
+                none: undefined,
+                breathe: 'pl-pearl-breathe 3.6s ease-in-out infinite',
+                urgent: 'pl-cta-pulse 1.6s ease-in-out infinite',
+              };
+              return (
+                <button
+                  type="submit"
+                  className={shape === 'pearl' ? 'btn btn-primary pl-pearl-accent' : 'btn'}
+                  disabled={state === 'submitting'}
+                  style={{
+                    width: '100%',
+                    justifyContent: 'center',
+                    padding: '16px',
+                    ...shapeStyles[shape],
+                    animation: pulseAnim[pulse],
+                  }}
+                >
+                  {state === 'submitting' ? 'Sending…' : (
+                    <>
+                      {labelText} <Icon name="send" size={14} />
+                    </>
+                  )}
+                </button>
+              );
+            })()}
           </form>
         )}
 
