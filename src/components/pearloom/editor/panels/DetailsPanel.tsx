@@ -14,9 +14,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { StoryManifest } from '@/types';
-import { Field, PanelDisclosure, PanelGroup, PanelSection, PanelSmartActions, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
+import { Field, PanelDisclosure, PanelGroup, PanelSection, PanelSmartActions, PanelTabs, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { TimePicker } from '../v8-forms';
-import { PolishThisButton } from '../PolishThisButton';
 import { Icon } from '../../motifs';
 
 const DRESS_CODES = [
@@ -118,13 +117,13 @@ export function DetailsPanel({
     },
   ];
 
-  return (
+  // Content tab — the cards guests actually read: ceremony,
+  // what-to-expect, parking, custom cards. Per-field pear glyph
+  // on Dress code (suggest-dress-code is registered in the
+  // suggestions strip already; the field-level glyph just gives
+  // the host a one-tap entry without scrolling).
+  const content = (
     <PanelGroup>
-      <PanelSmartActions actions={smartActions} />
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 16px' }}>
-        <PolishThisButton block="details" label="Pear, polish my details" />
-      </div>
-
       <PanelSection label="The ceremony" hint="Guests see these three cards in the Details strip.">
         <Field label="Ceremony start" help="Displays as the first card. Pulls from the hero time by default.">
           <TimePicker
@@ -136,7 +135,10 @@ export function DetailsPanel({
           />
         </Field>
 
-        <Field label="Dress code">
+        <Field
+          label="Dress code"
+          pearAction={{ block: 'details', pass: 'suggest-dress-code', label: 'Suggest dress-code copy' }}
+        >
           <div data-pl-details-dresscode>
             <SelectInput
               value={logistics.dresscode ?? ''}
@@ -263,9 +265,23 @@ export function DetailsPanel({
           <Icon name="plus" size={11} /> Add a card
         </button>
       </PanelSection>
+    </PanelGroup>
+  );
 
+  // Layout tab — surfaces below-the-cards chrome the host can shape
+  // without touching content. Today: the editorial weather strip's
+  // voice / glyph / day-of behaviour.
+  const layout = (
+    <PanelGroup>
       <WeatherStyleSection manifest={manifest} onChange={onChange} />
     </PanelGroup>
+  );
+
+  return (
+    <>
+      <PanelSmartActions actions={smartActions} />
+      <PanelTabs slots={{ content, layout }} />
+    </>
   );
 }
 

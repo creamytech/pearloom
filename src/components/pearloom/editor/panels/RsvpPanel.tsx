@@ -2,7 +2,6 @@
 
 import type { StoryManifest, MealOption } from '@/types';
 import { AddRowButton, EmptyBlockState, Field, PanelDisclosure, PanelGroup, PanelSection, PanelSmartActions, TextArea, TextInput, Toggle, type PanelSmartAction } from '../atoms';
-import { PolishThisButton } from '../PolishThisButton';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 
@@ -113,9 +112,6 @@ export function RsvpPanel({
   return (
     <PanelGroup>
       <PanelSmartActions actions={smartActions} />
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 16px' }}>
-        <PolishThisButton block="rsvp" label="Pear, polish my RSVP" />
-      </div>
       <PanelSection label="Deadline + gating" hint="Controls the RSVP CTA on your site.">
         <Field label="RSVP deadline" help="Shown as 'Kindly respond by …' above the form.">
           <div data-pl-rsvp-deadline>

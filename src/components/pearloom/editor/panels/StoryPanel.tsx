@@ -2,12 +2,11 @@
 
 import { useRef, type ChangeEvent } from 'react';
 import type { StoryManifest, Chapter } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PanelSmartActions, PhotoSlot, TextArea, TextInput, type PanelSmartAction } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PanelSmartActions, PanelTabs, PhotoSlot, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { Icon } from '../../motifs';
 import { BlockStylePicker } from './BlockStylePicker';
-import { PolishThisButton } from '../PolishThisButton';
 // Side-effect import — registers the 6 story layouts with the
 // block-style registry before the picker reads from it.
 import '@/components/pearloom/site/story-variants';
@@ -210,12 +209,12 @@ export function StoryPanel({
     },
   ];
 
-  return (
+  // Content tab — the chapters themselves + the photo→chapters AI
+  // entry point. Layout tab carries the story-layout variant
+  // picker, since it changes structural composition without
+  // touching the chapter copy.
+  const layout = (
     <PanelGroup>
-      <PanelSmartActions actions={smartActions} />
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 16px' }}>
-        <PolishThisButton block="story" label="Pear, polish my story" />
-      </div>
       <BlockStylePicker
         blockType="story"
         manifest={manifest}
@@ -224,6 +223,11 @@ export function StoryPanel({
         label="Story layout"
         hint="How chapters render — parallax photos, magazine spreads, bento mosaic, or the classic timeline vine."
       />
+    </PanelGroup>
+  );
+
+  const content = (
+    <PanelGroup>
       <PanelSection label="Photos → chapters" hint="Upload a batch and Pear drafts your story from them.">
         <div data-pl-photo-chapters-ai>
           <PhotoChaptersAI manifest={manifest} names={effectiveNames} onResult={(next) => onChange({ ...manifest, chapters: [...chapters, ...next] })} />
@@ -317,5 +321,12 @@ export function StoryPanel({
         />
       </PanelSection>
     </PanelGroup>
+  );
+
+  return (
+    <>
+      <PanelSmartActions actions={smartActions} />
+      <PanelTabs slots={{ content, layout }} />
+    </>
   );
 }
