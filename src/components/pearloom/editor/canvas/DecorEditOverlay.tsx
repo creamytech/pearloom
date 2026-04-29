@@ -90,6 +90,7 @@ export function DecorEditOverlay({
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
       style={{ position: 'relative' }}
+      data-pl-decor-edit
       className={kind === 'divider' ? 'pl8-divider-edit-zone' : undefined}
     >
       {children}

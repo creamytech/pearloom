@@ -361,15 +361,22 @@ function CanvasSortableItem({
         />
       )}
 
-      {/* Floating action menu on hover — drag handle + edit + add + remove. */}
+      {/* Always-visible grip handle on the LEFT edge — discoverable
+          without hovering. Same dnd-kit listeners that powered the
+          old hover-revealed handle, just persistent. */}
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <PersistentGripHandle attributes={attributes as any} listeners={listeners as any} label={label ?? id} />
+
+      {/* Floating action menu on hover — edit + add + remove. The
+       *  `onDuplicate` prop is reserved for row-level surfaces
+       *  (chapters / hotels / events) — sections are fixed-key so
+       *  duplicating an entire section isn't meaningful. */}
       <SectionActionMenu
         blockKey={id}
         blockLabel={label}
         onEdit={onEdit}
         onAddBelow={onAddBelow}
         onRemove={onRemove}
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        dragHandle={<DragHandle attributes={attributes as any} listeners={listeners as any} />}
       />
 
       {children}
@@ -378,36 +385,24 @@ function CanvasSortableItem({
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function DragHandle({ attributes, listeners }: { attributes: any; listeners: any }) {
+function PersistentGripHandle({ attributes, listeners, label }: { attributes: any; listeners: any; label: string }) {
   return (
     <button
       type="button"
       {...attributes}
       {...(listeners ?? {})}
-      aria-label="Drag to reorder section"
-      title="Drag to reorder"
-      style={{
-        width: 28, height: 28,
-        borderRadius: 999,
-        border: 'none',
-        background: 'transparent',
-        color: 'rgba(243,233,212,0.92)',
-        cursor: 'grab',
-        display: 'grid', placeItems: 'center',
-        touchAction: 'none',
-        transition: 'background-color 180ms ease',
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(243,233,212,0.14)'; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+      aria-label={`Drag ${label} to reorder`}
+      title={`Drag to reorder · ${label}`}
+      className="pl8-canvas-grip"
       onMouseDown={(e) => e.preventDefault()}
     >
-      <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden>
-        <circle cx="3" cy="3" r="1.4" fill="currentColor" />
-        <circle cx="9" cy="3" r="1.4" fill="currentColor" />
-        <circle cx="3" cy="7" r="1.4" fill="currentColor" />
-        <circle cx="9" cy="7" r="1.4" fill="currentColor" />
-        <circle cx="3" cy="11" r="1.4" fill="currentColor" />
-        <circle cx="9" cy="11" r="1.4" fill="currentColor" />
+      <svg width="10" height="14" viewBox="0 0 10 14" aria-hidden>
+        <circle cx="2" cy="3" r="1.2" fill="currentColor" />
+        <circle cx="8" cy="3" r="1.2" fill="currentColor" />
+        <circle cx="2" cy="7" r="1.2" fill="currentColor" />
+        <circle cx="8" cy="7" r="1.2" fill="currentColor" />
+        <circle cx="2" cy="11" r="1.2" fill="currentColor" />
+        <circle cx="8" cy="11" r="1.2" fill="currentColor" />
       </svg>
     </button>
   );

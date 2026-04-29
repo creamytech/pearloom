@@ -751,11 +751,9 @@ export function EditorV8({
         />
       )}
       {previewMode && (
-        <button
-          type="button"
-          onClick={() => setPreviewMode(false)}
-          aria-label="Exit compose mode (⌘P)"
-          title="Exit compose mode (⌘P)"
+        <div
+          role="status"
+          aria-live="polite"
           style={{
             position: 'fixed',
             top: 14,
@@ -763,24 +761,47 @@ export function EditorV8({
             zIndex: 200,
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 6,
-            padding: '8px 14px',
+            gap: 10,
+            padding: '8px 8px 8px 16px',
             borderRadius: 999,
-            background: 'var(--ink, #0E0D0B)',
-            color: 'var(--cream, #FBF7EE)',
-            border: '1px solid rgba(255,255,255,0.12)',
+            background: 'rgba(198,112,61,0.18)',
+            color: 'var(--ink, #0E0D0B)',
+            border: '1px solid rgba(198,112,61,0.36)',
             fontSize: 12,
             fontWeight: 700,
             letterSpacing: '0.04em',
-            cursor: 'pointer',
             fontFamily: 'var(--font-ui)',
-            boxShadow: '0 12px 30px rgba(14,13,11,0.36)',
-            backdropFilter: 'blur(8px)',
+            boxShadow: '0 12px 30px rgba(14,13,11,0.18)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
           }}
         >
-          <Icon name="eye" size={12} />
-          Done
-        </button>
+          <span aria-hidden style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--peach-ink, #C6703D)', animation: 'pl-dot-pulse 1.6s ease-in-out infinite' }} />
+          <span style={{ color: 'var(--peach-ink, #C6703D)' }}>Previewing as a guest</span>
+          <button
+            type="button"
+            onClick={() => setPreviewMode(false)}
+            aria-label="Exit compose mode (⌘P)"
+            title="Exit compose mode (⌘P)"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '6px 12px',
+              borderRadius: 999,
+              background: 'var(--ink, #0E0D0B)',
+              color: 'var(--cream, #FBF7EE)',
+              border: 'none',
+              fontSize: 11.5,
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            <Icon name="eye" size={11} />
+            Back to editing
+          </button>
+        </div>
       )}
       <div className="pl8-editor-main" style={{ display: 'flex', flex: 1, minHeight: 0, position: 'relative' }}>
         {!isNarrow && !previewMode && (

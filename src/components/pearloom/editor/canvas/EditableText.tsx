@@ -175,6 +175,37 @@ export function EditableText({
     setLocal(text);
   };
 
+  // Paste handling — strip rich formatting on paste so what lands
+  // matches the rest of the field (no random Word styles, no
+  // pasted images, no inline span colours fighting the theme). The
+  // user's plain text comes through; manual formatting via the
+  // floating toolbar still works after paste.
+  const handlePaste = (e: React.ClipboardEvent<HTMLElement>) => {
+    e.preventDefault();
+    const cd = e.clipboardData;
+    if (!cd) return;
+    // Prefer plain text. If only HTML is on the clipboard, parse
+    // textContent from a sandbox node so we still get readable
+    // text without scripts / external styles.
+    let text = cd.getData('text/plain');
+    if (!text) {
+      const html = cd.getData('text/html');
+      if (html) {
+        const sandbox = document.createElement('div');
+        sandbox.innerHTML = html;
+        text = sandbox.textContent ?? '';
+      }
+    }
+    if (!text) return;
+    // Collapse whitespace runs that Word + Docs leak in. Preserve
+    // intentional newlines in multi-line fields.
+    text = text.replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ');
+    if (!multiline) text = text.replace(/\n+/g, ' ');
+    // Use insertText so the browser handles caret positioning +
+    // undo stack correctly — better than direct DOM mutation.
+    document.execCommand('insertText', false, text);
+  };
+
   const onMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
     if (editing) return;
     e.currentTarget.style.outlineColor = 'rgba(92,107,63,0.35)';
@@ -211,6 +242,7 @@ export function EditableText({
       onBlur={editing ? commit : undefined}
       onInput={editing ? handleInput : undefined}
       onKeyDown={editing ? handleKeyDown : undefined}
+      onPaste={editing ? handlePaste : undefined}
     >
       {displayContent}
     </Tag>

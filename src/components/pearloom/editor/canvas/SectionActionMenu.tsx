@@ -14,7 +14,7 @@
 // anything" — no more round-trip through the Outline.
 // ──────────────────────────────────────────────────────────────
 
-import { type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 interface Props {
   blockKey: string;
@@ -24,13 +24,10 @@ interface Props {
   onEdit?: (blockKey: string) => void;
   onAddBelow?: (blockKey: string, anchor: HTMLElement) => void;
   onRemove?: (blockKey: string) => void;
-  /** Slot for the dnd-kit drag handle so it sits inline with the
-   *  edit / add / remove buttons. */
-  dragHandle?: ReactNode;
 }
 
 export function SectionActionMenu({
-  blockKey, blockLabel, onEdit, onAddBelow, onRemove, dragHandle,
+  blockKey, blockLabel, onEdit, onAddBelow, onRemove,
 }: Props) {
   const label = blockLabel ?? blockKey;
   return (
@@ -69,10 +66,9 @@ export function SectionActionMenu({
         maxWidth: 'calc(100% - 24px)',
       }}
     >
-      {dragHandle}
       <span
         style={{
-          padding: '0 6px 0 2px',
+          padding: '0 6px 0 8px',
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
