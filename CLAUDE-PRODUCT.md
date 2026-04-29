@@ -441,6 +441,90 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-04-30 — Settings audit: orphaned writes + dead reads
+
+User flagged the layout feature as "glitchy" and asked for a
+comprehensive audit of every editor panel × every manifest field
+to confirm the canvas reflects what the host configures.
+
+**Layout / siteMode (the original report):**
+- `manifest.pageMode` was a true orphan — declared in types.ts,
+  listed in ai-chat's manifest-path catalog, and referenced in
+  the AI prompt's "current state" block, but never read anywhere.
+  `manifest.siteMode` was the actual field the renderer + route
+  layer consumed (with different value vocabulary: 'scroll' vs.
+  'multi-page', not 'single-scroll' vs. 'multi-page'). When Pear
+  patched pageMode the manifest stored it but the site never
+  changed. Verified via SQL: 0 production rows had pageMode set.
+- New `src/lib/site-mode.ts` module: canonical SiteMode +
+  SiteBlockKey types, DEFAULT_BLOCK_ORDER, DEFAULT_HOME_BLOCKS,
+  MULTI_PAGE_BLOCKS, BLOCK_PAGE_SLUG, plus type-safe `readSiteMode`
+  + `readHomePageBlocks` helpers. Editor's LayoutModeSection,
+  SiteV8Renderer, and both route handlers now import from one
+  place — they can't drift.
+- Sub-page route (`/sites/[domain]/[page]`) now redirects to home +
+  anchor when `siteMode === 'scroll'`. This was the most visible
+  glitch: a host flipped to scroll mode but old shared sub-page
+  links still resolved, landing guests on a thin sub-page that
+  didn't match the rest of the nav. Fixed.
+- Removed `pageMode` from types + ai-chat references. Pear now
+  patches the right field.
+
+**RsvpPanel — three toggles that no-op'd, now wired:**
+- `manifest.rsvpConfig.plusOnes` (default true): gates the
+  "Bringing someone?" +1 invite-link composer in the public
+  RSVP success card.
+- `manifest.rsvpConfig.songRequests` (default true): gates the
+  SongCard composer in /g/[token]'s PassportSections.
+- `manifest.features.guestbook` (default false): mounts the
+  Guestbook component on the public site between the block
+  iteration and the footer. Skipped on multi-page sub-pages
+  (the wall is a destination). The Guestbook component existed
+  in src/components/guestbook.tsx for months but was never
+  mounted by any consumer — orphaned. The toggle now does what
+  hosts expect it to.
+
+**ThemePanel — Motif picker rewired + duplicate writes dropped:**
+- The "Motif" picker (Pear Stamps / Loop Lines / Soft Shapes)
+  wrote `manifest.motif` (singular) — an orphaned field. The
+  renderer reads `manifest.motifs` (plural object: blob /
+  stamp / squiggle / sparkle / heart / postIt / polaroid).
+  Picker tile lit up; rendered site never changed. Now it
+  writes to the canonical `manifest.motifs` with mutual-
+  exclusion logic — pear sets stamp, squiggle sets squiggle,
+  blob sets blob; each pick clears the other two slots.
+- Dropped legacy duplicate writes: applyPalette() no longer
+  writes `palette` + `themeName` (renderer only reads
+  `theme.colors`); applyFont() no longer writes `headingFont`
+  + `bodyFont` (renderer only reads `theme.fonts.*`). These
+  were write-only orphans bloating manifest payloads and
+  inviting future code to read the wrong field.
+
+**What's deferred (low-impact, leave for now):**
+- `manifest.scriptFont`, `manifest.spacing`, `manifest.themeName`
+  (separate from applyPalette write) — still written by ThemePanel
+  controls but no renderer reads them. Removing requires a small
+  UX decision per control. Cosmetic noise; defer.
+- `manifest.atmosphere` shape: AtmospherePanel writes a complex
+  object that the renderer reads in many places. Verified all
+  fields connect.
+- `manifest.blockStyles[*]` per-section overrides: thoroughly
+  wired (BlockStylePanel writes 13 fields, all consumed by
+  SiteV8Renderer's BlockStyleWrapper).
+- `manifest.stickers[]`: thoroughly wired (StickerTrayPanel ↔
+  StickerLayer renderer).
+- `manifest.events[]`, `manifest.travelInfo.*`, `manifest.faq[]`,
+  `manifest.registry.*`, `manifest.chapters[]`, `manifest.poetry.*`,
+  `manifest.logistics.*`, `manifest.theme.*`, `manifest.nav.*`:
+  all verified end-to-end.
+
+**Dead reads (renderer reads, no panel exposes):**
+- `manifest.occasion` — wizard-seeded only, by design.
+- `manifest.vibeString` — wizard-seeded only, by design.
+- `manifest.voiceDNA` — set from `/dashboard/voice`, by design.
+- `manifest.subdomain` / `publishedAt` / `analytics` — read-only
+  published state, by design.
+
 ### 2026-04-29 — Cross-feature wiring pass
 
 Push to close loops across previously-shipped surfaces — the
