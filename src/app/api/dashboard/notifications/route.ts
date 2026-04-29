@@ -41,7 +41,7 @@ function getSupabase() {
 
 interface Notification {
   id: string;
-  kind: 'rsvp' | 'photo' | 'guestbook' | 'whisper' | 'message';
+  kind: 'rsvp' | 'photo' | 'guestbook' | 'whisper' | 'message' | 'registry';
   label: string;
   preview?: string;
   href: string;
@@ -198,6 +198,35 @@ export async function GET(req: NextRequest) {
       }
     } catch {
       // skip
+    }
+
+    // ── Registry link claims ───────────────────────────────
+    // Honor-system "I got this" claims on link-out registry
+    // entries. The host wants to know who's giving what so they
+    // can write thank-yous; this surfaces it the moment it lands
+    // instead of waiting for the host to refresh the registry tab.
+    try {
+      const { data: claims } = await supabase
+        .from('registry_link_claims')
+        .select('id, claimer_name, entry_url, message, created_at')
+        .eq('site_id', siteId)
+        .is('revoked_at', null)
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      for (const c of (claims ?? []) as Array<{ id: string; claimer_name: string | null; entry_url: string; message: string | null; created_at: string }>) {
+        const who = c.claimer_name?.split(/\s+/)[0] || 'A guest';
+        items.push({
+          id: `claim-${c.id}`,
+          kind: 'registry',
+          label: `${who} claimed a registry gift`,
+          preview: c.message ? c.message.slice(0, 80) : undefined,
+          href: `/dashboard/registry`,
+          createdAt: c.created_at,
+        });
+      }
+    } catch {
+      // table missing or RLS blocked — silently skip
     }
 
     // Sort all sources together so the timeline reads naturally.
