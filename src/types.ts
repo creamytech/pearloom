@@ -478,14 +478,6 @@ export interface StoryManifest {
   weddingParty?: WeddingPartyMember[];
   // Meal options for RSVP
   mealOptions?: MealOption[];
-  // Guest broadcast messages
-  broadcasts?: GuestBroadcast[];
-  // Post-event mode settings
-  postEventMode?: 'active' | 'thank-you' | 'archive';
-  // Parchment tint filter applied to site photos
-  parchmentTint?: 'none' | 'ivory' | 'linen' | 'parchment' | 'sepia';
-  // Typography pair preset for the site
-  typographyPair?: 'serif-sans' | 'mono-serif' | 'display-body' | 'editorial';
   /**
    * Living atmosphere — animated background layer that gives the
    * published site movement. Eight named kinds, three intensity
