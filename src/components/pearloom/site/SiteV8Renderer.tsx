@@ -100,6 +100,7 @@ import { ToastSignupBlock } from '@/components/site/ToastSignupBlock';
 import { RegistryItemsBlock } from '@/components/site/RegistryItemsBlock';
 import { CashGiftBlock } from '@/components/site/CashGiftBlock';
 import { SpotifySection } from '@/components/site/SpotifySection';
+import { Guestbook } from '@/components/guestbook';
 import {
   type SiteMode,
   type SiteBlockKey,
@@ -6501,6 +6502,12 @@ function RSVPSectionImpl({
   const mealOptionsRich = (manifest.mealOptions ?? []);
   const mealOptions = mealOptionsRich.map((m) => m.name);
   const meals = mealOptions.length ? mealOptions : ['Short rib', 'Halibut', 'Garden plate'];
+  // Host-controlled toggles from RsvpPanel. Default true so existing
+  // sites that haven't seen the panel keep their current behavior.
+  // Reads `manifest.rsvpConfig.plusOnes` written by RsvpPanel.
+  const allowPlusOnes = (
+    (manifest as unknown as { rsvpConfig?: { plusOnes?: boolean } }).rsvpConfig?.plusOnes
+  ) !== false;
   const deadline = manifest.logistics?.rsvpDeadline;
   const deadlineStr = deadline
     ? new Date(deadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
@@ -6659,7 +6666,7 @@ function RSVPSectionImpl({
             <p style={{ fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.6, margin: 0 }}>
               We&apos;ve logged your RSVP. {going === 'yes' ? "We can't wait to see you." : 'Send our love — we wish you could be there.'}
             </p>
-            {going === 'yes' && (
+            {going === 'yes' && allowPlusOnes && (
               <div
                 style={{
                   marginTop: 26,
@@ -8208,6 +8215,21 @@ export function SiteV8Renderer({
           }}
         />
         <CustomBlocksRail manifest={manifest} siteSlug={siteSlug} />
+        {/* Guestbook — host-toggled in RsvpPanel ('Guestbook on
+            published site'). Default off; flips on via
+            manifest.features.guestbook = true. Mounted after the
+            block iteration but before the footer so guests scroll
+            past every section first, then leave a wish at the end. */}
+        {(() => {
+          const features = (manifest as unknown as { features?: { guestbook?: boolean } }).features;
+          if (!features?.guestbook) return null;
+          // Skip in multi-page mode unless rendering home — sub-pages
+          // shouldn't repeat the guestbook (it's a destination, not
+          // a per-page footer).
+          if (siteMode === 'multi-page' && pageFilter && pageFilter !== 'home') return null;
+          const vibeSkin = (manifest as unknown as { vibeSkin?: import('@/lib/vibe-engine').VibeSkin }).vibeSkin;
+          return <Guestbook siteId={siteSlug} coupleNames={names} vibeSkin={vibeSkin} />;
+        })()}
         <FooterBouquet url={bouquetUrl} />
         <SiteFooter names={names} prettyUrl={prettyUrl} manifest={manifest} onEditField={onEditField} />
         {/* Guest-side helpers — only on the published site, never in the editor.

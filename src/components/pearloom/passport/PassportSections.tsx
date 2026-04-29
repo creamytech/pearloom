@@ -70,6 +70,10 @@ export function PassportSections({
   if (loading || !data) return null;
 
   const isSolemn = occasion === 'memorial' || occasion === 'funeral';
+  // Host-controlled toggle from RsvpPanel. Default true so existing
+  // sites that haven't seen the panel keep their current behavior.
+  const rsvpConfig = (data.site?.manifest as unknown as { rsvpConfig?: { songRequests?: boolean } })?.rsvpConfig;
+  const allowSongs = rsvpConfig?.songRequests !== false;
   const eventIso = data.site?.manifest?.logistics?.date ?? null;
   const eventTime = data.site?.manifest?.logistics?.time ?? null;
   const eventVenue = data.site?.manifest?.logistics?.venue ?? null;
@@ -119,7 +123,7 @@ export function PassportSections({
         isSolemn={isSolemn}
       />
 
-      {!isSolemn && (
+      {!isSolemn && allowSongs && (
         <SongCard
           token={token}
           initial={data.songs ?? []}
