@@ -587,11 +587,6 @@ export interface StoryManifest {
     accentBlob?:       { opacity?: number; scale?: number; color?: string };
     heroPattern?:      { opacity?: number; scale?: number; color?: string };
   };
-  /** Site customization options (borders, frames, transitions, etc.) */
-  customization?: import("./types").SiteCustomization;
-  /** Saved reusable components (symbols) */
-  savedComponents?: SavedComponent[];
-
   // ── Wizard soft-signal fields ────────────────────────────────
   // Captured from the wizard, persisted here so the editor + published
   // site can honor them (visibility rails, reflective tone, date-mode
