@@ -511,24 +511,57 @@ Everything below is shipped (commits on main, awaiting push).
   draft with attribution. Closes the gap between guest material
   and the surfaces that mine it for toasts/vows.
 
+**Round 2 (also shipped this session):**
+- **Guestbook attribution end-to-end**: migration 20260615 adds
+  `guestbook.guest_id` (nullable FK to pearloom_guests). Route
+  resolves a `guestToken` form param to `pearloom_guests.id`;
+  the public Guestbook component reads `?g=` / `?guest=` from
+  URL on mount and threads it through. `/g/[token]` words feed
+  now also surfaces guestbook signatures.
+- **Registry claims feed extracted** to
+  `@/components/registry/RegistryClaimsFeed` + `useRegistryClaims`
+  hook. Editor RegistryPanel + `/dashboard/registry` both mount
+  the same component now. Hosts who never open the editor still
+  see who claimed what + can Draft thank-yous.
+- **Pear advisor "send the nudge" action intent**: extends
+  `pearloom:patch` with an optional `action` field (typed shape:
+  `{ kind: 'send_nudge_pending', previewBody }`). Pear emits the
+  envelope when the host explicitly asks to send; the new
+  `<PearActionCard>` renders instead of `<PatchProposalCard>`,
+  shows the previewBody, and on approval fans:
+    `GET /api/guests/pending-ids?siteSlug=…` →
+    `POST /api/guests/draft-nudge` (if no preview) →
+    `POST /api/guests/nudge` with `{ siteId, guestIds, bodyText }`.
+  Card flips to "✓ Sent to N guests". Pear is now a real
+  assistant, not just a copywriter.
+- **Day-of broadcast emails**: migration 20260616 adds
+  `live_updates.email_broadcast_at` + `email_recipient_count` with
+  a partial index for the daily-cap query.
+  `/api/sites/live-updates` POST gains an `email: boolean` field;
+  when true, fans out to attending guests via Resend (3/24h cap,
+  tagged for the existing webhook). BroadcastComposer adds an
+  off-by-default "Also email everyone attending" toggle with a
+  confirm prompt + per-row ✉ N pip on emailed history entries.
+  Closes the gap between BroadcastBar (30s polling on-site only)
+  and guests not currently looking at the site.
+
 **What's deliberately deferred (next session candidates):**
 
-1. **Guestbook → guest attribution**: `guestbook` table has no
-   `guest_id` column, so guestbook entries don't surface in the
-   per-guest Words feed on `/g/[token]` (they DO surface in the
-   memory book + speech composer, both of which work by name).
-   Migration + route + form-prop changes for the deeper link.
-2. **Broadcast emails on day-of**: BroadcastBar posts only
-   reach guests on the site at that moment (30s polling). An
-   email-broadcast path for "ceremony moved to 6pm" reaches
-   everyone immediately. Bigger product feature.
-3. **Dashboard registry claims feed**: claims feed view
-   already exists inside editor RegistryPanel. Lift to a
-   shared component + mount on `/dashboard/registry`.
-4. **Pear advisor → "draft a nudge" intent**: Pear now sees
-   pending counts; next step is recognising the host saying
-   "yes, send the nudge" and having it call the bulk-nudge
-   API directly via a patch envelope.
+1. **Pear advisor more action kinds**: `send_nudge_pending` is
+   the first, easiest case. Next obvious ones: `send_thank_yous`
+   (per registry claim), `email_broadcast` (compose + send a
+   day-of update through chat), `mark_attending` (set RSVP for
+   a named guest the host mentions).
+2. **Realtime broadcast delivery**: switch BroadcastBar's 30s
+   polling to Supabase Realtime so on-site guests see live
+   updates instantly; the email path is the failsafe for
+   off-site guests.
+3. **SMS broadcast**: parallel path to email for hosts with
+   Twilio. Same composer toggle, even tighter rate limit.
+4. **Per-guest broadcast deep-links in /g/[token]**: when an
+   `?lu=<live_update_id>` param is present after an email click,
+   highlight that update in the BroadcastBar so the recipient
+   knows what triggered the email.
 
 ### 2026-04-23 — Retention + polish pass (Phase D completion)
 
