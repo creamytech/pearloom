@@ -441,6 +441,83 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-04-29 — Cross-feature wiring pass
+
+Push to close loops across previously-shipped surfaces — the
+features all existed, but data wasn't flowing between them.
+Everything below is shipped (commits on main, awaiting push).
+
+**Pear concierge — full context + auto-resolution:**
+- `summariseManifest` in `/api/pear-chat` now feeds Pear the
+  registry entries + cash fund, travel intro / parking /
+  directions, hotel addresses + booking links, details cards
+  (parking, accessibility, custom cards) and venue address. A
+  guest asking "where's the registry link?" / "can my mom park
+  close?" / "is the hotel pet-friendly?" now gets specifics.
+- `<GuestPearChat>` mounted on `/sites/[domain]` self-resolves
+  the visitor's identity from `?g=<passport_token>` (same path
+  `<PersonalGuestGreeting>` uses). Guests who arrived via their
+  personalized link get the same RSVP-aware concierge they had
+  on `/g/[token]` anywhere on the public site.
+
+**Pear host advisor — live activity stats:**
+- DesignAdvisor (editor's Pear pill) now passes `siteSlug` to
+  `/api/pear-chat`. Host mode fetches RSVP counts (attending /
+  declined / pending), photo / claim / guestbook / submission
+  totals — cached 30s per slug. Stats baked into the prompt as
+  a LIVE ACTIVITY block. Host-mode system prompt now nudges
+  Pear: "when the host asks 'what should I focus on?', lead with
+  the most actionable number" — turning Pear from copywriter
+  into real assistant.
+
+**Notification bell — five new sources wired:**
+- `registry_link_claims` → `kind: 'registry'`, gift-glyph,
+  href to `/dashboard/registry`. Closes the gift→host loop
+  outside the editor's RegistryPanel.
+- `tribute_submissions` (advice / tribute walls) → reuses
+  `kind: 'guestbook'`, hidden state filtered. Lands on
+  `/dashboard/submissions`.
+- `toast_signups` → reuses `kind: 'whisper'` for the peach
+  tint. Volume is naturally low.
+
+**`/g/[token]` words feed:**
+- `<YourContributionsCard>` extended with a third strip — "Words
+  you wrote" — that merges four guest-keyed text tables:
+  `memory_prompts.response`, `whispers.body`,
+  `song_requests.song_title`, `time_capsule.body`. All four
+  already FK to `pearloom_guests(id)`; data was just never
+  surfaced back to the guest. Each row gets a kind label
+  (Memory · Whisper · Song request · Time capsule).
+
+**Earlier in the session (already in commits before today):**
+- `guest_photos.guest_id` migration + upload route accepts
+  `guestToken` form-data → resolves to `pearloom_guests.id`.
+- `<YourContributionsCard>` + `/g/[token]` photos + claims hub
+  + RSVP card + DayOfBanner + BroadcastBar mounts.
+- Bulk-nudge composer (`<NudgeComposer>` + Pear-drafted body
+  via `/api/guests/draft-nudge` + send via `/api/guests/nudge`).
+- `email_sent_at` stamps on invite + rsvp-email send paths.
+
+**What's deliberately deferred (next session candidates):**
+
+1. **Guestbook → guest attribution**: `guestbook` table has no
+   `guest_id` column, so guestbook entries don't surface in the
+   Words feed. Migration + route + form-prop changes.
+2. **Speech composer ⇆ memory_prompts**: the speech composer
+   page should pull guest-typed memories about the couple as
+   inspiration material. Single-page wire-up.
+3. **Broadcast emails on day-of**: BroadcastBar posts only
+   reach guests on the site at that moment (30s polling). An
+   email-broadcast path for "ceremony moved to 6pm" reaches
+   everyone immediately. Bigger product feature.
+4. **Dashboard registry claims feed**: claims feed view
+   already exists inside editor RegistryPanel. Lift to a
+   shared component + mount on `/dashboard/registry`.
+5. **Pear advisor → "draft a nudge" intent**: Pear now sees
+   pending counts; next step is recognising the host saying
+   "yes, send the nudge" and having it call the bulk-nudge
+   API directly via a patch envelope.
+
 ### 2026-04-23 — Retention + polish pass (Phase D completion)
 
 A push to close the 4 TODOs flagged in the 2026-04-22 entry plus
