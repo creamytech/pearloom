@@ -480,25 +480,42 @@ from earlier in the day.
 removed from the main Theme + Atmosphere flows. Editor reads
 noticeably quieter.
 
-**Still on the list (deferred for next prune session):**
-1. Group ThemePanel's 13 sub-sections into 4-5 logical clusters
-   — Palette / Type / Spacing-Corners / Decoration / Layout —
-   the current vertical flow is overwhelming.
-2. "Hero decoration" `decorStyle` toggle — three options
-   (`occasion` / `classic` / `off`). 'classic' is v8 nostalgia
-   that <1% of hosts pick. Could be a binary toggle.
-3. Per-section spacing override on BlockStylePanel — only useful
-   to power users; consider hiding behind the existing "Card
-   details" disclosure (which already collapses six other
-   granular controls).
-4. ColorTokenInspector — six color tokens (background, foreground,
-   accent, accentLight, muted, cardBg) all visible. Most hosts
-   only tweak `accent`. Hide the other five behind "Fine-tune
-   colors" disclosure.
-5. AtmospherePanel "Section backgrounds" per-section picker —
-   eight rows × five options each. Could become a single
-   global toggle ("Add a wash to alternate sections") with the
-   per-section picker as Advanced.
+**Round 3 (also shipped, after the round-2 prune):**
+- ColorTokenInspector: hoisted the accent picker inline (the
+  one most hosts actually tweak); tucked Paper / Ink / Soft /
+  Muted / Card behind an "Other colors — paper, ink, soft,
+  muted, card" disclosure. Renamed panel "Color tokens" →
+  "Tweak colors". One-click accent edits, five swatches off-
+  screen by default.
+- HeroPanel: tucked Time zone + Date format under a "Time zone
+  & date format (optional)" disclosure inside the "When &
+  where" PanelSection. Visible field count drops from 7 to 5.
+- AtmospherePanel: tucked the entire 8-row × 5-option Section
+  backgrounds button grid under "Override the paper for
+  individual sections" disclosure.
+- Verified clean (already correctly disclosed):
+  NavPanel (calm/crisp/loud Mood preset + Advanced disclosure
+  for the four motion axes — exemplar of the pattern).
+  BlockStylePanel (per-section spacing inside "Layout"
+  disclosure; six granular card fields inside "Card details"
+  disclosure).
+  DetailsPanel / SchedulePanel / FaqPanel / StoryPanel /
+  TravelPanel (already focused).
+
+**Still on the list (deferred):**
+1. Group ThemePanel's still-12-sub-section vertical scroll into
+   4-5 logical clusters — Palette / Type / Spacing-Corners /
+   Decoration / Layout. The flow reads better than it did, but
+   it's still long.
+2. "Hero decoration" `decorStyle` toggle: three options
+   (`occasion` / `classic` / `off`). All three have real
+   renderer paths; removing 'classic' would silently change
+   sites that opted in. Leave alone unless we add a migration.
+3. Consolidate `manifest.atmosphere` + `manifest.aiAccentUrl` +
+   `manifest.decorLibrary` + `manifest.stickers` under a
+   single "Decoration" parent — they're all visual flair and
+   rarely all touched together. Structural reorg, not a quick
+   prune.
 
 ### 2026-04-30 — Settings audit: orphaned writes + dead reads
 
