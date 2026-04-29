@@ -482,40 +482,11 @@ export function DecorLibraryPanel({
         Each full-library draft makes 4 generations. Per-slot regen + alternates count against your hourly budget of 3 full libraries.
       </p>
 
-      {/* Divider strength — only relevant once a divider exists. */}
-      {lib?.divider && (
-        <div style={{ marginTop: 14 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-muted)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 6 }}>
-            Divider presence
-          </div>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {(['subtle', 'standard', 'tall'] as const).map((s) => {
-              const active = (lib?.dividerStrength ?? 'standard') === s;
-              return (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() =>
-                    onChange({
-                      ...manifest,
-                      decorLibrary: { ...(lib ?? {}), dividerStrength: s },
-                    } as StoryManifest)
-                  }
-                  style={{
-                    flex: 1, padding: '6px 10px', borderRadius: 8,
-                    border: active ? '1.5px solid var(--ink)' : '1px solid var(--line)',
-                    background: active ? 'var(--cream-2)' : 'var(--card)',
-                    fontSize: 12, fontWeight: active ? 700 : 500, color: 'var(--ink)',
-                    cursor: 'pointer', textTransform: 'capitalize',
-                  }}
-                >
-                  {s}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* Audited 2026-04-30: dropped the divider-strength picker
+          (subtle / standard / tall). Renderer defaults to 'standard'
+          when the field is unset, which is what 99% of hosts want.
+          The dividerStrength field stays in the schema for back-
+          compat; only the UI is gone. */}
     </PanelSection>
     </div>
   );

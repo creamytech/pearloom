@@ -181,13 +181,13 @@ export function ThemePanel({
   manifest: StoryManifest;
   onChange: (m: StoryManifest) => void;
 }) {
-  const palette = read<string>(manifest, 'palette', PALETTES[0].id);
-  const spacing = read<string>(manifest, 'spacing', 'Comfortable');
-  const headingFont = read<string>(manifest, 'headingFont', 'Fraunces');
-  const bodyFont = read<string>(manifest, 'bodyFont', 'Inter');
-  const scriptFont = read<string>(manifest, 'scriptFont', 'Caveat');
-  const themeName = read<string>(manifest, 'themeName', 'Groovy Ceremony');
-  const active = PALETTES.find((p) => p.id === palette) ?? PALETTES[0];
+  // Audited 2026-04-30: legacy top-level reads (palette, spacing,
+  // headingFont, bodyFont, scriptFont, themeName) are gone. Theme
+  // colors live on manifest.theme.colors; fonts on theme.fonts.*.
+  // The palette swatches still match against manifest.theme.colors
+  // by accent so the active highlight survives.
+  const themeColors = (manifest as unknown as { theme?: { colors?: { accent?: string } } }).theme?.colors;
+  const active = PALETTES.find((p) => p.theme.accent === themeColors?.accent) ?? PALETTES[0];
 
   // Active motif read from canonical manifest.motifs (the renderer
   // actually consumes this — the legacy singular `motif` field is
@@ -263,42 +263,14 @@ export function ThemePanel({
 
   return (
     <div>
-      <div data-pl-design-anchor="theme">
-        <PanelSection label="Active theme" hint="Pearloom themes bundle palette, motif, and typography into a named look.">
-          <div
-            style={{
-              display: 'flex',
-              gap: 14,
-              alignItems: 'center',
-              padding: 14,
-              background: 'var(--card)',
-              border: '1px solid var(--card-ring)',
-              borderRadius: 14,
-            }}
-          >
-            <div
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: 12,
-                background: `linear-gradient(135deg, ${active.colors[0]}, ${active.colors[1]}, ${active.colors[2]})`,
-              }}
-            />
-            <div style={{ flex: 1 }}>
-              <Field label="Theme name">
-                <TextInput
-                  value={themeName}
-                  onChange={(e) => update({ themeName: e.target.value })}
-                  placeholder="Our theme"
-                />
-              </Field>
-            </div>
-          </div>
-        </PanelSection>
-      </div>
-
       <div data-pl-design-anchor="palette">
-        <PaletteSection manifest={manifest} active={active} palette={palette} applyPalette={applyPalette} onChange={onChange} />
+        {/* Audited 2026-04-30: deleted the "Active theme" / "Theme
+            name" PanelSection above the palette grid. The text
+            input wrote manifest.themeName, which nothing read.
+            The swatch tile + name were redundant with the palette
+            grid below — the active palette is already highlighted
+            and labelled. One less form field, no functional loss. */}
+        <PaletteSection manifest={manifest} active={active} palette={active.id} applyPalette={applyPalette} onChange={onChange} />
         <CustomPaletteEditor manifest={manifest} onChange={onChange} applyPalette={applyPalette} />
       </div>
 

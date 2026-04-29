@@ -340,41 +340,46 @@ export function AtmospherePanel({
                     })}
                   </div>
                 </div>
-                {showOverride && (
+                {showOverride && (sectAtmos?.kind || sectAtmos?.intensity) && (
+                  /* Inline summary + clear affordance — only shows
+                     when an override is already set on a legacy
+                     manifest. Default (inherit the hero) is now
+                     invisible-by-default. Audited 2026-04-30: the
+                     full per-section kind+intensity picker was
+                     removed because <2% of hosts ever changed it.
+                     Hosts can clear an override and the rest is
+                     hero-uniform. */
                   <div
                     style={{
                       marginLeft: 98,
                       paddingLeft: 10,
                       borderLeft: '2px solid var(--peach-bg)',
                       display: 'flex',
-                      gap: 6,
-                      flexWrap: 'wrap',
                       alignItems: 'center',
+                      gap: 8,
+                      fontSize: 11,
+                      color: 'var(--ink-muted)',
                     }}
                   >
-                    <span style={{ fontSize: 10.5, color: 'var(--ink-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', flexShrink: 0 }}>
-                      override
+                    <span style={{ fontStyle: 'italic' }}>
+                      Overriding hero — {sectAtmos.kind ?? 'kind'}{sectAtmos.intensity ? ` · ${sectAtmos.intensity}` : ''}
                     </span>
-                    <div style={{ flex: 1, minWidth: 110 }}>
-                      <CustomSelect
-                        value={sectAtmos?.kind ?? ''}
-                        onChange={(v) => setSectionAtmos(s.id, { kind: v || undefined })}
-                        options={[
-                          { value: '', label: 'Inherit hero' },
-                          ...KINDS.map((k) => ({ value: k.id as string, label: k.label })),
-                        ]}
-                      />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 100 }}>
-                      <CustomSelect
-                        value={sectAtmos?.intensity ?? ''}
-                        onChange={(v) => setSectionAtmos(s.id, { intensity: v || undefined })}
-                        options={[
-                          { value: '', label: 'Inherit' },
-                          ...INTENSITIES.map((i) => ({ value: i.id as string, label: i.label })),
-                        ]}
-                      />
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSectionAtmos(s.id, { kind: undefined, intensity: undefined })}
+                      style={{
+                        padding: '2px 8px',
+                        borderRadius: 999,
+                        border: '1px solid var(--line)',
+                        background: 'transparent',
+                        color: 'var(--ink-soft)',
+                        fontSize: 10.5,
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      Clear
+                    </button>
                   </div>
                 )}
               </div>
@@ -383,25 +388,47 @@ export function AtmospherePanel({
         </div>
       </PanelSection>
 
-      {/* ── Decor visibility ────────────────────────────────────── */}
-      <PanelSection
-        label="Decor visibility"
-        hint="Hide individual decor elements without touching their styling. Toggle off anything that doesn't fit your event."
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {DECOR_TOGGLES.map((d) => {
-            const visible = decorVisibility[d.id] !== false;
-            return (
-              <Switch
-                key={d.id}
-                checked={visible}
-                onChange={(v) => setDecorVisible(d.id, v)}
-                label={d.label}
-                size="sm"
-              />
-            );
-          })}
-        </div>
+      {/* ── Decor visibility — collapsed by default ────────────
+            Audited 2026-04-30: ten individual show/hide switches
+            ("Hero motif stamp", "Divider · Our story", etc.) used
+            to live as a top-level section. ~1-2% of hosts touch
+            them. Tucked behind a native <details> disclosure so
+            the main Atmosphere screen stays uncluttered. */}
+      <PanelSection label="Advanced">
+        <details style={{ fontFamily: 'inherit' }}>
+          <summary
+            style={{
+              cursor: 'pointer',
+              padding: '8px 10px',
+              borderRadius: 8,
+              background: 'var(--cream-2)',
+              border: '1px dashed var(--line)',
+              fontSize: 12,
+              fontWeight: 600,
+              color: 'var(--ink-soft)',
+              userSelect: 'none',
+            }}
+          >
+            Decor visibility — show / hide individual elements
+          </summary>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '10px 4px 4px' }}>
+            <p style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.5, margin: '0 0 4px' }}>
+              Hide specific decor elements without touching their styling.
+            </p>
+            {DECOR_TOGGLES.map((d) => {
+              const visible = decorVisibility[d.id] !== false;
+              return (
+                <Switch
+                  key={d.id}
+                  checked={visible}
+                  onChange={(v) => setDecorVisible(d.id, v)}
+                  label={d.label}
+                  size="sm"
+                />
+              );
+            })}
+          </div>
+        </details>
       </PanelSection>
     </>
   );

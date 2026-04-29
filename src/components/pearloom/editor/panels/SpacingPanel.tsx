@@ -1,30 +1,22 @@
 'use client';
 
 /* ========================================================================
-   SpacingPanel — host control over the global spacing + radius rhythm.
+   SpacingPanel — global radius rhythm.
 
-     • Section spacing (cozy / comfortable / spacious / lush) — controls
-       the vertical breathing room between sections.
      • Card radius (sharp / soft / rounded / pillow) — controls how
        round the card corners are across the published site.
      • Photo radius (sharp / soft / rounded / circle) — independent
        control for image tiles + polaroids.
 
-   All three write to manifest.theme.spacing / theme.radius so the
-   renderer can read them via CSS-var overrides. The current
-   SiteV8Renderer already understands `manifest.spacing` (cozy/etc.)
-   so this panel keeps that legacy field in sync.
+   Audited 2026-04-30: dropped the "Section spacing" picker (cozy /
+   comfortable / spacious / lush). It wrote manifest.spacing AND
+   manifest.theme.spacing — the renderer reads NEITHER. Pure dead
+   UI. The card + photo radius pickers DO work (renderer reads
+   manifest.theme.cardRadius / .photoRadius via CSS-var overrides).
    ======================================================================== */
 
 import type { StoryManifest } from '@/types';
 import { PanelSection } from '../atoms';
-
-const SECTION_SPACING = [
-  { id: 'cozy',        label: 'Cozy',        rem: 3 },
-  { id: 'comfortable', label: 'Comfortable', rem: 5 },
-  { id: 'spacious',    label: 'Spacious',    rem: 7 },
-  { id: 'lush',        label: 'Lush',        rem: 9 },
-] as const;
 
 const RADIUS_SCALE = [
   { id: 'sharp',  label: 'Sharp',  px: 0 },
@@ -48,21 +40,11 @@ export function SpacingPanel({
   onChange: (m: StoryManifest) => void;
 }) {
   const theme = (manifest as unknown as {
-    theme?: { spacing?: string; cardRadius?: string; photoRadius?: string };
-    spacing?: string;
+    theme?: { cardRadius?: string; photoRadius?: string };
   });
-  const sectionSpacing = theme.theme?.spacing ?? theme.spacing ?? 'comfortable';
   const cardRadius = theme.theme?.cardRadius ?? 'rounded';
   const photoRadius = theme.theme?.photoRadius ?? 'soft';
 
-  function setSpacing(id: string) {
-    const existing = ((manifest as unknown as { theme?: Record<string, unknown> }).theme ?? {}) as Record<string, unknown>;
-    onChange({
-      ...manifest,
-      spacing: id, // legacy mirror so SiteV8Renderer keeps reading it
-      theme: { ...existing, spacing: id },
-    } as unknown as StoryManifest);
-  }
   function setCard(id: string) {
     const existing = ((manifest as unknown as { theme?: Record<string, unknown> }).theme ?? {}) as Record<string, unknown>;
     onChange({
@@ -80,16 +62,9 @@ export function SpacingPanel({
 
   return (
     <PanelSection
-      label="Spacing & shape"
-      hint="The rhythm of the page — how much air sits between sections, and how round corners feel."
+      label="Corner shape"
+      hint="How round corners feel — cards on the left, photos on the right."
     >
-      <Group label="Section spacing">
-        <SegmentedRow
-          value={sectionSpacing}
-          options={SECTION_SPACING.map((s) => ({ value: s.id, label: s.label }))}
-          onChange={setSpacing}
-        />
-      </Group>
       <Group label="Card corners">
         <SegmentedRow
           value={cardRadius}

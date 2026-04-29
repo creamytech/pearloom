@@ -10,16 +10,19 @@
         renders the pair's preview phrase using the actual fonts loaded
         on demand via a <link> injection.
 
-     2. Custom — heading + body + script select with live previews of
-        the host's current pair. Lets users mix outside the curated
+     2. Custom — heading + body select with live previews of the
+        host's current pair. Lets users mix outside the curated
         catalog.
 
      3. Scale — H1 / H2 / Body sample at the resolved theme so the
         host sees how the pair carries through a real page hierarchy.
 
-   Reads/writes manifest.theme.fonts.{heading|body} so the renderer
-   sees changes immediately. Also persists manifest.fontPairId for
-   future reference.
+   Reads/writes ONLY manifest.theme.fonts.{heading|body} so the
+   renderer sees changes immediately. Top-level headingFont/bodyFont
+   were a legacy duplicate that nothing read — dropped 2026-04-30.
+   The 'script' font slot was also dropped in the same pass: no v8
+   surface ever consumed it (the Live preview block below was the
+   only place it rendered, and that's editor-only chrome).
    ======================================================================== */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -35,17 +38,6 @@ import {
   type FontPair,
 } from '@/lib/font-catalog';
 
-const SCRIPT_FONTS = [
-  'Caveat',
-  'Homemade Apple',
-  'Dancing Script',
-  'Pinyon Script',
-  'Allura',
-  'Sacramento',
-  'Italianno',
-  'Petit Formal Script',
-];
-
 export function FontPicker({
   manifest,
   onChange,
@@ -53,10 +45,9 @@ export function FontPicker({
   manifest: StoryManifest;
   onChange: (m: StoryManifest) => void;
 }) {
-  const themeFonts = (manifest as unknown as { theme?: { fonts?: { heading?: string; body?: string; script?: string } } }).theme?.fonts;
+  const themeFonts = (manifest as unknown as { theme?: { fonts?: { heading?: string; body?: string } } }).theme?.fonts;
   const headingFont = themeFonts?.heading ?? 'Fraunces';
   const bodyFont = themeFonts?.body ?? 'Inter';
-  const scriptFont = themeFonts?.script ?? 'Caveat';
   const fontPairId = (manifest as unknown as { fontPairId?: string }).fontPairId;
 
   const [tab, setTab] = useState<'pairs' | 'custom'>('pairs');
@@ -82,7 +73,6 @@ export function FontPicker({
     }
     needed.add(headingFont);
     needed.add(bodyFont);
-    needed.add(scriptFont);
     for (const font of needed) {
       if (loaded.has(font)) continue;
       const link = document.createElement('link');
@@ -91,15 +81,13 @@ export function FontPicker({
       link.dataset.plFont = font;
       document.head.appendChild(link);
     }
-  }, [visiblePairs, headingFont, bodyFont, scriptFont]);
+  }, [visiblePairs, headingFont, bodyFont]);
 
   function applyPair(pair: FontPair) {
     const existingTheme = ((manifest as unknown as { theme?: Record<string, unknown> }).theme ?? {}) as Record<string, unknown>;
     const existingFonts = ((existingTheme.fonts as Record<string, string> | undefined) ?? {}) as Record<string, string>;
     onChange({
       ...manifest,
-      headingFont: pair.heading,
-      bodyFont: pair.body,
       fontPairId: pair.id,
       theme: {
         ...existingTheme,
@@ -108,14 +96,13 @@ export function FontPicker({
     } as unknown as StoryManifest);
   }
 
-  function applySingle(slot: 'heading' | 'body' | 'script', value: string) {
+  function applySingle(slot: 'heading' | 'body', value: string) {
     const existingTheme = ((manifest as unknown as { theme?: Record<string, unknown> }).theme ?? {}) as Record<string, unknown>;
     const existingFonts = ((existingTheme.fonts as Record<string, string> | undefined) ?? {}) as Record<string, string>;
     onChange({
       ...manifest,
-      [slot === 'heading' ? 'headingFont' : slot === 'body' ? 'bodyFont' : 'scriptFont']: value,
       // Clear fontPairId if user manually breaks the pairing.
-      ...(slot !== 'script' ? { fontPairId: undefined } : {}),
+      fontPairId: undefined,
       theme: {
         ...existingTheme,
         fonts: { ...existingFonts, [slot]: value },
@@ -198,16 +185,6 @@ export function FontPicker({
               previewSize={14}
             />
           </Field>
-          <Field label="Script">
-            <FontSelect
-              value={scriptFont}
-              options={SCRIPT_FONTS}
-              onChange={(v) => applySingle('script', v)}
-              previewText="With love"
-              previewSize={22}
-              italic
-            />
-          </Field>
         </>
       )}
 
@@ -242,9 +219,6 @@ export function FontPicker({
         </div>
         <div style={{ fontFamily: `"${bodyFont}", system-ui, -apple-system, sans-serif`, fontSize: 13, lineHeight: 1.55, color: 'var(--ink)' }}>
           The full schedule, travel notes, and our story — all in one spot. RSVP by the day on the card.
-        </div>
-        <div style={{ fontFamily: `"${scriptFont}", cursive`, fontSize: 22, color: 'var(--peach-ink, #C6703D)', marginTop: 10 }}>
-          With love, the couple
         </div>
       </div>
     </PanelSection>
