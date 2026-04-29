@@ -20,6 +20,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
@@ -52,22 +54,54 @@ async function resolveSiteUuid(
 }
 
 // ── GET ──────────────────────────────────────────────────────
-// Returns aggregated claims grouped by entry URL.
+// Two response shapes by mode:
+//  • default (public)  — aggregated claims grouped by URL,
+//                         names only, no PII.
+//  • ?host=1           — full per-row feed (with email + message)
+//                         when the caller is the site's creator.
 export async function GET(req: NextRequest) {
   const siteId = req.nextUrl.searchParams.get('siteId');
+  const hostMode = req.nextUrl.searchParams.get('host') === '1';
   if (!siteId) {
     return NextResponse.json({ error: 'siteId required' }, { status: 400 });
   }
 
   const sb = getSupabase();
   if (!sb) {
-    // Graceful degrade: registry pills just don't render. Not an
-    // error condition — the site is still functional.
-    return NextResponse.json({ claims: {} });
+    return NextResponse.json(hostMode ? { claims: [] } : { claims: {} });
   }
 
   const siteUuid = await resolveSiteUuid(sb, siteId);
-  if (!siteUuid) return NextResponse.json({ claims: {} });
+  if (!siteUuid) {
+    return NextResponse.json(hostMode ? { claims: [] } : { claims: {} });
+  }
+
+  // Host-mode requires session + ownership check. Without these,
+  // claimer emails would leak to anyone who guessed the slug.
+  if (hostMode) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const { data: site } = await sb
+      .from('sites')
+      .select('creator_email')
+      .eq('id', siteUuid)
+      .maybeSingle();
+    const ownerEmail = (site as { creator_email?: string } | null)?.creator_email?.toLowerCase();
+    if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase()) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const { data: rows } = await sb
+      .from('registry_link_claims')
+      .select('id, entry_url, claimer_name, claimer_email, message, quantity, created_at')
+      .eq('site_id', siteUuid)
+      .is('revoked_at', null)
+      .order('created_at', { ascending: false })
+      .limit(100);
+    return NextResponse.json({ claims: rows ?? [] });
+  }
 
   const { data, error } = await sb
     .from('registry_link_claims')

@@ -127,6 +127,124 @@ const KINDS = [
   { value: 'link', label: 'Link' },
 ];
 
+// Host-only feed of recent registry claims. Hits the GET endpoint
+// in host mode so we get full PII (claimer email + message) for
+// thank-you note prep. Returns null silently when the site has
+// no claims so empty registries don't surface a chrome'd empty
+// section.
+interface ClaimRow {
+  id: string;
+  entry_url: string;
+  claimer_name: string | null;
+  claimer_email: string;
+  message: string | null;
+  quantity: number;
+  created_at: string;
+}
+function RecentClaimsSection({ manifest, items }: { manifest: StoryManifest; items: RegistryItem[] }) {
+  const subdomain = (manifest as unknown as { subdomain?: string }).subdomain;
+  const [rows, setRows] = useState<ClaimRow[] | null>(null);
+  useEffect(() => {
+    if (!subdomain) return;
+    let cancelled = false;
+    fetch(`/api/registry-link-claims?siteId=${encodeURIComponent(subdomain)}&host=1`, { cache: 'no-store' })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data: { claims?: ClaimRow[] } | null) => {
+        if (cancelled || !data?.claims) return;
+        setRows(data.claims);
+      })
+      .catch(() => { /* silent */ });
+    return () => { cancelled = true; };
+  }, [subdomain]);
+
+  // Resolve entry URL → human label using the host's manifest
+  // entries. Falls back to the URL hostname when no match.
+  function labelFor(url: string): string {
+    const match = items.find((it) => it.url === url);
+    if (match?.label) return match.label;
+    try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
+  }
+
+  if (!rows || rows.length === 0) return null;
+  return (
+    <PanelSection
+      label="Recent claims"
+      hint="Guests who clicked 'I got this' on your registry. Use the emails for thank-yous."
+      defaultOpen={true}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {rows.slice(0, 10).map((c) => (
+          <div
+            key={c.id}
+            style={{
+              padding: '10px 12px',
+              borderRadius: 10,
+              background: 'var(--cream-2)',
+              border: '1px solid var(--line-soft)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>
+                {c.claimer_name ?? c.claimer_email.split('@')[0]}
+              </span>
+              <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
+                {relativeTime(c.created_at)}
+              </span>
+            </div>
+            <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>
+              got <strong style={{ fontWeight: 600 }}>{labelFor(c.entry_url)}</strong>
+            </div>
+            <a
+              href={`mailto:${c.claimer_email}`}
+              style={{ fontSize: 11, color: 'var(--peach-ink, #C6703D)', fontWeight: 600, textDecoration: 'none' }}
+            >
+              {c.claimer_email} →
+            </a>
+            {c.message && (
+              <div
+                style={{
+                  fontSize: 12,
+                  color: 'var(--ink-soft)',
+                  fontStyle: 'italic',
+                  borderLeft: '2px solid var(--peach-ink, #C6703D)',
+                  paddingLeft: 8,
+                  marginTop: 2,
+                }}
+              >
+                &ldquo;{c.message}&rdquo;
+              </div>
+            )}
+          </div>
+        ))}
+        {rows.length > 10 && (
+          <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', textAlign: 'center', padding: 4 }}>
+            + {rows.length - 10} more
+          </div>
+        )}
+      </div>
+    </PanelSection>
+  );
+}
+
+function relativeTime(iso: string): string {
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return '';
+  const delta = Date.now() - t;
+  const min = Math.round(delta / 60_000);
+  if (min < 1) return 'just now';
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const d = Math.round(hr / 24);
+  if (d === 1) return 'yesterday';
+  if (d < 30) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 // "Pear, draft my registry" — calls /api/draft-registry which
 // reads occasion + venue + vibes and returns 8 starter items in
 // the editor's canonical shape, ready to insert without further
@@ -341,6 +459,7 @@ export function RegistryPanel({
           onResult={(drafted) => set([...items, ...drafted])}
         />
       </PanelSection>
+      <RecentClaimsSection manifest={manifest} items={items} />
       <PanelSection label="Import from a URL" hint="Paste a Zola, Amazon, or Target registry link — Pear reads it and imports.">
         <RegistryImportAI onResult={(items2) => set([...items, ...items2])} />
       </PanelSection>
