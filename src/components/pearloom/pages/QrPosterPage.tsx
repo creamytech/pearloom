@@ -80,13 +80,13 @@ export function QrPosterPage() {
 
   const targetUrl = useMemo(() => {
     if (!site?.domain) return '';
-    const path = presetId === 'rsvp' ? '/rsvp' : presetId === 'photos' ? '/live' : '';
+    const path = presetId === 'rsvp' ? '/rsvp' : presetId === 'photos' ? '/upload' : '';
     return buildSiteUrl(site.domain, path, undefined, site.occasion);
   }, [site?.domain, site?.occasion, presetId]);
 
   const displayHost = useMemo(() => {
     if (!site?.domain) return '';
-    const path = presetId === 'rsvp' ? '/rsvp' : presetId === 'photos' ? '/live' : '';
+    const path = presetId === 'rsvp' ? '/rsvp' : presetId === 'photos' ? '/upload' : '';
     return formatSiteDisplayUrl(site.domain, path, site.occasion);
   }, [site?.domain, site?.occasion, presetId]);
 
