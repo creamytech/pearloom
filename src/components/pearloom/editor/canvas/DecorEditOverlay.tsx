@@ -85,11 +85,66 @@ export function DecorEditOverlay({
     }));
   }
 
+  // Library tiles drag with ASSET_DRAG_MIME ('application/x-pearloom-asset')
+  // OR text/uri-list. Drop onto a decor surface → write the URL
+  // to the matching manifest path. Same applyDecorUrl mapping
+  // DecorSwapModal uses; we just call out to it via the same event.
+  const [dragOver, setDragOver] = useState(false);
+  function handleDragOver(e: React.DragEvent) {
+    if (!editMode || !onEditField) return;
+    const types = e.dataTransfer.types;
+    const accepts = types.includes('application/x-pearloom-asset') || types.includes('text/uri-list');
+    if (!accepts) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    setDragOver(true);
+  }
+  function handleDrop(e: React.DragEvent) {
+    if (!editMode || !onEditField) return;
+    const url = e.dataTransfer.getData('application/x-pearloom-asset')
+      || e.dataTransfer.getData('text/uri-list');
+    setDragOver(false);
+    if (!url) return;
+    e.preventDefault();
+    e.stopPropagation();
+    // Reuse DecorSwapModal's path-mapping by dispatching a synthetic
+    // swap event with the dropped URL — keeps a single source of
+    // truth for "URL → manifest field" in DecorSwapModal.applyDecorUrl.
+    // We piggyback by directly editing decorLibrary here mirroring
+    // that mapping; no UI flash.
+    onEditField((m) => {
+      const next = { ...m } as StoryManifest;
+      const lib: Record<string, unknown> = ((next as unknown as { decorLibrary?: Record<string, unknown> }).decorLibrary ?? {});
+      if (visibilityKey.startsWith('stamp-')) {
+        const section = visibilityKey.slice('stamp-'.length);
+        const stamps = ((lib.sectionStamps as Record<string, string> | undefined) ?? {});
+        lib.sectionStamps = { ...stamps, [section]: url };
+      } else if (visibilityKey === 'footer-bouquet') {
+        lib.footerBouquet = url;
+      } else if (visibilityKey.startsWith('divider')) {
+        lib.divider = url;
+      } else if (visibilityKey === 'confetti') {
+        lib.confetti = url;
+      } else if (visibilityKey === 'flourish' || kind === 'flourish') {
+        (next as unknown as { aiAccentUrl?: string }).aiAccentUrl = url;
+      }
+      (next as unknown as { decorLibrary?: Record<string, unknown> }).decorLibrary = lib;
+      return next;
+    });
+  }
   return (
     <div
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
-      style={{ position: 'relative' }}
+      onDragOver={handleDragOver}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={handleDrop}
+      style={{
+        position: 'relative',
+        outline: dragOver ? '2px dashed var(--peach-ink, #C6703D)' : undefined,
+        outlineOffset: dragOver ? 4 : undefined,
+        transition: 'outline-color 160ms ease',
+      }}
       data-pl-decor-edit
       className={kind === 'divider' ? 'pl8-divider-edit-zone' : undefined}
     >

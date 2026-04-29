@@ -1943,6 +1943,44 @@ html { scroll-behavior: smooth; }
   }
 }
 
+/* ── Coarse-pointer (touch) overlay reveal ──────────────────
+   Hover doesn't exist on touch devices, which leaves every
+   hover-revealed overlay (section chip, photo action menu,
+   decor edit chip) inaccessible on phones. On coarse pointers,
+   show all overlays at half-opacity persistently — the host
+   can tap them directly, and they fade fully visible on tap.
+   Audit's #5 mobile preview gap.
+   ────────────────────────────────────────────────────────── */
+@media (pointer: coarse) {
+  .pl8-canvas-section-menu,
+  .pl8-photo-action-menu,
+  .pl8-divider-edit-chip {
+    opacity: 0.74 !important;
+    pointer-events: auto !important;
+    transform: translateY(0) !important;
+  }
+  .pl8-canvas-section-menu:active,
+  .pl8-photo-action-menu:active,
+  .pl8-divider-edit-chip:active {
+    opacity: 1 !important;
+  }
+  .pl8-canvas-grip {
+    opacity: 0.74;
+  }
+}
+/* Same treatment when the editor's frame is in phone preview
+   mode — even on a desktop, the host is simulating touch. */
+.pl8-canvas-device-frame[data-device="phone"] .pl8-canvas-section-menu,
+.pl8-canvas-device-frame[data-device="phone"] .pl8-photo-action-menu,
+.pl8-canvas-device-frame[data-device="phone"] .pl8-divider-edit-chip {
+  opacity: 0.74 !important;
+  pointer-events: auto !important;
+  transform: translateY(0) !important;
+}
+.pl8-canvas-device-frame[data-device="phone"] .pl8-canvas-grip {
+  opacity: 0.74;
+}
+
 /* ── Section hover ring — when the user mouses over a section in
        edit mode, a soft peach hairline frames the section so they
        can see exactly where the boundary is. Inset 2px so it

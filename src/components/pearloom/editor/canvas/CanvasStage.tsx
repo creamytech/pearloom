@@ -80,6 +80,106 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
     // belt + braces if React StrictMode double-invokes.)
     useEffect(() => { /* no-op intentional */ }, [rootEl]);
 
+    // Canvas-wide right-click handler. Walks the target's ancestors,
+    // figures out what kind of element the host clicked (photo /
+    // decor / section), and dispatches the existing
+    // pearloom:context-menu-open event with the right item list.
+    // Single source of truth for right-click; replaces the
+    // per-component onContextMenu handlers that only worked on
+    // photos + section roots. Skips contenteditable + form fields
+    // so the browser's native menu (paste, spellcheck) still works
+    // inside text edits.
+    useEffect(() => {
+      if (!rootEl || previewMode) return;
+      function onCtx(e: MouseEvent) {
+        const target = e.target as HTMLElement | null;
+        if (!target) return;
+        // Native form elements + contenteditable text keep their
+        // browser-default menus.
+        if (target.isContentEditable) return;
+        const tag = target.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'IMG' || tag === 'VIDEO') return;
+        // Find the most specific edit zone the click landed in.
+        const photoZone = target.closest<HTMLElement>('.pl8-photo-action-wrap');
+        const decorZone = target.closest<HTMLElement>('[data-pl-decor-edit]');
+        const sectionZone = target.closest<HTMLElement>('[data-pl-block-sortable]');
+        if (!photoZone && !decorZone && !sectionZone) return;
+        type Item = { id: string; label: string; icon?: string; onSelect: () => void; danger?: boolean; divider?: boolean };
+        const items: Item[] = [];
+        let title = 'Canvas';
+        if (photoZone) {
+          // Photo wrap dispatches its own onContextMenu already, but
+          // some surfaces (gallery tiles, hero) render the wrap with
+          // pointer-events: none on overlays; bridge the gap here.
+          title = 'Photo';
+          items.push({
+            id: 'photo-replace',
+            label: 'Replace photo',
+            icon: 'upload',
+            onSelect: () => {
+              // Trigger the wrap's own picker via a synthetic click
+              // on its replace button.
+              const replaceBtn = photoZone.querySelector<HTMLButtonElement>('button[aria-label="Replace photo"]');
+              replaceBtn?.click();
+            },
+          });
+        } else if (decorZone) {
+          title = 'Decor';
+          items.push({
+            id: 'decor-swap',
+            label: 'Swap art',
+            icon: 'sparkles',
+            onSelect: () => {
+              const swapBtn = decorZone.querySelector<HTMLButtonElement>('button[title*="Swap" i]');
+              swapBtn?.click();
+            },
+          });
+          items.push({
+            id: 'decor-hide',
+            label: 'Hide this',
+            icon: 'eye-off',
+            danger: true,
+            divider: true,
+            onSelect: () => {
+              const hideBtn = decorZone.querySelector<HTMLButtonElement>('button[title*="Hide" i]');
+              hideBtn?.click();
+            },
+          });
+        } else if (sectionZone) {
+          // Section-level menu pulls the same actions as the hover
+          // pill so right-click + hover surface the same operations.
+          const blockKey = sectionZone.getAttribute('data-pl-block') ?? '';
+          title = blockKey || 'Section';
+          items.push({
+            id: 'edit',
+            label: 'Edit in inspector',
+            icon: 'sliders',
+            onSelect: () => {
+              window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { block: blockKey } }));
+            },
+          });
+          items.push({
+            id: 'hide',
+            label: `Hide ${blockKey}`,
+            icon: 'eye-off',
+            danger: true,
+            divider: true,
+            onSelect: () => {
+              const hideBtn = sectionZone.querySelector<HTMLButtonElement>('.pl8-canvas-section-menu button[aria-label^="Remove"]');
+              hideBtn?.click();
+            },
+          });
+        }
+        if (items.length === 0) return;
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('pearloom:context-menu-open', {
+          detail: { x: e.clientX, y: e.clientY, title, items },
+        }));
+      }
+      rootEl.addEventListener('contextmenu', onCtx);
+      return () => rootEl.removeEventListener('contextmenu', onCtx);
+    }, [rootEl, previewMode]);
+
     // Patch helper — each EditableText in the tree calls onEditField
     // with a pure manifest → manifest transform, we apply + push up.
     // In previewMode we DON'T pass onEditField so the renderer's
