@@ -62,9 +62,14 @@ const AUTO_BADGE_LABELS: Record<'top' | 'closest' | 'value', string> = {
 interface Props {
   manifest: StoryManifest;
   onChange: (m: StoryManifest) => void;
+  /** Layout mode. 'modal' (default) opens centered with a backdrop;
+   *  'panel' renders inline in its parent so the inspector can host
+   *  the same UX without a centered overlay. Pilot for the
+   *  modal-vs-panel consolidation question. */
+  dock?: 'modal' | 'panel';
 }
 
-export function HotelQuickEditModal({ manifest, onChange }: Props) {
+export function HotelQuickEditModal({ manifest, onChange, dock = 'modal' }: Props) {
   const [openHotelId, setOpenHotelId] = useState<string | null>(null);
 
   // Listen for canvas → modal open requests.
@@ -165,6 +170,7 @@ export function HotelQuickEditModal({ manifest, onChange }: Props) {
 
   return (
     <QuickEditModalShell
+      dock={dock}
       open={!!openHotelId && !!focused}
       title="Places to stay"
       focusedTitle={focused?.name || 'Untitled hotel'}

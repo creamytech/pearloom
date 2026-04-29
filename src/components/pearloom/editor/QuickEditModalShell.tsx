@@ -98,6 +98,11 @@ interface Props {
   onClose: () => void;
   /** Sidebar empty-state copy when the section has no rows yet. */
   emptyHint?: string;
+  /** Layout mode. 'modal' (default) renders centered with a
+   *  backdrop. 'panel' renders the same content as a docked
+   *  panel inside its parent — used by the inspector pilot to
+   *  test whether a wider inspector replaces the modal flow. */
+  dock?: 'modal' | 'panel';
 }
 
 export function QuickEditModalShell({
@@ -114,6 +119,7 @@ export function QuickEditModalShell({
   editorSlot,
   onClose,
   emptyHint,
+  dock = 'modal',
 }: Props) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -207,11 +213,14 @@ export function QuickEditModalShell({
 
   if (!open) return null;
 
-  return (
-    <div
-      role="dialog"
-      aria-label={`Edit ${title.toLowerCase()}`}
-      style={{
+  // Layout: 'modal' centers a 960px card with a backdrop;
+  // 'panel' renders the same content filling its parent container
+  // (used when the host's inspector is wide enough to host the
+  // editor inline — single source of UI between the two flows).
+  const isPanel = dock === 'panel';
+  const outerStyle: React.CSSProperties = isPanel
+    ? { display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }
+    : {
         position: 'fixed',
         inset: 0,
         background: 'rgba(14,13,11,0.55)',
@@ -223,26 +232,40 @@ export function QuickEditModalShell({
         justifyContent: 'center',
         padding: 24,
         animation: 'pl8-quick-edit-fade 180ms ease-out',
-      }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      };
+  const innerStyle: React.CSSProperties = isPanel
+    ? {
+        width: '100%',
+        height: '100%',
+        flex: 1,
+        background: 'var(--paper, #FBF7EE)',
+        fontFamily: 'var(--font-ui)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        position: 'relative',
+      }
+    : {
+        width: 'min(960px, 100%)',
+        height: 'min(720px, 92vh)',
+        background: 'var(--paper, #FBF7EE)',
+        borderRadius: 18,
+        boxShadow: '0 32px 80px rgba(14,13,11,0.42)',
+        fontFamily: 'var(--font-ui)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        position: 'relative',
+        animation: 'pl8-quick-edit-rise 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+      };
+  return (
+    <div
+      role={isPanel ? 'region' : 'dialog'}
+      aria-label={`Edit ${title.toLowerCase()}`}
+      style={outerStyle}
+      onClick={isPanel ? undefined : (e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div
-        style={{
-          width: 'min(960px, 100%)',
-          height: 'min(720px, 92vh)',
-          background: 'var(--paper, #FBF7EE)',
-          borderRadius: 18,
-          boxShadow: '0 32px 80px rgba(14,13,11,0.42)',
-          fontFamily: 'var(--font-ui)',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          // Positioned ancestor so the undo toast can be placed
-          // absolutely against the card's bottom edge.
-          position: 'relative',
-          animation: 'pl8-quick-edit-rise 220ms cubic-bezier(0.22, 1, 0.36, 1)',
-        }}
-      >
+      <div style={innerStyle}>
         {/* Header */}
         <div
           style={{

@@ -658,7 +658,14 @@ export function EditorV8({
       <DecorRecolorModal manifest={manifest} onEditField={(patch) => setManifest((m) => patch(m))} />
       <DecorSwapModal manifest={manifest} onEditField={(patch) => setManifest((m) => patch(m))} />
       <IconSwapModal manifest={manifest} onEditField={(patch) => setManifest((m) => patch(m))} />
-      <HotelQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
+      {/* Hotel editor — pilot for the modal-vs-panel consolidation.
+       *  On desktop with the inspector visible, the editor docks
+       *  into the inspector area (panel mode); on mobile the
+       *  inspector is hidden in a drawer, so the editor falls back
+       *  to centered modal so it still has somewhere to live. The
+       *  inspector-rendered instance is mounted by the Inspector
+       *  component itself; here we only mount the modal fallback. */}
+      {isNarrow && <HotelQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} dock="modal" />}
       <FaqQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
       <ScheduleQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
       <RegistryQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
@@ -2620,7 +2627,21 @@ function Inspector({
       </div>
 
       {tab === 'section' && (
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflowY: 'auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflowY: 'auto', position: 'relative' }}>
+          {/* Docked hotel editor — pilot for the modal-vs-panel
+           *  consolidation. When fluid is false (desktop with the
+           *  inspector visible), the hotel editor renders as an
+           *  absolute-positioned overlay over the section panel so
+           *  the host edits in place. The QuickEditModalShell
+           *  already returns null when nothing's open, so this
+           *  div is empty + zero-cost when no hotel is focused.
+           *  Mobile (fluid) falls back to the centered modal at
+           *  editor root. */}
+          {!fluid && block === 'travel' && (
+            <div style={{ position: 'absolute', inset: 0, zIndex: 5, display: 'flex', flexDirection: 'column' }}>
+              <HotelQuickEditModal manifest={manifest} onChange={onChange} dock="panel" />
+            </div>
+          )}
           <header
             style={{
               padding: '18px 22px 16px',
