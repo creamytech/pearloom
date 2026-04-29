@@ -182,7 +182,6 @@ export function ThemePanel({
   onChange: (m: StoryManifest) => void;
 }) {
   const palette = read<string>(manifest, 'palette', PALETTES[0].id);
-  const motif = read<string>(manifest, 'motif', 'pear');
   const spacing = read<string>(manifest, 'spacing', 'Comfortable');
   const headingFont = read<string>(manifest, 'headingFont', 'Fraunces');
   const bodyFont = read<string>(manifest, 'bodyFont', 'Inter');
@@ -190,20 +189,54 @@ export function ThemePanel({
   const themeName = read<string>(manifest, 'themeName', 'Groovy Ceremony');
   const active = PALETTES.find((p) => p.id === palette) ?? PALETTES[0];
 
+  // Active motif read from canonical manifest.motifs (the renderer
+  // actually consumes this — the legacy singular `motif` field is
+  // a no-op orphan). Picker is mutually exclusive: pear → stamp,
+  // squiggle → squiggle, blob → blob; each pick clears the others.
+  const motifs = (manifest as unknown as {
+    motifs?: { blob?: string; stamp?: unknown; squiggle?: number };
+  }).motifs;
+  const motif: 'pear' | 'squiggle' | 'blob' =
+    motifs?.stamp ? 'pear'
+    : motifs?.squiggle ? 'squiggle'
+    : motifs?.blob && motifs.blob !== 'none' ? 'blob'
+    : 'pear';
+
   function update(patch: Record<string, unknown>) {
     onChange({ ...manifest, ...patch } as unknown as StoryManifest);
   }
 
+  /** Mutually-exclusive motif pick. Writes to manifest.motifs so
+   *  the renderer (which consumes blob / stamp / squiggle) actually
+   *  reflects the choice. */
+  function applyMotif(id: 'pear' | 'squiggle' | 'blob') {
+    const existingMotifs = (manifest as unknown as { motifs?: Record<string, unknown> }).motifs ?? {};
+    const next: Record<string, unknown> = {
+      ...existingMotifs,
+      // Clear the other two slots so the visual picker stays
+      // single-select.
+      stamp: undefined,
+      squiggle: undefined,
+      blob: undefined,
+    };
+    if (id === 'pear') next.stamp = { text: '✦', tone: 'sage' };
+    else if (id === 'squiggle') next.squiggle = 1;
+    else next.blob = 'sage';
+    onChange({ ...manifest, motifs: next } as unknown as StoryManifest);
+  }
+
   /** Writes the preset's full theme to manifest.theme.colors so
    *  SiteV8Renderer's themeStyle CSS-var overrides see the change
-   *  the moment the user picks a swatch. Also keeps the legacy
-   *  `palette` / `themeName` fields in sync for older consumers. */
+   *  the moment the user picks a swatch.
+   *
+   *  Audited 2026-04-29: dropped legacy `palette` / `themeName`
+   *  duplicate writes — no consumer ever read those fields, so
+   *  every flip was silently bloating the manifest. theme.colors
+   *  is the single source of truth. */
   function applyPalette(preset: ThemePreset) {
     const existingTheme = (manifest as unknown as { theme?: Record<string, unknown> }).theme ?? {};
     onChange({
       ...manifest,
-      palette: preset.id,
-      themeName: preset.name,
       theme: {
         ...existingTheme,
         colors: preset.theme,
@@ -212,13 +245,15 @@ export function ThemePanel({
   }
 
   /** Patches manifest.theme.fonts.{heading|body} so typography
-   *  changes from this panel flow through to SiteV8Renderer. */
+   *  changes from this panel flow through to SiteV8Renderer.
+   *
+   *  Audited 2026-04-29: dropped duplicate top-level `headingFont`
+   *  / `bodyFont` writes — the renderer only reads theme.fonts.*. */
   function applyFont(slot: 'heading' | 'body', value: string) {
     const existingTheme = ((manifest as unknown as { theme?: { fonts?: Record<string, string> } }).theme ?? {}) as Record<string, unknown>;
     const existingFonts = ((existingTheme.fonts as Record<string, string> | undefined) ?? {}) as Record<string, string>;
     onChange({
       ...manifest,
-      [slot === 'heading' ? 'headingFont' : 'bodyFont']: value,
       theme: {
         ...existingTheme,
         fonts: { ...existingFonts, [slot]: value },
@@ -276,7 +311,7 @@ export function ThemePanel({
                 <button
                   key={m.id}
                   type="button"
-                  onClick={() => update({ motif: m.id })}
+                  onClick={() => applyMotif(m.id as 'pear' | 'squiggle' | 'blob')}
                   style={{
                     padding: 12,
                     borderRadius: 12,
