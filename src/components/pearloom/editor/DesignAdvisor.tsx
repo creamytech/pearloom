@@ -405,15 +405,24 @@ export function DesignAdvisor({
 
   function applyChatPatch(messageId: string, nextManifest: StoryManifest) {
     if (!onApplyPatch) return;
+    // Snapshot the manifest BEFORE applying so the toast's Undo
+    // can restore it. The applyPatch callback runs through the
+    // editor's manifest reducer (which has its own undo history),
+    // but the toast undo gives the host an immediate, single-tap
+    // path back without hunting for ⌘Z.
+    const previous = manifest;
     onApplyPatch(nextManifest);
     setChat((prev) => prev.map((m) => (m.id === messageId ? { ...m, patchApplied: true } : m)));
-    // Fire a global event so EditorV8 can flash a confirmation
-    // toast on the canvas — gives the host visual proof the change
-    // landed, and keeps the eye on the canvas instead of the chat.
     if (typeof window !== 'undefined') {
       const target = chat.find((m) => m.id === messageId);
       window.dispatchEvent(new CustomEvent('pearloom:patch-applied', {
-        detail: { summary: target?.patch?.summary ?? 'Pear applied a change' },
+        detail: {
+          summary: target?.patch?.summary ?? 'Pear applied a change',
+          // Pass the rollback through the event so the toast can
+          // surface Undo without the toast component knowing about
+          // the manifest at all.
+          undo: () => onApplyPatch(previous),
+        },
       }));
     }
   }

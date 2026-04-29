@@ -585,7 +585,10 @@ export function TravelPanel({
             placeholder="4721 Meadow Ln, Hillsboro, OR 97123"
           />
         </Field>
-        <Field label="Venue intro">
+        <Field
+          label="Venue intro"
+          pearAction={{ block: 'travel', pass: 'draft-travel-tips', label: 'Draft a venue intro with Pear' }}
+        >
           <TextArea
             rows={3}
             value={meta.intro ?? ''}
@@ -719,7 +722,10 @@ export function TravelPanel({
                     placeholder="100 Las Olas Blvd, Fort Lauderdale, FL"
                   />
                 </Field>
-                <Field label="Short description">
+                <Field
+                  label="Short description"
+                  pearAction={{ block: 'travel', pass: 'draft-travel-tips', label: 'Draft a description with Pear' }}
+                >
                   <TextArea
                     rows={2}
                     value={h.description ?? ''}

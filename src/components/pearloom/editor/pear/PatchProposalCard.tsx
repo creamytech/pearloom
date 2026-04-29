@@ -239,99 +239,281 @@ function PatchBody({
   const before = patch.before !== undefined ? patch.before : readPearPatchTarget(manifest, patch.path);
 
   if (isPickerPatch(patch) && patch.options) {
+    // Detect if all options are image URLs — switch to a thumbnail
+    // grid in that case. Suggest-cover and similar passes ship URL
+    // strings as options; rendering them as 13px text would be
+    // useless. The detection is cheap (regex) and falls back to
+    // text rendering for mixed/non-image options.
+    const allImages = patch.options.every((opt) => typeof opt === 'string' && IMAGE_URL_RX.test(opt));
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <Eyebrow>{prettyPath(patch.path)}</Eyebrow>
-        {typeof before === 'string' && before.trim() && !applied && (
+        {typeof before === 'string' && before.trim() && !applied && !IMAGE_URL_RX.test(before) && (
           <BeforeBox>{before}</BeforeBox>
         )}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {patch.options.map((opt, i) => {
-            const label = patch.optionLabels?.[i];
-            const isSelected = selectedIdx === i;
-            return (
-              <button
-                key={i}
-                type="button"
-                onClick={() => onPick(i)}
-                disabled={applied}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 3,
-                  alignItems: 'flex-start',
-                  textAlign: 'left',
-                  padding: '10px 12px',
-                  borderRadius: 10,
-                  background: isSelected ? 'rgba(255,255,255,0.78)' : 'rgba(255,255,255,0.45)',
-                  border: isSelected
-                    ? '1.5px solid var(--peach-ink, #C6703D)'
-                    : '1px solid rgba(198,112,61,0.18)',
-                  cursor: applied ? 'default' : 'pointer',
-                  fontFamily: 'var(--font-ui)',
-                  transition: 'background 140ms ease, border-color 140ms ease',
-                }}
-                onMouseEnter={(e) => {
-                  if (applied || isSelected) return;
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.7)';
-                }}
-                onMouseLeave={(e) => {
-                  if (applied || isSelected) return;
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.45)';
-                }}
-              >
-                {label && (
-                  <span
-                    style={{
-                      fontSize: 9.5,
-                      fontWeight: 700,
-                      letterSpacing: '0.18em',
-                      textTransform: 'uppercase',
-                      color: 'var(--peach-ink, #C6703D)',
-                    }}
-                  >
-                    {label}
+        {typeof before === 'string' && IMAGE_URL_RX.test(before) && !applied && (
+          <BeforeImageBox url={before} />
+        )}
+        {allImages ? (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
+              gap: 6,
+            }}
+          >
+            {patch.options.map((opt, i) => {
+              const url = String(opt);
+              const label = patch.optionLabels?.[i];
+              const isSelected = selectedIdx === i;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => onPick(i)}
+                  disabled={applied}
+                  title={label ?? `Option ${i + 1}`}
+                  aria-label={label ?? `Option ${i + 1}`}
+                  style={{
+                    position: 'relative',
+                    aspectRatio: '4 / 5',
+                    padding: 0,
+                    borderRadius: 10,
+                    background: `var(--cream-2, #F5EFE2) center/cover no-repeat url(${url})`,
+                    border: isSelected
+                      ? '2px solid var(--peach-ink, #C6703D)'
+                      : '1px solid rgba(198,112,61,0.22)',
+                    cursor: applied ? 'default' : 'pointer',
+                    overflow: 'hidden',
+                    transition: 'border-color 140ms ease, transform 140ms ease',
+                    transform: isSelected ? 'scale(0.98)' : 'scale(1)',
+                  }}
+                >
+                  {label && (
+                    <span
+                      style={{
+                        position: 'absolute',
+                        bottom: 4,
+                        left: 4,
+                        right: 4,
+                        padding: '2px 6px',
+                        background: 'rgba(14,13,11,0.7)',
+                        color: 'var(--cream, #FBF7EE)',
+                        fontSize: 9,
+                        fontWeight: 700,
+                        letterSpacing: '0.14em',
+                        textTransform: 'uppercase',
+                        borderRadius: 999,
+                        textAlign: 'center',
+                      }}
+                    >
+                      {label}
+                    </span>
+                  )}
+                  {isSelected && (
+                    <span
+                      aria-hidden
+                      style={{
+                        position: 'absolute',
+                        top: 4,
+                        right: 4,
+                        width: 22,
+                        height: 22,
+                        borderRadius: 999,
+                        background: 'var(--peach-ink, #C6703D)',
+                        color: 'var(--cream)',
+                        display: 'grid',
+                        placeItems: 'center',
+                        fontSize: 12,
+                        fontWeight: 800,
+                        boxShadow: '0 2px 6px rgba(14,13,11,0.18)',
+                      }}
+                    >
+                      ✓
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {patch.options.map((opt, i) => {
+              const label = patch.optionLabels?.[i];
+              const isSelected = selectedIdx === i;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => onPick(i)}
+                  disabled={applied}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 3,
+                    alignItems: 'flex-start',
+                    textAlign: 'left',
+                    padding: '10px 12px',
+                    borderRadius: 10,
+                    background: isSelected ? 'rgba(255,255,255,0.78)' : 'rgba(255,255,255,0.45)',
+                    border: isSelected
+                      ? '1.5px solid var(--peach-ink, #C6703D)'
+                      : '1px solid rgba(198,112,61,0.18)',
+                    cursor: applied ? 'default' : 'pointer',
+                    fontFamily: 'var(--font-ui)',
+                    transition: 'background 140ms ease, border-color 140ms ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (applied || isSelected) return;
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.7)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (applied || isSelected) return;
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.45)';
+                  }}
+                >
+                  {label && (
+                    <span
+                      style={{
+                        fontSize: 9.5,
+                        fontWeight: 700,
+                        letterSpacing: '0.18em',
+                        textTransform: 'uppercase',
+                        color: 'var(--peach-ink, #C6703D)',
+                      }}
+                    >
+                      {label}
+                    </span>
+                  )}
+                  <span style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.45 }}>
+                    {String(opt)}
                   </span>
-                )}
-                <span style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.45 }}>
-                  {String(opt)}
-                </span>
-                {isSelected && (
-                  <span
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      letterSpacing: '0.06em',
-                      textTransform: 'uppercase',
-                      color: 'var(--peach-ink, #C6703D)',
-                      marginTop: 2,
-                    }}
-                  >
-                    ✓ Picked
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+                  {isSelected && (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: '0.06em',
+                        textTransform: 'uppercase',
+                        color: 'var(--peach-ink, #C6703D)',
+                        marginTop: 2,
+                      }}
+                    >
+                      ✓ Picked
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
     );
   }
 
   // Single-value patch. Render before/after when before is a string
-  // and non-empty; otherwise just the after value.
+  // and non-empty; otherwise just the after value. Image URLs flip
+  // the row to a side-by-side thumbnail comparison so cover-photo
+  // patches don't read as a wall of `https://…`.
   const value = patch.value;
   const beforeIsString = typeof before === 'string' && before.trim().length > 0;
+  const valueIsString = typeof value === 'string';
+  const beforeIsImage = beforeIsString && IMAGE_URL_RX.test(before as string);
+  const valueIsImage = valueIsString && IMAGE_URL_RX.test(value);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <Eyebrow>{prettyPath(patch.path)}</Eyebrow>
-      {beforeIsString && (
-        <BeforeBox>{before as string}</BeforeBox>
+      {(beforeIsImage || valueIsImage) ? (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: beforeIsImage && valueIsImage ? '1fr 1fr' : '1fr',
+            gap: 8,
+          }}
+        >
+          {beforeIsImage && <BeforeImageBox url={before as string} />}
+          {valueIsImage && <AfterImageBox url={value as string} />}
+        </div>
+      ) : (
+        <>
+          {beforeIsString && <BeforeBox>{before as string}</BeforeBox>}
+          {value !== undefined && (
+            <AfterBox>{valueIsString ? (value as string) : JSON.stringify(value, null, 2)}</AfterBox>
+          )}
+        </>
       )}
-      {value !== undefined && (
-        <AfterBox>{typeof value === 'string' ? value : JSON.stringify(value, null, 2)}</AfterBox>
-      )}
+    </div>
+  );
+}
+
+// Loose detector — anything that looks like an image URL or data URI.
+// Catches CDN URLs without explicit extensions (e.g. /api/photos/abc)
+// would NOT match here. Hosts whose photos lack extensions miss the
+// thumbnail rendering, which is acceptable: the text URL still works.
+const IMAGE_URL_RX = /^(https?:\/\/|data:image\/|\/).*\.(jpe?g|png|webp|avif|gif|svg)(\?.*)?$/i;
+
+function BeforeImageBox({ url }: { url: string }) {
+  return (
+    <div
+      style={{
+        position: 'relative',
+        aspectRatio: '4 / 5',
+        borderRadius: 10,
+        background: `var(--cream-2, #F5EFE2) center/cover no-repeat url(${url})`,
+        border: '1px dashed rgba(14,13,11,0.18)',
+        opacity: 0.55,
+      }}
+    >
+      <span
+        style={{
+          position: 'absolute',
+          top: 6,
+          left: 6,
+          padding: '2px 7px',
+          background: 'rgba(14,13,11,0.7)',
+          color: 'var(--cream, #FBF7EE)',
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          borderRadius: 999,
+        }}
+      >
+        Before
+      </span>
+    </div>
+  );
+}
+
+function AfterImageBox({ url }: { url: string }) {
+  return (
+    <div
+      style={{
+        position: 'relative',
+        aspectRatio: '4 / 5',
+        borderRadius: 10,
+        background: `var(--cream-2, #F5EFE2) center/cover no-repeat url(${url})`,
+        border: '1.5px solid rgba(198,112,61,0.32)',
+      }}
+    >
+      <span
+        style={{
+          position: 'absolute',
+          top: 6,
+          left: 6,
+          padding: '2px 7px',
+          background: 'var(--peach-ink, #C6703D)',
+          color: 'var(--cream, #FBF7EE)',
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          borderRadius: 999,
+        }}
+      >
+        After
+      </span>
     </div>
   );
 }

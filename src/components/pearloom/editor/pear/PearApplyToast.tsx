@@ -17,26 +17,43 @@ import { useEffect, useState } from 'react';
 import { Pear } from '../../motifs';
 
 export function PearApplyToast() {
-  const [message, setMessage] = useState<string | null>(null);
+  // The toast renders one entry at a time. New events replace the
+  // current entry instead of stacking — the host always sees the
+  // most recent change. Undo is captured per-event so a stale
+  // rollback can't fire after the host applied a follow-up.
+  const [entry, setEntry] = useState<{ summary: string; undo?: () => void } | null>(null);
+  const [undone, setUndone] = useState(false);
 
   useEffect(() => {
     function onApplied(e: Event) {
-      const detail = (e as CustomEvent<{ summary?: string }>).detail;
+      const detail = (e as CustomEvent<{ summary?: string; undo?: () => void }>).detail;
       const summary = detail?.summary?.trim();
       if (!summary) return;
-      setMessage(summary);
+      setEntry({ summary, undo: detail?.undo });
+      setUndone(false);
     }
     window.addEventListener('pearloom:patch-applied', onApplied);
     return () => window.removeEventListener('pearloom:patch-applied', onApplied);
   }, []);
 
   useEffect(() => {
-    if (!message) return;
-    const t = setTimeout(() => setMessage(null), 3200);
+    if (!entry) return;
+    // Undo extends the dwell time slightly so the host has a real
+    // moment to tap it. 3.2s for confirm-only; 5s when undo is
+    // available.
+    const dwell = entry.undo ? 5000 : 3200;
+    const t = setTimeout(() => setEntry(null), dwell);
     return () => clearTimeout(t);
-  }, [message]);
+  }, [entry]);
 
-  if (!message) return null;
+  if (!entry) return null;
+
+  function handleUndo() {
+    if (!entry?.undo) return;
+    entry.undo();
+    setUndone(true);
+    setTimeout(() => setEntry(null), 1200);
+  }
 
   return (
     <div
@@ -71,11 +88,11 @@ export function PearApplyToast() {
           fontWeight: 700,
           letterSpacing: '0.18em',
           textTransform: 'uppercase',
-          color: 'var(--peach-ink, #C6703D)',
+          color: undone ? 'var(--sage-deep, #5C6B3F)' : 'var(--peach-ink, #C6703D)',
           flexShrink: 0,
         }}
       >
-        Pear
+        {undone ? 'Undone' : 'Pear'}
       </span>
       <span
         style={{
@@ -85,13 +102,35 @@ export function PearApplyToast() {
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
         }}
-        title={message}
+        title={entry.summary}
       >
-        {message}
+        {undone ? `Reverted: ${entry.summary}` : entry.summary}
       </span>
+      {entry.undo && !undone && (
+        <button
+          type="button"
+          onClick={handleUndo}
+          style={{
+            padding: '4px 10px',
+            borderRadius: 999,
+            background: 'var(--ink, #0E0D0B)',
+            color: 'var(--cream, #FBF7EE)',
+            border: 'none',
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-ui)',
+            flexShrink: 0,
+          }}
+        >
+          Undo
+        </button>
+      )}
       <button
         type="button"
-        onClick={() => setMessage(null)}
+        onClick={() => setEntry(null)}
         aria-label="Dismiss"
         style={{
           width: 22,

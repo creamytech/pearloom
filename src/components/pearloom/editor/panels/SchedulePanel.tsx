@@ -218,7 +218,10 @@ export function SchedulePanel({
                     />
                   </Field>
                 </div>
-                <Field label="Short description">
+                <Field
+                  label="Short description"
+                  pearAction={{ block: 'schedule', pass: 'fill-schedule-gaps', label: 'Suggest a description with Pear' }}
+                >
                   <TextArea
                     rows={2}
                     value={it.description ?? ''}
