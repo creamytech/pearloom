@@ -862,6 +862,7 @@ export function EditorV8({
             onChange={onManifestChange}
             tab={outlineTab}
             setTab={setOutlineTab}
+            displayUrl={prettyUrl}
           />
         )}
         <CanvasStage
@@ -912,6 +913,7 @@ export function EditorV8({
                 onChange={onManifestChange}
                 tab={outlineTab}
                 setTab={setOutlineTab}
+                displayUrl={prettyUrl}
                 fluid
               />
             ) : (
@@ -2052,6 +2054,7 @@ function Outline({
   tab = 'sections',
   setTab,
   fluid = false,
+  displayUrl,
 }: {
   block: BlockKey;
   setBlock: (k: BlockKey) => void;
@@ -2070,6 +2073,9 @@ function Outline({
   /** When true, the rail fills its container instead of being
    *  fixed-width. Used in the mobile drawer. */
   fluid?: boolean;
+  /** "pearloom.com/scott-and-shauna" — surfaced above the progress
+   *  thread on the Sections tab as an at-a-glance site identity. */
+  displayUrl?: string;
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -2209,6 +2215,51 @@ function Outline({
 
       {/* Sections tab — the original outline body. */}
       {tab === 'sections' && (<>
+      {/* Site identity — names + URL above the progress thread.
+          Reads like the title page of the editor, not just chrome. */}
+      {(names[0] || displayUrl) && (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            padding: '0 12px 6px',
+            minWidth: 0,
+          }}
+        >
+          {names[0] && (
+            <div
+              className="display"
+              style={{
+                fontSize: 16,
+                fontWeight: 500,
+                lineHeight: 1.15,
+                letterSpacing: '-0.01em',
+                color: 'var(--ink)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {names[1] ? `${names[0]} & ${names[1]}` : names[0]}
+            </div>
+          )}
+          {displayUrl && (
+            <div
+              style={{
+                fontSize: 11,
+                color: 'var(--ink-muted)',
+                fontFamily: 'var(--font-ui)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {displayUrl}
+            </div>
+          )}
+        </div>
+      )}
       {/* Site-progress thread — a calm olive bar that answers
           "how done is my site?" at a glance. Idle hosts read this
           before they read the section list. Olive when things are
