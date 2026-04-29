@@ -63,8 +63,17 @@ function RegistryImportAI({ onResult }: { onResult: (items: RegistryItem[]) => v
       throw new Error(data?.error ?? `Pear couldn't read that URL (${res.status})`);
     }
     const data = (await res.json()) as {
-      items?: Array<{ label: string; url: string; description?: string; kind?: 'fund' | 'registry' | 'link' }>;
+      items?: Array<{
+        label: string;
+        url: string;
+        description?: string;
+        kind?: 'fund' | 'registry' | 'link';
+        photoUrl?: string;
+        priceLabel?: string;
+      }>;
+      // Backwards-compat — older response shape with a single label/entry.
       label?: string;
+      entry?: { name?: string; url?: string; note?: string };
     };
     const now = Date.now();
     const imported: RegistryItem[] = (data.items ?? []).map((it, i) => ({
@@ -73,7 +82,18 @@ function RegistryImportAI({ onResult }: { onResult: (items: RegistryItem[]) => v
       url: it.url,
       description: it.description,
       kind: it.kind ?? 'registry',
+      photoUrl: it.photoUrl,
+      priceLabel: it.priceLabel,
     }));
+    if (!imported.length && data.entry?.name) {
+      imported.push({
+        id: `reg-ai-${now.toString(36)}`,
+        label: data.entry.name,
+        url: data.entry.url ?? url.trim(),
+        description: data.entry.note,
+        kind: 'registry',
+      });
+    }
     if (!imported.length && data.label) {
       imported.push({ id: `reg-ai-${now.toString(36)}`, label: data.label, url: url.trim(), kind: 'registry' });
     }

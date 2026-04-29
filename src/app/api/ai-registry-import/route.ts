@@ -75,6 +75,50 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 });
     }
 
+    // Best-effort: fetch the URL and extract OG image + price
+    // metadata server-side. Retailers often gate scrapers, so this
+    // is a "try, fall through if blocked" pass — failure just means
+    // the editor card uses the abstract icon block instead of a real
+    // product photo.
+    let ogImage: string | undefined;
+    let priceLabel: string | undefined;
+    try {
+      const res = await fetch(url, {
+        method: 'GET',
+        redirect: 'follow',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; Pearloom/1.0; +https://pearloom.com)',
+          'Accept': 'text/html,application/xhtml+xml',
+        },
+        signal: AbortSignal.timeout(6000),
+      });
+      if (res.ok) {
+        const html = (await res.text()).slice(0, 200_000); // cap for safety
+        const ogMatch = html.match(/<meta[^>]+(?:property|name)=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+          ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']og:image["']/i);
+        if (ogMatch) ogImage = ogMatch[1];
+        // Common product price meta — covers Open Graph product
+        // schema, Schema.org itemprop="price", and Amazon's price
+        // <span> as a last resort.
+        const priceMeta =
+          html.match(/<meta[^>]+(?:property|name)=["']product:price:amount["'][^>]+content=["']([^"']+)["']/i)?.[1]
+          ?? html.match(/<meta[^>]+(?:property|name)=["']og:price:amount["'][^>]+content=["']([^"']+)["']/i)?.[1]
+          ?? html.match(/itemprop=["']price["'][^>]+content=["']([^"']+)["']/i)?.[1];
+        const currency =
+          html.match(/<meta[^>]+(?:property|name)=["']product:price:currency["'][^>]+content=["']([^"']+)["']/i)?.[1]
+          ?? html.match(/<meta[^>]+(?:property|name)=["']og:price:currency["'][^>]+content=["']([^"']+)["']/i)?.[1]
+          ?? 'USD';
+        if (priceMeta) {
+          const n = Number(priceMeta);
+          if (Number.isFinite(n) && n > 0) {
+            priceLabel = currency === 'USD'
+              ? `$${n.toFixed(n % 1 === 0 ? 0 : 2)}`
+              : `${n.toFixed(n % 1 === 0 ? 0 : 2)} ${currency}`;
+          }
+        }
+      }
+    } catch { /* network errors / timeouts ignored — degrade gracefully */ }
+
     const prompt = `You are an AI assistant for Pearloom, a wedding website platform.
 
 Given this registry URL, analyze it and extract structured information.
@@ -119,9 +163,22 @@ Return ONLY valid JSON (no markdown, no backticks):
       parsed = { name, url, note, platform };
     }
 
+    // The editor's RegistryImportAI consumes `{ items: [...] }`.
+    // Build a single-item shape so a paste of one URL drops into
+    // the registry as one row with photo + price pre-filled.
+    const items = [{
+      label: parsed.name,
+      url: parsed.url,
+      description: parsed.note,
+      kind: parsed.platform === 'honeyfund' ? 'fund' as const : 'registry' as const,
+      photoUrl: ogImage,
+      priceLabel,
+    }];
+
     return NextResponse.json(
       {
         entry: parsed,
+        items,
         ...(gate!.isUnlimited ? { plan: gate!.plan } : { remaining: gate!.remaining, limit: PEAR_MONTHLY_LIMIT, plan: 'free' }),
       },
       { headers: pearHeaders(gate!) },
