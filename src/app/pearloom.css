@@ -1943,6 +1943,14 @@ html { scroll-behavior: smooth; }
   }
 }
 
+@keyframes pl-bulk-bar-rise {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-canvas-bulk-bar { animation: none !important; }
+}
+
 /* ── Coarse-pointer (touch) overlay reveal ──────────────────
    Hover doesn't exist on touch devices, which leaves every
    hover-revealed overlay (section chip, photo action menu,

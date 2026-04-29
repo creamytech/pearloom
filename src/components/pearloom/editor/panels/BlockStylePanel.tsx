@@ -90,14 +90,14 @@ const BACKDROP_OPTIONS = [
 // applies all of its fields at once; clearing reverts to inherit.
 // Designed to feel like "moods" rather than mechanical settings —
 // hosts pick "Linen" rather than tweaking five sliders.
-type Scene = {
+export type Scene = {
   id: 'letterpress' | 'carved' | 'scrapbook' | 'linen' | 'slate' | 'vellum';
   label: string;
   hint: string;
   apply: Partial<BlockStyleOverride>;
 };
 
-const SCENES: readonly Scene[] = [
+export const SCENES: readonly Scene[] = [
   {
     id: 'letterpress', label: 'Letterpress',
     hint: 'Sharp ink, hairline border, no shadow. Reads like a printed card.',

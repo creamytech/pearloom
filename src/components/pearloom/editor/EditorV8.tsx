@@ -179,21 +179,23 @@ export function EditorV8({
   // jumps to the matching block. The browser's native ⌘F still works for
   // in-viewport text; this overlay surfaces matches across the whole site.
   const [findOpen, setFindOpen] = useState(false);
-  // Resizable inspector rail. Default 380px (the value we shipped as
-  // a static width before this session). Clamped to 320–620px so the
-  // canvas always has room and the panel never collapses below the
-  // narrowest field-row layout. Persisted to localStorage so the
-  // host's preferred width survives reloads — different events have
-  // different "I want a wider rail" preferences (long FAQ blocks vs.
-  // short hero blocks).
+  // Resizable inspector rail. Default 460px — wider than the
+  // original 380 because hotel / schedule / FAQ row editors all
+  // crammed at that width, and the audit flagged "Inspector too
+  // narrow" as the root cause of needing six redundant quick-edit
+  // modals. 460 fits two-column field layouts without crowding.
+  // Clamped to 320–620 so the canvas always has room and the
+  // panel never collapses below the narrowest field-row layout.
+  // Persisted to localStorage; existing hosts with a saved
+  // preference keep theirs.
   const [inspectorWidth, setInspectorWidth] = useState<number>(() => {
-    if (typeof window === 'undefined') return 380;
+    if (typeof window === 'undefined') return 460;
     try {
       const raw = window.localStorage.getItem('pl-editor-inspector-w');
       const n = raw ? Number(raw) : NaN;
       if (Number.isFinite(n) && n >= 320 && n <= 620) return n;
     } catch {}
-    return 380;
+    return 460;
   });
   useEffect(() => {
     if (typeof window === 'undefined') return;

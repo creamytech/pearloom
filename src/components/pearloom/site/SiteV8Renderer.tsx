@@ -22,6 +22,7 @@ import {
   Stamp,
 } from '../motifs';
 import { EditorCanvasProvider, useIsEditMode } from '../editor/canvas/EditorCanvasContext';
+import { CanvasBulkActionBar } from '../editor/canvas/CanvasBulkActionBar';
 import { terminologyFor } from '@/lib/event-terminology';
 import { sunriseSunsetFor } from '@/lib/sunset';
 import { stableHotelId } from '@/lib/hotel-id';
@@ -7667,6 +7668,10 @@ export function SiteV8Renderer({
           </>
         )}
       </div>
+      {/* Floating bulk-action bar — visible only when 2+ blocks
+       *  are selected on the canvas. Lives inside the provider so
+       *  it can read selection state without prop drilling. */}
+      {editMode && <CanvasBulkActionBar />}
     </EditorCanvasProvider>
   );
 }
