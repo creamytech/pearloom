@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DashLayout } from '../dash/DashShell';
 import { Icon, Pear, Sparkle } from '../motifs';
+import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 
 type Kind = 'vows' | 'toast' | 'speech';
 
@@ -16,6 +17,17 @@ interface Analysis {
   summary: string;
 }
 
+interface Inspiration {
+  /** 'memory' = memory-prompt response, 'tribute' = wall post,
+   *  'guestbook' = guestbook note. All three are guests speaking
+   *  about the couple — exactly the material a toast wants. */
+  kind: 'memory' | 'tribute' | 'guestbook';
+  guest_name: string;
+  /** For memory prompts: the question the guest answered. */
+  prompt?: string;
+  body: string;
+}
+
 const KIND_LABELS: Record<Kind, { label: string; range: string; hint: string }> = {
   vows: { label: 'Vows', range: '60–120s', hint: 'Spoken to your partner — short, specific, structured.' },
   toast: { label: 'Toast', range: '90–180s', hint: 'Best man / MOH / parent — one anecdote, land warm.' },
@@ -23,11 +35,52 @@ const KIND_LABELS: Record<Kind, { label: string; range: string; hint: string }> 
 };
 
 export function SpeechComposerPage() {
+  const { site } = useSelectedSite();
   const [kind, setKind] = useState<Kind>('toast');
   const [text, setText] = useState('');
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [inspirations, setInspirations] = useState<Inspiration[] | null>(null);
+
+  // Pull guest-typed material from the memory book endpoint —
+  // memories, tributes, and guestbook entries are all things
+  // people wrote about the couple, which is exactly what a toast
+  // is trying to mine. Fail silently — composer still works
+  // without inspirations.
+  useEffect(() => {
+    if (!site?.id) return;
+    let cancelled = false;
+    fetch(`/api/memory-book?siteId=${encodeURIComponent(site.id)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: null | {
+        memories?: Array<{ guest_name: string; prompt: string; response: string }>;
+        tributes?: Array<{ guest_name: string; body: string }>;
+        guestbook?: Array<{ guest_name: string; message: string }>;
+      }) => {
+        if (cancelled || !data) return;
+        const merged: Inspiration[] = [
+          ...(data.memories ?? []).filter((m) => m.response).map((m) => ({
+            kind: 'memory' as const, guest_name: m.guest_name, prompt: m.prompt, body: m.response,
+          })),
+          ...(data.tributes ?? []).map((t) => ({
+            kind: 'tribute' as const, guest_name: t.guest_name, body: t.body,
+          })),
+          ...(data.guestbook ?? []).map((g) => ({
+            kind: 'guestbook' as const, guest_name: g.guest_name, body: g.message,
+          })),
+        ];
+        setInspirations(merged);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [site?.id]);
+
+  function quote(insp: Inspiration) {
+    const attribution = insp.guest_name ? ` — ${insp.guest_name}` : '';
+    const block = `\n\n"${insp.body.trim()}"${attribution}\n\n`;
+    setText((prev) => prev + block);
+  }
 
   async function analyze() {
     if (!text.trim()) return;
@@ -124,6 +177,103 @@ export function SpeechComposerPage() {
               </button>
             </div>
             {error && <div style={{ marginTop: 10, fontSize: 13, color: '#7A2D2D' }}>{error}</div>}
+
+            {/* Inspiration: guest-typed memories + advice + guestbook
+                notes. Tap "Quote" to drop the line straight into the
+                draft. The whole panel hides when there's nothing to
+                show — keeps the composer clean for hosts whose guests
+                haven't written yet. */}
+            {inspirations && inspirations.length > 0 && (
+              <div style={{
+                marginTop: 24,
+                padding: 18,
+                background: 'var(--cream-2)',
+                border: '1px solid var(--line-soft)',
+                borderRadius: 14,
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  justifyContent: 'space-between',
+                  marginBottom: 12,
+                }}>
+                  <div style={{
+                    fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.18em',
+                    textTransform: 'uppercase',
+                    color: 'var(--peach-ink)',
+                  }}>
+                    Words from your guests
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
+                    {inspirations.length} {inspirations.length === 1 ? 'note' : 'notes'} · tap Quote to drop in
+                  </div>
+                </div>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                  maxHeight: 360,
+                  overflowY: 'auto',
+                }}>
+                  {inspirations.map((insp, i) => (
+                    <div key={i} style={{
+                      padding: '10px 12px',
+                      background: 'var(--card)',
+                      border: '1px solid var(--line-soft)',
+                      borderRadius: 10,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 5,
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                          <span style={{
+                            fontSize: 9.5,
+                            fontWeight: 700,
+                            letterSpacing: '0.14em',
+                            textTransform: 'uppercase',
+                            color: 'var(--sage-deep)',
+                          }}>
+                            {insp.kind === 'memory' ? 'Memory' : insp.kind === 'tribute' ? 'Wall' : 'Guestbook'}
+                          </span>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>
+                            {insp.guest_name}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => quote(insp)}
+                          style={{
+                            padding: '3px 10px',
+                            borderRadius: 999,
+                            border: '1px dashed var(--peach-ink)',
+                            background: 'transparent',
+                            color: 'var(--peach-ink)',
+                            fontSize: 11,
+                            fontWeight: 700,
+                            letterSpacing: '0.04em',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Quote
+                        </button>
+                      </div>
+                      {insp.prompt && (
+                        <div style={{ fontSize: 11.5, fontStyle: 'italic', color: 'var(--ink-muted)' }}>
+                          on: {insp.prompt}
+                        </div>
+                      )}
+                      <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5, color: 'var(--ink-soft)' }}>
+                        {insp.body.length > 280 ? insp.body.slice(0, 280) + '…' : insp.body}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* RIGHT — analysis */}
