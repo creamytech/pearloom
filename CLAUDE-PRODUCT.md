@@ -441,6 +441,53 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-04-30 — Editor surface prune (round 4) + schema cleanup
+
+Continuing the user's "cut down" direction.
+
+**ThemePanel disclosures (more):**
+- Decor library + Stickers grouped under one "✦ Decor extras —
+  AI-drafted dividers, stamps, stickers" `<details>`. Most hosts
+  don't touch the AI decor generator or sticker overlay; the
+  Theme scroll no longer surfaces them by default.
+- Snapshots (version-history) under "↺ Version history (snapshots)"
+  `<details>`. Power feature kept fully functional, just hidden
+  from the casual scroll. Theme panel is now ~2/3 the visual
+  length it was at the start of this prune sweep.
+
+**StoryManifest schema cleanup:**
+Verified each via repo grep before deletion. Renderer untouched;
+only the type was carrying field declarations nothing read.
+
+  Dropped:
+  - `lastAsset` — unused
+  - `sitePassword` — unused (privacy gating uses
+    manifest.privacyGate.password from the Event-OS round)
+  - `watermark` — unused (only matches were AI prompt strings)
+  - `privateGallery` — unused
+  - `heroBadgeStyle` — declared on legacy <Hero> props but no
+    consumer threaded the manifest field through; Hero falls
+    back to defaults
+  - `heroCountdownStyle` — same pattern
+  - `heroTextColorOverride` — same pattern
+  - `broadcasts` (manifest field) — feature uses public.live_updates
+    table, not this manifest array
+  - `postEventMode` — unused (post-event behavior is event-date
+    math + dayOfMode)
+  - `parchmentTint` — unused
+  - `typographyPair` — unused (theme.fonts.* is canonical)
+  - `customization` — typed but never read
+  - `savedComponents` — typed but never read
+
+  Kept:
+  - `decorDrafts` — used by DecorLibraryPanel as editor working
+    state (drafts in flight)
+  - `themeFamily` — set by generation routes; not read by SiteV8
+    but plausibly a future migration signal. Defer.
+
+13 orphan field declarations gone. Lighter manifest payloads,
+fewer footguns.
+
 ### 2026-04-30 — Editor surface prune (round 2)
 
 User direction: "cut down on all these advanced settings as much
