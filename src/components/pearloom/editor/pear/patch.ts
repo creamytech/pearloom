@@ -51,6 +51,23 @@ export interface PearPatch {
 export interface PearPatchEnvelope {
   summary: string;
   patches: PearPatch[];
+  /** Optional named action that the client should run instead of
+   *  (or in addition to) applying field patches. Used for things
+   *  Pear can DO via APIs — sending nudges, scheduling reminders,
+   *  etc. The action name maps to a handler in the chat client. */
+  action?: PearAction;
+}
+
+/** Named actions Pear can offer the host. The chat client maps
+ *  each kind to an API call, so the host's "yes, send the nudge"
+ *  closes a loop without leaving the chat surface. */
+export type PearAction =
+  | { kind: 'send_nudge_pending'; previewBody?: string };
+
+/** True when the envelope is asking the host to run an action
+ *  rather than (or in addition to) editing fields. */
+export function isActionEnvelope(env: PearPatchEnvelope): boolean {
+  return !!env.action;
 }
 
 /** True when this patch is a picker (host must choose an option
@@ -74,10 +91,18 @@ export function extractPatch(text: string): PearPatchEnvelope | null {
     if (
       typeof parsed === 'object' &&
       parsed !== null &&
-      Array.isArray((parsed as { patches?: unknown }).patches) &&
       typeof (parsed as { summary?: unknown }).summary === 'string'
     ) {
-      return parsed as PearPatchEnvelope;
+      const p = parsed as { patches?: unknown; action?: unknown };
+      // Either patches[] or an action object is required. Action
+      // envelopes can ship with patches: [] and still be valid.
+      const hasPatches = Array.isArray(p.patches);
+      const hasAction = typeof p.action === 'object' && p.action !== null;
+      if (hasPatches || hasAction) {
+        const env = parsed as PearPatchEnvelope;
+        if (!Array.isArray(env.patches)) env.patches = [];
+        return env;
+      }
     }
   } catch {
     // Malformed JSON — drop it. We could try to repair (trailing

@@ -27,10 +27,12 @@ import { Icon, Pear } from '../motifs';
 import {
   extractFollowups,
   extractPatch,
+  isActionEnvelope,
   stripPatchFromText,
   type PearPatchEnvelope,
 } from './pear/patch';
 import { PatchProposalCard } from './pear/PatchProposalCard';
+import { PearActionCard } from './pear/PearActionCard';
 import { pearPromptFor } from './panels/pear-passes';
 
 // Minimal Web Speech API typing — TS doesn't ship a built-in
@@ -711,6 +713,7 @@ export function DesignAdvisor({
                   message={m}
                   manifest={manifest}
                   canApply={!!onApplyPatch}
+                  siteSlug={siteSlug}
                   onApply={(next) => applyChatPatch(m.id, next)}
                   onDismiss={() => dismissChatPatch(m.id)}
                   onPickFollowup={(text) => {
@@ -1091,6 +1094,7 @@ function ChatBubble({
   message,
   manifest,
   canApply,
+  siteSlug,
   onApply,
   onDismiss,
   onPickFollowup,
@@ -1098,6 +1102,9 @@ function ChatBubble({
   message: ChatMessage;
   manifest: StoryManifest;
   canApply: boolean;
+  /** Forwarded so PearActionCard can fan a single approval into
+   *  real API calls (lookup pending guests + send the nudge). */
+  siteSlug?: string;
   onApply: (next: StoryManifest) => void;
   onDismiss: () => void;
   onPickFollowup: (text: string) => void;
@@ -1135,14 +1142,23 @@ function ChatBubble({
         )}
       </div>
       {showPatchCard && message.patch && (
-        <PatchProposalCard
-          envelope={message.patch}
-          manifest={manifest}
-          applied={!!message.patchApplied}
-          canApply={canApply}
-          onApply={onApply}
-          onDismiss={onDismiss}
-        />
+        isActionEnvelope(message.patch) && message.patch.action ? (
+          <PearActionCard
+            envelope={message.patch as PearPatchEnvelope & { action: NonNullable<PearPatchEnvelope['action']> }}
+            siteSlug={siteSlug}
+            onDone={onDismiss}
+            onDismiss={onDismiss}
+          />
+        ) : (
+          <PatchProposalCard
+            envelope={message.patch}
+            manifest={manifest}
+            applied={!!message.patchApplied}
+            canApply={canApply}
+            onApply={onApply}
+            onDismiss={onDismiss}
+          />
+        )
       )}
       {/* Suggested follow-ups — Pear's "what next?" chip rail.
           Only on Pear bubbles, only when the model emitted a
