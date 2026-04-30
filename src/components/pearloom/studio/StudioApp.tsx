@@ -32,7 +32,7 @@ import { useStudioState } from './useStudioState';
 import { CardFront, CardBack, CardEnvelope } from './StudioCard';
 import { StudioTopbar, DraftsRail, RemixRail } from './StudioRails';
 import { StudioSendOverlay } from './StudioSendOverlay';
-import { buildSiteUrl, formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
+import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 
 interface Props {
   siteSlug: string;
@@ -96,7 +96,6 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
 
   const occasion = normalizeOccasion((manifest as unknown as { occasion?: string }).occasion);
   const siteUrl = formatSiteDisplayUrl(siteSlug, '', occasion);
-  const siteAbsoluteUrl = buildSiteUrl(siteSlug, '', undefined, occasion);
 
   const { state, setField, setMany, savedAt } = useStudioState({ siteSlug, manifest });
   const [aiBusy, setAiBusy] = useState(false);
@@ -474,8 +473,6 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
         }
       `}</style>
 
-      {/* Suppress unused — referenced for future analytics. */}
-      <span style={{ display: 'none' }}>{siteAbsoluteUrl}</span>
     </div>
   );
 }
