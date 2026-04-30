@@ -16,9 +16,54 @@ import { TravelSection } from '@/components/travel-section';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { WaveDivider } from '@/components/vibe/WaveDivider';
 import type { FaqItem } from '@/types';
+import { parseLocalDate } from '@/lib/parse-local-date';
 
 interface PreviewPageProps {
   params: Promise<{ token: string }>;
+}
+
+// ── Countdown ────────────────────────────────────────────────
+// Extracted so we can hold the `now` clock in component state
+// instead of calling Date.now() during the parent's render —
+// also lets the countdown actually tick.
+function CountdownPreview({
+  eventDate, label, cardBg, fontHeading, fontBody, foreground, muted, accent,
+}: {
+  eventDate: string;
+  label: string;
+  cardBg: string;
+  fontHeading: string;
+  fontBody: string;
+  foreground: string;
+  muted: string;
+  accent: string;
+}) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  const targetObj = parseLocalDate(eventDate);
+  const target = targetObj?.getTime() ?? 0;
+  const diff = Math.max(0, target - now);
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  return (
+    <section style={{ padding: 'clamp(2rem, 5vw, 5rem) 2rem', background: cardBg, textAlign: 'center' }}>
+      <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: accent, marginBottom: '2rem', fontFamily: `"${fontBody}", sans-serif` }}>
+        {label}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap' }}>
+        {[{ v: days, l: 'Days' }, { v: hours, l: 'Hours' }, { v: mins, l: 'Min' }].map(({ v, l }) => (
+          <div key={l} style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: `"${fontHeading}", serif`, fontSize: 'clamp(2.5rem, 8vw, 5rem)', fontWeight: 400, color: foreground, lineHeight: 1 }}>{v}</div>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: muted, marginTop: '0.5rem' }}>{l}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 // ── Feedback Form Component ──────────────────────────────────────────────────
@@ -377,26 +422,18 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
           : occ === 'engagement' ? 'Until the big day!'
           : occ === 'story' ? 'The moment arrives'
           : 'Until we say I do';
-        const target = new Date(eventDate).getTime();
-        const now = Date.now();
-        const diff = Math.max(0, target - now);
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         return (
-          <section key="countdown" style={{ padding: 'clamp(2rem, 5vw, 5rem) 2rem', background: cardBg, textAlign: 'center' }}>
-            <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: pal.accent, marginBottom: '2rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>
-              {countdownLabel}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap' }}>
-              {[{ v: days, l: 'Days' }, { v: hours, l: 'Hours' }, { v: mins, l: 'Min' }].map(({ v, l }) => (
-                <div key={l} style={{ textAlign: 'center' }}>
-                  <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(2.5rem, 8vw, 5rem)', fontWeight: 400, color: pal.foreground, lineHeight: 1 }}>{v}</div>
-                  <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: pal.muted, marginTop: '0.5rem' }}>{l}</div>
-                </div>
-              ))}
-            </div>
-          </section>
+          <CountdownPreview
+            key="countdown"
+            eventDate={eventDate}
+            label={countdownLabel}
+            cardBg={cardBg}
+            fontHeading={vibeSkin.fonts.heading}
+            fontBody={vibeSkin.fonts.body}
+            foreground={pal.foreground}
+            muted={pal.muted}
+            accent={pal.accent}
+          />
         );
       }
       case 'text': {

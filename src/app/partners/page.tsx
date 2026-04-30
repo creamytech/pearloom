@@ -37,6 +37,9 @@ export default function PartnersPage() {
   const [submitted, setSubmitted] = useState(false);
   const [copiedEmbed, setCopiedEmbed] = useState<string | null>(null);
 
+  // mockPartner is preview-only data fed into generateEmbedCode
+  // for the snippet preview — createdAt isn't user-visible, so a
+  // fixed timestamp keeps render pure and stable across renders.
   const mockPartner: Partner = {
     id: 'demo', type: selectedType, businessName: formData.businessName || 'Your Business',
     contactName: formData.contactName || 'You', email: formData.email || '',
@@ -44,7 +47,7 @@ export default function PartnersPage() {
     tier: 'basic', referralCode: 'DEMO2025', referralCount: 0, referralRevenue: 0,
     commissionRate: 10, profileComplete: false, verified: false, portfolioUrls: [],
     bio: formData.bio || '', specialties: [], rating: 0, ratingCount: 0,
-    status: 'pending', createdAt: Date.now(), phone: '',
+    status: 'pending', createdAt: 0, phone: '',
   };
 
   const handleCopyEmbed = (type: 'button' | 'banner' | 'card' | 'floating') => {
