@@ -16,6 +16,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { generate, textFrom } from '@/lib/claude';
 import { getSiteConfig } from '@/lib/db';
+import { parseLocalDate } from '@/lib/parse-local-date';
 import { getCadencePreset } from '@/lib/cadence/cadence-presets';
 
 export const dynamic = 'force-dynamic';
@@ -51,8 +52,9 @@ export async function POST(req: NextRequest) {
   if (!phase) return NextResponse.json({ error: 'Unknown phase.' }, { status: 400 });
 
   const names = Array.isArray(cfg.names) ? cfg.names.filter(Boolean).join(' & ') : 'the host';
-  const date = cfg.manifest.logistics?.date
-    ? new Date(cfg.manifest.logistics.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  const dateObj = parseLocalDate(cfg.manifest.logistics?.date);
+  const date = dateObj
+    ? dateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
     : 'the date';
   const venue = cfg.manifest.logistics?.venue ?? 'our venue';
   const voice = (cfg.manifest as unknown as { voiceDNA?: { tone?: string; phrases?: string[] }; }).voiceDNA;

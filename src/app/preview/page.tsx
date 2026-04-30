@@ -12,6 +12,7 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense, useMemo, useState, useEffect, useCallback } from 'react';
 import { Hero } from '@/components/hero';
 import { StorySection, chapterDateFormatOptions } from '@/components/blocks/StoryLayouts';
+import { parseLocalDate } from '@/lib/parse-local-date';
 import { ComingSoon } from '@/components/coming-soon';
 import { WeddingEvents } from '@/components/wedding-events';
 import { RegistryShowcase } from '@/components/registry-showcase';
@@ -99,7 +100,12 @@ function SubpagePreview({ page, manifest, names, rawParams }: { page: string; ma
   if (page === 'schedule' && manifest.events?.length) {
     content = <><PageHeader title="The Schedule" /><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} /><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></>;
   } else if (page === 'rsvp' && manifest.events?.length) {
-    content = <><PageHeader title="RSVP" subtitle={manifest.logistics?.rsvpDeadline ? `Please respond by ${new Date(manifest.logistics.rsvpDeadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : 'Let us know if you can make it.'} /><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} /><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></>;
+    content = <><PageHeader title="RSVP" subtitle={(() => {
+      const d = parseLocalDate(manifest.logistics?.rsvpDeadline);
+      return d
+        ? `Please respond by ${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
+        : 'Let us know if you can make it.';
+    })()} /><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} /><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></>;
   } else if (page === 'registry' && (manifest.registry?.entries?.length || manifest.registry?.cashFundUrl)) {
     content = <><PageHeader title="Registry" /><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={pal.accent2} height={60} /><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></>;
   } else if (page === 'travel' && (manifest.travelInfo?.hotels?.length || manifest.travelInfo?.airports?.length)) {

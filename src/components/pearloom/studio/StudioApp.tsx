@@ -33,6 +33,7 @@ import { CardFront, CardBack, CardEnvelope } from './StudioCard';
 import { StudioTopbar, DraftsRail, RemixRail } from './StudioRails';
 import { StudioSendOverlay } from './StudioSendOverlay';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
+import { parseLocalDate } from '@/lib/parse-local-date';
 
 interface Props {
   siteSlug: string;
@@ -617,23 +618,6 @@ function FloatingPear({ nudges }: { nudges: string[] }) {
   );
 }
 
-/** Parse a date string the way a host expects. ISO date-only
- *  values like "2026-09-12" must be read as local-date, not UTC
- *  midnight — otherwise hosts west of UTC see the day before
- *  every time. Falls back to the Date constructor for any string
- *  that isn't a bare YYYY-MM-DD (full ISO with time has timezone
- *  semantics built in). */
-function parseLocalDate(value: string | null | undefined): Date | null {
-  if (!value) return null;
-  const trimmed = value.trim();
-  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.exec(trimmed);
-  if (dateOnly) {
-    const [y, m, d] = trimmed.split('-').map(Number);
-    return new Date(y, m - 1, d);
-  }
-  const fallback = new Date(trimmed);
-  return Number.isNaN(fallback.getTime()) ? null : fallback;
-}
 
 function titleCase(s: string): string {
   return s.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());

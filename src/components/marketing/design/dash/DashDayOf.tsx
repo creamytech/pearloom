@@ -10,6 +10,7 @@ import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
+import { parseLocalDate } from '@/lib/parse-local-date';
 
 interface Announcement {
   id: string;
@@ -49,13 +50,10 @@ function parseScheduleFromManifest(m: unknown): ScheduleItem[] {
 function parseTargetDate(m: unknown): Date | null {
   if (!m || typeof m !== 'object') return null;
   const mo = m as { logistics?: { date?: string } };
-  if (!mo.logistics?.date) return null;
-  try {
-    const d = new Date(mo.logistics.date);
-    return isNaN(d.getTime()) ? null : d;
-  } catch {
-    return null;
-  }
+  // parseLocalDate handles both bare YYYY-MM-DD (local-date)
+  // and full ISO strings; the countdown reads off this Date so
+  // a UTC parse would tick to the day-before in PT etc.
+  return parseLocalDate(mo.logistics?.date);
 }
 
 function Countdown({ target, now }: { target: Date; now: Date }) {
