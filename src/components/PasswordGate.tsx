@@ -36,20 +36,19 @@ const shakeKeyframes = `
 `;
 
 export function PasswordGate({ siteId, coupleNames, password, vibeSkin, children }: PasswordGateProps) {
-  const [unlocked, setUnlocked]   = useState(false);
+  // Lazy useState init reads sessionStorage once on first
+  // mount — no follow-up useEffect needed (was triggering a
+  // setState-in-effect cascade per react-hooks/set-state-in-effect).
+  const [unlocked, setUnlocked] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return sessionStorage.getItem(SESSION_KEY(siteId)) === '1';
+  });
   const [input, setInput]         = useState('');
   const [error, setError]         = useState('');
   const [showPw, setShowPw]       = useState(false);
   const [loading, setLoading]     = useState(false);
   const [shaking, setShaking]     = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    // Check if already unlocked in this session
-    if (sessionStorage.getItem(SESSION_KEY(siteId)) === '1') {
-      setUnlocked(true);
-    }
-  }, [siteId]);
 
   // Auto-focus on mount
   useEffect(() => {

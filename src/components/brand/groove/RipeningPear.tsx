@@ -74,8 +74,26 @@ export function RipeningPear({
   className,
   scrollDriven = true,
 }: RipeningPearProps) {
-  const [canUseWebGL, setCanUseWebGL] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  // Probe WebGL support once at first render via lazy init.
+  // The result never changes for the life of the component, so
+  // useState (vs useEffect + setState) skips the cascade
+  // (react-hooks/set-state-in-effect).
+  const [canUseWebGL] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+      return !!gl;
+    } catch {
+      return false;
+    }
+  });
+  // matchMedia: read the initial value lazily, then subscribe
+  // to changes via a useEffect that only runs the listener.
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  });
   // SVG fallback needs a state-driven ripeness because it's a
   // React-rendered colour. We update it once per rAF tick — NOT
   // once per scroll event — so the update frequency is capped
@@ -87,17 +105,7 @@ export function RipeningPear({
     if (typeof window === 'undefined') return;
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
     const onChange = () => setPrefersReducedMotion(mq.matches);
-    onChange();
     mq.addEventListener('change', onChange);
-
-    try {
-      const canvas = document.createElement('canvas');
-      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
-      setCanUseWebGL(!!gl);
-    } catch {
-      setCanUseWebGL(false);
-    }
-
     return () => mq.removeEventListener('change', onChange);
   }, []);
 
@@ -108,8 +116,11 @@ export function RipeningPear({
   const ripenessRef = useRef(ripenessProp ?? 0);
   useEffect(() => {
     if (!scrollDriven || ripenessProp !== undefined) {
+      // Controlled mode (prop provided) or non-scroll mode —
+      // keep the ref synced to the prop. The render path already
+      // prefers `ripenessProp ?? svgRipeness`, so no setState is
+      // needed here (avoids a setState-in-effect cascade).
       ripenessRef.current = ripenessProp ?? 0;
-      setSvgRipeness(ripenessProp ?? 0);
       return;
     }
     if (typeof window === 'undefined') return;
