@@ -47,12 +47,17 @@ interface SectionDividerProps {
 // <animate> children which can't be controlled by CSS media queries.
 // ────────────────────────────────────────────────────────────────
 function useMotionGate(enabled: boolean) {
-  const [reducedMotion, setReducedMotion] = useState(false);
+  // Lazy useState init reads matchMedia once on mount; the
+  // useEffect only registers the change listener (no initial
+  // setState cascade per react-hooks/set-state-in-effect).
+  const [reducedMotion, setReducedMotion] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  });
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReducedMotion(mq.matches);
     const onChange = () => setReducedMotion(mq.matches);
     mq.addEventListener?.('change', onChange);
     return () => mq.removeEventListener?.('change', onChange);

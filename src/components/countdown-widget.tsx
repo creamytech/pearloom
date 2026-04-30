@@ -73,19 +73,20 @@ function getAmbientGlow(days: number | null): { bg: string; glow: string; textAc
 }
 
 export function CountdownWidget({ targetDate, onPhoto = false, countdownStyle = 'cards' }: CountdownWidgetProps) {
+  // No separate `mounted` flag — the timeLeft useEffect only
+  // runs client-side, so a null value implicitly means "still
+  // SSR / first render". Drops a setState-in-effect cascade.
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const updateTimer = () => setTimeLeft(getTimeLeft(targetDate));
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
   }, [targetDate]);
 
-  // Don't render on server or if already past
-  if (!mounted) return null;
+  // Don't render on server or before the first tick lands.
+  if (!timeLeft) return null;
 
   const daysLeft = timeLeft ? timeLeft.days : 0;
   const ambient = getAmbientGlow(timeLeft ? daysLeft : null);

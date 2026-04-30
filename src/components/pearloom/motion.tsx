@@ -15,12 +15,16 @@ export const EASE = {
 };
 
 export function usePrefersReducedMotion() {
-  const [reduced, setReduced] = useState(false);
+  // Lazy useState init reads matchMedia once on mount; the
+  // useEffect only registers the change listener.
+  const [reduced, setReduced] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  });
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
     const on = () => setReduced(mq.matches);
-    on();
     mq.addEventListener?.('change', on);
     return () => mq.removeEventListener?.('change', on);
   }, []);
