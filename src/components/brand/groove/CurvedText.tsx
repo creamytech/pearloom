@@ -17,7 +17,7 @@
 // screen readers and search engines see the label normally.
 // ─────────────────────────────────────────────────────────────
 
-import type { CSSProperties } from 'react';
+import { useId, type CSSProperties } from 'react';
 
 export type CurvedTextVariant = 'arc' | 'wave' | 'circle' | 'spiral';
 
@@ -133,7 +133,9 @@ export function CurvedText({
   const { vb, d, h } = curveFor(variant, width, height, amplitude);
   const effectiveViewBox = viewBox ?? vb;
   const effectivePath = path ?? d;
-  const pathId = `pl-curved-${Math.random().toString(36).slice(2, 9)}`;
+  // useId returns a stable per-instance id that's safe to embed
+  // in SVG defs (collisions across SSR/CSR are impossible).
+  const pathId = `pl-curved-${useId()}`;
   const anchor =
     typeof startOffset === 'number'
       ? `${startOffset * 100}%`

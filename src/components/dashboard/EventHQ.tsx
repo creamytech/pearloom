@@ -9,7 +9,7 @@
 //   • upcoming agenda · vendor next step
 // ─────────────────────────────────────────────────────────────
 
-import { ReactNode, useMemo } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   Calendar,
@@ -52,12 +52,19 @@ interface EventHQProps {
 }
 
 export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
+  // `now` lives in state so render stays pure (react-hooks/
+  // purity). Refreshes hourly so the count advances at midnight
+  // even if the dashboard stays open.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
   const daysUntil = useMemo(() => {
     const d = parseLocalDate(site.eventDate);
     if (!d) return null;
-    const diff = Math.ceil((d.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-    return diff;
-  }, [site.eventDate]);
+    return Math.ceil((d.getTime() - now) / (1000 * 60 * 60 * 24));
+  }, [site.eventDate, now]);
 
   const rsvp = site.rsvpStats ?? { attending: 0, declined: 0, pending: 0, total: 0 };
   const rsvpRate = rsvp.total > 0 ? Math.round(((rsvp.attending + rsvp.declined) / rsvp.total) * 100) : 0;
@@ -469,7 +476,14 @@ function formatEventDate(iso: string) {
 // ─────────────────────────────────────────────────────────────
 
 function PearSuggestCard({ site }: { site: EventHQSite }) {
-  const suggestion = computeSuggestion(site);
+  // Same hourly-tick pattern as the parent's daysUntil so this
+  // helper's Date.now() lives in state — render stays pure.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
+  const suggestion = computeSuggestion(site, now);
   return (
     <article
       style={{
@@ -619,10 +633,10 @@ function PearSuggestCard({ site }: { site: EventHQSite }) {
   );
 }
 
-function computeSuggestion(site: EventHQSite): { title: string; description: string; cta: string } {
+function computeSuggestion(site: EventHQSite, now: number): { title: string; description: string; cta: string } {
   const rsvp = site.rsvpStats;
   const dObj = parseLocalDate(site.eventDate);
-  const days = dObj ? Math.ceil((dObj.getTime() - Date.now()) / 86400000) : null;
+  const days = dObj ? Math.ceil((dObj.getTime() - now) / 86400000) : null;
 
   if (rsvp && rsvp.total > 0 && rsvp.pending / rsvp.total > 0.4) {
     return {

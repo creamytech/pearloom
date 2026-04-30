@@ -3,6 +3,7 @@
 // Real data hooks for dashboard widgets.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { parseLocalDate } from '@/lib/parse-local-date';
 
 export interface DashStats {
   visits: number;
@@ -221,12 +222,20 @@ export function useLinkedCelebrations(siteId?: string | null): LinkedCelebration
   return state;
 }
 
-// Days-to-go from a site's event date.
+// Days-to-go from a site's event date. Re-runs every hour so
+// the value advances at midnight even if the host leaves the
+// dashboard open. Date.now() lives in component state so render
+// stays pure (react-hooks/purity). parseLocalDate handles bare
+// YYYY-MM-DD without UTC drift.
 export function useDaysToGo(iso?: string | null): number | null {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
   return useMemo(() => {
-    if (!iso) return null;
-    const target = new Date(iso).getTime();
-    if (Number.isNaN(target)) return null;
-    return Math.ceil((target - Date.now()) / (1000 * 60 * 60 * 24));
-  }, [iso]);
+    const target = parseLocalDate(iso)?.getTime();
+    if (target == null) return null;
+    return Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+  }, [iso, now]);
 }

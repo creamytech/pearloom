@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useId } from 'react';
 
 interface IconProps {
   size?: number;
@@ -44,7 +44,7 @@ export function PearlIcon({ size = 24, color = 'currentColor', className, style 
 export function PearIcon({ size = 24, color = 'currentColor', className, style }: IconProps) {
   const w = size * (26 / 36);
   const h = size;
-  const id = `pear-${Math.random().toString(36).slice(2, 8)}`;
+  const id = `pear-${useId()}`;
   return (
     <svg
       width={w}
