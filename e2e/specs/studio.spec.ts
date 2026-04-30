@@ -124,6 +124,17 @@ test.describe('Studio (stationery editor)', () => {
     await expect(page.locator('aside').getByText(/1 sent · 3 guests/).first()).toBeVisible({ timeout: 10_000 });
   });
 
+  test('Envelope return-address derives from manifest venueAddress', async ({ page }) => {
+    // SYNTHETIC_MANIFEST.logistics.venueAddress = '12 Lane St, Sonoma, CA'.
+    // The envelope's return-address corner should split this into
+    // line1="12 Lane St" + line2="Sonoma, CA" beneath the couple
+    // name, instead of leaving the lines blank.
+    await page.getByRole('button', { name: /^Envelope$/ }).first().click();
+    const card = page.locator('main');
+    await expect(card.getByText('12 Lane St').first()).toBeVisible();
+    await expect(card.getByText('Sonoma, CA').first()).toBeVisible();
+  });
+
   test('Save-the-date back surfaces ceremony / reception / hotel from manifest', async ({ page }) => {
     // Switch to Save-the-date stationery type, then to Back view.
     await page.getByRole('button', { name: /^Save the date$/ }).click();
