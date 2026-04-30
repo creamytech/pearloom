@@ -208,9 +208,39 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
   }
 
   // ── AI: rewrite a single field with Pear ────────────────────
-  async function rewriteField(_id: string, _hint: string) {
-    // Reserved hook — wires to /api/pear-chat in a future round.
-    // Surfacing the affordance now so the UX reads complete.
+  async function rewriteField(fieldId: string, hint: string) {
+    if (aiBusy) return;
+    if (!['eyebrow', 'line2', 'line4', 'cta'].includes(fieldId)) return;
+    setAiBusy(true);
+    try {
+      const currentText = (content as unknown as Record<string, string>)[fieldId] ?? '';
+      const r = await fetch('/api/studio/rewrite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteSlug,
+          type: state.type,
+          fieldId,
+          currentText,
+          hint,
+        }),
+      });
+      if (!r.ok) throw new Error(`Rewrite failed (${r.status})`);
+      const data = (await r.json()) as { rewritten?: string };
+      const next = (data.rewritten ?? '').trim();
+      if (!next) return;
+      // Write into the per-type override slice — same path host
+      // edits land in, so the canvas updates immediately.
+      const prevSlice = state.copyOverrides[state.type] ?? {};
+      const nextSlice = { ...prevSlice, [fieldId]: next };
+      setMany({
+        copyOverrides: { ...state.copyOverrides, [state.type]: nextSlice },
+      });
+    } catch (err) {
+      console.error('[Studio] rewriteField', err);
+    } finally {
+      setAiBusy(false);
+    }
   }
 
   // ── Pear: match the card to the current site theme ─────────

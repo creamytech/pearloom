@@ -263,6 +263,35 @@ test.describe('Studio (stationery editor)', () => {
     }
   });
 
+  test('Pear field rewrite swaps the canvas copy', async ({ page }) => {
+    const REWRITTEN = 'PEAR-REWROTE-EYEBROW';
+    let captured: string | null = null;
+    await page.route('**/api/studio/rewrite', async (route) => {
+      captured = route.request().postData();
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ rewritten: REWRITTEN }),
+      });
+    });
+
+    await page.getByRole('button', { name: /^Copy$/ }).click();
+    // Expand the Eyebrow field's Rewrite panel.
+    const eyebrowRewriteBtn = page.locator('div').filter({ hasText: /^Eyebrow$/ }).first()
+      .locator('xpath=..').getByRole('button', { name: /Rewrite/ });
+    await eyebrowRewriteBtn.click();
+    // Click the first canned hint.
+    await page.getByRole('button', { name: /A different angle on the same idea/ }).click();
+
+    // The captured request body should include fieldId=eyebrow.
+    await expect.poll(() => captured).not.toBeNull();
+    expect(captured).toContain('"fieldId":"eyebrow"');
+    expect(captured).toContain('"type":"invite"');
+
+    // Canvas should reflect the rewritten copy.
+    await expect(page.locator('main').filter({ hasText: REWRITTEN }).first()).toBeVisible({ timeout: 5_000 });
+  });
+
   test('Copy overrides are scoped per stationery type', async ({ page }) => {
     await page.getByRole('button', { name: /^Copy$/ }).click();
     const eyebrow = () => page.locator('textarea').first();
