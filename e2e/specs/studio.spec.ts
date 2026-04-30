@@ -25,6 +25,10 @@ const SYNTHETIC_MANIFEST = {
     venueAddress: '12 Lane St, Sonoma, CA',
     rsvpDeadline: '2026-08-01',
   },
+  // Set the site theme accent to the exact sage palette accent
+  // — the Studio's "Match this card to your site theme" button
+  // picks the palette with the smallest RGB distance.
+  theme: { colors: { accent: '#8B9C5A' } },
   studio: {},
 };
 
@@ -236,6 +240,23 @@ test.describe('Studio (stationery editor)', () => {
       await btn.first().click();
       await expect(card).toBeVisible();
     }
+  });
+
+  test('Match-site-theme switches the palette to the closest match', async ({ page }) => {
+    // The synthetic manifest seeds theme.colors.accent = sage
+    // accent, so clicking "Match this card to your site theme"
+    // should switch the active palette to Garden (sage).
+    await page.getByRole('button', { name: /^Pear$/ }).click();
+    // The Garden palette tile shouldn't be the selected one yet
+    // — the default is Dusk (lavender). Selected tiles get a
+    // 2px ink border; that's hard to assert reliably across
+    // styles, so instead verify via the Palette section sub-text
+    // in the Design tab after we click match.
+    await page.getByRole('button', { name: /Match this card to your site theme/i }).click();
+    // Switch back to Design tab and confirm the Palette sub
+    // reads "olive · sage" (Garden's sub).
+    await page.getByRole('button', { name: /^Design$/ }).click();
+    await expect(page.getByText(/olive · sage/)).toBeVisible({ timeout: 5_000 });
   });
 
   test('Pear draft generation surfaces the new directions', async ({ page }) => {
