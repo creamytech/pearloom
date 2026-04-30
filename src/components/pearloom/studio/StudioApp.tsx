@@ -156,7 +156,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
       const r = await fetch('/api/studio/draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteSlug, type: state.type, count: 3 }),
+        body: JSON.stringify({ siteSlug, type: state.type, count: 3, tone: state.tone }),
       });
       if (!r.ok) throw new Error(`Studio draft failed (${r.status})`);
       const data = (await r.json()) as { drafts?: StudioDraft[] };
@@ -223,6 +223,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
           fieldId,
           currentText,
           hint,
+          tone: state.tone,
         }),
       });
       if (!r.ok) throw new Error(`Rewrite failed (${r.status})`);

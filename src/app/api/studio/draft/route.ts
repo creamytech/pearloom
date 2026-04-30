@@ -38,7 +38,16 @@ interface DraftBody {
   siteSlug?: string;
   type?: 'std' | 'invite' | 'thanks';
   count?: number;
+  /** Host-picked tone preset — formal / warm / playful / spare. */
+  tone?: string;
 }
+
+const TONE_GUIDANCE: Record<string, string> = {
+  formal:  'Formal — "request the pleasure" register, restrained.',
+  warm:    'Warm — spoken-aloud, contractions OK, gentle.',
+  playful: 'Playful — a wink, light, contemporary.',
+  spare:   'Spare — modernist, two lines max, no flourishes.',
+};
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -55,6 +64,8 @@ export async function POST(req: NextRequest) {
   const slug = body.siteSlug?.trim();
   const type = body.type;
   const count = Math.max(1, Math.min(5, Number(body.count ?? 3)));
+  const toneId = (body.tone ?? '').trim();
+  const toneGuidance = TONE_GUIDANCE[toneId] ?? TONE_GUIDANCE.warm;
   if (!slug || !type) return NextResponse.json({ error: 'siteSlug and type required' }, { status: 400 });
 
   const sb = getSupabase();
@@ -107,6 +118,7 @@ Context:
 - Vibe (host's words): "${vibe || '(not set)'}"
 - Hero tagline: "${tagline || '(not set)'}"
 - Venue: ${venue || '(not set)'}
+- Tone preset: ${toneGuidance}
 
 For each direction return:
 - id: a short kebab-case id (e.g. 'editorial', 'garden', 'modern', 'photo', 'script', 'minimal'); make them distinct

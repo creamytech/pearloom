@@ -312,13 +312,39 @@ test.describe('Studio (stationery editor)', () => {
     // Click the first canned hint.
     await page.getByRole('button', { name: /A different angle on the same idea/ }).click();
 
-    // The captured request body should include fieldId=eyebrow.
+    // The captured request body should include fieldId=eyebrow
+    // and the host's tone preset (default: warm).
     await expect.poll(() => captured).not.toBeNull();
     expect(captured).toContain('"fieldId":"eyebrow"');
     expect(captured).toContain('"type":"invite"');
+    expect(captured).toContain('"tone":"warm"');
 
     // Canvas should reflect the rewritten copy.
     await expect(page.locator('main').filter({ hasText: REWRITTEN }).first()).toBeVisible({ timeout: 5_000 });
+  });
+
+  test('Tone picker forwards the preset to the draft endpoint', async ({ page }) => {
+    let captured: string | null = null;
+    await page.route('**/api/studio/draft', async (route) => {
+      captured = route.request().postData();
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          drafts: [{ id: 'tone-test', name: 'Tone test', tone: 'playful', accent: 'lavender', layout: 'classic', motif: 'stamp' }],
+        }),
+      });
+    });
+    await page.getByRole('button', { name: /^Copy$/ }).click();
+    // Pick Playful in the Tone group.
+    await page.getByRole('button', { name: /^Playful/ }).first().click();
+    // Trigger a draft generation.
+    await page.getByRole('button', { name: /^Pear$/ }).click();
+    await page.getByRole('button', { name: /^Design$/ }).click();
+    await page.getByRole('button', { name: /Draft another direction/i }).click();
+    await expect.poll(() => captured).not.toBeNull();
+    expect(captured).toContain('"tone":"playful"');
+    expect(captured).toContain('"type":"invite"');
   });
 
   test('Copy overrides are scoped per stationery type', async ({ page }) => {

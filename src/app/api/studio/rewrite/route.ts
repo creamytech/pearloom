@@ -45,7 +45,16 @@ interface RewriteBody {
   fieldId?: string;
   currentText?: string;
   hint?: string;
+  /** Host-picked tone preset — formal / warm / playful / spare. */
+  tone?: string;
 }
+
+const TONE_GUIDANCE: Record<string, string> = {
+  formal:  'Formal: "request the pleasure" register. Third-person, restrained, no contractions.',
+  warm:    'Warm: spoken-aloud register. First-person plural, contractions OK, gentle.',
+  playful: 'Playful: a wink. Short, contemporary, light. Em-dashes welcome.',
+  spare:   'Spare: at most two short lines. No flourishes. Modernist.',
+};
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -64,6 +73,8 @@ export async function POST(req: NextRequest) {
   const fieldId = body.fieldId?.trim();
   const currentText = (body.currentText ?? '').trim();
   const hint = (body.hint ?? '').trim();
+  const toneId = (body.tone ?? '').trim();
+  const toneGuidance = TONE_GUIDANCE[toneId] ?? TONE_GUIDANCE.warm;
   if (!slug || !type || !fieldId) {
     return NextResponse.json({ error: 'siteSlug, type, fieldId required' }, { status: 400 });
   }
@@ -109,9 +120,11 @@ Field: ${FIELD_LABEL[fieldId]}
 Current text: ${currentText || '(empty)'}
 Direction: ${hint || '(no specific hint — just make it sing)'}
 
+Tone preset: ${toneGuidance}
+
 Vibe: ${m.vibeString || '(not set)'}
 
-Return ONE single line of text — no quotes, no markdown, no explanation. Match the card's register: stationery is concise, warm, never breathless. Aim for the same length as the original ± 30%. If the field is the eyebrow, ALL CAPS is OK. Otherwise sentence case.`;
+Return ONE single line of text — no quotes, no markdown, no explanation. Match the card's register and the tone preset above. Aim for the same length as the original ± 30%. If the field is the eyebrow, ALL CAPS is OK. Otherwise sentence case.`;
 
   const r = await fetch(`${GEMINI_LITE}?key=${apiKey}`, {
     method: 'POST',
