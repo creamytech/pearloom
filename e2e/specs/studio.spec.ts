@@ -100,6 +100,30 @@ test.describe('Studio (stationery editor)', () => {
     }
   });
 
+  test('Left-rail "This send" pill reflects /api/guests stats', async ({ page }) => {
+    // Override the guests mock with stats that include a sent
+    // email and an attending guest, so the pill has something
+    // to render.
+    await page.route(/\/api\/guests(\?|$)/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          guests: [
+            { id: 'g1', name: 'Alice',  email: 'alice@example.test',  status: 'attending', email_sent_at: '2026-09-01T10:00:00Z' },
+            { id: 'g2', name: 'Bob',    email: 'bob@example.test',    status: 'pending',   email_sent_at: null },
+            { id: 'g3', name: 'Carlos', email: 'carlos@example.test', status: 'pending',   email_sent_at: null },
+          ],
+        }),
+      });
+    });
+    await page.reload();
+    await expect(page.getByText(/Studio · /)).toBeVisible({ timeout: 15_000 });
+    // The "This send" pill in the left rail should now read
+    // "1 sent · 3 guests" given the mock.
+    await expect(page.locator('aside').getByText(/1 sent · 3 guests/).first()).toBeVisible({ timeout: 10_000 });
+  });
+
   test('Save-the-date back surfaces ceremony / reception / hotel from manifest', async ({ page }) => {
     // Switch to Save-the-date stationery type, then to Back view.
     await page.getByRole('button', { name: /^Save the date$/ }).click();

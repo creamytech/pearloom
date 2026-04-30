@@ -98,6 +98,26 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
   const { state, setField, setMany, savedAt, saving } = useStudioState({ siteSlug, manifest });
   const [aiBusy, setAiBusy] = useState(false);
 
+  // Live guest counts for the left-rail "This send" pill. The
+  // Send overlay does its own fetch on open; this one keeps the
+  // rail truthy without waiting for the overlay to mount.
+  const [guestStats, setGuestStats] = useState<{ total?: number; sent?: number; ready?: number }>({});
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/guests', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : Promise.reject(new Error(String(r.status))))
+      .then((data: { guests?: Array<{ status?: string; email_sent_at?: string | null }> }) => {
+        if (cancelled) return;
+        const guests = data.guests ?? [];
+        const total = guests.length;
+        const sent = guests.filter(g => g.email_sent_at).length;
+        const ready = guests.filter(g => g.status === 'attending').length;
+        setGuestStats({ total, sent, ready });
+      })
+      .catch(() => { /* silent — rail just shows the empty hint */ });
+    return () => { cancelled = true; };
+  }, [siteSlug]);
+
   const palette = PALETTES.find(p => p.id === state.palette) ?? PALETTES[0];
   const font = FONT_PAIRS.find(f => f.id === state.fontPair) ?? FONT_PAIRS[0];
 
@@ -318,7 +338,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
         onAskPearForDraft={askPearForDraft}
         onAskPearForAsset={askPearForAsset}
         aiBusy={aiBusy}
-        sendStats={{ total: undefined }}
+        sendStats={guestStats}
       />
 
       <CanvasStage>
