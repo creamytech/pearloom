@@ -1442,9 +1442,9 @@ export default function RsvpManagementPage({
       <DashLayout active="guests" hideTopbar>
         <div style={{ padding: '80px 32px', textAlign: 'center', color: 'var(--ink-muted)', fontFamily: 'var(--font-ui)' }}>
           <p>No domain provided. Go back to your dashboard to view RSVPs.</p>
-          <a href="/dashboard" className="btn btn-outline btn-sm" style={{ marginTop: 16 }}>
+          <Link href="/dashboard" className="btn btn-outline btn-sm" style={{ marginTop: 16 }}>
             ← Back to dashboard
-          </a>
+          </Link>
         </div>
       </DashLayout>
     );

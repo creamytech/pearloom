@@ -20,6 +20,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 
@@ -237,7 +238,7 @@ export function MusicDashboardClient() {
                 see why "accepted" matters beyond the public site. */}
             <div style={{ fontSize: 12, color: 'var(--ink-muted)', textAlign: 'center', lineHeight: 1.5 }}>
               Accepted songs flow into the printable{' '}
-              <a href="/dashboard/memory-book" style={{ color: 'var(--peach-ink, #C6703D)', textDecoration: 'underline' }}>memory book</a>
+              <Link href="/dashboard/memory-book" style={{ color: 'var(--peach-ink, #C6703D)', textDecoration: 'underline' }}>memory book</Link>
               {' '}and appear under your soundtrack on the public site.
             </div>
           </>
