@@ -47,12 +47,12 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
     let cancelled = false;
     fetch(`/api/guests?siteSlug=${encodeURIComponent(siteSlug)}`, { cache: 'no-store' })
       .then(r => (r.ok ? r.json() : null))
-      .then((data: null | { guests?: Array<{ email?: string | null; phone?: string | null; address?: string | null; status?: string | null }> }) => {
+      .then((data: null | { guests?: Array<{ email?: string | null; phone?: string | null; mailingAddress?: { line1?: string } | null; status?: string | null }> }) => {
         if (cancelled || !data?.guests) return;
         const total = data.guests.length;
         const withEmail = data.guests.filter(g => !!g.email).length;
         const withPhone = data.guests.filter(g => !!g.phone).length;
-        const withAddress = data.guests.filter(g => !!g.address).length;
+        const withAddress = data.guests.filter(g => !!g.mailingAddress?.line1).length;
         const attending = data.guests.filter(g => g.status === 'attending').length;
         setStats({ total, withEmail, withPhone, withAddress, attending });
       })

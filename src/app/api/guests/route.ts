@@ -69,6 +69,7 @@ export async function GET(req: NextRequest) {
       id: row.id,
       name: row.name,
       email: row.email,
+      phone: row.phone ?? null,
       status: row.status || 'pending',
       plusOne: row.plus_one || false,
       plusOneName: row.plus_one_name,
