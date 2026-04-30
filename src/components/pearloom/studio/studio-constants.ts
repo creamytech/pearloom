@@ -152,12 +152,6 @@ export const DEFAULT_ASSET_PALETTE: AssetEntry[] = [
   { id: 't2', kind: 'tape', color: '#C4B5D9' },
 ];
 
-export const STATIONERY_LABELS: Record<StationeryType, string> = {
-  std: 'Save the date',
-  invite: 'Invitation',
-  thanks: 'Thank-you',
-};
-
 /** Build the per-type content from manifest data. The Studio
  *  binds these to real fields so editing the date in the hero
  *  flows through to every card automatically. */
