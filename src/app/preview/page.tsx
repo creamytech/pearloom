@@ -8,6 +8,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import React from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useMemo, useState, useEffect, useCallback } from 'react';
 import { Hero } from '@/components/hero';
@@ -155,7 +156,6 @@ function SubpagePreview({ page, manifest, names, rawParams }: { page: string; ma
 
   return (
     <ThemeProvider theme={{ ...dynamicTheme, ...manifest.theme, colors: { ...dynamicTheme.colors, ...(manifest.theme?.colors || {}) }, effects: manifest.theme?.effects }}>
-      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
       {subMeshActive && <style>{`body { background: ${bgColor}; }`}</style>}
       <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: subMeshActive ? 'transparent' : bgColor }}>
@@ -249,7 +249,7 @@ function PreviewContent() {
             >
               Browse templates
             </a>
-            <a
+            <Link
               href="/dashboard"
               style={{
                 display: 'inline-flex',
@@ -265,12 +265,12 @@ function PreviewContent() {
               }}
             >
               Go to dashboard
-            </a>
+            </Link>
           </div>
           <div style={{ marginTop: 28, fontSize: 12, color: '#6F6557' }}>
-            <a href="/" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: 3 }}>
+            <Link href="/" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: 3 }}>
               ← Back to Pearloom
-            </a>
+            </Link>
           </div>
         </div>
       </div>
@@ -482,11 +482,12 @@ function PreviewContent() {
       case 'photos': {
         const pvSeen = new Set<string>();
         const allPhotos: Array<{ url: string; alt?: string }> = [];
-        if ((manifest as any).coverPhoto) {
-          const u = (manifest as any).coverPhoto as string;
+        const photoFields = manifest as unknown as { coverPhoto?: string; heroSlideshow?: string[] };
+        if (photoFields.coverPhoto) {
+          const u = photoFields.coverPhoto;
           if (!pvSeen.has(u)) { pvSeen.add(u); allPhotos.push({ url: u, alt: 'Cover photo' }); }
         }
-        for (const u of ((manifest as any).heroSlideshow || []) as string[]) {
+        for (const u of (photoFields.heroSlideshow ?? [])) {
           if (u && !pvSeen.has(u)) { pvSeen.add(u); allPhotos.push({ url: u, alt: 'Hero slideshow' }); }
         }
         for (const ch of (manifest.chapters || [])) {
@@ -511,7 +512,6 @@ function PreviewContent() {
                     borderRadius: 'var(--pl-radius-lg)', overflow: 'hidden',
                     boxShadow: `0 8px 30px ${pal.foreground}12`,
                   }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={proxyUrl(photo.url, 800, 600)} alt={photo.alt || ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                   </div>
                 ))}
@@ -586,13 +586,17 @@ function PreviewContent() {
 
       // Inject divider before every non-hero block
       if (block.type !== 'hero') {
-        const divAbove = (block as any).blockEffects?.dividerAbove;
+        // Loose cast: blockEffects isn't on the StoryManifest
+        // PageBlock type, and SectionDivider expects a strict
+        // DividerStyle union we don't import here. The runtime
+        // shape is validated by SectionDivider itself.
+        const divAbove = (block as { blockEffects?: { dividerAbove?: { style: string; height?: number } } }).blockEffects?.dividerAbove;
         if (divAbove) {
           // Per-block custom divider
           result.push(
             <SectionDivider
               key={`divider-before-${block.id}`}
-              style={divAbove.style}
+              style={divAbove.style as React.ComponentProps<typeof SectionDivider>['style']}
               color={thisEntryColor}
               bgColor={prevExitColor}
               height={divAbove.height}
@@ -628,7 +632,7 @@ function PreviewContent() {
       }
 
       // Wrap in scroll-reveal container — per-block overrides global
-      const blockReveal = (block as any).blockEffects?.scrollReveal;
+      const blockReveal = (block as { blockEffects?: { scrollReveal?: unknown } }).blockEffects?.scrollReveal;
       const globalReveal = manifest.theme?.effects?.scrollReveal;
       const effectiveReveal = (blockReveal && blockReveal !== 'none') ? blockReveal : globalReveal;
       if (effectiveReveal && effectiveReveal !== 'none' && block.type !== 'hero') {
@@ -669,7 +673,6 @@ function PreviewContent() {
           maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%), linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
           WebkitMaskComposite: 'source-in', maskComposite: 'intersect',
         }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={vibeSkin.heroArtDataUrl} alt="" role="presentation" style={{
             width: '100%', height: '100%', objectFit: 'cover',
             opacity: 0.50, mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
@@ -715,7 +718,6 @@ function PreviewContent() {
         WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
         maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
       }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={vibeSkin.artStripDataUrl} alt="" role="presentation" style={{
           width: '100%', height: '100%', objectFit: 'cover',
           opacity: 0.55, mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
@@ -743,7 +745,6 @@ function PreviewContent() {
 
   return (
     <ThemeProvider theme={{ ...dynamicTheme, ...manifest.theme, colors: { ...dynamicTheme.colors, ...(manifest.theme?.colors || {}) }, effects: manifest.theme?.effects }}>
-      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
 
       <EditBridge enabled={editMode} />
@@ -787,7 +788,6 @@ function PreviewContent() {
             {/* Ambient art overlay — very subtle painted page texture */}
             {vibeSkin.ambientArtDataUrl ? (
               <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={vibeSkin.ambientArtDataUrl} alt="" role="presentation" style={{
                   width: '100%', height: '100%', objectFit: 'cover',
                   opacity: 0.28, mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
@@ -862,13 +862,20 @@ function PreviewContent() {
 
 // ── Countdown widget ─────────────────────────────────────────
 function CountdownDisplay({ targetDate, accentColor }: { targetDate: string; accentColor: string }) {
-  const [now, setNow] = useState(Date.now());
+  // Lazy initialiser — useState(Date.now()) re-evaluates on
+  // every render even though only the first value sticks. The
+  // function form is called once on mount.
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
 
-  const target = new Date(targetDate).getTime();
+  // parseLocalDate so a bare YYYY-MM-DD targetDate (the
+  // common case from manifest.logistics.date) doesn't tick to
+  // the day before for hosts west of UTC.
+  const targetDateObj = parseLocalDate(targetDate);
+  const target = targetDateObj?.getTime() ?? 0;
   const diff = Math.max(0, target - now);
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
