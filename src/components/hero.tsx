@@ -85,12 +85,15 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
   const ref = useRef<HTMLDivElement>(null);
   const prefersReduced = useReducedMotion();
 
-  // Editor mode: prefer explicit prop, fall back to DOM check (for legacy callers)
-  const isEditorRef = useRef<boolean | null>(editMode ?? null);
-  if (isEditorRef.current === null && typeof document !== 'undefined') {
-    isEditorRef.current = !!document.querySelector('.pl-site-scope');
-  }
-  const isEditor = editMode ?? isEditorRef.current ?? false;
+  // Editor mode: prefer explicit prop, fall back to a one-shot
+  // DOM check (legacy callers don't pass editMode). Lazy useState
+  // init runs the querySelector once on first render only —
+  // render itself stays pure (react-hooks/refs).
+  const [isEditorFallback] = useState(() => {
+    if (typeof document === 'undefined') return false;
+    return !!document.querySelector('.pl-site-scope');
+  });
+  const isEditor = editMode ?? isEditorFallback;
 
   // Scroll-based parallax — only works outside editor (viewport scroll)
   // In editor, the scroll container is different, so we disable parallax

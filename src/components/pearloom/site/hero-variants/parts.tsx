@@ -6,7 +6,7 @@
 // rewrite affordances stay consistent across all 5.
 // ──────────────────────────────────────────────────────────────
 
-import { forwardRef, useRef, useState } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
 import { EditableText } from '@/components/pearloom/editor/canvas/EditableText';
 import { HoverToolbar } from '@/components/pearloom/editor/canvas/HoverToolbar';
 import { HeroFieldPopover } from '@/components/pearloom/editor/canvas/HeroFieldPopover';
@@ -121,6 +121,14 @@ export function HeroDateVenue({ dateInfo, venue, color, manifest, onEditField }:
   const [openField, setOpenField] = useState<'date' | 'venue' | null>(null);
   const dateRef = useRef<HTMLButtonElement | null>(null);
   const venueRef = useRef<HTMLButtonElement | null>(null);
+  // Anchor for the popover lives in state so render doesn't read
+  // .current (react-hooks/refs). Sync on openField transitions.
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    if (openField === 'date') setAnchor(dateRef.current);
+    else if (openField === 'venue') setAnchor(venueRef.current);
+    else setAnchor(null);
+  }, [openField]);
   const placeholderDate = !dateInfo && editMode;
   const placeholderVenue = !venue && editMode;
 
@@ -182,7 +190,7 @@ export function HeroDateVenue({ dateInfo, venue, color, manifest, onEditField }:
       </div>
       {editMode && manifest && onEditField && openField && (
         <HeroFieldPopover
-          anchor={openField === 'date' ? dateRef.current : venueRef.current}
+          anchor={anchor}
           field={openField}
           manifest={manifest}
           onEditField={onEditField}

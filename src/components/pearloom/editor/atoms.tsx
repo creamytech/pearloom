@@ -182,15 +182,15 @@ export function PanelSection({
 }) {
   const groupCtx = useContext(PanelGroupContext);
   const searchCtx = useContext(PanelSearchContext);
-  const positionRef = useRef<number | null>(null);
-  if (positionRef.current === null) {
-    positionRef.current = groupCtx ? groupCtx.register() : 0;
-  }
+  // useState lazy init runs groupCtx.register() once on first
+  // mount (registering this section's position) and stores the
+  // number in state. Render itself stays pure (react-hooks/refs).
+  const [position] = useState(() => groupCtx ? groupCtx.register() : 0);
   const initialOpen =
     defaultOpen !== undefined
       ? defaultOpen
       : groupCtx
-        ? positionRef.current === 1
+        ? position === 1
         : true;
   const [open, setOpen] = useState(initialOpen);
   // When a search query is active, hide non-matching sections AND

@@ -52,9 +52,11 @@ export function IconDropTarget({ editMode, onEditField, canvasRoot }: Props) {
   const [hover, setHover] = useState<Hover | null>(null);
   const [dropping, setDropping] = useState<{ replacement: string } | null>(null);
   // Track the latest hover via a ref so the keydown handler can
-  // read it without re-binding on every state change.
+  // read it without re-binding on every state change. Sync the
+  // ref in an effect (writing during render breaks
+  // react-hooks/refs).
   const hoverRef = useRef<Hover | null>(null);
-  hoverRef.current = hover;
+  useEffect(() => { hoverRef.current = hover; }, [hover]);
 
   // ── Click handler — opens IconSwapModal for the targeted icon.
   useEffect(() => {
