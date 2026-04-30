@@ -100,8 +100,11 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
 
   // Live guest counts for the left-rail "This send" pill. The
   // Send overlay does its own fetch on open; this one keeps the
-  // rail truthy without waiting for the overlay to mount.
+  // rail truthy without waiting for the overlay to mount, and
+  // re-fetches after a successful send so the "N sent" count
+  // updates without a page reload.
   const [guestStats, setGuestStats] = useState<{ total?: number; sent?: number; ready?: number }>({});
+  const [statsTick, setStatsTick] = useState(0);
   useEffect(() => {
     let cancelled = false;
     fetch(`/api/guests?siteSlug=${encodeURIComponent(siteSlug)}`, { cache: 'no-store' })
@@ -116,7 +119,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
       })
       .catch(() => { /* silent — rail just shows the empty hint */ });
     return () => { cancelled = true; };
-  }, [siteSlug]);
+  }, [siteSlug, statsTick]);
 
   const palette = PALETTES.find(p => p.id === state.palette) ?? PALETTES[0];
   const font = FONT_PAIRS.find(f => f.id === state.fontPair) ?? FONT_PAIRS[0];
@@ -476,6 +479,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
             />
           }
           onClose={() => setField('showSend', false)}
+          onSent={() => setStatsTick((t) => t + 1)}
         />
       )}
 
