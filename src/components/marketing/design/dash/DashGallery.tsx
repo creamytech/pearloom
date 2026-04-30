@@ -33,46 +33,42 @@ function proxied(url: string, w: number) {
 
 export function DashGallery() {
   const { sites, loading: sitesLoading } = useUserSites();
-  const [photos, setPhotos] = useState<ReelPhoto[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Tagged result so loading + error + photos all derive from
+  // a single state value — no setState-in-effect cascade.
+  type ReelResult = { photos: ReelPhoto[] } | { error: string };
+  const [result, setResult] = useState<ReelResult | null>(null);
   const [view, setView] = useState<View>('masonry');
   const [filter, setFilter] = useState<Filter>('all');
   const [active, setActive] = useState<ReelPhoto | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     fetch('/api/dashboard/reel?limit=300', { cache: 'no-store' })
       .then((r) => r.json())
       .then((data: { photos?: ReelPhoto[] }) => {
         if (cancelled) return;
-        setPhotos(data.photos ?? []);
+        setResult({ photos: data.photos ?? [] });
       })
       .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : String(e));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (cancelled) return;
+        setResult({ error: e instanceof Error ? e.message : String(e) });
       });
     return () => {
       cancelled = true;
     };
   }, []);
 
+  // Derived from the tagged result. `loading` is null-result;
+  // `photos` is empty when erroring.
+  const loading = result === null;
+  const error = result && 'error' in result ? result.error : null;
+  const photos: ReelPhoto[] | null = result && 'photos' in result ? result.photos : null;
+
   const filtered = useMemo(() => {
     if (!photos) return [];
     if (filter === 'all') return photos;
     return photos.filter((p) => p.source === filter);
   }, [photos, filter]);
-
-  if (!sitesLoading && (!sites || sites.length === 0)) {
-    return (
-      <DashLayout active="gallery" title="The Reel" subtitle="Create a site and upload a photo — your Reel fills up as you go.">
-        <EmptyShell message="Create a site and upload a photo — your Reel fills up as you go." />
-      </DashLayout>
-    );
-  }
 
   const counts = useMemo(() => {
     const c: Record<Filter, number> = { all: 0, cover: 0, hero: 0, chapter: 0, guest: 0 };
@@ -81,6 +77,16 @@ export function DashGallery() {
     for (const p of photos) c[p.source] += 1;
     return c;
   }, [photos]);
+
+  // Empty state — moved AFTER the hooks so the order is the
+  // same on every render (rules-of-hooks).
+  if (!sitesLoading && (!sites || sites.length === 0)) {
+    return (
+      <DashLayout active="gallery" title="The Reel" subtitle="Create a site and upload a photo — your Reel fills up as you go.">
+        <EmptyShell message="Create a site and upload a photo — your Reel fills up as you go." />
+      </DashLayout>
+    );
+  }
 
   return (
     <DashLayout

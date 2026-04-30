@@ -627,9 +627,14 @@ function shapeGuest(g: ApiGuest): Guest {
 export function DashGuests() {
   const { site, loading: siteLoading } = useSelectedSite();
   const { sites } = useUserSites();
-  const [rows, setRows] = useState<Guest[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Tagged result so loading + error + rows all derive from
+  // a single state value — no setState-in-effect cascade.
+  type GuestsResult = {
+    siteId: string;
+    rows: Guest[] | null;  // null = no site selected branch
+    error: string | null;
+  };
+  const [result, setResult] = useState<GuestsResult | null>(null);
   // 'stale' is a virtual filter — not on the row's RSVP status,
   // but on its lifecycle (invited >7d ago, no response). Lives
   // alongside the rsvp keys so the same pill UI handles both.
@@ -640,29 +645,37 @@ export function DashGuests() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    if (!site?.id) {
-      setLoading(false);
-      return;
-    }
+    if (!site?.id) return;
     let cancelled = false;
-    setLoading(true);
-    setError(null);
-    fetch(`/api/guests?siteId=${encodeURIComponent(site.id)}`, { cache: 'no-store' })
+    const currentSiteId = site.id;
+    fetch(`/api/guests?siteId=${encodeURIComponent(currentSiteId)}`, { cache: 'no-store' })
       .then((r) => r.json())
       .then((data: { guests?: ApiGuest[] }) => {
         if (cancelled) return;
-        setRows((data.guests ?? []).map(shapeGuest));
+        setResult({
+          siteId: currentSiteId,
+          rows: (data.guests ?? []).map(shapeGuest),
+          error: null,
+        });
       })
       .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : String(e));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (cancelled) return;
+        setResult({
+          siteId: currentSiteId,
+          rows: null,
+          error: e instanceof Error ? e.message : String(e),
+        });
       });
     return () => {
       cancelled = true;
     };
   }, [site?.id, refreshKey]);
+
+  // Derived from the tagged result. `loading` is true until the
+  // fetch for the current site.id lands.
+  const loading = site?.id ? (result?.siteId !== site.id) : false;
+  const rows = result?.rows ?? null;
+  const error = result?.error ?? null;
 
   const counts = useMemo(() => {
     const base = { all: 0, yes: 0, no: 0, maybe: 0, pending: 0, stale: 0, opened: 0, bounced: 0 };
