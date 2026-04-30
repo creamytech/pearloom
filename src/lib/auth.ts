@@ -102,6 +102,46 @@ export const authOptions: NextAuthOptions = {
         return { id: user.id, email: user.email, name: user.name };
       },
     }),
+
+    // ── E2E test-only provider ─────────────────────────────────
+    // Enabled ONLY when both PEARLOOM_E2E='1' and NODE_ENV!=='production'.
+    // Lets Playwright sign in via /api/auth/callback/e2e using the
+    // E2E_TEST_USER_EMAIL/PASSWORD env vars. Never reachable in
+    // production builds — the conditional skip means the provider
+    // simply isn't registered. Keeps the Google + email auth flows
+    // pristine.
+    ...(process.env.PEARLOOM_E2E === '1' && process.env.NODE_ENV !== 'production'
+      ? [
+          CredentialsProvider({
+            id: 'e2e',
+            name: 'E2E Test',
+            credentials: {
+              email: { label: 'Email', type: 'email' },
+              password: { label: 'Password', type: 'password' },
+            },
+            async authorize(credentials) {
+              if (!credentials?.email || !credentials?.password) return null;
+              const expectedEmail = process.env.E2E_TEST_USER_EMAIL;
+              const expectedPassword = process.env.E2E_TEST_USER_PASSWORD;
+              if (!expectedEmail || !expectedPassword) {
+                console.error('[e2e auth] E2E_TEST_USER_EMAIL/PASSWORD env vars not set.');
+                return null;
+              }
+              if (
+                credentials.email.toLowerCase().trim() !== expectedEmail.toLowerCase().trim() ||
+                credentials.password !== expectedPassword
+              ) {
+                return null;
+              }
+              return {
+                id: `e2e-${expectedEmail}`,
+                email: expectedEmail,
+                name: 'E2E Test User',
+              };
+            },
+          }),
+        ]
+      : []),
   ],
 
   callbacks: {
