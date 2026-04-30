@@ -1868,7 +1868,9 @@ function SaveDot({
 }) {
   // Tick every 30s so the "Saved 2 min ago" label updates live.
   // Cheap — the SaveDot is one of ~5 elements in the topbar.
-  const [, setNow] = useState(Date.now());
+  // Lazy initialiser so render stays pure; the value is read
+  // a few lines down to compute the relative-time string.
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     if (!lastSavedAt) return;
     const id = setInterval(() => setNow(Date.now()), 30_000);
@@ -1899,7 +1901,7 @@ function SaveDot({
   // not a status bar element.
   const relativeAgo = (() => {
     if (!lastSavedAt) return '';
-    const ago = Date.now() - lastSavedAt;
+    const ago = now - lastSavedAt;
     if (ago < 5_000) return 'just now';
     if (ago < 60_000) return `${Math.floor(ago / 1000)}s ago`;
     if (ago < 3_600_000) return `${Math.floor(ago / 60_000)} min ago`;

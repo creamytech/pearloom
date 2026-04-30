@@ -81,8 +81,15 @@ export function WelcomeHome() {
 
   // ── Derived: dates, stage, names ────────────────────────────
   const eventDate = parseLocalDate(site?.eventDate);
+  // `now` ticks hourly so the days-until count advances at
+  // midnight without a page reload. Lazy init keeps render pure.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
   const daysUntil = eventDate
-    ? Math.max(0, Math.round((eventDate.getTime() - Date.now()) / 86_400_000))
+    ? Math.max(0, Math.round((eventDate.getTime() - now) / 86_400_000))
     : null;
   const eventDateLabel = eventDate
     ? eventDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })

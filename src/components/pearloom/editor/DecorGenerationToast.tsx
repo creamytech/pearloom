@@ -13,6 +13,7 @@
 // the API's error string.
 // ─────────────────────────────────────────────────────────────
 
+import { useEffect, useState } from 'react';
 import { useDecorJobs, dismissDecorJob, type DecorJob } from '@/lib/decor-bus';
 
 export function DecorGenerationToast() {
@@ -43,7 +44,16 @@ export function DecorGenerationToast() {
 }
 
 function DecorJobRow({ job }: { job: DecorJob }) {
-  const elapsed = Math.max(0, ((job.endedAt ?? Date.now()) - job.startedAt) / 1000);
+  // While the job is still running, tick once a second so the
+  // elapsed counter updates. Once `endedAt` is set, the value
+  // is fixed and the interval shuts off.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (job.endedAt) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [job.endedAt]);
+  const elapsed = Math.max(0, ((job.endedAt ?? now) - job.startedAt) / 1000);
   const tone =
     job.status === 'running'
       ? { bg: 'rgba(14,13,11,0.92)', dot: 'var(--gold, #B8935A)', label: 'Painting' }
