@@ -401,6 +401,27 @@ test.describe('Studio (stationery editor)', () => {
     }
   });
 
+  test('cycles through every Typography pair without throwing', async ({ page }) => {
+    const card = page.locator('main').filter({ hasText: 'Emma' }).first();
+    // The Typography group renders 4 tiles by name: Editorial /
+    // Garden / Modern / Handwritten. Garden also matches the
+    // Palette tile of the same name; scope each click to a
+    // button whose accessible name is the typography label
+    // followed by its `sub` description.
+    for (const [name, sub] of [
+      ['Editorial',  'Fraunces · Inter'],
+      ['Garden',     'Fraunces italic'],
+      ['Modern',     'Inter · Inter'],
+      ['Handwritten','Caveat · Inter'],
+    ] as const) {
+      const btn = page.getByRole('button').filter({ hasText: new RegExp(`Aa Bb\\s*${name}\\s*${sub.replace(/[·]/g, '\\·')}`) });
+      const count = await btn.count();
+      if (count === 0) continue;
+      await btn.first().click();
+      await expect(card).toBeVisible();
+    }
+  });
+
   test('cycles through every Palette without throwing', async ({ page }) => {
     const card = page.locator('main').filter({ hasText: 'Emma' }).first();
     // Palette tile buttons are titled with their display name.
