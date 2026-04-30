@@ -229,8 +229,8 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 6, borderTop: '1px solid var(--line-soft)', marginTop: 4 }}>
             <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>
               {withEmail > 0
-                ? `${withEmail} digital sends are free. Print + ship priced at checkout.`
-                : 'No guest emails on file yet.'}
+                ? `${withEmail} digital send${withEmail === 1 ? '' : 's'} are free.`
+                : 'No guest emails on file yet — add some first.'}
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={onClose} className="btn btn-ghost btn-sm">Save draft</button>
@@ -240,7 +240,12 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
                 disabled={busy || withEmail === 0}
                 style={{ opacity: busy || withEmail === 0 ? 0.55 : 1 }}
               >
-                {busy ? 'Sending…' : (
+                {busy ? 'Sending…' : withEmail === 0 ? (
+                  <>
+                    <Icon name="send" size={12} color="var(--cream)" />
+                    {' '}Send
+                  </>
+                ) : (
                   <>
                     <Icon name="send" size={12} color="var(--cream)" />
                     {' '}Send to {withEmail}
