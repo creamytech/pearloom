@@ -142,6 +142,31 @@ test.describe('Studio (stationery editor)', () => {
     await expect(page.getByText('Off it goes.')).not.toBeVisible();
   });
 
+  test('Send error from the API surfaces inline in the overlay', async ({ page }) => {
+    // Override the guests mock so withEmail > 0 and Send is enabled.
+    await page.route(/\/api\/guests(\?|$)/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ guests: [{ id: 'g1', name: 'Alice', email: 'a@example.test', status: 'pending' }] }),
+      });
+    });
+    await page.route('**/api/invite/guest', async (route) => {
+      await route.fulfill({
+        status: 503,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Email is not configured on this server. Add RESEND_API_KEY and try again.' }),
+      });
+    });
+    await page.getByRole('button', { name: /^Send$/ }).first().click();
+    await page.getByRole('button', { name: /Send to 1/ }).click();
+    // The overlay's role=alert region should surface the API
+    // error string verbatim. There may be alert regions elsewhere
+    // on the page (sidebar nudges); scope to the one inside the
+    // overlay (the only one with the RESEND_API_KEY substring).
+    await expect(page.getByRole('alert').filter({ hasText: /RESEND_API_KEY/ })).toBeVisible();
+  });
+
   test('topbar shows "Saving…" while the autosave POST is in flight', async ({ page }) => {
     let release: (() => void) | null = null;
     // Hold the autosave POST open so we can verify the
