@@ -55,7 +55,12 @@ export function useEditorHistory(
 ): EditorHistoryApi {
   const pastRef = useRef<Snapshot[]>([]);
   const futureRef = useRef<Snapshot[]>([]);
-  const currentRef = useRef<Snapshot>({ manifest: initialManifest, names: initialNames, at: Date.now() });
+  // useState lazy init for the timestamp keeps Date.now() out
+  // of the render path. The value is only read by ref through
+  // currentRef so re-renders after the first mount are
+  // unaffected.
+  const [initialAt] = useState(() => Date.now());
+  const currentRef = useRef<Snapshot>({ manifest: initialManifest, names: initialNames, at: initialAt });
   const coalesceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Re-render trigger when undo/redo state changes.

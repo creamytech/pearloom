@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PanelTabs, SegmentedToggle, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
@@ -788,7 +788,9 @@ function AirportsField({
     } as unknown as StoryManifest);
   }
 
-  function addAirport(p: { id: string; name: string; address: string; lat?: number; lng?: number; websiteUri?: string }) {
+  // useCallback so the impure Date.now() reference sits in a
+  // stable callback body, not a render-time function literal.
+  const addAirport = useCallback((p: { id: string; name: string; address: string; lat?: number; lng?: number; websiteUri?: string }) => {
     // Drive time hint — same formula as the hotel route.
     let distance = '';
     if (typeof l.venueLat === 'number' && typeof l.venueLng === 'number' && typeof p.lat === 'number' && typeof p.lng === 'number') {
@@ -820,7 +822,7 @@ function AirportsField({
     };
     persist([...airports, entry]);
     setQuery('');
-  }
+  }, [airports, l.venueLat, l.venueLng, persist]);
 
   function removeAirport(id: string | undefined) {
     if (!id) return;

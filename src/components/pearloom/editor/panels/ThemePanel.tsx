@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { DEFAULT_HOME_BLOCKS, type SiteMode } from '@/lib/site-mode';
 import { Field, PanelSection, SegmentedToggle, SelectInput, TextInput } from '../atoms';
@@ -1173,10 +1173,13 @@ function CustomPaletteEditor({
   const [accentLight, setAccentLight] = useState(seed?.accentLight ?? '#D7CCE5');
   const [muted, setMuted] = useState(seed?.muted ?? '#6D7D3F');
 
+  // Stable per-component-instance id for the in-progress
+  // palette. Was Date.now() which made render impure and the
+  // id churn on every keystroke.
+  const customId = `custom-${useId()}`;
   const preset: ThemePreset = useMemo(() => {
-    const id = `custom-${Date.now()}`;
     return {
-      id,
+      id: customId,
       name: name.trim() || 'My palette',
       colors: [accent, muted, accentLight, bg, fg, accentLight],
       theme: {
@@ -1188,7 +1191,7 @@ function CustomPaletteEditor({
         cardBg: lighten(bg, 0.08),
       },
     };
-  }, [name, bg, fg, accent, accentLight, muted]);
+  }, [customId, name, bg, fg, accent, accentLight, muted]);
 
   function apply() {
     applyPalette(preset);

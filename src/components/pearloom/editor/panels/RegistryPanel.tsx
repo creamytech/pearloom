@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PhotoSlot, SelectInput, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
@@ -294,10 +294,12 @@ export function RegistryPanel({
     set(items.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
   }
 
-  function add(kind: RegistryItem['kind'] = 'fund') {
+  // useCallback so the impure Date.now() reference is in a
+  // stable callback body, not a render-time function literal.
+  const add = useCallback((kind: RegistryItem['kind'] = 'fund') => {
     const label = kind === 'fund' ? 'Honeymoon fund' : kind === 'registry' ? 'Our registry' : 'A link';
     set([...items, { id: `reg-${Date.now().toString(36)}`, label, url: '', description: '', kind }]);
-  }
+  }, [items, set]);
 
   return (
     <PanelGroup>
