@@ -142,6 +142,23 @@ test.describe('Studio (stationery editor)', () => {
     await expect(page.getByText('Off it goes.')).not.toBeVisible();
   });
 
+  test('FloatingPear minimises and reopens within the session', async ({ page }) => {
+    // Pear bubble starts expanded. The minimise button is a
+    // small ink-muted close icon inside the bubble; aria-label
+    // makes it findable.
+    const minimise = page.getByRole('button', { name: /Minimise Pear/i });
+    await expect(minimise).toBeVisible();
+    await minimise.click();
+    // After minimise, the expanded bubble is gone but the
+    // peach mini-button remains in the same fixed position.
+    await expect(minimise).not.toBeVisible();
+    const reopen = page.getByRole('button', { name: /Open Pear/i });
+    await expect(reopen).toBeVisible();
+    await reopen.click();
+    // Expanded again.
+    await expect(page.getByRole('button', { name: /Minimise Pear/i })).toBeVisible();
+  });
+
   test('Save draft closes the overlay without sending', async ({ page }) => {
     let inviteHits = 0;
     await page.route('**/api/invite/guest', async (route) => {
