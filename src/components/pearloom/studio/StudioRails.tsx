@@ -7,7 +7,7 @@
 //   - RemixRail (right): Design / Copy / Pear tabs
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   PALETTES, FONT_PAIRS, LAYOUTS, MOTIFS, COPY_TONES,
@@ -57,6 +57,18 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
   // savedAt is null until the host's first edit lands. Until
   // then the manifest as loaded IS persisted, so "Unsaved" was
   // misleading — show no label on a clean session.
+  // Tick every 5s so the relative-time label ("Saved 12s ago")
+  // doesn't freeze. Stops ticking once we cross an hour or
+  // when there's no savedAt to format.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (!savedAt) return;
+    const fresh = Date.now() - savedAt < 3_600_000;
+    if (!fresh) return;
+    const id = setInterval(() => setTick((t) => t + 1), 5_000);
+    return () => clearInterval(id);
+  }, [savedAt]);
+
   const savedLabel = saving
     ? 'Saving…'
     : savedAt
