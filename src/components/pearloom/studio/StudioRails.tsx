@@ -56,6 +56,25 @@ const TYPE_TABS: Array<{ id: StationeryType; label: string; icon: string; sub: s
   { id: 'thanks', label: 'Thank-you',     icon: 'heart-icon',     sub: 'Send the day after' },
 ];
 
+/** Pear's read-on-this — short character note per layout. */
+const LAYOUT_CHARACTER: Record<string, string> = {
+  classic: 'balanced and gallant',
+  asym:    'editorial and unbothered',
+  photo:   'personal and present',
+  script:  'intimate and handwritten',
+  minimal: 'spare and modern',
+};
+
+/** Pear's read-on-this — neighbourhood per palette. */
+const PALETTE_NEIGHBOURHOOD: Record<string, string> = {
+  lavender: 'editorial-classic',
+  sage:     'botanical-garden',
+  peach:    'Mediterranean-warm',
+  cream:    'heritage-letterpress',
+  twilight: 'evening-editorial',
+  rose:     'tender-romantic',
+};
+
 export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt, saving }: TopbarProps) {
   // savedAt is null until the host's first edit lands. Until
   // then the manifest as loaded IS persisted, so "Unsaved" was
@@ -768,9 +787,9 @@ function PearTab({ state, content, nameA, nameB, onMatchSiteTheme, onSuggestPair
           </div>
         </div>
         <div style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.5 }}>
-          The <strong>{state.layout}</strong> layout reads warm and confident. With{' '}
+          The <strong>{state.layout}</strong> layout reads {LAYOUT_CHARACTER[state.layout] ?? 'warm and confident'}. With{' '}
           <strong>{PALETTES.find(p => p.id === state.palette)?.name ?? 'this'}</strong> and the{' '}
-          <strong>{content.stamp.toLowerCase()}</strong> stamp, this lands in the editorial-classic neighborhood for {nameA} & {nameB}.
+          <strong>{content.stamp.toLowerCase()}</strong> stamp, this lands in the {PALETTE_NEIGHBOURHOOD[state.palette] ?? 'editorial-classic'} neighbourhood for {nameA} & {nameB}.
         </div>
       </div>
 
