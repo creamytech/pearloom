@@ -401,12 +401,12 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
         aiBusy={aiBusy}
       />
 
-      {state.showPear && (
-        <FloatingPear
-          nudges={content.pearNudges}
-          onClose={() => setField('showPear', false)}
-        />
-      )}
+      {/* Always mounted — FloatingPear has its own internal
+          expanded/minimized state. Closing the bubble shows a
+          peach mini-button the host can reopen, instead of
+          unmounting and stranding the affordance. */}
+      <FloatingPear nudges={content.pearNudges} />
+
 
       {state.showSend && (
         <StudioSendOverlay
@@ -512,13 +512,13 @@ function DeskStickers({ type }: { type: StationeryType }) {
   );
 }
 
-function FloatingPear({ nudges, onClose }: { nudges: string[]; onClose: () => void }) {
+function FloatingPear({ nudges }: { nudges: string[] }) {
   const [open, setOpen] = useState(true);
   const [idx, setIdx] = useState(0);
   const nudge = nudges[idx % nudges.length];
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} style={{
+      <button onClick={() => setOpen(true)} aria-label="Open Pear's nudges" style={{
         position: 'fixed', bottom: 70, right: 332, zIndex: 30,
         width: 48, height: 48, borderRadius: '50%',
         background: 'var(--card)', border: '1px solid var(--line)',
@@ -541,7 +541,7 @@ function FloatingPear({ nudges, onClose }: { nudges: string[]; onClose: () => vo
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
           <Pear size={28} tone="sage" sparkle />
           <div style={{ flex: 1, fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.45 }}>{nudge}</div>
-          <button onClick={() => { setOpen(false); onClose(); }} style={{ color: 'var(--ink-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
+          <button onClick={() => setOpen(false)} aria-label="Minimise Pear's nudges" style={{ color: 'var(--ink-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
             <Icon name="close" size={12} />
           </button>
         </div>

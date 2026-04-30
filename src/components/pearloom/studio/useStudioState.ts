@@ -8,8 +8,7 @@
 //     draft, palette, fontPair, layout, motif, tone,
 //     customMotifUrl, assets, drafts, copyOverrides, showAssets.
 //   - EPHEMERAL (reset on every mount): showSend (modal flag),
-//     showPear (close-the-bubble preference, intentionally
-//     greets each session), animate.
+//     animate.
 //
 // Saves are debounced 1500ms and posted to /api/sites. Reads
 // come from props on first mount.
@@ -36,7 +35,6 @@ export interface StudioState {
   tone: string;
   showSend: boolean;
   showAssets: boolean;
-  showPear: boolean;
   animate: boolean;
   /** Asset palette — built-in + AI-generated stickers. */
   assets: AssetEntry[];
@@ -69,7 +67,6 @@ const DEFAULT_STATE: StudioState = {
   tone: 'warm',
   showSend: false,
   showAssets: true,
-  showPear: true,
   animate: true,
   assets: DEFAULT_ASSET_PALETTE,
   customMotifUrl: null,
