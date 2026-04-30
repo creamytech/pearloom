@@ -92,6 +92,19 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
     ? `${hotels[0].name}${hotels[0].groupRate ? ` · ${hotels[0].groupRate}` : ''}`
     : undefined;
 
+  // Envelope return-address corner. Fall back to the couple's
+  // venue address if the host hasn't entered a dedicated one —
+  // it's a sensible default when the envelope ships from the
+  // wedding location, and it's better than three blank lines.
+  const returnAddress = useMemo(() => {
+    const parts = (venueAddress || '').split(',').map(s => s.trim()).filter(Boolean);
+    return {
+      name: `${nameA} & ${nameB}`,
+      line1: parts[0] ?? '',
+      line2: parts.slice(1).join(', '),
+    };
+  }, [nameA, nameB, venueAddress]);
+
   const occasion = normalizeOccasion((manifest as unknown as { occasion?: string }).occasion);
   const siteUrl = formatSiteDisplayUrl(siteSlug, '', occasion);
 
@@ -405,7 +418,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
                 nameA={nameA}
                 nameB={nameB}
                 monogram={monogram}
-                returnAddress={{ name: `${nameA} & ${nameB}` }}
+                returnAddress={returnAddress}
               />
             )}
           </div>
