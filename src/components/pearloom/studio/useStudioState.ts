@@ -131,7 +131,6 @@ export function useStudioState(args: {
    *  setSavedAt() that follows. The 1500ms debounce window
    *  doesn't count — only the actual flush. */
   const [saving, setSaving] = useState(false);
-  const lastFlush = useRef<number>(0);
   const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** Holds the most-recent serialised manifest. The
    *  beforeunload handler uses it to fire a sendBeacon when
@@ -181,7 +180,6 @@ export function useStudioState(args: {
     if (flushTimer.current) clearTimeout(flushTimer.current);
     flushTimer.current = setTimeout(async () => {
       const now = Date.now();
-      lastFlush.current = now;
       setSaving(true);
       try {
         await fetch('/api/sites', {
