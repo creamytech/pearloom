@@ -123,7 +123,6 @@ function readInitialState(manifest: StoryManifest | null | undefined): StudioSta
 export function useStudioState(args: {
   siteSlug: string;
   manifest: StoryManifest;
-  onPersist?: (next: StoryManifest) => void;
 }) {
   const [state, setState] = useState<StudioState>(() => readInitialState(args.manifest));
   const [savedAt, setSavedAt] = useState<number | null>(null);
@@ -189,7 +188,6 @@ export function useStudioState(args: {
         });
         setSavedAt(now);
         dirty.current = false;
-        args.onPersist?.(nextManifest);
       } catch {
         // Silent — autosave is best-effort. The host can re-trigger
         // by changing any field. dirty stays true so beforeunload
