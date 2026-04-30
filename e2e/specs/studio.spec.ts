@@ -323,6 +323,76 @@ test.describe('Studio (stationery editor)', () => {
     await expect(page.locator('main').filter({ hasText: REWRITTEN }).first()).toBeVisible({ timeout: 5_000 });
   });
 
+  test('AI-generated assets survive an autosave + reload round-trip', async ({ page, context }) => {
+    // Capture the autosave POST so we know what manifest the
+    // host's tweaks would write to the DB. Then on reload, the
+    // /api/sites/playwright-test mock replays that manifest, so
+    // the new asset should rehydrate into the palette.
+    let savedManifestStudio: Record<string, unknown> | null = null;
+    await page.route('**/api/sites', async (route) => {
+      const method = route.request().method();
+      if (method === 'POST') {
+        const post = route.request().postData() ?? '';
+        try {
+          const parsed = JSON.parse(post) as { manifest?: { studio?: Record<string, unknown> } };
+          if (parsed.manifest?.studio) savedManifestStudio = parsed.manifest.studio;
+        } catch { /* ignore */ }
+        await route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
+        return;
+      }
+      if (method === 'GET') {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: '{"sites":[]}' });
+        return;
+      }
+      await route.continue();
+    });
+    // Asset gen mock — returns an AI stamp with a recognisable
+    // url so we can verify it's still around after reload.
+    const SENTINEL_URL = 'https://example.test/round-trip-stamp.png';
+    await page.route('**/api/studio/asset', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          asset: { id: 'rt-1', kind: 'stamp', url: SENTINEL_URL },
+        }),
+      });
+    });
+
+    // Trigger an AI asset gen and wait for the autosave to fire
+    // (1500ms debounce + buffer).
+    await page.getByRole('button', { name: /Pear\s*·\s*stamp/i }).click();
+    await expect.poll(async () => savedManifestStudio, { timeout: 5_000 }).not.toBeNull();
+    const studio = savedManifestStudio as { assets?: Array<{ url?: string }> };
+    expect(studio.assets?.[0]?.url).toBe(SENTINEL_URL);
+
+    // Now flip the site fetch mock to replay the captured studio
+    // slice and reload. The asset palette should rehydrate with
+    // the new entry first. unroute + reregister so the new
+    // handler wins (page.route handlers run in registration
+    // order; we have to remove the beforeEach one first).
+    await page.unroute('**/api/sites/playwright-test');
+    await page.route('**/api/sites/playwright-test', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 'pw-rt',
+          subdomain: TEST_SLUG,
+          names: ['Emma', 'James'],
+          manifest: { ...SYNTHETIC_MANIFEST, studio: savedManifestStudio },
+          published: false,
+          occasion: 'wedding',
+        }),
+      });
+    });
+    await page.reload();
+    await expect(page.getByText(/Studio · /)).toBeVisible({ timeout: 15_000 });
+    // The asset palette should still contain a button whose
+    // child <img> has the sentinel src.
+    await expect(page.locator(`aside img[src="${SENTINEL_URL}"]`)).toBeVisible({ timeout: 5_000 });
+  });
+
   test('renders the manifest date in local time, not UTC', async ({ page }) => {
     // SYNTHETIC_MANIFEST.logistics.date = '2026-09-12'. Before
     // the fix, parsing this with `new Date(iso)` interpreted it
