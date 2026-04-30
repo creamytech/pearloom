@@ -426,7 +426,6 @@ export function EditorV8({
         }
       }, 900);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [siteSlug]
   );
 

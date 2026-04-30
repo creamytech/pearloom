@@ -80,7 +80,6 @@ export function AmbientAudio({ preset, url, label = 'Ambient sound', storageKey 
   // Cleanup on unmount.
   useEffect(() => {
     return () => stopPlayback();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function startPlayback() {

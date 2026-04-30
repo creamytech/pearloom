@@ -158,7 +158,6 @@ export function GuestPearChat({ manifest, coupleNames, guest, domain }: Props) {
       const decoder = new TextDecoder();
       let buffer = '';
       let acc = '';
-      // eslint-disable-next-line no-constant-condition
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;

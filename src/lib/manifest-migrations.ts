@@ -73,7 +73,6 @@ export function migrateManifest(manifest: unknown): StoryManifest {
     } catch (err) {
       // Don't crash the editor on a migration failure — log and stop.
       // The user can still edit; the migration will retry next save.
-      // eslint-disable-next-line no-console
       console.warn(`[manifest-migrations] ${mig.label} failed:`, err);
       break;
     }

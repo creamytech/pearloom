@@ -259,7 +259,6 @@ function StickerPiece({
       // For text stickers, double-click opens an inline prompt to
       // change the text instead of deleting (use × on chip or
       // Backspace key to delete).
-      // eslint-disable-next-line no-alert
       const next = window.prompt('Sticker text', sticker.text ?? '');
       if (next !== null && next !== sticker.text) {
         patchSticker({ text: next });
