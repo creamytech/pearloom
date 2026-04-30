@@ -34,20 +34,30 @@ interface Totals { gross: number; net: number; fee: number; count: number }
 interface Props { siteId: string }
 
 export function PaymentsPanel({ siteId }: Props) {
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [totals, setTotals] = useState<Totals>({ gross: 0, net: 0, fee: 0, count: 0 });
-  const [loading, setLoading] = useState(true);
+  // Tag the cached data with the siteId it came from so a
+  // siteId prop change reads as "loading" without needing a
+  // separate setLoading-in-effect cascade. `loading` is now
+  // a derived render-time boolean (react-hooks/set-state-in-effect).
+  const [data, setData] = useState<{ siteId: string; payments: Payment[]; totals: Totals } | null>(null);
 
   useEffect(() => {
-    setLoading(true);
+    let cancelled = false;
     fetch(`/api/payments?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : { payments: [], totals: { gross: 0, net: 0, fee: 0, count: 0 } }))
-      .then((data) => {
-        setPayments(data.payments ?? []);
-        setTotals(data.totals ?? { gross: 0, net: 0, fee: 0, count: 0 });
-      })
-      .finally(() => setLoading(false));
+      .then((next) => {
+        if (cancelled) return;
+        setData({
+          siteId,
+          payments: next.payments ?? [],
+          totals: next.totals ?? { gross: 0, net: 0, fee: 0, count: 0 },
+        });
+      });
+    return () => { cancelled = true; };
   }, [siteId]);
+
+  const loading = data?.siteId !== siteId;
+  const payments = !loading ? data!.payments : [];
+  const totals = !loading ? data!.totals : { gross: 0, net: 0, fee: 0, count: 0 };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>

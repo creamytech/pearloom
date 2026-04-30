@@ -34,19 +34,23 @@ function humanSectionId(id: string): string {
 export function DashAnalytics() {
   const { site, loading: sitesLoading } = useSelectedSite();
   const { sites } = useUserSites();
-  const [visit, setVisit] = useState<VisitStats | null>(null);
-  const [sections, setSections] = useState<SectionStat[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Single state object tagged with the siteId it came from.
+  // `loading` is derived (no setLoading-in-effect cascade) and
+  // a tagged null result models the "no site selected" branch.
+  type Result = {
+    siteId: string | null;
+    visit: VisitStats | null;
+    sections: SectionStat[] | null;
+    error: string | null;
+  };
+  const [result, setResult] = useState<Result | null>(null);
 
   useEffect(() => {
     if (!site?.id) {
-      setLoading(false);
+      setResult({ siteId: null, visit: null, sections: null, error: null });
       return;
     }
     let cancelled = false;
-    setLoading(true);
-    setError(null);
     Promise.all([
       fetch(`/api/analytics/visit?siteId=${encodeURIComponent(site.id)}`, { cache: 'no-store' })
         .then((r) => r.json())
@@ -57,24 +61,37 @@ export function DashAnalytics() {
     ])
       .then(([v, s]) => {
         if (cancelled) return;
-        setVisit({
-          visits: Number(v?.visits ?? 0),
-          today: Number(v?.today ?? 0),
-          mobile: Number(v?.mobile ?? 0),
-          desktop: Number(v?.desktop ?? 0),
+        setResult({
+          siteId: site.id,
+          visit: {
+            visits: Number(v?.visits ?? 0),
+            today: Number(v?.today ?? 0),
+            mobile: Number(v?.mobile ?? 0),
+            desktop: Number(v?.desktop ?? 0),
+          },
+          sections: (s?.sections ?? []) as SectionStat[],
+          error: null,
         });
-        setSections((s?.sections ?? []) as SectionStat[]);
       })
       .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : String(e));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setResult({
+            siteId: site.id,
+            visit: null,
+            sections: null,
+            error: e instanceof Error ? e.message : String(e),
+          });
+        }
       });
     return () => {
       cancelled = true;
     };
   }, [site?.id]);
+
+  const loading = site?.id ? (result?.siteId !== site.id) : false;
+  const visit = result?.visit ?? null;
+  const sections = result?.sections ?? null;
+  const error = result?.error ?? null;
 
   const mobileShare = useMemo(() => {
     if (!visit || visit.visits === 0) return 0;
