@@ -11,10 +11,7 @@ import { Stamp, Squiggle } from '../motifs';
 
 export function AssetGlyph({ asset, size = 32 }: { asset: AssetEntry; size?: number }) {
   if (asset.url) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={asset.url} alt="" style={{ width: size, height: size, objectFit: 'contain' }} />
-    );
+    return <img src={asset.url} alt="" style={{ width: size, height: size, objectFit: 'contain' }} />;
   }
   if (asset.kind === 'stamp') {
     type StampTone = 'lavender' | 'peach' | 'sage' | 'cream';

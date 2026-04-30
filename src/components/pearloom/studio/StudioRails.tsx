@@ -8,6 +8,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
+import Link from 'next/link';
 import {
   PALETTES, FONT_PAIRS, LAYOUTS, MOTIFS, COPY_TONES,
   type StationeryType, type CardView, type StudioContent, type StudioDraft, type AssetEntry,
@@ -68,9 +69,9 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
     }}>
       {/* Left: brand cluster */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px', borderRight: '1px solid var(--line-soft)', height: '100%' }}>
-        <a href="/dashboard/event" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--ink-soft)', textDecoration: 'none' }}>
+        <Link href="/dashboard/event" aria-label="Back to dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--ink-soft)', textDecoration: 'none' }}>
           <Icon name="chev-left" size={13} />
-        </a>
+        </Link>
         <Pear size={26} tone="sage" shadow={false} />
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

@@ -195,7 +195,6 @@ export function MotifOverlay({
 }): ReactNode {
   if (customUrl) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={customUrl}
         alt=""
