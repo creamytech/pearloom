@@ -116,4 +116,104 @@ test.describe('Studio (stationery editor)', () => {
     await page.getByRole('button', { name: /Close send overlay/i }).click();
     await expect(page.getByText('Off it goes.')).not.toBeVisible();
   });
+
+  test('Send button hits /api/invite/guest and shows the result', async ({ page }) => {
+    // Override the guests mock so Send is enabled (withEmail > 0).
+    await page.route(/\/api\/guests(\?|$)/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          guests: [
+            { id: 'g1', name: 'Alice',  email: 'alice@example.test',  phone: null,    address: null, status: 'attending' },
+            { id: 'g2', name: 'Bob',    email: 'bob@example.test',    phone: '555-1', address: null, status: 'attending' },
+            { id: 'g3', name: 'Carlos', email: null,                  phone: null,    address: '1 St',status: 'pending' },
+          ],
+        }),
+      });
+    });
+
+    let sendBodyCaptured: string | null = null;
+    await page.route('**/api/invite/guest', async (route) => {
+      sendBodyCaptured = route.request().postData();
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ sent: 2, failed: 0 }),
+      });
+    });
+
+    await page.getByRole('button', { name: /^Send$/ }).first().click();
+    await expect(page.getByText('Off it goes.')).toBeVisible();
+
+    // Send button should reflect the email count and be enabled.
+    const sendBtn = page.getByRole('button', { name: /Send to 2/ });
+    await expect(sendBtn).toBeEnabled();
+    await sendBtn.click();
+
+    // Success status text appears with the sent count.
+    await expect(page.getByText(/Sent to 2/)).toBeVisible({ timeout: 10_000 });
+    expect(sendBodyCaptured).not.toBeNull();
+    expect(sendBodyCaptured).toContain('"subdomain":"playwright-test"');
+  });
+
+  test('Pear asset generation prepends a new asset to the palette', async ({ page }) => {
+    await page.route('**/api/studio/asset', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          asset: {
+            id: 'ai-stamp-pw-1',
+            kind: 'stamp',
+            tone: 'lavender',
+            text: 'PLAYWRIGHT',
+            icon: 'sparkle',
+            url: 'https://example.test/pw-stamp.png',
+          },
+        }),
+      });
+    });
+
+    // Open the asset palette in the left rail.
+    const palette = page.locator('aside').filter({ hasText: 'Drag onto card' });
+    await expect(palette).toBeVisible();
+    const before = await palette.locator('button[title]').count();
+
+    // Trigger Pear stamp generation. The button copy is "✦ Pear · stamp".
+    await page.getByRole('button', { name: /Pear\s*·\s*stamp/i }).click();
+
+    await expect.poll(async () => palette.locator('button[title]').count(), { timeout: 10_000 }).toBe(before + 1);
+  });
+
+  test('Pear draft generation surfaces the new directions', async ({ page }) => {
+    // Mock /api/studio/draft to return a deterministic synthetic
+    // set; clicking "Draft another direction" should swap the
+    // left-rail drafts to these names.
+    await page.route('**/api/studio/draft', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          drafts: [
+            { id: 'aurora',  name: 'Aurora',  tone: 'serif · stamped',  accent: 'lavender', layout: 'classic', motif: 'stamp' },
+            { id: 'meadow',  name: 'Meadow',  tone: 'olive · pressed',  accent: 'sage',     layout: 'asym',    motif: 'leaves' },
+            { id: 'amber',   name: 'Amber',   tone: 'photo · taped',    accent: 'peach',    layout: 'photo',   motif: 'tape' },
+          ],
+        }),
+      });
+    });
+
+    // Pear's drafts panel is the left rail's first section.
+    await expect(page.getByText("Pear's drafts", { exact: true })).toBeVisible();
+    // Trigger the draft request — button label is "Draft another direction".
+    await page.getByRole('button', { name: /Draft another direction/i }).click();
+    // After the mocked response, the new draft names should
+    // appear in the left rail. The draft tile's accessible name
+    // includes the card preview text ("Emma & James Aurora serif
+    // · stamped"), so match buttons that contain each draft name.
+    await expect(page.locator('aside button').filter({ hasText: 'Aurora' })).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('aside button').filter({ hasText: 'Meadow' })).toBeVisible();
+    await expect(page.locator('aside button').filter({ hasText: 'Amber' })).toBeVisible();
+  });
 });

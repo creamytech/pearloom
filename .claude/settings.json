@@ -14,5 +14,17 @@
       "Bash(git add -A*)",
       "Bash(git commit -m*)"
     ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "grep -q '## Active focus' CLAUDE.md && echo '{\"decision\":\"block\",\"reason\":\"Active focus is set in CLAUDE.md — keep iterating on the open threads. Delete the heading to pause the loop.\"}' || true"
+          }
+        ]
+      }
+    ]
   }
 }
