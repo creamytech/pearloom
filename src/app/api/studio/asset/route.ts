@@ -129,9 +129,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Upload failed.' }, { status: 502 });
   }
 
+  // Use a UUID for the id so two AI generations resolved in the
+  // same millisecond can't collide on the React key when both
+  // land in state.assets.
   return NextResponse.json({
     asset: {
-      id: `ai-${Date.now().toString(36)}`,
+      id: `ai-${crypto.randomUUID()}`,
       kind,
       url,
     },
