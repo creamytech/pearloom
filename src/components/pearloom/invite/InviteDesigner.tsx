@@ -1484,7 +1484,6 @@ function AIControls({
         </div>
         {inspirationImage ? (
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', padding: 10, background: 'var(--cream-2)', borderRadius: 10 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={inspirationImage.preview} alt="" style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} />
             <div style={{ flex: 1, fontSize: 11.5, color: 'var(--ink-soft)' }}>
               Pear will use this as a reference.
@@ -1972,7 +1971,6 @@ function PhotoControls({
                     cursor: activeSlot ? 'pointer' : 'default',
                   }}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 </button>
               );
@@ -1984,7 +1982,6 @@ function PhotoControls({
       {/* Active slot preview + clear */}
       {activeSlot && photoSelections[activeSlot] && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, background: 'var(--cream-2)', borderRadius: 10 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={photoSelections[activeSlot]}
             alt=""

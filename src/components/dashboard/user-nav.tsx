@@ -47,7 +47,6 @@ function Avatar({ user, size = 'md' }: { user: UserNavProps['user']; size?: 'sm'
             : 'w-9 h-9 text-[0.9rem]';
   if (user.image) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={user.image}
         alt="Profile"

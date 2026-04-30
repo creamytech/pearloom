@@ -239,7 +239,6 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
                   cursor: 'default',
                 }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={photo.url}
                   alt={photo.caption || `Photo by ${photo.uploaderName}`}
@@ -332,7 +331,6 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
                   }}
                 >
                   {previewUrl ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={previewUrl}
                       alt="Preview"

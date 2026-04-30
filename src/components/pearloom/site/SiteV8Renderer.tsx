@@ -2801,7 +2801,6 @@ function VenueHero({ venue, address, manifest, onEditField }: { venue: string; a
       }}
     >
       {photoSrc && status !== 'error' && (
-        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={photoSrc}
           alt={`A photo of ${venue}`}
@@ -3489,7 +3488,6 @@ function HotelsMapView({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {mapSrc ? (
-        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={mapSrc}
           alt={venueName ? `Map of ${venueName} and nearby hotels` : 'Map of nearby hotels'}
@@ -5445,7 +5443,6 @@ function RetailerFavicon({ url }: { url: string }) {
       }}
       aria-hidden
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={`https://www.google.com/s2/favicons?sz=32&domain=${encodeURIComponent(host)}`}
         alt=""

@@ -451,7 +451,6 @@ function Lightbox({ photo, onClose }: { photo: ReelPhoto; onClose: () => void })
           gap: 12,
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={proxied(photo.url, 1600)}
           alt={photo.alt ?? ''}

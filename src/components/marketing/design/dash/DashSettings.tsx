@@ -123,7 +123,6 @@ export function DashSettings() {
                 style={{ padding: 32, display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}
               >
                 {session?.user?.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={session.user.image}
                     alt={fullName}

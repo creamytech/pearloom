@@ -149,7 +149,6 @@ function BatchCard({ batch }: { batch: Batch }) {
       }}
     >
       <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={batch.frontUrl}
           alt=""

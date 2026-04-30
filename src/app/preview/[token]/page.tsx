@@ -487,7 +487,6 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px' }}>
               {allPhotos.map((img: { url: string; alt?: string }, i: number) => (
                 <div key={i} style={{ gridColumn: i === 0 ? 'span 2' : undefined, aspectRatio: i === 0 ? '2/1.2' : '1/1', borderRadius: '0.75rem', overflow: 'hidden', background: cardBg }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={proxyUrl(img.url, 800, 800)} alt={img.alt || ''} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
               ))}

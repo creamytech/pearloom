@@ -197,7 +197,6 @@ function ChapterCard({
             boxShadow: `0 18px 48px color-mix(in oklab, ${accent} 24%, transparent), 0 4px 12px rgba(43,30,20,0.12)`,
           }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={imgUrl}
             alt={chapter.title || ''}

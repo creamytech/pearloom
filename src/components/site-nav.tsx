@@ -479,7 +479,6 @@ export function SiteNav({
           {user && (
             <div className="pl-enter-fade pl-enter-d3 flex items-center gap-2.5 mb-3.5">
               {user.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={user.image}
                   alt=""

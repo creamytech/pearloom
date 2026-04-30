@@ -269,7 +269,6 @@ function renderCustomPage({
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
                     {((block.config?.urls as string[]) || []).map((url: string, i: number) => (
                       <div key={i} style={{ borderRadius: '1rem', overflow: 'hidden', aspectRatio: '4/3' }}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={proxyUrl(url, 800, 600)} alt={'Photo from ' + customPage.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
                     ))}

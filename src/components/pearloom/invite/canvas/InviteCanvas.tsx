@@ -385,7 +385,6 @@ function ElementView({
             overflow: 'hidden',
             borderRadius: radius as string | number,
           }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={element.src}
               alt=""

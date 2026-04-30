@@ -319,7 +319,6 @@ function PhotoStrip({
                 border: '1px solid var(--line)',
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={img.url}
                 alt={img.alt ?? ''}

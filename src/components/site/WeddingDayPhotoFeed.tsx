@@ -222,7 +222,6 @@ export function WeddingDayPhotoFeed({ siteId, vibeSkin }: WeddingDayPhotoFeedPro
             }}
           >
             {filePreview ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={filePreview}
                 alt="Preview"
@@ -329,7 +328,6 @@ export function WeddingDayPhotoFeed({ siteId, vibeSkin }: WeddingDayPhotoFeedPro
                 boxSizing: 'border-box',
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={photo.url}
                 alt={photo.caption || `Photo by ${photo.uploadedBy}`}

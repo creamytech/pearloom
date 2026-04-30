@@ -95,7 +95,6 @@ export function WeddingPartySection({
               border: `2px solid ${accentColor}20`,
             }}>
               {member.photo ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={member.photo}
                   alt={member.name}

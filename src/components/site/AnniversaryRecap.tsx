@@ -305,7 +305,6 @@ export function AnniversaryRecap({
                     borderRadius: 'var(--pl-radius-xs)',
                   }}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={p.url}
                     alt={p.caption || p.by || ''}

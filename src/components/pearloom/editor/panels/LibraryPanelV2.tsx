@@ -769,7 +769,6 @@ function CommunityTile({
           cursor: 'pointer',
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={mark.asset_url} alt={mark.source_prompt ?? mark.kind} loading="lazy" decoding="async" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
       </div>
 
@@ -946,7 +945,6 @@ function DecorTile({
           cursor: 'pointer',
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={asset.url} alt={asset.label} loading="lazy" decoding="async" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
       </div>
 

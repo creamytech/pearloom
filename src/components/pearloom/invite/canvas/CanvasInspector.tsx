@@ -240,7 +240,6 @@ export function CanvasInspector({
                     cursor: 'pointer',
                   }}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 </button>
               ))}
@@ -275,7 +274,6 @@ export function CanvasInspector({
               />
               {aiPanel.inspirationImage ? (
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center', padding: 8, background: 'var(--cream-2)', borderRadius: 8 }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={aiPanel.inspirationImage.preview} alt="" style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: 6 }} />
                   <span style={{ flex: 1, fontSize: 11, color: 'var(--ink-soft)' }}>
                     Inspiration locked in
@@ -342,7 +340,6 @@ export function CanvasInspector({
             </button>
             {aiPanel.hasResult && pearPaintUrl && (
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={pearPaintUrl} alt="" style={{ width: 56, height: 78, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--line)' }} />
                 <span style={{ flex: 1, fontSize: 11.5, color: 'var(--ink-soft)' }}>
                   Select the background element on the canvas to apply this as a backdrop.
@@ -645,7 +642,6 @@ function BackgroundControls({
       <Field label="Painted backdrop">
         {pearPaintUrl ? (
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: 8, background: 'var(--cream-2)', borderRadius: 8 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={pearPaintUrl} alt="" style={{ width: 40, height: 56, objectFit: 'cover', borderRadius: 4 }} />
             <button
               type="button"

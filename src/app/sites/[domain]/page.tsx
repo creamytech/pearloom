@@ -273,7 +273,6 @@ export default async function SubdomainSite({
     return (
       <>
         {heroPreloadUrl && (
-          // eslint-disable-next-line @next/next/no-head-element
           <link
             rel="preload"
             as="image"

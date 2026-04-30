@@ -95,7 +95,6 @@ export function GrooveSiteHero({
       {/* Cover photo — parallaxed behind a wash */}
       {coverPhoto && (
         <>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={coverPhoto}
             alt=""

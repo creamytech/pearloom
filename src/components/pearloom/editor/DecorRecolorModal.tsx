@@ -247,7 +247,6 @@ export function DecorRecolorModal({ manifest, onEditField }: Props) {
         ) : (
           <>
             <div style={{ display: 'flex', gap: 14, marginBottom: 16 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={pending.url} alt="" style={{ width: 88, height: 88, objectFit: 'contain', background: 'var(--cream-2)', borderRadius: 8, padding: 6, flexShrink: 0 }} />
               <div style={{ flex: 1, fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
                 Pear keeps the composition + lines identical and just swaps the colors. Pick three tones below or use the theme defaults.
@@ -330,7 +329,6 @@ function PreviewTile({ label, url, highlight = false }: { label: string; url: st
       >
         {label}
       </div>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={url}
         alt=""

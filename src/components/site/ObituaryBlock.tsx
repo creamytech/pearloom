@@ -64,7 +64,6 @@ export function ObituaryBlock({
               border: `2px solid color-mix(in oklab, ${accent} 40%, transparent)`,
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={photoUrl} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           </div>
         )}

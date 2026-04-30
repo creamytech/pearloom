@@ -376,7 +376,6 @@ export function InviteReveal({
               padding: '24px 0',
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={heroPhoto}
               alt={displayNames}

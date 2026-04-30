@@ -193,7 +193,6 @@ function VaultEntryCard({ entry, index, printMode }: { entry: VaultEntry; index:
           borderRadius: 8,
           overflow: 'hidden',
         }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={entry.coverUrl}
             alt={entry.title}
@@ -210,7 +209,6 @@ function VaultEntryCard({ entry, index, printMode }: { entry: VaultEntry; index:
         }}>
           {entry.photos.slice(0, 3).map((p, i) => (
             <div key={i} style={{ aspectRatio: '1 / 1', background: '#EDE0C5', borderRadius: 6, overflow: 'hidden' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={p} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             </div>
           ))}

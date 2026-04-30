@@ -211,7 +211,6 @@ export function IconifyBrowser({ onPick }: Props) {
                 e.currentTarget.style.transform = 'translateY(0)';
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={`/api/library/iconify/svg?ref=${encodeURIComponent(ref)}`}
                 alt={ref}

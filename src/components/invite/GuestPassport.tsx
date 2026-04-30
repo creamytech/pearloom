@@ -410,7 +410,6 @@ export function GuestPassport({
               }}
             >
               {guestPhotos.map((url) => (
-                /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   key={url}
                   src={url}

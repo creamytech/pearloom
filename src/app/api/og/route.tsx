@@ -196,7 +196,6 @@ export async function GET(req: NextRequest) {
             invitation feel by sitting behind a tinted overlay. */}
         {photoUrl && (
           <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={photoUrl}
               alt=""

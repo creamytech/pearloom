@@ -338,7 +338,6 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
                         maxHeight: '300px',
                       }}
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={update.photo_url}
                         alt="Wedding moment"
