@@ -133,6 +133,15 @@ export function useStudioState(args: {
   const [saving, setSaving] = useState(false);
   const lastFlush = useRef<number>(0);
   const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Holds the most-recent serialised manifest. The
+   *  beforeunload handler uses it to fire a sendBeacon when
+   *  the host closes the tab inside the debounce window. */
+  const pendingPayload = useRef<string | null>(null);
+  /** True when there's an unflushed change (debounce timer
+   *  pending OR a network POST in flight). beforeunload
+   *  triggers the browser's native confirmation when this is
+   *  true. */
+  const dirty = useRef<boolean>(false);
 
   const setField: SetStudioField = useCallback((key, value) => {
     setState(prev => ({ ...prev, [key]: value }));
@@ -162,26 +171,31 @@ export function useStudioState(args: {
       copyOverrides: state.copyOverrides,
       showAssets: state.showAssets,
     };
+    const nextManifest = {
+      ...args.manifest,
+      studio: writableFields,
+    } as unknown as StoryManifest;
+    const payload = JSON.stringify({ subdomain: args.siteSlug, manifest: nextManifest });
+    pendingPayload.current = payload;
+    dirty.current = true;
     if (flushTimer.current) clearTimeout(flushTimer.current);
     flushTimer.current = setTimeout(async () => {
       const now = Date.now();
       lastFlush.current = now;
       setSaving(true);
       try {
-        const nextManifest = {
-          ...args.manifest,
-          studio: writableFields,
-        } as unknown as StoryManifest;
         await fetch('/api/sites', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ subdomain: args.siteSlug, manifest: nextManifest }),
+          body: payload,
         });
         setSavedAt(now);
+        dirty.current = false;
         args.onPersist?.(nextManifest);
       } catch {
         // Silent — autosave is best-effort. The host can re-trigger
-        // by changing any field.
+        // by changing any field. dirty stays true so beforeunload
+        // still warns until the next successful flush.
       } finally {
         setSaving(false);
       }
@@ -194,6 +208,30 @@ export function useStudioState(args: {
     state.assets, state.drafts, state.copyOverrides, state.showAssets,
     args.siteSlug,
   ]);
+
+  // beforeunload — when the host closes the tab inside the
+  // debounce window, fire a sendBeacon with the most recent
+  // payload AND set returnValue so the browser surfaces its
+  // native "you have unsaved changes" dialog.
+  useEffect(() => {
+    function onBeforeUnload(e: BeforeUnloadEvent) {
+      if (!dirty.current || !pendingPayload.current) return;
+      try {
+        const blob = new Blob([pendingPayload.current], { type: 'application/json' });
+        navigator.sendBeacon('/api/sites', blob);
+      } catch {
+        // sendBeacon failures are silent; the native dialog
+        // is the host's last line of defence.
+      }
+      e.preventDefault();
+      // Setting returnValue on the event is what triggers the
+      // browser's confirmation prompt. Most browsers ignore the
+      // string and show their own copy.
+      e.returnValue = '';
+    }
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, []);
 
   return useMemo(() => ({ state, setField, setMany, savedAt, saving }), [state, setField, setMany, savedAt, saving]);
 }
