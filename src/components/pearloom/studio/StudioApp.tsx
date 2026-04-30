@@ -98,12 +98,24 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
     siteUrl,
   }), [state.type, nameA, nameB, dateShort, dateLong, venue, place, siteUrl]);
 
-  // Merge AI-drafted alternates over the built-in defaults.
+  // Merge AI-drafted alternates + host-typed copy overrides over
+  // the built-in defaults. Locked fields (headline, line3) always
+  // come from the manifest — overrides on those are ignored.
   const content = useMemo(() => {
     const aiDrafts = state.drafts[state.type];
-    if (!aiDrafts || aiDrafts.length === 0) return baseContent;
-    return { ...baseContent, drafts: aiDrafts };
-  }, [baseContent, state.drafts, state.type]);
+    const overrides = state.copyOverrides[state.type] ?? {};
+    const merged = {
+      ...baseContent,
+      eyebrow: overrides.eyebrow?.trim() || baseContent.eyebrow,
+      line2:   overrides.line2?.trim()   || baseContent.line2,
+      line4:   overrides.line4?.trim()   || baseContent.line4,
+      cta:     overrides.cta?.trim()     || baseContent.cta,
+    };
+    if (aiDrafts && aiDrafts.length > 0) {
+      return { ...merged, drafts: aiDrafts };
+    }
+    return merged;
+  }, [baseContent, state.drafts, state.copyOverrides, state.type]);
 
   // When stationery type changes, reset to the first draft of that
   // type so palette/layout/motif pick up sensible defaults.

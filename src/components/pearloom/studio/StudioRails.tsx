@@ -578,7 +578,8 @@ function MiniMotif({ id, on }: { id: string; on: boolean }) {
 
 function CopyTab({ content, state, setField, onRewriteField }: { content: StudioContent; state: StudioState; setField: SetStudioField; onRewriteField?: (id: string, hint: string) => Promise<void> }) {
   const [openField, setOpenField] = useState<string | null>(null);
-  const fields = [
+  type EditableId = 'eyebrow' | 'line2' | 'line4' | 'cta';
+  const fields: Array<{ id: string; label: string; value: string; locked?: boolean; sub?: string }> = [
     { id: 'eyebrow',  label: 'Eyebrow',    value: content.eyebrow },
     { id: 'headline', label: 'Headline',   value: content.headline, locked: true, sub: 'Pulled from your event' },
     { id: 'line2',    label: 'Body line',  value: content.line2 },
@@ -586,6 +587,15 @@ function CopyTab({ content, state, setField, onRewriteField }: { content: Studio
     { id: 'line4',    label: 'Place',      value: content.line4 },
     { id: 'cta',      label: 'Footer line', value: content.cta },
   ];
+  function saveOverride(id: EditableId, next: string) {
+    const trimmed = next.trim();
+    const prev = state.copyOverrides[state.type] ?? {};
+    const nextSlice: typeof prev = { ...prev };
+    if (trimmed) nextSlice[id] = trimmed;
+    else delete nextSlice[id];
+    const nextMap = { ...state.copyOverrides, [state.type]: nextSlice };
+    setField('copyOverrides', nextMap);
+  }
   return (
     <>
       <RailGroup label="Tone" sub="Pear rewrites every line">
@@ -631,9 +641,17 @@ function CopyTab({ content, state, setField, onRewriteField }: { content: Studio
                   </button>
                 )}
               </div>
-              <div style={{ fontSize: 12.5, color: f.locked ? 'var(--ink-muted)' : 'var(--ink)', lineHeight: 1.4 }}>
-                {f.value || <span style={{ fontStyle: 'italic', color: 'var(--ink-muted)' }}>empty</span>}
-              </div>
+              {f.locked ? (
+                <div style={{ fontSize: 12.5, color: 'var(--ink-muted)', lineHeight: 1.4 }}>
+                  {f.value || <span style={{ fontStyle: 'italic' }}>empty</span>}
+                </div>
+              ) : (
+                <EditableLine
+                  key={`${f.id}:${state.type}:${f.value}`}
+                  initial={f.value}
+                  onSave={(next) => saveOverride(f.id as EditableId, next)}
+                />
+              )}
               {f.sub && <div style={{ fontSize: 10, color: 'var(--ink-muted)', marginTop: 4 }}>{f.sub}</div>}
 
               {openField === f.id && !f.locked && onRewriteField && (
@@ -659,6 +677,56 @@ function CopyTab({ content, state, setField, onRewriteField }: { content: Studio
         </div>
       </RailGroup>
     </>
+  );
+}
+
+/** Inline auto-resizing textarea — the click target IS the
+ *  editor; no edit/save dance. Persists on blur (and on Enter
+ *  unless Shift is held). The caller remounts the component
+ *  with a fresh `key` whenever the underlying value changes
+ *  externally (e.g. AI rewrite, type swap), so we don't have
+ *  to thread a controlled value through. */
+function EditableLine({ initial, onSave }: { initial: string; onSave: (next: string) => void }) {
+  const [draft, setDraft] = useState(initial);
+  return (
+    <textarea
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => { if (draft !== initial) onSave(draft); }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          (e.target as HTMLTextAreaElement).blur();
+        }
+        if (e.key === 'Escape') {
+          setDraft(initial);
+          (e.target as HTMLTextAreaElement).blur();
+        }
+      }}
+      rows={1}
+      style={{
+        width: '100%',
+        fontSize: 12.5,
+        color: 'var(--ink)',
+        lineHeight: 1.4,
+        background: 'transparent',
+        border: 'none',
+        resize: 'none',
+        outline: 'none',
+        padding: 0,
+        margin: 0,
+        fontFamily: 'inherit',
+        // Auto-grow: rows={1} + min-height for a single line, but
+        // letting the browser expand if the content wraps.
+        minHeight: '1.4em',
+        overflow: 'hidden',
+      }}
+      onInput={(e) => {
+        const t = e.currentTarget;
+        t.style.height = 'auto';
+        t.style.height = `${t.scrollHeight}px`;
+      }}
+    />
   );
 }
 

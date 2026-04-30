@@ -186,6 +186,58 @@ test.describe('Studio (stationery editor)', () => {
     await expect.poll(async () => palette.locator('button[title]').count(), { timeout: 10_000 }).toBe(before + 1);
   });
 
+  test('Copy tab edits a field inline and the canvas reflects it', async ({ page }) => {
+    // Switch the right rail to the Copy tab.
+    await page.getByRole('button', { name: /^Copy$/ }).click();
+    // The Eyebrow textarea shows the default invite copy.
+    const eyebrow = page.locator('textarea').first();
+    await expect(eyebrow).toBeVisible();
+    const before = (await eyebrow.inputValue()).trim();
+    expect(before.length).toBeGreaterThan(0);
+
+    const NEW_TEXT = 'PLAYWRIGHT-TYPED EYEBROW';
+    await eyebrow.fill(NEW_TEXT);
+    // Commit on blur (Enter without shift).
+    await eyebrow.press('Enter');
+
+    // The new copy should appear inside the canvas card preview
+    // — the front view always renders the eyebrow above the
+    // headline, so look for the typed string in main.
+    await expect(page.locator('main').filter({ hasText: NEW_TEXT }).first())
+      .toBeVisible({ timeout: 5_000 });
+  });
+
+  test('cycles through every Layout without throwing', async ({ page }) => {
+    // Layout buttons live in the right rail (Design tab is the
+    // default tab on mount). Each click should keep the canvas
+    // intact and keep the couple's names rendered on the card.
+    const card = page.locator('main').filter({ hasText: 'Emma' }).first();
+    for (const label of ['Classic', 'Asymmetric', 'Photo-led', 'Letter', 'Minimal']) {
+      // Layout names appear on the right rail's layout grid; some
+      // also appear on draft tiles in the left rail. Scope the
+      // click to buttons whose accessible name STARTS with the
+      // layout label and the layout sub-text (e.g. "Classic
+      // centered · airy") to disambiguate.
+      const btn = page.getByRole('button', { name: new RegExp(`^${label}\\b`) }).last();
+      await btn.click();
+      // Card text re-renders with the names — confirm we didn't
+      // crash the canvas.
+      await expect(card).toBeVisible();
+    }
+  });
+
+  test('cycles through every Palette without throwing', async ({ page }) => {
+    const card = page.locator('main').filter({ hasText: 'Emma' }).first();
+    // Palette tile buttons are titled with their display name.
+    for (const title of ['Dusk', 'Garden', 'Apricot', 'Letterpress', 'Twilight', 'Plum']) {
+      const btn = page.locator(`button[title="${title}"]`);
+      const count = await btn.count();
+      if (count === 0) continue; // not all palettes ship with a tile
+      await btn.first().click();
+      await expect(card).toBeVisible();
+    }
+  });
+
   test('Pear draft generation surfaces the new directions', async ({ page }) => {
     // Mock /api/studio/draft to return a deterministic synthetic
     // set; clicking "Draft another direction" should swap the

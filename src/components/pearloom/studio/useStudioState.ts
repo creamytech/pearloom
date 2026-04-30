@@ -48,6 +48,15 @@ export interface StudioState {
   /** AI-drafted alternates per stationery type. Falls back to the
    *  built-in TYPE_CONTENT defaults when empty. */
   drafts: Partial<Record<StationeryType, StudioDraft[]>>;
+  /** Per-type copy overrides — host-typed text that wins over the
+   *  built-in TYPE_CONTENT defaults but loses to locked fields
+   *  (headline, line3) which always come from the manifest. */
+  copyOverrides: Partial<Record<StationeryType, {
+    eyebrow?: string;
+    line2?: string;
+    line4?: string;
+    cta?: string;
+  }>>;
 }
 
 const DEFAULT_STATE: StudioState = {
@@ -66,6 +75,7 @@ const DEFAULT_STATE: StudioState = {
   assets: DEFAULT_ASSET_PALETTE,
   customMotifUrl: null,
   drafts: {},
+  copyOverrides: {},
 };
 
 export type SetStudioField = <K extends keyof StudioState>(key: K, value: StudioState[K]) => void;
@@ -82,6 +92,12 @@ interface ManifestStudio {
   customMotifUrl?: string | null;
   assets?: AssetEntry[];
   drafts?: Partial<Record<StationeryType, StudioDraft[]>>;
+  copyOverrides?: Partial<Record<StationeryType, {
+    eyebrow?: string;
+    line2?: string;
+    line4?: string;
+    cta?: string;
+  }>>;
 }
 
 function readInitialState(manifest: StoryManifest | null | undefined): StudioState {
@@ -102,6 +118,7 @@ function readInitialState(manifest: StoryManifest | null | undefined): StudioSta
       ? studio.assets
       : DEFAULT_ASSET_PALETTE,
     drafts: studio.drafts ?? {},
+    copyOverrides: studio.copyOverrides ?? {},
   };
 }
 
@@ -140,6 +157,7 @@ export function useStudioState(args: {
       customMotifUrl: state.customMotifUrl,
       assets: state.assets,
       drafts: state.drafts,
+      copyOverrides: state.copyOverrides,
     };
     if (flushTimer.current) clearTimeout(flushTimer.current);
     flushTimer.current = setTimeout(async () => {
@@ -167,7 +185,7 @@ export function useStudioState(args: {
   }, [
     state.type, state.view, state.draft, state.palette, state.fontPair,
     state.layout, state.motif, state.tone, state.customMotifUrl,
-    state.assets, state.drafts,
+    state.assets, state.drafts, state.copyOverrides,
     args.siteSlug,
   ]);
 
