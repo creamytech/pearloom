@@ -165,12 +165,12 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
             </div>
           </SendBlock>
 
-          <SendBlock title="Channel mix" sub="Pear sends each guest the way they prefer">
+          <SendBlock title="Channel mix" sub="Email is the active channel today">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
               {[
                 { l: 'Digital', sub: `${withEmail} with email`, icon: 'mail',  primary: true,  count: withEmail },
-                { l: 'SMS',     sub: `${withPhone} with phone`, icon: 'phone', primary: false, count: withPhone },
-                { l: 'Print',   sub: `${withAddress} with addresses`, icon: 'send', primary: false, count: withAddress, badge: 'PDF + ship' },
+                { l: 'SMS',     sub: `${withPhone} with phone`, icon: 'phone', primary: false, count: withPhone, badge: 'Coming soon' },
+                { l: 'Print',   sub: `${withAddress} with addresses`, icon: 'send', primary: false, count: withAddress, badge: 'Coming soon' },
               ].map(c => (
                 <div key={c.l} style={{
                   padding: 12, borderRadius: 12,
