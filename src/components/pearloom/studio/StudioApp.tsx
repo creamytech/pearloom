@@ -104,13 +104,13 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
   const [guestStats, setGuestStats] = useState<{ total?: number; sent?: number; ready?: number }>({});
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/guests', { cache: 'no-store' })
+    fetch(`/api/guests?siteSlug=${encodeURIComponent(siteSlug)}`, { cache: 'no-store' })
       .then(r => r.ok ? r.json() : Promise.reject(new Error(String(r.status))))
-      .then((data: { guests?: Array<{ status?: string; email_sent_at?: string | null }> }) => {
+      .then((data: { guests?: Array<{ status?: string; emailSentAt?: string | null }> }) => {
         if (cancelled) return;
         const guests = data.guests ?? [];
         const total = guests.length;
-        const sent = guests.filter(g => g.email_sent_at).length;
+        const sent = guests.filter(g => g.emailSentAt).length;
         const ready = guests.filter(g => g.status === 'attending').length;
         setGuestStats({ total, sent, ready });
       })

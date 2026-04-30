@@ -110,9 +110,9 @@ test.describe('Studio (stationery editor)', () => {
         contentType: 'application/json',
         body: JSON.stringify({
           guests: [
-            { id: 'g1', name: 'Alice',  email: 'alice@example.test',  status: 'attending', email_sent_at: '2026-09-01T10:00:00Z' },
-            { id: 'g2', name: 'Bob',    email: 'bob@example.test',    status: 'pending',   email_sent_at: null },
-            { id: 'g3', name: 'Carlos', email: 'carlos@example.test', status: 'pending',   email_sent_at: null },
+            { id: 'g1', name: 'Alice',  email: 'alice@example.test',  status: 'attending', emailSentAt: '2026-09-01T10:00:00Z' },
+            { id: 'g2', name: 'Bob',    email: 'bob@example.test',    status: 'pending',   emailSentAt: null },
+            { id: 'g3', name: 'Carlos', email: 'carlos@example.test', status: 'pending',   emailSentAt: null },
           ],
         }),
       });

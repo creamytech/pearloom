@@ -12,7 +12,11 @@ function getSupabase() {
   return createClient(url, key);
 }
 
-// GET /api/guests?siteId=xxx — list all guests for a site
+// GET /api/guests?siteId=xxx — list all guests for a site.
+// Accepts:
+//   ?siteId=<uuid>     (legacy)
+//   ?site=<uuid>       (new)
+//   ?siteSlug=<sub>    (Studio passes this — resolved server-side)
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -20,13 +24,23 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Accept both `siteId` (legacy) and `site` (new) for compatibility.
-    const siteId = req.nextUrl.searchParams.get('siteId') || req.nextUrl.searchParams.get('site');
-    if (!siteId) return NextResponse.json({ error: 'siteId required' }, { status: 400 });
+    let siteId = req.nextUrl.searchParams.get('siteId') || req.nextUrl.searchParams.get('site');
+    const siteSlug = req.nextUrl.searchParams.get('siteSlug') || req.nextUrl.searchParams.get('subdomain');
+    const supabase = getSupabase();
+    if (!siteId && siteSlug) {
+      // Resolve subdomain → site uuid so the Studio can pass its
+      // slug without first looking up the id.
+      const { data: row } = await supabase
+        .from('sites')
+        .select('id')
+        .eq('subdomain', siteSlug)
+        .maybeSingle();
+      siteId = (row as { id?: string } | null)?.id ?? null;
+    }
+    if (!siteId) return NextResponse.json({ error: 'siteId or siteSlug required' }, { status: 400 });
 
     const hasAddressOnly = req.nextUrl.searchParams.get('hasAddress') === '1';
 
-    const supabase = getSupabase();
     let q = supabase
       .from('guests')
       .select('*')
