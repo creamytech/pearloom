@@ -79,6 +79,21 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
     ? new Date(manifest.logistics.rsvpDeadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
     : undefined;
 
+  // Save-the-date back details, derived from the same manifest
+  // pieces as the public site so the printable card matches what
+  // guests see online. Each falls back to a placeholder if the
+  // host hasn't filled it in yet.
+  const events = (manifest as unknown as { events?: Array<{ type?: string; time?: string; dressCode?: string }> }).events ?? [];
+  const hotels = ((manifest as unknown as { travelInfo?: { hotels?: Array<{ name?: string; groupRate?: string }> } }).travelInfo?.hotels) ?? [];
+  const ceremony = events.find(e => e.type === 'ceremony');
+  const reception = events.find(e => e.type === 'reception');
+  const ceremonyAt = ceremony?.time ? `${ceremony.time}` : undefined;
+  const receptionAt = reception?.time ? `${reception.time}` : undefined;
+  const dressCode = events.find(e => (e.dressCode ?? '').trim())?.dressCode;
+  const hotelLine = hotels[0]?.name
+    ? `${hotels[0].name}${hotels[0].groupRate ? ` · ${hotels[0].groupRate}` : ''}`
+    : undefined;
+
   const occasion = normalizeOccasion((manifest as unknown as { occasion?: string }).occasion);
   const siteUrl = formatSiteDisplayUrl(siteSlug, '', occasion);
   const siteAbsoluteUrl = buildSiteUrl(siteSlug, '', undefined, occasion);
@@ -297,6 +312,10 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
                 monogram={monogram}
                 siteUrl={siteUrl}
                 rsvpDeadline={rsvpDeadline}
+                ceremonyAt={ceremonyAt}
+                receptionAt={receptionAt}
+                dressCode={dressCode}
+                hotelLine={hotelLine}
               />
             )}
             {state.view === 'envelope' && (

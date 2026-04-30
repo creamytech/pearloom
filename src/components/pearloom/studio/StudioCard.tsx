@@ -37,6 +37,13 @@ interface CardProps {
   returnAddress?: { name: string; line1?: string; line2?: string };
   /** AI-generated motif URL — overrides the SVG glyph if set. */
   customMotifUrl?: string | null;
+  /** Save-the-date back details — derived from manifest.events +
+   *  manifest.travelInfo. Each is optional; the card falls back to
+   *  an em-dash placeholder when missing. */
+  ceremonyAt?: string;
+  receptionAt?: string;
+  dressCode?: string;
+  hotelLine?: string;
 }
 
 export function CardFront(props: CardProps) {
@@ -76,7 +83,10 @@ export function CardFront(props: CardProps) {
 }
 
 export function CardBack(props: CardProps) {
-  const { palette, font, type, monogram, siteUrl, rsvpDeadline, nameA, nameB } = props;
+  const {
+    palette, font, type, monogram, siteUrl, rsvpDeadline, nameA, nameB,
+    ceremonyAt, receptionAt, dressCode, hotelLine,
+  } = props;
   const w = 420, h = 588;
   return (
     <div className="pl-studio-card-shadow" style={{
@@ -125,10 +135,10 @@ export function CardBack(props: CardProps) {
 
         {type === 'std' && (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <DetailRow label="Ceremony" value="—" font={font} palette={palette} />
-            <DetailRow label="Reception" value="—" font={font} palette={palette} />
-            <DetailRow label="Dress code" value="Garden formal" font={font} palette={palette} />
-            <DetailRow label="Stay nearby" value="Hotel block details to follow" font={font} palette={palette} />
+            <DetailRow label="Ceremony" value={ceremonyAt ?? '—'} font={font} palette={palette} />
+            <DetailRow label="Reception" value={receptionAt ?? '—'} font={font} palette={palette} />
+            <DetailRow label="Dress code" value={dressCode ?? 'Garden formal'} font={font} palette={palette} />
+            <DetailRow label="Stay nearby" value={hotelLine ?? 'Hotel block details to follow'} font={font} palette={palette} />
             <DetailRow label="Live updates" value={siteUrl ?? 'pearloom.com'} font={font} palette={palette} />
             <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontFamily: "'Caveat', cursive", fontSize: 22, color: palette.accent }}>

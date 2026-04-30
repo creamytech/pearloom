@@ -29,6 +29,15 @@ const SYNTHETIC_MANIFEST = {
   // — the Studio's "Match this card to your site theme" button
   // picks the palette with the smallest RGB distance.
   theme: { colors: { accent: '#8B9C5A' } },
+  // Events + travelInfo populate the Save-the-date back's
+  // ceremony / reception / dress code / stay-nearby strip.
+  events: [
+    { id: 'e1', type: 'ceremony',  name: 'Ceremony',  time: '4:00 PM', dressCode: 'Garden formal' },
+    { id: 'e2', type: 'reception', name: 'Reception', time: '6:00 PM' },
+  ],
+  travelInfo: {
+    hotels: [{ name: 'The Sonoma Inn', groupRate: '20% off' }],
+  },
   studio: {},
 };
 
@@ -89,6 +98,18 @@ test.describe('Studio (stationery editor)', () => {
       await page.getByRole('button', { name: new RegExp(`^${label}$`) }).click();
       await expect(page.getByRole('button', { name: new RegExp(`^${label}$`) })).toBeVisible();
     }
+  });
+
+  test('Save-the-date back surfaces ceremony / reception / hotel from manifest', async ({ page }) => {
+    // Switch to Save-the-date stationery type, then to Back view.
+    await page.getByRole('button', { name: /^Save the date$/ }).click();
+    await page.getByRole('button', { name: /^Back$/ }).first().click();
+    // The back card renders the events + hotel from the manifest.
+    const card = page.locator('main');
+    await expect(card.getByText('4:00 PM').first()).toBeVisible();
+    await expect(card.getByText('6:00 PM').first()).toBeVisible();
+    await expect(card.getByText('Garden formal').first()).toBeVisible();
+    await expect(card.getByText(/The Sonoma Inn/).first()).toBeVisible();
   });
 
   test('flips through Front / Back / Envelope', async ({ page }) => {
