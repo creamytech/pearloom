@@ -142,6 +142,22 @@ test.describe('Studio (stationery editor)', () => {
     await expect(page.getByText('Off it goes.')).not.toBeVisible();
   });
 
+  test('Save draft closes the overlay without sending', async ({ page }) => {
+    let inviteHits = 0;
+    await page.route('**/api/invite/guest', async (route) => {
+      inviteHits++;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{"sent":0,"failed":0}' });
+    });
+    await page.getByRole('button', { name: /^Send$/ }).first().click();
+    await expect(page.getByText('Off it goes.')).toBeVisible();
+    // "Save draft" is the ghost-style escape hatch beside the
+    // primary Send button. Clicking it must close the overlay
+    // and NOT fire any send.
+    await page.getByRole('button', { name: /Save draft/i }).click();
+    await expect(page.getByText('Off it goes.')).not.toBeVisible();
+    expect(inviteHits).toBe(0);
+  });
+
   test('Send button hits /api/invite/guest and shows the result', async ({ page }) => {
     // Override the guests mock so Send is enabled (withEmail > 0).
     await page.route(/\/api\/guests(\?|$)/, async (route) => {

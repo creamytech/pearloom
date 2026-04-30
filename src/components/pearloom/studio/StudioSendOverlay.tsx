@@ -193,17 +193,19 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
           <SendBlock title="Schedule" sub="Pear staggers by timezone so nobody gets a 4am ping">
             <div style={{ display: 'flex', gap: 8 }}>
               {[
-                { l: 'Send now', sub: 'Ships in next 5 min', on: true },
-                { l: 'Tomorrow at 9 AM', sub: 'Recommended', on: false },
-                { l: 'Custom', sub: 'Pick date & time', on: false },
+                { l: 'Send now', sub: 'Ships in next 5 min', on: true,  disabled: false },
+                { l: 'Tomorrow at 9 AM', sub: 'Coming soon', on: false, disabled: true },
+                { l: 'Custom', sub: 'Coming soon', on: false, disabled: true },
               ].map(s => (
-                <button key={s.l} style={{
+                <button key={s.l} disabled={s.disabled} aria-disabled={s.disabled} style={{
                   flex: 1, padding: 12, borderRadius: 10,
                   background: s.on ? 'var(--ink)' : 'var(--card)',
                   color: s.on ? 'var(--cream)' : 'var(--ink)',
                   border: '1px solid ' + (s.on ? 'var(--ink)' : 'var(--line-soft)'),
                   textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 2,
-                  cursor: 'pointer', fontFamily: 'inherit',
+                  cursor: s.disabled ? 'not-allowed' : 'pointer',
+                  opacity: s.disabled ? 0.55 : 1,
+                  fontFamily: 'inherit',
                 }}>
                   <div style={{ fontSize: 12, fontWeight: 700 }}>{s.l}</div>
                   <div style={{ fontSize: 10.5, opacity: s.on ? 0.75 : 0.6 }}>{s.sub}</div>
