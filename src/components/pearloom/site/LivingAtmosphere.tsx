@@ -369,8 +369,9 @@ function CandlelightLayer({ density, reduced }: { density: number; reduced: bool
   const positions = useMemo(() => {
     const n = density >= 1.4 ? 5 : density >= 0.8 ? 3 : 2;
     return Array.from({ length: n }, (_, i) => ({
-      left: 20 + (60 / Math.max(1, n - 1)) * i + (Math.random() * 4 - 2),
-      delay: Math.random() * 1.4,
+      // Same atmosphereSeed pattern as PetalsLayer / SparklesLayer.
+      left: 20 + (60 / Math.max(1, n - 1)) * i + (atmosphereSeed(i, 21) * 4 - 2),
+      delay: atmosphereSeed(i, 22) * 1.4,
     }));
   }, [density]);
   return (
@@ -425,14 +426,15 @@ function StarsLayer({
   reduced,
 }: { density: number; accent?: string; reduced: boolean }) {
   const count = Math.round(48 * density);
+  // Same atmosphereSeed pattern as the other layers.
   const seeds = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => ({
         i,
-        left: Math.random() * 100,
-        top: Math.random() * 100,
-        size: 1 + Math.random() * 2.4,
-        delay: Math.random() * 5,
+        left:  atmosphereSeed(i, 31) * 100,
+        top:   atmosphereSeed(i, 32) * 100,
+        size:  1 + atmosphereSeed(i, 33) * 2.4,
+        delay: atmosphereSeed(i, 34) * 5,
       })),
     [count],
   );
