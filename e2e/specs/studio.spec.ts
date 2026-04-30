@@ -180,6 +180,35 @@ test.describe('Studio (stationery editor)', () => {
     await expect(page.getByText(/Sent to 2/)).toBeVisible({ timeout: 10_000 });
     expect(sendBodyCaptured).not.toBeNull();
     expect(sendBodyCaptured).toContain('"subdomain":"playwright-test"');
+    // Default stationery type at mount is 'invite' — confirm
+    // the route receives that signal so it picks the correct
+    // subject + body.
+    expect(sendBodyCaptured).toContain('"stationeryType":"invite"');
+  });
+
+  test('Save-the-date Send carries stationeryType=std to the API', async ({ page }) => {
+    await page.route(/\/api\/guests(\?|$)/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ guests: [{ id: 'g1', name: 'Alice', email: 'a@example.test', status: 'attending' }] }),
+      });
+    });
+    let captured: string | null = null;
+    await page.route('**/api/invite/guest', async (route) => {
+      captured = route.request().postData();
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ sent: 1, failed: 0 }),
+      });
+    });
+    // Switch to Save-the-date stationery type, then Send.
+    await page.getByRole('button', { name: /^Save the date$/ }).click();
+    await page.getByRole('button', { name: /^Send$/ }).first().click();
+    await page.getByRole('button', { name: /Send to 1/ }).click();
+    await expect(page.getByText(/Sent to 1/)).toBeVisible({ timeout: 10_000 });
+    expect(captured).toContain('"stationeryType":"std"');
   });
 
   test('Pear asset generation prepends a new asset to the palette', async ({ page }) => {

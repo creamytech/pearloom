@@ -67,7 +67,7 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
       const res = await fetch('/api/invite/guest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subdomain: siteSlug }),
+        body: JSON.stringify({ subdomain: siteSlug, stationeryType: type }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));

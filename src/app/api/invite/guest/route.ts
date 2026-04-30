@@ -1,7 +1,12 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / app/api/invite/guest/route.ts
-// Send per-guest animated invitation emails with unique tokens
-// POST { subdomain, guestIds?: string[] }
+// Send per-guest animated stationery emails with unique tokens.
+// POST { subdomain, guestIds?: string[], stationeryType?: 'std' | 'invite' | 'thanks' }
+//
+// stationeryType picks the subject line + email copy. Defaults
+// to 'invite' for back-compat. 'std' = save-the-date, 'thanks' =
+// thank-you. The CTA always points at /i/<token> so the
+// recipient can hit their personalised invite page.
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -30,10 +35,13 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { subdomain, guestIds } = body as {
+    const { subdomain, guestIds, stationeryType } = body as {
       subdomain: string;
       guestIds?: string[];
+      stationeryType?: 'std' | 'invite' | 'thanks';
     };
+    const cardType: 'std' | 'invite' | 'thanks' =
+      stationeryType === 'std' || stationeryType === 'thanks' ? stationeryType : 'invite';
 
     if (!subdomain) {
       return NextResponse.json({ error: 'subdomain is required' }, { status: 400 });
@@ -72,7 +80,18 @@ export async function POST(req: NextRequest) {
 
     if (guestIds && guestIds.length > 0) {
       guestsQuery = guestsQuery.in('id', guestIds);
+    } else if (cardType === 'std') {
+      // Save-the-date: every guest on the list, regardless of
+      // RSVP status. The host hasn't asked them anything yet.
+      // No status filter.
+    } else if (cardType === 'thanks') {
+      // Thank-you: only the guests who actually attended. We
+      // don't have an explicit "attended" status, so 'attending'
+      // (i.e. RSVP'd yes) is the closest proxy.
+      guestsQuery = guestsQuery.eq('status', 'attending');
     } else {
+      // Invitation default — pending guests only, so we don't
+      // re-spam those who've already replied.
       guestsQuery = guestsQuery.eq('status', 'pending');
     }
 
@@ -126,7 +145,22 @@ export async function POST(req: NextRequest) {
       const inviteUrl = `${baseUrl}/i/${token}`;
       const coupleNames = `${names[0]} & ${names[1]}`;
       const occasionLabel = occasion === 'wedding' ? 'wedding' : occasion === 'engagement' ? 'engagement' : occasion;
-      const subject = `You're invited to ${coupleNames}'s ${occasionLabel}`;
+      const subject =
+        cardType === 'std'    ? `Save the date — ${coupleNames}` :
+        cardType === 'thanks' ? `Thank you, from ${coupleNames}` :
+                                `You're invited to ${coupleNames}'s ${occasionLabel}`;
+      const eyebrowCopy =
+        cardType === 'std'    ? 'Save the date' :
+        cardType === 'thanks' ? 'Thank you' :
+                                'You are cordially invited';
+      const bodyCopy =
+        cardType === 'std'    ? `We have a date — and a place — and we want you there. Open the card for the details and the link to our site, where everything is unfolding.` :
+        cardType === 'thanks' ? `Thank you for being there. Every photo on the wall has you in it somewhere. Open the card for the gallery and a note we wrote for you.` :
+                                `We have prepared something special just for you.<br/>Open your personal invitation to see all the details<br/>and let us know if you'll be joining us.`;
+      const ctaLabel =
+        cardType === 'std'    ? 'Open the save-the-date' :
+        cardType === 'thanks' ? 'Open your thank-you' :
+                                'Open Your Invitation';
 
       const esc = (s: string) =>
         s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -153,21 +187,21 @@ export async function POST(req: NextRequest) {
           </tr>
           <tr>
             <td style="background:rgba(163,177,138,0.04);border:1px solid rgba(196,169,106,0.2);border-radius:16px;padding:48px 40px;text-align:center;">
-              <p style="margin:0 0 8px;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:rgba(196,169,106,0.7);">You are cordially invited</p>
+              <p style="margin:0 0 8px;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:rgba(196,169,106,0.7);">${esc(eyebrowCopy)}</p>
               <h1 style="margin:0 0 8px;font-size:36px;font-weight:400;color:#F5F1E8;line-height:1.2;">${esc(coupleNames)}</h1>
-              <p style="margin:0 0 32px;font-size:15px;color:rgba(245,241,232,0.6);letter-spacing:1px;">invite you to celebrate their ${esc(occasionLabel)}</p>
+              <p style="margin:0 0 32px;font-size:15px;color:rgba(245,241,232,0.6);letter-spacing:1px;">${
+                cardType === 'std'    ? `for the ${esc(occasionLabel)}` :
+                cardType === 'thanks' ? `with all our love` :
+                                        `invite you to celebrate their ${esc(occasionLabel)}`
+              }</p>
 
               ${guestName ? `<p style="margin:0 0 32px;font-size:16px;color:rgba(245,241,232,0.8);">Dear <em>${esc(guestName)}</em>,</p>` : ''}
 
-              <p style="margin:0 0 40px;font-size:15px;line-height:1.7;color:rgba(245,241,232,0.7);">
-                We have prepared something special just for you.<br/>
-                Open your personal invitation to see all the details<br/>
-                and let us know if you'll be joining us.
-              </p>
+              <p style="margin:0 0 40px;font-size:15px;line-height:1.7;color:rgba(245,241,232,0.7);">${bodyCopy}</p>
 
               <a href="${esc(inviteUrl)}"
                  style="display:inline-block;padding:16px 40px;background:rgba(196,169,106,0.15);border:1px solid rgba(196,169,106,0.5);border-radius:8px;color:#C4A96A;text-decoration:none;font-size:14px;letter-spacing:2px;text-transform:uppercase;">
-                Open Your Invitation
+                ${esc(ctaLabel)}
               </a>
 
               <p style="margin:40px 0 0;font-size:12px;color:rgba(245,241,232,0.3);">
