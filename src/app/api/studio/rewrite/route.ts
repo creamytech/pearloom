@@ -71,8 +71,11 @@ export async function POST(req: NextRequest) {
   const slug = body.siteSlug?.trim();
   const type = body.type;
   const fieldId = body.fieldId?.trim();
-  const currentText = (body.currentText ?? '').trim();
-  const hint = (body.hint ?? '').trim();
+  // Cap inputs at lengths that actually fit on stationery —
+  // there's no UX path that reaches these from the Studio, but
+  // a forged client could otherwise drive up Gemini token cost.
+  const currentText = (body.currentText ?? '').trim().slice(0, 280);
+  const hint = (body.hint ?? '').trim().slice(0, 280);
   const toneId = (body.tone ?? '').trim();
   const toneGuidance = TONE_GUIDANCE[toneId] ?? TONE_GUIDANCE.warm;
   if (!slug || !type || !fieldId) {

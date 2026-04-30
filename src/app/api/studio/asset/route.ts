@@ -105,7 +105,18 @@ export async function POST(req: NextRequest) {
   const paletteHint = PALETTE_HINTS[body.paletteId ?? 'lavender'] ?? PALETTE_HINTS.lavender;
 
   const buildPrompt = PROMPT_BY_KIND[kind] ?? PROMPT_BY_KIND.stamp;
-  const prompt = buildPrompt(paletteHint, occasion);
+  const basePrompt = buildPrompt(paletteHint, occasion);
+  // Steer the asset's feel by which card it'll land on, and
+  // which motif the host's currently using (so a new stamp,
+  // say, doesn't fight with their leaves motif).
+  const typeHint = body.stationeryType === 'std'    ? ' Anticipatory, future-tense — the host is announcing a future date.'
+                : body.stationeryType === 'thanks' ? ' Warm, retrospective — the event has already happened.'
+                : body.stationeryType === 'invite' ? ' Formal, RSVP-ready — the centrepiece invitation card.'
+                : '';
+  const motifHint = body.motif && body.motif !== 'none'
+    ? ` Compose so it complements an existing ${body.motif} motif on the same card without overlapping it.`
+    : '';
+  const prompt = basePrompt + typeHint + motifHint;
 
   let result;
   try {
