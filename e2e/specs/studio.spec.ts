@@ -271,6 +271,34 @@ test.describe('Studio (stationery editor)', () => {
     await expect(page.locator('main').filter({ hasText: 'INVITE-ALPHA' }).first()).toBeVisible();
   });
 
+  test('changes are persisted to /api/sites within the debounce window', async ({ page }) => {
+    // useStudioState debounces autosave by 1500ms. Override the
+    // /api/sites POST mock so we can capture the manifest body.
+    let lastPostBody: string | null = null;
+    await page.route('**/api/sites', async (route) => {
+      const method = route.request().method();
+      if (method === 'POST') {
+        lastPostBody = route.request().postData();
+        await route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
+        return;
+      }
+      if (method === 'GET') {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: '{"sites":[]}' });
+        return;
+      }
+      await route.continue();
+    });
+
+    // Make a change. Switching palette is the cheapest signal —
+    // it bumps state.palette, which the autosave watches.
+    await page.locator('button[title="Garden"]').first().click();
+
+    // Wait for the 1500ms debounce + a small buffer.
+    await expect.poll(async () => lastPostBody, { timeout: 5_000 }).not.toBeNull();
+    expect(lastPostBody).toContain('"palette":"sage"');
+    expect(lastPostBody).toContain('"subdomain":"playwright-test"');
+  });
+
   test('Match-site-theme switches the palette to the closest match', async ({ page }) => {
     // The synthetic manifest seeds theme.colors.accent = sage
     // accent, so clicking "Match this card to your site theme"
