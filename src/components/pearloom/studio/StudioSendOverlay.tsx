@@ -14,6 +14,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import type { StationeryType } from './studio-constants';
 import { Pear, Icon } from '../motifs';
 
@@ -158,9 +159,9 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
                     : 'Pulling roster…'}
                 </div>
               </div>
-              <a href="/dashboard/rsvp" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
+              <Link href="/dashboard/rsvp" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
                 Edit list
-              </a>
+              </Link>
             </div>
           </SendBlock>
 
