@@ -24,20 +24,29 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    let siteId = req.nextUrl.searchParams.get('siteId') || req.nextUrl.searchParams.get('site');
+    type SiteRow = { id: string; site_config?: { creator_email?: string } | null; creator_email?: string };
+    const siteIdParam = req.nextUrl.searchParams.get('siteId') || req.nextUrl.searchParams.get('site');
     const siteSlug = req.nextUrl.searchParams.get('siteSlug') || req.nextUrl.searchParams.get('subdomain');
-    const supabase = getSupabase();
-    if (!siteId && siteSlug) {
-      // Resolve subdomain → site uuid so the Studio can pass its
-      // slug without first looking up the id.
-      const { data: row } = await supabase
-        .from('sites')
-        .select('id')
-        .eq('subdomain', siteSlug)
-        .maybeSingle();
-      siteId = (row as { id?: string } | null)?.id ?? null;
+    if (!siteIdParam && !siteSlug) {
+      return NextResponse.json({ error: 'siteId or siteSlug required' }, { status: 400 });
     }
-    if (!siteId) return NextResponse.json({ error: 'siteId or siteSlug required' }, { status: 400 });
+    const supabase = getSupabase();
+    // Look up the site row by either id or slug so we can check
+    // ownership before returning anyone's guest list.
+    const lookup = siteIdParam
+      ? supabase.from('sites').select('id, site_config, creator_email').eq('id', siteIdParam).maybeSingle()
+      : supabase.from('sites').select('id, site_config, creator_email').eq('subdomain', siteSlug).maybeSingle();
+    const { data: siteRow } = await lookup as { data: SiteRow | null };
+    if (!siteRow) {
+      return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    }
+    const ownerEmail = (siteRow.creator_email
+      ?? siteRow.site_config?.creator_email
+      ?? '').toLowerCase();
+    if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase()) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    const siteId = siteRow.id;
 
     const hasAddressOnly = req.nextUrl.searchParams.get('hasAddress') === '1';
 
