@@ -323,6 +323,18 @@ test.describe('Studio (stationery editor)', () => {
     await expect(page.locator('main').filter({ hasText: REWRITTEN }).first()).toBeVisible({ timeout: 5_000 });
   });
 
+  test('renders the manifest date in local time, not UTC', async ({ page }) => {
+    // SYNTHETIC_MANIFEST.logistics.date = '2026-09-12'. Before
+    // the fix, parsing this with `new Date(iso)` interpreted it
+    // as UTC midnight, which renders as "Sep 11" in any time
+    // zone west of UTC. The local-date parser must return Sep 12.
+    await expect(page.locator('main').getByText(/September 12, 2026/).first())
+      .toBeVisible();
+    // The topbar's short date should also be Sep 12, not Sep 11.
+    await expect(page.locator('header').getByText(/Sep 12, 2026/).first())
+      .toBeVisible();
+  });
+
   test('print media: chrome hides, only the canvas card prints', async ({ page }) => {
     // Switch to the print media query — same path window.print()
     // would take when the host clicks Export.

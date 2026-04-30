@@ -54,17 +54,13 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
   }, [nameA, nameB]);
 
   const dateShort = useMemo(() => {
-    const iso = manifest.logistics?.date;
-    if (!iso) return '—';
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return iso;
+    const d = parseLocalDate(manifest.logistics?.date);
+    if (!d) return '—';
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }, [manifest.logistics?.date]);
   const dateLong = useMemo(() => {
-    const iso = manifest.logistics?.date;
-    if (!iso) return 'date to come';
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return iso;
+    const d = parseLocalDate(manifest.logistics?.date);
+    if (!d) return 'date to come';
     return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
   }, [manifest.logistics?.date]);
   const venue = manifest.logistics?.venue ?? '';
@@ -75,9 +71,11 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
     if (parts.length >= 2) return `${parts[parts.length - 2]}, ${parts[parts.length - 1]}`;
     return parts[0] ?? venue;
   }, [venue, venueAddress]);
-  const rsvpDeadline = manifest.logistics?.rsvpDeadline
-    ? new Date(manifest.logistics.rsvpDeadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-    : undefined;
+  const rsvpDeadline = useMemo(() => {
+    const d = parseLocalDate(manifest.logistics?.rsvpDeadline);
+    if (!d) return undefined;
+    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  }, [manifest.logistics?.rsvpDeadline]);
 
   // Save-the-date back details, derived from the same manifest
   // pieces as the public site so the printable card matches what
@@ -555,6 +553,24 @@ function FloatingPear({ nudges, onClose }: { nudges: string[]; onClose: () => vo
       </div>
     </div>
   );
+}
+
+/** Parse a date string the way a host expects. ISO date-only
+ *  values like "2026-09-12" must be read as local-date, not UTC
+ *  midnight — otherwise hosts west of UTC see the day before
+ *  every time. Falls back to the Date constructor for any string
+ *  that isn't a bare YYYY-MM-DD (full ISO with time has timezone
+ *  semantics built in). */
+function parseLocalDate(value: string | null | undefined): Date | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.exec(trimmed);
+  if (dateOnly) {
+    const [y, m, d] = trimmed.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+  const fallback = new Date(trimmed);
+  return Number.isNaN(fallback.getTime()) ? null : fallback;
 }
 
 function titleCase(s: string): string {
