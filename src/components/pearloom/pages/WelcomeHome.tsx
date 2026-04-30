@@ -31,6 +31,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { DashLayout } from '../dash/DashShell';
 import { Icon, Pear } from '../motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
+import { parseLocalDate } from '@/lib/parse-local-date';
 import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
 import type { GuestInsight } from '@/app/api/guests/intelligence/route';
 
@@ -79,7 +80,7 @@ export function WelcomeHome() {
   }, [site?.domain]);
 
   // ── Derived: dates, stage, names ────────────────────────────
-  const eventDate = site?.eventDate ? new Date(site.eventDate) : null;
+  const eventDate = parseLocalDate(site?.eventDate);
   const daysUntil = eventDate
     ? Math.max(0, Math.round((eventDate.getTime() - Date.now()) / 86_400_000))
     : null;

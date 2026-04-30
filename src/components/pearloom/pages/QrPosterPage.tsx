@@ -12,6 +12,7 @@ import QRCode from 'qrcode';
 import { DashLayout } from '../dash/DashShell';
 import { Icon } from '../motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
+import { parseLocalDate } from '@/lib/parse-local-date';
 import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
 import { QR_THEMES, suggestThemesForOccasion, type QrThemeId } from '@/lib/qr-engine/themes';
 import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';
@@ -126,8 +127,9 @@ export function QrPosterPage() {
     setGenerationError(null);
     const jobId = startDecorJob('qr-poster', `Painting ${themeId.replace(/-/g, ' ')} poster`);
     try {
-      const dateLabel = site?.eventDate
-        ? new Date(site.eventDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+      const dateObj = parseLocalDate(site?.eventDate);
+      const dateLabel = dateObj
+        ? dateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
         : '';
       const namesStr = (site.names ?? []).filter(Boolean).join(' & ') || 'Our celebration';
       const kicker = (headline.trim() || preset?.kicker || 'Scan to open');
@@ -180,8 +182,9 @@ export function QrPosterPage() {
   }
 
   const names = (site?.names ?? []).filter(Boolean).join(' & ') || 'Our celebration';
-  const dateLabel = site?.eventDate
-    ? new Date(site.eventDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  const renderedDate = parseLocalDate(site?.eventDate);
+  const dateLabel = renderedDate
+    ? renderedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
     : '';
 
   const finalKicker = headline.trim() || preset?.kicker || 'Scan to open';

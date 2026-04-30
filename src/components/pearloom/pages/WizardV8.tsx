@@ -13,6 +13,7 @@ import { Icon, Pear, PearloomLogo, Sparkle, Squiggle, Blob } from '../motifs';
 import { OccasionGlyph } from '../icons/OccasionGlyph';
 import { Reveal } from '../motion';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
+import { parseLocalDate } from '@/lib/parse-local-date';
 import { TEMPLATES_BY_ID } from '../marketplace/templates-data';
 import { EVENT_TYPES, getEventType, type EventCategory } from '@/lib/event-os/event-types';
 import { nameModeFor, nameModeIsValid } from '@/lib/event-os/name-mode';
@@ -984,7 +985,7 @@ function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: St
 function ContextChips({ st }: { st: WizardState }) {
   const occ = OCCASIONS.find((o) => o.id === st.occasion)?.label ?? 'Not set';
   const namesVal = st.names.filter(Boolean).join(' & ') || 'Add names';
-  const dateVal = st.eventDate ? new Date(st.eventDate).toLocaleDateString() : 'Set date';
+  const dateVal = parseLocalDate(st.eventDate)?.toLocaleDateString() ?? 'Set date';
   const locVal = st.location || 'Add location';
   const chips = [
     { icon: '♥', tone: 'peach' as const, label: 'Occasion', val: occ },

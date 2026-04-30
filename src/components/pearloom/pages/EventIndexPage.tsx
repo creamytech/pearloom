@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { invalidateSitesCache, useUserSites, type SiteSummary } from '@/components/marketing/design/dash/hooks';
 import { DashLayout } from '../dash/DashShell';
+import { parseLocalDate } from '@/lib/parse-local-date';
 import { DashEmpty } from '../dash/DashEmpty';
 import { DashSkeleton } from '../dash/DashSkeleton';
 import { Heart, Icon, Pear, PhotoPlaceholder, Sparkle } from '../motifs';
@@ -46,8 +47,8 @@ function SiteCard({
   nextPath: string | null;
   onDeleted: (domain: string) => void;
 }) {
-  const date = site.eventDate ? new Date(site.eventDate) : null;
-  const dateLabel = date && !Number.isNaN(date.getTime())
+  const date = parseLocalDate(site.eventDate);
+  const dateLabel = date
     ? date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
     : 'Date TBD';
   const url = formatSiteDisplayUrl(site.domain, '', normalizeOccasion(site.occasion));

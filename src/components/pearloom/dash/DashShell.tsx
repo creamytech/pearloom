@@ -11,6 +11,7 @@ import { signOut, useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLinkStatus } from 'next/link';
 import { useEffect, useLayoutEffect, useRef, useState, useTransition, type ReactNode } from 'react';
+import { parseLocalDate } from '@/lib/parse-local-date';
 import { Blob, Heart, Icon, Pear, PearloomLogo, Squiggle } from '../motifs';
 import { useIsInsideShell } from './ShellPersistentLayout';
 import { NotificationBell } from './NotificationBell';
@@ -552,9 +553,10 @@ function CelebrationCard() {
   }, [open]);
 
   const label = site ? siteDisplayName(site) : 'Your celebration';
+  const sublineDate = parseLocalDate(site?.eventDate);
   const subline = site
-    ? (site.eventDate
-        ? new Date(site.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    ? (sublineDate
+        ? sublineDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
         : 'Tap to switch')
     : (sites && sites.length === 0 ? 'Create a site' : 'Tap to switch');
   const hasOptions = (sites?.length ?? 0) > 0;
@@ -733,7 +735,10 @@ function CelebrationCard() {
                     }}
                   >
                     {s.occasion ?? '—'}
-                    {s.eventDate ? ` · ${new Date(s.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : ''}
+                    {(() => {
+                      const d = parseLocalDate(s.eventDate);
+                      return d ? ` · ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : '';
+                    })()}
                   </span>
                 </span>
               </button>

@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { StatTile, Button } from '@/components/shell';
 import { formatSiteDisplayUrl } from '@/lib/site-urls';
+import { parseLocalDate } from '@/lib/parse-local-date';
 
 export interface EventHQSite {
   id: string;
@@ -52,10 +53,9 @@ interface EventHQProps {
 
 export function EventHQ({ site, onEdit, onShare }: EventHQProps) {
   const daysUntil = useMemo(() => {
-    if (!site.eventDate) return null;
-    const event = new Date(site.eventDate).getTime();
-    const now = Date.now();
-    const diff = Math.ceil((event - now) / (1000 * 60 * 60 * 24));
+    const d = parseLocalDate(site.eventDate);
+    if (!d) return null;
+    const diff = Math.ceil((d.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
     return diff;
   }, [site.eventDate]);
 
@@ -621,9 +621,8 @@ function PearSuggestCard({ site }: { site: EventHQSite }) {
 
 function computeSuggestion(site: EventHQSite): { title: string; description: string; cta: string } {
   const rsvp = site.rsvpStats;
-  const days = site.eventDate
-    ? Math.ceil((new Date(site.eventDate).getTime() - Date.now()) / 86400000)
-    : null;
+  const dObj = parseLocalDate(site.eventDate);
+  const days = dObj ? Math.ceil((dObj.getTime() - Date.now()) / 86400000) : null;
 
   if (rsvp && rsvp.total > 0 && rsvp.pending / rsvp.total > 0.4) {
     return {
