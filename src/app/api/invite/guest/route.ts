@@ -109,6 +109,12 @@ export async function POST(req: NextRequest) {
     const occasion = manifest?.occasion || 'celebration';
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
 
+    if (!process.env.RESEND_API_KEY) {
+      return NextResponse.json(
+        { error: 'Email is not configured on this server. Add RESEND_API_KEY and try again.' },
+        { status: 503 },
+      );
+    }
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     let sent = 0;
