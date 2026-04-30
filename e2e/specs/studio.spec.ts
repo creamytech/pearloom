@@ -242,6 +242,35 @@ test.describe('Studio (stationery editor)', () => {
     }
   });
 
+  test('Copy overrides are scoped per stationery type', async ({ page }) => {
+    await page.getByRole('button', { name: /^Copy$/ }).click();
+    const eyebrow = () => page.locator('textarea').first();
+
+    // Type override on the default "Invitation" type.
+    await eyebrow().fill('INVITE-ALPHA');
+    await eyebrow().press('Enter');
+    await expect(page.locator('main').filter({ hasText: 'INVITE-ALPHA' }).first()).toBeVisible();
+
+    // Switch to Save-the-date — the eyebrow text should be the
+    // STD default, NOT the invite override.
+    await page.getByRole('button', { name: /^Save the date$/ }).click();
+    // Re-open Copy tab (the right-rail tab state isn't reset,
+    // but make sure the textarea is visible on this type too).
+    const stdEyebrowValue = await eyebrow().inputValue();
+    expect(stdEyebrowValue).not.toContain('INVITE-ALPHA');
+
+    // Type a different override on Save-the-date.
+    await eyebrow().fill('STD-BETA');
+    await eyebrow().press('Enter');
+    await expect(page.locator('main').filter({ hasText: 'STD-BETA' }).first()).toBeVisible();
+
+    // Flip back to Invitation — should still read "INVITE-ALPHA".
+    await page.getByRole('button', { name: /^Invitation$/ }).click();
+    const inviteAfter = await eyebrow().inputValue();
+    expect(inviteAfter).toBe('INVITE-ALPHA');
+    await expect(page.locator('main').filter({ hasText: 'INVITE-ALPHA' }).first()).toBeVisible();
+  });
+
   test('Match-site-theme switches the palette to the closest match', async ({ page }) => {
     // The synthetic manifest seeds theme.colors.accent = sage
     // accent, so clicking "Match this card to your site theme"
