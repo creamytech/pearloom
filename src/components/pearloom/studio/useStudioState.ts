@@ -127,6 +127,10 @@ export function useStudioState(args: {
 }) {
   const [state, setState] = useState<StudioState>(() => readInitialState(args.manifest));
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  /** True between the start of the network POST and the
+   *  setSavedAt() that follows. The 1500ms debounce window
+   *  doesn't count — only the actual flush. */
+  const [saving, setSaving] = useState(false);
   const lastFlush = useRef<number>(0);
   const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -162,6 +166,7 @@ export function useStudioState(args: {
     flushTimer.current = setTimeout(async () => {
       const now = Date.now();
       lastFlush.current = now;
+      setSaving(true);
       try {
         const nextManifest = {
           ...args.manifest,
@@ -177,6 +182,8 @@ export function useStudioState(args: {
       } catch {
         // Silent — autosave is best-effort. The host can re-trigger
         // by changing any field.
+      } finally {
+        setSaving(false);
       }
     }, 1500);
     return () => { if (flushTimer.current) clearTimeout(flushTimer.current); };
@@ -188,5 +195,5 @@ export function useStudioState(args: {
     args.siteSlug,
   ]);
 
-  return useMemo(() => ({ state, setField, setMany, savedAt }), [state, setField, setMany, savedAt]);
+  return useMemo(() => ({ state, setField, setMany, savedAt, saving }), [state, setField, setMany, savedAt, saving]);
 }

@@ -142,6 +142,34 @@ test.describe('Studio (stationery editor)', () => {
     await expect(page.getByText('Off it goes.')).not.toBeVisible();
   });
 
+  test('topbar shows "Saving…" while the autosave POST is in flight', async ({ page }) => {
+    let release: (() => void) | null = null;
+    // Hold the autosave POST open so we can verify the
+    // intermediate "Saving…" label.
+    await page.route('**/api/sites', async (route) => {
+      const method = route.request().method();
+      if (method === 'POST') {
+        await new Promise<void>((resolve) => { release = resolve; });
+        await route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
+        return;
+      }
+      if (method === 'GET') {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: '{"sites":[]}' });
+        return;
+      }
+      await route.continue();
+    });
+    // Trigger an autosave by switching palette.
+    await page.locator('button[title="Garden"]').first().click();
+    // After the 1500ms debounce + the held POST, the label
+    // flips to "Saving…".
+    await expect(page.locator('header').getByText('Saving…')).toBeVisible({ timeout: 5_000 });
+    // Release the POST and verify the label settles to a saved
+    // string.
+    if (release) (release as () => void)();
+    await expect(page.locator('header').getByText(/Saved (just now|\d+s ago)/)).toBeVisible({ timeout: 5_000 });
+  });
+
   test('FloatingPear minimises and reopens within the session', async ({ page }) => {
     // Pear bubble starts expanded. The minimise button is a
     // small ink-muted close icon inside the bubble; aria-label

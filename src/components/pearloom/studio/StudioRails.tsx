@@ -44,6 +44,7 @@ interface TopbarProps {
   nameB: string;
   dateShort: string;
   savedAt?: number | null;
+  saving?: boolean;
 }
 
 const TYPE_TABS: Array<{ id: StationeryType; label: string; icon: string; sub: string }> = [
@@ -52,10 +53,12 @@ const TYPE_TABS: Array<{ id: StationeryType; label: string; icon: string; sub: s
   { id: 'thanks', label: 'Thank-you',     icon: 'heart-icon',     sub: 'Send the day after' },
 ];
 
-export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt }: TopbarProps) {
-  const savedLabel = savedAt
-    ? formatRelative(savedAt)
-    : 'Unsaved';
+export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt, saving }: TopbarProps) {
+  const savedLabel = saving
+    ? 'Saving…'
+    : savedAt
+      ? formatRelative(savedAt)
+      : 'Unsaved';
   return (
     <header style={{
       gridArea: 'top',

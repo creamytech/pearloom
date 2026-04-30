@@ -95,7 +95,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
   const occasion = normalizeOccasion((manifest as unknown as { occasion?: string }).occasion);
   const siteUrl = formatSiteDisplayUrl(siteSlug, '', occasion);
 
-  const { state, setField, setMany, savedAt } = useStudioState({ siteSlug, manifest });
+  const { state, setField, setMany, savedAt, saving } = useStudioState({ siteSlug, manifest });
   const [aiBusy, setAiBusy] = useState(false);
 
   const palette = PALETTES.find(p => p.id === state.palette) ?? PALETTES[0];
@@ -282,6 +282,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
         nameB={nameB}
         dateShort={dateShort}
         savedAt={savedAt}
+        saving={saving}
       />
 
       <DraftsRail
