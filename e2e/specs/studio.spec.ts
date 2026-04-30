@@ -323,6 +323,37 @@ test.describe('Studio (stationery editor)', () => {
     await expect(page.locator('main').filter({ hasText: REWRITTEN }).first()).toBeVisible({ timeout: 5_000 });
   });
 
+  test('mounts cleanly when the manifest is bare bones', async ({ page, context }) => {
+    // Override per-test the route mock to return a near-empty
+    // manifest. The Studio should still boot, place sensible
+    // fallbacks ("Your & Celebration", "date to come"), and not
+    // throw.
+    await context.route('**/api/sites/playwright-test', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 'pw-bare',
+          subdomain: TEST_SLUG,
+          names: [],
+          manifest: { studio: {} },
+          published: false,
+          occasion: 'wedding',
+        }),
+      });
+    });
+    await page.reload();
+    // The topbar pattern still renders ("Studio · A & B"); the
+    // beforeEach assertion already covered it, but reload bypasses
+    // it. Re-assert here.
+    await expect(page.getByText(/Studio · /)).toBeVisible({ timeout: 15_000 });
+    // Ceremony / Reception strip on the back stays as
+    // "—" placeholders since events are missing.
+    await page.getByRole('button', { name: /^Save the date$/ }).click();
+    await page.getByRole('button', { name: /^Back$/ }).first().click();
+    await expect(page.locator('main').getByText('Garden formal').first()).toBeVisible();
+  });
+
   test('Tone picker forwards the preset to the draft endpoint', async ({ page }) => {
     let captured: string | null = null;
     await page.route('**/api/studio/draft', async (route) => {
