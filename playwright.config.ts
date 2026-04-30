@@ -7,7 +7,7 @@ import { defineConfig, devices } from '@playwright/test';
 // shared storageState that every spec consumes.
 
 const PORT = Number(process.env.PEARLOOM_E2E_PORT ?? 3001);
-const HOST = `http://127.0.0.1:${PORT}`;
+const HOST = `http://localhost:${PORT}`;
 
 export default defineConfig({
   testDir: './e2e/specs',
