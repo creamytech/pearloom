@@ -33,6 +33,32 @@ import { StickerLayer } from '@/components/site-stickers/StickerLayer';
 
 // ── Helpers ───────────────────────────────────────────────────
 
+interface PageHeaderProps {
+  title: string;
+  subtitle?: string;
+  bgColor: string;
+  fontHeading: string;
+  fgColor: string;
+  mutedColor: string;
+}
+
+/** Hoisted to module scope so React doesn't re-mount it on every
+ *  parent render. Closures over palette / vibeSkin from the parent
+ *  are passed in as explicit props. */
+function PageHeader({ title, subtitle, bgColor, fontHeading, fgColor, mutedColor }: PageHeaderProps) {
+  return (
+    <div style={{ padding: '5rem 2rem 3rem', background: bgColor, textAlign: 'center', borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+      <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+        <div style={{ fontFamily: `"${fontHeading}", serif`, fontSize: 'clamp(2.2rem, 5vw, 3.5rem)', fontWeight: 400, letterSpacing: '-0.025em', color: fgColor, marginBottom: '0.75rem' }}>
+          {title}
+        </div>
+        {subtitle && <p style={{ color: mutedColor, fontSize: '1rem', fontStyle: 'italic' }}>{subtitle}</p>}
+      </div>
+    </div>
+  );
+}
+
+
 function proxyUrl(rawUrl: string, w: number, h: number): string {
   if (!rawUrl) return '';
   if (rawUrl.includes('googleusercontent.com') || rawUrl.includes('lh3.google')) {
@@ -85,33 +111,33 @@ function SubpagePreview({ page, manifest, names, rawParams }: { page: string; ma
     borderRadius: '1rem',
   };
 
-  const PageHeader = ({ title, subtitle }: { title: string; subtitle?: string }) => (
-    <div style={{ padding: '5rem 2rem 3rem', background: bgColor, textAlign: 'center', borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
-      <div style={{ maxWidth: '700px', margin: '0 auto' }}>
-        <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(2.2rem, 5vw, 3.5rem)', fontWeight: 400, letterSpacing: '-0.025em', color: pal.foreground, marginBottom: '0.75rem' }}>
-          {title}
-        </div>
-        {subtitle && <p style={{ color: pal.muted, fontSize: '1rem', fontStyle: 'italic' }}>{subtitle}</p>}
-      </div>
-    </div>
-  );
+  // Memoise the per-render style props so PageHeader's hoisted
+  // module-scope component doesn't see new prop identities every
+  // render. (Strings are stable by value anyway, but passing the
+  // same memo'd object cuts reconciliation noise.)
+  const headerProps = {
+    bgColor,
+    fontHeading: vibeSkin.fonts.heading,
+    fgColor: pal.foreground,
+    mutedColor: pal.muted,
+  };
 
   let content: React.ReactNode = null;
   if (page === 'schedule' && manifest.events?.length) {
-    content = <><PageHeader title="The Schedule" /><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} /><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></>;
+    content = <><PageHeader {...headerProps} title="The Schedule" /><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} /><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></>;
   } else if (page === 'rsvp' && manifest.events?.length) {
-    content = <><PageHeader title="RSVP" subtitle={(() => {
+    content = <><PageHeader {...headerProps} title="RSVP" subtitle={(() => {
       const d = parseLocalDate(manifest.logistics?.rsvpDeadline);
       return d
         ? `Please respond by ${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
         : 'Let us know if you can make it.';
     })()} /><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} /><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></>;
   } else if (page === 'registry' && (manifest.registry?.entries?.length || manifest.registry?.cashFundUrl)) {
-    content = <><PageHeader title="Registry" /><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={pal.accent2} height={60} /><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></>;
+    content = <><PageHeader {...headerProps} title="Registry" /><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={pal.accent2} height={60} /><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></>;
   } else if (page === 'travel' && (manifest.travelInfo?.hotels?.length || manifest.travelInfo?.airports?.length)) {
-    content = <><PageHeader title="Travel & Hotels" subtitle="Everything you need to plan your trip." /><TravelSection info={manifest.travelInfo!} /></>;
+    content = <><PageHeader {...headerProps} title="Travel & Hotels" subtitle="Everything you need to plan your trip." /><TravelSection info={manifest.travelInfo!} /></>;
   } else if (page === 'faq' && manifest.faqs?.length) {
-    content = <><PageHeader title="FAQ" /><FaqSection faqs={manifest.faqs} /></>;
+    content = <><PageHeader {...headerProps} title="FAQ" /><FaqSection faqs={manifest.faqs} /></>;
   } else {
     // Custom page or page with no content yet
     const customPage = manifest.customPages?.find(p => p.slug === page);
