@@ -160,6 +160,15 @@ function MotesLayer({
   return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />;
 }
 
+/** Deterministic pseudo-random for layer seed values.
+ *  Pure (sin-hash on i + salt) so the layout is stable across
+ *  re-renders and react-hooks/purity is satisfied. Returns a
+ *  value in [0, 1). */
+function atmosphereSeed(i: number, salt: number): number {
+  const v = Math.sin(i * 12.9898 + salt * 78.233) * 43758.5453;
+  return v - Math.floor(v);
+}
+
 interface Mote {
   x: number;
   y: number;
@@ -248,15 +257,19 @@ function PetalsLayer({
   paused,
 }: { density: number; accent?: string; reduced: boolean; paused: boolean }) {
   const count = Math.round(14 * density);
+  // Deterministic per-index pseudo-random so the petal layout
+  // is stable across re-renders (Math.random in render is
+  // impure per react-hooks/purity, and the petals shouldn't
+  // re-roll their positions every parent re-render anyway).
   const seeds = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => ({
         i,
-        left: Math.random() * 100,
-        delay: Math.random() * 18,
-        duration: 14 + Math.random() * 10,
-        scale: 0.7 + Math.random() * 0.7,
-        rotate: Math.random() * 360,
+        left:     atmosphereSeed(i, 1) * 100,
+        delay:    atmosphereSeed(i, 2) * 18,
+        duration: 14 + atmosphereSeed(i, 3) * 10,
+        scale:    0.7 + atmosphereSeed(i, 4) * 0.7,
+        rotate:   atmosphereSeed(i, 5) * 360,
       })),
     [count],
   );
@@ -303,15 +316,16 @@ function ConfettiLoopLayer({
   paused,
 }: { density: number; accent?: string; reduced: boolean; paused: boolean }) {
   const count = Math.round(12 * density);
+  // Same deterministic-seed approach as PetalsLayer.
   const seeds = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => ({
         i,
-        left: Math.random() * 100,
-        delay: Math.random() * 14,
-        duration: 9 + Math.random() * 6,
+        left:     atmosphereSeed(i, 11) * 100,
+        delay:    atmosphereSeed(i, 12) * 14,
+        duration: 9 + atmosphereSeed(i, 13) * 6,
         kind: i % 3,
-        rot: Math.random() * 360,
+        rot: atmosphereSeed(i, 14) * 360,
       })),
     [count],
   );

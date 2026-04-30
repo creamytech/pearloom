@@ -15,6 +15,7 @@
 
 import { useEffect, useState } from 'react';
 import { computePassportPhase, phaseCopy, type PassportPhase } from '@/lib/passport/phase';
+import { parseLocalDate } from '@/lib/parse-local-date';
 
 interface Props {
   eventDateIso: string | null;
@@ -87,16 +88,25 @@ export function GuestPhaseStrip({
     else if (Notification.permission === 'denied') setPushState('denied');
   }, []);
 
-  const eventDateLabel = eventDateIso
-    ? new Date(eventDateIso).toLocaleDateString('en-US', {
+  // `now` ticks hourly so daysUntil + yearsPassed advance at
+  // local midnight without a reload. Lazy init keeps render
+  // pure (react-hooks/purity).
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
+  const eventDate = parseLocalDate(eventDateIso);
+  const eventDateLabel = eventDate
+    ? eventDate.toLocaleDateString('en-US', {
         weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
       })
     : 'Date to come';
-  const daysUntil = eventDateIso
-    ? Math.max(0, Math.round((new Date(eventDateIso).getTime() - Date.now()) / (24 * 60 * 60 * 1000)))
+  const daysUntil = eventDate
+    ? Math.max(0, Math.round((eventDate.getTime() - now) / (24 * 60 * 60 * 1000)))
     : undefined;
-  const yearsPassed = eventDateIso
-    ? Math.max(0, Math.floor((Date.now() - new Date(eventDateIso).getTime()) / (365.25 * 24 * 60 * 60 * 1000)))
+  const yearsPassed = eventDate
+    ? Math.max(0, Math.floor((now - eventDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000)))
     : undefined;
   const copy = phaseCopy(phase, {
     firstName, coupleNames, venue, sitePath, rsvpHref, eventDateLabel, daysUntil, yearsPassed,
