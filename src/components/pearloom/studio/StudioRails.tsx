@@ -54,11 +54,14 @@ const TYPE_TABS: Array<{ id: StationeryType; label: string; icon: string; sub: s
 ];
 
 export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt, saving }: TopbarProps) {
+  // savedAt is null until the host's first edit lands. Until
+  // then the manifest as loaded IS persisted, so "Unsaved" was
+  // misleading — show no label on a clean session.
   const savedLabel = saving
     ? 'Saving…'
     : savedAt
       ? formatRelative(savedAt)
-      : 'Unsaved';
+      : null;
   return (
     <header style={{
       gridArea: 'top',
@@ -81,7 +84,7 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
             Studio · {nameA} & {nameB}
           </div>
           <div style={{ fontSize: 10.5, color: 'var(--ink-muted)' }}>
-            {dateShort} · {savedLabel}
+            {dateShort}{savedLabel ? ` · ${savedLabel}` : ''}
           </div>
         </div>
       </div>
