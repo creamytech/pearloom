@@ -29,6 +29,9 @@ interface RailProps {
   onAskPearForAsset?: (kind: AssetEntry['kind']) => Promise<void>;
   onRewriteField?: (fieldId: string, hint: string) => Promise<void>;
   onMatchSiteTheme?: () => Promise<void>;
+  /** Pear suggests a complementary motif + palette pair. Sync,
+   *  no API — see suggestPair() in StudioApp. */
+  onSuggestPair?: () => void;
   onSavingNudge?: string | null;
   /** AI generation status — surfaces as a "Pear is drafting…"
    *  banner near the rail header. */
@@ -421,7 +424,7 @@ function AssetPalette({ state, setField, onAskPearForAsset }: { state: StudioSta
   );
 }
 
-export function RemixRail({ state, setField, content, nameA, nameB, onRewriteField, onMatchSiteTheme }: RailProps) {
+export function RemixRail({ state, setField, content, nameA, nameB, onRewriteField, onMatchSiteTheme, onSuggestPair }: RailProps) {
   const [tab, setTab] = useState<'design' | 'copy' | 'pear'>('design');
   return (
     <aside style={{
@@ -462,7 +465,7 @@ export function RemixRail({ state, setField, content, nameA, nameB, onRewriteFie
       <div className="pl-studio-scroll" style={{ flex: 1, overflow: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 22 }}>
         {tab === 'design' && <DesignTab state={state} setField={setField} />}
         {tab === 'copy' && <CopyTab content={content} state={state} setField={setField} onRewriteField={onRewriteField} />}
-        {tab === 'pear' && <PearTab state={state} content={content} nameA={nameA} nameB={nameB} onMatchSiteTheme={onMatchSiteTheme} />}
+        {tab === 'pear' && <PearTab state={state} content={content} nameA={nameA} nameB={nameB} onMatchSiteTheme={onMatchSiteTheme} onSuggestPair={onSuggestPair} />}
       </div>
     </aside>
   );
@@ -749,7 +752,7 @@ function EditableLine({ initial, onSave }: { initial: string; onSave: (next: str
   );
 }
 
-function PearTab({ state, content, nameA, nameB, onMatchSiteTheme }: { state: StudioState; content: StudioContent; nameA: string; nameB: string; onMatchSiteTheme?: () => Promise<void> }) {
+function PearTab({ state, content, nameA, nameB, onMatchSiteTheme, onSuggestPair }: { state: StudioState; content: StudioContent; nameA: string; nameB: string; onMatchSiteTheme?: () => Promise<void>; onSuggestPair?: () => void }) {
   return (
     <>
       <div style={{
@@ -775,7 +778,7 @@ function PearTab({ state, content, nameA, nameB, onMatchSiteTheme }: { state: St
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {[
             { l: 'Match this card to your site theme',  i: 'palette',  tone: 'lavender', onPress: onMatchSiteTheme },
-            { l: 'Suggest a stamp + accent that pair',   i: 'sparkles', tone: 'peach' },
+            { l: 'Suggest a stamp + accent that pair',   i: 'sparkles', tone: 'peach',    onPress: onSuggestPair },
             { l: 'Translate every word to the venue’s language', i: 'globe', tone: 'lavender' },
           ].map(s => (
             <button key={s.l}

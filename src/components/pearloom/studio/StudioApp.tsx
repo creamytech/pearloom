@@ -241,6 +241,29 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
     }
   }
 
+  // ── Pear: suggest a complementary stamp + accent ────────────
+  // Deterministic curator — no API call needed. Pairs each
+  // motif with the palette that reads as its natural neighbour
+  // (botanical leaves → sage, formal monogram → cream, etc.)
+  // and avoids returning the host's current pair so the click
+  // always produces a visible change.
+  function suggestPair() {
+    const PAIRS: Array<{ motif: string; palette: string }> = [
+      { motif: 'leaves',   palette: 'sage' },
+      { motif: 'monogram', palette: 'cream' },
+      { motif: 'stamp',    palette: 'lavender' },
+      { motif: 'tape',     palette: 'peach' },
+      { motif: 'wax',      palette: 'rose' },
+      { motif: 'doodle',   palette: 'twilight' },
+      { motif: 'none',     palette: 'cream' },
+    ];
+    const candidates = PAIRS.filter(
+      (p) => !(p.motif === state.motif && p.palette === state.palette),
+    );
+    const next = candidates[Math.floor(Math.random() * candidates.length)];
+    setMany({ motif: next.motif, palette: next.palette, customMotifUrl: null });
+  }
+
   // ── Pear: match the card to the current site theme ─────────
   async function matchSiteTheme() {
     const themeAccent = (manifest as unknown as { theme?: { colors?: { accent?: string } } }).theme?.colors?.accent;
@@ -399,6 +422,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
         onPickDraft={pickDraft}
         onRewriteField={rewriteField}
         onMatchSiteTheme={matchSiteTheme}
+        onSuggestPair={suggestPair}
         aiBusy={aiBusy}
       />
 
