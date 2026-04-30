@@ -323,6 +323,28 @@ test.describe('Studio (stationery editor)', () => {
     await expect(page.locator('main').filter({ hasText: REWRITTEN }).first()).toBeVisible({ timeout: 5_000 });
   });
 
+  test('print media: chrome hides, only the canvas card prints', async ({ page }) => {
+    // Switch to the print media query — same path window.print()
+    // would take when the host clicks Export.
+    await page.emulateMedia({ media: 'print' });
+    // Topbar header and both rails get display:none under the
+    // print CSS.
+    const headerDisplay = await page.locator('.pl-studio-root header').first().evaluate(
+      (el) => getComputedStyle(el).display,
+    );
+    const asideDisplay = await page.locator('.pl-studio-root aside').first().evaluate(
+      (el) => getComputedStyle(el).display,
+    );
+    expect(headerDisplay).toBe('none');
+    expect(asideDisplay).toBe('none');
+    // The canvas remains visible (visibility: visible reaches it
+    // via the .pl-studio-root * cascade).
+    const canvasVis = await page.locator('.pl-studio-canvas').first().evaluate(
+      (el) => getComputedStyle(el).visibility,
+    );
+    expect(canvasVis).toBe('visible');
+  });
+
   test('mounts cleanly when the manifest is bare bones', async ({ page, context }) => {
     // Override per-test the route mock to return a near-empty
     // manifest. The Studio should still boot, place sensible

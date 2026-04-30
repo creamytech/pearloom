@@ -268,7 +268,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
   }
 
   return (
-    <div style={{
+    <div className="pl-studio-root" style={{
       display: 'grid',
       gridTemplateColumns: '296px 1fr 312px',
       gridTemplateRows: '64px 1fr',
@@ -452,6 +452,26 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
         @media (prefers-reduced-motion: reduce) {
           .pl-studio-card-in, .pl-studio-flip-in, .pl-studio-nudge-in { animation: none !important; }
         }
+        @media print {
+          /* Strip the dashboard chrome so Export → window.print()
+             prints just the active card surface. The Studio root
+             pins to the page; everything outside the canvas is
+             hidden. */
+          @page { size: 5in 7in; margin: 0; }
+          body * { visibility: hidden !important; }
+          .pl-studio-root, .pl-studio-root * { visibility: visible !important; }
+          .pl-studio-root header,
+          .pl-studio-root aside { display: none !important; }
+          .pl-studio-root { display: block !important; height: auto !important; background: white !important; overflow: visible !important; }
+          .pl-studio-canvas {
+            background: white !important;
+            overflow: visible !important;
+            min-height: 7in !important;
+          }
+          /* Drop the desk shadow + texture overlays so the print
+             reads as flat ink-on-paper. */
+          .pl-studio-card-shadow { box-shadow: none !important; }
+        }
       `}</style>
 
       {/* Suppress unused — referenced for future analytics. */}
@@ -462,7 +482,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
 
 function CanvasStage({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{
+    <div className="pl-studio-canvas" style={{
       gridArea: 'canvas',
       position: 'relative',
       overflow: 'hidden',
