@@ -363,7 +363,7 @@ test.describe('Studio (stationery editor)', () => {
     // (1500ms debounce + buffer).
     await page.getByRole('button', { name: /Pear\s*·\s*stamp/i }).click();
     await expect.poll(async () => savedManifestStudio, { timeout: 5_000 }).not.toBeNull();
-    const studio = savedManifestStudio as { assets?: Array<{ url?: string }> };
+    const studio = savedManifestStudio as unknown as { assets?: Array<{ url?: string }> };
     expect(studio.assets?.[0]?.url).toBe(SENTINEL_URL);
 
     // Now flip the site fetch mock to replay the captured studio

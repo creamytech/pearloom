@@ -3,17 +3,16 @@
 // ─────────────────────────────────────────────────────────────
 // useStudioState — Studio editor state + manifest persistence.
 //
-// State is split into:
-//   - tweaks (palette / layout / fontPair / motif / tone / view /
-//     showSend / showAssets / showPear / animate) — UI ergonomics
-//     persisted under manifest.studio.{type}.tweaks.
-//   - per-type drafts list (3 AI directions) — persisted under
-//     manifest.studio.{type}.drafts so re-drafts stick.
-//   - assets array (built-in + AI-generated) persisted under
-//     manifest.studio.assets.
+// State is split into persisted vs ephemeral:
+//   - PERSISTED (round-trip via manifest.studio): type, view,
+//     draft, palette, fontPair, layout, motif, tone,
+//     customMotifUrl, assets, drafts, copyOverrides, showAssets.
+//   - EPHEMERAL (reset on every mount): showSend (modal flag),
+//     showPear (close-the-bubble preference, intentionally
+//     greets each session), animate.
 //
-// Saves are debounced and posted to /api/sites (the editor's
-// shared autosave path). Reads come from props on first mount.
+// Saves are debounced 1500ms and posted to /api/sites. Reads
+// come from props on first mount.
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -98,6 +97,7 @@ interface ManifestStudio {
     line4?: string;
     cta?: string;
   }>>;
+  showAssets?: boolean;
 }
 
 function readInitialState(manifest: StoryManifest | null | undefined): StudioState {
@@ -119,6 +119,7 @@ function readInitialState(manifest: StoryManifest | null | undefined): StudioSta
       : DEFAULT_ASSET_PALETTE,
     drafts: studio.drafts ?? {},
     copyOverrides: studio.copyOverrides ?? {},
+    showAssets: studio.showAssets ?? DEFAULT_STATE.showAssets,
   };
 }
 
@@ -158,6 +159,7 @@ export function useStudioState(args: {
       assets: state.assets,
       drafts: state.drafts,
       copyOverrides: state.copyOverrides,
+      showAssets: state.showAssets,
     };
     if (flushTimer.current) clearTimeout(flushTimer.current);
     flushTimer.current = setTimeout(async () => {
@@ -185,7 +187,7 @@ export function useStudioState(args: {
   }, [
     state.type, state.view, state.draft, state.palette, state.fontPair,
     state.layout, state.motif, state.tone, state.customMotifUrl,
-    state.assets, state.drafts, state.copyOverrides,
+    state.assets, state.drafts, state.copyOverrides, state.showAssets,
     args.siteSlug,
   ]);
 
