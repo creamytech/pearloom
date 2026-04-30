@@ -366,7 +366,12 @@ function AssetPalette({ state, setField, onAskPearForAsset }: { state: StudioSta
     <div style={{ marginTop: 4 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>Drag onto card</div>
-        <button onClick={() => setField('showAssets', !state.showAssets)} style={{ fontSize: 10.5, color: 'var(--ink-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
+        <button
+          onClick={() => setField('showAssets', !state.showAssets)}
+          aria-label={state.showAssets ? 'Collapse asset palette' : 'Expand asset palette'}
+          aria-expanded={state.showAssets}
+          style={{ fontSize: 10.5, color: 'var(--ink-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+        >
           <Icon name={state.showAssets ? 'chev-up' : 'chev-down'} size={12} />
         </button>
       </div>
