@@ -151,6 +151,16 @@ export function FindInSite({ manifest, open, onClose, onJump }: Props) {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Find anywhere on your site…"
             aria-label="Find in site"
+            // WAI-ARIA combobox 1.2: input is the combobox, the
+            // results list below is the listbox. aria-activedescendant
+            // tells screen readers which result the arrow-key cursor
+            // is currently on without moving DOM focus off the input.
+            role="combobox"
+            aria-expanded={matches.length > 0}
+            aria-controls={matches.length > 0 ? 'pl-find-results' : undefined}
+            aria-autocomplete="list"
+            aria-activedescendant={matches.length > 0 && matches[cursor]
+              ? `pl-find-opt-${cursor}` : undefined}
             style={{
               flex: 1,
               border: 'none',
@@ -207,11 +217,19 @@ export function FindInSite({ manifest, open, onClose, onJump }: Props) {
               Nothing found for &ldquo;{query}&rdquo;.
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div
+              id="pl-find-results"
+              role="listbox"
+              aria-label="Find results"
+              style={{ display: 'flex', flexDirection: 'column' }}
+            >
               {matches.map((m, i) => (
                 <button
                   key={m.id}
+                  id={`pl-find-opt-${i}`}
                   type="button"
+                  role="option"
+                  aria-selected={i === cursor}
                   ref={(el) => {
                     // Scroll the keyboard-highlighted row into view as
                     // the cursor moves through the list. `nearest` keeps
