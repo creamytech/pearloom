@@ -1443,6 +1443,7 @@ function AtelierModal({
   return (
     <div
       role="dialog"
+      aria-modal="true"
       aria-label="Paint with Pear"
       onClick={onClose}
       style={{

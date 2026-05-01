@@ -53,6 +53,7 @@ export function PearWelcome({ siteSlug, onAccept }: Props) {
   return (
     <div
       role="dialog"
+      aria-modal="true"
       aria-label="Pear says hello"
       style={{
         position: 'fixed',

@@ -258,6 +258,7 @@ export function PearCommand({
   return (
     <div
       role="dialog"
+      aria-modal="true"
       aria-label="Command palette"
       onClick={() => setOpen(false)}
       style={{

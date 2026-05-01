@@ -206,6 +206,7 @@ export function PhotoPicker({
   return (
     <div
       role="dialog"
+      aria-modal="true"
       aria-label={title}
       onClick={onClose}
       style={{
