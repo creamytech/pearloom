@@ -1562,7 +1562,7 @@ function EditorTopbar({
           }}
         >{displayNames}</div>
         <div style={{ fontSize: 11, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 6, lineHeight: 1.15 }}>
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 240 }}>{prettyUrl}</span>
+          <span title={prettyUrl} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 240 }}>{prettyUrl}</span>
           <SaveDot saveStatus={saveStatus} lastSavedAt={lastSavedAt} />
           {liveUrl && (
             <a
