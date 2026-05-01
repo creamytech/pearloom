@@ -18,6 +18,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import {
   DEFAULT_ASSET_PALETTE,
+  PALETTES,
+  FONT_PAIRS,
+  LAYOUTS,
+  MOTIFS,
+  COPY_TONES,
   type AssetEntry,
   type StationeryType,
   type CardView,
@@ -97,19 +102,36 @@ interface ManifestStudio {
   showAssets?: boolean;
 }
 
+// Validate enum-shaped persisted fields against the canonical
+// option lists. A corrupt or stale manifest (e.g. a palette id
+// renamed in a later release) silently falls back to the
+// default instead of letting an invalid id propagate into the
+// renderer where it'd render as the empty / wrong card.
+const VALID_TYPES: ReadonlySet<StationeryType> = new Set(['std', 'invite', 'thanks']);
+const VALID_VIEWS: ReadonlySet<CardView> = new Set(['front', 'back', 'envelope']);
+const VALID_PALETTES = new Set(PALETTES.map(p => p.id));
+const VALID_FONTS = new Set(FONT_PAIRS.map(f => f.id));
+const VALID_LAYOUTS = new Set(LAYOUTS.map(l => l.id));
+const VALID_MOTIFS = new Set(MOTIFS.map(m => m.id));
+const VALID_TONES = new Set(COPY_TONES.map(t => t.id));
+
+function pick<T extends string>(value: unknown, allowed: ReadonlySet<T>, fallback: T): T {
+  return typeof value === 'string' && allowed.has(value as T) ? (value as T) : fallback;
+}
+
 function readInitialState(manifest: StoryManifest | null | undefined): StudioState {
   const studio = (manifest as unknown as { studio?: ManifestStudio } | null)?.studio;
   if (!studio) return DEFAULT_STATE;
   return {
     ...DEFAULT_STATE,
-    type: (studio.type as StationeryType) ?? DEFAULT_STATE.type,
-    view: (studio.view as CardView) ?? DEFAULT_STATE.view,
+    type: pick(studio.type, VALID_TYPES, DEFAULT_STATE.type),
+    view: pick(studio.view, VALID_VIEWS, DEFAULT_STATE.view),
     draft: studio.draft ?? DEFAULT_STATE.draft,
-    palette: studio.palette ?? DEFAULT_STATE.palette,
-    fontPair: studio.fontPair ?? DEFAULT_STATE.fontPair,
-    layout: studio.layout ?? DEFAULT_STATE.layout,
-    motif: studio.motif ?? DEFAULT_STATE.motif,
-    tone: studio.tone ?? DEFAULT_STATE.tone,
+    palette: pick(studio.palette, VALID_PALETTES, DEFAULT_STATE.palette),
+    fontPair: pick(studio.fontPair, VALID_FONTS, DEFAULT_STATE.fontPair),
+    layout: pick(studio.layout, VALID_LAYOUTS, DEFAULT_STATE.layout),
+    motif: pick(studio.motif, VALID_MOTIFS, DEFAULT_STATE.motif),
+    tone: pick(studio.tone, VALID_TONES, DEFAULT_STATE.tone),
     customMotifUrl: studio.customMotifUrl ?? null,
     assets: Array.isArray(studio.assets) && studio.assets.length > 0
       ? studio.assets

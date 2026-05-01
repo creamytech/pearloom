@@ -752,6 +752,44 @@ test.describe('Studio (stationery editor)', () => {
     expect(canvasVis).toBe('visible');
   });
 
+  test('falls back to defaults when persisted manifest.studio has stale ids', async ({ page }) => {
+    // A manifest written by a future release (or corrupt data)
+    // could ship palette/layout/motif ids that no longer exist.
+    // The Studio should fall back to the default state silently
+    // rather than render a card with the wrong palette/layout.
+    await page.route('**/api/sites/playwright-test', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 'pw-stale',
+          subdomain: TEST_SLUG,
+          names: ['Emma', 'James'],
+          manifest: {
+            ...SYNTHETIC_MANIFEST,
+            studio: {
+              type: 'pizza',          // not a real type
+              palette: 'rainbow',     // not a real palette
+              layout: 'baroque',      // not a real layout
+              motif: 'unicorn',       // not a real motif
+              tone: 'shouty',         // not a real tone
+              fontPair: 'comic-sans', // not a real font pair
+            },
+          },
+          published: false,
+          occasion: 'wedding',
+        }),
+      });
+    });
+    await page.reload();
+    // Should land on the default 'invite' tab (the active type
+    // pill is highlighted) without throwing.
+    await expect(page.getByRole('button', { name: /^Invitation$/, exact: false }).first()).toBeVisible({ timeout: 15_000 });
+    // And the canvas should render — no error boundary, no
+    // empty wrapper.
+    await expect(page.locator('.pl-studio-canvas')).toBeVisible();
+  });
+
   test('preserves mixed-case names like McKenna and O\'Brien', async ({ page }) => {
     // The Studio's titleCase shouldn't mangle deliberate casing.
     // page.route overrides the beforeEach handler for the same
