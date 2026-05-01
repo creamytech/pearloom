@@ -619,6 +619,17 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
           /* Drop the desk shadow + texture overlays so the print
              reads as flat ink-on-paper. */
           .pl-studio-card-shadow { box-shadow: none !important; }
+          /* Hide every floating affordance — the Pear nudge
+             bubble, the AI error toast, and any open dialog
+             (the host could fire window.print() while the Send
+             overlay is open). They live inside .pl-studio-root
+             so the visibility:visible cascade above unhides
+             them; flip them off explicitly. */
+          .pl-studio-nudge-in,
+          .pl-studio-root [role="dialog"],
+          .pl-studio-root [role="status"] {
+            display: none !important;
+          }
         }
       `}</style>
 

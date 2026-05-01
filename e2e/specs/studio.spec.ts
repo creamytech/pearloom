@@ -750,6 +750,10 @@ test.describe('Studio (stationery editor)', () => {
       (el) => getComputedStyle(el).visibility,
     );
     expect(canvasVis).toBe('visible');
+    // The floating Pear nudge bubble (.pl-studio-nudge-in) is hidden
+    // so it doesn't intrude on the printed card.
+    const nudgeCount = await page.locator('.pl-studio-nudge-in:visible').count();
+    expect(nudgeCount).toBe(0);
   });
 
   test('falls back to defaults when persisted manifest.studio has stale ids', async ({ page }) => {
