@@ -925,8 +925,8 @@ function PaletteSection({
 
   return (
     <PanelSection label="Palette" hint="16 curated, AI-tuned to your event, or one you build yourself.">
-      <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-        {(['curated', 'ai', 'custom'] as const).map((t) => {
+      <div role="tablist" aria-label="Palette source" style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+        {(['curated', 'ai', 'custom'] as const).map((t, i, arr) => {
           const on = tab === t;
           return (
             <button
@@ -934,7 +934,18 @@ function PaletteSection({
               type="button"
               role="tab"
               aria-selected={on}
+              tabIndex={on ? 0 : -1}
               onClick={() => setTab(t)}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                  e.preventDefault();
+                  const dir = e.key === 'ArrowRight' ? 1 : -1;
+                  const next = (i + dir + arr.length) % arr.length;
+                  setTab(arr[next]);
+                  const list = e.currentTarget.parentElement;
+                  list?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+                }
+              }}
               style={{
                 flex: 1,
                 padding: '6px 10px',
