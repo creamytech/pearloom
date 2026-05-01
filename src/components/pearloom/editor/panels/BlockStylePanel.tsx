@@ -144,10 +144,14 @@ export function BlockStylePanel({ manifest, blockId, label = 'Section style', on
 
   function set(patch: Partial<BlockStyleOverride>) {
     const next: BlockStyleOverride = { ...current, ...patch };
-    // Strip empty / undefined keys to keep manifest clean.
+    // Strip undefined / empty-string keys to keep manifest clean.
+    // Don't treat 0 as deletable — every BlockStyleOverride field
+    // is a string enum today, but a future numeric field (e.g. an
+    // explicit 0px override) would silently revert to its default
+    // if 0 were treated as deletable.
     Object.keys(next).forEach((k) => {
       const v = (next as Record<string, unknown>)[k];
-      if (v === undefined || v === '' || v === 0) delete (next as Record<string, unknown>)[k];
+      if (v === undefined || v === '') delete (next as Record<string, unknown>)[k];
     });
     const nextStyles = { ...styles };
     if (Object.keys(next).length === 0) {
