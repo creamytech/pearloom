@@ -2025,13 +2025,12 @@ function SaveDot({
       )}
       <style jsx global>{`
         @keyframes pl-save-check {
-          0%   { stroke-dashoffset: 22; opacity: 0; transform: scale(0.6); }
-          60%  { opacity: 1; }
-          100% { stroke-dashoffset: 0; opacity: 1; transform: scale(1); }
-        }
-        @keyframes pl-save-check {
-          /* Fallback for browsers without stroke-dashoffset support
-             — just scale-in the check. */
+          /* Single canonical reveal — drop-in scale + light spring
+             rotate. The earlier stroke-dashoffset variant was being
+             shadowed by a duplicate definition that landed in this
+             same <style> block, so the intended draw animation
+             never ran. The rotate version is the one that's been
+             shipping; locked it in. */
           0%   { opacity: 0; transform: scale(0.4) rotate(-12deg); }
           70%  { opacity: 1; transform: scale(1.08) rotate(2deg); }
           100% { opacity: 1; transform: scale(1) rotate(0); }
