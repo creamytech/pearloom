@@ -148,6 +148,19 @@ export function FirstThreadTour({ siteSlug }: { siteSlug: string }) {
     setStepIdx(-2); // unmount
   }
 
+  // Escape skips the tour — same dismiss path as the visible
+  // Skip pill in the card. Even though the tour is non-modal, a
+  // keyboard host who hits Escape expects the overlay to close.
+  useEffect(() => {
+    if (stepIdx < 0) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') complete();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepIdx]);
+
   function next() {
     if (isLast) complete();
     else setStepIdx((i) => i + 1);
