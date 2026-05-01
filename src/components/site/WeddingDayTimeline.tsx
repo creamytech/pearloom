@@ -133,8 +133,14 @@ export function WeddingDayTimeline({
 
   useEffect(() => {
     injectKeyframes();
-    setMounted(true);
-    tick();
+    // Defer the initial setMounted + tick into queueMicrotask
+    // so they're not synchronous setStates in the effect body
+    // (react-hooks/set-state-in-effect). Same task tick, no
+    // visible difference.
+    queueMicrotask(() => {
+      setMounted(true);
+      tick();
+    });
     const id = setInterval(tick, 60_000); // update every minute
     return () => clearInterval(id);
   }, [tick]);

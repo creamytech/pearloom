@@ -41,20 +41,18 @@ export function AmbientSpotifyPlayer({
   accent = '#C19A4B',
 }: AmbientSpotifyPlayerProps) {
   const [show, setShow] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  // Lazy useState init — read sessionStorage once on mount.
+  const [dismissed, setDismissed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try { return sessionStorage.getItem('pl:ambient-spotify-dismissed') === '1'; }
+    catch { return false; }
+  });
   const [expanded, setExpanded] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
     if (!isValidSpotifyUrl(spotifyUrl)) return;
-    try {
-      if (sessionStorage.getItem('pl:ambient-spotify-dismissed') === '1') {
-        setDismissed(true);
-        return;
-      }
-    } catch {
-      /* session store unavailable */
-    }
+    if (dismissed) return;
 
     const anchor = document.getElementById(anchorId);
     if (!anchor) return;
@@ -73,7 +71,7 @@ export function AmbientSpotifyPlayer({
       observer.disconnect();
       observerRef.current = null;
     };
-  }, [spotifyUrl, anchorId]);
+  }, [spotifyUrl, anchorId, dismissed]);
 
   function handleDismiss() {
     setDismissed(true);

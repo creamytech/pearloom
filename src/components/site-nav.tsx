@@ -119,7 +119,6 @@ export function SiteNav({
   onGoToDashboard,
   onStartNew,
 }: SiteNavProps) {
-  const [scrollY, setScrollY]         = useState(0);
   const [drawerOpen, setDrawer]       = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [isDesktop, setIsDesktop]     = useState(false);
@@ -138,11 +137,10 @@ export function SiteNav({
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 32, restDelta: 0.001 });
 
-  // Shared scroll context for scrollY
+  // Read scrollY directly from the shared scroll context — no
+  // mirror state needed (was a setState-in-effect cascade).
   const sharedScroll = useSharedScroll();
-  useEffect(() => {
-    setScrollY(sharedScroll.scrollY);
-  }, [sharedScroll.scrollY]);
+  const scrollY = sharedScroll.scrollY;
 
   // ── Derived state ────────────────────────────────────────────
   const atTop    = scrollY < 20;
