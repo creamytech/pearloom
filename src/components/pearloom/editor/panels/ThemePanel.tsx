@@ -893,13 +893,13 @@ function PaletteSection({
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error((body as { error?: string }).error ?? `AI palette failed (${res.status})`);
+        throw new Error((body as { error?: string }).error ?? `Pear couldn't mix that one (${res.status})`);
       }
       const data = (await res.json()) as { palettes?: Array<{ id: string; name: string; rationale?: string; colors: string[] }> };
       const presets: ThemePreset[] = (data.palettes ?? []).map((p) => smartPaletteToPreset(p));
       setAiPalettes(presets);
     } catch (err) {
-      setAiError(err instanceof Error ? err.message : 'AI palette failed');
+      setAiError(err instanceof Error ? err.message : "Pear couldn't mix that one");
     } finally {
       setAiRunning(false);
     }
