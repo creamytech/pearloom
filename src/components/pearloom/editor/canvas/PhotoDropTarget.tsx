@@ -146,6 +146,8 @@ export function PhotoDropTarget({ onDrop, label, children, className, style }: P
       )}
       {status === 'uploading' && (
         <div
+          role="status"
+          aria-live="polite"
           style={{
             position: 'absolute',
             inset: 0,
@@ -164,6 +166,7 @@ export function PhotoDropTarget({ onDrop, label, children, className, style }: P
       )}
       {status === 'error' && (
         <div
+          role="alert"
           style={{
             position: 'absolute',
             inset: 0,
