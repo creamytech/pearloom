@@ -403,7 +403,7 @@ function YourStuffTab({
           {uploading ? 'Uploading…' : 'Upload'}
         </ActionPill>
         <ActionPill onClick={onGoogle} disabled={pickerBusy} icon="image">
-          {pickerBusy ? 'Loading…' : 'From Google'}
+          {pickerBusy ? 'Threading…' : 'From Google'}
         </ActionPill>
         <ActionPill onClick={onAtelier} icon="sparkles" peach>
           Paint with Pear
