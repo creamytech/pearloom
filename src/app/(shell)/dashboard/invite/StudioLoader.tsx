@@ -14,6 +14,7 @@ import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { StudioApp } from '@/components/pearloom/studio/StudioApp';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { DashEmpty } from '@/components/pearloom/dash/DashEmpty';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 interface SiteFetchResult {
   manifest: StoryManifest | null;
@@ -127,5 +128,26 @@ export function StudioLoader({ initialSlug }: Props) {
     );
   }
 
-  return <StudioApp siteSlug={slug!} manifest={data.manifest} names={data.names} />;
+  return (
+    <ErrorBoundary
+      fallback={
+        <DashLayout active="studio">
+          <div className="pl8-dash-page-enter" style={{ padding: 'clamp(20px, 4vw, 40px)', maxWidth: 800, margin: '0 auto' }}>
+            <DashEmpty
+              size="page"
+              eyebrow="Studio"
+              title="Pear lost the thread"
+              body="The Studio hit an error rendering this site. The data is safe — refresh the page or open the editor to fix the underlying field."
+              actions={[
+                { label: 'Refresh', href: typeof window !== 'undefined' ? window.location.pathname : '/dashboard/invite', primary: true },
+                { label: 'Open editor', href: slug ? `/editor/${slug}` : '/dashboard/event' },
+              ]}
+            />
+          </div>
+        </DashLayout>
+      }
+    >
+      <StudioApp siteSlug={slug!} manifest={data.manifest} names={data.names} />
+    </ErrorBoundary>
+  );
 }
