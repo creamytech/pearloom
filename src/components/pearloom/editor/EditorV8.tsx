@@ -3100,6 +3100,16 @@ function Inspector({
   const isHidden = hiddenBlocks.includes(block);
   const sectionSuggestions = pearSuggestionsFor(block);
 
+  // Reset the section-panel scroll when the host switches blocks or
+  // jumps inspector tabs. Without this, scrolling deep into one
+  // panel and clicking a different outline row leaves the new panel
+  // mid-scroll — disorienting because the new content's heading is
+  // already off-screen.
+  const sectionScrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    sectionScrollRef.current?.scrollTo({ top: 0 });
+  }, [block, tab]);
+
   // Drag-to-resize. Pointer events on a 6px hit-strip flush against
   // the rail's left edge. We compute width from the right edge of the
   // viewport so the math is independent of layout shifts (sidebar
@@ -3239,7 +3249,7 @@ function Inspector({
       </div>
 
       {tab === 'section' && (
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflowY: 'auto', position: 'relative' }}>
+        <div ref={sectionScrollRef} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflowY: 'auto', position: 'relative' }}>
           {/* Docked hotel editor — pilot for the modal-vs-panel
            *  consolidation. When fluid is false (desktop with the
            *  inspector visible), the hotel editor renders as an
