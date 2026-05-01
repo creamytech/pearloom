@@ -936,8 +936,9 @@ export function EditorV8({
           <button
             type="button"
             onClick={() => setPreviewMode(false)}
-            aria-label="Exit compose mode (⌘P)"
-            title="Exit compose mode (⌘P)"
+            aria-label="Back to editing (⌘P / Ctrl P)"
+            aria-keyshortcuts="Meta+P Control+P"
+            title="Back to editing (⌘P / Ctrl P)"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
