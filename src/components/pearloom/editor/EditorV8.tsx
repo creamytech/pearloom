@@ -2723,9 +2723,13 @@ function BlockRow({
   // the pointer there for in-list reorder.
   const nativeDraggable = hidden;
   const [hovered, setHovered] = useState(false);
-  // Chrome (drag handle, eye toggle) shows on hover or when active
-  // so an idle row is just glyph + label + status pip — calm.
-  const showChrome = hovered || active;
+  const [focused, setFocused] = useState(false);
+  // Chrome (drag handle, eye toggle) shows on hover, when active,
+  // or when keyboard focus is anywhere inside the row. Without
+  // the focus branch, keyboard hosts saw the focus ring around
+  // the row but no drag-handle visual until they tabbed onto it
+  // — and the handle's icon stayed opacity:0 even then.
+  const showChrome = hovered || active || focused;
   return (
     <div
       role="button"
@@ -2741,6 +2745,15 @@ function BlockRow({
         : undefined}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={(e) => {
+        // The blur fires when focus leaves the row OR moves to a
+        // descendant button (drag handle, eye toggle). Use
+        // relatedTarget to check whether focus is still inside —
+        // if it is, keep the chrome visible.
+        const next = e.relatedTarget as Node | null;
+        if (!next || !e.currentTarget.contains(next)) setFocused(false);
+      }}
       onKeyDown={(e) => {
         // Standard button-on-div keyboard contract: Enter or Space
         // selects the row. Without this, keyboard hosts had no path
