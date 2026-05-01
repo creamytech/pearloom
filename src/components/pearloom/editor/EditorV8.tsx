@@ -125,6 +125,11 @@ const BLOCKS_BY_KEY: Record<BlockKey, BlockDef> = BLOCKS.reduce((acc, b) => ({ .
 
 const REORDERABLE_KEYS: BlockKey[] = BLOCKS.filter((b) => b.reorderable).map((b) => b.key);
 
+// Canvas needs at least this much room to render a phone-width
+// preview without horizontal scroll. Both rail resize handlers
+// honour this — the host can't compress the canvas below it.
+const CANVAS_MIN_PX = 480;
+
 // Device preview widths — each pick is a real popular breakpoint.
 //   desktop → 1280 (std laptop)
 //   tablet  → 820  (iPad portrait)
@@ -239,6 +244,30 @@ export function EditorV8({
     if (typeof window === 'undefined') return;
     try { window.localStorage.setItem('pl-editor-outline-w', String(outlineWidth)); } catch {}
   }, [outlineWidth]);
+
+  // Window-resize clamp — when the host shrinks the browser, the
+  // persisted rail widths might violate the canvas-min. Recompute
+  // and shrink the larger rail just enough to fit. Runs on every
+  // viewport resize so rotating into portrait mode also honours it.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onResize = () => {
+      const vw = window.innerWidth;
+      if (vw < 960) return; // mobile drawer mode handles this
+      const totalRails = outlineWidth + inspectorWidth;
+      const overshoot = totalRails - (vw - CANVAS_MIN_PX);
+      if (overshoot <= 0) return;
+      // Trim the wider rail first so the more-edited tab keeps its room.
+      if (inspectorWidth >= outlineWidth) {
+        setInspectorWidth(Math.max(320, inspectorWidth - overshoot));
+      } else {
+        setOutlineWidth(Math.max(220, outlineWidth - overshoot));
+      }
+    };
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [outlineWidth, inspectorWidth]);
 
   // ── Deep-link from external pages ──────────────────────────
   // Dashboard pages (Day-of room, kickoff cards, etc.) link to
@@ -895,6 +924,7 @@ export function EditorV8({
             displayUrl={prettyUrl}
             width={outlineWidth}
             onResize={setOutlineWidth}
+            siblingWidth={inspectorWidth}
           />
         )}
         <CanvasStage
@@ -925,6 +955,7 @@ export function EditorV8({
             onToggleHidden={toggleBlockHidden}
             width={inspectorWidth}
             onResize={setInspectorWidth}
+            siblingWidth={outlineWidth}
             prettyUrl={prettyUrl}
           />
         )}
@@ -2146,6 +2177,7 @@ function Outline({
   displayUrl,
   width,
   onResize,
+  siblingWidth,
 }: {
   block: BlockKey;
   setBlock: (k: BlockKey) => void;
@@ -2172,6 +2204,9 @@ function Outline({
   width?: number;
   /** Called with each px while the host drags the right-edge handle. */
   onResize?: (w: number) => void;
+  /** Width of the OTHER rail (the inspector). Same canvas-min
+   *  clamp as the inspector — host can't crush the canvas. */
+  siblingWidth?: number;
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -2212,7 +2247,10 @@ function Outline({
     const move = (ev: PointerEvent) => {
       // Outline is anchored to the left edge — width = pointer X.
       const next = Math.round(ev.clientX);
-      onResize(Math.max(220, Math.min(420, next)));
+      // Dynamic max keeps canvas from collapsing when the inspector
+      // is also wide. siblingWidth = inspector's current width.
+      const dynMax = Math.max(220, window.innerWidth - (siblingWidth ?? 0) - CANVAS_MIN_PX);
+      onResize(Math.max(220, Math.min(420, dynMax, next)));
     };
     const up = () => {
       window.removeEventListener('pointermove', move);
@@ -2864,6 +2902,7 @@ function Inspector({
   width,
   onResize,
   prettyUrl,
+  siblingWidth,
 }: {
   block: BlockKey;
   manifest: StoryManifest;
@@ -2893,6 +2932,10 @@ function Inspector({
   /** "pearloom.com/wedding/scott" — used as the deep-link base for
    *  the section overflow menu's "Copy section link" action. */
   prettyUrl?: string;
+  /** Width of the OTHER rail (the outline). Used to clamp this
+   *  rail's resize so the canvas always has at least CANVAS_MIN_PX
+   *  to render in. */
+  siblingWidth?: number;
 }) {
   const meta = BLOCKS.find((b) => b.key === block)!;
   const resolvedWidth = fluid ? '100%' : (width ?? 380);
@@ -2903,14 +2946,16 @@ function Inspector({
   // the rail's left edge. We compute width from the right edge of the
   // viewport so the math is independent of layout shifts (sidebar
   // collapsing, mobile chrome appearing). Clamp matches the state's
-  // [320, 620] window.
+  // [320, 620] window AND respects the canvas minimum so the host
+  // can't compress the canvas below CANVAS_MIN_PX.
   function onResizeStart(e: React.PointerEvent<HTMLDivElement>) {
     if (!onResize) return;
     e.preventDefault();
     (e.target as Element).setPointerCapture?.(e.pointerId);
     const move = (ev: PointerEvent) => {
       const next = Math.round(window.innerWidth - ev.clientX);
-      onResize(Math.max(320, Math.min(620, next)));
+      const dynMax = Math.max(320, window.innerWidth - (siblingWidth ?? 0) - CANVAS_MIN_PX);
+      onResize(Math.max(320, Math.min(620, dynMax, next)));
     };
     const up = () => {
       window.removeEventListener('pointermove', move);
