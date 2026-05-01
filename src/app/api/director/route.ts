@@ -114,7 +114,8 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const userEmail = session.user.email;
+  // Normalise once — IdP casing variance, see /api/sites/[domain].
+  const userEmail = session.user.email.toLowerCase().trim();
 
   let body: DirectorInput;
   try {
@@ -136,8 +137,10 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
 
   if (!site) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
-  const ownerEmail = (site.site_config as Record<string, unknown>)?.creator_email;
-  if (ownerEmail !== userEmail) {
+  const ownerEmail = String(
+    (site.site_config as Record<string, unknown>)?.creator_email ?? '',
+  ).toLowerCase().trim();
+  if (!ownerEmail || ownerEmail !== userEmail) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
@@ -286,14 +289,18 @@ export async function GET(req: NextRequest) {
     .eq('id', siteId)
     .maybeSingle();
   if (!site) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
-  const ownerEmail = (site.site_config as Record<string, unknown>)?.creator_email;
-  if (ownerEmail !== session.user.email) {
+  // Case-insensitive owner check — IdP casing variance, see /api/sites/[domain].
+  const ownerEmail = String(
+    (site.site_config as Record<string, unknown>)?.creator_email ?? '',
+  ).toLowerCase().trim();
+  const sessionEmailNorm = session.user.email.toLowerCase().trim();
+  if (!ownerEmail || ownerEmail !== sessionEmailNorm) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const s = await getOrCreateDirectorSession({
     siteId,
-    ownerEmail: session.user.email,
+    ownerEmail: sessionEmailNorm,
   });
   return NextResponse.json({
     sessionId: s.id,

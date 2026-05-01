@@ -43,8 +43,10 @@ async function userOwnsSite(
     .eq('domain', siteDomain)
     .maybeSingle();
   if (error || !data) return false;
+  // Case-insensitive owner check — IdP casing variance, see /api/sites/[domain].
   const cfg = data.site_config as { creator_email?: string } | null;
-  return !!cfg?.creator_email && cfg.creator_email === userEmail;
+  const owner = String(cfg?.creator_email ?? '').toLowerCase().trim();
+  return !!owner && owner === userEmail.toLowerCase().trim();
 }
 
 // ── GET ?siteId=… → all submissions across every block ──────

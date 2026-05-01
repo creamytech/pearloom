@@ -111,7 +111,11 @@ export async function GET(req: NextRequest) {
         .select('user_id, creator_email')
         .eq('id', siteId)
         .maybeSingle();
-      if (site && (site.creator_email === ownerEmail)) isOwner = true;
+      // Case-insensitive owner check — IdP casing variance, see /api/sites/[domain].
+      if (site && String(site.creator_email ?? '').toLowerCase().trim()
+        === ownerEmail.toLowerCase().trim()) {
+        isOwner = true;
+      }
     }
 
     const items = (data as ItemRow[] | null ?? []).map((row) =>

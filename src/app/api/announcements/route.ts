@@ -45,8 +45,11 @@ export async function GET(req: NextRequest) {
       .select('site_config')
       .eq('id', siteId)
       .maybeSingle();
-    const ownerEmail = (site?.site_config as Record<string, unknown> | null)?.creator_email;
-    if (ownerEmail !== session.user.email) {
+    // Case-insensitive owner check — IdP casing variance, see /api/sites/[domain].
+    const ownerEmail = String(
+      (site?.site_config as Record<string, unknown> | null)?.creator_email ?? '',
+    ).toLowerCase().trim();
+    if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase().trim()) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
   } else {
@@ -100,8 +103,11 @@ export async function POST(req: NextRequest) {
     .select('site_config')
     .eq('id', siteId)
     .maybeSingle();
-  const ownerEmail = (site?.site_config as Record<string, unknown> | null)?.creator_email;
-  if (ownerEmail !== session.user.email) {
+  // Case-insensitive owner check — IdP casing variance, see /api/sites/[domain].
+  const ownerEmail = String(
+    (site?.site_config as Record<string, unknown> | null)?.creator_email ?? '',
+  ).toLowerCase().trim();
+  if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase().trim()) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

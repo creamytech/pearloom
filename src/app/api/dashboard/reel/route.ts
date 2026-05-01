@@ -48,8 +48,10 @@ interface ManifestShape {
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  const email = session?.user?.email;
-  if (!email) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
+  const rawEmail = session?.user?.email;
+  if (!rawEmail) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
+  // Case-insensitive owner check — IdP casing variance, see /api/sites/[domain].
+  const email = rawEmail.toLowerCase().trim();
 
   const { searchParams } = new URL(req.url);
   const siteFilter = searchParams.get('site');
@@ -67,7 +69,7 @@ export async function GET(req: NextRequest) {
 
     const owned = (rows ?? []).filter((r) => {
       const cfg = r.site_config as { creator_email?: string } | null;
-      return cfg?.creator_email === email;
+      return String(cfg?.creator_email ?? '').toLowerCase().trim() === email;
     });
 
     const out: ReelPhoto[] = [];

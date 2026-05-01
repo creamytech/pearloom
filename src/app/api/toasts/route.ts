@@ -135,8 +135,11 @@ export async function GET(req: NextRequest) {
     .eq('id', siteId)
     .maybeSingle();
   if (!site) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
-  const ownerEmail = (site.site_config as Record<string, unknown>)?.creator_email;
-  if (ownerEmail !== session.user.email) {
+  // Case-insensitive owner check — IdP casing variance, see /api/sites/[domain].
+  const ownerEmail = String(
+    (site.site_config as Record<string, unknown>)?.creator_email ?? '',
+  ).toLowerCase().trim();
+  if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase().trim()) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

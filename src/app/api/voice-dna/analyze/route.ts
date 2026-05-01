@@ -68,8 +68,11 @@ export async function POST(req: NextRequest) {
 
   const cfg = await getSiteConfig(body.siteSlug);
   if (!cfg?.manifest) return NextResponse.json({ error: 'Site not found.' }, { status: 404 });
-  const ownerEmail = ((cfg as unknown as Record<string, unknown>).creator_email as string | undefined) ?? null;
-  if (ownerEmail !== session.user.email) {
+  // Case-insensitive owner check — IdP casing variance, see /api/sites/[domain].
+  const ownerEmail = String(
+    ((cfg as unknown as Record<string, unknown>).creator_email as string | undefined) ?? '',
+  ).toLowerCase().trim();
+  if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase().trim()) {
     return NextResponse.json({ error: 'Not the site owner.' }, { status: 403 });
   }
 
@@ -164,8 +167,11 @@ export async function GET(req: NextRequest) {
   if (!siteSlug) return NextResponse.json({ error: 'site is required.' }, { status: 400 });
   const cfg = await getSiteConfig(siteSlug);
   if (!cfg?.manifest) return NextResponse.json({ error: 'Site not found.' }, { status: 404 });
-  const ownerEmail = ((cfg as unknown as Record<string, unknown>).creator_email as string | undefined) ?? null;
-  if (ownerEmail !== session.user.email) {
+  // Case-insensitive owner check — IdP casing variance, see /api/sites/[domain].
+  const ownerEmail = String(
+    ((cfg as unknown as Record<string, unknown>).creator_email as string | undefined) ?? '',
+  ).toLowerCase().trim();
+  if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase().trim()) {
     return NextResponse.json({ error: 'Not the site owner.' }, { status: 403 });
   }
   const voice = (cfg.manifest as unknown as { voiceDNA?: VoiceDNA }).voiceDNA ?? null;
