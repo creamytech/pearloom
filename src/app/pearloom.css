@@ -1517,7 +1517,11 @@ button.pl8-mobile-only { display: none !important; }
 :where(.pl8-editor-v8) button:focus-visible,
 :where(.pl8-editor-v8) [role="button"]:focus-visible,
 :where(.pl8-editor-v8) [role="tab"]:focus-visible,
-:where(.pl8-editor-v8) [role="menuitem"]:focus-visible {
+:where(.pl8-editor-v8) [role="option"]:focus-visible,
+:where(.pl8-editor-v8) [role="menuitem"]:focus-visible,
+:where(.pl8-editor-v8) [role="separator"]:focus-visible,
+:where(.pl8-editor-v8) select:focus-visible,
+:where(.pl8-editor-v8) summary:focus-visible {
   outline: 2px solid var(--peach-ink, #C6703D);
   outline-offset: 2px;
   border-radius: inherit;
