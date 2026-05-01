@@ -282,7 +282,7 @@ export function FindInSite({ manifest, open, onClose, onJump }: Props) {
             fontFamily: 'var(--font-ui)',
           }}
         >
-          <span>{matches.length} {matches.length === 1 ? 'match' : 'matches'}</span>
+          <span aria-live="polite" aria-atomic="true">{matches.length} {matches.length === 1 ? 'match' : 'matches'}</span>
           <span>↑↓ navigate · ↵ jump · Esc close</span>
         </div>
       </div>
