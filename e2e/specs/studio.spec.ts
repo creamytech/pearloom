@@ -329,6 +329,17 @@ test.describe('Studio (stationery editor)', () => {
     expect(inviteHits).toBe(0);
   });
 
+  test('Send overlay: stats fetch failure surfaces an inline error', async ({ page }) => {
+    // Override /api/guests to 500 — overlay should show
+    // "Couldn't load guests" instead of "Loading guests…" forever.
+    await page.route(/\/api\/guests(\?|$)/, async (route) => {
+      await route.fulfill({ status: 500, contentType: 'application/json', body: '{"error":"upstream"}' });
+    });
+    await page.getByRole('button', { name: /^Send$/ }).first().click();
+    await expect(page.getByText("Couldn't load guests")).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText(/Refresh to try again/)).toBeVisible();
+  });
+
   test('Send overlay: dialog has aria-modal + accessible name', async ({ page }) => {
     await page.getByRole('button', { name: /^Send$/ }).first().click();
     const dialog = page.getByRole('dialog', { name: /Off it goes/ });

@@ -39,15 +39,20 @@ interface Props {
 
 export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent }: Props) {
   const [stats, setStats] = useState<SendStats | null>(null);
+  const [statsError, setStatsError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sentSummary, setSentSummary] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+    setStatsError(false);
     fetch(`/api/guests?siteSlug=${encodeURIComponent(siteSlug)}`, { cache: 'no-store' })
-      .then(r => (r.ok ? r.json() : null))
-      .then((data: null | { guests?: Array<{ email?: string | null; phone?: string | null; mailingAddress?: { line1?: string } | null; status?: string | null }> }) => {
+      .then(r => {
+        if (!r.ok) throw new Error(`stats ${r.status}`);
+        return r.json();
+      })
+      .then((data: { guests?: Array<{ email?: string | null; phone?: string | null; mailingAddress?: { line1?: string } | null; status?: string | null }> }) => {
         if (cancelled || !data?.guests) return;
         const total = data.guests.length;
         const withEmail = data.guests.filter(g => !!g.email).length;
@@ -56,7 +61,9 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
         const attending = data.guests.filter(g => g.status === 'attending').length;
         setStats({ total, withEmail, withPhone, withAddress, attending });
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) setStatsError(true);
+      });
     return () => { cancelled = true; };
   }, [siteSlug]);
 
@@ -188,13 +195,19 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
                 <Icon name="users" size={20} color="currentColor" />
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700 }}>
-                  {stats ? `${total} guest${total === 1 ? '' : 's'}` : 'Loading guests…'}
+                <div style={{ fontSize: 14, fontWeight: 700, color: statsError ? '#7A2D2D' : undefined }}>
+                  {statsError
+                    ? "Couldn't load guests"
+                    : stats
+                      ? `${total} guest${total === 1 ? '' : 's'}`
+                      : 'Loading guests…'}
                 </div>
                 <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>
-                  {stats
-                    ? `${withEmail} with email · ${withPhone} with phone · ${withAddress} with mailing address`
-                    : 'Pulling roster…'}
+                  {statsError
+                    ? 'Refresh to try again, or open the guests dashboard.'
+                    : stats
+                      ? `${withEmail} with email · ${withPhone} with phone · ${withAddress} with mailing address`
+                      : 'Pulling roster…'}
                 </div>
               </div>
               <Link href="/dashboard/rsvp" style={{
