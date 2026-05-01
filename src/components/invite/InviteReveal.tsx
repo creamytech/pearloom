@@ -80,14 +80,20 @@ export function InviteReveal({
 
   // Skip envelope anim on mobile or prefers-reduced-motion.
   const skipEnvelope = prefersReduced || small;
+  // `revealed` initial value tracks skipEnvelope. Use the
+  // "store-and-compare prev prop" pattern so a runtime flip
+  // of skipEnvelope (e.g. user toggles reduce-motion) still
+  // forces reveal — without setState-in-effect.
   const [revealed, setRevealed] = useState(skipEnvelope);
+  const [prevSkip, setPrevSkip] = useState(skipEnvelope);
+  if (skipEnvelope !== prevSkip) {
+    setPrevSkip(skipEnvelope);
+    if (skipEnvelope) setRevealed(true);
+  }
   const [calendarAdded, setCalendarAdded] = useState(false);
 
   useEffect(() => {
-    if (skipEnvelope) {
-      setRevealed(true);
-      return;
-    }
+    if (skipEnvelope) return;
     // Auto-open after a beat, but user can tap to open sooner.
     const t = setTimeout(() => setRevealed(true), 1800);
     return () => clearTimeout(t);

@@ -74,13 +74,17 @@ export function EditableText({
   const editMode = useIsEditMode();
   const [editing, setEditing] = useState(false);
   const [local, setLocal] = useState(value);
+  const [prevValue, setPrevValue] = useState(value);
   const ref = useRef<HTMLElement | null>(null);
 
-  // Keep local in sync when the manifest updates from elsewhere
-  // (e.g. undo/redo, AI rewrite pushes a new value).
-  useEffect(() => {
-    if (!editing) setLocal(value);
-  }, [value, editing]);
+  // React's "store derived state during render" pattern (better
+  // than setState-in-effect for sync-with-prop). Updates flush
+  // before paint, no extra render. The if-guard prevents
+  // infinite loops — setLocal is a no-op when value matches.
+  if (value !== prevValue && !editing) {
+    setPrevValue(value);
+    setLocal(value);
+  }
 
   const commit = useCallback(() => {
     const trimmed = local.trim();
