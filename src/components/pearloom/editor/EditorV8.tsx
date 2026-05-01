@@ -1746,6 +1746,8 @@ function EditorTopbar({
           onClick={onPublish}
           className="pl-pearl-accent"
           data-tour-anchor="publish"
+          title="Save and publish (⌘⇧P / Ctrl⇧P)"
+          aria-keyshortcuts="Meta+Shift+P Control+Shift+P"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
