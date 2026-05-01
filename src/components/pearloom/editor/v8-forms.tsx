@@ -836,6 +836,8 @@ export function DatePicker({
                   }}
                   onMouseEnter={(e) => { if (!on && !blocked) e.currentTarget.style.background = 'var(--cream-2)'; }}
                   onMouseLeave={(e) => { if (!on && !blocked) e.currentTarget.style.background = c.isToday ? 'var(--cream-2)' : 'transparent'; }}
+                  onFocus={(e) => { if (!on && !blocked) e.currentTarget.style.background = 'var(--cream-2)'; }}
+                  onBlur={(e) => { if (!on && !blocked) e.currentTarget.style.background = c.isToday ? 'var(--cream-2)' : 'transparent'; }}
                 >
                   {c.d}
                 </button>
