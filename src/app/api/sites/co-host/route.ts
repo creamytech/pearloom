@@ -46,7 +46,11 @@ async function ownedSite(
     .select('id, creator_email, site_config')
     .eq('id', siteId)
     .maybeSingle();
-  if (!data || data.creator_email !== email) return null;
+  // Case-insensitive owner check — IdP casing variance otherwise
+  // 403s the legitimate owner. Matches /api/sites/[domain].
+  const owner = String(data?.creator_email ?? '').toLowerCase().trim();
+  const caller = email.toLowerCase().trim();
+  if (!data || !owner || owner !== caller) return null;
   return data;
 }
 

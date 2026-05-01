@@ -65,8 +65,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    const ownerEmail = (siteRow.site_config as Record<string, unknown>)?.creator_email;
-    if (ownerEmail !== session.user.email) {
+    // Normalize both sides — saveSiteDraft / publishSite store the
+    // creator_email lowercased + trimmed; NextAuth returns the
+    // session email in whatever casing the IdP issued at signup.
+    // Comparing raw strings rejects the owner whenever those
+    // differ ("Foo@Gmail.com" session vs "foo@gmail.com" stored)
+    // and surfaces in the Studio as a 403 on Send. Matches the
+    // pattern already used in /api/sites/[domain].
+    const ownerEmail = String(
+      (siteRow.site_config as Record<string, unknown>)?.creator_email ?? '',
+    ).toLowerCase().trim();
+    const sessionEmail = session.user.email.toLowerCase().trim();
+    if (ownerEmail && ownerEmail !== sessionEmail) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

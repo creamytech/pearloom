@@ -78,7 +78,11 @@ export async function POST(req: NextRequest) {
       .select('creator_email')
       .eq('id', siteId)
       .maybeSingle();
-    if (!site || site.creator_email !== session.user.email) {
+    // Case-insensitive owner check — IdP casing variance otherwise
+    // 403s the legitimate owner. Matches /api/sites/[domain].
+    if (!site
+      || String(site.creator_email ?? '').toLowerCase().trim()
+        !== session.user.email.toLowerCase().trim()) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

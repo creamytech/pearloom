@@ -65,7 +65,11 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Site not found' }, { status: 404 });
   }
   const cfg = site.site_config as { creator_email?: string } | null;
-  if (!cfg?.creator_email || cfg.creator_email !== session.user.email) {
+  // Case-insensitive owner check — IdP casing variance otherwise
+  // 403s the legitimate owner. Matches /api/sites/[domain].
+  const ownerEmail = String(cfg?.creator_email ?? '').toLowerCase().trim();
+  const sessionEmail = session.user.email.toLowerCase().trim();
+  if (!ownerEmail || ownerEmail !== sessionEmail) {
     return NextResponse.json({ ok: false, error: 'Forbidden' }, { status: 403 });
   }
 

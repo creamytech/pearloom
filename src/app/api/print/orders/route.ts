@@ -105,7 +105,10 @@ export async function POST(req: NextRequest) {
   if (siteErr || !site) {
     return NextResponse.json({ error: 'Site not found.' }, { status: 404 });
   }
-  if (site.creator_email !== session.user.email) {
+  // Case-insensitive owner check — IdP casing variance otherwise
+  // 403s the legitimate owner. Matches /api/sites/[domain].
+  if (String(site.creator_email ?? '').toLowerCase().trim()
+    !== session.user.email.toLowerCase().trim()) {
     return NextResponse.json({ error: 'Not the site owner.' }, { status: 403 });
   }
 
