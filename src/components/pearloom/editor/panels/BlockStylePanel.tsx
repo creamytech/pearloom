@@ -211,6 +211,7 @@ export function BlockStylePanel({ manifest, blockId, label = 'Section style', on
               <button
                 key={s.id}
                 type="button"
+                aria-pressed={on}
                 onClick={() => set(s.apply)}
                 title={s.hint}
                 style={{
@@ -331,6 +332,8 @@ export function BlockStylePanel({ manifest, blockId, label = 'Section style', on
               <button
                 key={a.id}
                 type="button"
+                aria-pressed={on}
+                aria-label={`Align text ${a.label.toLowerCase()}`}
                 onClick={() => set({ textAlign: on ? undefined : a.id })}
                 title={a.label}
                 style={{
@@ -512,6 +515,7 @@ function SegRow({
           <button
             key={o.id || 'inherit'}
             type="button"
+            aria-pressed={on}
             onClick={() => onChange(o.id)}
             style={{
               padding: '5px 4px',
