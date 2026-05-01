@@ -135,6 +135,25 @@ export function FirstThreadTour({ siteSlug }: { siteSlug: string }) {
     };
   }, [stepIdx]);
 
+  // Escape skips the tour — same dismiss path as the visible
+  // Skip pill in the card. Even though the tour is non-modal, a
+  // keyboard host who hits Escape expects the overlay to close.
+  // Must be declared BEFORE the early-return guard below — React's
+  // rules-of-hooks require unconditional hook order.
+  useEffect(() => {
+    if (stepIdx < 0) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        try {
+          localStorage.setItem(PEARLOOM_FIRST_THREAD_KEY, '1');
+        } catch { /* private mode */ }
+        setStepIdx(-2);
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [stepIdx]);
+
   if (stepIdx < 0) return null;
   const step = STEPS[stepIdx];
   const isLast = stepIdx === STEPS.length - 1;
@@ -147,19 +166,6 @@ export function FirstThreadTour({ siteSlug }: { siteSlug: string }) {
     }
     setStepIdx(-2); // unmount
   }
-
-  // Escape skips the tour — same dismiss path as the visible
-  // Skip pill in the card. Even though the tour is non-modal, a
-  // keyboard host who hits Escape expects the overlay to close.
-  useEffect(() => {
-    if (stepIdx < 0) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') complete();
-    }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepIdx]);
 
   function next() {
     if (isLast) complete();
