@@ -1655,7 +1655,7 @@ function EditorTopbar({
             to the explicit "Ask Pear" button so the host has
             both a passive (pip) and active (button) entry point. */}
         <PearNudges manifest={manifest} siteSlug={siteSlug} />
-        <button type="button" onClick={onOpenAdvisor} style={ghostBtn}>
+        <button type="button" onClick={onOpenAdvisor} className="pl8-ghost-btn" style={ghostBtn}>
           <Icon name="sparkles" size={12} /> Ask Pear
         </button>
         <Link
@@ -1668,7 +1668,7 @@ function EditorTopbar({
         >
           <Icon name="arrow-ur" size={13} />
         </Link>
-        <Link href="/dashboard" style={ghostBtn}>
+        <Link href="/dashboard" className="pl8-ghost-btn" style={ghostBtn}>
           <Icon name="grid" size={12} /> Dashboard
         </Link>
         <KbdHint />

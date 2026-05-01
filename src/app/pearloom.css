@@ -1493,6 +1493,18 @@ button.pl8-mobile-only { display: none !important; }
   color: var(--ink);
 }
 
+/* Editor ghost buttons — pill-shaped outlined buttons in the
+   topbar (Ask Pear, Dashboard) and elsewhere. The inline
+   ghostBtn helper declares a transition but defines no hover
+   target; this class fills the gap so the buttons actually
+   respond to mouse + keyboard. */
+.pl8-ghost-btn:not([disabled]):hover,
+.pl8-ghost-btn:not([disabled]):focus-visible {
+  background: var(--cream-2);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
 /* Editor-wide focus ring — a peach hairline + soft halo so
    keyboard hosts can see exactly where they are. Mirrors the
    .pl8-guest treatment but with slightly tighter offset since
