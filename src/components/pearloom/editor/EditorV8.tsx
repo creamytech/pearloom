@@ -1569,6 +1569,7 @@ function EditorTopbar({
               href={liveUrl}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label={`Open the live site at ${liveUrl} in a new tab`}
               title={`Live: ${liveUrl}`}
               style={{
                 display: 'inline-flex',
