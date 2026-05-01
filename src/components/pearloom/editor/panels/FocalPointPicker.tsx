@@ -71,7 +71,25 @@ export function FocalPointPicker({ imageUrl, value, onChange, onReset }: Props) 
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div
         ref={ref}
+        role="application"
+        tabIndex={0}
+        aria-label={`Focal point: ${Math.round(point.x)}% from left, ${Math.round(point.y)}% from top. Use arrow keys to nudge, Shift + arrow for larger jumps, Home to centre.`}
         onPointerDown={onPointerDown}
+        onKeyDown={(e) => {
+          // Keyboard parity for the pointer-only focal-point picker.
+          // Arrow nudges by 1% (or 5% with Shift). Home recentres.
+          const step = e.shiftKey ? 5 : 1;
+          let nx = point.x;
+          let ny = point.y;
+          if (e.key === 'ArrowLeft')       nx = Math.max(0, point.x - step);
+          else if (e.key === 'ArrowRight') nx = Math.min(100, point.x + step);
+          else if (e.key === 'ArrowUp')    ny = Math.max(0, point.y - step);
+          else if (e.key === 'ArrowDown')  ny = Math.min(100, point.y + step);
+          else if (e.key === 'Home')       { nx = 50; ny = 50; }
+          else return;
+          e.preventDefault();
+          onChange({ x: nx, y: ny });
+        }}
         style={{
           position: 'relative',
           width: '100%',
