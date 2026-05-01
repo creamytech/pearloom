@@ -237,7 +237,7 @@ export default async function SubdomainSite({
   // (Older manifests may carry rendererVersion='v2' / 'classic';
   // we ignore it and render v8 regardless.)
   {
-    const { SiteV8Renderer } = await import('@/components/pearloom/site/SiteV8Renderer');
+    const { PublishedSiteShell } = await import('@/components/pearloom/site/PublishedSiteShell');
     const { formatSiteDisplayUrl, normalizeOccasion } = await import('@/lib/site-urls');
     const names = Array.isArray(siteConfig.names) && siteConfig.names.length >= 2
       ? ([siteConfig.names[0], siteConfig.names[1]] as [string, string])
@@ -280,7 +280,7 @@ export default async function SubdomainSite({
             fetchPriority="high"
           />
         )}
-        <SiteV8Renderer
+        <PublishedSiteShell
           manifest={manifest}
           names={names}
           siteSlug={domain}
