@@ -2286,6 +2286,7 @@ function Outline({
     >
       {!fluid && onResize && (
         <div
+          className="pl8-rail-resize-handle"
           role="separator"
           aria-orientation="vertical"
           aria-label="Resize outline"
@@ -2986,6 +2987,7 @@ function Inspector({
     >
       {!fluid && onResize && (
         <div
+          className="pl8-rail-resize-handle"
           role="separator"
           aria-orientation="vertical"
           aria-label="Resize inspector"

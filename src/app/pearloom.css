@@ -1422,6 +1422,30 @@ button.pl8-mobile-only { display: none !important; }
   .pl8-editor-outline { width: 220px !important; }
   .pl8-editor-inspector { width: 320px !important; }
 }
+
+/* Rail resize handles — invisible 6px hit strips by default;
+   on hover/drag a 1px peach-ink line bleeds through so the host
+   has visible feedback they can drag. The 200ms ease keeps it
+   subtle so it doesn't compete with content for attention. */
+.pl8-rail-resize-handle {
+  position: relative;
+}
+.pl8-rail-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 100%;
+  background: var(--peach-ink, #C6703D);
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+.pl8-rail-resize-handle:hover::after,
+.pl8-rail-resize-handle:active::after {
+  opacity: 0.6;
+}
 @media (max-width: 900px) {
   .pl8-builder-main { flex-direction: column !important; overflow-y: auto; }
   .pl8-builder-outline,
