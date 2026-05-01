@@ -287,6 +287,7 @@ export function AtmospherePanel({
             <input
               type="url"
               placeholder="https://…/loop.mp3"
+              aria-label="Custom looping audio clip URL"
               value={audio.url ?? ''}
               onChange={(e) => setAtmosphere({ audio: { ...audio, url: e.target.value || undefined } })}
               style={INPUT}

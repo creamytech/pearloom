@@ -261,9 +261,15 @@ export function LibraryPanelV2({
       {/* ── Search bar (universal across tabs) ─────────────── */}
       <div style={{ padding: '0 16px 10px' }}>
         <input
-          type="text"
+          type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          aria-label={
+            tab === 'mine' ? 'Search your photos and decor marks'
+            : tab === 'editorial' ? 'Search editorial motifs'
+            : tab === 'community' ? 'Search community marks'
+            : 'Search Iconify'
+          }
           placeholder={
             tab === 'mine' ? 'Search your photos + decor marks…'
             : tab === 'editorial' ? 'Search editorial motifs…'
