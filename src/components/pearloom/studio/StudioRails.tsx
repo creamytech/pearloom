@@ -458,6 +458,7 @@ function AssetPalette({ state, setField, onAskPearForAsset, aiBusy }: { state: S
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>Drag onto card</div>
         <button
+          type="button"
           onClick={() => setField('showAssets', !state.showAssets)}
           aria-label={state.showAssets ? 'Collapse asset palette' : 'Expand asset palette'}
           aria-expanded={state.showAssets}
@@ -508,6 +509,7 @@ function AssetPalette({ state, setField, onAskPearForAsset, aiBusy }: { state: S
                   padding: 4, transition: 'transform 160ms ease',
                 }}
                 title={a.kind}
+                aria-label={`Use ${a.kind} asset`}
               >
                 <AssetGlyph asset={a} />
               </button>
