@@ -53,8 +53,8 @@ export function PhotoPicker({
       // manifest photos. Older wizards uploaded straight into
       // manifest without persisting to user_media; without this
       // merge, the editor PhotoPicker showed empty even when the
-      // dashboard library + invite designer surfaced photos via
-      // their own manifest scan. Same logic as LibraryPage.tsx.
+      // dashboard library surfaced photos via its own manifest
+      // scan. Same logic as LibraryPage.tsx.
       const [mediaRes, sitesRes] = await Promise.all([
         fetch('/api/user-media', { cache: 'no-store' }).then((r) => r.ok ? r.json() : { media: [] }).catch(() => ({ media: [] })),
         fetch('/api/sites', { cache: 'no-store' }).then((r) => r.ok ? r.json() : { sites: [] }).catch(() => ({ sites: [] })),

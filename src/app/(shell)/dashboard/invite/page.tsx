@@ -1,14 +1,14 @@
 export const dynamic = 'force-dynamic';
 
 import type { Metadata } from 'next';
-import { InviteDesignerLoader } from './InviteDesignerLoader';
+import { StudioLoader } from './StudioLoader';
 
 export const metadata: Metadata = {
-  title: 'Invite designer · Pearloom',
-  description: 'Design a save-the-date or invite that matches your site.',
+  title: 'Studio · Pearloom',
+  description: 'Design save-the-dates, invitations, and thank-yous that match your site.',
 };
 
-export default async function InviteDesignerPage({
+export default async function StudioPage({
   searchParams,
 }: {
   searchParams: Promise<{ site?: string; domain?: string }>;
@@ -18,5 +18,5 @@ export default async function InviteDesignerPage({
   // selected site via useSelectedSite.
   const params = await searchParams;
   const slug = params.site || params.domain || null;
-  return <InviteDesignerLoader initialSlug={slug} />;
+  return <StudioLoader initialSlug={slug} />;
 }

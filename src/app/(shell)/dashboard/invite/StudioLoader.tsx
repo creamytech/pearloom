@@ -2,10 +2,9 @@
 
 // ─────────────────────────────────────────────────────────────
 // Client wrapper that resolves the active site → manifest +
-// names, then renders the heavyweight InviteDesigner. Replaces
-// the previous server-side redirect to /dashboard/event when no
-// ?site= param was set — the sidebar's site picker is now the
-// single source of truth, so this wrapper just reads from it.
+// names, then mounts the Studio (stationery editor). The
+// sidebar's site picker is the single source of truth; the
+// optional ?site= param wins over it for deep-linking.
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
@@ -26,7 +25,7 @@ interface Props {
   initialSlug?: string | null;
 }
 
-export function InviteDesignerLoader({ initialSlug }: Props) {
+export function StudioLoader({ initialSlug }: Props) {
   const { site, loading: sitesLoading } = useSelectedSite();
   const slug = initialSlug ?? site?.domain ?? null;
   const [data, setData] = useState<SiteFetchResult | null>(null);
@@ -79,7 +78,7 @@ export function InviteDesignerLoader({ initialSlug }: Props) {
         <div className="pl8-dash-page-enter" style={{ padding: 'clamp(20px, 4vw, 40px)', maxWidth: 800, margin: '0 auto' }}>
           <DashEmpty
             size="page"
-            eyebrow="Invite designer"
+            eyebrow="Studio"
             title="No site yet"
             body="Create a site first and Pear will paint a save-the-date or invite that matches its theme."
             actions={[{ label: 'Create a site', href: '/wizard/new', primary: true }]}
@@ -93,7 +92,7 @@ export function InviteDesignerLoader({ initialSlug }: Props) {
     return (
       <DashLayout active="studio">
         <div className="pl8-dash-page-enter" style={{ padding: 'clamp(20px, 4vw, 40px)', textAlign: 'center', color: 'var(--ink-muted)' }}>
-          Threading the designer…
+          Threading the studio…
         </div>
       </DashLayout>
     );
@@ -110,7 +109,7 @@ export function InviteDesignerLoader({ initialSlug }: Props) {
         <div className="pl8-dash-page-enter" style={{ padding: 'clamp(20px, 4vw, 40px)', maxWidth: 800, margin: '0 auto' }}>
           <DashEmpty
             size="page"
-            eyebrow="Invite designer"
+            eyebrow="Studio"
             title={
               errorStatus === 401 ? 'Session ended'
               : errorStatus === 403 ? 'Not your site'

@@ -167,7 +167,7 @@ const KICKOFF_BY_OCCASION: Partial<Record<SiteOccasion, KickoffCard[]>> = {
     {
       title: 'Invite the circle',
       body: 'Design a save-the-date that matches the shower.',
-      cta: 'Open invite designer',
+      cta: 'Open Studio',
       href: '/dashboard/invite',
       tone: 'sage',
       icon: 'image',

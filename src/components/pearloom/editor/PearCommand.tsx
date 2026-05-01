@@ -221,7 +221,7 @@ export function PearCommand({
       { id: 'ai-thanks', label: 'Draft a thank-you message', hint: 'Sent after the event', icon: 'mail', group: 'ai', run: () => runChat('Write a warm 3-sentence thank-you message we can send to guests after the event. Signed "[N1] & [N2]".', 'Thank-you draft') },
 
       // Actions
-      { id: 'act-invite', label: 'Open invite designer', hint: 'Save-the-date + wedding invite', icon: 'mail', group: 'act', run: () => onOpenInvite() },
+      { id: 'act-invite', label: 'Open Studio', hint: 'Save-the-date · invitation · thank-you', icon: 'mail', group: 'act', run: () => onOpenInvite() },
       { id: 'act-preview', label: 'Preview published site', hint: 'Opens in a new tab', icon: 'eye', group: 'act', run: () => onOpenPreview() },
       { id: 'act-publish', label: 'Save & publish', hint: 'Writes the latest draft live', icon: 'arrow-ur', group: 'act', run: () => onPublish() },
     ],

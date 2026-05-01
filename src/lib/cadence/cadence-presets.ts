@@ -43,7 +43,7 @@ export interface CadencePhase {
   daysBefore: number;
   /** Channel(s) where this phase typically goes out. */
   channels: CadenceChannel[];
-  /** Product slug — picks an invite-designer kind if there is one. */
+  /** Product slug — picks a Studio stationery type if there is one. */
   product: CadenceProduct;
   /** Prompt Pear uses to draft the copy. */
   draftPrompt: string;

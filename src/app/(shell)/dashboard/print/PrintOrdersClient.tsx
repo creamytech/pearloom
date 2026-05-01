@@ -114,8 +114,8 @@ export function PrintOrdersClient({ siteFilter }: { siteFilter: string | null })
             size="page"
             eyebrow="Pearloom Print"
             title="Nothing in the mail yet"
-            body="When you send save-the-dates or invites through the designer, every postcard shows up here with delivery tracking."
-            actions={[{ label: 'Open the invite designer', href: '/dashboard/event' }]}
+            body="When you send save-the-dates or invites through the Studio, every postcard shows up here with delivery tracking."
+            actions={[{ label: 'Open the Studio', href: '/dashboard/invite' }]}
           />
         ) : (
           <div className="pl8-dash-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

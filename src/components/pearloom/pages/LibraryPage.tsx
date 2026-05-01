@@ -45,8 +45,8 @@ export function LibraryPage() {
       // manifest photos (chapter images, cover photo). Older
       // wizards uploaded straight into manifest without persisting
       // to user_media, so the library would show empty even when
-      // photos clearly existed inside the invite designer's "From
-      // your site" picker. Merging both surfaces unifies the view.
+      // photos clearly existed in the editor's "From your site"
+      // picker. Merging both surfaces unifies the view.
       const [mediaRes, sitesRes] = await Promise.all([
         fetch('/api/user-media', { cache: 'no-store' }).then((r) => r.ok ? r.json() : { media: [] }).catch(() => ({ media: [] })),
         fetch('/api/sites', { cache: 'no-store' }).then((r) => r.ok ? r.json() : { sites: [] }).catch(() => ({ sites: [] })),
