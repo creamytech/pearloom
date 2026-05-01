@@ -320,6 +320,7 @@ export function CustomSelect<T extends string = string>({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
+        aria-activedescendant={open && options[hoverIdx] ? `${listId}-opt-${hoverIdx}` : undefined}
         aria-label={ariaLabel}
         style={{
           display: 'flex',
@@ -383,6 +384,7 @@ export function CustomSelect<T extends string = string>({
             return (
               <div
                 key={opt.value}
+                id={`${listId}-opt-${i}`}
                 role="option"
                 aria-selected={on}
                 onPointerEnter={() => setHoverIdx(i)}
