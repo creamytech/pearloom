@@ -700,6 +700,14 @@ input:focus, textarea:focus, select:focus {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.5; transform: scale(0.85); }
 }
+@media (prefers-reduced-motion: reduce) {
+  /* Keep the dot visible (color still tells the host the status)
+     but stop the looping animation. Same pattern every other
+     animated element in this stylesheet uses. */
+  .pl-dot-pulse {
+    animation: none;
+  }
+}
 
 /* Smooth scroll snap for horizontal carousels */
 .pl-scroll-snap {
