@@ -25,21 +25,33 @@ interface Vendor {
 const CATEGORIES = ['photographer', 'florist', 'caterer', 'dj', 'planner', 'venue', 'baker', 'rentals'];
 
 export function VendorsPage({ embedded = false }: { embedded?: boolean } = {}) {
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<{ category?: string; q?: string }>({});
+  // Tag fetched vendors with the filter snapshot they came from
+  // so `loading` is a derived render-time flag — no setLoading
+  // cascade in the effect.
+  const [result, setResult] = useState<{ filters: typeof filters; vendors: Vendor[] } | null>(null);
 
   useEffect(() => {
-    setLoading(true);
+    let cancelled = false;
+    const currentFilters = filters;
     const params = new URLSearchParams();
-    if (filters.category) params.set('category', filters.category);
-    if (filters.q) params.set('q', filters.q);
+    if (currentFilters.category) params.set('category', currentFilters.category);
+    if (currentFilters.q) params.set('q', currentFilters.q);
     fetch(`/api/vendors/directory?${params.toString()}`, { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : { vendors: [] }))
-      .then((data: { vendors?: Vendor[] }) => setVendors(data.vendors ?? []))
-      .catch(() => setVendors([]))
-      .finally(() => setLoading(false));
+      .then((data: { vendors?: Vendor[] }) => {
+        if (cancelled) return;
+        setResult({ filters: currentFilters, vendors: data.vendors ?? [] });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setResult({ filters: currentFilters, vendors: [] });
+      });
+    return () => { cancelled = true; };
   }, [filters]);
+
+  const loading = result?.filters !== filters;
+  const vendors = !loading ? (result?.vendors ?? []) : [];
 
   const grouped = useMemo(() => {
     const map = new Map<string, Vendor[]>();

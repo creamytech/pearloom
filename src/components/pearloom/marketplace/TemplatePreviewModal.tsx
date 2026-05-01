@@ -33,12 +33,12 @@ interface Props {
 }
 
 export function TemplatePreviewModal({ open, template, onClose }: Props) {
-  // Portal target — document.body, resolved once mounted so SSR
-  // doesn't try to touch `document`.
-  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
-  useEffect(() => {
-    setPortalTarget(typeof document !== 'undefined' ? document.body : null);
-  }, []);
+  // Portal target — document.body, resolved via lazy useState
+  // init so we read it once on first render (after hydration)
+  // rather than via a setState-in-effect cascade.
+  const [portalTarget] = useState<HTMLElement | null>(() => {
+    return typeof document !== 'undefined' ? document.body : null;
+  });
 
   const site = useMemo(() => (template ? findMatchingSiteTemplate(template) : null), [template]);
   const seed = useMemo(() => (template ? seedPreviewManifest(template) : null), [template]);

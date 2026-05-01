@@ -322,19 +322,22 @@ export function FloatingCountdown({ manifest }: { manifest: StoryManifest }) {
 // Sticky mobile CTA — anchors to #rsvp until guest has responded
 // ─────────────────────────────────────────────────────────────
 export function StickyMobileCta({ deadline }: { deadline?: string | null }) {
-  const [responded, setResponded] = useState(false);
-  const [show, setShow] = useState(false);
+  // Both initial values come from window — lazy useState init
+  // for each so render stays pure (react-hooks/set-state-in-effect).
+  const [responded] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const key = 'pl-rsvp-' + window.location.pathname.replace(/\W+/g, '-');
+      return window.sessionStorage.getItem(key) === '1';
+    } catch { return false; }
+  });
+  const [show, setShow] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 760;
+  });
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    // Cheap signal — read the per-site rsvp-key sessionStorage we use
-    // when an RSVP succeeds. If the guest hasn't responded yet, show the CTA.
-    try {
-      const key = 'pl-rsvp-' + window.location.pathname.replace(/\W+/g, '-');
-      setResponded(window.sessionStorage.getItem(key) === '1');
-    } catch {}
-    // Only mobile widths.
-    setShow(window.innerWidth < 760);
     function onResize() { setShow(window.innerWidth < 760); }
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
