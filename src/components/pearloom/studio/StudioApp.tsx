@@ -191,6 +191,19 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.type, content]);
 
+  // Friendly message picker for the AI catch sites. 429 from
+  // checkRateLimit is the most common non-bug failure, so it
+  // gets its own line. Everything else → generic "lost the
+  // thread" copy that matches Pear's voice.
+  function aiErrorFor(flow: 'draft' | 'asset' | 'rewrite', status: number | null, kind?: string): string {
+    if (status === 429) {
+      return 'Pear is taking a breath — try again in a minute.';
+    }
+    if (flow === 'draft') return 'Pear lost the thread on a fresh draft. Try again in a moment.';
+    if (flow === 'asset') return `Pear couldn't paint a ${kind}. Try again or pick a different palette.`;
+    return 'Pear couldn’t rewrite that line just now. Try a different angle.';
+  }
+
   // ── AI: draft another direction ─────────────────────────────
   async function askPearForDraft() {
     if (aiBusy) return;
@@ -201,7 +214,10 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ siteSlug, type: state.type, count: 3, tone: state.tone }),
       });
-      if (!r.ok) throw new Error(`Studio draft failed (${r.status})`);
+      if (!r.ok) {
+        setAiError(aiErrorFor('draft', r.status));
+        return;
+      }
       const data = (await r.json()) as { drafts?: StudioDraft[] };
       if (Array.isArray(data.drafts) && data.drafts.length > 0) {
         setMany({
@@ -215,7 +231,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
       }
     } catch (err) {
       console.error('[Studio] askPearForDraft', err);
-      setAiError('Pear lost the thread on a fresh draft. Try again in a moment.');
+      setAiError(aiErrorFor('draft', null));
     } finally {
       setAiBusy(false);
     }
@@ -237,7 +253,10 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
           stationeryType: state.type,
         }),
       });
-      if (!r.ok) throw new Error(`Asset gen failed (${r.status})`);
+      if (!r.ok) {
+        setAiError(aiErrorFor('asset', r.status, kind));
+        return;
+      }
       const data = (await r.json()) as { asset?: AssetEntry };
       if (data.asset?.url) {
         setMany({
@@ -246,7 +265,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
       }
     } catch (err) {
       console.error('[Studio] askPearForAsset', err);
-      setAiError(`Pear couldn't paint a ${kind}. Try again or pick a different palette.`);
+      setAiError(aiErrorFor('asset', null, kind));
     } finally {
       setAiBusy(false);
     }
@@ -271,7 +290,10 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
           tone: state.tone,
         }),
       });
-      if (!r.ok) throw new Error(`Rewrite failed (${r.status})`);
+      if (!r.ok) {
+        setAiError(aiErrorFor('rewrite', r.status));
+        return;
+      }
       const data = (await r.json()) as { rewritten?: string };
       const next = (data.rewritten ?? '').trim();
       if (!next) return;
@@ -284,7 +306,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
       });
     } catch (err) {
       console.error('[Studio] rewriteField', err);
-      setAiError('Pear couldn’t rewrite that line just now. Try a different angle.');
+      setAiError(aiErrorFor('rewrite', null));
     } finally {
       setAiBusy(false);
     }

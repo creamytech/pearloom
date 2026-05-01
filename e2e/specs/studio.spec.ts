@@ -596,6 +596,24 @@ test.describe('Studio (stationery editor)', () => {
     await expect(toast).not.toBeVisible();
   });
 
+  test('Rate-limited AI calls show the breathing-room message', async ({ page }) => {
+    // Mock all three studio routes to return 429 so we can assert
+    // the specialised copy fires instead of the generic flow line.
+    await page.route('**/api/studio/rewrite', async (route) => {
+      await route.fulfill({ status: 429, contentType: 'application/json', body: '{"error":"slow down"}' });
+    });
+    await page.route('**/api/studio/draft', async (route) => {
+      await route.fulfill({ status: 429, contentType: 'application/json', body: '{"error":"slow down"}' });
+    });
+    await page.getByRole('button', { name: /^Copy$/ }).click();
+    const eyebrowRewriteBtn = page.locator('div').filter({ hasText: /^Eyebrow$/ }).first()
+      .locator('xpath=..').getByRole('button', { name: /Rewrite/ });
+    await eyebrowRewriteBtn.click();
+    await page.getByRole('button', { name: /A different angle on the same idea/ }).click();
+    await expect(page.getByRole('status').filter({ hasText: /taking a breath/ }))
+      .toBeVisible({ timeout: 5_000 });
+  });
+
   test('AI-generated assets survive an autosave + reload round-trip', async ({ page, context }) => {
     // Capture the autosave POST so we know what manifest the
     // host's tweaks would write to the DB. Then on reload, the
