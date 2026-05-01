@@ -123,7 +123,7 @@ export function ToastsPanel({
     if (!res.ok) throw new Error(`Pear couldn't draft one (${res.status})`);
     const data = (await res.json()) as { text?: string; draft?: string; toast?: string; vows?: string };
     const text = (data.text ?? data.draft ?? data.toast ?? data.vows ?? '').trim();
-    if (!text) throw new Error('Empty response');
+    if (!text) throw new Error('Pear came back empty');
     setDraft(text);
     // Persist on the manifest so the draft survives panel close +
     // editor refresh. The audit flagged the previous version as

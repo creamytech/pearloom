@@ -165,7 +165,7 @@ export function PearCommand({
       if (!res.ok) throw new Error(`${res.status}`);
       const data = (await res.json()) as { text?: string; rewritten?: string; result?: string };
       const text = (data.text ?? data.rewritten ?? data.result ?? '').trim().replace(/^"|"$/g, '');
-      if (!text) throw new Error('Empty');
+      if (!text) throw new Error('Pear came back empty');
       onPatchManifest({
         ...manifest,
         poetry: {

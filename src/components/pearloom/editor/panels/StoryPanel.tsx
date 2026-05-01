@@ -128,7 +128,7 @@ function ChapterRewriteAI({ chapter, onResult }: { chapter: Chapter; onResult: (
         if (typeof ch.description === 'string') text = ch.description.trim();
       }
     }
-    if (!text) throw new Error('Empty rewrite');
+    if (!text) throw new Error('Pear came back empty');
     onResult(text);
     return text;
   });

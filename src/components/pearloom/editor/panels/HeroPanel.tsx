@@ -89,7 +89,7 @@ function HeroTaglineAI({
     if (!res.ok) throw new Error(`Pear couldn't write one (${res.status})`);
     const data = (await res.json()) as { text?: string; rewritten?: string; result?: string };
     const text = (data.text ?? data.rewritten ?? data.result ?? '').trim();
-    if (!text) throw new Error('Empty response from Pear');
+    if (!text) throw new Error('Pear came back empty');
     onResult(text);
     return text;
   });

@@ -623,7 +623,7 @@ function PearSceneSuggest({
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = (await res.json()) as { scene?: string; reason?: string };
-      if (!data.scene) throw new Error('Empty response');
+      if (!data.scene) throw new Error('Pear came back empty');
       setScene(data.scene);
       setReason(data.reason ?? null);
     } catch {
