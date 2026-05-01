@@ -17,6 +17,7 @@ import { DashLayout } from '../dash/DashShell';
 import { Icon } from '../motifs';
 import { AIHint, AISuggestButton, useAICall } from '../editor/ai';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
+import { todayLocal } from '@/lib/date-utils';
 
 type Tab = 'memory' | 'whispers' | 'capsule' | 'seats' | 'songs' | 'sms';
 
@@ -359,7 +360,7 @@ function CapsulePanel({ siteId }: { siteId: string }) {
     };
   }, [siteId]);
 
-  const now = new Date().toISOString().slice(0, 10);
+  const now = todayLocal();
   const sealed = items.filter((i) => i.reveal_on > now);
   const revealed = items.filter((i) => i.reveal_on <= now);
 

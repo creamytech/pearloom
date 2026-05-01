@@ -16,6 +16,7 @@ import type { StoryManifest, Chapter, ChapterImage } from '@/types';
 import { Field, SelectInput, TextArea, TextInput } from './atoms';
 import { Icon } from '../motifs';
 import { QuickEditModalShell } from './QuickEditModalShell';
+import { todayLocal } from '@/lib/date-utils';
 
 interface Props {
   manifest: StoryManifest;
@@ -76,7 +77,7 @@ export function StoryQuickEditModal({ manifest, onChange }: Props) {
     const id = `ch-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`;
     const next: Chapter = {
       id,
-      date: new Date().toISOString().slice(0, 10),
+      date: todayLocal(),
       title: 'New chapter',
       subtitle: '',
       description: '',

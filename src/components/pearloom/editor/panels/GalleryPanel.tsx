@@ -4,6 +4,7 @@ import { useRef, useState, type ChangeEvent } from 'react';
 import type { StoryManifest, Chapter } from '@/types';
 import { EmptyBlockState, PanelGroup, PanelSection } from '../atoms';
 import { Icon } from '../../motifs';
+import { todayLocal } from '@/lib/date-utils';
 
 /** Reads natural width/height of a data-URL image so we persist
  *  real dimensions on manifest.chapter.images[] instead of the
@@ -79,7 +80,7 @@ export function GalleryPanel({
     if (!target) {
       target = {
         id: `ch-gallery-${ts}`,
-        date: new Date().toISOString().slice(0, 10),
+        date: todayLocal(),
         title: 'Along the way',
         subtitle: '',
         description: '',

@@ -6,6 +6,7 @@ import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PanelSm
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { Icon } from '../../motifs';
+import { todayLocal } from '@/lib/date-utils';
 import { BlockStylePicker } from './BlockStylePicker';
 // Side-effect import — registers the 6 story layouts with the
 // block-style registry before the picker reads from it.
@@ -169,7 +170,7 @@ export function StoryPanel({
     const order = chapters.length;
     const next: Chapter = {
       id: `ch-${Date.now().toString(36)}`,
-      date: new Date().toISOString().slice(0, 10),
+      date: todayLocal(),
       title: 'New chapter',
       subtitle: '',
       description: 'The story of this moment…',

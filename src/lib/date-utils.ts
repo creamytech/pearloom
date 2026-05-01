@@ -34,3 +34,14 @@ export function formatLocalDate(
   if (!d) return '';
   return d.toLocaleDateString(locale, options);
 }
+
+/** Today as YYYY-MM-DD in the user's local time. Avoid
+ *  `new Date().toISOString().slice(0, 10)` for this — that
+ *  returns the UTC calendar day, which is tomorrow for any
+ *  user west of UTC after their local 4–8 PM. Use this for
+ *  any "what's today's date" stamp written into a manifest
+ *  field that another local renderer will read back. */
+export function todayLocal(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
