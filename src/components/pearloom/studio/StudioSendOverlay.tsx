@@ -61,7 +61,10 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
   }, [siteSlug]);
 
   async function send() {
-    if (busy) return;
+    // Guard against double-send. `busy` covers in-flight; `sentSummary`
+    // covers the post-success state where the button label still
+    // reads "Send to N" until the host closes the overlay.
+    if (busy || sentSummary) return;
     setBusy(true);
     setError(null);
     try {
@@ -159,7 +162,16 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
                     : 'Pulling roster…'}
                 </div>
               </div>
-              <Link href="/dashboard/rsvp" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
+              <Link href="/dashboard/rsvp" style={{
+                textDecoration: 'none',
+                padding: '6px 12px',
+                fontSize: 12,
+                fontWeight: 600,
+                color: 'var(--ink)',
+                background: 'var(--card)',
+                border: '1px solid var(--line)',
+                borderRadius: 999,
+              }}>
                 Edit list
               </Link>
             </div>
@@ -233,22 +245,54 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
                 : 'No guest emails on file yet — add some first.'}
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={onClose} className="btn btn-ghost btn-sm">Save draft</button>
               <button
-                className="btn btn-primary"
-                onClick={send}
-                disabled={busy || withEmail === 0}
-                style={{ opacity: busy || withEmail === 0 ? 0.55 : 1 }}
+                onClick={onClose}
+                style={{
+                  padding: '8px 14px',
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  color: 'var(--ink)',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
               >
-                {busy ? 'Sending…' : withEmail === 0 ? (
+                {sentSummary ? 'Close' : 'Save draft'}
+              </button>
+              <button
+                onClick={sentSummary ? onClose : send}
+                disabled={busy || (withEmail === 0 && !sentSummary)}
+                style={{
+                  padding: '9px 16px',
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  color: 'var(--cream)',
+                  background: 'var(--ink)',
+                  border: 'none',
+                  borderRadius: 999,
+                  cursor: busy || (withEmail === 0 && !sentSummary) ? 'not-allowed' : 'pointer',
+                  opacity: busy || (withEmail === 0 && !sentSummary) ? 0.55 : 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontFamily: 'inherit',
+                }}
+              >
+                {busy ? 'Sending…' : sentSummary ? (
+                  <>
+                    <Icon name="check" size={12} color="var(--cream)" />
+                    Done
+                  </>
+                ) : withEmail === 0 ? (
                   <>
                     <Icon name="send" size={12} color="var(--cream)" />
-                    {' '}Send
+                    Send
                   </>
                 ) : (
                   <>
                     <Icon name="send" size={12} color="var(--cream)" />
-                    {' '}Send to {withEmail}
+                    Send to {withEmail}
                   </>
                 )}
               </button>

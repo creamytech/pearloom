@@ -332,6 +332,43 @@ test.describe('Studio (stationery editor)', () => {
     expect(captured).toContain('"stationeryType":"std"');
   });
 
+  test('Send button guards against double-send after success', async ({ page }) => {
+    // One guest with email, mocked /api/guests so Send is enabled.
+    await page.route(/\/api\/guests(\?|$)/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          guests: [{ id: 'g1', name: 'Alice', email: 'a@example.test', status: 'attending' }],
+        }),
+      });
+    });
+    let sendHits = 0;
+    await page.route('**/api/invite/guest', async (route) => {
+      sendHits++;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ sent: 1, failed: 0 }),
+      });
+    });
+
+    await page.getByRole('button', { name: /^Send$/ }).first().click();
+    await page.getByRole('button', { name: /Send to 1/ }).click();
+    // Wait for the success summary to render.
+    await expect(page.getByText(/Sent to 1/)).toBeVisible({ timeout: 10_000 });
+
+    // The primary action flips to "Done" — clicking it now must
+    // close the overlay, NOT re-send. Two safety nets: the
+    // post-success guard inside `send()` AND the button onClick
+    // is rebound to onClose once `sentSummary` is set.
+    const doneBtn = page.getByRole('button', { name: /^Done$/ });
+    await expect(doneBtn).toBeVisible();
+    await doneBtn.click();
+    await expect(page.getByText('Off it goes.')).not.toBeVisible();
+    expect(sendHits).toBe(1);
+  });
+
   test('Pear asset generation prepends a new asset to the palette', async ({ page }) => {
     await page.route('**/api/studio/asset', async (route) => {
       await route.fulfill({
