@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Mail, Check, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { CalendarHeartIcon } from '@/components/icons/PearloomIcons';
 import type { ComingSoonConfig } from '@/types';
-import { parseLocalDate } from '@/lib/date';
+import { parseLocalDate } from '@/lib/date-utils';
 
 interface ComingSoonProps {
   config: ComingSoonConfig;
@@ -26,7 +26,15 @@ function useCountdown(targetDate?: string) {
     if (!targetDate) return;
 
     const tick = () => {
-      const diff = new Date(targetDate).getTime() - Date.now();
+      // parseLocalDate avoids reading bare YYYY-MM-DD as UTC midnight
+      // — guests west of UTC would otherwise see "0 days" the night
+      // before the event.
+      const target = parseLocalDate(targetDate);
+      if (!target) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+      const diff = target.getTime() - Date.now();
       if (diff <= 0) {
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
         return;
@@ -364,9 +372,9 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
             border: '1px solid rgba(163,177,138,0.2)',
           }}>
             <CalendarHeartIcon size={12} color="var(--pl-olive)" />
-            {parseLocalDate(config.revealDate).toLocaleDateString('en-US', {
+            {parseLocalDate(config.revealDate)?.toLocaleDateString('en-US', {
               month: 'long', day: 'numeric', year: 'numeric',
-            })}
+            }) ?? config.revealDate}
           </div>
         )}
 

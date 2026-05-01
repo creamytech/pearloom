@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from 'react';
+import { parseLocalDate } from '@/lib/date-utils';
 
 interface GrooveSiteCountdownProps {
   targetDate: string;
@@ -35,8 +36,10 @@ export function GrooveSiteCountdown({
   muted,
   headingFont,
 }: GrooveSiteCountdownProps) {
-  const target = useMemo(() => new Date(targetDate), [targetDate]);
-  const valid = !isNaN(target.getTime());
+  // parseLocalDate avoids reading bare YYYY-MM-DD as UTC midnight
+  // — countdowns west of UTC would otherwise read 24h short.
+  const target = useMemo(() => parseLocalDate(targetDate), [targetDate]);
+  const valid = !!target;
   const [d, setD] = useState(() => (valid ? diff(target) : { days: 0, hours: 0, minutes: 0, isPast: false }));
 
   useEffect(() => {

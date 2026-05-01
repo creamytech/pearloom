@@ -15,6 +15,7 @@ import { useDashStats, useLinkedCelebrations, useDaysToGo } from '@/components/m
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { getKickoffCards, getKickoffEyebrow, type KickoffCard } from '@/lib/event-os/dashboard-presets';
 import { siteProgressPct } from '@/lib/site-progress';
+import { parseLocalDate } from '@/lib/date-utils';
 import type { StoryManifest } from '@/types';
 
 function Section({
@@ -324,7 +325,8 @@ function Milestones({ eventDate }: { eventDate?: string | null }) {
   const rows = useMemo(() => {
     const out: Array<{ d: string; task: string; due: string; big?: boolean }> = [];
     const today = new Date();
-    const base = eventDate ? new Date(eventDate) : null;
+    // parseLocalDate avoids reading bare YYYY-MM-DD as UTC (off-by-one in PT/MT/CT/ET).
+    const base = parseLocalDate(eventDate);
     const addRow = (daysFromNow: number, task: string, big = false) => {
       const dt = new Date(today);
       dt.setDate(dt.getDate() + daysFromNow);
