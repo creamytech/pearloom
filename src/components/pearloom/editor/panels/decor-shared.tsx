@@ -149,7 +149,7 @@ export function DecorAlternatesStrip({
           paddingBottom: 4,
         }}
       >
-        {drafts.map((d) => {
+        {drafts.map((d, i) => {
           const isActive = d.url === activeUrl;
           return (
             <div
@@ -157,7 +157,7 @@ export function DecorAlternatesStrip({
               role="button"
               tabIndex={0}
               aria-pressed={isActive}
-              aria-label={`Draft${isActive ? ', currently picked' : ''}`}
+              aria-label={`Draft ${i + 1}${isActive ? ', currently picked' : ''}`}
               style={{
                 position: 'relative',
                 flexShrink: 0,
@@ -183,7 +183,7 @@ export function DecorAlternatesStrip({
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onDelete(d); }}
-                  aria-label="Remove draft"
+                  aria-label={`Remove draft ${i + 1}`}
                   style={{
                     position: 'absolute', top: 2, right: 2,
                     width: 16, height: 16, borderRadius: '50%',
