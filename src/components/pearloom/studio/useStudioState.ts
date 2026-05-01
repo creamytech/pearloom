@@ -245,6 +245,24 @@ export function useStudioState(args: {
     args.siteSlug,
   ]);
 
+  // Unmount flush — SPA navigation via next/link triggers a
+  // component unmount but NOT beforeunload. The debounce cleanup
+  // would clear the pending timer with no save fired, losing
+  // every edit made in the last <1500ms. Fire a sendBeacon with
+  // the latest payload on unmount so the back-arrow to /dashboard
+  // doesn't drop work silently.
+  useEffect(() => {
+    return () => {
+      if (!dirty.current || !pendingPayload.current) return;
+      try {
+        const blob = new Blob([pendingPayload.current], { type: 'application/json' });
+        navigator.sendBeacon('/api/sites', blob);
+      } catch {
+        // sendBeacon failures are silent — the user already left.
+      }
+    };
+  }, []);
+
   // beforeunload — when the host closes the tab inside the
   // debounce window, fire a sendBeacon with the most recent
   // payload AND set returnValue so the browser surfaces its
