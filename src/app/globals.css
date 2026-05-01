@@ -437,6 +437,22 @@ body {
   50%      { opacity: 1;    transform: translateY(-50%) scaleY(1.4); }
 }
 
+/* Editor canvas drop indicator — the peach line that draws across
+   the gap between sections during a block reorder. Composes with
+   pl-dropzone-pulse afterwards so the line keeps breathing while
+   the host hovers. */
+@keyframes pl8-drop-line-draw {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-drop-indicator {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 /* Shake on error */
 .pl-shake {
   animation: pl-shake 0.4s ease;

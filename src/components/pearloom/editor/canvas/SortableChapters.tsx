@@ -88,11 +88,21 @@ export function SortableChapters({ chapters, onReorder, children }: SortableChap
 
 function SortableChapterItem({ id, children }: { id: string; children: ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  // Match the lifted-out treatment used by CanvasBlockSortable so
+  // the drag affordance reads consistently across the editor.
+  const baseTransform = CSS.Transform.toString(transform);
   const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
+    transform: isDragging
+      ? `${baseTransform ?? ''} scale(0.985)`
+      : baseTransform,
     transition,
     position: 'relative',
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.55 : 1,
+    filter: isDragging ? 'saturate(0.85) brightness(0.97)' : undefined,
+    boxShadow: isDragging
+      ? 'inset 0 0 0 1.5px var(--peach-ink, #C6703D), 0 0 0 4px rgba(198,112,61,0.06)'
+      : undefined,
+    borderRadius: isDragging ? 8 : undefined,
   };
   return (
     <div ref={setNodeRef} style={style} data-pl8-sortable-chapter>

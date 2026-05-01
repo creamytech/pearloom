@@ -190,6 +190,7 @@ export function SortableBlockList({
       <DragOverlay>
         {activeId ? (
           <div
+            className="pl-pop-in"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -272,10 +273,23 @@ function CanvasSortableItem({
   const { selectedBlockIds, selectBlock } = useEditorCanvas();
   const isSelected = (selectedBlockIds ?? []).includes(id);
 
+  // While the block is being dragged, the original slot keeps its
+  // place but reads as "lifted out" — slightly desaturated, gently
+  // shrunk, with a peach inset ring so the host can see exactly
+  // where the block came from. The DragOverlay chip handles the
+  // floating affordance; this is the negative space it left behind.
+  const baseTransform = CSS.Transform.toString(transform);
   const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
+    transform: isDragging
+      ? `${baseTransform ?? ''} scale(0.985)`
+      : baseTransform,
     transition,
-    opacity: isDragging ? 0.4 : 1,
+    opacity: isDragging ? 0.55 : 1,
+    filter: isDragging ? 'saturate(0.85) brightness(0.97)' : undefined,
+    boxShadow: isDragging
+      ? 'inset 0 0 0 1.5px var(--peach-ink, #C6703D), 0 0 0 4px rgba(198,112,61,0.06)'
+      : undefined,
+    borderRadius: isDragging ? 8 : undefined,
     position: 'relative',
   };
 
@@ -357,19 +371,26 @@ function CanvasSortableItem({
       onContextMenu={handleContextMenu}
       onMouseDownCapture={handleMouseDownCapture}
     >
-      {/* Drop indicator when this section is the drop target. */}
+      {/* Drop indicator when this section is the drop target.
+          Animates in from scaleX(0) at the centre so the line
+          *draws* across the gap, then breathes via pl-dropzone-pulse
+          so the host's eye locks on. */}
       {isOver && !isDragging && (
         <div
           aria-hidden
+          className="pl8-drop-indicator"
           style={{
             position: 'absolute',
-            top: 0, left: 0, right: 0,
-            height: 2,
+            top: -1, left: 0, right: 0,
+            height: 3,
             background: 'var(--peach-ink, #C6703D)',
             zIndex: 50,
-            borderRadius: 2,
-            boxShadow: '0 0 12px rgba(198,112,61,0.4)',
-            transition: 'opacity 180ms cubic-bezier(0.22, 1, 0.36, 1)',
+            borderRadius: 3,
+            boxShadow: '0 0 14px rgba(198,112,61,0.45), 0 0 0 4px rgba(198,112,61,0.10)',
+            transformOrigin: 'center',
+            animation:
+              'pl8-drop-line-draw 220ms cubic-bezier(0.22, 1, 0.36, 1) both, ' +
+              'pl-dropzone-pulse 1.6s ease-in-out 220ms infinite',
           }}
         />
       )}
