@@ -52,7 +52,7 @@ export default function PartnersPage() {
 
   const handleCopyEmbed = (type: 'button' | 'banner' | 'card' | 'floating') => {
     const code = generateEmbedCode(mockPartner, type);
-    navigator.clipboard.writeText(code);
+    navigator.clipboard?.writeText(code).catch(() => { /* clipboard rejects in insecure contexts */ });
     setCopiedEmbed(type);
     setTimeout(() => setCopiedEmbed(null), 2000);
   };
@@ -286,7 +286,11 @@ export default function PartnersPage() {
               https://pearloom.com?ref={mockPartner.referralCode}
             </div>
             <Button variant="primary" size="sm" icon={copiedEmbed === 'link' ? <Check size={12} /> : <Copy size={12} />}
-              onClick={() => { navigator.clipboard.writeText(`https://pearloom.com?ref=${mockPartner.referralCode}`); setCopiedEmbed('link'); setTimeout(() => setCopiedEmbed(null), 2000); }}>
+              onClick={() => {
+                navigator.clipboard?.writeText(`https://pearloom.com?ref=${mockPartner.referralCode}`).catch(() => { /* ignore */ });
+                setCopiedEmbed('link');
+                setTimeout(() => setCopiedEmbed(null), 2000);
+              }}>
               {copiedEmbed === 'link' ? 'Copied!' : 'Copy'}
             </Button>
           </div>

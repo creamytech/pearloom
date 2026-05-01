@@ -199,10 +199,12 @@ function PreviewBanner({ token }: { token: string }) {
 
   function handleShare() {
     const url = typeof window !== 'undefined' ? window.location.href : '';
-    navigator.clipboard.writeText(url).then(() => {
+    // Clipboard API rejects in insecure contexts / iframes — guard
+    // both the chained .then and the missing-API case.
+    navigator.clipboard?.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    });
+    }).catch(() => { /* ignore */ });
   }
 
   return (

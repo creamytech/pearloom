@@ -1114,10 +1114,14 @@ function CopyLink({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);
 
   const copy = () => {
-    navigator.clipboard.writeText(url).then(() => {
+    // Clipboard API rejects in insecure contexts / iframes /
+    // some embedded webviews. Treat the rejection as a silent
+    // no-op — surfacing a toast would be louder than the
+    // affordance is worth.
+    navigator.clipboard?.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    });
+    }).catch(() => { /* ignore */ });
   };
 
   return (
