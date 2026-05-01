@@ -182,6 +182,7 @@ export function IconDropTarget({ editMode, onEditField, canvasRoot }: Props) {
     <>
       <div
         aria-hidden
+        data-pl-icon-pulse
         style={{
           position: 'fixed',
           left: hover.rect.left - padding,
@@ -225,6 +226,14 @@ export function IconDropTarget({ editMode, onEditField, canvasRoot }: Props) {
         @keyframes pl-icon-pulse {
           0%, 100% { box-shadow: 0 0 0 6px rgba(198,112,61,0.10); }
           50%      { box-shadow: 0 0 0 10px rgba(198,112,61,0.18); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          /* Static, non-pulsing peach halo so the drop target still
+             reads as a target without the looping animation. */
+          [data-pl-icon-pulse] {
+            animation: none !important;
+            box-shadow: 0 0 0 8px rgba(198,112,61,0.14) !important;
+          }
         }
       `}</style>
     </>
