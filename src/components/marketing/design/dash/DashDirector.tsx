@@ -13,6 +13,7 @@ import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost, btnMini, btnMiniGhos
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getDirectorTimeline, type TimelineStage } from '@/lib/event-os/dashboard-presets';
+import { parseLocalDate } from '@/lib/date-utils';
 
 interface DirectorMsg {
   role: 'pear' | 'me';
@@ -56,9 +57,14 @@ function fmtTime(iso?: string) {
 
 function diffDays(iso: string): number {
   try {
-    const target = new Date(iso).getTime();
+    // Bare YYYY-MM-DD parses as UTC midnight, which is the day
+    // BEFORE in negative-UTC timezones — making the dashboard
+    // read "0 days to go" when the wedding is actually tomorrow.
+    // Treat date-only inputs as local midnight via parseLocalDate.
+    const target = parseLocalDate(iso);
+    if (!target) return 0;
     const now = Date.now();
-    return Math.round((target - now) / 86400000);
+    return Math.round((target.getTime() - now) / 86400000);
   } catch {
     return 0;
   }
