@@ -26,18 +26,14 @@ export function StickyRsvpPill({
   anchorId = 'rsvp',
 }: Props) {
   const [show, setShow] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  // Lazy useState init so render is pure and the pill doesn't
+  // flash before sessionStorage is read.
+  const [dismissed, setDismissed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try { return sessionStorage.getItem('pl:sticky-rsvp-dismissed') === '1'; }
+    catch { return false; }
+  });
   const [overRsvp, setOverRsvp] = useState(false);
-
-  useEffect(() => {
-    try {
-      if (sessionStorage.getItem('pl:sticky-rsvp-dismissed') === '1') {
-        setDismissed(true);
-      }
-    } catch {
-      /* ignore */
-    }
-  }, []);
 
   // Scroll-based visibility: show once past 30% of the document.
   useEffect(() => {

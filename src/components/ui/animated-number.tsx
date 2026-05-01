@@ -23,28 +23,32 @@ export function AnimatedNumber({
 }: AnimatedNumberProps) {
   const [displayValue, setDisplayValue] = useState(value);
   const [direction, setDirection] = useState<'up' | 'down' | null>(null);
-  const prevRef = useRef(value);
+  const [prevValue, setPrevValue] = useState(value);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Detect value change at render time and set direction inline
+  // (store-and-compare-prev). React handles set-during-render
+  // specially — flushes before paint, no extra render.
+  if (value !== prevValue) {
+    setPrevValue(value);
+    setDirection(value > prevValue ? 'up' : 'down');
+  }
+
+  // After the CSS transition completes, snap to the new value.
+  // Setting state inside the setTimeout callback is allowed by
+  // react-hooks/set-state-in-effect (it's a callback, not a
+  // synchronous effect-body call).
   useEffect(() => {
-    if (value === prevRef.current) return;
-
-    const goingUp = value > prevRef.current;
-    setDirection(goingUp ? 'up' : 'down');
-
-    // After the CSS transition completes, snap to the new value
+    if (direction === null) return;
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       setDisplayValue(value);
       setDirection(null);
     }, duration);
-
-    prevRef.current = value;
-
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [value, duration]);
+  }, [direction, value, duration]);
 
   const offsetY = direction === 'up' ? '-100%' : direction === 'down' ? '100%' : '0%';
 
