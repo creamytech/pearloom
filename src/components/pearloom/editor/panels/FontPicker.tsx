@@ -266,6 +266,8 @@ function PairTile({ pair, active, onPick }: { pair: FontPair; active: boolean; o
     <button
       type="button"
       onClick={onPick}
+      aria-pressed={active}
+      aria-label={`${pair.heading} + ${pair.body} pairing${active ? ', currently applied' : ''}`}
       style={{
         all: 'unset',
         cursor: 'pointer',

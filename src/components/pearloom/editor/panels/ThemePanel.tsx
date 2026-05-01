@@ -1076,6 +1076,8 @@ function PaletteTile({
       <button
         type="button"
         onClick={onPick}
+        aria-pressed={active}
+        aria-label={`${preset.name} palette${active ? ', currently applied' : ''}`}
         style={{
           all: 'unset',
           cursor: 'pointer',
