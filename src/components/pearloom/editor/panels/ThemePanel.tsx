@@ -283,6 +283,7 @@ export function ThemePanel({
                 <button
                   key={m.id}
                   type="button"
+                  aria-pressed={on}
                   onClick={() => applyMotif(m.id as 'pear' | 'squiggle' | 'blob')}
                   style={{
                     padding: 12,
@@ -494,6 +495,7 @@ export function SiteModeSection({
                   <button
                     key={o.key}
                     type="button"
+                    aria-pressed={on}
                     onClick={() => toggleHomeBlock(o.key)}
                     style={{
                       padding: '10px 12px',
@@ -626,6 +628,7 @@ function FooterCustomizationSection({
                 <button
                   key={o.v}
                   type="button"
+                  aria-pressed={on}
                   onClick={() => patch('brandMark', o.v)}
                   style={{
                     padding: '8px 4px',
@@ -929,6 +932,8 @@ function PaletteSection({
             <button
               key={t}
               type="button"
+              role="tab"
+              aria-selected={on}
               onClick={() => setTab(t)}
               style={{
                 flex: 1,
