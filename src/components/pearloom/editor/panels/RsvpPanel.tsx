@@ -226,6 +226,7 @@ export function RsvpPanel({
                         <button
                           key={t}
                           type="button"
+                          aria-pressed={on}
                           onClick={() => {
                             const next = on
                               ? m.dietaryTags.filter((x) => x !== t)
@@ -321,6 +322,7 @@ function RsvpButtonStyleSection({
               <button
                 key={l.id}
                 type="button"
+                aria-pressed={on}
                 onClick={() => set({ shape: l.id === 'pearl' ? undefined : l.id })}
                 title={l.hint}
                 style={shapeBtn(on)}
@@ -341,6 +343,7 @@ function RsvpButtonStyleSection({
                 <button
                   key={p}
                   type="button"
+                  aria-pressed={on}
                   onClick={() => set({ pulse: p === 'none' ? undefined : p })}
                   style={shapeBtn(on)}
                 >

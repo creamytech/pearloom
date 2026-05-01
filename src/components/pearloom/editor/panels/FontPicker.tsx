@@ -122,6 +122,8 @@ export function FontPicker({
             <button
               key={t}
               type="button"
+              role="tab"
+              aria-selected={on}
               onClick={() => setTab(t)}
               style={{
                 flex: 1,
@@ -229,6 +231,7 @@ function CategoryChip({ label, on, onClick }: { label: string; on: boolean; onCl
   return (
     <button
       type="button"
+      aria-pressed={on}
       onClick={onClick}
       style={{
         padding: '4px 10px',
