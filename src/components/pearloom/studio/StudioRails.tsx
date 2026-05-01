@@ -656,6 +656,10 @@ function MiniMotif({ id, on }: { id: string; on: boolean }) {
 
 function CopyTab({ content, state, setField, onRewriteField }: { content: StudioContent; state: StudioState; setField: SetStudioField; onRewriteField?: (id: string, hint: string) => Promise<void> }) {
   const [openField, setOpenField] = useState<string | null>(null);
+  // Tracks which (fieldId, hint) is in flight so the matching pill
+  // shows "Threading…" while the request lands. Reset to null on
+  // resolve so the user can immediately try another hint.
+  const [rewritingKey, setRewritingKey] = useState<string | null>(null);
   type EditableId = 'eyebrow' | 'line2' | 'line4' | 'cta';
   const fields: Array<{ id: string; label: string; value: string; locked?: boolean; sub?: string }> = [
     { id: 'eyebrow',  label: 'Eyebrow',    value: content.eyebrow },
@@ -738,16 +742,31 @@ function CopyTab({ content, state, setField, onRewriteField }: { content: Studio
                     'A different angle on the same idea',
                     'Trim it to half the length',
                     'Make it sound spoken-aloud',
-                  ].map(hint => (
-                    <button key={hint}
-                      onClick={() => void onRewriteField(f.id, hint)}
-                      style={{
-                        padding: '6px 10px', borderRadius: 6,
-                        background: 'var(--peach-bg)', color: 'var(--peach-ink)',
-                        fontSize: 11, fontWeight: 500, textAlign: 'left',
-                        border: '1px solid transparent', cursor: 'pointer', fontFamily: 'inherit',
-                      }}>{hint}</button>
-                  ))}
+                  ].map(hint => {
+                    const key = `${f.id}::${hint}`;
+                    const busy = rewritingKey === key;
+                    const otherBusy = rewritingKey !== null && !busy;
+                    return (
+                      <button key={hint}
+                        disabled={busy || otherBusy}
+                        aria-busy={busy}
+                        onClick={() => {
+                          setRewritingKey(key);
+                          void onRewriteField(f.id, hint).finally(() => setRewritingKey(null));
+                        }}
+                        style={{
+                          padding: '6px 10px', borderRadius: 6,
+                          background: 'var(--peach-bg)', color: 'var(--peach-ink)',
+                          fontSize: 11, fontWeight: 500, textAlign: 'left',
+                          border: '1px solid transparent',
+                          cursor: busy || otherBusy ? 'not-allowed' : 'pointer',
+                          opacity: otherBusy ? 0.4 : 1,
+                          fontFamily: 'inherit',
+                        }}>
+                        {busy ? 'Threading…' : hint}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>

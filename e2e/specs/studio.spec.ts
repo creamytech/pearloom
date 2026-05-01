@@ -502,6 +502,40 @@ test.describe('Studio (stationery editor)', () => {
     await expect(page.locator('main').filter({ hasText: REWRITTEN }).first()).toBeVisible({ timeout: 5_000 });
   });
 
+  test('Pear field rewrite shows a Threading… indicator while in flight', async ({ page }) => {
+    // Hold the rewrite request open with a deferred promise so the
+    // Threading… state has time to render before the response.
+    let release: (() => void) | null = null;
+    const held = new Promise<void>((res) => { release = res; });
+    await page.route('**/api/studio/rewrite', async (route) => {
+      await held;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ rewritten: 'NEW-COPY-LANDED' }),
+      });
+    });
+
+    await page.getByRole('button', { name: /^Copy$/ }).click();
+    const eyebrowRewriteBtn = page.locator('div').filter({ hasText: /^Eyebrow$/ }).first()
+      .locator('xpath=..').getByRole('button', { name: /Rewrite/ });
+    await eyebrowRewriteBtn.click();
+    const hintBtn = page.getByRole('button', { name: /A different angle on the same idea/ });
+    await hintBtn.click();
+
+    // While the request is in flight, the clicked pill swaps to
+    // Threading… so the host has visible feedback the click
+    // registered.
+    await expect(page.getByRole('button', { name: /Threading…/ })).toBeVisible();
+
+    // Release the deferred response and confirm the canvas updates.
+    release!();
+    await expect(page.locator('main').filter({ hasText: 'NEW-COPY-LANDED' }).first())
+      .toBeVisible({ timeout: 5_000 });
+    // Threading… is gone after the response lands.
+    await expect(page.getByRole('button', { name: /Threading…/ })).toHaveCount(0);
+  });
+
   test('AI-generated assets survive an autosave + reload round-trip', async ({ page, context }) => {
     // Capture the autosave POST so we know what manifest the
     // host's tweaks would write to the DB. Then on reload, the
