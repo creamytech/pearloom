@@ -140,23 +140,27 @@ function tablistKeydown<T>(
   items: readonly T[],
   select: (item: T) => void
 ) {
+  // Sibling selector covers both role="tab" (real tablists) and
+  // role="radio" (segmented radiogroup with tab-like roving
+  // tabindex). Both share the same arrow-key navigation contract.
+  const SIBLING_SELECTOR = '[role="tab"],[role="radio"]';
   if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
     e.preventDefault();
     const dir = e.key === 'ArrowRight' ? 1 : -1;
     const next = (index + dir + items.length) % items.length;
     select(items[next]);
     const list = e.currentTarget.parentElement;
-    list?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+    list?.querySelectorAll<HTMLButtonElement>(SIBLING_SELECTOR)[next]?.focus();
   } else if (e.key === 'Home') {
     e.preventDefault();
     select(items[0]);
     const list = e.currentTarget.parentElement;
-    list?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[0]?.focus();
+    list?.querySelectorAll<HTMLButtonElement>(SIBLING_SELECTOR)[0]?.focus();
   } else if (e.key === 'End') {
     e.preventDefault();
     select(items[items.length - 1]);
     const list = e.currentTarget.parentElement;
-    list?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[items.length - 1]?.focus();
+    list?.querySelectorAll<HTMLButtonElement>(SIBLING_SELECTOR)[items.length - 1]?.focus();
   }
 }
 
@@ -1647,7 +1651,12 @@ function EditorTopbar({
         ];
         return (
           <div
-            role="tablist"
+            // role="radiogroup" instead of "tablist" because there
+            // are no tabpanels — these three pills mutate the canvas
+            // render mode + device size, not separate tab content.
+            // role="radio" + aria-checked is the canonical mutually-
+            // exclusive choice pattern. Arrow-key roving still works.
+            role="radiogroup"
             aria-label="Editor mode"
             style={{
               display: showDeviceToggle ? 'flex' : 'none',
@@ -1664,8 +1673,8 @@ function EditorTopbar({
                 <button
                   key={p.key}
                   type="button"
-                  role="tab"
-                  aria-selected={on}
+                  role="radio"
+                  aria-checked={on}
                   tabIndex={on ? 0 : -1}
                   onClick={() => setMode(p.key)}
                   onKeyDown={(e) => tablistKeydown(e, i, pills, (item) => setMode(item.key))}
