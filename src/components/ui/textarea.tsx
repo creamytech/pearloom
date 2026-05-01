@@ -50,7 +50,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
             onChange?.(e);
           }}
           className={cn(
-            'w-full rounded-[var(--eg-radius-sm)] border-[1.5px] bg-white px-3 py-2.5 outline-none resize-none',
+            'w-full rounded-[var(--pl-radius-sm)] border-[1.5px] bg-white px-3 py-2.5 outline-none resize-none',
             'text-[max(16px,1rem)] text-foreground font-body',
             'placeholder:text-muted-foreground placeholder:opacity-60',
             'transition-all duration-200',

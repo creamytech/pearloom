@@ -60,7 +60,16 @@ export async function GET(req: NextRequest) {
     });
 
     if (!res.ok) {
-      console.error(`[Photo Proxy] Google returned ${res.status} for ${photoUrl}`);
+      // 401 / 403 is the normal signal that the Picker baseUrl (or token)
+      // has expired — callers fall back to a placeholder. Log at debug level
+      // to avoid flooding production logs.
+      if (res.status === 401 || res.status === 403 || res.status === 404) {
+        if (process.env.NODE_ENV === 'development') {
+          console.debug(`[Photo Proxy] Google returned ${res.status} (expired picker url)`);
+        }
+      } else {
+        console.error(`[Photo Proxy] Google returned ${res.status} for ${parsedUrl.hostname}${parsedUrl.pathname}`);
+      }
       return new NextResponse(`Google Photos returned ${res.status}`, { status: res.status });
     }
 

@@ -11,6 +11,8 @@ import { motion } from 'framer-motion';
 import { EnvelopeIcon } from '@/components/icons/PearloomIcons';
 import { SectionDivider } from '@/components/site/SectionDivider';
 import { RsvpForm } from '@/components/rsvp-form';
+import { PresetRsvpForm } from '@/components/PresetRsvpForm';
+import type { RsvpPreset } from '@/lib/event-os/event-types';
 import type { WeddingEvent } from '@/types';
 import { parseLocalDate } from '@/lib/date';
 
@@ -20,10 +22,17 @@ interface PublicRsvpSectionProps {
   siteId: string;
   events: WeddingEvent[];
   deadline?: string;
-  // Poetry pass — warm RSVP intro from AI
   rsvpIntro?: string;
-  // Section heading override
   title?: string;
+  mealOptions?: Array<{ id: string; name: string; dietaryTags?: string[] }>;
+  /** When true, renders the RSVP intro text as inline-editable (editor canvas only). */
+  editable?: boolean;
+  /**
+   * RSVP preset derived from the site's occasion. Wedding / unset →
+   * the legacy multi-step wedding form. Anything else → the
+   * preset-driven form that renders the right fields per event.
+   */
+  rsvpPreset?: RsvpPreset;
 }
 
 export function PublicRsvpSection({
@@ -32,6 +41,9 @@ export function PublicRsvpSection({
   deadline,
   rsvpIntro,
   title,
+  mealOptions,
+  editable = false,
+  rsvpPreset,
 }: PublicRsvpSectionProps) {
   const headingText = title || rsvpIntro || 'Join us';
 
@@ -68,13 +80,13 @@ export function PublicRsvpSection({
     <section
       id="rsvp"
       style={{
-        background: 'var(--eg-bg-section)',
+        background: 'var(--pl-cream-deep)',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
       {/* Wave divider at top */}
-      <SectionDivider color="var(--eg-bg)" />
+      <SectionDivider color="var(--pl-cream)" />
 
       {/* Pear watermark */}
       <div
@@ -85,7 +97,7 @@ export function PublicRsvpSection({
           width: '300px',
           height: '380px',
           borderRadius: '38% 38% 50% 50% / 28% 28% 50% 50%',
-          background: 'var(--eg-accent)',
+          background: 'var(--pl-olive)',
           opacity: 0.04,
           pointerEvents: 'none',
         }}
@@ -119,7 +131,7 @@ export function PublicRsvpSection({
                 flex: 1,
                 maxWidth: '120px',
                 height: '1px',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 transformOrigin: 'right',
               }}
             />
@@ -129,7 +141,7 @@ export function PublicRsvpSection({
               viewport={{ once: true }}
               transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.2 }}
             >
-              <EnvelopeIcon size={22} color="var(--eg-accent)" />
+              <EnvelopeIcon size={22} color="var(--pl-olive)" />
             </motion.div>
             <motion.div
               initial={{ scaleX: 0, opacity: 0 }}
@@ -140,7 +152,7 @@ export function PublicRsvpSection({
                 flex: 1,
                 maxWidth: '120px',
                 height: '1px',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 transformOrigin: 'left',
               }}
             />
@@ -148,15 +160,16 @@ export function PublicRsvpSection({
 
           <h2
             style={{
-              fontFamily: 'var(--eg-font-heading)',
+              fontFamily: 'var(--pl-font-heading)',
               fontSize: 'clamp(2.5rem, 5vw, 4rem)',
               fontWeight: 600,
               fontStyle: 'italic',
               letterSpacing: '-0.03em',
-              color: 'var(--eg-fg)',
+              color: 'var(--pl-ink)',
               marginBottom: '1.25rem',
               lineHeight: 1.05,
             }}
+            {...(editable ? { 'data-pe-editable': 'true', 'data-pe-path': 'poetry.rsvpIntro' } : {})}
           >
             {headingText}
           </h2>
@@ -175,7 +188,7 @@ export function PublicRsvpSection({
               style={{
                 width: '24px',
                 height: '1px',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 opacity: 0.35,
               }}
             />
@@ -183,7 +196,7 @@ export function PublicRsvpSection({
               style={{
                 width: '4px',
                 height: '4px',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 transform: 'rotate(45deg)',
                 opacity: 0.5,
               }}
@@ -192,7 +205,7 @@ export function PublicRsvpSection({
               style={{
                 width: '24px',
                 height: '1px',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 opacity: 0.35,
               }}
             />
@@ -200,7 +213,7 @@ export function PublicRsvpSection({
 
           <p
             style={{
-              color: 'var(--eg-muted)',
+              color: 'var(--pl-muted)',
               fontSize: '1.1rem',
               fontStyle: 'italic',
               maxWidth: '480px',
@@ -223,16 +236,16 @@ export function PublicRsvpSection({
               marginBottom: '2rem',
               padding: '0.875rem 1.5rem',
               background:
-                'linear-gradient(135deg, var(--eg-accent-light), color-mix(in srgb, var(--eg-accent-light) 70%, #fff))',
+                'linear-gradient(135deg, var(--pl-olive-mist), color-mix(in srgb, var(--pl-olive-mist) 70%, #fff))',
               borderRadius: '0.75rem',
-              border: '1.5px solid color-mix(in srgb, var(--eg-accent) 20%, transparent)',
+              border: '1.5px solid color-mix(in srgb, var(--pl-olive) 20%, transparent)',
               textAlign: 'center',
             }}
           >
             <p
               style={{
                 fontSize: '0.85rem',
-                color: 'var(--eg-accent)',
+                color: 'var(--pl-olive)',
                 fontWeight: 600,
                 letterSpacing: '0.04em',
               }}
@@ -252,13 +265,13 @@ export function PublicRsvpSection({
           {(envelopeState === 'sealed' || envelopeState === 'opening') && (
             <div
               style={{
-                background: 'linear-gradient(135deg, #FBF8F1 0%, #F5F0E8 100%)',
+                background: 'linear-gradient(135deg, var(--pl-cream) 0%, var(--pl-cream-deep) 100%)',
                 border: '1px solid rgba(196,169,106,0.3)',
-                borderRadius: '12px',
+                borderRadius: 'var(--pl-radius-lg)',
                 padding: 0,
                 overflow: 'hidden',
                 boxShadow:
-                  '0 8px 40px rgba(43,43,43,0.12), 0 0 0 1px rgba(196,169,106,0.15)',
+                  '0 8px 40px rgba(43,30,20,0.12), 0 0 0 1px rgba(196,169,106,0.15)',
               }}
             >
               {/* Envelope flap */}
@@ -299,7 +312,7 @@ export function PublicRsvpSection({
                         height: '52px',
                         borderRadius: '50%',
                         background:
-                          'radial-gradient(circle at 40% 35%, #C4A96A, #8B7040)',
+                          'radial-gradient(circle at 40% 35%, var(--pl-gold, #C4A96A), #8B7040)',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
                         display: 'flex',
                         alignItems: 'center',
@@ -316,17 +329,17 @@ export function PublicRsvpSection({
               {/* Card body */}
               <div
                 style={{
-                  padding: '2.5rem',
+                  padding: 'clamp(1.5rem, 5vw, 2.5rem)',
                   textAlign: 'center',
                 }}
               >
                 <p
                   style={{
-                    fontFamily: 'var(--eg-font-heading)',
+                    fontFamily: 'var(--pl-font-heading)',
                     fontSize: 'clamp(1.6rem, 4vw, 2.4rem)',
                     fontWeight: 600,
                     fontStyle: 'italic',
-                    color: 'var(--eg-fg)',
+                    color: 'var(--pl-ink)',
                     letterSpacing: '-0.02em',
                     lineHeight: 1.15,
                     marginBottom: '0.75rem',
@@ -341,7 +354,7 @@ export function PublicRsvpSection({
                       fontSize: '0.8rem',
                       fontVariant: 'small-caps',
                       letterSpacing: '0.12em',
-                      color: 'var(--eg-muted)',
+                      color: 'var(--pl-muted)',
                       marginBottom: '2rem',
                       textTransform: 'uppercase',
                     }}
@@ -362,7 +375,8 @@ export function PublicRsvpSection({
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '0.6rem',
-                    padding: '0.85rem 2rem',
+                    padding: '14px 32px',
+                    minHeight: 48,
                     background:
                       envelopeState === 'opening'
                         ? 'linear-gradient(135deg, #d4b87a, #a8894e)'
@@ -370,18 +384,44 @@ export function PublicRsvpSection({
                     color: '#ffffff',
                     border: 'none',
                     borderRadius: '2rem',
-                    fontFamily: 'var(--eg-font-body, inherit)',
-                    fontSize: '0.9rem',
+                    fontFamily: 'var(--pl-font-body, inherit)',
+                    fontSize: '1rem',
                     fontWeight: 600,
                     letterSpacing: '0.06em',
                     cursor: envelopeState === 'opening' ? 'default' : 'pointer',
                     boxShadow:
-                      '0 4px 16px rgba(139,112,64,0.35), inset 0 1px 0 rgba(255,255,255,0.15)',
-                    transition: 'box-shadow 0.2s',
+                      '0 4px 16px rgba(139,112,64,0.35), inset 0 1px 0 rgba(0,0,0,0.08)',
+                    transition: 'box-shadow var(--pl-dur-fast)',
                   }}
                 >
                   <span>{envelopeState === 'opening' ? 'Opening…' : 'Open your invitation'}</span>
                 </motion.button>
+
+                {/* Plain-text bypass for guests who'd rather skip
+                    the ceremony (older users, assistive tech, or
+                    anyone who's already RSVP'd once and just wants
+                    to edit). */}
+                <div style={{ marginTop: 14 }}>
+                  <button
+                    type="button"
+                    onClick={handleOpenEnvelope}
+                    disabled={envelopeState === 'opening'}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: '6px 10px',
+                      color: 'var(--pl-muted)',
+                      fontSize: '0.88rem',
+                      textDecoration: 'underline',
+                      textDecorationThickness: '1px',
+                      textUnderlineOffset: '3px',
+                      cursor: envelopeState === 'opening' ? 'default' : 'pointer',
+                      fontFamily: 'var(--pl-font-body, inherit)',
+                    }}
+                  >
+                    Skip straight to the RSVP form
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -393,19 +433,19 @@ export function PublicRsvpSection({
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
               style={{
-                background: 'linear-gradient(135deg, #FBF8F1 0%, #F5F0E8 100%)',
+                background: 'linear-gradient(135deg, var(--pl-cream) 0%, var(--pl-cream-deep) 100%)',
                 border: '1px solid rgba(196,169,106,0.3)',
-                borderRadius: '12px',
+                borderRadius: 'var(--pl-radius-lg)',
                 overflow: 'hidden',
                 boxShadow:
-                  '0 8px 40px rgba(43,43,43,0.12), 0 0 0 1px rgba(196,169,106,0.15)',
+                  '0 8px 40px rgba(43,30,20,0.12), 0 0 0 1px rgba(196,169,106,0.15)',
               }}
             >
               {/* Invitation card header */}
               <div
                 style={{
                   textAlign: 'center',
-                  padding: '2.5rem 2.5rem 2rem',
+                  padding: 'clamp(1.5rem, 5vw, 2.5rem) clamp(1rem, 5vw, 2.5rem) clamp(1.25rem, 4vw, 2rem)',
                   borderBottom: '1px solid rgba(196,169,106,0.2)',
                 }}
               >
@@ -448,11 +488,11 @@ export function PublicRsvpSection({
 
                 <p
                   style={{
-                    fontFamily: 'var(--eg-font-heading)',
+                    fontFamily: 'var(--pl-font-heading)',
                     fontSize: 'clamp(1.5rem, 3.5vw, 2rem)',
                     fontWeight: 600,
                     fontStyle: 'italic',
-                    color: 'var(--eg-fg)',
+                    color: 'var(--pl-ink)',
                     letterSpacing: '-0.02em',
                     lineHeight: 1.2,
                     marginBottom: '0.5rem',
@@ -464,7 +504,7 @@ export function PublicRsvpSection({
                   style={{
                     fontSize: '0.85rem',
                     fontStyle: 'italic',
-                    color: 'var(--eg-muted)',
+                    color: 'var(--pl-muted)',
                     letterSpacing: '0.02em',
                   }}
                 >
@@ -473,8 +513,16 @@ export function PublicRsvpSection({
               </div>
 
               {/* RSVP form embedded in invitation */}
-              <div style={{ padding: '2.5rem' }}>
-                <RsvpForm events={events} siteId={siteId} />
+              <div style={{ padding: 'clamp(1rem, 5vw, 2.5rem)' }}>
+                {rsvpPreset && rsvpPreset !== 'wedding' ? (
+                  <PresetRsvpForm
+                    siteId={siteId}
+                    preset={rsvpPreset}
+                    title={title || rsvpIntro || undefined}
+                  />
+                ) : (
+                  <RsvpForm events={events} siteId={siteId} mealOptions={mealOptions} />
+                )}
               </div>
             </motion.div>
           )}

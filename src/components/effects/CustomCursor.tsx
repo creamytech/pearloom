@@ -77,7 +77,7 @@ function CursorSVG({ shape, color }: { shape: CursorShape; color: string }) {
   }
 }
 
-export function CustomCursor({ shape, accentColor = '#A3B18A' }: CustomCursorProps) {
+export function CustomCursor({ shape, accentColor = '#5C6B3F' }: CustomCursorProps) {
   const cursorRef = useRef<HTMLDivElement>(null);
   const trailRef = useRef<HTMLDivElement>(null);
   const posRef = useRef({ x: -100, y: -100 });
@@ -186,7 +186,7 @@ export function CustomCursor({ shape, accentColor = '#A3B18A' }: CustomCursorPro
           borderRadius: '50%',
           background: accentColor,
           opacity: visible ? 0.35 : 0,
-          transition: 'opacity 0.2s',
+          transition: 'opacity var(--pl-dur-fast)',
           willChange: 'transform',
         }}
       />

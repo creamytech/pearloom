@@ -1,16 +1,17 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / app/registry/page.tsx
-// Dashboard: Registry management page
+// Registry management — wrapped in v8 PageShell.
 // ─────────────────────────────────────────────────────────────
 
-import Link from 'next/link';
 import type { Metadata } from 'next';
 import { RegistryManager } from '@/components/registry/RegistryManager';
+import { PageShell } from '@/components/pearloom/PageShell';
+import { Icon, Sparkle } from '@/components/pearloom/motifs';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Your Registry — Pearloom',
+  title: 'Your Registry · Pearloom',
   description: 'Add and manage all your registry links in one place.',
 };
 
@@ -23,151 +24,73 @@ export default async function RegistryPage({ searchParams }: RegistryPageProps) 
   const siteId = params.siteId || params.domain || 'demo';
 
   return (
-    <main
-      style={{
-        minHeight: '100dvh',
-        background: 'linear-gradient(180deg, #f5ead6 0%, #F5F1E8 30%, #F5F1E8 100%)',
-        paddingBottom: '5rem',
-      }}
-    >
-      {/* Top nav bar */}
-      <header
-        style={{
-          padding: '1.25rem 2rem',
-          background: 'rgba(255,255,255,0.75)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid #EDE8E0',
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-        }}
-      >
-        <Link
-          href="/sites"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.375rem',
-            color: '#6B6660',
-            textDecoration: 'none',
-            fontSize: '0.875rem',
-            fontFamily: 'Inter, sans-serif',
-            fontWeight: 500,
-            transition: 'color 0.15s',
-          }}
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path
-              d="M10 3L5 8l5 5"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Dashboard
-        </Link>
-
-        <span
-          style={{ color: '#DDD8D0', fontSize: '1rem', fontFamily: 'Inter, sans-serif' }}
-          aria-hidden="true"
-        >
-          /
-        </span>
-
-        <span
-          style={{
-            fontFamily: 'Playfair Display, Georgia, serif',
-            fontSize: '1rem',
-            color: '#2B2B2B',
-            fontWeight: 600,
-          }}
-        >
-          Registry
-        </span>
-      </header>
-
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '3rem 1.5rem 0' }}>
-        {/* Page heading */}
-        <div style={{ marginBottom: '2.5rem' }}>
-          <h1
+    <PageShell footerVariant="quiet">
+      <div style={{ maxWidth: 880, margin: '0 auto', padding: 'clamp(40px, 6vw, 72px) 24px 60px' }}>
+        <div style={{ marginBottom: 36 }}>
+          <div
             style={{
-              margin: '0 0 0.5rem',
-              fontFamily: 'Playfair Display, Georgia, serif',
-              fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 11,
               fontWeight: 700,
-              color: '#1C1C1C',
-              lineHeight: 1.2,
+              letterSpacing: '0.12em',
+              color: 'var(--peach-ink)',
+              textTransform: 'uppercase',
+              marginBottom: 12,
             }}
           >
-            Your Registry
+            <Sparkle size={11} /> Registry
+          </div>
+          <h1
+            className="display"
+            style={{
+              margin: '0 0 8px',
+              fontSize: 'clamp(36px, 5vw, 56px)',
+              letterSpacing: '-0.02em',
+              lineHeight: 1.05,
+            }}
+          >
+            Your <span className="display-italic">registry</span>
           </h1>
           <p
             style={{
               margin: 0,
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '1rem',
-              color: '#6B6660',
+              fontSize: 16,
+              color: 'var(--ink-soft)',
               lineHeight: 1.6,
+              maxWidth: 560,
             }}
           >
             Add all your registry links — guests will see them beautifully on your site.
           </p>
         </div>
 
-        {/* Manager */}
         <RegistryManager siteId={siteId} />
 
-        {/* Bottom tip card */}
         <div
           style={{
-            marginTop: '3rem',
-            background: 'linear-gradient(135deg, #FFFBEB, #FFF8EE)',
-            border: '1px solid #F5D87C55',
-            borderRadius: '1rem',
-            padding: '1.5rem',
+            marginTop: 32,
+            padding: '14px 18px',
+            borderRadius: 14,
+            background: 'var(--cream-2)',
+            border: '1px solid var(--line-soft)',
             display: 'flex',
-            gap: '1rem',
-            alignItems: 'flex-start',
+            gap: 12,
+            alignItems: 'center',
+            fontSize: 13,
+            color: 'var(--ink-soft)',
+            lineHeight: 1.5,
           }}
         >
-          <span
-            style={{ fontSize: '1.75rem', lineHeight: 1, flexShrink: 0 }}
-            aria-hidden="true"
-          >
-            💛
+          <Icon name="gift" size={18} color="var(--lavender-ink)" />
+          <span>
+            Adding a <strong style={{ color: 'var(--ink)' }}>Honeymoon or Cash Fund</strong>?
+            Paste any Venmo / PayPal / Honeyfund link above and set the category to
+            &ldquo;Cash Fund&rdquo; — we&apos;ll style it with a heart.
           </span>
-          <div>
-            <p
-              style={{
-                margin: '0 0 0.4rem',
-                fontFamily: 'Playfair Display, Georgia, serif',
-                fontSize: '1rem',
-                fontWeight: 600,
-                color: '#92710B',
-              }}
-            >
-              Tip: Add a Cash Fund
-            </p>
-            <p
-              style={{
-                margin: 0,
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '0.875rem',
-                color: '#78610F',
-                lineHeight: 1.6,
-              }}
-            >
-              Many couples include a Honeymoon Fund or Cash Fund via Venmo, PayPal, or Honeyfund.
-              Just paste the link and set the category to &ldquo;Cash Fund&rdquo; — we&apos;ll
-              style it beautifully with a heart icon.
-            </p>
-          </div>
         </div>
       </div>
-    </main>
+    </PageShell>
   );
 }

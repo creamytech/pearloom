@@ -7,7 +7,8 @@ import type { StoryManifest } from '@/types';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
 import { Hero } from '@/components/hero';
-import { Timeline } from '@/components/timeline';
+import { StorySection, chapterDateFormatOptions } from '@/components/blocks/StoryLayouts';
+import { sanitizeSvg } from '@/lib/sanitize-svg';
 import { WeddingEvents } from '@/components/wedding-events';
 import { RegistryShowcase } from '@/components/registry-showcase';
 import { FaqSection } from '@/components/faq-section';
@@ -15,9 +16,54 @@ import { TravelSection } from '@/components/travel-section';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { WaveDivider } from '@/components/vibe/WaveDivider';
 import type { FaqItem } from '@/types';
+import { parseLocalDate } from '@/lib/date-utils';
 
 interface PreviewPageProps {
   params: Promise<{ token: string }>;
+}
+
+// ── Countdown ────────────────────────────────────────────────
+// Extracted so we can hold the `now` clock in component state
+// instead of calling Date.now() during the parent's render —
+// also lets the countdown actually tick.
+function CountdownPreview({
+  eventDate, label, cardBg, fontHeading, fontBody, foreground, muted, accent,
+}: {
+  eventDate: string;
+  label: string;
+  cardBg: string;
+  fontHeading: string;
+  fontBody: string;
+  foreground: string;
+  muted: string;
+  accent: string;
+}) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  const targetObj = parseLocalDate(eventDate);
+  const target = targetObj?.getTime() ?? 0;
+  const diff = Math.max(0, target - now);
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  return (
+    <section style={{ padding: 'clamp(2rem, 5vw, 5rem) 2rem', background: cardBg, textAlign: 'center' }}>
+      <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: accent, marginBottom: '2rem', fontFamily: `"${fontBody}", sans-serif` }}>
+        {label}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap' }}>
+        {[{ v: days, l: 'Days' }, { v: hours, l: 'Hours' }, { v: mins, l: 'Min' }].map(({ v, l }) => (
+          <div key={l} style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: `"${fontHeading}", serif`, fontSize: 'clamp(2.5rem, 8vw, 5rem)', fontWeight: 400, color: foreground, lineHeight: 1 }}>{v}</div>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: muted, marginTop: '0.5rem' }}>{l}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 // ── Feedback Form Component ──────────────────────────────────────────────────
@@ -56,7 +102,7 @@ function FeedbackForm({ token, onClose }: { token: string; onClose: () => void }
         width: '320px',
         background: 'rgba(30,27,22,0.97)',
         backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255,255,255,0.12)',
+        border: '1px solid rgba(0,0,0,0.07)',
         borderRadius: '1rem',
         padding: '1.25rem',
         zIndex: 10000,
@@ -67,14 +113,14 @@ function FeedbackForm({ token, onClose }: { token: string; onClose: () => void }
         <span style={{ color: '#f5f0e8', fontWeight: 600, fontSize: '0.9rem' }}>Leave feedback</span>
         <button
           onClick={onClose}
-          style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '1.1rem', padding: 0 }}
+          style={{ background: 'none', border: 'none', color: 'var(--pl-ink-soft)', cursor: 'pointer', fontSize: '1.1rem', padding: 0 }}
           aria-label="Close"
         >
           ×
         </button>
       </div>
       {status === 'sent' ? (
-        <p style={{ color: '#A3B18A', fontSize: '0.875rem', textAlign: 'center', padding: '0.5rem 0' }}>
+        <p style={{ color: '#5C6B3F', fontSize: '0.875rem', textAlign: 'center', padding: '0.5rem 0' }}>
           Thanks for your feedback!
         </p>
       ) : (
@@ -89,8 +135,8 @@ function FeedbackForm({ token, onClose }: { token: string; onClose: () => void }
               width: '100%',
               padding: '0.6rem 0.75rem',
               borderRadius: '0.5rem',
-              border: '1px solid rgba(255,255,255,0.15)',
-              background: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(0,0,0,0.08)',
+              background: 'rgba(0,0,0,0.05)',
               color: '#f5f0e8',
               fontSize: '0.875rem',
               marginBottom: '0.6rem',
@@ -108,8 +154,8 @@ function FeedbackForm({ token, onClose }: { token: string; onClose: () => void }
               width: '100%',
               padding: '0.6rem 0.75rem',
               borderRadius: '0.5rem',
-              border: '1px solid rgba(255,255,255,0.15)',
-              background: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(0,0,0,0.08)',
+              background: 'rgba(0,0,0,0.05)',
               color: '#f5f0e8',
               fontSize: '0.875rem',
               resize: 'vertical',
@@ -129,7 +175,7 @@ function FeedbackForm({ token, onClose }: { token: string; onClose: () => void }
               width: '100%',
               padding: '0.6rem',
               borderRadius: '0.5rem',
-              background: '#A3B18A',
+              background: '#5C6B3F',
               color: '#1e1b16',
               fontWeight: 600,
               fontSize: '0.875rem',
@@ -153,10 +199,12 @@ function PreviewBanner({ token }: { token: string }) {
 
   function handleShare() {
     const url = typeof window !== 'undefined' ? window.location.href : '';
-    navigator.clipboard.writeText(url).then(() => {
+    // Clipboard API rejects in insecure contexts / iframes — guard
+    // both the chained .then and the missing-API case.
+    navigator.clipboard?.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    });
+    }).catch(() => { /* ignore */ });
   }
 
   return (
@@ -165,10 +213,10 @@ function PreviewBanner({ token }: { token: string }) {
         style={{
           position: 'sticky',
           top: 0,
-          zIndex: 9999,
+          zIndex: 'var(--z-max)',
           background: 'rgba(30,27,22,0.97)',
           backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          borderBottom: '1px solid rgba(0,0,0,0.06)',
           padding: '0.65rem 1.25rem',
           display: 'flex',
           alignItems: 'center',
@@ -182,8 +230,8 @@ function PreviewBanner({ token }: { token: string }) {
           <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.875rem', fontWeight: 500 }}>
             Preview Mode
           </span>
-          <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.875rem' }}>·</span>
-          <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>
+          <span style={{ color: 'var(--pl-muted)', fontSize: '0.875rem' }}>·</span>
+          <span style={{ color: 'var(--pl-ink-soft)', fontSize: '0.8rem' }}>
             This site hasn&apos;t been published yet
           </span>
         </div>
@@ -193,9 +241,9 @@ function PreviewBanner({ token }: { token: string }) {
             style={{
               padding: '0.35rem 0.85rem',
               borderRadius: '0.4rem',
-              border: '1px solid rgba(255,255,255,0.2)',
+              border: '1px solid var(--pl-muted)',
               background: 'transparent',
-              color: 'rgba(255,255,255,0.8)',
+              color: 'var(--pl-ink)',
               fontSize: '0.8rem',
               cursor: 'pointer',
               fontWeight: 500,
@@ -210,7 +258,7 @@ function PreviewBanner({ token }: { token: string }) {
               borderRadius: '0.4rem',
               border: '1px solid rgba(163,177,138,0.5)',
               background: 'rgba(163,177,138,0.15)',
-              color: '#A3B18A',
+              color: '#5C6B3F',
               fontSize: '0.8rem',
               cursor: 'pointer',
               fontWeight: 500,
@@ -247,7 +295,9 @@ function getVideoEmbedUrl(url?: string): string | null {
 
 // ── Site Renderer ────────────────────────────────────────────────────────────
 function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
-  const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
+  const vibeSkin = (manifest.vibeSkin && manifest.vibeSkin.palette)
+    ? manifest.vibeSkin
+    : deriveVibeSkin(manifest.vibeString || '');
   const pal = vibeSkin.palette;
   const bgColor = pal.background;
   const cardBg = pal.card;
@@ -278,7 +328,7 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
   ];
 
   const sitePages = [
-    { id: 'story', slug: 'our-story', label: 'Our Story', enabled: true, order: 0 },
+    { id: 'story', slug: 'our-story', label: vibeSkin.sectionLabels?.story || 'Our Story', enabled: true, order: 0 },
   ] as import('@/types').SitePage[];
 
   // FaqSection expects FaqItemWithCategory — add a default category if missing
@@ -306,8 +356,18 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
       case 'story':
         if (!(manifest.chapters?.length)) return null;
         return (
-          <section key="story" id="our-story">
-            <Timeline chapters={manifest.chapters ?? []} layoutFormat={manifest.layoutFormat} />
+          <section key="story" id="our-story" style={{ position: 'relative' }}>
+            <StorySection
+              chapters={manifest.chapters ?? []}
+              storyLayout={manifest.storyLayout}
+              layoutFormat={manifest.layoutFormat}
+              chapterIcons={(vibeSkin.chapterIcons || []).map(svg => sanitizeSvg(svg))}
+              sectionBorderSvg={vibeSkin.sectionBorderSvg ? sanitizeSvg(vibeSkin.sectionBorderSvg) : undefined}
+              medallionSvg={vibeSkin.medallionSvg ? sanitizeSvg(vibeSkin.medallionSvg) : undefined}
+              accentColor={pal.accent}
+              dateFormat={chapterDateFormatOptions(manifest.dateFormat)}
+              transformUrl={(url) => proxyUrl(url, 1600, 1200)}
+            />
           </section>
         );
       case 'event':
@@ -364,26 +424,18 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
           : occ === 'engagement' ? 'Until the big day!'
           : occ === 'story' ? 'The moment arrives'
           : 'Until we say I do';
-        const target = new Date(eventDate).getTime();
-        const now = Date.now();
-        const diff = Math.max(0, target - now);
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         return (
-          <section key="countdown" style={{ padding: 'clamp(2rem, 5vw, 5rem) 2rem', background: cardBg, textAlign: 'center' }}>
-            <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: pal.accent, marginBottom: '2rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>
-              {countdownLabel}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap' }}>
-              {[{ v: days, l: 'Days' }, { v: hours, l: 'Hours' }, { v: mins, l: 'Min' }].map(({ v, l }) => (
-                <div key={l} style={{ textAlign: 'center' }}>
-                  <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(2.5rem, 8vw, 5rem)', fontWeight: 400, color: pal.foreground, lineHeight: 1 }}>{v}</div>
-                  <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: pal.muted, marginTop: '0.5rem' }}>{l}</div>
-                </div>
-              ))}
-            </div>
-          </section>
+          <CountdownPreview
+            key="countdown"
+            eventDate={eventDate}
+            label={countdownLabel}
+            cardBg={cardBg}
+            fontHeading={vibeSkin.fonts.heading}
+            fontBody={vibeSkin.fonts.body}
+            foreground={pal.foreground}
+            muted={pal.muted}
+            accent={pal.accent}
+          />
         );
       }
       case 'text': {
@@ -448,7 +500,25 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
       case 'divider':
         return <WaveDivider key="divider" skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />;
       case 'photos': {
-        const allPhotos = (manifest.chapters || []).flatMap((ch: import('@/types').Chapter) => ch.images || []).slice(0, 9);
+        const tpSeen = new Set<string>();
+        const allPhotos: Array<{ url: string; alt?: string }> = [];
+        const m = manifest as {
+          coverPhoto?: string;
+          heroSlideshow?: string[];
+          chapters?: Array<{ images?: Array<{ url?: string; alt?: string }> }>;
+        };
+        if (m.coverPhoto) {
+          const u = m.coverPhoto;
+          if (!tpSeen.has(u)) { tpSeen.add(u); allPhotos.push({ url: u, alt: 'Cover photo' }); }
+        }
+        for (const u of (m.heroSlideshow ?? [])) {
+          if (u && !tpSeen.has(u)) { tpSeen.add(u); allPhotos.push({ url: u, alt: 'Hero slideshow' }); }
+        }
+        for (const ch of (m.chapters ?? [])) {
+          for (const img of (ch.images ?? [])) {
+            if (img.url && !tpSeen.has(img.url)) { tpSeen.add(img.url); allPhotos.push({ url: img.url, alt: img.alt }); }
+          }
+        }
         if (!allPhotos.length) return null;
         return (
           <section key="photos" style={{ padding: 'clamp(2rem, 5vw, 5rem) clamp(1rem, 4vw, 2rem)', maxWidth: '1200px', margin: '0 auto' }}>
@@ -461,7 +531,6 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px' }}>
               {allPhotos.map((img: { url: string; alt?: string }, i: number) => (
                 <div key={i} style={{ gridColumn: i === 0 ? 'span 2' : undefined, aspectRatio: i === 0 ? '2/1.2' : '1/1', borderRadius: '0.75rem', overflow: 'hidden', background: cardBg }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={proxyUrl(img.url, 800, 800)} alt={img.alt || ''} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
               ))}
@@ -551,7 +620,7 @@ export default function PreviewPage({ params }: PreviewPageProps) {
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', background: '#1e1b16', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'sans-serif', fontSize: '1rem' }}>Loading preview…</p>
+        <p style={{ color: 'var(--pl-ink-soft)', fontFamily: 'sans-serif', fontSize: '1rem' }}>Loading preview…</p>
       </div>
     );
   }

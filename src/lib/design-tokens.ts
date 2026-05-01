@@ -1,41 +1,50 @@
 // ─────────────────────────────────────────────────────────────
-// Pearloom Design Tokens v3 — single source of truth
-// All values mirror the CSS vars in globals.css (:root block).
-// Import from here, never hardcode hex values in components.
+// Pearloom Design Tokens v6 — Editorial Modernism
+// Mirrors :root vars in src/app/globals.css. Import these in JS
+// rather than hardcoding hex values. Dark-mode values resolve at
+// runtime via CSS vars; this file exposes the LIGHT palette as
+// the canonical numeric source.
 // ─────────────────────────────────────────────────────────────
 
-// ── Color Palette ─────────────────────────────────────────────
+// ── Color Palette (light) ──────────────────────────────────────
 
 export const colors = {
-  // Base surfaces
-  cream:      '#FAF7F2',   // --pl-cream
-  deep:       '#F0EBE0',   // --pl-cream-deep
-  card:       '#FFFFFF',   // --pl-cream-card
-  ink:        '#1A1A1A',   // --pl-ink
-  inkSoft:    '#3D3530',   // --pl-ink-soft
-  muted:      '#7A756E',   // --pl-muted
-  divider:    '#E0D8CA',   // --pl-divider
+  // Surfaces (v8 tokens — product-wide design)
+  cream:       '#FDFAF0',
+  deep:        '#F7F0E0',
+  card:        '#FBF7EE',
+  ink:         '#18181B',
+  inkSoft:     '#4A5642',
+  muted:       '#6F6557',
+  divider:     '#E2D9C3',
+  dividerSoft: '#ECE4CF',
 
-  // Brand
-  olive:      '#A3B18A',   // --pl-olive
-  oliveHover: '#8FA876',   // --pl-olive-hover
-  oliveDeep:  '#6E8C5C',   // --pl-olive-deep
-  oliveMist:  '#EEE8DC',   // --pl-olive-mist
-  gold:       '#C4A96A',   // --pl-gold
-  goldMist:   'rgba(196,169,106,0.12)',
-  plum:       '#6D597A',   // --pl-plum
-  plumMist:   'rgba(109,89,122,0.10)',
+  // Brand (v8 tokens)
+  olive:       '#5C6B3F',
+  oliveHover:  '#4A5731',
+  oliveDeep:   '#363F22',
+  oliveMist:   '#E0DDC9',
+  gold:        '#C19A4B',
+  goldMist:    'rgba(193,154,75,0.10)',
+  plum:        '#C6563D',
+  plumMist:    'rgba(198,86,61,0.10)',
 
-  // Dark surfaces (editor, generation)
-  darkBg:      '#1E1B24',
-  darkCard:    'rgba(255,255,255,0.09)',
-  darkBorder:  'rgba(255,255,255,0.12)',
-  darkText:    'rgba(245,241,232,0.55)',
-  darkHeading: '#F5F1E8',
+  // Authoring/dark surfaces
+  darkBg:      '#0D0B07',
+  darkCard:    'rgba(245,239,226,0.06)',
+  darkBorder:  'rgba(245,239,226,0.10)',
+  darkText:    'rgba(241,235,220,0.75)',
+  darkHeading: '#F1EBDC',
+
+  // Semantic states
+  warning:     '#A14A2C',
+  warningMist: 'rgba(161,74,44,0.10)',
+  success:     '#5C6B3F',
+  successMist: 'rgba(92,107,63,0.10)',
 
   // Backward-compat aliases
-  dark:        '#3D3530',   // alias for inkSoft
-  border:      '#E0D8CA',   // alias for divider
+  dark:        '#3A332C',
+  border:      '#D8CFB8',
 } as const;
 
 // ── Spacing Scale (4px base) ──────────────────────────────────
@@ -53,8 +62,6 @@ export const space = {
   '16': '64px',
   '20': '80px',
   '24': '96px',
-
-  // Named aliases for readability
   xs:   '4px',
   sm:   '8px',
   md:   '12px',
@@ -68,48 +75,66 @@ export const space = {
 // ── Typography Scale ──────────────────────────────────────────
 
 export const text = {
-  xs:   '0.72rem',    // micro labels, badges, uppercase tags
-  sm:   '0.85rem',    // secondary text, captions, meta
-  base: '0.95rem',    // body copy, descriptions
-  md:   '1.05rem',    // emphasis paragraphs
-  lg:   '1.15rem',    // subheadings, card titles
-  xl:   '1.35rem',    // section sub-titles
-  '2xl': 'clamp(1.9rem, 4vw, 2.8rem)',    // section headings
-  '3xl': 'clamp(2.4rem, 5.5vw, 3.8rem)',  // hero headings
+  '2xs':  '0.66rem',
+  xs:     '0.74rem',
+  sm:     '0.82rem',
+  base:   '0.92rem',
+  md:     '1rem',
+  lg:     '1.13rem',
+  xl:     '1.32rem',
+  '2xl':  '1.6rem',
+  '3xl':  'clamp(2rem, 4vw, 2.6rem)',
+  display: 'clamp(2.8rem, 6vw, 4.6rem)',
+  marquee: 'clamp(4rem, 12vw, 9rem)',
+} as const;
+
+// ── Font families (CSS-var aware so they stay live) ───────────
+
+export const fonts = {
+  display: 'var(--pl-font-display)',
+  heading: 'var(--pl-font-heading)',
+  body:    'var(--pl-font-body)',
+  mono:    'var(--pl-font-mono)',
 } as const;
 
 // ── Border Radius ─────────────────────────────────────────────
 
 export const radius = {
-  xs:   '0.375rem',
-  sm:   '0.625rem',
-  md:   '0.875rem',
-  lg:   '1.25rem',
-  xl:   '1.75rem',
+  xs:   '0.25rem',
+  sm:   '0.375rem',
+  md:   '0.5rem',
+  lg:   '0.75rem',
+  xl:   '1rem',
+  '2xl': '1.5rem',
   full: '100px',
 } as const;
 
-// ── Shadows ───────────────────────────────────────────────────
+// ── Shadows (warm paper-shadow) ───────────────────────────────
 
 export const shadow = {
-  xs:   '0 1px 2px rgba(43,30,20,0.04)',
-  sm:   '0 1px 4px rgba(43,30,20,0.05), 0 4px 14px rgba(43,30,20,0.04)',
-  md:   '0 4px 16px rgba(43,30,20,0.08), 0 12px 40px rgba(43,30,20,0.05)',
-  lg:   '0 12px 40px rgba(43,30,20,0.10), 0 24px 60px rgba(43,30,20,0.06)',
-  xl:   '0 24px 60px rgba(43,30,20,0.12), 0 40px 80px rgba(43,30,20,0.07)',
-  focus: '0 0 0 3px rgba(163,177,138,0.22)',
+  xs:   '0 1px 2px rgba(40,28,12,0.05)',
+  sm:   '0 1px 3px rgba(40,28,12,0.06), 0 1px 2px rgba(40,28,12,0.04)',
+  md:   '0 4px 16px rgba(40,28,12,0.08), 0 2px 6px rgba(40,28,12,0.05)',
+  lg:   '0 8px 32px rgba(40,28,12,0.10), 0 4px 12px rgba(40,28,12,0.06)',
+  xl:   '0 16px 48px rgba(40,28,12,0.12), 0 8px 20px rgba(40,28,12,0.08)',
+  focus: '0 0 0 3px rgba(92,107,63,0.22)',
   glow: (color: string) => `0 0 14px ${color}88`,
 } as const;
 
-// ── Animation Easing ──────────────────────────────────────────
+// ── Animation Easing & Duration ───────────────────────────────
 
 export const ease = {
-  smooth: [0.22, 1, 0.36, 1] as [number, number, number, number],
+  out:    [0.22, 1, 0.36, 1] as [number, number, number, number],
+  inOut:  [0.65, 0, 0.35, 1] as [number, number, number, number],
   spring: { type: 'spring' as const, stiffness: 380, damping: 28 },
+  // Backward-compat alias
+  smooth: [0.22, 1, 0.36, 1] as [number, number, number, number],
   duration: {
-    fast:   0.15,
-    normal: 0.32,
-    slow:   0.6,
+    instant: 0.1,
+    fast:    0.18,
+    normal:  0.28,
+    slow:    0.48,
+    glacial: 0.8,
   },
 } as const;
 
@@ -117,30 +142,27 @@ export const ease = {
 
 export const sectionPadding = {
   y: 'clamp(4rem, 8vw, 8rem)',
-  x: '1.5rem',
+  x: 'clamp(1.25rem, 4vw, 2.5rem)',
 } as const;
 
 // ── Layout Containers ─────────────────────────────────────────
 
 export const layout = {
-  /** Main page container */
-  maxWidth:    '1080px',
-  /** Page-level horizontal padding */
-  padding:     '1.5rem',
-  /** Narrow container for focused content */
-  narrowWidth: '680px',
-  /** Wide container for hero/showcase */
-  wideWidth:   '1240px',
+  maxWidth:    '1180px',
+  padding:     'clamp(1.25rem, 4vw, 2.5rem)',
+  narrowWidth: '720px',
+  wideWidth:   '1320px',
+  rail:        '64px',
 } as const;
 
 // ── Card Styles ───────────────────────────────────────────────
 
 export const card = {
-  radius:      '0.875rem',
-  bg:          '#FFFFFF',
-  border:      `1px solid #E0D8CA`,
-  shadow:      '0 1px 4px rgba(43,30,20,0.05), 0 4px 14px rgba(43,30,20,0.04)',
-  shadowHover: '0 4px 16px rgba(43,30,20,0.08), 0 12px 40px rgba(43,30,20,0.05)',
+  radius:      radius.lg,
+  bg:          colors.card,
+  border:      `1px solid ${colors.divider}`,
+  shadow:      shadow.sm,
+  shadowHover: shadow.md,
 } as const;
 
 // ── Convenience re-export ─────────────────────────────────────
@@ -149,6 +171,7 @@ export const T = {
   colors,
   space,
   text,
+  fonts,
   radius,
   shadow,
   ease,

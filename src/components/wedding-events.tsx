@@ -5,9 +5,10 @@
 // Multi-event display: ceremony, reception, rehearsal dinner, etc.
 // ─────────────────────────────────────────────────────────────
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { ExternalLink, Heart, Sparkles, UtensilsCrossed, Wine, Coffee, Calendar } from 'lucide-react';
+import { ExternalLink, Leaf, Sparkles, UtensilsCrossed, Wine, Coffee, Calendar } from 'lucide-react';
+import { AddToCalendar } from '@/components/add-to-calendar';
 import {
   CalendarHeartIcon,
   LocationPinIcon,
@@ -18,11 +19,11 @@ import type { WeddingEvent } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
 import { parseLocalDate } from '@/lib/date';
 
-function getEventIcon(type: WeddingEvent['type'], accentColor = 'var(--eg-accent)', size = 18) {
+function getEventIcon(type: WeddingEvent['type'], accentColor = 'var(--pl-olive)', size = 18) {
   const style = { color: accentColor, width: size, height: size };
   switch (type) {
     case 'ceremony':
-      return <Heart style={style} />;
+      return <Leaf style={style} />;
     case 'reception':
       return <Sparkles style={style} />;
     case 'rehearsal':
@@ -37,10 +38,17 @@ function getEventIcon(type: WeddingEvent['type'], accentColor = 'var(--eg-accent
 }
 
 function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: number; vibeSkin?: VibeSkin }) {
-  const accentColor = vibeSkin?.palette.accent ?? 'var(--eg-accent)';
-  const cardBg = vibeSkin?.palette.card ?? 'rgba(255,255,255,0.7)';
-  const headingFont = vibeSkin?.fonts.heading ?? 'var(--eg-font-heading)';
-  const bodyFont = vibeSkin?.fonts.body ?? 'var(--eg-font-body)';
+  const [isFocused, setIsFocused] = useState(false);
+  const handleFocus = useCallback((e: React.FocusEvent) => {
+    if (e.currentTarget === e.target || e.currentTarget.matches(':focus-visible')) {
+      setIsFocused(true);
+    }
+  }, []);
+  const handleBlur = useCallback(() => setIsFocused(false), []);
+  const accentColor = vibeSkin?.palette.accent ?? 'var(--pl-olive)';
+  const cardBg = vibeSkin?.palette.card ?? 'var(--pl-cream-card, #FDFAF4)';
+  const headingFont = vibeSkin?.fonts.heading ?? 'var(--pl-font-heading)';
+  const bodyFont = vibeSkin?.fonts.body ?? 'var(--pl-font-body)';
   const dateObj = (() => {
     try {
       return parseLocalDate(event.date);
@@ -69,6 +77,12 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
 
   return (
     <motion.div
+      className="pl-scroll-scale-in"
+      data-pe-event-id={event.id}
+      data-pe-event-index={index}
+      tabIndex={0}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
       initial={{ opacity: 0, y: 32 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -78,18 +92,21 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
         ease: [0.16, 1, 0.3, 1],
       }}
       style={{
+        '--pl-stagger-delay': `${index * 100}ms`,
         background: cardBg,
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        borderRadius: '16px',
+        borderRadius: 'var(--pl-radius-xl)',
         overflow: 'hidden',
         border: `1px solid ${accentColor}26`,
-        boxShadow: '0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04)',
+        boxShadow: '0 4px 24px rgba(43,30,20,0.05), 0 1px 4px rgba(43,30,20,0.03)',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
         fontFamily: bodyFont,
-      }}
+        outline: isFocused ? `2px solid ${accentColor}` : 'none',
+        outlineOffset: isFocused ? '2px' : undefined,
+      } as React.CSSProperties}
     >
       {/* Left accent bar */}
       <div
@@ -111,10 +128,11 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
           display: 'flex',
           alignItems: 'center',
           gap: '0.75rem',
-          borderBottom: '1px solid rgba(0,0,0,0.05)',
+          borderBottom: '1px solid rgba(43,30,20,0.04)',
         }}
       >
         <div
+          aria-hidden="true"
           style={{
             width: '40px',
             height: '40px',
@@ -130,12 +148,15 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
         </div>
         <div>
           <h3
+            data-pe-editable="true"
+            data-pe-path={`events.${index}.name`}
+            data-pe-field="name"
             style={{
               fontFamily: headingFont,
               fontSize: '1.4rem',
               fontWeight: 400,
               letterSpacing: '-0.02em',
-              color: 'var(--eg-fg)',
+              color: 'var(--pl-ink)',
               lineHeight: 1.15,
             }}
           >
@@ -148,17 +169,17 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
       <div
         style={{
           padding: '1.25rem 2rem 1.5rem',
-          borderBottom: '1px solid rgba(0,0,0,0.05)',
+          borderBottom: '1px solid rgba(43,30,20,0.04)',
           textAlign: 'center',
           background: `${accentColor}0a`,
         }}
       >
         <div
           style={{
-            fontSize: '0.65rem',
+            fontSize: '0.72rem',
             letterSpacing: '0.22em',
             textTransform: 'uppercase',
-            color: 'var(--eg-muted)',
+            color: 'var(--pl-muted)',
             marginBottom: '0.5rem',
             fontWeight: 600,
           }}
@@ -175,10 +196,10 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
         >
           <span
             style={{
-              fontFamily: 'var(--eg-font-heading)',
+              fontFamily: 'var(--pl-font-heading)',
               fontSize: 'clamp(3rem, 6vw, 4.25rem)',
               fontWeight: 400,
-              color: 'var(--eg-fg)',
+              color: 'var(--pl-ink)',
               lineHeight: 1,
             }}
           >
@@ -193,10 +214,10 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
           >
             <span
               style={{
-                fontFamily: 'var(--eg-font-heading)',
+                fontFamily: 'var(--pl-font-heading)',
                 fontSize: '1.1rem',
                 fontWeight: 400,
-                color: 'var(--eg-fg)',
+                color: 'var(--pl-ink)',
                 lineHeight: 1.2,
               }}
             >
@@ -205,7 +226,7 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
             <span
               style={{
                 fontSize: '0.72rem',
-                color: 'var(--eg-muted)',
+                color: 'var(--pl-muted)',
                 letterSpacing: '0.1em',
               }}
             >
@@ -229,15 +250,17 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
           <CalendarHeartIcon
             size={15}
-            color="var(--eg-accent)"
+            color="var(--pl-olive)"
             style={{ flexShrink: 0, marginTop: '0.15rem' }}
           />
           <div>
             <div
+              data-pe-editable="true"
+              data-pe-path={`events.${index}.time`}
               style={{
                 fontSize: '0.88rem',
                 fontWeight: 600,
-                color: 'var(--eg-fg)',
+                color: 'var(--pl-ink)',
                 marginBottom: '0.1rem',
               }}
             >
@@ -246,7 +269,7 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
                 <span
                   style={{
                     fontWeight: 400,
-                    color: 'var(--eg-muted)',
+                    color: 'var(--pl-muted)',
                     fontSize: '0.82rem',
                     marginLeft: '0.4rem',
                   }}
@@ -262,15 +285,17 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
           <LocationPinIcon
             size={15}
-            color="var(--eg-accent)"
+            color="var(--pl-olive)"
             style={{ flexShrink: 0, marginTop: '0.15rem' }}
           />
           <div>
             <div
+              data-pe-editable="true"
+              data-pe-path={`events.${index}.venue`}
               style={{
                 fontSize: '0.88rem',
                 fontWeight: 600,
-                color: 'var(--eg-fg)',
+                color: 'var(--pl-ink)',
                 marginBottom: '0.1rem',
               }}
             >
@@ -278,9 +303,11 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
             </div>
             {event.address && (
               <div
+                data-pe-editable="true"
+                data-pe-path={`events.${index}.address`}
                 style={{
                   fontSize: '0.78rem',
-                  color: 'var(--eg-muted)',
+                  color: 'var(--pl-muted)',
                   lineHeight: 1.5,
                 }}
               >
@@ -295,23 +322,23 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
             <StarburstIcon
               size={15}
-              color="var(--eg-accent)"
+              color="var(--pl-olive)"
               style={{ flexShrink: 0, marginTop: '0.15rem' }}
             />
             <div>
               <div
                 style={{
-                  fontSize: '0.62rem',
+                  fontSize: '0.7rem',
                   fontWeight: 700,
                   letterSpacing: '0.14em',
                   textTransform: 'uppercase',
-                  color: 'var(--eg-muted)',
+                  color: 'var(--pl-muted)',
                   marginBottom: '0.1rem',
                 }}
               >
                 Dress Code
               </div>
-              <div style={{ fontSize: '0.88rem', color: 'var(--eg-fg)' }}>
+              <div data-pe-editable="true" data-pe-path={`events.${index}.dressCode`} style={{ fontSize: '0.88rem', color: 'var(--pl-ink)' }}>
                 {event.dressCode}
               </div>
             </div>
@@ -321,13 +348,15 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
         {/* Description */}
         {event.description && (
           <p
+            data-pe-editable="true"
+            data-pe-path={`events.${index}.description`}
             style={{
               fontSize: '0.85rem',
-              color: 'var(--eg-muted)',
+              color: 'var(--pl-muted)',
               lineHeight: 1.7,
               marginTop: 'auto',
               paddingTop: '0.85rem',
-              borderTop: '1px solid rgba(0,0,0,0.04)',
+              borderTop: '1px solid rgba(43,30,20,0.03)',
               fontStyle: 'italic',
             }}
           >
@@ -341,7 +370,7 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
             <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.5, marginBottom: '0.5rem' }}>
               Ceremony Details
             </p>
-            <dl style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem 1rem', fontSize: '0.82rem' }}>
+            <dl style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '0.4rem 1rem', fontSize: '0.82rem' }}>
               {event.ceremony.officiant && <><dt style={{ opacity: 0.6 }}>Officiant</dt><dd>{event.ceremony.officiant}</dd></>}
               {event.ceremony.processionalSong && <><dt style={{ opacity: 0.6 }}>Processional</dt><dd style={{ fontStyle: 'italic' }}>{event.ceremony.processionalSong}</dd></>}
               {event.ceremony.recessionalSong && <><dt style={{ opacity: 0.6 }}>Recessional</dt><dd style={{ fontStyle: 'italic' }}>{event.ceremony.recessionalSong}</dd></>}
@@ -359,7 +388,7 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
         <div
           style={{
             padding: '1rem 1.75rem 1.25rem 2rem',
-            borderTop: '1px solid rgba(0,0,0,0.05)',
+            borderTop: '1px solid rgba(43,30,20,0.04)',
             display: 'flex',
             gap: '0.6rem',
             flexWrap: 'wrap' as const,
@@ -377,10 +406,11 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
               fontWeight: 700,
               color: '#fff',
               background: accentColor,
-              padding: '0.45rem 1rem',
-              borderRadius: '100px',
+              padding: '0.65rem 1.15rem',
+              borderRadius: 'var(--pl-radius-full)',
               textDecoration: 'none',
               letterSpacing: '0.06em',
+              minHeight: '44px',
             }}
           >
             <LocationPinIcon size={11} />
@@ -398,13 +428,14 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
                 gap: '0.35rem',
                 fontSize: '0.72rem',
                 fontWeight: 700,
-                color: 'var(--eg-muted)',
-                background: 'rgba(0,0,0,0.04)',
-                padding: '0.45rem 1rem',
-                borderRadius: '100px',
+                color: 'var(--pl-muted)',
+                background: 'rgba(43,30,20,0.03)',
+                padding: '0.65rem 1.15rem',
+                borderRadius: 'var(--pl-radius-full)',
                 textDecoration: 'none',
                 letterSpacing: '0.06em',
-                border: '1px solid rgba(0,0,0,0.06)',
+                border: '1px solid rgba(43,30,20,0.05)',
+                minHeight: '44px',
               }}
             >
               Apple Maps
@@ -413,6 +444,19 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
           )}
         </div>
       )}
+
+      {/* Add to Calendar buttons */}
+      <div style={{ padding: '0 1.75rem 1.25rem 2rem' }}>
+        <AddToCalendar
+          eventName={event.name}
+          date={event.date}
+          time={event.time}
+          endTime={event.endTime}
+          venue={event.venue}
+          address={event.address}
+          description={event.description}
+        />
+      </div>
     </motion.div>
   );
 }
@@ -438,15 +482,15 @@ export function WeddingEvents({
 
   const isSingle = sorted.length === 1;
 
-  const accentColor = vibeSkin?.palette.accent ?? 'var(--eg-accent)';
-  const headingFont = vibeSkin?.fonts.heading ?? 'var(--eg-font-heading)';
+  const accentColor = vibeSkin?.palette.accent ?? 'var(--pl-olive)';
+  const headingFont = vibeSkin?.fonts.heading ?? 'var(--pl-font-heading)';
   const eyebrowLabel = vibeSkin?.sectionLabels.events ?? 'The Celebration';
   const accentSymbol = vibeSkin?.accentSymbol ?? '✦';
 
   // Subtle gradient background instead of flat section color
   const sectionBg = vibeSkin?.palette.subtle
     ? `linear-gradient(180deg, ${vibeSkin.palette.subtle} 0%, ${vibeSkin.palette.background} 100%)`
-    : 'var(--eg-bg-section)';
+    : 'var(--pl-cream-deep)';
 
   return (
     <section
@@ -459,8 +503,8 @@ export function WeddingEvents({
     >
       {/* Single, subtle wave divider at top — transitions from story section */}
       <WaveDivider
-        fromColor={vibeSkin?.palette.background ?? 'var(--eg-bg)'}
-        toColor={vibeSkin?.palette.subtle ?? 'var(--eg-bg-section)'}
+        fromColor={vibeSkin?.palette.background ?? 'var(--pl-cream)'}
+        toColor={vibeSkin?.palette.subtle ?? 'var(--pl-cream-deep)'}
         skin={vibeSkin}
         height={60}
         opacity={0.65}
@@ -510,12 +554,12 @@ export function WeddingEvents({
                 fontWeight: 600,
                 fontStyle: 'italic',
                 letterSpacing: '-0.03em',
-                color: 'var(--eg-fg)',
+                color: 'var(--pl-ink)',
                 marginBottom: '1.5rem',
                 lineHeight: 1.05,
               }}
             >
-              {title}
+              <span data-pe-editable="true" data-pe-path="vibeSkin.sectionLabels.events">{title}</span>
             </h2>
 
             {/* Accent symbol ornamental divider */}
@@ -535,13 +579,13 @@ export function WeddingEvents({
 
             <p
               style={{
-                color: 'var(--eg-muted)',
+                color: 'var(--pl-muted)',
                 fontSize: '1.05rem',
                 fontStyle: 'italic',
                 lineHeight: 1.65,
               }}
             >
-              {subtitle}
+              <span data-pe-editable="true" data-pe-path="vibeSkin.sectionLabels.eventsSubtitle">{subtitle}</span>
             </p>
           </motion.div>
 
@@ -556,7 +600,7 @@ export function WeddingEvents({
                   }
                 : {
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(340px, calc(100vw - 3rem)), 1fr))',
                     gap: '20px',
                   }
             }

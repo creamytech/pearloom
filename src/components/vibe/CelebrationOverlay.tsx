@@ -6,7 +6,7 @@
 // Fires once, fades after ~4s, uses the site's own accent colors.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 
 type Occasion = 'wedding' | 'engagement' | 'anniversary' | 'birthday' | 'story';
 
@@ -87,20 +87,25 @@ function renderShape(shape: Particle['shape'], size: number, color: string): str
 
 export function CelebrationOverlay({
   occasion = 'wedding',
-  accentColor = '#A3B18A',
+  accentColor = '#5C6B3F',
   accentColor2 = '#D6C6A8',
   disabled = false,
 }: CelebrationOverlayProps) {
   const [visible, setVisible] = useState(!disabled);
   const [opacity, setOpacity] = useState(1);
+  const particles = useMemo(
+    () => generateParticles(occasion, accentColor, accentColor2),
+    [occasion, accentColor, accentColor2],
+  );
   const canvasRef = useRef<HTMLDivElement>(null);
-  const particlesRef = useRef<Particle[]>([]);
+  const particlesRef = useRef<Particle[]>(particles);
   const frameRef = useRef<number>(0);
   const startRef = useRef(0);
 
   const DURATION = 4500; // ms total
   const FADE_START = 3000; // ms when fade begins
 
+  const animateRef = useRef<((timestamp: number) => void) | null>(null);
   const animate = useCallback((timestamp: number) => {
     if (!startRef.current) startRef.current = timestamp;
     const elapsed = timestamp - startRef.current;
@@ -133,15 +138,21 @@ export function CelebrationOverlay({
       }
     });
 
-    frameRef.current = requestAnimationFrame(animate);
+    if (animateRef.current) {
+      frameRef.current = requestAnimationFrame(animateRef.current);
+    }
   }, [opacity]);
 
   useEffect(() => {
+    animateRef.current = animate;
+  }, [animate]);
+
+  useEffect(() => {
     if (disabled || !visible) return;
-    particlesRef.current = generateParticles(occasion, accentColor, accentColor2);
+    particlesRef.current = particles;
     frameRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frameRef.current);
-  }, [occasion, accentColor, accentColor2, disabled, visible, animate]);
+  }, [particles, disabled, visible, animate]);
 
   if (!visible || disabled) return null;
 
@@ -159,7 +170,7 @@ export function CelebrationOverlay({
         transition: 'opacity 0.3s ease',
       }}
     >
-      {particlesRef.current.map(p => (
+      {particles.map(p => (
         <div
           key={p.id}
           style={{

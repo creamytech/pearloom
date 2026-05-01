@@ -6,6 +6,7 @@
 import type { VibeSkin, CoupleProfile, VibeSkinContext, SiteArtResult } from './types';
 import { WAVE_PATHS, CORNER_STYLES, extractSvgFromField, isValidSvg, buildFallbackArt } from './svg-library';
 import { deriveFallback } from './fallback';
+import { enforcePaletteContrast } from '@/lib/color-utils';
 
 // ── Dev-only logging helpers ─────────────────────────────────────────────────
 const isDev = process.env.NODE_ENV === 'development';
@@ -162,9 +163,34 @@ export async function generateVibeSkin(
   apiKey?: string,
   coupleNames?: [string, string],
   context?: VibeSkinContext,
-  occasion?: string
+  occasion?: string,
+  /** EventType voice — shifts palette saturation + mood language
+   *  so memorial templates don't get confetti and bachelor parties
+   *  don't get candlelit muted tones. */
+  voice?: 'solemn' | 'intimate' | 'ceremonial' | 'playful' | 'celebratory',
 ): Promise<VibeSkin> {
-  if (!apiKey) return deriveFallback(vibeString);
+  const preferredPaletteEarly = (context?.preferredPalette || [])
+    .filter(c => typeof c === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(c.trim()))
+    .map(c => c.trim());
+
+  if (!apiKey) {
+    const fb = deriveFallback(vibeString);
+    if (preferredPaletteEarly.length > 0) {
+      return {
+        ...fb,
+        palette: {
+          ...fb.palette,
+          accent: preferredPaletteEarly[0] || fb.palette.accent,
+          accent2: preferredPaletteEarly[1] || fb.palette.accent2,
+          background: preferredPaletteEarly[2] || fb.palette.background,
+          foreground: preferredPaletteEarly[3] || fb.palette.foreground,
+          highlight: preferredPaletteEarly[0] || fb.palette.highlight,
+          ink: preferredPaletteEarly[3] || fb.palette.ink,
+        },
+      };
+    }
+    return fb;
+  }
 
   // Extract occasion-specific numeric details from the vibe string
   const anniversaryMatch = vibeString.match(/ANNIVERSARY:\s*(\d+)\s*years/i);
@@ -221,6 +247,29 @@ export async function generateVibeSkin(
 
   const visualGuidance = occasionVisualGuidance[occasion || 'wedding'] || occasionVisualGuidance.wedding;
 
+  // Voice-level hard constraints on palette + mood so solemn events
+  // never receive bright palettes and playful events aren't muted.
+  const voiceConstraints: Record<string, string> = {
+    solemn: `CRITICAL — SOLEMN VOICE:
+    Palette MUST stay muted, desaturated, low-contrast. Deep navy, charcoal, aged ivory, muted sage, dusty plum.
+    NO confetti, NO bright accents, NO party particles, NO rainbow tones.
+    Particles allowed: sakura, leaves, dust motes, soft light shafts. Nothing celebratory.
+    Tone: reverent, still, photographed like a cathedral on an overcast morning.`,
+    playful: `CRITICAL — PLAYFUL VOICE:
+    Palette MUST feel warm, vibrant, and high-energy. Peach, coral, gold, sunset orange, denim.
+    Particles allowed: confetti, sparks, balloons, ribbons. Encouraged.
+    Tone: loud and loving, like a polaroid at 2am.`,
+    intimate: `CRITICAL — INTIMATE VOICE:
+    Palette MUST feel like a lamplit living room. Cream, olive, warm gold, dusty rose, soft terracotta.
+    Tone: quiet, close-up, a handwritten letter.`,
+    ceremonial: `CRITICAL — CEREMONIAL VOICE:
+    Palette MUST feel considered and reverent. Deep jewel tones, burnished gold, rich cream.
+    Tone: traditional, slow, hymn-like. Nothing flippant.`,
+    celebratory: `VOICE: celebratory — joyful but not chaotic.
+    Palette can lean warm and saturated. Particles welcome in moderation.`,
+  };
+  const voiceLine = voice ? (voiceConstraints[voice] || voiceConstraints.celebratory) : '';
+
   const namesContext = coupleNames
     ? `The couple is ${coupleNames[0]} & ${coupleNames[1]}.`
     : '';
@@ -275,13 +324,35 @@ This is NON-NEGOTIABLE. The inspiration images override everything else.
 `
     : '';
 
-  const prompt = `${inspirationDirective}You are a world-class wedding visual designer AND SVG artist for Pearloom, a premium wedding website platform.
+  // Hard palette directive — when the user picked colors in the wizard we must
+  // respect them. The AI's output is also overridden post-parse so the final
+  // skin always uses these hex values, but we still tell the model so it can
+  // build harmonious SVG art around them.
+  const preferredPalette = (context?.preferredPalette || [])
+    .filter(c => typeof c === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(c.trim()))
+    .map(c => c.trim());
+  const paletteDirective = preferredPalette.length > 0
+    ? `🎨 NON-NEGOTIABLE PALETTE (user-selected in the wizard):
+The user explicitly picked these hex colors and they MUST be the final palette:
+  accent: ${preferredPalette[0] || 'choose from user colors'}
+  accent2: ${preferredPalette[1] || 'choose from user colors'}
+  background: ${preferredPalette[2] || 'choose from user colors'}
+  foreground / ink: ${preferredPalette[3] || 'choose from user colors'}
+Use THESE EXACT hex values. Do not substitute softer or more muted versions.
+All SVG art (heroBlobSvg, cornerFlourishSvg, etc.) must be colored with the
+accent and accent2 above so the design feels cohesive.
+
+`
+    : '';
+
+  const prompt = `${paletteDirective}${inspirationDirective}You are a world-class wedding visual designer AND SVG artist for Pearloom, a premium wedding website platform.
 ${namesContext}
 The couple's vibe is: "${vibeString}"
 
 ## OCCASION VISUAL DIRECTION — READ BEFORE DESIGNING
 ${visualGuidance}
 
+${voiceLine ? `## VOICE CONSTRAINTS — OVERRIDES ANY OTHER STYLING GUIDANCE\n${voiceLine}\n` : ''}
 ${storyContext}
 ${coupleProfileContext}
 Your job: design a COMPLETELY UNIQUE visual identity for this specific couple. Every SVG illustration should reflect THEIR actual world — their pets, interests, places, and story. No two sites should ever look the same.
@@ -388,8 +459,8 @@ Return ONLY this JSON. All SVG strings must be valid JSON-escaped strings:
   "dividerQuote": "<Write a single original poetic phrase (6-10 words MAXIMUM) that is short, lyrical, and emotionally specific to this couple. Evoke their vibe — a place, a feeling, a moment. Think of it as a whispered caption, not a full sentence. NOT a cliche. Examples of good length: 'Where the sea met us first', 'Fog-laced mornings and tangled roots', 'Every city led back to you'>",
   "tone": "<one of: dreamy | playful | luxurious | wild | intimate | cosmic | rustic>",
   "heroPatternSvg": "<FULL SVG: subtle repeating bg pattern. viewBox='0 0 200 200'. 8-12 thematic elements. All opacities 0.06-0.15. Use the accent color. Complete <svg>...</svg> on one line.>",
-  "sectionBorderSvg": "<FULL SVG: ornamental border strip. viewBox='0 0 800 40'. Wavy or foliate line with motifs. Complete <svg>...</svg> on one line.>",
-  "cornerFlourishSvg": "<FULL SVG: corner bracket ornament. viewBox='0 0 80 80'. Art Nouveau style. Complete <svg>...</svg> on one line.>",
+  "sectionBorderSvg": "<FULL SVG: ornamental border strip. viewBox='0 0 800 40'. MUST be personalized to the couple's interests from the COUPLE DNA above — if they love cats, weave paw prints into the border. If botanical, use leaves and vines. If coastal, use waves and shells. If they love music, use musical notes. Match the vibe. Complete <svg>...</svg> on one line.>",
+  "cornerFlourishSvg": "<FULL SVG: LARGE decorative corner illustration. viewBox='0 0 300 300'. This is THE premium personalized decoration — think Zola-style floral corners but themed to THIS couple. Draw a rich, detailed corner piece: if botanical vibe, lush flowers and leaves cascading from the corner. If they love cats, elegant cat silhouettes with vine-like tails. If they're sports fans, subtle sport motifs woven into organic shapes. If they love travel, compass roses and map elements. Use 15-25 elements. All in the accent color at opacity 0.15-0.35. The design should fill the corner triangle from (0,0) to roughly (250,0) and (0,250). Complete <svg>...</svg> on one line.>",
   "medallionSvg": "<FULL SVG: circular ornament for section headers. viewBox='0 0 120 120'. Complete <svg>...</svg> on one line.>",
   "heroBlobSvg": "<FULL SVG: viewBox='0 0 500 700'. THIS MUST ILLUSTRATE THE COUPLE'S ACTUAL WORLD. If they have cats: draw 4-6 elegant cat silhouettes in different poses scattered throughout. If they love hiking: draw mountain peaks, trails, pine trees. If they mention vinyl: draw record discs, musical notes, a turntable. If they mention a city: draw that city's skyline. Use the illustrationPrompt above as your exact brief. 20-30 elements. Fill 70%+ of canvas. Use ONLY accent color. Opacity 0.12-0.25. Complete <svg>...</svg> on one line.>",
   "accentBlobSvg": "<FULL SVG: organic decorative shape for section backgrounds. viewBox='0 0 600 400'. One large irregular polygon blob fill (opacity 0.07) PLUS concentric rings (stroke, opacity 0.08-0.14) and 6 radial accent dots (opacity 0.20). Used layered behind section content. Complete <svg>...</svg> on one line.>",
@@ -494,7 +565,7 @@ CRITICAL DESIGN RULES:
     const curve: VibeSkin['curve'] = VALID_CURVES.includes(parsed.curve) ? parsed.curve : 'organic';
     const waveDef = WAVE_PATHS[curve];
     const accentForFallback = typeof parsed.palette?.accent === 'string' && parsed.palette.accent.startsWith('#')
-      ? parsed.palette.accent : '#A3B18A';
+      ? parsed.palette.accent : '#5C6B3F';
     const fallbackArt = buildFallbackArt(accentForFallback, curve);
 
     // Extract and validate SVG fields — fall back to deterministic art if invalid
@@ -511,17 +582,25 @@ CRITICAL DESIGN RULES:
     const hexOrDefault = (val: unknown, def: string): string =>
       typeof val === 'string' && val.startsWith('#') ? val : def;
 
-    const bgColor = hexOrDefault(parsed.palette?.background, '#F5F1E8');
-    const fgColor = hexOrDefault(parsed.palette?.foreground, '#2B2B2B');
-    const accentColor = hexOrDefault(parsed.palette?.accent, '#A3B18A');
-    const accent2Color = hexOrDefault(parsed.palette?.accent2, '#D6C6A8');
+    // HARD OVERRIDE: if the user picked specific colors in the wizard, force
+    // them into the final palette regardless of what the AI returned. The
+    // convention is [accent, accent2, background, foreground].
+    const userAccent = preferredPalette[0];
+    const userAccent2 = preferredPalette[1];
+    const userBg = preferredPalette[2];
+    const userFg = preferredPalette[3];
+
+    const bgColor = userBg || hexOrDefault(parsed.palette?.background, '#F5F1E8');
+    const fgColor = userFg || hexOrDefault(parsed.palette?.foreground, '#2B2B2B');
+    const accentColor = userAccent || hexOrDefault(parsed.palette?.accent, '#5C6B3F');
+    const accent2Color = userAccent2 || hexOrDefault(parsed.palette?.accent2, '#D6C6A8');
     const cardColor = (typeof parsed.palette?.card === 'string' &&
       (parsed.palette.card.startsWith('#') || parsed.palette.card.startsWith('rgba')))
       ? parsed.palette.card : '#FDFAF4';
     const mutedColor = hexOrDefault(parsed.palette?.muted, '#9A9488');
-    const highlightColor = hexOrDefault(parsed.palette?.highlight, accentColor);
+    const highlightColor = userAccent || hexOrDefault(parsed.palette?.highlight, accentColor);
     const subtleColor = hexOrDefault(parsed.palette?.subtle, bgColor);
-    const inkColor = hexOrDefault(parsed.palette?.ink, '#1C1C1C');
+    const inkColor = userFg || hexOrDefault(parsed.palette?.ink, '#1C1C1C');
 
     return {
       curve,
@@ -562,7 +641,7 @@ CRITICAL DESIGN RULES:
       dividerQuote: typeof parsed.dividerQuote === 'string' ? parsed.dividerQuote : vibeString,
       cornerStyle: CORNER_STYLES[curve],
       tone: VALID_TONES.includes(parsed.tone) ? parsed.tone : 'dreamy',
-      palette: {
+      palette: enforcePaletteContrast({
         background: bgColor,
         foreground: fgColor,
         accent: accentColor,
@@ -572,7 +651,7 @@ CRITICAL DESIGN RULES:
         highlight: highlightColor,
         subtle: subtleColor,
         ink: inkColor,
-      },
+      }),
       fonts: {
         heading: (typeof parsed.fonts?.heading === 'string' && parsed.fonts.heading.length > 0) ? parsed.fonts.heading : 'Playfair Display',
         body:    (typeof parsed.fonts?.body === 'string' && parsed.fonts.body.length > 0)       ? parsed.fonts.body    : 'Inter',
@@ -604,17 +683,34 @@ CRITICAL DESIGN RULES:
     };
   } catch (err) {
     logWarn('[VibeEngine] Gemini skin generation failed, using fallback:', err);
-    return deriveFallback(vibeString);
+    const fallback = deriveFallback(vibeString);
+    // Apply the user's palette even in the fallback path so their choice
+    // is never silently dropped when the AI call fails.
+    if (preferredPalette.length > 0) {
+      return {
+        ...fallback,
+        palette: {
+          ...fallback.palette,
+          accent: preferredPalette[0] || fallback.palette.accent,
+          accent2: preferredPalette[1] || fallback.palette.accent2,
+          background: preferredPalette[2] || fallback.palette.background,
+          foreground: preferredPalette[3] || fallback.palette.foreground,
+          highlight: preferredPalette[0] || fallback.palette.highlight,
+          ink: preferredPalette[3] || fallback.palette.ink,
+        },
+      };
+    }
+    return fallback;
   }
 }
 
 // ── Pass 2.5: Raster Art Generation (Nano Banana Pro) ────────────────────────
 // Generates a beautiful AI-painted hero art panel + ambient background art
 // tuned to the couple's specific vibe, palette, and occasion.
-// Uses gemini-3-pro-image-preview (Nano Banana Pro) — generated once at
+// Uses gemini-3.1-flash-image-preview (Nano Banana Pro) — generated once at
 // site creation time, stored as base64 data URLs in vibeSkin.
 
-const NANO_BANANA_PRO = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent';
+const NANO_BANANA_PRO = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent';
 const NANO_BANANA_2   = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent';
 
 
@@ -731,50 +827,46 @@ Composition: Wide and narrow (aspect ratio ~8:1) — decorative horizontal band
 Left and right edges must fade completely into ${bgHex}
 No text, no people, no faces, no logos`;
 
-  async function fetchImage(prompt: string, model: string): Promise<string | undefined> {
+  // Unified image generator — routes through OpenAI GPT Image 2
+  // (gpt-image-2, released 2026-04-21) when OPENAI_API_KEY is
+  // set. gpt-image-2 brings dense legible text, wider aspect
+  // range (up to 3840×3840, multiples of 16), and higher face
+  // fidelity than the previous gpt-image-1. Falls back to Gemini
+  // Nano Banana otherwise.
+  async function fetchImage(
+    prompt: string,
+    purpose: 'hero' | 'thumbnail',
+  ): Promise<string | undefined> {
     try {
-      // 25s hard timeout per image — if the model hangs, skip gracefully
-      const imgController = new AbortController();
-      const imgTimeout = setTimeout(() => imgController.abort(), 25_000);
-      let res: Response;
-      try {
-        res = await fetch(`${model}?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              responseModalities: ['image'],
-            },
-          }),
-          signal: imgController.signal,
-        });
-      } finally {
-        clearTimeout(imgTimeout);
-      }
-      if (!res.ok) {
-        logWarn(`[Site Art] Image generation returned ${res.status}`);
-        return undefined;
-      }
-      const data = await res.json();
-      const part = data.candidates?.[0]?.content?.parts?.find(
-        (p: Record<string, unknown>) => p.inlineData
-      );
-      if (!part?.inlineData?.data) return undefined;
-      return `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
+      const { generateImage } = await import('@/lib/memory-engine/image-router');
+      const result = await generateImage({
+        apiKey,
+        prompt,
+        purpose,
+        quality: purpose === 'hero' ? 'high' : 'medium',
+        // Hero is landscape, divider is square-ish; gpt-image-2 handles
+        // both sizes natively.
+        size: purpose === 'hero' ? '1536x1024' : '1024x1024',
+      });
+      if (!result?.base64) return undefined;
+      return `data:${result.mimeType || 'image/png'};base64,${result.base64}`;
     } catch (err) {
       logWarn('[Site Art] Image generation failed:', err);
       return undefined;
     }
   }
 
+  // Keep Nano Banana-direct handles for back-compat (unused now
+  // but referenced in log strings downstream).
+  void NANO_BANANA_PRO; void NANO_BANANA_2;
+
   // Generate all three art pieces in parallel:
-  // - Hero art: Nano Banana Pro (max quality — the showpiece)
-  // - Ambient + art strip: Nano Banana 2 (faster, good enough for subtle use)
+  // - Hero art: high quality (the showpiece)
+  // - Ambient + art strip: medium quality (subtle use, cheaper)
   const [heroArtDataUrl, ambientArtDataUrl, artStripDataUrl] = await Promise.all([
-    fetchImage(heroPrompt, NANO_BANANA_PRO),
-    fetchImage(ambientPrompt, NANO_BANANA_2),
-    fetchImage(artStripPrompt, NANO_BANANA_2),
+    fetchImage(heroPrompt, 'hero'),
+    fetchImage(ambientPrompt, 'thumbnail'),
+    fetchImage(artStripPrompt, 'thumbnail'),
   ]);
 
   log(

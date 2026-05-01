@@ -35,7 +35,7 @@ function TypingDots() {
         style={{
           padding: '0.65rem 0.9rem',
           borderRadius: '0.25rem 1rem 1rem 1rem',
-          background: 'var(--eg-bg-section)',
+          background: 'var(--pl-cream-deep)',
           display: 'flex',
           gap: '4px',
           alignItems: 'center',
@@ -50,7 +50,7 @@ function TypingDots() {
               width: '6px',
               height: '6px',
               borderRadius: '50%',
-              background: 'var(--eg-accent)',
+              background: 'var(--pl-olive)',
             }}
           />
         ))}
@@ -143,11 +143,11 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
           position: 'fixed',
           bottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))',
           right: '1.5rem',
-          zIndex: 100,
+          zIndex: 'var(--z-sticky)',
           width: '56px',
           height: '56px',
           borderRadius: '50%',
-          background: 'var(--eg-accent)',
+          background: 'var(--pl-olive)',
           border: 'none',
           cursor: 'pointer',
           display: 'flex',
@@ -194,7 +194,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.75rem',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 color: '#fff',
               }}
             >
@@ -203,7 +203,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
                   width: '40px',
                   height: '40px',
                   borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.2)',
+                  background: 'var(--pl-muted)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -215,7 +215,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
               <div style={{ flex: 1 }}>
                 <div
                   style={{
-                    fontFamily: 'var(--eg-font-heading)',
+                    fontFamily: 'var(--pl-font-heading)',
                     fontSize: '1rem',
                     fontWeight: 400,
                     letterSpacing: '-0.01em',
@@ -226,7 +226,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
                 <div style={{ fontSize: '0.65rem', opacity: 0.8, marginTop: '0.1rem' }}>
                   {typing
                     ? 'typing...'
-                    : 'Powered by AI trained on our story'}
+                    : 'Powered by Pear, trained on our story'}
                 </div>
               </div>
               <button
@@ -236,7 +236,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  color: 'rgba(255,255,255,0.75)',
+                  color: 'var(--pl-ink)',
                   display: 'flex',
                   padding: '0.25rem',
                 }}
@@ -277,12 +277,12 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
                           : '0.25rem 1rem 1rem 1rem',
                       background:
                         msg.role === 'user'
-                          ? 'var(--eg-accent)'
-                          : 'var(--eg-bg-section)',
-                      color: msg.role === 'user' ? '#fff' : 'var(--eg-fg)',
+                          ? 'var(--pl-olive)'
+                          : 'var(--pl-cream-deep)',
+                      color: msg.role === 'user' ? '#fff' : 'var(--pl-ink)',
                       fontSize: '0.875rem',
                       lineHeight: 1.5,
-                      fontFamily: 'var(--eg-font-body)',
+                      fontFamily: 'var(--pl-font-body)',
                     }}
                   >
                     {msg.text}
@@ -339,18 +339,18 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
                     }}
                     style={{
                       padding: '0.4rem 0.8rem',
-                      borderRadius: '100px',
+                      borderRadius: 'var(--pl-radius-full)',
                       border: '1.5px solid rgba(0,0,0,0.08)',
-                      background: 'var(--eg-bg)',
+                      background: 'var(--pl-cream)',
                       fontSize: '0.78rem',
                       fontWeight: 500,
                       cursor: 'pointer',
-                      color: 'var(--eg-fg)',
-                      fontFamily: 'var(--eg-font-body)',
+                      color: 'var(--pl-ink)',
+                      fontFamily: 'var(--pl-font-body)',
                       transition: 'all 0.15s ease',
                       whiteSpace: 'nowrap',
                     }}
-                    whileHover={{ scale: 1.03, borderColor: 'var(--eg-accent)' }}
+                    whileHover={{ scale: 1.03, borderColor: 'var(--pl-olive)' }}
                     whileTap={{ scale: 0.97 }}
                   >
                     {s}
@@ -379,17 +379,17 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
                 style={{
                   flex: 1,
                   padding: '0.6rem 1rem',
-                  borderRadius: '100px',
+                  borderRadius: 'var(--pl-radius-full)',
                   border: '1.5px solid rgba(0,0,0,0.08)',
-                  background: 'var(--eg-bg)',
+                  background: 'var(--pl-cream)',
                   fontSize: 'max(16px, 0.875rem)',
                   outline: 'none',
-                  fontFamily: 'var(--eg-font-body)',
-                  color: 'var(--eg-fg)',
+                  fontFamily: 'var(--pl-font-body)',
+                  color: 'var(--pl-ink)',
                   transition: 'border-color 0.2s ease',
                 }}
                 onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--eg-accent)';
+                  e.target.style.borderColor = 'var(--pl-olive)';
                 }}
                 onBlur={(e) => {
                   e.target.style.borderColor = 'rgba(0,0,0,0.08)';
@@ -406,14 +406,14 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
                   background:
                     !input.trim() || typing
                       ? 'rgba(0,0,0,0.06)'
-                      : 'var(--eg-accent)',
+                      : 'var(--pl-olive)',
                   border: 'none',
                   cursor: !input.trim() || typing ? 'not-allowed' : 'pointer',
-                  color: !input.trim() || typing ? 'var(--eg-muted)' : '#fff',
+                  color: !input.trim() || typing ? 'var(--pl-muted)' : '#fff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  transition: 'all 0.2s',
+                  transition: 'all var(--pl-dur-fast)',
                   flexShrink: 0,
                 }}
               >

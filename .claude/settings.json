@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(npx playwright *)",
+      "Bash(npx playwright install*)",
+      "Bash(npm run test:e2e*)",
+      "Bash(npm run test:e2e:ui*)",
+      "Bash(npm run test:e2e:headed*)",
+      "Bash(npx tsc --noEmit*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log --oneline*)",
+      "Bash(git add -A*)",
+      "Bash(git commit -m*)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "grep -q '## Active focus' CLAUDE.md && echo '{\"decision\":\"block\",\"reason\":\"Active focus is set in CLAUDE.md — keep iterating on the open threads. Delete the heading to pause the loop.\"}' || true"
+          }
+        ]
+      }
+    ]
+  }
+}

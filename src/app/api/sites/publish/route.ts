@@ -3,124 +3,10 @@ import { publishSite } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import type { StoryManifest } from '@/types';
 import { generateVibeSkin } from '@/lib/vibe-engine';
-import pLimit from 'p-limit';
-
-function getR2Client() {
-  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
-  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
-  if (!accountId || !accessKeyId || !secretAccessKey) return null;
-  return new S3Client({
-    region: 'auto',
-    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    credentials: { accessKeyId, secretAccessKey },
-  });
-}
-
-// -- Mirror Google Photos URLs -> R2 (primary) or Supabase Storage (fallback) --
-// Google Photos baseUrls expire within ~1 hour. On publish we upload
-// each image to permanent storage so they're accessible forever.
-async function mirrorImagesToStorage(
-  manifest: StoryManifest,
-  accessToken: string,
-  subdomain: string
-): Promise<StoryManifest> {
-  const r2 = getR2Client();
-  const r2Bucket = process.env.R2_BUCKET_NAME || 'pearloom-photos';
-  const r2PublicBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL?.replace(/\/$/, '');
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  const hasR2 = !!(r2 && r2PublicBase);
-  const hasSupabase = !!(supabaseUrl && serviceKey);
-
-  if (!hasR2 && !hasSupabase) {
-    console.warn('[Mirror] No storage backend configured — photos will use Google CDN (may expire)');
-    return manifest;
-  }
-
-  const supabase = hasSupabase ? createClient(supabaseUrl!, serviceKey!) : null;
-  const limit = pLimit(5);
-
-  const updatedChapters = await Promise.all(
-    manifest.chapters.map(async (chapter, ci) => {
-      const updatedImages = await Promise.all(
-        (chapter.images || []).map((img, ii) => limit(async () => {
-          // Only mirror Google Photos URLs (not already-mirrored or base64 uploads)
-          if (!img.url || !img.url.includes('googleusercontent.com')) return img;
-
-          try {
-            // Fetch image server-side using the user's OAuth token
-            const photoRes = await fetch(`${img.url}=w1600-h1200-c`, {
-              headers: { Authorization: `Bearer ${accessToken}` },
-            });
-            if (!photoRes.ok) {
-              console.warn(`[Mirror] Google returned ${photoRes.status} for ch${ci}-img${ii}`);
-              return img;
-            }
-
-            const buffer = await photoRes.arrayBuffer();
-            const contentType = photoRes.headers.get('content-type') || 'image/jpeg';
-            const ext = contentType.includes('png') ? 'png' : 'jpg';
-            const path = `sites/${subdomain}/ch${ci}-img${ii}.${ext}`;
-
-            // Primary: Upload to R2
-            if (hasR2) {
-              try {
-                await r2!.send(new PutObjectCommand({
-                  Bucket: r2Bucket,
-                  Key: path,
-                  Body: Buffer.from(buffer),
-                  ContentType: contentType,
-                  CacheControl: 'public, max-age=31536000, immutable',
-                }));
-
-                const publicUrl = `${r2PublicBase}/${path}`;
-                console.log(`[Mirror] R2 OK ${path} -> ${publicUrl}`);
-                return { ...img, url: publicUrl };
-              } catch (r2Err) {
-                console.warn(`[Mirror] R2 upload failed for ${path}, falling back to Supabase:`, r2Err);
-                // Fall through to Supabase
-              }
-            }
-
-            // Fallback: Upload to Supabase Storage
-            if (supabase) {
-              const { error } = await supabase.storage
-                .from('photos')
-                .upload(path, buffer, {
-                  contentType,
-                  upsert: true,
-                  cacheControl: '31536000',
-                });
-
-              if (error) {
-                console.warn(`[Mirror] Supabase upload failed for ${path}:`, error.message);
-                return img;
-              }
-
-              const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(path);
-              console.log(`[Mirror] Supabase OK ${path} -> ${publicUrl}`);
-              return { ...img, url: publicUrl };
-            }
-
-            return img;
-          } catch (err) {
-            console.warn(`[Mirror] Exception for ch${ci}-img${ii}:`, err);
-            return img;
-          }
-        }))
-      );
-      return { ...chapter, images: updatedImages };
-    })
-  );
-
-  return { ...manifest, chapters: updatedChapters };
-}
+import { mirrorManifestPhotos } from '@/lib/mirror-photos';
+import { buildSiteUrl } from '@/lib/site-urls';
 
 export async function POST(req: NextRequest) {
   try {
@@ -140,13 +26,43 @@ export async function POST(req: NextRequest) {
     });
 
     if (!subdomain || !manifest) {
-      return NextResponse.json({ 
-        error: `Missing required fields: subdomain=${!!subdomain}, manifest=${!!manifest}` 
+      return NextResponse.json({
+        error: `Missing required fields: subdomain=${!!subdomain}, manifest=${!!manifest}`
       }, { status: 400 });
     }
 
     // Format subdomain purely to be safe (no spaces, lowercase, etc)
     const cleanSubdomain = subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '');
+
+    // Co-host role gate — only the site owner can publish.
+    // If the subdomain doesn't exist yet, anyone logged in can claim it.
+    try {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (url && key) {
+        const sb = createClient(url, key);
+        const { data: existing } = await sb
+          .from('sites')
+          .select('creator_email')
+          .eq('subdomain', cleanSubdomain)
+          .maybeSingle();
+        // Compare normalised — saveSiteDraft / publishSite store
+        // creator_email lowercased + trimmed; the session email comes
+        // back in whatever case the IdP supplied. Without
+        // normalisation the owner gets 403'd whenever Google returns
+        // their email with different casing than was stored.
+        const storedOwner = String(existing?.creator_email ?? '').toLowerCase().trim();
+        const requestUser = session.user.email.toLowerCase().trim();
+        if (storedOwner && storedOwner !== requestUser) {
+          return NextResponse.json(
+            { error: 'Only the site owner can publish. Ask the owner to do it.' },
+            { status: 403 },
+          );
+        }
+      }
+    } catch (err) {
+      console.warn('[Publish API] Role check skipped:', err);
+    }
 
     if (cleanSubdomain.length < 3) {
       return NextResponse.json({ error: 'Subdomain must be at least 3 characters' }, { status: 400 });
@@ -162,11 +78,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'That subdomain is reserved. Please choose another.' }, { status: 400 });
     }
 
-    // Mirror Google Photos -> Supabase Storage before persisting
+    // Mirror every photo field (chapters, coverPhoto, heroSlideshow)
+    // to permanent storage before persisting. `mirrorManifestPhotos`
+    // also transparently unwraps any `/api/photos/proxy?url=…`
+    // wrappers that were kept in the draft during the editing session.
     let persistManifest: StoryManifest = manifest;
     if (session.accessToken) {
-      console.log('[Publish API] Mirroring photos to Supabase Storage...');
-      persistManifest = await mirrorImagesToStorage(manifest, session.accessToken, cleanSubdomain);
+      console.log('[Publish API] Mirroring photos to permanent storage...');
+      persistManifest = await mirrorManifestPhotos(
+        manifest,
+        session.accessToken as string,
+        cleanSubdomain,
+      );
     }
 
     // Generate AI vibe skin (unless already cached)
@@ -195,33 +118,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error || 'Failed to publish' }, { status: 400 });
     }
 
+    // Build the canonical published URL using the centralized helper.
+    // This always produces path-based URLs (pearloom.com/sites/<slug>)
+    // regardless of how the API request arrived.
     const host = req.headers.get('host') || 'localhost:3000';
-
-    // Auto-detect the URL format to return.
-    // NEXT_PUBLIC_SITE_URL (e.g. https://pearloom.com) is the canonical base —
-    // use it when set so we always produce the correct subdomain URL regardless
-    // of which host the API request arrived on (e.g. app.pearloom.com vs pearloom.com).
-    let finalUrl = '';
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-    if (siteUrl) {
-      try {
-        const base = new URL(siteUrl);
-        finalUrl = `${base.protocol}//${cleanSubdomain}.${base.hostname}`;
-      } catch {
-        // fall through to host-based detection below
-      }
-    }
-    if (!finalUrl) {
-      if (host.includes('localhost')) {
-        finalUrl = `http://${cleanSubdomain}.localhost:3000`;
-      } else if (host.includes('vercel.app')) {
-        finalUrl = `https://${host}/sites/${cleanSubdomain}`;
-      } else {
-        // Strip any port and www. prefix so we get clean subdomain URLs
-        const baseDomain = host.replace(/^www\./, '').replace(/:\d+$/, '');
-        finalUrl = `https://${cleanSubdomain}.${baseDomain}`;
-      }
-    }
+    const origin = process.env.NEXT_PUBLIC_SITE_URL
+      || (host.includes('localhost') ? `http://${host}` : `https://${host}`);
+    // Always emit an occasion-prefixed URL. Default to 'wedding' so
+    // pre-v2026 manifests (no occasion field) still land at
+    // /wedding/<slug> rather than the legacy /sites/<slug>.
+    const { normalizeOccasion } = await import('@/lib/site-urls');
+    const resolvedOccasion = normalizeOccasion(
+      (persistManifest as { occasion?: string } | null)?.occasion,
+    );
+    const finalUrl = buildSiteUrl(cleanSubdomain, '', origin, resolvedOccasion);
 
     // Generate a preview token and store it alongside the published site
     let previewToken: string | null = null;

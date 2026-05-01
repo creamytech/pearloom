@@ -41,9 +41,9 @@ const DialogContent = forwardRef<
       className={cn(
         'fixed left-1/2 top-1/2 z-[200] w-full',
         '-translate-x-1/2 -translate-y-1/2',
-        'bg-white rounded-[var(--pl-radius-lg)] p-8',
-        'border border-[var(--pl-divider)]',
-        'shadow-[0_24px_60px_rgba(43,30,20,0.15),0_40px_80px_rgba(43,30,20,0.09)]',
+        'bg-white/90 backdrop-blur-2xl backdrop-saturate-150 rounded-[var(--pl-radius-xl)] p-8',
+        'border border-[rgba(255,255,255,0.6)]',
+        'shadow-[0_16px_48px_rgba(43,30,20,0.1),0_32px_80px_rgba(43,30,20,0.06),inset_0_1px_0_rgba(255,255,255,0.5)]',
         'data-[state=open]:animate-in   data-[state=open]:fade-in-0   data-[state=open]:zoom-in-95   data-[state=open]:slide-in-from-left-1/2   data-[state=open]:slide-in-from-top-[48%]',
         'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]',
         'duration-200',

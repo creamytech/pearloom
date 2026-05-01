@@ -1,0 +1,1599 @@
+'use client';
+
+// Guests — real /api/guests wiring + RSVP stats derived from
+// the guest list client-side.
+
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { Bloom } from '@/components/brand/groove';
+import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
+import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost } from './DashShell';
+import { DashLayout } from '@/components/pearloom/dash/DashShell';
+import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
+import { getEventType } from '@/lib/event-os/event-types';
+import { GuestImportDialog } from '@/components/dashboard/GuestImportDialog';
+
+// Occasion-aware copy for the guests page. Falls back to wedding-y
+// defaults when an occasion isn't recognised.
+function guestCopy(occasion?: string | null) {
+  const e = getEventType(occasion as never) ?? null;
+  const preset = e?.rsvpPreset ?? 'wedding';
+  switch (preset) {
+    case 'memorial':
+      return {
+        topSubtitle: 'Every note of attendance, and memories shared.',
+        emptyHint: "Share the site link so family and friends can let you know they're coming.",
+        fifthColumn: 'Memory',
+        fifthKey: 'note' as const,
+        verbComing: 'attending',
+        verbQuiet: "haven't replied",
+      };
+    case 'bachelor':
+      return {
+        topSubtitle: 'Who’s in, which days, bed prefs, and cost acks.',
+        emptyHint: 'Drop the link in the group chat — Pear tracks who’s in.',
+        fifthColumn: 'Bed pref',
+        fifthKey: 'note' as const,
+        verbComing: 'in',
+        verbQuiet: 'haven’t replied',
+      };
+    case 'shower':
+      return {
+        topSubtitle: 'Who’s coming, who’s bringing what, and any advice shared.',
+        emptyHint: 'Share the link — guests can RSVP and leave a note for the guest of honor.',
+        fifthColumn: 'Gift',
+        fifthKey: 'note' as const,
+        verbComing: 'coming',
+        verbQuiet: 'still quiet',
+      };
+    case 'reunion':
+      return {
+        topSubtitle: 'Every RSVP, by day, with room and t-shirt prefs.',
+        emptyHint: 'Share the link with the group chat, and Pear will track replies.',
+        fifthColumn: 'T-shirt',
+        fifthKey: 'note' as const,
+        verbComing: 'in',
+        verbQuiet: 'still quiet',
+      };
+    case 'milestone':
+    case 'casual':
+      return {
+        topSubtitle: 'Every RSVP and note, in one list.',
+        emptyHint: 'Share your link, or add guests by hand.',
+        fifthColumn: 'Note',
+        fifthKey: 'note' as const,
+        verbComing: 'coming',
+        verbQuiet: 'still quiet',
+      };
+    case 'cultural':
+      return {
+        topSubtitle: 'Every RSVP, dietary note, and ceremony tradition tracked.',
+        emptyHint: 'Share the link — Pear tracks RSVPs and ceremony preferences.',
+        fifthColumn: 'Meal',
+        fifthKey: 'meal' as const,
+        verbComing: 'coming',
+        verbQuiet: 'still quiet',
+      };
+    case 'wedding':
+    default:
+      return {
+        topSubtitle: 'Every RSVP, meal note, and plus-one recorded.',
+        emptyHint: 'Share your invite link, or add guests by hand. Pear will track RSVPs, meals, and accessibility notes as they come in.',
+        fifthColumn: 'Meal',
+        fifthKey: 'meal' as const,
+        verbComing: 'coming',
+        verbQuiet: 'still quiet',
+      };
+  }
+}
+
+type RsvpKey = 'yes' | 'no' | 'maybe' | 'pending';
+
+interface ApiGuest {
+  id: string;
+  name: string;
+  email: string | null;
+  status: string; // 'pending' | 'attending' | 'declined' | 'maybe'
+  plusOne: boolean;
+  plusOneName: string | null;
+  mealPreference: string | null;
+  dietaryRestrictions: string | null;
+  message: string | null;
+  respondedAt: string | null;
+  invitedAt?: string | null;
+  createdAt?: string | null;
+  guestToken?: string | null;
+  emailSentAt?: string | null;
+  emailDeliveredAt?: string | null;
+  emailOpenedAt?: string | null;
+  emailClickedAt?: string | null;
+  emailBouncedAt?: string | null;
+  eventIds: string[];
+}
+
+interface Guest {
+  id: string;
+  n: string;
+  em: string;
+  party: string;
+  rsvp: RsvpKey;
+  meal: string;
+  note: string;
+  tags: string[];
+  /** ISO timestamp the guest was invited (or imported). */
+  invitedAt: string | null;
+  /** ISO timestamp the guest replied. */
+  respondedAt: string | null;
+  /** Email lifecycle from the Resend webhook. */
+  emailSentAt: string | null;
+  emailDeliveredAt: string | null;
+  emailOpenedAt: string | null;
+  emailBouncedAt: string | null;
+  /** Per-guest token, used to deep-link to /g/[token]. */
+  token: string | null;
+  /** True when invited >7 days ago and still pending. */
+  stale: boolean;
+  /** True when the email opened the invite but didn't reply. The
+   *  funnel surfaces these as "ready for a nudge". */
+  opened: boolean;
+  /** Events the guest opted into (manifest.events ids). When the
+   *  site has more than one event, the per-event headcount strip
+   *  groups guests by these. */
+  eventIds: string[];
+}
+
+interface ManifestEvent {
+  id: string;
+  name?: string;
+  time?: string;
+  type?: string;
+}
+
+const STALE_DAYS = 7;
+const STALE_MS = STALE_DAYS * 86_400_000;
+function isStale(invitedAtIso: string | null | undefined, status: RsvpKey, now = Date.now()): boolean {
+  if (status !== 'pending') return false;
+  if (!invitedAtIso) return false;
+  const t = new Date(invitedAtIso).getTime();
+  if (Number.isNaN(t)) return false;
+  return now - t > STALE_MS;
+}
+
+/** Nudge strip + Pear-drafted composer modal. */
+function NudgeStrip({
+  count,
+  recipients,
+  siteId,
+  onSeePending,
+}: {
+  count: number;
+  recipients: Guest[];
+  siteId: string;
+  onSeePending: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '10px 14px',
+          background: 'linear-gradient(135deg, rgba(251,232,214,0.85) 0%, rgba(232,224,240,0.65) 100%)',
+          border: '1px solid rgba(198,112,61,0.28)',
+          borderRadius: 12,
+        }}
+      >
+        <span
+          aria-hidden
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: 999,
+            background: 'var(--peach-ink, #C6703D)',
+            flexShrink: 0,
+          }}
+        />
+        <span style={{ fontSize: 12.5, color: 'var(--ink, #0E0D0B)', flex: 1 }}>
+          <strong style={{ fontWeight: 700 }}>{count}</strong>
+          {' '}
+          {count === 1 ? 'guest opened' : 'guests opened'} the invite but haven&apos;t replied. Ready for a nudge.
+        </span>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          style={{
+            padding: '6px 12px',
+            borderRadius: 999,
+            background: 'var(--peach-ink, #C6703D)',
+            color: '#FFFFFF',
+            border: 'none',
+            fontSize: 11.5,
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          ✦ Send a nudge
+        </button>
+        <button
+          type="button"
+          onClick={onSeePending}
+          style={{
+            padding: '6px 10px',
+            background: 'transparent',
+            color: 'var(--peach-ink, #C6703D)',
+            border: 'none',
+            fontSize: 11.5,
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          See pending →
+        </button>
+      </div>
+      {open && (
+        <NudgeComposer
+          siteId={siteId}
+          recipients={recipients}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </>
+  );
+}
+
+function NudgeComposer({
+  siteId,
+  recipients,
+  onClose,
+}: {
+  siteId: string;
+  recipients: Guest[];
+  onClose: () => void;
+}) {
+  const [body, setBody] = useState('');
+  const [drafting, setDrafting] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState<number | null>(null);
+
+  // Auto-fire Pear draft on open. Skip when we already have a body
+  // (the host re-opens to send to a different selection).
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/guests/draft-nudge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ siteId, pendingCount: recipients.length }),
+    })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data: { body?: string } | null) => {
+        if (cancelled) return;
+        if (data?.body) setBody(data.body);
+      })
+      .catch(() => { /* keep textarea empty so the host can write their own */ })
+      .finally(() => { if (!cancelled) setDrafting(false); });
+    return () => { cancelled = true; };
+  }, [siteId, recipients.length]);
+
+  async function send() {
+    if (busy) return;
+    if (!body.trim()) {
+      setError('Write a body first.');
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await fetch('/api/guests/nudge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId,
+          guestIds: recipients.map((g) => g.id),
+          bodyText: body,
+        }),
+      });
+      const data = (await r.json()) as { sent?: number; error?: string };
+      if (!r.ok) throw new Error(data.error ?? `Failed (${r.status})`);
+      setSent(data.sent ?? 0);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Send failed.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Send a nudge"
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(14,13,11,0.5)',
+        backdropFilter: 'blur(8px)',
+        zIndex: 360,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 'min(540px, 100%)',
+          background: 'var(--card, #FBF7EE)',
+          borderRadius: 18,
+          padding: 24,
+          boxShadow: '0 32px 60px rgba(14,13,11,0.4)',
+          fontFamily: 'inherit',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+        }}
+      >
+        <div>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--peach-ink, #C6703D)',
+            }}
+          >
+            Pear&apos;s nudge
+          </div>
+          <h3
+            style={{
+              fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+              fontStyle: 'italic',
+              fontSize: 22,
+              margin: '4px 0 0',
+              color: 'var(--ink, #0E0D0B)',
+              lineHeight: 1.2,
+            }}
+          >
+            {sent !== null
+              ? `Nudge sent to ${sent} ${sent === 1 ? 'guest' : 'guests'}.`
+              : `To ${recipients.length} ${recipients.length === 1 ? 'guest' : 'guests'}`}
+          </h3>
+          {sent === null && (
+            <p style={{ fontSize: 12.5, color: 'var(--ink-soft, #3A332C)', margin: '6px 0 0', lineHeight: 1.5 }}>
+              Pear drafted a body in your voice. Edit anything you want, then send.
+              Each email lands in the recipient&apos;s inbox with their personal RSVP link.
+            </p>
+          )}
+        </div>
+
+        {sent === null && (
+          <>
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              rows={6}
+              placeholder={drafting ? 'Pear is drafting…' : 'Write your nudge…'}
+              maxLength={4000}
+              style={{
+                padding: '12px 14px',
+                borderRadius: 10,
+                border: '1.5px solid rgba(14,13,11,0.14)',
+                background: 'var(--paper, #FBF7EE)',
+                fontSize: 13.5,
+                color: 'var(--ink, #0E0D0B)',
+                fontFamily: 'inherit',
+                outline: 'none',
+                resize: 'vertical',
+                minHeight: 120,
+              }}
+              disabled={drafting}
+            />
+            {/* Recipient preview row — first 3 names + count. */}
+            <div style={{ fontSize: 11, color: 'var(--ink-muted, #6F6557)', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <span style={{ fontWeight: 700, letterSpacing: '0.04em' }}>RECIPIENTS:</span>
+              {recipients.slice(0, 3).map((g) => (
+                <span key={g.id}>{g.n.split(' ')[0]}</span>
+              ))}
+              {recipients.length > 3 && <span>+ {recipients.length - 3} more</span>}
+            </div>
+            {error && (
+              <div
+                role="alert"
+                style={{
+                  padding: '8px 12px',
+                  background: 'rgba(122,45,45,0.08)',
+                  border: '1px solid rgba(122,45,45,0.22)',
+                  borderRadius: 8,
+                  color: '#7A2D2D',
+                  fontSize: 12,
+                }}
+              >
+                {error}
+              </div>
+            )}
+          </>
+        )}
+
+        <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+          {sent !== null ? (
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                flex: 1,
+                padding: '10px 16px',
+                borderRadius: 999,
+                background: 'var(--ink, #0E0D0B)',
+                color: 'var(--cream, #FBF7EE)',
+                border: 'none',
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              Done
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={send}
+                disabled={busy || drafting || !body.trim()}
+                style={{
+                  flex: 1,
+                  padding: '10px 16px',
+                  borderRadius: 999,
+                  background: busy || drafting || !body.trim() ? 'var(--cream-2, #F5EFE2)' : 'var(--ink, #0E0D0B)',
+                  color: busy || drafting || !body.trim() ? 'var(--ink-muted, #6F6557)' : 'var(--cream, #FBF7EE)',
+                  border: 'none',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: busy ? 'wait' : drafting ? 'wait' : !body.trim() ? 'not-allowed' : 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {busy ? 'Sending…' : `Send to ${recipients.length}`}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={busy}
+                style={{
+                  padding: '10px 16px',
+                  borderRadius: 999,
+                  background: 'transparent',
+                  color: 'var(--ink-soft, #3A332C)',
+                  border: '1px solid var(--line, rgba(14,13,11,0.14))',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Cancel
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Inline email lifecycle pips: 📨 sent → ✓ delivered → 👁 opened.
+ *  Bounced overrides the chain with a single terra pip. Each pip
+ *  is small (~6px) so the row stays visually quiet. Hovering any
+ *  pip shows its exact timestamp. */
+function EmailTrackingStrip({
+  sentAt,
+  deliveredAt,
+  openedAt,
+  bouncedAt,
+}: {
+  sentAt: string | null;
+  deliveredAt: string | null;
+  openedAt: string | null;
+  bouncedAt: string | null;
+}) {
+  if (bouncedAt) {
+    return (
+      <div
+        style={{
+          fontSize: 10,
+          color: PD.terra,
+          fontWeight: 700,
+          letterSpacing: '0.04em',
+          marginTop: 1,
+        }}
+        title={`Bounced ${new Date(bouncedAt).toLocaleString()}`}
+      >
+        ⚠ bounced — wrong address?
+      </div>
+    );
+  }
+  type Pip = { label: string; ts: string | null; tone: string };
+  const pips: Pip[] = [
+    { label: 'sent', ts: sentAt, tone: '#9A9488' },
+    { label: 'delivered', ts: deliveredAt, tone: '#9A9488' },
+    { label: 'opened', ts: openedAt, tone: PD.olive },
+  ];
+  if (!pips.some((p) => p.ts)) return null;
+  return (
+    <div
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
+        marginTop: 2,
+        fontSize: 9.5,
+        color: '#9A9488',
+        letterSpacing: '0.04em',
+      }}
+    >
+      {pips.map((p, i) => {
+        const lit = !!p.ts;
+        return (
+          <span key={p.label} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <span
+              aria-hidden
+              title={p.ts ? `${p.label} ${new Date(p.ts).toLocaleString()}` : `not ${p.label} yet`}
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: 999,
+                background: lit ? p.tone : 'rgba(14,13,11,0.12)',
+                transition: 'background 200ms ease',
+              }}
+            />
+            {lit && (
+              <span style={{ color: p.tone, fontWeight: 600 }}>{p.label}</span>
+            )}
+            {i < pips.length - 1 && lit && <span aria-hidden style={{ opacity: 0.4 }}>→</span>}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+function relativeTime(iso: string): string {
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return '';
+  const delta = Date.now() - t;
+  const min = Math.round(delta / 60_000);
+  if (min < 1) return 'just now';
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const d = Math.round(hr / 24);
+  if (d === 1) return 'yesterday';
+  if (d < 30) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+const rsvpMap: Record<RsvpKey, { bg: string; fg: string; label: string }> = {
+  yes: { bg: '#E6EAC8', fg: PD.oliveDeep, label: 'Yes' },
+  no: { bg: '#F1D7CE', fg: PD.plum, label: 'No' },
+  maybe: { bg: '#F4E1BC', fg: PD.gold, label: 'Maybe' },
+  pending: { bg: '#E6DFC9', fg: '#6A6A56', label: 'Pending' },
+};
+
+function normaliseStatus(s: string): RsvpKey {
+  const v = s.toLowerCase();
+  if (v === 'attending' || v === 'yes' || v === 'confirmed') return 'yes';
+  if (v === 'declined' || v === 'no') return 'no';
+  if (v === 'maybe' || v === 'tentative') return 'maybe';
+  return 'pending';
+}
+
+function shapeGuest(g: ApiGuest): Guest {
+  const tags: string[] = [];
+  if (g.dietaryRestrictions) tags.push('dietary');
+  if (g.plusOne) tags.push('plus-one');
+  const status = normaliseStatus(g.status);
+  const invitedAt = g.invitedAt ?? g.createdAt ?? null;
+  const stale = isStale(invitedAt, status);
+  const opened = !!g.emailOpenedAt && status === 'pending';
+  if (stale) tags.push('stale');
+  if (opened) tags.push('opened');
+  return {
+    id: g.id,
+    n: g.name,
+    em: g.email || '—',
+    party: g.plusOne ? `${g.name.split(' ')[0]} + 1${g.plusOneName ? ` (${g.plusOneName})` : ''}` : g.name,
+    rsvp: status,
+    meal: g.mealPreference || '—',
+    note:
+      (g.dietaryRestrictions ? `${g.dietaryRestrictions}. ` : '') + (g.message ?? ''),
+    tags,
+    invitedAt,
+    respondedAt: g.respondedAt,
+    emailSentAt: g.emailSentAt ?? null,
+    emailDeliveredAt: g.emailDeliveredAt ?? null,
+    emailOpenedAt: g.emailOpenedAt ?? null,
+    emailBouncedAt: g.emailBouncedAt ?? null,
+    token: g.guestToken ?? null,
+    stale,
+    opened,
+    eventIds: g.eventIds ?? [],
+  };
+}
+
+export function DashGuests() {
+  const { site, loading: siteLoading } = useSelectedSite();
+  const { sites } = useUserSites();
+  // Tagged result so loading + error + rows all derive from
+  // a single state value — no setState-in-effect cascade.
+  type GuestsResult = {
+    siteId: string;
+    rows: Guest[] | null;  // null = no site selected branch
+    error: string | null;
+  };
+  const [result, setResult] = useState<GuestsResult | null>(null);
+  // 'stale' is a virtual filter — not on the row's RSVP status,
+  // but on its lifecycle (invited >7d ago, no response). Lives
+  // alongside the rsvp keys so the same pill UI handles both.
+  const [filter, setFilter] = useState<RsvpKey | 'all' | 'stale'>('all');
+  const [q, setQ] = useState('');
+  const [importOpen, setImportOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    if (!site?.id) return;
+    let cancelled = false;
+    const currentSiteId = site.id;
+    fetch(`/api/guests?siteId=${encodeURIComponent(currentSiteId)}`, { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((data: { guests?: ApiGuest[] }) => {
+        if (cancelled) return;
+        setResult({
+          siteId: currentSiteId,
+          rows: (data.guests ?? []).map(shapeGuest),
+          error: null,
+        });
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        setResult({
+          siteId: currentSiteId,
+          rows: null,
+          error: e instanceof Error ? e.message : String(e),
+        });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [site?.id, refreshKey]);
+
+  // Derived from the tagged result. `loading` is true until the
+  // fetch for the current site.id lands.
+  const loading = site?.id ? (result?.siteId !== site.id) : false;
+  const rows = result?.rows ?? null;
+  const error = result?.error ?? null;
+
+  const counts = useMemo(() => {
+    const base = { all: 0, yes: 0, no: 0, maybe: 0, pending: 0, stale: 0, opened: 0, bounced: 0 };
+    if (!rows) return base;
+    base.all = rows.length;
+    for (const g of rows) {
+      base[g.rsvp] += 1;
+      if (g.stale) base.stale += 1;
+      if (g.opened) base.opened += 1;
+      if (g.emailBouncedAt) base.bounced += 1;
+    }
+    return base;
+  }, [rows]);
+
+  // Per-event roster from the manifest. When a site has 2+ events
+  // (rehearsal dinner / ceremony / reception / brunch), the host
+  // gets a headcount strip per event so caterers / venues / bars
+  // can plan from real numbers instead of "everyone's coming".
+  const events = useMemo<ManifestEvent[]>(() => {
+    const m = site?.manifest as { events?: ManifestEvent[] } | undefined | null;
+    return Array.isArray(m?.events) ? m!.events : [];
+  }, [site?.manifest]);
+  const showPerEvent = events.length > 1;
+  // For each event, count how many "yes" guests have it on their
+  // selected list. Only attending guests count — declined guests
+  // technically have an event_ids array but they're not coming, so
+  // including them would be misleading.
+  const perEventCounts = useMemo(() => {
+    const out: Record<string, { yes: number; maybe: number }> = {};
+    if (!rows || !showPerEvent) return out;
+    for (const ev of events) out[ev.id] = { yes: 0, maybe: 0 };
+    for (const g of rows) {
+      if (g.rsvp !== 'yes' && g.rsvp !== 'maybe') continue;
+      const ids = g.eventIds.length > 0 ? g.eventIds : events.map((e) => e.id);
+      for (const id of ids) {
+        if (!out[id]) continue;
+        out[id][g.rsvp] += 1;
+      }
+    }
+    return out;
+  }, [rows, events, showPerEvent]);
+
+  const filtered = useMemo(() => {
+    if (!rows) return [];
+    return rows.filter(
+      (g) => {
+        const rsvpMatch =
+          filter === 'all' ? true
+          : filter === 'stale' ? g.stale
+          : g.rsvp === filter;
+        const queryMatch = q === '' || (g.n + g.note + g.tags.join(' ')).toLowerCase().includes(q.toLowerCase());
+        return rsvpMatch && queryMatch;
+      }
+    );
+  }, [rows, filter, q]);
+
+  if (!siteLoading && (!sites || sites.length === 0)) {
+    return (
+      <DashLayout active="guests" title="Guests" subtitle="Create a site first, then invite guests.">
+        <EmptyShell message="Create a site first, then invite guests." />
+      </DashLayout>
+    );
+  }
+  if (!site) {
+    return (
+      <DashLayout active="guests" title="Guests" subtitle="Pick a site from the top-right menu to see its guests.">
+        <EmptyShell message="Pick a site from the top-right menu to see its guests." />
+      </DashLayout>
+    );
+  }
+
+  const siteName = siteDisplayName(site);
+  const capacity = Math.max(rows?.length ?? 0, counts.yes + counts.pending + counts.maybe, 1);
+  const hasGuests = (rows?.length ?? 0) > 0;
+  const copy = guestCopy(site?.occasion);
+
+  return (
+    <DashLayout
+      active="guests"
+      title={
+        hasGuests ? (
+          <span>
+            <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+              {counts.yes}
+            </i>{' '}
+            {copy.verbComing},{' '}
+            <i style={{ color: PD.gold, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+              {counts.maybe}
+            </i>{' '}
+            maybe,{' '}
+            <i style={{ color: PD.plum, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+              {counts.pending}
+            </i>{' '}
+            {copy.verbQuiet}.
+          </span>
+        ) : (
+          <span>
+            No guests{' '}
+            <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+              yet.
+            </i>
+          </span>
+        )
+      }
+      subtitle={
+        <>
+          {copy.topSubtitle}
+          {siteName ? ` · ${siteName}.` : '.'}
+          {site?.occasion === 'memorial' || site?.occasion === 'funeral'
+            ? ' Pear checks in quietly — no follow-ups unless you ask.'
+            : ' Pear is following up on the quiet ones once a week.'}
+        </>
+      }
+      actions={
+        <>
+          <button style={btnGhost} onClick={() => setImportOpen(true)}>Import CSV</button>
+          <button style={btnInk} onClick={() => setAddOpen(true)} disabled={!site?.id}>
+            ✦ Add a guest
+          </button>
+        </>
+      }
+    >
+
+      <main
+        className="pd-guests-main"
+        style={{
+          padding: '0 clamp(20px, 4vw, 40px) 32px',
+          maxWidth: 1240,
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: '1fr 320px',
+          gap: 20,
+          alignItems: 'flex-start',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* STATS */}
+          <div
+            className="pd-guests-stats pl8-dash-stagger"
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 10 }}
+          >
+            {[
+              { l: 'Invited', v: counts.all, c: PD.stone },
+              { l: 'Yes', v: counts.yes, c: PD.olive },
+              { l: 'Maybe', v: counts.maybe, c: PD.gold },
+              { l: 'Pending', v: counts.pending, c: PD.plum },
+              { l: 'Stale', v: counts.stale, c: PD.terra, hint: '> 7 days, no reply' },
+              { l: 'Declined', v: counts.no, c: PD.stone },
+            ].map((s) => (
+              <Panel key={s.l} bg={PD.paperCard} style={{ padding: '14px 16px' }}>
+                <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 6 }}>
+                  {s.l.toUpperCase()}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                  <div
+                    style={{
+                      ...DISPLAY_STYLE,
+                      fontSize: 34,
+                      lineHeight: 1,
+                      fontWeight: 400,
+                      letterSpacing: '-0.02em',
+                    }}
+                  >
+                    {s.v}
+                  </div>
+                  <div
+                    style={{
+                      flex: 1,
+                      height: 5,
+                      background: PD.paper3,
+                      borderRadius: 99,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${Math.min(100, (s.v / capacity) * 100)}%`,
+                        height: '100%',
+                        background: s.c,
+                        borderRadius: 99,
+                      }}
+                    />
+                  </div>
+                </div>
+              </Panel>
+            ))}
+          </div>
+
+          {/* PER-EVENT HEADCOUNT — only when there are 2+ events.
+              Each card shows the event name + "X yes · Y maybe"
+              so caterers + venues see the real numbers per moment. */}
+          {showPerEvent && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.6, padding: '0 4px' }}>
+                BY EVENT
+              </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(${Math.min(4, events.length)}, 1fr)`,
+                  gap: 10,
+                }}
+              >
+                {events.map((ev) => {
+                  const c = perEventCounts[ev.id] ?? { yes: 0, maybe: 0 };
+                  return (
+                    <Panel key={ev.id} bg={PD.paperCard} style={{ padding: '12px 14px' }}>
+                      <div
+                        style={{
+                          fontSize: 11.5,
+                          fontWeight: 600,
+                          color: PD.ink,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {ev.name ?? 'Event'}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 6 }}>
+                        <span
+                          style={{
+                            ...DISPLAY_STYLE,
+                            fontSize: 26,
+                            lineHeight: 1,
+                            color: PD.olive,
+                            fontWeight: 400,
+                          }}
+                        >
+                          {c.yes}
+                        </span>
+                        <span style={{ fontSize: 11, color: '#6A6A56' }}>yes</span>
+                        {c.maybe > 0 && (
+                          <>
+                            <span style={{ fontSize: 11, color: PD.gold, marginLeft: 8 }}>· {c.maybe} maybe</span>
+                          </>
+                        )}
+                      </div>
+                      {ev.time && (
+                        <div style={{ fontSize: 10.5, color: '#9A9488', marginTop: 4 }}>
+                          {ev.time}
+                        </div>
+                      )}
+                    </Panel>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* NUDGE — when N guests opened the invite but haven't
+              replied, surface a one-line peach pill. Tapping
+              "Send a nudge" opens the composer with Pear's draft
+              pre-loaded and the recipient list set to those guests.
+              "See pending" still filters the table for hosts who
+              prefer to handle each one manually. */}
+          {counts.opened > 0 && rows && (
+            <NudgeStrip
+              count={counts.opened}
+              recipients={rows.filter((g) => g.opened)}
+              siteId={site?.id ?? site?.domain ?? ''}
+              onSeePending={() => setFilter('pending')}
+            />
+          )}
+
+          {/* TABLE */}
+          <Panel bg={PD.paper} padding={0} style={{ overflow: 'hidden' }}>
+            <div
+              style={{
+                padding: '12px 14px',
+                display: 'flex',
+                gap: 8,
+                alignItems: 'center',
+                borderBottom: '1px solid rgba(31,36,24,0.08)',
+                flexWrap: 'wrap',
+              }}
+            >
+              {([
+                { k: 'all', l: `All · ${counts.all}` },
+                { k: 'yes', l: `Yes · ${counts.yes}` },
+                { k: 'pending', l: `Pending · ${counts.pending}` },
+                { k: 'stale', l: `Stale · ${counts.stale}` },
+                { k: 'maybe', l: `Maybe · ${counts.maybe}` },
+                { k: 'no', l: `No · ${counts.no}` },
+              ] as const).map((t) => (
+                <button
+                  key={t.k}
+                  onClick={() => setFilter(t.k)}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: 12,
+                    borderRadius: 999,
+                    background: filter === t.k ? PD.ink : 'transparent',
+                    color: filter === t.k ? PD.paper : PD.ink,
+                    border: `1px solid ${filter === t.k ? PD.ink : 'rgba(31,36,24,0.18)'}`,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    fontWeight: 500,
+                  }}
+                >
+                  {t.l}
+                </button>
+              ))}
+              <div style={{ flex: 1 }} />
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: PD.paper3,
+                  borderRadius: 999,
+                  padding: '5px 12px',
+                  border: '1px solid rgba(31,36,24,0.1)',
+                }}
+              >
+                <span style={{ fontSize: 11, opacity: 0.5, fontFamily: '"Fraunces", Georgia, serif' }}>
+                  ✦
+                </span>
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="Search by name, tag, or note"
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    outline: 'none',
+                    fontSize: 12,
+                    fontFamily: 'inherit',
+                    width: 200,
+                    color: PD.ink,
+                  }}
+                />
+              </div>
+            </div>
+
+            {loading ? (
+              <div style={{ padding: 60, textAlign: 'center', color: PD.inkSoft, fontSize: 13 }}>
+                Threading your guest list…
+              </div>
+            ) : error ? (
+              <div style={{ padding: 40, color: PD.terra, fontSize: 13 }}>
+                Couldn&rsquo;t load guests: {error}
+              </div>
+            ) : !hasGuests ? (
+              <div style={{ padding: 60, textAlign: 'center' }}>
+                <div
+                  style={{
+                    ...DISPLAY_STYLE,
+                    fontSize: 22,
+                    fontStyle: 'italic',
+                    color: PD.olive,
+                    marginBottom: 10,
+                    fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                  }}
+                >
+                  No guests yet.
+                </div>
+                <div
+                  style={{
+                    fontSize: 13.5,
+                    color: PD.inkSoft,
+                    maxWidth: 420,
+                    margin: '0 auto',
+                    lineHeight: 1.5,
+                    fontFamily: 'var(--pl-font-body)',
+                  }}
+                >
+                  {copy.emptyHint}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div
+                  className="pd-guests-head"
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1.3fr 1fr 0.7fr 1.5fr 90px',
+                    padding: '10px 18px',
+                    background: PD.paper3,
+                    borderBottom: '1px solid rgba(31,36,24,0.08)',
+                  }}
+                >
+                  {['Guest', 'Party', 'RSVP', 'Note', copy.fifthColumn].map((h) => (
+                    <div key={h} style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55 }}>
+                      {h.toUpperCase()}
+                    </div>
+                  ))}
+                </div>
+                {filtered.map((g, i) => {
+                  const r = rsvpMap[g.rsvp];
+                  return (
+                    <div
+                      key={g.id}
+                      className="pd-guests-row"
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1.3fr 1fr 0.7fr 1.5fr 90px',
+                        padding: '14px 18px',
+                        borderBottom:
+                          i < filtered.length - 1 ? '1px solid rgba(31,36,24,0.06)' : 'none',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div
+                          style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: 99,
+                            background: `hsl(${(i * 47) % 360} 30% 72%)`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: PD.ink,
+                            fontFamily: '"Fraunces", Georgia, serif',
+                            fontStyle: 'italic',
+                          }}
+                        >
+                          {g.n.split(' ').map((p) => p[0]).slice(0, 2).join('')}
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              fontSize: 13.5,
+                              fontWeight: 500,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {g.token ? (
+                              <a
+                                href={`/g/${g.token}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={{ color: 'inherit', textDecoration: 'none' }}
+                                title="Open this guest's personal page"
+                              >
+                                {g.n}
+                              </a>
+                            ) : g.n}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 11,
+                              color: '#6A6A56',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {g.em}
+                          </div>
+                          {(g.invitedAt || g.respondedAt) && (
+                            <div
+                              style={{
+                                fontSize: 10.5,
+                                color: g.stale ? PD.terra : '#9A9488',
+                                marginTop: 2,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}
+                            >
+                              {g.invitedAt && (
+                                <span title={`Invited ${new Date(g.invitedAt).toLocaleString()}`}>
+                                  Invited {relativeTime(g.invitedAt)}
+                                </span>
+                              )}
+                              {g.invitedAt && g.respondedAt && <span aria-hidden>·</span>}
+                              {g.respondedAt && (
+                                <span title={`Replied ${new Date(g.respondedAt).toLocaleString()}`}>
+                                  Replied {relativeTime(g.respondedAt)}
+                                </span>
+                              )}
+                              {g.stale && !g.respondedAt && (
+                                <span
+                                  style={{
+                                    color: PD.terra,
+                                    fontWeight: 700,
+                                    letterSpacing: '0.04em',
+                                  }}
+                                >
+                                  · stale
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {/* Email tracking pips — sent → delivered →
+                              opened → clicked. Each pip lights up
+                              when the timestamp lands. Bounced shows
+                              a single peach pip + "bounced" label
+                              instead of the chain (the message
+                              never made it). */}
+                          {(g.emailSentAt || g.emailDeliveredAt || g.emailOpenedAt || g.emailBouncedAt) && (
+                            <EmailTrackingStrip
+                              sentAt={g.emailSentAt}
+                              deliveredAt={g.emailDeliveredAt}
+                              openedAt={g.emailOpenedAt}
+                              bouncedAt={g.emailBouncedAt}
+                            />
+                          )}
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 13 }}>{g.party}</div>
+                      <div>
+                        <span
+                          style={{
+                            ...MONO_STYLE,
+                            fontSize: 10,
+                            padding: '4px 10px',
+                            borderRadius: 999,
+                            background: r.bg,
+                            color: r.fg,
+                            border: `1px solid ${r.fg}26`,
+                          }}
+                        >
+                          {r.label}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 12.5,
+                          color: PD.inkSoft,
+                          lineHeight: 1.4,
+                          fontFamily: 'var(--pl-font-body)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 4,
+                        }}
+                      >
+                        {g.note ? <span>{g.note}</span> : !showPerEvent || g.eventIds.length === 0 || g.eventIds.length === events.length ? (
+                          <span style={{ opacity: 0.3 }}>—</span>
+                        ) : null}
+                        {/* Event chips — only when the guest opted INTO a
+                            specific subset (skipped at least one event).
+                            Default-all selections render as the dash
+                            instead of a noisy full-row of chips. */}
+                        {showPerEvent && g.eventIds.length > 0 && g.eventIds.length < events.length && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                            {events.filter((ev) => g.eventIds.includes(ev.id)).slice(0, 4).map((ev) => (
+                              <span
+                                key={ev.id}
+                                style={{
+                                  ...MONO_STYLE,
+                                  fontSize: 9,
+                                  padding: '2px 7px',
+                                  borderRadius: 999,
+                                  background: 'rgba(139,156,90,0.18)',
+                                  color: PD.oliveDeep,
+                                }}
+                              >
+                                {ev.name ?? 'Event'}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          textTransform: 'capitalize',
+                          color: '#6A6A56',
+                        }}
+                      >
+                        {g.meal}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Panel>
+        </div>
+
+        {/* RIGHT insights */}
+        <div
+          className="pd-guests-right"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
+            position: 'sticky',
+            top: 72,
+          }}
+        >
+          <Panel
+            bg={PD.ink}
+            style={{
+              color: PD.paper,
+              padding: 22,
+              border: 'none',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <div style={{ position: 'absolute', top: -20, right: -20, opacity: 0.4 }} aria-hidden>
+              <Bloom size={100} color={PD.butter} centerColor={PD.terra} speed={9} />
+            </div>
+            <div style={{ ...MONO_STYLE, fontSize: 9, color: PD.butter, marginBottom: 6 }}>
+              PEAR NOTICED
+            </div>
+            <div
+              style={{
+                ...DISPLAY_STYLE,
+                fontSize: 20,
+                lineHeight: 1.25,
+                fontWeight: 400,
+                fontStyle: 'italic',
+                marginBottom: 16,
+                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+              }}
+            >
+              {counts.pending > 0
+                ? `${counts.pending} ${counts.pending === 1 ? 'guest hasn’t' : 'guests haven’t'} responded yet. Want me to send a warm nudge?`
+                : counts.yes === 0
+                ? 'No RSVPs yet. Want me to send the invitation?'
+                : 'Everyone accounted for. Nice.'}
+            </div>
+          </Panel>
+
+          <Panel bg={PD.paperDeep} style={{ padding: 20 }}>
+            <SectionTitle
+              eyebrow="SOFT INSIGHTS"
+              title="Small things"
+              italic="matter."
+              accent={PD.gold}
+              style={{ marginBottom: 14 }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 10,
+                fontSize: 13,
+                color: PD.inkSoft,
+                lineHeight: 1.5,
+                fontFamily: 'var(--pl-font-body)',
+              }}
+            >
+              <Insight label="Dietary notes" n={rows?.filter((r) => r.tags.includes('dietary')).length ?? 0} total="guests" />
+              <Insight label="Plus-ones confirmed" n={rows?.filter((r) => r.tags.includes('plus-one') && r.rsvp === 'yes').length ?? 0} total="guests" />
+              <Insight label="Messages left" n={rows?.filter((r) => r.note.length > 0).length ?? 0} total="notes" />
+            </div>
+          </Panel>
+        </div>
+      </main>
+
+      <style jsx>{`
+        @media (max-width: 1100px) {
+          :global(.pd-guests-main) {
+            grid-template-columns: 1fr !important;
+          }
+          :global(.pd-guests-right) {
+            position: relative !important;
+            top: auto !important;
+          }
+        }
+        @media (max-width: 760px) {
+          :global(.pd-guests-stats) {
+            grid-template-columns: 1fr 1fr !important;
+          }
+          :global(.pd-guests-head),
+          :global(.pd-guests-row) {
+            grid-template-columns: 1fr 0.6fr !important;
+          }
+          :global(.pd-guests-head) > *:nth-child(n + 3),
+          :global(.pd-guests-row) > *:nth-child(n + 3) {
+            display: none;
+          }
+        }
+      `}</style>
+
+      {/* CSV import — opens modal, refreshes guest list on close. */}
+      <GuestImportDialog
+        siteId={site.id}
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImported={() => setRefreshKey((k) => k + 1)}
+      />
+      {addOpen && (
+        <AddGuestDialog
+          siteId={site.id}
+          onClose={() => setAddOpen(false)}
+          onAdded={() => {
+            setAddOpen(false);
+            setRefreshKey((k) => k + 1);
+          }}
+        />
+      )}
+    </DashLayout>
+  );
+}
+
+// ── AddGuestDialog ────────────────────────────────────────────
+// Lightweight modal that posts to POST /api/guests with the host's
+// inputs and asks DashGuests to refresh on success. Kept local to
+// the page since the only consumer is this one button — no need
+// for a shared primitive yet.
+function AddGuestDialog({
+  siteId,
+  onClose,
+  onAdded,
+}: {
+  siteId: string;
+  onClose: () => void;
+  onAdded: () => void;
+}) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [plusOne, setPlusOne] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (busy) return;
+    if (!name.trim()) {
+      setError('Name is required.');
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/guests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId,
+          name: name.trim(),
+          email: email.trim() || undefined,
+          plusOne,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error ?? `Failed (${res.status})`);
+      }
+      onAdded();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not add guest.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Add a guest"
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(14,13,11,0.46)',
+        backdropFilter: 'blur(2px)',
+        WebkitBackdropFilter: 'blur(2px)',
+        display: 'grid',
+        placeItems: 'center',
+        zIndex: 600,
+        padding: 16,
+        animation: 'pl-enter-fade-in 200ms ease both',
+      }}
+    >
+      <form
+        onSubmit={submit}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 'min(440px, 100%)',
+          background: PD.paperCard,
+          borderRadius: 18,
+          padding: '24px 24px 20px',
+          boxShadow: '0 28px 60px rgba(14,13,11,0.32)',
+          fontFamily: 'var(--pl-font-body)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+        }}
+      >
+        <div>
+          <div
+            style={{
+              ...MONO_STYLE,
+              fontSize: 10,
+              letterSpacing: '0.22em',
+              color: PD.terra,
+              textTransform: 'uppercase',
+              marginBottom: 6,
+            }}
+          >
+            Add a guest
+          </div>
+          <h2
+            style={{
+              ...DISPLAY_STYLE,
+              fontSize: 24,
+              margin: 0,
+              fontWeight: 600,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            One name at a time.
+          </h2>
+          <p style={{ margin: '6px 0 0', fontSize: 13, color: PD.inkSoft, lineHeight: 1.5 }}>
+            We&apos;ll mark them as pending — Pear can email when you&apos;re ready, or they can RSVP through the link.
+          </p>
+        </div>
+
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: PD.ink }}>Name</span>
+          <input
+            autoFocus
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Jordan Alex"
+            style={inputStyle}
+          />
+        </label>
+
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: PD.ink }}>Email <span style={{ color: PD.inkSoft, fontWeight: 400, opacity: 0.7 }}>(optional)</span></span>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="jordan@example.com"
+            style={inputStyle}
+          />
+        </label>
+
+        <label
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '10px 12px',
+            background: 'rgba(31,36,24,0.04)',
+            borderRadius: 10,
+            cursor: 'pointer',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={plusOne}
+            onChange={(e) => setPlusOne(e.target.checked)}
+            style={{ width: 16, height: 16, accentColor: PD.olive }}
+          />
+          <span style={{ fontSize: 13, color: PD.ink }}>Allow a plus-one</span>
+        </label>
+
+        {error && (
+          <div
+            role="alert"
+            style={{
+              fontSize: 12,
+              color: '#7A2D2D',
+              background: 'rgba(122,45,45,0.08)',
+              padding: '8px 10px',
+              borderRadius: 8,
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}>
+          <button type="button" onClick={onClose} style={btnGhost}>
+            Cancel
+          </button>
+          <button type="submit" disabled={busy} style={{ ...btnInk, opacity: busy ? 0.6 : 1 }}>
+            {busy ? 'Adding…' : 'Add guest'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+const inputStyle: CSSProperties = {
+  width: '100%',
+  padding: '11px 14px',
+  background: PD.paper,
+  border: `1.5px solid ${PD.line}`,
+  borderRadius: 10,
+  fontSize: 13.5,
+  color: PD.ink,
+  fontFamily: 'inherit',
+  outline: 'none',
+  boxSizing: 'border-box',
+};
+
+function Insight({ label, n, total }: { label: string; n: number; total: string }) {
+  const style: CSSProperties = { padding: '10px 12px', background: PD.paperCard, borderRadius: 10 };
+  return (
+    <div style={style}>
+      <span style={{ fontWeight: 600 }}>
+        {n} {n === 1 ? total.slice(0, -1) : total}
+      </span>{' '}
+      — {label}
+    </div>
+  );
+}

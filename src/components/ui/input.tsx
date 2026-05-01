@@ -13,7 +13,7 @@ const Label = forwardRef<
   <LabelPrimitive.Root
     ref={ref}
     className={cn(
-      'text-[0.72rem] font-bold uppercase tracking-[0.1em] text-[var(--pl-muted)]',
+      'text-[var(--pl-font-label)] font-bold uppercase tracking-[var(--pl-label-tracking)] text-[var(--pl-muted)]',
       'peer-disabled:cursor-not-allowed peer-disabled:opacity-60',
       className,
     )}
@@ -44,7 +44,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         <div
           className={cn(
             'flex items-center bg-white rounded-[var(--pl-radius-sm)]',
-            'border-[1.5px] transition-all duration-200',
+            'border-[1.5px] transition-all duration-300',
             focused
               ? 'border-[var(--pl-olive)] shadow-[0_0_0_3px_rgba(163,177,138,0.22)]'
               : error
@@ -64,7 +64,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               'flex-1 min-w-0 bg-transparent outline-none',
               'text-[max(16px,0.92rem)] leading-none text-[var(--pl-ink)]',
               'font-body',
-              'placeholder:text-[var(--pl-muted)] placeholder:opacity-55',
+              'placeholder:text-[var(--pl-muted)] placeholder:opacity-55 placeholder:italic placeholder:font-heading',
               prefix ? 'py-2.5 pr-3' : 'px-3.5 py-2.5',
               suffix && 'pr-0',
               className,

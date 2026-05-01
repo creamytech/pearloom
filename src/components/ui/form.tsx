@@ -115,7 +115,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
           <SelectPrimitive.Trigger
             ref={ref}
             className={cn(
-              'flex items-center justify-between w-full rounded-[var(--eg-radius-sm)] border-[1.5px] bg-white px-3 py-2.5',
+              'flex items-center justify-between w-full rounded-[var(--pl-radius-sm)] border-[1.5px] bg-white px-3 py-2.5',
               'text-[max(16px,1rem)] text-foreground font-body',
               'outline-none cursor-pointer transition-all duration-200',
               'focus:border-ring focus:shadow-[0_0_0_3px_rgba(163,177,138,0.12)]',
@@ -133,7 +133,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
             <SelectPrimitive.Content
               className={cn(
                 'relative z-50 min-w-[8rem] overflow-hidden',
-                'bg-white rounded-xl border border-[rgba(0,0,0,0.08)]',
+                'bg-white/92 backdrop-blur-md rounded-xl border border-[rgba(0,0,0,0.06)]',
                 'shadow-[0_4px_20px_rgba(43,30,20,0.12),0_8px_30px_rgba(43,30,20,0.07)]',
                 'data-[state=open]:animate-in data-[state=closed]:animate-out',
                 'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
@@ -193,7 +193,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
           ref={ref}
           type="date"
           className={cn(
-            'w-full rounded-[var(--eg-radius-sm)] border-[1.5px] bg-white px-3 py-2.5',
+            'w-full rounded-[var(--pl-radius-sm)] border-[1.5px] bg-white px-3 py-2.5',
             'text-[max(16px,1rem)] text-foreground font-body',
             'outline-none cursor-pointer transition-all duration-200',
             'focus:border-ring focus:shadow-[0_0_0_3px_rgba(163,177,138,0.12)]',
@@ -230,7 +230,7 @@ export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
           ref={ref}
           type="time"
           className={cn(
-            'w-full rounded-[var(--eg-radius-sm)] border-[1.5px] bg-white px-3 py-2.5',
+            'w-full rounded-[var(--pl-radius-sm)] border-[1.5px] bg-white px-3 py-2.5',
             'text-[max(16px,1rem)] text-foreground font-body',
             'outline-none cursor-pointer transition-all duration-200',
             'focus:border-ring focus:shadow-[0_0_0_3px_rgba(163,177,138,0.12)]',

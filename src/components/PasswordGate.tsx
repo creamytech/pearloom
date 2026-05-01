@@ -36,20 +36,23 @@ const shakeKeyframes = `
 `;
 
 export function PasswordGate({ siteId, coupleNames, password, vibeSkin, children }: PasswordGateProps) {
-  const [unlocked, setUnlocked]   = useState(false);
+  // Lazy useState init reads sessionStorage once on first
+  // mount — no follow-up useEffect needed (was triggering a
+  // setState-in-effect cascade per react-hooks/set-state-in-effect).
+  const [unlocked, setUnlocked] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return sessionStorage.getItem(SESSION_KEY(siteId)) === '1';
+    } catch {
+      return false;
+    }
+  });
   const [input, setInput]         = useState('');
   const [error, setError]         = useState('');
   const [showPw, setShowPw]       = useState(false);
   const [loading, setLoading]     = useState(false);
   const [shaking, setShaking]     = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    // Check if already unlocked in this session
-    if (sessionStorage.getItem(SESSION_KEY(siteId)) === '1') {
-      setUnlocked(true);
-    }
-  }, [siteId]);
 
   // Auto-focus on mount
   useEffect(() => {
@@ -73,7 +76,7 @@ export function PasswordGate({ siteId, coupleNames, password, vibeSkin, children
     // Simple client-side check (plaintext) — good enough for wedding sites
     // For higher security, swap to an API call that checks hashed pw server-side
     if (input.trim().toLowerCase() === password.trim().toLowerCase()) {
-      sessionStorage.setItem(SESSION_KEY(siteId), '1');
+      try { sessionStorage.setItem(SESSION_KEY(siteId), '1'); } catch { /* Safari Private — host stays unlocked for the page anyway */ }
       setUnlocked(true);
     } else {
       setError('Wrong password. Try again or ask the couple!');
@@ -91,7 +94,7 @@ export function PasswordGate({ siteId, coupleNames, password, vibeSkin, children
 
   if (unlocked) return <>{children}</>;
 
-  const accentColor = vibeSkin?.particleColor || '#A3B18A';
+  const accentColor = vibeSkin?.particleColor || '#5C6B3F';
   const bgColor = '#F5F1E8';
 
   return (
@@ -105,7 +108,7 @@ export function PasswordGate({ siteId, coupleNames, password, vibeSkin, children
         alignItems: 'center',
         justifyContent: 'center',
         padding: '2rem',
-        fontFamily: 'var(--eg-font-body)',
+        fontFamily: 'var(--pl-font-body)',
       }}>
         {/* Brand mark at top */}
         <div style={{ marginBottom: '2.5rem' }}>
@@ -142,11 +145,11 @@ export function PasswordGate({ siteId, coupleNames, password, vibeSkin, children
           </div>
 
           <h1 style={{
-            fontFamily: 'var(--eg-font-heading)',
+            fontFamily: 'var(--pl-font-heading)',
             fontSize: '2rem',
             fontWeight: 400,
             letterSpacing: '-0.02em',
-            color: '#2B2B2B',
+            color: 'var(--pl-ink-soft)',
             marginBottom: '0.5rem',
           }}>
             This site is private
@@ -182,10 +185,10 @@ export function PasswordGate({ siteId, coupleNames, password, vibeSkin, children
                   fontSize: 'max(16px, 1rem)',
                   background: 'transparent',
                   outline: 'none',
-                  fontFamily: 'var(--eg-font-body)',
+                  fontFamily: 'var(--pl-font-body)',
                   boxSizing: 'border-box',
-                  color: '#2B2B2B',
-                  transition: 'border-color 0.2s',
+                  color: 'var(--pl-ink-soft)',
+                  transition: 'border-color var(--pl-dur-fast)',
                 }}
                 onFocus={e => { e.target.style.borderBottomColor = accentColor; }}
                 onBlur={e => { e.target.style.borderBottomColor = error ? '#ef4444' : 'rgba(0,0,0,0.15)'; }}
@@ -274,8 +277,7 @@ function SpinnerIcon() {
       fill="none"
       style={{ animation: 'spin 0.7s linear infinite' }}
     >
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.35)" strokeWidth="2" />
+      <circle cx="8" cy="8" r="6" stroke="var(--pl-muted)" strokeWidth="2" />
       <path d="M8 2 A6 6 0 0 1 14 8" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );

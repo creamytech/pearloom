@@ -32,7 +32,7 @@ export function SectionHeader({
   return (
     <div
       className={cn(
-        'relative mb-12',
+        'relative mb-10',
         align === 'center' ? 'text-center' : 'text-left',
         className,
       )}
@@ -92,8 +92,8 @@ export function SectionHeader({
         animate={inView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.7, delay: 0.1 }}
         className={cn(
-          'font-heading font-bold',
-          'tracking-[-0.03em] leading-tight mb-3',
+          'font-heading italic',
+          'tracking-[-0.02em] leading-tight mb-3',
           'text-[clamp(2rem,4vw,2.8rem)]',
           dark ? 'text-[var(--pl-dark-heading)]' : 'text-[var(--pl-ink-soft)]',
         )}

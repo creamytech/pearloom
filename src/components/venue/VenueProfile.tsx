@@ -470,7 +470,7 @@ export function VenueProfile({
               fontSize: '0.875rem',
               fontWeight: 500,
               fontFamily: 'inherit',
-              transition: 'background 0.15s',
+              transition: 'background var(--pl-dur-instant)',
             }}
           >
             <Plus size={15} />
@@ -551,7 +551,7 @@ export function VenueProfile({
           justifyContent: 'center',
           gap: '0.5rem',
           boxShadow: isSaving ? 'none' : '0 4px 16px rgba(139,119,75,0.35)',
-          transition: 'all 0.2s ease',
+          transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
         }}
       >
         {isSaving ? (
@@ -565,9 +565,6 @@ export function VenueProfile({
       </button>
 
       <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
         }
       `}</style>
     </div>

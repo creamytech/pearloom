@@ -56,7 +56,7 @@ function pickRepresentativeClusters(clusters: PhotoCluster[]): PhotoCluster[] {
 
 export async function fetchClusterImages(
   clusters: PhotoCluster[],
-  googleAccessToken: string
+  googleAccessToken?: string | null
 ): Promise<Record<string, unknown>[]> {
   const parts: Record<string, unknown>[] = [];
 

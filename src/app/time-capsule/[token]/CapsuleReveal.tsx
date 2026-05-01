@@ -186,7 +186,7 @@ const envelopeStyles: Record<string, React.CSSProperties> = {
     height: '100px',
     background: '#2E2720',
     border: '2px solid rgba(214,198,168,0.3)',
-    borderRadius: '4px',
+    borderRadius: 'var(--pl-radius-xs)',
     overflow: 'visible',
   },
   flap: {
@@ -223,7 +223,7 @@ const envelopeStyles: Record<string, React.CSSProperties> = {
     margin: 0,
     fontSize: '22px',
     fontWeight: 600,
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
     lineHeight: 1.3,
   },
   sub: {
@@ -232,7 +232,7 @@ const envelopeStyles: Record<string, React.CSSProperties> = {
     color: 'rgba(214,198,168,0.65)',
   },
   name: {
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
   },
   dateLine: {
     margin: 0,
@@ -243,13 +243,13 @@ const envelopeStyles: Record<string, React.CSSProperties> = {
   openBtn: {
     background: 'rgba(214,198,168,0.08)',
     border: '1px solid rgba(214,198,168,0.3)',
-    borderRadius: '8px',
-    color: '#D6C6A8',
+    borderRadius: 'var(--pl-radius-md)',
+    color: 'var(--pl-muted)',
     fontSize: '15px',
     fontWeight: 500,
     padding: '12px 32px',
     cursor: 'pointer',
-    transition: 'all 0.2s',
+    transition: 'all var(--pl-dur-fast)',
     marginTop: '8px',
   },
 };
@@ -269,7 +269,7 @@ const letterStyles: Record<string, React.CSSProperties> = {
   card: {
     position: 'relative',
     background: '#FAF7F0',
-    borderRadius: '4px',
+    borderRadius: 'var(--pl-radius-xs)',
     boxShadow: '0 4px 32px rgba(60,45,30,0.18), 0 1px 4px rgba(60,45,30,0.1)',
     padding: '56px 52px 48px',
     maxWidth: '600px',

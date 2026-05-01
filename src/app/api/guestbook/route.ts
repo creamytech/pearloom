@@ -51,12 +51,35 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { siteId, guestName, message } = await req.json();
+    const { siteId, guestName, message, guestToken } = await req.json() as {
+      siteId?: string;
+      guestName?: string;
+      message?: string;
+      /** Optional pearloom_guests.guest_token (12-char). When the
+       *  signer arrived via /g/[token] or ?g=<token>, the form
+       *  passes the token through so the entry gets tagged with
+       *  their pearloom_guests.id. Anonymous guestbook entries
+       *  still allowed when omitted. */
+      guestToken?: string;
+    };
     if (!siteId || !guestName || !message) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
     }
 
     const supabase = getSupabase();
+
+    // Best-effort guest resolution. Bad/missing tokens fall through
+    // silently — attribution is nice-to-have, not gating.
+    let guestId: string | null = null;
+    if (guestToken) {
+      const { data: guestRow } = await supabase
+        .from('pearloom_guests')
+        .select('id')
+        .eq('guest_token', guestToken)
+        .maybeSingle();
+      const id = (guestRow as { id?: string } | null)?.id;
+      if (id) guestId = id;
+    }
 
     // Count existing wishes â€” first wish becomes highlighted
     const { count } = await supabase
@@ -70,6 +93,7 @@ export async function POST(req: NextRequest) {
         site_id: siteId,
         guest_name: guestName,
         message,
+        guest_id: guestId,
         highlighted: !count || count === 0, // first wish is highlighted until AI picks a better one
         created_at: new Date().toISOString(),
       })
@@ -95,7 +119,7 @@ export async function POST(req: NextRequest) {
 
 // Re-pick the most beautiful wish using Gemini
 async function reHighlight(siteId: string) {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) return;
 
   const supabase = getSupabase();
@@ -113,7 +137,7 @@ ${data.map(r => `ID: ${r.id}\nMessage: ${r.message}`).join('\n\n')}`;
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

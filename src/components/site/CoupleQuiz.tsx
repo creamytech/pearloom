@@ -273,7 +273,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
         </motion.div>
 
         {/* Quiz card */}
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
           {finished ? (
             /* Final score screen */
             <motion.div
@@ -317,7 +317,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
                   onClick={handleShare}
                   style={{
                     padding: '0.8rem 1.75rem',
-                    borderRadius: '100px',
+                    borderRadius: 'var(--pl-radius-full)',
                     background: palette.accent,
                     color: '#fff',
                     border: 'none',
@@ -325,7 +325,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
                     fontWeight: 600,
                     fontSize: '0.9rem',
                     cursor: 'pointer',
-                    transition: 'opacity 0.2s',
+                    transition: 'opacity var(--pl-dur-fast)',
                   }}
                   onMouseEnter={(e) => { (e.target as HTMLElement).style.opacity = '0.85'; }}
                   onMouseLeave={(e) => { (e.target as HTMLElement).style.opacity = '1'; }}
@@ -336,7 +336,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
                   onClick={handleRestart}
                   style={{
                     padding: '0.8rem 1.75rem',
-                    borderRadius: '100px',
+                    borderRadius: 'var(--pl-radius-full)',
                     background: 'transparent',
                     color: palette.accent,
                     border: `1.5px solid ${palette.accent}`,
@@ -344,7 +344,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
                     fontWeight: 600,
                     fontSize: '0.9rem',
                     cursor: 'pointer',
-                    transition: 'background 0.2s',
+                    transition: 'background var(--pl-dur-fast)',
                   }}
                   onMouseEnter={(e) => { (e.target as HTMLElement).style.background = `${palette.accent}10`; }}
                   onMouseLeave={(e) => { (e.target as HTMLElement).style.background = 'transparent'; }}
@@ -390,7 +390,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
                 <div
                   style={{
                     height: '4px',
-                    borderRadius: '100px',
+                    borderRadius: 'var(--pl-radius-full)',
                     background: `${palette.accent}22`,
                     overflow: 'hidden',
                   }}
@@ -402,7 +402,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
                     style={{
                       height: '100%',
                       background: palette.accent,
-                      borderRadius: '100px',
+                      borderRadius: 'var(--pl-radius-full)',
                     }}
                   />
                 </div>
@@ -534,7 +534,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
                       onClick={handleNext}
                       style={{
                         padding: '0.7rem 1.5rem',
-                        borderRadius: '100px',
+                        borderRadius: 'var(--pl-radius-full)',
                         background: palette.accent,
                         color: '#fff',
                         border: 'none',
@@ -542,7 +542,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
                         fontWeight: 600,
                         fontSize: '0.88rem',
                         cursor: 'pointer',
-                        transition: 'opacity 0.2s',
+                        transition: 'opacity var(--pl-dur-fast)',
                         flexShrink: 0,
                       }}
                       onMouseEnter={(e) => { (e.target as HTMLElement).style.opacity = '0.85'; }}

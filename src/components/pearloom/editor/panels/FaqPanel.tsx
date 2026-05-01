@@ -1,0 +1,167 @@
+'use client';
+
+import { useEffect } from 'react';
+import type { StoryManifest } from '@/types';
+import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, TextArea, TextInput } from '../atoms';
+import { SortableList, SortableRowCard } from '../sortable';
+import { AIHint, AISuggestButton, useAICall } from '../ai';
+import { BadgesEditor } from './BadgesEditor';
+import { focusPanelRow } from './focus-row';
+
+// Local FAQ row shape — mirror of the manifest's FaqItem (which
+// also carries `order`) plus the new badges field. Both panels
+// and renderer write through this shape; the manifest just stores
+// it more strictly.
+type FaqItem = {
+  id: string;
+  question: string;
+  answer: string;
+  badges?: {
+    hideAuto?: string[];
+    custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }>;
+  };
+};
+
+// Listen for canvas → panel focus jumps. The site renderer emits
+// `pearloom:focus-faq-row` with { faqId } when a host clicks a
+// question on the canvas; we find the matching row, scroll it
+// into view, and flash a peach ring.
+function useFaqRowFocus() {
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    function onFocus(e: Event) {
+      const fid = (e as CustomEvent<{ faqId?: string }>).detail?.faqId;
+      if (!fid) return;
+      focusPanelRow(`[data-pl-faq-row-id="${CSS.escape(fid)}"]`);
+    }
+    window.addEventListener('pearloom:focus-faq-row', onFocus);
+    return () => window.removeEventListener('pearloom:focus-faq-row', onFocus);
+  }, []);
+}
+
+function get(m: StoryManifest): FaqItem[] {
+  const arr = (m as unknown as { faq?: FaqItem[] }).faq;
+  return Array.isArray(arr) ? arr : [];
+}
+
+export function FaqPanel({
+  manifest,
+  names,
+  onChange,
+}: {
+  manifest: StoryManifest;
+  names: [string, string];
+  onChange: (m: StoryManifest) => void;
+}) {
+  const items = get(manifest);
+  useFaqRowFocus();
+
+  function set(next: FaqItem[]) {
+    onChange({ ...manifest, faq: next } as unknown as StoryManifest);
+  }
+  function update(idx: number, patch: Partial<FaqItem>) {
+    set(items.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
+  }
+  function add() {
+    set([...items, { id: `faq-${Date.now().toString(36)}`, question: 'New question', answer: '' }]);
+  }
+
+  const { state, error, run } = useAICall(async () => {
+    // /api/ai-faq mines the full manifest (venue, dates, registry,
+    // travel, poetry, vibe) for grounded answers and returns
+    // { faqs: [...] }. Sending flat fields used to land here as
+    // 400 "Missing manifest" — keep the contract aligned.
+    const res = await fetch('/api/ai-faq', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ manifest }),
+    });
+    if (!res.ok) {
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      throw new Error(data?.error ?? `Pear couldn't draft an FAQ (${res.status})`);
+    }
+    const data = (await res.json()) as { faqs?: FaqItem[] };
+    const raw = data.faqs ?? [];
+    const now = Date.now();
+    const next: FaqItem[] = raw.map((q, i) => ({
+      id: `faq-ai-${now.toString(36)}-${i}`,
+      question: q.question,
+      answer: q.answer,
+    }));
+    if (!next.length) throw new Error("Pear didn't draft any questions");
+    set([...items, ...next]);
+    return next;
+  });
+
+  return (
+    <PanelGroup>
+      <PanelSection label="Frequently asked" hint="Drag to reorder. Guests see these below the schedule.">
+        <AIHint>
+          Pear drafts an 8–10 question FAQ from your occasion, venue, date, and vibes. Everything is editable.
+        </AIHint>
+        <AISuggestButton
+          label={items.length ? 'Draft more with Pear' : 'Draft FAQ with Pear'}
+          runningLabel="Writing your FAQ…"
+          state={state}
+          onClick={() => void run()}
+          error={error ?? undefined}
+        />
+        {items.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+            <SortableList
+              items={items}
+              onReorder={set}
+              renderItem={(it, { handle }) => {
+                const i = items.findIndex((x) => x.id === it.id);
+                return (
+                  <SortableRowCard
+                    handle={handle}
+                    deleteLabel={`Delete question ${i + 1}${it.question ? `: ${it.question.slice(0, 40)}` : ''}`}
+                    onDelete={() => set(items.filter((_, idx) => idx !== i))}
+                    rootProps={{ 'data-pl-faq-row-id': it.id }}
+                  >
+                    <Field label="Question">
+                      <TextInput
+                        value={it.question}
+                        onChange={(e) => update(i, { question: e.target.value })}
+                        placeholder="What should I wear?"
+                      />
+                    </Field>
+                    <Field
+                      label="Answer"
+                      pearAction={{ block: 'faq', pass: 'draft-faq-answers', label: 'Draft a warm answer with Pear' }}
+                    >
+                      <TextArea
+                        rows={3}
+                        value={it.answer}
+                        onChange={(e) => update(i, { answer: e.target.value })}
+                        placeholder="Cocktail attire — elevated but comfortable. Think elegant dinner party."
+                      />
+                    </Field>
+                    <BadgesEditor
+                      badges={it.badges ?? {}}
+                      onChange={(next) => update(i, { badges: next })}
+                      placeholder="Most asked, Important, Update…"
+                    />
+                  </SortableRowCard>
+                );
+              }}
+            />
+            <AddRowButton label="Add a question" onClick={add} />
+          </div>
+        ) : (
+          <EmptyBlockState
+            icon="heart-icon"
+            title="Nothing yet"
+            body="Let Pear draft 8–10 questions your guests will ask — parking, dress code, plus-ones, photo rules, gift policy — based on your event details."
+            action={
+              <button type="button" className="btn btn-outline btn-sm" onClick={add}>
+                Begin a thread
+              </button>
+            }
+          />
+        )}
+      </PanelSection>
+    </PanelGroup>
+  );
+}

@@ -327,7 +327,8 @@ function buildCluster(photos: GooglePhotoMetadata[]): PhotoCluster {
     location = {
       lat: avgLat,
       lng: avgLng,
-      label: '',
+      label: '', // Will be reverse-geocoded later
+      needsReverseGeocode: true,
     };
   }
 

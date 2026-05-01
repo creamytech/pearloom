@@ -107,7 +107,7 @@ export function WeddingDayBanner({ weddingDate, coupleNames, vibeSkin }: Wedding
             background: p.color,
             borderRadius: p.rotation === 45 ? 0 : '50%',
             pointerEvents: 'none',
-            zIndex: 9999,
+            zIndex: 'var(--z-max)',
           }}
         />
       ))}

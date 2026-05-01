@@ -94,7 +94,7 @@ function seededRandom(str: string): number {
 // — Fallback palette variants keyed by vibe seed ——————————————————————————————————————————————————
 const FALLBACK_PALETTE_VARIANTS = [
   // Pearloom Olive / Cream (default)
-  { background: '#F5F1E8', foreground: '#2B2B2B', accent: '#A3B18A', accent2: '#D6C6A8', card: '#FDFAF4', muted: '#9A9488', highlight: '#7D9B6A', subtle: '#F9F6EF', ink: '#1C1C1C' },
+  { background: '#F5F1E8', foreground: '#2B2B2B', accent: '#5C6B3F', accent2: '#D6C6A8', card: '#FDFAF4', muted: '#9A9488', highlight: '#7D9B6A', subtle: '#F9F6EF', ink: '#1C1C1C' },
   // Dusty Rose / Blush
   { background: '#F7EEE8', foreground: '#2E2020', accent: '#C4837A', accent2: '#E8BDB8', card: '#FDF5F3', muted: '#9E8580', highlight: '#A8594F', subtle: '#FBF1EF', ink: '#1A1010' },
   // Deep Navy / Ivory
