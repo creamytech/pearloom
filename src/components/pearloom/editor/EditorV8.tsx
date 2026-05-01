@@ -1110,7 +1110,17 @@ function PublishToast({ url, onClose }: { url: string; onClose: () => void }) {
   const [copied, setCopied] = useState(false);
   useEffect(() => {
     const t = setTimeout(onClose, 8000);
-    return () => clearTimeout(t);
+    // Escape dismisses the toast immediately. The 8s auto-dismiss
+    // is generous; keyboard users still want a way to clear it
+    // without hunting for the small ×.
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    document.addEventListener('keydown', onKey);
+    return () => {
+      clearTimeout(t);
+      document.removeEventListener('keydown', onKey);
+    };
   }, [onClose]);
   async function copy() {
     try {
