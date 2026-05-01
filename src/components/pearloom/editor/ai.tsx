@@ -53,6 +53,7 @@ export function AISuggestButton({
       >
         {state === 'running' ? (
           <span
+            aria-hidden
             data-pl-spin
             style={{
               width: 14,
@@ -71,9 +72,11 @@ export function AISuggestButton({
         {state === 'running' ? runningLabel : state === 'done' ? 'Done' : label}
         {state === 'idle' && <Sparkle size={10} />}
       </button>
-      {state === 'error' && error && <span style={{ fontSize: 11.5, color: '#7A2D2D' }}>{error}</span>}
+      {state === 'error' && error && (
+        <span role="alert" style={{ fontSize: 11.5, color: '#7A2D2D' }}>{error}</span>
+      )}
       {state === 'gated' && (
-        <span style={{ fontSize: 11.5, color: 'var(--peach-ink)' }}>
+        <span role="status" style={{ fontSize: 11.5, color: 'var(--peach-ink)' }}>
           You've used this month's Pear credits — upgrade in settings to keep going.
         </span>
       )}
