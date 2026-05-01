@@ -1479,6 +1479,20 @@ button.pl8-mobile-only { display: none !important; }
   outline: none;
 }
 
+/* Editor icon buttons — undo / redo / preview link / kbd hint
+   etc. The topbar's iconBtn helper sets visual specs but no
+   hover state; this class adds a subtle cream-2 wash and a
+   color shift on hover/focus. Disabled icon buttons stay
+   static via :not([disabled]). */
+.pl8-icon-btn {
+  transition: background 140ms ease, color 140ms ease;
+}
+.pl8-icon-btn:not([disabled]):hover,
+.pl8-icon-btn:not([disabled]):focus-visible {
+  background: var(--cream-2);
+  color: var(--ink);
+}
+
 /* Editor-wide focus ring — a peach hairline + soft halo so
    keyboard hosts can see exactly where they are. Mirrors the
    .pl8-guest treatment but with slightly tighter offset since

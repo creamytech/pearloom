@@ -1632,6 +1632,7 @@ function EditorTopbar({
           disabled={!canUndo}
           aria-label="Undo (Cmd+Z)"
           title="Undo (⌘Z)"
+          className="pl8-icon-btn"
           style={{ ...iconBtn, opacity: canUndo ? 1 : 0.35 }}
         >
           <Icon name="undo" size={15} />
@@ -1642,6 +1643,7 @@ function EditorTopbar({
           disabled={!canRedo}
           aria-label="Redo (Cmd+Shift+Z)"
           title="Redo (⌘⇧Z)"
+          className="pl8-icon-btn"
           style={{ ...iconBtn, opacity: canRedo ? 1 : 0.35 }}
         >
           <Icon name="redo" size={15} />
@@ -1661,6 +1663,7 @@ function EditorTopbar({
           target="_blank"
           title="Open in a new tab"
           aria-label="Open the published view in a new tab"
+          className="pl8-icon-btn"
           style={{ ...iconBtn, color: 'var(--ink-soft)' }}
         >
           <Icon name="arrow-ur" size={13} />
