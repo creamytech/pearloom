@@ -174,7 +174,9 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
             const on = state.type === tp.id;
             return (
               <button key={tp.id}
+                type="button"
                 onClick={() => setField('type', tp.id)}
+                aria-pressed={on}
                 title={tp.sub}
                 style={{
                   padding: '8px 16px', borderRadius: 999,
@@ -208,7 +210,12 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
           ] as Array<{ id: CardView; label: string; icon: string }>).map(v => {
             const on = state.view === v.id;
             return (
-              <button key={v.id} onClick={() => setField('view', v.id)} style={{
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => setField('view', v.id)}
+                aria-pressed={on}
+                style={{
                 padding: '6px 12px', borderRadius: 999,
                 fontSize: 12, fontWeight: 600,
                 background: on ? 'var(--ink)' : 'transparent',
@@ -605,7 +612,13 @@ function DesignTab({ state, setField }: { state: StudioState; setField: SetStudi
           {PALETTES.map(p => {
             const on = state.palette === p.id;
             return (
-              <button key={p.id} onClick={() => setField('palette', p.id)} title={p.name} style={{
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setField('palette', p.id)}
+                aria-pressed={on}
+                title={p.name}
+                style={{
                 padding: 4, borderRadius: 10,
                 border: on ? '2px solid var(--ink)' : '2px solid transparent',
                 background: 'transparent', cursor: 'pointer', fontFamily: 'inherit',
@@ -627,7 +640,12 @@ function DesignTab({ state, setField }: { state: StudioState; setField: SetStudi
           {LAYOUTS.map(l => {
             const on = state.layout === l.id;
             return (
-              <button key={l.id} onClick={() => setField('layout', l.id)} style={{
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => setField('layout', l.id)}
+                aria-pressed={on}
+                style={{
                 padding: 8, borderRadius: 8,
                 background: on ? 'var(--ink)' : 'var(--card)',
                 color: on ? 'var(--cream)' : 'var(--ink)',
@@ -648,7 +666,12 @@ function DesignTab({ state, setField }: { state: StudioState; setField: SetStudi
           {FONT_PAIRS.map(f => {
             const on = state.fontPair === f.id;
             return (
-              <button key={f.id} onClick={() => setField('fontPair', f.id)} style={{
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setField('fontPair', f.id)}
+                aria-pressed={on}
+                style={{
                 padding: '10px 12px', borderRadius: 8,
                 background: on ? 'var(--ink)' : 'var(--card)',
                 color: on ? 'var(--cream)' : 'var(--ink)',
@@ -676,7 +699,12 @@ function DesignTab({ state, setField }: { state: StudioState; setField: SetStudi
           {MOTIFS.map(m => {
             const on = state.motif === m.id;
             return (
-              <button key={m.id} onClick={() => { setField('motif', m.id); setField('customMotifUrl', null); }} style={{
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => { setField('motif', m.id); setField('customMotifUrl', null); }}
+                aria-pressed={on}
+                style={{
                 padding: 4, borderRadius: 8, aspectRatio: '1',
                 background: on ? 'var(--ink)' : 'var(--card)',
                 color: on ? 'var(--cream)' : 'var(--ink-soft)',
@@ -743,7 +771,12 @@ function CopyTab({ content, state, setField, onRewriteField }: { content: Studio
           {COPY_TONES.map(c => {
             const on = state.tone === c.id;
             return (
-              <button key={c.id} onClick={() => setField('tone', c.id)} style={{
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setField('tone', c.id)}
+                aria-pressed={on}
+                style={{
                 padding: 10, borderRadius: 8, textAlign: 'left',
                 background: on ? 'var(--ink)' : 'var(--card)',
                 color: on ? 'var(--cream)' : 'var(--ink)',
