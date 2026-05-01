@@ -279,9 +279,11 @@ export function IconSwapModal({ manifest, onEditField }: Props) {
         {mode === 'library' && (
           <div style={{ padding: '10px 20px', borderBottom: '1px solid var(--line-soft)' }}>
             <input
+              type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search decor, icons, or labels"
+              aria-label="Search icons and decor"
               autoFocus
               style={{
                 width: '100%',

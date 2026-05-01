@@ -365,10 +365,11 @@ export function DecorSwapModal({ manifest, onEditField }: Props) {
         {mode === 'library' && (
           <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--line-soft)' }}>
             <input
-              type="text"
+              type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search uploads, dividers, stamps…"
+              aria-label="Search decor library"
               autoFocus
               style={{
                 width: '100%',
