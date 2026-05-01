@@ -111,6 +111,15 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
 
   const { state, setField, setMany, savedAt, saving } = useStudioState({ siteSlug, manifest });
   const [aiBusy, setAiBusy] = useState(false);
+  // Last AI flow error, shown as a short-lived toast at the
+  // bottom of the canvas. Auto-clears after 6s — the toast itself
+  // owns the timer so the catch sites stay simple.
+  const [aiError, setAiError] = useState<string | null>(null);
+  useEffect(() => {
+    if (!aiError) return;
+    const id = window.setTimeout(() => setAiError(null), 6000);
+    return () => window.clearTimeout(id);
+  }, [aiError]);
 
   // Live guest counts for the left-rail "This send" pill. The
   // Send overlay does its own fetch on open; this one keeps the
@@ -206,6 +215,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
       }
     } catch (err) {
       console.error('[Studio] askPearForDraft', err);
+      setAiError('Pear lost the thread on a fresh draft. Try again in a moment.');
     } finally {
       setAiBusy(false);
     }
@@ -236,6 +246,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
       }
     } catch (err) {
       console.error('[Studio] askPearForAsset', err);
+      setAiError(`Pear couldn't paint a ${kind}. Try again or pick a different palette.`);
     } finally {
       setAiBusy(false);
     }
@@ -273,6 +284,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
       });
     } catch (err) {
       console.error('[Studio] rewriteField', err);
+      setAiError('Pear couldn’t rewrite that line just now. Try a different angle.');
     } finally {
       setAiBusy(false);
     }
@@ -468,6 +480,56 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
           peach mini-button the host can reopen, instead of
           unmounting and stranding the affordance. */}
       <FloatingPear nudges={content.pearNudges} />
+
+      {/* Transient AI error toast — surfaces failures from the
+          three Pear flows so a host doesn't see a Threading…
+          spinner clear and wonder if it worked. Auto-clears
+          after 6s; click ✕ to dismiss sooner. */}
+      {aiError && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 40,
+            padding: '10px 14px 10px 16px',
+            background: 'var(--card)',
+            color: 'var(--ink)',
+            border: '1px solid rgba(122,45,45,0.35)',
+            borderRadius: 999,
+            boxShadow: '0 14px 32px rgba(14,13,11,0.18)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 12,
+            fontSize: 12.5,
+            maxWidth: 'min(560px, 92vw)',
+            animation: 'pl-studio-nudge-in 240ms ease both',
+          }}
+        >
+          <Squiggle variant={2} width={32} style={{ color: 'var(--peach-ink, #C6703D)', flexShrink: 0 }} />
+          <span style={{ lineHeight: 1.4 }}>{aiError}</span>
+          <button
+            onClick={() => setAiError(null)}
+            aria-label="Dismiss notice"
+            style={{
+              marginLeft: 4,
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--ink-muted)',
+              cursor: 'pointer',
+              fontSize: 14,
+              lineHeight: 1,
+              padding: 4,
+              fontFamily: 'inherit',
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
 
       {state.showSend && (

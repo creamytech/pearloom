@@ -557,6 +557,26 @@ test.describe('Studio (stationery editor)', () => {
     await expect(page.locator('button[aria-busy="true"]')).toHaveCount(0);
   });
 
+  test('Pear rewrite failure surfaces a dismissible error toast', async ({ page }) => {
+    // Mock the rewrite endpoint to 500 — host should see a toast.
+    await page.route('**/api/studio/rewrite', async (route) => {
+      await route.fulfill({ status: 500, contentType: 'application/json', body: '{"error":"upstream"}' });
+    });
+    await page.getByRole('button', { name: /^Copy$/ }).click();
+    const eyebrowRewriteBtn = page.locator('div').filter({ hasText: /^Eyebrow$/ }).first()
+      .locator('xpath=..').getByRole('button', { name: /Rewrite/ });
+    await eyebrowRewriteBtn.click();
+    await page.getByRole('button', { name: /A different angle on the same idea/ }).click();
+
+    // The error toast should appear with an explanatory message.
+    const toast = page.getByRole('status').filter({ hasText: /couldn’t rewrite/ });
+    await expect(toast).toBeVisible({ timeout: 5_000 });
+
+    // Dismissible by the ✕ button.
+    await toast.getByRole('button', { name: /Dismiss notice/i }).click();
+    await expect(toast).not.toBeVisible();
+  });
+
   test('AI-generated assets survive an autosave + reload round-trip', async ({ page, context }) => {
     // Capture the autosave POST so we know what manifest the
     // host's tweaks would write to the DB. Then on reload, the
