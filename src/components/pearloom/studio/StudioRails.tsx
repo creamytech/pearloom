@@ -230,6 +230,7 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
           })}
         </div>
         <button
+          type="button"
           onClick={() => window.print()}
           style={{
             padding: '7px 12px',
@@ -249,6 +250,7 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
           <Icon name="download" size={12} /> Export
         </button>
         <button
+          type="button"
           onClick={() => setField('showSend', true)}
           style={{
             padding: '8px 14px',
@@ -312,7 +314,10 @@ export function DraftsRail({ state, setField, content, nameA, nameB, onPickDraft
           const on = state.draft === d.id;
           return (
             <button key={d.id}
+              type="button"
               onClick={() => onPickDraft(d)}
+              aria-pressed={on}
+              aria-label={`${d.name}${on ? ', currently picked' : ''} — ${d.tone}`}
               style={{
                 textAlign: 'left',
                 padding: 0, borderRadius: 14,

@@ -478,15 +478,19 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
           fontSize: 11.5,
         }}>
           <button
+            type="button"
+            aria-label="Previous side"
             onClick={() => setField('view', state.view === 'front' ? 'envelope' : state.view === 'back' ? 'front' : 'back')}
             style={{ width: 28, height: 28, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'var(--cream-2)', border: 'none', cursor: 'pointer' }}
           >
             <Icon name="chev-left" size={12} />
           </button>
-          <div style={{ padding: '0 8px', color: 'var(--ink-soft)', fontWeight: 600 }}>
+          <div aria-live="polite" style={{ padding: '0 8px', color: 'var(--ink-soft)', fontWeight: 600 }}>
             {state.view === 'front' ? 'Front · 5 × 7"' : state.view === 'back' ? 'Back · 5 × 7"' : 'Envelope · A7'}
           </div>
           <button
+            type="button"
+            aria-label="Next side"
             onClick={() => setField('view', state.view === 'envelope' ? 'front' : state.view === 'front' ? 'back' : 'envelope')}
             style={{ width: 28, height: 28, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'var(--cream-2)', border: 'none', cursor: 'pointer' }}
           >
@@ -545,6 +549,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
           <Squiggle variant={2} width={32} style={{ color: 'var(--peach-ink, #C6703D)', flexShrink: 0 }} />
           <span style={{ lineHeight: 1.4 }}>{aiError}</span>
           <button
+            type="button"
             onClick={() => setAiError(null)}
             aria-label="Dismiss notice"
             style={{
@@ -710,12 +715,13 @@ function FloatingPear({ nudges }: { nudges: string[] }) {
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
           <Pear size={28} tone="sage" sparkle />
           <div style={{ flex: 1, fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.45 }}>{nudge}</div>
-          <button onClick={() => setOpen(false)} aria-label="Minimise Pear's nudges" style={{ color: 'var(--ink-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
+          <button type="button" onClick={() => setOpen(false)} aria-label="Minimise Pear's nudges" style={{ color: 'var(--ink-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
             <Icon name="close" size={12} />
           </button>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           <button
+            type="button"
             onClick={() => setIdx(i => i + 1)}
             style={{
               padding: '6px 10px',
