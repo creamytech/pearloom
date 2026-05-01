@@ -486,6 +486,11 @@ export function V8Slider({
           value={value}
           disabled={disabled}
           aria-label={ariaLabel}
+          // aria-valuetext replaces the raw number announcement
+          // ("16") with the formatted display ("16 px" / "0.5x")
+          // so screen-reader users hear the same string sighted
+          // hosts read above the track.
+          aria-valuetext={display}
           onChange={(e) => onChange(Number(e.target.value))}
           className="pl8-v8-slider"
           style={{
