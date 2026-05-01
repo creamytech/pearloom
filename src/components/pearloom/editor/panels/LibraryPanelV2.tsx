@@ -1493,6 +1493,7 @@ function AtelierModal({
               <button
                 key={o.v}
                 type="button"
+                aria-pressed={on}
                 onClick={() => setMode(o.v)}
                 style={{
                   padding: '8px 10px',
@@ -1527,6 +1528,7 @@ function AtelierModal({
                   <button
                     key={s}
                     type="button"
+                    aria-pressed={on}
                     onClick={() => setSlot(s)}
                     title={ATELIER_SLOT_META[s].hint}
                     style={{
