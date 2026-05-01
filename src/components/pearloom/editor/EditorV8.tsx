@@ -2787,6 +2787,7 @@ function BlockRow({
     <div
       role="button"
       tabIndex={0}
+      data-block-row
       aria-current={active ? 'true' : undefined}
       aria-label={`${def.label} section${active ? ', currently editing' : ''}${hidden ? ', hidden' : ''}`}
       draggable={nativeDraggable || undefined}
@@ -2814,6 +2815,25 @@ function BlockRow({
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onSelect();
+          return;
+        }
+        // ArrowUp / ArrowDown navigate between sibling rows. We
+        // query the document for [data-block-row] (rows can live
+        // in two lists — visible vs. hidden — so parentElement
+        // alone wouldn't cover the visible→hidden hop). Home / End
+        // jump to first / last row.
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Home' || e.key === 'End') {
+          const list = document.querySelectorAll<HTMLDivElement>('[data-block-row]');
+          if (list.length === 0) return;
+          const idx = Array.from(list).indexOf(e.currentTarget as HTMLDivElement);
+          if (idx < 0) return;
+          let next: number;
+          if (e.key === 'ArrowDown') next = (idx + 1) % list.length;
+          else if (e.key === 'ArrowUp') next = (idx - 1 + list.length) % list.length;
+          else if (e.key === 'Home') next = 0;
+          else next = list.length - 1;
+          e.preventDefault();
+          list[next].focus();
         }
       }}
       style={{
