@@ -220,6 +220,27 @@ export function EditableText({
     e.currentTarget.style.outlineColor = 'transparent';
     e.currentTarget.style.background = '';
   };
+  // Keyboard parity for click-to-edit. The element is tabbable when
+  // not editing; Enter / Space enter edit mode (caret-placed by the
+  // existing useEffect). Sage outline mirrors hover so screen-reader
+  // and keyboard users see the same affordance.
+  const onFocusOutline = (e: React.FocusEvent<HTMLElement>) => {
+    if (editing) return;
+    e.currentTarget.style.outlineColor = 'rgba(92,107,63,0.35)';
+    e.currentTarget.style.background = 'rgba(92,107,63,0.04)';
+  };
+  const onStaticBlur = (e: React.FocusEvent<HTMLElement>) => {
+    if (editing) return;
+    e.currentTarget.style.outlineColor = 'transparent';
+    e.currentTarget.style.background = '';
+  };
+  const onStaticKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (editing) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setEditing(true);
+    }
+  };
 
   // When not editing and children are provided, render children
   // so decorated JSX (italic spans, stamps) still shows.
@@ -232,20 +253,22 @@ export function EditableText({
       className={className}
       contentEditable={editing}
       suppressContentEditableWarning
-      role={editing ? 'textbox' : undefined}
+      role={editing ? 'textbox' : 'button'}
+      tabIndex={editing ? undefined : 0}
       aria-label={ariaLabel}
       aria-multiline={multiline}
       data-pl-editable
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onFocus={editing ? undefined : onFocusOutline}
       onClick={(e: React.MouseEvent) => {
         if (editing) return;
         e.stopPropagation();
         setEditing(true);
       }}
-      onBlur={editing ? commit : undefined}
+      onBlur={editing ? commit : onStaticBlur}
       onInput={editing ? handleInput : undefined}
-      onKeyDown={editing ? handleKeyDown : undefined}
+      onKeyDown={editing ? handleKeyDown : onStaticKeyDown}
       onPaste={editing ? handlePaste : undefined}
     >
       {displayContent}

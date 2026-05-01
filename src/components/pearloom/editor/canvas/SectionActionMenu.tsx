@@ -152,6 +152,14 @@ function ActionButton({
         e.currentTarget.style.background = 'transparent';
         e.currentTarget.style.color = danger ? '#FCA5A5' : 'rgba(243,233,212,0.92)';
       }}
+      onFocus={(e) => {
+        e.currentTarget.style.background = danger ? 'rgba(239, 68, 68, 0.18)' : 'rgba(243,233,212,0.14)';
+        if (danger) e.currentTarget.style.color = '#FECACA';
+      }}
+      onBlur={(e) => {
+        e.currentTarget.style.background = 'transparent';
+        e.currentTarget.style.color = danger ? '#FCA5A5' : 'rgba(243,233,212,0.92)';
+      }}
     >
       {children}
     </button>

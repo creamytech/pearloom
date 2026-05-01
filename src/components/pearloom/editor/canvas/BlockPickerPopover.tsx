@@ -157,6 +157,8 @@ export function BlockPickerPopover({ anchor, blocks, onPick, onClose }: Props) {
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--cream-2)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              onFocus={(e) => { e.currentTarget.style.background = 'var(--cream-2)'; }}
+              onBlur={(e) => { e.currentTarget.style.background = 'transparent'; }}
             >
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 700 }}>{b.label}</div>

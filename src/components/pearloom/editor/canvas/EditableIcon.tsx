@@ -57,6 +57,14 @@ export function EditableIcon({ name, purpose, size = 16, color, className }: Pro
       className={className}
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
+      onFocus={() => setHovering(true)}
+      onBlur={(e) => {
+        // Only collapse when focus leaves the wrapper entirely —
+        // moving between the swap and reset buttons inside the chip
+        // shouldn't yank the chrome.
+        const next = e.relatedTarget as Node | null;
+        if (!next || !e.currentTarget.contains(next)) setHovering(false);
+      }}
       style={{
         position: 'relative',
         display: 'inline-flex',

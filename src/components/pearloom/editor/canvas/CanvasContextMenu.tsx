@@ -183,6 +183,15 @@ export function CanvasContextMenu() {
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'transparent';
               }}
+              onFocus={(e) => {
+                if (item.disabled) return;
+                e.currentTarget.style.background = item.danger
+                  ? 'rgba(122, 45, 45, 0.08)'
+                  : 'var(--cream-2)';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.background = 'transparent';
+              }}
             >
               {item.icon && (
                 <span aria-hidden style={{ display: 'inline-grid', placeItems: 'center', width: 14, height: 14, color: 'inherit' }}>
