@@ -332,6 +332,8 @@ export function PearCommand({
         <div style={{ overflowY: 'auto', flex: 1 }}>
           {chatOutput && (
             <div
+              role="status"
+              aria-live="polite"
               style={{
                 margin: '12px 14px',
                 padding: 12,
