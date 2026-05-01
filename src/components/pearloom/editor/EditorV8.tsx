@@ -2042,8 +2042,29 @@ function SaveDot({
 
 function KbdHint() {
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+  // Click-outside + Escape close — every other dropdown in the
+  // editor (DesignMenu, SectionOverflowMenu, SectionBreadcrumb)
+  // honours these; KbdHint was the last holdout. Without them
+  // the host had to click the ⌘ button again to dismiss.
+  useEffect(() => {
+    if (!open) return;
+    function onDoc(e: MouseEvent) {
+      if (ref.current?.contains(e.target as Node)) return;
+      setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
   return (
-    <div style={{ position: 'relative' }}>
+    <div ref={ref} style={{ position: 'relative' }}>
       <button
         type="button"
         aria-label="Keyboard shortcuts"
