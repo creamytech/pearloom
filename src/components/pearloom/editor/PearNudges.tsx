@@ -38,7 +38,20 @@ interface Props {
 
 export function PearNudges({ manifest, siteSlug }: Props) {
   const nudges = useMemo(() => computeNudges(manifest), [manifest]);
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  // Lazy useState init reads localStorage once at mount (siteSlug
+  // is stable per session — the editor route is keyed on it). No
+  // setState-in-effect cascade for the initial hydration.
+  const [dismissed, setDismissed] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const raw = window.localStorage.getItem(`pearloom:pear-nudges:${siteSlug}`);
+      if (raw) {
+        const arr = JSON.parse(raw) as string[];
+        if (Array.isArray(arr)) return new Set(arr);
+      }
+    } catch { /* ignore */ }
+    return new Set();
+  });
   // Two separate states so the bubble doesn't disappear the moment
   // the host's cursor crosses the 8px gap between button + bubble:
   //   • `pinned` — set by clicking the avatar; only closes via Got
@@ -50,17 +63,6 @@ export function PearNudges({ manifest, siteSlug }: Props) {
   const leaveTimer = useRef<number | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const memoryKey = `pearloom:pear-nudges:${siteSlug}`;
-
-  // Hydrate dismissed list per site.
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(memoryKey);
-      if (raw) {
-        const arr = JSON.parse(raw) as string[];
-        if (Array.isArray(arr)) setDismissed(new Set(arr));
-      }
-    } catch { /* ignore */ }
-  }, [memoryKey]);
 
   function persist(next: Set<string>) {
     try {
