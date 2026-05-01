@@ -2251,7 +2251,11 @@ function KbdHint() {
           ].map(([label, keys]) => (
             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginBottom: 4 }}>
               <span style={{ color: 'var(--ink-soft)' }}>{label}</span>
-              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5 }}>{keys}</span>
+              {/* <kbd> renders the keystroke text as a keyboard key
+                  per HTML semantics — screen readers announce the
+                  contents as "keyboard input" rather than as plain
+                  text, which matches what these characters describe. */}
+              <kbd style={{ fontFamily: 'var(--font-ui)', fontSize: 11.5, background: 'transparent', color: 'inherit', padding: 0 }}>{keys}</kbd>
             </div>
           ))}
         </div>
