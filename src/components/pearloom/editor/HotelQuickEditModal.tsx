@@ -389,7 +389,7 @@ function HotelEditor({
             borderRadius: 999,
             border: '1px solid rgba(122,45,45,0.25)',
             background: 'transparent',
-            color: '#7A2D2D',
+            color: 'var(--plum-ink, #7A2D2D)',
             fontSize: 12,
             fontWeight: 700,
             cursor: 'pointer',
@@ -662,7 +662,7 @@ function HotelPhotoStrip({
           role="alert"
           style={{
             fontSize: 11,
-            color: '#7A2D2D',
+            color: 'var(--plum-ink, #7A2D2D)',
             padding: '4px 8px',
             background: 'rgba(122,45,45,0.08)',
             border: '1px solid rgba(122,45,45,0.18)',

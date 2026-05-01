@@ -297,7 +297,7 @@ export function NavPanel({ manifest, onChange }: Props) {
           {aiBusy ? 'Drafting…' : 'Draft an icon'}
         </button>
         {aiError && (
-          <div role="alert" style={{ marginTop: 8, fontSize: 12, color: '#7A2D2D' }}>{aiError}</div>
+          <div role="alert" style={{ marginTop: 8, fontSize: 12, color: 'var(--plum-ink, #7A2D2D)' }}>{aiError}</div>
         )}
       </PanelSection>
 

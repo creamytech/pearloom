@@ -133,7 +133,7 @@ export function SinglePhotoField({ value, onChange, size = 96 }: Props) {
           />
         </label>
         {error && (
-          <span style={{ fontSize: 11, color: '#7A2D2D', alignSelf: 'center' }}>{error}</span>
+          <span style={{ fontSize: 11, color: 'var(--plum-ink, #7A2D2D)', alignSelf: 'center' }}>{error}</span>
         )}
       </div>
     );
@@ -174,7 +174,7 @@ export function SinglePhotoField({ value, onChange, size = 96 }: Props) {
         }}
       />
       {error && (
-        <div style={{ fontSize: 9.5, color: '#7A2D2D', marginTop: 2 }}>{error}</div>
+        <div style={{ fontSize: 9.5, color: 'var(--plum-ink, #7A2D2D)', marginTop: 2 }}>{error}</div>
       )}
     </label>
   );

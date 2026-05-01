@@ -525,7 +525,7 @@ export function Field({
         <span style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.45 }}>{help}</span>
       )}
       {error && (
-        <span style={{ fontSize: 12, color: '#7A2D2D', lineHeight: 1.45 }}>{error}</span>
+        <span style={{ fontSize: 12, color: 'var(--plum-ink, #7A2D2D)', lineHeight: 1.45 }}>{error}</span>
       )}
     </label>
   );
@@ -1136,7 +1136,7 @@ export function PhotoSlot({
             onClick={() => onChange(undefined)}
             style={{
               fontSize: 11,
-              color: '#7A2D2D',
+              color: 'var(--plum-ink, #7A2D2D)',
               background: 'transparent',
               border: 0,
               cursor: 'pointer',
@@ -1234,7 +1234,7 @@ export function ListRow({
             type="button"
             onClick={onDelete}
             aria-label="Delete"
-            style={{ ...iconButtonStyle, color: '#7A2D2D', borderColor: 'rgba(122,45,45,0.20)' }}
+            style={{ ...iconButtonStyle, color: 'var(--plum-ink, #7A2D2D)', borderColor: 'rgba(122,45,45,0.20)' }}
           >
             <Icon name="close" size={13} />
           </button>

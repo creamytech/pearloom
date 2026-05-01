@@ -738,7 +738,7 @@ export function DesignAdvisor({
                 background: 'rgba(122,45,45,0.08)',
                 border: '1px solid rgba(122,45,45,0.18)',
                 borderRadius: 10,
-                color: '#7A2D2D',
+                color: 'var(--plum-ink, #7A2D2D)',
                 fontSize: 12.5,
                 lineHeight: 1.45,
               }}
@@ -779,7 +779,7 @@ export function DesignAdvisor({
                               : 'var(--cream-2)',
                         color:
                           s.severity === 'should-fix'
-                            ? '#7A2D2D'
+                            ? 'var(--plum-ink, #7A2D2D)'
                             : s.severity === 'nice-to-have'
                               ? 'var(--peach-ink, #C6703D)'
                               : 'var(--ink-soft)',

@@ -582,7 +582,7 @@ function ContrastWarning({
         border: '1px solid rgba(122,45,45,0.22)',
         borderRadius: 8,
         fontSize: 11,
-        color: '#7A2D2D',
+        color: 'var(--plum-ink, #7A2D2D)',
         fontFamily: 'var(--font-ui)',
         lineHeight: 1.4,
       }}
@@ -705,7 +705,7 @@ function PearSceneSuggest({
           </div>
         </div>
       )}
-      {error && <div role="alert" style={{ fontSize: 11, color: '#7A2D2D' }}>{error}</div>}
+      {error && <div role="alert" style={{ fontSize: 11, color: 'var(--plum-ink, #7A2D2D)' }}>{error}</div>}
     </div>
   );
 }

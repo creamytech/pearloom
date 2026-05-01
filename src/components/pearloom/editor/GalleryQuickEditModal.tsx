@@ -251,7 +251,7 @@ function PhotoEditor({
             borderRadius: 999,
             border: '1px solid rgba(122,45,45,0.25)',
             background: 'transparent',
-            color: '#7A2D2D',
+            color: 'var(--plum-ink, #7A2D2D)',
             fontSize: 12,
             fontWeight: 700,
             cursor: 'pointer',
@@ -371,7 +371,7 @@ function PearCaptionSuggest({
           </div>
         </div>
       )}
-      {error && <div role="alert" style={{ fontSize: 11, color: '#7A2D2D' }}>{error}</div>}
+      {error && <div role="alert" style={{ fontSize: 11, color: 'var(--plum-ink, #7A2D2D)' }}>{error}</div>}
     </div>
   );
 }

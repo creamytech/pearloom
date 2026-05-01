@@ -347,7 +347,7 @@ export function PearCopilot({
                 style={{
                   fontSize: 10,
                   marginTop: 4,
-                  color: m.action.result === 'ok' ? 'var(--sage-deep)' : '#7A2D2D',
+                  color: m.action.result === 'ok' ? 'var(--sage-deep)' : 'var(--plum-ink, #7A2D2D)',
                   fontWeight: 600,
                   letterSpacing: '0.06em',
                   textTransform: 'uppercase',
@@ -447,7 +447,7 @@ function SuggestionCard({
   const sev = suggestion.severity;
   const accent =
     sev === 'critical'
-      ? '#7A2D2D'
+      ? 'var(--plum-ink, #7A2D2D)'
       : sev === 'should-fix'
         ? 'var(--peach-ink)'
         : sev === 'nice-to-have'

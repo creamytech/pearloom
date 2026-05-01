@@ -509,7 +509,7 @@ export function QuickEditModalShell({
                           padding: '9px 14px',
                           borderRadius: 999,
                           border: '1px solid rgba(122,45,45,0.3)',
-                          background: '#7A2D2D',
+                          background: 'var(--plum-ink, #7A2D2D)',
                           color: '#FFFFFF',
                           fontSize: 12,
                           fontWeight: 700,

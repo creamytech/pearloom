@@ -73,7 +73,7 @@ export function AISuggestButton({
         {state === 'idle' && <Sparkle size={10} />}
       </button>
       {state === 'error' && error && (
-        <span role="alert" style={{ fontSize: 11.5, color: '#7A2D2D' }}>{error}</span>
+        <span role="alert" style={{ fontSize: 11.5, color: 'var(--plum-ink, #7A2D2D)' }}>{error}</span>
       )}
       {state === 'gated' && (
         <span role="status" style={{ fontSize: 11.5, color: 'var(--peach-ink)' }}>

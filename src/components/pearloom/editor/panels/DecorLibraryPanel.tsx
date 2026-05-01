@@ -375,7 +375,7 @@ export function DecorLibraryPanel({
               {aiLoading ? 'Pear is thinking…' : 'Ask Pear for ideas'}
             </button>
             {aiError && (
-              <span style={{ fontSize: 11, color: '#7A2D2D' }}>{aiError}</span>
+              <span style={{ fontSize: 11, color: 'var(--plum-ink, #7A2D2D)' }}>{aiError}</span>
             )}
           </div>
         </div>
@@ -553,7 +553,7 @@ function SlotCard({
           {!url && status === 'idle' && 'Not yet'}
           {status === 'running' && '…drawing'}
           {status === 'error' && (
-            <span style={{ padding: 6, fontSize: 10, color: '#7A2D2D', textAlign: 'center', lineHeight: 1.3 }}>
+            <span style={{ padding: 6, fontSize: 10, color: 'var(--plum-ink, #7A2D2D)', textAlign: 'center', lineHeight: 1.3 }}>
               {error ?? "Pear couldn't paint this"}
             </span>
           )}

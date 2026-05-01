@@ -170,7 +170,7 @@ export function CanvasContextMenu() {
                 textAlign: 'left',
                 fontSize: 13,
                 fontFamily: 'inherit',
-                color: item.danger ? '#7A2D2D' : 'var(--ink)',
+                color: item.danger ? 'var(--plum-ink, #7A2D2D)' : 'var(--ink)',
                 opacity: item.disabled ? 0.4 : 1,
                 transition: 'background-color 140ms ease',
               }}

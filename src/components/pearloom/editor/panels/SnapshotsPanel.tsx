@@ -168,7 +168,7 @@ export function SnapshotsPanel({
                       padding: '5px 0',
                       borderRadius: 6,
                       background: 'transparent',
-                      color: '#7A2D2D',
+                      color: 'var(--plum-ink, #7A2D2D)',
                       border: '1px solid var(--line)',
                       fontSize: 12,
                       cursor: 'pointer',

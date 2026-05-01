@@ -266,7 +266,7 @@ export function StickerTrayPanel({
         {status === 'running' ? 'Drafting your sticker…' : 'Draft a sticker'}
       </button>
       {err && (
-        <div style={{ marginTop: 8, fontSize: 12, color: '#7A2D2D' }}>{err}</div>
+        <div style={{ marginTop: 8, fontSize: 12, color: 'var(--plum-ink, #7A2D2D)' }}>{err}</div>
       )}
 
       {stickers.length > 0 && (

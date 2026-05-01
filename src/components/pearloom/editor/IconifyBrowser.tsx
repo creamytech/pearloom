@@ -107,7 +107,7 @@ export function IconifyBrowser({ onPick }: Props) {
         }}
       />
       {error && (
-        <div role="alert" style={{ fontSize: 12, color: '#7A2D2D', textAlign: 'center', padding: '6px 0' }}>
+        <div role="alert" style={{ fontSize: 12, color: 'var(--plum-ink, #7A2D2D)', textAlign: 'center', padding: '6px 0' }}>
           {error}
         </div>
       )}

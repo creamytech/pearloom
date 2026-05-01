@@ -60,7 +60,7 @@ function MobileSaveIndicatorInner({ saveStatus, onRetry }: Props) {
         : 'Saved';
   const tone =
     saveStatus === 'error'
-      ? { bg: 'rgba(122,45,45,0.12)', ring: 'rgba(122,45,45,0.32)', ink: '#7A2D2D' }
+      ? { bg: 'rgba(122,45,45,0.12)', ring: 'rgba(122,45,45,0.32)', ink: 'var(--plum-ink, #7A2D2D)' }
       : saveStatus === 'saved'
         ? { bg: 'rgba(140,158,82,0.18)', ring: 'rgba(140,158,82,0.36)', ink: '#3D4A1F' }
         : { bg: 'rgba(198,112,61,0.16)', ring: 'rgba(198,112,61,0.36)', ink: '#C6703D' };

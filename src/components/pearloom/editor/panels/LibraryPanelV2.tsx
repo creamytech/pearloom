@@ -1597,7 +1597,7 @@ function AtelierModal({
         </div>
 
         {error && (
-          <div role="alert" style={{ padding: '8px 12px', background: 'rgba(122,45,45,0.08)', border: '1px solid rgba(122,45,45,0.22)', borderRadius: 8, color: '#7A2D2D', fontSize: 12 }}>
+          <div role="alert" style={{ padding: '8px 12px', background: 'rgba(122,45,45,0.08)', border: '1px solid rgba(122,45,45,0.22)', borderRadius: 8, color: 'var(--plum-ink, #7A2D2D)', fontSize: 12 }}>
             {error}
           </div>
         )}

@@ -259,7 +259,7 @@ export function DecorRecolorModal({ manifest, onEditField }: Props) {
               <ColorRow label="Soft" value={soft} onChange={setSoft} />
             </div>
             {error && (
-              <div style={{ padding: '10px 12px', background: 'rgba(122,45,45,0.08)', color: '#7A2D2D', borderRadius: 8, fontSize: 12, marginBottom: 14 }}>
+              <div style={{ padding: '10px 12px', background: 'rgba(122,45,45,0.08)', color: 'var(--plum-ink, #7A2D2D)', borderRadius: 8, fontSize: 12, marginBottom: 14 }}>
                 {error}
               </div>
             )}

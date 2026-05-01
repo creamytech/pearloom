@@ -859,7 +859,7 @@ export function EditorV8({
           }}
         >
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#7A2D2D', marginBottom: 4 }}>Publish failed</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--plum-ink, #7A2D2D)', marginBottom: 4 }}>Publish failed</div>
             <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.4, wordBreak: 'break-word' }}>
               {publishError}
             </div>
@@ -2055,7 +2055,7 @@ function SaveDot({
       : saveStatus === 'saving'
         ? 'var(--peach-ink, #C6703D)'
         : saveStatus === 'error'
-          ? '#7A2D2D'
+          ? 'var(--plum-ink, #7A2D2D)'
           : 'var(--ink-muted)';
   const label =
     saveStatus === 'saved'

@@ -829,7 +829,7 @@ function AiAccentSection({
         )}
       </div>
       {error && (
-        <div role="alert" style={{ marginTop: 10, fontSize: 12, color: '#7A2D2D', lineHeight: 1.45 }}>
+        <div role="alert" style={{ marginTop: 10, fontSize: 12, color: 'var(--plum-ink, #7A2D2D)', lineHeight: 1.45 }}>
           {error}
         </div>
       )}
@@ -987,7 +987,7 @@ function PaletteSection({
             {aiRunning ? 'Asking Pear…' : aiPalettes.length ? 'Mix fresh palettes' : 'Suggest palettes from your event'}
           </button>
           {aiError && (
-            <div role="alert" style={{ marginBottom: 10, fontSize: 12, color: '#7A2D2D', lineHeight: 1.45 }}>
+            <div role="alert" style={{ marginBottom: 10, fontSize: 12, color: 'var(--plum-ink, #7A2D2D)', lineHeight: 1.45 }}>
               {aiError}
             </div>
           )}
@@ -1155,7 +1155,7 @@ function PaletteTile({
                 border: '1px solid var(--line)',
                 borderRadius: 6,
                 cursor: 'pointer',
-                color: '#7A2D2D',
+                color: 'var(--plum-ink, #7A2D2D)',
                 fontFamily: 'inherit',
               }}
             >

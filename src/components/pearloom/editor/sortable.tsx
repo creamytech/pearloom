@@ -199,7 +199,7 @@ export function SortableRowCard({
             background: 'transparent',
             border: '1px solid var(--line)',
             borderRadius: 8,
-            color: '#7A2D2D',
+            color: 'var(--plum-ink, #7A2D2D)',
             cursor: 'pointer',
             alignSelf: 'start',
           }}
