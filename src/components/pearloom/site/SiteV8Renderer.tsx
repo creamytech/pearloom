@@ -1116,7 +1116,11 @@ function HeroSection({
   const dateInfo = fmtEventDate(manifest.logistics?.date, manifest.dateFormat, manifest.logistics?.timezone);
   const venue = manifest.logistics?.venue ?? '';
   const rsvpDeadline = manifest.logistics?.rsvpDeadline;
-  const deadlineStr = rsvpDeadline ? new Date(rsvpDeadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) : null;
+  // parseLocalDate dodges the UTC midnight off-by-one — bare
+  // YYYY-MM-DD parses as local midnight so an Aug 1 deadline
+  // doesn't display as "July 31" in PT.
+  const deadlineDate = parseLocalDate(rsvpDeadline);
+  const deadlineStr = deadlineDate ? deadlineDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) : null;
   const heroCopy =
     (manifest as unknown as { poetry?: { heroTagline?: string } }).poetry?.heroTagline ??
     "We'd love you there. Come celebrate with us — the day will be better for it.";
@@ -1249,8 +1253,11 @@ function HeroVariantDispatch({
   const dateInfo = fmtEventDate(manifest.logistics?.date, manifest.dateFormat, manifest.logistics?.timezone);
   const venue = manifest.logistics?.venue ?? '';
   const rsvpDeadline = manifest.logistics?.rsvpDeadline;
-  const deadlineStr = rsvpDeadline
-    ? new Date(rsvpDeadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+  // parseLocalDate dodges the UTC-midnight off-by-one bug for
+  // bare YYYY-MM-DD inputs.
+  const deadlineDate = parseLocalDate(rsvpDeadline);
+  const deadlineStr = deadlineDate
+    ? deadlineDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
     : null;
   const heroCopy =
     (manifest as unknown as { poetry?: { heroTagline?: string } }).poetry?.heroTagline ??
@@ -1483,7 +1490,10 @@ function TimelineSectionImpl({ chapters, onEditField, manifest }: { chapters: Ch
               const left = i % 2 === 0;
               const tone = CHAPTER_TONES[i % CHAPTER_TONES.length];
               const isCurrent = i === chapters.length - 1;
-              const year = c.date ? new Date(c.date).getFullYear().toString() : String(i + 1);
+              // parseLocalDate avoids reading "2024-12-31" as UTC,
+              // which would render as 2023 in PT.
+              const yearDate = parseLocalDate(c.date);
+              const year = yearDate ? yearDate.getFullYear().toString() : String(i + 1);
               return (
                 <div
                   className="pl8-timeline-row"
