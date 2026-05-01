@@ -53,6 +53,7 @@ export function AISuggestButton({
       >
         {state === 'running' ? (
           <span
+            data-pl-spin
             style={{
               width: 14,
               height: 14,
@@ -149,10 +150,18 @@ export function useAICall<T>(
   return { state, error, run, reset };
 }
 
-/* Spinner keyframes — injected via globals css */
+/* Spinner keyframes — injected via globals css. Honours
+ * prefers-reduced-motion by stopping the rotation; the lavender
+ * arc still reads as "in progress" (its differentiated colour vs.
+ * the idle state is the cue), just without the loop. */
 if (typeof document !== 'undefined' && !document.getElementById('pl8-spin-style')) {
   const style = document.createElement('style');
   style.id = 'pl8-spin-style';
-  style.textContent = `@keyframes pl8-spin { to { transform: rotate(360deg); } }`;
+  style.textContent = `
+    @keyframes pl8-spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) {
+      [data-pl-spin] { animation: none !important; }
+    }
+  `;
   document.head.appendChild(style);
 }

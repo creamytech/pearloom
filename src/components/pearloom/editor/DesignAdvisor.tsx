@@ -1085,6 +1085,17 @@ export function DesignAdvisor({
             [aria-label="Pear, your design advisor"] aside { animation: none; }
             [aria-label="Pear, your design advisor"] { animation: none; }
             .pl-pear-breathe { animation: none !important; }
+            /* The other three keyframes (pear-spin loader, mic
+               pulse, typing dot) are also looping animations — turn
+               them off for hosts opting out of motion. The state
+               difference is still readable: the loader's lavender
+               arc, mic's peach halo, and typing dots' offset opacity
+               all stay distinct without rotation/breathing. */
+            [style*="pl-pear-spin"],
+            [style*="pl-pear-mic-pulse"],
+            [style*="pl-pear-typing-dot"] {
+              animation: none !important;
+            }
           }
         `}</style>
       </aside>
