@@ -274,10 +274,12 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
   // ── AI: rewrite a single field with Pear ────────────────────
   async function rewriteField(fieldId: string, hint: string) {
     if (aiBusy) return;
-    if (!['eyebrow', 'line2', 'line4', 'cta'].includes(fieldId)) return;
+    type EditableId = 'eyebrow' | 'line2' | 'line4' | 'cta';
+    const EDITABLE: ReadonlyArray<EditableId> = ['eyebrow', 'line2', 'line4', 'cta'];
+    if (!EDITABLE.includes(fieldId as EditableId)) return;
     setAiBusy(true);
     try {
-      const currentText = (content as unknown as Record<string, string>)[fieldId] ?? '';
+      const currentText = content[fieldId as EditableId] ?? '';
       const r = await fetch('/api/studio/rewrite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
