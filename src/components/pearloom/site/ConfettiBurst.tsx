@@ -23,15 +23,22 @@ interface Props {
 }
 
 export function ConfettiBurst({ active, url, fallback = true }: Props) {
-  const [playing, setPlaying] = useState(false);
+  // Mount the inner only while active is true. The inner owns
+  // its 1700ms self-hide timer locally, with `playing: true` as
+  // the initial state — no setState-in-effect cascade. When the
+  // parent flips active=false (or any time `active` re-flips to
+  // true) the inner remounts, which restarts the timer.
+  if (!active) return null;
+  if (!url && !fallback) return null;
+  return <ConfettiBurstInner url={url} fallback={fallback} />;
+}
 
+function ConfettiBurstInner({ url, fallback }: { url?: string; fallback: boolean }) {
+  const [playing, setPlaying] = useState(true);
   useEffect(() => {
-    if (!active) return;
-    setPlaying(true);
     const t = setTimeout(() => setPlaying(false), 1700);
     return () => clearTimeout(t);
-  }, [active]);
-
+  }, []);
   if (!playing) return null;
   if (!url && !fallback) return null;
 

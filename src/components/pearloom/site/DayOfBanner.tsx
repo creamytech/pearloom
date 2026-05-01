@@ -18,7 +18,7 @@
 // during the pre window still sees the live banner.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { computeDayOfState, formatDelta, type DayOfState } from '@/lib/day-of/state';
 import type { StoryManifest } from '@/types';
 
@@ -29,20 +29,25 @@ interface Props {
 const DISMISS_KEY = 'pl-day-of-banner-dismissed';
 
 export function DayOfBanner({ manifest }: Props) {
-  const [state, setState] = useState<DayOfState>(() => computeDayOfState(manifest));
-  const [dismissed, setDismissed] = useState(false);
+  // dismissed from sessionStorage via lazy useState init so the
+  // banner doesn't flash before the effect ran.
+  const [dismissed, setDismissed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try { return sessionStorage.getItem(DISMISS_KEY) === '1'; }
+    catch { return false; }
+  });
 
+  // The 30s tick forces a re-render so computeDayOfState picks
+  // up the latest clock. The counter value isn't read anywhere
+  // — bumping it is the signal. No setState-in-effect cascade.
+  const [tick, bumpTick] = useState(0);
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    setDismissed(sessionStorage.getItem(DISMISS_KEY) === '1');
-  }, []);
-
-  useEffect(() => {
-    const tick = () => setState(computeDayOfState(manifest));
-    tick();
-    const id = window.setInterval(tick, 30_000);
+    const id = window.setInterval(() => bumpTick((n) => n + 1), 30_000);
     return () => window.clearInterval(id);
-  }, [manifest]);
+  }, []);
+  // Memoise on (manifest, tick) so the derivation re-runs both
+  // when the manifest changes and on every tick.
+  const state = useMemo(() => computeDayOfState(manifest), [manifest, tick]);
 
   if (!state.active || dismissed || state.status === 'inactive') return null;
 
