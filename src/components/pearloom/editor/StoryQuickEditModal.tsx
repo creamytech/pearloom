@@ -330,7 +330,7 @@ function PhotoStrip({
               <button
                 type="button"
                 onClick={() => onRemove(i)}
-                aria-label="Remove photo"
+                aria-label={`Remove photo ${i + 1}`}
                 style={{
                   position: 'absolute',
                   top: 4,

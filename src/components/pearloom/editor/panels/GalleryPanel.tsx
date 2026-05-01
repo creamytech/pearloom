@@ -194,7 +194,7 @@ export function GalleryPanel({
                 <button
                   type="button"
                   onClick={() => removePhoto(p.chapterIdx, p.imageIdx)}
-                  aria-label="Remove photo"
+                  aria-label={`Remove photo ${i + 1}`}
                   style={{
                     position: 'absolute',
                     top: 6,
