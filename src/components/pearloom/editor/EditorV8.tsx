@@ -1533,6 +1533,7 @@ function EditorTopbar({
 
   return (
     <header
+      aria-label="Editor toolbar"
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -2419,6 +2420,7 @@ function Outline({
   return (
     <aside
       className="pl8-editor-outline"
+      aria-label="Outline"
       style={{
         width: railWidth,
         flexShrink: 0,
@@ -3195,6 +3197,7 @@ function Inspector({
   return (
     <aside
       className="pl8-editor-inspector"
+      aria-label="Inspector"
       style={{
         width: resolvedWidth,
         flexShrink: 0,
