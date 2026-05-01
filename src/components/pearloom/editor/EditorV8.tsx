@@ -3469,9 +3469,21 @@ function PanelSwitch({
 
 /* ---------- Mobile drawer + tabbar ---------- */
 function MobileDrawer({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  // Escape closes the drawer to match every other overlay in
+  // the editor (Send overlay, FindInSite, modals). Tap-outside
+  // already works via the backdrop's onClick.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
   return (
     <>
       <div
+        role="presentation"
         onClick={onClose}
         style={{
           position: 'absolute',
@@ -3483,12 +3495,13 @@ function MobileDrawer({ children, onClose }: { children: React.ReactNode; onClos
       />
       <div
         className="pl8-editor-drawer"
+        role="dialog"
+        aria-modal="true"
         style={{
           position: 'absolute',
           left: 0,
           right: 0,
           bottom: 56,
-          top: 'auto',
           maxHeight: 'calc(100vh - 180px)',
           background: 'var(--cream)',
           borderTop: '1px solid var(--line-soft)',
