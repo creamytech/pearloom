@@ -1480,7 +1480,22 @@ function EditorTopbar({
         <PearloomLogo />
       </Link>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0, flexShrink: 0 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.15 }}>{displayNames}</div>
+        <div
+          title={displayNames}
+          style={{
+            fontSize: 13.5,
+            fontWeight: 600,
+            lineHeight: 1.15,
+            // Ellipsify long names so the topbar doesn't crowd the
+            // breadcrumb + mode pills. The full name surfaces on
+            // hover via title=, and the canvas itself shows the
+            // unabridged version.
+            maxWidth: 280,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >{displayNames}</div>
         <div style={{ fontSize: 11, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 6, lineHeight: 1.15 }}>
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 240 }}>{prettyUrl}</span>
           <SaveDot saveStatus={saveStatus} lastSavedAt={lastSavedAt} />
