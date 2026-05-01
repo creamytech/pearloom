@@ -266,6 +266,7 @@ function ColorPopover({
         value={Math.round(hsv.h)}
         onChange={(e) => setHsv({ h: Number(e.target.value), s: hsv.s, v: hsv.v })}
         aria-label="Hue"
+        aria-valuetext={`Hue ${Math.round(hsv.h)} degrees`}
         style={{
           width: '100%',
           height: 14,
@@ -285,6 +286,7 @@ function ColorPopover({
         <input
           type="text"
           spellCheck={false}
+          aria-label="Hex colour value"
           value={hexDraft.replace('#', '')}
           onChange={(e) => {
             const next = e.target.value.replace(/[^0-9a-fA-F]/g, '').slice(0, 6);
