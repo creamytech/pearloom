@@ -431,7 +431,7 @@ const HOME_BLOCK_OPTIONS: Array<{ key: string; label: string; hint: string }> = 
   { key: 'rsvp', label: 'RSVP', hint: 'Reply form' },
 ];
 
-function SiteModeSection({
+export function SiteModeSection({
   manifest,
   onChange,
 }: {

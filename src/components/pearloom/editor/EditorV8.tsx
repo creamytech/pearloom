@@ -67,7 +67,7 @@ import { GalleryPanel } from './panels/GalleryPanel';
 import { RsvpPanel } from './panels/RsvpPanel';
 import { FaqPanel } from './panels/FaqPanel';
 import { ToastsPanel } from './panels/ToastsPanel';
-import { ThemePanel } from './panels/ThemePanel';
+import { ThemePanel, SiteModeSection } from './panels/ThemePanel';
 import { PanelSearch, PearSuggestionsStrip } from './atoms';
 import { pearSuggestionsFor } from './panels/pear-suggestions';
 import { blockFillState, FILL_STATE_COLORS, siteProgressPct, type ScoredBlockKey } from '@/lib/site-progress';
@@ -2242,23 +2242,13 @@ function Outline({
         </div>
       )}
 
-      {/* Pages tab — placeholder until multi-page sites ship. */}
+      {/* Pages tab — site layout mode + per-page block routing. The
+          underlying SiteModeSection is the same control used in the
+          Theme panel; surfacing it here keeps the Pages tab where
+          page-shape decisions live. */}
       {tab === 'pages' && (
-        <div
-          style={{
-            padding: '20px 14px',
-            background: 'var(--cream-2)',
-            border: '1px dashed var(--line)',
-            borderRadius: 12,
-            fontSize: 12.5,
-            color: 'var(--ink-soft)',
-            lineHeight: 1.55,
-            fontStyle: 'italic',
-            fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
-          }}
-        >
-          Pearloom sites are one woven page today. Multi-page support
-          is on the loom — when it lands, every page lives here.
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <SiteModeSection manifest={manifest} onChange={onChange} />
         </div>
       )}
 
