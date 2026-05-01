@@ -39,6 +39,19 @@ export function PearWelcome({ siteSlug, onAccept }: Props) {
     } catch { /* ignore quota / private mode */ }
   }, [memoryKey]);
 
+  // Escape dismisses the welcome — same contract every other
+  // editor overlay follows. Even a non-blocking dialog should let
+  // keyboard hosts get rid of it on demand.
+  useEffect(() => {
+    if (!show) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') dismiss();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [show]);
+
   function dismiss() {
     setShow(false);
     try { window.localStorage.setItem(memoryKey, '1'); } catch { /* ignore */ }
