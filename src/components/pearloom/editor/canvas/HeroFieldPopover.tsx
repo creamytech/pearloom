@@ -167,6 +167,7 @@ export function HeroFieldPopover({ anchor, field, manifest, onEditField, onClose
             value={tz}
             onChange={(e) => setTz(e.target.value)}
             placeholder="America/Los_Angeles"
+            aria-label="Event timezone"
             spellCheck={false}
             style={inputStyle}
           />
@@ -203,6 +204,7 @@ export function HeroFieldPopover({ anchor, field, manifest, onEditField, onClose
             value={manifest.logistics?.venueAddress ?? ''}
             onChange={(e) => setLogistics({ venueAddress: e.target.value || undefined })}
             placeholder="4721 Meadow Ln, Hillsboro, OR"
+            aria-label="Venue address"
             style={inputStyle}
           />
           <p style={{ margin: 0, fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.45 }}>
