@@ -2094,6 +2094,12 @@ function SaveDot({
 
   return (
     <span
+      // Polite live region so screen readers announce transitions
+      // ("Saving…" → "Saved") without interrupting the host. The
+      // pulse dot is aria-hidden; the text content of this span
+      // (the visible label) is what gets announced.
+      role="status"
+      aria-live="polite"
       title={tooltipText}
       style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: colour, fontWeight: 600, cursor: 'help' }}
     >
