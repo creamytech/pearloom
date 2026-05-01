@@ -47,6 +47,7 @@ next-env.d.ts
 
 # claude-code per-machine settings
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
 
 # local-only audit + design-handoff artefacts (large binaries)
 .audit/
