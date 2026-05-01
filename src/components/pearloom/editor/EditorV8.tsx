@@ -2099,22 +2099,23 @@ function KbdHint() {
       <button
         type="button"
         aria-label="Keyboard shortcuts"
+        aria-expanded={open}
         title="Keyboard shortcuts"
         onClick={() => setOpen((v) => !v)}
+        className="pl8-icon-btn"
         style={{
           width: 30,
           height: 30,
           borderRadius: 999,
-          background: 'transparent',
+          background: open ? 'var(--cream-2)' : 'transparent',
           border: '1px solid var(--line-soft)',
-          color: 'var(--ink-soft)',
+          color: open ? 'var(--ink)' : 'var(--ink-soft)',
           cursor: 'pointer',
           display: 'grid',
           placeItems: 'center',
           fontSize: 11,
           fontWeight: 700,
           fontFamily: 'var(--font-ui)',
-          transition: 'background 160ms ease, color 160ms ease, border-color 160ms ease',
         }}
       >
         ⌘
