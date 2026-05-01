@@ -143,7 +143,11 @@ export function QuickEditModalShell({
     count: number;
     restore: () => void;
   } | null>(null);
-  useEffect(() => {
+  // Reset selection / tag state when the modal closes via
+  // store-and-compare-prev (avoids a setState-in-effect cascade).
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (!open) {
       setSelectMode(false);
       setSelectedIds(new Set());
@@ -151,7 +155,7 @@ export function QuickEditModalShell({
       setTagDraft('');
       setPendingUndo(null);
     }
-  }, [open]);
+  }
   useEffect(() => {
     if (!pendingUndo) return;
     const t = setTimeout(() => setPendingUndo(null), 6000);

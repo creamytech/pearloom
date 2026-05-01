@@ -89,7 +89,10 @@ export function OfflineIndicator() {
 
     // Initial state is seeded by the lazy useState init above.
     // Refresh pending count regardless so the badge is correct.
-    if (!isOnline()) refreshPendingCount();
+    // Deferred via queueMicrotask so the rule's "synchronously
+    // within an effect body" doesn't fire on the indirect
+    // setState path inside the async helper.
+    if (!isOnline()) queueMicrotask(() => refreshPendingCount());
 
     window.addEventListener('offline', goOffline);
     window.addEventListener('online', goOnline);

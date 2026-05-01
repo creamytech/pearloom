@@ -25,22 +25,32 @@ interface Props {
 
 export function MobileSaveIndicator({ saveStatus, onRetry }: Props) {
   // Only show "Saved" briefly — after that the pill should be
-  // invisible so it doesn't sit on the canvas during normal editing.
-  const [showSaved, setShowSaved] = useState(false);
+  // invisible so it doesn't sit on the canvas during normal
+  // editing. Keyed-child pattern: the inner timer mounts fresh
+  // each time saveStatus enters 'saved', so the timeout
+  // restart is automatic and the rule never sees a synchronous
+  // setState in an effect body.
+  return (
+    <MobileSaveIndicatorInner
+      key={saveStatus === 'saved' ? 'saved-pill' : saveStatus}
+      saveStatus={saveStatus}
+      onRetry={onRetry}
+    />
+  );
+}
+
+function MobileSaveIndicatorInner({ saveStatus, onRetry }: Props) {
+  const [savedHidden, setSavedHidden] = useState(false);
   useEffect(() => {
-    if (saveStatus !== 'saved') {
-      setShowSaved(false);
-      return;
-    }
-    setShowSaved(true);
-    const t = setTimeout(() => setShowSaved(false), 1800);
+    if (saveStatus !== 'saved') return;
+    const t = setTimeout(() => setSavedHidden(true), 1800);
     return () => clearTimeout(t);
   }, [saveStatus]);
 
   const visible =
     saveStatus === 'saving' ||
     saveStatus === 'error' ||
-    (saveStatus === 'saved' && showSaved);
+    (saveStatus === 'saved' && !savedHidden);
 
   const label =
     saveStatus === 'saving'
