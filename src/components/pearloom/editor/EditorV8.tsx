@@ -222,6 +222,24 @@ export function EditorV8({
     try { window.localStorage.setItem('pl-editor-inspector-w', String(inspectorWidth)); } catch {}
   }, [inspectorWidth]);
 
+  // Outline rail width — same persistence pattern as inspector.
+  // Default 280 (was hardcoded 252 / 340 for theme); user-resizable
+  // 220–420. Per-tab default-width override stays in Outline itself
+  // so the Theme tab can still suggest a wider rail on first open.
+  const [outlineWidth, setOutlineWidth] = useState<number>(() => {
+    if (typeof window === 'undefined') return 280;
+    try {
+      const raw = window.localStorage.getItem('pl-editor-outline-w');
+      const n = raw ? Number(raw) : NaN;
+      if (Number.isFinite(n) && n >= 220 && n <= 420) return n;
+    } catch {}
+    return 280;
+  });
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try { window.localStorage.setItem('pl-editor-outline-w', String(outlineWidth)); } catch {}
+  }, [outlineWidth]);
+
   // ── Deep-link from external pages ──────────────────────────
   // Dashboard pages (Day-of room, kickoff cards, etc.) link to
   // /editor/{slug}?focus=<blockKey>&anchor=<themeAnchor> when
@@ -875,6 +893,8 @@ export function EditorV8({
             tab={outlineTab}
             setTab={setOutlineTab}
             displayUrl={prettyUrl}
+            width={outlineWidth}
+            onResize={setOutlineWidth}
           />
         )}
         <CanvasStage
@@ -2124,6 +2144,8 @@ function Outline({
   setTab,
   fluid = false,
   displayUrl,
+  width,
+  onResize,
 }: {
   block: BlockKey;
   setBlock: (k: BlockKey) => void;
@@ -2145,6 +2167,11 @@ function Outline({
   /** "pearloom.com/scott-and-shauna" — surfaced above the progress
    *  thread on the Sections tab as an at-a-glance site identity. */
   displayUrl?: string;
+  /** Persisted host-chosen width in px. Falls back to the
+   *  legacy default (252 / 340 for theme tab) when unset. */
+  width?: number;
+  /** Called with each px while the host drags the right-edge handle. */
+  onResize?: (w: number) => void;
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -2173,10 +2200,31 @@ function Outline({
     progressPct >= 95 ? 'Ready to publish' : progressPct >= 60 ? 'Coming together' : progressPct >= 25 ? 'Underway' : 'Just started';
 
   const onTheme = tab === 'theme';
-  // Theme tab benefits from a wider rail — the panel was originally
-  // designed for ~380px and the swatch grids crowd at 252. Sections
-  // + Pages stay at the original width so the canvas keeps room.
-  const railWidth = fluid ? '100%' : (onTheme ? 340 : 252);
+  // Host-controlled width takes precedence (persisted in localStorage).
+  // Falls back to the per-tab defaults: theme tab gets a wider rail
+  // because its swatch grids crowd at 252.
+  const railWidth = fluid ? '100%' : (width ?? (onTheme ? 340 : 252));
+
+  function onResizeStart(e: React.PointerEvent<HTMLDivElement>) {
+    if (!onResize) return;
+    e.preventDefault();
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    const move = (ev: PointerEvent) => {
+      // Outline is anchored to the left edge — width = pointer X.
+      const next = Math.round(ev.clientX);
+      onResize(Math.max(220, Math.min(420, next)));
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }
 
   return (
     <aside
@@ -2191,13 +2239,34 @@ function Outline({
         display: 'flex',
         flexDirection: 'column',
         gap: 14,
-        transition: 'width 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+        position: 'relative',
+        // Keep the snap-on-tab transition only when the host hasn't
+        // overridden the width. Once they're dragging, transitions
+        // make the rail feel laggy.
+        transition: width === undefined ? 'width 200ms cubic-bezier(0.22, 1, 0.36, 1)' : undefined,
       }}
     >
-      {/* Tab strip — Sections / Pages / Theme. Pages is a forward-
-          looking placeholder (we're single-page today); Theme moved
-          here from the inspector in the V2 redesign so the right
-          rail can stay focused on the active section + Pear. */}
+      {!fluid && onResize && (
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize outline"
+          onPointerDown={onResizeStart}
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: -3,
+            width: 6,
+            height: '100%',
+            cursor: 'col-resize',
+            zIndex: 5,
+          }}
+        />
+      )}
+      {/* Tab strip — Sections / Pages / Theme. Theme moved here from
+          the inspector in the V2 redesign so the right rail can stay
+          focused on the active section + Pear. Pages now hosts the
+          real layout-mode picker (was a stale placeholder). */}
       {setTab && (
         <div
           role="tablist"
