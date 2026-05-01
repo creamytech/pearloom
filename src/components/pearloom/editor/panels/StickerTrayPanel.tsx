@@ -275,7 +275,7 @@ export function StickerTrayPanel({
             On this site ({stickers.length})
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-            {stickers.map((s) => (
+            {stickers.map((s, i) => (
               <div
                 key={s.id}
                 style={{
@@ -289,7 +289,7 @@ export function StickerTrayPanel({
                 <button
                   type="button"
                   onClick={() => removeSticker(s.id)}
-                  aria-label="Remove sticker"
+                  aria-label={`Remove sticker ${i + 1}`}
                   style={{
                     position: 'absolute',
                     top: 4,
