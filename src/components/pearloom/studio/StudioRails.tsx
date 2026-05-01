@@ -560,7 +560,7 @@ export function RemixRail({ state, setField, content, nameA, nameB, onRewriteFie
       display: 'flex', flexDirection: 'column',
       overflow: 'hidden',
     }}>
-      <div style={{
+      <div role="group" aria-label="Studio inspector" style={{
         display: 'flex', padding: '12px 12px 0', gap: 4,
         borderBottom: '1px solid var(--line-soft)',
       }}>
@@ -571,7 +571,12 @@ export function RemixRail({ state, setField, content, nameA, nameB, onRewriteFie
         ] as const).map(x => {
           const on = tab === x.id;
           return (
-            <button key={x.id} onClick={() => setTab(x.id)} style={{
+            <button
+              key={x.id}
+              type="button"
+              aria-pressed={on}
+              onClick={() => setTab(x.id)}
+              style={{
               flex: 1, padding: '10px 4px',
               fontSize: 12, fontWeight: 600,
               color: on ? 'var(--ink)' : 'var(--ink-muted)',

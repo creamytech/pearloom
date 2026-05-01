@@ -177,7 +177,7 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
                 color: 'var(--ink)',
               }}>{titleByType[type]}</h2>
             </div>
-            <button onClick={onClose} aria-label="Close send overlay" style={{
+            <button type="button" onClick={onClose} aria-label="Close send overlay" style={{
               width: 32, height: 32, borderRadius: '50%',
               background: 'var(--cream-2)', display: 'grid', placeItems: 'center',
               border: 'none', cursor: 'pointer',

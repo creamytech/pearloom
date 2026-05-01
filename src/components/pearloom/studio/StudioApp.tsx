@@ -692,7 +692,7 @@ function FloatingPear({ nudges }: { nudges: string[] }) {
   const nudge = nudges[idx % nudges.length];
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} aria-label="Open Pear's nudges" style={{
+      <button type="button" onClick={() => setOpen(true)} aria-label="Open Pear's nudges" style={{
         position: 'fixed', bottom: 70, right: 332, zIndex: 30,
         width: 48, height: 48, borderRadius: '50%',
         background: 'var(--card)', border: '1px solid var(--line)',
