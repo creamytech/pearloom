@@ -211,8 +211,27 @@ function ColorPopover({
       {/* 2D saturation/value plane */}
       <div
         ref={canvasRef}
+        role="application"
+        tabIndex={0}
+        aria-label={`Saturation ${Math.round(hsv.s * 100)}%, brightness ${Math.round(hsv.v * 100)}%. Use arrow keys to nudge, Shift + arrow for larger jumps.`}
         onPointerDown={onPointerDownCanvas}
         onPointerMove={onPointerMoveCanvas}
+        onKeyDown={(e) => {
+          // Keyboard parity for the pointer-only saturation/value
+          // plane. Arrows nudge by 0.02 (2% of the plane), Shift +
+          // arrow by 0.1 (10%). Brightness goes UP when the visual
+          // dot moves UP, hence the inverted sign on ArrowUp/Down.
+          const step = e.shiftKey ? 0.1 : 0.02;
+          let s = hsv.s;
+          let v = hsv.v;
+          if (e.key === 'ArrowLeft')       s = Math.max(0, hsv.s - step);
+          else if (e.key === 'ArrowRight') s = Math.min(1, hsv.s + step);
+          else if (e.key === 'ArrowUp')    v = Math.min(1, hsv.v + step);
+          else if (e.key === 'ArrowDown')  v = Math.max(0, hsv.v - step);
+          else return;
+          e.preventDefault();
+          setHsv({ h: hsv.h, s, v });
+        }}
         style={{
           position: 'relative',
           height: 140,
