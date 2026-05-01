@@ -102,6 +102,7 @@ export function CanvasBulkActionBar() {
       <button
         type="button"
         onClick={hideAll}
+        aria-label="Hide all selected sections"
         title="Hide all selected sections"
         style={{ ...pillBtn, color: '#FCA5A5' }}
         onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.18)'; e.currentTarget.style.color = '#FECACA'; }}

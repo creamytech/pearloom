@@ -178,6 +178,7 @@ export function DecorEditOverlay({
         <button
           type="button"
           onClick={handleSwap}
+          aria-label="Swap for another piece in your library"
           title="Swap for another piece in your library"
           style={chipStyle}
         >
@@ -186,6 +187,7 @@ export function DecorEditOverlay({
         <button
           type="button"
           onClick={handleHide}
+          aria-label="Hide this on the canvas"
           title="Hide this on the canvas"
           style={chipStyle}
         >

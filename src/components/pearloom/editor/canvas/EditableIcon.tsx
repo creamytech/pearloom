@@ -93,6 +93,7 @@ export function EditableIcon({ name, purpose, size = 16, color, className }: Pro
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); open(); }}
+            aria-label="Swap icon"
             title="Swap icon"
             style={{
               width: 22, height: 22, borderRadius: 999,
@@ -109,6 +110,7 @@ export function EditableIcon({ name, purpose, size = 16, color, className }: Pro
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); clear(); }}
+            aria-label="Reset icon to default"
             title="Reset to default"
             style={{
               width: 22, height: 22, borderRadius: 999,

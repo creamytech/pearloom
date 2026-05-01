@@ -143,8 +143,8 @@ export function PhotoActionMenu({
         )}
         {onStylize && imageUrl && (
           <PhotoActionButton
-            ariaLabel="Stylize with AI"
-            title="Stylize with Pear (gpt-image-2)"
+            ariaLabel="Stylize with Pear"
+            title="Stylize with Pear"
             onClick={(e) => {
               e.stopPropagation();
               onStylize();
