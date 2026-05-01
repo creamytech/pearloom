@@ -298,6 +298,7 @@ export function DraftsRail({ state, setField, content, nameA, nameB, onPickDraft
             type="button"
             onClick={() => void onAskPearForDraft()}
             disabled={aiBusy}
+            aria-busy={aiBusy}
             style={{
               padding: '10px 12px', borderRadius: 12,
               fontSize: 12, fontWeight: 600,
@@ -306,16 +307,17 @@ export function DraftsRail({ state, setField, content, nameA, nameB, onPickDraft
               background: 'transparent',
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               cursor: aiBusy ? 'wait' : 'pointer',
+              opacity: aiBusy ? 0.6 : 1,
               fontFamily: 'inherit',
             }}
           >
-            <Pear size={14} tone="sage" shadow={false} />
-            Draft another direction
+            <Pear size={14} tone="sage" shadow={false} sparkle={aiBusy} />
+            {aiBusy ? 'Threading…' : 'Draft another direction'}
           </button>
         )}
       </div>
 
-      <AssetPalette state={state} setField={setField} onAskPearForAsset={onAskPearForAsset} />
+      <AssetPalette state={state} setField={setField} onAskPearForAsset={onAskPearForAsset} aiBusy={aiBusy} />
 
       <div style={{
         marginTop: 'auto', padding: 12,
@@ -393,7 +395,13 @@ function DraftThumb({ draft, active, nameA, nameB }: { draft: StudioDraft; activ
   );
 }
 
-function AssetPalette({ state, setField, onAskPearForAsset }: { state: StudioState; setField: SetStudioField; onAskPearForAsset?: (kind: AssetEntry['kind']) => Promise<void> }) {
+function AssetPalette({ state, setField, onAskPearForAsset, aiBusy }: { state: StudioState; setField: SetStudioField; onAskPearForAsset?: (kind: AssetEntry['kind']) => Promise<void>; aiBusy?: boolean }) {
+  // Tracks which asset kind the host most recently asked Pear to
+  // paint. Combined with aiBusy at render time to flip the matching
+  // pill to "Painting…". When aiBusy goes false, the kind is stale
+  // but the busy display only fires on (aiBusy && paintingKind === kind),
+  // so no reset effect is needed.
+  const [paintingKind, setPaintingKind] = useState<AssetEntry['kind'] | null>(null);
   return (
     <div style={{ marginTop: 4 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -456,22 +464,33 @@ function AssetPalette({ state, setField, onAskPearForAsset }: { state: StudioSta
           </div>
           {onAskPearForAsset && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-              {(['stamp', 'wax', 'leaf', 'doodle'] as AssetEntry['kind'][]).map(kind => (
+              {(['stamp', 'wax', 'leaf', 'doodle'] as AssetEntry['kind'][]).map(kind => {
+                const busy = !!aiBusy && paintingKind === kind;
+                const otherBusy = !!aiBusy && !busy;
+                return (
                 <button
                   key={kind}
                   type="button"
-                  onClick={() => void onAskPearForAsset(kind)}
+                  disabled={busy || otherBusy}
+                  aria-busy={busy}
+                  onClick={() => {
+                    setPaintingKind(kind);
+                    void onAskPearForAsset(kind);
+                  }}
                   style={{
                     padding: '4px 10px', borderRadius: 999,
                     background: 'var(--peach-bg)', color: 'var(--peach-ink)',
                     fontSize: 11, fontWeight: 600,
                     border: '1px dashed var(--peach-ink)',
-                    cursor: 'pointer', fontFamily: 'inherit',
+                    cursor: busy || otherBusy ? 'not-allowed' : 'pointer',
+                    opacity: otherBusy ? 0.4 : 1,
+                    fontFamily: 'inherit',
                   }}
                 >
-                  ✦ Pear · {kind}
+                  {busy ? `Painting ${kind}…` : `✦ Pear · ${kind}`}
                 </button>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

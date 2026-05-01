@@ -520,20 +520,21 @@ test.describe('Studio (stationery editor)', () => {
     const eyebrowRewriteBtn = page.locator('div').filter({ hasText: /^Eyebrow$/ }).first()
       .locator('xpath=..').getByRole('button', { name: /Rewrite/ });
     await eyebrowRewriteBtn.click();
-    const hintBtn = page.getByRole('button', { name: /A different angle on the same idea/ });
-    await hintBtn.click();
+    await page.getByRole('button', { name: /A different angle on the same idea/ }).click();
 
-    // While the request is in flight, the clicked pill swaps to
-    // Threading… so the host has visible feedback the click
-    // registered.
-    await expect(page.getByRole('button', { name: /Threading…/ })).toBeVisible();
+    // While the request is in flight, every busy AI affordance
+    // flips to aria-busy="true" + a Threading… label so the host
+    // sees the click registered. Both the clicked hint and the
+    // Draft rail share aiBusy globally; we just assert at least
+    // one busy pill exists.
+    await expect(page.locator('button[aria-busy="true"]').first()).toBeVisible();
 
     // Release the deferred response and confirm the canvas updates.
     release!();
     await expect(page.locator('main').filter({ hasText: 'NEW-COPY-LANDED' }).first())
       .toBeVisible({ timeout: 5_000 });
-    // Threading… is gone after the response lands.
-    await expect(page.getByRole('button', { name: /Threading…/ })).toHaveCount(0);
+    // All busy pills clear after the response lands.
+    await expect(page.locator('button[aria-busy="true"]')).toHaveCount(0);
   });
 
   test('AI-generated assets survive an autosave + reload round-trip', async ({ page, context }) => {
