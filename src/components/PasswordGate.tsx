@@ -41,7 +41,11 @@ export function PasswordGate({ siteId, coupleNames, password, vibeSkin, children
   // setState-in-effect cascade per react-hooks/set-state-in-effect).
   const [unlocked, setUnlocked] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
-    return sessionStorage.getItem(SESSION_KEY(siteId)) === '1';
+    try {
+      return sessionStorage.getItem(SESSION_KEY(siteId)) === '1';
+    } catch {
+      return false;
+    }
   });
   const [input, setInput]         = useState('');
   const [error, setError]         = useState('');
@@ -72,7 +76,7 @@ export function PasswordGate({ siteId, coupleNames, password, vibeSkin, children
     // Simple client-side check (plaintext) — good enough for wedding sites
     // For higher security, swap to an API call that checks hashed pw server-side
     if (input.trim().toLowerCase() === password.trim().toLowerCase()) {
-      sessionStorage.setItem(SESSION_KEY(siteId), '1');
+      try { sessionStorage.setItem(SESSION_KEY(siteId), '1'); } catch { /* Safari Private — host stays unlocked for the page anyway */ }
       setUnlocked(true);
     } else {
       setError('Wrong password. Try again or ask the couple!');

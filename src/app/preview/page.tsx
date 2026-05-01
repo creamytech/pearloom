@@ -208,12 +208,14 @@ function PreviewContent() {
       if (event.data?.type === 'pearloom-preview-refresh') {
         const key = searchParams.get('key');
         if (key) {
-          const stored = sessionStorage.getItem(key);
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            setManifest(parsed.manifest);
-            if (parsed.names) setNames(parsed.names);
-          }
+          try {
+            const stored = sessionStorage.getItem(key);
+            if (stored) {
+              const parsed = JSON.parse(stored);
+              setManifest(parsed.manifest);
+              if (parsed.names) setNames(parsed.names);
+            }
+          } catch { /* ignore — bad JSON or Safari Private */ }
         }
       }
     };

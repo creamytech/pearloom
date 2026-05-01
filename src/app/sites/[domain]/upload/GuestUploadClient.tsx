@@ -30,20 +30,25 @@ type Stage = 'idle' | 'uploading' | 'sent' | 'error';
 
 export function GuestUploadClient({ siteId, couple, guestToken, prefillName }: Props) {
   const [stage, setStage] = useState<Stage>('idle');
-  const [name, setName] = useState(prefillName ?? '');
+  // Persist the name across uploads in the same session — the
+  // common case is "I take 8 photos in a row." sessionStorage
+  // beats localStorage so closing the tab clears it. Lazy init
+  // reads once at mount; previously this was a render-time
+  // setName() call which triggered a re-render every render.
+  const [name, setName] = useState(() => {
+    if (prefillName) return prefillName;
+    if (typeof window === 'undefined') return '';
+    try {
+      return window.sessionStorage.getItem('pl-upload-name') ?? '';
+    } catch {
+      return '';
+    }
+  });
   const [caption, setCaption] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [count, setCount] = useState(0);
   const fileRef = useRef<HTMLInputElement | null>(null);
-
-  // Persist the name across uploads in the same session — the
-  // common case is "I take 8 photos in a row." sessionStorage
-  // beats localStorage so closing the tab clears it.
-  if (typeof window !== 'undefined' && !name) {
-    const stored = sessionStorage.getItem('pl-upload-name');
-    if (stored) setName(stored);
-  }
 
   function pickFile() {
     if (!name.trim()) {
@@ -60,7 +65,7 @@ export function GuestUploadClient({ siteId, couple, guestToken, prefillName }: P
     if (!file) return;
 
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem('pl-upload-name', name.trim());
+      try { sessionStorage.setItem('pl-upload-name', name.trim()); } catch { /* ignore */ }
     }
 
     setPreviewUrl(URL.createObjectURL(file));
