@@ -973,6 +973,7 @@ export function DesignAdvisor({
                 }
               }}
               placeholder={chat.length === 0 ? 'Ask Pear anything — try /faq, /hero, or "rewrite my tagline warmer"' : 'Reply to Pear…'}
+              aria-label={chat.length === 0 ? 'Ask Pear anything' : 'Reply to Pear'}
               rows={1}
               style={{
                 flex: 1,
