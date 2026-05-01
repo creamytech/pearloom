@@ -146,6 +146,7 @@ export function DecorRecolorModal({ manifest, onEditField }: Props) {
   return (
     <div
       role="dialog"
+      aria-modal="true"
       aria-label="Recolor decor"
       style={{
         position: 'fixed',

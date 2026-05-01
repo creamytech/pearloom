@@ -101,6 +101,7 @@ export function FindInSite({ manifest, open, onClose, onJump }: Props) {
   return (
     <div
       role="dialog"
+      aria-modal="true"
       aria-label="Find in site"
       onClick={onClose}
       style={{

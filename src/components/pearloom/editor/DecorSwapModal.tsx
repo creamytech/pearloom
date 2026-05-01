@@ -232,6 +232,7 @@ export function DecorSwapModal({ manifest, onEditField }: Props) {
   return (
     <div
       role="dialog"
+      aria-modal="true"
       aria-label="Swap art"
       style={{
         position: 'fixed', inset: 0,

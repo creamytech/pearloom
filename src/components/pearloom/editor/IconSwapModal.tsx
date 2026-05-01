@@ -140,6 +140,7 @@ export function IconSwapModal({ manifest, onEditField }: Props) {
   return (
     <div
       role="dialog"
+      aria-modal="true"
       aria-label="Swap icon"
       style={{
         position: 'fixed', inset: 0,
