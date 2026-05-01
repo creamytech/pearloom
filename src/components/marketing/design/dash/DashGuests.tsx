@@ -309,6 +309,8 @@ function NudgeComposer({
   return (
     <div
       role="dialog"
+      aria-modal="true"
+      aria-label="Send a nudge"
       onClick={onClose}
       style={{
         position: 'fixed',

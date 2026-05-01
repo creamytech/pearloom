@@ -406,6 +406,8 @@ export function LibraryPage() {
         {selected && (
           <div
             role="dialog"
+            aria-modal="true"
+            aria-label="Photo preview"
             onClick={() => setSelected(null)}
             style={{
               position: 'fixed',
