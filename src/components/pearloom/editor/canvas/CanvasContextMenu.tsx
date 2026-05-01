@@ -85,7 +85,8 @@ export function CanvasContextMenu() {
     };
   }, [state]);
 
-  // Auto-flip when near a viewport edge.
+  // Auto-flip when near a viewport edge — DOM measurement
+  // (offsetWidth/offsetHeight) is what useLayoutEffect is for.
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   useLayoutEffect(() => {
     if (!state) return;
@@ -93,6 +94,7 @@ export function CanvasContextMenu() {
     const h = ref.current?.offsetHeight ?? 280;
     const left = state.x + w + 8 > window.innerWidth ? state.x - w : state.x;
     const top = state.y + h + 8 > window.innerHeight ? state.y - h : state.y;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPos({ top: Math.max(8, top), left: Math.max(8, left) });
   }, [state]);
 

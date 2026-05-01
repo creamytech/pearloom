@@ -41,12 +41,15 @@ export function HeroFieldPopover({ anchor, field, manifest, onEditField, onClose
   const [pos, setPos] = useState<{ top: number; left: number; flipped: boolean }>({ top: 0, left: 0, flipped: false });
   const popRef = useRef<HTMLDivElement>(null);
 
+  // DOM-measurement-driven positioning. useLayoutEffect is the
+  // React-recommended hook for this; the lint rule is over-strict.
   useLayoutEffect(() => {
     if (!anchor) return;
     const r = anchor.getBoundingClientRect();
     const popH = field === 'venue' ? 360 : 460;
     const popW = field === 'venue' ? 360 : 340;
     const flip = r.bottom + popH > window.innerHeight - 16;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPos({
       top: flip ? r.top - 8 : r.bottom + 8,
       left: Math.max(16, Math.min(r.left + r.width / 2 - popW / 2, window.innerWidth - popW - 16)),

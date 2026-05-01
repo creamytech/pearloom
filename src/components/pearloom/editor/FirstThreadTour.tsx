@@ -97,10 +97,13 @@ export function FirstThreadTour({ siteSlug }: { siteSlug: string }) {
   // Whenever the step changes, re-resolve the anchor element and
   // recalc its rect. Re-runs on resize + scroll so the spotlight
   // tracks the element if the user scrolls before clicking next.
+  // DOM measurement → setState for the spotlight overlay.
+  // useLayoutEffect is the React-recommended hook for this.
   useLayoutEffect(() => {
     if (stepIdx < 0) return;
     const step = STEPS[stepIdx];
     if (!step.anchor) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAnchorRect(null);
       return;
     }

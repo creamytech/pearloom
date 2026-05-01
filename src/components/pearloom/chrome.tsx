@@ -43,20 +43,26 @@ export function TopNav({
   const [hoveredLabel, setHoveredLabel] = useState<string | null>(null);
 
   // Measure the active or hovered link to position the underline.
+  // DOM-measurement-driven; useLayoutEffect is the React-
+  // recommended hook for this and the lint rule's "derive at
+  // render time" alternative isn't applicable.
   useLayoutEffect(() => {
     if (!navRef.current) return;
     const target = hoveredLabel ?? active;
     if (!target) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUnderline((u) => ({ ...u, visible: false }));
       return;
     }
     const el = linkRefs.current.get(target);
     if (!el) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUnderline((u) => ({ ...u, visible: false }));
       return;
     }
     const navRect = navRef.current.getBoundingClientRect();
     const elRect = el.getBoundingClientRect();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUnderline({
       left: elRect.left - navRect.left + 14, // strip the link's left padding
       width: elRect.width - 28,               // and right padding

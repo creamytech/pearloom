@@ -253,14 +253,26 @@ export function CustomSelect<T extends string = string>({
 
   const selected = options.find((o) => o.value === value);
 
+  // Reset hoverIdx when the popover opens — store-and-compare-prev
+  // so this isn't a setState-in-effect cascade.
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) setHoverIdx(Math.max(0, options.findIndex((o) => o.value === value)));
+  }
+
   // Position popover above the trigger when below would clip.
+  // Genuine DOM measurement → setState. The lint rule's
+  // recommendation (derive at render time) doesn't fit here:
+  // the trigger's bounding rect isn't available during render
+  // and useLayoutEffect IS the React-recommended hook for this.
   useEffect(() => {
     if (!open || !triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
     const room = window.innerHeight - rect.bottom;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpenUp(room < 220 && rect.top > 220);
-    setHoverIdx(Math.max(0, options.findIndex((o) => o.value === value)));
-  }, [open, value, options]);
+  }, [open]);
 
   // Close on click outside.
   useEffect(() => {

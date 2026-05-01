@@ -36,11 +36,15 @@ export function BlockPickerPopover({ anchor, blocks, onPick, onClose }: Props) {
   const [pos, setPos] = useState<{ top: number; left: number; flipped: boolean }>({ top: 0, left: 0, flipped: false });
   const popRef = useRef<HTMLDivElement>(null);
 
+  // DOM-measurement → setState is exactly what useLayoutEffect
+  // is for; the lint rule doesn't have a clean alternative for
+  // popover positioning derived from a trigger's bounding rect.
   useLayoutEffect(() => {
     if (!anchor) return;
     const r = anchor.getBoundingClientRect();
     const popH = 420; // approx — refined after first render
     const flip = r.bottom + popH > window.innerHeight - 16;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPos({
       top: flip ? r.top - 8 : r.bottom + 8,
       left: Math.min(r.right - 320, window.innerWidth - 340),
