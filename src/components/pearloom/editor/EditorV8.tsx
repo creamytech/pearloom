@@ -2532,26 +2532,12 @@ function Outline({
         />
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 12px',
-        }}
-      >
-        <span
-          style={{
-            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: '0.22em',
-            color: 'var(--ink-muted)',
-            textTransform: 'uppercase',
-          }}
-        >
-          Sections
-        </span>
+      {/* "Drag to reorder" hint — the "Sections" label that sat
+          here was redundant with the tab strip above; keeping the
+          interaction hint alone tells hosts the rows below can be
+          dragged without doubling up on the heading. Right-aligned
+          so it doesn't compete with the rows for the eye. */}
+      <div style={{ padding: '0 12px', textAlign: 'right' }}>
         <span
           style={{
             fontSize: 10,
