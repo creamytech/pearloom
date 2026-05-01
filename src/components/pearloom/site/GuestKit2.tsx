@@ -217,6 +217,12 @@ export function PhotoLightbox({
         }}
       >
         <img
+          // Re-keying on the photo URL forces React to remount the
+          // <img> when the host arrow-keys to the next photo — that
+          // re-runs the pl8-lb-image-in entrance keyframe so each
+          // new photo lifts forward from the backdrop instead of
+          // hard-cutting in place.
+          key={img.url}
           src={img.url}
           alt={img.alt ?? img.caption ?? ''}
           style={{
@@ -228,6 +234,7 @@ export function PhotoLightbox({
             borderRadius: 8,
             boxShadow: '0 24px 72px rgba(0,0,0,0.6), 0 0 0 1px rgba(243,233,212,0.06)',
             background: '#0E0D0B',
+            animation: 'pl8-lb-image-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both',
           }}
         />
       </figure>
@@ -357,6 +364,18 @@ export function PhotoLightbox({
         @keyframes pl8-lb-in {
           from { opacity: 0; }
           to { opacity: 1; }
+        }
+        @keyframes pl8-lb-image-in {
+          from { opacity: 0; transform: scale(0.965); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          [aria-label="Photo viewer"] {
+            animation: none !important;
+          }
+          [aria-label="Photo viewer"] img {
+            animation: none !important;
+          }
         }
       `}</style>
     </div>
