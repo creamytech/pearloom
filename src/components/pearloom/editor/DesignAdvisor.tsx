@@ -516,8 +516,10 @@ export function DesignAdvisor({
   if (!open) return null;
   return (
     <div
-      role="dialog"
-      aria-label="Pear, your design advisor"
+      // Backdrop. role="presentation" makes it a non-semantic
+      // click-to-close target — the dialog role belongs on the
+      // inner <aside> where the actual content lives.
+      role="presentation"
       onClick={onClose}
       style={{
         position: 'fixed',
@@ -532,6 +534,9 @@ export function DesignAdvisor({
       }}
     >
       <aside
+        role="dialog"
+        aria-modal="true"
+        aria-label="Pear, your design advisor"
         onClick={(e) => e.stopPropagation()}
         style={{
           width: 'min(460px, 100vw)',
