@@ -450,6 +450,8 @@ function renderGroup(
             </div>
             {busy === c.label && (
               <span
+                aria-hidden
+                data-pl-spin
                 style={{
                   width: 14,
                   height: 14,
