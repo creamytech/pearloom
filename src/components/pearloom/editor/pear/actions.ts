@@ -120,10 +120,10 @@ async function runAiCommand(
           tone: 'warm',
         }),
       });
-      if (!r.ok) return { ok: false, error: 'AI failed' };
+      if (!r.ok) return { ok: false, error: "Pear couldn't reach that one" };
       const data = (await r.json()) as { text?: string; rewritten?: string };
       const text = (data.text ?? data.rewritten ?? '').trim().replace(/^"|"$/g, '');
-      if (!text) return { ok: false, error: 'Empty response' };
+      if (!text) return { ok: false, error: "Pear came back empty" };
       const next = {
         ...ctx.manifest,
         poetry: { ...(ctx.manifest.poetry ?? {}), heroTagline: text, closingLine: ctx.manifest.poetry?.closingLine ?? '', rsvpIntro: ctx.manifest.poetry?.rsvpIntro ?? '' },
@@ -256,7 +256,7 @@ async function runAiCommand(
     }
 
     default:
-      return { ok: false, error: `Unknown AI command: ${command}` };
+      return { ok: false, error: `Pear doesn't know that one: ${command}` };
   }
 }
 
