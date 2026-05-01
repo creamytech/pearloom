@@ -2476,9 +2476,11 @@ function Outline({
             return (
               <button
                 key={k}
+                id={`pl8-outline-tab-${k}`}
                 type="button"
                 role="tab"
                 aria-selected={on}
+                aria-controls={`pl8-outline-panel-${k}`}
                 tabIndex={on ? 0 : -1}
                 onClick={() => setTab(k)}
                 onKeyDown={(e) => tablistKeydown(e, i, keys, (item) => setTab(item))}
@@ -2508,7 +2510,12 @@ function Outline({
           Theme panel; surfacing it here keeps the Pages tab where
           page-shape decisions live. */}
       {tab === 'pages' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div
+          id="pl8-outline-panel-pages"
+          role="tabpanel"
+          aria-labelledby="pl8-outline-tab-pages"
+          style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+        >
           <SiteModeSection manifest={manifest} onChange={onChange} />
         </div>
       )}
@@ -2518,7 +2525,12 @@ function Outline({
           anchors in src/lib/design-anchors.ts still resolve. */}
       {onTheme && (
         <EditorCanvasProvider value={{ editMode: true }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div
+            id="pl8-outline-panel-theme"
+            role="tabpanel"
+            aria-labelledby="pl8-outline-tab-theme"
+            style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
+          >
             <ThemeQuickBar
               manifest={manifest}
               names={names}
@@ -2534,7 +2546,13 @@ function Outline({
       )}
 
       {/* Sections tab — the original outline body. */}
-      {tab === 'sections' && (<>
+      {tab === 'sections' && (
+        <div
+          id="pl8-outline-panel-sections"
+          role="tabpanel"
+          aria-labelledby="pl8-outline-tab-sections"
+          style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
+        >
       {/* Site identity — names + URL above the progress thread.
           Reads like the title page of the editor, not just chrome. */}
       {(names[0] || displayUrl) && (
@@ -2739,7 +2757,8 @@ function Outline({
           </div>
         </div>
       </div>
-      </>)}
+        </div>
+      )}
     </aside>
   );
 }
