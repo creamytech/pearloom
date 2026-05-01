@@ -2531,6 +2531,11 @@ function Outline({
                 role="tab"
                 aria-selected={on}
                 aria-controls={`pl8-outline-panel-${k}`}
+                aria-keyshortcuts={
+                  k === 'sections' ? 'Meta+1 Control+1'
+                  : k === 'theme' ? 'Meta+2 Control+2'
+                  : undefined
+                }
                 tabIndex={on ? 0 : -1}
                 onClick={() => setTab(k)}
                 onKeyDown={(e) => tablistKeydown(e, i, keys, (item) => setTab(item))}
@@ -3330,6 +3335,12 @@ function Inspector({
               role="tab"
               aria-selected={active}
               aria-controls={`pl8-inspector-panel-${t.key}`}
+              aria-keyshortcuts={
+                t.key === 'section' ? 'Meta+1 Control+1'
+                : t.key === 'library' ? 'Meta+3 Control+3'
+                : t.key === 'pear' ? 'Meta+4 Control+4'
+                : undefined
+              }
               tabIndex={active ? 0 : -1}
               onClick={() => setTab(t.key)}
               onKeyDown={(e) => tablistKeydown(e, i, tabs, (item) => setTab(item.key))}
