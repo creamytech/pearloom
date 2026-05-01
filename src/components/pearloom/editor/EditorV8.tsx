@@ -2329,6 +2329,21 @@ function Outline({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
+  // When the active block changes (canvas click, keyboard nav, ⌘K
+  // jump, etc.), scroll the matching row into view in the outline
+  // rail. Without this, hosts with many blocks could pick "Travel"
+  // from a command and the outline silently stayed scrolled to the
+  // top — making it look like nothing was selected. Block: 'nearest'
+  // doesn't scroll if the row is already visible, so this is a no-op
+  // when the host clicks within the rail.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const row = document.querySelector<HTMLDivElement>(
+      `[data-block-row][aria-current="true"]`
+    );
+    row?.scrollIntoView({ block: 'nearest' });
+  }, [block]);
+
   function handleDragEnd(e: DragEndEvent) {
     const { active, over } = e;
     if (!over || active.id === over.id) return;
