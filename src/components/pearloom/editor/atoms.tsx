@@ -193,6 +193,7 @@ export function PanelSection({
         ? position === 1
         : true;
   const [open, setOpen] = useState(initialOpen);
+  const bodyId = useId();
   // When a search query is active, hide non-matching sections AND
   // force-expand matching ones so the field the user typed for is
   // visible immediately. When the query clears, sections snap back
@@ -228,6 +229,7 @@ export function PanelSection({
                 type: 'button',
                 onClick: () => setOpen((o) => !o),
                 'aria-expanded': expanded,
+                'aria-controls': bodyId,
               }
             : {})}
           style={{
@@ -307,7 +309,7 @@ export function PanelSection({
         </Header>
       )}
       {expanded && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div id={bodyId} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {children}
         </div>
       )}
@@ -406,6 +408,7 @@ export function PanelDisclosure({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const contentId = useId();
   return (
     <div
       style={{
@@ -419,6 +422,7 @@ export function PanelDisclosure({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
+        aria-controls={contentId}
         style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -453,7 +457,7 @@ export function PanelDisclosure({
         {label}
       </button>
       {open && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div id={contentId} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {children}
         </div>
       )}
