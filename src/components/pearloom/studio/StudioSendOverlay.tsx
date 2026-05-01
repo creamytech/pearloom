@@ -197,10 +197,10 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: statsError ? '#7A2D2D' : undefined }}>
                   {statsError
-                    ? "Couldn't load guests"
+                    ? "Couldn't pull the roster"
                     : stats
                       ? `${total} guest${total === 1 ? '' : 's'}`
-                      : 'Loading guests…'}
+                      : 'Threading the roster…'}
                 </div>
                 <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>
                   {statsError
