@@ -39,13 +39,11 @@ export function useInView(options: { once?: boolean; threshold?: number; rootMar
     const el = ref.current;
     if (!el) return;
     if (typeof window === 'undefined') return;
-    const rect = el.getBoundingClientRect();
-    const vh = window.innerHeight || document.documentElement.clientHeight;
-    const alreadyVisible = rect.top < vh * 1.05 && rect.bottom > -vh * 0.05;
-    if (alreadyVisible) {
-      setInView(true);
-      if (once) return;
-    }
+    // No synchronous "already visible" measurement here —
+    // IntersectionObserver fires its callback once shortly
+    // after observe() with the initial intersection state, so
+    // the same setState lands without a render-phase setState
+    // (react-hooks/set-state-in-effect).
     let io: IntersectionObserver | undefined;
     if (typeof IntersectionObserver !== 'undefined') {
       io = new IntersectionObserver(
@@ -61,6 +59,8 @@ export function useInView(options: { once?: boolean; threshold?: number; rootMar
       );
       io.observe(el);
     }
+    // Safety net for environments without IntersectionObserver:
+    // reveal after 1.2s so animation doesn't get stuck off.
     const timeout = window.setTimeout(() => setInView(true), 1200);
     return () => {
       io?.disconnect();
@@ -261,11 +261,7 @@ export function useCountUp(
   const [value, setValue] = useState(start);
   const reduced = usePrefersReducedMotion();
   useEffect(() => {
-    if (!enabled) return;
-    if (reduced) {
-      setValue(target);
-      return;
-    }
+    if (!enabled || reduced) return;
     let raf = 0;
     const t0 = performance.now();
     const tick = (t: number) => {
@@ -277,6 +273,10 @@ export function useCountUp(
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [target, duration, start, enabled, reduced]);
+  // For reduced-motion (or while disabled), just return the
+  // target directly — render-time derivation, no setState
+  // cascade for the "skip animation" branch.
+  if (reduced || !enabled) return target;
   return value;
 }
 

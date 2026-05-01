@@ -55,7 +55,14 @@ export function GuestPhaseStrip({
   logistics,
 }: Props) {
   const [phase, setPhase] = useState<PassportPhase>('no-date');
-  const [pushState, setPushState] = useState<'idle' | 'enabling' | 'enabled' | 'denied' | 'unsupported'>('idle');
+  // Lazy useState init — read Notification permission once on
+  // mount so we don't need a setState-in-effect cascade.
+  const [pushState, setPushState] = useState<'idle' | 'enabling' | 'enabled' | 'denied' | 'unsupported'>(() => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return 'unsupported';
+    if (Notification.permission === 'granted') return 'enabled';
+    if (Notification.permission === 'denied') return 'denied';
+    return 'idle';
+  });
   const [installPromptEvent, setInstallPromptEvent] = useState<unknown>(null);
 
   // Recompute phase every minute so 'live' kicks in at the right moment.
@@ -76,16 +83,6 @@ export function GuestPhaseStrip({
     }
     window.addEventListener('beforeinstallprompt', onPrompt);
     return () => window.removeEventListener('beforeinstallprompt', onPrompt);
-  }, []);
-
-  // Probe existing push permission state.
-  useEffect(() => {
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-      setPushState('unsupported');
-      return;
-    }
-    if (Notification.permission === 'granted') setPushState('enabled');
-    else if (Notification.permission === 'denied') setPushState('denied');
   }, []);
 
   // `now` ticks hourly so daysUntil + yearsPassed advance at
