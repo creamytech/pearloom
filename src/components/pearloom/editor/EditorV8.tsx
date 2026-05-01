@@ -1703,6 +1703,7 @@ function EditorTopbar({
           onClick={onUndo}
           disabled={!canUndo}
           aria-label="Undo (Cmd+Z)"
+          aria-keyshortcuts="Meta+Z Control+Z"
           title="Undo (⌘Z)"
           className="pl8-icon-btn"
           style={{ ...iconBtn, opacity: canUndo ? 1 : 0.35 }}
@@ -1714,6 +1715,7 @@ function EditorTopbar({
           onClick={onRedo}
           disabled={!canRedo}
           aria-label="Redo (Cmd+Shift+Z)"
+          aria-keyshortcuts="Meta+Shift+Z Control+Shift+Z"
           title="Redo (⌘⇧Z)"
           className="pl8-icon-btn"
           style={{ ...iconBtn, opacity: canRedo ? 1 : 0.35 }}
