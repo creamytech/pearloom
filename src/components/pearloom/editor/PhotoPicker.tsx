@@ -249,15 +249,17 @@ export function PhotoPicker({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search filename or caption"
+            type="search"
+            aria-label="Search photos"
+            // .pl8 .input gives the editor's standard focus ring
+            // (sage hairline + soft halo) so keyboard hosts can
+            // tell which field has focus. Width override stays
+            // inline since the class doesn't constrain that.
+            className="pl8 input"
             style={{
-              padding: '8px 12px',
-              borderRadius: 10,
-              border: '1px solid var(--line)',
-              background: 'var(--card)',
               fontSize: 13,
               fontFamily: 'var(--font-ui)',
               width: 240,
-              outline: 'none',
             }}
           />
           <button
