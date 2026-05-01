@@ -3586,6 +3586,8 @@ function MobileTabbar({
     >
       <button
         type="button"
+        aria-pressed={mobileDrawer === 'outline'}
+        aria-label="Toggle blocks drawer"
         style={btn(mobileDrawer === 'outline')}
         onClick={() => setMobileDrawer(mobileDrawer === 'outline' ? null : 'outline')}
       >
@@ -3594,6 +3596,8 @@ function MobileTabbar({
       </button>
       <button
         type="button"
+        aria-pressed={mobileDrawer === null}
+        aria-label="Show preview"
         style={btn(mobileDrawer === null)}
         onClick={() => setMobileDrawer(null)}
       >
@@ -3602,6 +3606,8 @@ function MobileTabbar({
       </button>
       <button
         type="button"
+        aria-pressed={mobileDrawer === 'inspector'}
+        aria-label={`Toggle ${blockLabel} inspector`}
         style={btn(mobileDrawer === 'inspector')}
         onClick={() => setMobileDrawer(mobileDrawer === 'inspector' ? null : 'inspector')}
       >
