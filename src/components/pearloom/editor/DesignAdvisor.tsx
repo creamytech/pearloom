@@ -828,6 +828,7 @@ export function DesignAdvisor({
                     <button
                       type="button"
                       onClick={() => jumpToTab(s.targetTab!)}
+                      aria-label={`Open the ${s.targetTab} panel`}
                       style={{
                         alignSelf: 'flex-start',
                         marginTop: 4,
