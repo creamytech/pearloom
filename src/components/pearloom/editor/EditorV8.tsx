@@ -931,7 +931,7 @@ export function EditorV8({
             WebkitBackdropFilter: 'blur(10px)',
           }}
         >
-          <span aria-hidden style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--peach-ink, #C6703D)', animation: 'pl-dot-pulse 1.6s ease-in-out infinite' }} />
+          <span aria-hidden data-pl-pulse style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--peach-ink, #C6703D)', animation: 'pl-dot-pulse 1.6s ease-in-out infinite' }} />
           <span style={{ color: 'var(--peach-ink, #C6703D)' }}>Previewing as a guest</span>
           <button
             type="button"
@@ -2062,6 +2062,7 @@ function SaveDot({
     >
       <span
         aria-hidden
+        data-pl-pulse
         style={{
           width: showCheck ? 14 : 6,
           height: showCheck ? 14 : 6,

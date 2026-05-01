@@ -100,6 +100,7 @@ function MobileSaveIndicatorInner({ saveStatus, onRetry }: Props) {
     >
       <span
         aria-hidden
+        data-pl-pulse
         style={{
           width: 7,
           height: 7,

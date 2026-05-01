@@ -707,6 +707,14 @@ input:focus, textarea:focus, select:focus {
   .pl-dot-pulse {
     animation: none;
   }
+  /* Some surfaces (editor SaveDot, DecorGenerationToast,
+     MobileSaveIndicator) apply the pulse via inline `style.animation`
+     instead of the class — inline styles outrank the rule above.
+     Tag those with data-pl-pulse and let !important win the cascade
+     against inline declarations. */
+  [data-pl-pulse] {
+    animation: none !important;
+  }
 }
 
 /* Smooth scroll snap for horizontal carousels */

@@ -84,6 +84,7 @@ function DecorJobRow({ job }: { job: DecorJob }) {
     >
       <span
         aria-hidden
+        data-pl-pulse
         style={{
           display: 'inline-grid',
           placeItems: 'center',
