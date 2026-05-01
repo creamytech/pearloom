@@ -263,6 +263,15 @@ export function FloatingFormatToolbar({ onAiRewrite }: Props) {
   );
 }
 
+// Map a visual shortcut hint (e.g. "⌘B") to WAI-ARIA's
+// aria-keyshortcuts syntax ("Meta+B Control+B"). Only handles the
+// patterns the format toolbar actually uses today; extend as more
+// glyphs land.
+function toAriaKeyshortcuts(shortcut: string): string {
+  const key = shortcut.replace(/^[⌘^]/, '').trim();
+  return `Meta+${key} Control+${key}`;
+}
+
 function ToolBtn({
   label,
   shortcut,
@@ -282,7 +291,8 @@ function ToolBtn({
       onClick={onClick}
       disabled={disabled}
       title={shortcut ? `${label} (${shortcut})` : label}
-      aria-label={label}
+      aria-label={shortcut ? `${label} (${shortcut})` : label}
+      aria-keyshortcuts={shortcut ? toAriaKeyshortcuts(shortcut) : undefined}
       style={{
         flex: 1,
         height: 30,

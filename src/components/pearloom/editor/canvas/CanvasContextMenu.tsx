@@ -200,15 +200,17 @@ export function CanvasContextMenu() {
               )}
               <span style={{ flex: 1 }}>{item.label}</span>
               {item.shortcut && (
-                <span
+                <kbd
                   style={{
                     fontSize: 10.5,
                     color: 'var(--ink-muted)',
                     letterSpacing: '0.04em',
+                    background: 'transparent',
+                    fontFamily: 'inherit',
                   }}
                 >
                   {item.shortcut}
-                </span>
+                </kbd>
               )}
             </button>
           </div>
