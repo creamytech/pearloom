@@ -720,6 +720,7 @@ export function DatePicker({
   });
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
+  const popoverId = useId();
 
   useEffect(() => {
     if (!open) return;
@@ -754,7 +755,10 @@ export function DatePicker({
         type="button"
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
-        aria-label={ariaLabel}
+        aria-label={value ? `${ariaLabel ?? 'Date'}, ${display}` : ariaLabel}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-controls={open ? popoverId : undefined}
         style={{
           width: '100%',
           padding: '8px 12px',
@@ -781,6 +785,9 @@ export function DatePicker({
       {open && (
         <div
           ref={popoverRef}
+          id={popoverId}
+          role="dialog"
+          aria-label={ariaLabel ?? 'Date picker'}
           style={{
             position: 'absolute',
             top: 'calc(100% + 6px)',
@@ -971,6 +978,7 @@ export function TimePicker({
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
+  const popoverId = useId();
 
   const parsed = useMemo(() => parseHHMM(value), [value]);
   const hours24 = parsed?.h ?? 18;
@@ -1011,7 +1019,10 @@ export function TimePicker({
         type="button"
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
-        aria-label={ariaLabel}
+        aria-label={value ? `${ariaLabel ?? 'Time'}, ${display}` : ariaLabel}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-controls={open ? popoverId : undefined}
         style={{
           width: '100%',
           padding: '8px 12px',
@@ -1038,6 +1049,9 @@ export function TimePicker({
       {open && (
         <div
           ref={popoverRef}
+          id={popoverId}
+          role="dialog"
+          aria-label={ariaLabel ?? 'Time picker'}
           style={{
             position: 'absolute',
             top: 'calc(100% + 6px)',
