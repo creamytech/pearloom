@@ -771,11 +771,17 @@ function CopyTab({ content, state, setField, onRewriteField }: { content: Studio
                 {f.locked ? (
                   <Icon name="link" size={11} color="var(--ink-muted)" />
                 ) : (
-                  <button onClick={() => setOpenField(openField === f.id ? null : f.id)} style={{
-                    fontSize: 10, color: 'var(--peach-ink)', fontWeight: 600,
-                    display: 'inline-flex', alignItems: 'center', gap: 4,
-                    background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                  }}>
+                  <button
+                    type="button"
+                    onClick={() => setOpenField(openField === f.id ? null : f.id)}
+                    aria-expanded={openField === f.id}
+                    aria-label={`Rewrite ${f.label} with Pear`}
+                    style={{
+                      fontSize: 10, color: 'var(--peach-ink)', fontWeight: 600,
+                      display: 'inline-flex', alignItems: 'center', gap: 4,
+                      background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
                     <Pear size={10} tone="sage" shadow={false} />
                     Rewrite
                   </button>
