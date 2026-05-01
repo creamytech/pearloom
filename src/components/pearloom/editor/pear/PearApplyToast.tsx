@@ -131,7 +131,7 @@ export function PearApplyToast() {
       <button
         type="button"
         onClick={() => setEntry(null)}
-        aria-label="Dismiss"
+        aria-label="Dismiss apply toast"
         style={{
           width: 22,
           height: 22,

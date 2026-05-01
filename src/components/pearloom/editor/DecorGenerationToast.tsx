@@ -129,7 +129,7 @@ function DecorJobRow({ job }: { job: DecorJob }) {
       <button
         type="button"
         onClick={() => dismissDecorJob(job.id)}
-        aria-label="Dismiss"
+        aria-label={`Dismiss ${job.label}`}
         style={{
           width: 22,
           height: 22,

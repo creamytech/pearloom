@@ -868,7 +868,7 @@ export function EditorV8({
             type="button"
             onClick={() => setPublishError(null)}
             style={{ background: 'transparent', border: 'none', color: 'var(--ink-soft)', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}
-            aria-label="Dismiss"
+            aria-label="Dismiss publish error"
           >
             ×
           </button>
@@ -1251,7 +1251,7 @@ function PublishToast({ url, onClose }: { url: string; onClose: () => void }) {
       <button
         type="button"
         onClick={onClose}
-        aria-label="Dismiss"
+        aria-label="Dismiss publish toast"
         style={{
           width: 22,
           height: 22,
