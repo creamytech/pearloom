@@ -1276,6 +1276,7 @@ function PublishToast({ url, onClose }: { url: string; onClose: () => void }) {
 // pearloom:design-jump event the editor listens to — see the
 // onDesignJump handler in EditorV8 — which switches to the right
 // tab and scrolls the right anchor into view.
+const DESIGN_MENU_ID = 'pl8-design-menu';
 function DesignMenu() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
@@ -1338,6 +1339,7 @@ function DesignMenu() {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-controls={open ? DESIGN_MENU_ID : undefined}
         title="Design — palette, fonts, decor, nav style"
         className="pl8-ghost-btn"
         style={{
@@ -1371,7 +1373,9 @@ function DesignMenu() {
       </button>
       {open && (
         <div
+          id={DESIGN_MENU_ID}
           role="menu"
+          aria-label="Design options"
           style={{
             position: 'absolute',
             top: 'calc(100% + 6px)',
@@ -1781,6 +1785,7 @@ function SectionBreadcrumb({
 }) {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const menuId = 'pl8-section-breadcrumb-menu';
   useEffect(() => {
     if (!open) return;
     function onDoc(e: MouseEvent) {
@@ -1811,6 +1816,8 @@ function SectionBreadcrumb({
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
+        aria-label={`Editing: ${current.label}. Open section picker.`}
         title={`Currently editing: ${current.label}`}
         style={{
           display: 'inline-flex',
@@ -1896,7 +1903,9 @@ function SectionBreadcrumb({
       </button>
       {open && (
         <div
+          id={menuId}
           role="menu"
+          aria-label="Jump to section"
           style={{
             position: 'absolute',
             top: 'calc(100% + 6px)',
