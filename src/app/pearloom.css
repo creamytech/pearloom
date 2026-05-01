@@ -1209,6 +1209,25 @@
 .pl8-dash-sidebar:hover::-webkit-scrollbar-thumb { background: var(--line); }
 .pl8-dash-sidebar { scrollbar-width: thin; scrollbar-color: var(--line-soft) transparent; }
 
+/* Editor outline + inspector — same elegant scrollbar treatment.
+   Default Windows scrollbars are 17px chunky and visually clash
+   with the editor's understated chrome. macOS auto-hides theirs
+   so this is mostly Windows polish. */
+.pl8-editor-outline::-webkit-scrollbar,
+.pl8-editor-inspector::-webkit-scrollbar { width: 8px; }
+.pl8-editor-outline::-webkit-scrollbar-track,
+.pl8-editor-inspector::-webkit-scrollbar-track { background: transparent; }
+.pl8-editor-outline::-webkit-scrollbar-thumb,
+.pl8-editor-inspector::-webkit-scrollbar-thumb {
+  background: var(--line-soft);
+  border-radius: 999px;
+  border: 2px solid var(--cream);
+}
+.pl8-editor-outline:hover::-webkit-scrollbar-thumb,
+.pl8-editor-inspector:hover::-webkit-scrollbar-thumb { background: var(--line); }
+.pl8-editor-outline,
+.pl8-editor-inspector { scrollbar-width: thin; scrollbar-color: var(--line-soft) transparent; }
+
 /* Invite designer + canvas inspector — collapse the right rail
    into a stacked column on tablet and mobile. The aside has rich
    per-element controls; on small screens it sits below the canvas
