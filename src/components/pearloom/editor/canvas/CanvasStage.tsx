@@ -197,6 +197,11 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
         ref={attachRef}
         id="pl-editor-canvas"
         className="pl8-editor-canvas"
+        // role="main" makes the canvas a screen-reader landmark so
+        // it shows up alongside Editor toolbar (header), Outline,
+        // and Inspector (asides) when the host navigates by region.
+        role="main"
+        aria-label="Site canvas"
         // Negative tabIndex so the skip-link target is programmatically
         // focusable but doesn't introduce its own tab stop. The site
         // body inside is keyboard-reachable via its own controls.
