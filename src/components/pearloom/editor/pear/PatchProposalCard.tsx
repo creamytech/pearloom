@@ -93,6 +93,8 @@ export function PatchProposalCard({
 
   return (
     <div
+      role="region"
+      aria-label="Pear patch proposal"
       style={{
         background: 'linear-gradient(165deg, var(--peach-bg, #FBE8D6) 0%, rgba(232,224,240,0.6) 100%)',
         border: '1px solid rgba(198,112,61,0.22)',
@@ -194,6 +196,8 @@ export function PatchProposalCard({
       )}
       {applied && (
         <div
+          role="status"
+          aria-live="polite"
           style={{
             alignSelf: 'flex-start',
             padding: '4px 12px',
