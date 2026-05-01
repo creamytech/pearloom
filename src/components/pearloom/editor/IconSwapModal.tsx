@@ -216,7 +216,7 @@ export function IconSwapModal({ manifest, onEditField }: Props) {
             <button
               type="button"
               onClick={() => setPending(null)}
-              aria-label="Close"
+              aria-label="Close icon picker"
               style={{
                 width: 28, height: 28, borderRadius: 999,
                 background: 'transparent',

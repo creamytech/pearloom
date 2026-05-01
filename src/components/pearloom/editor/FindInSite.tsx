@@ -174,7 +174,7 @@ export function FindInSite({ manifest, open, onClose, onJump }: Props) {
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label="Close find dialog"
             style={{
               width: 28,
               height: 28,

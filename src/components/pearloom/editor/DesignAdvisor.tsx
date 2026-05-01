@@ -599,7 +599,7 @@ export function DesignAdvisor({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label="Close Pear advisor"
             style={{
               width: 28,
               height: 28,

@@ -235,7 +235,7 @@ export function PearCopilot({
           <button
             type="button"
             onClick={() => setOpen(false)}
-            aria-label="Close"
+            aria-label="Close Pear chat"
             style={{
               width: 28,
               height: 28,

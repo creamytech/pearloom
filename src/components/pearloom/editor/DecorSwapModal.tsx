@@ -301,7 +301,7 @@ export function DecorSwapModal({ manifest, onEditField }: Props) {
           <button
             type="button"
             onClick={() => setPending(null)}
-            aria-label="Close"
+            aria-label="Close decor swap picker"
             style={{
               width: 30, height: 30,
               borderRadius: 999,

@@ -180,7 +180,7 @@ export function DecorRecolorModal({ manifest, onEditField }: Props) {
           <button
             type="button"
             onClick={() => !busy && setPending(null)}
-            aria-label="Close"
+            aria-label="Close decor recolour modal"
             style={{
               width: 28, height: 28, borderRadius: 999,
               background: 'transparent', border: '1.5px solid var(--line)',
