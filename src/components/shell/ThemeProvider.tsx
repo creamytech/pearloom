@@ -25,7 +25,10 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function readPreference(): ThemePreference {
   if (typeof window === 'undefined') return 'system';
-  const stored = localStorage.getItem('pl-theme');
+  // Safari Private Mode throws on any localStorage access — fall
+  // through to 'system' so the app boots cleanly.
+  let stored: string | null = null;
+  try { stored = localStorage.getItem('pl-theme'); } catch { /* ignore */ }
   if (stored === 'light' || stored === 'dark') return stored;
   return 'system';
 }
@@ -59,11 +62,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const setPreference = useCallback((p: ThemePreference) => {
     setPrefState(p);
-    if (p === 'system') {
-      localStorage.removeItem('pl-theme');
-    } else {
-      localStorage.setItem('pl-theme', p);
-    }
+    try {
+      if (p === 'system') {
+        localStorage.removeItem('pl-theme');
+      } else {
+        localStorage.setItem('pl-theme', p);
+      }
+    } catch { /* ignore — Safari Private Mode etc. */ }
     const resolved = resolveTheme(p);
     setTheme(resolved);
     document.documentElement.dataset.theme = resolved;

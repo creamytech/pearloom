@@ -165,7 +165,13 @@ export function useSelectedSite() {
       if (byId) return byId;
     }
     if (typeof window !== 'undefined') {
-      const stored = window.localStorage.getItem(SITE_KEY);
+      // Safari Private Mode + some enterprise policies throw on
+      // any localStorage access — silently fall through to the
+      // first-site default.
+      let stored: string | null = null;
+      try {
+        stored = window.localStorage.getItem(SITE_KEY);
+      } catch { /* ignore */ }
       if (stored) {
         const match = sites.find((s) => s.id === stored || s.domain === stored);
         if (match) return match;
@@ -177,13 +183,15 @@ export function useSelectedSite() {
   useEffect(() => {
     if (!selected) return;
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem(SITE_KEY, selected.id);
+      try { window.localStorage.setItem(SITE_KEY, selected.id); } catch { /* ignore */ }
     }
   }, [selected]);
 
   const selectSite = useCallback(
     (id: string) => {
-      if (typeof window !== 'undefined') window.localStorage.setItem(SITE_KEY, id);
+      if (typeof window !== 'undefined') {
+        try { window.localStorage.setItem(SITE_KEY, id); } catch { /* ignore */ }
+      }
       const sp = new URLSearchParams(params?.toString() ?? '');
       sp.set('site', id);
       router.push(`?${sp.toString()}`);
