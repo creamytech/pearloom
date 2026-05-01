@@ -1330,7 +1330,7 @@ function AtelierModal({
       completeDecorJob(jobId, true);
       onClose();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed';
+      const msg = err instanceof Error ? err.message : "Pear couldn't paint that one";
       setError(msg);
       completeDecorJob(jobId, false, msg);
     } finally {
@@ -1443,7 +1443,7 @@ function AtelierModal({
       // Don't auto-close — show the result so the host can see
       // "9 of 12 came out clean" + retry if needed.
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed';
+      const msg = err instanceof Error ? err.message : "Pear couldn't paint that one";
       setError(msg);
       completeDecorJob(jobId, false, msg);
     } finally {

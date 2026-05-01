@@ -187,7 +187,7 @@ export function DecorLibraryPanel({
           });
         }
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Failed';
+        const msg = err instanceof Error ? err.message : "Pear couldn't paint that one";
         setErrors((e) => {
           const next = { ...e };
           for (const k of slots) next[k] = msg;
@@ -554,7 +554,7 @@ function SlotCard({
           {status === 'running' && '…drawing'}
           {status === 'error' && (
             <span style={{ padding: 6, fontSize: 10, color: '#7A2D2D', textAlign: 'center', lineHeight: 1.3 }}>
-              {error ?? 'Failed'}
+              {error ?? "Pear couldn't paint this"}
             </span>
           )}
         </div>
