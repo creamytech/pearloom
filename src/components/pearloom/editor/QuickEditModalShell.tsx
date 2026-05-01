@@ -346,7 +346,7 @@ export function QuickEditModalShell({
                 fontWeight: 700,
                 letterSpacing: '0.04em',
                 fontFamily: 'var(--font-ui)',
-                transition: 'all 160ms ease',
+                transition: 'background 160ms ease, color 160ms ease, border-color 160ms ease',
               }}
             >
               {selectMode ? `${selectedIds.size} selected` : 'Select'}
@@ -886,7 +886,7 @@ function SidebarTile({
             display: 'grid',
             placeItems: 'center',
             color: '#FFFFFF',
-            transition: 'all 140ms ease',
+            transition: 'background 140ms ease, border-color 140ms ease',
           }}
         >
           {selected && (
