@@ -3234,9 +3234,11 @@ function Inspector({
             return (
             <button
               key={t.key}
+              id={`pl8-inspector-tab-${t.key}`}
               type="button"
               role="tab"
               aria-selected={active}
+              aria-controls={`pl8-inspector-panel-${t.key}`}
               tabIndex={active ? 0 : -1}
               onClick={() => setTab(t.key)}
               onKeyDown={(e) => tablistKeydown(e, i, tabs, (item) => setTab(item.key))}
@@ -3281,7 +3283,13 @@ function Inspector({
       </div>
 
       {tab === 'section' && (
-        <div ref={sectionScrollRef} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflowY: 'auto', position: 'relative' }}>
+        <div
+          ref={sectionScrollRef}
+          id="pl8-inspector-panel-section"
+          role="tabpanel"
+          aria-labelledby="pl8-inspector-tab-section"
+          style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflowY: 'auto', position: 'relative' }}
+        >
           {/* Docked hotel editor — pilot for the modal-vs-panel
            *  consolidation. When fluid is false (desktop with the
            *  inspector visible), the hotel editor renders as an
@@ -3414,11 +3422,23 @@ function Inspector({
           the union for now (keyboard shortcut ⌘3 also lands here)
           so old jumps don't 404. */}
       {(tab === 'decor' || tab === 'library') && (
-        <LibraryPanelV2 manifest={manifest} onChange={onChange} />
+        <div
+          id="pl8-inspector-panel-library"
+          role="tabpanel"
+          aria-labelledby="pl8-inspector-tab-library"
+          style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}
+        >
+          <LibraryPanelV2 manifest={manifest} onChange={onChange} />
+        </div>
       )}
 
       {tab === 'pear' && (
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+        <div
+          id="pl8-inspector-panel-pear"
+          role="tabpanel"
+          aria-labelledby="pl8-inspector-tab-pear"
+          style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}
+        >
           <PearCopilot
             manifest={manifest}
             names={names}
