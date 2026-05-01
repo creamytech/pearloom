@@ -719,7 +719,18 @@ function FloatingPear({ nudges }: { nudges: string[] }) {
 
 
 function titleCase(s: string): string {
-  return s.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+  // Preserve mixed case as the host typed it — "McKenna",
+  // "O'Brien", "DeAngelo", "van der Berg". A naive
+  // first-upper-rest-lower loop wrecks all of those (McKenna →
+  // Mckenna, O'Brien → O'brien). Only rewrite when the input is
+  // entirely lowercase or entirely uppercase, which is the only
+  // signal that the host wasn't deliberate about casing.
+  const trimmed = s.trim();
+  if (!trimmed) return trimmed;
+  const allLower = trimmed === trimmed.toLowerCase();
+  const allUpper = trimmed === trimmed.toUpperCase();
+  if (!allLower && !allUpper) return trimmed;
+  return trimmed.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
 }
 
 /** Cheap RGB-distance helper for the "match site theme" picker.

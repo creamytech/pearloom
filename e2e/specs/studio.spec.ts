@@ -752,6 +752,34 @@ test.describe('Studio (stationery editor)', () => {
     expect(canvasVis).toBe('visible');
   });
 
+  test('preserves mixed-case names like McKenna and O\'Brien', async ({ page }) => {
+    // The Studio's titleCase shouldn't mangle deliberate casing.
+    // page.route overrides the beforeEach handler for the same
+    // URL — the most-recent registration wins for each request.
+    await page.route('**/api/sites/playwright-test', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 'pw-irish',
+          subdomain: TEST_SLUG,
+          names: ['McKenna', "O'Brien"],
+          manifest: {
+            studio: {},
+            logistics: { date: '2027-04-26', venue: 'Test Venue', venueAddress: 'Test, OR' },
+          },
+          published: false,
+          occasion: 'wedding',
+        }),
+      });
+    });
+    await page.reload();
+    // Topbar reads "Studio · McKenna & O'Brien" — the first letter
+    // would still be 'M'/'O' under either implementation, but the
+    // bug surfaces in 'cKenna' vs 'ckenna' and "'Brien" vs "'brien".
+    await expect(page.getByText(/Studio · McKenna & O'Brien/)).toBeVisible({ timeout: 15_000 });
+  });
+
   test('mounts cleanly when the manifest is bare bones', async ({ page, context }) => {
     // Override per-test the route mock to return a near-empty
     // manifest. The Studio should still boot, place sensible
