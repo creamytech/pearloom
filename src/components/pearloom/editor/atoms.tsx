@@ -571,6 +571,14 @@ export function PearFieldButton({ action }: { action: PearFieldAction }) {
         e.currentTarget.style.opacity = '0.75';
         e.currentTarget.style.background = 'transparent';
       }}
+      onFocus={(e) => {
+        e.currentTarget.style.opacity = '1';
+        e.currentTarget.style.background = 'var(--peach-bg, rgba(198,112,61,0.12))';
+      }}
+      onBlur={(e) => {
+        e.currentTarget.style.opacity = '0.75';
+        e.currentTarget.style.background = 'transparent';
+      }}
     >
       <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
         <path d="M12 3.4c.6 0 1 .5 1 1.1v.4c2.6.4 4.5 2 4.5 4.4v.5c1.6.7 2.5 2 2.5 4 0 4-2.5 7.4-7 7.7H11c-4.5-.3-7-3.7-7-7.7 0-2 .9-3.3 2.5-4v-.5c0-2.4 1.9-4 4.5-4.4v-.4c0-.6.4-1.1 1-1.1z"/>
@@ -754,6 +762,8 @@ export function PearSuggestionsStrip({
             }}
             onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.45)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            onFocus={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.45)'; }}
+            onBlur={(e) => { e.currentTarget.style.background = 'transparent'; }}
           >
             <span>{s.label}</span>
             <span aria-hidden style={{ color: 'var(--peach-ink, #C6703D)' }}>→</span>
@@ -1085,6 +1095,12 @@ export function PhotoSlot({
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLDivElement).style.opacity = '0';
             }}
+            onFocus={(e) => {
+              (e.currentTarget as HTMLDivElement).style.opacity = '1';
+            }}
+            onBlur={(e) => {
+              (e.currentTarget as HTMLDivElement).style.opacity = '0';
+            }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <Icon name="image" size={14} color="var(--cream)" /> Replace
@@ -1338,6 +1354,14 @@ export function AddRowButton({ label, onClick }: { label: string; onClick: () =>
         e.currentTarget.style.color = 'var(--peach-ink, #C6703D)';
       }}
       onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = 'var(--line)';
+        e.currentTarget.style.color = 'var(--ink-soft)';
+      }}
+      onFocus={(e) => {
+        e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)';
+        e.currentTarget.style.color = 'var(--peach-ink, #C6703D)';
+      }}
+      onBlur={(e) => {
         e.currentTarget.style.borderColor = 'var(--line)';
         e.currentTarget.style.color = 'var(--ink-soft)';
       }}

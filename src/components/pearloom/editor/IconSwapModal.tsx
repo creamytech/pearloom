@@ -501,6 +501,14 @@ function DecorPickTile({
         e.currentTarget.style.transform = '';
         e.currentTarget.style.boxShadow = '';
       }}
+      onFocus={(e) => {
+        e.currentTarget.style.transform = 'translateY(-1px)';
+        e.currentTarget.style.boxShadow = '0 8px 18px -8px rgba(14,13,11,0.32)';
+      }}
+      onBlur={(e) => {
+        e.currentTarget.style.transform = '';
+        e.currentTarget.style.boxShadow = '';
+      }}
     >
       <div
         style={{
@@ -563,6 +571,8 @@ function IconPickTile({
       }}
       onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.06)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.transform = ''; }}
+      onFocus={(e) => { e.currentTarget.style.transform = 'scale(1.06)'; }}
+      onBlur={(e) => { e.currentTarget.style.transform = ''; }}
     >
       <Icon name={name} size={20} />
     </button>

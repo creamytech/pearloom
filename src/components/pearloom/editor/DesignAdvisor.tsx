@@ -845,6 +845,8 @@ export function DesignAdvisor({
                       }}
                       onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--peach-bg, rgba(198,112,61,0.08))'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                      onFocus={(e) => { e.currentTarget.style.background = 'var(--peach-bg, rgba(198,112,61,0.08))'; }}
+                      onBlur={(e) => { e.currentTarget.style.background = 'transparent'; }}
                     >
                       Take me there
                       <Icon name="arrow-right" size={11} />
@@ -1186,6 +1188,8 @@ function ChatBubble({
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(198,112,61,0.08)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              onFocus={(e) => { e.currentTarget.style.background = 'rgba(198,112,61,0.08)'; }}
+              onBlur={(e) => { e.currentTarget.style.background = 'transparent'; }}
             >
               {f}
             </button>

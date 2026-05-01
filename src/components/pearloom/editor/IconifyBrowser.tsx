@@ -210,6 +210,14 @@ export function IconifyBrowser({ onPick }: Props) {
                 e.currentTarget.style.borderColor = 'var(--line)';
                 e.currentTarget.style.transform = 'translateY(0)';
               }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'var(--line)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
             >
               <img
                 src={`/api/library/iconify/svg?ref=${encodeURIComponent(ref)}`}
