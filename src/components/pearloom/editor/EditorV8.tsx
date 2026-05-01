@@ -1845,6 +1845,7 @@ function SectionBreadcrumb({
                   key={b.key}
                   type="button"
                   role="menuitem"
+                  aria-current={isCurrent ? 'true' : undefined}
                   onClick={() => { onJump(b.key); setOpen(false); }}
                   style={{
                     display: 'flex',
