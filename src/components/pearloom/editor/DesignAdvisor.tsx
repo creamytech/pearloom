@@ -393,7 +393,7 @@ export function DesignAdvisor({
     } finally {
       setStreaming(false);
     }
-  }, [manifest, names, chat, streaming, currentBlock, selectedBlockIds]);
+  }, [manifest, names, chat, streaming, currentBlock, selectedBlockIds, siteSlug]);
 
   // Intent auto-fire — when EditorV8 forwards a `pearloom:open-pear-for`
   // event with a `pass` id (from a per-field pear glyph or the

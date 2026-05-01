@@ -62,7 +62,7 @@ export function OwnerEditPill({
     return () => {
       cancelled = true;
     };
-  }, [creatorEmail, siteSlug]);
+  }, [creatorEmail, siteSlug, dismissed]);
 
   function dismiss() {
     setDismissed(true);

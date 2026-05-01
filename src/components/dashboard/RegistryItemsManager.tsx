@@ -11,7 +11,7 @@
 // Per-site: pass `siteId` from the parent page.
 // ──────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface Item {
   id: string;
@@ -41,7 +41,7 @@ export function RegistryItemsManager({ siteId }: Props) {
   const [editing, setEditing] = useState<Item | null>(null);
   const [showAdd, setShowAdd] = useState(false);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/registry-items?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' });
@@ -50,9 +50,9 @@ export function RegistryItemsManager({ siteId }: Props) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [siteId]);
 
-  useEffect(() => { void load(); }, [siteId]);
+  useEffect(() => { void load(); }, [load]);
 
   async function deleteItem(id: string) {
     if (!confirm('Remove this item from the registry?')) return;

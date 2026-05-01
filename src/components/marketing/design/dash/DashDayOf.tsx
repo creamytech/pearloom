@@ -150,8 +150,14 @@ export function DashDayOf() {
     [site?.id, loadAll],
   );
 
-  const targetDate = site ? parseTargetDate(site.manifest) : null;
-  const schedule = site ? parseScheduleFromManifest(site.manifest) : [];
+  const targetDate = useMemo(
+    () => (site ? parseTargetDate(site.manifest) : null),
+    [site],
+  );
+  const schedule = useMemo(
+    () => (site ? parseScheduleFromManifest(site.manifest) : []),
+    [site],
+  );
   const siteName = site ? siteDisplayName(site) : '';
 
   const daysOut = targetDate

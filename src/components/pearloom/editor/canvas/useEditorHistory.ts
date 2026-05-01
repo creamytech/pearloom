@@ -126,7 +126,7 @@ export function useEditorHistory(
       // onto `past` until the coalesce window ends.
       currentRef.current = { manifest, names, at: now };
     },
-    [bump],
+    [bump, siteSlug],
   );
 
   const undo = useCallback(() => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PhotoSlot, SelectInput, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
@@ -279,12 +279,12 @@ export function RegistryPanel({
   onChange: (m: StoryManifest) => void;
 }) {
   const env = readRegistry(manifest);
-  const items = env.entries ?? [];
+  const items = useMemo(() => env.entries ?? [], [env.entries]);
   useRegistryRowFocus();
 
-  function set(next: RegistryItem[]) {
+  const set = useCallback((next: RegistryItem[]) => {
     onChange(writeRegistry(manifest, { ...env, entries: next }));
-  }
+  }, [manifest, env, onChange]);
 
   function setFund(patch: Partial<RegistryEnvelope>) {
     onChange(writeRegistry(manifest, { ...env, ...patch }));

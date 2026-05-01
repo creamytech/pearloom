@@ -144,6 +144,10 @@ export default function PearScene({ ripenessRef, size = 360 }: PearSceneProps) {
         mount.removeChild(renderer.domElement);
       }
     };
+    // ripenessRef is read inside the rAF loop — adding it to deps
+    // would re-create the entire scene every render, which defeats
+    // the point of an external ref controlling animation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [size]);
 
   return (

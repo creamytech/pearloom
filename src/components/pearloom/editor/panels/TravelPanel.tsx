@@ -780,13 +780,13 @@ function AirportsField({
   );
   const [query, setQuery] = useState('');
 
-  function persist(next: typeof airports) {
+  const persist = useCallback((next: typeof airports) => {
     const cur = manifest.travelInfo ?? { airports: [], hotels: [] };
     onChange({
       ...manifest,
       travelInfo: { ...cur, airports: next },
     } as unknown as StoryManifest);
-  }
+  }, [manifest, onChange]);
 
   // useCallback so the impure Date.now() reference sits in a
   // stable callback body, not a render-time function literal.

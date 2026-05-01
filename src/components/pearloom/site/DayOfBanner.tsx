@@ -46,7 +46,10 @@ export function DayOfBanner({ manifest }: Props) {
     return () => window.clearInterval(id);
   }, []);
   // Memoise on (manifest, tick) so the derivation re-runs both
-  // when the manifest changes and on every tick.
+  // when the manifest changes and on every tick. The tick value
+  // isn't read inside computeDayOfState — bumping the counter is
+  // the only signal that the wall-clock has moved 30s.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const state = useMemo(() => computeDayOfState(manifest), [manifest, tick]);
 
   if (!state.active || dismissed || state.status === 'inactive') return null;

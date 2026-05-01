@@ -6,7 +6,7 @@
 // morphing blob behind, mono labels.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface GrooveSiteCountdownProps {
   targetDate: string;
@@ -35,7 +35,7 @@ export function GrooveSiteCountdown({
   muted,
   headingFont,
 }: GrooveSiteCountdownProps) {
-  const target = new Date(targetDate);
+  const target = useMemo(() => new Date(targetDate), [targetDate]);
   const valid = !isNaN(target.getTime());
   const [d, setD] = useState(() => (valid ? diff(target) : { days: 0, hours: 0, minutes: 0, isPast: false }));
 
@@ -43,7 +43,7 @@ export function GrooveSiteCountdown({
     if (!valid) return;
     const id = window.setInterval(() => setD(diff(target)), 60000);
     return () => window.clearInterval(id);
-  }, [targetDate, valid]);
+  }, [target, valid]);
 
   if (!valid) return null;
 

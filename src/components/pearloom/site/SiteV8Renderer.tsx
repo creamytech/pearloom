@@ -6159,7 +6159,10 @@ function categorizeFaq(question: string): string {
 function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; onEditField?: FieldEditor }) {
   type FaqItem = { id?: string; question: string; answer: string };
   const edit = useIsEditMode();
-  const faq = ((manifest as unknown as { faq?: FaqItem[] }).faq ?? []);
+  const faq = useMemo(
+    () => ((manifest as unknown as { faq?: FaqItem[] }).faq ?? []),
+    [manifest],
+  );
   // Active filter chip — guest-side state. "All" shows everything.
   const [filter, setFilter] = useState<string>('All');
   // Build the chip list from actually-present categories so we

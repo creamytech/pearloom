@@ -51,7 +51,10 @@ export function VendorsPage({ embedded = false }: { embedded?: boolean } = {}) {
   }, [filters]);
 
   const loading = result?.filters !== filters;
-  const vendors = !loading ? (result?.vendors ?? []) : [];
+  const vendors = useMemo(
+    () => (!loading ? (result?.vendors ?? []) : []),
+    [loading, result],
+  );
 
   const grouped = useMemo(() => {
     const map = new Map<string, Vendor[]>();

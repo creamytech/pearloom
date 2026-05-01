@@ -109,8 +109,14 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
   const onDragLeave = () => setDragOver(false);
 
   // Lightbox navigation
-  const prevPhoto = () => setLightboxIdx((i) => (i !== null && i > 0 ? i - 1 : i));
-  const nextPhoto = () => setLightboxIdx((i) => (i !== null && i < photos.length - 1 ? i + 1 : i));
+  const prevPhoto = useCallback(
+    () => setLightboxIdx((i) => (i !== null && i > 0 ? i - 1 : i)),
+    [],
+  );
+  const nextPhoto = useCallback(
+    () => setLightboxIdx((i) => (i !== null && i < photos.length - 1 ? i + 1 : i)),
+    [photos.length],
+  );
 
   // Keyboard navigation for lightbox
   useEffect(() => {
@@ -122,7 +128,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [lightboxIdx]);
+  }, [lightboxIdx, prevPhoto, nextPhoto]);
 
   const lightboxPhoto = lightboxIdx !== null ? photos[lightboxIdx] : null;
 

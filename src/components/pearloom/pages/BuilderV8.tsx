@@ -122,6 +122,11 @@ export function BuilderV8({
     return () => {
       cancelled = true;
     };
+    // Intentionally omit `manifest` — the probe should only re-run
+    // when the slug/override changes, not on every keystroke into
+    // the editor. The occasion read from manifest is just for URL
+    // shape and is stable for the page's lifetime.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [siteSlug, demoMode, previewPathOverride]);
 
   // Derived theme fields from manifest (defaults fall back to Groovy Garden)

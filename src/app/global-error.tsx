@@ -30,6 +30,10 @@ export default function GlobalError({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* global-error replaces the root layout entirely when it
+            fires, so next/font's app-router pipeline is unavailable.
+            Inlining the link tag is the documented escape hatch. */}
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
           href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400&family=Fraunces:ital,opsz,wght@1,9..144,400&family=Geist+Mono:wght@400;700&display=swap"
           rel="stylesheet"
