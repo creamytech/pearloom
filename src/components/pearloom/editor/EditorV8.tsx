@@ -1278,6 +1278,7 @@ function DesignMenu() {
         aria-haspopup="menu"
         aria-expanded={open}
         title="Design — palette, fonts, AI decor, nav style"
+        className="pl8-ghost-btn"
         style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -1286,12 +1287,11 @@ function DesignMenu() {
           borderRadius: 999,
           background: open ? 'var(--cream-2)' : 'transparent',
           border: '1px solid var(--line-soft)',
-          color: 'var(--ink-soft)',
+          color: open ? 'var(--ink)' : 'var(--ink-soft)',
           fontSize: 12.5,
           fontWeight: 600,
           fontFamily: 'var(--font-ui)',
           cursor: 'pointer',
-          transition: 'background 160ms ease',
         }}
       >
         <Icon name="palette" size={12} /> Design
@@ -3386,6 +3386,7 @@ function SectionOverflowMenu({
         aria-label="Section actions"
         aria-expanded={open}
         title="Section actions"
+        className="pl8-icon-btn"
         style={{
           width: 30,
           height: 30,
@@ -3393,7 +3394,7 @@ function SectionOverflowMenu({
           borderRadius: 8,
           background: open ? 'var(--cream-2)' : 'transparent',
           border: '1px solid var(--line-soft)',
-          color: 'var(--ink-soft)',
+          color: open ? 'var(--ink)' : 'var(--ink-soft)',
           cursor: 'pointer',
           display: 'inline-flex',
           alignItems: 'center',
@@ -3401,7 +3402,6 @@ function SectionOverflowMenu({
           fontSize: 16,
           lineHeight: 1,
           fontFamily: 'var(--font-ui)',
-          transition: 'background 140ms ease',
         }}
       >
         ⋯
