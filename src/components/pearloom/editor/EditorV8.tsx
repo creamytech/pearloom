@@ -2569,6 +2569,7 @@ function Outline({
           id="pl8-outline-panel-pages"
           role="tabpanel"
           aria-labelledby="pl8-outline-tab-pages"
+          className="pl-tab-content"
           style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
         >
           <SiteModeSection manifest={manifest} onChange={onChange} />
@@ -2584,6 +2585,7 @@ function Outline({
             id="pl8-outline-panel-theme"
             role="tabpanel"
             aria-labelledby="pl8-outline-tab-theme"
+            className="pl-tab-content"
             style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
           >
             <ThemeQuickBar
@@ -2606,6 +2608,7 @@ function Outline({
           id="pl8-outline-panel-sections"
           role="tabpanel"
           aria-labelledby="pl8-outline-tab-sections"
+          className="pl-tab-content"
           style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
         >
       {/* Site identity — names + URL above the progress thread.
@@ -3390,6 +3393,7 @@ function Inspector({
           id="pl8-inspector-panel-section"
           role="tabpanel"
           aria-labelledby="pl8-inspector-tab-section"
+          className="pl-tab-content"
           style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflowY: 'auto', position: 'relative' }}
         >
           {/* Docked hotel editor — pilot for the modal-vs-panel
@@ -3528,6 +3532,7 @@ function Inspector({
           id="pl8-inspector-panel-library"
           role="tabpanel"
           aria-labelledby="pl8-inspector-tab-library"
+          className="pl-tab-content"
           style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}
         >
           <LibraryPanelV2 manifest={manifest} onChange={onChange} />
@@ -3539,6 +3544,7 @@ function Inspector({
           id="pl8-inspector-panel-pear"
           role="tabpanel"
           aria-labelledby="pl8-inspector-tab-pear"
+          className="pl-tab-content"
           style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}
         >
           <PearCopilot
