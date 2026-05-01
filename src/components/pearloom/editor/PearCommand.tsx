@@ -302,6 +302,8 @@ export function PearCommand({
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onInputKey}
             placeholder="Ask Pear, or jump to a block…"
+            aria-label="Command palette: ask Pear or jump to a block"
+            type="search"
             style={{
               flex: 1,
               background: 'transparent',
