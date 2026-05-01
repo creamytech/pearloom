@@ -237,6 +237,17 @@ export function PlaceAutocomplete({
           ref={inputRef}
           id={id}
           type="text"
+          // WAI-ARIA combobox 1.2 pattern: input is the combobox,
+          // the popped-up <ul> is the listbox, aria-controls binds
+          // them, aria-activedescendant tells screen readers which
+          // option the arrow keys are pointing at without moving
+          // DOM focus off the input.
+          role="combobox"
+          aria-expanded={open && predictions.length > 0}
+          aria-controls={open && predictions.length > 0 ? `${id}-listbox` : undefined}
+          aria-autocomplete="list"
+          aria-activedescendant={open && activeIdx >= 0 && predictions[activeIdx]
+            ? `${id}-opt-${activeIdx}` : undefined}
           value={value}
           onChange={(e) => { setEngaged(true); onChangeText(e.target.value); }}
           onFocus={() => {
@@ -284,7 +295,9 @@ export function PlaceAutocomplete({
 
       {open && predictions.length > 0 && (
         <ul
+          id={`${id}-listbox`}
           role="listbox"
+          aria-label={kind === 'hotel' ? 'Hotel suggestions' : kind === 'airport' ? 'Airport suggestions' : 'Place suggestions'}
           style={{
             position: 'absolute',
             top: 'calc(100% + 6px)',
@@ -307,6 +320,7 @@ export function PlaceAutocomplete({
             return (
               <li
                 key={p.id}
+                id={`${id}-opt-${i}`}
                 role="option"
                 aria-selected={on}
                 onMouseEnter={() => setActiveIdx(i)}
