@@ -411,6 +411,7 @@ function renderGroup(
           <button
             key={c.id}
             type="button"
+            aria-current={active ? 'true' : undefined}
             onClick={() => void c.run()}
             style={{
               width: '100%',
