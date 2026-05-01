@@ -634,7 +634,9 @@ test.describe('Studio (stationery editor)', () => {
     await page.getByRole('button', { name: /A different angle on the same idea/ }).click();
 
     // The error toast should appear with an explanatory message.
-    const toast = page.getByRole('status').filter({ hasText: /couldn’t rewrite/ });
+    // role="alert" because a Pear rewrite failure interrupts the
+    // host's flow — it deserves an assertive announcement.
+    const toast = page.getByRole('alert').filter({ hasText: /couldn’t rewrite/ });
     await expect(toast).toBeVisible({ timeout: 5_000 });
 
     // Dismissible by the ✕ button.
@@ -656,7 +658,7 @@ test.describe('Studio (stationery editor)', () => {
       .locator('xpath=..').getByRole('button', { name: /Rewrite/ });
     await eyebrowRewriteBtn.click();
     await page.getByRole('button', { name: /A different angle on the same idea/ }).click();
-    await expect(page.getByRole('status').filter({ hasText: /taking a breath/ }))
+    await expect(page.getByRole('alert').filter({ hasText: /taking a breath/ }))
       .toBeVisible({ timeout: 5_000 });
   });
 
@@ -990,7 +992,7 @@ test.describe('Studio (stationery editor)', () => {
     await page.reload();
     await page.getByRole('button', { name: /^Pear$/ }).click();
     await page.getByRole('button', { name: /Match this card to your site theme/i }).click();
-    await expect(page.getByRole('status').filter({ hasText: /accent colour/ }))
+    await expect(page.getByRole('alert').filter({ hasText: /accent colour/ }))
       .toBeVisible({ timeout: 5_000 });
   });
 

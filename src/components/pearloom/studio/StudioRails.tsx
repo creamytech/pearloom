@@ -858,6 +858,7 @@ function CopyTab({ content, state, setField, onRewriteField }: { content: Studio
                     const otherBusy = rewritingKey !== null && !busy;
                     return (
                       <button key={hint}
+                        type="button"
                         disabled={busy || otherBusy}
                         aria-busy={busy}
                         onClick={() => {
@@ -968,6 +969,7 @@ function PearTab({ state, content, nameA, nameB, onMatchSiteTheme, onSuggestPair
             { l: 'Translate every word to the venue’s language', i: 'globe', tone: 'lavender' },
           ].map(s => (
             <button key={s.l}
+              type="button"
               onClick={() => void s.onPress?.()}
               disabled={!s.onPress}
               style={{
