@@ -1446,6 +1446,19 @@ button.pl8-mobile-only { display: none !important; }
 .pl8-rail-resize-handle:active::after {
   opacity: 0.6;
 }
+
+/* Editor dropdown menu items — flat by default, light cream-2
+   wash on hover/focus so the host has a clear "this is the row
+   you're about to pick" affordance. Used by DesignMenu and any
+   other inline-styled menuitem buttons that opt in via class. */
+.pl8-menu-item {
+  transition: background 140ms ease;
+}
+.pl8-menu-item:hover,
+.pl8-menu-item:focus-visible {
+  background: var(--cream-2) !important;
+  outline: none;
+}
 @media (max-width: 900px) {
   .pl8-builder-main { flex-direction: column !important; overflow-y: auto; }
   .pl8-builder-outline,

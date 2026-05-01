@@ -1327,48 +1327,48 @@ function DesignMenu() {
           }}
         >
           <div style={groupLabel}>Look &amp; feel</div>
-          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('palette')}>
+          <button type="button" role="menuitem" className="pl8-menu-item" style={itemStyle} onClick={() => jumpAnchor('palette')}>
             <Icon name="palette" size={14} /> Color palette
           </button>
-          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('fonts')}>
+          <button type="button" role="menuitem" className="pl8-menu-item" style={itemStyle} onClick={() => jumpAnchor('fonts')}>
             <Icon name="type" size={14} /> Fonts
           </button>
-          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('motif')}>
+          <button type="button" role="menuitem" className="pl8-menu-item" style={itemStyle} onClick={() => jumpAnchor('motif')}>
             <Icon name="sparkles" size={14} /> Motif &amp; shapes
           </button>
-          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('spacing')}>
+          <button type="button" role="menuitem" className="pl8-menu-item" style={itemStyle} onClick={() => jumpAnchor('spacing')}>
             <Icon name="layout" size={14} /> Spacing
           </button>
           <div style={{ height: 1, background: 'var(--line-soft)', margin: '4px 6px' }} />
           <div style={groupLabel}>AI decor</div>
-          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('decor')}>
+          <button type="button" role="menuitem" className="pl8-menu-item" style={itemStyle} onClick={() => jumpAnchor('decor')}>
             <Icon name="brush" size={14} /> Decor library
             <span style={{ marginLeft: 'auto', fontSize: 9.5, color: 'var(--peach-ink, #C6703D)', fontWeight: 700, letterSpacing: '0.12em' }}>NEW</span>
           </button>
-          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('ai-accent')}>
+          <button type="button" role="menuitem" className="pl8-menu-item" style={itemStyle} onClick={() => jumpAnchor('ai-accent')}>
             <Icon name="sparkles" size={14} /> Hero flourish
           </button>
-          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('hero-decor')}>
+          <button type="button" role="menuitem" className="pl8-menu-item" style={itemStyle} onClick={() => jumpAnchor('hero-decor')}>
             <Icon name="image" size={14} /> Hero decoration style
           </button>
-          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('atmosphere')}>
+          <button type="button" role="menuitem" className="pl8-menu-item" style={itemStyle} onClick={() => jumpAnchor('atmosphere')}>
             <Icon name="image" size={14} /> Atmosphere
           </button>
-          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('stickers')}>
+          <button type="button" role="menuitem" className="pl8-menu-item" style={itemStyle} onClick={() => jumpAnchor('stickers')}>
             <Icon name="sparkles" size={14} /> Stickers
           </button>
           <div style={{ height: 1, background: 'var(--line-soft)', margin: '4px 6px' }} />
           <div style={groupLabel}>Layout</div>
-          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpBlock('nav')}>
+          <button type="button" role="menuitem" className="pl8-menu-item" style={itemStyle} onClick={() => jumpBlock('nav')}>
             <Icon name="layout" size={14} /> Navigation bar
           </button>
-          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpBlock('hero')}>
+          <button type="button" role="menuitem" className="pl8-menu-item" style={itemStyle} onClick={() => jumpBlock('hero')}>
             <Icon name="image" size={14} /> Hero block
           </button>
-          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('footer')}>
+          <button type="button" role="menuitem" className="pl8-menu-item" style={itemStyle} onClick={() => jumpAnchor('footer')}>
             <Icon name="section" size={14} /> Footer
           </button>
-          <button type="button" role="menuitem" style={itemStyle} onClick={() => jumpAnchor('layout-mode')}>
+          <button type="button" role="menuitem" className="pl8-menu-item" style={itemStyle} onClick={() => jumpAnchor('layout-mode')}>
             <Icon name="grid" size={14} /> Layout mode
           </button>
         </div>
