@@ -133,7 +133,16 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--peach-ink)' }}>Send</div>
-              <h2 className="display" style={{ fontSize: 26, margin: '4px 0 0' }}>{titleByType[type]}</h2>
+              <h2 style={{
+                fontSize: 26,
+                margin: '4px 0 0',
+                fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+                fontOpticalSizing: 'auto',
+                fontWeight: 600,
+                letterSpacing: '-0.02em',
+                lineHeight: 1.02,
+                color: 'var(--ink)',
+              }}>{titleByType[type]}</h2>
             </div>
             <button onClick={onClose} aria-label="Close send overlay" style={{
               width: 32, height: 32, borderRadius: '50%',
