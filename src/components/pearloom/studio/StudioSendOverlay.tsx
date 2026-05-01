@@ -258,7 +258,7 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
                 { l: 'Tomorrow at 9 AM', sub: 'Coming soon', on: false, disabled: true },
                 { l: 'Custom', sub: 'Coming soon', on: false, disabled: true },
               ].map(s => (
-                <button key={s.l} disabled={s.disabled} aria-disabled={s.disabled} style={{
+                <button key={s.l} type="button" aria-pressed={s.on} disabled={s.disabled} aria-disabled={s.disabled} style={{
                   flex: 1, padding: 12, borderRadius: 10,
                   background: s.on ? 'var(--ink)' : 'var(--card)',
                   color: s.on ? 'var(--cream)' : 'var(--ink)',
@@ -276,7 +276,7 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
           </SendBlock>
 
           {error && (
-            <div role="alert" style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(122,45,45,0.08)', color: '#7A2D2D', fontSize: 12.5 }}>
+            <div role="alert" style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(122,45,45,0.08)', color: 'var(--plum-ink, #7A2D2D)', fontSize: 12.5 }}>
               {error}
             </div>
           )}
@@ -294,6 +294,7 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button
+                type="button"
                 onClick={onClose}
                 style={{
                   padding: '8px 14px',
@@ -309,6 +310,7 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
                 {sentSummary ? 'Close' : 'Save draft'}
               </button>
               <button
+                type="button"
                 onClick={sentSummary ? onClose : send}
                 disabled={busy || (withEmail === 0 && !sentSummary)}
                 style={{
