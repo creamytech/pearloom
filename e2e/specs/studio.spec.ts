@@ -953,6 +953,35 @@ test.describe('Studio (stationery editor)', () => {
     ).toBeVisible();
   });
 
+  test('Match-site-theme surfaces a toast when no accent is set', async ({ page }) => {
+    // Override the manifest mock to ship a manifest WITHOUT a
+    // theme.colors.accent — clicking Match should produce a
+    // friendly error toast, not a silent palette swap to
+    // whichever default happens to win the NaN distance compare.
+    await page.route('**/api/sites/playwright-test', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 'pw-no-accent',
+          subdomain: TEST_SLUG,
+          names: ['Emma', 'James'],
+          manifest: {
+            ...SYNTHETIC_MANIFEST,
+            theme: { colors: {} }, // accent missing
+          },
+          published: false,
+          occasion: 'wedding',
+        }),
+      });
+    });
+    await page.reload();
+    await page.getByRole('button', { name: /^Pear$/ }).click();
+    await page.getByRole('button', { name: /Match this card to your site theme/i }).click();
+    await expect(page.getByRole('status').filter({ hasText: /accent colour/ }))
+      .toBeVisible({ timeout: 5_000 });
+  });
+
   test('Match-site-theme switches the palette to the closest match', async ({ page }) => {
     // The synthetic manifest seeds theme.colors.accent = sage
     // accent, so clicking "Match this card to your site theme"

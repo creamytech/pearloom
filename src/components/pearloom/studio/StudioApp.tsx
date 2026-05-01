@@ -340,7 +340,14 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
   // ── Pear: match the card to the current site theme ─────────
   async function matchSiteTheme() {
     const themeAccent = (manifest as unknown as { theme?: { colors?: { accent?: string } } }).theme?.colors?.accent;
-    if (!themeAccent) return;
+    // colorDistance assumes a 6-digit hex (#RRGGBB). #RGB shorthand
+    // or rgb()/oklch() would parseInt to NaN and silently pick
+    // PALETTES[0] every time. Guard explicitly so the host gets
+    // a clear "no theme accent" message instead of a phantom no-op.
+    if (!themeAccent || !/^#[0-9a-f]{6}$/i.test(themeAccent.trim())) {
+      setAiError('Pear couldn’t read your site’s accent colour. Set one on the site first.');
+      return;
+    }
     // Find the studio palette whose accent is closest to the
     // site's theme accent.
     const closest = PALETTES.reduce((best, p) => {
