@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../design/DesignAtoms';
+import { Reveal } from '@/components/pearloom/motion';
 
 const FAQS = [
   {
@@ -48,8 +49,12 @@ export function LandingProof() {
         }}
         className="pl-proof-grid"
       >
-        <Testimonial />
-        <FAQ />
+        <Reveal y={18}>
+          <Testimonial />
+        </Reveal>
+        <Reveal delay={120} y={18}>
+          <FAQ />
+        </Reveal>
       </div>
 
       <style jsx>{`
@@ -169,7 +174,10 @@ function FAQ() {
           return (
             <div key={i} style={{ borderBottom: '1px solid rgba(31,36,24,0.08)' }}>
               <button
+                type="button"
                 onClick={() => setOpen(isOpen ? null : i)}
+                aria-expanded={isOpen}
+                aria-controls={`pl-faq-panel-${i}`}
                 style={{
                   width: '100%',
                   display: 'flex',
@@ -187,27 +195,63 @@ function FAQ() {
                 }}
               >
                 <span>{f.q}</span>
-                <span style={{ fontSize: 16, color: PD.inkSoft, flexShrink: 0, marginLeft: 14 }}>
-                  {isOpen ? '−' : '+'}
+                <span
+                  aria-hidden
+                  className="pl-faq-glyph"
+                  data-open={isOpen}
+                  style={{ fontSize: 16, color: PD.inkSoft, flexShrink: 0, marginLeft: 14 }}
+                >
+                  +
                 </span>
               </button>
-              {isOpen && (
-                <div
-                  style={{
-                    padding: '0 4px 18px',
-                    fontSize: 13.5,
-                    color: PD.inkSoft,
-                    lineHeight: 1.55,
-                    maxWidth: 520,
-                  }}
-                >
-                  {f.a}
-                </div>
-              )}
+              <div
+                id={`pl-faq-panel-${i}`}
+                role="region"
+                className="pl-faq-panel"
+                data-open={isOpen}
+                style={{
+                  fontSize: 13.5,
+                  color: PD.inkSoft,
+                  lineHeight: 1.55,
+                  maxWidth: 520,
+                }}
+              >
+                <div style={{ padding: '0 4px 18px' }}>{f.a}</div>
+              </div>
             </div>
           );
         })}
       </div>
+      <style jsx>{`
+        :global(.pl-faq-panel) {
+          display: grid;
+          grid-template-rows: 0fr;
+          opacity: 0;
+          transition: grid-template-rows var(--pl-dur-base, 280ms) var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+            opacity var(--pl-dur-base, 280ms) var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+        }
+        :global(.pl-faq-panel > div) {
+          overflow: hidden;
+          min-height: 0;
+        }
+        :global(.pl-faq-panel[data-open='true']) {
+          grid-template-rows: 1fr;
+          opacity: 1;
+        }
+        :global(.pl-faq-glyph) {
+          display: inline-block;
+          transition: transform var(--pl-dur-fast, 180ms) var(--pl-ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
+        }
+        :global(.pl-faq-glyph[data-open='true']) {
+          transform: rotate(45deg);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          :global(.pl-faq-panel),
+          :global(.pl-faq-glyph) {
+            transition: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

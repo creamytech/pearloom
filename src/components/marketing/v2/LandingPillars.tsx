@@ -2,38 +2,67 @@
 
 import Link from 'next/link';
 import { PD, DISPLAY_STYLE, MONO_STYLE, Pear } from '../design/DesignAtoms';
+import { Reveal } from '@/components/pearloom/motion';
 
 export function LandingPillars() {
+  const pillars = [
+    {
+      accent: '#C8B3D9',
+      glyph: <FlowerGlyph />,
+      title: 'Compose',
+      kicker: 'PLAN WITH INTENTION',
+      kickerColor: '#6E5BA8',
+      body: 'Bring your vision to life with beautiful sites, smart tools, and templates that reflect your story.',
+    },
+    {
+      accent: '#F3D0BD',
+      glyph: <CalendarGlyph />,
+      title: 'Conduct',
+      kicker: 'RUN WITH CONFIDENCE',
+      kickerColor: '#C47A4A',
+      body: 'Coordinate tasks, timelines, and communications—so every detail is handled.',
+    },
+    {
+      accent: '#D9E0C2',
+      glyph: <Pear size={40} color={PD.pear} stem={PD.oliveDeep} leaf={PD.olive} />,
+      title: 'Remember',
+      kicker: 'KEEP FOREVER',
+      kickerColor: PD.olive,
+      body: 'Deliver albums, galleries, and keepsakes that help you hold on to what matters most.',
+    },
+  ];
   return (
     <section id="product" style={{ padding: '80px 40px 60px', background: PD.paper }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto', textAlign: 'center' }}>
-        <div
-          style={{
-            ...MONO_STYLE,
-            fontSize: 11,
-            color: '#6E5BA8',
-            letterSpacing: '0.26em',
-            marginBottom: 14,
-          }}
-        >
-          DESIGNED FOR HOW YOU PLAN
+      <Reveal>
+        <div style={{ maxWidth: 1100, margin: '0 auto', textAlign: 'center' }}>
+          <div
+            style={{
+              ...MONO_STYLE,
+              fontSize: 11,
+              color: '#6E5BA8',
+              letterSpacing: '0.26em',
+              marginBottom: 14,
+            }}
+          >
+            DESIGNED FOR HOW YOU PLAN
+          </div>
+          <h2
+            style={{
+              ...DISPLAY_STYLE,
+              fontSize: 'clamp(28px, 3.4vw, 44px)',
+              margin: '0 0 54px',
+              fontWeight: 400,
+              letterSpacing: '-0.02em',
+              lineHeight: 1.1,
+            }}
+          >
+            Three pillars.{' '}
+            <span style={{ fontStyle: 'italic', color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
+              One seamless experience.
+            </span>
+          </h2>
         </div>
-        <h2
-          style={{
-            ...DISPLAY_STYLE,
-            fontSize: 'clamp(28px, 3.4vw, 44px)',
-            margin: '0 0 54px',
-            fontWeight: 400,
-            letterSpacing: '-0.02em',
-            lineHeight: 1.1,
-          }}
-        >
-          Three pillars.{' '}
-          <span style={{ fontStyle: 'italic', color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-            One seamless experience.
-          </span>
-        </h2>
-      </div>
+      </Reveal>
 
       <div
         style={{
@@ -60,36 +89,33 @@ export function LandingPillars() {
           }}
         />
 
-        <Pillar
-          accent="#C8B3D9"
-          glyph={<FlowerGlyph />}
-          title="Compose"
-          kicker="PLAN WITH INTENTION"
-          kickerColor="#6E5BA8"
-          body="Bring your vision to life with beautiful sites, smart tools, and templates that reflect your story."
-        />
-        <Pillar
-          accent="#F3D0BD"
-          glyph={<CalendarGlyph />}
-          title="Conduct"
-          kicker="RUN WITH CONFIDENCE"
-          kickerColor="#C47A4A"
-          body="Coordinate tasks, timelines, and communications—so every detail is handled."
-        />
-        <Pillar
-          accent="#D9E0C2"
-          glyph={<Pear size={40} color={PD.pear} stem={PD.oliveDeep} leaf={PD.olive} />}
-          title="Remember"
-          kicker="KEEP FOREVER"
-          kickerColor={PD.olive}
-          body="Deliver albums, galleries, and keepsakes that help you hold on to what matters most."
-        />
+        {pillars.map((p, i) => (
+          <Reveal key={p.title} delay={140 + i * 120} y={18}>
+            <Pillar {...p} />
+          </Reveal>
+        ))}
       </div>
 
       <style jsx>{`
         @media (max-width: 820px) {
           :global(.pl-pillars-grid) {
             grid-template-columns: 1fr !important;
+          }
+        }
+        :global(.pl-pillar-blob) {
+          transition: transform var(--pl-dur-base, 280ms) var(--pl-ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)),
+            box-shadow var(--pl-dur-base, 280ms) var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+        }
+        :global(.pl-pillar-card:hover .pl-pillar-blob) {
+          transform: translateY(-3px) rotate(-1.5deg);
+          box-shadow: 0 12px 28px rgba(31, 36, 24, 0.12);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          :global(.pl-pillar-blob) {
+            transition: none !important;
+          }
+          :global(.pl-pillar-card:hover .pl-pillar-blob) {
+            transform: none !important;
           }
         }
       `}</style>
@@ -113,8 +139,9 @@ function Pillar({
   body: string;
 }) {
   return (
-    <div style={{ textAlign: 'left', position: 'relative', zIndex: 2 }}>
+    <div className="pl-pillar-card" style={{ textAlign: 'left', position: 'relative', zIndex: 2 }}>
       <div
+        className="pl-pillar-blob"
         style={{
           width: 116,
           height: 116,

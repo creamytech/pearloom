@@ -1,6 +1,7 @@
 'use client';
 
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../design/DesignAtoms';
+import { Reveal } from '@/components/pearloom/motion';
 
 const TIERS = [
   {
@@ -67,31 +68,33 @@ export function LandingPricing({ onStart }: { onStart: () => void }) {
           }}
           className="pl-pricing-grid"
         >
-          <div>
-            <div
-              style={{
-                ...MONO_STYLE,
-                fontSize: 11,
-                color: '#6E5BA8',
-                letterSpacing: '0.26em',
-                marginBottom: 14,
-              }}
-            >
-              SIMPLE, TRANSPARENT PRICING
+          <Reveal>
+            <div>
+              <div
+                style={{
+                  ...MONO_STYLE,
+                  fontSize: 11,
+                  color: '#6E5BA8',
+                  letterSpacing: '0.26em',
+                  marginBottom: 14,
+                }}
+              >
+                SIMPLE, TRANSPARENT PRICING
+              </div>
+              <h2
+                style={{
+                  ...DISPLAY_STYLE,
+                  fontSize: 'clamp(28px, 3vw, 40px)',
+                  margin: 0,
+                  fontWeight: 400,
+                  letterSpacing: '-0.02em',
+                  lineHeight: 1.15,
+                }}
+              >
+                Choose the plan that fits your day.
+              </h2>
             </div>
-            <h2
-              style={{
-                ...DISPLAY_STYLE,
-                fontSize: 'clamp(28px, 3vw, 40px)',
-                margin: 0,
-                fontWeight: 400,
-                letterSpacing: '-0.02em',
-                lineHeight: 1.15,
-              }}
-            >
-              Choose the plan that fits your day.
-            </h2>
-          </div>
+          </Reveal>
 
           <div
             style={{
@@ -101,8 +104,10 @@ export function LandingPricing({ onStart }: { onStart: () => void }) {
             }}
             className="pl-pricing-tiers"
           >
-            {TIERS.map((t) => (
-              <Tier key={t.k} {...t} onClick={onStart} />
+            {TIERS.map((t, i) => (
+              <Reveal key={t.k} delay={140 + i * 90} y={16}>
+                <Tier {...t} onClick={onStart} />
+              </Reveal>
             ))}
           </div>
         </div>
@@ -120,6 +125,23 @@ export function LandingPricing({ onStart }: { onStart: () => void }) {
         @media (max-width: 600px) {
           :global(.pl-pricing-tiers) {
             grid-template-columns: 1fr !important;
+          }
+        }
+        :global(.pl-pricing-tier) {
+          transition: transform var(--pl-dur-base, 280ms) var(--pl-ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)),
+            box-shadow var(--pl-dur-base, 280ms) var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+            border-color var(--pl-dur-fast, 180ms) var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+        }
+        :global(.pl-pricing-tier:hover) {
+          transform: translateY(-4px);
+          box-shadow: 0 14px 32px rgba(31, 36, 24, 0.10);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          :global(.pl-pricing-tier) {
+            transition: none !important;
+          }
+          :global(.pl-pricing-tier:hover) {
+            transform: none !important;
           }
         }
       `}</style>
@@ -149,6 +171,7 @@ function Tier({
   const custom = price === 'Custom';
   return (
     <div
+      className="pl-pricing-tier"
       style={{
         background: '#FFFEF7',
         border: highlighted
@@ -160,6 +183,7 @@ function Tier({
         flexDirection: 'column',
         gap: 12,
         position: 'relative',
+        height: '100%',
       }}
     >
       {highlighted && (
