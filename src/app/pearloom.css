@@ -1459,6 +1459,24 @@ button.pl8-mobile-only { display: none !important; }
   background: var(--cream-2) !important;
   outline: none;
 }
+
+/* Editor-wide focus ring — a peach hairline + soft halo so
+   keyboard hosts can see exactly where they are. Mirrors the
+   .pl8-guest treatment but with slightly tighter offset since
+   editor controls are denser. Scoped to interactive elements
+   inside the editor root so paragraph text + decorative chrome
+   don't accidentally pick up the ring. Inputs/textareas/selects
+   already define their own focus state in this stylesheet —
+   the :where() selector keeps specificity low so those win. */
+:where(.pl8-editor-v8) a:focus-visible,
+:where(.pl8-editor-v8) button:focus-visible,
+:where(.pl8-editor-v8) [role="button"]:focus-visible,
+:where(.pl8-editor-v8) [role="tab"]:focus-visible,
+:where(.pl8-editor-v8) [role="menuitem"]:focus-visible {
+  outline: 2px solid var(--peach-ink, #C6703D);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
 @media (max-width: 900px) {
   .pl8-builder-main { flex-direction: column !important; overflow-y: auto; }
   .pl8-builder-outline,
