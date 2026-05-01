@@ -1224,6 +1224,7 @@ function PublishToast({ url, onClose }: { url: string; onClose: () => void }) {
         href={url}
         target="_blank"
         rel="noopener noreferrer"
+        aria-label={`View the published site at ${url} (opens in a new tab)`}
         style={{
           display: 'inline-flex',
           alignItems: 'center',
