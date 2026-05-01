@@ -83,28 +83,29 @@ const KIND_INK: Record<NotificationKind, string> = {
 export function NotificationBell() {
   const { site } = useSelectedSite();
   const [open, setOpen] = useState(false);
-  const [items, setItems] = useState<Notification[]>([]);
-  const [seenAt, setSeenAt] = useState<number>(0);
+  // Tag the items with the siteId they came from so a siteId
+  // change reads correctly as "loading new bell" without a
+  // setState-in-effect cascade. seenAt rolls into the same
+  // tagged state.
+  const [bell, setBell] = useState<{ siteId: string; items: Notification[]; seenAt: number } | null>(null);
   const ref = useRef<HTMLDivElement | null>(null);
 
   // Poll for new activity every 60s. The bell badge derives from
   // items newer than seenAt (local-only).
   useEffect(() => {
-    if (!site?.id) {
-      setItems([]);
-      return;
-    }
-    setSeenAt(readSeenAt(site.id));
+    if (!site?.id) return;
+    const currentSiteId = site.id;
+    const initialSeenAt = readSeenAt(currentSiteId);
     let cancelled = false;
     async function pull() {
       try {
-        const res = await fetch(`/api/dashboard/notifications?siteId=${encodeURIComponent(site!.id)}`, {
+        const res = await fetch(`/api/dashboard/notifications?siteId=${encodeURIComponent(currentSiteId)}`, {
           cache: 'no-store',
         });
         if (!res.ok) return;
         const data = (await res.json()) as { items?: Notification[] };
         if (cancelled) return;
-        setItems(data.items ?? []);
+        setBell({ siteId: currentSiteId, items: data.items ?? [], seenAt: initialSeenAt });
       } catch {
         // ignore — bell stays empty until next tick
       }
@@ -116,6 +117,10 @@ export function NotificationBell() {
       clearInterval(id);
     };
   }, [site?.id]);
+
+  // Derive items + seenAt for the current site only.
+  const items = bell?.siteId === site?.id ? (bell?.items ?? []) : [];
+  const seenAt = bell?.siteId === site?.id ? (bell?.seenAt ?? 0) : 0;
 
   // Click-outside + Escape to close.
   useEffect(() => {
@@ -144,7 +149,7 @@ export function NotificationBell() {
       if (next && site?.id) {
         const now = Date.now();
         writeSeenAt(site.id, now);
-        setSeenAt(now);
+        setBell((prev) => prev && prev.siteId === site.id ? { ...prev, seenAt: now } : prev);
       }
       return next;
     });

@@ -123,10 +123,12 @@ export function DashCommandPalette() {
     }).slice(0, 50);
   }, [allItems, query]);
 
-  // Keep activeIdx within bounds when filtered changes.
-  useEffect(() => {
-    if (activeIdx >= filtered.length) setActiveIdx(Math.max(0, filtered.length - 1));
-  }, [filtered, activeIdx]);
+  // Clamp activeIdx at read time instead of mirroring it via
+  // an effect (was a setState-in-effect cascade). Storing a
+  // clamped value would diverge from the user's intent if
+  // filtered shrinks-and-grows; reading clamped is correct
+  // and pure.
+  const safeActiveIdx = Math.min(activeIdx, Math.max(0, filtered.length - 1));
 
   const onArrow = useCallback((direction: 1 | -1) => {
     setActiveIdx((i) => {
@@ -198,7 +200,7 @@ export function DashCommandPalette() {
               else if (e.key === 'ArrowUp') { e.preventDefault(); onArrow(-1); }
               else if (e.key === 'Enter') {
                 e.preventDefault();
-                const item = filtered[activeIdx];
+                const item = filtered[safeActiveIdx];
                 if (item) onPick(item);
               }
             }}
@@ -230,7 +232,7 @@ export function DashCommandPalette() {
             </div>
           ) : (
             filtered.map((item, idx) => {
-              const active = idx === activeIdx;
+              const active = idx === safeActiveIdx;
               const inner = (
                 <div
                   onMouseEnter={() => setActiveIdx(idx)}
