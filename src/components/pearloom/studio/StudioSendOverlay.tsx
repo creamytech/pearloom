@@ -195,7 +195,7 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
                 <Icon name="users" size={20} color="currentColor" />
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: statsError ? '#7A2D2D' : undefined }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: statsError ? 'var(--plum-ink, #7A2D2D)' : undefined }}>
                   {statsError
                     ? "Couldn't pull the roster"
                     : stats

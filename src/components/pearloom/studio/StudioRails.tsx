@@ -104,7 +104,7 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
       : savedAt
         ? formatRelative(savedAt)
         : null;
-  const savedLabelColor = saveError ? '#7A2D2D' : 'var(--ink-muted)';
+  const savedLabelColor = saveError ? 'var(--plum-ink, #7A2D2D)' : 'var(--ink-muted)';
   return (
     <header aria-label="Studio toolbar" style={{
       gridArea: 'top',
