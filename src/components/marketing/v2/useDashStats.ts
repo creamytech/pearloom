@@ -156,29 +156,31 @@ export interface LinkedCelebrationsState {
 }
 
 export function useLinkedCelebrations(siteId?: string | null): LinkedCelebrationsState {
-  const [state, setState] = useState<LinkedCelebrationsState>({
-    name: null,
-    siblings: [],
-    loading: true,
-  });
+  // Tagged result so loading + error + data all derive from
+  // a single state value — no setState-in-effect cascade.
+  type Result = {
+    siteId: string;
+    name: string | null;
+    siblings: LinkedCelebration[];
+    error?: string;
+  };
+  const [result, setResult] = useState<Result | null>(null);
   const reqRef = useRef(0);
 
   useEffect(() => {
-    if (!siteId) {
-      setState({ name: null, siblings: [], loading: false });
-      return;
-    }
+    if (!siteId) return;
     const id = ++reqRef.current;
+    const currentSiteId = siteId;
     let cancelled = false;
 
     (async () => {
       try {
         const res = await fetch(
-          `/api/celebrations/siblings?siteId=${encodeURIComponent(siteId)}`,
+          `/api/celebrations/siblings?siteId=${encodeURIComponent(currentSiteId)}`,
         );
         if (cancelled || id !== reqRef.current) return;
         if (!res.ok) {
-          setState({ name: null, siblings: [], loading: false });
+          setResult({ siteId: currentSiteId, name: null, siblings: [] });
           return;
         }
         const data = (await res.json()) as {
@@ -192,7 +194,8 @@ export function useLinkedCelebrations(siteId?: string | null): LinkedCelebration
             date?: string;
           }>;
         };
-        setState({
+        setResult({
+          siteId: currentSiteId,
           name: data.celebration?.name ?? null,
           siblings: (data.siblings ?? []).map((s) => ({
             domain: s.domain,
@@ -201,14 +204,13 @@ export function useLinkedCelebrations(siteId?: string | null): LinkedCelebration
             published: s.published,
             date: s.eventDate ?? s.date,
           })),
-          loading: false,
         });
       } catch (err) {
         if (cancelled || id !== reqRef.current) return;
-        setState({
+        setResult({
+          siteId: currentSiteId,
           name: null,
           siblings: [],
-          loading: false,
           error: err instanceof Error ? err.message : 'Failed to load',
         });
       }
@@ -219,7 +221,15 @@ export function useLinkedCelebrations(siteId?: string | null): LinkedCelebration
     };
   }, [siteId]);
 
-  return state;
+  // Derive: while siteId is set but result hasn't caught up,
+  // we're loading. Empty siteId reads as loaded-empty.
+  const loading = !!siteId && result?.siteId !== siteId;
+  return {
+    name: result?.name ?? null,
+    siblings: result?.siblings ?? [],
+    loading,
+    error: result?.error,
+  };
 }
 
 // Days-to-go from a site's event date. Re-runs every hour so
