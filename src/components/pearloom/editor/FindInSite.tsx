@@ -146,10 +146,11 @@ export function FindInSite({ manifest, open, onClose, onJump }: Props) {
           <Icon name="search" size={16} color="var(--peach-ink, #C6703D)" />
           <input
             autoFocus
-            type="text"
+            type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Find anywhere on your site…"
+            aria-label="Find in site"
             style={{
               flex: 1,
               border: 'none',
