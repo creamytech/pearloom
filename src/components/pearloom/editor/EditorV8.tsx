@@ -2925,7 +2925,8 @@ function Inspector({
    *  fixed-width. Used in the mobile drawer where the parent is
    *  full-width. */
   fluid?: boolean;
-  /** Persisted user-chosen width in px. Falls back to 380. */
+  /** Persisted user-chosen width in px. Falls back to 460
+   *  (matches EditorV8's inspectorWidth default). */
   width?: number;
   /** Called with each px while the host drags the resize handle. */
   onResize?: (w: number) => void;
@@ -2938,7 +2939,10 @@ function Inspector({
   siblingWidth?: number;
 }) {
   const meta = BLOCKS.find((b) => b.key === block)!;
-  const resolvedWidth = fluid ? '100%' : (width ?? 380);
+  // Fallback matches EditorV8's inspectorWidth default (460) — was
+  // 380, leftover from the V1 width that the rail outgrew when
+  // two-column field rows shipped.
+  const resolvedWidth = fluid ? '100%' : (width ?? 460);
   const isHidden = hiddenBlocks.includes(block);
   const sectionSuggestions = pearSuggestionsFor(block);
 
@@ -3002,10 +3006,11 @@ function Inspector({
           }}
         />
       )}
-      {/* Rail tabs — Section / Theme / Library / Pear. Bigger touch
-          target (16px vertical), clearer active indicator (peach
-          underline pill, animated). Only one body shows at a time,
-          so floaters never overlap the canvas. */}
+      {/* Rail tabs — Section / Library / Pear. Bigger touch target
+          (14px vertical), clear active indicator (peach underline
+          pill). Only one body shows at a time, so floaters never
+          overlap the canvas. (Theme tab moved to the left rail
+          in the V2 redesign.) */}
       <div
         role="tablist"
         aria-label="Inspector tabs"
