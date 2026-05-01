@@ -154,6 +154,10 @@ export function DecorAlternatesStrip({
           return (
             <div
               key={d.id}
+              role="button"
+              tabIndex={0}
+              aria-pressed={isActive}
+              aria-label={`Draft${isActive ? ', currently picked' : ''}`}
               style={{
                 position: 'relative',
                 flexShrink: 0,
@@ -165,6 +169,14 @@ export function DecorAlternatesStrip({
                 cursor: 'pointer',
               }}
               onClick={() => onSelect(d)}
+              onKeyDown={(e) => {
+                // Same div-as-button shim as BlockRow — can't be a
+                // real <button> because the remove ✕ inside is one.
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelect(d);
+                }
+              }}
               title={d.customPrompt || 'Auto-drafted'}
             >
               {onDelete && (
