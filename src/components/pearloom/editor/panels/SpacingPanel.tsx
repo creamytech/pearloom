@@ -155,6 +155,7 @@ function SegmentedRow<T extends string>({
           <button
             key={opt.value}
             type="button"
+            aria-pressed={on}
             onClick={() => onChange(opt.value)}
             style={{
               padding: '8px 6px',

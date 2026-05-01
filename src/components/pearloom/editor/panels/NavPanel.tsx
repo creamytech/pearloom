@@ -381,7 +381,7 @@ function NavMotionSection({
                 ? 'Subtle shrink, frosted, hover underline.'
                 : 'Compact shrink, brand pulses, frosted.';
             return (
-              <button key={m} type="button" onClick={() => applyMood(m)} title={hint} style={navMotionBtn(on)}>
+              <button key={m} type="button" aria-pressed={on} onClick={() => applyMood(m)} title={hint} style={navMotionBtn(on)}>
                 {m[0].toUpperCase() + m.slice(1)}
               </button>
             );
@@ -395,7 +395,7 @@ function NavMotionSection({
             {(['off', 'subtle', 'compact'] as ScrollShrink[]).map((v) => {
               const on = (cfg.shrinkOnScroll ?? 'off') === v;
               return (
-                <button key={v} type="button" onClick={() => set({ shrinkOnScroll: v === 'off' ? undefined : v })} style={navMotionBtn(on)}>
+                <button key={v} type="button" aria-pressed={on} onClick={() => set({ shrinkOnScroll: v === 'off' ? undefined : v })} style={navMotionBtn(on)}>
                   {v[0].toUpperCase() + v.slice(1)}
                 </button>
               );
@@ -407,7 +407,7 @@ function NavMotionSection({
             {(['static', 'hover', 'active', 'none'] as LinkUnderline[]).map((v) => {
               const on = (cfg.linkUnderline ?? 'static') === v;
               return (
-                <button key={v} type="button" onClick={() => set({ linkUnderline: v === 'static' ? undefined : v })} style={navMotionBtn(on)}>
+                <button key={v} type="button" aria-pressed={on} onClick={() => set({ linkUnderline: v === 'static' ? undefined : v })} style={navMotionBtn(on)}>
                   {v[0].toUpperCase() + v.slice(1)}
                 </button>
               );
@@ -419,7 +419,7 @@ function NavMotionSection({
             {(['none', 'pulse', 'tilt', 'breathe'] as Array<'none'|'pulse'|'tilt'|'breathe'>).map((v) => {
               const on = (cfg.brandHover ?? 'none') === v;
               return (
-                <button key={v} type="button" onClick={() => set({ brandHover: v === 'none' ? undefined : v })} style={navMotionBtn(on)}>
+                <button key={v} type="button" aria-pressed={on} onClick={() => set({ brandHover: v === 'none' ? undefined : v })} style={navMotionBtn(on)}>
                   {v[0].toUpperCase() + v.slice(1)}
                 </button>
               );

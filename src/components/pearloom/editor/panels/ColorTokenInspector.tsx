@@ -111,6 +111,8 @@ export function ColorTokenInspector({
               <button
                 key={t.key}
                 type="button"
+                aria-pressed={on}
+                aria-label={t.label}
                 onClick={() => setActiveToken(on ? null : t.key)}
                 title={t.hint}
                 style={{

@@ -143,6 +143,7 @@ export function ToastsPanel({
                 <button
                   key={k.value}
                   type="button"
+                  aria-pressed={on}
                   onClick={() => setKind(k.value)}
                   style={{
                     padding: '10px 14px',

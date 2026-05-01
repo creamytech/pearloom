@@ -321,6 +321,7 @@ function WeatherStyleSection({
               <button
                 key={v}
                 type="button"
+                aria-pressed={on}
                 onClick={() => set({ voice: v === 'poetic' ? undefined : v })}
                 style={voiceBtn(on)}
               >
@@ -339,6 +340,7 @@ function WeatherStyleSection({
                 <button
                   key={g}
                   type="button"
+                  aria-pressed={on}
                   onClick={() => set({ glyph: g === 'line' ? undefined : g })}
                   style={voiceBtn(on)}
                 >
