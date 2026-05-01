@@ -66,7 +66,10 @@ export function PearWelcome({ siteSlug, onAccept }: Props) {
   return (
     <div
       role="dialog"
-      aria-modal="true"
+      // PearWelcome is a small bottom-right popup, not a blocking
+      // modal — the rest of the editor stays fully interactive
+      // while it's shown. aria-modal="false" matches the actual UX.
+      aria-modal="false"
       aria-label="Pear says hello"
       style={{
         position: 'fixed',
