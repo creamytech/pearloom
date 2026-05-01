@@ -700,6 +700,8 @@ export function DesignAdvisor({
           {(chat.length > 0 || streaming) && (
             <div
               ref={chatScrollRef}
+              role="log"
+              aria-label="Pear chat history"
               style={{
                 display: 'flex',
                 flexDirection: 'column',

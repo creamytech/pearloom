@@ -282,6 +282,11 @@ export function PearCopilot({
 
       <div
         ref={scrollRef}
+        // role="log" tells assistive tech this is a sequential
+        // record of messages — new entries get announced politely
+        // without interrupting the host. aria-live is implicit.
+        role="log"
+        aria-label="Pear chat history"
         style={{
           flex: 1,
           overflowY: 'auto',
