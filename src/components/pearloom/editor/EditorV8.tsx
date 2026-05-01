@@ -1767,6 +1767,12 @@ function SectionBreadcrumb({
         onMouseLeave={(e) => {
           if (!open) e.currentTarget.style.background = 'transparent';
         }}
+        onFocus={(e) => {
+          if (!open) e.currentTarget.style.background = 'var(--cream-2)';
+        }}
+        onBlur={(e) => {
+          if (!open) e.currentTarget.style.background = 'transparent';
+        }}
       >
         <span
           aria-hidden
@@ -1881,6 +1887,12 @@ function SectionBreadcrumb({
                     if (!isCurrent) e.currentTarget.style.background = 'var(--cream-2)';
                   }}
                   onMouseLeave={(e) => {
+                    if (!isCurrent) e.currentTarget.style.background = 'transparent';
+                  }}
+                  onFocus={(e) => {
+                    if (!isCurrent) e.currentTarget.style.background = 'var(--cream-2)';
+                  }}
+                  onBlur={(e) => {
                     if (!isCurrent) e.currentTarget.style.background = 'transparent';
                   }}
                 >
@@ -3466,6 +3478,8 @@ function OverflowMenuItem({
       }}
       onMouseEnter={(e) => { if (!disabled && !highlighted) e.currentTarget.style.background = 'var(--cream-2)'; }}
       onMouseLeave={(e) => { if (!disabled && !highlighted) e.currentTarget.style.background = 'transparent'; }}
+      onFocus={(e) => { if (!disabled && !highlighted) e.currentTarget.style.background = 'var(--cream-2)'; }}
+      onBlur={(e) => { if (!disabled && !highlighted) e.currentTarget.style.background = 'transparent'; }}
     >
       <Icon name={icon} size={13} />
       {label}
