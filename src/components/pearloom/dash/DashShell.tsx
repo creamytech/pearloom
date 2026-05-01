@@ -816,7 +816,14 @@ function NavGroup({
   const [open, setOpen] = useState<boolean>(containsActive);
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const stored = window.localStorage.getItem(storageKey);
+    let stored: string | null = null;
+    try {
+      // Safari Private Mode + some enterprise policies throw on
+      // any localStorage access — treat that the same as missing.
+      stored = window.localStorage.getItem(storageKey);
+    } catch {
+      stored = null;
+    }
     if (stored === '1') setOpen(true);
     else if (stored === '0') setOpen(false);
     else setOpen(containsActive);
