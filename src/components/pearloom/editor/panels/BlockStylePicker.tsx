@@ -106,6 +106,18 @@ export function BlockStylePicker({
                   e.currentTarget.style.transform = '';
                 }
               }}
+              onFocus={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.borderColor = 'var(--ink-soft)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }
+              }}
+              onBlur={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.borderColor = 'var(--line-soft)';
+                  e.currentTarget.style.transform = '';
+                }
+              }}
             >
               <div
                 style={{

@@ -750,6 +750,8 @@ function CommunityTile({
       }}
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+      onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+      onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.transform = 'translateY(0)'; }}
     >
       <div
         draggable
@@ -899,6 +901,8 @@ function PhotoTile({ url, caption }: { url: string; caption: string }) {
       }}
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+      onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+      onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.transform = 'translateY(0)'; }}
     />
   );
 }
@@ -926,6 +930,8 @@ function DecorTile({
       }}
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+      onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+      onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.transform = 'translateY(0)'; }}
     >
       <div
         draggable
@@ -1003,6 +1009,8 @@ function IconTile({
       }}
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+      onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+      onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.transform = 'translateY(0)'; }}
     >
       <div
         draggable
@@ -1110,6 +1118,8 @@ function SlotPicker({
           }}
           onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--cream-2, #F5EFE2)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+          onFocus={(e) => { e.currentTarget.style.background = 'var(--cream-2, #F5EFE2)'; }}
+          onBlur={(e) => { e.currentTarget.style.background = 'transparent'; }}
         >
           {SLOT_LABEL[s]}
         </button>
