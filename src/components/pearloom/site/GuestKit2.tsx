@@ -58,11 +58,9 @@ export function PhotoLightbox({
   // by an ancestor with transform / filter / will-change (which
   // breaks `position: fixed` and was why the v1 lightbox showed
   // up off-centre, half-hidden under the nav).
-  const [portalNode, setPortalNode] = useState<HTMLElement | null>(null);
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-    setPortalNode(document.body);
-  }, []);
+  const [portalNode] = useState<HTMLElement | null>(() => {
+    return typeof document !== 'undefined' ? document.body : null;
+  });
 
   useEffect(() => {
     if (index === null) return;

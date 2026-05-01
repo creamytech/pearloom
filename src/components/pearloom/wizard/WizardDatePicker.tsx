@@ -64,10 +64,13 @@ export function WizardDatePicker({ value, onChange, placeholder = 'Select a date
   // Month the calendar is currently paged to
   const [month, setMonth] = useState<Date>(() => parsed ?? new Date(today.getFullYear(), today.getMonth(), 1));
 
-  // When the external value changes, realign the month view
-  useEffect(() => {
+  // Realign the month view when the external value prop changes.
+  // Store-and-compare-prev avoids a setState-in-effect cascade.
+  const [prevValue, setPrevValue] = useState(value);
+  if (value !== prevValue) {
+    setPrevValue(value);
     if (parsed) setMonth(new Date(parsed.getFullYear(), parsed.getMonth(), 1));
-  }, [parsed]);
+  }
 
   // Close on outside click / escape
   useEffect(() => {
