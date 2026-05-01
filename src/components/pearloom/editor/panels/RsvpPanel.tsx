@@ -198,7 +198,7 @@ export function RsvpPanel({
           emptyState={
             <EmptyBlockState
               icon="gift"
-              title="No meal options yet"
+              title="Nothing yet"
               body="If you're serving dinner, add each plate — short rib, halibut, garden plate, etc."
               action={<AddRowButton label="Add first meal" onClick={addMeal} />}
             />

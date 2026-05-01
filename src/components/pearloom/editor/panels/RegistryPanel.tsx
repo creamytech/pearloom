@@ -388,7 +388,7 @@ export function RegistryPanel({
           emptyState={
             <EmptyBlockState
               icon="gift"
-              title="No registry items yet"
+              title="Nothing yet"
               body="Start with a honeymoon fund, add a classic registry, or paste a Honeyfund link."
               action={
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>

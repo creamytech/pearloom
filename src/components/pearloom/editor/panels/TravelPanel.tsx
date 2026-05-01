@@ -628,7 +628,7 @@ export function TravelPanel({
           emptyState={
             <EmptyBlockState
               icon="moon"
-              title="No hotels listed yet"
+              title="Nothing yet"
               body="Pick 2–3 nearby spots — it makes the day smoother for out-of-towners."
               action={<AddRowButton label="Add first hotel" onClick={addHotel} />}
             />
