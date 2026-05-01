@@ -74,18 +74,17 @@ export function ActivityVoteBlock({
 }: ActivityVoteBlockProps) {
   const storeKey = `pearloom:vote:${storageKey}`;
   const canSync = Boolean(siteId && blockId);
-  const [myVote, setMyVote] = useState<string | null>(null);
+  // Lazy useState init reads localStorage once on mount —
+  // storageKey is stable for the block's lifetime so no
+  // setState-in-effect cascade is needed.
+  const [myVote, setMyVote] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      return window.localStorage.getItem(`pearloom:vote:${storageKey}`);
+    } catch { return null; }
+  });
   const [serverTallies, setServerTallies] = useState<Record<string, number>>({});
   const [voterKey] = useState(() => getOrCreateVoterKey());
-
-  // Hydrate local vote immediately.
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const raw = window.localStorage.getItem(storeKey);
-      if (raw) setMyVote(raw);
-    } catch { /* ignore */ }
-  }, [storeKey]);
 
   // Server sync — tally + authoritative my-vote.
   useEffect(() => {

@@ -55,19 +55,21 @@ export function ToastSignupBlock({
 }: ToastSignupBlockProps) {
   const storeKey = `${LOCAL_PREFIX}${storageKey}`;
   const canSync = Boolean(siteId && blockId);
-  const [claimed, setClaimed] = useState<Record<number, string>>({});
-  const [claimerName, setClaimerName] = useState('');
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
+  // Lazy useState init for both stored values — render-pure
+  // and no setState-in-effect cascade.
+  const [claimed, setClaimed] = useState<Record<number, string>>(() => {
+    if (typeof window === 'undefined') return {};
     try {
-      const raw = window.localStorage.getItem(storeKey);
-      if (raw) setClaimed(JSON.parse(raw) as Record<number, string>);
-      const nameRaw = window.localStorage.getItem('pearloom:guest-name');
-      if (nameRaw) setClaimerName(nameRaw);
-    } catch { /* ignore */ }
-  }, [storeKey]);
+      const raw = window.localStorage.getItem(`${LOCAL_PREFIX}${storageKey}`);
+      return raw ? (JSON.parse(raw) as Record<number, string>) : {};
+    } catch { return {}; }
+  });
+  const [claimerName, setClaimerName] = useState<string>(() => {
+    if (typeof window === 'undefined') return '';
+    try { return window.localStorage.getItem('pearloom:guest-name') ?? ''; }
+    catch { return ''; }
+  });
+  const [error, setError] = useState<string | null>(null);
 
   // Server sync — authoritative claims once published.
   useEffect(() => {

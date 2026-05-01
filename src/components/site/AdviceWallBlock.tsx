@@ -63,20 +63,18 @@ export function AdviceWallBlock({
 }: AdviceWallBlockProps) {
   const storeKey = `${LOCAL_PREFIX}${storageKey}`;
   const canSync = Boolean(siteId && blockId);
-  const [localEntries, setLocalEntries] = useState<AdviceEntry[]>([]);
+  // Lazy useState init reads localStorage once on mount.
+  const [localEntries, setLocalEntries] = useState<AdviceEntry[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const raw = window.localStorage.getItem(`${LOCAL_PREFIX}${storageKey}`);
+      return raw ? (JSON.parse(raw) as AdviceEntry[]) : [];
+    } catch { return []; }
+  });
   const [serverEntries, setServerEntries] = useState<AdviceEntry[]>([]);
   const [from, setFrom] = useState('');
   const [body, setBody] = useState('');
   const [submitted, setSubmitted] = useState(false);
-
-  // Hydrate local submissions (guests always see their own).
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const raw = window.localStorage.getItem(storeKey);
-      if (raw) setLocalEntries(JSON.parse(raw) as AdviceEntry[]);
-    } catch { /* ignore */ }
-  }, [storeKey]);
 
   // Pull the authoritative list from the server when available.
   useEffect(() => {

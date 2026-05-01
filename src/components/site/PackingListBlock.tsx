@@ -47,17 +47,17 @@ export function PackingListBlock({
   style,
 }: PackingListBlockProps) {
   const storeKey = `pearloom:packing:${storageKey}`;
-  const [checked, setChecked] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
+  // Lazy useState init reads localStorage once on mount —
+  // storageKey is stable for the block's lifetime.
+  const [checked, setChecked] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') return new Set();
     try {
-      const raw = window.localStorage.getItem(storeKey);
-      if (raw) setChecked(new Set(JSON.parse(raw) as string[]));
+      const raw = window.localStorage.getItem(`pearloom:packing:${storageKey}`);
+      return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
     } catch {
-      /* ignore — localStorage may be unavailable */
+      return new Set();
     }
-  }, [storeKey]);
+  });
 
   const toggle = (label: string) => {
     setChecked((prev) => {
