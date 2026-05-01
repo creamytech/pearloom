@@ -195,11 +195,21 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
     return (
       <div
         ref={attachRef}
+        id="pl-editor-canvas"
         className="pl8-editor-canvas"
+        // Negative tabIndex so the skip-link target is programmatically
+        // focusable but doesn't introduce its own tab stop. The site
+        // body inside is keyboard-reachable via its own controls.
+        tabIndex={-1}
         style={{
           flex: 1,
           minWidth: 0,
           overflowY: 'auto',
+          // Drop the default focus outline on programmatic focus —
+          // the host's screen reader announces the canvas via the
+          // skip link's target without needing a visible ring on a
+          // viewport-scale element.
+          outline: 'none',
           padding: 'clamp(16px, 3vw, 32px) clamp(16px, 3vw, 32px) clamp(48px, 8vw, 96px)',
           // Warm dark slate so the device viewport reads as a real
           // object on a workbench instead of floating in cream space.

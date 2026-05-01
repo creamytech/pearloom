@@ -778,6 +778,27 @@ export function EditorV8({
         overflow: 'hidden',
       }}
     >
+      {/* Skip-to-canvas link. Hidden offscreen until focused; first
+          Tab from the top of the page lands here so keyboard hosts
+          can bypass the topbar + outline rail and jump straight to
+          the page content. Targets #pl-editor-canvas in CanvasStage. */}
+      <a
+        href="#pl-editor-canvas"
+        className="pl8-skip-link"
+        onClick={(e) => {
+          // Default anchor scrolls the canvas into view but doesn't
+          // move keyboard focus there in some browsers. Force focus
+          // ourselves so the next Tab continues from the canvas.
+          e.preventDefault();
+          const target = document.getElementById('pl-editor-canvas');
+          if (target) {
+            target.focus({ preventScroll: true });
+            target.scrollIntoView({ block: 'start' });
+          }
+        }}
+      >
+        Skip to canvas
+      </a>
       <FirstThreadTour siteSlug={siteSlug} />
       <DecorGenerationToast />
       <DecorRecolorModal manifest={manifest} onEditField={(patch) => setManifest((m) => patch(m))} />
