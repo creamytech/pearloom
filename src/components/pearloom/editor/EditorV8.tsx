@@ -3287,9 +3287,12 @@ function SectionOverflowMenu({
   function copyLink() {
     const base = prettyUrl ? (prettyUrl.startsWith('http') ? prettyUrl : `https://${prettyUrl}`) : '';
     const url = `${base}#${meta.anchor}`;
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      void navigator.clipboard.writeText(url);
-    }
+    // Clipboard API rejects in insecure contexts / iframes — guard
+    // the rejection so the dropdown still closes cleanly. The
+    // visual "Copied" flash still flips even when the underlying
+    // write quietly failed (better than the menu staring back at
+    // a click that did nothing).
+    navigator.clipboard?.writeText(url).catch(() => { /* ignore */ });
     setCopied(true);
     setTimeout(() => setCopied(false), 1400);
     setTimeout(() => setOpen(false), 600);
