@@ -960,7 +960,7 @@ function PaletteSection({
                 textTransform: 'capitalize',
               }}
             >
-              {t === 'curated' ? `Curated (${PALETTES.length})` : t === 'ai' ? 'AI' : `Custom (${customPalettes.length})`}
+              {t === 'curated' ? `Curated (${PALETTES.length})` : t === 'ai' ? 'Pear' : `Custom (${customPalettes.length})`}
             </button>
           );
         })}
@@ -1021,7 +1021,7 @@ function PaletteSection({
               key={p.id}
               preset={p}
               active={palette === p.id}
-              badge={p.source === 'ai' ? 'AI' : 'You'}
+              badge={p.source === 'ai' ? 'PEAR' : 'YOU'}
               rationale={p.rationale}
               onPick={() => applyPalette(p)}
               onDelete={() => deleteCustom(p.id)}
@@ -1116,8 +1116,8 @@ function PaletteTile({
             fontWeight: 700,
             letterSpacing: '0.1em',
             padding: '2px 6px',
-            background: badge === 'AI' ? 'var(--peach-bg)' : 'var(--cream-2)',
-            color: badge === 'AI' ? 'var(--peach-ink)' : 'var(--ink-muted)',
+            background: badge === 'PEAR' ? 'var(--peach-bg)' : 'var(--cream-2)',
+            color: badge === 'PEAR' ? 'var(--peach-ink)' : 'var(--ink-muted)',
             borderRadius: 999,
           }}
         >
