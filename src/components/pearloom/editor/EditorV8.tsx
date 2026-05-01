@@ -876,10 +876,11 @@ export function EditorV8({
           onClose={() => setPublishToast(null)}
         />
       )}
-      {/* Compose mode hides the topbar entirely so the host sees
-          a full-bleed canvas — same view a guest would see. A tiny
-          floating "Done" pill replaces the topbar's Preview toggle
-          so the host can return to editing without needing the bar. */}
+      {/* Preview-as-guest mode hides the topbar entirely so the host
+          sees a full-bleed canvas — exactly what a guest would see. A
+          tiny floating "Back to editing" pill (rendered below) replaces
+          the topbar's Preview toggle so the host can return to compose
+          mode without needing the bar. */}
       {!previewMode && (
         <EditorTopbar
           displayNames={displayNames}
