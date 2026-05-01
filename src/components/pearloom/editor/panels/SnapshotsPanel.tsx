@@ -92,7 +92,7 @@ export function SnapshotsPanel({
             lineHeight: 1.5,
           }}
         >
-          No snapshots yet. They&apos;ll appear here automatically on publish, or save one now to bookmark this version.
+          Nothing yet. Snapshots appear here automatically on publish, or save one now to bookmark this version.
         </div>
       ) : (
         <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
