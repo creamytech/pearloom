@@ -212,6 +212,7 @@ export function FloatingFormatToolbar({ onAiRewrite }: Props) {
             type="url"
             value={linkValue}
             placeholder="paste a URL"
+            aria-label="Link URL"
             onChange={(e) => setLinkValue(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -299,6 +300,8 @@ function ToolBtn({
       }}
       onMouseEnter={(e) => { if (!disabled) e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+      onFocus={(e) => { if (!disabled) e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
+      onBlur={(e) => { e.currentTarget.style.background = 'transparent'; }}
     >
       {children}
     </button>

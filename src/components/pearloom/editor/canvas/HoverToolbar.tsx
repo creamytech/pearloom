@@ -120,6 +120,14 @@ export function HoverToolbar({ value, onResult, actions, children, context }: Ho
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      // Reveal on focus too — keyboard-only users tabbing into the
+      // wrapped block (or the toolbar itself) need to see it. relatedTarget
+      // check avoids flicker as focus moves between siblings inside.
+      onFocus={() => setHovered(true)}
+      onBlur={(e) => {
+        const next = e.relatedTarget as Node | null;
+        if (!next || !e.currentTarget.contains(next)) setHovered(false);
+      }}
       style={{ position: 'relative' }}
     >
       {children}
@@ -154,6 +162,14 @@ export function HoverToolbar({ value, onResult, actions, children, context }: Ho
                 (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.12)';
               }}
               onMouseLeave={(e) => {
+                if (busy) return;
+                (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+              }}
+              onFocus={(e) => {
+                if (anyBusy) return;
+                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.12)';
+              }}
+              onBlur={(e) => {
                 if (busy) return;
                 (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
               }}
