@@ -2146,13 +2146,39 @@ body > * { position: relative; z-index: 1; }
     0 0 0 2px color-mix(in oklab, var(--pl-pearl-b) 70%, transparent),
     0 0 22px -4px color-mix(in oklab, var(--pl-pearl-c) 50%, transparent),
     0 0 48px -16px color-mix(in oklab, var(--pl-bruise) 40%, transparent);
-  animation: pl-pearl-drift 24s linear infinite;
+  animation:
+    pl-pearl-drift 24s linear infinite,
+    pl-block-select-pop 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+/* Entrance for the selection ring — the pearl shadow used to snap
+   into place the moment a block was selected. Now it expands from
+   a tighter spread + zero opacity so the click feels like a tactile
+   lift, not an overlay swap. Layered on top of the pearl phase
+   drift so steady-state shimmer is preserved. */
+@keyframes pl-block-select-pop {
+  from {
+    box-shadow:
+      0 0 0 0 transparent,
+      0 0 0 -8px transparent,
+      0 0 0 -20px transparent;
+  }
+  to {
+    box-shadow:
+      0 0 0 2px color-mix(in oklab, var(--pl-pearl-b) 70%, transparent),
+      0 0 22px -4px color-mix(in oklab, var(--pl-pearl-c) 50%, transparent),
+      0 0 48px -16px color-mix(in oklab, var(--pl-bruise) 40%, transparent);
+  }
 }
 @supports (animation-timeline: scroll()) {
   .pl-block-selected {
     animation:
       pl-pearl-drift 24s linear infinite,
-      pl-pearl-scroll linear;
-    animation-timeline: auto, scroll(root block);
+      pl-pearl-scroll linear,
+      pl-block-select-pop 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-timeline: auto, scroll(root block), auto;
   }
 }
+/* prefers-reduced-motion override is handled in bulk for all
+   pearl utilities at the @media block above (around line 1990) —
+   it strips animation and pins the phase. The new entrance pop
+   inherits that same exemption. */
