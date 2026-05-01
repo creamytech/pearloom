@@ -187,7 +187,7 @@ export async function POST(req: NextRequest) {
     .from('scheduled_communications')
     .upsert({
       site_id: body.siteSlug,
-      owner_email: session.user.email,
+      owner_email: session.user.email.toLowerCase().trim(),
       phase_id: phase.id,
       label: phase.label,
       product: phase.product,
@@ -226,7 +226,7 @@ export async function DELETE(req: NextRequest) {
     .from('scheduled_communications')
     .delete()
     .eq('site_id', siteSlug)
-    .eq('owner_email', session.user.email)
+    .eq('owner_email', session.user.email.toLowerCase().trim())
     .eq('phase_id', phaseId);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });

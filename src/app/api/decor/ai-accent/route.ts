@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
 
     // Persist into the user's library so they can re-use it later.
     void persistUserMedia([{
-      owner_email: session.user!.email!,
+      owner_email: session.user!.email!.toLowerCase().trim(),
       url,
       source: 'ai-decor:accent',
       source_site_id: siteId,

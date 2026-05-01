@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
           const db = createClient(supaUrl, key);
           await db.from('user_media').insert(
             photos.map((p) => ({
-              owner_email: session.user!.email!,
+              owner_email: session.user!.email!.toLowerCase().trim(),
               url: p.baseUrl,
               width: p.width || null,
               height: p.height || null,

@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
     // Persist the generated sticker into the user's media library
     // so they can re-use it later from the Library tab.
     void persistUserMedia([{
-      owner_email: session.user!.email!,
+      owner_email: session.user!.email!.toLowerCase().trim(),
       url,
       source: 'ai-decor:sticker',
       source_site_id: siteId,

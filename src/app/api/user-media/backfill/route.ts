@@ -48,17 +48,19 @@ export async function POST(req: NextRequest) {
   // have a unique constraint on (owner_email, url) by default, so
   // we filter client-side rather than rely on UPSERT.
   const urls = photos.map((p) => p.url);
+  // Normalise — IdP casing variance, see /api/sites/[domain].
+  const ownerEmail = session.user.email.toLowerCase().trim();
   const { data: existing } = await client
     .from('user_media')
     .select('url')
-    .eq('owner_email', session.user.email)
+    .eq('owner_email', ownerEmail)
     .in('url', urls);
   const existingUrls = new Set((existing ?? []).map((r: { url: string }) => r.url));
   const fresh = photos.filter((p) => !existingUrls.has(p.url));
   if (fresh.length === 0) return NextResponse.json({ ok: true, inserted: 0 });
 
   const rows = fresh.map((p) => ({
-    owner_email: session.user!.email!,
+    owner_email: ownerEmail,
     url: p.url,
     filename: p.filename ?? null,
     source: 'wizard' as const,

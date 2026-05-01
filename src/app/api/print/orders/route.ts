@@ -213,7 +213,7 @@ export async function POST(req: NextRequest) {
       .from('print_jobs')
       .insert({
         site_id: body.siteSlug,
-        owner_email: session.user.email,
+        owner_email: session.user.email.toLowerCase().trim(),
         batch_id: batchId,
         product: body.product,
         kind: body.kind,
@@ -290,7 +290,7 @@ export async function GET(req: NextRequest) {
   let q = sb
     .from('print_jobs')
     .select('id, site_id, batch_id, product, kind, size, front_url, recipient_name, status, status_detail, tracking_number, tracking_url, cost_cents, currency, created_at, mailed_at, delivered_at')
-    .eq('owner_email', session.user.email)
+    .eq('owner_email', session.user.email.toLowerCase().trim())
     .order('created_at', { ascending: false })
     .limit(500);
   if (siteSlug) q = q.eq('site_id', siteSlug);

@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
   let q = supabase
     .from('user_media')
     .select('id, url, width, height, mime_type, filename, caption, taken_at, source, source_site_id, created_at')
-    .eq('owner_email', session.user.email)
+    .eq('owner_email', session.user.email.toLowerCase().trim())
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -67,7 +67,7 @@ export async function PATCH(req: NextRequest) {
     .from('user_media')
     .update(update)
     .eq('id', id)
-    .eq('owner_email', session.user.email);
+    .eq('owner_email', session.user.email.toLowerCase().trim());
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }
@@ -85,7 +85,7 @@ export async function DELETE(req: NextRequest) {
     .from('user_media')
     .delete()
     .eq('id', id)
-    .eq('owner_email', session.user.email);
+    .eq('owner_email', session.user.email.toLowerCase().trim());
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

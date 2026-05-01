@@ -99,8 +99,10 @@ const ALLOWED_KINDS = new Set(['stamp', 'divider', 'footer', 'accent', 'confetti
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  const email = session?.user?.email;
-  if (!email) return NextResponse.json({ error: 'Sign in to share a mark' }, { status: 401 });
+  const rawEmail = session?.user?.email;
+  if (!rawEmail) return NextResponse.json({ error: 'Sign in to share a mark' }, { status: 401 });
+  // Normalise — IdP casing variance, see /api/sites/[domain].
+  const email = rawEmail.toLowerCase().trim();
 
   const ip = getClientIp(req);
   const rl = checkRateLimit(`community-publish:${ip}`, { max: 20, windowMs: 60 * 60 * 1000 });

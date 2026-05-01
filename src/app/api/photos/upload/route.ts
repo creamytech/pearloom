@@ -262,7 +262,7 @@ export async function POST(req: NextRequest) {
       const db = createClient(url, key);
       await db.from('user_media').insert(
         successes.map((s) => ({
-          owner_email: session.user!.email!,
+          owner_email: session.user!.email!.toLowerCase().trim(),
           url: s.photo.baseUrl,
           width: s.photo.width || null,
           height: s.photo.height || null,

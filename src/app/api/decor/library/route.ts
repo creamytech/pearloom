@@ -148,7 +148,11 @@ export async function POST(req: NextRequest) {
     // Persist every generated asset into the user's media library
     // so it shows up in the editor's Library tab. Per-slot rows
     // are tagged with their source so the library can group them.
-    const ownerEmail = session.user!.email!;
+    // Normalise — IdP casing variance, see /api/sites/[domain].
+    // user_media.owner_email is filtered by /api/user-media in the
+    // editor library; storing a different casing here means the
+    // editor can't see what the host just generated.
+    const ownerEmail = session.user!.email!.toLowerCase().trim();
     const mediaRows: Parameters<typeof persistUserMedia>[0] = [];
     if (typeof library.divider === 'string') {
       mediaRows.push({ owner_email: ownerEmail, url: library.divider, source: 'ai-decor:divider', source_site_id: siteId, mime_type: 'image/png' });
