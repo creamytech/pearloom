@@ -19,7 +19,13 @@ import {
 type BannerState = 'hidden' | 'offline' | 'syncing' | 'synced';
 
 export function OfflineIndicator() {
-  const [state, setState] = useState<BannerState>('hidden');
+  // Lazy useState init reads navigator.onLine once on mount —
+  // the useEffect below only registers online/offline listeners
+  // (no initial setState cascade per react-hooks/set-state-in-effect).
+  const [state, setState] = useState<BannerState>(() => {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return 'hidden';
+    return navigator.onLine === false ? 'offline' : 'hidden';
+  });
   const [pendingCount, setPendingCount] = useState(0);
   const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -81,11 +87,9 @@ export function OfflineIndicator() {
       }
     };
 
-    // Check initial state
-    if (!isOnline()) {
-      setState('offline');
-      refreshPendingCount();
-    }
+    // Initial state is seeded by the lazy useState init above.
+    // Refresh pending count regardless so the badge is correct.
+    if (!isOnline()) refreshPendingCount();
 
     window.addEventListener('offline', goOffline);
     window.addEventListener('online', goOnline);

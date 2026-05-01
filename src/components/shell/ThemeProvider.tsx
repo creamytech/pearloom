@@ -37,14 +37,12 @@ function resolveTheme(pref: ThemePreference): Theme {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [preference, setPrefState] = useState<ThemePreference>('system');
-  const [theme, setTheme] = useState<Theme>('light');
-
-  useEffect(() => {
-    const pref = readPreference();
-    setPrefState(pref);
-    setTheme(resolveTheme(pref));
-  }, []);
+  // Lazy useState init reads localStorage + matchMedia on first
+  // mount. Render is pure (react-hooks/set-state-in-effect)
+  // and the host doesn't see a flash of light theme before
+  // the effect runs.
+  const [preference, setPrefState] = useState<ThemePreference>(() => readPreference());
+  const [theme, setTheme] = useState<Theme>(() => resolveTheme(readPreference()));
 
   useEffect(() => {
     const mql = window.matchMedia('(prefers-color-scheme: dark)');

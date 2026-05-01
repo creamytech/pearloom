@@ -90,12 +90,10 @@ function getPatternStyle(pattern: string, accentLight: string): string {
 }
 
 export function ThemeProvider({ theme = defaultTheme, showToggle = true, children }: ThemeProviderProps) {
-  const [mode, setModeState] = useState<SiteThemeMode>('light');
-
-  // Hydrate mode from localStorage / system preference after mount.
-  useEffect(() => {
-    setModeState(readInitialMode());
-  }, []);
+  // Lazy useState init pulls localStorage / system preference
+  // once on first render — no setModeState-in-effect cascade,
+  // and no flash of light theme before the effect runs.
+  const [mode, setModeState] = useState<SiteThemeMode>(() => readInitialMode());
 
   const setMode = useCallback((next: SiteThemeMode) => {
     setModeState(next);
