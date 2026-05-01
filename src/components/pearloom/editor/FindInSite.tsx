@@ -46,15 +46,22 @@ export function FindInSite({ manifest, open, onClose, onJump }: Props) {
 
   const matches = useMemo(() => collectMatches(manifest, query), [manifest, query]);
 
-  useEffect(() => {
-    if (!open) return;
-    setQuery('');
+  // Reset cursor + query when overlay opens or query changes,
+  // via store-and-compare-prev (avoids two setState-in-effect
+  // cascades).
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      setQuery('');
+      setCursor(0);
+    }
+  }
+  const [prevQuery, setPrevQuery] = useState(query);
+  if (query !== prevQuery) {
+    setPrevQuery(query);
     setCursor(0);
-  }, [open]);
-
-  useEffect(() => {
-    setCursor(0);
-  }, [query]);
+  }
 
   useEffect(() => {
     if (!open) return;

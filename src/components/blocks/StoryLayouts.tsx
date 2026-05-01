@@ -216,9 +216,15 @@ function useAutoTextColor(
   // and useAutoTextColor may run pre-hydration.
   const { light = '#F5EFE2', dark = '#0E0D0B' } = options;
   const [choice, setChoice] = useState<'light' | 'dark' | null>(null);
+  // Reset choice when photoUrl changes via store-and-compare-prev
+  // — avoids a setState-in-effect cascade.
+  const [prevUrl, setPrevUrl] = useState(photoUrl);
+  if (photoUrl !== prevUrl) {
+    setPrevUrl(photoUrl);
+    setChoice(null);
+  }
 
   useEffect(() => {
-    setChoice(null);
     if (!photoUrl || typeof window === 'undefined') return;
     // Skip data URLs and hero-art endpoints — they're synthetic illustrations,
     // not photographs, and the detector often mis-reads them.
