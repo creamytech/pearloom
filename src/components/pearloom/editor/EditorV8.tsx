@@ -3453,6 +3453,7 @@ function SectionOverflowMenu({
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
+  const menuId = `pl8-section-menu-${meta.key}`;
 
   useEffect(() => {
     if (!open) return;
@@ -3508,6 +3509,8 @@ function SectionOverflowMenu({
         onClick={() => setOpen((v) => !v)}
         aria-label="Section actions"
         aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
+        aria-haspopup="menu"
         title="Section actions"
         className="pl8-icon-btn"
         style={{
@@ -3531,7 +3534,9 @@ function SectionOverflowMenu({
       </button>
       {open && (
         <div
+          id={menuId}
           role="menu"
+          aria-label={`${meta.label} section actions`}
           style={{
             position: 'absolute',
             top: 'calc(100% + 6px)',
