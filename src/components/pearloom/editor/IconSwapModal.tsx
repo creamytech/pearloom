@@ -187,7 +187,7 @@ export function IconSwapModal({ manifest, onEditField }: Props) {
               Pick from your asset library
             </h2>
             <p style={{ fontSize: 12, color: 'var(--ink-soft)', margin: '4px 0 0', lineHeight: 1.45 }}>
-              Choose an AI decor mark, an editorial icon, or a standard glyph — applies to every <code style={codeStyle}>{pending.purpose}</code> on the site.
+              Choose a decor mark, an editorial icon, or a standard glyph — applies to every <code style={codeStyle}>{pending.purpose}</code> on the site.
             </p>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
@@ -319,7 +319,7 @@ export function IconSwapModal({ manifest, onEditField }: Props) {
                   are the highest-effort assets the host has already
                   invested in. */}
               {decorGroups.length > 0 && (
-                <Section title="AI decor + uploads" titleColor="var(--peach-ink, #C6703D)">
+                <Section title="Decor + uploads" titleColor="var(--peach-ink, #C6703D)">
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                     {decorGroups.map((g) => (
                       <SubSection key={g.kind} label={g.label} count={g.items.length}>

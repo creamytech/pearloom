@@ -295,7 +295,7 @@ export function DecorSwapModal({ manifest, onEditField }: Props) {
               Pick a piece from your library
             </h2>
             <p style={{ fontSize: 12, color: 'var(--ink-soft)', margin: '4px 0 0', lineHeight: 1.45 }}>
-              Replace this {pending.label ?? pending.kind} with any other piece on the site — uploads, AI marks, editorial scenes.
+              Replace this {pending.label ?? pending.kind} with any other piece on the site — uploads, Pear's marks, editorial scenes.
             </p>
           </div>
           <button

@@ -265,7 +265,7 @@ export function LibraryPanelV2({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={
-            tab === 'mine' ? 'Search your photos + AI marks…'
+            tab === 'mine' ? 'Search your photos + decor marks…'
             : tab === 'editorial' ? 'Search editorial motifs…'
             : tab === 'community' ? 'Search community marks…'
             : 'Search Iconify…'
@@ -419,9 +419,9 @@ function YourStuffTab({
         )}
       </Section>
 
-      {/* AI marks (live) */}
+      {/* Pear's marks (live) */}
       <Section
-        label="Your AI marks"
+        label="Pear's marks"
         count={decorByKind['stamp']?.length || decorByKind['divider']?.length || decorByKind['accent']?.length || decorByKind['footer']?.length || decorByKind['confetti']?.length ? decor.filter((a) => a.kind !== 'upload').length : 0}
         empty="Nothing painted yet. Tap Paint with Pear to commission a piece."
       >

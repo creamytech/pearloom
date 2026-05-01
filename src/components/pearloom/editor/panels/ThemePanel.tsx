@@ -1029,7 +1029,7 @@ function PaletteSection({
           ))}
           {customPalettes.length === 0 && (
             <div style={{ gridColumn: '1 / -1', fontSize: 12, color: 'var(--ink-muted)', textAlign: 'center', padding: 14, lineHeight: 1.5 }}>
-              Saved AI palettes and palettes you build below will appear here.
+              Saved palettes — Pear's drafts and the ones you mix below — will appear here.
             </div>
           )}
         </div>
