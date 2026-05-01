@@ -2713,6 +2713,10 @@ function BlockRow({
   const showChrome = hovered || active;
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-current={active ? 'true' : undefined}
+      aria-label={`${def.label} section${active ? ', currently editing' : ''}${hidden ? ', hidden' : ''}`}
       draggable={nativeDraggable || undefined}
       onDragStart={nativeDraggable
         ? (e) => {
@@ -2722,6 +2726,15 @@ function BlockRow({
         : undefined}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onKeyDown={(e) => {
+        // Standard button-on-div keyboard contract: Enter or Space
+        // selects the row. Without this, keyboard hosts had no path
+        // to pick a section from the outline — only mouse worked.
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
       style={{
         position: 'relative',
         display: 'grid',
