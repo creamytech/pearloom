@@ -218,6 +218,7 @@ export function BadgesEditor<AutoKey extends string>({
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustom(); } }}
           placeholder={placeholder}
+          aria-label="New custom badge label"
           maxLength={28}
           style={{
             flex: 1,

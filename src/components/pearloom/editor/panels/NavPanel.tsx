@@ -278,6 +278,7 @@ export function NavPanel({ manifest, onChange }: Props) {
           value={aiPrompt}
           onChange={(e) => setAiPrompt(e.target.value)}
           placeholder="e.g. a sprig of olive, hand-drawn"
+          aria-label="Direction for the brand mark Pear should draft"
           disabled={aiBusy}
           style={{
             width: '100%', padding: '8px 10px',
