@@ -533,7 +533,7 @@ function HotelPhotoStrip({
       if (!res.ok) throw new Error(`Upload failed (${res.status})`);
       const data = (await res.json()) as { photos?: Array<{ baseUrl?: string }> };
       const url = data.photos?.[0]?.baseUrl;
-      if (!url) throw new Error('No URL returned');
+      if (!url) throw new Error('Photo upload returned no URL');
       onChange([...all, url].slice(0, 5));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Upload failed');

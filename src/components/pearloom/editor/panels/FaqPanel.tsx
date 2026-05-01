@@ -90,7 +90,7 @@ export function FaqPanel({
       question: q.question,
       answer: q.answer,
     }));
-    if (!next.length) throw new Error('No FAQ items returned');
+    if (!next.length) throw new Error("Pear didn't draft any questions");
     set([...items, ...next]);
     return next;
   });

@@ -90,7 +90,7 @@ export function PhotoDropTarget({ onDrop, label, children, className, style }: P
       if (!res.ok) throw new Error(String(res.status));
       const data = (await res.json()) as { photos?: Array<{ baseUrl?: string }> };
       const url = data.photos?.[0]?.baseUrl;
-      if (!url) throw new Error('No URL returned');
+      if (!url) throw new Error('Photo upload returned no URL');
       onDrop(url);
       setStatus('idle');
     } catch (error) {
