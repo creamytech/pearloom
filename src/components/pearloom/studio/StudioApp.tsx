@@ -609,7 +609,20 @@ function FloatingPear({ nudges }: { nudges: string[] }) {
           </button>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={() => setIdx(i => i + 1)} className="btn btn-ghost btn-sm" style={{ padding: '6px 10px', fontSize: 11.5 }}>
+          <button
+            onClick={() => setIdx(i => i + 1)}
+            style={{
+              padding: '6px 10px',
+              fontSize: 11.5,
+              fontWeight: 600,
+              color: 'var(--ink)',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              borderRadius: 6,
+            }}
+          >
             Another
           </button>
         </div>

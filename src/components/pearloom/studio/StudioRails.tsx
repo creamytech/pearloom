@@ -183,10 +183,42 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
             );
           })}
         </div>
-        <button className="btn btn-outline btn-sm" onClick={() => window.print()}>
+        <button
+          onClick={() => window.print()}
+          style={{
+            padding: '7px 12px',
+            fontSize: 12,
+            fontWeight: 600,
+            color: 'var(--ink)',
+            background: 'var(--card)',
+            border: '1px solid var(--line)',
+            borderRadius: 999,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            fontFamily: 'inherit',
+          }}
+        >
           <Icon name="download" size={12} /> Export
         </button>
-        <button className="btn btn-primary btn-sm" onClick={() => setField('showSend', true)}>
+        <button
+          onClick={() => setField('showSend', true)}
+          style={{
+            padding: '8px 14px',
+            fontSize: 12,
+            fontWeight: 700,
+            color: 'var(--cream)',
+            background: 'var(--ink)',
+            border: 'none',
+            borderRadius: 999,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            fontFamily: 'inherit',
+          }}
+        >
           <Icon name="send" size={12} color="var(--cream)" />
           Send
         </button>
