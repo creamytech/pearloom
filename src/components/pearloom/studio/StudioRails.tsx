@@ -48,6 +48,7 @@ interface TopbarProps {
   dateShort: string;
   savedAt?: number | null;
   saving?: boolean;
+  saveError?: boolean;
 }
 
 const TYPE_TABS: Array<{ id: StationeryType; label: string; icon: string; sub: string }> = [
@@ -75,7 +76,7 @@ const PALETTE_NEIGHBOURHOOD: Record<string, string> = {
   rose:     'tender-romantic',
 };
 
-export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt, saving }: TopbarProps) {
+export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt, saving, saveError }: TopbarProps) {
   // savedAt is null until the host's first edit lands. Until
   // then the manifest as loaded IS persisted, so "Unsaved" was
   // misleading — show no label on a clean session.
@@ -91,11 +92,18 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
     return () => clearInterval(id);
   }, [savedAt]);
 
+  // saveError wins over savedAt — host shouldn't see "Saved 12s
+  // ago" if their last flush actually 500'd. The unsaved label
+  // also colours plum so it reads as a problem instead of a
+  // neutral status.
   const savedLabel = saving
     ? 'Saving…'
-    : savedAt
-      ? formatRelative(savedAt)
-      : null;
+    : saveError
+      ? 'Save failed'
+      : savedAt
+        ? formatRelative(savedAt)
+        : null;
+  const savedLabelColor = saveError ? '#7A2D2D' : 'var(--ink-muted)';
   return (
     <header style={{
       gridArea: 'top',
@@ -118,7 +126,15 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
             Studio · {nameA} & {nameB}
           </div>
           <div style={{ fontSize: 10.5, color: 'var(--ink-muted)' }}>
-            {dateShort}{savedLabel ? ` · ${savedLabel}` : ''}
+            {dateShort}
+            {savedLabel && (
+              <>
+                {' · '}
+                <span style={{ color: savedLabelColor, fontWeight: saveError ? 600 : 400 }}>
+                  {savedLabel}
+                </span>
+              </>
+            )}
           </div>
         </div>
       </div>

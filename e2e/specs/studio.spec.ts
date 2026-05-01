@@ -230,6 +230,25 @@ test.describe('Studio (stationery editor)', () => {
     await expect(page.locator('header').getByText(/Saved (just now|\d+s ago)/)).toBeVisible({ timeout: 5_000 });
   });
 
+  test('topbar shows "Save failed" when autosave POSTs a non-2xx', async ({ page }) => {
+    // Mock /api/sites POST to 500 — the host should see a clear
+    // failure state, NOT a stale "Saved 12s ago" label.
+    await page.route('**/api/sites', async (route) => {
+      const method = route.request().method();
+      if (method === 'POST') {
+        await route.fulfill({ status: 500, contentType: 'application/json', body: '{"error":"upstream"}' });
+        return;
+      }
+      if (method === 'GET') {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: '{"sites":[]}' });
+        return;
+      }
+      await route.continue();
+    });
+    await page.locator('button[title="Garden"]').first().click();
+    await expect(page.locator('header').getByText('Save failed')).toBeVisible({ timeout: 5_000 });
+  });
+
   test('FloatingPear minimises and reopens within the session', async ({ page }) => {
     // Pear bubble starts expanded. The minimise button is a
     // small ink-muted close icon inside the bubble; aria-label

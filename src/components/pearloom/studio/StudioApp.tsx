@@ -109,7 +109,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
   const occasion = normalizeOccasion((manifest as unknown as { occasion?: string }).occasion);
   const siteUrl = formatSiteDisplayUrl(siteSlug, '', occasion);
 
-  const { state, setField, setMany, savedAt, saving } = useStudioState({ siteSlug, manifest });
+  const { state, setField, setMany, savedAt, saving, saveError } = useStudioState({ siteSlug, manifest });
   const [aiBusy, setAiBusy] = useState(false);
   // Last AI flow error, shown as a short-lived toast at the
   // bottom of the canvas. Auto-clears after 6s — the toast itself
@@ -355,6 +355,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
         dateShort={dateShort}
         savedAt={savedAt}
         saving={saving}
+        saveError={saveError}
       />
 
       <DraftsRail

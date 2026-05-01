@@ -130,6 +130,11 @@ export function useStudioState(args: {
    *  setSavedAt() that follows. The 1500ms debounce window
    *  doesn't count — only the actual flush. */
   const [saving, setSaving] = useState(false);
+  /** True when the most recent flush failed (network error or
+   *  non-2xx response). The Studio rail surfaces this so the
+   *  host knows their tweaks aren't persisted. Cleared on the
+   *  next successful flush. */
+  const [saveError, setSaveError] = useState(false);
   const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** Holds the most-recent serialised manifest. The
    *  beforeunload handler uses it to fire a sendBeacon when
@@ -181,17 +186,23 @@ export function useStudioState(args: {
       const now = Date.now();
       setSaving(true);
       try {
-        await fetch('/api/sites', {
+        const r = await fetch('/api/sites', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: payload,
         });
+        // fetch resolves successfully on 4xx/5xx — without this
+        // check a 500 would silently set savedAt and clear dirty
+        // even though nothing was persisted.
+        if (!r.ok) throw new Error(`save ${r.status}`);
         setSavedAt(now);
+        setSaveError(false);
         dirty.current = false;
       } catch {
-        // Silent — autosave is best-effort. The host can re-trigger
-        // by changing any field. dirty stays true so beforeunload
+        // Surface the failure so the host doesn't trust a stale
+        // "Saved 12s ago" label. dirty stays true so beforeunload
         // still warns until the next successful flush.
+        setSaveError(true);
       } finally {
         setSaving(false);
       }
@@ -229,5 +240,8 @@ export function useStudioState(args: {
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, []);
 
-  return useMemo(() => ({ state, setField, setMany, savedAt, saving }), [state, setField, setMany, savedAt, saving]);
+  return useMemo(
+    () => ({ state, setField, setMany, savedAt, saving, saveError }),
+    [state, setField, setMany, savedAt, saving, saveError],
+  );
 }
