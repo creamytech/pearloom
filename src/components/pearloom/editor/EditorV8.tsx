@@ -2138,6 +2138,7 @@ function SaveDot({
 function KbdHint() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
+  const popoverId = 'pl8-kbd-hint-popover';
   // Click-outside + Escape close — every other dropdown in the
   // editor (DesignMenu, SectionOverflowMenu, SectionBreadcrumb)
   // honours these; KbdHint was the last holdout. Without them
@@ -2164,6 +2165,8 @@ function KbdHint() {
         type="button"
         aria-label="Keyboard shortcuts"
         aria-expanded={open}
+        aria-controls={open ? popoverId : undefined}
+        aria-haspopup="dialog"
         title="Keyboard shortcuts"
         onClick={() => setOpen((v) => !v)}
         className="pl8-icon-btn"
@@ -2186,6 +2189,9 @@ function KbdHint() {
       </button>
       {open && (
         <div
+          id={popoverId}
+          role="dialog"
+          aria-label="Keyboard shortcuts"
           style={{
             position: 'absolute',
             top: 'calc(100% + 6px)',
