@@ -89,10 +89,11 @@ export function IconifyBrowser({ onPick }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <input
-        type="text"
+        type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search 200k+ free icons (heart, leaf, plane, ribbon…)"
+        aria-label="Search Iconify icons"
         style={{
           width: '100%',
           padding: '10px 14px',
@@ -106,7 +107,7 @@ export function IconifyBrowser({ onPick }: Props) {
         }}
       />
       {error && (
-        <div style={{ fontSize: 12, color: '#7A2D2D', textAlign: 'center', padding: '6px 0' }}>
+        <div role="alert" style={{ fontSize: 12, color: '#7A2D2D', textAlign: 'center', padding: '6px 0' }}>
           {error}
         </div>
       )}

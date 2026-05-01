@@ -265,7 +265,7 @@ export function PhotoPicker({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label="Close photo picker"
             style={{
               width: 32,
               height: 32,
