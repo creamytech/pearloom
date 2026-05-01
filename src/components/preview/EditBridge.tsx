@@ -268,7 +268,6 @@ export function EditBridge({ enabled }: EditBridgeProps) {
     if (!enabled) return;
 
     const ATTR = 'data-pe-hero-photo-btn';
-    let rafId: number;
 
     const inject = () => {
       if (document.querySelector(`[${ATTR}]`)) return; // already injected
@@ -318,7 +317,7 @@ export function EditBridge({ enabled }: EditBridgeProps) {
 
     // Try immediately, then retry after images load (hero may render async)
     inject();
-    rafId = requestAnimationFrame(() => inject());
+    const rafId = requestAnimationFrame(() => inject());
     const t = setTimeout(inject, 1500);
 
     return () => {

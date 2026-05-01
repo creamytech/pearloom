@@ -55,8 +55,6 @@ const SPEED_MAP: Record<MeshSpeed, number> = {
 };
 
 export function GradientMesh({ preset, speed, opacity, accentColor }: GradientMeshProps) {
-  if (preset === 'none' || opacity <= 0) return null;
-
   const colors = useMemo(() => {
     if (preset === 'custom' && accentColor) {
       // Derive 4 shades from the accent color
@@ -64,6 +62,8 @@ export function GradientMesh({ preset, speed, opacity, accentColor }: GradientMe
     }
     return PRESETS[preset as Exclude<MeshPreset, 'none'>]?.colors ?? PRESETS.champagne.colors;
   }, [preset, accentColor]);
+
+  if (preset === 'none' || opacity <= 0) return null;
 
   const shaderSpeed = SPEED_MAP[speed];
   const finalOpacity = (opacity / 100) * 0.7;

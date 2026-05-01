@@ -93,7 +93,7 @@ export async function loadHistory(siteSlug: string): Promise<UndoSnapshot[]> {
   }
 }
 
-let nextSeqBySite: Record<string, number> = {};
+const nextSeqBySite: Record<string, number> = {};
 
 async function nextSeq(siteSlug: string, db: IDBDatabase): Promise<number> {
   if (nextSeqBySite[siteSlug] !== undefined) {

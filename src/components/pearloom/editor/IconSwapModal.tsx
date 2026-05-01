@@ -87,7 +87,7 @@ export function IconSwapModal({ manifest, onEditField }: Props) {
   // every AI-generated mark + upload shows up here too.
   const decorAssets = useMemo(() => flattenDecorAssets(manifest), [manifest]);
 
-  const lower = query.trim().toLowerCase();
+  const lower = useMemo(() => query.trim().toLowerCase(), [query]);
   const filterName = (n: string, label?: string) =>
     !lower ? true : n.toLowerCase().includes(lower) || (label ?? '').toLowerCase().includes(lower);
 

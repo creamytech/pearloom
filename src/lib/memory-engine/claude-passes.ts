@@ -467,7 +467,7 @@ Extract:
  * Enabled whenever ANTHROPIC_API_KEY is set. Can be disabled per-env by
  * setting PEARLOOM_CLAUDE_STORY=off.
  */
-export function useClaudeForStory(): boolean {
+export function isClaudeStoryEnabled(): boolean {
   if (process.env.PEARLOOM_CLAUDE_STORY === 'off') return false;
   return Boolean(process.env.ANTHROPIC_API_KEY);
 }

@@ -14,7 +14,7 @@ import {
   critiqueChaptersClaude,
   poetryPassClaude,
   extractCoupleProfileClaude,
-  useClaudeForStory,
+  isClaudeStoryEnabled,
 } from './claude-passes';
 import { getEventType } from '@/lib/event-os/event-types';
 import { pickFontPair } from './typography-picker';
@@ -91,7 +91,7 @@ export async function generateStoryManifest(
   // Pass 1 — core storytelling.
   // Prefer Claude Opus 4.7 when ANTHROPIC_API_KEY is set (cheaper w/ prompt caching,
   // stronger long-form literary voice). Falls back to Gemini 3.1 Pro otherwise.
-  const claudeStoryEnabled = useClaudeForStory();
+  const claudeStoryEnabled = isClaudeStoryEnabled();
   let rawText: string;
   if (claudeStoryEnabled) {
     log('[Memory Engine] Pass 1: Sending to Claude Opus 4.7 (core storytelling)...');
@@ -223,7 +223,7 @@ export async function generateStoryManifest(
     borderRadius: '1rem',
   };
 
-  let manifest: StoryManifest = {
+  const manifest: StoryManifest = {
     coupleId: parsed.coupleId || `couple-${Date.now()}`,
     generatedAt: parsed.generatedAt || new Date().toISOString(),
     vibeString: parsed.vibeString || '',

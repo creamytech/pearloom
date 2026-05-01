@@ -45,11 +45,13 @@ export async function GET() {
     // the row schema stays narrow and migrations stay optional.
     const SELECT_COLUMNS = 'id, subdomain, ai_manifest, site_config, created_at, updated_at';
     const sessionEmail = session.user.email.toLowerCase().trim();
-    let { data, error } = await supabase
+    const initial = await supabase
       .from('sites')
       .select(SELECT_COLUMNS)
       .eq('site_config->>creator_email', sessionEmail)
       .order('updated_at', { ascending: false, nullsFirst: false });
+    let data = initial.data;
+    const error = initial.error;
 
     if (!error && (!data || data.length === 0)) {
       const { data: legacyData, error: legacyError } = await supabase

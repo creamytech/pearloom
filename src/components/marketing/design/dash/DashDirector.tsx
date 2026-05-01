@@ -207,24 +207,6 @@ export function DashDirector() {
     [siteId, sending],
   );
 
-  if (!sitesLoading && (!sites || sites.length === 0)) {
-    return (
-      <DashLayout active="studio" title="The Director" subtitle="Create a site first — Pear needs something to plan.">
-        <EmptyShell message="Create a site first — Pear needs something to plan." />
-      </DashLayout>
-    );
-  }
-  if (!site) {
-    return (
-      <DashLayout active="studio" title="The Director" subtitle="Pick a site from the top-right menu to start planning.">
-        <EmptyShell message="Pick a site from the top-right menu to start planning." />
-      </DashLayout>
-    );
-  }
-
-  const siteName = siteDisplayName(site);
-  const timeline = deriveTimeline(state?.targetDate, state?.checklist ?? [], site?.occasion);
-  const daysToGo = state?.targetDate ? Math.max(0, diffDays(state.targetDate)) : null;
   const thisWeek = useMemo(
     () =>
       (state?.checklist ?? [])
@@ -245,6 +227,25 @@ export function DashDirector() {
         : 'Guest count',
     ];
   }, [state]);
+
+  if (!sitesLoading && (!sites || sites.length === 0)) {
+    return (
+      <DashLayout active="studio" title="The Director" subtitle="Create a site first — Pear needs something to plan.">
+        <EmptyShell message="Create a site first — Pear needs something to plan." />
+      </DashLayout>
+    );
+  }
+  if (!site) {
+    return (
+      <DashLayout active="studio" title="The Director" subtitle="Pick a site from the top-right menu to start planning.">
+        <EmptyShell message="Pick a site from the top-right menu to start planning." />
+      </DashLayout>
+    );
+  }
+
+  const siteName = siteDisplayName(site);
+  const timeline = deriveTimeline(state?.targetDate, state?.checklist ?? [], site?.occasion);
+  const daysToGo = state?.targetDate ? Math.max(0, diffDays(state.targetDate)) : null;
 
   const conversation: DirectorMsg[] = (state?.conversation ?? []).map((m) => ({
     role: m.role === 'user' ? 'me' : 'pear',

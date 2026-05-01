@@ -38,25 +38,25 @@ export function RangeSlider({
 
   const pct = ((value - min) / (max - min)) * 100;
 
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    setDragging(true);
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    updateFromPointer(e.clientX);
-  }, []);
-
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!dragging) return;
-    updateFromPointer(e.clientX);
-  }, [dragging]);
-
-  const updateFromPointer = (clientX: number) => {
+  const updateFromPointer = useCallback((clientX: number) => {
     if (!trackRef.current) return;
     const rect = trackRef.current.getBoundingClientRect();
     const rawPct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
     const rawVal = min + rawPct * (max - min);
     const snapped = Math.round(rawVal / step) * step;
     onChange(Math.max(min, Math.min(max, snapped)));
-  };
+  }, [min, max, step, onChange]);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    setDragging(true);
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    updateFromPointer(e.clientX);
+  }, [updateFromPointer]);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!dragging) return;
+    updateFromPointer(e.clientX);
+  }, [dragging, updateFromPointer]);
 
   return (
     <div className={className}>

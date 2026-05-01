@@ -1149,18 +1149,18 @@ function HeroSection({
     ?? (manifest as unknown as { theme?: { colors?: { accent?: string } } }).theme?.colors?.accent;
 
   // Cursor parallax — subtle drift on the atmosphere layer.
-  const parallax = useHeroParallax(8);
+  const { ref: parallaxRef, style: parallaxStyle } = useHeroParallax(8);
 
   return (
     <section
-      ref={parallax.ref as React.RefObject<HTMLElement>}
+      ref={parallaxRef as React.RefObject<HTMLElement>}
       id="top"
       style={{ position: 'relative', padding: 'clamp(48px, 8cqw, 80px) 32px clamp(48px, 8cqw, 110px)', overflow: 'hidden' }}
     >
       {/* Animated atmosphere — sits beneath the static decor so it
           reads as light moving through the paper, not on top of it.
           Cursor parallax drifts the whole layer ~8px. */}
-      <div style={{ position: 'absolute', inset: 0, ...parallax.style, zIndex: 0 }} aria-hidden>
+      <div style={{ position: 'absolute', inset: 0, ...parallaxStyle, zIndex: 0 }} aria-hidden>
         <LivingAtmosphere
           kind={atmosphereKind}
           intensity={atmosphereIntensity}
@@ -5806,16 +5806,16 @@ function GallerySectionImpl({
     {},
   ];
 
+  // Build lightbox image set from real photos only — placeholder
+  // tiles aren't openable.
+  const lightboxImages = photos.map((url) => ({ url }));
+  const { index, open, close, next, prev } = usePhotoLightbox(lightboxImages);
+
   // Only render tiles for actual photos in published view. In editor
   // mode show 4 placeholder cells so the user has dropzones — but
   // never render the empty gradient grid on the published site.
   const renderCount = edit && photos.length === 0 ? 4 : photos.length;
   if (renderCount === 0) return null;
-
-  // Build lightbox image set from real photos only — placeholder
-  // tiles aren't openable.
-  const lightboxImages = photos.map((url) => ({ url }));
-  const { index, open, close, next, prev } = usePhotoLightbox(lightboxImages);
 
   async function toggleReaction(photoUrl: string) {
     if (!siteSlug) return;

@@ -20,7 +20,6 @@ interface StickerLayerProps {
 }
 
 export function StickerLayer({ stickers, accentColor, editMode, onMove, onDelete }: StickerLayerProps) {
-  if (!stickers?.length) return null;
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleDragStart = useCallback((e: React.PointerEvent, stickerIndex: number) => {
@@ -43,6 +42,8 @@ export function StickerLayer({ stickers, accentColor, editMode, onMove, onDelete
     window.addEventListener('pointerup', onUp);
   }, [editMode, onMove]);
 
+  if (!stickers?.length) return null;
+
   return (
     <div
       ref={containerRef}
@@ -51,8 +52,8 @@ export function StickerLayer({ stickers, accentColor, editMode, onMove, onDelete
       {stickers.map((s, i) => {
         if (s.type === 'ai' || s.type === 'text' || !s.type || !s.name) return null;
         // Type narrowing: after the guard above, s.type ∈ {illustrations, accents, dividers}.
-        const module = MODULES[s.type as 'illustrations' | 'accents' | 'dividers'];
-        const Comp = module?.[s.name] as React.ComponentType<{ size?: number; color?: string; width?: string | number; height?: number }> | undefined;
+        const mod = MODULES[s.type as 'illustrations' | 'accents' | 'dividers'];
+        const Comp = mod?.[s.name] as React.ComponentType<{ size?: number; color?: string; width?: string | number; height?: number }> | undefined;
         if (!Comp) return null;
         return (
           <div

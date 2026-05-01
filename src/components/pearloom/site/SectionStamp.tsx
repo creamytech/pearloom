@@ -42,7 +42,8 @@ interface Props {
 }
 
 export function SectionStamp({ url, size = 20, style, alt = '', fallbackIcon, slotKey }: Props) {
-  const { editMode, onEditField } = useEditorCanvas();
+  const ctx = useEditorCanvas();
+  const { editMode, onEditField } = ctx;
 
   if (url) {
     const stamp = (
@@ -83,7 +84,6 @@ export function SectionStamp({ url, size = 20, style, alt = '', fallbackIcon, sl
   // Fallback icon — rendered when no AI stamp exists. Resolves
   // through manifest.iconOverrides[`stamp.${slot}.fallback`] so
   // hosts can swap defaults without regenerating decor.
-  const ctx = useEditorCanvas();
   const overrideName = slotKey
     ? ctx.iconOverrides?.[`stamp.${slotKey}.fallback`]
     : undefined;

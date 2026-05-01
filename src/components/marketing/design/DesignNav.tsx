@@ -4,6 +4,7 @@
 // nav exactly: Pear glyph + wordmark on the left, 5 links in
 // the middle, Sign in + "Begin a thread" CTA on the right.
 
+import Link from 'next/link';
 import { Pear, Pearl, PLButton, PD } from './DesignAtoms';
 
 interface DesignNavProps {
@@ -44,7 +45,7 @@ export function DesignNav({ onGetStarted }: DesignNavProps) {
           gap: 20,
         }}
       >
-        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: PD.ink }}>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: PD.ink }}>
           <Pear size={30} color={PD.pear} stem={PD.oliveDeep} leaf={PD.olive} />
           <span
             style={{
@@ -58,7 +59,7 @@ export function DesignNav({ onGetStarted }: DesignNavProps) {
           >
             Pearloom
           </span>
-        </a>
+        </Link>
 
         <div
           className="pd-nav-links"

@@ -56,13 +56,13 @@ export function TopNav({
     }
     const el = linkRefs.current.get(target);
     if (!el) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+       
       setUnderline((u) => ({ ...u, visible: false }));
       return;
     }
     const navRect = navRef.current.getBoundingClientRect();
     const elRect = el.getBoundingClientRect();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setUnderline({
       left: elRect.left - navRect.left + 14, // strip the link's left padding
       width: elRect.width - 28,               // and right padding

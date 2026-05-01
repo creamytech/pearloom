@@ -139,7 +139,7 @@ export function smartBlockOrder(
 ): { reordered: typeof blocks; changes: SmartOrderResult[] } {
   const now = new Date();
   const changes: SmartOrderResult[] = [];
-  let ordered = [...blocks];
+  const ordered = [...blocks];
 
   const wDate = weddingDate ? new Date(weddingDate) : null;
   const rDate = rsvpDeadline ? new Date(rsvpDeadline) : null;

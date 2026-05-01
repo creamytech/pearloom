@@ -284,7 +284,7 @@ Return ONLY valid JSON (no markdown, no backticks):
   if (!res.ok) throw new Error(`Poetry pass API ${res.status}`);
 
   const data = await res.json();
-  let raw: string = (data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}').trim()
+  const raw: string = (data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}').trim()
     .replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
     .replace(/,\s*([}\]])/g, '$1');
 

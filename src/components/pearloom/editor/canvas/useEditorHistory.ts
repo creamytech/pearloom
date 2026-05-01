@@ -171,7 +171,13 @@ export function useEditorHistory(
   }, [undo, redo]);
 
   return {
+    // Reading .current during render is normally a smell, but
+    // here it's safe — every mutation of these stacks calls
+    // bump() to force a re-render, so the values consumers
+    // observe are current.
+    // eslint-disable-next-line react-hooks/refs
     canUndo: pastRef.current.length > 0,
+    // eslint-disable-next-line react-hooks/refs
     canRedo: futureRef.current.length > 0,
     undo,
     redo,

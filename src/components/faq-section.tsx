@@ -159,6 +159,8 @@ export function FaqSection({
   title = 'Questions & Answers',
   subtitle = 'Everything you need to know.',
 }: FaqSectionProps) {
+  const [activeCategory, setActiveCategory] = useState<string>('All');
+
   if (!faqs || faqs.length === 0) return null;
 
   const sorted = [...faqs].sort((a, b) => a.order - b.order);
@@ -168,8 +170,6 @@ export function FaqSection({
   const allCategories = hasCategories
     ? ['All', ...Array.from(new Set(sorted.map((f) => f.category || 'General')))]
     : [];
-
-  const [activeCategory, setActiveCategory] = useState<string>('All');
 
   const filtered =
     !hasCategories || activeCategory === 'All'

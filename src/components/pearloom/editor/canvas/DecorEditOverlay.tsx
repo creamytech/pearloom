@@ -60,6 +60,11 @@ export function DecorEditOverlay({
 }: Props) {
   const editMode = useIsEditMode();
   const [hovering, setHovering] = useState(false);
+  // Library tiles drag with ASSET_DRAG_MIME ('application/x-pearloom-asset')
+  // OR text/uri-list. Drop onto a decor surface → write the URL
+  // to the matching manifest path. Same applyDecorUrl mapping
+  // DecorSwapModal uses; we just call out to it via the same event.
+  const [dragOver, setDragOver] = useState(false);
 
   if (!editMode) return <>{children}</>;
 
@@ -85,11 +90,6 @@ export function DecorEditOverlay({
     }));
   }
 
-  // Library tiles drag with ASSET_DRAG_MIME ('application/x-pearloom-asset')
-  // OR text/uri-list. Drop onto a decor surface → write the URL
-  // to the matching manifest path. Same applyDecorUrl mapping
-  // DecorSwapModal uses; we just call out to it via the same event.
-  const [dragOver, setDragOver] = useState(false);
   function handleDragOver(e: React.DragEvent) {
     if (!editMode || !onEditField) return;
     const types = e.dataTransfer.types;

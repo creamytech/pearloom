@@ -150,29 +150,14 @@ export function DashDayOf() {
     [site?.id, loadAll],
   );
 
-  if (!siteLoading && (!sites || sites.length === 0)) {
-    return (
-      <DashLayout active="timeline" title="Day-of room" subtitle="Create a site first — the day-of room shows up once an event is on the calendar.">
-        <EmptyShell message="Create a site first — the day-of room shows up once an event is on the calendar." />
-      </DashLayout>
-    );
-  }
-  if (!site) {
-    return (
-      <DashLayout active="timeline" title="Day-of room" subtitle="Pick a site from the top-right menu to open its day-of room.">
-        <EmptyShell message="Pick a site from the top-right menu to open its day-of room." />
-      </DashLayout>
-    );
-  }
-
-  const targetDate = parseTargetDate(site.manifest);
-  const schedule = parseScheduleFromManifest(site.manifest);
-  const siteName = siteDisplayName(site);
+  const targetDate = site ? parseTargetDate(site.manifest) : null;
+  const schedule = site ? parseScheduleFromManifest(site.manifest) : [];
+  const siteName = site ? siteDisplayName(site) : '';
 
   const daysOut = targetDate
     ? Math.ceil((targetDate.getTime() - now.getTime()) / 86400000)
     : null;
-  const isDayOf = targetDate && daysOut !== null && daysOut <= 0 && daysOut > -1;
+  const isDayOf = !!(targetDate && daysOut !== null && daysOut <= 0 && daysOut > -1);
 
   // Build milestones from schedule, or fall back to a default arc
   const milestones: Array<{ t: string; title: string; state: 'done' | 'soon' | 'upcoming' }> = useMemo(() => {
@@ -194,6 +179,21 @@ export function DashDayOf() {
       return { t: s.time, title: s.title, state };
     });
   }, [schedule, now, isDayOf]);
+
+  if (!siteLoading && (!sites || sites.length === 0)) {
+    return (
+      <DashLayout active="timeline" title="Day-of room" subtitle="Create a site first — the day-of room shows up once an event is on the calendar.">
+        <EmptyShell message="Create a site first — the day-of room shows up once an event is on the calendar." />
+      </DashLayout>
+    );
+  }
+  if (!site) {
+    return (
+      <DashLayout active="timeline" title="Day-of room" subtitle="Pick a site from the top-right menu to open its day-of room.">
+        <EmptyShell message="Pick a site from the top-right menu to open its day-of room." />
+      </DashLayout>
+    );
+  }
 
   return (
     <DashLayout

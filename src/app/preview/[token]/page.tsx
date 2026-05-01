@@ -500,16 +500,21 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
       case 'photos': {
         const tpSeen = new Set<string>();
         const allPhotos: Array<{ url: string; alt?: string }> = [];
-        if ((manifest as any).coverPhoto) {
-          const u = (manifest as any).coverPhoto as string;
+        const m = manifest as {
+          coverPhoto?: string;
+          heroSlideshow?: string[];
+          chapters?: Array<{ images?: Array<{ url?: string; alt?: string }> }>;
+        };
+        if (m.coverPhoto) {
+          const u = m.coverPhoto;
           if (!tpSeen.has(u)) { tpSeen.add(u); allPhotos.push({ url: u, alt: 'Cover photo' }); }
         }
-        for (const u of ((manifest as any).heroSlideshow || []) as string[]) {
+        for (const u of (m.heroSlideshow ?? [])) {
           if (u && !tpSeen.has(u)) { tpSeen.add(u); allPhotos.push({ url: u, alt: 'Hero slideshow' }); }
         }
-        for (const ch of ((manifest as any).chapters || [])) {
-          for (const img of (ch.images || [])) {
-            if (img.url && !tpSeen.has(img.url)) { tpSeen.add(img.url); allPhotos.push(img); }
+        for (const ch of (m.chapters ?? [])) {
+          for (const img of (ch.images ?? [])) {
+            if (img.url && !tpSeen.has(img.url)) { tpSeen.add(img.url); allPhotos.push({ url: img.url, alt: img.alt }); }
           }
         }
         if (!allPhotos.length) return null;

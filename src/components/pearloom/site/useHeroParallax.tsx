@@ -32,7 +32,7 @@ export function useHeroParallax(maxOffset: number = 10): Result {
 
     let raf = 0;
     let target = { x: 0, y: 0 };
-    let current = { x: 0, y: 0 };
+    const current = { x: 0, y: 0 };
 
     function onMove(e: MouseEvent) {
       if (!el) return;
