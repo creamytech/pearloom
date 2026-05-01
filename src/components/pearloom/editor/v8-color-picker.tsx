@@ -331,7 +331,7 @@ function ColorPopover({
       </div>
 
       {swatches.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 4 }}>
+        <div role="group" aria-label="Recent colours" style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 4 }}>
           {swatches.map((s) => {
             const active = s.toLowerCase() === value.toLowerCase();
             return (
@@ -340,7 +340,8 @@ function ColorPopover({
                 type="button"
                 onClick={() => onChange(s)}
                 title={s}
-                aria-label={`Use ${s}`}
+                aria-pressed={active}
+                aria-label={`Use ${s}${active ? ', currently selected' : ''}`}
                 style={{
                   width: '100%',
                   aspectRatio: '1 / 1',
