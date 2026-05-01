@@ -790,7 +790,7 @@ function AiAccentSection({
 
   return (
     <PanelSection
-      label="AI hero accent"
+      label="Hero flourish"
       hint="Have Pear draft a hand-drawn flourish behind your hero. Pure transparent PNG — composites cleanly on any palette."
     >
       {existing && (
