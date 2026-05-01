@@ -26,7 +26,8 @@ export async function GET(req: NextRequest) {
   if (!session?.user?.email) {
     return NextResponse.json({ role: null });
   }
-  const email = session.user.email;
+  // Normalise once — IdP casing variance, see /api/sites/[domain].
+  const email = session.user.email.toLowerCase().trim();
   const siteId = req.nextUrl.searchParams.get('siteId');
   const subdomain = req.nextUrl.searchParams.get('subdomain');
   if (!siteId && !subdomain) {
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest) {
     .maybeSingle();
   if (!site) return NextResponse.json({ role: null });
 
-  if ((site.creator_email as string) === email) {
+  if (String(site.creator_email ?? '').toLowerCase().trim() === email) {
     return NextResponse.json({ role: 'owner', siteId: site.id });
   }
 
