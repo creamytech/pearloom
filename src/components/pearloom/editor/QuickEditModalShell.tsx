@@ -276,6 +276,7 @@ export function QuickEditModalShell({
   return (
     <div
       role={isPanel ? 'region' : 'dialog'}
+      aria-modal={isPanel ? undefined : true}
       aria-label={`Edit ${title.toLowerCase()}`}
       style={outerStyle}
       onClick={isPanel ? undefined : (e) => { if (e.target === e.currentTarget) onClose(); }}
@@ -865,6 +866,12 @@ function SidebarTile({
       onMouseLeave={(e) => {
         if (!selected && !showActive) e.currentTarget.style.background = 'transparent';
       }}
+      onFocus={(e) => {
+        if (!selected && !showActive) e.currentTarget.style.background = 'var(--cream-2, #F5EFE2)';
+      }}
+      onBlur={(e) => {
+        if (!selected && !showActive) e.currentTarget.style.background = 'transparent';
+      }}
     >
       {selectMode && (
         <span
@@ -1052,6 +1059,12 @@ function SortableSidebarTile({
           if (!active) e.currentTarget.style.background = 'var(--cream-2, #F5EFE2)';
         }}
         onMouseLeave={(e) => {
+          if (!active) e.currentTarget.style.background = 'transparent';
+        }}
+        onFocus={(e) => {
+          if (!active) e.currentTarget.style.background = 'var(--cream-2, #F5EFE2)';
+        }}
+        onBlur={(e) => {
           if (!active) e.currentTarget.style.background = 'transparent';
         }}
       >
