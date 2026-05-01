@@ -200,7 +200,7 @@ export function PearCommand({
       { id: 'd-fonts', label: 'Fonts', hint: 'Heading + body + script', icon: 'type', group: 'design', run: () => dispatchDesignJump({ anchor: 'fonts' }) },
       { id: 'd-motif', label: 'Motif & shapes', hint: 'Decorative punctuation', icon: 'sparkles', group: 'design', run: () => dispatchDesignJump({ anchor: 'motif' }) },
       { id: 'd-spacing', label: 'Spacing', hint: 'Padding + section gaps', icon: 'layout', group: 'design', run: () => dispatchDesignJump({ anchor: 'spacing' }) },
-      { id: 'd-decor', label: 'AI decor library', hint: 'Dividers, stamps, confetti, footer', icon: 'brush', group: 'design', run: () => dispatchDesignJump({ anchor: 'decor' }) },
+      { id: 'd-decor', label: "Pear's decor library", hint: 'Dividers, stamps, confetti, footer', icon: 'brush', group: 'design', run: () => dispatchDesignJump({ anchor: 'decor' }) },
       { id: 'd-accent', label: 'Hero flourish', hint: 'AI-generated cover ornament', icon: 'sparkles', group: 'design', run: () => dispatchDesignJump({ anchor: 'ai-accent' }) },
       { id: 'd-hero-decor', label: 'Hero decoration style', hint: 'Occasion / classic / off', icon: 'image', group: 'design', run: () => dispatchDesignJump({ anchor: 'hero-decor' }) },
       { id: 'd-atmosphere', label: 'Atmosphere', hint: 'Living background + audio', icon: 'image', group: 'design', run: () => dispatchDesignJump({ anchor: 'atmosphere' }) },

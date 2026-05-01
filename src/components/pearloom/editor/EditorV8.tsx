@@ -1338,7 +1338,7 @@ function DesignMenu() {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        title="Design — palette, fonts, AI decor, nav style"
+        title="Design — palette, fonts, decor, nav style"
         className="pl8-ghost-btn"
         style={{
           display: 'inline-flex',
@@ -1401,7 +1401,7 @@ function DesignMenu() {
             <Icon name="layout" size={14} /> Spacing
           </button>
           <div style={{ height: 1, background: 'var(--line-soft)', margin: '4px 6px' }} />
-          <div style={groupLabel}>AI decor</div>
+          <div style={groupLabel}>Decor</div>
           <button type="button" role="menuitem" className="pl8-menu-item" style={itemStyle} onClick={() => jumpAnchor('decor')}>
             <Icon name="brush" size={14} /> Decor library
             <span style={{ marginLeft: 'auto', fontSize: 9.5, color: 'var(--peach-ink, #C6703D)', fontWeight: 700, letterSpacing: '0.12em' }}>NEW</span>
