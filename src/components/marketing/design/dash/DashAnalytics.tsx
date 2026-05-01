@@ -46,10 +46,10 @@ export function DashAnalytics() {
   const [result, setResult] = useState<Result | null>(null);
 
   useEffect(() => {
-    if (!site?.id) {
-      setResult({ siteId: null, visit: null, sections: null, error: null });
-      return;
-    }
+    // No site selected: bail without setState. The derived
+    // `loading` below already handles undefined site.id as
+    // "not loading" (empty state UI is owned by the caller).
+    if (!site?.id) return;
     let cancelled = false;
     Promise.all([
       fetch(`/api/analytics/visit?siteId=${encodeURIComponent(site.id)}`, { cache: 'no-store' })

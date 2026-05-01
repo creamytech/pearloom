@@ -43,41 +43,47 @@ function synthSeries(total: number, today: number): number[] {
   return [avg, Math.round(avg * 1.1), Math.round(avg * 1.4), today, Math.round(avg * 1.2), avg, Math.round(avg * 0.85)];
 }
 
+const EMPTY_STATS: Omit<DashStats, 'loading' | 'error'> = {
+  visits: 0,
+  today: 0,
+  rsvps: 0,
+  invited: 0,
+  yes: 0,
+  no: 0,
+  awaiting: 0,
+  needMeal: 0,
+  needSong: 0,
+  registryClicks: 0,
+  messages: 0,
+  visitsPrior: 0,
+  rsvpsPrior: 0,
+  series: [0, 0, 0, 0, 0, 0, 0],
+};
+
 export function useDashStats(siteId?: string | null): DashStats {
-  const [state, setState] = useState<DashStats>({
-    visits: 0,
-    today: 0,
-    rsvps: 0,
-    invited: 0,
-    yes: 0,
-    no: 0,
-    awaiting: 0,
-    needMeal: 0,
-    needSong: 0,
-    registryClicks: 0,
-    messages: 0,
-    visitsPrior: 0,
-    rsvpsPrior: 0,
-    series: [0, 0, 0, 0, 0, 0, 0],
-    loading: true,
-  });
+  // Tagged result so loading + error all derive from a single
+  // state value. Same pattern as useLinkedCelebrations.
+  type Result = {
+    siteId: string;
+    stats: Omit<DashStats, 'loading' | 'error'>;
+    error?: string;
+  };
+  const [result, setResult] = useState<Result | null>(null);
   const reqRef = useRef(0);
 
   useEffect(() => {
-    if (!siteId) {
-      setState((s) => ({ ...s, loading: false }));
-      return;
-    }
+    if (!siteId) return;
     const id = ++reqRef.current;
+    const currentSiteId = siteId;
     let cancelled = false;
 
     (async () => {
       try {
         const [visitsRes, rsvpRes, regRes] = await Promise.all([
-          fetch(`/api/analytics/visit?siteId=${encodeURIComponent(siteId)}`),
-          fetch(`/api/rsvp?siteId=${encodeURIComponent(siteId)}`),
+          fetch(`/api/analytics/visit?siteId=${encodeURIComponent(currentSiteId)}`),
+          fetch(`/api/rsvp?siteId=${encodeURIComponent(currentSiteId)}`),
           fetch(
-            `/api/analytics/section?siteId=${encodeURIComponent(siteId)}&section=registry`,
+            `/api/analytics/section?siteId=${encodeURIComponent(currentSiteId)}&section=registry`,
           ).catch(() => null),
         ]);
         if (cancelled || id !== reqRef.current) return;
@@ -105,30 +111,32 @@ export function useDashStats(siteId?: string | null): DashStats {
         const attending = guests.filter((g) => g.attending === true);
         const needMeal = attending.filter((g) => !g.meal_preference && !g.meal).length;
         const needSong = attending.filter((g) => !g.song_request && !g.song).length;
-        setState({
-          visits: Number(visits.visits) || 0,
-          today: Number(visits.today) || 0,
-          rsvps: responded,
-          invited,
-          yes,
-          no,
-          awaiting,
-          needMeal,
-          needSong,
-          registryClicks: Number(reg.clicks) || 0,
-          messages: 0,
-          visitsPrior: 0,
-          rsvpsPrior: 0,
-          series: synthSeries(Number(visits.visits) || 0, Number(visits.today) || 0),
-          loading: false,
+        setResult({
+          siteId: currentSiteId,
+          stats: {
+            visits: Number(visits.visits) || 0,
+            today: Number(visits.today) || 0,
+            rsvps: responded,
+            invited,
+            yes,
+            no,
+            awaiting,
+            needMeal,
+            needSong,
+            registryClicks: Number(reg.clicks) || 0,
+            messages: 0,
+            visitsPrior: 0,
+            rsvpsPrior: 0,
+            series: synthSeries(Number(visits.visits) || 0, Number(visits.today) || 0),
+          },
         });
       } catch (err) {
         if (cancelled || id !== reqRef.current) return;
-        setState((s) => ({
-          ...s,
-          loading: false,
+        setResult({
+          siteId: currentSiteId,
+          stats: EMPTY_STATS,
           error: err instanceof Error ? err.message : 'Failed to load stats',
-        }));
+        });
       }
     })();
 
@@ -137,7 +145,14 @@ export function useDashStats(siteId?: string | null): DashStats {
     };
   }, [siteId]);
 
-  return state;
+  // Loading derived: hook is loading until result.siteId
+  // matches the current siteId. Empty siteId reads as not-loading.
+  const loading = !!siteId && result?.siteId !== siteId;
+  return {
+    ...(result?.stats ?? EMPTY_STATS),
+    loading,
+    error: result?.error,
+  };
 }
 
 // Linked celebrations (siblings)
