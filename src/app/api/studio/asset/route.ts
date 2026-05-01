@@ -88,10 +88,13 @@ export async function POST(req: NextRequest) {
     .eq('subdomain', slug)
     .maybeSingle();
   if (!site) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
-  const ownerEmail = ((site as { creator_email?: string }).creator_email
+  // Case-insensitive owner check — IdP casing variance, see /api/sites/[domain].
+  const ownerEmail = String(
+    (site as { creator_email?: string }).creator_email
     ?? (site as { site_config?: { creator_email?: string } }).site_config?.creator_email
-    ?? '').toLowerCase();
-  if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase()) {
+    ?? '',
+  ).toLowerCase().trim();
+  if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase().trim()) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
