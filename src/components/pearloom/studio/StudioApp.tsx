@@ -521,11 +521,12 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
       {/* Transient AI error toast — surfaces failures from the
           three Pear flows so a host doesn't see a Threading…
           spinner clear and wonder if it worked. Auto-clears
-          after 6s; click ✕ to dismiss sooner. */}
+          after 6s; click ✕ to dismiss sooner. role="alert" so
+          the error gets an assertive announcement (it's a
+          failure, not a passive update). */}
       {aiError && (
         <div
-          role="status"
-          aria-live="polite"
+          role="alert"
           style={{
             position: 'fixed',
             bottom: 24,
