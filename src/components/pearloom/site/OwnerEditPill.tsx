@@ -32,20 +32,17 @@ export function OwnerEditPill({
   creatorEmail?: string | null;
 }) {
   const [isOwner, setIsOwner] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  // Lazy useState init so SSR doesn't paint a pill the user has
+  // already swiped away. siteSlug is stable per page; the
+  // user-action setter below still toggles to true at runtime.
+  const [dismissed, setDismissed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try { return !!sessionStorage.getItem(`${POSTHOG_KEY}:${siteSlug}`); }
+    catch { return false; }
+  });
 
   useEffect(() => {
-    // Read the dismissal flag client-side so SSR doesn't paint a
-    // pill the user has already swiped away.
-    try {
-      if (sessionStorage.getItem(`${POSTHOG_KEY}:${siteSlug}`)) {
-        setDismissed(true);
-        return;
-      }
-    } catch {
-      // sessionStorage blocked — keep going, no harm.
-    }
-
+    if (dismissed) return;
     if (!creatorEmail) return;
     let cancelled = false;
     (async () => {

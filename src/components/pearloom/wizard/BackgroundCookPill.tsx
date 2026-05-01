@@ -19,21 +19,24 @@ interface Props {
 }
 
 export function BackgroundCookPill({ cooking, ready }: Props) {
-  // After ready transitions true, leave the confirmation visible
-  // briefly then fade. This avoids a permanent "ready" badge
-  // hanging around through later wizard steps.
-  const [showReady, setShowReady] = useState(false);
+  if (!cooking && !ready) return null;
+  // The "ready" state shows for 4s then fades. Mount inner only
+  // while we want to render — same keyed-child pattern as
+  // ConfettiBurst — so the inner can hold its own self-hide
+  // timer without a setState-in-effect cascade.
+  // The key on (cooking, ready) means a re-flip restarts the
+  // timer cleanly.
+  return <BackgroundCookPillInner key={`${cooking}-${ready}`} cooking={cooking} ready={ready} />;
+}
+
+function BackgroundCookPillInner({ cooking, ready }: { cooking: boolean; ready: boolean }) {
+  const [hidden, setHidden] = useState(false);
   useEffect(() => {
-    if (!ready) {
-      setShowReady(false);
-      return;
-    }
-    setShowReady(true);
-    const t = setTimeout(() => setShowReady(false), 4000);
+    if (!ready) return;
+    const t = setTimeout(() => setHidden(true), 4000);
     return () => clearTimeout(t);
   }, [ready]);
-
-  if (!cooking && !showReady) return null;
+  if (!cooking && (!ready || hidden)) return null;
   return (
     <div
       role="status"
