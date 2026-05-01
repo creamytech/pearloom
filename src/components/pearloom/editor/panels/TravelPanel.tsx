@@ -638,6 +638,7 @@ export function TravelPanel({
             return (
               <SortableRowCard
                 handle={handle}
+                deleteLabel={`Delete hotel ${i + 1}${h.name ? `: ${h.name}` : ''}`}
                 onDelete={() => setTravel({ hotels: hotels.filter((_, idx) => idx !== i) })}
                 rootProps={{ 'data-pl-hotel-row-id': h.id }}
               >

@@ -257,6 +257,7 @@ export function StoryPanel({
             return (
               <SortableRowCard
                 handle={handle}
+                deleteLabel={`Delete chapter ${i + 1}${c.title ? `: ${c.title}` : ''}`}
                 onDelete={() => {
                   const next = chapters.filter((_, idx) => idx !== i).map((x, idx) => ({ ...x, order: idx }));
                   onChange({ ...manifest, chapters: next });

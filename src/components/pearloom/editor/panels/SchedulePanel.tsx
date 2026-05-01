@@ -200,6 +200,7 @@ export function SchedulePanel({
             return (
               <SortableRowCard
                 handle={handle}
+                deleteLabel={`Delete moment ${i + 1}${it.name ? `: ${it.name}` : ''}`}
                 onDelete={() => set(items.filter((_, idx) => idx !== i))}
                 rootProps={{ 'data-pl-event-row-id': it.id }}
               >

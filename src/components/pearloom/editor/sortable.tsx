@@ -151,12 +151,18 @@ function SortableRow({
 export function SortableRowCard({
   handle,
   onDelete,
+  deleteLabel,
   children,
   highlighted,
   rootProps,
 }: {
   handle: ReactNode;
   onDelete?: () => void;
+  /** Optional context-aware aria-label for the delete button.
+   *  Defaults to "Delete" but lists with many rows should pass
+   *  something like "Delete chapter 3" so screen readers can
+   *  disambiguate between siblings. */
+  deleteLabel?: string;
   children: ReactNode;
   highlighted?: boolean;
   /** Extra DOM props on the outer card — used by the canvas
@@ -184,7 +190,7 @@ export function SortableRowCard({
         <button
           type="button"
           onClick={onDelete}
-          aria-label="Delete"
+          aria-label={deleteLabel ?? 'Delete'}
           style={{
             width: 28,
             height: 28,

@@ -206,7 +206,11 @@ export function RsvpPanel({
           renderItem={(m, { handle }) => {
             const i = meals.findIndex((x) => x.id === m.id);
             return (
-              <SortableRowCard handle={handle} onDelete={() => setMeals(meals.filter((_, idx) => idx !== i))}>
+              <SortableRowCard
+                handle={handle}
+                deleteLabel={`Delete meal ${i + 1}${m.name ? `: ${m.name}` : ''}`}
+                onDelete={() => setMeals(meals.filter((_, idx) => idx !== i))}
+              >
                 <Field label="Name">
                   <TextInput value={m.name} onChange={(e) => update(i, { name: e.target.value })} placeholder="Short rib" />
                 </Field>

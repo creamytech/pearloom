@@ -118,6 +118,7 @@ export function FaqPanel({
                 return (
                   <SortableRowCard
                     handle={handle}
+                    deleteLabel={`Delete question ${i + 1}${it.question ? `: ${it.question.slice(0, 40)}` : ''}`}
                     onDelete={() => set(items.filter((_, idx) => idx !== i))}
                     rootProps={{ 'data-pl-faq-row-id': it.id }}
                   >

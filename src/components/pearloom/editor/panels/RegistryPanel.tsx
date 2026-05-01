@@ -407,6 +407,7 @@ export function RegistryPanel({
             return (
               <SortableRowCard
                 handle={handle}
+                deleteLabel={`Delete registry entry ${i + 1}${it.label ? `: ${it.label}` : ''}`}
                 onDelete={() => set(items.filter((_, idx) => idx !== i))}
                 rootProps={{ 'data-pl-registry-row-url': it.url }}
               >
