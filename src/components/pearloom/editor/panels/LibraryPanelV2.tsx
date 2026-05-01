@@ -408,7 +408,7 @@ function YourStuffTab({
       <Section
         label="Your photos"
         count={photos.length}
-        empty={loading ? 'Threading…' : 'No photos yet — upload some, or pick from Google Photos.'}
+        empty={loading ? 'Threading…' : 'Nothing yet — upload some, or pick from Google Photos.'}
       >
         {photos.length > 0 && (
           <TileGrid>

@@ -247,7 +247,7 @@ export function StoryPanel({
           }
           emptyState={
             <EmptyBlockState
-              title="No chapters yet"
+              title="Nothing yet"
               body="Tell the story of how you got here — first date, big move, the proposal. 3–6 chapters is a sweet spot."
               action={<AddRowButton label="Add your first chapter" onClick={addChapter} />}
             />

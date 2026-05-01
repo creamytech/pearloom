@@ -135,7 +135,7 @@ export function FaqQuickEditModal({ manifest, onChange }: Props) {
         }));
       }}
       onClose={() => setOpenFaqId(null)}
-      emptyHint="No questions yet. Add one to get started."
+      emptyHint="Nothing yet. Add the first question to begin."
       searchSlot={
         <button
           type="button"

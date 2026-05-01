@@ -153,11 +153,11 @@ export function FaqPanel({
         ) : (
           <EmptyBlockState
             icon="heart-icon"
-            title="No FAQ yet"
+            title="Nothing yet"
             body="Let Pear draft 8–10 questions your guests will ask — parking, dress code, plus-ones, photo rules, gift policy — based on your event details."
             action={
               <button type="button" className="btn btn-outline btn-sm" onClick={add}>
-                Start empty
+                Begin a thread
               </button>
             }
           />

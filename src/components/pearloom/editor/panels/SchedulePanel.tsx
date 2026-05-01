@@ -180,7 +180,7 @@ export function SchedulePanel({
           emptyState={
             <EmptyBlockState
               icon="clock"
-              title="No schedule yet"
+              title="Nothing yet"
               body="Draft a starter schedule — you can edit every row, or start from scratch."
               action={
                 <div style={{ display: 'flex', gap: 8 }}>

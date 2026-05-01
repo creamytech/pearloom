@@ -164,8 +164,8 @@ export function GalleryPanel({
         {photos.length === 0 ? (
           <EmptyBlockState
             icon="gallery"
-            title="No photos yet"
-            body="Drop a batch — the v8 gallery uses a bento layout, so 8–16 photos looks especially nice."
+            title="Nothing yet"
+            body="Drop a batch — the gallery uses a bento layout, so 8–16 photos looks especially nice."
             action={
               <button type="button" className="btn btn-primary btn-sm" onClick={() => inputRef.current?.click()}>
                 <Icon name="upload" size={13} color="var(--cream)" /> Upload photos
