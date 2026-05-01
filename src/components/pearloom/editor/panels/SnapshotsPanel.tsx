@@ -140,6 +140,9 @@ export function SnapshotsPanel({
                   <button
                     type="button"
                     onClick={() => onRestore(snap.id)}
+                    aria-label={confirming
+                      ? `Confirm restore: ${snap.label}`
+                      : `Restore snapshot: ${snap.label}`}
                     style={{
                       flex: 1,
                       padding: '5px 8px',
@@ -158,6 +161,7 @@ export function SnapshotsPanel({
                   <button
                     type="button"
                     onClick={() => onDelete(snap.id)}
+                    aria-label={`Delete snapshot: ${snap.label}`}
                     title="Delete snapshot"
                     style={{
                       width: 28,
