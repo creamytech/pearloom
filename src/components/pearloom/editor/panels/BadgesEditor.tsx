@@ -158,7 +158,7 @@ export function BadgesEditor<AutoKey extends string>({
                   textDecoration: hidden ? 'line-through' : 'none',
                   cursor: 'pointer',
                   fontFamily: 'var(--font-ui)',
-                  transition: 'all 160ms ease',
+                  transition: 'background 160ms ease, color 160ms ease, border-color 160ms ease',
                 }}
               >
                 {autoLabels[key]}

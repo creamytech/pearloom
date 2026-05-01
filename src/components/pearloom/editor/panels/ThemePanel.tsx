@@ -506,7 +506,7 @@ export function SiteModeSection({
                       cursor: 'pointer',
                       textAlign: 'left',
                       fontFamily: 'var(--font-ui)',
-                      transition: 'all 180ms ease',
+                      transition: 'background 180ms ease, border-color 180ms ease',
                     }}
                   >
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

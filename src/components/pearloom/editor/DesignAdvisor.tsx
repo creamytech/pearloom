@@ -1005,7 +1005,7 @@ export function DesignAdvisor({
                   display: 'grid',
                   placeItems: 'center',
                   flexShrink: 0,
-                  transition: 'all 160ms ease',
+                  transition: 'background 160ms ease, border-color 160ms ease',
                   animation: listening ? 'pl-pear-mic-pulse 1.4s ease-in-out infinite' : 'none',
                 }}
               >
