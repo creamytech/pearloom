@@ -374,6 +374,7 @@ export function PearCopilot({
             }
           }}
           placeholder="Ask Pear…"
+          aria-label="Ask Pear"
           style={{
             flex: 1,
             padding: '10px 14px',
