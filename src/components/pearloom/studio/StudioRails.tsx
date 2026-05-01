@@ -828,6 +828,7 @@ function CopyTab({ content, state, setField, onRewriteField }: { content: Studio
                 <EditableLine
                   key={`${f.id}:${state.type}:${f.value}`}
                   initial={f.value}
+                  label={f.label}
                   onSave={(next) => saveOverride(f.id as EditableId, next)}
                 />
               )}
@@ -880,11 +881,12 @@ function CopyTab({ content, state, setField, onRewriteField }: { content: Studio
  *  with a fresh `key` whenever the underlying value changes
  *  externally (e.g. AI rewrite, type swap), so we don't have
  *  to thread a controlled value through. */
-function EditableLine({ initial, onSave }: { initial: string; onSave: (next: string) => void }) {
+function EditableLine({ initial, onSave, label }: { initial: string; onSave: (next: string) => void; label?: string }) {
   const [draft, setDraft] = useState(initial);
   return (
     <textarea
       value={draft}
+      aria-label={label}
       onChange={(e) => setDraft(e.target.value)}
       onBlur={() => { if (draft !== initial) onSave(draft); }}
       onKeyDown={(e) => {
