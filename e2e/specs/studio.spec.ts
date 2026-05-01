@@ -263,6 +263,26 @@ test.describe('Studio (stationery editor)', () => {
     expect(inviteHits).toBe(0);
   });
 
+  test('Send overlay: Escape key closes without sending', async ({ page }) => {
+    let inviteHits = 0;
+    await page.route('**/api/invite/guest', async (route) => {
+      inviteHits++;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{"sent":0,"failed":0}' });
+    });
+    await page.getByRole('button', { name: /^Send$/ }).first().click();
+    await expect(page.getByText('Off it goes.')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByText('Off it goes.')).not.toBeVisible();
+    expect(inviteHits).toBe(0);
+  });
+
+  test('Send overlay: dialog has aria-modal + accessible name', async ({ page }) => {
+    await page.getByRole('button', { name: /^Send$/ }).first().click();
+    const dialog = page.getByRole('dialog', { name: /Off it goes/ });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveAttribute('aria-modal', 'true');
+  });
+
   test('Send button hits /api/invite/guest and shows the result', async ({ page }) => {
     // Override the guests mock so Send is enabled (withEmail > 0).
     await page.route(/\/api\/guests(\?|$)/, async (route) => {

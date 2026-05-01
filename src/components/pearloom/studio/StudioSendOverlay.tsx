@@ -60,6 +60,18 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
     return () => { cancelled = true; };
   }, [siteSlug]);
 
+  // Escape closes the modal — modulo the in-flight send: we
+  // don't pull the rug if Resend is already shipping. The X
+  // button stays disabled too (separate concern, not addressed
+  // here; the user can wait ~1s for the response).
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' && !busy) onClose();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose, busy]);
+
   async function send() {
     // Guard against double-send. `busy` covers in-flight; `sentSummary`
     // covers the post-success state where the button label still
@@ -101,21 +113,35 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
   };
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 50,
-      background: 'rgba(61,74,31,0.45)',
-      backdropFilter: 'blur(6px)',
-      display: 'grid', placeItems: 'center',
-      padding: 32,
-      animation: 'pl-studio-card-in 300ms ease both',
-    }}>
-      <div style={{
-        width: 'min(900px, 100%)', maxHeight: '90vh',
-        background: 'var(--cream)', borderRadius: 18,
-        boxShadow: 'var(--shadow-lg)',
-        display: 'grid', gridTemplateColumns: '320px 1fr',
-        overflow: 'hidden',
-      }}>
+    <div
+      onClick={(e) => {
+        // Backdrop click closes — but only if the click started
+        // and ended on the backdrop itself (avoids drag-selecting
+        // text inside the modal and accidentally closing on
+        // mouseup over the backdrop).
+        if (e.target === e.currentTarget && !busy) onClose();
+      }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 50,
+        background: 'rgba(61,74,31,0.45)',
+        backdropFilter: 'blur(6px)',
+        display: 'grid', placeItems: 'center',
+        padding: 32,
+        animation: 'pl-studio-card-in 300ms ease both',
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="studio-send-title"
+        style={{
+          width: 'min(900px, 100%)', maxHeight: '90vh',
+          background: 'var(--cream)', borderRadius: 18,
+          boxShadow: 'var(--shadow-lg)',
+          display: 'grid', gridTemplateColumns: '320px 1fr',
+          overflow: 'hidden',
+        }}
+      >
         <div style={{
           background: 'var(--cream-3, var(--cream-2))', padding: 24,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16,
@@ -133,7 +159,7 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--peach-ink)' }}>Send</div>
-              <h2 style={{
+              <h2 id="studio-send-title" style={{
                 fontSize: 26,
                 margin: '4px 0 0',
                 fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
