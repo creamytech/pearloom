@@ -2444,6 +2444,27 @@ function Outline({
           role="separator"
           aria-orientation="vertical"
           aria-label="Resize outline"
+          aria-valuenow={typeof railWidth === 'number' ? railWidth : 252}
+          aria-valuemin={220}
+          aria-valuemax={420}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            // Keyboard parity for the pointer-only resize separator.
+            // Arrow keys adjust the rail width by 8px (or 32px with
+            // Shift). Home / End jump to min / max. Same clamps the
+            // pointer drag uses.
+            if (typeof railWidth !== 'number' || !onResize) return;
+            const step = e.shiftKey ? 32 : 8;
+            const dynMax = Math.max(220, window.innerWidth - (siblingWidth ?? 0) - CANVAS_MIN_PX);
+            let next = railWidth;
+            if (e.key === 'ArrowLeft')       next = Math.max(220, railWidth - step);
+            else if (e.key === 'ArrowRight') next = Math.min(420, dynMax, railWidth + step);
+            else if (e.key === 'Home')       next = 220;
+            else if (e.key === 'End')        next = Math.min(420, dynMax);
+            else return;
+            e.preventDefault();
+            onResize(next);
+          }}
           onPointerDown={onResizeStart}
           style={{
             position: 'absolute',
@@ -3216,6 +3237,27 @@ function Inspector({
           role="separator"
           aria-orientation="vertical"
           aria-label="Resize inspector"
+          aria-valuenow={typeof resolvedWidth === 'number' ? resolvedWidth : 460}
+          aria-valuemin={320}
+          aria-valuemax={620}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            // Same keyboard separator pattern as the outline handle.
+            // Inspector grows when ArrowRight pulls its left edge LEFT
+            // (towards the canvas), so the directional sense is
+            // mirrored — left = wider, right = narrower.
+            if (typeof resolvedWidth !== 'number' || !onResize) return;
+            const step = e.shiftKey ? 32 : 8;
+            const dynMax = Math.max(320, window.innerWidth - (siblingWidth ?? 0) - CANVAS_MIN_PX);
+            let next = resolvedWidth;
+            if (e.key === 'ArrowLeft')       next = Math.min(620, dynMax, resolvedWidth + step);
+            else if (e.key === 'ArrowRight') next = Math.max(320, resolvedWidth - step);
+            else if (e.key === 'Home')       next = Math.min(620, dynMax);
+            else if (e.key === 'End')        next = 320;
+            else return;
+            e.preventDefault();
+            onResize(next);
+          }}
           onPointerDown={onResizeStart}
           style={{
             position: 'absolute',
