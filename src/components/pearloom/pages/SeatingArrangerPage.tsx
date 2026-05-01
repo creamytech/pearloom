@@ -45,34 +45,45 @@ const DEFAULT_TABLES: Table[] = [
 
 export function SeatingArrangerPage() {
   const { site } = useSelectedSite();
+  // Locally-mutable guest state. Fetched once per siteId; the
+  // user then drag-drops to assign table_id, which mutates this
+  // state directly via setGuests below.
   const [guests, setGuests] = useState<Guest[]>([]);
+  // Tag the most-recent fetched siteId. `loading` is a render-
+  // time derivation of "fetched siteId doesn't match current"
+  // — no setLoading-in-effect cascade.
+  const [fetchedSiteId, setFetchedSiteId] = useState<string | null>(null);
   const [tables, setTables] = useState<Table[]>(DEFAULT_TABLES);
   const [constraints, setConstraints] = useState<Constraint[]>([]);
-  const [loading, setLoading] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
 
   // Pull guests via /api/rsvp (already exists for the dashboard).
   useEffect(() => {
     if (!site?.id) return;
-    setLoading(true);
-    fetch(`/api/rsvp?siteId=${encodeURIComponent(site.id)}`)
+    let cancelled = false;
+    const currentSiteId = site.id;
+    fetch(`/api/rsvp?siteId=${encodeURIComponent(currentSiteId)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data: { guests?: Array<Record<string, unknown>> } | null) => {
-        if (!data || !Array.isArray(data.guests)) return;
-        setGuests(
-          data.guests.map((g, i): Guest => ({
-            id: String(g.id ?? `g-${i}`),
-            name: String(g.name ?? g.full_name ?? 'Unnamed'),
-            email: typeof g.email === 'string' ? g.email : null,
-            attending: typeof g.attending === 'string' ? (g.attending as Guest['attending']) : null,
-            meal: typeof g.meal_preference === 'string' ? g.meal_preference : null,
-            table_id: typeof g.table_id === 'string' ? g.table_id : '',
-          })),
-        );
+        if (cancelled) return;
+        const next = !data || !Array.isArray(data.guests)
+          ? []
+          : data.guests.map((g, i): Guest => ({
+              id: String(g.id ?? `g-${i}`),
+              name: String(g.name ?? g.full_name ?? 'Unnamed'),
+              email: typeof g.email === 'string' ? g.email : null,
+              attending: typeof g.attending === 'string' ? (g.attending as Guest['attending']) : null,
+              meal: typeof g.meal_preference === 'string' ? g.meal_preference : null,
+              table_id: typeof g.table_id === 'string' ? g.table_id : '',
+            }));
+        setGuests(next);
+        setFetchedSiteId(currentSiteId);
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {});
+    return () => { cancelled = true; };
   }, [site?.id]);
+
+  const loading = !!site?.id && fetchedSiteId !== site.id;
 
   const unseated = guests.filter((g) => !g.table_id && g.attending !== 'no');
   const byTable: Record<string, Guest[]> = useMemo(() => {
