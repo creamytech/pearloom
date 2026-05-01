@@ -651,7 +651,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
 
 function CanvasStage({ children }: { children: React.ReactNode }) {
   return (
-    <div className="pl-studio-canvas" style={{
+    <main className="pl-studio-canvas" aria-label="Stationery canvas" style={{
       gridArea: 'canvas',
       position: 'relative',
       overflow: 'hidden',
@@ -664,7 +664,7 @@ function CanvasStage({ children }: { children: React.ReactNode }) {
         backgroundSize: '24px 24px', pointerEvents: 'none',
       }} />
       {children}
-    </div>
+    </main>
   );
 }
 

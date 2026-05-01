@@ -106,7 +106,7 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
         : null;
   const savedLabelColor = saveError ? '#7A2D2D' : 'var(--ink-muted)';
   return (
-    <header style={{
+    <header aria-label="Studio toolbar" style={{
       gridArea: 'top',
       display: 'grid',
       gridTemplateColumns: '296px 1fr auto',
@@ -286,7 +286,7 @@ function formatRelative(ts: number): string {
 export function DraftsRail({ state, setField, content, nameA, nameB, onPickDraft, onAskPearForDraft, onAskPearForAsset, sendStats, aiBusy }: RailProps) {
   const drafts = content.drafts;
   return (
-    <aside style={{
+    <aside aria-label="Pear's drafts" style={{
       gridArea: 'left',
       background: 'var(--cream-2)',
       borderRight: '1px solid var(--line-soft)',
@@ -553,7 +553,7 @@ function AssetPalette({ state, setField, onAskPearForAsset, aiBusy }: { state: S
 export function RemixRail({ state, setField, content, nameA, nameB, onRewriteField, onMatchSiteTheme, onSuggestPair }: RailProps) {
   const [tab, setTab] = useState<'design' | 'copy' | 'pear'>('design');
   return (
-    <aside style={{
+    <aside aria-label="Inspector" style={{
       gridArea: 'right',
       background: 'var(--cream)',
       borderLeft: '1px solid var(--line-soft)',
