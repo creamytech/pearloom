@@ -5929,6 +5929,7 @@ function GallerySectionImpl({
               <div
                 key={i}
                 onClick={onTileClick}
+                className={`pl8-gallery-tile pl-tile-reveal${clickable ? ' is-clickable' : ''}`}
                 style={{
                   position: 'relative',
                   gridColumn: s.cs,
@@ -5939,10 +5940,7 @@ function GallerySectionImpl({
                     ? '0 12px 28px rgba(198,112,61,0.30), 0 0 0 2px var(--peach-ink, #C6703D)'
                     : '0 8px 20px rgba(61,74,31,0.1)',
                   cursor: clickable ? 'zoom-in' : 'default',
-                  transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
                 }}
-                onMouseEnter={clickable ? (e) => { e.currentTarget.style.transform = 'scale(1.015)'; } : undefined}
-                onMouseLeave={clickable ? (e) => { e.currentTarget.style.transform = 'scale(1)'; } : undefined}
               >
                 <PhotoActionMenu imageUrl={url} onReplace={onReplace} onRemove={onRemove}>
                   <PhotoPlaceholder tone={t} aspect="auto" src={url} style={{ height: '100%' }} />
