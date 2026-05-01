@@ -314,6 +314,12 @@ export function CustomSelect<T extends string = string>({
       <button
         ref={triggerRef}
         type="button"
+        // role="combobox" overrides the implicit "button" role so
+        // aria-activedescendant + aria-controls + aria-expanded all
+        // resolve to a valid WAI-ARIA combobox 1.2 widget. Without
+        // this role override, jsx-a11y warns that
+        // aria-activedescendant isn't supported on plain buttons.
+        role="combobox"
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
         onKeyDown={onKey}
