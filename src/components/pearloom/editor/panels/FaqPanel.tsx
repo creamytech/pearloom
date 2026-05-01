@@ -66,24 +66,22 @@ export function FaqPanel({
     set([...items, { id: `faq-${Date.now().toString(36)}`, question: 'New question', answer: '' }]);
   }
 
-  const occasion = (manifest as unknown as { occasion?: string }).occasion ?? 'wedding';
   const { state, error, run } = useAICall(async () => {
+    // /api/ai-faq mines the full manifest (venue, dates, registry,
+    // travel, poetry, vibe) for grounded answers and returns
+    // { faqs: [...] }. Sending flat fields used to land here as
+    // 400 "Missing manifest" — keep the contract aligned.
     const res = await fetch('/api/ai-faq', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        occasion,
-        names,
-        logistics: manifest.logistics,
-        vibes: (manifest as unknown as { vibes?: string[] }).vibes,
-      }),
+      body: JSON.stringify({ manifest }),
     });
     if (!res.ok) {
       const data = (await res.json().catch(() => null)) as { error?: string } | null;
       throw new Error(data?.error ?? `Pear couldn't draft an FAQ (${res.status})`);
     }
-    const data = (await res.json()) as { faq?: FaqItem[]; questions?: FaqItem[]; items?: FaqItem[] };
-    const raw = data.faq ?? data.questions ?? data.items ?? [];
+    const data = (await res.json()) as { faqs?: FaqItem[] };
+    const raw = data.faqs ?? [];
     const now = Date.now();
     const next: FaqItem[] = raw.map((q, i) => ({
       id: `faq-ai-${now.toString(36)}-${i}`,

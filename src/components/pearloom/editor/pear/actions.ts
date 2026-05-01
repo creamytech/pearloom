@@ -133,26 +133,29 @@ async function runAiCommand(
     }
 
     case 'seed-faqs': {
+      // The /api/ai-faq route expects the full manifest in the
+      // body so it can mine venue, dates, registry, travel, etc.
+      // for grounded answers. The response is keyed `faqs` (plural)
+      // and shapes match the manifest's `faq` field one-to-one.
       const r = await fetch('/api/ai-faq', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          occasion: ctx.manifest.occasion,
-          names: ctx.names,
-          logistics: ctx.manifest.logistics,
-          vibes: [ctx.manifest.vibeString ?? ''],
-        }),
+        body: JSON.stringify({ manifest: ctx.manifest }),
       });
-      if (!r.ok) return { ok: false, error: 'FAQ draft failed' };
-      const data = (await r.json()) as { faq?: Array<{ question: string; answer: string }>; questions?: Array<{ question: string; answer: string }>; items?: Array<{ question: string; answer: string }> };
-      const list = (data.faq ?? data.questions ?? data.items ?? []).map((q, i) => ({
+      if (!r.ok) {
+        const data = (await r.json().catch(() => null)) as { error?: string } | null;
+        return { ok: false, error: data?.error ?? 'FAQ draft failed' };
+      }
+      const data = (await r.json()) as { faqs?: Array<{ question: string; answer: string }> };
+      const list = (data.faqs ?? []).map((q, i) => ({
         id: `faq-${Date.now().toString(36)}-${i}`,
         question: q.question,
         answer: q.answer,
         order: i,
       }));
       if (!list.length) return { ok: false, error: 'No FAQs returned' };
-      const next = { ...ctx.manifest, faqs: list };
+      // Manifest field is `faq` (singular) — see FaqPanel.get().
+      const next = { ...ctx.manifest, faq: list } as StoryManifest;
       ctx.onPatchManifest(next);
       return { ok: true, message: `${list.length} FAQs drafted` };
     }
