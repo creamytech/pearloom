@@ -984,7 +984,7 @@ function PaletteSection({
             style={{ width: '100%', justifyContent: 'center', marginBottom: 12 }}
           >
             <Icon name="sparkles" size={13} />
-            {aiRunning ? 'Asking Pear…' : aiPalettes.length ? 'Generate fresh palettes' : 'Suggest palettes from your event'}
+            {aiRunning ? 'Asking Pear…' : aiPalettes.length ? 'Mix fresh palettes' : 'Suggest palettes from your event'}
           </button>
           {aiError && (
             <div role="alert" style={{ marginBottom: 10, fontSize: 12, color: '#7A2D2D', lineHeight: 1.45 }}>
