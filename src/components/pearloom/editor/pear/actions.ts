@@ -194,23 +194,33 @@ async function runAiCommand(
       const venue = ctx.manifest.logistics?.venue;
       const venueAddress = ctx.manifest.logistics?.venueAddress;
       if (!venue && !venueAddress) return { ok: false, error: 'Set a venue first' };
+      // The /api/ai-hotels route reads { venueAddress, venueCity,
+      // eventDate, guestCount, budget } and ignores any other keys.
+      // The old payload (venueName / radiusMiles / count) was all
+      // ignored, so Pear got minimal context. Pass the venue
+      // address + event date + guest count from the manifest so
+      // the suggestions are grounded in the real plan.
       const r = await fetch('/api/ai-hotels', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ venueName: venue, venueAddress, radiusMiles: 8, count: 5 }),
+        body: JSON.stringify({
+          venueAddress: venueAddress || venue,
+          eventDate: ctx.manifest.logistics?.date,
+          guestCount: ctx.manifest.guestCount,
+        }),
       });
-      if (!r.ok) return { ok: false, error: 'Hotel search failed' };
+      if (!r.ok) {
+        const data = (await r.json().catch(() => null)) as { error?: string } | null;
+        return { ok: false, error: data?.error ?? 'Hotel search failed' };
+      }
+      // The route returns ONLY { hotels, plan, ... } — there is no
+      // airports / directions / drivingTips. Reading those keys
+      // produced empty arrays that we silently wrote into the
+      // manifest. Keep travelInfo's existing airports/directions
+      // intact instead of clobbering them with empties.
       const data = (await r.json()) as {
         hotels?: Array<{ name: string; address?: string; bookingUrl?: string; groupRate?: string; notes?: string }>;
-        airports?: string[] | Array<{ code: string; name?: string }>;
-        directions?: string;
-        drivingTips?: string;
       };
-      const airports: string[] = Array.isArray(data.airports)
-        ? (data.airports as Array<string | { code: string; name?: string }>).map((a) =>
-            typeof a === 'string' ? a : `${a.code}${a.name ? ` · ${a.name}` : ''}`,
-          )
-        : [];
       const hotels = (data.hotels ?? []).map((h) => ({
         name: h.name,
         address: h.address ?? '',
@@ -218,12 +228,18 @@ async function runAiCommand(
         groupRate: h.groupRate,
         notes: h.notes,
       }));
+      if (!hotels.length) return { ok: false, error: 'No hotels found' };
+      const prevTravel = ctx.manifest.travelInfo;
       const next = {
         ...ctx.manifest,
-        travelInfo: { airports, hotels, directions: data.directions ?? data.drivingTips },
+        travelInfo: {
+          ...prevTravel,
+          airports: prevTravel?.airports ?? [],
+          hotels,
+        },
       };
       ctx.onPatchManifest(next);
-      return { ok: true, message: `${hotels.length} hotels + ${airports.length} airports loaded` };
+      return { ok: true, message: `${hotels.length} hotel${hotels.length === 1 ? '' : 's'} loaded` };
     }
 
     case 'rewrite-empty-chapters': {

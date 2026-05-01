@@ -9,24 +9,30 @@ const DIETARY_TAGS = ['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-f
 
 function MealsAI({ manifest, onResult }: { manifest: StoryManifest; onResult: (m: MealOption[]) => void }) {
   const { state, error, run } = useAICall(async () => {
-    const occasion = (manifest as unknown as { occasion?: string }).occasion ?? 'wedding';
-    const vibes = (manifest as unknown as { vibes?: string[] }).vibes ?? [];
+    // Manifest field is `vibeString` (singular string) — see
+    // src/types.ts:96. Reading `vibes` returned undefined and the
+    // route got an empty vibe context.
+    const occasion = manifest.occasion ?? 'wedding';
+    const vibe = manifest.vibeString ?? '';
     const res = await fetch('/api/ai-meals', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         generateMenu: true,
         occasion,
-        vibe: vibes.join(', '),
+        vibe,
       }),
     });
     if (!res.ok) {
       const data = (await res.json().catch(() => null)) as { error?: string } | null;
       throw new Error(data?.error ?? `Pear couldn't write a menu (${res.status})`);
     }
-    const data = (await res.json()) as { menu?: Array<{ name: string; description?: string; dietaryTags?: string[] }> };
+    // /api/ai-meals returns { meals: [...] }, not { menu }.
+    // Reading the wrong key meant successful AI runs surfaced
+    // as "No meals returned" and Pear's output was dropped.
+    const data = (await res.json()) as { meals?: Array<{ name: string; description?: string; dietaryTags?: string[] }> };
     const now = Date.now();
-    const next: MealOption[] = (data.menu ?? []).map((m, i) => ({
+    const next: MealOption[] = (data.meals ?? []).map((m, i) => ({
       id: `meal-ai-${now.toString(36)}-${i}`,
       name: m.name,
       description: m.description ?? '',

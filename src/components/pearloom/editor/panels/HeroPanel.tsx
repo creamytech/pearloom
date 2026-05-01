@@ -73,8 +73,10 @@ function HeroTaglineAI({
   onResult: (text: string) => void;
 }) {
   const { state, error, run } = useAICall(async () => {
-    const occasion = (manifest as unknown as { occasion?: string }).occasion ?? 'wedding';
-    const vibes = (manifest as unknown as { vibes?: string[] }).vibes ?? [];
+    // Manifest field is `vibeString` (singular). The old `vibes`
+    // read returned undefined and the prompt lost all vibe context.
+    const occasion = manifest.occasion ?? 'wedding';
+    const vibe = (manifest.vibeString ?? '').trim();
     const venue = manifest.logistics?.venue ?? '';
     const res = await fetch('/api/rewrite-text', {
       method: 'POST',
@@ -82,7 +84,7 @@ function HeroTaglineAI({
       body: JSON.stringify({
         instruction: `Write a warm, 1-2 sentence hero tagline for a ${occasion} site for ${names.filter(Boolean).join(' & ') || 'the hosts'}${
           venue ? ` at ${venue}` : ''
-        }${vibes.length ? `. Vibes: ${vibes.join(', ')}` : ''}. No exclamation marks. No cliches ("tying the knot", "magical day"). Specific over generic. Write like a friend, not a brand.`,
+        }${vibe ? `. Vibe: ${vibe}` : ''}. No exclamation marks. No cliches ("tying the knot", "magical day"). Specific over generic. Write like a friend, not a brand.`,
         tone: 'warm',
       }),
     });
