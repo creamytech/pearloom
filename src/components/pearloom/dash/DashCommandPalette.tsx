@@ -226,7 +226,7 @@ export function DashCommandPalette() {
             Esc
           </span>
         </div>
-        <div style={{ maxHeight: 420, overflowY: 'auto', padding: 6 }}>
+        <div role="listbox" aria-label="Command results" style={{ maxHeight: 420, overflowY: 'auto', padding: 6 }}>
           {filtered.length === 0 ? (
             <div style={{ padding: '24px 18px', fontSize: 13, color: 'var(--ink-muted)', textAlign: 'center' }}>
               Nothing matches “{query}”. Try a different word.
@@ -236,6 +236,9 @@ export function DashCommandPalette() {
               const active = idx === safeActiveIdx;
               const inner = (
                 <div
+                  role="option"
+                  aria-selected={active}
+                  aria-current={active ? 'true' : undefined}
                   onMouseEnter={() => setActiveIdx(idx)}
                   onClick={() => onPick(item)}
                   style={{
