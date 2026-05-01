@@ -4220,9 +4220,12 @@ function HotelCard({
       const u = new URL(url);
       const host = u.hostname.replace(/^www\./, '').toLowerCase();
       const checkin = eventDate;
-      const next = new Date(eventDate + 'T00:00:00');
+      const next = parseLocalDate(eventDate);
+      if (!next) return url;
       next.setDate(next.getDate() + 1);
-      const checkout = next.toISOString().slice(0, 10);
+      // Local-midnight Date → YYYY-MM-DD via the local accessors,
+      // not toISOString (which would shift by the local offset).
+      const checkout = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`;
       // Per-chain param mapping. When in doubt, fall through to
       // the booking.com style — Marriott, Hilton, IHG, Hyatt,
       // Choice, Best Western, Accor all accept it (or ignore).
