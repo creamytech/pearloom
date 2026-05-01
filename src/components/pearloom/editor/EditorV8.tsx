@@ -130,6 +130,36 @@ const REORDERABLE_KEYS: BlockKey[] = BLOCKS.filter((b) => b.reorderable).map((b)
 // honour this — the host can't compress the canvas below it.
 const CANVAS_MIN_PX = 480;
 
+// WAI-ARIA tablist arrow-key navigation. Roving tabindex pattern:
+// only the active tab is in the tab order; ←/→ cycles through
+// siblings, Home/End jump to ends. Caller wires this to onKeyDown
+// on each tab button and supplies the current index + a setter.
+function tablistKeydown<T>(
+  e: React.KeyboardEvent<HTMLElement>,
+  index: number,
+  items: readonly T[],
+  select: (item: T) => void
+) {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+    e.preventDefault();
+    const dir = e.key === 'ArrowRight' ? 1 : -1;
+    const next = (index + dir + items.length) % items.length;
+    select(items[next]);
+    const list = e.currentTarget.parentElement;
+    list?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+  } else if (e.key === 'Home') {
+    e.preventDefault();
+    select(items[0]);
+    const list = e.currentTarget.parentElement;
+    list?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[0]?.focus();
+  } else if (e.key === 'End') {
+    e.preventDefault();
+    select(items[items.length - 1]);
+    const list = e.currentTarget.parentElement;
+    list?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[items.length - 1]?.focus();
+  }
+}
+
 // Device preview widths — each pick is a real popular breakpoint.
 //   desktop → 1280 (std laptop)
 //   tablet  → 820  (iPad portrait)
@@ -1588,7 +1618,7 @@ function EditorTopbar({
               borderRadius: 999,
             }}
           >
-            {pills.map((p) => {
+            {pills.map((p, i) => {
               const on = mode === p.key;
               return (
                 <button
@@ -1596,7 +1626,9 @@ function EditorTopbar({
                   type="button"
                   role="tab"
                   aria-selected={on}
+                  tabIndex={on ? 0 : -1}
                   onClick={() => setMode(p.key)}
+                  onKeyDown={(e) => tablistKeydown(e, i, pills, (item) => setMode(item.key))}
                   title={p.label}
                   style={{
                     display: 'inline-flex',
@@ -2372,7 +2404,9 @@ function Outline({
             border: '1px solid var(--line-soft)',
           }}
         >
-          {(['sections', 'pages', 'theme'] as const).map((k) => {
+          {(() => {
+            const keys = ['sections', 'pages', 'theme'] as const;
+            return keys.map((k, i) => {
             const on = tab === k;
             const label = k === 'sections' ? 'Sections' : k === 'pages' ? 'Pages' : 'Theme';
             return (
@@ -2381,7 +2415,9 @@ function Outline({
                 type="button"
                 role="tab"
                 aria-selected={on}
+                tabIndex={on ? 0 : -1}
                 onClick={() => setTab(k)}
+                onKeyDown={(e) => tablistKeydown(e, i, keys, (item) => setTab(item))}
                 style={{
                   padding: '6px 8px',
                   borderRadius: 7,
@@ -2398,7 +2434,8 @@ function Outline({
                 {label}
               </button>
             );
-          })}
+            });
+          })()}
         </div>
       )}
 
@@ -3087,26 +3124,28 @@ function Inspector({
           padding: '0 4px',
         }}
       >
-        {(
-          [
-            // Theme moved to the left rail in V2 — inspector is now
-            // Section / Library / Pear only. Library is the unified
-            // asset drawer (was Decor + Library until the v2 redesign
-            // folded them together). Tabs inside the panel cover
-            // Your stuff / Editorial / Browse more.
+        {(() => {
+          // Theme moved to the left rail in V2 — inspector is now
+          // Section / Library / Pear only. Library is the unified
+          // asset drawer (was Decor + Library until the v2 redesign
+          // folded them together). Tabs inside the panel cover
+          // Your stuff / Editorial / Browse more.
+          const tabs = [
             { key: 'section', label: 'Section', icon: 'sliders' },
             { key: 'library', label: 'Library', icon: 'fleuron' },
             { key: 'pear', label: 'Pear', icon: 'sparkles' },
-          ] as Array<{ key: InspectorTab; label: string; icon: string }>
-        ).map((t) => {
-          const active = tab === t.key;
-          return (
+          ] as Array<{ key: InspectorTab; label: string; icon: string }>;
+          return tabs.map((t, i) => {
+            const active = tab === t.key;
+            return (
             <button
               key={t.key}
               type="button"
               role="tab"
               aria-selected={active}
+              tabIndex={active ? 0 : -1}
               onClick={() => setTab(t.key)}
+              onKeyDown={(e) => tablistKeydown(e, i, tabs, (item) => setTab(item.key))}
               style={{
                 position: 'relative',
                 padding: '14px 8px 12px',
@@ -3142,8 +3181,9 @@ function Inspector({
                 />
               )}
             </button>
-          );
-        })}
+            );
+          });
+        })()}
       </div>
 
       {tab === 'section' && (
