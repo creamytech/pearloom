@@ -98,7 +98,7 @@ export function StoryQuickEditModal({ manifest, onChange }: Props) {
       items={items.map((it) => ({
         id: it.id,
         label: it.title || 'Untitled',
-        sublabel: it.subtitle || (it.images?.length ? `${it.images.length} photo${it.images.length === 1 ? '' : 's'}` : 'No photos yet'),
+        sublabel: it.subtitle || (it.images?.length ? `${it.images.length} photo${it.images.length === 1 ? '' : 's'}` : 'No photo'),
         icon: 'page',
         photoUrl: it.images?.[0]?.url,
       }))}
@@ -121,7 +121,7 @@ export function StoryQuickEditModal({ manifest, onChange }: Props) {
         return () => setItems(snapshot);
       }}
       onClose={() => setOpenChapterId(null)}
-      emptyHint="No chapters yet. Add your first."
+      emptyHint="Nothing yet. Add the first chapter to begin."
       searchSlot={
         <button
           type="button"

@@ -142,7 +142,7 @@ export function ScheduleQuickEditModal({ manifest, onChange }: Props) {
         }));
       }}
       onClose={() => setOpenEventId(null)}
-      emptyHint="No events yet. Add one to start."
+      emptyHint="Nothing yet. Add the first moment to begin."
       searchSlot={
         <button
           type="button"
