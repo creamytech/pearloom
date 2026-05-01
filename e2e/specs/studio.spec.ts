@@ -331,12 +331,13 @@ test.describe('Studio (stationery editor)', () => {
 
   test('Send overlay: stats fetch failure surfaces an inline error', async ({ page }) => {
     // Override /api/guests to 500 — overlay should show
-    // "Couldn't load guests" instead of "Loading guests…" forever.
+    // "Couldn't pull the roster" instead of the threading state
+    // forever.
     await page.route(/\/api\/guests(\?|$)/, async (route) => {
       await route.fulfill({ status: 500, contentType: 'application/json', body: '{"error":"upstream"}' });
     });
     await page.getByRole('button', { name: /^Send$/ }).first().click();
-    await expect(page.getByText("Couldn't load guests")).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText("Couldn't pull the roster")).toBeVisible({ timeout: 5_000 });
     await expect(page.getByText(/Refresh to try again/)).toBeVisible();
   });
 
