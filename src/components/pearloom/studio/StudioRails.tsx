@@ -49,6 +49,7 @@ interface TopbarProps {
   savedAt?: number | null;
   saving?: boolean;
   saveError?: boolean;
+  onRetrySave?: () => Promise<void> | void;
 }
 
 const TYPE_TABS: Array<{ id: StationeryType; label: string; icon: string; sub: string }> = [
@@ -76,7 +77,7 @@ const PALETTE_NEIGHBOURHOOD: Record<string, string> = {
   rose:     'tender-romantic',
 };
 
-export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt, saving, saveError }: TopbarProps) {
+export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt, saving, saveError, onRetrySave }: TopbarProps) {
   // savedAt is null until the host's first edit lands. Until
   // then the manifest as loaded IS persisted, so "Unsaved" was
   // misleading — show no label on a clean session.
@@ -133,6 +134,28 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
                 <span style={{ color: savedLabelColor, fontWeight: saveError ? 600 : 400 }}>
                   {savedLabel}
                 </span>
+                {saveError && onRetrySave && (
+                  <>
+                    {' · '}
+                    <button
+                      type="button"
+                      onClick={() => void onRetrySave()}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        color: 'var(--peach-ink, #C6703D)',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        fontSize: 'inherit',
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      Try again
+                    </button>
+                  </>
+                )}
               </>
             )}
           </div>

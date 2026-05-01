@@ -249,6 +249,40 @@ test.describe('Studio (stationery editor)', () => {
     await expect(page.locator('header').getByText('Save failed')).toBeVisible({ timeout: 5_000 });
   });
 
+  test('"Try again" link recovers when the upstream comes back', async ({ page }) => {
+    // First POST 500, second POST 200 — the inline "Try again"
+    // link in the topbar should be enough to flip the state.
+    let postCount = 0;
+    await page.route('**/api/sites', async (route) => {
+      const method = route.request().method();
+      if (method === 'POST') {
+        postCount++;
+        if (postCount === 1) {
+          await route.fulfill({ status: 500, contentType: 'application/json', body: '{"error":"upstream"}' });
+        } else {
+          await route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
+        }
+        return;
+      }
+      if (method === 'GET') {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: '{"sites":[]}' });
+        return;
+      }
+      await route.continue();
+    });
+    await page.locator('button[title="Garden"]').first().click();
+    await expect(page.locator('header').getByText('Save failed')).toBeVisible({ timeout: 5_000 });
+
+    // Click the inline retry link — this fires a fresh POST WITHOUT
+    // waiting for another 1500ms debounce. The topbar should flip
+    // to a saved label.
+    await page.locator('header').getByRole('button', { name: /Try again/ }).click();
+    await expect(page.locator('header').getByText(/Saved (just now|\d+s ago)/))
+      .toBeVisible({ timeout: 5_000 });
+    await expect(page.locator('header').getByText('Save failed')).not.toBeVisible();
+    expect(postCount).toBe(2);
+  });
+
   test('FloatingPear minimises and reopens within the session', async ({ page }) => {
     // Pear bubble starts expanded. The minimise button is a
     // small ink-muted close icon inside the bubble; aria-label

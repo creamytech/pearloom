@@ -155,6 +155,37 @@ export function useStudioState(args: {
     setState(prev => ({ ...prev, ...patch }));
   }, []);
 
+  // The actual POST. Extracted so the topbar's "Try again" link
+  // can call it directly without waiting on the debounce window
+  // to elapse from a future change.
+  const flushNow = useCallback(async () => {
+    const payload = pendingPayload.current;
+    if (!payload) return;
+    const now = Date.now();
+    setSaving(true);
+    try {
+      const r = await fetch('/api/sites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+      });
+      // fetch resolves successfully on 4xx/5xx — without this
+      // check a 500 would silently set savedAt and clear dirty
+      // even though nothing was persisted.
+      if (!r.ok) throw new Error(`save ${r.status}`);
+      setSavedAt(now);
+      setSaveError(false);
+      dirty.current = false;
+    } catch {
+      // Surface the failure so the host doesn't trust a stale
+      // "Saved 12s ago" label. dirty stays true so beforeunload
+      // still warns until the next successful flush.
+      setSaveError(true);
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
   // Debounced persistence to /api/sites. Skips ephemeral fields
   // like showSend / animate so closing the modal doesn't trigger
   // a full save.
@@ -182,31 +213,7 @@ export function useStudioState(args: {
     pendingPayload.current = payload;
     dirty.current = true;
     if (flushTimer.current) clearTimeout(flushTimer.current);
-    flushTimer.current = setTimeout(async () => {
-      const now = Date.now();
-      setSaving(true);
-      try {
-        const r = await fetch('/api/sites', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: payload,
-        });
-        // fetch resolves successfully on 4xx/5xx — without this
-        // check a 500 would silently set savedAt and clear dirty
-        // even though nothing was persisted.
-        if (!r.ok) throw new Error(`save ${r.status}`);
-        setSavedAt(now);
-        setSaveError(false);
-        dirty.current = false;
-      } catch {
-        // Surface the failure so the host doesn't trust a stale
-        // "Saved 12s ago" label. dirty stays true so beforeunload
-        // still warns until the next successful flush.
-        setSaveError(true);
-      } finally {
-        setSaving(false);
-      }
-    }, 1500);
+    flushTimer.current = setTimeout(() => { void flushNow(); }, 1500);
     return () => { if (flushTimer.current) clearTimeout(flushTimer.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -241,7 +248,7 @@ export function useStudioState(args: {
   }, []);
 
   return useMemo(
-    () => ({ state, setField, setMany, savedAt, saving, saveError }),
-    [state, setField, setMany, savedAt, saving, saveError],
+    () => ({ state, setField, setMany, savedAt, saving, saveError, retrySave: flushNow }),
+    [state, setField, setMany, savedAt, saving, saveError, flushNow],
   );
 }
