@@ -2244,6 +2244,8 @@ function KbdHint() {
           {[
             ['Command palette', '⌘K / Ctrl K'],
             ['Find in site', '⌘F / Ctrl F'],
+            ['Undo', '⌘Z / Ctrl Z'],
+            ['Redo', '⌘⇧Z / Ctrl⇧Z'],
             ['Next block', '⌘↓ / Ctrl↓'],
             ['Previous block', '⌘↑ / Ctrl↑'],
             ['Sections (left rail)', '⌘1 / Ctrl 1'],
