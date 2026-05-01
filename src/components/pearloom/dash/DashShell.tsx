@@ -11,7 +11,7 @@ import { signOut, useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLinkStatus } from 'next/link';
 import { useEffect, useLayoutEffect, useRef, useState, useTransition, type ReactNode } from 'react';
-import { parseLocalDate } from '@/lib/parse-local-date';
+import { parseLocalDate } from '@/lib/date-utils';
 import { Blob, Heart, Icon, Pear, PearloomLogo, Squiggle } from '../motifs';
 import { useIsInsideShell } from './ShellPersistentLayout';
 import { NotificationBell } from './NotificationBell';

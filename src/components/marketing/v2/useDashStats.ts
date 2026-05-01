@@ -3,7 +3,7 @@
 // Real data hooks for dashboard widgets.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { parseLocalDate } from '@/lib/parse-local-date';
+import { parseLocalDate } from '@/lib/date-utils';
 
 export interface DashStats {
   visits: number;

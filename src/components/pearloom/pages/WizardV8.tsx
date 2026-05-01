@@ -13,7 +13,7 @@ import { Icon, Pear, PearloomLogo, Sparkle, Squiggle, Blob } from '../motifs';
 import { OccasionGlyph } from '../icons/OccasionGlyph';
 import { Reveal } from '../motion';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
-import { parseLocalDate } from '@/lib/parse-local-date';
+import { parseLocalDate } from '@/lib/date-utils';
 import { TEMPLATES_BY_ID } from '../marketplace/templates-data';
 import { EVENT_TYPES, getEventType, type EventCategory } from '@/lib/event-os/event-types';
 import { nameModeFor, nameModeIsValid } from '@/lib/event-os/name-mode';

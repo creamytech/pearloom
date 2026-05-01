@@ -12,7 +12,7 @@ import QRCode from 'qrcode';
 import { DashLayout } from '../dash/DashShell';
 import { Icon } from '../motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
-import { parseLocalDate } from '@/lib/parse-local-date';
+import { parseLocalDate } from '@/lib/date-utils';
 import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
 import { QR_THEMES, suggestThemesForOccasion, type QrThemeId } from '@/lib/qr-engine/themes';
 import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';

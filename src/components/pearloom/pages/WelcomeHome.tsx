@@ -31,7 +31,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { DashLayout } from '../dash/DashShell';
 import { Icon, Pear } from '../motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
-import { parseLocalDate } from '@/lib/parse-local-date';
+import { parseLocalDate } from '@/lib/date-utils';
 import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
 import type { GuestInsight } from '@/app/api/guests/intelligence/route';
 

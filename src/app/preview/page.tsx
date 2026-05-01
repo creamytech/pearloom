@@ -13,7 +13,7 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense, useMemo, useState, useEffect, useCallback } from 'react';
 import { Hero } from '@/components/hero';
 import { StorySection, chapterDateFormatOptions } from '@/components/blocks/StoryLayouts';
-import { parseLocalDate } from '@/lib/parse-local-date';
+import { parseLocalDate } from '@/lib/date-utils';
 import { ComingSoon } from '@/components/coming-soon';
 import { WeddingEvents } from '@/components/wedding-events';
 import { RegistryShowcase } from '@/components/registry-showcase';

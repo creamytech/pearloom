@@ -16,7 +16,7 @@ import { TravelSection } from '@/components/travel-section';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { WaveDivider } from '@/components/vibe/WaveDivider';
 import type { FaqItem } from '@/types';
-import { parseLocalDate } from '@/lib/parse-local-date';
+import { parseLocalDate } from '@/lib/date-utils';
 
 interface PreviewPageProps {
   params: Promise<{ token: string }>;

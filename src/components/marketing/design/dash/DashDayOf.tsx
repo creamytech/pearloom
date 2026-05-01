@@ -10,7 +10,7 @@ import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
-import { parseLocalDate } from '@/lib/parse-local-date';
+import { parseLocalDate } from '@/lib/date-utils';
 
 interface Announcement {
   id: string;

@@ -16,7 +16,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { generate, textFrom } from '@/lib/claude';
 import { getSiteConfig } from '@/lib/db';
-import { parseLocalDate } from '@/lib/parse-local-date';
+import { parseLocalDate } from '@/lib/date-utils';
 import { getCadencePreset } from '@/lib/cadence/cadence-presets';
 
 export const dynamic = 'force-dynamic';

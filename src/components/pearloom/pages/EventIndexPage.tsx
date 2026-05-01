@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { invalidateSitesCache, useUserSites, type SiteSummary } from '@/components/marketing/design/dash/hooks';
 import { DashLayout } from '../dash/DashShell';
-import { parseLocalDate } from '@/lib/parse-local-date';
+import { parseLocalDate } from '@/lib/date-utils';
 import { DashEmpty } from '../dash/DashEmpty';
 import { DashSkeleton } from '../dash/DashSkeleton';
 import { Heart, Icon, Pear, PhotoPlaceholder, Sparkle } from '../motifs';

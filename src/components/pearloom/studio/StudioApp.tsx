@@ -33,7 +33,7 @@ import { CardFront, CardBack, CardEnvelope } from './StudioCard';
 import { StudioTopbar, DraftsRail, RemixRail } from './StudioRails';
 import { StudioSendOverlay } from './StudioSendOverlay';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
-import { parseLocalDate } from '@/lib/parse-local-date';
+import { parseLocalDate } from '@/lib/date-utils';
 
 interface Props {
   siteSlug: string;

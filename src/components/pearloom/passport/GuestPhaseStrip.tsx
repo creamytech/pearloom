@@ -15,7 +15,7 @@
 
 import { useEffect, useState } from 'react';
 import { computePassportPhase, phaseCopy, type PassportPhase } from '@/lib/passport/phase';
-import { parseLocalDate } from '@/lib/parse-local-date';
+import { parseLocalDate } from '@/lib/date-utils';
 
 interface Props {
   eventDateIso: string | null;

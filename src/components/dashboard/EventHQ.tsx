@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { StatTile, Button } from '@/components/shell';
 import { formatSiteDisplayUrl } from '@/lib/site-urls';
-import { parseLocalDate } from '@/lib/parse-local-date';
+import { parseLocalDate } from '@/lib/date-utils';
 
 export interface EventHQSite {
   id: string;
