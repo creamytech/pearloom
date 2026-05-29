@@ -126,6 +126,11 @@ async function handleCheckoutCompleted(supabase: Sb, session: Stripe.Checkout.Se
   const payerEmail = session.customer_details?.email || session.customer_email || '';
   const payerName = meta.payerName || session.customer_details?.name || '';
 
+  // Track the payment row id so the registry-claim row can link back
+  // via payments.id (the claim row's payment_id FK). Without this
+  // link the refund handler can't find which claim to roll back.
+  let paymentId: string | null = existing?.id ?? null;
+
   if (existing) {
     // Update status if it changed.
     if (existing.status !== 'paid') {
@@ -135,47 +140,91 @@ async function handleCheckoutCompleted(supabase: Sb, session: Stripe.Checkout.Se
         .eq('id', existing.id);
     }
   } else {
-    const { error: insertError } = await supabase.from('payments').insert({
-      site_id: siteId,
-      payer_email: payerEmail,
-      payer_name: payerName || null,
-      amount_cents: amountCents,
-      currency: session.currency || 'usd',
-      pearloom_fee_cents: feeCents,
-      net_amount_cents: netCents,
-      payment_type: paymentType,
-      registry_item_id: meta.registryItemId || null,
-      stripe_session_id: session.id,
-      stripe_payment_intent_id: typeof session.payment_intent === 'string'
-        ? session.payment_intent
-        : session.payment_intent?.id || null,
-      status: 'paid',
-      message: meta.message || null,
-      metadata: meta as unknown as Record<string, unknown>,
-    });
+    const { data: inserted, error: insertError } = await supabase
+      .from('payments')
+      .insert({
+        site_id: siteId,
+        payer_email: payerEmail,
+        payer_name: payerName || null,
+        amount_cents: amountCents,
+        currency: session.currency || 'usd',
+        pearloom_fee_cents: feeCents,
+        net_amount_cents: netCents,
+        payment_type: paymentType,
+        registry_item_id: meta.registryItemId || null,
+        stripe_session_id: session.id,
+        stripe_payment_intent_id: typeof session.payment_intent === 'string'
+          ? session.payment_intent
+          : session.payment_intent?.id || null,
+        status: 'paid',
+        message: meta.message || null,
+        metadata: meta as unknown as Record<string, unknown>,
+      })
+      .select('id')
+      .single();
     if (insertError) {
       console.error('[stripe/webhook] payments insert failed:', insertError.message);
       throw insertError;
     }
+    paymentId = inserted?.id ?? null;
   }
 
-  // Registry-specific side effects
+  // Registry-specific side effects.
+  //
+  // Two-layer idempotency on the claim row:
+  //   (a) pre-check by stripe_session_id (fast path — most retries
+  //       hit this after the first webhook succeeded)
+  //   (b) catch unique-violation (Postgres 23505) on insert in case
+  //       two webhook deliveries race past the pre-check
+  // Without this, concurrent retries would double-insert the claim
+  // and double-bump registry_items.quantity_claimed — the gift
+  // would read as twice-claimed even though only one guest paid.
   if (paymentType === 'registry' && meta.registryItemId) {
     const claimedQuantity = parseInt(meta.quantity || '1', 10) || 1;
 
-    // Insert / update claim row
-    await supabase.from('registry_item_claims').insert({
-      registry_item_id: meta.registryItemId,
-      site_id: siteId,
-      payer_email: payerEmail,
-      payer_name: payerName || null,
-      quantity: claimedQuantity,
-      amount_cents: amountCents,
-      status: 'paid',
-      message: meta.message || null,
-    });
+    // (a) Already processed this Stripe session?
+    const { data: existingClaim } = await supabase
+      .from('registry_item_claims')
+      .select('id')
+      .eq('stripe_session_id', session.id)
+      .maybeSingle();
+    if (existingClaim) {
+      // The first webhook delivery already inserted the claim and
+      // bumped quantity_claimed; this retry is a no-op.
+      return;
+    }
+
+    // (b) Insert with the unique stripe_session_id; if another
+    // concurrent delivery beat us to it, the partial unique index
+    // will reject with 23505 and we treat it the same as (a).
+    const { error: claimError } = await supabase
+      .from('registry_item_claims')
+      .insert({
+        registry_item_id: meta.registryItemId,
+        site_id: siteId,
+        payer_email: payerEmail,
+        payer_name: payerName || null,
+        quantity: claimedQuantity,
+        amount_cents: amountCents,
+        payment_id: paymentId,
+        stripe_session_id: session.id,
+        status: 'paid',
+        message: meta.message || null,
+      });
+    if (claimError) {
+      // Postgres unique-violation = a concurrent webhook delivery
+      // beat us to it. Benign — bail without bumping quantity.
+      if ((claimError as { code?: string }).code === '23505') {
+        return;
+      }
+      console.error('[stripe/webhook] registry_item_claims insert failed:', claimError.message);
+      throw claimError;
+    }
 
     // Bump quantity_claimed on the item itself + last claimer info.
+    // Safe to run only because the unique index above guaranteed we
+    // are the single webhook delivery that succeeded in inserting
+    // the claim for this Stripe session.
     const { data: item } = await supabase
       .from('registry_items')
       .select('quantity, quantity_claimed')
