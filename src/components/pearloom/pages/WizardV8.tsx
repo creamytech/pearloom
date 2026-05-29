@@ -777,7 +777,7 @@ function OccasionPicker({
             Popular
           </div>
           <div
-            className="pl8-occasion-grid"
+            className="pl8-occasion-grid pl-cascade-row"
             style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 16 }}
           >
             {popular.map(tile)}
@@ -820,7 +820,7 @@ function OccasionPicker({
                 >
                   {CATEGORY_LABELS[cat]}
                 </div>
-                <div className="pl8-occasion-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+                <div className="pl8-occasion-grid pl-cascade-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
                   {items.map(tile)}
                 </div>
               </div>
