@@ -329,6 +329,7 @@ export function DashDirector() {
               style={{ marginBottom: 16 }}
             />
             <div
+              className="pl8-dash-stagger"
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',

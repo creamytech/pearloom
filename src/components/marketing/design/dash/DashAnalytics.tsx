@@ -161,7 +161,7 @@ export function DashAnalytics() {
 
         {/* KPIs */}
         <div
-          className="pd-analytics-kpi"
+          className="pd-analytics-kpi pl8-dash-stagger"
           style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}
         >
           {[

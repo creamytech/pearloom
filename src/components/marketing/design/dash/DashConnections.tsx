@@ -179,7 +179,7 @@ export function DashConnections() {
                 {celebrations.length} linked · {grouped.unlinked.length} standalone
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            <div className="pl8-dash-stagger" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {celebrations.map((c) => (
                 <button
                   key={c.celebration.id}

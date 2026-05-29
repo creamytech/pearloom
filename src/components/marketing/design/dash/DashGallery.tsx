@@ -203,7 +203,7 @@ function MasonryGrid({ photos, onOpen }: { photos: ReelPhoto[]; onOpen: (p: Reel
   photos.forEach((p, i) => split[i % cols].push(p));
   return (
     <div
-      className="pd-gallery-masonry"
+      className="pd-gallery-masonry pl8-dash-stagger"
       style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 14 }}
     >
       {split.map((col, ci) => (
