@@ -75,6 +75,8 @@ Booleans that change a row's category without removing it.
 
 `/api/user/delete-account` (Phase 1.5, [route](../src/app/api/user/delete-account/route.ts)) is the **only** path that physically removes rows from B and C tables. It hard-deletes per the catalog below.
 
+**Audit trail** (added 2026-05-30, migration `20260530_account_deletions_audit.sql`): every successful delete writes one row to `account_deletions` with `email_sha256`, `sites_deleted`, and optional `ip_sha256`. **The original email + IP are never stored** — only their SHA-256 hashes. Lets operators answer "did this person delete before?" without retaining identifying info; preserves GDPR right-to-be-forgotten.
+
 **Account-delete cascade order — deliberate:**
 
 1. **Per-site children (subdomain keyed):** `memory_prompts`, `whispers`, `time_capsule`, `song_requests`, `guest_photos`, `guestbook`, `rsvps`, `pearloom_guests`, `registry_item_claims`, `registry_items`, `payments`, `live_updates`, `anniversary_log`, `scheduled_communications`.

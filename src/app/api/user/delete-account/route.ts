@@ -33,15 +33,21 @@
 //     200, which is sufficient for the common case but a stolen JWT
 //     would still authenticate to other routes for a few minutes.
 //     Add a token blocklist when we move auth to a server session.
-//   • Audit trail — no `account_deletions` log table. We rely on
-//     Supabase write logs + Vercel function logs for now.
+//
+// Audit trail (added 2026-05-30, migration 20260530_account_deletions_audit):
+//   • Inserts one row into account_deletions with sha256(email),
+//     site count, sha256(client_ip). Original email + IP NEVER
+//     stored — defeats GDPR right-to-be-forgotten. The hash lets
+//     operators answer "did this person delete before?" without
+//     retaining identifying info.
 // ──────────────────────────────────────────────────────────────
 
+import { createHash } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimit, RATE_LIMITS, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -231,6 +237,30 @@ export async function POST(req: NextRequest) {
   await safeDelete(supabase, 'newsletter_subscribers', 'email', emailKey);
 
   console.log(`[delete-account] hard-delete complete for ${email}`);
+
+  // Audit trail (migration 20260530_account_deletions_audit).
+  // Fire-and-forget — the user's account is already gone; we
+  // don't want a logging failure to surface as a delete failure.
+  // Email + IP are sha256'd so the audit row can be looked up if
+  // the same person re-registers, but the original PII is
+  // unrecoverable from the table. GDPR-safe.
+  try {
+    const emailHash = createHash('sha256').update(emailKey).digest('hex');
+    const ipRaw = getClientIp(req);
+    // 'unknown' is getClientIp's fallback when neither x-forwarded-for
+    // nor x-real-ip is set — treat that as null instead of hashing
+    // the literal string so the column carries a useful signal.
+    const ipHash = ipRaw && ipRaw !== 'unknown'
+      ? createHash('sha256').update(ipRaw).digest('hex')
+      : null;
+    await supabase.from('account_deletions').insert({
+      email_sha256: emailHash,
+      sites_deleted: sites.length,
+      ip_sha256: ipHash,
+    });
+  } catch (auditErr) {
+    console.warn('[delete-account] audit-log insert failed (non-fatal):', auditErr);
+  }
 
   return NextResponse.json({
     success: true,
