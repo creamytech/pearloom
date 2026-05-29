@@ -91,7 +91,7 @@ function KickoffCards({ occasion, siteDomain }: { occasion?: string | null; site
         <Sparkle size={14} />
         <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600 }}>{eyebrow}</span>
       </div>
-      <div className="pl8-kickoff">
+      <div className="pl8-kickoff pl-cascade-row">
         {cards.map((c, i) => (
           <div
             key={c.title}
@@ -204,7 +204,7 @@ function EventSites({
         </Link>
       }
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="pl-cascade-row" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {loading && (
           <div style={{ padding: 14, textAlign: 'center', color: 'var(--ink-muted)', fontSize: 13 }}>
             Loading your sites…
