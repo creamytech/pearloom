@@ -39,9 +39,35 @@ function getR2Client() {
   };
 }
 
+// SSRF guard for uploadPhotoUrl. The `photos[].baseUrl` field arrives
+// in the request body, so without this gate an attacker could point
+// the route at internal services (http://169.254.169.254/, file://,
+// localhost:6379) and have the server fetch them on their behalf.
+// Whitelist parses the URL (so attacker.com.googleusercontent.com
+// can't fake the host) and requires https + a Google Photos host.
+function isAllowedPhotoHost(rawUrl: string): boolean {
+  try {
+    const u = new URL(rawUrl);
+    if (u.protocol !== 'https:') return false;
+    const host = u.hostname.toLowerCase();
+    return host === 'photos.google.com' || host.endsWith('.googleusercontent.com');
+  } catch {
+    return false;
+  }
+}
+
 async function uploadPhotoUrl(rawUrl: string): Promise<string> {
   const r2 = getR2Client();
   if (!r2 || !r2.publicBase) return rawUrl; // no R2 → keep original URL
+
+  // SSRF gate — reject anything that isn't a Google Photos URL.
+  // Returning the original URL means the manifest still works (the
+  // client just doesn't get the R2-cached copy), but we never let
+  // the server make the request.
+  if (!isAllowedPhotoHost(rawUrl)) {
+    console.warn('[R2 Upload] Refused non-allowlisted photo host:', rawUrl.slice(0, 100));
+    return rawUrl;
+  }
 
   try {
     // Fetch at a reasonable size to save R2 storage
