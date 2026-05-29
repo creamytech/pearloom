@@ -9,6 +9,7 @@
    ======================================================================== */
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
@@ -53,7 +54,40 @@ import { FindInSite } from './FindInSite';
 import { MobileSaveIndicator } from './MobileSaveIndicator';
 import { ThemeQuickBar } from './canvas/ThemeQuickBar';
 import { EditorCanvasProvider } from './canvas/EditorCanvasContext';
-import { LibraryPanelV2 } from './panels/LibraryPanelV2';
+// Small in-place loading placeholder for lazy panels. Threading…
+// per BRAND.md §7 (never "Loading…"). Kept inline so the dynamic
+// import chunk doesn't pull in a separate shared component file.
+function EditorPanelLoading({ label }: { label: string }) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flex: 1,
+        minHeight: 240,
+        fontSize: 12,
+        color: 'var(--ink-muted)',
+        fontFamily: 'var(--font-ui)',
+        letterSpacing: '0.02em',
+      }}
+    >
+      Threading {label}…
+    </div>
+  );
+}
+
+// Lazy — LibraryPanelV2 is 65KB+ and only mounts on the
+// decor/library tab. Lifting it out of the eager editor chunk
+// saves first-paint JS for every host who never opens that tab
+// (most do, but on later sessions when they jump straight to
+// design or guests). Phase 3.4 of AUDIT-2026-05-29.
+const LibraryPanelV2 = dynamic(
+  () => import('./panels/LibraryPanelV2').then((m) => ({ default: m.LibraryPanelV2 })),
+  { ssr: false, loading: () => <EditorPanelLoading label="Library" /> },
+);
 import { useEditorHistory } from './canvas/useEditorHistory';
 import { HeroPanel } from './panels/HeroPanel';
 import { NavPanel } from './panels/NavPanel';
@@ -72,7 +106,13 @@ import { PanelSearch, PearSuggestionsStrip } from './atoms';
 import { pearSuggestionsFor } from './panels/pear-suggestions';
 import { blockFillState, FILL_STATE_COLORS, siteProgressPct, type ScoredBlockKey } from '@/lib/site-progress';
 import { PearCommand } from './PearCommand';
-import { DesignAdvisor } from './DesignAdvisor';
+// Lazy — DesignAdvisor is 48KB and returns null until the host
+// clicks the floating Pear pill, so the chunk loads only on
+// demand. Same Phase 3.4 lift as LibraryPanelV2.
+const DesignAdvisor = dynamic(
+  () => import('./DesignAdvisor').then((m) => ({ default: m.DesignAdvisor })),
+  { ssr: false },
+);
 import { PearApplyToast } from './pear/PearApplyToast';
 import { PearCopilot } from './pear/PearCopilot';
 
