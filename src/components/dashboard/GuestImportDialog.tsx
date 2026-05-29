@@ -16,7 +16,7 @@
 // raw Excel. See parse-guests.ts for the full alias list.
 // ──────────────────────────────────────────────────────────────
 
-import { useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 interface Props {
   siteId: string;
@@ -42,6 +42,20 @@ export function GuestImportDialog({ siteId, open, onClose, onImported }: Props) 
   const [result, setResult] = useState<ImportResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+
+  // Phase 4.2 of AUDIT-2026-05-29. Title id wired into
+  // aria-labelledby so screen readers announce "Import guests
+  // from CSV" on open. Esc-to-close matches every other
+  // Pearloom modal (AuthModal, DesignAdvisor, DashSettings delete).
+  const titleId = useId();
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' && !submitting) onClose();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose, submitting]);
 
   if (!open) return null;
 
@@ -86,13 +100,19 @@ export function GuestImportDialog({ siteId, open, onClose, onImported }: Props) 
   }
 
   return (
-    <div onClick={onClose} style={modalBackdropStyle}>
-      <div onClick={(e) => e.stopPropagation()} style={modalCardStyle}>
-        <button onClick={onClose} aria-label="Close" style={modalCloseStyle}>×</button>
+    <div role="presentation" aria-hidden onClick={onClose} style={modalBackdropStyle}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onClick={(e) => e.stopPropagation()}
+        style={modalCardStyle}
+      >
+        <button type="button" onClick={onClose} aria-label="Close" style={modalCloseStyle}>×</button>
 
         {!result ? (
           <>
-            <h3 style={{ fontFamily: 'var(--pl-font-display, Georgia, serif)', fontSize: 24, margin: 0 }}>
+            <h3 id={titleId} style={{ fontFamily: 'var(--pl-font-display, Georgia, serif)', fontSize: 24, margin: 0 }}>
               Import guests from CSV
             </h3>
             <p style={{ color: 'var(--ink-soft)', fontSize: 14, lineHeight: 1.55, marginTop: 6 }}>
@@ -150,7 +170,7 @@ export function GuestImportDialog({ siteId, open, onClose, onImported }: Props) 
           </>
         ) : (
           <>
-            <h3 style={{ fontFamily: 'var(--pl-font-display, Georgia, serif)', fontSize: 24, margin: 0 }}>
+            <h3 id={titleId} style={{ fontFamily: 'var(--pl-font-display, Georgia, serif)', fontSize: 24, margin: 0 }}>
               Import complete
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 14 }}>

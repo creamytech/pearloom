@@ -1278,6 +1278,24 @@ select:focus-visible {
   box-shadow: var(--pl-shadow-lg);
 }
 
+/* ── Skip-to-content link (Phase 4.6 of AUDIT-2026-05-29) ──
+   Inline style on the anchor parks it off-screen; this rule
+   promotes it into view when focused. Visible only to keyboard
+   users tabbing in. Honours prefers-reduced-motion. */
+.pl-skip-link:focus,
+.pl-skip-link:focus-visible {
+  top: 12px !important;
+  outline: 2px solid var(--gold, #B8935A);
+  outline-offset: 2px;
+  transition: top 120ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-skip-link:focus,
+  .pl-skip-link:focus-visible {
+    transition: none;
+  }
+}
+
 /* ── Scroll-driven animations (2026) ─────────────────────── */
 @supports (animation-timeline: view()) {
   /* Hero parallax on scroll */

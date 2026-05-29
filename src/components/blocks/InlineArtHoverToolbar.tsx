@@ -327,16 +327,22 @@ export function InlineArtHoverToolbar({
             zIndex: 'var(--z-max)',
             padding: '14px 14px 12px',
             borderRadius: 'var(--pl-radius-xs)',
-            background: 'linear-gradient(180deg, #FDFAF0 0%, #F3EFE7 100%)',
+            // Phase 4.7 of AUDIT-2026-05-29 — editor chrome must
+            // bind to --pl-chrome-* tokens, not site-theme tokens
+            // (cream/ink). The hardcoded cream gradient previously
+            // here broke editor insulation when the host was
+            // editing a dark-themed site — the popover flashed
+            // light-mode against a dark canvas. See CLAUDE-DESIGN.md §2.6.
+            background: 'linear-gradient(180deg, var(--pl-chrome-surface) 0%, var(--pl-chrome-surface-2) 100%)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
             borderTop: '2px solid rgba(193,154,75,0.55)',
-            borderLeft: '1px solid rgba(193,154,75,0.18)',
-            borderRight: '1px solid rgba(193,154,75,0.18)',
-            borderBottom: '1px solid rgba(193,154,75,0.18)',
-            boxShadow: '0 20px 48px rgba(28,22,10,0.22), 0 2px 10px rgba(28,22,10,0.06)',
+            borderLeft: '1px solid var(--pl-chrome-border)',
+            borderRight: '1px solid var(--pl-chrome-border)',
+            borderBottom: '1px solid var(--pl-chrome-border)',
+            boxShadow: 'var(--pl-chrome-shadow)',
             fontFamily: 'inherit',
-            color: '#18181B',
+            color: 'var(--pl-chrome-text)',
           }}
         >
           <div style={{
@@ -726,7 +732,7 @@ function PresetTile({
           background: '#18181B',
           color: 'rgba(193,154,75,1)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 0 0 2px #FDFAF0',
+          boxShadow: '0 0 0 2px var(--pl-chrome-surface)',
         }}>
           <Check size={9} />
         </span>

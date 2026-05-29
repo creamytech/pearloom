@@ -70,6 +70,30 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col font-body">
+        {/* Phase 4.6 of AUDIT-2026-05-29 — keyboard users can
+            bypass the global nav with one Tab. Stays visually
+            hidden until focused (the :focus rule promotes it
+            into view). Targets #pl-main, which page layouts
+            should put on the primary <main> element. */}
+        <a
+          href="#pl-main"
+          className="pl-skip-link"
+          style={{
+            position: 'absolute',
+            top: -40,
+            left: 12,
+            zIndex: 9999,
+            padding: '8px 14px',
+            borderRadius: 'var(--pl-radius-md, 8px)',
+            background: 'var(--ink, #0E0D0B)',
+            color: 'var(--cream, #FBF7EE)',
+            fontSize: 13,
+            fontWeight: 600,
+            textDecoration: 'none',
+          }}
+        >
+          Skip to main content
+        </a>
         <ThemeProvider>
           <AuthProvider>
             <ToastProvider>
