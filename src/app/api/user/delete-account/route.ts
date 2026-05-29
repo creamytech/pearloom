@@ -10,8 +10,9 @@
 //     "anonymize so other guests still see your contributions"
 //   • Matches GDPR right-to-be-forgotten intent (Article 17)
 //   • Simpler audit story — one operation, one outcome
-//   • CLAUDE-DESIGN.md §14 / CLAUDE-PRODUCT.md have no opinion;
-//     the audit explicitly flagged absence of any delete path
+//   • docs/SOFT-DELETE-POLICY.md (Phase 1.6) catalogs which
+//     columns mean what, and confirms account-delete is the only
+//     mechanism that physically removes B/C-category rows
 //   • Co-host data orphans gracefully — guest_id FKs are
 //     ON DELETE SET NULL, so guestbook signatures etc. survive
 //     anonymized rather than disappearing
