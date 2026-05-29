@@ -5,13 +5,15 @@
 //
 // Prompted guest submissions — "Advice for the new parents",
 // "Advice for the bride", "A memory of Nana". Host sees a
-// moderated wall of quotes. MVP: local-only submissions stored
-// per-browser so guests see their own posts; backend wiring
-// (tribute_submissions table in CLAUDE-DESIGN.md §14) lands with
-// a dedicated session.
+// moderated wall of quotes.
 //
-// Intentional scope call: this block is presentational +
-// local-state submit until the submission schema lands.
+// When the block receives `siteId` + `blockId` props (the
+// renderer always passes them), submissions sync to
+// `tribute_submissions` via POST /api/event-os/submissions and
+// the wall pulls the authoritative list via GET on the same
+// route. The local-storage path stays as the optimistic UI +
+// offline fallback so a guest sees their own entry instantly
+// even if the network is slow.
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
