@@ -88,7 +88,7 @@ export function HeroPhotoFirst({ manifest, names, siteSlug, onEditField, onEditN
           color: 'var(--cream, #FBF7EE)',
         }}
       >
-        <div style={{ textAlign: 'center' }}>
+        <div className="pl-hero-enter" style={{ textAlign: 'center' }}>
           <HeroKicker manifest={manifest} dateInfo={dateInfo} onEditField={onEditField} />
           <HeroNames
             n1={n1} n2={n2}

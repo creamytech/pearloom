@@ -21,7 +21,7 @@ export function HeroSplit({ manifest, names, siteSlug, onEditField, onEditNames,
 
   return (
     <div
-      className="pl8-hero-split"
+      className="pl8-hero-split pl-hero-enter"
       style={{
         maxWidth: 1280, margin: '0 auto',
         display: 'grid',
