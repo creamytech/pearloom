@@ -522,7 +522,7 @@ export function TemplatesV8() {
                 </h2>
               </div>
             </div>
-            <div className="pl8-cols-3" style={{ gap: 24 }}>
+            <div className="pl8-cols-3 pl-cascade-row" style={{ gap: 24 }}>
               {featured.map((t) => (
                 <TemplateTile key={t.id} t={t} size="lg" />
               ))}
@@ -541,7 +541,7 @@ export function TemplatesV8() {
               </span>
             </h2>
           </div>
-          <div className="pl8-cols-4">
+          <div className="pl8-cols-4 pl-cascade-row">
             {rest.map((t) => (
               <TemplateTile key={t.id} t={t} size="md" />
             ))}
