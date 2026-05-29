@@ -48,6 +48,25 @@ vi.mock('@/lib/render-jobs', () => ({
   markFailed: h.markFailedMock,
 }));
 
+// Phase 3.3 added checkPearGate to the route. The real gate uses a
+// process-wide in-memory monthly counter keyed by email, so after
+// ~15 cumulative calls from host@example.test across this file's
+// cases, every subsequent test would 429 spuriously. Pin the gate
+// to always-allow + treat the host as unlimited so plan-tier
+// behavior doesn't leak into stylize-specific assertions. The
+// gate's own behavior is regression-netted by ai-meals + other
+// existing pearGate consumers.
+vi.mock('@/lib/rate-limit', async (orig) => {
+  const actual = (await orig()) as Record<string, unknown>;
+  return {
+    ...actual,
+    checkPearGate: async () => ({
+      blocked: undefined,
+      gate: { isUnlimited: true, plan: 'pro' },
+    }),
+  };
+});
+
 // next/server's `after` defers execution to "after response sent".
 // In tests we want to run it inline so the async-path assertions
 // can wait on its completion.

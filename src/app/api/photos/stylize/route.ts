@@ -18,7 +18,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { after } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { checkRateLimit, getClientIp, checkPearGate } from '@/lib/rate-limit';
 import { uploadToR2 } from '@/lib/r2';
 import { persistUserMedia } from '@/lib/user-media';
 import { generateImage } from '@/lib/memory-engine/image-router';
@@ -116,6 +116,14 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  // Phase 3.3 of AUDIT-2026-05-29 — plan-tier gate. Image
+  // stylization runs gpt-image-2 at 'high' quality, easily the
+  // most expensive per-call API in the stack. Without this gate,
+  // a free user could burn through OpenAI image budget by hitting
+  // the button repeatedly.
+  const { blocked } = await checkPearGate(session.user.email);
+  if (blocked) return blocked;
 
   const ip = getClientIp(req);
   const rl = checkRateLimit(`stylize:${session.user.email}:${ip}`, {

@@ -16,7 +16,7 @@ import type { GooglePhotoMetadata, PhotoCluster, WeddingEvent, LogoIconId } from
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import pLimit from 'p-limit';
 import { encryptBuffer, isEncryptionEnabled } from '@/lib/crypto';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimit, RATE_LIMITS, checkPearGate } from '@/lib/rate-limit';
 import { seedBlocksFromEventDetails } from '@/lib/event-os/seed-event-details';
 import { getDefaultThemeFamily } from '@/lib/event-os/theme-family';
 
@@ -295,6 +295,14 @@ export async function POST(req: Request) {
 
   // Rate limit by user email — AI generation is expensive
   const userEmail = (session as { user?: { email?: string } }).user?.email || 'unknown';
+
+  // Phase 3.3 of AUDIT-2026-05-29 — plan-tier gate. Streaming
+  // site generation is the most expensive AI path; without this
+  // gate free users could exhaust our Gemini budget by hitting it
+  // in a loop. Mirror of /api/generate.
+  const { blocked } = await checkPearGate(userEmail);
+  if (blocked) return blocked;
+
   const rateCheck = checkRateLimit(`generate:${userEmail}`, RATE_LIMITS.aiGenerate);
   if (!rateCheck.allowed) {
     return new Response(

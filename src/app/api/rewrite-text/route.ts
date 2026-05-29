@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimit, RATE_LIMITS, checkPearGate } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,6 +55,13 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  // Phase 3.3 of AUDIT-2026-05-29 — plan-tier gate. Block-level
+  // rewrites are larger Gemini calls than inline-rewrite; without
+  // this gate a free user could chain them across every editor
+  // block to bypass the per-route rate limit.
+  const { blocked } = await checkPearGate(session.user.email);
+  if (blocked) return blocked;
 
   // Rate limit by user email
   const rateCheck = checkRateLimit(`rewrite-text:${session.user.email}`, RATE_LIMITS.aiRewrite);

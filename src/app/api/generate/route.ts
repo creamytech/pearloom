@@ -18,7 +18,7 @@ import type { GooglePhotoMetadata, PhotoCluster, WeddingEvent, LogoIconId } from
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import pLimit from 'p-limit';
 import { encryptBuffer, isEncryptionEnabled } from '@/lib/crypto';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimit, RATE_LIMITS, checkPearGate } from '@/lib/rate-limit';
 import { seedBlocksFromEventDetails } from '@/lib/event-os/seed-event-details';
 import { getDefaultThemeFamily } from '@/lib/event-os/theme-family';
 
@@ -252,6 +252,17 @@ export async function POST(req: NextRequest) {
 
   // Rate limit by user email — AI generation is expensive
   const userEmail = (session as { user?: { email?: string } }).user?.email || 'unknown';
+
+  // Phase 3.3 of AUDIT-2026-05-29 — plan-tier gate. Full site
+  // generation is the single most expensive AI call we make (3-pass
+  // Gemini + photo mirror + vibe-skin). Without this gate, free-tier
+  // users could exhaust our Gemini budget on the most expensive
+  // endpoint. Pro / Atelier / Premium / Legacy are unlimited.
+  // TODO: per-route credit weighting — one site generation should
+  // probably cost N free credits, not 1. Punted to a product session.
+  const { blocked } = await checkPearGate(userEmail);
+  if (blocked) return blocked;
+
   const rateCheck = checkRateLimit(`generate:${userEmail}`, RATE_LIMITS.aiGenerate);
   if (!rateCheck.allowed) {
     return NextResponse.json(

@@ -16,7 +16,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { checkRateLimit, getClientIp, checkPearGate } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 25;
@@ -26,6 +26,13 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.email) {
     return NextResponse.json({ error: 'Sign in required.' }, { status: 401 });
   }
+
+  // Phase 3.3 of AUDIT-2026-05-29 — plan-tier gate. Inline
+  // rewrites call Claude on every selection-change; without this
+  // gate a free user with the inline toolbar open burns through
+  // the Anthropic budget fast.
+  const { blocked } = await checkPearGate(session.user.email);
+  if (blocked) return blocked;
 
   const rate = checkRateLimit(`inline-rewrite:${session.user.email}:${getClientIp(req)}`, {
     max: 30,
