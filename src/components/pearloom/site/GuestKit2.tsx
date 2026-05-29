@@ -12,8 +12,9 @@
    - <LiveWallDiscover />    : auto-shows when broadcast is active
    ======================================================================== */
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { useFocusTrap } from '@/lib/use-focus-trap';
 
 // ─────────────────────────────────────────────────────────────
 // Photo lightbox
@@ -61,6 +62,17 @@ export function PhotoLightbox({
   const [portalNode] = useState<HTMLElement | null>(() => {
     return typeof document !== 'undefined' ? document.body : null;
   });
+
+  // Phase 4.5 of AUDIT-2026-05-29 — a11y. counterId binds the
+  // dialog announcement to the visible "01/12" counter (more
+  // useful for SR users than the generic "Photo viewer" aria-label
+  // it had before). Focus trap keeps Tab inside the chrome rail
+  // (close / heart / nav) so it can't escape behind the overlay.
+  // useFocusTrap also restores focus to the gallery thumbnail
+  // that opened the lightbox when index → null.
+  const counterId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(index !== null, dialogRef);
 
   useEffect(() => {
     if (index === null) return;
@@ -111,9 +123,10 @@ export function PhotoLightbox({
   // serif counter, and click-outside-to-close.
   const overlay = (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
-      aria-label="Photo viewer"
+      aria-labelledby={counterId}
       onClick={onClose}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
@@ -150,6 +163,8 @@ export function PhotoLightbox({
         }}
       >
         <div
+          id={counterId}
+          aria-label={`Photo ${index + 1} of ${images.length}`}
           style={{
             display: 'inline-flex',
             alignItems: 'baseline',

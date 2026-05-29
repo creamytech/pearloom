@@ -11,7 +11,8 @@
 // Per-site: pass `siteId` from the parent page.
 // ──────────────────────────────────────────────────────────────
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useFocusTrap } from '@/lib/use-focus-trap';
 
 interface Item {
   id: string;
@@ -188,6 +189,21 @@ function ItemEditor({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // Phase 4.3 of AUDIT-2026-05-29 — modal a11y. titleId binds the
+  // dialog announcement to the visible h3 ("Edit item" / "New item").
+  // Esc closes (unless mid-save). Focus trap keeps Tab inside the
+  // modal so it can't escape to the dashboard underneath.
+  const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(true, dialogRef);
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' && !saving) onClose();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose, saving]);
+
   async function save() {
     const p = parseFloat(price);
     if (!name.trim()) { setError('Name is required.'); return; }
@@ -232,10 +248,17 @@ function ItemEditor({
   }
 
   return (
-    <div onClick={onClose} style={modalBackdropStyle}>
-      <div onClick={(e) => e.stopPropagation()} style={modalCardStyle}>
-        <button onClick={onClose} aria-label="Close" style={modalCloseStyle}>×</button>
-        <h3 style={{ fontFamily: 'var(--pl-font-display, Georgia, serif)', fontSize: 22, margin: 0 }}>
+    <div role="presentation" aria-hidden onClick={onClose} style={modalBackdropStyle}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onClick={(e) => e.stopPropagation()}
+        style={modalCardStyle}
+      >
+        <button type="button" onClick={onClose} aria-label="Close" style={modalCloseStyle}>×</button>
+        <h3 id={titleId} style={{ fontFamily: 'var(--pl-font-display, Georgia, serif)', fontSize: 22, margin: 0 }}>
           {existing ? 'Edit item' : 'New item'}
         </h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16 }}>
