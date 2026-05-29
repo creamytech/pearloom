@@ -375,7 +375,7 @@ export default async function PersonalGuestPage({
             }}>
               Chapters with you in them
             </h2>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '1rem' }}>
+            <ul className="pl-cascade-row" style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '1rem' }}>
               {personalization.chapter_highlights.map((h) => {
                 const chapter = manifest.chapters?.find((c) => c.id === h.chapterId);
                 return (
@@ -398,7 +398,7 @@ export default async function PersonalGuestPage({
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', marginBottom: '2.5rem' }}>
+        <div className="pl-cascade-row" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', marginBottom: '2.5rem' }}>
           <div style={{
             padding: '1.25rem 1.5rem',
             background: theme?.cardBg ?? '#ffffff',
