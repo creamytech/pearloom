@@ -5,7 +5,7 @@
 // PATCH /api/user/preferences. Billing / domain / privacy read
 // the real sign-in provider / site config.
 
-import { useState, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { Bloom } from '@/components/brand/groove';
 import { Pear, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
@@ -32,6 +32,24 @@ export function DashSettings() {
   const [section, setSection] = useState<Section>('profile');
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
 
+  // Honor ?section=... deep links (privacy page points hosts here
+  // for GDPR export + delete via section=export / section=danger).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const requested = new URLSearchParams(window.location.search).get('section');
+    if (requested && SECTIONS.some(s => s.k === requested)) {
+      setSection(requested as Section);
+    }
+  }, []);
+
+  // GDPR self-serve state — see /api/user/export-data + /api/user/delete-account
+  const [exportState, setExportState] = useState<'idle' | 'working' | 'error'>('idle');
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleteState, setDeleteState] = useState<'idle' | 'working' | 'error'>('idle');
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   const firstName =
     prefs.display_name || session?.user?.name?.split(' ')[0] || session?.user?.email?.split('@')[0] || 'Host';
   const fullName = prefs.display_name || session?.user?.name || firstName;
@@ -42,6 +60,63 @@ export function DashSettings() {
     setSaveState('saved');
     setTimeout(() => setSaveState('idle'), 1600);
   };
+
+  async function handleExport() {
+    setExportState('working');
+    setExportError(null);
+    try {
+      const res = await fetch('/api/user/export-data', { method: 'POST' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? `Export failed (${res.status})`);
+      }
+      // Server returns JSON with Content-Disposition; browsers won't
+      // auto-download from a fetch() so we materialize a Blob URL.
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `pearloom-export-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setExportState('idle');
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : 'Export failed');
+      setExportState('error');
+    }
+  }
+
+  async function handleDelete() {
+    if (!session?.user?.email) return;
+    setDeleteState('working');
+    setDeleteError(null);
+    try {
+      const res = await fetch('/api/user/delete-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmEmail: deleteConfirm.trim() }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? `Delete failed (${res.status})`);
+      }
+      // Hard-deleted on the server — sign out locally + send the
+      // user home. The session JWT is still technically valid for a
+      // few minutes (NextAuth limitation, noted in route header),
+      // but every owner-gated route now sees an account-not-found
+      // state and 403s.
+      await signOut({ callbackUrl: '/' });
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Delete failed');
+      setDeleteState('error');
+    }
+  }
+
+  const deleteEnabled = !!session?.user?.email
+    && deleteConfirm.trim().toLowerCase() === session.user.email.toLowerCase()
+    && deleteState !== 'working';
 
   return (
     <DashLayout
@@ -579,13 +654,27 @@ export function DashSettings() {
                   fontFamily: 'var(--pl-font-body)',
                 }}
               >
-                Every photo, guest, thread, and message. Exported as a single archive, yours forever
-                even if you cancel. No lock-in.
+                Every site, guest, RSVP, photo URL, registry item, and payment — exported as a single
+                JSON document, yours to keep even if you cancel. Plain text, no lock-in.
               </div>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <a href="/api/export/backup" style={{ ...btnInk, textDecoration: 'none' }}>
-                  ✦ Generate archive
-                </a>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={handleExport}
+                  disabled={exportState === 'working'}
+                  style={{
+                    ...btnInk,
+                    cursor: exportState === 'working' ? 'wait' : 'pointer',
+                    opacity: exportState === 'working' ? 0.7 : 1,
+                  }}
+                >
+                  {exportState === 'working' ? 'Threading…' : '✦ Download my data'}
+                </button>
+                {exportState === 'error' && exportError && (
+                  <span role="alert" style={{ fontSize: 12, color: PD.terra }}>
+                    {exportError}
+                  </span>
+                )}
               </div>
             </Panel>
           )}
@@ -599,12 +688,23 @@ export function DashSettings() {
                 accent={PD.terra}
               />
               {[
-                { l: 'Archive all events', s: 'Hides every site but keeps the weave', c: PD.gold },
-                { l: 'Sign out everywhere', s: 'Ends every active session', c: PD.plum, onClick: () => void signOut({ callbackUrl: '/' }) },
+                {
+                  l: 'Sign out everywhere',
+                  s: 'Ends every active session',
+                  c: PD.plum,
+                  cta: 'Sign out',
+                  onClick: () => void signOut({ callbackUrl: '/' }),
+                },
                 {
                   l: 'Delete Pearloom account',
-                  s: 'Contact support — no undo once it runs',
+                  s: 'Hard-deletes every site, guest, RSVP, photo, and message. Cannot be undone.',
                   c: PD.terra,
+                  cta: 'Begin delete',
+                  onClick: () => {
+                    setDeleteError(null);
+                    setDeleteConfirm('');
+                    setDeleteOpen(true);
+                  },
                 },
               ].map((r) => (
                 <div
@@ -623,13 +723,125 @@ export function DashSettings() {
                     <div style={{ fontSize: 12, color: '#6A6A56' }}>{r.s}</div>
                   </div>
                   <button
+                    type="button"
                     onClick={r.onClick}
                     style={{ ...btnGhost, color: r.c, borderColor: `${r.c}44` }}
                   >
-                    Proceed
+                    {r.cta}
                   </button>
                 </div>
               ))}
+
+              {deleteOpen && session?.user?.email && (
+                <div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="pl-delete-title"
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget && deleteState !== 'working') setDeleteOpen(false);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape' && deleteState !== 'working') setDeleteOpen(false);
+                  }}
+                  style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(14,13,11,0.5)',
+                    display: 'grid',
+                    placeItems: 'center',
+                    zIndex: 200,
+                    padding: 20,
+                  }}
+                >
+                  <div
+                    style={{
+                      background: PD.paper2,
+                      borderRadius: 16,
+                      padding: 28,
+                      maxWidth: 460,
+                      width: '100%',
+                      boxShadow: '0 24px 60px rgba(14,13,11,0.32)',
+                    }}
+                  >
+                    <h2
+                      id="pl-delete-title"
+                      style={{
+                        ...DISPLAY_STYLE,
+                        fontSize: 22,
+                        margin: '0 0 8px',
+                        color: PD.terra,
+                      }}
+                    >
+                      Delete your account?
+                    </h2>
+                    <p style={{ fontSize: 13.5, color: PD.inkSoft, lineHeight: 1.55, margin: '0 0 18px' }}>
+                      This permanently deletes every site you own, every guest, every RSVP, every
+                      registry claim, every payment record, and every photo URL. Co-host
+                      collaborations end. Guests lose access to your sites.{' '}
+                      <strong>This cannot be undone.</strong>
+                    </p>
+                    <label style={{ display: 'block', marginBottom: 18 }}>
+                      <span
+                        style={{
+                          display: 'block',
+                          fontSize: 11,
+                          ...MONO_STYLE,
+                          color: PD.inkSoft,
+                          marginBottom: 6,
+                          letterSpacing: '0.16em',
+                        }}
+                      >
+                        TYPE YOUR EMAIL TO CONFIRM
+                      </span>
+                      <input
+                        type="email"
+                        autoFocus
+                        value={deleteConfirm}
+                        onChange={(e) => setDeleteConfirm(e.target.value)}
+                        placeholder={session.user.email}
+                        disabled={deleteState === 'working'}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          borderRadius: 8,
+                          border: '1px solid rgba(31,36,24,0.2)',
+                          fontSize: 14,
+                          fontFamily: 'var(--pl-font-body)',
+                          background: '#FFF',
+                          color: PD.ink,
+                        }}
+                      />
+                    </label>
+                    {deleteError && (
+                      <div role="alert" style={{ fontSize: 12, color: PD.terra, marginBottom: 14 }}>
+                        {deleteError}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteOpen(false)}
+                        disabled={deleteState === 'working'}
+                        style={btnGhost}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleDelete}
+                        disabled={!deleteEnabled}
+                        style={{
+                          ...btnInk,
+                          background: deleteEnabled ? PD.terra : '#C9B5AA',
+                          cursor: deleteEnabled ? 'pointer' : 'not-allowed',
+                        }}
+                      >
+                        {deleteState === 'working' ? 'Deleting…' : 'Delete everything'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </Panel>
           )}
         </div>

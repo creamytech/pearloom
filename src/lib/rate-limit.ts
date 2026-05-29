@@ -215,6 +215,8 @@ export const RATE_LIMITS = {
   siteHealth: { max: 10, windowMs: 60 * 60 * 1000 },
   /** Data export — 10 per hour per user (GDPR compliance) */
   dataExport: { max: 10, windowMs: 60 * 60 * 1000 },
+  /** Account deletion — 3 per 24h per user (irreversible, prevent accidents) */
+  accountDeletion: { max: 3, windowMs: 24 * 60 * 60 * 1000 },
   /** AI hotel finder — 15 per hour per user */
   aiHotels: { max: 15, windowMs: 60 * 60 * 1000 },
   /** AI meal generation — 15 per hour per user */

@@ -30,10 +30,15 @@ export default function PrivacyPage() {
       </p>
       <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 28, color: 'var(--ink)', marginTop: 40, marginBottom: 12 }}>Your rights</h2>
       <p>
-        Request a copy of everything we have, correct anything that's wrong, or delete your account — visit
-        your dashboard settings or email <a href="mailto:hello@pearloom.com" style={{ color: 'var(--lavender-ink)' }}>hello@pearloom.com</a>.
+        <strong>Export your data:</strong> visit <a href="/dashboard/profile?section=export" style={{ color: 'var(--lavender-ink)' }}>Settings → Weave a backup</a> for a one-click JSON download of every site, guest, RSVP, photo URL, registry item, and payment record we hold on you.
       </p>
-      <p style={{ marginTop: 24, fontSize: 13, opacity: 0.7 }}>Last updated: April 2026.</p>
+      <p>
+        <strong>Delete your account:</strong> visit <a href="/dashboard/profile?section=danger" style={{ color: 'var(--lavender-ink)' }}>Settings → Delicate actions</a>. Account deletion is irreversible — every site, guest, message, and photo is hard-deleted within seconds.
+      </p>
+      <p>
+        Need to correct something we got wrong, or have a question? Email <a href="mailto:hello@pearloom.com" style={{ color: 'var(--lavender-ink)' }}>hello@pearloom.com</a>.
+      </p>
+      <p style={{ marginTop: 24, fontSize: 13, opacity: 0.7 }}>Last updated: May 2026.</p>
     </LegalPage>
   );
 }
