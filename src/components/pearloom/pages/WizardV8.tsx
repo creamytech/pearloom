@@ -2063,7 +2063,7 @@ export function WizardV8() {
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
                     Pick 2–4. Your vibes shape tone, language, and flow.
                   </p>
-                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <div className="pl-cascade-row" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     {VIBES.map((v) => {
                       const on = st.vibes.includes(v.id);
                       return (
@@ -2228,7 +2228,7 @@ export function WizardV8() {
 
                   {(st.smartPalettes?.length ?? 0) > 0 && (
                     <div
-                      className="pl8-palette-grid"
+                      className="pl8-palette-grid pl-cascade-row"
                       style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}
                     >
                       {st.smartPalettes!.map((p) => {
@@ -2337,7 +2337,7 @@ export function WizardV8() {
                     Classic presets
                   </div>
                   <div
-                    className="pl8-palette-grid"
+                    className="pl8-palette-grid pl-cascade-row"
                     style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}
                   >
                     {PALETTES.map((p) => {
@@ -2414,7 +2414,7 @@ export function WizardV8() {
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
                     Every layout is a full site — they just handle pacing differently.
                   </p>
-                  <div className="pl8-layout-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+                  <div className="pl8-layout-grid pl-cascade-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
                     {LAYOUTS.map((l) => {
                       const on = st.layout === l.id;
                       return (
