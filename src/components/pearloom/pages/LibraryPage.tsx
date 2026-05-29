@@ -342,6 +342,7 @@ export function LibraryPage() {
 
         {filtered.length > 0 && (
           <div
+            className="pl8-dash-stagger"
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',

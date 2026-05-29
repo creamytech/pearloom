@@ -171,7 +171,7 @@ export function VendorsPage({ embedded = false }: { embedded?: boolean } = {}) {
                 >
                   {cat}s
                 </h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+                <div className="pl8-dash-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
                   {items.map((v) => (
                     <VendorCard key={v.id} v={v} />
                   ))}

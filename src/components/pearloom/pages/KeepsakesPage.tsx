@@ -86,7 +86,7 @@ export function KeepsakesPage() {
         <div style={{ marginBottom: 22 }}>
           <TwoTapThanks />
         </div>
-        <div className="pl8-keepsakes-grid">
+        <div className="pl8-keepsakes-grid pl8-dash-stagger">
           {showThanks && <ThankYouGenerator />}
           {showAnniversary && <AnniversaryPreview />}
           {tools
