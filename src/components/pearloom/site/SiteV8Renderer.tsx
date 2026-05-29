@@ -1295,8 +1295,15 @@ function HeroVariantDispatch({
     return <Variant {...sharedProps} />;
   }
 
+  // .pl-hero-enter staggers the variant's immediate children
+  // (Postcard returns a fragment of 7 elements — kicker, names,
+  // date-venue, tagline, CTA, link tray, photo strip — each
+  // settles in 120ms after the previous so the hero feels like
+  // it's composing on the page rather than slamming on paint).
+  // Variants returning a single root div degrade to a whole-block
+  // fade-in. Honours prefers-reduced-motion.
   return (
-    <div style={{ maxWidth: 1160, margin: '0 auto', position: 'relative' }}>
+    <div className="pl-hero-enter" style={{ maxWidth: 1160, margin: '0 auto', position: 'relative' }}>
       <Variant {...sharedProps} />
     </div>
   );
@@ -2462,7 +2469,7 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
           </h2>
         </div>
 
-        <div style={{ background: 'var(--card)', border: '1px solid var(--card-ring)', borderRadius: 24, overflow: 'hidden' }}>
+        <div className="pl-cascade-row" style={{ background: 'var(--card)', border: '1px solid var(--card-ring)', borderRadius: 24, overflow: 'hidden' }}>
           {(() => {
             const renderRow = (r: typeof rows[number], i: number, dragHandleProps?: React.HTMLAttributes<HTMLElement> & { ref: (el: HTMLElement | null) => void }) => (
             <div
@@ -3529,6 +3536,7 @@ function HotelsMapView({
         </div>
       )}
       <ol
+        className="pl-cascade-row"
         style={{
           margin: 0,
           padding: 0,

@@ -76,6 +76,7 @@ export function RegistryItemsBlock({ siteId, title = 'Registry', subtitle }: Pro
       </div>
 
       <div
+        className="pl-cascade-row"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
