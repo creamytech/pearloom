@@ -17,6 +17,7 @@ import type { StoryManifest } from '@/types';
 import { Field, PanelDisclosure, PanelGroup, PanelSection, PanelSmartActions, PanelTabs, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { TimePicker } from '../v8-forms';
 import { Icon } from '../../motifs';
+import { LivestreamPanel } from './LivestreamPanel';
 
 const DRESS_CODES = [
   { value: '', label: 'Not specified' },
@@ -265,6 +266,12 @@ export function DetailsPanel({
           <Icon name="plus" size={11} /> Add a card
         </button>
       </PanelSection>
+
+      {/* Phase 5.1 of AUDIT-2026-05-29 — surface the livestream
+          block's URL editor where memorial hosts already are.
+          Renders a "+ Add livestream block" CTA if the block
+          doesn't exist yet; renders the full form when it does. */}
+      <LivestreamPanel manifest={manifest} onChange={onChange} />
     </PanelGroup>
   );
 

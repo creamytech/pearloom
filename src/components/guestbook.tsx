@@ -8,7 +8,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Sparkles, AlertCircle, Send, Mic } from 'lucide-react';
+import { Loader2, Sparkles, AlertCircle, Send } from 'lucide-react';
 import { ElegantHeartIcon } from '@/components/icons/PearloomIcons';
 import type { VibeSkin } from '@/lib/vibe-engine';
 
@@ -279,7 +279,11 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
   const [submitting, setSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  const [voiceToast, setVoiceToast] = useState(false);
+  // Phase 5.2 of AUDIT-2026-05-29 removed the "Leave a voice
+  // message" dead button + its "coming soon" toast. Promising
+  // features we haven't built erodes trust faster than just
+  // not promising them. voice_toasts table exists but has no
+  // recorder / player consumer; revisit when product wants it.
   // pearloom_guests.guest_token — captured from ?g= or ?guest=
   // when the visitor arrived via their personalized link. Threaded
   // into POSTs so guestbook entries get tagged with guest_id and
@@ -571,67 +575,6 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                       </button>
                     ))}
                   </div>
-                </div>
-
-                {/* Voice note placeholder */}
-                <div style={{ position: 'relative' }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setVoiceToast(true);
-                      setTimeout(() => setVoiceToast(false), 2800);
-                    }}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.45rem',
-                      padding: '0.45rem 1rem',
-                      borderRadius: 'var(--pl-radius-full)',
-                      border: '1.5px dashed rgba(0,0,0,0.15)',
-                      background: 'transparent',
-                      color: 'var(--pl-muted)',
-                      fontSize: '0.82rem',
-                      fontFamily: 'var(--pl-font-body)',
-                      cursor: 'pointer',
-                      transition: 'border-color 0.2s, color 0.2s',
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.borderColor = 'var(--pl-olive)';
-                      (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive)';
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.15)';
-                      (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)';
-                    }}
-                  >
-                    <Mic size={13} />
-                    Leave a voice message
-                  </button>
-                  <AnimatePresence>
-                    {voiceToast && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        transition={{ duration: 0.25 }}
-                        style={{
-                          position: 'absolute',
-                          left: 0,
-                          top: 'calc(100% + 0.5rem)',
-                          background: 'var(--pl-ink)',
-                          color: 'var(--pl-cream)',
-                          fontSize: '0.75rem',
-                          padding: '0.4rem 0.85rem',
-                          borderRadius: '0.5rem',
-                          whiteSpace: 'nowrap',
-                          pointerEvents: 'none',
-                          zIndex: 10,
-                        }}
-                      >
-                        Voice messages coming soon
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </div>
 
                 {/* Name field — bottom-border style */}
