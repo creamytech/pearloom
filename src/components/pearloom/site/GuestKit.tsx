@@ -13,7 +13,7 @@
    - <AskPearFloater />        : tiny Pear chat that answers from manifest
    ======================================================================== */
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import type { StoryManifest } from '@/types';
 import { buildSiteUrl, normalizeOccasion } from '@/lib/site-urls';
 
@@ -28,6 +28,14 @@ interface BaseProps {
 // ─────────────────────────────────────────────────────────────
 export function CalendarAddButton({ domain, manifest, variant = 'pill' }: { domain: string; manifest: StoryManifest; variant?: 'pill' | 'link' }) {
   const [open, setOpen] = useState(false);
+  // Phase 4.4 of AUDIT-2026-05-29. Roving tabindex tracks which
+  // menuitem holds focus; ArrowDown/Up cycle it, Home/End jump
+  // to ends, Esc closes + returns focus to the trigger.
+  const [activeIndex, setActiveIndex] = useState(0);
+  const triggerId = useId();
+  const menuId = useId();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const itemRefs = useRef<Array<HTMLAnchorElement | null>>([]);
   const date = manifest.logistics?.date;
   if (!date) return null;
   const ics = `/sites/${domain}/event.ics`;
@@ -67,10 +75,89 @@ export function CalendarAddButton({ domain, manifest, variant = 'pill' }: { doma
     cursor: 'pointer',
     fontFamily: 'inherit',
   };
+
+  // Item count is fixed at 4 — three primary services + a
+  // download fallback. Kept inline so the menu/keyboard math
+  // doesn't need a separate items array.
+  const ITEM_COUNT = 4;
+
+  const closeAndRestoreFocus = useCallback(() => {
+    setOpen(false);
+    // Return focus to the trigger — keyboard convention so the
+    // user picks up where they left off without having to Tab
+    // back to the source button.
+    requestAnimationFrame(() => triggerRef.current?.focus());
+  }, []);
+
+  // On open: focus the first menuitem so the host can immediately
+  // arrow-key through. On close: nothing — closeAndRestoreFocus
+  // already handles the focus-return path.
+  useEffect(() => {
+    if (!open) return;
+    setActiveIndex(0);
+    requestAnimationFrame(() => itemRefs.current[0]?.focus());
+  }, [open]);
+
+  // Roving-tabindex sync — whenever activeIndex changes while
+  // open, physically focus that item so SR users hear it and
+  // visible focus tracks the keyboard cursor.
+  useEffect(() => {
+    if (!open) return;
+    itemRefs.current[activeIndex]?.focus();
+  }, [activeIndex, open]);
+
+  // Click-outside dismiss. Wraps in the same ref as the trigger
+  // so clicking the trigger doesn't re-trigger via the outside
+  // path (the trigger's onClick already toggles).
+  const wrapRef = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    function onPointerDown(e: PointerEvent) {
+      const target = e.target as Node | null;
+      if (target && wrapRef.current && !wrapRef.current.contains(target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [open]);
+
+  function onMenuKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    switch (e.key) {
+      case 'Escape':
+        e.preventDefault();
+        closeAndRestoreFocus();
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        setActiveIndex((i) => (i + 1) % ITEM_COUNT);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setActiveIndex((i) => (i - 1 + ITEM_COUNT) % ITEM_COUNT);
+        break;
+      case 'Home':
+        e.preventDefault();
+        setActiveIndex(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        setActiveIndex(ITEM_COUNT - 1);
+        break;
+      case 'Tab':
+        // Tab leaves the menu — close it so focus doesn't trap
+        // here when the host is just tabbing through the page.
+        setOpen(false);
+        break;
+    }
+  }
+
   return (
-    <span style={{ position: 'relative', display: 'inline-block' }}>
+    <span ref={wrapRef} style={{ position: 'relative', display: 'inline-block' }}>
       <button
+        ref={triggerRef}
         type="button"
+        id={triggerId}
         onClick={() => setOpen((o) => !o)}
         className={variant === 'link' ? 'pl8-cal-trigger' : 'btn btn-outline btn-sm pl8-cal-trigger'}
         style={
@@ -86,9 +173,10 @@ export function CalendarAddButton({ domain, manifest, variant = 'pill' }: { doma
         }}
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-controls={menuId}
       >
         {variant !== 'link' && (
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg aria-hidden width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="5" width="18" height="16" rx="2" />
             <path d="M16 3v4M8 3v4M3 11h18" />
           </svg>
@@ -97,8 +185,10 @@ export function CalendarAddButton({ domain, manifest, variant = 'pill' }: { doma
       </button>
       {open && (
         <div
+          id={menuId}
           role="menu"
-          onMouseLeave={() => setOpen(false)}
+          aria-labelledby={triggerId}
+          onKeyDown={onMenuKeyDown}
           style={{
             position: 'absolute',
             top: 'calc(100% + 6px)',
@@ -113,16 +203,50 @@ export function CalendarAddButton({ domain, manifest, variant = 'pill' }: { doma
             animation: 'pl8-cal-pop 180ms cubic-bezier(0.22, 1, 0.36, 1)',
           }}
         >
-          <a href={ics} download style={menuItem}>
-             Apple Calendar (.ics)
+          <a
+            ref={(el) => { itemRefs.current[0] = el; }}
+            href={ics}
+            download
+            role="menuitem"
+            tabIndex={activeIndex === 0 ? 0 : -1}
+            style={menuItem}
+            onClick={() => setOpen(false)}
+          >
+            Apple Calendar (.ics)
           </a>
-          <a href={gcal.toString()} target="_blank" rel="noreferrer" style={menuItem}>
+          <a
+            ref={(el) => { itemRefs.current[1] = el; }}
+            href={gcal.toString()}
+            target="_blank"
+            rel="noreferrer"
+            role="menuitem"
+            tabIndex={activeIndex === 1 ? 0 : -1}
+            style={menuItem}
+            onClick={() => setOpen(false)}
+          >
             Google Calendar
           </a>
-          <a href={outlook.toString()} target="_blank" rel="noreferrer" style={menuItem}>
+          <a
+            ref={(el) => { itemRefs.current[2] = el; }}
+            href={outlook.toString()}
+            target="_blank"
+            rel="noreferrer"
+            role="menuitem"
+            tabIndex={activeIndex === 2 ? 0 : -1}
+            style={menuItem}
+            onClick={() => setOpen(false)}
+          >
             Outlook
           </a>
-          <a href={ics} download style={{ ...menuItem, fontSize: 11, color: 'var(--ink-muted)' }}>
+          <a
+            ref={(el) => { itemRefs.current[3] = el; }}
+            href={ics}
+            download
+            role="menuitem"
+            tabIndex={activeIndex === 3 ? 0 : -1}
+            style={{ ...menuItem, fontSize: 11, color: 'var(--ink-muted)' }}
+            onClick={() => setOpen(false)}
+          >
             Download .ics
           </a>
           <style jsx>{`
