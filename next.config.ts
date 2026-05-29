@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from '@sentry/nextjs';
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
@@ -28,4 +29,32 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Wrap with Sentry — uploads source maps to Sentry's CDN at build
+// time when SENTRY_AUTH_TOKEN is present (CI / prod). Without it,
+// the wrapper is a transparent passthrough — dev / preview deploys
+// keep their build performance.
+//
+// The sentry.{server,client,edge}.config.ts files at the repo root
+// are auto-loaded by @sentry/nextjs into their respective runtimes;
+// each gates Sentry.init on the relevant DSN env var so dev runs
+// without a Sentry project still work.
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Don't upload source maps in dev / when the auth token isn't set.
+  silent: !process.env.SENTRY_AUTH_TOKEN,
+
+  // Hide source maps from public download — they're uploaded to
+  // Sentry for symbolication and then deleted from the build output.
+  sourcemaps: { deleteSourcemapsAfterUpload: true },
+
+  // Tree-shake the SDK to drop debug/log statements from the
+  // production bundle.
+  disableLogger: true,
+
+  // Route Sentry's error-reporting through a Next.js rewrite at
+  // /monitoring/* so ad-blockers don't strip them.
+  tunnelRoute: '/monitoring',
+});
