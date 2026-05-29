@@ -1,9 +1,15 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / app/api/invite/route.ts
 // Coordinator invite management: create, list, delete
+//
+// Every method verifies the caller owns the targeted site
+// (case-insensitive on creator_email, matching /api/payments and
+// /api/sites/[domain]). Before that gate landed, any authenticated
+// user could enumerate / revoke / create invites for any siteId.
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createSiteInvite, getSiteInvites, deleteSiteInvite } from '@/lib/db';
@@ -12,6 +18,29 @@ import { getAppOrigin } from '@/lib/site-urls';
 import { checkRateLimit } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
+
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
+
+// Returns true when sessionEmail owns the given site.
+// Case-insensitive — IdP casing variance otherwise 403s the
+// legitimate owner. siteId is the sites.id uuid (not subdomain).
+async function ownsSite(siteId: string, sessionEmail: string): Promise<boolean> {
+  const supabase = getSupabase();
+  if (!supabase) return false;
+  const { data } = await supabase
+    .from('sites')
+    .select('creator_email')
+    .eq('id', siteId)
+    .maybeSingle();
+  if (!data) return false;
+  return String(data.creator_email ?? '').toLowerCase().trim()
+    === sessionEmail.toLowerCase().trim();
+}
 
 // POST — create invite
 export async function POST(req: NextRequest) {
@@ -40,6 +69,11 @@ export async function POST(req: NextRequest) {
 
     if (!['coordinator', 'viewer'].includes(role)) {
       return NextResponse.json({ error: 'Invalid role. Must be coordinator or viewer.' }, { status: 400 });
+    }
+
+    // Verify the caller owns the site they're inviting to.
+    if (!(await ownsSite(siteId, session.user.email))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const { token } = await createSiteInvite({
@@ -99,6 +133,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Missing siteId query param' }, { status: 400 });
   }
 
+  // Don't leak another owner's invite list — the list contains
+  // email addresses + role + accept/expiry state.
+  if (!(await ownsSite(siteId, session.user.email))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   try {
     const invites = await getSiteInvites(siteId);
     return NextResponse.json({ invites });
@@ -120,6 +160,25 @@ export async function DELETE(req: NextRequest) {
 
   if (!id) {
     return NextResponse.json({ error: 'Missing id query param' }, { status: 400 });
+  }
+
+  // Look up the invite's site so we can verify the caller owns it.
+  // Without this gate, any authenticated user could revoke any
+  // invite by guessing its uuid (or scraping one from an email).
+  const supabase = getSupabase();
+  if (!supabase) {
+    return NextResponse.json({ error: 'Storage unavailable' }, { status: 503 });
+  }
+  const { data: invite } = await supabase
+    .from('site_invites')
+    .select('site_id')
+    .eq('id', id)
+    .maybeSingle();
+  if (!invite) {
+    return NextResponse.json({ error: 'Invite not found' }, { status: 404 });
+  }
+  if (!(await ownsSite(invite.site_id as string, session.user.email))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   try {
