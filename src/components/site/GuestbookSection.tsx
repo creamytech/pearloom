@@ -190,6 +190,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
         </div>
       ) : messages.length > 0 ? (
         <div
+          className="pl-cascade-row"
           style={{
             maxWidth: '1100px',
             margin: '0 auto 3rem',

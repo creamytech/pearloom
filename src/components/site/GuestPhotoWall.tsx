@@ -221,6 +221,7 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
         {/* Photo grid */}
         {photos.length > 0 ? (
           <div
+            className="pl-cascade-row"
             style={{
               columns: 'auto 200px',
               columnGap: '12px',
