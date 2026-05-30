@@ -4285,6 +4285,51 @@ html { scroll-behavior: smooth; }
    glass; amber border survives. No override needed. */
 
 /* ─────────────────────────────────────────────────────────
+   Quiet × Texture compat overrides
+   ─────────────────────────────────────────────────────────
+   Quiet's identity is whitespace + restraint + no card chrome.
+   Textures want to add filter + border + shadow to cards. Without
+   these overrides Quiet stops being Quiet whenever a texture is
+   picked. So: on Quiet, every texture's card embellishments are
+   stripped. Material identity is carried by the PAGE background
+   (grain, paint pools, halftone) which Quiet doesn't cover. */
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="watercolor"] .pl8-schedule-row,
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="watercolor"] .pl8-chapter-row,
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="watercolor"] .pl8-hotel-row,
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="linen"] .pl8-schedule-row,
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="linen"] .pl8-chapter-row,
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="linen"] .pl8-hotel-row,
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="letterpress"] .pl8-schedule-row,
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="letterpress"] .pl8-chapter-row,
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="letterpress"] .pl8-hotel-row,
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="vellum"] .pl8-schedule-row,
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="vellum"] .pl8-chapter-row,
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="vellum"] .pl8-hotel-row,
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="newsprint"] .pl8-schedule-row,
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="newsprint"] .pl8-chapter-row,
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="newsprint"] .pl8-hotel-row {
+  border: none !important;
+  border-top: 1px solid rgba(14,13,11,0.06) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  padding: 20px 0 !important;
+}
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="watercolor"] section h2,
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="watercolor"] section h3,
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="watercolor"] section .display,
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="letterpress"] section h2,
+.pl8-guest[data-pl-edition="quiet"][data-pl-texture="letterpress"] section h3 {
+  /* Headlines on Quiet stay Quiet — the texture's brush/press
+     filters and text-shadows are too loud for the restraint
+     posture. Page-level grain still carries texture identity. */
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+/* ─────────────────────────────────────────────────────────
    Motion softening across all non-smooth textures (carry-over —
    the user wanted handmade pages, not animated ones).
    ───────────────────────────────────────────────────────── */
