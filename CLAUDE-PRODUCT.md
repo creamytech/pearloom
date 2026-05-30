@@ -441,6 +441,82 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-05-30 — Site Editions: layout overhaul Phases 1-3a, 2b
+
+Major upgrade to generated sites — five named "Editions" each
+ship a coordinated set of layout defaults (hero variant,
+atmosphere preset, section divider rhythm) that the host picks
+in one click. Replaces the old axis-by-axis layout configuration
+where each surface lived in a separate panel.
+
+**The 5 Editions** (see `src/lib/site-editions/editions.ts`):
+- **Almanac** — bound book. Postcard hero, chapter marks,
+  thread dividers, generous serif type. Recommended for
+  wedding, anniversary, vow-renewal.
+- **Cinema** — letterboxed film magazine. Photo-first hero,
+  sprocket dividers, slug-line section openers, pearl CTA.
+  Recommended for engagement, milestone birthdays.
+- **Postcard Box** — tilted polaroid cards on cream-deep gauze,
+  stitch dividers, stamp openers, no atmosphere shader.
+  Recommended for bachelor/ette, bridal shower, reunion,
+  sip-and-see, baby shower.
+- **Linen Folder** — hotel stationery formal. Split hero,
+  gold-hairline dividers, mono-uppercased labels with leading
+  gold dot. Recommended for rehearsal dinner, bar/bat mitzvah,
+  quinceanera, baptism, retirement.
+- **Quiet Edition** — whitespace and restraint. Minimal hero,
+  whitespace dividers, tiny mono overlines, no chrome.
+  Recommended for memorial, funeral.
+
+**CRITICAL CONTRACT**: Editions are READ-TIME defaults only.
+The resolver (`src/lib/site-editions/resolve.ts`) never writes
+back to the manifest. Hosts who set explicit per-block
+overrides (heroVariant, atmosphere, blockOrder) keep them.
+This protects every existing published site from any visual
+regression.
+
+**Shipped this pass**:
+- `src/lib/site-editions/` module: types, editions registry,
+  resolver, 19 passing tests covering registry shape +
+  recommendation logic + resolver fallback chain
+- `StoryManifest.edition` typed in `src/types.ts`
+- `SiteV8Renderer` wired: hero variant fallback +
+  atmosphere fallback chain (explicit > Edition > occasion
+  default > legacy default)
+- `src/components/pearloom/site/edition-dividers/` — 5
+  divider components mounted in the SortableBlockList loop
+  between sections
+- `src/components/pearloom/site/edition-openers/` — 5
+  opener components (built; per-section title-slot mounting
+  deferred to Phase 4 when section dispatch is touched)
+- `src/components/pearloom/editor/panels/EditionPicker.tsx`
+  mounted at the top of the Theme panel as the
+  highest-altitude design decision. 2-col grid of 5 tiles
+  with 240×100 inline-SVG miniatures; active tile gets
+  sage-tint highlight; unset+recommended tile gets a peach
+  "★ Recommended" badge.
+
+**Resolver logic** (`recommendEdition`): occasion match wins
+first (memorial → quiet, bachelor-party → postcard-box, etc.);
+voice falls through second (solemn → quiet, ceremonial →
+linen-folder, playful → postcard-box); `DEFAULT_EDITION_ID =
+'almanac'` as final fallback. Wizard-generated sites
+automatically get the right Edition via this read-time
+fallback — no wizard step needed, no API change.
+
+**Deferred to subsequent phases** (per the layout-overhaul
+plan):
+- Phase 4: Schedule + Gallery section extraction into the
+  registerBlockStyle variant pattern (currently single hard-
+  coded impl in SiteV8Renderer; Hero and Story already use
+  the registry)
+- Phase 5: edition-aware OG cards, microcopy packs, long-tail
+  blocks (Travel/FAQ/Registry/RSVP variants on demand)
+- "Tilted grids" direction (Margins / Spread / Newspaper /
+  Wall / Filmstrip / Letterpress-sheet) — explicitly
+  deferred per the plan; requires container-query foundation
+  before safe to ship
+
 ### 2026-04-30 — Mass dead-code prune (~13,000 lines deleted)
 
 After the surface prune, the user said "keep going don't stop".
