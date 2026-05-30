@@ -647,7 +647,10 @@
 
 @media (max-width: 960px) {
   .pl8-guest .pl8-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  .pl8-guest .pl8-cols-2 { grid-template-columns: 1fr !important; }
+  /* .pl8-cols-2 stays 2-col at tablet (768-960px) — collapsing
+     two large cards to one row at iPad width burns vertical space
+     and makes the section feel half-empty. Only drop to 1-col on
+     phone (see ≤640px rule below). */
   .pl8-guest .pl8-site-nav-links { display: none !important; }
   .pl8-guest .pl8-timeline-thread { display: none !important; }
   .pl8-guest .pl8-timeline-row { grid-template-columns: 1fr !important; }
@@ -669,6 +672,7 @@
 
 @media (max-width: 640px) {
   .pl8-guest .pl8-cols-3 { grid-template-columns: 1fr !important; }
+  .pl8-guest .pl8-cols-2 { grid-template-columns: 1fr !important; }
 }
 
 /* ── Schedule rows: stack vertically on phone ──────────────────
@@ -765,6 +769,31 @@
   .pl8-guest .pl8-lang-label,
   .pl8-guest .pl8-lang-dot {
     display: none !important;
+  }
+}
+
+/* ── Short-landscape (phone rotated, foldable open) ─────────────
+   When the viewport is <560px tall (phone in landscape, Galaxy
+   Fold open) the hero's clamp(360px, 100vh, …) + sticky nav
+   eats the entire viewport before the first content line. Cap
+   hero heights, drop nav padding, and lift sticky bottom chrome
+   slightly so it doesn't cover the floating "Begin" CTA. */
+@media (max-height: 560px) and (orientation: landscape) {
+  .pl8-guest .pl8-site-nav > div {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+  /* Cap hero vertical heights — the first content card needs to
+     be visible without scroll. Targets the published hero
+     wrappers used by every variant. */
+  .pl8-guest [data-pl-hero],
+  .pl8-guest section[id="top"],
+  .pl8-guest .pl8-hero-postcard,
+  .pl8-guest .pl8-hero-photo-first {
+    min-height: auto !important;
+    max-height: none !important;
+    padding-top: clamp(24px, 4vh, 56px) !important;
+    padding-bottom: clamp(24px, 4vh, 56px) !important;
   }
 }
 
