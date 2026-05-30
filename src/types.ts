@@ -544,6 +544,15 @@ export interface StoryManifest {
    *  Section keys: 'top' | 'our-story' | 'schedule' | 'travel'
    *  | 'registry' | 'gallery' | 'rsvp' | 'faq'. */
   blockStyles?: Record<string, BlockStyleOverride>;
+  /** Pear's draft trail — flags which sections were auto-drafted
+   *  by the generation pipeline so the editor can show a "Pear
+   *  drafted this — accept or rewrite" affordance per section.
+   *  Hosts confirming a draft set the flag to false; rejecting
+   *  it removes the chapter entries and re-marks false. Sections
+   *  the host wrote themselves never carry this flag. Keys are
+   *  SiteBlockKey-style ids ('schedule', 'travel', 'faq',
+   *  'registry', etc.). */
+  draftedByPear?: Record<string, boolean>;
   /** Site Edition — pre-composed layout persona that picks a hero
    *  variant, section opener style, divider rhythm, block order,
    *  type scale, atmosphere intensity, and CTA shape in one click.

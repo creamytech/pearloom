@@ -11,6 +11,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { clusterPhotos, reverseGeocode } from '@/lib/google-photos';
 import { generateStoryManifest } from '@/lib/memory-engine';
+import { runAutoDraft } from '@/lib/auto-draft';
 import type { StoryManifest } from '@/types';
 import type { GooglePhotoMetadata, PhotoCluster, WeddingEvent, LogoIconId } from '@/types';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
@@ -977,7 +978,15 @@ export async function POST(req: Request) {
           (themed as { decorLibrary?: Record<string, unknown> }).decorLibrary = lib;
         }
 
-        send({ type: 'complete', manifest: themed });
+        // Auto-draft pass — fill every empty section with sensible
+        // starter content so the host lands in the editor on a
+        // COMPLETE site to refine, not an empty shell to assemble.
+        // Each filled section gets manifest.draftedByPear[key] = true
+        // so the editor can show a "Pear drafted this" banner.
+        // Sections that already have host content are skipped.
+        const withDrafts = runAutoDraft(themed);
+
+        send({ type: 'complete', manifest: withDrafts });
       } catch (err) {
         send({ type: 'error', message: err instanceof Error ? err.message : 'Generation failed' });
       } finally {
