@@ -3252,6 +3252,29 @@ html { scroll-behavior: smooth; }
    like actually change the designs to be unique to the editions".
    ═══════════════════════════════════════════════════════════════ */
 
+/* ═══════════════════════════════════════════════════════════════
+   Decor blend tokens
+   ═══════════════════════════════════════════════════════════════
+   AI-generated decor PNGs (dividers, stamps, confetti, footer
+   bouquet) rely on a blend mode to hide any white background that
+   slipped past removeWhiteBackground()'s alpha removal. `multiply`
+   works on cream paper but crushes the asset to black on dark
+   Editions like Cinema. These vars let each Edition pick the right
+   blend for its surface:
+     - Paper Editions (default) → multiply (hides white halo)
+     - Cinema (dark)            → screen (preserves visibility)
+   Decor components read --decor-blend + --decor-opacity. */
+.pl8-guest {
+  --decor-blend: multiply;
+  --decor-opacity: 0.92;
+  --stamp-blend: multiply;
+}
+.pl8-guest[data-pl-edition="cinema"] {
+  --decor-blend: screen;
+  --decor-opacity: 0.78;
+  --stamp-blend: screen;
+}
+
 /* ── CINEMA ── letterbox film magazine.
    Tight grid, sharp corners, no card-borders. Photos lean into
    21:9 aspect by default. Section padding cut so chapters feel

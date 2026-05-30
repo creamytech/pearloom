@@ -40,8 +40,12 @@ export function FooterBouquet({ url }: Props) {
             maxHeight: 'min(280px, 40vh)',
             aspectRatio: '2 / 3',
             objectFit: 'contain',
-            mixBlendMode: 'multiply',
-            opacity: 0.92,
+            // Blend + opacity adapt to theme via CSS vars set by
+            // each Edition (Cinema = screen, paper Editions =
+            // multiply). So the bouquet doesn't go invisible on
+            // dark theatres or chalky on bright ones.
+            mixBlendMode: 'var(--decor-blend, multiply)' as 'multiply',
+            opacity: 'var(--decor-opacity, 0.92)' as unknown as number,
           }}
         />
       </div>

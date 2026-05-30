@@ -58,7 +58,12 @@ export function DecorDivider({ url, index = 0, compact, strength = 'standard', h
           backgroundPosition: 'center',
           maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
           WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
-          opacity: 0.92,
+          // Blend + opacity adapt to theme via vars set per
+          // Edition. Cinema (dark) uses screen so the divider
+          // doesn't sink into the black; paper Editions use
+          // multiply so any white-bg PNG halo blends out.
+          mixBlendMode: 'var(--decor-blend, multiply)' as 'multiply',
+          opacity: 'var(--decor-opacity, 0.92)' as unknown as number,
           pointerEvents: 'none',
           ...style,
         }}

@@ -67,6 +67,10 @@ function ConfettiBurstInner({ url, fallback }: { url?: string; fallback: boolean
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
+            // Burst blends per theme — multiply on paper Editions
+            // hides any white halo from imperfect alpha removal,
+            // screen on Cinema so the burst stays visible on black.
+            mixBlendMode: 'var(--decor-blend, multiply)' as 'multiply',
             animation: reduced ? undefined : 'pl8-confetti-burst 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards',
             opacity: reduced ? 0.82 : 0,
           }}
