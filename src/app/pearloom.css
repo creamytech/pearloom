@@ -3410,6 +3410,13 @@ html { scroll-behavior: smooth; }
   padding-left: 20px !important;
   margin-bottom: 6px;
 }
+/* Cinema FAQ card: sharp corners + dark border to match the
+   film-index aesthetic. */
+.pl8-guest[data-pl-edition="cinema"] .pl8-faq-card {
+  background: rgba(251,247,238,0.04) !important;
+  border-radius: 0 !important;
+  border: 1px solid rgba(184,146,68,0.32) !important;
+}
 
 /* ── POSTCARD BOX ── stacked tilted cards on cream-deep paper.
    Cards rotate ±2-3deg, get warm stitch borders + soft drop
@@ -3546,6 +3553,15 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-edition="linen-folder"] .pl8-hotel-card:last-child {
   border-bottom: 1px solid rgba(184,146,68,0.30) !important;
 }
+/* Linen Folder FAQ: sharp corners + gold hairline + no fill so
+   the questions read like an embossed stationery insert. */
+.pl8-guest[data-pl-edition="linen-folder"] .pl8-faq-card {
+  background: transparent !important;
+  border-radius: 0 !important;
+  border: none !important;
+  border-top: 1px solid rgba(184,146,68,0.30) !important;
+  border-bottom: 1px solid rgba(184,146,68,0.30) !important;
+}
 
 /* ── QUIET EDITION ── whitespace and restraint.
    Maximum padding, naked paper, centered alignment, hairline
@@ -3604,6 +3620,14 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-edition="quiet"] .pl8-hotel-row:last-child,
 .pl8-guest[data-pl-edition="quiet"] .pl8-hotel-card:last-child {
   border-bottom: 1px solid rgba(14,13,11,0.06) !important;
+}
+/* Quiet FAQ: no card chrome at all — questions float on the page
+   with hairline dividers between them via the inner row borders
+   that already exist. */
+.pl8-guest[data-pl-edition="quiet"] .pl8-faq-card {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
 }
 
 /* ── ALMANAC ── bound book, generous reading rhythm.

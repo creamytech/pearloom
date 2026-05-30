@@ -6401,6 +6401,7 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
           </div>
         )}
         <div
+          className="pl8-faq-card"
           style={{
             background: 'var(--card)',
             border: '1px solid var(--card-ring)',
