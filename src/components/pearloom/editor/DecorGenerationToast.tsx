@@ -56,7 +56,7 @@ function DecorJobRow({ job }: { job: DecorJob }) {
   const elapsed = Math.max(0, ((job.endedAt ?? now) - job.startedAt) / 1000);
   const tone =
     job.status === 'running'
-      ? { bg: 'rgba(14,13,11,0.92)', dot: 'var(--gold, #B8935A)', label: 'Painting' }
+      ? { bg: 'rgba(14,13,11,0.92)', dot: 'var(--gold, #B8935A)', label: 'Threading' }
       : job.status === 'done'
         ? { bg: 'rgba(92,107,63,0.95)', dot: 'rgba(255,255,255,0.95)', label: 'Ready' }
         : { bg: 'rgba(122,45,45,0.95)', dot: 'rgba(255,255,255,0.95)', label: 'Failed' };

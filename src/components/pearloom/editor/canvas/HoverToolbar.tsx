@@ -13,7 +13,7 @@
 // through.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { useIsEditMode } from './EditorCanvasContext';
 
 export interface HoverToolbarAction {
@@ -77,6 +77,15 @@ export function HoverToolbar({ value, onResult, actions, children, context }: Ho
   const editMode = useIsEditMode();
   const [hovered, setHovered] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [errorLabel, setErrorLabel] = useState<string | null>(null);
+
+  // Auto-clear the inline error after 3.5s so the toolbar
+  // returns to a fresh state without lingering red copy.
+  useEffect(() => {
+    if (!errorLabel) return;
+    const id = setTimeout(() => setErrorLabel(null), 3500);
+    return () => clearTimeout(id);
+  }, [errorLabel]);
 
   if (!editMode) return <>{children}</>;
 
@@ -84,11 +93,19 @@ export function HoverToolbar({ value, onResult, actions, children, context }: Ho
 
   const run = async (action: HoverToolbarAction) => {
     setBusyId(action.id);
+    setErrorLabel(null);
     try {
       const next = await action.run(value);
+      if (next === value) {
+        // The API returned the same text — either no change was
+        // possible or the model bailed. Surface so the host knows
+        // the click registered but produced nothing.
+        setErrorLabel('No change — try a different phrase');
+        return;
+      }
       onResult(next);
     } catch {
-      /* swallow — a toast layer could surface errors later */
+      setErrorLabel('Pear couldn’t reach the model. Try again.');
     } finally {
       setBusyId(null);
     }
@@ -131,6 +148,29 @@ export function HoverToolbar({ value, onResult, actions, children, context }: Ho
       style={{ position: 'relative' }}
     >
       {children}
+      {errorLabel && hovered && (
+        <div
+          role="alert"
+          aria-live="polite"
+          style={{
+            position: 'absolute',
+            top: -42,
+            right: 8,
+            zIndex: 51,
+            padding: '5px 11px',
+            borderRadius: 999,
+            background: 'var(--plum, #7A2D2D)',
+            color: 'var(--cream, #FDFAF0)',
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: '0.03em',
+            boxShadow: '0 10px 24px rgba(122,45,45,0.32)',
+            animation: 'pl-enter-up 220ms cubic-bezier(0.22, 1, 0.36, 1) both',
+          }}
+        >
+          {errorLabel}
+        </div>
+      )}
       <div role="toolbar" aria-label={`${context ?? 'Block'} actions`} style={barStyle}>
         {acts.map((a) => {
           const busy = busyId === a.id;

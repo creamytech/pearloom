@@ -3229,3 +3229,15 @@ html { scroll-behavior: smooth; }
   font-size: 16px !important; /* prevents iOS zoom-in */
   padding: 12px 14px !important;
 }
+
+/* ── Smart-actions overflow fade — only when 4+ chips ──────────
+   PanelSmartActions is a horizontal scroller of 2-4 quick-action
+   chips. With ≤3 chips the row fits and no scroll is needed —
+   a right-edge mask in that case would look like a visual bug.
+   Only apply the fade when 4+ chips actually overflow.
+   :has() is supported on all browsers we target. */
+.pl8-smart-actions:has(> button:nth-child(n+4)) {
+  padding-right: 18px;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent 100%);
+          mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent 100%);
+}

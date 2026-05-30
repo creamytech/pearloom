@@ -340,14 +340,18 @@ export function PanelSmartActions({ actions }: { actions: PanelSmartAction[] }) 
     <div
       role="toolbar"
       aria-label="Quick actions"
+      // pl8-smart-actions: class hook for the CSS rule (in
+      // pearloom.css) that applies a right-edge mask fade only
+      // when 4+ chips render. Inline styles can't use :has,
+      // so the fade lives in CSS.
+      className="pl8-smart-actions"
       style={{
+        position: 'relative',
         display: 'flex',
         gap: 8,
         overflowX: 'auto',
         marginBottom: 18,
         paddingBottom: 4,
-        // Firefox + WebKit hide scrollbars except when interacting,
-        // so the row stays clean visually.
         scrollbarWidth: 'thin',
       }}
     >
