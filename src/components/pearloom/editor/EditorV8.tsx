@@ -3914,9 +3914,14 @@ function PanelSwitch({
 
 /* ---------- Mobile drawer + tabbar ---------- */
 function MobileDrawer({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
-  // Escape closes the drawer to match every other overlay in
-  // the editor (Send overlay, FindInSite, modals). Tap-outside
-  // already works via the backdrop's onClick.
+  // Two-stage drawer height — default lifts to ~55vh so the
+  // canvas above stays visible while the host types, addressing
+  // the long-standing "I can't see what my edit looks like"
+  // complaint. Tapping the grab handle expands the drawer to
+  // ~92vh for a full-immersion edit; tapping again returns to
+  // half-height. Backdrop click + Escape close as before.
+  const [expanded, setExpanded] = useState(false);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
@@ -3924,6 +3929,8 @@ function MobileDrawer({ children, onClose }: { children: React.ReactNode; onClos
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
+
+  const height = expanded ? 'min(92vh, calc(100vh - 96px))' : 'min(55vh, 540px)';
 
   return (
     <>
@@ -3933,9 +3940,14 @@ function MobileDrawer({ children, onClose }: { children: React.ReactNode; onClos
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'rgba(18, 15, 12, 0.38)',
-          backdropFilter: 'blur(2px)',
+          // Lighter backdrop in half-height mode so the canvas
+          // peeking above the drawer still feels live. Stays
+          // darker in expanded mode where the canvas is mostly
+          // hidden anyway.
+          background: expanded ? 'rgba(18, 15, 12, 0.38)' : 'rgba(18, 15, 12, 0.16)',
+          backdropFilter: expanded ? 'blur(2px)' : 'none',
           zIndex: 40,
+          transition: 'background 200ms ease, backdrop-filter 200ms ease',
         }}
       />
       <div
@@ -3947,7 +3959,8 @@ function MobileDrawer({ children, onClose }: { children: React.ReactNode; onClos
           left: 0,
           right: 0,
           bottom: 56,
-          maxHeight: 'calc(100vh - 180px)',
+          height,
+          maxHeight: 'calc(100vh - 96px)',
           background: 'var(--cream)',
           borderTop: '1px solid var(--line-soft)',
           borderRadius: '20px 20px 0 0',
@@ -3957,11 +3970,38 @@ function MobileDrawer({ children, onClose }: { children: React.ReactNode; onClos
           overflow: 'hidden',
           boxShadow: '0 -12px 32px rgba(18, 15, 12, 0.16)',
           animation: 'pl8-drawer-up 220ms cubic-bezier(0.16, 1, 0.3, 1)',
+          transition: 'height 280ms cubic-bezier(0.22, 1, 0.36, 1)',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 4px' }}>
-          <div style={{ width: 38, height: 4, borderRadius: 2, background: 'var(--line-soft)' }} />
-        </div>
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          aria-label={expanded ? 'Shrink panel' : 'Expand panel'}
+          aria-pressed={expanded}
+          // Big tap area on the grab handle since iOS Safari
+          // sometimes mis-targets a 4px-tall line. 32px of padding
+          // around a 4px visual gives a comfortable 36px touch zone.
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '10px 0 6px',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            width: '100%',
+          }}
+        >
+          <div
+            style={{
+              width: 42,
+              height: 4,
+              borderRadius: 2,
+              background: 'var(--line)',
+              transition: 'background 160ms ease, width 200ms ease',
+            }}
+          />
+        </button>
         <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           {children}
         </div>
