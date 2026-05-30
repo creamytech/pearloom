@@ -14,6 +14,7 @@ import { ColorTokenInspector } from './ColorTokenInspector';
 import { V8ColorPicker } from '../v8-color-picker';
 import { SpacingPanel } from './SpacingPanel';
 import { SnapshotsPanel } from './SnapshotsPanel';
+import { EditionPicker } from './EditionPicker';
 import {
   DecorPromptComposer,
   DecorAlternatesStrip,
@@ -263,6 +264,16 @@ export function ThemePanel({
 
   return (
     <div>
+      {/* ── EDITION ── the highest-altitude design decision. One
+          pick sets the hero variant, atmosphere preset, openers,
+          dividers, and (eventually) block ordering. Sits above
+          Look because picking an Edition is the host's primary
+          editorial voice; everything below is a finer override. */}
+      <ThemeCategory label="Edition" hint="Pick a layout persona — Pear sets the rest. Override anything below." />
+      <div data-pl-design-anchor="edition">
+        <EditionPicker manifest={manifest} onChange={onChange} />
+      </div>
+
       {/* ── LOOK ── visual identity: palette, motif, type, color,
           hero decoration. The four things most hosts touch when
           they say "I want to change how this looks". Wrapped in a
