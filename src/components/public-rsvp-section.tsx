@@ -519,6 +519,7 @@ export function PublicRsvpSection({
                     siteId={siteId}
                     preset={rsvpPreset}
                     title={title || rsvpIntro || undefined}
+                    customMealOptions={mealOptions}
                   />
                 ) : (
                   <RsvpForm events={events} siteId={siteId} mealOptions={mealOptions} />
