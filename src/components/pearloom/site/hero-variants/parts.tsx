@@ -161,7 +161,10 @@ export function HeroDateVenue({ dateInfo, venue, color, manifest, onEditField }:
             />
           ) : (
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 15 }}>
-              <Icon name="calendar" size={16} color="var(--gold)" />
+              {/* Icon tint follows theme accent (--pl-olive) so the
+                  date pill matches the host's palette instead of
+                  always rendering in brand gold. */}
+              <Icon name="calendar" size={16} color="var(--pl-olive, var(--gold))" />
               <span style={{ fontWeight: 600 }}>{dateLabel}</span>
             </div>
           )
@@ -182,7 +185,7 @@ export function HeroDateVenue({ dateInfo, venue, color, manifest, onEditField }:
             />
           ) : (
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 15 }}>
-              <Icon name="pin" size={16} color="var(--gold)" />
+              <Icon name="pin" size={16} color="var(--pl-olive, var(--gold))" />
               <span style={{ fontWeight: 600 }}>{venueLabel}</span>
             </div>
           )
@@ -235,7 +238,7 @@ const HeroFieldPill = forwardRef<HTMLButtonElement, {
         fontStyle: placeholder ? 'italic' : 'normal',
       }}
     >
-      <Icon name={icon} size={16} color="var(--gold)" />
+      <Icon name={icon} size={16} color="var(--pl-olive, var(--gold))" />
       <span>{label}</span>
     </button>
   );
