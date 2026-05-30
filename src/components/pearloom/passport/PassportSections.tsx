@@ -67,7 +67,68 @@ export function PassportSections({
     };
   }, [token]);
 
-  if (loading || !data) return null;
+  // Skeleton card while the passport API resolves. Returning null
+   // used to leave the page blank for ~600ms — guests with slow
+   // connections thought the page was broken. The skeleton mirrors
+   // the editorial card shape so the layout doesn't jump when data
+   // arrives.
+  if (loading) {
+    return (
+      <div
+        aria-busy="true"
+        style={{
+          margin: '2rem auto',
+          maxWidth: 720,
+          padding: '2rem',
+          borderRadius: 'var(--pl-radius-2xl, 1.5rem)',
+          background: 'var(--pl-cream-card, #FBF7EE)',
+          border: '1px solid var(--pl-divider, #D8CFB8)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+        }}
+      >
+        <div
+          style={{
+            height: 14,
+            width: '40%',
+            borderRadius: 999,
+            background: 'var(--pl-divider-soft, #E5DCC4)',
+            opacity: 0.7,
+            animation: 'pl-dot-pulse 1.6s ease-in-out infinite',
+          }}
+        />
+        <div
+          style={{
+            height: 32,
+            width: '70%',
+            borderRadius: 6,
+            background: 'var(--pl-divider-soft, #E5DCC4)',
+            opacity: 0.6,
+          }}
+        />
+        <div
+          style={{
+            height: 12,
+            width: '90%',
+            borderRadius: 999,
+            background: 'var(--pl-divider-soft, #E5DCC4)',
+            opacity: 0.45,
+          }}
+        />
+        <div
+          style={{
+            height: 12,
+            width: '60%',
+            borderRadius: 999,
+            background: 'var(--pl-divider-soft, #E5DCC4)',
+            opacity: 0.45,
+          }}
+        />
+      </div>
+    );
+  }
+  if (!data) return null;
 
   const isSolemn = occasion === 'memorial' || occasion === 'funeral';
   // Host-controlled toggle from RsvpPanel. Default true so existing

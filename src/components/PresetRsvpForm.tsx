@@ -416,7 +416,24 @@ function Row({
     <div style={{ marginBottom: 20 }}>
       <label style={labelStyle}>
         {label}
-        {required && <span style={{ marginLeft: 6, color: 'var(--pl-plum)' }}>*</span>}
+        {required && (
+          <span
+            aria-label="required"
+            // Bold + slightly larger asterisk + a sr-only text node
+            // so screen readers announce "required" instead of just
+            // reading the glyph as "star". The plum tone keeps it
+            // distinct from the label text without screaming.
+            style={{
+              marginLeft: 6,
+              color: 'var(--pl-plum)',
+              fontWeight: 800,
+              fontSize: '1.05em',
+              lineHeight: 1,
+            }}
+          >
+            *
+          </span>
+        )}
       </label>
       {children}
       {hint && (

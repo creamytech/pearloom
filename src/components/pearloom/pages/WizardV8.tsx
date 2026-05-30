@@ -1836,6 +1836,12 @@ export function WizardV8() {
                         value={st.names[0]}
                         onChange={(e) => setSt((s) => ({ ...s, names: [e.target.value, s.names[1]] }))}
                         placeholder={nameSpec.primaryPlaceholder}
+                        // autoComplete="name" lets iOS / Android offer the
+                        // device contact name + Chrome / Safari autofill it
+                        // for returning hosts. Skipping this means hosts
+                        // type their own name from scratch on every wizard
+                        // run, which is the most boring possible friction.
+                        autoComplete="given-name"
                       />
                     </div>
                     {nameSpec.mode === 'couple' && (
@@ -1846,6 +1852,7 @@ export function WizardV8() {
                           value={st.names[1]}
                           onChange={(e) => setSt((s) => ({ ...s, names: [s.names[0], e.target.value] }))}
                           placeholder={nameSpec.secondaryPlaceholder ?? ''}
+                          autoComplete="off"
                         />
                       </div>
                     )}
@@ -2060,8 +2067,26 @@ export function WizardV8() {
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
                     Set the <span className="display-italic">vibe.</span>
                   </h2>
-                  <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
+                  <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 8px' }}>
                     Pick 2–4. Your vibes shape tone, language, and flow.
+                  </p>
+                  {/* Live counter so the host knows how close to the
+                      2-vibe floor they are. Plum when at 0–1 (can't
+                      continue), sage when ≥2 (good to go). */}
+                  <p
+                    aria-live="polite"
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      letterSpacing: '0.18em',
+                      textTransform: 'uppercase',
+                      color: st.vibes.length >= 2 ? 'var(--sage-deep)' : 'var(--plum, #7A2D2D)',
+                      margin: '0 0 18px',
+                    }}
+                  >
+                    {st.vibes.length === 0
+                      ? 'Pick at least 2 to continue'
+                      : `${st.vibes.length} of 4 selected${st.vibes.length === 1 ? ' — one more to continue' : ''}`}
                   </p>
                   <div className="pl-cascade-row" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     {VIBES.map((v) => {

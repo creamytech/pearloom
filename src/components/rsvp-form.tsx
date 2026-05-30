@@ -17,6 +17,17 @@ function ConfettiBurst({ active }: { active: boolean }) {
 
   useEffect(() => {
     if (!active) return;
+    // Honor the OS-level motion preference. 140 particles + a
+    // gravity loop is genuinely a lot — vestibular-disorder users
+    // and low-end Android devices both benefit from skipping it.
+    // The success message still renders; confetti is the cherry,
+    // not the signal.
+    if (
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return;
+    }
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
