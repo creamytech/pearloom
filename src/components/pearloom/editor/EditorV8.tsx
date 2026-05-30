@@ -158,7 +158,12 @@ const BLOCKS: BlockDef[] = [
   { key: 'rsvp', label: 'RSVP', icon: 'mail', anchor: 'rsvp', description: 'Meal options, deadline, plus-ones.', subtitle: 'Meals + plus-ones', reorderable: true, togglable: true },
   { key: 'faq', label: 'FAQ', icon: 'heart-icon', anchor: 'faq', description: 'Questions Pear anticipates from guests.', subtitle: 'Common questions', reorderable: true, togglable: true },
   { key: 'toasts', label: 'Vows & toasts', icon: 'mic', anchor: 'top', description: 'Drafts you can read from your phone.', subtitle: 'Vows + speeches', reorderable: false, togglable: false },
-  { key: 'theme', label: 'Theme', icon: 'palette', anchor: 'top', description: 'Palette, motif, spacing, typography.', subtitle: 'Palette + type', reorderable: false, togglable: false },
+  // 'theme' intentionally NOT in BLOCKS — it lives as the
+  // dedicated Theme outline tab (Sections / Pages / Theme).
+  // Having it in both places was the repetitive duplicate the
+  // user flagged: clicking "Theme" in Sections AND the Theme
+  // outline tab both opened ThemePanel from different surfaces.
+  // Single source of truth: the outline tab.
 ];
 
 const BLOCKS_BY_KEY: Record<BlockKey, BlockDef> = BLOCKS.reduce((acc, b) => ({ ...acc, [b.key]: b }), {} as Record<BlockKey, BlockDef>);

@@ -129,7 +129,34 @@ export function EditionPicker({ manifest, onChange }: Props) {
 
   function pick(ed: EditionDefinition) {
     if (ed.id === manifest.edition) return;
-    onChange({ ...manifest, edition: ed.id });
+    // Picking an Edition must produce a visible change. The
+    // renderer's "explicit > Edition default" precedence means
+    // existing sites (which have manifest.blockVariants.hero
+    // and manifest.atmosphere set by the wizard or template
+    // applier) wouldn't budge on edition swap. Stamp the
+    // Edition's hero variant + atmosphere preset directly so
+    // the canvas reflects the pick immediately.
+    //
+    // Hosts who explicitly customized either after picking an
+    // Edition can repeat that customization — switching
+    // Editions is the act of saying "give me the bundled set
+    // again". We don't preserve old hero/atmosphere because
+    // they were almost certainly the previous Edition's defaults
+    // (Pear's pick, not a deliberate host override).
+    const next = {
+      ...manifest,
+      edition: ed.id,
+      blockVariants: {
+        ...((manifest as unknown as { blockVariants?: Record<string, { style?: string }> }).blockVariants ?? {}),
+        hero: { style: ed.heroVariantId },
+      },
+      atmosphere: {
+        ...((manifest as unknown as { atmosphere?: { kind?: string; intensity?: string; accent?: string } }).atmosphere ?? {}),
+        kind: ed.atmospherePreset.kind ?? (manifest as unknown as { atmosphere?: { kind?: string } }).atmosphere?.kind,
+        intensity: ed.atmospherePreset.intensity,
+      },
+    };
+    onChange(next as StoryManifest);
   }
 
   return (
