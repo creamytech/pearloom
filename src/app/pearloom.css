@@ -3454,3 +3454,186 @@ html { scroll-behavior: smooth; }
     transform: none !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   PER-TEXTURE MATERIAL TREATMENTS
+   ═══════════════════════════════════════════════════════════════
+   data-pl-texture set on the .pl8-guest root by SiteV8Renderer.
+   Each texture is a MATERIAL identity — paper grain, watercolor
+   bleed, linen weave, letterpress impression, vellum cast,
+   newsprint halftone. Editions are about layout; Textures are
+   about what the site is MADE FROM. Per the user 2026-05-30:
+   "feel like our user sites are cool and all but too modern with
+   all the animations and feel and look of all the buttons and
+   sections" — these textures push the site away from SaaS-modern
+   toward made-by-hand artifacts.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── WATERCOLOR ── soft paint bleeds, painted card edges,
+   slow blurred shadows that look like ink soaked through. */
+.pl8-guest[data-pl-texture="watercolor"] {
+  background-image:
+    radial-gradient(ellipse 800px 400px at 18% 14%, rgba(196,154,111,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 700px 500px at 82% 78%, rgba(139,111,142,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 600px 400px at 50% 100%, rgba(92,107,63,0.10) 0%, transparent 60%);
+  background-attachment: fixed;
+}
+.pl8-guest[data-pl-texture="watercolor"] .pl8-schedule-row,
+.pl8-guest[data-pl-texture="watercolor"] .pl8-chapter-row,
+.pl8-guest[data-pl-texture="watercolor"] .pl8-hotel-row,
+.pl8-guest[data-pl-texture="watercolor"] section > div[style*="background"] {
+  border-radius: 18px !important;
+  box-shadow:
+    0 12px 32px rgba(196,154,111,0.18),
+    0 4px 12px rgba(139,111,142,0.14),
+    inset 0 0 30px rgba(255,255,255,0.30) !important;
+}
+.pl8-guest[data-pl-texture="watercolor"] section h2,
+.pl8-guest[data-pl-texture="watercolor"] section h3,
+.pl8-guest[data-pl-texture="watercolor"] section .display {
+  text-shadow: 0.5px 0.5px 0 rgba(196,154,111,0.20), -0.5px -0.5px 0 rgba(139,111,142,0.18);
+}
+.pl8-guest[data-pl-texture="watercolor"] button,
+.pl8-guest[data-pl-texture="watercolor"] a.btn {
+  border-radius: 999px !important;
+  box-shadow: 0 6px 18px rgba(196,154,111,0.32), 0 1px 3px rgba(0,0,0,0.06) !important;
+}
+
+/* ── LINEN ── woven fabric grain underfoot, sharper edges, slightly
+   desaturated palette, hint of weave-shadow on cards. */
+.pl8-guest[data-pl-texture="linen"] {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(111,101,87,0.05) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, rgba(111,101,87,0.05) 0 1px, transparent 1px 4px);
+  background-attachment: fixed;
+  filter: saturate(0.92);
+}
+.pl8-guest[data-pl-texture="linen"] .pl8-schedule-row,
+.pl8-guest[data-pl-texture="linen"] .pl8-chapter-row,
+.pl8-guest[data-pl-texture="linen"] .pl8-hotel-row {
+  border-radius: 4px !important;
+  border: 1px solid rgba(184,146,68,0.32) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset, 0 2px 6px rgba(111,101,87,0.10) !important;
+}
+.pl8-guest[data-pl-texture="linen"] button,
+.pl8-guest[data-pl-texture="linen"] a.btn {
+  border-radius: 4px !important;
+  letter-spacing: 0.06em;
+}
+
+/* ── LETTERPRESS ── type pressed into the paper, deeper insets,
+   cards that read as embossed plaques rather than floating shapes. */
+.pl8-guest[data-pl-texture="letterpress"] {
+  background-color: #F5EFE2;
+}
+.pl8-guest[data-pl-texture="letterpress"] section h2,
+.pl8-guest[data-pl-texture="letterpress"] section h3,
+.pl8-guest[data-pl-texture="letterpress"] section .display {
+  text-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.45),
+    0 1px 0 rgba(255,255,255,0.55),
+    0 -1px 0 rgba(14,13,11,0.18);
+  font-weight: 500;
+}
+.pl8-guest[data-pl-texture="letterpress"] .pl8-schedule-row,
+.pl8-guest[data-pl-texture="letterpress"] .pl8-chapter-row,
+.pl8-guest[data-pl-texture="letterpress"] .pl8-hotel-row {
+  background: #F5EFE2 !important;
+  border-radius: 6px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.65),
+    inset 0 -1px 0 rgba(14,13,11,0.10),
+    0 1px 0 rgba(14,13,11,0.05) !important;
+  border: 1px solid rgba(14,13,11,0.10) !important;
+}
+.pl8-guest[data-pl-texture="letterpress"] button,
+.pl8-guest[data-pl-texture="letterpress"] a.btn {
+  border-radius: 4px !important;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.30),
+    inset 0 -1px 0 rgba(14,13,11,0.18),
+    0 1px 0 rgba(14,13,11,0.06) !important;
+}
+
+/* ── VELLUM ── translucent waxy paper, warm cast, slight
+   transparency on cards so the warm underlay shows through. */
+.pl8-guest[data-pl-texture="vellum"] {
+  background-color: #F7EFD8;
+  background-image:
+    linear-gradient(180deg, rgba(252,233,184,0.20) 0%, rgba(196,154,111,0.10) 100%);
+  background-attachment: fixed;
+}
+.pl8-guest[data-pl-texture="vellum"] .pl8-schedule-row,
+.pl8-guest[data-pl-texture="vellum"] .pl8-chapter-row,
+.pl8-guest[data-pl-texture="vellum"] .pl8-hotel-row {
+  background: rgba(255,255,255,0.55) !important;
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(184,146,68,0.32) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(184,146,68,0.10) !important;
+}
+.pl8-guest[data-pl-texture="vellum"] section {
+  color: #4A3F25;
+}
+
+/* ── NEWSPRINT ── halftone dot pattern, sharper black-on-cream
+   contrast, type leans serif-heavy, compressed line-height. */
+.pl8-guest[data-pl-texture="newsprint"] {
+  background-color: #EBE3D2;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(14,13,11,0.10) 0.5px, transparent 1.5px);
+  background-size: 4px 4px;
+}
+.pl8-guest[data-pl-texture="newsprint"] section h2,
+.pl8-guest[data-pl-texture="newsprint"] section h3 {
+  font-weight: 700 !important;
+  font-style: normal !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.02em;
+  color: #0E0D0B !important;
+}
+.pl8-guest[data-pl-texture="newsprint"] .pl8-schedule-row,
+.pl8-guest[data-pl-texture="newsprint"] .pl8-chapter-row,
+.pl8-guest[data-pl-texture="newsprint"] .pl8-hotel-row {
+  background: #FBF7EE !important;
+  border-radius: 0 !important;
+  border-top: 2px solid #0E0D0B !important;
+  border-bottom: 1px solid rgba(14,13,11,0.18) !important;
+  box-shadow: none !important;
+  padding: 18px 22px !important;
+}
+.pl8-guest[data-pl-texture="newsprint"] section p,
+.pl8-guest[data-pl-texture="newsprint"] section li {
+  font-family: var(--pl-font-display, Fraunces, Georgia, serif) !important;
+  line-height: 1.55 !important;
+}
+.pl8-guest[data-pl-texture="newsprint"] button,
+.pl8-guest[data-pl-texture="newsprint"] a.btn {
+  border-radius: 0 !important;
+  border: 1.5px solid #0E0D0B !important;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  box-shadow: 2px 2px 0 rgba(14,13,11,0.18) !important;
+}
+
+/* The user's frustration: "all the animations and feel and look of
+   all the buttons and sections" feel too modern. When any texture
+   except smooth is active, soften the global motion + transitions
+   so the site feels handmade, not animated. */
+.pl8-guest[data-pl-texture="watercolor"] *,
+.pl8-guest[data-pl-texture="linen"] *,
+.pl8-guest[data-pl-texture="letterpress"] *,
+.pl8-guest[data-pl-texture="vellum"] *,
+.pl8-guest[data-pl-texture="newsprint"] * {
+  animation-duration: 0s !important;
+}
+.pl8-guest[data-pl-texture="watercolor"] *,
+.pl8-guest[data-pl-texture="linen"] *,
+.pl8-guest[data-pl-texture="letterpress"] *,
+.pl8-guest[data-pl-texture="vellum"] *,
+.pl8-guest[data-pl-texture="newsprint"] * {
+  transition-duration: 80ms !important;
+}

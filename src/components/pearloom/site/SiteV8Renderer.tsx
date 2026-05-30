@@ -8114,15 +8114,18 @@ export function SiteV8Renderer({
 
   // Active Edition id — drives the data-pl-edition attribute on
   // the site root so CSS rules in pearloom.css can give each
-  // Edition genuinely distinct visual treatment per section
-  // (Cinema's letterbox card stacks, Postcard Box's tilted cards
-  // and stitch borders, Quiet Edition's centered naked paper,
-  // etc.) without per-component variants.
+  // Edition genuinely distinct visual treatment per section.
   const activeEdition = resolveEdition(editionContextFromManifest(manifest));
+  // Active Texture — material identity overlay (watercolor /
+  // linen / letterpress / vellum / newsprint / smooth). Drives
+  // data-pl-texture so per-texture CSS in pearloom.css applies
+  // backgrounds, card edges, shadows, and motion to match the
+  // chosen material. Independent of Edition.
+  const activeTexture = manifest.texture ?? 'smooth';
 
   return (
     <EditorCanvasProvider value={canvasCtxValue}>
-      <div className="pl8-guest" data-pl-edition={activeEdition.id} style={{ ...themeStyle, ...radiusVars }}>
+      <div className="pl8-guest" data-pl-edition={activeEdition.id} data-pl-texture={activeTexture} style={{ ...themeStyle, ...radiusVars }}>
         {/* Reading progress hairline — peach-to-gold gradient that
             fills L → R as guests scroll. Only on the published view
             (the editor's own scrollbar handles its own progress). */}

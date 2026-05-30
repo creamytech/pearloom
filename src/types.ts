@@ -553,6 +553,13 @@ export interface StoryManifest {
    *  SiteBlockKey-style ids ('schedule', 'travel', 'faq',
    *  'registry', etc.). */
   draftedByPear?: Record<string, boolean>;
+  /** Site Texture — material identity that overlays the renderer
+   *  with paper grain, watercolor bleed, linen weave, etc. Six
+   *  options including 'smooth' (no texture, the modern default).
+   *  Driven by [data-pl-texture] on the site root + scoped CSS in
+   *  pearloom.css. Independent of Edition so any Edition can wear
+   *  any texture. */
+  texture?: 'smooth' | 'watercolor' | 'linen' | 'letterpress' | 'vellum' | 'newsprint';
   /** Site Edition — pre-composed layout persona that picks a hero
    *  variant, section opener style, divider rhythm, block order,
    *  type scale, atmosphere intensity, and CTA shape in one click.

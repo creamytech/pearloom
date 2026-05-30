@@ -15,6 +15,7 @@ import { V8ColorPicker } from '../v8-color-picker';
 import { SpacingPanel } from './SpacingPanel';
 import { SnapshotsPanel } from './SnapshotsPanel';
 import { EditionPicker } from './EditionPicker';
+import { TexturePicker } from './TexturePicker';
 import {
   DecorPromptComposer,
   DecorAlternatesStrip,
@@ -272,6 +273,9 @@ export function ThemePanel({
       <ThemeCategory label="Edition" hint="Pick a layout persona — Pear sets the rest. Override anything below." />
       <div data-pl-design-anchor="edition">
         <EditionPicker manifest={manifest} onChange={onChange} />
+      </div>
+      <div data-pl-design-anchor="texture">
+        <TexturePicker manifest={manifest} onChange={onChange} />
       </div>
 
       {/* "Look" cluster — palette + type + colors + motif + hero
