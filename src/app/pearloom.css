@@ -3634,6 +3634,35 @@ html { scroll-behavior: smooth; }
   border: 1px solid rgba(14,13,11,0.06);
   box-shadow: 0 1px 2px rgba(14,13,11,0.04);
 }
+/* Almanac schedule: bookish table-of-contents feel — cream cards
+   with hairline borders, italic Fraunces time pills, generous
+   row spacing. Reads as the day's running order in a bound book. */
+.pl8-guest[data-pl-edition="almanac"] .pl8-schedule-row {
+  background: #FBF7EE !important;
+  border: 1px solid rgba(14,13,11,0.08) !important;
+  border-radius: 8px !important;
+  padding: 22px 26px !important;
+  margin-bottom: 12px;
+  box-shadow: none !important;
+}
+.pl8-guest[data-pl-edition="almanac"] .pl8-schedule-row > .display {
+  font-family: var(--pl-font-display, Fraunces, Georgia, serif) !important;
+  font-style: italic;
+  font-weight: 400 !important;
+  letter-spacing: 0;
+  color: var(--pl-olive, #5C6B3F) !important;
+}
+/* Almanac travel: same cream-card-with-hairline pattern as the
+   schedule, so the travel section reads as a continuation of
+   the almanac's running order. */
+.pl8-guest[data-pl-edition="almanac"] .pl8-hotel-row,
+.pl8-guest[data-pl-edition="almanac"] .pl8-hotel-card {
+  background: #FBF7EE !important;
+  border: 1px solid rgba(14,13,11,0.08) !important;
+  border-radius: 8px !important;
+  padding: 22px 26px !important;
+  box-shadow: none !important;
+}
 
 /* Reduced motion — disable the postcard tilt animation. */
 @media (prefers-reduced-motion: reduce) {
