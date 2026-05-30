@@ -114,9 +114,14 @@ export function BroadcastBar({ subdomain }: Props) {
           background: 'rgba(255,255,255,0.18)',
           border: 'none',
           color: 'inherit',
-          padding: '4px 10px',
+          // 8/14 padding + 12 font ≈ 28px — comfortable thumb
+          // pill on mobile without ballooning the bar height.
+          // 4px vertical previously made the pill feel cramped
+          // against the bar's 10px outer padding.
+          padding: '8px 14px',
           borderRadius: 999,
           fontSize: 12,
+          fontWeight: 500,
           cursor: 'pointer',
         }}
       >
