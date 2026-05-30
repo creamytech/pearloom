@@ -14,6 +14,7 @@
 
 import type { StoryManifest } from '@/types';
 import { PanelSection } from '../atoms';
+import { recommendTextureFor } from '@/lib/event-os/event-types';
 
 type TextureId = NonNullable<StoryManifest['texture']>;
 
@@ -121,6 +122,7 @@ interface Props {
 
 export function TexturePicker({ manifest, onChange }: Props) {
   const active = manifest.texture ?? 'smooth';
+  const recommended = recommendTextureFor(manifest.occasion ?? 'wedding');
 
   function pick(id: TextureId) {
     if (id === active) return;
@@ -136,6 +138,7 @@ export function TexturePicker({ manifest, onChange }: Props) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
         {TEXTURES.map((t) => {
           const on = active === t.id;
+          const isRecommended = recommended === t.id;
           const Preview = t.Preview;
           return (
             <button
@@ -143,7 +146,7 @@ export function TexturePicker({ manifest, onChange }: Props) {
               type="button"
               onClick={() => pick(t.id)}
               aria-pressed={on}
-              title={t.tagline}
+              title={isRecommended ? `${t.tagline} — Pear's pick for this event` : t.tagline}
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -184,9 +187,29 @@ export function TexturePicker({ manifest, onChange }: Props) {
                     fontSize: 12.5,
                     fontWeight: 700,
                     color: on ? 'var(--sage-deep, #3D4A1F)' : 'var(--ink)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
                   }}
                 >
                   {t.label}
+                  {isRecommended && !on && (
+                    <span
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 600,
+                        letterSpacing: '0.10em',
+                        textTransform: 'uppercase',
+                        padding: '2px 6px',
+                        borderRadius: 999,
+                        background: 'rgba(184,146,68,0.18)',
+                        color: '#876733',
+                        border: '1px solid rgba(184,146,68,0.45)',
+                      }}
+                    >
+                      Pear's pick
+                    </span>
+                  )}
                 </span>
                 <span
                   style={{

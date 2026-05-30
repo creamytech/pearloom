@@ -51,6 +51,17 @@ export type RsvpPreset =
   | 'cultural'
   | 'casual';
 
+/** Material texture Pear recommends for this event. The picker shows
+ *  this as a "Pear's pick" pill so hosts have a starting point that
+ *  matches the event's emotional register. Users can always override. */
+export type RecommendedTexture =
+  | 'smooth'        // modern, clean — fits casual + playful events
+  | 'watercolor'    // soft pastel bleeds — fits showers, engagements
+  | 'linen'         // formal fabric — fits weddings, graduations
+  | 'letterpress'   // pressed book — fits anniversaries, ceremonial
+  | 'vellum'        // translucent amber — fits memorials, retirements
+  | 'newsprint';    // broadsheet ink — fits reunions, bachelor parties
+
 // ── Core interface ───────────────────────────────────────────
 
 export interface EventType {
@@ -752,4 +763,76 @@ export function getHiddenBlocksFor(id: SiteOccasion | string): readonly BlockTyp
 /** Full set of occasion ids (for URL allowlist + wizard dropdowns). */
 export function getAllOccasionIds(): readonly SiteOccasion[] {
   return EVENT_TYPES.map((e) => e.id);
+}
+
+/**
+ * Recommend a texture for an event based on its voice + occasion.
+ * Surfaced in TexturePicker as a "Pear's pick" pill so hosts have
+ * a starting point that matches the event's emotional register.
+ * Hosts can always override.
+ *
+ * Research basis: each texture has an emotional register —
+ *  - watercolor: soft, romantic, feminine, painterly
+ *  - linen: formal, refined, stationery, ceremonial-but-warm
+ *  - letterpress: weighty, ceremonial, lasting, bookish
+ *  - vellum: translucent, gentle, parchment-like, archival
+ *  - newsprint: bold, irreverent, broadsheet, communal
+ *  - smooth: modern default — clean, no material claim
+ *
+ * Wedding fits Linen (formal-but-warm stationery). Memorials fit
+ * Vellum (gentle, archival, translucent). Bachelor parties fit
+ * Newsprint (irreverent broadsheet energy). Etc.
+ */
+export function recommendTextureFor(
+  occasion: SiteOccasion | string,
+): RecommendedTexture {
+  const e = getEventType(occasion);
+  if (!e) return 'smooth';
+
+  // Direct overrides for specific occasions where the voice
+  // alone doesn't capture the right material:
+  const directMap: Partial<Record<SiteOccasion, RecommendedTexture>> = {
+    'wedding': 'linen',
+    'engagement': 'watercolor',
+    'anniversary': 'letterpress',
+    'birthday': 'smooth',
+    'story': 'letterpress',
+    'bachelor-party': 'newsprint',
+    'bachelorette-party': 'newsprint',
+    'bridal-shower': 'watercolor',
+    'bridal-luncheon': 'linen',
+    'rehearsal-dinner': 'linen',
+    'welcome-party': 'linen',
+    'brunch': 'watercolor',
+    'vow-renewal': 'letterpress',
+    'baby-shower': 'watercolor',
+    'gender-reveal': 'watercolor',
+    'sip-and-see': 'watercolor',
+    'housewarming': 'smooth',
+    'reunion': 'newsprint',
+    'milestone-birthday': 'letterpress',
+    'first-birthday': 'watercolor',
+    'sweet-sixteen': 'smooth',
+    'retirement': 'letterpress',
+    'graduation': 'linen',
+    'memorial': 'vellum',
+    'funeral': 'vellum',
+    'bar-mitzvah': 'letterpress',
+    'bat-mitzvah': 'letterpress',
+    'quinceanera': 'watercolor',
+    'baptism': 'linen',
+    'first-communion': 'linen',
+    'confirmation': 'linen',
+  };
+  if (directMap[e.id]) return directMap[e.id]!;
+
+  // Fallback by voice when no direct mapping exists:
+  switch (e.voice) {
+    case 'solemn':      return 'vellum';
+    case 'ceremonial':  return 'linen';
+    case 'intimate':    return 'letterpress';
+    case 'playful':     return 'newsprint';
+    case 'celebratory': return 'watercolor';
+    default:            return 'smooth';
+  }
 }
