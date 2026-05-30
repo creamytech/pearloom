@@ -58,6 +58,8 @@ import { resolveStoryLayout } from '@/components/blocks/StoryLayouts';
 // block-style registry before any dispatcher reads from it.
 import { HERO_VARIANTS_REGISTERED } from './hero-variants';
 import { STORY_VARIANTS_REGISTERED } from './story-variants';
+import { SCHEDULE_VARIANTS_REGISTERED } from './schedule-variants';
+import { GALLERY_VARIANTS_REGISTERED } from './gallery-variants';
 import { getBlockStyle, getBlockStyles } from '@/lib/block-engine/block-styles';
 import { resolveEdition, type EditionContext } from '@/lib/site-editions/resolve';
 import { getEventType } from '@/lib/event-os/event-types';
@@ -65,6 +67,8 @@ import type { SiteOccasion } from '@/lib/site-urls';
 import { EditionDivider } from './edition-dividers';
 void HERO_VARIANTS_REGISTERED;
 void STORY_VARIANTS_REGISTERED;
+void SCHEDULE_VARIANTS_REGISTERED;
+void GALLERY_VARIANTS_REGISTERED;
 import {
   CalendarAddButton,
   SaveContactButton,
