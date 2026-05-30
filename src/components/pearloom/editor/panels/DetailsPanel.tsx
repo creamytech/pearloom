@@ -304,15 +304,15 @@ function WeatherStyleSection({
   manifest: StoryManifest;
   onChange: (m: StoryManifest) => void;
 }) {
-  type WS = { voice?: 'poetic' | 'plain' | 'brief'; glyph?: 'line' | 'filled' | 'none'; hideOnDay?: boolean };
-  const ws = (manifest as unknown as { weatherStyle?: WS }).weatherStyle ?? {};
+  type WS = NonNullable<StoryManifest['weatherStyle']>;
+  const ws: WS = manifest.weatherStyle ?? {};
   function set(patch: Partial<WS>) {
     const next: WS = { ...ws, ...patch };
     Object.keys(next).forEach((k) => {
       const v = (next as Record<string, unknown>)[k];
       if (v === undefined || v === '') delete (next as Record<string, unknown>)[k];
     });
-    onChange({ ...manifest, weatherStyle: Object.keys(next).length ? next : undefined } as unknown as StoryManifest);
+    onChange({ ...manifest, weatherStyle: Object.keys(next).length ? next : undefined });
   }
   return (
     <PanelSection
