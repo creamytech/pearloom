@@ -414,8 +414,11 @@ function RailButton({
       aria-label={ariaLabel}
       onClick={onClick}
       style={{
-        width: 36,
-        height: 36,
+        // 44x44 meets the iOS HIG touch floor — under thumb on
+        // phones, hard to mis-tap to the previous/next photo while
+        // swiping through a gallery.
+        width: 44,
+        height: 44,
         borderRadius: 999,
         border: 'none',
         background: 'transparent',
