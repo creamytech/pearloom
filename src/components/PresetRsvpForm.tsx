@@ -34,6 +34,12 @@ interface PresetRsvpFormProps {
   title?: string;
   /** Intro text shown under the title. */
   subtitle?: string;
+  /** Custom meal options — when provided, override the preset's
+   *  default meal field options. Lets a wedding host pick their
+   *  catered menu through Pearloom while still using the simpler
+   *  single-page form. Audit #9 phase 1 — feature-parity bridge
+   *  toward making PresetRsvpForm the canonical RSVP form. */
+  customMealOptions?: Array<{ id: string; name: string; dietaryTags?: string[] }>;
 }
 
 type AttendingValue = 'attending' | 'declined' | null;
@@ -43,8 +49,20 @@ export function PresetRsvpForm({
   preset,
   title = 'RSVP',
   subtitle,
+  customMealOptions,
 }: PresetRsvpFormProps) {
-  const fields = getRsvpFields(preset);
+  const rawFields = getRsvpFields(preset);
+  // If the host supplied customMealOptions, splice them into the
+  // preset's `meal` field. The names become the dropdown options;
+  // dietary tags aren't surfaced in the simple form (the multi-step
+  // wedding form is the surface for per-meal allergen badges).
+  const fields = customMealOptions && customMealOptions.length > 0
+    ? rawFields.map((f) =>
+        f.kind === 'meal'
+          ? { ...f, options: customMealOptions.map((m) => m.name) }
+          : f,
+      )
+    : rawFields;
 
   // Core fields every form needs regardless of preset.
   const [name, setName] = useState('');
