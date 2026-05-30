@@ -121,8 +121,11 @@ interface Props {
 }
 
 export function TexturePicker({ manifest, onChange }: Props) {
-  const active = manifest.texture ?? 'smooth';
   const recommended = recommendTextureFor(manifest.occasion ?? 'wedding');
+  // Align with renderer: when manifest.texture is unset, the site
+  // renders with the recommended texture — so the picker should
+  // reflect that as the active tile, not 'smooth' by default.
+  const active = manifest.texture ?? recommended;
 
   function pick(id: TextureId) {
     if (id === active) return;

@@ -65,7 +65,7 @@ import { SCHEDULE_VARIANTS_REGISTERED } from './schedule-variants';
 import { GALLERY_VARIANTS_REGISTERED } from './gallery-variants';
 import { getBlockStyle, getBlockStyles } from '@/lib/block-engine/block-styles';
 import { resolveEdition, type EditionContext } from '@/lib/site-editions/resolve';
-import { getEventType } from '@/lib/event-os/event-types';
+import { getEventType, recommendTextureFor } from '@/lib/event-os/event-types';
 import type { SiteOccasion } from '@/lib/site-urls';
 import { EditionDivider } from './edition-dividers';
 void HERO_VARIANTS_REGISTERED;
@@ -8122,7 +8122,14 @@ export function SiteV8Renderer({
   // data-pl-texture so per-texture CSS in pearloom.css applies
   // backgrounds, card edges, shadows, and motion to match the
   // chosen material. Independent of Edition.
-  const activeTexture = manifest.texture ?? 'smooth';
+  //
+  // When the manifest doesn't carry a texture (fresh site /
+  // pre-texture-system manifest), fall back to Pear's per-event
+  // recommendation: Wedding → Linen, Memorial → Vellum,
+  // Bachelor → Newsprint, etc. Once the host picks any texture
+  // explicitly, that pick is what's stored on the manifest.
+  const activeTexture =
+    manifest.texture ?? recommendTextureFor(manifest.occasion ?? 'wedding');
 
   return (
     <EditorCanvasProvider value={canvasCtxValue}>
