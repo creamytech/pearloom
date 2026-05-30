@@ -3829,10 +3829,30 @@ html { scroll-behavior: smooth; }
    toward made-by-hand artifacts.
    ═══════════════════════════════════════════════════════════════ */
 
-/* Shared inline-SVG fractal-noise paper grain. Used as a fixed
-   overlay on every non-smooth texture so every site that wears
-   a material actually feels MADE OF something. ~3KB inline
-   data URI; encoded only-once, browsers cache it. */
+/* Shared paper-grain layer — per-texture noise override below
+   so watercolor's wet pulpy paper reads different from linen's
+   tight fiber from letterpress's pressed bond from newsprint's
+   coarse pulp. Each texture's ::before pulls in a different SVG
+   filter signature.
+
+   Technique credit: feTurbulence + feDiffuseLighting + feDistantLight
+   for lit-paper depth (Codrops "Texture with feTurbulence"). */
+.pl8-guest[data-pl-texture="watercolor"],
+.pl8-guest[data-pl-texture="linen"],
+.pl8-guest[data-pl-texture="letterpress"],
+.pl8-guest[data-pl-texture="vellum"],
+.pl8-guest[data-pl-texture="newsprint"] {
+  position: relative;
+  isolation: isolate;
+}
+.pl8-guest[data-pl-texture="watercolor"] > *,
+.pl8-guest[data-pl-texture="linen"] > *,
+.pl8-guest[data-pl-texture="letterpress"] > *,
+.pl8-guest[data-pl-texture="vellum"] > *,
+.pl8-guest[data-pl-texture="newsprint"] > * {
+  position: relative;
+  z-index: 2;
+}
 .pl8-guest[data-pl-texture="watercolor"]::before,
 .pl8-guest[data-pl-texture="linen"]::before,
 .pl8-guest[data-pl-texture="letterpress"]::before,
@@ -3843,9 +3863,52 @@ html { scroll-behavior: smooth; }
   inset: 0;
   pointer-events: none;
   z-index: 1;
-  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.10 0 0 0 0 0.08 0 0 0 0 0.06 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: 0.32;
   mix-blend-mode: multiply;
+}
+
+/* Per-texture grain signatures. Each is a real SVG filter result
+   (feTurbulence + feDiffuseLighting / feColorMatrix) tuned to
+   suggest the material. baseFrequency lower = larger features
+   (pulp); higher = finer (paper); directional X/Y = grain. */
+
+/* WATERCOLOR — wet pulpy paper. Low frequency + 4 octaves = soft
+   uneven cloud-like texture. feDiffuseLighting adds raking light
+   so the fibers look damp. */
+.pl8-guest[data-pl-texture="watercolor"]::before {
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'%3E%3Cfilter id='wc' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='4' seed='3' stitchTiles='stitch'/%3E%3CfeDiffuseLighting surfaceScale='2.4' diffuseConstant='1.2' lighting-color='%23F5E0CC'%3E%3CfeDistantLight azimuth='45' elevation='62'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix values='1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23wc)'/%3E%3C/svg%3E");
+  opacity: 0.42;
+}
+
+/* LINEN — tight fiber weave. Directional baseFrequency (X high,
+   Y high but with stitchTiles) creates a grid feel. Then
+   feColorMatrix multiplies down to dark threads. */
+.pl8-guest[data-pl-texture="linen"]::before {
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'%3E%3Cfilter id='ln'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95 0.15' numOctaves='2' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.30 0 0 0 0 0.27 0 0 0 0 0.21 0 0 0 0.72 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23ln)'/%3E%3C/svg%3E");
+  opacity: 0.34;
+}
+
+/* LETTERPRESS — smooth pressed bond paper. Higher baseFrequency =
+   finer grain; feDiffuseLighting at low angle catches the
+   embossed press marks. */
+.pl8-guest[data-pl-texture="letterpress"]::before {
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Cfilter id='lp'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='3' seed='7' stitchTiles='stitch'/%3E%3CfeDiffuseLighting surfaceScale='1.4' diffuseConstant='1.1' lighting-color='%23F8F1E2'%3E%3CfeDistantLight azimuth='135' elevation='38'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix values='1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.42 0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23lp)'/%3E%3C/svg%3E");
+  opacity: 0.30;
+}
+
+/* VELLUM — uneven amber translucent. Very low baseFrequency for
+   big mottled regions, mapped to warm amber. */
+.pl8-guest[data-pl-texture="vellum"]::before {
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 280'%3E%3Cfilter id='vl'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.018' numOctaves='3' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.78 0 0 0 0 0.62 0 0 0 0 0.32 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23vl)'/%3E%3C/svg%3E");
+  opacity: 0.48;
+  mix-blend-mode: multiply;
+}
+
+/* NEWSPRINT — coarse pulp paper plus the halftone is rendered
+   separately on the background-color layer (below). High
+   baseFrequency = visible fiber clumps. */
+.pl8-guest[data-pl-texture="newsprint"]::before {
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='np'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.58' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.18 0 0 0 0 0.15 0 0 0 0 0.10 0 0 0 0.42 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23np)'/%3E%3C/svg%3E");
+  opacity: 0.38;
 }
 /* The grain stacks at z-index 1; force the site root to a stacking
    context so content sits on top, and bump z-index on the nav so
@@ -3889,7 +3952,15 @@ html { scroll-behavior: smooth; }
   background: rgba(251,247,238,0.78) !important;
   backdrop-filter: blur(1.5px);
   border: none !important;
+  /* Wet-edge irregular border — instead of clean 24px round
+     corners, use an SVG turbulence filter to slightly distort
+     the edges so each card has a hand-painted irregular outline.
+     Codrops "Wet-edge" technique: low-freq fractalNoise + 4px
+     displacement gives subtle organic wobble. */
   border-radius: 24px !important;
+  filter: url("data:image/svg+xml;utf8,%23wet-edge");
+  /* Fallback for when the filter isn't supported / loaded:
+     plain rounded corners + the bleed shadow stack. */
   /* The "paint bled around me" halo — wide soft shadows in two
      accent colors stacked so the card sits in a wet ring. */
   box-shadow:
@@ -3897,6 +3968,20 @@ html { scroll-behavior: smooth; }
     0 0 24px 4px rgba(139,111,142,0.14),
     0 16px 36px -12px rgba(92,107,63,0.20),
     inset 0 0 24px rgba(255,255,255,0.55) !important;
+}
+/* Inline SVG with the wet-edge filter the cards reference. Mount
+   the filter element invisibly so it's referenceable by the
+   `filter: url(#wet-edge)` declaration above. */
+.pl8-guest[data-pl-texture="watercolor"]::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  background: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='wet-edge'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.015' numOctaves='3' seed='2'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='4' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0;
 }
 .pl8-guest[data-pl-texture="watercolor"] section h2,
 .pl8-guest[data-pl-texture="watercolor"] section h3,
@@ -4065,15 +4150,31 @@ html { scroll-behavior: smooth; }
    slightly-blotted print. */
 .pl8-guest[data-pl-texture="newsprint"] {
   background-color: #E5DBC2;
+}
+/* Real halftone via the contrast(50) trick: a single radial-
+   gradient cell that ramps from solid dark to transparent gets
+   thresholded by the high-contrast filter into a sharp circular
+   dot. Two layered cells offset at half-cell create a true
+   rosette (Frontend Masters "Pure CSS Halftone in 3 declarations"
+   + CSS-IRL "Halftone Patterns" techniques). */
+.pl8-guest[data-pl-texture="newsprint"]::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
   background-image:
-    /* Halftone — denser pattern with two dot densities offset for
-       a CMYK rosette feel. */
-    radial-gradient(circle at 1px 1px, rgba(14,13,11,0.16) 0.7px, transparent 1.4px),
-    radial-gradient(circle at 2.5px 2.5px, rgba(14,13,11,0.10) 0.5px, transparent 1.2px),
-    /* Slight aging — bottom corners go warmer */
-    radial-gradient(ellipse 80% 30% at 50% 100%, rgba(184,146,68,0.18) 0%, transparent 70%);
-  background-size: 4px 4px, 4px 4px, 100% 100%;
-  background-attachment: fixed, fixed, fixed;
+    radial-gradient(circle at 0% 0%, rgba(14,13,11,0.78) 0.6px, transparent 1.4px),
+    radial-gradient(circle at 50% 50%, rgba(14,13,11,0.78) 0.5px, transparent 1.2px);
+  background-size: 5px 5px;
+  background-position: 0 0, 0 0;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+}
+/* Slight bottom warmth — paper aging at corners */
+.pl8-guest[data-pl-texture="newsprint"] {
+  background-image:
+    radial-gradient(ellipse 80% 30% at 50% 100%, rgba(184,146,68,0.22) 0%, transparent 70%);
 }
 .pl8-guest[data-pl-texture="newsprint"] section h1,
 .pl8-guest[data-pl-texture="newsprint"] section h2,
