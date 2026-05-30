@@ -895,7 +895,11 @@ export function DashHomeV8() {
         <Stamp size={80} tone="peach" text="MADE FOR MEANINGFUL MOMENTS" icon="pear" rotation={10} />
       </div>
 
-      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 24px', maxWidth: 1240, margin: '0 auto' }}>
+      {/* Canonical dashboard container — matches DashSites,
+          DashAnalytics, DashGuests, KeepsakesPage, EventIndexPage,
+          etc. Bottom 32 (not 24) keeps the HelpBand spacing
+          consistent with sibling pages. */}
+      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
         <KickoffCards occasion={site?.occasion} siteDomain={site?.domain} />
         <div className="pl8-dash-threecol pl8-dash-stagger" style={{ marginTop: 24 }}>
           <EventSites sites={sites ?? []} loading={loading} />

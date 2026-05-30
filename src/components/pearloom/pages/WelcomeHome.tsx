@@ -148,9 +148,14 @@ export function WelcomeHome() {
   return (
     <DashLayout active="home" title="Welcome back" subtitle={stageBlurb} hideTopbar>
       {/* Custom topbar — denser, more intentional than DashLayout's default */}
+      {/* Custom topbar — matches the canonical dashboard horizontal
+          padding (20-40px clamp) instead of the prior 20-32 clamp
+          so the title aligns with the section content below it. */}
       <div
         style={{
-          padding: '20px clamp(20px, 4vw, 32px) 8px',
+          padding: '20px clamp(20px, 4vw, 40px) 8px',
+          maxWidth: 1240,
+          margin: '0 auto',
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'space-between',
@@ -194,8 +199,9 @@ export function WelcomeHome() {
 
       <div
         style={{
-          padding: '0 clamp(20px, 4vw, 32px) 32px',
-          maxWidth: 1320,
+          padding: '0 clamp(20px, 4vw, 40px) 32px',
+          maxWidth: 1240,
+          margin: '0 auto',
           display: 'flex',
           flexDirection: 'column',
           gap: 16,
