@@ -504,18 +504,95 @@ linen-folder, playful → postcard-box); `DEFAULT_EDITION_ID =
 automatically get the right Edition via this read-time
 fallback — no wizard step needed, no API change.
 
-**Deferred to subsequent phases** (per the layout-overhaul
-plan):
-- Phase 4: Schedule + Gallery section extraction into the
-  registerBlockStyle variant pattern (currently single hard-
-  coded impl in SiteV8Renderer; Hero and Story already use
-  the registry)
-- Phase 5: edition-aware OG cards, microcopy packs, long-tail
-  blocks (Travel/FAQ/Registry/RSVP variants on demand)
-- "Tilted grids" direction (Margins / Spread / Newspaper /
-  Wall / Filmstrip / Letterpress-sheet) — explicitly
+**Phase 5a (edition-aware OG cards) also shipped**:
+`/api/og` accepts an `edition` param; metadata emitter at
+`src/app/sites/[domain]/page.tsx` reads `manifest.edition`
+and forwards it. Cinema gets letterbox black bars, Linen
+Folder gets centered gold hairlines; the others keep the
+editorial frame. Sites without an explicit edition (or with
+an unrecognized one) render the unchanged editorial frame —
+zero regression on previously-shipped share cards.
+
+**Deferred to subsequent phases** (genuine multi-session
+refactors — flagged with their estimated session count from
+the planning workflow):
+- **Phase 4**: Schedule + Gallery section extraction into the
+  registerBlockStyle variant pattern (5-10 sessions; touches
+  the 8000-line SiteV8Renderer). Each section becomes a
+  registry of variants matching the Hero + Story precedent.
+- **Phase 5b**: per-Edition microcopy packs + long-tail block
+  variants (Travel / FAQ / Registry / RSVP) on demand. Ship
+  variants only when a specific Edition needs them, not by
+  completeness.
+- **Section-opener mounting**: the 5 opener components ship
+  in `edition-openers/` but mounting each section's title
+  slot requires touching every Section component in
+  SiteV8Renderer (StorySection, ScheduleSection, etc.).
+  Folded into Phase 4 since each Section will be extracted
+  there anyway.
+- **"Tilted grids" direction** (Margins / Spread / Newspaper
+  / Wall / Filmstrip / Letterpress-sheet) — explicitly
   deferred per the plan; requires container-query foundation
-  before safe to ship
+  before safe to ship.
+
+### 2026-05-30 — Other simplification-audit wins shipped this session
+
+Multi-agent audit returned 18 ranked wins across editor /
+dashboard / guest surfaces / cross-cutting. Shipped this thread:
+
+- **Quick-edit modals** now route through `onManifestChange`
+  (was silent data-loss bug — modals bypassed autosave + undo
+  via `setManifest(() => m)`).
+- **Duplicate AskPearFloater deleted** — GuestPearChat is the
+  strictly-better streaming, guest-passport-aware version
+  already mounted in the published-site tree. ~200 lines plus
+  the summarizeManifest helper removed.
+- **WhisperCard + CapsuleCard gated** behind
+  `manifest.passport.allowWhispers` / `allowCapsule` (default
+  OFF). Was shipping empty composers to every guest.
+- **FloatingCountdown deleted + BroadcastBar suppressed in
+  day-of**. Three competing top-chrome bars during peak
+  engagement → one coordinated banner.
+- **PresetRsvpForm sorts attending first** — guests no longer
+  fill conditional fields then lose them when they toggle
+  declined.
+- **RegistryClaimsFeed two-stage revoke** — `window.confirm`
+  replaced with arm-then-confirm inline button. Works in
+  both editor + dashboard mount contexts.
+- **DashHomeV8 trimmed** — Moments (placeholder tones) +
+  LinkedCelebrations (dup of `/dashboard/connections`) +
+  PearAssistant (context-less AI chat dup) all unmounted.
+  Milestones returns null when no eventDate (was fake
+  "RSVP deadline in 18 days" rows).
+- **DashSubNav 22 → 10 essentials**. Routes still work at
+  their URLs; ⌘K palette is the discovery surface for the
+  de-promoted tools.
+- **Photo replace URL paste → file upload** in
+  GalleryQuickEditModal.
+- **CustomPaletteEditor deleted** (~130 lines duplicating
+  ColorTokenInspector).
+- **StoryManifest fields typed**: rsvpConfig, rsvpButton,
+  passport, weatherStyle, edition. ~10 `as unknown as` casts
+  dropped across RsvpPanel, DetailsPanel, SiteV8Renderer.
+
+**Deferred from audit** (need dedicated sessions):
+- #7 Merge Gallery + Library (routing migration)
+- #9 Promote PresetRsvpForm canonical, delete multi-step
+  RsvpForm (~600-line rewrite)
+- #11 Unify rewrite-tone across HoverToolbar + PearCommand +
+  DesignAdvisor (variant-chip UX redesign; current vocabulary
+  already consistent — what's missing is the one-round-trip
+  preview pattern)
+- #14 Merge BlockStyle + sectionBackgrounds (data migration
+  risk; the two panels serve different mental models — bulk-
+  edit vs deep-edit — so this is a UX redirect, not a true
+  simplification)
+- #15 Dashboard btn helpers (55 usages of `style={btnInk}`
+  pattern; migration to `<Button variant>` is mechanical but
+  touches 11 files)
+- #16 Token aliasing (`--cream` → `var(--pl-cream)`); blocked
+  on editor surfaces being insulated to `--pl-chrome-*` first
+  or it leaks dark-mode swaps into editor chrome
 
 ### 2026-04-30 — Mass dead-code prune (~13,000 lines deleted)
 
