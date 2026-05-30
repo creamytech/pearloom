@@ -1210,9 +1210,11 @@ function HeroSection({
         <>
           {/* Two paper washes + a single filigree — restrained
               editorial atmosphere instead of the prior 5-element
-              clip-art-y composition. */}
-          <Blob tone="lavender" size={560} opacity={0.42} style={{ position: 'absolute', top: -160, left: -160 }} />
-          <Blob tone="peach" size={460} opacity={0.32} style={{ position: 'absolute', bottom: -160, right: -160 }} />
+              clip-art-y composition. Tones derive from the host's
+              theme accent so the wash matches the palette, not
+              the brand's default lavender + peach combo. */}
+          <Blob tone="theme-accent-light" size={560} opacity={0.42} style={{ position: 'absolute', top: -160, left: -160 }} />
+          <Blob tone="theme-accent" size={460} opacity={0.22} style={{ position: 'absolute', bottom: -160, right: -160 }} />
           <Squiggle variant={0} width={260} style={{ position: 'absolute', top: 100, right: 180, transform: 'rotate(-6deg)', opacity: 0.55 }} />
         </>
       )}
@@ -6704,8 +6706,10 @@ function RSVPSectionImpl({
   return (
     <section id="rsvp" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', position: 'relative', overflow: 'hidden' }}>
       <SectionBackground manifest={manifest} sectionId="rsvp" />
-      <Blob tone="peach" size={460} opacity={0.5} style={{ position: 'absolute', top: -120, left: -140 }} />
-      <Blob tone="lavender" size={400} opacity={0.45} style={{ position: 'absolute', bottom: -140, right: -120 }} />
+      {/* Theme-aware corner washes (was hardcoded peach + lavender
+          which never matched non-default palettes). */}
+      <Blob tone="theme-accent-light" size={460} opacity={0.5} style={{ position: 'absolute', top: -120, left: -140 }} />
+      <Blob tone="theme-accent" size={400} opacity={0.18} style={{ position: 'absolute', bottom: -140, right: -120 }} />
 
       <div style={{ maxWidth: 680, margin: '0 auto', position: 'relative' }}>
         <div style={{ textAlign: 'center', marginBottom: 36 }}>

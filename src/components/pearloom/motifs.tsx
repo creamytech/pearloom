@@ -221,7 +221,7 @@ export function Stamp({
   );
 }
 
-type WashTone = 'lavender' | 'lavender-deep' | 'peach' | 'peach-deep' | 'sage' | 'sage-deep' | 'cream';
+type WashTone = 'lavender' | 'lavender-deep' | 'peach' | 'peach-deep' | 'sage' | 'sage-deep' | 'cream' | 'theme-accent' | 'theme-accent-light';
 
 /* ────────────────────────────────────────────────────────────────────
    Wash — replaces the hard-edged Blob with a soft radial paper wash.
@@ -252,6 +252,10 @@ export function Wash({
     sage: '#A8BA72',
     'sage-deep': '#5C6B3F',
     cream: '#E0D3B3',
+    // Theme-aware tones — resolve to the host's accent palette via
+    // the theme-bound CSS vars. SVG fill accepts var() since Chrome 49.
+    'theme-accent': 'var(--pl-olive, #5C6B3F)',
+    'theme-accent-light': 'var(--pl-olive-mist, #E3E6C8)',
   };
   const fill = palette[tone] ?? palette.lavender;
   const id = useId();
