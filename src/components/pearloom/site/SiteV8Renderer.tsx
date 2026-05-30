@@ -2877,7 +2877,9 @@ function VenueHero({ venue, address, manifest, onEditField }: { venue: string; a
   return (
     <div
       style={{
-        background: '#E3E6C8',
+        // Theme-aware fallback while map iframe loads. Was hardcoded
+        // sage tint which didn't match non-olive palettes.
+        background: 'var(--sage-tint, #E3E6C8)',
         borderRadius: 18,
         overflow: 'hidden',
         border: '1px solid var(--card-ring)',
