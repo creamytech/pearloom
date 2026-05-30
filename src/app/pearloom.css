@@ -3896,10 +3896,14 @@ html { scroll-behavior: smooth; }
 }
 
 /* VELLUM — uneven amber translucent. Very low baseFrequency for
-   big mottled regions, mapped to warm amber. */
+   big mottled regions, mapped to warm amber. Reduced opacity
+   0.48 → 0.22 + lighter alpha in the colormatrix (0.55 → 0.30)
+   so the parchment reads as TRANSLUCENT waxy paper, not muddy
+   leather. The radial color blobs on the background do most of
+   the warm-amber work; this noise just adds fiber unevenness. */
 .pl8-guest[data-pl-texture="vellum"]::before {
-  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 280'%3E%3Cfilter id='vl'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.018' numOctaves='3' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.78 0 0 0 0 0.62 0 0 0 0 0.32 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23vl)'/%3E%3C/svg%3E");
-  opacity: 0.48;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 280'%3E%3Cfilter id='vl'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.018' numOctaves='3' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.78 0 0 0 0 0.62 0 0 0 0 0.32 0 0 0 0.30 0'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23vl)'/%3E%3C/svg%3E");
+  opacity: 0.22;
   mix-blend-mode: multiply;
 }
 
@@ -3936,25 +3940,31 @@ html { scroll-behavior: smooth; }
   background-attachment: fixed;
   background-blend-mode: multiply;
 }
+/* Cards on watercolor get embellishments only (filter, halo,
+   round corners) — background colour stays whatever the active
+   Edition decided. This is how textures + editions compose: the
+   Edition owns layout colour identity, the texture owns material
+   feel. Cinema's black-on-dark card pairs with wet-ink edges;
+   Almanac's cream card pairs with wet-paint edges. */
 .pl8-guest[data-pl-texture="watercolor"] .pl8-schedule-row,
 .pl8-guest[data-pl-texture="watercolor"] .pl8-chapter-row,
-.pl8-guest[data-pl-texture="watercolor"] .pl8-hotel-row {
-  background: rgba(251,247,238,0.86) !important;
-  border: none !important;
-  border-radius: 24px !important;
+.pl8-guest[data-pl-texture="watercolor"] .pl8-hotel-row,
+.pl8-guest[data-pl-texture="watercolor"] .pl8-hotel-card,
+.pl8-guest[data-pl-texture="watercolor"] .pl8-timeline-row,
+.pl8-guest[data-pl-texture="watercolor"] .pl8-passport-card,
+.pl8-guest[data-pl-texture="watercolor"] .pl8-bento-tile,
+.pl8-guest[data-pl-texture="watercolor"] .pl8-mkt-tile {
   /* Hand-painted wobbly edges via real SVG filter (registered in
-     <TextureFilters /> in the DOM). feDisplacementMap scale 6
-     distorts the rounded rect into an irregular hand-painted shape. */
+     <TextureFilters /> in the DOM). */
   filter: url(#wc-card-edge);
-  /* The "paint bled around me" halo — wide soft shadows in three
-     accent colors stacked so the card sits in a wet ring. Pumped
-     opacities so the halo reads as real bleed, not subliminal glow. */
+  /* Paint-bleed halo around every card. The shadow colors are
+     translucent so they tint whatever surface is below — works on
+     cream paper editions AND on Cinema's black. */
   box-shadow:
     0 0 48px 14px rgba(196,112,61,0.35),
     0 0 28px 6px rgba(139,111,142,0.28),
     0 0 20px 4px rgba(92,107,63,0.22),
-    0 16px 36px -12px rgba(40,28,12,0.20),
-    inset 0 0 30px rgba(255,255,255,0.55) !important;
+    0 16px 36px -12px rgba(40,28,12,0.20) !important;
 }
 .pl8-guest[data-pl-texture="watercolor"] section h2,
 .pl8-guest[data-pl-texture="watercolor"] section h3,
@@ -3968,14 +3978,14 @@ html { scroll-behavior: smooth; }
     -1px -1px 0 rgba(139,111,142,0.24),
     3px 3px 6px rgba(196,112,61,0.16);
 }
-.pl8-guest[data-pl-texture="watercolor"] button,
-.pl8-guest[data-pl-texture="watercolor"] a.btn {
+/* Buttons stay owned by the Edition — Cinema's gold-on-dark
+   pills, Postcard Box's stitched pills, Quiet's hairline links.
+   Watercolor adds a pill radius only (so even an Edition with
+   square buttons reads as soft hand-drawn on watercolor) and
+   skips filter + shadow so it doesn't paint over Edition chrome. */
+.pl8-guest[data-pl-texture="watercolor"] button:not([class*="btn-"]):not(.pl-pearl-accent),
+.pl8-guest[data-pl-texture="watercolor"] a.btn:not([class*="btn-"]) {
   border-radius: 999px !important;
-  filter: url(#wc-card-edge);
-  box-shadow:
-    0 0 28px 6px rgba(196,112,61,0.32),
-    0 0 14px rgba(139,111,142,0.18),
-    0 6px 12px rgba(0,0,0,0.06) !important;
 }
 
 /* ── LINEN ──
@@ -4004,27 +4014,27 @@ html { scroll-behavior: smooth; }
   background-attachment: fixed;
   filter: saturate(0.94);
 }
+/* Linen cards keep their Edition-chosen background; we add the
+   sharp 3px corners and the inset weave-press shadows. */
 .pl8-guest[data-pl-texture="linen"] .pl8-schedule-row,
 .pl8-guest[data-pl-texture="linen"] .pl8-chapter-row,
 .pl8-guest[data-pl-texture="linen"] .pl8-hotel-row {
-  background: rgba(251,247,238,0.88) !important;
   border-radius: 3px !important;
   border: 1px solid rgba(184,146,68,0.40) !important;
   /* Inset highlight (top) + inset shadow (bottom) suggests the
      card was pressed into the weave. */
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.85),
+    inset 0 1px 0 rgba(255,255,255,0.30),
     inset 0 -1px 0 rgba(111,101,87,0.18),
     0 1px 3px rgba(75,65,52,0.12) !important;
 }
-.pl8-guest[data-pl-texture="linen"] button,
-.pl8-guest[data-pl-texture="linen"] a.btn {
+/* Linen-textured buttons only override generic buttons; Edition-
+   styled buttons (btn-primary, btn-outline, pearl-accent) keep
+   their Edition identity. */
+.pl8-guest[data-pl-texture="linen"] button:not([class*="btn-"]):not(.pl-pearl-accent),
+.pl8-guest[data-pl-texture="linen"] a.btn:not([class*="btn-"]) {
   border-radius: 3px !important;
   letter-spacing: 0.08em;
-  background: rgba(14,13,11,0.92) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.10),
-    0 2px 3px rgba(75,65,52,0.18) !important;
 }
 
 /* ── LETTERPRESS ──
@@ -4058,28 +4068,34 @@ html { scroll-behavior: smooth; }
     0 0 1.5px rgba(14,13,11,0.32);
   font-weight: 500;
 }
+/* Letterpress cards keep Edition's background; we add the deboss
+   inset shadows + thin border. Inset highlights at 0.40 (down
+   from 0.60) so they don't blow out cream-on-cream editions. */
 .pl8-guest[data-pl-texture="letterpress"] .pl8-schedule-row,
 .pl8-guest[data-pl-texture="letterpress"] .pl8-chapter-row,
 .pl8-guest[data-pl-texture="letterpress"] .pl8-hotel-row {
-  background: #F0E7D2 !important;
   border-radius: 4px !important;
   border: 1px solid rgba(14,13,11,0.14) !important;
-  /* Deep deboss: multi-level inset shadows on all four sides give
-     the card real recessed depth — it looks pressed into the page,
-     not floating above it. */
+  /* Deep deboss: multi-level inset shadows give the card real
+     recessed depth — pressed into the page, not floating above. */
   box-shadow:
-    inset 1px 1px 0 rgba(255,255,255,0.60),
+    inset 1px 1px 0 rgba(255,255,255,0.40),
     inset -1px -1px 0 rgba(14,13,11,0.10),
     inset 0 -2px 4px rgba(14,13,11,0.10),
-    inset 0 2px 4px rgba(255,255,255,0.20) !important;
+    inset 0 2px 4px rgba(255,255,255,0.15) !important;
 }
+/* Letterpress-textured buttons: shape + tracking on Edition-
+   styled buttons, full press-stamp inset on generic buttons. */
 .pl8-guest[data-pl-texture="letterpress"] button,
 .pl8-guest[data-pl-texture="letterpress"] a.btn {
   border-radius: 3px !important;
   letter-spacing: 0.16em;
   font-weight: 600;
-  /* Buttons stamp into the page: inset highlight on top, inset
-     shadow on bottom, a tiny lift shadow below. */
+}
+.pl8-guest[data-pl-texture="letterpress"] button:not([class*="btn-"]):not(.pl-pearl-accent),
+.pl8-guest[data-pl-texture="letterpress"] a.btn:not([class*="btn-"]) {
+  /* Press-stamp inset (only on generic buttons; Edition CTAs
+     keep their gold halo / pearl shimmer). */
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,0.32),
     inset 0 -2px 0 rgba(14,13,11,0.22),
@@ -4106,10 +4122,13 @@ html { scroll-behavior: smooth; }
   background-blend-mode: multiply;
   color: #4A3F25;
 }
+/* Vellum cards keep Edition's background but get a warm amber
+   border + soft gold cast shadow + waxy backdrop-blur, which
+   reads as the underlying paper showing through the translucent
+   vellum sheet. Backdrop filter is the key vellum effect. */
 .pl8-guest[data-pl-texture="vellum"] .pl8-schedule-row,
 .pl8-guest[data-pl-texture="vellum"] .pl8-chapter-row,
 .pl8-guest[data-pl-texture="vellum"] .pl8-hotel-row {
-  background: rgba(255,253,240,0.42) !important;
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
   border: 1px solid rgba(184,146,68,0.36) !important;
@@ -4122,11 +4141,16 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-texture="vellum"] section h3 {
   color: #6B5A2A !important;
 }
+/* Vellum buttons: shape only on Edition-styled buttons; brown
+   waxed-paper button on generic. */
 .pl8-guest[data-pl-texture="vellum"] button,
 .pl8-guest[data-pl-texture="vellum"] a.btn {
+  border-radius: 6px !important;
+}
+.pl8-guest[data-pl-texture="vellum"] button:not([class*="btn-"]):not(.pl-pearl-accent),
+.pl8-guest[data-pl-texture="vellum"] a.btn:not([class*="btn-"]) {
   background: rgba(75,55,30,0.92) !important;
   color: #F4E9C8 !important;
-  border-radius: 6px !important;
 }
 
 /* ── NEWSPRINT ──
@@ -4177,12 +4201,14 @@ html { scroll-behavior: smooth; }
      hit of ink and bled at the edges. */
   text-shadow: 0 0 0.5px rgba(14,13,11,0.65);
 }
+/* Newsprint cards keep Edition's background; we add broadsheet
+   chrome (sharp corners, heavy top rule, hairline bottom rule).
+   No box-shadow — newsprint is flat ink on flat paper. */
 .pl8-guest[data-pl-texture="newsprint"] .pl8-schedule-row,
 .pl8-guest[data-pl-texture="newsprint"] .pl8-chapter-row,
 .pl8-guest[data-pl-texture="newsprint"] .pl8-hotel-row {
-  background: #F2E9D2 !important;
   border-radius: 0 !important;
-  border-top: 2.5px solid #0E0D0B !important;
+  border-top: 2.5px solid currentColor !important;
   border-bottom: 1px solid rgba(14,13,11,0.30) !important;
   box-shadow: none !important;
   padding: 18px 22px !important;
@@ -4193,19 +4219,75 @@ html { scroll-behavior: smooth; }
   line-height: 1.5 !important;
   color: #2A241A !important;
 }
+/* Newsprint buttons: editorial type-treatment on all buttons,
+   broadsheet box only on generic buttons (Edition pills keep
+   their gold-on-dark / pearl identity). */
 .pl8-guest[data-pl-texture="newsprint"] button,
 .pl8-guest[data-pl-texture="newsprint"] a.btn {
   border-radius: 0 !important;
-  border: 2px solid #0E0D0B !important;
   text-transform: uppercase;
   letter-spacing: 0.16em;
   font-weight: 700;
   font-family: var(--pl-font-display, Fraunces, Georgia, serif) !important;
+}
+.pl8-guest[data-pl-texture="newsprint"] button:not([class*="btn-"]):not(.pl-pearl-accent),
+.pl8-guest[data-pl-texture="newsprint"] a.btn:not([class*="btn-"]) {
+  border: 2px solid #0E0D0B !important;
   background: #F2E9D2 !important;
   color: #0E0D0B !important;
   box-shadow: 3px 3px 0 rgba(14,13,11,0.85) !important;
 }
 
+/* ─────────────────────────────────────────────────────────
+   Cinema × Texture compat overrides
+   ─────────────────────────────────────────────────────────
+   Cinema covers the whole page in `background: #0E0D0B` sections,
+   so any page-level texture treatment (grain pools, halftone dots,
+   amber wash) gets paved over. These rules adapt each texture's
+   most-visible signature so it still reads on Cinema's dark base. */
+
+/* Cinema + Newsprint: the white-bg halftone layer is invisible
+   under multiply-blend on black sections. Hide the page-level
+   halftone — Cinema's cards still get the newsprint top-rule via
+   currentColor, which carries the broadsheet identity. */
+.pl8-guest[data-pl-edition="cinema"][data-pl-texture="newsprint"]::after {
+  display: none;
+}
+
+/* Cinema + Watercolor: paint-pool BG hidden by dark sections, but
+   the wet-edge filter on cards + wet-brush text filter still work.
+   Skip the peach/plum text-shadow on headlines (those colors look
+   wrong as glow around cream-on-dark text); keep the filter. */
+.pl8-guest[data-pl-edition="cinema"][data-pl-texture="watercolor"] section h2,
+.pl8-guest[data-pl-edition="cinema"][data-pl-texture="watercolor"] section h3,
+.pl8-guest[data-pl-edition="cinema"][data-pl-texture="watercolor"] section .display {
+  text-shadow: 0 0 12px rgba(184,146,68,0.40) !important;
+}
+
+/* Cinema + Letterpress: deboss insets fight the dark cards. Strip
+   the inset shadow stack on cards (the lp-text-press SVG filter
+   still gives letterforms ink-into-fiber edges). */
+.pl8-guest[data-pl-edition="cinema"][data-pl-texture="letterpress"] .pl8-schedule-row,
+.pl8-guest[data-pl-edition="cinema"][data-pl-texture="letterpress"] .pl8-chapter-row,
+.pl8-guest[data-pl-edition="cinema"][data-pl-texture="letterpress"] .pl8-hotel-row {
+  box-shadow: none !important;
+  border: 1px solid rgba(184,146,68,0.32) !important;
+}
+.pl8-guest[data-pl-edition="cinema"][data-pl-texture="letterpress"] section h1,
+.pl8-guest[data-pl-edition="cinema"][data-pl-texture="letterpress"] section h2,
+.pl8-guest[data-pl-edition="cinema"][data-pl-texture="letterpress"] section h3 {
+  text-shadow: 0 1px 0 rgba(0,0,0,0.6), 0 0 1.5px rgba(184,146,68,0.30) !important;
+}
+
+/* Cinema + Linen: weave bg covered, but tiny cream inset highlight
+   on cards is fine on dark. No override needed.
+   Cinema + Vellum: backdrop-blur on cards still works as smoked-
+   glass; amber border survives. No override needed. */
+
+/* ─────────────────────────────────────────────────────────
+   Motion softening across all non-smooth textures (carry-over —
+   the user wanted handmade pages, not animated ones).
+   ───────────────────────────────────────────────────────── */
 /* The user's frustration: "all the animations and feel and look of
    all the buttons and sections" feel too modern. When any texture
    except smooth is active, soften the global motion + transitions

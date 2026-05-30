@@ -28,35 +28,36 @@ export function TextureFilters() {
       }}
     >
       <defs>
-        {/* WATERCOLOR — wet card edge. Low-freq turbulence +
-            displacement gives card outlines an organic wobble
-            so they read as hand-painted shapes, not CSS
-            rectangles. Scale 6 is the sweet spot — bigger and
-            cards look melted. */}
-        <filter id="wc-card-edge" x="-10%" y="-10%" width="120%" height="120%">
+        {/* WATERCOLOR — wet card edge. Scale tuned DOWN to 2.5
+            because feDisplacementMap displaces every descendant
+            including the card's text content. Anything higher
+            than 3 makes "Arrive & settle" look wobbly. Lower
+            frequency (0.014) so the wobble is long-wavelength
+            and reads as organic shape, not jitter. */}
+        <filter id="wc-card-edge" x="-25%" y="-25%" width="150%" height="150%">
           <feTurbulence
             type="fractalNoise"
-            baseFrequency="0.018"
-            numOctaves="3"
+            baseFrequency="0.014"
+            numOctaves="2"
             seed="2"
             result="noise"
           />
           <feDisplacementMap
             in="SourceGraphic"
             in2="noise"
-            scale="6"
+            scale="2.5"
             xChannelSelector="R"
             yChannelSelector="G"
           />
         </filter>
 
-        {/* WATERCOLOR — brush-lettered type. Tiny displacement
-            scale 1.5 so letterforms get a tiny irregular outline
-            that reads as a wet brush stroke instead of laser type. */}
+        {/* WATERCOLOR — brush-lettered headlines. Scale 0.8 so
+            display type gets a tiny brush wobble at letter edges
+            without becoming unreadable. */}
         <filter id="wc-text-edge" x="-2%" y="-2%" width="104%" height="104%">
           <feTurbulence
             type="fractalNoise"
-            baseFrequency="0.06"
+            baseFrequency="0.08"
             numOctaves="2"
             seed="5"
             result="textNoise"
@@ -64,19 +65,20 @@ export function TextureFilters() {
           <feDisplacementMap
             in="SourceGraphic"
             in2="textNoise"
-            scale="1.5"
+            scale="0.8"
             xChannelSelector="R"
             yChannelSelector="G"
           />
         </filter>
 
-        {/* LETTERPRESS — pressed type. Sharper displacement on
-            edges, lower scale, simulating ink soaking into fibers
-            at letter boundaries. */}
+        {/* LETTERPRESS — pressed type. Tiny displacement scale 0.4
+            simulating ink absorbed into paper fibers at letter
+            edges. Smaller than watercolor because the press is
+            crisp, not wet. */}
         <filter id="lp-text-press" x="-2%" y="-2%" width="104%" height="104%">
           <feTurbulence
             type="fractalNoise"
-            baseFrequency="0.5"
+            baseFrequency="0.7"
             numOctaves="2"
             seed="3"
             result="pressNoise"
@@ -84,7 +86,7 @@ export function TextureFilters() {
           <feDisplacementMap
             in="SourceGraphic"
             in2="pressNoise"
-            scale="0.6"
+            scale="0.4"
             xChannelSelector="R"
             yChannelSelector="G"
           />
