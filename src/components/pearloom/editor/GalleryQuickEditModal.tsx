@@ -231,12 +231,8 @@ function PhotoEditor({
         />
       </Field>
 
-      <Field label="Replace photo (URL)" help="Paste a new image URL to replace this photo without losing its caption.">
-        <TextInput
-          value={photo.url}
-          onChange={(e) => onPatch({ url: e.target.value })}
-          placeholder="https://…"
-        />
+      <Field label="Replace photo" help="Pick a new image from your device. Caption + alt text stay put.">
+        <ReplacePhotoField currentUrl={photo.url} onReplace={(url) => onPatch({ url })} />
       </Field>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 8, borderTop: '1px solid var(--line-soft)', marginTop: 6 }}>
@@ -262,6 +258,92 @@ function PhotoEditor({
           Remove this photo
         </button>
       </div>
+    </div>
+  );
+}
+
+// ── ReplacePhotoField ────────────────────────────────────────
+// File-upload affordance for swapping out a gallery photo. Matches
+// the upload pattern that already works in StoryQuickEditModal.tsx
+// (hidden <input type=file> + FileReader → data URL). Demotes the
+// URL-paste fallback to a small "Or paste a URL" link, since
+// host-mental-model is "photos live on devices" not "photos live
+// at URLs".
+function ReplacePhotoField({
+  currentUrl,
+  onReplace,
+}: {
+  currentUrl: string;
+  onReplace: (dataUrl: string) => void;
+}) {
+  const [showUrl, setShowUrl] = useState(false);
+  function handleFile(file: File) {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === 'string') onReplace(result);
+    };
+    reader.readAsDataURL(file);
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <label
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '8px 14px',
+          borderRadius: 8,
+          border: '1px solid var(--line)',
+          background: 'var(--paper, #FBF7EE)',
+          color: 'var(--ink-soft)',
+          fontSize: 12,
+          fontWeight: 700,
+          cursor: 'pointer',
+          fontFamily: 'var(--font-ui)',
+          alignSelf: 'flex-start',
+        }}
+      >
+        <Icon name="upload" size={12} />
+        Choose a photo
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handleFile(file);
+            e.target.value = '';
+          }}
+          style={{ display: 'none' }}
+        />
+      </label>
+      {showUrl ? (
+        <TextInput
+          value={currentUrl}
+          onChange={(e) => onReplace(e.target.value)}
+          placeholder="https://…"
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setShowUrl(true)}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--ink-muted)',
+            fontSize: 11,
+            cursor: 'pointer',
+            padding: 0,
+            textAlign: 'left',
+            textDecoration: 'underline',
+            fontFamily: 'var(--font-ui)',
+            alignSelf: 'flex-start',
+          }}
+        >
+          Or paste a URL
+        </button>
+      )}
     </div>
   );
 }

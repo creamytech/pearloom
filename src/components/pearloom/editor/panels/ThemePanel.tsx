@@ -280,7 +280,11 @@ export function ThemePanel({
               grid below — the active palette is already highlighted
               and labelled. One less form field, no functional loss. */}
           <PaletteSection manifest={manifest} active={active} palette={active.id} applyPalette={applyPalette} onChange={onChange} />
-          <CustomPaletteEditor manifest={manifest} onChange={onChange} applyPalette={applyPalette} />
+          {/* CustomPaletteEditor removed — the mix-your-own form
+              duplicated ColorTokenInspector below. Hosts who want
+              raw colour tweaks use the canonical token inspector.
+              The Custom tab in the palette grid keeps showing
+              Pear-saved palettes. */}
         </div>
 
         <div data-pl-design-anchor="motif">
@@ -1262,132 +1266,13 @@ function PaletteTile({
    accent, accentLight, muted) + a name field. "Apply" sets the
    palette live; "Save" stores it as a custom palette.
    ──────────────────────────────────────────────────────────────────── */
-function CustomPaletteEditor({
-  manifest,
-  onChange,
-  applyPalette,
-}: {
-  manifest: StoryManifest;
-  onChange: (m: StoryManifest) => void;
-  applyPalette: (p: ThemePreset) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const seed = (manifest as unknown as { theme?: { colors?: ThemePreset['theme'] } }).theme?.colors;
-  const [name, setName] = useState('My palette');
-  const [bg, setBg] = useState(seed?.background ?? '#F3E9D4');
-  const [fg, setFg] = useState(seed?.foreground ?? '#2A3512');
-  const [accent, setAccent] = useState(seed?.accent ?? '#3D4A1F');
-  const [accentLight, setAccentLight] = useState(seed?.accentLight ?? '#D7CCE5');
-  const [muted, setMuted] = useState(seed?.muted ?? '#6D7D3F');
-
-  // Stable per-component-instance id for the in-progress
-  // palette. Was Date.now() which made render impure and the
-  // id churn on every keystroke.
-  const customId = `custom-${useId()}`;
-  const preset: ThemePreset = useMemo(() => {
-    return {
-      id: customId,
-      name: name.trim() || 'My palette',
-      colors: [accent, muted, accentLight, bg, fg, accentLight],
-      theme: {
-        background: bg,
-        foreground: fg,
-        accent,
-        accentLight,
-        muted,
-        cardBg: lighten(bg, 0.08),
-      },
-    };
-  }, [customId, name, bg, fg, accent, accentLight, muted]);
-
-  function apply() {
-    applyPalette(preset);
-  }
-  function save() {
-    const stored = (manifest as unknown as { customPalettes?: ThemePreset[] }).customPalettes ?? [];
-    onChange({
-      ...manifest,
-      customPalettes: [...stored, { ...preset, source: 'custom' as const, createdAt: new Date().toISOString() }],
-    } as unknown as StoryManifest);
-  }
-
-  if (!open) {
-    return (
-      <PanelSection>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          style={{
-            width: '100%',
-            padding: '10px 14px',
-            borderRadius: 12,
-            background: 'transparent',
-            border: '1px dashed var(--line)',
-            color: 'var(--ink-soft)',
-            fontSize: 13,
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            fontFamily: 'inherit',
-          }}
-        >
-          <Icon name="brush" size={13} /> Build your own palette
-        </button>
-      </PanelSection>
-    );
-  }
-
-  return (
-    <PanelSection
-      label="Custom palette"
-      hint="Pick five colours. Apply previews on the canvas; Save adds it to your custom library above."
-      action={
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          style={{ background: 'transparent', border: 'none', color: 'var(--ink-muted)', fontSize: 11, cursor: 'pointer' }}
-        >
-          Close
-        </button>
-      }
-    >
-      <Field label="Name">
-        <TextInput value={name} onChange={(e) => setName(e.target.value)} placeholder="My palette" />
-      </Field>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8, marginTop: 8 }}>
-        {[
-          { label: 'Paper',  value: bg,          set: setBg },
-          { label: 'Ink',    value: fg,          set: setFg },
-          { label: 'Accent', value: accent,      set: setAccent },
-          { label: 'Soft',   value: accentLight, set: setAccentLight },
-          { label: 'Muted',  value: muted,       set: setMuted },
-        ].map((row) => (
-          <label key={row.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <V8ColorPicker
-              value={row.value}
-              onChange={(v) => row.set(v)}
-              ariaLabel={`${row.label} colour`}
-              style={{ width: '100%', height: 38 }}
-            />
-            <span style={{ fontSize: 10.5, color: 'var(--ink-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              {row.label}
-            </span>
-          </label>
-        ))}
-      </div>
-      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-        <button type="button" onClick={apply} className="btn btn-outline btn-sm" style={{ flex: 1, justifyContent: 'center' }}>
-          Apply
-        </button>
-        <button type="button" onClick={save} className="btn btn-primary btn-sm" style={{ flex: 1, justifyContent: 'center' }}>
-          Save to library
-        </button>
-      </div>
-    </PanelSection>
-  );
-}
+// CustomPaletteEditor removed in the simplification audit pass —
+// hosts who want raw colour tweaks use ColorTokenInspector (which
+// edits the same theme.colors fields with the same V8ColorPicker
+// + per-token labels). The mix-your-own affordance was a 130-line
+// parallel form that wrote nothing the renderer didn't already
+// read from theme.colors. Pear-suggested palettes still save into
+// the Custom tab via the AI tab's onSave hook.
 
 /* ────────────────────────────────────────────────────────────────────
    Helpers — convert smart-palette response into a ThemePreset, and a
