@@ -8126,7 +8126,7 @@ export function SiteV8Renderer({
 
   return (
     <EditorCanvasProvider value={canvasCtxValue}>
-      <div className="pl8-guest" data-pl-edition={activeEdition.id} data-pl-texture={activeTexture} style={{ ...themeStyle, ...radiusVars }}>
+      <div className="pl8-guest" data-pl-edition={activeEdition.id} data-pl-texture={activeTexture} data-pl-edit-mode={editMode ? 'true' : undefined} style={{ ...themeStyle, ...radiusVars }}>
         {/* SVG filter defs for the texture system. Mounts an invisible
             <svg><defs><filter id="wc-card-edge"></filter></defs></svg>
             block so CSS `filter: url(#wc-card-edge)` declarations on
