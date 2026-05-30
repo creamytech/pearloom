@@ -3399,6 +3399,17 @@ html { scroll-behavior: smooth; }
   border-radius: 0 !important;
   border: none !important;
 }
+/* Cinema hotel/travel rows: read as a film-magazine destination
+   listing — left gold rule, sharp corners, no card chrome. */
+.pl8-guest[data-pl-edition="cinema"] .pl8-hotel-row,
+.pl8-guest[data-pl-edition="cinema"] .pl8-hotel-card {
+  background: rgba(251,247,238,0.04) !important;
+  border-radius: 0 !important;
+  border: none !important;
+  border-left: 3px solid #B89244 !important;
+  padding-left: 20px !important;
+  margin-bottom: 6px;
+}
 
 /* ── POSTCARD BOX ── stacked tilted cards on cream-deep paper.
    Cards rotate ±2-3deg, get warm stitch borders + soft drop
@@ -3446,6 +3457,27 @@ html { scroll-behavior: smooth; }
 }
 .pl8-guest[data-pl-edition="postcard-box"] .pl8-gallery-grid > div:nth-child(3n+1) {
   transform: rotate(0.8deg);
+}
+/* Postcard Box hotel/travel rows: same tilted-postcard treatment
+   as schedule + chapter. */
+.pl8-guest[data-pl-edition="postcard-box"] .pl8-hotel-row,
+.pl8-guest[data-pl-edition="postcard-box"] .pl8-hotel-card {
+  background: #FBF7EE !important;
+  border: 1px solid rgba(198,112,61,0.18) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 24px rgba(14,13,11,0.10), 0 2px 6px rgba(14,13,11,0.06) !important;
+  padding: 18px !important;
+  margin-bottom: 14px;
+  transform: rotate(-0.4deg);
+  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pl8-guest[data-pl-edition="postcard-box"] .pl8-hotel-row:nth-child(even),
+.pl8-guest[data-pl-edition="postcard-box"] .pl8-hotel-card:nth-child(even) {
+  transform: rotate(0.5deg);
+}
+.pl8-guest[data-pl-edition="postcard-box"] .pl8-hotel-row:hover,
+.pl8-guest[data-pl-edition="postcard-box"] .pl8-hotel-card:hover {
+  transform: rotate(0deg) translateY(-2px);
 }
 
 /* ── LINEN FOLDER ── hotel-stationery formal.
@@ -3498,6 +3530,22 @@ html { scroll-behavior: smooth; }
   padding: 6px;
   background: #FBF7EE;
 }
+/* Linen Folder hotel/travel rows: same transparent-with-hairline
+   treatment as schedule + chapter so the travel section reads as
+   a continuation of the formal stationery folder. */
+.pl8-guest[data-pl-edition="linen-folder"] .pl8-hotel-row,
+.pl8-guest[data-pl-edition="linen-folder"] .pl8-hotel-card {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  border-top: 1px solid rgba(184,146,68,0.30) !important;
+  padding: 22px 28px !important;
+  box-shadow: none !important;
+}
+.pl8-guest[data-pl-edition="linen-folder"] .pl8-hotel-row:last-child,
+.pl8-guest[data-pl-edition="linen-folder"] .pl8-hotel-card:last-child {
+  border-bottom: 1px solid rgba(184,146,68,0.30) !important;
+}
 
 /* ── QUIET EDITION ── whitespace and restraint.
    Maximum padding, naked paper, centered alignment, hairline
@@ -3540,6 +3588,22 @@ html { scroll-behavior: smooth; }
   grid-template-columns: 1fr !important;
   max-width: 540px !important;
   margin: 0 auto !important;
+}
+/* Quiet hotel/travel rows: stripped chrome, centered, hairline
+   dividers only — same restraint posture as schedule + chapter. */
+.pl8-guest[data-pl-edition="quiet"] .pl8-hotel-row,
+.pl8-guest[data-pl-edition="quiet"] .pl8-hotel-card {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 24px 0 !important;
+  text-align: center;
+  border-top: 1px solid rgba(14,13,11,0.06) !important;
+  box-shadow: none !important;
+}
+.pl8-guest[data-pl-edition="quiet"] .pl8-hotel-row:last-child,
+.pl8-guest[data-pl-edition="quiet"] .pl8-hotel-card:last-child {
+  border-bottom: 1px solid rgba(14,13,11,0.06) !important;
 }
 
 /* ── ALMANAC ── bound book, generous reading rhythm.
