@@ -39,7 +39,12 @@ interface GuestbookProps {
 // Elegant bottom-border input style
 const inputBaseStyle: React.CSSProperties = {
   width: '100%',
-  padding: '0.65rem 0',
+  // 0.875rem (14px) × 2 + 16px font + 1.5px border ≈ 47px touch
+  // target — at the iOS HIG 44px floor. Previous 0.65rem landed
+  // at ~38px which was the tightest of any input in the product.
+  // Matches PresetRsvpForm + rsvp-form so guestbook + RSVP feel
+  // consistent under the thumb.
+  padding: '0.875rem 0',
   borderTop: 'none',
   borderLeft: 'none',
   borderRight: 'none',
