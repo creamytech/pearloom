@@ -462,7 +462,11 @@ function PillButton({
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  padding: '0.75rem 0',
+  // 0.875rem (14px) × 2 + 16px font + 1.5px border ≈ 47px — at or
+  // above the iOS HIG 44px touch-target floor. Previous 0.75rem
+  // landed at ~42px which felt tight on iPhone SE. fontSize max
+  // 16px also blocks iOS's auto-zoom-on-focus.
+  padding: '0.875rem 0',
   borderTop: 'none',
   borderLeft: 'none',
   borderRight: 'none',

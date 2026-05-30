@@ -145,7 +145,10 @@ interface RsvpFormProps {
 // ── Shared input style ───────────────────────────────────────────
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  padding: '0.75rem 0',
+  // 0.875rem (14px) × 2 + 16px font + 1.5px border ≈ 47px — at or
+  // above the iOS HIG 44px touch-target floor. Mirrors PresetRsvpForm
+  // so wedding + non-wedding event sites have consistent feel.
+  padding: '0.875rem 0',
   borderTop: 'none',
   borderLeft: 'none',
   borderRight: 'none',
