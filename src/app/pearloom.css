@@ -3486,6 +3486,18 @@ html { scroll-behavior: smooth; }
   padding: 28px !important;
   box-shadow: none !important;
 }
+/* Linen Folder gallery: 3-up grid with thin gold hairlines as
+   the frame. Reads as a hotel stationery photo card set, not a
+   modern bordered grid. */
+.pl8-guest[data-pl-edition="linen-folder"] .pl8-gallery-grid {
+  gap: 28px !important;
+}
+.pl8-guest[data-pl-edition="linen-folder"] .pl8-gallery-grid > div {
+  border-radius: 0 !important;
+  border: 1px solid rgba(184,146,68,0.30);
+  padding: 6px;
+  background: #FBF7EE;
+}
 
 /* ── QUIET EDITION ── whitespace and restraint.
    Maximum padding, naked paper, centered alignment, hairline
@@ -3550,6 +3562,13 @@ html { scroll-behavior: smooth; }
 }
 .pl8-guest[data-pl-edition="almanac"] .pl8-chapter-row p {
   line-height: 1.75 !important;
+}
+/* Almanac gallery: soft hairline borders, no shadow — reads as
+   an almanac plate page with each photo gently mounted. */
+.pl8-guest[data-pl-edition="almanac"] .pl8-gallery-grid > div {
+  border-radius: 6px !important;
+  border: 1px solid rgba(14,13,11,0.06);
+  box-shadow: 0 1px 2px rgba(14,13,11,0.04);
 }
 
 /* Reduced motion — disable the postcard tilt animation. */
