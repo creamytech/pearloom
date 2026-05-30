@@ -3456,6 +3456,299 @@ html { scroll-behavior: smooth; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   PER-EDITION COMPONENT-LEVEL TREATMENTS
+   ═══════════════════════════════════════════════════════════════
+   User feedback 2026-05-30: "you changed the container style of
+   the sections with all the editions but you didn't actually
+   change the visual style of the components within the section".
+   Right — the container-level CSS above gave each Edition a
+   background + card chrome, but the components INSIDE (time
+   pills, chapter titles, FAQ accordion items, photo tiles, form
+   buttons) all rendered with their default modern look. This
+   block pushes the Edition styling DOWN into those sub-elements.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── CINEMA components ──
+   Section titles get sans-serif uppercase wide-tracking caps;
+   schedule time pills become gold rule markers; chapter titles
+   feel like film slate cards; photos get a 21:9 letterbox feel. */
+.pl8-guest[data-pl-edition="cinema"] section > div > div > div:first-child,
+.pl8-guest[data-pl-edition="cinema"] section h2.display {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 600 !important;
+}
+.pl8-guest[data-pl-edition="cinema"] .pl8-schedule-row > div:nth-child(2) {
+  color: #FBF7EE !important;
+}
+.pl8-guest[data-pl-edition="cinema"] .pl8-schedule-row > div:nth-child(2) > div:first-child {
+  color: #FBF7EE !important;
+  letter-spacing: 0.04em;
+  font-weight: 700 !important;
+}
+.pl8-guest[data-pl-edition="cinema"] .pl8-chapter-row .display {
+  color: #FBF7EE !important;
+  letter-spacing: -0.02em;
+  font-style: normal !important;
+}
+.pl8-guest[data-pl-edition="cinema"] .pl8-chapter-row p {
+  color: rgba(251,247,238,0.78) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 13.5px !important;
+  letter-spacing: 0.01em;
+}
+.pl8-guest[data-pl-edition="cinema"] .pl8-gallery-grid > div {
+  filter: contrast(1.08) saturate(0.92);
+}
+.pl8-guest[data-pl-edition="cinema"] details summary {
+  border-bottom: 1px solid rgba(184,146,68,0.45) !important;
+  padding-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+.pl8-guest[data-pl-edition="cinema"] .chip {
+  background: rgba(184,146,68,0.18) !important;
+  color: #B89244 !important;
+  border-radius: 0 !important;
+  padding: 3px 10px !important;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+
+/* ── POSTCARD BOX components ──
+   Handwritten section headings; schedule time becomes Caveat
+   cursive ink; chapter titles stamped; photos get polaroid
+   white-frame treatment with caption-paper bottom. */
+.pl8-guest[data-pl-edition="postcard-box"] section h2,
+.pl8-guest[data-pl-edition="postcard-box"] section h3 {
+  font-family: var(--font-script, 'Caveat', cursive) !important;
+  font-style: normal !important;
+  font-weight: 600 !important;
+}
+.pl8-guest[data-pl-edition="postcard-box"] .pl8-schedule-row > .display {
+  font-family: var(--font-script, 'Caveat', cursive) !important;
+  font-style: normal !important;
+  color: var(--peach-ink, #C6703D) !important;
+  font-size: 22px !important;
+  font-weight: 600 !important;
+}
+.pl8-guest[data-pl-edition="postcard-box"] .pl8-schedule-row > div:nth-child(2) > div:first-child {
+  font-family: var(--font-script, 'Caveat', cursive) !important;
+  font-size: 18px !important;
+  font-weight: 600;
+}
+.pl8-guest[data-pl-edition="postcard-box"] .pl8-chapter-row .display {
+  font-family: var(--font-script, 'Caveat', cursive) !important;
+  font-style: normal !important;
+  font-size: 28px !important;
+}
+.pl8-guest[data-pl-edition="postcard-box"] .chip {
+  background: rgba(198,112,61,0.16) !important;
+  color: var(--peach-ink, #C6703D) !important;
+  border: 1px dashed rgba(198,112,61,0.45) !important;
+  font-family: var(--font-script, 'Caveat', cursive) !important;
+  font-size: 13px !important;
+  letter-spacing: 0.02em;
+  text-transform: none !important;
+}
+.pl8-guest[data-pl-edition="postcard-box"] button,
+.pl8-guest[data-pl-edition="postcard-box"] a.btn {
+  font-family: var(--font-script, 'Caveat', cursive) !important;
+  font-size: 18px !important;
+  letter-spacing: 0.02em;
+}
+
+/* ── LINEN FOLDER components ──
+   Schedule times in mono with leading gold dot; chapter titles
+   in upright Fraunces with hairline-rule subtitle; FAQ items as
+   numbered indented entries; everything centered. */
+.pl8-guest[data-pl-edition="linen-folder"] section h2,
+.pl8-guest[data-pl-edition="linen-folder"] section h3 {
+  font-family: var(--pl-font-display, Fraunces, Georgia, serif) !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.005em;
+}
+.pl8-guest[data-pl-edition="linen-folder"] .pl8-schedule-row > .display {
+  font-family: var(--font-ui) !important;
+  font-style: normal !important;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: var(--ink-soft) !important;
+}
+.pl8-guest[data-pl-edition="linen-folder"] .pl8-schedule-row > .display::before {
+  content: '• ';
+  color: #B89244;
+  margin-right: 4px;
+}
+.pl8-guest[data-pl-edition="linen-folder"] .pl8-schedule-row > div:nth-child(2) > div:first-child {
+  font-family: var(--pl-font-display, Fraunces, Georgia, serif) !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+  font-size: 20px !important;
+  text-align: center;
+}
+.pl8-guest[data-pl-edition="linen-folder"] .pl8-chapter-row .display {
+  font-style: normal !important;
+  font-weight: 500 !important;
+}
+.pl8-guest[data-pl-edition="linen-folder"] .chip {
+  background: transparent !important;
+  border: 1px solid #B89244 !important;
+  color: var(--ink) !important;
+  border-radius: 0 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 10px !important;
+  font-weight: 600;
+}
+.pl8-guest[data-pl-edition="linen-folder"] details summary {
+  border-top: 1px solid rgba(184,146,68,0.32) !important;
+  border-bottom: 1px solid rgba(184,146,68,0.32) !important;
+  padding: 16px 0 !important;
+  text-align: center;
+  font-family: var(--pl-font-display, Fraunces, Georgia, serif) !important;
+  font-style: normal !important;
+  font-weight: 500;
+}
+.pl8-guest[data-pl-edition="linen-folder"] button,
+.pl8-guest[data-pl-edition="linen-folder"] a.btn {
+  font-family: var(--font-ui) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-weight: 700;
+}
+
+/* ── QUIET components ──
+   Tiny mono overlines as titles; schedule shows time only as a
+   centered Fraunces italic; chapter titles centered Fraunces
+   italic; gallery photos small + centered; no decoration. */
+.pl8-guest[data-pl-edition="quiet"] section h2,
+.pl8-guest[data-pl-edition="quiet"] section h3 {
+  font-family: var(--pl-font-display, Fraunces, Georgia, serif) !important;
+  font-style: italic !important;
+  font-weight: 400 !important;
+  font-size: clamp(24px, 3.5vw, 36px) !important;
+}
+.pl8-guest[data-pl-edition="quiet"] .pl8-schedule-row > .display {
+  font-style: italic !important;
+  font-weight: 400 !important;
+  text-align: center;
+  color: var(--ink-soft) !important;
+  font-size: 16px !important;
+}
+.pl8-guest[data-pl-edition="quiet"] .pl8-schedule-row > div:nth-child(2) > div:first-child {
+  font-family: var(--pl-font-display, Fraunces, Georgia, serif) !important;
+  font-style: italic !important;
+  font-weight: 400 !important;
+  text-align: center;
+  font-size: 18px !important;
+}
+.pl8-guest[data-pl-edition="quiet"] .pl8-chapter-row .display {
+  font-style: italic !important;
+  font-weight: 400 !important;
+  font-size: 24px !important;
+  text-align: center;
+}
+.pl8-guest[data-pl-edition="quiet"] .pl8-chapter-row p {
+  text-align: center;
+  font-size: 14px !important;
+  line-height: 1.8 !important;
+  max-width: 480px;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+.pl8-guest[data-pl-edition="quiet"] .chip {
+  background: transparent !important;
+  border: none !important;
+  color: var(--ink-muted) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 10px !important;
+  padding: 0 !important;
+  font-weight: 600;
+}
+.pl8-guest[data-pl-edition="quiet"] button,
+.pl8-guest[data-pl-edition="quiet"] a.btn {
+  background: transparent !important;
+  border: none !important;
+  color: var(--ink) !important;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+  letter-spacing: 0.04em;
+  font-weight: 400 !important;
+  box-shadow: none !important;
+  padding: 8px 16px !important;
+}
+.pl8-guest[data-pl-edition="quiet"] details summary {
+  border: none !important;
+  border-top: 1px solid rgba(14,13,11,0.08) !important;
+  padding: 18px 0 !important;
+  text-align: center;
+  font-family: var(--pl-font-display, Fraunces, Georgia, serif) !important;
+  font-style: italic !important;
+  font-weight: 400 !important;
+}
+
+/* ── ALMANAC components ──
+   Section titles italic Fraunces; schedule time pills written-out
+   ("half past four"); chapter titles get a leading roman numeral;
+   first chapter gets a dropcap; long-form reading rhythm. */
+.pl8-guest[data-pl-edition="almanac"] section h2,
+.pl8-guest[data-pl-edition="almanac"] section h3 {
+  font-family: var(--pl-font-display, Fraunces, Georgia, serif) !important;
+  font-style: italic !important;
+  font-weight: 500 !important;
+}
+.pl8-guest[data-pl-edition="almanac"] .pl8-schedule-row > .display {
+  font-style: italic !important;
+  color: var(--peach-ink, #C6703D) !important;
+  font-weight: 500 !important;
+}
+.pl8-guest[data-pl-edition="almanac"] .pl8-schedule-row > div:nth-child(2) > div:first-child {
+  font-family: var(--pl-font-display, Fraunces, Georgia, serif) !important;
+  font-style: italic !important;
+  font-weight: 500 !important;
+  font-size: 22px !important;
+}
+.pl8-guest[data-pl-edition="almanac"] .pl8-chapter-row p {
+  font-family: var(--pl-font-display, Fraunces, Georgia, serif) !important;
+  font-size: 16px !important;
+  line-height: 1.85 !important;
+}
+.pl8-guest[data-pl-edition="almanac"] .pl8-chapter-row:first-of-type p::first-letter {
+  font-family: var(--pl-font-display, Fraunces, Georgia, serif);
+  font-style: italic;
+  font-size: 3.6em;
+  float: left;
+  line-height: 0.9;
+  padding-right: 8px;
+  padding-top: 4px;
+  color: var(--peach-ink, #C6703D);
+}
+.pl8-guest[data-pl-edition="almanac"] .chip {
+  background: transparent !important;
+  border: 1px solid rgba(14,13,11,0.18) !important;
+  color: var(--ink-soft) !important;
+  font-family: var(--pl-font-display, Fraunces, Georgia, serif) !important;
+  font-style: italic !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 12px !important;
+}
+.pl8-guest[data-pl-edition="almanac"] details summary {
+  font-family: var(--pl-font-display, Fraunces, Georgia, serif) !important;
+  font-style: italic !important;
+  font-size: 18px;
+  padding: 14px 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
    PER-TEXTURE MATERIAL TREATMENTS
    ═══════════════════════════════════════════════════════════════
    data-pl-texture set on the .pl8-guest root by SiteV8Renderer.
