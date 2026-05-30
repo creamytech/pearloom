@@ -3,7 +3,7 @@
 import { useId, useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { DEFAULT_HOME_BLOCKS, type SiteMode } from '@/lib/site-mode';
-import { Field, PanelSection, SegmentedToggle, SelectInput, TextInput } from '../atoms';
+import { Field, PanelGroup, PanelSection, SegmentedToggle, SelectInput, TextInput } from '../atoms';
 import { Blob, Pear, Sparkle, Squiggle, Icon } from '../../motifs';
 import { DecorLibraryPanel } from './DecorLibraryPanel';
 import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';
@@ -263,61 +263,123 @@ export function ThemePanel({
 
   return (
     <div>
-      <div data-pl-design-anchor="palette">
-        {/* Audited 2026-04-30: deleted the "Active theme" / "Theme
-            name" PanelSection above the palette grid. The text
-            input wrote manifest.themeName, which nothing read.
-            The swatch tile + name were redundant with the palette
-            grid below — the active palette is already highlighted
-            and labelled. One less form field, no functional loss. */}
-        <PaletteSection manifest={manifest} active={active} palette={active.id} applyPalette={applyPalette} onChange={onChange} />
-        <CustomPaletteEditor manifest={manifest} onChange={onChange} applyPalette={applyPalette} />
-      </div>
+      {/* ── LOOK ── visual identity: palette, motif, type, color,
+          hero decoration. The four things most hosts touch when
+          they say "I want to change how this looks". Wrapped in a
+          PanelGroup so within this cluster the first section
+          (palette) opens and the rest collapse — was 6 sections
+          all-expanded by default which was the bulk of the
+          "theme is overwhelming" complaint. */}
+      <ThemeCategory label="Look" hint="Palette, type, and the shapes that punctuate the design." />
+      <PanelGroup>
+        <div data-pl-design-anchor="palette">
+          {/* Audited 2026-04-30: deleted the "Active theme" / "Theme
+              name" PanelSection above the palette grid. The text
+              input wrote manifest.themeName, which nothing read.
+              The swatch tile + name were redundant with the palette
+              grid below — the active palette is already highlighted
+              and labelled. One less form field, no functional loss. */}
+          <PaletteSection manifest={manifest} active={active} palette={active.id} applyPalette={applyPalette} onChange={onChange} />
+          <CustomPaletteEditor manifest={manifest} onChange={onChange} applyPalette={applyPalette} />
+        </div>
 
-      <div data-pl-design-anchor="motif">
-        <PanelSection label="Motif" hint="Decorative shapes that punctuate the design.">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-            {MOTIFS.map((m) => {
-              const on = motif === m.id;
-              return (
-                <button
-                  key={m.id}
-                  type="button"
-                  aria-pressed={on}
-                  onClick={() => applyMotif(m.id as 'pear' | 'squiggle' | 'blob')}
-                  style={{
-                    padding: 12,
-                    borderRadius: 12,
-                    background: on ? 'var(--sage-tint)' : 'var(--card)',
-                    border: on ? '1.5px solid var(--sage-deep)' : '1.5px solid var(--line)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 6,
-                    fontFamily: 'var(--font-ui)',
-                  }}
-                >
-                  <div style={{ height: 30, display: 'grid', placeItems: 'center' }}>{m.icon}</div>
-                  <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ink)' }}>{m.name}</div>
-                </button>
-              );
-            })}
-          </div>
-        </PanelSection>
-      </div>
+        <div data-pl-design-anchor="motif">
+          <PanelSection label="Motif" hint="Decorative shapes that punctuate the design.">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+              {MOTIFS.map((m) => {
+                const on = motif === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => applyMotif(m.id as 'pear' | 'squiggle' | 'blob')}
+                    style={{
+                      padding: 12,
+                      borderRadius: 12,
+                      background: on ? 'var(--sage-tint)' : 'var(--card)',
+                      border: on ? '1.5px solid var(--sage-deep)' : '1.5px solid var(--line)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 6,
+                      fontFamily: 'var(--font-ui)',
+                    }}
+                  >
+                    <div style={{ height: 30, display: 'grid', placeItems: 'center' }}>{m.icon}</div>
+                    <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ink)' }}>{m.name}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </PanelSection>
+        </div>
 
-      <div data-pl-design-anchor="fonts">
-        <FontPicker manifest={manifest} onChange={onChange} />
-      </div>
+        <div data-pl-design-anchor="fonts">
+          <FontPicker manifest={manifest} onChange={onChange} />
+        </div>
 
-      <div data-pl-design-anchor="colors">
-        <ColorTokenInspector manifest={manifest} onChange={onChange} />
-      </div>
+        <div data-pl-design-anchor="colors">
+          <ColorTokenInspector manifest={manifest} onChange={onChange} />
+        </div>
 
-      <div data-pl-design-anchor="spacing">
-        <SpacingPanel manifest={manifest} onChange={onChange} />
-      </div>
+        <div data-pl-design-anchor="hero-decor">
+          <PanelSection
+            label="Hero decoration"
+            hint="Occasion-aware shapes match your event; classic keeps the v8 cream blobs; off is clean."
+          >
+            <SegmentedToggle<string>
+              value={read<string>(manifest, 'decorStyle', 'occasion')}
+              onChange={(v) => update({ decorStyle: v })}
+              options={[
+                { value: 'occasion', label: 'By occasion' },
+                { value: 'classic', label: 'Classic' },
+                { value: 'off', label: 'Off' },
+              ]}
+            />
+          </PanelSection>
+        </div>
+      </PanelGroup>
+
+      {/* ── ATMOSPHERE ── motion + ambience that frame the content
+          rather than IS the content. Lower-touch than Look — most
+          hosts pick a palette and leave atmosphere on the default.
+          Collapsed-first cluster keeps the panel quieter. */}
+      <ThemeCategory label="Atmosphere" hint="Motion, accents, and the feeling between sections." />
+      <PanelGroup>
+        <div data-pl-design-anchor="ai-accent">
+          <AiAccentSection manifest={manifest} onChange={onChange} />
+        </div>
+
+        <div data-pl-design-anchor="atmosphere">
+          <AtmospherePanel manifest={manifest} onChange={onChange} />
+        </div>
+      </PanelGroup>
+
+      {/* ── LAYOUT ── structural choices: spacing scale, scroll vs
+          multi-page, footer composition. Hosts visit Layout once
+          early on and rarely return — collapsed-first is correct. */}
+      <ThemeCategory label="Layout" hint="Spacing, page structure, and the footer." />
+      <PanelGroup>
+        <div data-pl-design-anchor="spacing">
+          <SpacingPanel manifest={manifest} onChange={onChange} />
+        </div>
+
+        <div data-pl-design-anchor="layout-mode">
+          <SiteModeSection manifest={manifest} onChange={onChange} />
+        </div>
+
+        <div data-pl-design-anchor="footer">
+          <FooterCustomizationSection manifest={manifest} onChange={onChange} />
+        </div>
+      </PanelGroup>
+
+      {/* ── EXTRAS ── power features. Both were already inside
+          <details> disclosures so they don't bloat the scroll;
+          the category divider just makes it clear they're a
+          separate concern. */}
+      <ThemeCategory label="Extras" hint="Decor library, stickers, version history." />
 
       {/* Snapshots — version-history power feature. Visible only on
           demand so the Theme scroll doesn't surface a giant version
@@ -344,31 +406,6 @@ export function ThemePanel({
           <SnapshotsPanel manifest={manifest} onChange={onChange} />
         </div>
       </details>
-
-      <div data-pl-design-anchor="hero-decor">
-        <PanelSection
-          label="Hero decoration"
-          hint="Occasion-aware shapes match your event; classic keeps the v8 cream blobs; off is clean."
-        >
-          <SegmentedToggle<string>
-            value={read<string>(manifest, 'decorStyle', 'occasion')}
-            onChange={(v) => update({ decorStyle: v })}
-            options={[
-              { value: 'occasion', label: 'By occasion' },
-              { value: 'classic', label: 'Classic' },
-              { value: 'off', label: 'Off' },
-            ]}
-          />
-        </PanelSection>
-      </div>
-
-      <div data-pl-design-anchor="ai-accent">
-        <AiAccentSection manifest={manifest} onChange={onChange} />
-      </div>
-
-      <div data-pl-design-anchor="atmosphere">
-        <AtmospherePanel manifest={manifest} onChange={onChange} />
-      </div>
 
       {/* Decor library + Stickers — both are "extra flair" power
           features that only some hosts ever touch. Wrapped in one
@@ -401,14 +438,66 @@ export function ThemePanel({
           </div>
         </details>
       </div>
+    </div>
+  );
+}
 
-      <div data-pl-design-anchor="layout-mode">
-        <SiteModeSection manifest={manifest} onChange={onChange} />
+/* ── ThemeCategory ──────────────────────────────────────────────
+   Editorial divider between groups of related PanelSections.
+   Renders as a tiny uppercase label + thread (matches BRAND.md
+   §8 — Thread is the visual atom of the brand). Mounted between
+   PanelGroup wrappers so hosts can scan the Theme panel as four
+   named clusters (Look / Atmosphere / Layout / Extras) instead
+   of one long undifferentiated scroll of 10+ sections. */
+function ThemeCategory({ label, hint }: { label: string; hint?: string }) {
+  return (
+    <div
+      style={{
+        // Sits between two PanelSection borderBottoms — extra top
+        // margin so the divider reads as a fresh chapter, not as
+        // part of the previous section's tail.
+        marginTop: 28,
+        marginBottom: 8,
+        paddingBottom: 12,
+        borderBottom: '1px solid var(--line)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+        <span
+          style={{
+            fontSize: 10.5,
+            fontWeight: 800,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: 'var(--gold, #B8935A)',
+            fontFamily: 'var(--font-ui)',
+          }}
+        >
+          {label}
+        </span>
+        <span
+          aria-hidden
+          style={{
+            flex: 1,
+            height: 1,
+            background: 'linear-gradient(to right, var(--gold, #B8935A), transparent 75%)',
+            opacity: 0.45,
+          }}
+        />
       </div>
-
-      <div data-pl-design-anchor="footer">
-        <FooterCustomizationSection manifest={manifest} onChange={onChange} />
-      </div>
+      {hint && (
+        <div
+          style={{
+            fontSize: 12,
+            color: 'var(--ink-muted)',
+            marginTop: 6,
+            lineHeight: 1.5,
+            fontFamily: 'var(--font-ui)',
+          }}
+        >
+          {hint}
+        </div>
+      )}
     </div>
   );
 }
