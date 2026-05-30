@@ -127,21 +127,46 @@ function ConfettiBurst({ active }: { active: boolean }) {
 }
 
 // ── Step progress indicator ─────────────────────────────────────
+// Labels match the step content: 0 = basics, 1 = meal (skipped on
+// not-attending), 2 = message. Static array so we don't allocate
+// per render.
+const STEP_LABELS: Record<number, string> = {
+  0: 'Basics',
+  1: 'Meal',
+  2: 'Message',
+};
 function StepDots({ current, total }: { current: number; total: number }) {
   return (
-    <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center', marginBottom: '2rem' }}>
-      {Array.from({ length: total }).map((_, i) => (
-        <div
-          key={i}
-          style={{
-            width: i === current ? '24px' : '6px',
-            height: '6px',
-            borderRadius: 'var(--pl-radius-full)',
-            background: i === current ? 'var(--pl-olive)' : 'rgba(0,0,0,0.12)',
-            transition: 'all 0.35s ease',
-          }}
-        />
-      ))}
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center', marginBottom: 8 }}>
+        {Array.from({ length: total }).map((_, i) => (
+          <div
+            key={i}
+            style={{
+              width: i === current ? '24px' : '6px',
+              height: '6px',
+              borderRadius: 'var(--pl-radius-full)',
+              background: i === current ? 'var(--pl-olive)' : 'rgba(0,0,0,0.12)',
+              transition: 'all 0.35s ease',
+            }}
+          />
+        ))}
+      </div>
+      {/* Step label — guests on a 3-step form had no idea if they
+          were on Meal or Message. The dots show position; the
+          label says what that position MEANS. */}
+      <div
+        aria-live="polite"
+        style={{
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          color: 'var(--pl-muted, #6F6557)',
+        }}
+      >
+        Step {current + 1} of {total} · {STEP_LABELS[current] ?? ''}
+      </div>
     </div>
   );
 }
