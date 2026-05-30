@@ -31,6 +31,7 @@ import { EditableText } from '../editor/canvas/EditableText';
 import { EditableField } from '../editor/canvas/EditableField';
 import { SortableBlockList } from '../editor/canvas/CanvasBlockSortable';
 import { DraftedByPearBanner } from '../editor/DraftedByPearBanner';
+import { DraftedSummaryBanner } from '../editor/DraftedSummaryBanner';
 import { SortableChapters } from '../editor/canvas/SortableChapters';
 import { HoverToolbar } from '../editor/canvas/HoverToolbar';
 import { PhotoDropTarget } from '../editor/canvas/PhotoDropTarget';
@@ -8158,6 +8159,11 @@ export function SiteV8Renderer({
           homePageBlocks={homePageBlocks}
           pageFilter={pageFilter}
         />
+        {/* First-visit summary: tells the host how many sections
+            Pear pre-drafted. Per-section banners (DraftedByPearBanner)
+            handle the inline accept/redraft/clear; this banner is the
+            at-a-glance signal so hosts don't miss any. Edit mode only. */}
+        {editMode && <DraftedSummaryBanner siteSlug={siteSlug} manifest={manifest} />}
         {showHero && (() => {
           // Day-Of Mode: when active and we're on the live site (not
           // editor canvas), swap the hero for LiveNowHero so guests

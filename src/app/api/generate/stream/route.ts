@@ -31,6 +31,7 @@ const PASS_LABELS = [
   'Designing your world…',
   'Crafting custom art…',
   'Final polish…',
+  'Drafting starter content…',
 ];
 
 // ── R2 upload helper — fetches a URL and stores it permanently ─
@@ -983,7 +984,7 @@ export async function POST(req: Request) {
         // COMPLETE site to refine, not an empty shell to assemble.
         // Each filled section gets manifest.draftedByPear[key] = true
         // so the editor can show a "Pear drafted this" banner.
-        // Sections that already have host content are skipped.
+        send({ type: 'progress', pass: 8, label: PASS_LABELS[8] });
         const withDrafts = runAutoDraft(themed);
 
         send({ type: 'complete', manifest: withDrafts });

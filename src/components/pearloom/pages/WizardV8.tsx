@@ -33,7 +33,13 @@ import {
 } from '../wizard/useBackgroundManifest';
 import { BackgroundCookPill } from '../wizard/BackgroundCookPill';
 
-const STEPS = ['Occasion', 'Basics', 'Details', 'Photos', 'Vibe', 'Palette', 'Layout', 'Review'] as const;
+// Layout step removed 2026-05-30 — Editions (picked later in the
+// editor) stamp manifest.storyLayout per Edition, so making the
+// host pick a layout in the wizard then potentially have it
+// overwritten by an Edition was double work + confusing. Default
+// layout 'timeline' stays seeded as st.layout for backward compat
+// with the generation pipeline which still reads layoutFormat.
+const STEPS = ['Occasion', 'Basics', 'Details', 'Photos', 'Vibe', 'Palette', 'Review'] as const;
 type StepKey = (typeof STEPS)[number];
 
 // 8 steps grouped into 4 phases. Pearloom's wizard now reads as
@@ -44,7 +50,7 @@ type PhaseKey = 'Story' | 'Photos' | 'Look' | 'Review';
 const PHASES: Array<{ key: PhaseKey; steps: readonly StepKey[] }> = [
   { key: 'Story', steps: ['Occasion', 'Basics', 'Details'] },
   { key: 'Photos', steps: ['Photos'] },
-  { key: 'Look', steps: ['Vibe', 'Palette', 'Layout'] },
+  { key: 'Look', steps: ['Vibe', 'Palette'] },
   { key: 'Review', steps: ['Review'] },
 ];
 function phaseFor(step: StepKey): PhaseKey {
@@ -1058,7 +1064,6 @@ const STEP_TIPS: Record<StepKey, string> = {
   Photos: '6 to 20 photos is the sweet spot. More = more chapters.',
   Vibe: 'Pick 2 to 4 vibes that capture the heart of the day.',
   Palette: 'Pick what you love — Pear builds matching gradients + accents.',
-  Layout: 'Memory Thread is a safe, warm default for weddings.',
   Review: 'Nothing is public until you publish. Keep editing as long as you like.',
 };
 
@@ -1290,7 +1295,7 @@ export function WizardV8() {
   // the progress bar if the user wants to override.
   const isTemplateRedundant = (stepName: StepKey): boolean => {
     if (!st.templateId) return false;
-    return stepName === 'Vibe' || stepName === 'Palette' || stepName === 'Layout';
+    return stepName === 'Vibe' || stepName === 'Palette';
   };
 
   /** Next index, skipping template-redundant steps. */
@@ -1361,8 +1366,6 @@ export function WizardV8() {
         return st.vibes.length > 0;
       case 'Palette':
         return !!st.palette;
-      case 'Layout':
-        return !!st.layout;
       case 'Review':
         return nameModeIsValid(st.occasion, st.names) && !!st.occasion;
       default:
@@ -1649,7 +1652,7 @@ export function WizardV8() {
         </Link>
         <PhaseHeader
           active={stepIndex}
-          hiddenSteps={st.templateId ? ['Vibe', 'Palette', 'Layout'] : []}
+          hiddenSteps={st.templateId ? ['Vibe', 'Palette'] : []}
         />
         <div style={{ display: 'flex', gap: 6, marginLeft: 'auto', alignItems: 'center', flexShrink: 0 }}>
           <Link
@@ -2431,7 +2434,12 @@ export function WizardV8() {
                 </>
               )}
 
-              {step === 'Layout' && (
+              {/* Layout step removed from STEPS in 2026-05-30 but the
+                  JSX is kept dead-coded for easy re-enable. Editions
+                  pick the layout per persona. The cast bypasses the
+                  StepKey narrow check so the branch compiles
+                  unreachable. */}
+              {(step as string) === 'Layout' && (
                 <>
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
                     How should it <span className="display-italic">read?</span>
@@ -2519,7 +2527,11 @@ export function WizardV8() {
                           : PALETTES.find((p) => p.id === st.palette)?.colors
                       }
                     />
-                    <Row label="Layout" val={LAYOUTS.find((l) => l.id === st.layout)?.name ?? '—'} />
+                    {/* Layout row removed — host picks an Edition in
+                        the editor; Pear seeds a sensible default at
+                        generation time. Showing "Layout: Memory
+                        Thread" in the review confused hosts who
+                        hadn't been asked. */}
                     <Row
                       label="Site link"
                       val={formatSiteDisplayUrl(
