@@ -3269,6 +3269,73 @@ html { scroll-behavior: smooth; }
   color: #FBF7EE !important;
   letter-spacing: -0.01em;
 }
+/* CRITICAL — Cinema's dark theatre overrides section color to
+   cream, but every button / pill / chip carries its own
+   color declaration (var(--ink)) that wins over inheritance.
+   Result was dark-text-on-dark-button = invisible. Force every
+   interactive element to render with cream-on-dark or
+   outlined-on-dark depending on whether it's a primary or
+   secondary button. */
+.pl8-guest[data-pl-edition="cinema"] section button,
+.pl8-guest[data-pl-edition="cinema"] section a,
+.pl8-guest[data-pl-edition="cinema"] section a.btn,
+.pl8-guest[data-pl-edition="cinema"] section [role="button"] {
+  color: #FBF7EE !important;
+}
+/* Primary pill — RSVP CTA, "Open the site", etc — stays a
+   filled dark pill but with gold border so it pops against the
+   black section background. */
+.pl8-guest[data-pl-edition="cinema"] section .btn-primary,
+.pl8-guest[data-pl-edition="cinema"] section a.btn-primary,
+.pl8-guest[data-pl-edition="cinema"] section .pl-pearl-accent {
+  background: #1A1A1A !important;
+  color: #FBF7EE !important;
+  border: 1px solid #B89244 !important;
+  box-shadow: 0 4px 12px rgba(184,146,68,0.32) !important;
+}
+/* Secondary / outline / ghost buttons — Add to calendar, Save
+   contact, language switcher, the "Read our story" link. */
+.pl8-guest[data-pl-edition="cinema"] section .btn-outline,
+.pl8-guest[data-pl-edition="cinema"] section a.btn-outline,
+.pl8-guest[data-pl-edition="cinema"] section button:not(.btn-primary):not(.pl-pearl-accent),
+.pl8-guest[data-pl-edition="cinema"] section .pl8-lang-switcher {
+  background: rgba(251,247,238,0.06) !important;
+  color: #FBF7EE !important;
+  border: 1px solid rgba(251,247,238,0.32) !important;
+}
+/* Cinema nav (top header) — dark transparent w/ cream type. */
+.pl8-guest[data-pl-edition="cinema"] .pl8-site-nav,
+.pl8-guest[data-pl-edition="cinema"] header.pl8-site-nav {
+  background: rgba(14,13,11,0.92) !important;
+}
+.pl8-guest[data-pl-edition="cinema"] .pl8-site-nav a,
+.pl8-guest[data-pl-edition="cinema"] .pl8-site-nav button,
+.pl8-guest[data-pl-edition="cinema"] .pl8-site-nav .pl8-lang-switcher {
+  color: #FBF7EE !important;
+}
+.pl8-guest[data-pl-edition="cinema"] .pl8-site-nav .pl8-lang-switcher {
+  background: rgba(251,247,238,0.10) !important;
+  border-color: rgba(251,247,238,0.20) !important;
+}
+/* Date / venue pills in the hero — were peach-tinted on cream
+   originally; in Cinema's dark mode they need to read as gold
+   plaques on the black. */
+.pl8-guest[data-pl-edition="cinema"] section [style*="background"][style*="peach-bg"],
+.pl8-guest[data-pl-edition="cinema"] section span[style*="rgba(198,112,61"],
+.pl8-guest[data-pl-edition="cinema"] section div[style*="rgba(198,112,61"] {
+  background: rgba(184,146,68,0.18) !important;
+  color: #B89244 !important;
+  border: 1px solid rgba(184,146,68,0.45) !important;
+}
+/* Body text + secondary "Read our story" link */
+.pl8-guest[data-pl-edition="cinema"] section p,
+.pl8-guest[data-pl-edition="cinema"] section li,
+.pl8-guest[data-pl-edition="cinema"] section span {
+  color: rgba(251,247,238,0.85);
+}
+.pl8-guest[data-pl-edition="cinema"] section a {
+  color: #B89244 !important;
+}
 .pl8-guest[data-pl-edition="cinema"] .pl8-schedule-row {
   background: rgba(251,247,238,0.04) !important;
   border-radius: 0 !important;
