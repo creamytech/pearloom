@@ -937,44 +937,54 @@ export function EmptyShell({ message }: { message: string }) {
 }
 
 // ── Button styles ────────────────────────────────────────────
-export const btnInk: CSSProperties = {
+// Four CSSProperties presets the dashboard pages spread into
+// <button style={...}>. Consolidated 2026-05-30 (audit #15) so
+// every helper shares one base — only padding + fontSize +
+// fontWeight vary per variant. Eliminates the drift potential
+// where btnGhost's fontFamily ('inherit') differed from
+// btnInk's (var(--font-ui)) for no reason. Migration to the
+// canonical <Button> primitive at ui/button.tsx is the next
+// step but would require updating 55 consumers individually;
+// this consolidation closes the worst drift in one file.
+const _btnBase: CSSProperties = {
+  borderRadius: 999,
+  cursor: 'pointer',
+  fontFamily: 'var(--font-ui)',
+};
+const _ghostFill: CSSProperties = {
+  background: 'var(--card)',
+  color: 'var(--ink)',
+  border: '1.5px solid var(--line)',
+};
+const _inkFill: CSSProperties = {
   background: 'var(--ink)',
   color: 'var(--cream)',
   border: 'none',
-  borderRadius: 999,
+};
+export const btnInk: CSSProperties = {
+  ..._btnBase,
+  ..._inkFill,
   padding: '10px 18px',
   fontSize: 13,
   fontWeight: 600,
-  cursor: 'pointer',
-  fontFamily: 'var(--font-ui)',
 };
 export const btnGhost: CSSProperties = {
-  background: 'var(--card)',
-  color: 'var(--ink)',
-  border: '1.5px solid var(--line)',
-  borderRadius: 999,
+  ..._btnBase,
+  ..._ghostFill,
   padding: '10px 18px',
   fontSize: 13,
   fontWeight: 600,
-  cursor: 'pointer',
-  fontFamily: 'inherit',
 };
 export const btnMini: CSSProperties = {
+  ..._btnBase,
   border: 'none',
-  borderRadius: 999,
   padding: '7px 14px',
   fontSize: 12,
   fontWeight: 500,
-  cursor: 'pointer',
-  fontFamily: 'inherit',
 };
 export const btnMiniGhost: CSSProperties = {
-  background: 'var(--card)',
-  color: 'var(--ink)',
-  border: '1.5px solid var(--line)',
-  borderRadius: 999,
+  ..._btnBase,
+  ..._ghostFill,
   padding: '7px 12px',
   fontSize: 12,
-  cursor: 'pointer',
-  fontFamily: 'var(--font-ui)',
 };
