@@ -305,7 +305,8 @@ export function Filigree({
   width = 220,
   height = 80,
   variant = 0,
-  stroke = 'var(--gold-line, #D4A95D)',
+  // Theme accent inside .pl8-guest; brand gold elsewhere.
+  stroke = 'var(--pl-olive, var(--gold-line, #D4A95D))',
   strokeWidth = 1.2,
   className = '',
   style,
@@ -376,12 +377,15 @@ export function Filigree({
 }
 
 /** Legacy alias — every prior `<Squiggle>` now renders a Filigree.
- *  Maps `stroke` directly so existing color overrides keep working. */
+ *  Default stroke chains through the theme accent first so squiggles
+ *  inside .pl8-guest follow the host's palette; falls back to
+ *  --gold-line so squiggles in editor chrome (outside .pl8-guest)
+ *  keep the brand gold. */
 export function Squiggle({
   width = 200,
   height = 80,
   variant = 0,
-  stroke = 'var(--gold-line, #D4A95D)',
+  stroke = 'var(--pl-olive, var(--gold-line, #D4A95D))',
   className = '',
   style,
 }: {
