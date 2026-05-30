@@ -14,15 +14,17 @@
 import { useState } from 'react';
 import type { StoryManifest } from '@/types';
 
+type DraftableSection = 'schedule' | 'faq' | 'registry' | 'travel' | 'details';
+
 interface Props {
-  sectionKey: string;
+  /** Section key matching a DraftableSection (schedule / faq /
+   *  registry / travel / details). When set, the Redraft button
+   *  calls /api/auto-draft to re-run the drafter for this section. */
+  sectionKey: DraftableSection;
   /** Human label shown in the banner — "Schedule", "FAQ", etc. */
   sectionLabel: string;
   manifest: StoryManifest;
   onChange: (m: StoryManifest) => void;
-  /** Optional handler for "Redraft" — caller supplies the drafter
-   *  for this section. When omitted, the redraft button hides. */
-  onRedraft?: () => void;
   /** Optional handler for "Start blank" — caller wipes the
    *  drafted section's data. When omitted, the button hides. */
   onClear?: () => void;
@@ -33,11 +35,11 @@ export function DraftedByPearBanner({
   sectionLabel,
   manifest,
   onChange,
-  onRedraft,
   onClear,
 }: Props) {
   const isDrafted = manifest.draftedByPear?.[sectionKey] === true;
   const [dismissing, setDismissing] = useState(false);
+  const [redrafting, setRedrafting] = useState(false);
   if (!isDrafted || dismissing) return null;
 
   function accept() {
@@ -49,6 +51,22 @@ export function DraftedByPearBanner({
         [sectionKey]: false,
       },
     });
+  }
+
+  async function redraft() {
+    setRedrafting(true);
+    try {
+      const res = await fetch('/api/auto-draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ manifest, section: sectionKey }),
+      });
+      if (!res.ok) return;
+      const data = (await res.json()) as { manifest?: StoryManifest };
+      if (data.manifest) onChange(data.manifest);
+    } finally {
+      setRedrafting(false);
+    }
   }
 
   return (
@@ -94,25 +112,25 @@ export function DraftedByPearBanner({
       >
         Looks good
       </button>
-      {onRedraft && (
-        <button
-          type="button"
-          onClick={onRedraft}
-          style={{
-            padding: '4px 10px',
-            borderRadius: 999,
-            background: 'transparent',
-            color: 'var(--ink-soft, #3A332C)',
-            border: '1px solid var(--line, rgba(14,13,11,0.14))',
-            fontSize: 11,
-            fontWeight: 600,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-          }}
-        >
-          Redraft
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={redraft}
+        disabled={redrafting}
+        style={{
+          padding: '4px 10px',
+          borderRadius: 999,
+          background: 'transparent',
+          color: 'var(--ink-soft, #3A332C)',
+          border: '1px solid var(--line, rgba(14,13,11,0.14))',
+          fontSize: 11,
+          fontWeight: 600,
+          cursor: redrafting ? 'wait' : 'pointer',
+          fontFamily: 'inherit',
+          opacity: redrafting ? 0.6 : 1,
+        }}
+      >
+        {redrafting ? 'Redrafting…' : 'Redraft'}
+      </button>
       {onClear && (
         <button
           type="button"

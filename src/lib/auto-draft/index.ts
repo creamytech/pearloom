@@ -14,13 +14,15 @@ import type { DraftContext, Drafter, DraftableSection } from './types';
 import { draftSchedule } from './schedule';
 import { draftFaq } from './faq';
 import { draftRegistry } from './registry';
+import { draftTravel } from './travel';
+import { draftDetails } from './details';
 
 const DRAFTERS: Record<DraftableSection, Drafter> = {
   schedule: draftSchedule,
   faq: draftFaq,
   registry: draftRegistry,
-  travel: () => null,  // placeholder — real travel needs venue geo data, defer
-  details: () => null, // placeholder — defer
+  travel: draftTravel,
+  details: draftDetails,
 };
 
 /** Builds the DraftContext from a manifest. */

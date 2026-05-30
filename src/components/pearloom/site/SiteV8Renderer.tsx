@@ -1758,7 +1758,8 @@ function ChapterCard({
 }
 
 /* ==================== DETAILS STRIP ==================== */
-function DetailsStripImpl({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug?: string }) {
+function DetailsStripImpl({ manifest, siteSlug, onEditField }: { manifest: StoryManifest; siteSlug?: string; onEditField?: FieldEditor }) {
+  const edit = useIsEditMode();
   const l = manifest.logistics ?? {};
   const dateInfo = fmtEventDate(l.date, manifest.dateFormat, l.timezone);
   const events = manifest.events ?? [];
@@ -1919,6 +1920,15 @@ function DetailsStripImpl({ manifest, siteSlug }: { manifest: StoryManifest; sit
     >
       <SectionBackground manifest={manifest} sectionId="details" />
       <div style={{ maxWidth: 1160, margin: '0 auto', position: 'relative' }}>
+        {edit && (
+          <DraftedByPearBanner
+            sectionKey="details"
+            sectionLabel="Details"
+            manifest={manifest}
+            onChange={(m) => onEditField?.(() => m)}
+            onClear={() => onEditField?.((m) => ({ ...m, logistics: { ...(m.logistics ?? {}), dresscode: undefined, notes: undefined }, draftedByPear: { ...(m.draftedByPear ?? {}), details: false } } as StoryManifest))}
+          />
+        )}
         <div className="pl8-cols-3" style={{ gap: 28 }}>
           {items.map((it) => (
             <DetailsCard
@@ -4750,6 +4760,15 @@ function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest;
     <section id="travel" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="travel" />
       <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+        {edit && (
+          <DraftedByPearBanner
+            sectionKey="travel"
+            sectionLabel="Travel"
+            manifest={manifest}
+            onChange={(m) => onEditField?.(() => m)}
+            onClear={() => onEditField?.((m) => ({ ...m, travelInfo: { ...(m.travelInfo ?? {}), hotels: [] } as StoryManifest['travelInfo'], draftedByPear: { ...(m.draftedByPear ?? {}), travel: false } }))}
+          />
+        )}
         <div className="pl8-cols-2" style={{ gap: 40 }}>
           <div>
             <div
@@ -7156,11 +7175,13 @@ const TimelineSection = memo(TimelineSectionImpl, (p, n) => {
 
 const DetailsStrip = memo(DetailsStripImpl, (p, n) => {
   if (p.siteSlug !== n.siteSlug) return false;
+  if (p.onEditField !== n.onEditField) return false;
   return manifestSlicesEqual(p.manifest, n.manifest, [
     ...COMMON_CHROME_KEYS,
     'logistics',
     'events',
     'details',
+    'draftedByPear',
   ] as unknown as ReadonlyArray<keyof StoryManifest>);
 });
 
@@ -7933,7 +7954,7 @@ export function SiteV8Renderer({
         return <StoryVariantSection key="story" chapters={chapters} layout={layout} manifest={manifest} />;
       }
       case 'details':
-        return <DetailsStrip key="details" manifest={manifest} siteSlug={siteSlug} />;
+        return <DetailsStrip key="details" manifest={manifest} siteSlug={siteSlug} onEditField={onEditField} />;
       case 'schedule':
         return <ScheduleSection key="schedule" manifest={manifest} names={names} onEditField={onEditField} />;
       case 'travel':
