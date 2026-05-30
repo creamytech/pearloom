@@ -8,6 +8,7 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear, Sparkle } from '../motifs';
+import { PEAR_COMMAND_TONES, rewriteSubject, toneSpec } from '@/lib/rewrite-tones';
 
 type BlockKey =
   | 'hero'
@@ -211,9 +212,29 @@ export function PearCommand({
       { id: 'd-layout-mode', label: 'Layout mode', hint: 'Single scroll or magazine (multi-page)', icon: 'grid', group: 'design', run: () => dispatchDesignJump({ anchor: 'layout-mode' }) },
 
       // AI
-      { id: 'ai-warmer', label: 'Rewrite my tagline, warmer', hint: 'Pear softens the tone', icon: 'sparkles', group: 'ai', run: () => rewriteTagline('Rewrite this tagline to feel warmer and more handwritten — like a friend, not a brand. Keep it 1-2 sentences.', 'Warmer tagline') },
-      { id: 'ai-shorter', label: 'Rewrite my tagline, shorter', hint: 'One crisp line', icon: 'sparkles', group: 'ai', run: () => rewriteTagline('Rewrite this tagline to a single sentence, 14 words or fewer.', 'Shorter tagline') },
-      { id: 'ai-quiet', label: 'Rewrite my tagline, quieter', hint: 'More editorial, less cute', icon: 'sparkles', group: 'ai', run: () => rewriteTagline('Rewrite this tagline in a quiet, editorial voice. No exclamation marks. No cliches.', 'Quieter tagline') },
+      // Tagline rewrites — labels derived from the shared
+      // rewrite-tones catalog so HoverToolbar + PearCommand +
+      // future variant-chip UI all surface identical vocabulary.
+      // The instruction strings stay tagline-specific (they need
+      // the "1-2 sentences" / "14 words or fewer" constraint that
+      // the generic catalog doesn't carry).
+      ...PEAR_COMMAND_TONES.map((id) => {
+        const spec = toneSpec(id);
+        const instruction =
+          id === 'warmer'
+            ? 'Rewrite this tagline to feel warmer and more handwritten — like a friend, not a brand. Keep it 1-2 sentences.'
+            : id === 'shorter'
+              ? 'Rewrite this tagline to a single sentence, 14 words or fewer.'
+              : spec.buildInstruction(rewriteSubject('tagline'));
+        return {
+          id: `ai-${id}`,
+          label: `Rewrite my tagline, ${spec.label.toLowerCase()}`,
+          hint: spec.hint,
+          icon: 'sparkles',
+          group: 'ai' as const,
+          run: () => rewriteTagline(instruction, `${spec.label} tagline`),
+        };
+      }),
       { id: 'ai-suggest-song', label: 'Suggest a first-dance song', hint: 'Pear picks 3 that match your vibe', icon: 'music', group: 'ai', run: () => runChat('Suggest three first-dance songs that match this couple\'s vibe. For each, one line of why it fits.', 'Song ideas') },
       { id: 'ai-suggest-readings', label: 'Suggest a ceremony reading', hint: 'Pear picks 3 readings', icon: 'leaf', group: 'ai', run: () => runChat('Suggest three ceremony readings — one poem, one secular text, one offbeat option — that match this couple\'s vibe.', 'Reading ideas') },
       { id: 'ai-write-vows', label: 'Draft my vows', hint: 'A warm starting point', icon: 'heart-icon', group: 'ai', run: () => runChat('Draft warm, specific wedding vows for this couple — 1 minute spoken length. Include one concrete shared memory if you can infer one from the context, otherwise use a tasteful placeholder.', 'Vow draft') },
