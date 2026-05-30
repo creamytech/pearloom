@@ -15,6 +15,7 @@
 
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { useIsEditMode } from './EditorCanvasContext';
+import { HOVER_TOOLBAR_TONES, rewriteSubject, toneSpec } from '@/lib/rewrite-tones';
 
 export interface HoverToolbarAction {
   id: string;
@@ -37,10 +38,12 @@ interface HoverToolbarProps {
   context?: string;
 }
 
-/** Default AI rewrite actions — they all hit /api/rewrite-text
- *  with an instruction that describes the transformation. */
+/** Default AI rewrite actions — all hit /api/rewrite-text with
+ *  an instruction string built from the shared @/lib/rewrite-tones
+ *  vocabulary, so HoverToolbar, PearCommand, and DesignAdvisor
+ *  speak the same words. */
 function defaultActions(context?: string): HoverToolbarAction[] {
-  const subject = context ? `the ${context}` : 'this text';
+  const subject = rewriteSubject(context);
   const call = async (instruction: string, current: string) => {
     const res = await fetch('/api/rewrite-text', {
       method: 'POST',
@@ -54,23 +57,14 @@ function defaultActions(context?: string): HoverToolbarAction[] {
     const text = (data.text ?? data.rewritten ?? data.result ?? data.rewrite ?? '').trim().replace(/^"|"$/g, '');
     return text || current;
   };
-  return [
-    {
-      id: 'rewrite',
-      label: 'Rewrite',
-      run: (cur) => call(`Rewrite ${subject} so it's more specific, unexpected, and warm. Keep the length.`, cur),
-    },
-    {
-      id: 'shorter',
-      label: 'Shorter',
-      run: (cur) => call(`Rewrite ${subject} to be about half as long. Keep the core meaning.`, cur),
-    },
-    {
-      id: 'warmer',
-      label: 'Warmer',
-      run: (cur) => call(`Rewrite ${subject} so it feels warmer, more human, and less brand-y.`, cur),
-    },
-  ];
+  return HOVER_TOOLBAR_TONES.map((id) => {
+    const spec = toneSpec(id);
+    return {
+      id: spec.id,
+      label: spec.label,
+      run: (cur: string) => call(spec.buildInstruction(subject), cur),
+    };
+  });
 }
 
 export function HoverToolbar({ value, onResult, actions, children, context }: HoverToolbarProps) {
