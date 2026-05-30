@@ -64,7 +64,6 @@ void STORY_VARIANTS_REGISTERED;
 import {
   CalendarAddButton,
   SaveContactButton,
-  FloatingCountdown,
   StickyMobileCta,
   OpenInMapsButton,
   PersonalGuestGreeting,
@@ -8042,7 +8041,11 @@ export function SiteV8Renderer({
         {!editMode && <BackToTop />}
         {!editMode && <GuestPearChat manifest={manifest} coupleNames={names} domain={siteSlug} />}
         {!editMode && <DayOfBanner manifest={manifest} />}
-        {!editMode && <BroadcastBar subdomain={siteSlug} />}
+        {/* When DayOfBanner is active (live/pre/post), suppress the
+            BroadcastBar — the day-of banner already owns the sticky
+            top strip and stacking both creates competing colored
+            bars during the highest-attention moment of the event. */}
+        {!editMode && !computeDayOfState(manifest).active && <BroadcastBar subdomain={siteSlug} />}
         {!editMode && <PersonalGuestGreeting domain={siteSlug} />}
         {!editMode && creatorEmail && (
           <OwnerEditPill siteSlug={siteSlug} creatorEmail={creatorEmail} />
@@ -8280,7 +8283,8 @@ export function SiteV8Renderer({
           <>
             <ScrollReveal />
             <ScrollSpy sections={['top', 'our-story', 'schedule', 'travel', 'registry', 'gallery', 'faq', 'rsvp']} />
-            <FloatingCountdown manifest={manifest} />
+            {/* FloatingCountdown removed — duplicated the sticky
+                bottom RSVP CTA's deadline cue. See GuestKit.tsx. */}
             <StickyMobileCta
               deadline={(() => {
                 const d = parseLocalDate(manifest.logistics?.rsvpDeadline);

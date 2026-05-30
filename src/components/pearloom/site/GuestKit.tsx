@@ -352,100 +352,13 @@ export function SaveContactButton({ names, domain, manifest, variant = 'pill' }:
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Countdown pill
-// ─────────────────────────────────────────────────────────────
-export function FloatingCountdown({ manifest }: { manifest: StoryManifest }) {
-  const date = manifest.logistics?.date;
-  const [delta, setDelta] = useState<{ days: number; hrs: number; min: number } | null>(null);
-  const [visible, setVisible] = useState(false);
 
-  useEffect(() => {
-    if (!date) return;
-    function compute() {
-      if (!date) { setDelta(null); return; }
-      const target = new Date(date + 'T00:00:00').getTime();
-      const diff = target - Date.now();
-      if (diff <= 0) { setDelta(null); return; }
-      const days = Math.floor(diff / 86_400_000);
-      const hrs = Math.floor((diff % 86_400_000) / 3_600_000);
-      const min = Math.floor((diff % 3_600_000) / 60_000);
-      setDelta({ days, hrs, min });
-    }
-    compute();
-    const id = setInterval(compute, 60_000);
-    return () => clearInterval(id);
-  }, [date]);
-
-  // Show only after the user has scrolled past the hero (~600px).
-  useEffect(() => {
-    function onScroll() {
-      setVisible(window.scrollY > 600);
-    }
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  if (!delta) return null;
-
-  return (
-    <div
-      aria-hidden={!visible}
-      // Hidden on phone via .pl8-hide-mobile (max-width 960px in
-      // pearloom.css). The pill duplicates the sticky bottom RSVP
-      // CTA's deadline cue and crowds the nav's RSVP / language
-      // pills at iPhone widths. Keep it for tablet+desktop where
-      // the float-right corner has room.
-      className="pl8-hide-mobile"
-      style={{
-        position: 'fixed',
-        top: 16,
-        right: 16,
-        zIndex: 70,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '8px 14px',
-        borderRadius: 999,
-        background: 'var(--ink, #18181B)',
-        color: 'var(--cream, #FDFAF0)',
-        fontSize: 12,
-        fontWeight: 600,
-        letterSpacing: '0.05em',
-        boxShadow: '0 6px 14px rgba(14,13,11,0.18)',
-        opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0)' : 'translateY(-12px)',
-        pointerEvents: visible ? 'auto' : 'none',
-        transition: 'opacity 240ms cubic-bezier(0.22, 1, 0.36, 1), transform 240ms cubic-bezier(0.22, 1, 0.36, 1)',
-      }}
-    >
-      <span
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: '50%',
-          background: 'var(--peach-2, #F0C9A8)',
-          animation: 'pl8-pill-pulse 1.6s ease-in-out infinite',
-        }}
-      />
-      <span>
-        {delta.days}d <span style={{ opacity: 0.7 }}>·</span> {delta.hrs}h
-      </span>
-      <style jsx>{`
-        @keyframes pl8-pill-pulse {
-          0%, 100% { opacity: 0.6; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.3); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          @keyframes pl8-pill-pulse {
-            0%, 100% { opacity: 0.85; transform: none; }
-          }
-        }
-      `}</style>
-    </div>
-  );
-}
+// FloatingCountdown removed — it was a top-right pill that
+// duplicated the sticky bottom RSVP CTA's deadline cue. The
+// existing inline comment ("crowds the nav's RSVP / language
+// pills at iPhone widths") already called it a dup. Now gone
+// from desktop too — the hero's date + the in-nav "Until our
+// day" countdown is the canonical surface.
 
 // ─────────────────────────────────────────────────────────────
 // Sticky mobile CTA — anchors to #rsvp until guest has responded
