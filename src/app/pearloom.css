@@ -727,24 +727,44 @@
 
 }
 
-/* ── Nav on phone — tighter padding + LangSwitch shrinks ──────
-   The classic nav layout puts brand + (hidden links) + langswitch
-   + RSVP pill in a single row. Default padding is 14px × 32px,
-   which on a 360px viewport leaves only 296px for those three
-   pieces — they get crushed. Tighten outer padding so each pill
-   reads. */
+/* ── Nav on phone — radically simplified ────────────────────────
+   Mobile chrome strategy:
+   - One piece of chrome at the top (just brand)
+   - One piece of chrome at the bottom (sticky RSVP pill)
+   - Everything else hides
+
+   The classic nav had brand + hidden links + language pill +
+   RSVP pill, all crammed into 360px width — overwhelming. Now:
+   - In-nav RSVP hides on phone (sticky bottom pill is the CTA)
+   - Language switcher collapses to globe-icon only
+   - Nav padding tightens
+
+   Result: top reads as "Our celebration · 🌐" — minimal, beautiful. */
 @media (max-width: 640px) {
   .pl8-guest .pl8-site-nav > div {
     padding-left: 14px !important;
     padding-right: 14px !important;
     gap: 10px !important;
   }
-  /* The Language pill is purely visual on most sites — shrink its
-     padding so brand + langswitch + RSVP all fit. */
-  .pl8-guest .pl8-lang-switcher,
-  .pl8-guest [data-pl-lang-switcher] {
-    padding: 6px 10px !important;
-    font-size: 12px !important;
+  /* In-nav RSVP button — redundant with the sticky bottom CTA
+     on mobile. Hiding it lets the brand breathe. */
+  .pl8-guest .pl8-nav-rsvp {
+    display: none !important;
+  }
+  /* Language pill — icon-only on phone. The label drops out;
+     the globe icon is universally read. Tapping still opens the
+     dropdown menu so multilingual guests aren't stranded. */
+  .pl8-guest .pl8-lang-switcher {
+    padding: 8px 10px !important;
+    font-size: 0 !important; /* drop label width entirely */
+    gap: 0 !important;
+  }
+  .pl8-guest .pl8-lang-switcher > svg {
+    font-size: initial !important; /* icon still renders */
+  }
+  .pl8-guest .pl8-lang-label,
+  .pl8-guest .pl8-lang-dot {
+    display: none !important;
   }
 }
 

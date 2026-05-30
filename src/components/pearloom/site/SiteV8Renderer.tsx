@@ -378,7 +378,13 @@ function LanguageSwitcher() {
         }}
       >
         <Icon name="globe" size={13} />
-        {working ? 'Translating…' : currentLabel}
+        {/* On phone the label drops — globe icon is enough.
+            Translating state still surfaces a tiny "…" so guests
+            know it's working. */}
+        <span className="pl8-lang-label">
+          {working ? 'Translating…' : currentLabel}
+        </span>
+        {working && <span className="pl8-lang-dot" aria-hidden>…</span>}
       </button>
       {open && (
         <div
@@ -503,7 +509,7 @@ function NavBody({ navStyle, scrolled, coupleLabel, links, hasRsvp, rsvpHref, br
           <NavLinks links={right} gap={22} />
           <LanguageSwitcher />
           {hasRsvp && (
-            <a href={rsvpHref} className="btn btn-primary btn-sm pl8-btn-sheen">
+            <a href={rsvpHref} className="btn btn-primary btn-sm pl8-btn-sheen pl8-nav-rsvp">
               RSVP <Icon name="arrow-right" size={12} />
             </a>
           )}
@@ -520,7 +526,7 @@ function NavBody({ navStyle, scrolled, coupleLabel, links, hasRsvp, rsvpHref, br
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <LanguageSwitcher />
           {hasRsvp && (
-            <a href={rsvpHref} className="btn btn-primary btn-sm pl8-btn-sheen">
+            <a href={rsvpHref} className="btn btn-primary btn-sm pl8-btn-sheen pl8-nav-rsvp">
               RSVP <Icon name="arrow-right" size={12} />
             </a>
           )}

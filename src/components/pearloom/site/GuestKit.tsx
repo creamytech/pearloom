@@ -488,18 +488,21 @@ export function StickyMobileCta({ deadline }: { deadline?: string | null }) {
         // support; iOS home-indicator devices add ~34px so the
         // pill clears the chin.
         bottom: 'max(14px, env(safe-area-inset-bottom, 14px))',
+        // Full-width pill now that the Pear floater is hidden on
+        // mobile — single piece of bottom chrome.
         left: 16,
-        right: 78,
+        right: 16,
         zIndex: 70,
         background: 'var(--ink, #18181B)',
         color: 'var(--cream, #FDFAF0)',
         textAlign: 'center',
-        padding: '12px 16px',
+        padding: '14px 20px',
         borderRadius: 999,
         fontWeight: 600,
         fontSize: 14,
+        letterSpacing: '0.01em',
         textDecoration: 'none',
-        boxShadow: '0 10px 24px rgba(14,13,11,0.32)',
+        boxShadow: '0 10px 28px rgba(14,13,11,0.28)',
         animation: 'pl8-rsvp-cta-in 380ms cubic-bezier(0.22, 1, 0.36, 1)',
       }}
     >
@@ -673,10 +676,14 @@ export function AskPearFloater({ domain, manifest, names }: BaseProps) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-label="Ask Pear"
+        // .pl8-hide-mobile = hidden ≤960px. On phone the Pear
+        // floater competed with the sticky RSVP CTA for the same
+        // bottom-right corner — pick one. RSVP is the higher
+        // priority surface; Pear stays available on tablet+ where
+        // there's room.
+        className="pl8-hide-mobile"
         style={{
           position: 'fixed',
-          // Match StickyMobileCta's safe-area inset so the pear
-          // button and RSVP pill share the same chin clearance.
           bottom: 'max(14px, env(safe-area-inset-bottom, 14px))',
           right: 14,
           zIndex: 75,
