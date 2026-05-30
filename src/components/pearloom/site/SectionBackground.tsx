@@ -71,6 +71,16 @@ export function SectionBackground({ manifest, sectionId, defaultKind = 'paper' }
   }
 
   if (kindRaw === 'mesh') {
+    // Derive all three gradient stops from the theme so the mesh
+    // matches the host's palette instead of always reading as
+    // peach + lavender + sage. Falls back to the brand defaults
+    // when manifest.theme.colors isn't populated.
+    const themeColors = (manifest as unknown as {
+      theme?: { colors?: { accent?: string; accentLight?: string; muted?: string } };
+    }).theme?.colors;
+    const stop1 = accent ?? '#C6703D';
+    const stop2 = themeColors?.accentLight ?? '#A88BC8';
+    const stop3 = themeColors?.muted ?? '#A8BA72';
     return (
       <div
         aria-hidden
@@ -78,9 +88,9 @@ export function SectionBackground({ manifest, sectionId, defaultKind = 'paper' }
           position: 'absolute',
           inset: 0,
           background: `
-            radial-gradient(circle at 14% 18%, ${withAlpha(accent ?? '#C6703D', 0.16)} 0%, transparent 36%),
-            radial-gradient(circle at 86% 26%, ${withAlpha('#A88BC8', 0.12)} 0%, transparent 38%),
-            radial-gradient(circle at 60% 88%, ${withAlpha('#A8BA72', 0.13)} 0%, transparent 42%)
+            radial-gradient(circle at 14% 18%, ${withAlpha(stop1, 0.16)} 0%, transparent 36%),
+            radial-gradient(circle at 86% 26%, ${withAlpha(stop2, 0.12)} 0%, transparent 38%),
+            radial-gradient(circle at 60% 88%, ${withAlpha(stop3, 0.13)} 0%, transparent 42%)
           `,
           pointerEvents: 'none',
           zIndex: 0,
