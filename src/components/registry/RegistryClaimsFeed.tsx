@@ -17,7 +17,7 @@
 // don't pollute the host's surface with empty chrome.
 // ─────────────────────────────────────────────────────────────
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 
 export interface ClaimRow {
@@ -206,32 +206,7 @@ export function ClaimCard({
           <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
             {relativeTime(claim.created_at)}
           </span>
-          <button
-            type="button"
-            onClick={() => {
-              if (typeof window !== 'undefined' && !window.confirm('Revoke this claim? It stops showing on the public registry but stays in your records.')) return;
-              onRevoke();
-            }}
-            aria-label="Revoke claim"
-            title="Revoke claim — useful if a guest claimed by mistake"
-            style={{
-              width: 22,
-              height: 22,
-              padding: 0,
-              borderRadius: 999,
-              border: '1px solid var(--line-soft)',
-              background: 'transparent',
-              color: 'var(--ink-muted)',
-              cursor: 'pointer',
-              fontSize: 13,
-              lineHeight: 1,
-              display: 'grid',
-              placeItems: 'center',
-              flexShrink: 0,
-            }}
-          >
-            ×
-          </button>
+          <RevokeButton onConfirm={onRevoke} />
         </div>
       </div>
       <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>
@@ -344,6 +319,69 @@ export function ClaimCard({
         </div>
       )}
     </div>
+  );
+}
+
+/* Two-stage revoke button — first tap arms the action; second tap
+ * within 4s confirms. Avoids window.confirm (the editorial dialog
+ * provider isn't mounted in every parent of this component — it's
+ * used both in the editor's RegistryPanel and the dashboard) while
+ * still gating the destructive action behind a deliberate
+ * second-tap. Subtle plum recolor on the armed state. */
+function RevokeButton({ onConfirm }: { onConfirm: () => void }) {
+  const [armed, setArmed] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, []);
+
+  function handleClick() {
+    if (armed) {
+      setArmed(false);
+      if (timer.current) clearTimeout(timer.current);
+      onConfirm();
+      return;
+    }
+    setArmed(true);
+    timer.current = setTimeout(() => setArmed(false), 4000);
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      aria-label={armed ? 'Confirm revoke claim' : 'Revoke claim'}
+      title={
+        armed
+          ? 'Tap again to confirm — stays in your records, hides from public.'
+          : 'Revoke claim — useful if a guest claimed by mistake'
+      }
+      style={{
+        height: 22,
+        padding: armed ? '0 8px' : 0,
+        minWidth: 22,
+        borderRadius: 999,
+        border: `1px solid ${armed ? 'var(--plum, #7A2D2D)' : 'var(--line-soft)'}`,
+        background: armed ? 'rgba(122,45,45,0.08)' : 'transparent',
+        color: armed ? 'var(--plum, #7A2D2D)' : 'var(--ink-muted)',
+        cursor: 'pointer',
+        fontSize: armed ? 10.5 : 13,
+        fontWeight: armed ? 700 : 400,
+        letterSpacing: armed ? '0.08em' : 'normal',
+        textTransform: armed ? 'uppercase' : 'none',
+        lineHeight: 1,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        transition: 'background 160ms ease, color 160ms ease, padding 160ms ease',
+      }}
+    >
+      {armed ? 'Tap to confirm' : '×'}
+    </button>
   );
 }
 
