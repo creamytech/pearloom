@@ -3557,6 +3557,7 @@ function HotelsMapView({
           return (
             <li
               key={i}
+              className="pl8-hotel-row"
               style={{
                 display: 'grid',
                 gridTemplateColumns: '32px 1fr auto',

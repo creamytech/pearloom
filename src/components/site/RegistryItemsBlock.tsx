@@ -76,10 +76,14 @@ export function RegistryItemsBlock({ siteId, title = 'Registry', subtitle }: Pro
       </div>
 
       <div
-        className="pl-cascade-row"
+        className="pl-cascade-row pl-registry-grid"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+          // 160 min lets two cards squeeze onto a 360px iPhone SE
+          // viewport at ~170px each instead of forcing one full-
+          // width card. Sites with wide-tablet viewers also pack
+          // more density.
+          gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
           gap: 18,
         }}
       >
@@ -292,7 +296,11 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const inputStyle: React.CSSProperties = {
-  padding: '10px 12px',
+  padding: '12px 14px',
+  // 44px minimum is the iOS HIG touch target. 14px font + 24px
+  // padding = 50px, comfortably above the floor and prevents
+  // the cramped feel on iPhone SE (320px viewport).
+  minHeight: 44,
   borderRadius: 8,
   border: '1px solid var(--line, rgba(61,74,31,0.14))',
   background: 'var(--card, #FFFFFF)',

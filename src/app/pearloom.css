@@ -668,6 +668,34 @@
   .pl8-guest .pl8-cols-3 { grid-template-columns: 1fr !important; }
 }
 
+/* ── Sub-480px guest-site polish (iPhone SE / Pixel small) ──────
+   At 360-480px the existing 960px breakpoint's "70px time +
+   3-col strip" is still too dense. Squeeze the schedule time
+   column to 50px (it's already abbreviated text — "4:00 PM"
+   fits fine in 50px), collapse the hero photo strip to 2 polaroids
+   only, and turn the hotel legend rows into 2-col so the distance
+   text doesn't squeeze the hotel name to wrap. */
+@media (max-width: 480px) {
+  .pl8-guest .pl8-schedule-row {
+    grid-template-columns: 50px 1fr !important;
+    padding: 12px 14px !important;
+    gap: 12px !important;
+  }
+  .pl8-guest .pl8-hero-strip {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  .pl8-guest .pl8-hero-strip > div:nth-child(n+3) { display: none; }
+  /* Hotel legend rows — hide the distance/last column so the
+     hotel name has room. The number pin + name remain. */
+  .pl8-guest .pl8-hotel-row {
+    grid-template-columns: 32px 1fr !important;
+  }
+  .pl8-guest .pl8-hotel-row > :last-child {
+    display: none !important;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    MOBILE POLISH PASS — readable, tappable, breathing on phone
    ═══════════════════════════════════════════════════════════════ */
