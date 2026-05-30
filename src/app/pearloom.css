@@ -654,6 +654,9 @@
   .pl8-guest .pl8-timeline-row > div:empty { display: none; }
   .pl8-guest .pl8-schedule-row { grid-template-columns: 70px 1fr !important; padding: 16px 20px !important; }
   .pl8-guest .pl8-schedule-row > div:last-child { grid-column: 1 / -1; text-align: left !important; }
+  /* Cap the formal "in words" time so a 70px col doesn't wrap
+     "A quarter to five in the morning" into 7 lines at 28px. */
+  .pl8-guest .pl8-schedule-row > .display { font-size: 16px !important; line-height: 1.2 !important; }
   .pl8-guest .pl8-hero-strip { grid-template-columns: repeat(3, 1fr) !important; }
   .pl8-guest .pl8-hero-strip > div { margin-top: 0 !important; }
   .pl8-guest .pl8-hero-strip > div:nth-child(n+4) { display: none; }
@@ -668,18 +671,87 @@
   .pl8-guest .pl8-cols-3 { grid-template-columns: 1fr !important; }
 }
 
-/* ── Sub-480px guest-site polish (iPhone SE / Pixel small) ──────
-   At 360-480px the existing 960px breakpoint's "70px time +
-   3-col strip" is still too dense. Squeeze the schedule time
-   column to 50px (it's already abbreviated text — "4:00 PM"
-   fits fine in 50px), collapse the hero photo strip to 2 polaroids
-   only, and turn the hotel legend rows into 2-col so the distance
-   text doesn't squeeze the hotel name to wrap. */
+/* ── Schedule rows: stack vertically on phone ──────────────────
+   The formal "in words" time renders as 28px italic display
+   ("A quarter to five in the morning"). At any mobile width
+   that text refuses to fit in a side-by-side time column —
+   each word wraps to its own line, and because the row uses
+   `align-items: center` the event card ends up centered against
+   a 7-line-tall time column, overlapping the words. Fix: at
+   ≤640px collapse the 3-col grid to a single column and stack
+   time → event content → tag chip vertically. The time also
+   shrinks so it doesn't dominate the card. */
+@media (max-width: 640px) {
+  .pl8-guest .pl8-schedule-row {
+    grid-template-columns: 1fr !important;
+    padding: 18px 18px !important;
+    gap: 8px !important;
+    align-items: start !important;
+  }
+  /* The big italic display time — first inline child after the
+     edit-mode overlays. Bring it down so it reads as a kicker
+     above the event title, not a separate slab. */
+  .pl8-guest .pl8-schedule-row > .display {
+    font-size: 18px !important;
+    line-height: 1.25 !important;
+    color: var(--peach-ink) !important;
+    margin-bottom: 2px !important;
+  }
+  /* Tag chip — was right-aligned in its own column; on a
+     stacked card it reads as a small chip pinned bottom-left. */
+  .pl8-guest .pl8-schedule-row > div:last-child {
+    text-align: left !important;
+    margin-top: 4px !important;
+  }
+
+  /* Chapter (story) rows — text + 120px photo grid collapses to
+     single column; the photo sits below the text at full width
+     so the chapter title isn't crammed into 200px. */
+  .pl8-guest .pl8-chapter-row {
+    grid-template-columns: 1fr !important;
+    padding: 18px !important;
+    gap: 12px !important;
+  }
+  .pl8-guest .pl8-chapter-row > :last-child {
+    aspect-ratio: 4 / 3;
+    max-height: 220px;
+  }
+
+  /* Gallery — already drops to 2-col at 960px; on phone go full
+     width so each image actually reads. 2-col at 360px makes
+     each tile ~157px square, too small for context. */
+  .pl8-guest .pl8-gallery-grid {
+    grid-template-columns: 1fr !important;
+    grid-auto-rows: minmax(200px, auto) !important;
+  }
+
+}
+
+/* ── Nav on phone — tighter padding + LangSwitch shrinks ──────
+   The classic nav layout puts brand + (hidden links) + langswitch
+   + RSVP pill in a single row. Default padding is 14px × 32px,
+   which on a 360px viewport leaves only 296px for those three
+   pieces — they get crushed. Tighten outer padding so each pill
+   reads. */
+@media (max-width: 640px) {
+  .pl8-guest .pl8-site-nav > div {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+    gap: 10px !important;
+  }
+  /* The Language pill is purely visual on most sites — shrink its
+     padding so brand + langswitch + RSVP all fit. */
+  .pl8-guest .pl8-lang-switcher,
+  .pl8-guest [data-pl-lang-switcher] {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+  }
+}
+
+/* ── Sub-480px guest-site polish (iPhone SE / Pixel small) ────── */
 @media (max-width: 480px) {
   .pl8-guest .pl8-schedule-row {
-    grid-template-columns: 50px 1fr !important;
-    padding: 12px 14px !important;
-    gap: 12px !important;
+    padding: 16px 14px !important;
   }
   .pl8-guest .pl8-hero-strip {
     grid-template-columns: repeat(2, 1fr) !important;
@@ -1012,6 +1084,9 @@
   .pl8-guest .pl8-timeline-row > div:empty { display: none; }
   .pl8-guest .pl8-schedule-row { grid-template-columns: 70px 1fr !important; padding: 16px 20px !important; }
   .pl8-guest .pl8-schedule-row > div:last-child { grid-column: 1 / -1; text-align: left !important; }
+  /* Cap the formal "in words" time so a 70px col doesn't wrap
+     "A quarter to five in the morning" into 7 lines at 28px. */
+  .pl8-guest .pl8-schedule-row > .display { font-size: 16px !important; line-height: 1.2 !important; }
   .pl8-guest .pl8-hero-strip { grid-template-columns: repeat(3, 1fr) !important; }
   .pl8-guest .pl8-hero-strip > div { margin-top: 0 !important; }
   .pl8-guest .pl8-hero-strip > div:nth-child(n+4) { display: none; }

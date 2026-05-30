@@ -361,6 +361,7 @@ function LanguageSwitcher() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label="Change language"
+        className="pl8-lang-switcher"
         style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -1652,6 +1653,7 @@ function ChapterCard({
   };
   return (
     <div
+      className="pl8-chapter-row"
       style={{
         background: cur ? 'var(--peach-bg)' : 'var(--card)',
         border: `1px solid ${cur ? 'var(--peach-2)' : 'var(--card-ring)'}`,

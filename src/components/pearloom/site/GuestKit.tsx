@@ -393,6 +393,12 @@ export function FloatingCountdown({ manifest }: { manifest: StoryManifest }) {
   return (
     <div
       aria-hidden={!visible}
+      // Hidden on phone via .pl8-hide-mobile (max-width 960px in
+      // pearloom.css). The pill duplicates the sticky bottom RSVP
+      // CTA's deadline cue and crowds the nav's RSVP / language
+      // pills at iPhone widths. Keep it for tablet+desktop where
+      // the float-right corner has room.
+      className="pl8-hide-mobile"
       style={{
         position: 'fixed',
         top: 16,
@@ -472,19 +478,26 @@ export function StickyMobileCta({ deadline }: { deadline?: string | null }) {
   return (
     <a
       href="#rsvp"
+      // right: 78 reserves 62px (button + gap) for the AskPear
+      // floater, which sits at right: 18 with a 52px button.
+      // Otherwise the floater overlays the right end of the pill
+      // and the user reads "RSVP by Apr 🍐" — broken.
       style={{
         position: 'fixed',
-        bottom: 16,
+        // env() falls back to 14px on browsers without safe-area
+        // support; iOS home-indicator devices add ~34px so the
+        // pill clears the chin.
+        bottom: 'max(14px, env(safe-area-inset-bottom, 14px))',
         left: 16,
-        right: 16,
+        right: 78,
         zIndex: 70,
         background: 'var(--ink, #18181B)',
         color: 'var(--cream, #FDFAF0)',
         textAlign: 'center',
-        padding: '14px 18px',
+        padding: '12px 16px',
         borderRadius: 999,
         fontWeight: 600,
-        fontSize: 15,
+        fontSize: 14,
         textDecoration: 'none',
         boxShadow: '0 10px 24px rgba(14,13,11,0.32)',
         animation: 'pl8-rsvp-cta-in 380ms cubic-bezier(0.22, 1, 0.36, 1)',
@@ -662,11 +675,13 @@ export function AskPearFloater({ domain, manifest, names }: BaseProps) {
         aria-label="Ask Pear"
         style={{
           position: 'fixed',
-          bottom: 18,
-          right: 18,
+          // Match StickyMobileCta's safe-area inset so the pear
+          // button and RSVP pill share the same chin clearance.
+          bottom: 'max(14px, env(safe-area-inset-bottom, 14px))',
+          right: 14,
           zIndex: 75,
-          width: 52,
-          height: 52,
+          width: 50,
+          height: 50,
           borderRadius: '50%',
           background: 'var(--peach-ink, #C6703D)',
           color: 'var(--cream, #FDFAF0)',
@@ -689,11 +704,14 @@ export function AskPearFloater({ domain, manifest, names }: BaseProps) {
           aria-label="Ask Pear about this site"
           style={{
             position: 'fixed',
-            bottom: 80,
-            right: 18,
+            // Sit above the 50px floater + 14px gap + safe-area
+            // chin; on a phone the dialog lifts above the RSVP
+            // pill cleanly.
+            bottom: 'calc(max(14px, env(safe-area-inset-bottom, 14px)) + 64px)',
+            right: 14,
             zIndex: 76,
-            width: 'min(360px, calc(100vw - 36px))',
-            maxHeight: 'min(520px, calc(100vh - 120px))',
+            width: 'min(360px, calc(100vw - 28px))',
+            maxHeight: 'min(520px, calc(100vh - 140px))',
             display: 'flex',
             flexDirection: 'column',
             background: 'var(--card, #fff)',
