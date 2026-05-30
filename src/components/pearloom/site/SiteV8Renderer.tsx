@@ -1935,7 +1935,7 @@ function DetailsStripImpl({ manifest, siteSlug }: { manifest: StoryManifest; sit
           // suppression. Defaults match the original strip exactly so
           // sites without weatherStyle in their manifest are visually
           // unchanged.
-          const ws = (manifest as unknown as { weatherStyle?: { voice?: 'poetic' | 'plain' | 'brief'; glyph?: 'line' | 'filled' | 'none'; hideOnDay?: boolean } }).weatherStyle;
+          const ws = manifest.weatherStyle;
           return (
             <WeatherStrip
               lat={l.venueLat}
@@ -6563,9 +6563,7 @@ function RSVPSectionImpl({
   // Host-controlled toggles from RsvpPanel. Default true so existing
   // sites that haven't seen the panel keep their current behavior.
   // Reads `manifest.rsvpConfig.plusOnes` written by RsvpPanel.
-  const allowPlusOnes = (
-    (manifest as unknown as { rsvpConfig?: { plusOnes?: boolean } }).rsvpConfig?.plusOnes
-  ) !== false;
+  const allowPlusOnes = manifest.rsvpConfig?.plusOnes !== false;
   const deadline = manifest.logistics?.rsvpDeadline;
   const deadlineStr = deadline
     ? new Date(deadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
