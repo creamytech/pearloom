@@ -31,8 +31,26 @@ export type SectionBgKind = 'paper' | 'wash' | 'mesh' | 'atmosphere' | 'none';
 
 export function SectionBackground({ manifest, sectionId, defaultKind = 'paper' }: Props) {
   if (!manifest) return null;
-  const overrides = (manifest as unknown as { sectionBackgrounds?: Record<string, string> }).sectionBackgrounds;
-  const kindRaw = (overrides?.[sectionId] as SectionBgKind | undefined) ?? defaultKind;
+  // Resolve background kind. Two paths exist for legacy reasons:
+  //   1. manifest.blockStyles[sectionId].background — canonical
+  //      per-block override. Accepts the SectionBgKind vocabulary
+  //      ('paper' | 'wash' | 'mesh' | 'atmosphere' | 'none') OR
+  //      a raw CSS color (handled upstream in BlockStyleWrapper).
+  //   2. manifest.sectionBackgrounds[sectionId] — legacy field
+  //      AtmospherePanel writes to. Still consulted as a fallback
+  //      so existing populated sites keep their overrides.
+  // Audit #14 (2026-05-30): canonical write target is blockStyles;
+  // sectionBackgrounds reads continue for backward compat.
+  const fromBlock = (manifest as unknown as {
+    blockStyles?: Record<string, { background?: string }>;
+  }).blockStyles?.[sectionId]?.background;
+  const fromLegacy = (manifest as unknown as { sectionBackgrounds?: Record<string, string> })
+    .sectionBackgrounds?.[sectionId];
+  const fromBlockKind: SectionBgKind | null =
+    fromBlock === 'paper' || fromBlock === 'wash' || fromBlock === 'mesh' || fromBlock === 'atmosphere' || fromBlock === 'none'
+      ? fromBlock
+      : null;
+  const kindRaw = (fromBlockKind ?? (fromLegacy as SectionBgKind | undefined)) ?? defaultKind;
   const accent = (manifest as unknown as { theme?: { colors?: { accent?: string; background?: string } } }).theme?.colors?.accent;
 
   if (kindRaw === 'paper' || kindRaw === 'none') return null;

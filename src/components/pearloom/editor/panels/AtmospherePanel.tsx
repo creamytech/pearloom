@@ -87,7 +87,27 @@ export function AtmospherePanel({
   const intensity = (atmosphere.intensity as AtmosphereIntensity | undefined) ?? 'standard';
   const audio = atmosphere.audio ?? {};
 
-  const sectionBackgrounds = (manifest as unknown as { sectionBackgrounds?: Record<string, string> }).sectionBackgrounds ?? {};
+  // Read order matches SectionBackground at read-time: prefer
+  // manifest.blockStyles[id].background (canonical), fall back to
+  // manifest.sectionBackgrounds[id] (legacy). The grid below shows
+  // the merged value so a host editing a previously-set section
+  // sees the same swatch active regardless of which field holds it.
+  // Audit #14 (2026-05-30).
+  const legacySectionBackgrounds = (manifest as unknown as { sectionBackgrounds?: Record<string, string> }).sectionBackgrounds ?? {};
+  const blockStyles = (manifest as unknown as { blockStyles?: Record<string, { background?: string }> }).blockStyles ?? {};
+  function readSectionBg(sectionId: string): string {
+    const fromBlock = blockStyles[sectionId]?.background;
+    if (
+      fromBlock === 'paper' || fromBlock === 'wash' || fromBlock === 'mesh' ||
+      fromBlock === 'atmosphere' || fromBlock === 'none'
+    ) return fromBlock;
+    return legacySectionBackgrounds[sectionId] ?? 'paper';
+  }
+  // Backward-compat alias so the rest of this file keeps reading
+  // `sectionBackgrounds[s.id]` without each call site being rewritten.
+  const sectionBackgrounds: Record<string, string> = new Proxy({}, {
+    get: (_t, p: string) => readSectionBg(p),
+  });
   const sectionAtmosphere = (manifest as unknown as { sectionAtmosphere?: Record<string, { kind?: string; intensity?: string }> }).sectionAtmosphere ?? {};
   const decorVisibility = (manifest as unknown as { decorVisibility?: Record<string, boolean> }).decorVisibility ?? {};
 
@@ -99,9 +119,20 @@ export function AtmospherePanel({
   }
 
   function setSectionBg(sectionId: string, value: string) {
+    // Write to the canonical blockStyles[sectionId].background
+    // field (audit #14 consolidation). The legacy
+    // manifest.sectionBackgrounds[sectionId] is left alone — it
+    // stays as the renderer's fallback for any populated entry
+    // that pre-dates this change. The next time the host edits
+    // a section, its value migrates over here.
+    const existingBlockStyles = blockStyles;
+    const existingForSection = existingBlockStyles[sectionId] ?? {};
     onChange({
       ...manifest,
-      sectionBackgrounds: { ...sectionBackgrounds, [sectionId]: value },
+      blockStyles: {
+        ...existingBlockStyles,
+        [sectionId]: { ...existingForSection, background: value },
+      },
     } as StoryManifest);
   }
 
