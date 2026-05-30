@@ -62,6 +62,7 @@ import { getBlockStyle, getBlockStyles } from '@/lib/block-engine/block-styles';
 import { resolveEdition, type EditionContext } from '@/lib/site-editions/resolve';
 import { getEventType } from '@/lib/event-os/event-types';
 import type { SiteOccasion } from '@/lib/site-urls';
+import { EditionDivider } from './edition-dividers';
 void HERO_VARIANTS_REGISTERED;
 void STORY_VARIANTS_REGISTERED;
 import {
@@ -8266,27 +8267,35 @@ export function SiteV8Renderer({
               </DecorEditOverlay>
             );
           }}
-          renderItem={(key) => {
+          renderItem={(key, idx) => {
             const k = key as SiteBlockKey;
             // Honour per-block hidden flag.
             const sectionId = k === 'story' ? 'our-story' : k;
             if (isBlockHidden(manifest, sectionId)) return null;
             const block = renderBlock(k);
             if (!block) return null;
+            // Edition divider between sections (skip before first).
+            // Picks the divider style declared by the active Edition
+            // — thread (Almanac), sprocket (Cinema), stitch (Postcard
+            // Box), gold-hairline (Linen Folder), whitespace (Quiet).
+            const editionForDivider = resolveEdition(editionContextFromManifest(manifest));
             return (
-              <StickerLayer
-                blockId={k}
-                stickers={manifest.stickers}
-                onEditField={onEditField}
-              >
-                {/* Apply per-section visual overrides (padding /
-                    maxWidth / textAlign / textColor) from
-                    manifest.blockStyles[sectionId]. The wrapper
-                    is a no-op when no override is set. */}
-                <BlockStyleWrapper manifest={manifest} blockId={sectionId}>
-                  {block}
-                </BlockStyleWrapper>
-              </StickerLayer>
+              <>
+                {idx > 0 && <EditionDivider style={editionForDivider.divider} />}
+                <StickerLayer
+                  blockId={k}
+                  stickers={manifest.stickers}
+                  onEditField={onEditField}
+                >
+                  {/* Apply per-section visual overrides (padding /
+                      maxWidth / textAlign / textColor) from
+                      manifest.blockStyles[sectionId]. The wrapper
+                      is a no-op when no override is set. */}
+                  <BlockStyleWrapper manifest={manifest} blockId={sectionId}>
+                    {block}
+                  </BlockStyleWrapper>
+                </StickerLayer>
+              </>
             );
           }}
         />
