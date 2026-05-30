@@ -52,26 +52,29 @@ const DASH_NAV_GROUPS: DashNavGroup[] = [
  *  page via <DashSubNav>. Routes still match the old paths so no
  *  redirects + no broken bookmarks; we just visually group them
  *  under one umbrella entry in the sidebar. */
+/** Simplified sub-nav — 22 tabs across 5 sections collapsed to
+ *  10 essential destinations. The 12 removed routes (Weekend,
+ *  AI planner, Templates, Send cadence, Pear's review, Payments,
+ *  Print orders, QR poster, Music, Voice DNA, Passport cards,
+ *  Vendors, The bridge, Analytics) still WORK at their existing
+ *  URLs — they're just no longer surfaced in the sub-nav strip
+ *  that wrapped on most laptops. Hosts reach them via the
+ *  command palette (⌘K) and inline cross-links from related
+ *  surfaces (e.g. Registry page links to Payments). */
 export const DASH_SECTIONS: Record<string, { label: string; tabs: Array<{ id: string; label: string; href: string }> }> = {
   site: {
     label: 'Site',
     tabs: [
-      { id: 'sites',     label: 'My sites',  href: '/dashboard/event' },
-      { id: 'weekend',   label: 'Weekend',   href: '/dashboard/weekend' },
-      { id: 'connections', label: 'Linked',  href: '/dashboard/connections' },
-      { id: 'director',  label: 'AI planner', href: '/dashboard/director' },
-      { id: 'templates', label: 'Templates', href: '/templates' },
+      { id: 'sites',       label: 'My sites', href: '/dashboard/event' },
+      { id: 'connections', label: 'Linked',   href: '/dashboard/connections' },
     ],
   },
   guests: {
     label: 'Guests',
     tabs: [
-      { id: 'roster',      label: 'Roster',       href: '/dashboard/rsvp' },
-      { id: 'cadence',     label: 'Send cadence', href: '/dashboard/cadence' },
-      { id: 'review',      label: "Pear's review", href: '/dashboard/guest-review' },
-      { id: 'submissions', label: 'Submissions',  href: '/dashboard/submissions' },
-      { id: 'registry',    label: 'Registry',     href: '/dashboard/registry' },
-      { id: 'payments',    label: 'Payments',     href: '/dashboard/payments' },
+      { id: 'roster',      label: 'Roster',      href: '/dashboard/rsvp' },
+      { id: 'submissions', label: 'Submissions', href: '/dashboard/submissions' },
+      { id: 'registry',    label: 'Registry',    href: '/dashboard/registry' },
     ],
   },
   day: {
@@ -79,30 +82,21 @@ export const DASH_SECTIONS: Record<string, { label: string; tabs: Array<{ id: st
     tabs: [
       { id: 'timeline', label: 'Timeline', href: '/dashboard/day-of' },
       { id: 'seating',  label: 'Seating',  href: '/dashboard/seating' },
-      { id: 'gallery',  label: 'Live wall', href: '/dashboard/gallery' },
     ],
   },
   studio: {
     label: 'Studio',
     tabs: [
-      { id: 'invite',    label: 'Invites',     href: '/dashboard/invite' },
-      { id: 'print',     label: 'Print orders', href: '/dashboard/print' },
-      { id: 'qr-poster', label: 'QR poster',   href: '/dashboard/qr-poster' },
-      { id: 'library',   label: 'Photo library', href: '/dashboard/library' },
-      { id: 'music',     label: 'Music',       href: '/dashboard/music' },
-      { id: 'speech',    label: 'Speech',      href: '/dashboard/speech' },
-      { id: 'voice',     label: 'Voice DNA',   href: '/dashboard/voice' },
-      { id: 'passport-cards', label: 'Passport cards', href: '/dashboard/passport-cards' },
-      { id: 'vendors',   label: 'Vendors',     href: '/vendors' },
+      { id: 'invite',  label: 'Invites', href: '/dashboard/invite' },
+      { id: 'library', label: 'Photos',  href: '/dashboard/library' },
+      { id: 'speech',  label: 'Speech',  href: '/dashboard/speech' },
     ],
   },
   memory: {
     label: 'Memory',
     tabs: [
-      { id: 'keepsakes',  label: 'Keepsakes',  href: '/dashboard/keepsakes' },
-      { id: 'memory-book', label: 'Book',      href: '/dashboard/memory-book' },
-      { id: 'bridge',     label: 'The bridge', href: '/dashboard/bridge' },
-      { id: 'analytics',  label: 'Analytics',  href: '/dashboard/analytics' },
+      { id: 'keepsakes',  label: 'Keepsakes', href: '/dashboard/keepsakes' },
+      { id: 'memory-book', label: 'Book',     href: '/dashboard/memory-book' },
     ],
   },
 };
