@@ -135,12 +135,11 @@ export function PassportSections({
   // whispers and capsule default OFF so the passport stops shipping
   // empty composers to every guest by default. Hosts who want them
   // flip on in the RsvpPanel under "Guest passport extras".
-  // Hosts who already have content (initial whisper / timeCapsule
-  // populated) keep seeing the composer so opt-in doesn't strand
-  // previously-collected entries.
+  // The data.site.manifest type is narrower than StoryManifest
+  // (passport API only forwards logistics for now), so we still
+  // cast here.
   const passportCfg = (data.site?.manifest as unknown as {
     passport?: { allowWhispers?: boolean; allowCapsule?: boolean };
-    rsvpConfig?: { songRequests?: boolean };
   })?.passport;
   const rsvpConfig = (data.site?.manifest as unknown as { rsvpConfig?: { songRequests?: boolean } })?.rsvpConfig;
   const allowSongs = rsvpConfig?.songRequests !== false;

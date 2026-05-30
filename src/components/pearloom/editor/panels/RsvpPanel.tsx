@@ -158,28 +158,22 @@ export function RsvpPanel({
           <Toggle
             label="Allow plus-ones"
             help="Guests can note a plus-one name on the RSVP form."
-            on={(manifest as unknown as { rsvpConfig?: { plusOnes?: boolean } }).rsvpConfig?.plusOnes ?? true}
+            on={manifest.rsvpConfig?.plusOnes ?? true}
             onChange={(v) =>
               onChange({
                 ...manifest,
-                rsvpConfig: {
-                  ...((manifest as unknown as { rsvpConfig?: Record<string, unknown> }).rsvpConfig ?? {}),
-                  plusOnes: v,
-                },
-              } as unknown as StoryManifest)
+                rsvpConfig: { ...(manifest.rsvpConfig ?? {}), plusOnes: v },
+              })
             }
           />
           <Toggle
             label="Collect song requests"
-            on={(manifest as unknown as { rsvpConfig?: { songRequests?: boolean } }).rsvpConfig?.songRequests ?? true}
+            on={manifest.rsvpConfig?.songRequests ?? true}
             onChange={(v) =>
               onChange({
                 ...manifest,
-                rsvpConfig: {
-                  ...((manifest as unknown as { rsvpConfig?: Record<string, unknown> }).rsvpConfig ?? {}),
-                  songRequests: v,
-                },
-              } as unknown as StoryManifest)
+                rsvpConfig: { ...(manifest.rsvpConfig ?? {}), songRequests: v },
+              })
             }
           />
           <Toggle
@@ -304,7 +298,7 @@ function RsvpButtonStyleSection({
   manifest: StoryManifest;
   onChange: (m: StoryManifest) => void;
 }) {
-  const cfg = (manifest as unknown as { rsvpButton?: RsvpButtonConfig }).rsvpButton ?? {};
+  const cfg: RsvpButtonConfig = manifest.rsvpButton ?? {};
   function set(patch: Partial<RsvpButtonConfig>) {
     const next: RsvpButtonConfig = { ...cfg, ...patch };
     Object.keys(next).forEach((k) => {
@@ -314,7 +308,7 @@ function RsvpButtonStyleSection({
     onChange({
       ...manifest,
       rsvpButton: Object.keys(next).length ? next : undefined,
-    } as unknown as StoryManifest);
+    });
   }
 
   const currentShape = cfg.shape ?? 'pearl';
