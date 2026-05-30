@@ -351,6 +351,11 @@ function Milestones({ eventDate }: { eventDate?: string | null }) {
     }
     return out;
   }, [eventDate]);
+  // No event date set yet — the fake "Send invitations in 11
+  // days / RSVP deadline in 18 days" rows misled hosts into
+  // thinking real deadlines existed. Skip the card entirely
+  // until there's a real anchor date to count from.
+  if (!eventDate) return null;
   return (
     <Section
       title="Upcoming milestones"
@@ -906,11 +911,13 @@ export function DashHomeV8() {
             needSong={stats.needSong}
           />
         </div>
-        <div className="pl8-dash-threecol-b pl8-dash-stagger" style={{ marginTop: 16 }}>
-          <Moments />
-          <LinkedCelebrations items={linkedItems} />
-          <PearAssistant />
-        </div>
+        {/* Second-row cards removed in the simplification audit:
+            - Moments was 4 placeholder photo tones (no real data)
+            - LinkedCelebrations duplicated /dashboard/connections
+            - PearAssistant was a context-less chat duplicating
+              DesignAdvisor in the editor
+            Home page now only renders things grounded in real
+            site data: Kickoff + Sites + Milestones + Guests. */}
       </div>
       <HelpBand />
       <div style={{ height: 40 }} />
