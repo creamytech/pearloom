@@ -129,32 +129,57 @@ export function EditionPicker({ manifest, onChange }: Props) {
 
   function pick(ed: EditionDefinition) {
     if (ed.id === manifest.edition) return;
-    // Picking an Edition must produce a visible change. The
-    // renderer's "explicit > Edition default" precedence means
-    // existing sites (which have manifest.blockVariants.hero
-    // and manifest.atmosphere set by the wizard or template
-    // applier) wouldn't budge on edition swap. Stamp the
-    // Edition's hero variant + atmosphere preset directly so
-    // the canvas reflects the pick immediately.
+    // Picking an Edition stamps EVERY layout dimension at once so
+    // the whole site reshapes — hero variant, story layout, per-
+    // section card style (radius/shadow/border/padding/shape/
+    // spacing/align), block order, and atmosphere preset. Each
+    // Edition is a cohesive artifact; switching to one means
+    // adopting the bundle.
     //
-    // Hosts who explicitly customized either after picking an
-    // Edition can repeat that customization — switching
-    // Editions is the act of saying "give me the bundled set
-    // again". We don't preserve old hero/atmosphere because
-    // they were almost certainly the previous Edition's defaults
-    // (Pear's pick, not a deliberate host override).
+    // Hosts can still tweak any single field after — switching
+    // Editions later reapplies the bundle.
+    const existingBlockVariants = (manifest as unknown as {
+      blockVariants?: Record<string, { style?: string }>;
+    }).blockVariants ?? {};
+    const existingBlockStyles = (manifest as unknown as {
+      blockStyles?: Record<string, Record<string, unknown>>;
+    }).blockStyles ?? {};
+    const existingAtmosphere = (manifest as unknown as {
+      atmosphere?: { kind?: string; intensity?: string; accent?: string };
+    }).atmosphere ?? {};
+
+    // Merge per-section blockStyles: Edition's prescriptions
+    // overlay onto whatever the host already has for that
+    // section. Sections the Edition doesn't mention stay
+    // untouched.
+    const mergedBlockStyles = { ...existingBlockStyles };
+    for (const [sectionKey, edStyle] of Object.entries(ed.blockStyles ?? {})) {
+      mergedBlockStyles[sectionKey] = {
+        ...(mergedBlockStyles[sectionKey] ?? {}),
+        ...edStyle,
+      };
+    }
+
     const next = {
       ...manifest,
       edition: ed.id,
+      // Hero variant
       blockVariants: {
-        ...((manifest as unknown as { blockVariants?: Record<string, { style?: string }> }).blockVariants ?? {}),
+        ...existingBlockVariants,
         hero: { style: ed.heroVariantId },
       },
+      // Story layout (legacy field the renderer reads via resolveStoryLayout)
+      storyLayout: ed.storyLayoutId,
+      // Per-section card + spacing + text-align overrides
+      blockStyles: mergedBlockStyles,
+      // Atmosphere preset
       atmosphere: {
-        ...((manifest as unknown as { atmosphere?: { kind?: string; intensity?: string; accent?: string } }).atmosphere ?? {}),
-        kind: ed.atmospherePreset.kind ?? (manifest as unknown as { atmosphere?: { kind?: string } }).atmosphere?.kind,
+        ...existingAtmosphere,
+        kind: ed.atmospherePreset.kind ?? existingAtmosphere.kind,
         intensity: ed.atmospherePreset.intensity,
       },
+      // Section ordering — Edition picks the rhythm
+      blockOrder: ed.blockOrder,
     };
     onChange(next as StoryManifest);
   }

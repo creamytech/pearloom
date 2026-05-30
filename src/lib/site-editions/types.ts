@@ -42,6 +42,16 @@ export type HeroVariantHint =
   | 'carousel'
   | 'minimal';
 
+/** Which story layout variant the Edition prescribes. Maps to
+ *  StoryLayoutType in src/components/blocks/StoryLayouts.tsx. */
+export type StoryLayoutHint =
+  | 'parallax'
+  | 'filmstrip'
+  | 'magazine'
+  | 'timeline'
+  | 'kenburns'
+  | 'bento';
+
 /** Section-opener style — picks which edition-openers component
  *  renders above each section title. */
 export type SectionOpenerStyle =
@@ -91,6 +101,28 @@ export interface EditionDefinition {
 
   /** Hero variant to fall back on when the host hasn't picked one. */
   heroVariantId: HeroVariantHint;
+
+  /** Story layout variant this Edition prescribes. Stamped into
+   *  manifest on Edition pick so the Story section visibly reshapes
+   *  per Edition (Almanac → timeline, Cinema → filmstrip, etc.). */
+  storyLayoutId: StoryLayoutHint;
+
+  /** Per-section blockStyles overrides this Edition stamps in.
+   *  Lets each Edition prescribe (e.g.) a hairline card for
+   *  Linen Folder vs a pillow card for Postcard Box on the same
+   *  section. Keys are SiteBlockKey; values are partial
+   *  BlockStyleOverride shapes the renderer's BlockStyleWrapper
+   *  consumes. */
+  blockStyles?: Partial<Record<SiteBlockKey, {
+    cardRadius?: 'sharp' | 'soft' | 'rounded' | 'pillow';
+    cardShadow?: 'none' | 'soft' | 'lifted' | 'floating';
+    cardBorder?: 'none' | 'hairline' | 'heavy';
+    cardPadding?: 'compact' | 'default' | 'generous';
+    cardShape?: 'pillow' | 'sharp' | 'scallop' | 'arch';
+    spacing?: string;
+    textAlign?: 'left' | 'center' | 'right';
+    background?: string;
+  }>>;
 
   /** Section opener component to render above each section title. */
   sectionOpener: SectionOpenerStyle;
