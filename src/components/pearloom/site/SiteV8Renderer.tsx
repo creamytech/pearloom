@@ -1226,7 +1226,12 @@ function HeroSection({
             backgroundImage: `url(${(manifest as unknown as { aiAccentUrl: string }).aiAccentUrl})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            mixBlendMode: 'multiply',
+            // Hero accent blend adapts per Edition via --decor-blend
+            // (Cinema = screen, paper = multiply). Was hardcoded
+            // multiply which crushed the accent into the dark on
+            // Cinema. Lower opacity (0.38) than other decor because
+            // the accent is full-bleed on the hero.
+            mixBlendMode: 'var(--decor-blend, multiply)' as 'multiply',
             opacity: 0.38,
             pointerEvents: 'none',
             zIndex: 0,

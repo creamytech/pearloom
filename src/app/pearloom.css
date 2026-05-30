@@ -3268,6 +3268,18 @@ html { scroll-behavior: smooth; }
   --decor-blend: multiply;
   --decor-opacity: 0.92;
   --stamp-blend: multiply;
+
+  /* Theme-bind the brand accent vars at the .pl8-guest scope so
+     every site-internal component (decor, RSVP banners, language
+     switcher, hero pills, GuestKit) follows the host's chosen
+     palette. --pl-olive is bound by themeToCssVars() to the
+     theme.colors.accent; --pl-olive-mist to accentLight; --pl-ink
+     to foreground. Editor chrome OUTSIDE .pl8-guest still reads
+     the global :root brand peach + sage. */
+  --peach-ink: var(--pl-olive, #C6703D);
+  --peach-bg:  var(--pl-olive-mist, #FBE8D6);
+  --sage-deep: var(--pl-olive, #5C6B3F);
+  --sage-tint: var(--pl-olive-mist, #E3E6C8);
 }
 .pl8-guest[data-pl-edition="cinema"] {
   --decor-blend: screen;
