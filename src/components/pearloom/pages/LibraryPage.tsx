@@ -215,6 +215,31 @@ export function LibraryPage() {
       subtitle="Every photo you've uploaded to Pearloom, in one place. Add more, caption them, and drop them into any site you're building."
     >
       <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
+        {/* Cross-link to the Reel — DashSubNav no longer surfaces
+            /dashboard/gallery directly (audit #6 trim), so this
+            link keeps the cross-site view discoverable from the
+            canonical Photos page. Audit #7 partial. */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+          <a
+            href="/dashboard/gallery"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '6px 14px',
+              borderRadius: 999,
+              background: 'transparent',
+              border: '1px solid var(--line)',
+              color: 'var(--ink-soft)',
+              fontSize: 12,
+              fontWeight: 600,
+              fontFamily: 'var(--font-ui)',
+              textDecoration: 'none',
+            }}
+          >
+            See photos across all your sites →
+          </a>
+        </div>
         <div
           style={{
             display: 'grid',
