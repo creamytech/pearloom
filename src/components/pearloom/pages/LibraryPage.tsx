@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DashLayout } from '../dash/DashShell';
 import { Icon } from '../motifs';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
+import { useDialog } from '@/components/ui/confirm-dialog';
 
 export interface UserMedia {
   id: string;
@@ -38,6 +39,7 @@ export function LibraryPage() {
   const [uploadingCount, setUploadingCount] = useState(0);
   const picker = useGooglePhotosPicker();
   const [selected, setSelected] = useState<UserMedia | null>(null);
+  const dialog = useDialog();
 
   const load = useCallback(async () => {
     try {
@@ -164,7 +166,14 @@ export function LibraryPage() {
   }
 
   async function onDelete(id: string) {
-    if (!confirm('Remove this photo from your library?')) return;
+    const sure = await dialog.confirm({
+      title: 'Remove this photo?',
+      message: 'It goes away from your library. Sites that already use it keep it — we only remove the library copy.',
+      confirmLabel: 'Remove photo',
+      cancelLabel: 'Keep it',
+      variant: 'danger',
+    });
+    if (!sure) return;
     setMedia((m) => (m ?? []).filter((x) => x.id !== id));
     try {
       await fetch(`/api/user-media?id=${encodeURIComponent(id)}`, { method: 'DELETE' });

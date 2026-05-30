@@ -13,6 +13,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useFocusTrap } from '@/lib/use-focus-trap';
+import { useDialog } from '@/components/ui/confirm-dialog';
 
 interface Item {
   id: string;
@@ -41,6 +42,7 @@ export function RegistryItemsManager({ siteId }: Props) {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Item | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const dialog = useDialog();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -56,7 +58,14 @@ export function RegistryItemsManager({ siteId }: Props) {
   useEffect(() => { void load(); }, [load]);
 
   async function deleteItem(id: string) {
-    if (!confirm('Remove this item from the registry?')) return;
+    const sure = await dialog.confirm({
+      title: 'Remove this item from the registry?',
+      message: 'Guests who already claimed it can still see their claim, but no one else will see this item again.',
+      confirmLabel: 'Remove item',
+      cancelLabel: 'Keep it',
+      variant: 'danger',
+    });
+    if (!sure) return;
     await fetch(`/api/registry-items?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
     void load();
   }
