@@ -58,7 +58,7 @@ function guestCopy(occasion?: string | null) {
     case 'casual':
       return {
         topSubtitle: 'Every RSVP and note, in one list.',
-        emptyHint: 'Share your link, or add guests by hand.',
+        emptyHint: 'Share your link, add guests by hand, or import a CSV. Pear tracks everyone in one list.',
         fifthColumn: 'Note',
         fifthKey: 'note' as const,
         verbComing: 'coming',
@@ -77,7 +77,7 @@ function guestCopy(occasion?: string | null) {
     default:
       return {
         topSubtitle: 'Every RSVP, meal note, and plus-one recorded.',
-        emptyHint: 'Share your invite link, or add guests by hand. Pear will track RSVPs, meals, and accessibility notes as they come in.',
+        emptyHint: 'Share your invite link, add guests by hand, or import a CSV. Pear tracks RSVPs, meals, and accessibility notes as they come in.',
         fifthColumn: 'Meal',
         fifthKey: 'meal' as const,
         verbComing: 'coming',
