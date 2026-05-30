@@ -108,10 +108,18 @@ type DecorKind =
   | 'story';
 
 function renderDecorFor(kind: DecorKind, variant: DecorVariant) {
-  const accent = 'var(--peach-ink)';
-  const deep = 'var(--sage-deep)';
-  const ink = 'var(--ink)';
-  const soft = 'var(--peach-bg)';
+  // Theme-aware vars (the file header promised this; the previous
+  // implementation read brand-locked --peach-ink / --sage-deep which
+  // never changed). --pl-olive is bound to the theme's `accent`,
+  // --pl-olive-mist to `accentLight`, --pl-ink to `foreground`. So a
+  // Desert Boho template's terracotta accent now flows into the
+  // wedding rings + olive branch leaves; a midnight palette flows
+  // teal; etc. --peach-ink / --sage-deep remain as fallbacks so
+  // SSR-injected styles + isolated previews still render.
+  const accent = 'var(--pl-olive, var(--peach-ink, #C6703D))';
+  const deep = 'var(--pl-olive, var(--sage-deep, #6d7d3f))';
+  const ink = 'var(--ink, #0E0D0B)';
+  const soft = 'var(--pl-olive-mist, var(--peach-bg, #FBE8D6))';
   const pieceOpacity = variant === 'hero' ? 0.92 : 0.55;
 
   switch (kind) {
