@@ -16,6 +16,7 @@ import { Blob, Squiggle } from '../motifs';
 import { DashSidebar } from './DashShell';
 import { DashSubNav } from './DashSubNav';
 import { DashCommandPalette } from './DashCommandPalette';
+import { DialogProvider } from '@/components/ui/confirm-dialog';
 
 const ShellPresentContext = createContext<boolean>(false);
 
@@ -27,6 +28,7 @@ export function ShellPersistentLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   return (
     <ShellPresentContext.Provider value={true}>
+      <DialogProvider>
       <div className="pl8 pl8-dashshell">
         <DashCommandPalette />
         <DashSidebar />
@@ -51,6 +53,7 @@ export function ShellPersistentLayout({ children }: { children: ReactNode }) {
           </div>
         </main>
       </div>
+      </DialogProvider>
     </ShellPresentContext.Provider>
   );
 }

@@ -10,6 +10,7 @@
    ======================================================================== */
 
 import { useEffect, useState } from 'react';
+import { useDialog } from '@/components/ui/confirm-dialog';
 
 type LiveUpdate = {
   id: string;
@@ -42,6 +43,7 @@ export function BroadcastComposer({ subdomain }: Props) {
   // email inboxes. Capped server-side at 3/day per site.
   const [alsoEmail, setAlsoEmail] = useState(false);
   const [lastEmailSummary, setLastEmailSummary] = useState<string | null>(null);
+  const dialog = useDialog();
 
   async function refresh() {
     try {
@@ -69,9 +71,13 @@ export function BroadcastComposer({ subdomain }: Props) {
     // Email broadcast is a real-money action — confirm before
     // hitting hundreds of inboxes, and only when the toggle is on.
     if (alsoEmail) {
-      const ok = typeof window !== 'undefined'
-        ? window.confirm("Email this update to every attending guest? It'll land in their inbox right now.")
-        : true;
+      const ok = await dialog.confirm({
+        title: 'Email this to every attending guest?',
+        message: "It'll land in their inbox right now. Cap is 3 emails per site per day.",
+        confirmLabel: 'Send email',
+        cancelLabel: 'Site only',
+        variant: 'danger',
+      });
       if (!ok) return;
     }
     setBusy(true);

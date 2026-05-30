@@ -10,6 +10,7 @@ import { DashEmpty } from '../dash/DashEmpty';
 import { DashSkeleton } from '../dash/DashSkeleton';
 import { Heart, Icon, Pear, PhotoPlaceholder, Sparkle } from '../motifs';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
+import { useDialog } from '@/components/ui/confirm-dialog';
 
 function occasionLabel(o?: string) {
   if (!o) return 'Event';
@@ -185,6 +186,7 @@ function SiteCardMenu({ site, onDeleted }: { site: SiteSummary; onDeleted: () =>
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
+  const dialog = useDialog();
 
   useEffect(() => {
     if (!open) return;
@@ -205,9 +207,18 @@ function SiteCardMenu({ site, onDeleted }: { site: SiteSummary; onDeleted: () =>
 
   async function handleDelete() {
     if (busy) return;
-    const sure = window.confirm(
-      `Delete "${site.domain}"? This removes the site, every guest record, every photo it owned. Cannot be undone.`,
-    );
+    // Use the dashboard's branded confirm dialog (DialogProvider
+    // mounted in ShellPersistentLayout) instead of the native
+    // window.confirm — the native chrome breaks the editorial
+    // voice and is jarring on macOS.
+    const sure = await dialog.confirm({
+      title: `Delete "${site.domain}"?`,
+      message:
+        'This removes the site, every guest record, every photo it owned. It can\'t be undone.',
+      confirmLabel: 'Delete site',
+      cancelLabel: 'Keep it',
+      variant: 'danger',
+    });
     if (!sure) return;
     setBusy(true);
     try {
@@ -223,7 +234,11 @@ function SiteCardMenu({ site, onDeleted }: { site: SiteSummary; onDeleted: () =>
       // the removal on their next render too.
       invalidateSitesCache();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Delete failed.');
+      await dialog.alert({
+        title: 'Delete failed',
+        message: err instanceof Error ? err.message : 'Something went wrong.',
+        variant: 'error',
+      });
     } finally {
       setBusy(false);
     }
