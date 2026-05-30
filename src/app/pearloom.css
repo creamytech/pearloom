@@ -4239,31 +4239,6 @@ html { scroll-behavior: smooth; }
 }
 
 /* ─────────────────────────────────────────────────────────
-   Edit-mode safety: SVG displacement filters on cards + text
-   create stacking contexts that clip inline editor overlays
-   (hover toolbars, edit handles, drag indicators). When the
-   site root carries data-pl-edit-mode="true", we strip the
-   displacement filters but keep all other texture chrome
-   (background pools, grain, borders, shadows). The host still
-   sees the texture identity; we just don't risk hiding the
-   editor's affordances.
-   ───────────────────────────────────────────────────────── */
-.pl8-guest[data-pl-edit-mode] .pl8-schedule-row,
-.pl8-guest[data-pl-edit-mode] .pl8-chapter-row,
-.pl8-guest[data-pl-edit-mode] .pl8-hotel-row,
-.pl8-guest[data-pl-edit-mode] .pl8-hotel-card,
-.pl8-guest[data-pl-edit-mode] .pl8-timeline-row,
-.pl8-guest[data-pl-edit-mode] .pl8-passport-card,
-.pl8-guest[data-pl-edit-mode] .pl8-bento-tile,
-.pl8-guest[data-pl-edit-mode] .pl8-mkt-tile,
-.pl8-guest[data-pl-edit-mode] section h1,
-.pl8-guest[data-pl-edit-mode] section h2,
-.pl8-guest[data-pl-edit-mode] section h3,
-.pl8-guest[data-pl-edit-mode] section .display {
-  filter: none !important;
-}
-
-/* ─────────────────────────────────────────────────────────
    Cinema × Texture compat overrides
    ─────────────────────────────────────────────────────────
    Cinema covers the whole page in `background: #0E0D0B` sections,
