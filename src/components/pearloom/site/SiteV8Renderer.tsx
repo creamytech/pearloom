@@ -30,6 +30,7 @@ import { CustomBadgePill as SectionCustomBadge } from '@/components/pearloom/edi
 import { EditableText } from '../editor/canvas/EditableText';
 import { EditableField } from '../editor/canvas/EditableField';
 import { SortableBlockList } from '../editor/canvas/CanvasBlockSortable';
+import { DraftedByPearBanner } from '../editor/DraftedByPearBanner';
 import { SortableChapters } from '../editor/canvas/SortableChapters';
 import { HoverToolbar } from '../editor/canvas/HoverToolbar';
 import { PhotoDropTarget } from '../editor/canvas/PhotoDropTarget';
@@ -2489,6 +2490,15 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
     <section id="schedule" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="schedule" />
       <div style={{ maxWidth: 920, margin: '0 auto' }}>
+        {edit && (
+          <DraftedByPearBanner
+            sectionKey="schedule"
+            sectionLabel="Schedule"
+            manifest={manifest}
+            onChange={(m) => onEditField?.(() => m)}
+            onClear={() => onEditField?.((m) => ({ ...m, events: [], draftedByPear: { ...(m.draftedByPear ?? {}), schedule: false } }))}
+          />
+        )}
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <div
             style={{
@@ -5685,6 +5695,15 @@ function RegistrySectionImpl({ manifest, onEditField, siteSlug }: { manifest: St
     <section id="registry" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="registry" />
       <div style={{ maxWidth: 1040, margin: '0 auto' }}>
+        {edit && (
+          <DraftedByPearBanner
+            sectionKey="registry"
+            sectionLabel="Registry"
+            manifest={manifest}
+            onChange={(m) => onEditField?.(() => m)}
+            onClear={() => onEditField?.((m) => ({ ...m, registry: { enabled: true, ...((m.registry as Record<string, unknown>) ?? {}), entries: [] }, draftedByPear: { ...(m.draftedByPear ?? {}), registry: false } } as unknown as StoryManifest))}
+          />
+        )}
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <div
             style={{
@@ -6280,6 +6299,15 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
     <section id="faq" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="faq" />
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
+        {edit && (
+          <DraftedByPearBanner
+            sectionKey="faq"
+            sectionLabel="FAQ"
+            manifest={manifest}
+            onChange={(m) => onEditField?.(() => m)}
+            onClear={() => onEditField?.((m) => ({ ...m, faq: [], draftedByPear: { ...(m.draftedByPear ?? {}), faq: false } } as StoryManifest))}
+          />
+        )}
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <div
             style={{
