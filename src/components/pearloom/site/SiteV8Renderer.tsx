@@ -59,6 +59,9 @@ import { resolveStoryLayout } from '@/components/blocks/StoryLayouts';
 import { HERO_VARIANTS_REGISTERED } from './hero-variants';
 import { STORY_VARIANTS_REGISTERED } from './story-variants';
 import { getBlockStyle, getBlockStyles } from '@/lib/block-engine/block-styles';
+import { resolveEdition, type EditionContext } from '@/lib/site-editions/resolve';
+import { getEventType } from '@/lib/event-os/event-types';
+import type { SiteOccasion } from '@/lib/site-urls';
 void HERO_VARIANTS_REGISTERED;
 void STORY_VARIANTS_REGISTERED;
 import {
@@ -1103,6 +1106,20 @@ function CountdownPill({ eventDate, timezone, time }: { eventDate?: string | nul
   );
 }
 
+/* Derives the EditionContext from a manifest so the resolver can
+ * pick the active Edition. occasion + voice are loose enough that
+ * the resolver tolerates undefined for both. Voice is looked up via
+ * the EVENT_TYPES registry — single source of truth for tone. */
+function editionContextFromManifest(manifest: StoryManifest): EditionContext {
+  const occasion = (manifest as unknown as { occasion?: string }).occasion as SiteOccasion | undefined;
+  const eventType = occasion ? getEventType(occasion) : null;
+  return {
+    edition: manifest.edition,
+    occasion,
+    voice: eventType?.voice,
+  };
+}
+
 /* ==================== HERO ==================== */
 function HeroSection({
   names,
@@ -1145,15 +1162,20 @@ function HeroSection({
     ((manifest as unknown as { decorStyle?: 'classic' | 'occasion' | 'off' }).decorStyle) ??
     (signatureDecorKind && signatureDecorKind !== 'none' ? 'off' : 'occasion');
 
-  // Living atmosphere — animated background layer. Reads
-  // manifest.atmosphere if set, otherwise picks a sensible default
-  // for the occasion. Host can override or disable in the editor.
+  // Living atmosphere — animated background layer. Resolution
+  // order: explicit manifest.atmosphere > active Edition preset >
+  // occasion default > 'standard'. Editions are read-time defaults
+  // so a host who set an explicit atmosphere keeps it.
   const atmosphereCfg = (manifest as unknown as {
     atmosphere?: { kind?: string; intensity?: string; sections?: string[]; accent?: string }
   }).atmosphere;
+  const heroEdition = resolveEdition(editionContextFromManifest(manifest));
   const atmosphereKind = (atmosphereCfg?.kind as AtmosphereKind | undefined)
+    ?? (heroEdition.atmospherePreset.kind as AtmosphereKind | undefined)
     ?? defaultAtmosphereForOccasion(occasionRaw);
-  const atmosphereIntensity = (atmosphereCfg?.intensity as AtmosphereIntensity | undefined) ?? 'standard';
+  const atmosphereIntensity = (atmosphereCfg?.intensity as AtmosphereIntensity | undefined)
+    ?? (heroEdition.atmospherePreset.intensity as AtmosphereIntensity | undefined)
+    ?? 'standard';
   const atmosphereAccent = atmosphereCfg?.accent
     ?? (manifest as unknown as { theme?: { colors?: { accent?: string } } }).theme?.colors?.accent;
 
@@ -1273,8 +1295,17 @@ function HeroVariantDispatch({
     (manifest as unknown as { heroKicker?: string }).heroKicker ??
     (dateInfo ? `together, ${dateInfo.weekday.toLowerCase()}` : 'save the date');
 
-  const styleId = (manifest.blockVariants?.hero?.style as string | undefined) ?? 'postcard';
-  const variant = getBlockStyle('hero', styleId) ?? getBlockStyle('hero', 'postcard');
+  // Edition-aware hero variant fallback. When the host hasn't
+  // picked a hero variant explicitly, fall back to the active
+  // Edition's heroVariantId (Cinema → photo-first, Quiet →
+  // minimal, etc.) instead of the legacy hard-coded 'postcard'.
+  // Explicit host picks always win — Editions are read-time
+  // defaults only.
+  const editionCtx = editionContextFromManifest(manifest);
+  const edition = resolveEdition(editionCtx);
+  const styleId =
+    (manifest.blockVariants?.hero?.style as string | undefined) ?? edition.heroVariantId;
+  const variant = getBlockStyle('hero', styleId) ?? getBlockStyle('hero', edition.heroVariantId) ?? getBlockStyle('hero', 'postcard');
   if (!variant) {
     // Registry didn't initialise — render nothing rather than crash.
     // The side-effect import at the top of this file should guarantee
