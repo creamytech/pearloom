@@ -131,10 +131,21 @@ export function PassportSections({
   if (!data) return null;
 
   const isSolemn = occasion === 'memorial' || occasion === 'funeral';
-  // Host-controlled toggle from RsvpPanel. Default true so existing
-  // sites that haven't seen the panel keep their current behavior.
+  // Host-controlled toggles. Songs default ON (legacy behaviour);
+  // whispers and capsule default OFF so the passport stops shipping
+  // empty composers to every guest by default. Hosts who want them
+  // flip on in the RsvpPanel under "Guest passport extras".
+  // Hosts who already have content (initial whisper / timeCapsule
+  // populated) keep seeing the composer so opt-in doesn't strand
+  // previously-collected entries.
+  const passportCfg = (data.site?.manifest as unknown as {
+    passport?: { allowWhispers?: boolean; allowCapsule?: boolean };
+    rsvpConfig?: { songRequests?: boolean };
+  })?.passport;
   const rsvpConfig = (data.site?.manifest as unknown as { rsvpConfig?: { songRequests?: boolean } })?.rsvpConfig;
   const allowSongs = rsvpConfig?.songRequests !== false;
+  const allowWhispers = passportCfg?.allowWhispers === true || Boolean(data.whisper);
+  const allowCapsule = passportCfg?.allowCapsule === true || Boolean(data.timeCapsule);
   const eventIso = data.site?.manifest?.logistics?.date ?? null;
   const eventTime = data.site?.manifest?.logistics?.time ?? null;
   const eventVenue = data.site?.manifest?.logistics?.venue ?? null;
@@ -168,21 +179,25 @@ export function PassportSections({
         />
       )}
 
-      <WhisperCard
-        token={token}
-        initial={data.whisper}
-        headingFont={headingFont}
-        accent={accent}
-        isSolemn={isSolemn}
-      />
+      {allowWhispers && (
+        <WhisperCard
+          token={token}
+          initial={data.whisper}
+          headingFont={headingFont}
+          accent={accent}
+          isSolemn={isSolemn}
+        />
+      )}
 
-      <CapsuleCard
-        token={token}
-        initial={data.timeCapsule}
-        headingFont={headingFont}
-        accent={accent}
-        isSolemn={isSolemn}
-      />
+      {allowCapsule && (
+        <CapsuleCard
+          token={token}
+          initial={data.timeCapsule}
+          headingFont={headingFont}
+          accent={accent}
+          isSolemn={isSolemn}
+        />
+      )}
 
       {!isSolemn && allowSongs && (
         <SongCard

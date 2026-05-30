@@ -64,14 +64,24 @@ export function PresetRsvpForm({
     setAnswers((prev) => ({ ...prev, [kind]: value }));
 
   // If they say "not attending" we only keep attending + name + email + maybe comments/memory-share.
-  // All other fields are hidden.
-  const visibleFields = fields.filter((f) => {
-    if (f.kind === 'attending') return true;
-    if (attending === 'declined') {
-      return f.kind === 'comments' || f.kind === 'memory-share';
-    }
-    return true;
-  });
+  // All other fields are hidden. Sort `attending` to the top so the
+  // guest sees + answers it before any conditional fields render —
+  // otherwise a guest who fills "cost-acknowledge" or "bed-preference"
+  // first, then toggles "declined", watches their work vanish, which
+  // reads as a bug.
+  const visibleFields = fields
+    .filter((f) => {
+      if (f.kind === 'attending') return true;
+      if (attending === 'declined') {
+        return f.kind === 'comments' || f.kind === 'memory-share';
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (a.kind === 'attending') return -1;
+      if (b.kind === 'attending') return 1;
+      return 0;
+    });
 
   const canSubmit =
     name.trim().length > 1 &&

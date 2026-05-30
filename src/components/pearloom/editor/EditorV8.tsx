@@ -926,12 +926,18 @@ export function EditorV8({
        *  to centered modal so it still has somewhere to live. The
        *  inspector-rendered instance is mounted by the Inspector
        *  component itself; here we only mount the modal fallback. */}
-      {isNarrow && <HotelQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} dock="modal" />}
-      <FaqQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
-      <ScheduleQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
-      <RegistryQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
-      <StoryQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
-      <GalleryQuickEditModal manifest={manifest} onChange={(m) => setManifest(() => m)} />
+      {/* Quick-edit modals route through onManifestChange so their
+          writes go through the same debounce + undo path as every
+          other edit. Previously these wrote via setManifest(() => m)
+          which skipped queueSave AND history.record — host edits made
+          inside a modal weren't autosaved or undoable. Silent
+          data-loss bug; this single-line swap per modal closes it. */}
+      {isNarrow && <HotelQuickEditModal manifest={manifest} onChange={onManifestChange} dock="modal" />}
+      <FaqQuickEditModal manifest={manifest} onChange={onManifestChange} />
+      <ScheduleQuickEditModal manifest={manifest} onChange={onManifestChange} />
+      <RegistryQuickEditModal manifest={manifest} onChange={onManifestChange} />
+      <StoryQuickEditModal manifest={manifest} onChange={onManifestChange} />
+      <GalleryQuickEditModal manifest={manifest} onChange={onManifestChange} />
       <FindInSite
         manifest={manifest}
         open={findOpen}

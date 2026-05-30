@@ -68,7 +68,6 @@ import {
   StickyMobileCta,
   OpenInMapsButton,
   PersonalGuestGreeting,
-  AskPearFloater,
 } from './GuestKit';
 import {
   PhotoLightbox,
@@ -8288,7 +8287,9 @@ export function SiteV8Renderer({
                 return d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null;
               })()}
             />
-            <AskPearFloater domain={siteSlug} manifest={manifest} names={names} />
+            {/* AskPearFloater removed — GuestPearChat (mounted higher
+                up in this tree) is the streaming, guest-passport-aware
+                replacement. Was two 🍐 buttons in the same corner. */}
             <LiveWallDiscover
               subdomain={siteSlug}
               occasion={(manifest as unknown as { occasion?: string }).occasion}
