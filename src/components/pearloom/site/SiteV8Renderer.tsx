@@ -8062,9 +8062,17 @@ export function SiteV8Renderer({
     (radiusVars as Record<string, string>)['--pl-photo-radius'] = photoRadiusPx === 9999 ? '50%' : `${photoRadiusPx}px`;
   }
 
+  // Active Edition id — drives the data-pl-edition attribute on
+  // the site root so CSS rules in pearloom.css can give each
+  // Edition genuinely distinct visual treatment per section
+  // (Cinema's letterbox card stacks, Postcard Box's tilted cards
+  // and stitch borders, Quiet Edition's centered naked paper,
+  // etc.) without per-component variants.
+  const activeEdition = resolveEdition(editionContextFromManifest(manifest));
+
   return (
     <EditorCanvasProvider value={canvasCtxValue}>
-      <div className="pl8-guest" style={{ ...themeStyle, ...radiusVars }}>
+      <div className="pl8-guest" data-pl-edition={activeEdition.id} style={{ ...themeStyle, ...radiusVars }}>
         {/* Reading progress hairline — peach-to-gold gradient that
             fills L → R as guests scroll. Only on the published view
             (the editor's own scrollbar handles its own progress). */}

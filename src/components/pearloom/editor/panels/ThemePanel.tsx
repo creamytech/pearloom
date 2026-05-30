@@ -274,14 +274,14 @@ export function ThemePanel({
         <EditionPicker manifest={manifest} onChange={onChange} />
       </div>
 
-      {/* ── LOOK ── visual identity: palette, motif, type, color,
-          hero decoration. The four things most hosts touch when
-          they say "I want to change how this looks". Wrapped in a
-          PanelGroup so within this cluster the first section
-          (palette) opens and the rest collapse — was 6 sections
-          all-expanded by default which was the bulk of the
-          "theme is overwhelming" complaint. */}
-      <ThemeCategory label="Look" hint="Palette, type, and the shapes that punctuate the design." />
+      {/* "Look" cluster — palette + type + colors + motif + hero
+          decoration. The cluster band was removed (audit): the
+          first child IS the Palette section, so a "Look — Palette,
+          type, and the shapes" band immediately above a "Palette"
+          section header was two near-identical headers stacked.
+          Skipping the band lets Palette serve as its own header
+          and the Edition picker above stay the visible high-
+          altitude decision. */}
       <PanelGroup>
         <div data-pl-design-anchor="palette">
           {/* Audited 2026-04-30: deleted the "Active theme" / "Theme
