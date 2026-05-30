@@ -3903,99 +3903,75 @@ html { scroll-behavior: smooth; }
   mix-blend-mode: multiply;
 }
 
-/* NEWSPRINT — coarse pulp paper plus the halftone is rendered
-   separately on the background-color layer (below). High
-   baseFrequency = visible fiber clumps. */
+/* NEWSPRINT — coarse pulp paper. The actual halftone dots are on
+   ::after below; this ::before is just a subtle fiber underlay so
+   the dots sit on something that reads as broadsheet pulp. Reduced
+   opacity 0.38 → 0.18 so it doesn't fight the halftone. */
 .pl8-guest[data-pl-texture="newsprint"]::before {
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='np'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.58' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.18 0 0 0 0 0.15 0 0 0 0 0.10 0 0 0 0.42 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23np)'/%3E%3C/svg%3E");
-  opacity: 0.38;
+  opacity: 0.18;
 }
 /* The grain stacks at z-index 1; force the site root to a stacking
    context so content sits on top, and bump z-index on the nav so
    it stays clickable above the grain. */
-.pl8-guest[data-pl-texture="watercolor"],
-.pl8-guest[data-pl-texture="linen"],
-.pl8-guest[data-pl-texture="letterpress"],
-.pl8-guest[data-pl-texture="vellum"],
-.pl8-guest[data-pl-texture="newsprint"] {
-  position: relative;
-  isolation: isolate;
-}
-.pl8-guest[data-pl-texture="watercolor"] > *,
-.pl8-guest[data-pl-texture="linen"] > *,
-.pl8-guest[data-pl-texture="letterpress"] > *,
-.pl8-guest[data-pl-texture="vellum"] > *,
-.pl8-guest[data-pl-texture="newsprint"] > * {
-  position: relative;
-  z-index: 2;
-}
+/* (Position/isolation already declared in the shared block
+    above — removed duplicate.) */
 
 /* ── WATERCOLOR ──
-   Real paint bleeds: multi-layer radial pools of accent colors
-   blended via multiply, soft-edged blurred halos around every card
-   that look like the color bled out into the surrounding paper.
-   Paper grain (above) finishes the wet-paper feel. */
+   Real paint pools, real hand-painted card edges via SVG filter,
+   real wet brush type. The TextureFilters component mounts the
+   #wc-card-edge and #wc-text-edge filter defs in the DOM so
+   filter: url() actually resolves. */
 .pl8-guest[data-pl-texture="watercolor"] {
   background-color: #FBF7EE;
   background-image:
-    radial-gradient(ellipse 60% 40% at 20% 15%, rgba(196,112,61,0.18) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 35% at 78% 12%, rgba(139,111,142,0.16) 0%, transparent 70%),
-    radial-gradient(ellipse 55% 40% at 86% 50%, rgba(92,107,63,0.16) 0%, transparent 70%),
-    radial-gradient(ellipse 45% 30% at 14% 62%, rgba(212,179,115,0.18) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 40% at 50% 88%, rgba(196,112,61,0.14) 0%, transparent 70%);
+    /* Big paint pools — pumped opacity from 0.18 → 0.55 so they
+       actually show as wet color washes on the page, not subliminal
+       hints. Five pools rotating accent colors. */
+    radial-gradient(ellipse 70% 50% at 18% 12%, rgba(196,112,61,0.55) 0%, transparent 75%),
+    radial-gradient(ellipse 65% 45% at 82% 18%, rgba(139,111,142,0.48) 0%, transparent 75%),
+    radial-gradient(ellipse 70% 55% at 88% 58%, rgba(92,107,63,0.50) 0%, transparent 75%),
+    radial-gradient(ellipse 60% 40% at 12% 68%, rgba(212,179,115,0.55) 0%, transparent 75%),
+    radial-gradient(ellipse 75% 50% at 50% 92%, rgba(196,112,61,0.42) 0%, transparent 75%);
   background-attachment: fixed;
   background-blend-mode: multiply;
 }
 .pl8-guest[data-pl-texture="watercolor"] .pl8-schedule-row,
 .pl8-guest[data-pl-texture="watercolor"] .pl8-chapter-row,
 .pl8-guest[data-pl-texture="watercolor"] .pl8-hotel-row {
-  background: rgba(251,247,238,0.78) !important;
-  backdrop-filter: blur(1.5px);
+  background: rgba(251,247,238,0.86) !important;
   border: none !important;
-  /* Wet-edge irregular border — instead of clean 24px round
-     corners, use an SVG turbulence filter to slightly distort
-     the edges so each card has a hand-painted irregular outline.
-     Codrops "Wet-edge" technique: low-freq fractalNoise + 4px
-     displacement gives subtle organic wobble. */
   border-radius: 24px !important;
-  filter: url("data:image/svg+xml;utf8,%23wet-edge");
-  /* Fallback for when the filter isn't supported / loaded:
-     plain rounded corners + the bleed shadow stack. */
-  /* The "paint bled around me" halo — wide soft shadows in two
-     accent colors stacked so the card sits in a wet ring. */
+  /* Hand-painted wobbly edges via real SVG filter (registered in
+     <TextureFilters /> in the DOM). feDisplacementMap scale 6
+     distorts the rounded rect into an irregular hand-painted shape. */
+  filter: url(#wc-card-edge);
+  /* The "paint bled around me" halo — wide soft shadows in three
+     accent colors stacked so the card sits in a wet ring. Pumped
+     opacities so the halo reads as real bleed, not subliminal glow. */
   box-shadow:
-    0 0 40px 12px rgba(196,112,61,0.18),
-    0 0 24px 4px rgba(139,111,142,0.14),
-    0 16px 36px -12px rgba(92,107,63,0.20),
-    inset 0 0 24px rgba(255,255,255,0.55) !important;
-}
-/* Inline SVG with the wet-edge filter the cards reference. Mount
-   the filter element invisibly so it's referenceable by the
-   `filter: url(#wet-edge)` declaration above. */
-.pl8-guest[data-pl-texture="watercolor"]::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 1px;
-  height: 1px;
-  background: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='wet-edge'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.015' numOctaves='3' seed='2'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='4' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3C/svg%3E");
-  pointer-events: none;
-  opacity: 0;
+    0 0 48px 14px rgba(196,112,61,0.35),
+    0 0 28px 6px rgba(139,111,142,0.28),
+    0 0 20px 4px rgba(92,107,63,0.22),
+    0 16px 36px -12px rgba(40,28,12,0.20),
+    inset 0 0 30px rgba(255,255,255,0.55) !important;
 }
 .pl8-guest[data-pl-texture="watercolor"] section h2,
 .pl8-guest[data-pl-texture="watercolor"] section h3,
 .pl8-guest[data-pl-texture="watercolor"] section .display {
-  /* Slight pigment bleed at letter edges via offset text-shadows
-     in two accent colors — the type looks painted with a wet brush. */
+  /* Wet brush type — feDisplacementMap at scale 1.5 distorts
+     letterforms slightly so they read as painted, not laser-set.
+     Plus a pigment bleed shadow stack for the wet-brush halo. */
+  filter: url(#wc-text-edge);
   text-shadow:
-    1px 1px 0 rgba(196,112,61,0.22),
-    -1px -1px 0 rgba(139,111,142,0.18),
-    2px 2px 4px rgba(196,112,61,0.10);
+    1px 1px 0 rgba(196,112,61,0.30),
+    -1px -1px 0 rgba(139,111,142,0.24),
+    3px 3px 6px rgba(196,112,61,0.16);
 }
 .pl8-guest[data-pl-texture="watercolor"] button,
 .pl8-guest[data-pl-texture="watercolor"] a.btn {
   border-radius: 999px !important;
+  filter: url(#wc-card-edge);
   box-shadow:
     0 0 28px 6px rgba(196,112,61,0.32),
     0 0 14px rgba(139,111,142,0.18),
@@ -4009,18 +3985,22 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-texture="linen"] {
   background-color: #ECE4D3;
   background-image:
-    /* Warp (light) — diagonal thread going one way */
+    /* Warp (light) — diagonal thread going one way. Pumped from
+       0.18 → 0.42, thread thickness 1 → 1.5px, spacing 4 → 5px so
+       the weave actually reads as fabric at normal viewing distance. */
     repeating-linear-gradient(45deg,
-      rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 1px,
-      transparent 1px, transparent 4px),
-    /* Weft (shadow) — diagonal thread the other way */
+      rgba(255,255,255,0.42) 0px, rgba(255,255,255,0.42) 1.5px,
+      transparent 1.5px, transparent 5px),
+    /* Weft (shadow) — diagonal thread the other way. Pumped from
+       0.12 → 0.36 so the woven grid is unmistakable. */
     repeating-linear-gradient(-45deg,
-      rgba(75,65,52,0.12) 0px, rgba(75,65,52,0.12) 1px,
-      transparent 1px, transparent 4px),
-    /* Color variation — every other thread runs slightly olive */
+      rgba(75,65,52,0.36) 0px, rgba(75,65,52,0.36) 1.5px,
+      transparent 1.5px, transparent 5px),
+    /* Color variation — every fourth thread runs slightly olive
+       so the weave has natural fiber variation, not perfect uniformity. */
     repeating-linear-gradient(45deg,
-      rgba(139,156,90,0.05) 0px, rgba(139,156,90,0.05) 2px,
-      transparent 2px, transparent 8px);
+      rgba(139,156,90,0.18) 0px, rgba(139,156,90,0.18) 2px,
+      transparent 2px, transparent 20px);
   background-attachment: fixed;
   filter: saturate(0.94);
 }
@@ -4063,13 +4043,19 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-texture="letterpress"] section h2,
 .pl8-guest[data-pl-texture="letterpress"] section h3,
 .pl8-guest[data-pl-texture="letterpress"] section .display {
+  /* Press-impressed letterforms via real SVG displacement filter
+     (registered in <TextureFilters />). Scale 0.6 gives letters
+     a tiny irregular edge that reads as ink absorbed into paper
+     fibers, not laser-set type. */
+  filter: url(#lp-text-press);
   /* Stacked text-shadows: highlight above (paper edge catching
      light), shadow below (ink soaking into the page), plus a
-     tight blur halo (ink wicking into fibers). */
+     tight blur halo (ink wicking into fibers). Heavier now so
+     the deboss reads even on lighter palettes. */
   text-shadow:
-    0 1px 0 rgba(255,255,255,0.55),
-    0 -1px 0 rgba(14,13,11,0.18),
-    0 0 1px rgba(14,13,11,0.25);
+    0 1px 0 rgba(255,255,255,0.72),
+    0 -1px 0 rgba(14,13,11,0.28),
+    0 0 1.5px rgba(14,13,11,0.32);
   font-weight: 500;
 }
 .pl8-guest[data-pl-texture="letterpress"] .pl8-schedule-row,
@@ -4150,31 +4136,33 @@ html { scroll-behavior: smooth; }
    slightly-blotted print. */
 .pl8-guest[data-pl-texture="newsprint"] {
   background-color: #E5DBC2;
+  background-image:
+    /* Slight bottom warmth — paper aging at corners */
+    radial-gradient(ellipse 80% 30% at 50% 100%, rgba(184,146,68,0.22) 0%, transparent 70%);
 }
-/* Real halftone via the contrast(50) trick: a single radial-
-   gradient cell that ramps from solid dark to transparent gets
-   thresholded by the high-contrast filter into a sharp circular
-   dot. Two layered cells offset at half-cell create a true
-   rosette (Frontend Masters "Pure CSS Halftone in 3 declarations"
-   + CSS-IRL "Halftone Patterns" techniques). */
+/* Real halftone via the contrast(20) trick (CSS-IRL "Halftone
+   Patterns"): a soft radial gradient that ramps from solid dark
+   to white becomes a hard-edged dot when the layer is run through
+   contrast(20). The dot size varies with the gradient ramp position
+   so the result is true variable-density halftone, not uniform
+   uniform-size dots. Two offset cells = CMYK rosette. */
 .pl8-guest[data-pl-texture="newsprint"]::after {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 1;
+  background-color: #FFFFFF;
+  /* Two offset 4px cells with the dot ending at 80% (not 96%) so
+     each dot occupies roughly half the cell — visible halftone
+     pattern without the page going black. Two cells at half-offset
+     create the CMYK rosette feel. */
   background-image:
-    radial-gradient(circle at 0% 0%, rgba(14,13,11,0.78) 0.6px, transparent 1.4px),
-    radial-gradient(circle at 50% 50%, rgba(14,13,11,0.78) 0.5px, transparent 1.2px);
-  background-size: 5px 5px;
-  background-position: 0 0, 0 0;
-  opacity: 0.5;
+    radial-gradient(closest-side at 50% 50%, #000 80%, #FFF) 0 0 / 4px 4px,
+    radial-gradient(closest-side at 50% 50%, #000 80%, #FFF) 2px 2px / 4px 4px;
+  filter: contrast(20);
   mix-blend-mode: multiply;
-}
-/* Slight bottom warmth — paper aging at corners */
-.pl8-guest[data-pl-texture="newsprint"] {
-  background-image:
-    radial-gradient(ellipse 80% 30% at 50% 100%, rgba(184,146,68,0.22) 0%, transparent 70%);
+  opacity: 0.35;
 }
 .pl8-guest[data-pl-texture="newsprint"] section h1,
 .pl8-guest[data-pl-texture="newsprint"] section h2,

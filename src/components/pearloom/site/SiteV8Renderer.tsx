@@ -37,6 +37,7 @@ import { HoverToolbar } from '../editor/canvas/HoverToolbar';
 import { PhotoDropTarget } from '../editor/canvas/PhotoDropTarget';
 import { PhotoActionMenu } from '../editor/canvas/PhotoActionMenu';
 import { OccasionDecor } from './OccasionDecor';
+import { TextureFilters } from './TextureFilters';
 import { OwnerEditPill } from './OwnerEditPill';
 import { BroadcastBar } from './BroadcastBar';
 import { DayOfBanner } from './DayOfBanner';
@@ -8126,6 +8127,12 @@ export function SiteV8Renderer({
   return (
     <EditorCanvasProvider value={canvasCtxValue}>
       <div className="pl8-guest" data-pl-edition={activeEdition.id} data-pl-texture={activeTexture} style={{ ...themeStyle, ...radiusVars }}>
+        {/* SVG filter defs for the texture system. Mounts an invisible
+            <svg><defs><filter id="wc-card-edge"></filter></defs></svg>
+            block so CSS `filter: url(#wc-card-edge)` declarations on
+            watercolor cards / letterpress type / etc actually resolve.
+            Zero cost when nothing references the filter ids. */}
+        <TextureFilters />
         {/* Reading progress hairline — peach-to-gold gradient that
             fills L → R as guests scroll. Only on the published view
             (the editor's own scrollbar handles its own progress). */}
