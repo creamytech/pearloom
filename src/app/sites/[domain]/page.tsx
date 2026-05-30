@@ -132,6 +132,12 @@ export async function generateMetadata(
   // Theme family drives the OG card layout (warm blob + radial
   // for groove, double frame + corner flourishes for editorial).
   ogUrl.searchParams.set('family', resolveThemeFamily(manifest));
+  // Site Edition — adds Edition-specific chrome on top of the
+  // family (Cinema: letterbox bars; Linen Folder: gold hairlines;
+  // others: editorial frame). See /api/og/route.tsx.
+  if (manifest?.edition) {
+    ogUrl.searchParams.set('edition', manifest.edition);
+  }
   ogUrl.searchParams.set('date', eventDate || '');
   ogUrl.searchParams.set('tagline', tagline);
   ogUrl.searchParams.set('bg', vibeSkin.palette.background.replace('#', ''));

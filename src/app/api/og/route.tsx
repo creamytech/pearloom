@@ -104,6 +104,17 @@ export async function GET(req: NextRequest) {
   //   groove:              warm radial gradient, wavy divider,
   //                        big italic names, no inset frames.
   const themeFamily = (searchParams.get('family') || 'editorial').toLowerCase() as 'editorial' | 'groove';
+  // Site Edition — when set, tunes the share card to match the
+  // active layout persona. Read by the metadata emitter from
+  // manifest.edition. Values mirror src/lib/site-editions/types.ts
+  // EditionId. 'editorial' family fallback when unset.
+  const edition = (searchParams.get('edition') || '').toLowerCase() as
+    | 'almanac'
+    | 'cinema'
+    | 'postcard-box'
+    | 'linen-folder'
+    | 'quiet'
+    | '';
 
   // Normalize colors — ensure they have # prefix
   const bg     = bgRaw.startsWith('#') ? bgRaw : `#${bgRaw}`;
@@ -252,8 +263,69 @@ export async function GET(req: NextRequest) {
             />
           </>
         )}
-        {/* Subtle accent-colored border/frame — editorial only */}
-        {themeFamily !== 'groove' && (
+        {/* Cinema Edition — letterbox black bars top + bottom for
+            a film-mag feel. Suppresses the editorial frame; the
+            bars ARE the chrome. */}
+        {edition === 'cinema' && (
+          <>
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '72px',
+                background: '#0E0D0B',
+                display: 'flex',
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: '72px',
+                background: '#0E0D0B',
+                display: 'flex',
+              }}
+            />
+          </>
+        )}
+        {/* Linen Folder — top + bottom gold hairlines, no border
+            frame. Hotel stationery feel. */}
+        {edition === 'linen-folder' && (
+          <>
+            <div
+              style={{
+                position: 'absolute',
+                top: '60px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '160px',
+                height: '1px',
+                background: '#B89244',
+                display: 'flex',
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '60px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '160px',
+                height: '1px',
+                background: '#B89244',
+                display: 'flex',
+              }}
+            />
+          </>
+        )}
+        {/* Subtle accent-colored border/frame — editorial default
+            for everything that isn't groove, cinema, or linen.
+            Almanac, Postcard Box, Quiet all wear the soft frame. */}
+        {themeFamily !== 'groove' && edition !== 'cinema' && edition !== 'linen-folder' && (
         <div
           style={{
             position: 'absolute',
