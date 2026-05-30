@@ -211,7 +211,12 @@ function ThreadsLayer({
       {Array.from({ length: strands }, (_, i) => {
         const yBase = 110 + i * 180;
         const offset = i * 0.7;
-        const stroke = i % 2 === 0 ? (accent ?? 'var(--gold-line, #D4A95D)') : 'var(--sage-deep, #5C6B3F)';
+        // Alternate strands between theme accent (or accent prop)
+        // and theme accent-light so the loom strands match the
+        // host's palette instead of always rendering gold + sage.
+        const stroke = i % 2 === 0
+          ? (accent ?? 'var(--pl-olive, var(--gold-line, #D4A95D))')
+          : 'var(--pl-olive-mist, var(--sage-deep, #5C6B3F))';
         return (
           <path
             key={i}
@@ -330,7 +335,14 @@ function ConfettiLoopLayer({
     [count],
   );
   if (reduced) return null;
-  const colors = [accent ?? 'var(--peach-ink, #C6703D)', 'var(--gold-line, #D4A95D)', 'var(--sage-deep, #5C6B3F)'];
+  // Three-tone atmosphere particles: accent + accent-light + a
+  // dimmer accent variant. Derives from theme so particles match
+  // host palette instead of always reading peach + gold + sage.
+  const colors = [
+    accent ?? 'var(--pl-olive, var(--peach-ink, #C6703D))',
+    'var(--pl-olive-mist, var(--gold-line, #D4A95D))',
+    'var(--pl-olive, var(--sage-deep, #5C6B3F))',
+  ];
   return (
     <div style={{ position: 'absolute', inset: 0, animationPlayState: paused ? 'paused' : 'running' }}>
       {seeds.map((s) => (
@@ -449,7 +461,7 @@ function StarsLayer({
             left: `${s.left}%`,
             width: s.size,
             height: s.size,
-            background: accent ?? 'var(--gold-line, #D4A95D)',
+            background: accent ?? 'var(--pl-olive, var(--gold-line, #D4A95D))',
             borderRadius: '50%',
             opacity: 0.7,
             animation: reduced
