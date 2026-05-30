@@ -544,6 +544,40 @@ export interface StoryManifest {
    *  Section keys: 'top' | 'our-story' | 'schedule' | 'travel'
    *  | 'registry' | 'gallery' | 'rsvp' | 'faq'. */
   blockStyles?: Record<string, BlockStyleOverride>;
+  /** Toggles for the public RSVP form. Both default ON if absent
+   *  (legacy behaviour). plusOnes hides the "+1?" field on the
+   *  passport invite link; songRequests hides the SongCard on
+   *  the /g/[token] passport surface. */
+  rsvpConfig?: {
+    plusOnes?: boolean;
+    songRequests?: boolean;
+  };
+  /** Host-controlled RSVP button styling — pearl (default),
+   *  pill, hairline, or paper tag — plus pulse + custom label.
+   *  Read by the published-site RSVP cta. */
+  rsvpButton?: {
+    shape?: 'pearl' | 'pill' | 'hairline' | 'tag';
+    pulse?: 'none' | 'breathe' | 'urgent';
+    customLabel?: string;
+    sticky?: boolean;
+  };
+  /** Passport (guest /g/[token]) extras gated by host opt-in.
+   *  Whispers + capsule composer cards default OFF so we don't
+   *  ship empty forms to every guest. SongCard uses rsvpConfig
+   *  above (legacy default ON). */
+  passport?: {
+    allowWhispers?: boolean;
+    allowCapsule?: boolean;
+  };
+  /** Weather widget styling on the hero / details cards.
+   *  voice: how Pear phrases the forecast; glyph: icon variant;
+   *  hideOnDay: suppress on the event day so the live banner
+   *  doesn't compete with a stale forecast pill. */
+  weatherStyle?: {
+    voice?: 'poetic' | 'plain' | 'brief';
+    glyph?: 'line' | 'filled' | 'none';
+    hideOnDay?: boolean;
+  };
   /** Per-template signature illustrated decor key (e.g. 'monolith',
    *  'citrus', 'brushstroke'). Rendered in the hero by
    *  TemplateSignatureDecor; gives each template a distinct visual
