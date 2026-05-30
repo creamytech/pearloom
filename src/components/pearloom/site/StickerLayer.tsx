@@ -326,7 +326,11 @@ function StickerPiece({
                 fontWeight: sticker.fontWeight ?? 600,
                 fontStyle: sticker.italic ? 'italic' : 'normal',
                 lineHeight: 1.05,
-                color: sticker.color ?? 'var(--ink, #0E0D0B)',
+                // currentColor inherits the section's effective text
+                // color — cream on Cinema's dark theatre, ink on paper
+                // Editions. Was hardcoded var(--ink) which rendered
+                // dark-on-dark + invisible on Cinema.
+                color: sticker.color ?? 'currentColor',
                 opacity: sticker.opacity ?? 1,
                 whiteSpace: 'pre',
                 userSelect: isEditing && isSelected ? 'text' : 'none',
@@ -336,7 +340,9 @@ function StickerPiece({
                 outlineOffset: 4,
                 transition: isSelected ? 'none' : 'outline 140ms',
                 touchAction: 'none',
-                textShadow: '0 1px 0 rgba(255,255,255,0.4)',
+                // Removed the hardcoded white text-shadow emboss — it
+                // created a halo behind dark text on cream that turned
+                // into white-on-white invisibility on dark themes.
               }
             : {
                 position: 'absolute',
@@ -346,7 +352,11 @@ function StickerPiece({
                 backgroundSize: 'contain',
                 backgroundRepeat: 'no-repeat',
                 backgroundPosition: 'center',
-                filter: 'drop-shadow(0 6px 10px rgba(61,74,31,0.22))',
+                // Drop-shadow adapts to surface via CSS var defined
+                // per-Edition. Default is a neutral dark drop;
+                // Cinema overrides to a soft cream glow so stickers
+                // read as lit-from-front on the dark theatre.
+                filter: 'var(--sticker-shadow, drop-shadow(0 6px 10px rgba(0,0,0,0.22)))',
                 cursor: isEditing ? 'grab' : 'default',
                 outline: isEditing && isSelected ? '2px dashed var(--sage-deep, #5C6B3F)' : 'none',
                 outlineOffset: 4,
