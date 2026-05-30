@@ -499,6 +499,21 @@ export function EditorV8({
   }, [block]);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveInFlight = useRef(false);
+  // Auto-retry coordination — when an autosave fails on a network
+  // blip or a transient 5xx, the editor used to leave the host
+  // staring at a red save dot until they typed again. Now we
+  // schedule up to 3 retries with exponential backoff (2s, 6s,
+  // 18s) before giving up and surfacing the error for manual
+  // intervention. retryAttempt tracks how many we've burned;
+  // retryTimer is the pending setTimeout. A fresh user edit
+  // (which calls queueSave) resets both — the new payload
+  // supersedes the failing one.
+  const retryAttempt = useRef(0);
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Latest payload reference — populated on every queueSave
+  // tick so the retry path can resend the current manifest
+  // instead of the stale closure from when the failure happened.
+  const latestSavePayload = useRef<{ manifest: StoryManifest; names: [string, string] } | null>(null);
   // Ref to the canvas stage container — used for scroll-to-block
   // and click-to-select behaviour since the canvas now lives in
   // the same document as the editor chrome (no more iframe).
@@ -512,43 +527,99 @@ export function EditorV8({
   const prettyUrl = useMemo(() => formatSiteDisplayUrl(siteSlug, '', occasion), [siteSlug, occasion]);
   const displayNames = useMemo(() => names.filter(Boolean).join(' & ') || siteSlug, [names, siteSlug]);
 
+  // Inner save attempt — extracted so the retry path can re-fire
+  // it without resetting the debounce or attempt counter. Does
+  // NOT touch retry state itself; the caller (queueSave or the
+  // retry timer) owns that.
+  const attemptSave = useCallback(
+    async (payload: { manifest: StoryManifest; names: [string, string] }) => {
+      if (saveInFlight.current) {
+        // Coalesce — caller will retry after the in-flight save
+        // finishes. We don't want two POSTs racing.
+        saveTimer.current = setTimeout(() => attemptSave(payload), 300);
+        return;
+      }
+      saveInFlight.current = true;
+      try {
+        const saveable = stripArtForStorage(payload.manifest);
+        const res = await fetch('/api/sites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subdomain: siteSlug, manifest: saveable, names: payload.names }),
+        });
+        if (!res.ok) {
+          // 4xx is a client bug — retry won't help. 5xx + network
+          // blips deserve a retry. Tagged error lets the catch
+          // branch cleanly.
+          const tag = res.status >= 500 ? 'transient' : 'permanent';
+          throw new Error(`${tag}:${res.status}`);
+        }
+        setSaveStatus('saved');
+        setLastSavedAt(Date.now());
+        retryAttempt.current = 0;
+        setTimeout(() => setSaveStatus('idle'), 1400);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : '';
+        const isPermanent = msg.startsWith('permanent:');
+        // Auto-retry transient failures (network errors throw
+        // without a "permanent:" tag, treated as transient).
+        // Cap at 3 attempts; back off 2s → 6s → 18s.
+        if (!isPermanent && retryAttempt.current < 3) {
+          const delays = [2_000, 6_000, 18_000];
+          const delay = delays[retryAttempt.current] ?? 18_000;
+          retryAttempt.current += 1;
+          // Keep status as 'saving' rather than flashing to
+          // 'error' between retries — the host sees a steady
+          // pulsing peach pill rather than alarming red/peach
+          // ping-pong while the editor recovers.
+          retryTimer.current = setTimeout(() => {
+            const latest = latestSavePayload.current ?? payload;
+            void attemptSave(latest);
+          }, delay);
+        } else {
+          // Permanent failure OR exhausted retries. Surface so
+          // the host can manually retry from the save pill.
+          setSaveStatus('error');
+          retryAttempt.current = 0;
+        }
+      } finally {
+        saveInFlight.current = false;
+      }
+    },
+    [siteSlug],
+  );
+
   // Debounced autosave on every change. Since the canvas renders
   // in-DOM (CanvasStage), React state IS the preview — no
   // postMessage needed, edits show instantly.
   const queueSave = useCallback(
     (nextManifest: StoryManifest, nextNames: [string, string]) => {
+      // Fresh user edit — cancel any pending retry and reset
+      // the attempt counter. The new payload supersedes the
+      // failing one; whatever changed in the new manifest may
+      // also fix whatever was rejected upstream.
+      if (retryTimer.current) {
+        clearTimeout(retryTimer.current);
+        retryTimer.current = null;
+      }
+      retryAttempt.current = 0;
+      latestSavePayload.current = { manifest: nextManifest, names: nextNames };
       setSaveStatus('saving');
       if (saveTimer.current) clearTimeout(saveTimer.current);
-      saveTimer.current = setTimeout(async () => {
-        // If a previous autosave is in flight, skip this tick — the
-        // next keystroke will schedule another timer and we'll pick
-        // up the latest state. Prevents out-of-order writes clobbering
-        // the server's record when the user types quickly.
-        if (saveInFlight.current) {
-          saveTimer.current = setTimeout(() => queueSave(nextManifest, nextNames), 300);
-          return;
-        }
-        saveInFlight.current = true;
-        try {
-          const saveable = stripArtForStorage(nextManifest);
-          const res = await fetch('/api/sites', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ subdomain: siteSlug, manifest: saveable, names: nextNames }),
-          });
-          if (!res.ok) throw new Error(String(res.status));
-          setSaveStatus('saved');
-          setLastSavedAt(Date.now());
-          setTimeout(() => setSaveStatus('idle'), 1400);
-        } catch {
-          setSaveStatus('error');
-        } finally {
-          saveInFlight.current = false;
-        }
+      saveTimer.current = setTimeout(() => {
+        void attemptSave({ manifest: nextManifest, names: nextNames });
       }, 900);
     },
-    [siteSlug]
+    [attemptSave],
   );
+
+  // Cleanup retry timer on unmount so a pending retry can't
+  // fire and call setState on a dead component.
+  useEffect(() => {
+    return () => {
+      if (retryTimer.current) clearTimeout(retryTimer.current);
+    };
+  }, []);
 
   // Undo/redo — maintains an in-memory manifest+names stack and
   // listens for Cmd/Ctrl+Z / Shift+Z globally (skipping inputs).
