@@ -544,6 +544,15 @@ export interface StoryManifest {
    *  Section keys: 'top' | 'our-story' | 'schedule' | 'travel'
    *  | 'registry' | 'gallery' | 'rsvp' | 'faq'. */
   blockStyles?: Record<string, BlockStyleOverride>;
+  /** Site Edition — pre-composed layout persona that picks a hero
+   *  variant, section opener style, divider rhythm, block order,
+   *  type scale, atmosphere intensity, and CTA shape in one click.
+   *  When unset, the renderer falls back to recommendEdition() per
+   *  the occasion + voice. Explicit per-block overrides
+   *  (heroVariant, atmosphere, etc.) win over Edition defaults —
+   *  Editions are READ-TIME defaults, never written back.
+   *  See src/lib/site-editions/. */
+  edition?: 'almanac' | 'cinema' | 'postcard-box' | 'linen-folder' | 'quiet';
   /** Toggles for the public RSVP form. Both default ON if absent
    *  (legacy behaviour). plusOnes hides the "+1?" field on the
    *  passport invite link; songRequests hides the SongCard on
