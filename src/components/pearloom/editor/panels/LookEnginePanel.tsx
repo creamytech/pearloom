@@ -1071,6 +1071,66 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
           )}
         </div>
 
+        {/* RENDERER TOGGLE — flips manifest.renderer between 'v8'
+            (default rich Pearloom renderer) and 'themed' (parallel
+            ThemedSiteRenderer that's a direct port of the prototype's
+            themed-site.jsx). The themed renderer ships every section
+            in the prototype's exact layout but skips Pearloom-only
+            features like Guestbook moderation, Photo wall, Day-of
+            broadcast, etc. */}
+        <div
+          style={{
+            borderTop: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+            paddingTop: 14,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 9,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-muted, #6F6557)',
+            }}
+          >
+            Renderer
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--ink-muted, #6F6557)', lineHeight: 1.4 }}>
+            Themed = direct port of the prototype&apos;s clean layout.
+            Default = rich Pearloom renderer with full features.
+          </div>
+          <div style={segmentedStyle}>
+            {(
+              [
+                { id: undefined as 'themed' | 'v8' | undefined, label: 'Default' },
+                { id: 'themed' as const, label: 'Themed' },
+              ]
+            ).map((o) => {
+              const cur = (manifest as unknown as { renderer?: 'themed' | 'v8' }).renderer;
+              const on = (o.id === undefined && cur !== 'themed') || cur === o.id;
+              return (
+                <button
+                  key={o.label}
+                  type="button"
+                  onClick={() => {
+                    const next = { ...manifest } as StoryManifest;
+                    if (o.id) (next as { renderer?: 'themed' | 'v8' }).renderer = o.id;
+                    else delete (next as { renderer?: 'themed' | 'v8' }).renderer;
+                    onChange(next);
+                  }}
+                  aria-pressed={on}
+                  style={segButton(on)}
+                >
+                  {o.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* MATCHING STATIONERY CTA — links to Studio (/dashboard/invite). */}
         <a
           href="/dashboard/invite"
