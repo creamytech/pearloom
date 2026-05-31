@@ -3409,6 +3409,20 @@ function Inspector({
   const isHidden = hiddenBlocks.includes(block);
   const sectionSuggestions = pearSuggestionsFor(block);
 
+  /* Content / Layout / Style tabs — port of the prototype's
+     PropertyRail tabs (editor-redesign.jsx ~line 760).
+       Content → block-specific fields (PanelSwitch)
+       Layout  → section card/spacing overrides (BlockStylePanel)
+       Style   → theme-wide note + "Open theme packs" button
+                 (matches the prototype's intent: styling is
+                 theme-wide, not per-section)
+     Reset to 'content' when host switches blocks so the new
+     section doesn't open mid-tab. */
+  const [propertyTab, setPropertyTab] = useState<'content' | 'layout' | 'style'>('content');
+  useEffect(() => {
+    setPropertyTab('content');
+  }, [block]);
+
   // Reset the section-panel scroll when the host switches blocks or
   // jumps inspector tabs. Without this, scrolling deep into one
   // panel and clicking a different outline row leaves the new panel
@@ -3694,17 +3708,83 @@ function Inspector({
                 {meta.description}
               </p>
             )}
+
+            {/* Property tabs — Content / Layout / Style. Port of the
+                prototype's PropertyRail tabs. Style is non-applicable
+                for theme + toasts (already global / non-section), so
+                they keep the single-tab content-only flow. */}
+            {block !== 'theme' && block !== 'toasts' && (
+              <div
+                role="tablist"
+                aria-label="Section editing tabs"
+                style={{
+                  display: 'flex',
+                  gap: 4,
+                  padding: 3,
+                  background: 'var(--cream-2)',
+                  borderRadius: 8,
+                  marginTop: 12,
+                }}
+              >
+                {(['content', 'layout', 'style'] as const).map((t) => {
+                  const on = propertyTab === t;
+                  const label = t === 'content' ? 'Content' : t === 'layout' ? 'Layout' : 'Style';
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      role="tab"
+                      aria-selected={on}
+                      onClick={() => setPropertyTab(t)}
+                      style={{
+                        flex: 1,
+                        padding: '7px',
+                        borderRadius: 6,
+                        fontSize: 11.5,
+                        fontWeight: 600,
+                        background: on ? 'var(--ink)' : 'transparent',
+                        color: on ? 'var(--cream)' : 'var(--ink-soft)',
+                        border: 0,
+                        cursor: 'pointer',
+                        transition: 'background 140ms ease, color 140ms ease',
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </header>
 
           <div style={{ padding: '22px 22px 48px', display: 'flex', flexDirection: 'column' }}>
-            <PanelSwitch
-              block={block}
-              manifest={manifest}
-              names={names}
-              onChange={onChange}
-              onNamesChange={onNamesChange}
-            />
-            {block !== 'theme' && block !== 'toasts' && (
+            {/* Theme + Toasts bypass the tab system and render
+                their full panel directly (no Layout / Style split
+                applies). */}
+            {(block === 'theme' || block === 'toasts') && (
+              <PanelSwitch
+                block={block}
+                manifest={manifest}
+                names={names}
+                onChange={onChange}
+                onNamesChange={onNamesChange}
+              />
+            )}
+            {/* CONTENT — per-block fields panel. */}
+            {block !== 'theme' && block !== 'toasts' && propertyTab === 'content' && (
+              <>
+                <PanelSwitch
+                  block={block}
+                  manifest={manifest}
+                  names={names}
+                  onChange={onChange}
+                  onNamesChange={onNamesChange}
+                />
+                <PearSuggestionsStrip block={block} suggestions={sectionSuggestions} />
+              </>
+            )}
+            {/* LAYOUT — section card / spacing / radius / shadow overrides. */}
+            {block !== 'theme' && block !== 'toasts' && propertyTab === 'layout' && (
               <BlockStylePanel
                 manifest={manifest}
                 blockId={blockToSectionId(block)}
@@ -3712,7 +3792,41 @@ function Inspector({
                 onChange={onChange}
               />
             )}
-            <PearSuggestionsStrip block={block} suggestions={sectionSuggestions} />
+            {/* STYLE — port of the prototype's "styling is theme-wide"
+                message + jump button to the Theme outline tab.
+                Matches the prototype's intent (editor-redesign.jsx
+                ~line 870): colours / type / texture / kit come from
+                the Theme pack so every section stays consistent. */}
+            {block !== 'theme' && block !== 'toasts' && propertyTab === 'style' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>
+                  Styling is theme-wide
+                </div>
+                <p style={{ margin: 0 }}>
+                  Colors, type, texture, kit, and component look come from your <b>Edition + Kit</b> so every section stays consistent. Open the Theme tab to swap any of those dials.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => onJumpBlock('theme' as BlockKey)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '8px 12px',
+                    borderRadius: 8,
+                    background: 'var(--card)',
+                    border: '1px solid var(--line)',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: 'var(--ink)',
+                    cursor: 'pointer',
+                    alignSelf: 'flex-start',
+                  }}
+                >
+                  <Icon name="palette" size={13} /> Open theme packs
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
