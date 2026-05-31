@@ -160,6 +160,32 @@ export function EditionPicker({ manifest, onChange }: Props) {
       };
     }
 
+    /* Theme stamp — palette + fonts + card radius. This is what
+       makes picking an Edition VISUALLY transform the site (paper
+       goes dark for Cinema, italic Cormorant for Linen Folder,
+       pillow radii for Postcard Box). Without this stamp, Editions
+       only changed layout chrome on the host's existing palette,
+       which is exactly the "Editions don't actually change the
+       site" complaint that motivated this whole arc.
+
+       Merge strategy: Edition's recommendedTheme.colors REPLACES
+       the existing theme.colors entirely (an Edition is a
+       cohesive palette — partial overlays would produce
+       Frankenstein looks like Cinema's dark paper with Almanac's
+       olive ink). Same for fonts. Existing per-key overrides the
+       host set after picking the Edition still win — they get
+       re-stamped only on the NEXT Edition pick.
+
+       Hosts who pick a palette in the Palette grid after picking
+       an Edition see their palette pick win because applyPalette
+       in ThemePanel.tsx writes theme.colors directly. Picking a
+       different Edition later re-stamps the new Edition's theme. */
+    const existingTheme = (manifest as unknown as { theme?: Record<string, unknown> }).theme ?? {};
+    const nextTheme: Record<string, unknown> = { ...existingTheme };
+    if (ed.recommendedTheme?.colors) nextTheme.colors = { ...ed.recommendedTheme.colors };
+    if (ed.recommendedTheme?.fonts) nextTheme.fonts = { ...ed.recommendedTheme.fonts };
+    if (ed.recommendedTheme?.cardRadius) nextTheme.cardRadius = ed.recommendedTheme.cardRadius;
+
     const next = {
       ...manifest,
       edition: ed.id,
@@ -180,8 +206,10 @@ export function EditionPicker({ manifest, onChange }: Props) {
       },
       // Section ordering — Edition picks the rhythm
       blockOrder: ed.blockOrder,
+      // FULL theme stamp — palette + fonts + card radius
+      theme: nextTheme,
     };
-    onChange(next as StoryManifest);
+    onChange(next as unknown as StoryManifest);
   }
 
   return (

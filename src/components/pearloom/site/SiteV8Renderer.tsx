@@ -65,6 +65,7 @@ import { SCHEDULE_VARIANTS_REGISTERED } from './schedule-variants';
 import { GALLERY_VARIANTS_REGISTERED } from './gallery-variants';
 import { getBlockStyle, getBlockStyles } from '@/lib/block-engine/block-styles';
 import { resolveEdition, type EditionContext } from '@/lib/site-editions/resolve';
+import { EDITIONS_BY_ID } from '@/lib/site-editions/editions';
 import { getEventType, recommendTextureFor, lookDefaultsFor } from '@/lib/event-os/event-types';
 import type { SiteOccasion } from '@/lib/site-urls';
 import { EditionDivider } from './edition-dividers';
@@ -7990,12 +7991,33 @@ export function SiteV8Renderer({
   // own manifest.theme.colors (seeded by applyTemplateToManifest)
   // and overrides the v8 base palette in-scope so the hero strip,
   // eyebrows, and card surfaces take on the template's actual look.
-  const themeColors = (manifest as unknown as {
+  //
+  // When manifest.theme.colors / fonts are unset (fresh site, no
+  // wizard palette, no Edition stamp yet), fall back to the active
+  // Edition's recommendedTheme so picking an Edition VISIBLY
+  // transforms the site. The fallback resolves at render time —
+  // no manifest write — so existing sites with explicit
+  // theme.colors are unaffected.
+  const manifestThemeColors = (manifest as unknown as {
     theme?: { colors?: { background?: string; foreground?: string; accent?: string; accentLight?: string; muted?: string; cardBg?: string } };
   }).theme?.colors;
-  const themeFonts = (manifest as unknown as {
+  const manifestThemeFonts = (manifest as unknown as {
     theme?: { fonts?: { heading?: string; body?: string; script?: string } };
   }).theme?.fonts;
+  /* Note: activeEdition is computed further below; we forward-
+     reference its recommendedTheme via the EDITIONS_BY_ID lookup
+     against manifest.edition + the recommend fallback chain so the
+     theme fallback can compose before activeEdition's full resolve.
+     This keeps the existing `const activeEdition = resolveEdition(...)`
+     declaration order untouched while still letting themeColors /
+     themeFonts use the Edition palette. */
+  const editionRecommended = (() => {
+    const edId = manifest.edition;
+    if (!edId) return undefined;
+    return EDITIONS_BY_ID[edId]?.recommendedTheme;
+  })();
+  const themeColors = manifestThemeColors ?? editionRecommended?.colors;
+  const themeFonts = manifestThemeFonts ?? editionRecommended?.fonts;
   // Bug fix 2026-04-25: ensure the published site loads any Google
   // Fonts the host picked in the editor. Previously only the editor's
   // FontPicker injected these <link> tags on demand — so picking

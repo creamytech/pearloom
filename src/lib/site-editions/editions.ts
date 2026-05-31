@@ -48,6 +48,25 @@ export const EDITIONS: EditionDefinition[] = [
       rsvp:     { cardRadius: 'soft', cardShadow: 'none', cardBorder: 'hairline', cardPadding: 'generous' },
     },
     recommendedFor: ['wedding', 'anniversary', 'vow-renewal'],
+    /* Almanac — warm cream paper, olive ink, Fraunces display +
+       Inter body. Matches Pearloom's current v8 default so existing
+       Almanac sites are byte-for-byte unchanged. */
+    recommendedTheme: {
+      colors: {
+        background: '#F5EFE2',
+        cardBg: '#FBF7EE',
+        foreground: '#0E0D0B',
+        muted: '#6F6557',
+        accent: '#5C6B3F',
+        accentLight: '#E3E6C8',
+      },
+      fonts: {
+        heading: 'Fraunces',
+        body: 'Inter',
+        script: 'Caveat',
+      },
+      cardRadius: 'rounded',
+    },
   },
   {
     id: 'cinema',
@@ -72,6 +91,25 @@ export const EDITIONS: EditionDefinition[] = [
       rsvp:     { cardRadius: 'sharp', cardShadow: 'lifted', cardBorder: 'none', cardPadding: 'compact' },
     },
     recommendedFor: ['engagement', 'milestone-birthday', 'sweet-sixteen'],
+    /* Cinema — dark theatre paper, cream ink, italic Cormorant
+       Garamond display, gold accent. Sharp 2-3px radii. The
+       prototype's Midnight Velvet sits here for Pearloom. */
+    recommendedTheme: {
+      colors: {
+        background: '#1A1B2E',
+        cardBg: '#262842',
+        foreground: '#F1EBDD',
+        muted: '#8B86A0',
+        accent: '#C9A24B',
+        accentLight: 'rgba(241,235,221,0.09)',
+      },
+      fonts: {
+        heading: 'Cormorant Garamond',
+        body: 'Inter',
+        script: 'Caveat',
+      },
+      cardRadius: 'sharp',
+    },
   },
   {
     id: 'postcard-box',
@@ -104,6 +142,26 @@ export const EDITIONS: EditionDefinition[] = [
       'sip-and-see',
       'baby-shower',
     ],
+    /* Postcard Box — warm cream-deep paper, peach accent, italic
+       Fraunces (display) + Caveat (script handwritten tags). Pillow
+       24px radii to match the polaroid stack. The prototype's
+       Tuscan Watercolor sits here. */
+    recommendedTheme: {
+      colors: {
+        background: '#FBF6EC',
+        cardBg: '#FFFCF5',
+        foreground: '#4B3D2A',
+        muted: '#A0907A',
+        accent: '#C2693E',
+        accentLight: '#F4E3D3',
+      },
+      fonts: {
+        heading: 'Fraunces',
+        body: 'Inter',
+        script: 'Caveat',
+      },
+      cardRadius: 'pillow',
+    },
   },
   {
     id: 'linen-folder',
@@ -138,6 +196,25 @@ export const EDITIONS: EditionDefinition[] = [
       'confirmation',
       'retirement',
     ],
+    /* Linen Folder — sun-bleached linen paper, deep navy ink,
+       Cormorant Garamond upright (not italic) with gold accent.
+       Sharp 5px radii. The prototype's Santorini Linen sits here. */
+    recommendedTheme: {
+      colors: {
+        background: '#F5F1E8',
+        cardBg: '#FBF9F3',
+        foreground: '#283D4E',
+        muted: '#8A9AA6',
+        accent: '#3F6E92',
+        accentLight: '#E2EAEF',
+      },
+      fonts: {
+        heading: 'Cormorant Garamond',
+        body: 'Inter',
+        script: 'Caveat',
+      },
+      cardRadius: 'soft',
+    },
   },
   {
     id: 'quiet',
@@ -161,6 +238,26 @@ export const EDITIONS: EditionDefinition[] = [
     },
     forbiddenMotifs: ['blob', 'sparkle', 'heart', 'postIt', 'polaroid', 'stamp'],
     recommendedFor: ['memorial', 'funeral'],
+    /* Quiet — pure ivory paper, near-black ink, monochrome editorial
+       Inter (no serif at all — restraint posture). Sharp 2px radii.
+       The prototype's Modern Editorial sits here, intentionally
+       desaturated for memorial use. */
+    recommendedTheme: {
+      colors: {
+        background: '#F4F3EF',
+        cardBg: '#FBFAF7',
+        foreground: '#1A1A17',
+        muted: '#8A8980',
+        accent: '#46453E',
+        accentLight: '#E9E7E0',
+      },
+      fonts: {
+        heading: 'Inter',
+        body: 'Inter',
+        script: 'Inter',
+      },
+      cardRadius: 'sharp',
+    },
   },
 ];
 

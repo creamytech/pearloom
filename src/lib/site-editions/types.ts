@@ -155,4 +155,39 @@ export interface EditionDefinition {
   /** Occasions where this Edition is the recommended default. The
    *  resolver's recommendEdition() function picks from this list. */
   recommendedFor: SiteOccasion[];
+
+  /** Full visual identity each Edition recommends — palette, fonts,
+   *  card-radius scale. Ported from the design prototype's THEMES
+   *  registry where each theme replaced the WHOLE site look (paper
+   *  + ink + accent + display font + body font + radii), not just
+   *  layout chrome.
+   *
+   *  Consumed two ways:
+   *  1. EditionPicker.pick() stamps these onto manifest.theme.* so
+   *     picking an Edition VISIBLY transforms the site (paper goes
+   *     dark for Cinema, italics arrive for Linen Folder, etc.).
+   *     Host-subsequent palette / font picks still win — the stamp
+   *     just seeds defaults.
+   *  2. Renderer fallback: if manifest.theme.colors is unset, the
+   *     active Edition's recommendedTheme.colors is used as the
+   *     ground for the CSS-var emission.
+   *
+   *  Keys mirror Pearloom's StoryManifest.theme shape so the stamp
+   *  doesn't need a translation layer. */
+  recommendedTheme?: {
+    colors?: {
+      background?: string;   // paper
+      foreground?: string;   // ink
+      accent?: string;       // primary accent
+      accentLight?: string;  // accent wash / line color
+      muted?: string;        // ink-muted
+      cardBg?: string;       // card surface
+    };
+    fonts?: {
+      heading?: string;      // display family
+      body?: string;         // ui family
+      script?: string;       // script accent family
+    };
+    cardRadius?: 'sharp' | 'soft' | 'rounded' | 'pillow';
+  };
 }
