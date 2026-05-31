@@ -1,9 +1,26 @@
 'use client';
 
 // ──────────────────────────────────────────────────────────────
-// Postcard — the v8 default. Centered editorial composition:
-// kicker → big names → date+venue → tagline → primary CTA →
-// link tray → countdown → photo strip at the bottom.
+// Postcard — direct port of the design prototype's centered
+// HeroBlock (shared/themed-site.jsx HeroBlock variant 'centered').
+//
+// Structure (top → bottom):
+//   1. Lead eyebrow ("SAVE THE DATE") — peach-ink, all-caps, wide tracking
+//   2. Tagline italic — Fraunces italic, ink-soft, 19px
+//   3. Headline — huge serif names with italic "and" connector
+//   4. Date+venue meta — inline icon + text, no tag pills
+//   5. Horizontal hairline accent (small thread)
+//   6. Primary RSVP + secondary "Read our story" outline — side by side
+//   7. Three-arch hero photo treatment — wider middle, outer two
+//      translated down 14px, all arch-topped via border-radius 50%/0
+//
+// This replaces the prior v8 layout (5-tile rotated polaroid strip,
+// 3-link bottom tray with Add-to-Calendar / Save-Contact, scroll
+// hint at the bottom) with the prototype's cleaner centered hero.
+//
+// Edit-mode wiring (onEditField, onEditNames, PhotoDropTarget,
+// PhotoActionMenu) is preserved — the rewrite only changes layout +
+// visual structure, not the editor's ability to mutate each field.
 // ──────────────────────────────────────────────────────────────
 
 import { Icon, PhotoPlaceholder } from '@/components/pearloom/motifs';
@@ -11,41 +28,120 @@ import { PhotoDropTarget } from '@/components/pearloom/editor/canvas/PhotoDropTa
 import { PhotoActionMenu } from '@/components/pearloom/editor/canvas/PhotoActionMenu';
 import {
   HeroKicker, HeroNames, HeroDateVenue, HeroTagline,
-  HeroPrimaryCta, HeroLinkTray,
+  HeroPrimaryCta,
 } from './parts';
 import type { HeroVariantProps } from './types';
 
-const STRIP_TONES = ['warm', 'field', 'lavender', 'dusk', 'peach'] as const;
-const STRIP_ASPECTS = ['3/4', '4/5', '1/1', '5/4', '4/5'] as const;
-const STRIP_OFFSETS = [0, -30, 20, -20, 10];
+/* Three-arch hero photo layout from the prototype's HeroPhotos
+   (arch/deckle path). Middle photo is 150w + tallest 3:4; outer
+   pair is 116w + 4:5 + translated 14px down. Arch shape = top
+   corners at 50% radius (50% 50% 0 0) so the silhouette reads
+   as a Mediterranean window. */
+const ARCH_TONES = ['warm', 'dusk', 'lavender'] as const;
+const ARCH_WIDTHS = [116, 150, 116] as const;
+const ARCH_OFFSETS = [14, 0, 14] as const;
+const ARCH_ASPECTS = ['4/5', '3/4', '4/5'] as const;
 
-export function HeroPostcard({ manifest, names, siteSlug, onEditField, onEditNames, context }: HeroVariantProps) {
+export function HeroPostcard({ manifest, names, siteSlug: _siteSlug, onEditField, onEditNames, context }: HeroVariantProps) {
   const { n1, n2, dateInfo, venue, deadlineStr, coverPhoto, photos } = context;
   return (
     <>
+      {/* 1. LEAD EYEBROW — uses Pearloom's existing HeroKicker which
+            reads manifest.heroKicker (or derives from dateInfo
+            weekday). Editable in edit mode. */}
       <HeroKicker manifest={manifest} dateInfo={dateInfo} onEditField={onEditField} />
+
+      {/* 2. TAGLINE — italic line above the names (was below
+            date+venue in v8; prototype's order is tagline-before-
+            names so the eye reads: SAVE THE DATE → "together,
+            tuesday" → Scott and Shauna). */}
+      <HeroTagline manifest={manifest} onEditField={onEditField} />
+
+      {/* 3. HEADLINE — big serif names with italic connector. */}
       <div style={{ textAlign: 'center', position: 'relative' }}>
         <HeroNames n1={n1} n2={n2} onEditNames={onEditNames} />
       </div>
-      <HeroDateVenue dateInfo={dateInfo} venue={venue} manifest={manifest} onEditField={onEditField} />
-      <HeroTagline manifest={manifest} onEditField={onEditField} />
-      <HeroPrimaryCta deadlineStr={deadlineStr} />
-      <HeroLinkTray siteSlug={siteSlug} manifest={manifest} names={names} />
 
-      {/* Photo strip — 5 hero polaroids at the bottom. The middle
-          tile is the cover photo dropzone; the rest are slideshow. */}
+      {/* 4. META — inline calendar+date / pin+venue, NO tag pills.
+            Pearloom's HeroDateVenue already renders inline icons +
+            text in non-edit mode; in edit mode pills are clickable
+            (preserved by the existing component). */}
+      <HeroDateVenue dateInfo={dateInfo} venue={venue} manifest={manifest} onEditField={onEditField} />
+
+      {/* 5. HORIZONTAL HAIRLINE ACCENT — small thread between the
+            meta row and the CTAs. Mirrors the prototype's
+            <KDivider/> width=200 below meta. */}
       <div
-        className="pl8-hero-strip"
+        aria-hidden
         style={{
-          marginTop: 80,
-          display: 'grid',
-          gridTemplateColumns: '1fr 1.2fr 1fr 1.4fr 1fr',
-          gap: 14,
-          alignItems: 'end',
+          marginTop: 28,
+          marginInline: 'auto',
+          width: 200,
+          height: 1,
+          background: 'linear-gradient(90deg, transparent, var(--pl-olive, var(--gold)) 50%, transparent)',
+          opacity: 0.55,
+        }}
+      />
+
+      {/* 6. PRIMARY + SECONDARY CTAs — side by side. Primary RSVP
+            uses Pearloom's existing HeroPrimaryCta; secondary
+            "Learn more" is a paper-bg outline button that anchors
+            to #our-story. Replaces the v8 HeroLinkTray (which had
+            three link-style actions including Add-to-Calendar +
+            Save-Contact). The dropped actions remain available on
+            the published site via the standalone GuestKit
+            components that mount elsewhere — they're just not in
+            the hero CTA row anymore. */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 10,
+          marginTop: 22,
+          flexWrap: 'wrap',
         }}
       >
-        {STRIP_TONES.map((tone, i) => {
-          const isHeroCover = i === 2;
+        <HeroPrimaryCta deadlineStr={deadlineStr} />
+        <a
+          href="#our-story"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '12px 20px',
+            borderRadius: 'var(--pl-card-radius, 999px)',
+            background: 'var(--card, transparent)',
+            border: '1px solid var(--line, rgba(14,13,11,0.16))',
+            color: 'var(--ink)',
+            fontSize: 13,
+            fontWeight: 600,
+            textDecoration: 'none',
+            transition: 'background 200ms ease, border-color 200ms ease',
+          }}
+        >
+          Learn more
+        </a>
+      </div>
+
+      {/* 7. THREE-ARCH HERO PHOTO TREATMENT — prototype's HeroPhotos
+            arch path. Middle (cover) photo is the dropzone for
+            coverPhoto; outer photos slot into heroSlideshow[0]
+            and heroSlideshow[2]. Arch silhouette via
+            border-radius: 50% 50% 0 0. */}
+      <div
+        className="pl8-hero-arch-strip"
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'flex-end',
+          gap: 16,
+          marginTop: 56,
+        }}
+      >
+        {ARCH_TONES.map((tone, i) => {
+          const isHeroCover = i === 1;
+          const photoSrc = isHeroCover ? (coverPhoto ?? photos[0]) : photos[i];
           const onDrop = (url: string) => {
             if (isHeroCover) {
               onEditField?.((m) => ({ ...m, coverPhoto: url }));
@@ -61,13 +157,16 @@ export function HeroPostcard({ manifest, names, siteSlug, onEditField, onEditNam
             <div
               key={i}
               style={{
-                marginTop: STRIP_OFFSETS[i],
-                transform: `rotate(${(i % 2 === 0 ? -1 : 1) * 1.2}deg)`,
+                width: ARCH_WIDTHS[i],
+                transform: `translateY(${ARCH_OFFSETS[i]}px)`,
               }}
             >
-              <PhotoDropTarget onDrop={onDrop} label={isHeroCover ? 'Drop to set cover' : 'Drop a photo'}>
+              <PhotoDropTarget
+                onDrop={onDrop}
+                label={isHeroCover ? 'Drop to set cover' : 'Drop a photo'}
+              >
                 <PhotoActionMenu
-                  imageUrl={isHeroCover ? (coverPhoto ?? photos[0]) : photos[i]}
+                  imageUrl={photoSrc}
                   onReplace={(url) => onDrop(url)}
                   onRemove={() => {
                     if (isHeroCover) {
@@ -87,16 +186,20 @@ export function HeroPostcard({ manifest, names, siteSlug, onEditField, onEditNam
                 >
                   <div
                     style={{
-                      background: '#fff',
-                      padding: 8,
-                      boxShadow: '0 16px 36px rgba(61,74,31,0.14), 0 1px 2px rgba(0,0,0,0.05)',
-                      borderRadius: 2,
+                      /* Arch silhouette — top corners full-round,
+                         bottom corners square. Inset shadow gives
+                         the photo a Mediterranean-window depth. */
+                      borderRadius: '50% 50% 0 0',
+                      overflow: 'hidden',
+                      background: 'var(--card, #fff)',
+                      boxShadow:
+                        '0 10px 28px rgba(61,74,31,0.14), 0 1px 2px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(255,255,255,0.6)',
                     }}
                   >
                     <PhotoPlaceholder
                       tone={tone}
-                      aspect={STRIP_ASPECTS[i]}
-                      src={isHeroCover ? coverPhoto ?? photos[0] : photos[i]}
+                      aspect={ARCH_ASPECTS[i]}
+                      src={photoSrc}
                     />
                   </div>
                 </PhotoActionMenu>
@@ -106,8 +209,12 @@ export function HeroPostcard({ manifest, names, siteSlug, onEditField, onEditNam
         })}
       </div>
 
-      <div style={{ textAlign: 'center', marginTop: 40, color: 'var(--ink-muted)', fontSize: 13 }}>
-        <Icon name="chev-down" size={14} /> Scroll for our story
+      {/* Scroll-for-our-story affordance kept BUT moved to a
+          smaller in-line chevron below the photos, not a separate
+          large block. The prototype doesn't have this; Pearloom's
+          v8 did. Keeping at minimal size as a wayfinding nudge. */}
+      <div style={{ textAlign: 'center', marginTop: 40, color: 'var(--ink-muted)', fontSize: 12, opacity: 0.65 }}>
+        <Icon name="chev-down" size={12} />
       </div>
     </>
   );
