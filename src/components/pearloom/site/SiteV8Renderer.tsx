@@ -2050,6 +2050,7 @@ function DetailsCard({
   siteSlug?: string;
 }) {
   const [showExpand, setShowExpand] = useState(false);
+  const _detailsEditMode = useIsEditMode();
   const toneVar =
     item.tone === 'lavender' ? 'var(--lavender-2)'
       : item.tone === 'peach' ? 'var(--peach-2)'
@@ -2076,44 +2077,58 @@ function DetailsCard({
         alignItems: 'var(--pl-block-align-items, flex-start)' as React.CSSProperties['alignItems'],
       }}
     >
+      {/* Compacted to match prototype's DetailsBlock card scale.
+          Icon medallion shrunk 46 → 32, value display 34 → 18 (no
+          longer huge Fraunces "Four o'clock in the morning" but
+          medium-weight "Smart casual"), eyebrow tightened. */}
       <div
         style={{
-          width: 46,
-          height: 46,
-          borderRadius: 12,
+          width: 32,
+          height: 32,
+          borderRadius: 8,
           background: toneVar,
           display: 'grid',
           placeItems: 'center',
           color: 'var(--ink)',
-          marginBottom: 16,
+          marginBottom: 12,
           flexShrink: 0,
         }}
       >
-        <Icon name={item.icon} size={20} />
+        <Icon name={item.icon} size={16} />
       </div>
       <div
         style={{
-          fontSize: 11.5,
+          fontSize: 10.5,
           fontWeight: 700,
-          letterSpacing: '0.12em',
+          letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
           textTransform: 'uppercase',
           color: 'var(--ink-muted)',
-          marginBottom: 6,
+          marginBottom: 4,
         }}
       >
         {item.label}
       </div>
       {item.value && (
-        <div className="display" style={{ fontSize: 34, color: 'var(--ink)', marginBottom: 6 }}>
+        <div
+          className="display"
+          style={{
+            fontSize: 18,
+            lineHeight: 1.2,
+            fontWeight: 600,
+            color: 'var(--ink)',
+            marginBottom: 4,
+          }}
+        >
           {item.value}
         </div>
       )}
       {item.subtitle && (
-        <div style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5 }}>{item.subtitle}</div>
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}>{item.subtitle}</div>
       )}
-      {/* Golden-hour chip — italic editorial note under the time
-          on the ceremony card when the venue has lat/lng. */}
-      {item.showGoldenHour && sun && (
+      {/* Golden-hour chip — italic editorial note under the time.
+          Hidden on published view to match prototype's compact card;
+          still surfaces in edit mode so hosts can verify the data. */}
+      {item.showGoldenHour && sun && _detailsEditMode && (
         <div
           style={{
             marginTop: 10,
@@ -2130,9 +2145,10 @@ function DetailsCard({
           Golden hour {sun.goldenHour} &middot; Sunset {sun.sunset}
         </div>
       )}
-      {/* "What to expect" expand — reveals an editorial paragraph
-          with a soft border-top so the resting card stays clean. */}
-      {item.expand && (
+      {/* "What to expect" expand — hidden on published view per
+          prototype-parity pass (cards stay compact). Still shows
+          in edit mode so hosts can preview the expand content. */}
+      {item.expand && _detailsEditMode && (
         <div style={{ marginTop: 14 }}>
           <button
             type="button"
@@ -2173,11 +2189,12 @@ function DetailsCard({
           )}
         </div>
       )}
-      {/* Calendar + Directions chips — render only when actionable.
-          Calendar needs a date; Directions needs an address. The
-          spacer above pushes them to the bottom of the card so cards
-          of varied content height still align their action rows. */}
-      {(item.address || (manifest.logistics?.date && item.id === 'ceremony')) && (
+      {/* Calendar + Directions chips — hidden on published view per
+          prototype-parity pass. The prototype's DetailsBlock doesn't
+          have per-card action rows; calendar + directions still
+          available via the dedicated Travel section's VenueHero.
+          Still shows in edit mode. */}
+      {_detailsEditMode && (item.address || (manifest.logistics?.date && item.id === 'ceremony')) && (
         <>
           <div style={{ flex: 1, minHeight: 14 }} />
           <div
