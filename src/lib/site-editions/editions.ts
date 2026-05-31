@@ -50,7 +50,8 @@ export const EDITIONS: EditionDefinition[] = [
     recommendedFor: ['wedding', 'anniversary', 'vow-renewal'],
     /* Almanac — warm cream paper, olive ink, Fraunces display +
        Inter body. Matches Pearloom's current v8 default so existing
-       Almanac sites are byte-for-byte unchanged. */
+       Almanac sites are byte-for-byte unchanged. Display weight
+       600 + scale 1.0 + 0.14em eyebrow = the Pearloom v8 baseline. */
     recommendedTheme: {
       colors: {
         background: '#F5EFE2',
@@ -66,6 +67,9 @@ export const EDITIONS: EditionDefinition[] = [
         script: 'Caveat',
       },
       cardRadius: 'rounded',
+      displayWeight: 600,
+      heroScale: 1,
+      eyebrowSpacing: '0.14em',
     },
   },
   {
@@ -93,7 +97,9 @@ export const EDITIONS: EditionDefinition[] = [
     recommendedFor: ['engagement', 'milestone-birthday', 'sweet-sixteen'],
     /* Cinema — dark theatre paper, cream ink, italic Cormorant
        Garamond display, gold accent. Sharp 2-3px radii. The
-       prototype's Midnight Velvet sits here for Pearloom. */
+       prototype's Midnight Velvet sits here. Display weight 500
+       (slim elegant) + hero scale 1.08 (slightly bigger for film
+       drama) + 0.18em eyebrow (tighter, more cinematic kicker). */
     recommendedTheme: {
       colors: {
         background: '#1A1B2E',
@@ -109,6 +115,9 @@ export const EDITIONS: EditionDefinition[] = [
         script: 'Caveat',
       },
       cardRadius: 'sharp',
+      displayWeight: 500,
+      heroScale: 1.08,
+      eyebrowSpacing: '0.18em',
     },
   },
   {
@@ -145,7 +154,8 @@ export const EDITIONS: EditionDefinition[] = [
     /* Postcard Box — warm cream-deep paper, peach accent, italic
        Fraunces (display) + Caveat (script handwritten tags). Pillow
        24px radii to match the polaroid stack. The prototype's
-       Tuscan Watercolor sits here. */
+       Tuscan Watercolor sits here. Display weight 500 (lighter
+       Fraunces feels casual) + scale 1.0 + 0.14em eyebrow (warm). */
     recommendedTheme: {
       colors: {
         background: '#FBF6EC',
@@ -161,6 +171,9 @@ export const EDITIONS: EditionDefinition[] = [
         script: 'Caveat',
       },
       cardRadius: 'pillow',
+      displayWeight: 500,
+      heroScale: 1,
+      eyebrowSpacing: '0.14em',
     },
   },
   {
@@ -198,7 +211,9 @@ export const EDITIONS: EditionDefinition[] = [
     ],
     /* Linen Folder — sun-bleached linen paper, deep navy ink,
        Cormorant Garamond upright (not italic) with gold accent.
-       Sharp 5px radii. The prototype's Santorini Linen sits here. */
+       Sharp 5px radii. The prototype's Santorini Linen sits here.
+       Display weight 600 + hero scale 1.18 (formal grand) +
+       0.20em eyebrow (tight, hotel-stationery elegance). */
     recommendedTheme: {
       colors: {
         background: '#F5F1E8',
@@ -214,6 +229,9 @@ export const EDITIONS: EditionDefinition[] = [
         script: 'Caveat',
       },
       cardRadius: 'soft',
+      displayWeight: 600,
+      heroScale: 1.18,
+      eyebrowSpacing: '0.20em',
     },
   },
   {
@@ -241,7 +259,9 @@ export const EDITIONS: EditionDefinition[] = [
     /* Quiet — pure ivory paper, near-black ink, monochrome editorial
        Inter (no serif at all — restraint posture). Sharp 2px radii.
        The prototype's Modern Editorial sits here, intentionally
-       desaturated for memorial use. */
+       desaturated for memorial use. Display weight 800 (bold
+       editorial) + scale 1.0 + 0.24em eyebrow (widest, most
+       editorial). */
     recommendedTheme: {
       colors: {
         background: '#F4F3EF',
@@ -257,6 +277,9 @@ export const EDITIONS: EditionDefinition[] = [
         script: 'Inter',
       },
       cardRadius: 'sharp',
+      displayWeight: 800,
+      heroScale: 1,
+      eyebrowSpacing: '0.24em',
     },
   },
 ];

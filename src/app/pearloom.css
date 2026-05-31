@@ -4671,3 +4671,45 @@ html { scroll-behavior: smooth; }
   font-family: var(--pl-font-display, Fraunces, serif) !important;
   font-weight: 500 !important;
 }
+
+/* ─────────────────────────────────────────────────────────
+   Per-Edition typographic identity — display weight, hero
+   scale, eyebrow letter-spacing. CSS vars emitted by
+   SiteV8Renderer from the active Edition's recommendedTheme.
+   Rules below consume them on the surfaces that matter most
+   for hero / section character.
+
+   Why this matters: Cinema's display-wght 500 (slim italic
+   Cormorant) reads very differently from Quiet's 800
+   (editorial bold Inter) even when the font family is the same.
+   Pre-this-block, every Edition's hero used the same default
+   weight regardless of the persona's intent.
+   ───────────────────────────────────────────────────────── */
+
+/* Display headings + section h1/h2/h3 inside the site root
+   pick up the Edition's display weight. Body + nav stay at
+   their existing weights — this only swings display character. */
+.pl8-guest section h1,
+.pl8-guest section h2,
+.pl8-guest section h3,
+.pl8-guest .display,
+.pl8-guest .display-italic {
+  font-weight: var(--pl-display-wght, 600);
+}
+
+/* Hero text scale — the renderer's hero variants set their own
+   font-size via clamp(); this transform-scale-like multiplier
+   nudges hero display lines bigger or smaller without rewriting
+   the variant's math. */
+.pl8-guest [data-pl-section="hero"] .display,
+.pl8-guest [data-pl-section="hero"] .display-italic,
+.pl8-guest [data-pl-section="hero"] h1 {
+  font-size: calc(1em * var(--pl-hero-scale, 1));
+}
+
+/* Eyebrow letter-spacing — overrides the .eyebrow + .pl-overline
+   default 0.18em with the Edition's prescribed tightness. */
+.pl8-guest .eyebrow,
+.pl8-guest .pl-overline {
+  letter-spacing: var(--pl-eyebrow-ls, 0.18em);
+}

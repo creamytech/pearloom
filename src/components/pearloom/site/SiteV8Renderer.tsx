@@ -8107,6 +8107,20 @@ export function SiteV8Renderer({
         // band still reads distinctly.
         ...(themeFonts?.heading ? { ['--font-display' as string]: `"${themeFonts.heading}", Georgia, serif` } : {}),
         ...(themeFonts?.body ? { ['--font-sans' as string]: `"${themeFonts.body}", system-ui, -apple-system, sans-serif` } : {}),
+        /* Edition typographic identity — display weight, hero scale,
+           eyebrow letter-spacing. Falls back to editionRecommended
+           if the host hasn't explicitly overridden. CSS in pearloom.css
+           consumes via var(--pl-display-wght, 600), var(--pl-hero-scale, 1),
+           var(--pl-eyebrow-ls, 0.14em). */
+        ...(editionRecommended?.displayWeight
+          ? { ['--pl-display-wght' as string]: String(editionRecommended.displayWeight) }
+          : {}),
+        ...(editionRecommended?.heroScale
+          ? { ['--pl-hero-scale' as string]: String(editionRecommended.heroScale) }
+          : {}),
+        ...(editionRecommended?.eyebrowSpacing
+          ? { ['--pl-eyebrow-ls' as string]: editionRecommended.eyebrowSpacing }
+          : {}),
       })
     : { background: 'var(--paper)', minHeight: '100vh' };
 

@@ -189,5 +189,18 @@ export interface EditionDefinition {
       script?: string;       // script accent family
     };
     cardRadius?: 'sharp' | 'soft' | 'rounded' | 'pillow';
+    /** Display-text weight. Cinema's slim italic (500) reads
+     *  very differently from Quiet's editorial bold (800) on the
+     *  same Inter face — this captures the personality the prototype's
+     *  themes encoded via --t-display-wght. */
+    displayWeight?: number;
+    /** Hero text scale multiplier. >1 = bigger hero (Linen Folder's
+     *  1.18 = formal grand). =1 = standard. Drives --pl-hero-scale
+     *  on the site root; existing hero CSS opt-in by reading the var. */
+    heroScale?: number;
+    /** Eyebrow letter-spacing override. The prototype's themes ranged
+     *  from 0.14em (warm) to 0.24em (editorial-tight). Drives the
+     *  --pl-eyebrow-ls var consumed by .eyebrow + .pl-overline. */
+    eyebrowSpacing?: string;
   };
 }
