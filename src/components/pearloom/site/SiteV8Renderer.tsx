@@ -8121,6 +8121,13 @@ export function SiteV8Renderer({
         ...(editionRecommended?.eyebrowSpacing
           ? { ['--pl-eyebrow-ls' as string]: editionRecommended.eyebrowSpacing }
           : {}),
+        /* Theme-level card shadow — dramatic 40px for Cinema,
+           near-flat 1px for Linen Folder, none for Quiet. Cards
+           opt in via box-shadow: var(--pl-card-shadow); existing
+           per-block shadow overrides in blockStyles still win. */
+        ...(editionRecommended?.cardShadow
+          ? { ['--pl-card-shadow' as string]: editionRecommended.cardShadow }
+          : {}),
       })
     : { background: 'var(--paper)', minHeight: '100vh' };
 

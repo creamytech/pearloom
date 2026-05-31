@@ -4713,3 +4713,14 @@ html { scroll-behavior: smooth; }
 .pl8-guest .pl-overline {
   letter-spacing: var(--pl-eyebrow-ls, 0.18em);
 }
+
+/* Per-Edition card shadow — Cinema's dramatic, Quiet's none,
+   Linen Folder's hairline. Repeating-card surfaces opt in via
+   the --pl-card-shadow var; per-block shadow overrides in
+   blockStyles still win. */
+.pl8-guest .pl8-schedule-row,
+.pl8-guest .pl8-chapter-row,
+.pl8-guest .pl8-hotel-row,
+.pl8-guest .pl8-faq-row {
+  box-shadow: var(--pl-card-shadow, 0 1px 3px rgba(75,65,52,0.08));
+}

@@ -202,5 +202,10 @@ export interface EditionDefinition {
      *  from 0.14em (warm) to 0.24em (editorial-tight). Drives the
      *  --pl-eyebrow-ls var consumed by .eyebrow + .pl-overline. */
     eyebrowSpacing?: string;
+    /** Theme-level card shadow. The prototype's --t-shadow varied
+     *  dramatically per theme — Cinema's 40px black drama vs Quiet's
+     *  none vs Linen Folder's near-flat 1px hairline. Drives the
+     *  --pl-card-shadow var; cards opt in via box-shadow: var(--pl-card-shadow). */
+    cardShadow?: string;
   };
 }

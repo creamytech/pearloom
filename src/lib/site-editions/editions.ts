@@ -70,6 +70,7 @@ export const EDITIONS: EditionDefinition[] = [
       displayWeight: 600,
       heroScale: 1,
       eyebrowSpacing: '0.14em',
+      cardShadow: '0 8px 22px rgba(61,74,31,0.08)',
     },
   },
   {
@@ -118,6 +119,7 @@ export const EDITIONS: EditionDefinition[] = [
       displayWeight: 500,
       heroScale: 1.08,
       eyebrowSpacing: '0.18em',
+      cardShadow: '0 16px 40px rgba(0,0,0,0.40)',
     },
   },
   {
@@ -174,6 +176,7 @@ export const EDITIONS: EditionDefinition[] = [
       displayWeight: 500,
       heroScale: 1,
       eyebrowSpacing: '0.14em',
+      cardShadow: '0 14px 30px rgba(75,61,42,0.10)',
     },
   },
   {
@@ -232,6 +235,7 @@ export const EDITIONS: EditionDefinition[] = [
       displayWeight: 600,
       heroScale: 1.18,
       eyebrowSpacing: '0.20em',
+      cardShadow: '0 1px 0 rgba(40,61,78,0.05)',
     },
   },
   {
@@ -280,6 +284,7 @@ export const EDITIONS: EditionDefinition[] = [
       displayWeight: 800,
       heroScale: 1,
       eyebrowSpacing: '0.24em',
+      cardShadow: 'none',
     },
   },
 ];
