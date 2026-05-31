@@ -2524,6 +2524,40 @@ function Outline({
   // Theme entry removed from the outline — Theme moved to the
   // inspector rail's tab. One source of truth for palette controls.
 
+  /* "New" badge on the Theme tab for existing hosts who completed
+     the v1 first-thread tour BEFORE the Look Engine shipped (so
+     they never saw the 4-step tour with the Look Engine
+     introduction). Shows only when:
+       - First-thread tour was completed (pearloom:first-thread:v1)
+       - Look-engine intro hasn't been dismissed yet
+         (pearloom:look-engine-intro:v1)
+       - Active tab is NOT 'theme' (so the badge clears when they
+         arrive)
+     Dismisses the moment they click the Theme tab. SSR-safe: reads
+     localStorage in useEffect, default state false. */
+  const [showThemeNewBadge, setShowThemeNewBadge] = useState(false);
+  useEffect(() => {
+    try {
+      const tourDone = localStorage.getItem('pearloom:first-thread:v1') === '1';
+      const introSeen = localStorage.getItem('pearloom:look-engine-intro:v1') === '1';
+      setShowThemeNewBadge(tourDone && !introSeen);
+    } catch {
+      /* localStorage unavailable — fail safe to no badge. */
+    }
+  }, []);
+  /* Dismiss the badge as soon as the host visits Theme. */
+  useEffect(() => {
+    if (tab === 'theme' && showThemeNewBadge) {
+      setShowThemeNewBadge(false);
+      try {
+        localStorage.setItem('pearloom:look-engine-intro:v1', '1');
+      } catch {
+        /* Quota / disabled — the visual badge is already cleared
+           via state, so worst case it pops back next session. */
+      }
+    }
+  }, [tab, showThemeNewBadge]);
+
   // Aggregate completion across the 10 scored blocks (excludes nav +
   // theme). Drives the small olive thread that runs above the outline
   // — at-a-glance answer to "how done is my site?". Memoized so we
@@ -2672,9 +2706,28 @@ function Outline({
                   cursor: 'pointer',
                   fontFamily: 'var(--font-ui)',
                   transition: 'background 160ms ease, color 160ms ease',
+                  position: 'relative',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 4,
                 }}
               >
                 {label}
+                {k === 'theme' && showThemeNewBadge && !on && (
+                  <span
+                    aria-hidden
+                    title="New: Look Engine, kits, generate-from-story, palette-from-photo"
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      background: 'var(--peach-ink, #C6703D)',
+                      boxShadow: '0 0 0 0 rgba(198,112,61,0.55)',
+                      animation: 'pl-dot-pulse 1.8s ease-out infinite',
+                    }}
+                  />
+                )}
               </button>
             );
             });
