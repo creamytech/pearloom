@@ -106,7 +106,7 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug }: Props) {
           Each renders a minimal placeholder with the right id +
           structure so the nav links work and the layout's bones
           are correct. */}
-      <ThemedSectionStub id="our-story" eyebrow="Our story" title="How we got here" />
+      <ThemedStory manifest={manifest} motif={motif} />
       <ThemedSectionStub id="details" eyebrow="What you need to know" title="The day, in details" />
       <ThemedSectionStub id="schedule" eyebrow="How the day flows" title="Order of service" />
       <ThemedSectionStub id="travel" eyebrow="Getting there" title="Where to stay" />
@@ -341,6 +341,158 @@ function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names
             Read our story
           </a>
         </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── ThemedStory — port of prototype StoryBlock default variant.
+   Photo-left + text-right split per chapter, alternating sides.
+   Reads manifest.chapters → renders each one as a clean editorial
+   spread. ─── */
+function ThemedStory({ manifest, motif }: { manifest: StoryManifest; motif: MotifKind }) {
+  const chapters = manifest.chapters ?? [];
+  if (chapters.length === 0) return null;
+  return (
+    <section
+      id="our-story"
+      style={{
+        padding: 'calc(48px * var(--pl-density-scale, 1)) 32px',
+        background: 'var(--section, var(--cream-2, #EBE3D2))',
+        position: 'relative',
+      }}
+    >
+      <MotifScatter motif={motif} density="sparse" />
+      {/* Section header — TSectionHead pattern */}
+      <div style={{ textAlign: 'center', marginBottom: 48, position: 'relative' }}>
+        <div
+          className="eyebrow"
+          style={{
+            fontSize: 11.5,
+            fontWeight: 700,
+            letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+            textTransform: 'uppercase',
+            color: 'var(--peach-ink, #C6703D)',
+            marginBottom: 12,
+          }}
+        >
+          Our story
+        </div>
+        <h2
+          style={{
+            fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+            fontSize: 'clamp(36px, 5.5cqw, 56px)',
+            fontWeight: 'var(--pl-display-wght, 600)',
+            margin: 0,
+            lineHeight: 1.04,
+          }}
+        >
+          How we got{' '}
+          <span style={{ fontStyle: 'italic', color: 'var(--ink-soft, #3A332C)' }}>here</span>
+        </h2>
+      </div>
+      {/* Chapter spreads — alternating photo + text */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 56, maxWidth: 1040, margin: '0 auto' }}>
+        {chapters.map((c, i) => {
+          const left = i % 2 === 0;
+          const photo = c.images?.[0]?.url;
+          return (
+            <div
+              key={c.id ?? i}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 44,
+                alignItems: 'center',
+              }}
+            >
+              <div style={{ order: left ? 0 : 1 }}>
+                {photo ? (
+                  <div
+                    style={{
+                      width: '100%',
+                      aspectRatio: '4/5',
+                      backgroundImage: `url(${photo})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      borderRadius: 'var(--pl-card-radius, 12px)',
+                      boxShadow: 'var(--pl-card-shadow, 0 10px 28px rgba(61,74,31,0.12))',
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: '100%',
+                      aspectRatio: '4/5',
+                      background: 'var(--cream-2, #EBE3D2)',
+                      borderRadius: 'var(--pl-card-radius, 12px)',
+                    }}
+                  />
+                )}
+              </div>
+              <div style={{ order: left ? 1 : 0 }}>
+                {c.date && (
+                  <div
+                    className="eyebrow"
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+                      textTransform: 'uppercase',
+                      color: 'var(--peach-ink, #C6703D)',
+                      marginBottom: 10,
+                    }}
+                  >
+                    {c.date}
+                  </div>
+                )}
+                <h3
+                  style={{
+                    fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                    fontSize: 38,
+                    fontWeight: 'var(--pl-display-wght, 600)',
+                    margin: 0,
+                    lineHeight: 1.02,
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  {c.title}
+                </h3>
+                {c.description && (
+                  <p
+                    style={{
+                      marginTop: 16,
+                      fontSize: 15,
+                      color: 'var(--ink-soft, #3A332C)',
+                      lineHeight: 1.65,
+                    }}
+                  >
+                    {c.description}
+                  </p>
+                )}
+                {c.location?.label && (
+                  <div
+                    style={{
+                      marginTop: 14,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '4px 12px',
+                      borderRadius: 999,
+                      background: 'var(--peach-bg, rgba(198,112,61,0.10))',
+                      color: 'var(--peach-ink, #C6703D)',
+                      fontSize: 12,
+                      fontWeight: 600,
+                    }}
+                  >
+                    <Icon name="pin" size={11} color="var(--peach-ink, #C6703D)" />
+                    {c.location.label}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
