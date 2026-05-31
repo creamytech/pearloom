@@ -249,10 +249,22 @@ export function HeroTagline({ manifest, onEditField, color }: {
   onEditField?: HeroVariantProps['onEditField'];
   color?: string;
 }) {
-  const heroCopy = (manifest as unknown as { poetry?: { heroTagline?: string } }).poetry?.heroTagline
+  const heroCopyFull = (manifest as unknown as { poetry?: { heroTagline?: string } }).poetry?.heroTagline
     ?? "We'd love you there. Come celebrate with us — the day will be better for it.";
+  /* Prototype hero tagline is one short italic line ("together,
+     at last") — Pearloom's poetry.heroTagline can be a 2-3
+     sentence welcome paragraph. Display only the FIRST sentence
+     for prototype parity. Edit mode shows the full text so the
+     host can still write a longer welcome that surfaces elsewhere
+     (the full heroCopy still mounts in the RSVP intro / share
+     card / other surfaces). */
+  const editMode = !!onEditField;
+  const firstSentence = heroCopyFull.split(/[.!?]\s/, 2)[0];
+  const heroCopy = editMode ? heroCopyFull : (
+    firstSentence.length < 120 ? firstSentence : heroCopyFull
+  );
   return (
-    <div style={{ textAlign: 'center', maxWidth: 560, margin: '30px auto 36px' }}>
+    <div style={{ textAlign: 'center', maxWidth: 560, margin: '20px auto 24px' }}>
       <HoverToolbar
         context="hero tagline"
         value={heroCopy}
@@ -288,7 +300,18 @@ export function HeroTagline({ manifest, onEditField, color }: {
           ariaLabel="Hero tagline"
           multiline
           maxLength={280}
-          style={{ fontSize: 17, lineHeight: 1.6, color: color ?? 'var(--ink-soft)', margin: 0 }}
+          style={{
+            /* Prototype tagline is italic Fraunces 19px ink-soft —
+               not a body paragraph. Smaller + italic so it reads
+               as a one-line dropped above the headline. */
+            fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+            fontStyle: 'italic',
+            fontSize: 19,
+            lineHeight: 1.4,
+            color: color ?? 'var(--ink-soft)',
+            margin: 0,
+            fontWeight: 400,
+          }}
         />
       </HoverToolbar>
     </div>
