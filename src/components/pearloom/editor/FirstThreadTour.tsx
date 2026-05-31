@@ -58,6 +58,17 @@ const STEPS: TourStep[] = [
     cardSide: 'below',
   },
   {
+    id: 'theme',
+    /* Anchor the Theme outline tab itself (pl8-outline-tab-theme id is
+       set in EditorV8.tsx). Pointing at the tab rather than the panel
+       means the tour works regardless of which tab is currently
+       active — host clicks "Theme" to reveal the Look Engine. */
+    anchor: '#pl8-outline-tab-theme',
+    title: 'Tune the whole look.',
+    body: 'Open this tab to swap Editions, textures, kits, palettes, and Pear’s voice — every dial lives in one place. Try the Generate-from-story pill to redesign from a single sentence.',
+    cardSide: 'left',
+  },
+  {
     id: 'publish',
     anchor: '[data-tour-anchor="publish"]',
     title: 'Press it when you’re ready.',
