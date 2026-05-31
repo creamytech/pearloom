@@ -29,9 +29,10 @@
 //   manifest.texture           (read — for the Saved Looks swatch identity)
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { PanelSection } from '../atoms';
+import { paletteFromFile, type ExtractedPalette } from '@/lib/look-engine/palette-from-photo';
 
 type Density = NonNullable<StoryManifest['density']>;
 type VoiceOverride = NonNullable<StoryManifest['voiceOverride']>;
@@ -186,6 +187,63 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
   }
   function removeLook(idx: number) {
     persistLooks(looks.filter((_, i) => i !== idx));
+  }
+
+  /* Palette-from-photo state. extracted is the most-recent pull,
+     surfaced as a 4-swatch strip below the file input + a Clear
+     button to revert. busy gates the file picker while extraction
+     runs. fileError surfaces "couldn't read that image" without
+     a toast bomb. */
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [extracted, setExtracted] = useState<ExtractedPalette | null>(null);
+  const [paletteBusy, setPaletteBusy] = useState(false);
+  const [paletteError, setPaletteError] = useState<string | null>(null);
+  async function onPhotoPicked(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPaletteBusy(true);
+    setPaletteError(null);
+    try {
+      const palette = await paletteFromFile(file);
+      if (!palette) {
+        setPaletteError('Couldn’t read that image. Try a JPG or PNG.');
+        return;
+      }
+      setExtracted(palette);
+      /* Write only accent + accentLight onto theme.colors so paper +
+         ink + cardBg from the active Edition stay intact. The
+         WCAG guard above will surface a Low-contrast warning if
+         the new accent fights the paper. */
+      const existingTheme =
+        (manifest as unknown as { theme?: Record<string, unknown> }).theme ?? {};
+      const existingColors =
+        ((existingTheme as { colors?: Record<string, string> }).colors ?? {}) as Record<
+          string,
+          string
+        >;
+      onChange({
+        ...manifest,
+        theme: {
+          ...existingTheme,
+          colors: {
+            ...existingColors,
+            accent: palette.accent,
+            accentLight: palette.accentLight,
+          },
+        },
+      } as unknown as StoryManifest);
+    } catch {
+      setPaletteError('Couldn’t read that image. Try a JPG or PNG.');
+    } finally {
+      setPaletteBusy(false);
+      /* Reset the input so the same file can re-trigger if the host
+         changes the active Edition + wants to re-extract. */
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }
+  function clearExtracted() {
+    setExtracted(null);
+    setPaletteError(null);
   }
 
   /* Active palette ink + paper for contrast check. Reads from
@@ -402,6 +460,119 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
               >
                 Soften
               </button>
+            </div>
+          )}
+        </div>
+
+        {/* MATCH MY PHOTOS — palette-from-photo extraction. Port of
+            the prototype's PaletteFromPhotos (themes.jsx ~line 825).
+            Pulls dominant colors → derives accent + accentLight via
+            HSL math → writes to manifest.theme.colors so the renderer
+            reflects the new palette live. Paper/ink/cardBg stay
+            untouched so the Edition's ground holds. */}
+        <div
+          style={{
+            borderTop: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+            paddingTop: 14,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 9,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-muted, #6F6557)',
+            }}
+          >
+            Match my photos
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--ink-muted, #6F6557)', lineHeight: 1.4 }}>
+            Pear pulls the palette from a photo and retints this theme&apos;s accent.
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={onPhotoPicked}
+            style={{ display: 'none' }}
+          />
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={paletteBusy}
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: 'var(--ink, #0E0D0B)',
+                padding: '7px 12px',
+                borderRadius: 8,
+                background: 'var(--card, #FBF7EE)',
+                border: '1px solid var(--line, rgba(14,13,11,0.14))',
+                cursor: paletteBusy ? 'wait' : 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <span aria-hidden style={{ fontSize: 13, lineHeight: 1 }}>🖼</span>
+              {paletteBusy ? 'Reading…' : extracted ? 'Try another photo' : 'Upload a photo'}
+            </button>
+            {extracted && (
+              <>
+                <div style={{ display: 'flex', gap: 4 }} aria-label="Extracted palette swatches">
+                  {extracted.swatches.map((c, i) => (
+                    <span
+                      key={i}
+                      title={c}
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: '50%',
+                        background: c,
+                        boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
+                      }}
+                    />
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={clearExtracted}
+                  title="Clear extracted swatches (theme accent stays put — pick a palette in the grid to revert)"
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: 6,
+                    display: 'grid',
+                    placeItems: 'center',
+                    background: 'var(--cream-2, #EBE3D2)',
+                    border: 'none',
+                    color: 'var(--ink-soft, #3A332C)',
+                    fontSize: 14,
+                    lineHeight: 1,
+                    cursor: 'pointer',
+                  }}
+                >
+                  ×
+                </button>
+              </>
+            )}
+          </div>
+          {paletteError && (
+            <div
+              style={{
+                fontSize: 11,
+                color: '#b4543a',
+                padding: '5px 9px',
+                borderRadius: 6,
+                background: 'rgba(180,84,58,0.08)',
+              }}
+            >
+              {paletteError}
             </div>
           )}
         </div>
