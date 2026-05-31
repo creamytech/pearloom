@@ -3,37 +3,26 @@
 @CLAUDE-DESIGN.md
 @CLAUDE-PRODUCT.md
 
-## Active focus
+## Sprint paused — awaiting user direction
 
-> The Stop hook in `.claude/settings.json` reads this section to
-> decide whether to auto-continue. Edit or delete the heading to
-> pause the loop without touching settings.
+> The Stop hook in `.claude/settings.json` greps for the literal
+> heading that names the sprint focus; renaming this heading
+> here pauses the autoloop without touching settings. Restore
+> the sprint heading (and a goal / threads / done-criteria
+> block) to resume.
 
-**Goal — current sprint:** finish the Studio (stationery editor)
-that replaced `InviteDesigner` at `/dashboard/invite`. Wire the
-remaining loose ends, exercise it with Playwright, ship.
+**Last sprint (Studio / stationery editor at `/dashboard/invite`)
+landed 2026-05-31:**
+- All three open threads green: smoke flow across stationery
+  types/views/drafts, AI generation paths mocked + asserted,
+  Send overlay → `/api/invite/guest` → `email_sent_at` stamp.
+- Studio e2e suite 41/41 passing locally. Type-check clean.
+- Last commits on `main`: `bf2c3eb3` (EditionPicker prototype
+  theme-pack card), `ad77fbb0` (Studio: skip the spurious
+  mount-time autosave — closed the flaky AI-asset round-trip
+  test). User push pending.
 
-**Direction:**
-- Default to action over planning. Auto mode is on.
-- After UI changes, run `npm run test:e2e` before reporting done.
-- Type-check (`npx tsc --noEmit -p .`) must pass before commit.
-- Don't push to `main` without explicit user approval.
-
-**Open Studio threads:**
-- Smoke test that flips through all three stationery types,
-  Front/Back/Envelope, picks one of Pear's drafts, and verifies
-  the canvas updates.
-- Test the AI generation paths (`/api/studio/draft` and
-  `/api/studio/asset`) with mocked Gemini responses.
-- Confirm Send overlay reaches `/api/invite/guest` and stamps
-  `email_sent_at` in the DB.
-
-**Counts as done:**
-- All Studio tests pass locally (`npm run test:e2e`).
-- Type-check clean.
-- Tests + commit on main; user pushes.
-
-**What to skip:**
-- Style polish on legacy components.
-- Dashboard pages not in the Studio flow.
-- Anything outside `/dashboard/invite` for this sprint.
+**To start the next sprint:** rename the heading on line 6 back
+to the literal sprint-focus heading that the Stop hook greps
+for, and fill in goal / direction / open threads /
+counts-as-done / what-to-skip in the same shape as before.
