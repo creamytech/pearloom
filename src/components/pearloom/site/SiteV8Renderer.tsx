@@ -5904,7 +5904,20 @@ function RegistrySectionImpl({ manifest, onEditField, siteSlug }: { manifest: St
                 >
                   {key} · {buckets[key].length}
                 </div>
-                <div className="pl8-cols-3" style={{ gap: 20 }}>
+                <div
+                  className="pl8-cols-3"
+                  style={{
+                    /* Prototype RegistryBlock chip row tightening
+                       (themed-site.jsx ~line 480): contained 3-col
+                       grid with 16px gap + max-width 900 center.
+                       Replaces full-width pl8-cols-3 with gap-20. */
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                    gap: 16,
+                    maxWidth: 900,
+                    margin: '0 auto',
+                  }}
+                >
                   {buckets[key].map((g, i) => (
                     <RegistryCard
                       key={`${key}-${i}`}
@@ -5924,7 +5937,18 @@ function RegistrySectionImpl({ manifest, onEditField, siteSlug }: { manifest: St
             ))}
           </div>
         ) : (
-          <div className="pl8-cols-3" style={{ gap: 20 }}>
+          <div
+            className="pl8-cols-3"
+            style={{
+              /* Prototype RegistryBlock — non-grouped path. Same
+                 contained grid as the grouped buckets above. */
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+              gap: 16,
+              maxWidth: 900,
+              margin: '0 auto',
+            }}
+          >
             {grouped.map((g, i) => (
               <RegistryCard
                 key={i}
