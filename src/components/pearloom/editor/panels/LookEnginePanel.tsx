@@ -4,6 +4,11 @@
 // LookEnginePanel — Fine-tune dials for the site look. Ports
 // the prototype's right-rail "Fine-tune · {theme}" block
 // (shared/themes.jsx ThemePicker, ~line 665):
+//   • Generate from story — peach pill at the top, type a
+//     sentence describing the event and the matcher writes a
+//     coherent {occasion, edition, texture, voice, density,
+//     intensity} to the manifest. Port of GenerateCard from
+//     themes.jsx.
 //   • Voice segmented (Classic / Playful / Poetic) with a
 //     "Match event" option that clears manifest.voiceOverride.
 //   • Spacing segmented (Cozy / Comfy / Airy) bound to
@@ -14,6 +19,9 @@
 //   • Legibility note — WCAG contrast ratio of the active
 //     palette's ink-on-paper, plus a "Soften" button when
 //     intensity > 1.1 (port of LegibilityNote from themes.jsx).
+//   • Match my photos — file picker → extracts the dominant
+//     palette and writes accent + accentLight onto theme.colors.
+//     Port of PaletteFromPhotos from themes.jsx.
 //   • Saved looks — 6-slot localStorage of edition+texture+density
 //     +intensity+voice combos. Click a chip to re-apply, × to
 //     remove. Port of SavedLooks from themes.jsx.
@@ -33,6 +41,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { PanelSection } from '../atoms';
 import { paletteFromFile, type ExtractedPalette } from '@/lib/look-engine/palette-from-photo';
+import { generateLookFromStory, type SuggestedLook } from '@/lib/look-engine/generate-from-story';
 
 type Density = NonNullable<StoryManifest['density']>;
 type VoiceOverride = NonNullable<StoryManifest['voiceOverride']>;
@@ -246,6 +255,43 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
     setPaletteError(null);
   }
 
+  /* Generate-from-story state. The matcher is deterministic +
+     sync — no busy spinner needed beyond a token "thinking…" flash
+     that makes the action feel intentional. lastRationale is the
+     small green pill that surfaces "why this look" after a run. */
+  const [storyText, setStoryText] = useState('');
+  const [storyBusy, setStoryBusy] = useState(false);
+  const [lastRationale, setLastRationale] = useState<string | null>(null);
+  function runGenerate(textOverride?: string) {
+    const text = (textOverride ?? storyText).trim();
+    if (!text) return;
+    if (textOverride !== undefined) setStoryText(textOverride);
+    setStoryBusy(true);
+    setLastRationale(null);
+    /* Tiny intentional delay so the host registers something
+       happened — matches the prototype's 850ms hold + sells the
+       "Pear is designing" verb. */
+    setTimeout(() => {
+      const look: SuggestedLook = generateLookFromStory(text);
+      onChange({
+        ...manifest,
+        occasion: look.occasion,
+        edition: look.edition,
+        texture: look.texture,
+        density: look.density,
+        textureIntensity: look.textureIntensity,
+        voiceOverride: look.voiceOverride,
+      } as StoryManifest);
+      setLastRationale(look.rationale);
+      setStoryBusy(false);
+    }, 420);
+  }
+  const STORY_EXAMPLES = [
+    'July wedding in Santorini, olive groves, relaxed',
+    'Black-tie evening gala, candlelit',
+    'Tuscan vineyard, lemons, romantic',
+  ];
+
   /* Active palette ink + paper for contrast check. Reads from
      manifest.theme.colors (the canonical location per
      CLAUDE-DESIGN §7) with sensible cream/ink fallbacks. */
@@ -310,6 +356,139 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
       defaultOpen
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* GENERATE FROM STORY — peach-tinted card at the top of the
+            panel, port of the prototype's GenerateCard (themes.jsx
+            ~line 800). Type a sentence describing the event, get a
+            coherent {occasion, edition, texture, voice, density,
+            intensity} written to the manifest. Deterministic
+            keyword matcher today; an /api/look/from-story Claude
+            route can wrap this later with the deterministic version
+            as the fallback (per the brief's watch-outs). */}
+        <div
+          style={{
+            borderRadius: 14,
+            overflow: 'hidden',
+            border: '1px solid rgba(198,112,61,0.28)',
+          }}
+        >
+          <div
+            style={{
+              padding: '11px 13px',
+              background: 'var(--peach-bg, rgba(198,112,61,0.10))',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <span aria-hidden style={{ fontSize: 15, lineHeight: 1 }}>✦</span>
+            <div
+              style={{
+                fontSize: 12.5,
+                fontWeight: 700,
+                color: 'var(--peach-ink, #A14A2C)',
+              }}
+            >
+              Generate a look from your story
+            </div>
+          </div>
+          <div
+            style={{
+              padding: 13,
+              background: 'var(--card, #FBF7EE)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 9,
+            }}
+          >
+            <textarea
+              value={storyText}
+              onChange={(e) => setStoryText(e.target.value)}
+              rows={2}
+              placeholder="e.g. Sunset wedding in Santorini, lots of olive groves, relaxed and warm…"
+              style={{
+                width: '100%',
+                padding: '9px 11px',
+                borderRadius: 9,
+                border: '1px solid var(--line, rgba(14,13,11,0.14))',
+                background: 'var(--cream-2, #EBE3D2)',
+                fontSize: 12.5,
+                color: 'var(--ink, #0E0D0B)',
+                resize: 'vertical',
+                fontFamily: 'inherit',
+                lineHeight: 1.45,
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+              {STORY_EXAMPLES.map((ex) => (
+                <button
+                  key={ex}
+                  type="button"
+                  onClick={() => runGenerate(ex)}
+                  disabled={storyBusy}
+                  style={{
+                    padding: '4px 9px',
+                    borderRadius: 999,
+                    background: 'var(--cream-2, #EBE3D2)',
+                    border: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+                    fontSize: 10.5,
+                    color: 'var(--ink-soft, #3A332C)',
+                    cursor: storyBusy ? 'wait' : 'pointer',
+                    textAlign: 'left',
+                  }}
+                  title="Try this example"
+                >
+                  {ex.split(',')[0]}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => runGenerate()}
+              disabled={storyBusy || !storyText.trim()}
+              style={{
+                padding: '9px 14px',
+                borderRadius: 999,
+                background: 'var(--ink, #0E0D0B)',
+                color: 'var(--cream, #F5EFE2)',
+                border: 'none',
+                fontSize: 12.5,
+                fontWeight: 700,
+                cursor: storyBusy || !storyText.trim() ? 'not-allowed' : 'pointer',
+                opacity: storyBusy || !storyText.trim() ? 0.65 : 1,
+                width: '100%',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+              }}
+            >
+              <span aria-hidden>✦</span>
+              {storyBusy ? 'Pear is designing…' : 'Design my site'}
+            </button>
+            {lastRationale && !storyBusy && (
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 7,
+                  alignItems: 'flex-start',
+                  padding: '8px 10px',
+                  borderRadius: 9,
+                  background: 'var(--sage-tint, rgba(92,107,63,0.10))',
+                  fontSize: 11.5,
+                  color: 'var(--sage-deep, #3D4A1F)',
+                }}
+              >
+                <span aria-hidden style={{ flexShrink: 0, marginTop: 1 }}>✓</span>
+                <span>
+                  <b>Done.</b> {lastRationale}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* VOICE — independent of event type, per brief §5. */}
         <div>
           <span style={sectionLabelStyle}>Voice</span>
