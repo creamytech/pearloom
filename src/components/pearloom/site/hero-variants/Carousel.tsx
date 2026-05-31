@@ -11,13 +11,13 @@ import { PhotoDropTarget } from '@/components/pearloom/editor/canvas/PhotoDropTa
 import { PhotoPlaceholder } from '@/components/pearloom/motifs';
 import {
   HeroKicker, HeroNames, HeroDateVenue, HeroTagline,
-  HeroPrimaryCta, HeroLinkTray,
+  HeroPrimaryCta,
 } from './parts';
 import type { HeroVariantProps } from './types';
 
 const STRIP_TONES = ['warm', 'lavender', 'dusk', 'peach', 'field', 'cream'] as const;
 
-export function HeroCarousel({ manifest, names, siteSlug, onEditField, onEditNames, context }: HeroVariantProps) {
+export function HeroCarousel({ manifest, names: _names, siteSlug: _siteSlug, onEditField, onEditNames, context }: HeroVariantProps) {
   const { n1, n2, dateInfo, venue, deadlineStr, coverPhoto, photos } = context;
 
   // Up to 6 slots: cover + 5 slideshow.
@@ -81,8 +81,36 @@ export function HeroCarousel({ manifest, names, siteSlug, onEditField, onEditNam
       </div>
       <HeroDateVenue dateInfo={dateInfo} venue={venue} manifest={manifest} onEditField={onEditField} />
       <HeroTagline manifest={manifest} onEditField={onEditField} />
-      <HeroPrimaryCta deadlineStr={deadlineStr} />
-      <HeroLinkTray siteSlug={siteSlug} manifest={manifest} names={names} />
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 10,
+          marginTop: 22,
+          flexWrap: 'wrap',
+        }}
+      >
+        <HeroPrimaryCta deadlineStr={deadlineStr} />
+        <a
+          href="#our-story"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '12px 20px',
+            borderRadius: 'var(--pl-card-radius, 999px)',
+            background: 'var(--card, transparent)',
+            border: '1px solid var(--line, rgba(14,13,11,0.16))',
+            color: 'var(--ink)',
+            fontSize: 13,
+            fontWeight: 600,
+            textDecoration: 'none',
+          }}
+        >
+          Learn more
+        </a>
+      </div>
     </>
   );
 }
