@@ -6506,10 +6506,16 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
         <div
           className="pl8-faq-card"
           style={{
-            background: 'var(--card)',
-            border: '1px solid var(--card-ring)',
-            borderRadius: 20,
-            overflow: 'hidden',
+            /* Prototype's FAQ accordion (themed-site.jsx ~line 530)
+               is stacked individual cards with 8px gap + max-width
+               640px center, not one big bordered container wrapping
+               them all. Each row gets its own border-radius + bg via
+               the per-row treatment below. */
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+            maxWidth: 640,
+            margin: '0 auto',
           }}
         >
           {(() => {
@@ -6540,10 +6546,17 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
                 } : undefined}
                 style={{
                   position: 'relative',
-                  padding: '22px 26px',
-                  borderBottom: i < faq.length - 1 ? '1px solid var(--line-soft)' : 'none',
+                  /* Per-row card treatment matching the prototype's
+                     accordion item: bg + 1px border + 10px radius.
+                     Replaces the v8 borderless row with bottom
+                     divider — rows are now stacked individual cards. */
+                  padding: '18px 22px',
+                  background: 'var(--card)',
+                  border: '1px solid var(--line-soft)',
+                  borderRadius: 'var(--pl-card-radius, 10px)',
+                  boxShadow: 'var(--pl-card-shadow, 0 1px 2px rgba(75,65,52,0.04))',
                   cursor: edit ? 'pointer' : 'default',
-                  transition: 'background 160ms ease',
+                  transition: 'background 160ms ease, border-color 160ms ease',
                 }}
                 onMouseEnter={edit ? (e) => { e.currentTarget.style.background = 'rgba(198,112,61,0.04)'; } : undefined}
                 onMouseLeave={edit ? (e) => { e.currentTarget.style.background = 'transparent'; } : undefined}
