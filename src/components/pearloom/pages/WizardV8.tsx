@@ -2558,12 +2558,22 @@ export function WizardV8() {
                     const tex = recommendTextureFor(st.occasion);
                     const ld = lookDefaultsFor(st.occasion);
                     const editionLabel = ed.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+                    /* Intensity label matches LookEnginePanel's
+                       intensityLabel() thresholds so the wizard preview
+                       reads the same way the editor pickers do. */
+                    const intensityLabel =
+                      ld.textureIntensity <= 0.01 ? 'Off'
+                      : ld.textureIntensity < 0.6 ? 'Faint'
+                      : ld.textureIntensity < 1.05 ? 'Natural'
+                      : ld.textureIntensity < 1.35 ? 'Rich'
+                      : 'Bold';
                     const items = [
                       { label: 'Edition', val: editionLabel },
                       { label: 'Texture', val: tex.charAt(0).toUpperCase() + tex.slice(1) },
                       { label: 'Kit',     val: ld.kitId.charAt(0).toUpperCase() + ld.kitId.slice(1) },
                       { label: 'Spacing', val: ld.density.charAt(0).toUpperCase() + ld.density.slice(1) },
                       { label: 'Voice',   val: voice ? voice.charAt(0).toUpperCase() + voice.slice(1) : 'Celebratory' },
+                      { label: 'Grain',   val: intensityLabel },
                     ];
                     return (
                       <div
