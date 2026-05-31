@@ -2519,29 +2519,41 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
             onClear={() => onEditField?.((m) => ({ ...m, events: [], draftedByPear: { ...(m.draftedByPear ?? {}), schedule: false } }))}
           />
         )}
-        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+        {/* TSectionHead — port of the prototype's centered section
+            header: tiny accented eyebrow above large italic-tail title.
+            Replaces the v8 inline-flex stamp header with the cleaner
+            prototype structure (eyebrow → title → optional italic
+            connector → date suffix). */}
+        <div style={{ textAlign: 'center', marginBottom: 36 }}>
           <div
+            className="eyebrow"
             style={{
-              fontSize: 12,
+              fontSize: 11.5,
               fontWeight: 700,
-              letterSpacing: '0.12em',
-              color: 'var(--peach-ink)',
+              letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+              color: 'var(--peach-ink, #C6703D)',
               textTransform: 'uppercase',
-              marginBottom: 14,
+              marginBottom: 12,
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
             }}
           >
-            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.schedule} fallbackIcon="clock" size={20} slotKey="schedule" />
+            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.schedule} fallbackIcon="clock" size={18} slotKey="schedule" />
             How the day flows
           </div>
-          <h2 className="display" style={{ fontSize: 'clamp(40px, 6cqw, 64px)', margin: 0 }}>
-            {term.scheduleLabel} {dateInfo && <>for <span className="display-italic">{dateInfo.pretty}</span></>}
+          <h2 className="display" style={{ fontSize: 'clamp(36px, 5.5cqw, 56px)', margin: 0, lineHeight: 1.04 }}>
+            {term.scheduleLabel} {dateInfo && <span className="display-italic" style={{ color: 'var(--ink-soft)' }}>for {dateInfo.pretty}</span>}
           </h2>
         </div>
 
-        <div className="pl-cascade-row" style={{ background: 'var(--card)', border: '1px solid var(--card-ring)', borderRadius: 24, overflow: 'hidden' }}>
+        {/* Schedule rows — port of the prototype's KSchedule pattern.
+            The heavy v8 card-on-white container (bg + border + 24px
+            radius wrapping all rows) is gone; rows now sit directly
+            on the section background so per-kit CSS (ticket/plate/
+            scrapbook/index/minimal) can fully reshape them without
+            fighting the outer container's chrome. */}
+        <div className="pl-cascade-row">
           {(() => {
             const renderRow = (r: typeof rows[number], i: number, dragHandleProps?: React.HTMLAttributes<HTMLElement> & { ref: (el: HTMLElement | null) => void }) => (
             <div
