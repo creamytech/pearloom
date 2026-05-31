@@ -31,7 +31,8 @@ export type EditionId =
   | 'cinema'
   | 'postcard-box'
   | 'linen-folder'
-  | 'quiet';
+  | 'quiet'
+  | 'coastal';
 
 /** Which hero variant to render when the host hasn't set one
  *  explicitly. Maps to the existing hero-variants registry ids. */

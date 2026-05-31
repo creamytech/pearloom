@@ -75,6 +75,7 @@ const EDITION_TINT: Record<EditionId, string> = {
   'postcard-box': '#C49A6F',
   'linen-folder': '#B8935A',
   quiet: '#F5EFE2',
+  coastal: '#2C5E7A',
 };
 const TEXTURE_TINT: Record<TextureId, string> = {
   smooth: '#FBF7EE',

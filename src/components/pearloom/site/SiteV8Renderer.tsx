@@ -49,6 +49,7 @@ const SECTION_MOTIF_BY_EDITION: Record<string, MotifKind> = {
   'postcard-box': 'olive',
   'linen-folder': 'olive',
   quiet: 'none',
+  coastal: 'none',
 };
 function motifForManifest(m: StoryManifest | undefined): MotifKind {
   if (!m) return 'pressed';

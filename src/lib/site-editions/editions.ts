@@ -261,11 +261,7 @@ export const EDITIONS: EditionDefinition[] = [
     forbiddenMotifs: ['blob', 'sparkle', 'heart', 'postIt', 'polaroid', 'stamp'],
     recommendedFor: ['memorial', 'funeral'],
     /* Quiet — pure ivory paper, near-black ink, monochrome editorial
-       Inter (no serif at all — restraint posture). Sharp 2px radii.
-       The prototype's Modern Editorial sits here, intentionally
-       desaturated for memorial use. Display weight 800 (bold
-       editorial) + scale 1.0 + 0.24em eyebrow (widest, most
-       editorial). */
+       Inter (no serif at all — restraint posture). Sharp 2px radii. */
     recommendedTheme: {
       colors: {
         background: '#F4F3EF',
@@ -285,6 +281,53 @@ export const EDITIONS: EditionDefinition[] = [
       heroScale: 1,
       eyebrowSpacing: '0.24em',
       cardShadow: 'none',
+    },
+  },
+  {
+    id: 'coastal',
+    label: 'Coastal Ink',
+    tagline: 'Deckled paper, navy ink line-work, sea-glass calm.',
+    description:
+      "Deckled hand-cut paper edges, navy line-work, sea-glass blue accent. Square 3px radii. Built for seaside / coastal / cape destinations and any event that wants the calm of harbor light rather than the warmth of olive groves. Photos sit in deckled frames; dividers are torn-paper hairlines.",
+    heroVariantId: 'split',
+    storyLayoutId: 'magazine',
+    sectionOpener: 'mono-label',
+    divider: 'gold-hairline',
+    atmospherePreset: { kind: 'paper', intensity: 'low' },
+    typeScale: 'standard',
+    ctaShape: 'pill',
+    blockOrder: ['details', 'schedule', 'rsvp', 'travel', 'registry', 'story', 'faq'],
+    blockStyles: {
+      story:    { cardRadius: 'sharp', cardShadow: 'none', cardBorder: 'hairline', cardPadding: 'generous' },
+      schedule: { cardRadius: 'sharp', cardShadow: 'none', cardBorder: 'hairline', cardPadding: 'generous' },
+      travel:   { cardRadius: 'sharp', cardShadow: 'none', cardBorder: 'hairline', cardPadding: 'generous' },
+      faq:      { cardRadius: 'sharp', cardShadow: 'none', cardBorder: 'hairline', cardPadding: 'generous' },
+      rsvp:     { cardRadius: 'sharp', cardShadow: 'none', cardBorder: 'hairline', cardPadding: 'generous' },
+    },
+    forbiddenMotifs: ['blob', 'sparkle', 'heart'],
+    recommendedFor: ['wedding', 'engagement', 'rehearsal-dinner', 'welcome-party'],
+    /* Coastal Ink — deckled cream paper, deep navy ink, sea-glass blue
+       accent, gold hint. Cormorant Garamond display. Sharp 3px radii.
+       Maps the prototype's Coastal Ink theme one-to-one. */
+    recommendedTheme: {
+      colors: {
+        background: '#EAE5D7',
+        cardBg: '#F4F0E4',
+        foreground: '#1F3A4D',
+        muted: '#82929E',
+        accent: '#2C5E7A',
+        accentLight: '#DCE5E7',
+      },
+      fonts: {
+        heading: 'Cormorant Garamond',
+        body: 'Inter',
+        script: 'Caveat',
+      },
+      cardRadius: 'sharp',
+      displayWeight: 600,
+      heroScale: 1.12,
+      eyebrowSpacing: '0.22em',
+      cardShadow: '0 1px 0 rgba(31,58,77,0.06)',
     },
   },
 ];

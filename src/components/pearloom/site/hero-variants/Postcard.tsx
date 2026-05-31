@@ -43,6 +43,7 @@ const EDITION_MOTIF: Record<string, MotifKind> = {
   'postcard-box': 'olive',
   'linen-folder': 'olive',
   quiet: 'none',
+  coastal: 'none',
 };
 
 /* Three-arch hero photo layout from the prototype's HeroPhotos

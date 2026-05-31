@@ -568,7 +568,7 @@ export interface StoryManifest {
    *  (heroVariant, atmosphere, etc.) win over Edition defaults —
    *  Editions are READ-TIME defaults, never written back.
    *  See src/lib/site-editions/. */
-  edition?: 'almanac' | 'cinema' | 'postcard-box' | 'linen-folder' | 'quiet';
+  edition?: 'almanac' | 'cinema' | 'postcard-box' | 'linen-folder' | 'quiet' | 'coastal';
   /** Texture intensity — multiplier applied to the texture grain
    *  overlay opacity. 0 = no grain (smooth even when a material is
    *  picked), 1 = default, up to 1.5 = exaggerated. Lets hosts

@@ -42,6 +42,7 @@ const EDITION_TO_LAYOUT: Record<EditionId, string> = {
   'postcard-box': 'photo',     // photo-led tilted polaroids → photo
   'linen-folder': 'minimal',   // hotel stationery formal → minimal two-line
   quiet: 'minimal',            // whitespace + restraint
+  coastal: 'minimal',          // deckled paper / hotel-formal feel
 };
 
 /* ── Edition → Studio FontPair ──
@@ -54,6 +55,7 @@ const EDITION_TO_FONT_PAIR: Record<EditionId, string> = {
   'postcard-box': 'garden',
   'linen-folder': 'editorial',
   quiet: 'modern',
+  coastal: 'editorial',
 };
 
 /* ── Kit → Studio Motif ──

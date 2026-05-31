@@ -99,12 +99,27 @@ function PreviewQuiet() {
   );
 }
 
+/* Coastal Ink preview — deckled cream paper, navy hairline rule,
+   sea-glass tint accent. */
+function PreviewCoastal() {
+  return (
+    <svg viewBox="0 0 240 100" width="100%" height="100%" preserveAspectRatio="none">
+      <rect width="240" height="100" fill="#EAE5D7" />
+      <rect x="10" y="10" width="220" height="80" fill="#F4F0E4" stroke="#1F3A4D" strokeWidth="0.4" strokeDasharray="2 1.5" />
+      <line x1="100" y1="32" x2="140" y2="32" stroke="#2C5E7A" strokeWidth="0.4" />
+      <text x="120" y="58" textAnchor="middle" fontFamily="serif" fontSize="16" fontWeight="600" fill="#1F3A4D">Anna · Liam</text>
+      <line x1="100" y1="72" x2="140" y2="72" stroke="#2C5E7A" strokeWidth="0.4" />
+    </svg>
+  );
+}
+
 const PREVIEWS: Record<EditionId, () => React.ReactElement> = {
   almanac: PreviewAlmanac,
   cinema: PreviewCinema,
   'postcard-box': PreviewPostcard,
   'linen-folder': PreviewLinen,
   quiet: PreviewQuiet,
+  coastal: PreviewCoastal,
 };
 
 // ── Component ────────────────────────────────────────────────
