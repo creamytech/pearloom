@@ -107,9 +107,9 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug }: Props) {
           structure so the nav links work and the layout's bones
           are correct. */}
       <ThemedStory manifest={manifest} motif={motif} />
-      <ThemedSectionStub id="details" eyebrow="What you need to know" title="The day, in details" />
-      <ThemedSectionStub id="schedule" eyebrow="How the day flows" title="Order of service" />
-      <ThemedSectionStub id="travel" eyebrow="Getting there" title="Where to stay" />
+      <ThemedDetails manifest={manifest} motif={motif} />
+      <ThemedSchedule manifest={manifest} />
+      <ThemedTravel manifest={manifest} motif={motif} />
       <ThemedSectionStub id="registry" eyebrow="If you're asking" title="Registry, gently" />
       <ThemedSectionStub id="gallery" eyebrow="Along the way" title="A few favorites" />
       <ThemedSectionStub id="rsvp" eyebrow="Save your seat" title="RSVP" />
@@ -493,6 +493,271 @@ function ThemedStory({ manifest, motif }: { manifest: StoryManifest; motif: Moti
             </div>
           );
         })}
+      </div>
+    </section>
+  );
+}
+
+/* ─── ThemedSectionHead — shared centered header (TSectionHead) ─── */
+function ThemedSectionHead({ eyebrow, title, italic }: { eyebrow: string; title: string; italic?: string }) {
+  return (
+    <div style={{ textAlign: 'center', marginBottom: 36, position: 'relative' }}>
+      <div
+        className="eyebrow"
+        style={{
+          fontSize: 11.5,
+          fontWeight: 700,
+          letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+          textTransform: 'uppercase',
+          color: 'var(--peach-ink, #C6703D)',
+          marginBottom: 12,
+        }}
+      >
+        {eyebrow}
+      </div>
+      <h2
+        style={{
+          fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+          fontSize: 'clamp(34px, 5cqw, 52px)',
+          fontWeight: 'var(--pl-display-wght, 600)',
+          margin: 0,
+          lineHeight: 1.04,
+        }}
+      >
+        {title}
+        {italic && (
+          <>
+            {' '}
+            <span style={{ fontStyle: 'italic', color: 'var(--ink-soft, #3A332C)' }}>{italic}</span>
+          </>
+        )}
+      </h2>
+    </div>
+  );
+}
+
+/* ─── ThemedDetails — 3 detail cards in a tight grid (prototype's
+   DetailsBlock). Reads manifest.logistics.dresscode +
+   logistics.kids + custom details cards. ─── */
+function ThemedDetails({ manifest, motif }: { manifest: StoryManifest; motif: MotifKind }) {
+  const l = manifest.logistics ?? {};
+  const dresscode = l.dresscode;
+  const items: Array<{ icon: string; label: string; value: string }> = [];
+  if (dresscode) items.push({ icon: 'sparkles', label: 'Dress code', value: dresscode });
+  if ((l as { kids?: string }).kids) items.push({ icon: 'users', label: 'Kids', value: String((l as { kids?: string }).kids) });
+  if ((manifest as unknown as { registry?: { message?: string } }).registry?.message) {
+    items.push({ icon: 'gift', label: 'Gifts', value: (manifest as unknown as { registry?: { message?: string } }).registry?.message ?? '' });
+  }
+  if (items.length === 0) return null;
+  return (
+    <section
+      id="details"
+      style={{
+        padding: 'calc(44px * var(--pl-density-scale, 1)) 32px',
+        background: 'var(--section, var(--cream-2, #EBE3D2))',
+        position: 'relative',
+      }}
+    >
+      <MotifScatter motif={motif} density="sparse" />
+      <ThemedSectionHead eyebrow="What you need to know" title="The day," italic="in details" />
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: 18,
+          maxWidth: 760,
+          margin: '0 auto',
+        }}
+      >
+        {items.map((it) => (
+          <div
+            key={it.label}
+            style={{
+              background: 'var(--card, #FBF7EE)',
+              borderRadius: 'var(--pl-card-radius, 12px)',
+              padding: 18,
+              border: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+              boxShadow: 'var(--pl-card-shadow, 0 1px 3px rgba(75,65,52,0.06))',
+            }}
+          >
+            <Icon name={it.icon} size={18} color="var(--peach-ink, #C6703D)" />
+            <div
+              className="eyebrow"
+              style={{
+                marginTop: 10,
+                marginBottom: 4,
+                fontSize: 10.5,
+                fontWeight: 700,
+                letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+                textTransform: 'uppercase',
+                color: 'var(--ink-muted, #6F6557)',
+              }}
+            >
+              {it.label}
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                fontSize: 18,
+                fontWeight: 600,
+                color: 'var(--ink, #0E0D0B)',
+              }}
+            >
+              {it.value}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ─── ThemedSchedule — port of prototype's KSchedule classic.
+   4-col centered card grid. Reads manifest.events. ─── */
+function ThemedSchedule({ manifest }: { manifest: StoryManifest }) {
+  const events = manifest.events ?? [];
+  if (events.length === 0) return null;
+  return (
+    <section
+      id="schedule"
+      style={{
+        padding: 'calc(48px * var(--pl-density-scale, 1)) 32px',
+        position: 'relative',
+      }}
+    >
+      <ThemedSectionHead eyebrow="The day" title="In moments" />
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: 14,
+          maxWidth: 900,
+          margin: '0 auto',
+        }}
+      >
+        {events.map((e, i) => (
+          <div
+            key={e.id ?? i}
+            style={{
+              padding: '18px 16px',
+              background: 'var(--card, #FBF7EE)',
+              border: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+              borderRadius: 'var(--pl-card-radius, 12px)',
+              boxShadow: 'var(--pl-card-shadow, 0 1px 3px rgba(75,65,52,0.06))',
+              textAlign: 'center',
+            }}
+          >
+            <div
+              style={{
+                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                fontSize: 22,
+                fontWeight: 'var(--pl-display-wght, 600)',
+                color: 'var(--peach-ink, #C6703D)',
+                lineHeight: 1,
+              }}
+            >
+              {e.time}
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 600, marginTop: 8, color: 'var(--ink, #0E0D0B)' }}>
+              {e.name}
+            </div>
+            {e.description && (
+              <div style={{ fontSize: 11.5, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>
+                {e.description}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ─── ThemedTravel — 2-col hotel grid. ─── */
+function ThemedTravel({ manifest, motif }: { manifest: StoryManifest; motif: MotifKind }) {
+  const hotels = manifest.travelInfo?.hotels ?? [];
+  if (hotels.length === 0) return null;
+  return (
+    <section
+      id="travel"
+      style={{
+        padding: 'calc(48px * var(--pl-density-scale, 1)) 32px',
+        background: 'var(--section, var(--cream-2, #EBE3D2))',
+        position: 'relative',
+      }}
+    >
+      <MotifScatter motif={motif} density="sparse" />
+      <ThemedSectionHead eyebrow="Getting there" title="Where to" italic="stay" />
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: 16,
+          maxWidth: 780,
+          margin: '0 auto',
+        }}
+      >
+        {hotels.map((h, i) => (
+          <div
+            key={i}
+            style={{
+              background: 'var(--card, #FBF7EE)',
+              borderRadius: 'var(--pl-card-radius, 12px)',
+              padding: 14,
+              border: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+              boxShadow: 'var(--pl-card-shadow, 0 1px 3px rgba(75,65,52,0.06))',
+              display: 'flex',
+              gap: 14,
+              alignItems: 'center',
+            }}
+          >
+            <div
+              style={{
+                width: 84,
+                height: 84,
+                flexShrink: 0,
+                borderRadius: 8,
+                background: 'var(--cream-2, #EBE3D2)',
+              }}
+            />
+            <div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                  fontSize: 18,
+                  fontWeight: 'var(--pl-display-wght, 600)',
+                  color: 'var(--ink, #0E0D0B)',
+                }}
+              >
+                {h.name}
+              </div>
+              {(h.address || (h as unknown as { distance?: string }).distance) && (
+                <div style={{ fontSize: 12, color: 'var(--ink-muted, #6F6557)', marginTop: 4 }}>
+                  {(h as unknown as { distance?: string }).distance ?? h.address}
+                </div>
+              )}
+              {h.bookingUrl && (
+                <a
+                  href={h.bookingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    marginTop: 9,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: 'var(--peach-ink, #C6703D)',
+                    textDecoration: 'none',
+                  }}
+                >
+                  Book ↗
+                </a>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );
