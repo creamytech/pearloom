@@ -5083,3 +5083,100 @@ html { scroll-behavior: smooth; }
   line-height: 0.9 !important;
   letter-spacing: -0.03em !important;
 }
+
+/* ─────────────────────────────────────────────────────────
+   Phase 4 — per-kit FAQ row layouts.
+   Same pattern as schedule rows. Each kit restructures the
+   FAQ row's chrome + numbering to match the prototype.
+   ───────────────────────────────────────────────────────── */
+
+/* TICKET — dashed border + monospace question number prefix */
+.pl8-guest[data-pl-kit="ticket"] .pl8-faq-row {
+  border: 1.5px dashed var(--pl-ink-soft, #3A332C) !important;
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border-radius: 7px !important;
+  counter-increment: ticket-faq;
+}
+.pl8-guest[data-pl-kit="ticket"] {
+  counter-reset: ticket-faq;
+}
+.pl8-guest[data-pl-kit="ticket"] .pl8-faq-row::before {
+  content: '#' counter(ticket-faq, decimal-leading-zero);
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--peach-ink, #C6703D);
+  letter-spacing: 0.06em;
+  display: block;
+  margin-bottom: 6px;
+}
+
+/* PLATE — Roman numeral counter + italic display */
+.pl8-guest[data-pl-kit="plate"] {
+  counter-reset: ticket-faq plate-faq;
+}
+.pl8-guest[data-pl-kit="plate"] .pl8-faq-row {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid var(--pl-divider, #D8CFB8) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 16px 0 !important;
+  counter-increment: plate-faq;
+  position: relative;
+  padding-left: 36px !important;
+}
+.pl8-guest[data-pl-kit="plate"] .pl8-faq-row::before {
+  content: counter(plate-faq, upper-roman) '.';
+  position: absolute;
+  left: 0;
+  top: 16px;
+  font-family: var(--pl-font-display, Fraunces, serif);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--pl-olive, var(--peach-ink));
+}
+
+/* SCRAPBOOK — tilted polaroid with tape strip; nth-child alternates */
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-faq-row {
+  background: #FFFDF7 !important;
+  border: none !important;
+  border-radius: 2px !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.10) !important;
+  padding: 18px 22px !important;
+  position: relative;
+}
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-faq-row:nth-child(odd) {
+  transform: rotate(-0.8deg);
+}
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-faq-row:nth-child(even) {
+  transform: rotate(0.8deg);
+}
+
+/* INDEX — ruled blue rule lines + red left margin */
+.pl8-guest[data-pl-kit="index"] .pl8-faq-row {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: none !important;
+  border-left: 2px solid rgba(199,80,80,0.5) !important;
+  border-radius: 2px !important;
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0 21px,
+    rgba(74,118,196,0.10) 21px 22px
+  ) !important;
+  padding: 14px 16px 14px 24px !important;
+}
+
+/* MINIMAL — hairline only, no card chrome */
+.pl8-guest[data-pl-kit="minimal"] .pl8-faq-row {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid var(--pl-divider, #D8CFB8) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 16px 0 !important;
+}
+.pl8-guest[data-pl-kit="minimal"] .pl8-faq-row:last-child {
+  border-bottom: none !important;
+}
