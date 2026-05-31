@@ -866,6 +866,70 @@ Wired end-to-end as of this session; server validates + dedupes + deny-anon RLS.
 
 ## 19 · Changelog
 
+### 2026-05-31 — Look Engine system (Editor Redesign brief port)
+
+Ported the Editor Redesign prototype's "Look Engine" right-rail into Pearloom's editor. **Ten commits**, all interlocking. Adds three new manifest axes + two CSS vars + two data attributes + two editor panels + two lib modules + one Studio bridge. Type-check + tests + 41/41 Studio e2e green throughout.
+
+**New manifest fields** (`src/types.ts`):
+
+| Field | Shape | Purpose |
+|---|---|---|
+| `manifest.textureIntensity` | `number` (0–1.5, default 1) | Multiplier on per-texture grain `::before` opacities. 0 = no grain. 1.5 = exaggerated. |
+| `manifest.density` | `'cozy' \| 'comfortable' \| 'spacious'` | Section vertical rhythm. Cozy compresses, spacious opens. Bound to `--pl-density-scale`. |
+| `manifest.voiceOverride` | `'classic' \| 'playful' \| 'poetic'` | Manual AI-drafting voice override. Maps to PoetryVoice (classic→celebratory, playful→playful, poetic→intimate). Read by all 4 Claude passes. |
+| `manifest.kitId` | `'classic' \| 'ticket' \| 'plate' \| 'scrapbook' \| 'index' \| 'minimal'` | Component design language. Restyles cards/dividers/chips via `[data-pl-kit]` scoped CSS. |
+| `manifest.edition` | (existing) | Already in the schema; Look Engine added new wiring to KitPicker + Studio bridge. |
+
+**New CSS vars** (rendered into `.pl8-guest` style attr):
+- `--pl-density-scale`: `0.7` (cozy) / `1` (comfortable) / `1.3` (spacious).
+- `--pl-texture-intensity`: 0–1.5 multiplier on all `[data-pl-texture]` `::before` opacities (and the newsprint `::after` halftone).
+
+**New root data attributes** on `.pl8-guest`:
+- `data-pl-density="..."` — drives margin-block on `section[id]` (cozy: -14px, spacious: +24px).
+- `data-pl-kit="..."` — drives per-kit card/divider/chip CSS treatments.
+
+**Per-event defaults** (`src/lib/event-os/event-types.ts`):
+
+`lookDefaultsFor(occasion)` returns `{ density, textureIntensity, kitId }` derived from EventType.voice:
+
+| Voice | Density | Intensity | Kit |
+|---|---|---|---|
+| solemn | spacious | 0.6 | index |
+| playful | cozy | 1.3 | scrapbook |
+| intimate | comfortable | 0.8 | minimal |
+| ceremonial | spacious | 1.0 | plate |
+| celebratory (+ default) | comfortable | 1.0 | classic |
+
+The renderer reads these as fallback when the manifest doesn't carry an explicit pick. Hosts who pick in the editor always win.
+
+**New editor panels** (`src/components/pearloom/editor/panels/`):
+- `LookEnginePanel.tsx` — Fine-tune dials: Generate-from-story peach pill + Shuffle button + Voice / Spacing / Texture-intensity segments + Legibility note + Match-my-photos file picker + Saved Looks (6-slot localStorage) + Matching Save-the-Date CTA.
+- `KitPicker.tsx` — 6 kit tiles in 2-col grid with inline-SVG previews. "★ Match" pill on the event-default tile when no explicit pick. "↺ Match event (...)" reset pill above the grid when an explicit pick is set.
+
+**New lib modules** (`src/lib/look-engine/`):
+- `palette-from-photo.ts` — Canvas 48×48 bucket-quantize + HSL-derived accent / accentLight / accentInk / accentBg / gold. Used by Match-my-photos.
+- `generate-from-story.ts` — Deterministic keyword matcher returning `SuggestedLook { occasion, edition, texture, voiceOverride, density, textureIntensity, rationale }`. Place/material keywords beat occasion fallbacks; somber occasions force classic voice. 14 unit tests.
+
+**Studio bridge** (`src/components/pearloom/studio/studio-defaults-from-look.ts`):
+- First-time Studio open inherits the host's Site Look (Edition → layout, Kit → motif, theme.colors.accent → Studio palette via nearest-HSL-neighbor, voice → tone).
+- Subsequent opens read persisted `manifest.studio` as before. 10 unit tests + 41/41 Studio e2e green.
+
+**Per-kit CSS in `pearloom.css`** (~150 lines):
+- `[data-pl-kit="ticket"]` rows: dashed 1.5px border + monospace time pills.
+- `[data-pl-kit="plate"]` rows: triple-inset shadow ring + italic display.
+- `[data-pl-kit="scrapbook"]` rows: ::before tape strip + alternating ±1.4° rotation via nth-child.
+- `[data-pl-kit="index"]` rows: red 2px left margin + 22px repeating blue rule lines.
+- `[data-pl-kit="minimal"]` rows: borderless + bottom hairline + oversized serif numerals on time pills.
+
+**Voice override → AI passes** (`src/lib/memory-engine/pipeline.ts`):
+- `generateStoryManifest()` takes new optional 13th param `voiceOverride`.
+- Internal `resolveVoice()` maps the prototype's 3-voice to production's PoetryVoice + replaces all 4 read sites (corePass / critiqueChapters / poetryPass / generateThemeFromVibe).
+- `/api/generate/stream` + `/api/generate` both forward `body.voiceOverride` through; stream route also stamps `manifest.voiceOverride` on the result.
+
+**Phase 4 deferred** (named in types.ts + this changelog): The prototype's 6 kits are WHOLE-COMPONENT alternative renderers (KSchedule has 6 totally different layouts: perforated stub grid, Roman-numeral dotted-leader list, tilted polaroid grid, etc.). Today's MVP gets the personality across via CSS overrides on existing row components. The full per-kit SECTION renderers in SiteV8Renderer (KSchedule / KDetails / KFaq / KGallery) — see CLAUDE-PRODUCT.md §10 (2026-05-30 entry).
+
+**Brief item #7 (architectural)**: The prototype's three-pane editor shell restructure (left rail = section list, canvas, right rail = LookEngine when no section selected / PropertyRail when selected) is deliberately deferred — requires editor IA refactor with explicit user sign-off.
+
 ### 2026-04-20 — Design-debt cleanup sweep
 
 - **Olive hex fix**: 163 replacements of `#A3B18A` → `#5C6B3F` across 82 files.
@@ -946,6 +1010,16 @@ Inside: `getServerSession` → `checkRateLimit` → JSON parse (try/catch → 40
 - "Generated" → "drafted"
 - "AI-powered" → never
 - "No data" → "Nothing yet. Begin a thread."
+
+### Add a Look-Engine axis
+1. New field on `StoryManifest` in `src/types.ts` with a tight string union + JSDoc explaining what reads it.
+2. Default fallback in `lookDefaultsFor(occasion)` (`src/lib/event-os/event-types.ts`) so every event has a coherent starting value.
+3. Renderer wiring in `SiteV8Renderer.tsx`: read as `manifest.foo ?? lookDefaults.foo`, set `data-pl-foo` on `.pl8-guest`, push `--pl-foo` into the style attr via `lookEngineVars`.
+4. CSS treatment in `src/app/pearloom.css`: scoped `[data-pl-foo="..."]` blocks or `calc(<base> * var(--pl-foo, 1))` on existing rules.
+5. Editor surface in `LookEnginePanel.tsx` (or a new sibling panel like `KitPicker.tsx`): the picker should distinguish `explicitPick` from `eventDefault` so the "★ Match" pill shows when the host hasn't chosen.
+6. If the new axis affects AI generation, thread it through `generateStoryManifest()` in `pipeline.ts` + parse it from the body in `/api/generate/stream/route.ts`.
+7. If the new axis should bleed into stationery, extend `studioDefaultsFromLook()` in `src/components/pearloom/studio/`.
+8. Document it in CLAUDE-DESIGN.md §19 changelog + the field table.
 
 ---
 
