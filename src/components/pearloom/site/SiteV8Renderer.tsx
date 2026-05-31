@@ -1434,25 +1434,31 @@ function StoryVariantSectionImpl({
     <section id="our-story" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="our-story" />
       <div style={{ maxWidth: 1160, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: 60 }}>
+        {/* TSectionHead — port of the prototype's centered Story
+            header (themed-site.jsx StoryBlock pattern). Tightened
+            from clamp(42–72px) to clamp(36–60px) so it doesn't
+            tower over the chapter cards below. Edition-aware
+            letter-spacing via --pl-eyebrow-ls. */}
+        <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <div
+            className="eyebrow"
             style={{
-              fontSize: 12,
+              fontSize: 11.5,
               fontWeight: 700,
-              letterSpacing: '0.12em',
-              color: 'var(--peach-ink)',
+              letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+              color: 'var(--peach-ink, #C6703D)',
               textTransform: 'uppercase',
-              marginBottom: 14,
+              marginBottom: 12,
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
             }}
           >
-            <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.story} fallbackIcon="leaf" size={20} slotKey="story" />
+            <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.story} fallbackIcon="leaf" size={18} slotKey="story" />
             Our story so far
           </div>
-          <h2 className="display" style={{ fontSize: 'clamp(42px, 6cqw, 72px)', margin: 0 }}>
-            How we got <span className="display-italic">here</span>
+          <h2 className="display" style={{ fontSize: 'clamp(36px, 5.5cqw, 60px)', margin: 0, lineHeight: 1.04 }}>
+            How we got <span className="display-italic" style={{ color: 'var(--ink-soft)' }}>here</span>
           </h2>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 64 }}>
@@ -1509,25 +1515,31 @@ function TimelineSectionImpl({ chapters, onEditField, manifest }: { chapters: Ch
     <section id="our-story" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="our-story" />
       <div style={{ maxWidth: 1160, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: 60 }}>
+        {/* TSectionHead — port of the prototype's centered Story
+            header (themed-site.jsx StoryBlock pattern). Tightened
+            from clamp(42–72px) to clamp(36–60px) so it doesn't
+            tower over the chapter cards below. Edition-aware
+            letter-spacing via --pl-eyebrow-ls. */}
+        <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <div
+            className="eyebrow"
             style={{
-              fontSize: 12,
+              fontSize: 11.5,
               fontWeight: 700,
-              letterSpacing: '0.12em',
-              color: 'var(--peach-ink)',
+              letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+              color: 'var(--peach-ink, #C6703D)',
               textTransform: 'uppercase',
-              marginBottom: 14,
+              marginBottom: 12,
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
             }}
           >
-            <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.story} fallbackIcon="leaf" size={20} slotKey="story" />
+            <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.story} fallbackIcon="leaf" size={18} slotKey="story" />
             Our story so far
           </div>
-          <h2 className="display" style={{ fontSize: 'clamp(42px, 6cqw, 72px)', margin: 0 }}>
-            How we got <span className="display-italic">here</span>
+          <h2 className="display" style={{ fontSize: 'clamp(36px, 5.5cqw, 60px)', margin: 0, lineHeight: 1.04 }}>
+            How we got <span className="display-italic" style={{ color: 'var(--ink-soft)' }}>here</span>
           </h2>
         </div>
 
@@ -1939,6 +1951,33 @@ function DetailsStripImpl({ manifest, siteSlug, onEditField }: { manifest: Story
             onClear={() => onEditField?.((m) => ({ ...m, logistics: { ...(m.logistics ?? {}), dresscode: undefined, notes: undefined }, draftedByPear: { ...(m.draftedByPear ?? {}), details: false } } as StoryManifest))}
           />
         )}
+        {/* TSectionHead — port of the prototype's centered Details
+            header. Adds a consistent eyebrow + title above the cards
+            so Details reads as a real section, not a bare card grid
+            (the v8 layout went straight from <section> to .pl8-cols-3).
+            Matches the prototype's DetailsBlock structure. */}
+        <div style={{ textAlign: 'center', marginBottom: 36 }}>
+          <div
+            className="eyebrow"
+            style={{
+              fontSize: 11.5,
+              fontWeight: 700,
+              letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+              color: 'var(--peach-ink, #C6703D)',
+              textTransform: 'uppercase',
+              marginBottom: 12,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <SectionStamp url={(manifest.decorLibrary?.sectionStamps as Record<string, string> | undefined)?.details} fallbackIcon="sparkles" size={18} />
+            What you need to know
+          </div>
+          <h2 className="display" style={{ fontSize: 'clamp(34px, 5cqw, 52px)', margin: 0, lineHeight: 1.04 }}>
+            The day, <span className="display-italic" style={{ color: 'var(--ink-soft)' }}>in details</span>
+          </h2>
+        </div>
         <div className="pl8-cols-3" style={{ gap: 28 }}>
           {items.map((it) => (
             <DetailsCard
