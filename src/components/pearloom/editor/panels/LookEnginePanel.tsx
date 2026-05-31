@@ -270,29 +270,65 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
   const [storyText, setStoryText] = useState('');
   const [storyBusy, setStoryBusy] = useState(false);
   const [lastRationale, setLastRationale] = useState<string | null>(null);
-  function runGenerate(textOverride?: string) {
+  async function runGenerate(textOverride?: string) {
     const text = (textOverride ?? storyText).trim();
     if (!text) return;
     if (textOverride !== undefined) setStoryText(textOverride);
     setStoryBusy(true);
     setLastRationale(null);
-    /* Tiny intentional delay so the host registers something
-       happened — matches the prototype's 850ms hold + sells the
-       "Pear is designing" verb. */
-    setTimeout(() => {
-      const look: SuggestedLook = generateLookFromStory(text);
-      onChange({
-        ...manifest,
-        occasion: look.occasion,
-        edition: look.edition,
-        texture: look.texture,
-        density: look.density,
-        textureIntensity: look.textureIntensity,
-        voiceOverride: look.voiceOverride,
-      } as StoryManifest);
-      setLastRationale(look.rationale);
-      setStoryBusy(false);
-    }, 420);
+
+    /* Try the LLM route first. The route itself falls back to the
+       deterministic matcher on any failure, so this is the single
+       network call we need to handle. On NETWORK failure (offline,
+       fetch threw) we still want the deterministic fallback —
+       so wrap in a try/catch that lands on the same heuristic the
+       route would have returned. */
+    let look: SuggestedLook;
+    let source: 'claude' | 'heuristic' = 'heuristic';
+    try {
+      const res = await fetch('/api/look/from-story', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      if (res.ok) {
+        const body = (await res.json()) as SuggestedLook & { source?: 'claude' | 'heuristic' };
+        look = {
+          occasion: body.occasion,
+          edition: body.edition,
+          texture: body.texture,
+          voiceOverride: body.voiceOverride,
+          density: body.density,
+          textureIntensity: body.textureIntensity,
+          rationale: body.rationale,
+        };
+        source = body.source ?? 'claude';
+      } else {
+        /* 401 (unauth), 429 (rate-limit), 400 (bad input) — surface
+           the keyword match instead of failing. */
+        look = generateLookFromStory(text);
+      }
+    } catch {
+      /* Offline, fetch threw — fall through to the local matcher. */
+      look = generateLookFromStory(text);
+    }
+
+    onChange({
+      ...manifest,
+      occasion: look.occasion,
+      edition: look.edition,
+      texture: look.texture,
+      density: look.density,
+      textureIntensity: look.textureIntensity,
+      voiceOverride: look.voiceOverride,
+    } as StoryManifest);
+    /* Surface the source so the host knows whether they got
+       Claude's read or the keyword match. The keyword fallback is
+       still good — just less nuanced. */
+    setLastRationale(
+      source === 'claude' ? look.rationale : `${look.rationale} (keyword match)`,
+    );
+    setStoryBusy(false);
   }
   const STORY_EXAMPLES = [
     'July wedding in Santorini, olive groves, relaxed',
