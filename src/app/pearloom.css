@@ -5180,3 +5180,76 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="minimal"] .pl8-faq-row:last-child {
   border-bottom: none !important;
 }
+
+/* ─────────────────────────────────────────────────────────
+   Phase 4 — per-kit Hotel (Travel) row layouts.
+   Same pattern as schedule + FAQ. Each kit restructures the
+   hotel card's chrome to its visual identity.
+   ───────────────────────────────────────────────────────── */
+
+/* TICKET — dashed border + monospace booking detail */
+.pl8-guest[data-pl-kit="ticket"] .pl8-hotel-row {
+  border: 1.5px dashed var(--pl-ink-soft, #3A332C) !important;
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border-radius: 7px !important;
+}
+
+/* PLATE — engraved double-rule frame */
+.pl8-guest[data-pl-kit="plate"] .pl8-hotel-row {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border-radius: 1px !important;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--pl-ink, #0E0D0B) 45%, transparent),
+    inset 0 0 0 4px var(--pl-cream-card, #FBF7EE),
+    inset 0 0 0 5px color-mix(in oklab, var(--pl-ink, #0E0D0B) 22%, transparent) !important;
+  border: none !important;
+}
+
+/* SCRAPBOOK — tilted polaroid with tape strip */
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row {
+  background: #FFFDF7 !important;
+  border: none !important;
+  border-radius: 2px !important;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.12) !important;
+  position: relative;
+  padding-top: 24px !important;
+}
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row:nth-child(odd) {
+  transform: rotate(-1.2deg);
+}
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row:nth-child(even) {
+  transform: rotate(1.2deg);
+}
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  width: 56px;
+  height: 12px;
+  background: color-mix(in oklab, var(--pl-gold, #B8935A) 32%, transparent);
+  z-index: 2;
+}
+
+/* INDEX — red left margin + blue rule lines */
+.pl8-guest[data-pl-kit="index"] .pl8-hotel-row {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: none !important;
+  border-left: 2px solid rgba(199,80,80,0.5) !important;
+  border-radius: 2px !important;
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0 21px,
+    rgba(74,118,196,0.10) 21px 22px
+  ) !important;
+}
+
+/* MINIMAL — borderless + hairline bottom */
+.pl8-guest[data-pl-kit="minimal"] .pl8-hotel-row {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid var(--pl-divider, #D8CFB8) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
