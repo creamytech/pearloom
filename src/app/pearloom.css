@@ -4724,3 +4724,122 @@ html { scroll-behavior: smooth; }
 .pl8-guest .pl8-faq-row {
   box-shadow: var(--pl-card-shadow, 0 1px 3px rgba(75,65,52,0.08));
 }
+
+/* ─────────────────────────────────────────────────────────
+   Per-Edition COMPONENT identity — buttons, photos, eyebrows.
+   The theme-token layer (palette/fonts/radii/weights) makes
+   each Edition COLORED differently. This block makes each
+   Edition SHAPED differently — button radii, photo frames,
+   eyebrow decorations that match the prototype's per-theme
+   primitives (TButton, SitePhoto, TSectionHead).
+
+   Targets generic button/link/photo selectors so it covers
+   the whole site without needing per-component prop drilling.
+   Per-block overrides (KitPicker, BlockStylePanel) still win
+   via specificity + !important where needed.
+   ───────────────────────────────────────────────────────── */
+
+/* ── ALMANAC ──
+   Pill buttons, soft rounded photos, classic eyebrow with a
+   leading sage square. Pearloom v8 default. */
+.pl8-guest[data-pl-edition="almanac"] button:not([class*="pearl"]):not([data-no-edition-style]),
+.pl8-guest[data-pl-edition="almanac"] a.btn:not([class*="pearl"]) {
+  border-radius: 999px;
+}
+.pl8-guest[data-pl-edition="almanac"] .eyebrow::before,
+.pl8-guest[data-pl-edition="almanac"] .pl-overline::before {
+  content: '■';
+  margin-right: 6px;
+  color: var(--peach-ink, #C6703D);
+  font-size: 0.7em;
+}
+
+/* ── CINEMA ──
+   Sharp 2px button corners (cinematic edges), photos get a thin
+   black border + slight gold rim like a film print, eyebrow gets
+   a "REEL" mono prefix. */
+.pl8-guest[data-pl-edition="cinema"] button:not([class*="pearl"]):not([data-no-edition-style]),
+.pl8-guest[data-pl-edition="cinema"] a.btn:not([class*="pearl"]) {
+  border-radius: 2px !important;
+  letter-spacing: 0.04em;
+}
+.pl8-guest[data-pl-edition="cinema"] img:not([class*="avatar"]):not([data-pl-decor]) {
+  border: 1px solid rgba(201,162,75,0.32);
+  box-shadow: 0 0 0 4px rgba(0,0,0,0.4);
+}
+.pl8-guest[data-pl-edition="cinema"] .eyebrow,
+.pl8-guest[data-pl-edition="cinema"] .pl-overline {
+  font-family: var(--font-mono, ui-monospace, 'Courier New', monospace);
+  color: rgba(241,235,221,0.7) !important;
+}
+
+/* ── POSTCARD BOX ──
+   Tag-style buttons (slightly pillowed but with a notch), photos
+   get a soft polaroid white border, eyebrow gets a handwritten
+   underline strike. */
+.pl8-guest[data-pl-edition="postcard-box"] button:not([class*="pearl"]):not([data-no-edition-style]),
+.pl8-guest[data-pl-edition="postcard-box"] a.btn:not([class*="pearl"]) {
+  border-radius: 8px;
+  position: relative;
+}
+.pl8-guest[data-pl-edition="postcard-box"] img:not([class*="avatar"]):not([data-pl-decor]) {
+  background: #FFFDF7;
+  padding: 8px 8px 16px;
+  box-shadow: 0 10px 22px rgba(75,61,42,0.12);
+}
+.pl8-guest[data-pl-edition="postcard-box"] .eyebrow,
+.pl8-guest[data-pl-edition="postcard-box"] .pl-overline {
+  text-decoration: underline;
+  text-decoration-color: var(--peach-ink, #C6703D);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+  text-decoration-skip-ink: none;
+}
+
+/* ── LINEN FOLDER ──
+   Square 3px buttons (hotel-stationery formal), photos get a
+   gold hairline frame, eyebrow gets a centered leading + trailing
+   gold dot like ". PROGRAMME ." */
+.pl8-guest[data-pl-edition="linen-folder"] button:not([class*="pearl"]):not([data-no-edition-style]),
+.pl8-guest[data-pl-edition="linen-folder"] a.btn:not([class*="pearl"]) {
+  border-radius: 3px !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+.pl8-guest[data-pl-edition="linen-folder"] img:not([class*="avatar"]):not([data-pl-decor]) {
+  box-shadow: 0 0 0 1px rgba(184,146,68,0.45);
+}
+.pl8-guest[data-pl-edition="linen-folder"] .eyebrow::before,
+.pl8-guest[data-pl-edition="linen-folder"] .pl-overline::before {
+  content: '· ';
+  color: var(--gold, #B8935A);
+  font-weight: 700;
+}
+.pl8-guest[data-pl-edition="linen-folder"] .eyebrow::after,
+.pl8-guest[data-pl-edition="linen-folder"] .pl-overline::after {
+  content: ' ·';
+  color: var(--gold, #B8935A);
+  font-weight: 700;
+}
+
+/* ── QUIET ──
+   Square 2px buttons with no fill (just hairline outline), photos
+   are clean unframed, eyebrow is unadorned tiny mono caps. */
+.pl8-guest[data-pl-edition="quiet"] button:not([class*="pearl"]):not([data-no-edition-style]),
+.pl8-guest[data-pl-edition="quiet"] a.btn:not([class*="pearl"]) {
+  border-radius: 2px !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 11px;
+  background: transparent;
+  border: 1px solid var(--ink, #1A1A17);
+  color: var(--ink, #1A1A17);
+}
+.pl8-guest[data-pl-edition="quiet"] .eyebrow,
+.pl8-guest[data-pl-edition="quiet"] .pl-overline {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10px !important;
+  letter-spacing: 0.24em !important;
+  color: var(--ink-muted, #6F6557) !important;
+}
