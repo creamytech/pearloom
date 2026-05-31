@@ -746,6 +746,40 @@ export function getDefaultBlocksFor(id: SiteOccasion | string): readonly BlockTy
 }
 
 /**
+ * Per-event look defaults — coherent starting density + texture
+ * intensity for the Look Engine. Ports the prototype's eventDefaults()
+ * mood→look mapping (shared/events.jsx).
+ *
+ * Voice drives the defaults so memorials breathe (spacious + quiet
+ * grain), bachelor parties pack in (cozy + loud grain), ceremonial
+ * events have presence (spacious + natural), playful is loud, the
+ * rest sit at comfortable + natural.
+ *
+ * The renderer consumes these as fallback when the manifest doesn't
+ * carry an explicit density / textureIntensity. Hosts who pick in
+ * the Look Engine panel get their pick honored — these are starts,
+ * never writes.
+ */
+export function lookDefaultsFor(
+  occasion: SiteOccasion | string | null | undefined,
+): { density: 'cozy' | 'comfortable' | 'spacious'; textureIntensity: number } {
+  const voice = getEventType(occasion)?.voice;
+  switch (voice) {
+    case 'solemn':
+      return { density: 'spacious', textureIntensity: 0.6 };
+    case 'playful':
+      return { density: 'cozy', textureIntensity: 1.3 };
+    case 'intimate':
+      return { density: 'comfortable', textureIntensity: 0.8 };
+    case 'ceremonial':
+      return { density: 'spacious', textureIntensity: 1.0 };
+    case 'celebratory':
+    default:
+      return { density: 'comfortable', textureIntensity: 1.0 };
+  }
+}
+
+/**
  * Block allowlist for a given event — union of default + optional.
  * Used by the editor block library to filter what's available.
  */

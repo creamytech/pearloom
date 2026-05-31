@@ -367,6 +367,7 @@ export async function POST(req: Request) {
     eventDetails,
     templateId,
     prebuiltDecor,
+    voiceOverride,
   } = body as {
     photos: GooglePhotoMetadata[];
     clusters?: PhotoCluster[];
@@ -443,6 +444,11 @@ export async function POST(req: Request) {
      *  confetti, footerBouquet, prompts? }. Best-effort: if the
      *  shape is wrong we silently drop it. */
     prebuiltDecor?: unknown;
+    /** Manual voice override from the Look Engine panel —
+     *  3-voice union mapped to PoetryVoice inside generateStoryManifest.
+     *  Wizard typically leaves this unset; hosts who change Voice in
+     *  the editor's Look Engine + re-generate will get this honored. */
+    voiceOverride?: 'classic' | 'playful' | 'poetic';
   };
 
   // Derive defaults from category / occasion when the wizard didn't
@@ -579,6 +585,7 @@ export async function POST(req: Request) {
           },
           selectedPaletteColors,
           factSheet,
+          voiceOverride,
         );
 
         // ── Post-processing (mirrors /api/generate/route.ts lines 354-506) ──
@@ -878,6 +885,7 @@ export async function POST(req: Request) {
         if (factSheet && Object.keys(factSheet).length > 0) {
           manifest.factSheet = factSheet;
         }
+        if (voiceOverride) manifest.voiceOverride = voiceOverride;
         if (vibeName) manifest.vibeName = vibeName;
         if (songMeta && songMeta.title) {
           manifest.songMeta = songMeta;

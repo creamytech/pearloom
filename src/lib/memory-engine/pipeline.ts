@@ -15,6 +15,7 @@ import {
   poetryPassClaude,
   extractCoupleProfileClaude,
   isClaudeStoryEnabled,
+  type PoetryVoice,
 } from './claude-passes';
 import { getEventType } from '@/lib/event-os/event-types';
 import { pickFontPair } from './typography-picker';
@@ -39,7 +40,30 @@ export async function generateStoryManifest(
    * notes and flags ungrounded claims for Pass 1.2 to strip.
    */
   factSheet?: { howWeMet?: string; why?: string; favorite?: string },
+  /**
+   * Optional manual voice override from manifest.voiceOverride (set
+   * by the Look Engine panel). Uses the prototype's 3-voice union
+   * ('classic' | 'playful' | 'poetic') which maps to production's
+   * 5-voice PoetryVoice via voiceFromOverride() below. When unset,
+   * each pass falls back to getEventType(occasion).voice.
+   */
+  voiceOverride?: 'classic' | 'playful' | 'poetic',
 ): Promise<StoryManifest> {
+  /* Resolves the active voice — host's manual pick wins over the
+     event-type default. Three-voice prototype union maps to five-
+     voice production union:
+       classic → celebratory (the formal default)
+       playful → playful (1:1)
+       poetic → intimate (lyrical, close-range)
+     Ceremonial + solemn stay event-driven (memorials should never
+     read as poetic-by-host-pick, etc.). */
+  function resolveVoice(): PoetryVoice | undefined {
+    if (voiceOverride === 'classic') return 'celebratory';
+    if (voiceOverride === 'playful') return 'playful';
+    if (voiceOverride === 'poetic') return 'intimate';
+    return getEventType(occasion)?.voice;
+  }
+  const activeVoice = resolveVoice();
   onProgress?.(0);
 
   // ── Pass 0.5 — Per-photo vision tagging ─────────────────────────
@@ -101,7 +125,7 @@ export async function generateStoryManifest(
         eventDate,
         photoCount,
         layoutFormat,
-        voice: getEventType(occasion)?.voice,
+        voice: activeVoice,
         factSheet,
       });
       rawText = result.raw;
@@ -360,7 +384,7 @@ export async function generateStoryManifest(
   const [pass12Result, pass15Result, pass4Result] = await Promise.allSettled([
     // Pass 1.2: Chapter quality gate
     claudeStoryEnabled
-      ? critiqueChaptersClaude(chaptersSnapshot, vibeString, coupleNames, occasion, clusterNotes, getEventType(occasion)?.voice)
+      ? critiqueChaptersClaude(chaptersSnapshot, vibeString, coupleNames, occasion, clusterNotes, activeVoice)
       : critiqueAndRefineChapters(chaptersSnapshot, vibeString, coupleNames, apiKey, occasion, clusterNotes),
     // Pass 1.5: Couple DNA extraction
     claudeStoryEnabled
@@ -388,7 +412,7 @@ export async function generateStoryManifest(
           coupleNames,
           chaptersSnapshot,
           occasion,
-          getEventType(occasion)?.voice,
+          activeVoice,
         )
       : generatePoetryPass(manifest.vibeString, coupleNames, chaptersSnapshot, apiKey, occasion),
   ]);
@@ -466,7 +490,7 @@ export async function generateStoryManifest(
       inspirationUrls,
       coupleProfile,  // Couple DNA drives bespoke illustration generation
       preferredPalette,  // User-chosen hex colors — must appear in final palette
-    }, occasion, getEventType(occasion)?.voice);
+    }, occasion, activeVoice);
     manifest.vibeSkin = vibeSkin;
     log('[Memory Engine] Pass 2: VibeSkin generated',
       vibeSkin.chapterIcons?.length ? `with ${vibeSkin.chapterIcons.length} chapter icons` : '(no chapter icons)'

@@ -521,6 +521,8 @@ export async function POST(req: NextRequest) {
       layoutFormat,
       undefined,
       selectedPaletteColors,
+      undefined,
+      body?.voiceOverride,
     );
 
     // Pre-populate logistics from user-provided fields

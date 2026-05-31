@@ -65,7 +65,7 @@ import { SCHEDULE_VARIANTS_REGISTERED } from './schedule-variants';
 import { GALLERY_VARIANTS_REGISTERED } from './gallery-variants';
 import { getBlockStyle, getBlockStyles } from '@/lib/block-engine/block-styles';
 import { resolveEdition, type EditionContext } from '@/lib/site-editions/resolve';
-import { getEventType, recommendTextureFor } from '@/lib/event-os/event-types';
+import { getEventType, recommendTextureFor, lookDefaultsFor } from '@/lib/event-os/event-types';
 import type { SiteOccasion } from '@/lib/site-urls';
 import { EditionDivider } from './edition-dividers';
 void HERO_VARIANTS_REGISTERED;
@@ -8142,18 +8142,19 @@ export function SiteV8Renderer({
   // explicitly, that pick is what's stored on the manifest.
   const activeTexture =
     manifest.texture ?? recommendTextureFor(manifest.occasion ?? 'wedding');
-  // Density — section padding multiplier from the Editor Redesign
-  // brief §1 (SiteLook.density). Bound to --pl-density-scale on the
-  // root so per-section CSS can multiply its padding by it.
-  // cozy 0.7 / comfortable 1 / spacious 1.3 mirrors the prototype's
-  // padScale math (editor-redesign.jsx line ~232).
-  const activeDensity = manifest.density ?? 'comfortable';
+  // Density + Texture intensity — per the Editor Redesign brief §1
+  // (SiteLook). Fall back to event-shaped defaults (lookDefaultsFor)
+  // when the manifest doesn't carry an explicit pick — memorials
+  // breathe by default, bachelor parties pack in, etc. Host picks
+  // in the Look Engine panel always win.
+  const lookDefaults = lookDefaultsFor(manifest.occasion);
+  const activeDensity = manifest.density ?? lookDefaults.density;
   const densityScale = { cozy: 0.7, comfortable: 1, spacious: 1.3 }[activeDensity];
   // Texture intensity — 0–1.5 multiplier on the texture grain
-  // overlays. Default 1 keeps the rebuild from this morning intact;
-  // 0 fully suppresses grain (cards/edges still get the material
-  // treatment), 1.5 exaggerates. Bound to --pl-texture-intensity.
-  const activeTextureIntensity = manifest.textureIntensity ?? 1;
+  // overlays. 0 fully suppresses grain (cards/edges still get the
+  // material treatment), 1.5 exaggerates. Bound to
+  // --pl-texture-intensity.
+  const activeTextureIntensity = manifest.textureIntensity ?? lookDefaults.textureIntensity;
   const lookEngineVars: React.CSSProperties = {};
   (lookEngineVars as Record<string, string>)['--pl-density-scale'] = String(densityScale);
   (lookEngineVars as Record<string, string>)['--pl-texture-intensity'] = String(activeTextureIntensity);
