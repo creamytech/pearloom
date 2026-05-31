@@ -16,6 +16,7 @@ import type { StoryManifest } from '@/types';
 import type { SiteBlockKey } from '@/lib/site-mode';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { SiteV8Renderer } from './SiteV8Renderer';
+import { ThemedSiteRenderer } from './ThemedSiteRenderer';
 
 interface Props {
   manifest: StoryManifest;
@@ -68,9 +69,23 @@ function GuestCrashFallback() {
 }
 
 export function PublishedSiteShell(props: Props) {
+  /* Dispatch — manifest.renderer === 'themed' picks the parallel
+     ThemedSiteRenderer (direct port of prototype's themed-site.jsx).
+     Anything else falls through to SiteV8Renderer (the rich v8
+     renderer). Default behavior unchanged for every existing site. */
+  const renderer = (props.manifest as unknown as { renderer?: 'themed' | 'v8' }).renderer;
+  const useThemed = renderer === 'themed';
   return (
     <ErrorBoundary fallback={<GuestCrashFallback />}>
-      <SiteV8Renderer {...props} />
+      {useThemed ? (
+        <ThemedSiteRenderer
+          manifest={props.manifest}
+          names={props.names}
+          siteSlug={props.siteSlug}
+        />
+      ) : (
+        <SiteV8Renderer {...props} />
+      )}
     </ErrorBoundary>
   );
 }
