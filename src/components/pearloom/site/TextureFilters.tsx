@@ -91,6 +91,47 @@ export function TextureFilters() {
             yChannelSelector="G"
           />
         </filter>
+
+        {/* ─── Prototype texture filter set ─────────────────
+            Direct port of the prototype's ThemeDefs filters
+            (themed-site.jsx ~line 177). These are the building
+            blocks the per-texture CSS layers in pearloom.css use
+            to compose paper / cotton / velvet textures from
+            multiple ::before/::after layers with mix-blend-mode.
+            Each filter is a feTurbulence noise source piped
+            through feColorMatrix to make grayscale + opaque
+            alpha so the layer can be blended over the underlying
+            paper. */}
+
+        {/* t-grain — fine paper grain with dark specks. Used in
+            paper / cotton / watercolor textures at low opacity
+            with mix-blend-mode multiply. */}
+        <filter id="t-grain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves={2} stitchTiles="stitch" result="n" />
+          <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.7 0" />
+        </filter>
+
+        {/* t-mottle — coarse mottle (large soft tonal blotches).
+            Handmade-paper unevenness. Used in paper / cotton /
+            velvet at soft-light blend. */}
+        <filter id="t-mottle">
+          <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves={2} seed={11} result="n" />
+          <feColorMatrix in="n" type="saturate" values="0" result="g" />
+          <feComponentTransfer in="g">
+            <feFuncA type="linear" slope="0" intercept="1" />
+          </feComponentTransfer>
+        </filter>
+
+        {/* t-weave — fine directional weave tooth (tight thread-
+            like grayscale). Used in linen / paper / cotton at
+            soft-light blend. */}
+        <filter id="t-weave">
+          <feTurbulence type="fractalNoise" baseFrequency="0.5 0.85" numOctaves={2} seed={6} stitchTiles="stitch" result="n" />
+          <feColorMatrix in="n" type="saturate" values="0" result="g" />
+          <feComponentTransfer in="g">
+            <feFuncA type="linear" slope="0" intercept="1" />
+          </feComponentTransfer>
+        </filter>
       </defs>
     </svg>
   );

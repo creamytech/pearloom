@@ -4843,3 +4843,98 @@ html { scroll-behavior: smooth; }
   letter-spacing: 0.24em !important;
   color: var(--ink-muted, #6F6557) !important;
 }
+
+/* ─────────────────────────────────────────────────────────
+   Prototype-parity textures — paper, cotton, velvet.
+   Each composes multiple ::before/::after layers with
+   different SVG filters + mix-blend-mode, matching the
+   prototype's TextureLayer pattern exactly.
+
+   Filters t-weave, t-mottle, t-grain are registered in
+   TextureFilters.tsx (mounted in SiteV8Renderer).
+   ───────────────────────────────────────────────────────── */
+
+/* PAPER — handmade cotton paper. Fine fibre + light specks +
+   subtle mottle. Layered: t-weave at 0.3 soft-light + t-mottle
+   at 0.16 soft-light + t-grain at 0.1 multiply. */
+.pl8-guest[data-pl-texture="paper"] {
+  background-color: #FDFAF0;
+}
+.pl8-guest[data-pl-texture="paper"]::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  filter: url(#t-weave);
+  opacity: calc(0.3 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: soft-light;
+  background: rgba(0, 0, 0, 0.001);
+}
+.pl8-guest[data-pl-texture="paper"]::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  filter: url(#t-mottle);
+  opacity: calc(0.16 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: soft-light;
+  background: rgba(0, 0, 0, 0.001);
+}
+
+/* COTTON — cold-press cotton / watercolour paper. Coarser tooth.
+   t-mottle 0.34 soft-light + t-weave 0.42 soft-light + t-grain
+   0.16 multiply. */
+.pl8-guest[data-pl-texture="cotton"] {
+  background-color: #F7F2E6;
+}
+.pl8-guest[data-pl-texture="cotton"]::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  filter: url(#t-mottle);
+  opacity: calc(0.34 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: soft-light;
+  background: rgba(0, 0, 0, 0.001);
+}
+.pl8-guest[data-pl-texture="cotton"]::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  filter: url(#t-weave);
+  opacity: calc(0.42 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: soft-light;
+  background: rgba(0, 0, 0, 0.001);
+}
+
+/* VELVET — pile stripes + raking sheen. Reads on DARK paper
+   surfaces. Cinema's recommended companion. Vertical 1px stripes
+   at soft-light + 118deg diagonal sheen at screen. */
+.pl8-guest[data-pl-texture="velvet"] {
+  background-color: #1A1B2E;
+}
+.pl8-guest[data-pl-texture="velvet"]::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.07) 0 1px, transparent 1px 3px);
+  mix-blend-mode: soft-light;
+  opacity: calc(0.6 * var(--pl-texture-intensity, 1));
+}
+.pl8-guest[data-pl-texture="velvet"]::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image: linear-gradient(118deg, transparent 28%, rgba(255,255,255,0.12) 50%, transparent 72%);
+  mix-blend-mode: screen;
+  opacity: calc(0.16 * var(--pl-texture-intensity, 1));
+}

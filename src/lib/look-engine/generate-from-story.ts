@@ -114,9 +114,9 @@ const EDITION_HINTS: EditionHint[] = [
   },
   {
     edition: 'cinema',
-    texture: 'letterpress',
+    texture: 'velvet',
     keywords: ['evening', 'night', 'black tie', 'candle', 'velvet', 'glamour', 'glam'],
-    why: 'evening + formal → Cinema + Letterpress',
+    why: 'evening + formal → Cinema + Velvet',
   },
   {
     edition: 'quiet',
