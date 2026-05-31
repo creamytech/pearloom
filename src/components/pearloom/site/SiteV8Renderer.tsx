@@ -2586,13 +2586,23 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
           </h2>
         </div>
 
-        {/* Schedule rows — port of the prototype's KSchedule pattern.
-            The heavy v8 card-on-white container (bg + border + 24px
-            radius wrapping all rows) is gone; rows now sit directly
-            on the section background so per-kit CSS (ticket/plate/
-            scrapbook/index/minimal) can fully reshape them without
-            fighting the outer container's chrome. */}
-        <div className="pl-cascade-row">
+        {/* Schedule rows — direct port of the prototype's KSchedule
+            CLASSIC variant (themed-site.jsx KSchedule fallback,
+            ~line 188). 4-column responsive card grid (auto-fit
+            minmax(180px, 1fr)) capped at 900px center, gap 14px.
+            Each row renders as a centered card via the .pl8-schedule-
+            classic-grid CSS class. Per-kit CSS still wins when a kit
+            is picked. */}
+        <div
+          className="pl-cascade-row pl8-schedule-classic-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: 14,
+            maxWidth: 900,
+            margin: '0 auto',
+          }}
+        >
           {(() => {
             const renderRow = (r: typeof rows[number], i: number, dragHandleProps?: React.HTMLAttributes<HTMLElement> & { ref: (el: HTMLElement | null) => void }) => (
             <div
@@ -2609,14 +2619,29 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
               } : undefined}
               style={{
                 position: 'relative',
-                display: 'grid',
-                gridTemplateColumns: '120px 1fr 140px',
+                /* Direct port of prototype's KSchedule classic TCard
+                   structure (themed-site.jsx ~line 192): centered
+                   stack with time prominent, label below, sublabel
+                   optional. Replaces the v8 horizontal 3-column grid
+                   (120/1fr/140 with drag handle + actions on the
+                   right) with the prototype's clean centered card.
+                   Edit-mode pieces (remove button + edit-on-click +
+                   inline-editable text) all preserved — only the
+                   layout reshapes. */
+                display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
-                gap: 20,
-                padding: '22px 28px',
-                borderBottom: i < rows.length - 1 ? '1px solid var(--line-soft)' : 'none',
-                background: r.isLive ? 'var(--peach-bg)' : (r.isMain && r.cur) ? 'rgba(198,112,61,0.05)' : 'transparent',
-                borderLeft: r.isLive ? '3px solid var(--peach-ink, #C6703D)' : (r.isMain ? '3px solid rgba(198,112,61,0.45)' : '3px solid transparent'),
+                textAlign: 'center',
+                gap: 6,
+                padding: '18px 16px',
+                background: r.isLive
+                  ? 'var(--peach-bg)'
+                  : (r.isMain && r.cur)
+                    ? 'rgba(198,112,61,0.05)'
+                    : 'var(--card)',
+                border: `1px solid ${r.isLive ? 'var(--peach-ink, #C6703D)' : 'var(--line-soft)'}`,
+                borderRadius: 'var(--pl-card-radius, 12px)',
+                boxShadow: 'var(--pl-card-shadow, 0 1px 3px rgba(75,65,52,0.06))',
                 transition: 'background 220ms ease, border-color 220ms ease',
                 cursor: edit ? 'pointer' : 'default',
               }}
