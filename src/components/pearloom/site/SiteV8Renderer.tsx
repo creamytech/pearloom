@@ -8158,8 +8158,14 @@ export function SiteV8Renderer({
   // Active Kit — component design language overlay independent of
   // Edition. Drives data-pl-kit on the .pl8-guest root so per-kit
   // CSS in pearloom.css can restyle cards / dividers / chips /
-  // schedule rows / FAQ rows. 'classic' is the default no-op.
-  const activeKit = manifest.kitId ?? 'classic';
+  // schedule rows / FAQ rows.
+  //
+  // Falls back to event-shaped default (lookDefaults.kitId) when
+  // the manifest doesn't carry an explicit pick — memorial sites
+  // default to 'index' (ruled cards), bachelor to 'scrapbook'
+  // (tilted polaroids), ceremonial to 'plate' (engraved frames),
+  // intimate to 'minimal' (hairlines), everything else to 'classic'.
+  const activeKit = manifest.kitId ?? lookDefaults.kitId;
   const lookEngineVars: React.CSSProperties = {};
   (lookEngineVars as Record<string, string>)['--pl-density-scale'] = String(densityScale);
   (lookEngineVars as Record<string, string>)['--pl-texture-intensity'] = String(activeTextureIntensity);

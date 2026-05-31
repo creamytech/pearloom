@@ -12,6 +12,7 @@ import {
   getAllOccasionIds,
   getAllowedBlocksFor,
   getHiddenBlocksFor,
+  lookDefaultsFor,
 } from './event-types';
 
 describe('EVENT_TYPES registry', () => {
@@ -120,5 +121,76 @@ describe('EVENT_TYPES helpers', () => {
   it('getHiddenBlocksFor matches the entry', () => {
     const wedding = getEventType('wedding');
     expect(getHiddenBlocksFor('wedding')).toEqual(wedding!.hiddenBlocks);
+  });
+});
+
+describe('lookDefaultsFor — per-event Look Engine defaults', () => {
+  it('memorial → spacious + 0.6 intensity + index kit', () => {
+    expect(lookDefaultsFor('memorial')).toEqual({
+      density: 'spacious',
+      textureIntensity: 0.6,
+      kitId: 'index',
+    });
+  });
+
+  it('funeral → same somber defaults as memorial', () => {
+    expect(lookDefaultsFor('funeral')).toEqual(lookDefaultsFor('memorial'));
+  });
+
+  it('bachelor-party → cozy + 1.3 + scrapbook kit', () => {
+    expect(lookDefaultsFor('bachelor-party')).toEqual({
+      density: 'cozy',
+      textureIntensity: 1.3,
+      kitId: 'scrapbook',
+    });
+  });
+
+  it('bachelorette-party → same playful defaults as bachelor', () => {
+    expect(lookDefaultsFor('bachelorette-party')).toEqual(lookDefaultsFor('bachelor-party'));
+  });
+
+  it('bridal-shower → comfortable + 0.8 + minimal kit (intimate voice)', () => {
+    expect(lookDefaultsFor('bridal-shower')).toEqual({
+      density: 'comfortable',
+      textureIntensity: 0.8,
+      kitId: 'minimal',
+    });
+  });
+
+  it('wedding → spacious + 1.0 + plate kit (ceremonial voice)', () => {
+    expect(lookDefaultsFor('wedding')).toEqual({
+      density: 'spacious',
+      textureIntensity: 1.0,
+      kitId: 'plate',
+    });
+  });
+
+  it('engagement → comfortable + 1.0 + classic kit (celebratory default)', () => {
+    expect(lookDefaultsFor('engagement')).toEqual({
+      density: 'comfortable',
+      textureIntensity: 1.0,
+      kitId: 'classic',
+    });
+  });
+
+  it('anniversary → intimate-voice defaults (comfortable + 0.8 + minimal)', () => {
+    expect(lookDefaultsFor('anniversary')).toEqual({
+      density: 'comfortable',
+      textureIntensity: 0.8,
+      kitId: 'minimal',
+    });
+  });
+
+  it('unknown occasion falls back to celebratory defaults', () => {
+    expect(lookDefaultsFor('not-a-real-event')).toEqual({
+      density: 'comfortable',
+      textureIntensity: 1.0,
+      kitId: 'classic',
+    });
+  });
+
+  it('null / undefined inputs fall back gracefully', () => {
+    expect(lookDefaultsFor(null).kitId).toBe('classic');
+    expect(lookDefaultsFor(undefined).kitId).toBe('classic');
   });
 });

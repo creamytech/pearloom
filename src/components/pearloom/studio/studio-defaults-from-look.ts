@@ -18,6 +18,7 @@
 
 import type { StoryManifest } from '@/types';
 import { hexToRgb, rgbToHsl } from '@/lib/look-engine/palette-from-photo';
+import { lookDefaultsFor } from '@/lib/event-os/event-types';
 
 type EditionId = NonNullable<StoryManifest['edition']>;
 type KitId = NonNullable<StoryManifest['kitId']>;
@@ -136,7 +137,10 @@ function nearestPaletteForAccent(accentHex: string, paperHex: string | undefined
  */
 export function studioDefaultsFromLook(manifest: StoryManifest): StudioLookDefaults {
   const edition: EditionId = manifest.edition ?? 'almanac';
-  const kit: KitId = manifest.kitId ?? 'classic';
+  /* Kit falls back to the per-event default (lookDefaultsFor) when
+     the host hasn't explicitly picked — same fallback the renderer
+     uses, so Studio and the site agree on the active kit. */
+  const kit: KitId = manifest.kitId ?? lookDefaultsFor(manifest.occasion).kitId;
   const voice: VoiceOverride = manifest.voiceOverride ?? 'classic';
   const themeColors =
     (manifest as unknown as { theme?: { colors?: { accent?: string; background?: string } } }).theme

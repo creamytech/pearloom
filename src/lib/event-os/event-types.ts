@@ -762,20 +762,35 @@ export function getDefaultBlocksFor(id: SiteOccasion | string): readonly BlockTy
  */
 export function lookDefaultsFor(
   occasion: SiteOccasion | string | null | undefined,
-): { density: 'cozy' | 'comfortable' | 'spacious'; textureIntensity: number } {
+): {
+  density: 'cozy' | 'comfortable' | 'spacious';
+  textureIntensity: number;
+  kitId: 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal';
+} {
   const voice = getEventType(occasion)?.voice;
   switch (voice) {
     case 'solemn':
-      return { density: 'spacious', textureIntensity: 0.6 };
+      /* Memorials breathe — spacious + quiet grain + index ruled-
+         card kit (formal, organized, no playful chrome). */
+      return { density: 'spacious', textureIntensity: 0.6, kitId: 'index' };
     case 'playful':
-      return { density: 'cozy', textureIntensity: 1.3 };
+      /* Bachelor/ette + party events pack in — cozy + loud grain +
+         scrapbook tilted polaroids for in-on-the-joke energy. */
+      return { density: 'cozy', textureIntensity: 1.3, kitId: 'scrapbook' };
     case 'intimate':
-      return { density: 'comfortable', textureIntensity: 0.8 };
+      /* Showers + sip-and-see + bridal luncheon — comfortable +
+         soft grain + minimal hairlines for tender close-range feel. */
+      return { density: 'comfortable', textureIntensity: 0.8, kitId: 'minimal' };
     case 'ceremonial':
-      return { density: 'spacious', textureIntensity: 1.0 };
+      /* Weddings + bar/bat mitzvah + quinceanera — spacious +
+         natural + plate engraved frames for formal ritual presence. */
+      return { density: 'spacious', textureIntensity: 1.0, kitId: 'plate' };
     case 'celebratory':
     default:
-      return { density: 'comfortable', textureIntensity: 1.0 };
+      /* Default celebratory + everything-else — classic theme-native
+         cards. No kit chrome that would surprise hosts who haven't
+         picked one. */
+      return { density: 'comfortable', textureIntensity: 1.0, kitId: 'classic' };
   }
 }
 
