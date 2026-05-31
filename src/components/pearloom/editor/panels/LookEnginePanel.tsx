@@ -210,11 +210,16 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
      surfaced as a 4-swatch strip below the file input + a Clear
      button to revert. busy gates the file picker while extraction
      runs. fileError surfaces "couldn't read that image" without
-     a toast bomb. */
+     a toast bomb. priorAccent/priorAccentLight stash the values
+     that were on manifest.theme.colors BEFORE extraction wrote
+     so Clear can revert them — without that, "Clear" only cleared
+     the UI strip and left the manifest's theme.colors patched. */
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [extracted, setExtracted] = useState<ExtractedPalette | null>(null);
   const [paletteBusy, setPaletteBusy] = useState(false);
   const [paletteError, setPaletteError] = useState<string | null>(null);
+  const [priorAccent, setPriorAccent] = useState<string | null>(null);
+  const [priorAccentLight, setPriorAccentLight] = useState<string | null>(null);
   async function onPhotoPicked(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -226,11 +231,11 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
         setPaletteError('Couldn’t read that image. Try a JPG or PNG.');
         return;
       }
-      setExtracted(palette);
-      /* Write only accent + accentLight onto theme.colors so paper +
-         ink + cardBg from the active Edition stay intact. The
-         WCAG guard above will surface a Low-contrast warning if
-         the new accent fights the paper. */
+      /* Stash the original palette ONCE — if the host extracts
+         twice in a row, the second call's "before" state is
+         already the first extraction's result; preserving the
+         FIRST stash means Clear reverts to whatever was set
+         before the Match-my-photos session started. */
       const existingTheme =
         (manifest as unknown as { theme?: Record<string, unknown> }).theme ?? {};
       const existingColors =
@@ -238,6 +243,15 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
           string,
           string
         >;
+      if (priorAccent === null) {
+        setPriorAccent(existingColors.accent ?? null);
+        setPriorAccentLight(existingColors.accentLight ?? null);
+      }
+      setExtracted(palette);
+      /* Write only accent + accentLight onto theme.colors so paper +
+         ink + cardBg from the active Edition stay intact. The
+         WCAG guard above will surface a Low-contrast warning if
+         the new accent fights the paper. */
       onChange({
         ...manifest,
         theme: {
@@ -259,8 +273,33 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
     }
   }
   function clearExtracted() {
+    /* Revert manifest.theme.colors.accent + accentLight to whatever
+       was stashed BEFORE extraction. If nothing was stashed (host
+       hadn't actually extracted), this is a no-op. */
+    if (priorAccent !== null || priorAccentLight !== null) {
+      const existingTheme =
+        (manifest as unknown as { theme?: Record<string, unknown> }).theme ?? {};
+      const existingColors =
+        ((existingTheme as { colors?: Record<string, string> }).colors ?? {}) as Record<
+          string,
+          string
+        >;
+      const nextColors: Record<string, string> = { ...existingColors };
+      /* If priorAccent was null, the field wasn't on the manifest
+         before — delete it so the renderer falls back to default. */
+      if (priorAccent !== null) nextColors.accent = priorAccent;
+      else delete nextColors.accent;
+      if (priorAccentLight !== null) nextColors.accentLight = priorAccentLight;
+      else delete nextColors.accentLight;
+      onChange({
+        ...manifest,
+        theme: { ...existingTheme, colors: nextColors },
+      } as unknown as StoryManifest);
+    }
     setExtracted(null);
     setPaletteError(null);
+    setPriorAccent(null);
+    setPriorAccentLight(null);
   }
 
   /* Generate-from-story state. The matcher is deterministic +
@@ -856,7 +895,7 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
                 <button
                   type="button"
                   onClick={clearExtracted}
-                  title="Clear extracted swatches (theme accent stays put — pick a palette in the grid to revert)"
+                  title="Revert to the palette you had before extracting from this photo."
                   style={{
                     width: 24,
                     height: 24,
