@@ -16,6 +16,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
+import { studioDefaultsFromLook } from './studio-defaults-from-look';
 import {
   DEFAULT_ASSET_PALETTE,
   PALETTES,
@@ -121,7 +122,23 @@ function pick<T extends string>(value: unknown, allowed: ReadonlySet<T>, fallbac
 
 function readInitialState(manifest: StoryManifest | null | undefined): StudioState {
   const studio = (manifest as unknown as { studio?: ManifestStudio } | null)?.studio;
-  if (!studio) return DEFAULT_STATE;
+  /* First-time Studio open on this site (no persisted studio
+     state) — seed from the host's Site Look (Edition / Kit /
+     accent / voice) so the stationery matches the site rather
+     than opening on a generic lavender card. The brief's §6:
+     "matched stationery suite from the same SiteLook." */
+  if (!studio) {
+    if (!manifest) return DEFAULT_STATE;
+    const lookSeeded = studioDefaultsFromLook(manifest);
+    return {
+      ...DEFAULT_STATE,
+      palette: VALID_PALETTES.has(lookSeeded.palette) ? lookSeeded.palette : DEFAULT_STATE.palette,
+      fontPair: VALID_FONTS.has(lookSeeded.fontPair) ? lookSeeded.fontPair : DEFAULT_STATE.fontPair,
+      layout: VALID_LAYOUTS.has(lookSeeded.layout) ? lookSeeded.layout : DEFAULT_STATE.layout,
+      motif: VALID_MOTIFS.has(lookSeeded.motif) ? lookSeeded.motif : DEFAULT_STATE.motif,
+      tone: VALID_TONES.has(lookSeeded.tone) ? lookSeeded.tone : DEFAULT_STATE.tone,
+    };
+  }
   return {
     ...DEFAULT_STATE,
     type: pick(studio.type, VALID_TYPES, DEFAULT_STATE.type),
