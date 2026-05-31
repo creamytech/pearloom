@@ -3566,28 +3566,45 @@ function HotelsList({
             />
           );
         }
-        return cardItems.map((h, i) => {
-          const tone = hotelTones[i % hotelTones.length] as 'peach' | 'lavender' | 'sage';
-          return (
-            <HotelCard
-              key={h.id}
-              hotel={h}
-              tone={tone}
-              display={display}
-              badges={badges[i] ?? []}
-              eventDate={manifest.logistics?.date}
-              hotelId={h.id}
-              editMode={editMode}
-              onRemove={editMode ? () => onRemove?.(i, h) : undefined}
-              onFocus={editMode ? () => {
-                if (typeof window !== 'undefined') {
-                  window.dispatchEvent(new CustomEvent('pearloom:hotel-quick-edit', { detail: { hotelId: h.id } }));
-                }
-                jumpToPanelRow('travel', 'pearloom:focus-hotel-row', { hotelId: h.id });
-              } : undefined}
-            />
-          );
-        });
+        /* Wrap card list in a 2-col responsive grid matching the
+           prototype's TravelBlock (themed-site.jsx ~line 442):
+           gridTemplateColumns: repeat(2, 1fr), gap 16, max-width
+           780, margin auto. Falls to 1-col on narrow viewports. */
+        return (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: 16,
+              maxWidth: 780,
+              margin: '0 auto',
+              width: '100%',
+            }}
+          >
+            {cardItems.map((h, i) => {
+              const tone = hotelTones[i % hotelTones.length] as 'peach' | 'lavender' | 'sage';
+              return (
+                <HotelCard
+                  key={h.id}
+                  hotel={h}
+                  tone={tone}
+                  display={display}
+                  badges={badges[i] ?? []}
+                  eventDate={manifest.logistics?.date}
+                  hotelId={h.id}
+                  editMode={editMode}
+                  onRemove={editMode ? () => onRemove?.(i, h) : undefined}
+                  onFocus={editMode ? () => {
+                    if (typeof window !== 'undefined') {
+                      window.dispatchEvent(new CustomEvent('pearloom:hotel-quick-edit', { detail: { hotelId: h.id } }));
+                    }
+                    jumpToPanelRow('travel', 'pearloom:focus-hotel-row', { hotelId: h.id });
+                  } : undefined}
+                />
+              );
+            })}
+          </div>
+        );
       })()}
     </div>
   );
