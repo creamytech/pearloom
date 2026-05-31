@@ -1978,7 +1978,21 @@ function DetailsStripImpl({ manifest, siteSlug, onEditField }: { manifest: Story
             The day, <span className="display-italic" style={{ color: 'var(--ink-soft)' }}>in details</span>
           </h2>
         </div>
-        <div className="pl8-cols-3" style={{ gap: 28 }}>
+        {/* Prototype DetailsBlock 3-card grid (themed-site.jsx
+            ~line 422 via KDetails): repeat(3, 1fr), gap 18, max-
+            width 760 center. Tightened from v8's gap-28 + full-
+            width grid. Each DetailsCard's internal rich content
+            (sunset chip, weather, custom cards) is preserved. */}
+        <div
+          className="pl8-cols-3"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: 18,
+            maxWidth: 760,
+            margin: '0 auto',
+          }}
+        >
           {items.map((it) => (
             <DetailsCard
               key={it.id}
@@ -6079,10 +6093,17 @@ function GallerySectionImpl({
         <div
           className="pl8-gallery-grid"
           style={{
+            /* Prototype gallery grid (themed-site.jsx ~line 460):
+               repeat(6, 1fr) with 8px gap + max-width 920 center.
+               Each photo is 1:1 (controlled per-tile below). At 6
+               columns the grid reads as a tight mosaic vs the v8
+               4-col layout that felt too card-like. */
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gridAutoRows: '180px',
-            gap: 14,
+            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+            gridAutoRows: '160px',
+            gap: 8,
+            maxWidth: 920,
+            margin: '0 auto',
           }}
         >
           {tones.slice(0, renderCount).map((t, i) => {
