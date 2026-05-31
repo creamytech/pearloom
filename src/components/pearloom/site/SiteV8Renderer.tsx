@@ -4796,22 +4796,23 @@ function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest;
         <div className="pl8-cols-2" style={{ gap: 40 }}>
           <div>
             <div
+              className="eyebrow"
               style={{
-                fontSize: 12,
+                fontSize: 11.5,
                 fontWeight: 700,
-                letterSpacing: '0.12em',
-                color: 'var(--peach-ink)',
+                letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+                color: 'var(--peach-ink, #C6703D)',
                 textTransform: 'uppercase',
-                marginBottom: 14,
+                marginBottom: 12,
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
               }}
             >
-              <SectionStamp url={manifest.decorLibrary?.sectionStamps?.travel} fallbackIcon="pin" size={20} slotKey="travel" />
+              <SectionStamp url={manifest.decorLibrary?.sectionStamps?.travel} fallbackIcon="pin" size={18} slotKey="travel" />
               The venue
             </div>
-            <h3 className="display" style={{ fontSize: 'clamp(32px, 4.5cqw, 44px)', margin: '0 0 16px' }}>
+            <h3 className="display" style={{ fontSize: 'clamp(28px, 4cqw, 40px)', margin: '0 0 16px', lineHeight: 1.04 }}>
               {venue}
             </h3>
             {address && (
@@ -4835,22 +4836,23 @@ function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest;
           {showPlacesToStay && (
             <div>
               <div
+                className="eyebrow"
                 style={{
-                  fontSize: 12,
+                  fontSize: 11.5,
                   fontWeight: 700,
-                  letterSpacing: '0.12em',
-                  color: 'var(--peach-ink)',
+                  letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+                  color: 'var(--peach-ink, #C6703D)',
                   textTransform: 'uppercase',
-                  marginBottom: 14,
+                  marginBottom: 12,
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 6,
                 }}
               >
-                <Icon name="moon" size={13} /> Places to stay
+                <Icon name="moon" size={12} /> Places to stay
               </div>
-              <h3 className="display" style={{ fontSize: 'clamp(32px, 4.5cqw, 44px)', margin: '0 0 16px' }}>
-                Sleep <span className="display-italic">somewhere lovely</span>
+              <h3 className="display" style={{ fontSize: 'clamp(28px, 4cqw, 40px)', margin: '0 0 16px', lineHeight: 1.04 }}>
+                Sleep <span className="display-italic" style={{ color: 'var(--ink-soft)' }}>somewhere lovely</span>
               </h3>
               {hotels.length === 0 && edit && (
                 <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 12, fontStyle: 'italic' }}>
@@ -5747,27 +5749,31 @@ function RegistrySectionImpl({ manifest, onEditField, siteSlug }: { manifest: St
             onClear={() => onEditField?.((m) => ({ ...m, registry: { enabled: true, ...((m.registry as Record<string, unknown>) ?? {}), entries: [] }, draftedByPear: { ...(m.draftedByPear ?? {}), registry: false } } as unknown as StoryManifest))}
           />
         )}
-        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+        {/* TSectionHead — port of the prototype's centered header
+            pattern. Tighter scale + Edition-aware eyebrow letter-
+            spacing. */}
+        <div style={{ textAlign: 'center', marginBottom: 36 }}>
           <div
+            className="eyebrow"
             style={{
-              fontSize: 12,
+              fontSize: 11.5,
               fontWeight: 700,
-              letterSpacing: '0.12em',
-              color: 'var(--peach-ink)',
+              letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+              color: 'var(--peach-ink, #C6703D)',
               textTransform: 'uppercase',
-              marginBottom: 14,
+              marginBottom: 12,
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
             }}
           >
-            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.registry} fallbackIcon="gift" size={20} slotKey="registry" />
+            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.registry} fallbackIcon="gift" size={18} slotKey="registry" />
             If you&apos;re asking
           </div>
-          <h2 className="display" style={{ fontSize: 'clamp(40px, 6cqw, 64px)', margin: '0 0 12px' }}>
-            Registry, <span className="display-italic">gently</span>
+          <h2 className="display" style={{ fontSize: 'clamp(36px, 5.5cqw, 56px)', margin: '0 0 12px', lineHeight: 1.04 }}>
+            Registry, <span className="display-italic" style={{ color: 'var(--ink-soft)' }}>gently</span>
           </h2>
-          <p style={{ fontSize: 16, color: 'var(--ink-soft)', maxWidth: 560, margin: '0 auto', lineHeight: 1.55 }}>
+          <p style={{ fontSize: 15, color: 'var(--ink-soft)', maxWidth: 540, margin: '0 auto', lineHeight: 1.6 }}>
             Your presence really is the gift. But if you&apos;d like to mark the day, here&apos;s where to find us.
           </p>
         </div>
@@ -5967,23 +5973,24 @@ function GallerySectionImpl({
         >
           <div>
             <div
+              className="eyebrow"
               style={{
-                fontSize: 12,
+                fontSize: 11.5,
                 fontWeight: 700,
-                letterSpacing: '0.12em',
-                color: 'var(--peach-ink)',
+                letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+                color: 'var(--peach-ink, #C6703D)',
                 textTransform: 'uppercase',
-                marginBottom: 14,
+                marginBottom: 12,
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
               }}
             >
-              <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.gallery} fallbackIcon="gallery" size={20} slotKey="gallery" />
+              <SectionStamp url={manifest?.decorLibrary?.sectionStamps?.gallery} fallbackIcon="gallery" size={18} slotKey="gallery" />
               Along the way
             </div>
-            <h2 className="display" style={{ fontSize: 'clamp(40px, 6cqw, 64px)', margin: 0 }}>
-              A few <span className="display-italic">favorites</span>
+            <h2 className="display" style={{ fontSize: 'clamp(36px, 5.5cqw, 56px)', margin: 0, lineHeight: 1.04 }}>
+              A few <span className="display-italic" style={{ color: 'var(--ink-soft)' }}>favorites</span>
             </h2>
           </div>
         </div>
@@ -6351,13 +6358,15 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
             onClear={() => onEditField?.((m) => ({ ...m, faq: [], draftedByPear: { ...(m.draftedByPear ?? {}), faq: false } } as StoryManifest))}
           />
         )}
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+        {/* TSectionHead — port of prototype's centered FAQ header. */}
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div
+            className="eyebrow"
             style={{
-              fontSize: 12,
+              fontSize: 11.5,
               fontWeight: 700,
-              letterSpacing: '0.12em',
-              color: 'var(--peach-ink)',
+              letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+              color: 'var(--peach-ink, #C6703D)',
               textTransform: 'uppercase',
               marginBottom: 12,
               display: 'inline-flex',
@@ -6365,11 +6374,11 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
               gap: 6,
             }}
           >
-            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.faq} fallbackIcon="heart-icon" size={20} slotKey="faq" />
+            <SectionStamp url={manifest.decorLibrary?.sectionStamps?.faq} fallbackIcon="heart-icon" size={18} slotKey="faq" />
             Good to know
           </div>
-          <h2 className="display" style={{ fontSize: 'clamp(38px, 6cqw, 60px)', margin: 0 }}>
-            Frequently <span className="display-italic">asked.</span>
+          <h2 className="display" style={{ fontSize: 'clamp(34px, 5cqw, 52px)', margin: 0, lineHeight: 1.04 }}>
+            Frequently <span className="display-italic" style={{ color: 'var(--ink-soft)' }}>asked.</span>
           </h2>
         </div>
         {categories.length > 0 && (
