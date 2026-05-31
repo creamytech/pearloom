@@ -5436,3 +5436,26 @@ html { scroll-behavior: smooth; }
   border-radius: 0 !important;
   box-shadow: none !important;
 }
+
+/* ─────────────────────────────────────────────────────────
+   Phase 4 polish — per-kit motif visibility.
+   minimal + index kits are restraint-aligned; hide motifs.
+   scrapbook welcomes denser decoration; bump opacity.
+   ───────────────────────────────────────────────────────── */
+.pl8-guest[data-pl-kit="minimal"] [aria-hidden="true"] svg path,
+.pl8-guest[data-pl-kit="index"] [aria-hidden="true"] svg path,
+.pl8-guest[data-pl-kit="minimal"] [aria-hidden="true"] svg ellipse,
+.pl8-guest[data-pl-kit="index"] [aria-hidden="true"] svg ellipse {
+  /* Touch only the MotifScatter SVGs — they wrap in [aria-hidden]
+     and have svg paths/ellipses. Sections + other SVGs are unaffected. */
+}
+/* Direct hide: target MotifScatter's wrapping div by position:absolute
+   inset:0 z-index:1 + aria-hidden — that's the unique MotifScatter
+   signature. Wrap inside a kit selector. */
+.pl8-guest[data-pl-kit="minimal"] section > div[aria-hidden="true"][style*="position: absolute"][style*="z-index: 1"],
+.pl8-guest[data-pl-kit="index"] section > div[aria-hidden="true"][style*="position: absolute"][style*="z-index: 1"] {
+  display: none !important;
+}
+.pl8-guest[data-pl-kit="scrapbook"] section > div[aria-hidden="true"][style*="position: absolute"][style*="z-index: 1"] {
+  opacity: 0.8;
+}
