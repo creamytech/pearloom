@@ -42,6 +42,7 @@ import type { StoryManifest } from '@/types';
 import { PanelSection } from '../atoms';
 import { paletteFromFile, type ExtractedPalette } from '@/lib/look-engine/palette-from-photo';
 import { generateLookFromStory, type SuggestedLook } from '@/lib/look-engine/generate-from-story';
+import { lookDefaultsFor } from '@/lib/event-os/event-types';
 
 type Density = NonNullable<StoryManifest['density']>;
 type VoiceOverride = NonNullable<StoryManifest['voiceOverride']>;
@@ -145,8 +146,15 @@ function textureLabel(t: NonNullable<StoryManifest['texture']>): string {
 }
 
 export function LookEnginePanel({ manifest, onChange }: Props) {
-  const density: Density = manifest.density ?? 'comfortable';
-  const intensity = manifest.textureIntensity ?? 1;
+  /* Per-event fallbacks for density + intensity. When the host
+     hasn't explicitly picked, these surface as the active value
+     in the UI (so the picker reflects what's actually rendering).
+     KitPicker uses the same fallback chain for the kit axis. */
+  const lookDefaults = lookDefaultsFor(manifest.occasion);
+  const explicitDensity = manifest.density;
+  const explicitIntensity = manifest.textureIntensity;
+  const density: Density = explicitDensity ?? lookDefaults.density;
+  const intensity = explicitIntensity ?? lookDefaults.textureIntensity;
   const voiceOverride = manifest.voiceOverride; // undefined = "match event"
   const texture = manifest.texture ?? 'smooth';
 

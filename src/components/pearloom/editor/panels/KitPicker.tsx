@@ -21,6 +21,7 @@
 
 import type { StoryManifest } from '@/types';
 import { PanelSection } from '../atoms';
+import { lookDefaultsFor } from '@/lib/event-os/event-types';
 
 type KitId = NonNullable<StoryManifest['kitId']>;
 
@@ -139,22 +140,70 @@ interface Props {
 }
 
 export function KitPicker({ manifest, onChange }: Props) {
-  const active: KitId = manifest.kitId ?? 'classic';
+  /* Three-state highlight:
+       - explicitPick: a kit the host explicitly chose (manifest.kitId)
+       - eventDefault: the kit the renderer falls back to when no
+         explicit pick exists (per lookDefaultsFor)
+       - active: whichever is being rendered RIGHT NOW
+     The active tile gets the dark-ink fill. The event-default tile
+     gets a small "Match event" peach pill when no explicit pick
+     exists so the host knows what they're actually getting. */
+  const explicitPick = manifest.kitId;
+  const eventDefault: KitId = lookDefaultsFor(manifest.occasion).kitId;
+  const active: KitId = explicitPick ?? eventDefault;
 
   function pick(id: KitId) {
-    if (id === active) return;
+    if (id === active && id === explicitPick) return;
     onChange({ ...manifest, kitId: id });
+  }
+  /* "Reset to match event" — clears the explicit pick so the
+     fallback kicks back in. Mirrors the LookEnginePanel's
+     "Match event" voice option but for kit. */
+  function resetToEventDefault() {
+    if (!explicitPick) return;
+    const next = { ...manifest } as StoryManifest;
+    delete (next as { kitId?: KitId }).kitId;
+    onChange(next);
   }
 
   return (
     <PanelSection
       label="Component kit"
-      hint="How cards, dividers, schedule & badges are drawn. Independent of Edition — try any combination."
+      hint={
+        explicitPick
+          ? `How cards, dividers, schedule & badges are drawn. Independent of Edition — try any combination.`
+          : `Matched to your event default (${eventDefault}). Pick any kit to override.`
+      }
       defaultOpen
     >
+      {explicitPick && (
+        <button
+          type="button"
+          onClick={resetToEventDefault}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            padding: '4px 10px',
+            borderRadius: 999,
+            background: 'var(--peach-bg, rgba(198,112,61,0.10))',
+            border: '1px solid rgba(198,112,61,0.28)',
+            fontSize: 11,
+            fontWeight: 600,
+            color: 'var(--peach-ink, #A14A2C)',
+            cursor: 'pointer',
+            marginBottom: 10,
+          }}
+          title={`Drop the explicit kit pick so this event's default (${eventDefault}) applies again.`}
+        >
+          <span aria-hidden>↺</span>
+          Match event ({eventDefault})
+        </button>
+      )}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
         {KITS.map((k) => {
           const on = active === k.id;
+          const isEventDefault = k.id === eventDefault && !explicitPick;
           const Preview = k.Preview;
           return (
             <button
@@ -187,9 +236,32 @@ export function KitPicker({ manifest, onChange }: Props) {
                   overflow: 'hidden',
                   border: '1px solid var(--line-soft, rgba(14,13,11,0.06))',
                   background: 'var(--cream-2, #EBE3D2)',
+                  position: 'relative',
                 }}
               >
                 <Preview />
+                {isEventDefault && (
+                  <span
+                    aria-hidden
+                    style={{
+                      position: 'absolute',
+                      top: 4,
+                      right: 4,
+                      padding: '1px 6px',
+                      borderRadius: 999,
+                      background: 'var(--peach-bg, rgba(198,112,61,0.18))',
+                      color: 'var(--peach-ink, #A14A2C)',
+                      fontSize: 8.5,
+                      fontWeight: 700,
+                      letterSpacing: '0.04em',
+                      textTransform: 'uppercase',
+                      lineHeight: 1.2,
+                    }}
+                    title="This event's default kit — applied automatically until you pick another."
+                  >
+                    ★ Match
+                  </span>
+                )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <span
