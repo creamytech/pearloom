@@ -184,6 +184,14 @@ export function useStudioState(args: {
    *  triggers the browser's native confirmation when this is
    *  true. */
   const dirty = useRef<boolean>(false);
+  /** First-render gate. The autosave effect runs once on mount
+   *  with the just-loaded state — those values came from the
+   *  manifest we just read, so persisting them is a no-op DB
+   *  write. Skipping the first run avoids that AND eliminates a
+   *  race in the e2e suite where the mount-time save could land
+   *  before the host's first edit, capturing the default
+   *  manifest slice instead of the edited one. */
+  const hasMounted = useRef<boolean>(false);
 
   const setField: SetStudioField = useCallback((key, value) => {
     setState(prev => ({ ...prev, [key]: value }));
@@ -250,6 +258,14 @@ export function useStudioState(args: {
     } as unknown as StoryManifest;
     const payload = JSON.stringify({ subdomain: args.siteSlug, manifest: nextManifest });
     pendingPayload.current = payload;
+    // First-render call captures the just-loaded state. There's
+    // nothing to save — those values came out of the manifest we
+    // just read. Skip the timer + dirty flag; subsequent renders
+    // (real edits) take the normal path.
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
     dirty.current = true;
     if (flushTimer.current) clearTimeout(flushTimer.current);
     flushTimer.current = setTimeout(() => { void flushNow(); }, 1500);
