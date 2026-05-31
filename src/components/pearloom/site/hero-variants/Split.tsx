@@ -11,11 +11,11 @@ import { PhotoDropTarget } from '@/components/pearloom/editor/canvas/PhotoDropTa
 import { PhotoPlaceholder } from '@/components/pearloom/motifs';
 import {
   HeroKicker, HeroNames, HeroDateVenue, HeroTagline,
-  HeroPrimaryCta, HeroLinkTray,
+  HeroPrimaryCta,
 } from './parts';
 import type { HeroVariantProps } from './types';
 
-export function HeroSplit({ manifest, names, siteSlug, onEditField, onEditNames, context }: HeroVariantProps) {
+export function HeroSplit({ manifest, names: _names, siteSlug: _siteSlug, onEditField, onEditNames, context }: HeroVariantProps) {
   const { n1, n2, dateInfo, venue, deadlineStr, coverPhoto, photos } = context;
   const photoSrc = coverPhoto ?? photos[0];
 
@@ -69,11 +69,37 @@ export function HeroSplit({ manifest, names, siteSlug, onEditField, onEditNames,
         <div style={{ textAlign: 'left' }}>
           <HeroTagline manifest={manifest} onEditField={onEditField} />
         </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+        {/* CTAs — prototype primary + outline, left-aligned in
+            this split layout. */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            gap: 10,
+            marginTop: 22,
+            flexWrap: 'wrap',
+          }}
+        >
           <HeroPrimaryCta deadlineStr={deadlineStr} />
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-          <HeroLinkTray siteSlug={siteSlug} manifest={manifest} names={names} />
+          <a
+            href="#our-story"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '12px 20px',
+              borderRadius: 'var(--pl-card-radius, 999px)',
+              background: 'var(--card, transparent)',
+              border: '1px solid var(--line, rgba(14,13,11,0.16))',
+              color: 'var(--ink)',
+              fontSize: 13,
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            Learn more
+          </a>
         </div>
       </div>
 

@@ -12,11 +12,11 @@ import { PhotoActionMenu } from '@/components/pearloom/editor/canvas/PhotoAction
 import { PhotoPlaceholder } from '@/components/pearloom/motifs';
 import {
   HeroKicker, HeroNames, HeroDateVenue, HeroTagline,
-  HeroPrimaryCta, HeroLinkTray,
+  HeroPrimaryCta,
 } from './parts';
 import type { HeroVariantProps } from './types';
 
-export function HeroPhotoFirst({ manifest, names, siteSlug, onEditField, onEditNames, context }: HeroVariantProps) {
+export function HeroPhotoFirst({ manifest, names: _names, siteSlug: _siteSlug, onEditField, onEditNames, context }: HeroVariantProps) {
   const { n1, n2, dateInfo, venue, deadlineStr, coverPhoto, photos } = context;
   const photoSrc = coverPhoto ?? photos[0];
   const focalPoint =
@@ -104,8 +104,42 @@ export function HeroPhotoFirst({ manifest, names, siteSlug, onEditField, onEditN
             onEditField={onEditField}
           />
           <HeroTagline manifest={manifest} onEditField={onEditField} color="rgba(251, 247, 238, 0.88)" />
-          <HeroPrimaryCta deadlineStr={deadlineStr} />
-          <HeroLinkTray siteSlug={siteSlug} manifest={manifest} names={names} />
+          {/* CTAs — prototype primary+outline pattern. Drops the
+              3-link tray for the cleaner two-button row matching
+              the prototype's HeroBlock. Outline button is
+              cream-on-transparent so it reads against the dark
+              gradient scrim. */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: 10,
+              marginTop: 22,
+              flexWrap: 'wrap',
+            }}
+          >
+            <HeroPrimaryCta deadlineStr={deadlineStr} />
+            <a
+              href="#our-story"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '12px 20px',
+                borderRadius: 'var(--pl-card-radius, 999px)',
+                background: 'transparent',
+                border: '1px solid rgba(251,247,238,0.45)',
+                color: 'var(--cream, #FBF7EE)',
+                fontSize: 13,
+                fontWeight: 600,
+                textDecoration: 'none',
+                transition: 'background 200ms ease, border-color 200ms ease',
+              }}
+            >
+              Learn more
+            </a>
+          </div>
         </div>
       </div>
     </div>
