@@ -15,7 +15,8 @@ import { Reveal } from '../motion';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { parseLocalDate } from '@/lib/date-utils';
 import { TEMPLATES_BY_ID } from '../marketplace/templates-data';
-import { EVENT_TYPES, getEventType, type EventCategory } from '@/lib/event-os/event-types';
+import { EVENT_TYPES, getEventType, recommendTextureFor, lookDefaultsFor, type EventCategory } from '@/lib/event-os/event-types';
+import { recommendEdition } from '@/lib/site-editions/resolve';
 import { nameModeFor, nameModeIsValid } from '@/lib/event-os/name-mode';
 import { questionsFor } from '@/lib/event-os/wizard-questions';
 import { NumberInput } from '../editor/v8-forms';
@@ -2541,6 +2542,103 @@ export function WizardV8() {
                       )}
                     />
                   </div>
+
+                  {/* Pear's first-draft Look preview — surfaces the per-event
+                      defaults the renderer will fall back to (edition / kit /
+                      texture / density / voice). Lets the host see what Pear
+                      will pick BEFORE the editor opens, and quietly introduces
+                      the Look Engine concept (every value here has a dial in
+                      the editor's Theme panel). Live-computed from the host's
+                      occasion + voice; no manifest writes. */}
+                  {st.occasion && (() => {
+                    const eventType = getEventType(st.occasion as never);
+                    const voice = eventType?.voice;
+                    const occ = st.occasion as never;
+                    const ed = recommendEdition(occ, voice);
+                    const tex = recommendTextureFor(st.occasion);
+                    const ld = lookDefaultsFor(st.occasion);
+                    const editionLabel = ed.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+                    const items = [
+                      { label: 'Edition', val: editionLabel },
+                      { label: 'Texture', val: tex.charAt(0).toUpperCase() + tex.slice(1) },
+                      { label: 'Kit',     val: ld.kitId.charAt(0).toUpperCase() + ld.kitId.slice(1) },
+                      { label: 'Spacing', val: ld.density.charAt(0).toUpperCase() + ld.density.slice(1) },
+                      { label: 'Voice',   val: voice ? voice.charAt(0).toUpperCase() + voice.slice(1) : 'Celebratory' },
+                    ];
+                    return (
+                      <div
+                        style={{
+                          marginTop: 18,
+                          padding: 16,
+                          borderRadius: 14,
+                          background: 'var(--cream-2)',
+                          border: '1px solid var(--line-soft)',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                            marginBottom: 10,
+                          }}
+                        >
+                          <Pear size={22} tone="sage" sparkle shadow={false} />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>
+                              Pear&apos;s first draft of your look
+                            </div>
+                            <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 1 }}>
+                              Tuned to your event. Every dial is editable in the Theme panel.
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
+                            gap: 8,
+                          }}
+                        >
+                          {items.map((it) => (
+                            <div
+                              key={it.label}
+                              style={{
+                                padding: '8px 10px',
+                                background: 'var(--card)',
+                                borderRadius: 8,
+                                border: '1px solid var(--line-soft)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 1,
+                              }}
+                            >
+                              <span
+                                style={{
+                                  fontSize: 9,
+                                  fontWeight: 700,
+                                  letterSpacing: '0.06em',
+                                  textTransform: 'uppercase',
+                                  color: 'var(--ink-muted)',
+                                }}
+                              >
+                                {it.label}
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: 12.5,
+                                  fontWeight: 600,
+                                  color: 'var(--ink)',
+                                }}
+                              >
+                                {it.val}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Let Pear draft a tagline */}
                   <div
