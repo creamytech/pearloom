@@ -8118,11 +8118,16 @@ export function SiteV8Renderer({
   // Global card + photo radius. SpacingPanel writes these to
   // manifest.theme.{cardRadius,photoRadius}; we mirror them as
   // CSS vars on the site root so every card surface that opts
-  // into var(--pl-card-radius, …) follows the host's pick. The
-  // fallback (14 / 18) matches the v8 default ("rounded").
+  // into var(--pl-card-radius, …) follows the host's pick.
+  //
+  // Fallback chain (mirrors colors/fonts):
+  //   manifest.theme.cardRadius (host pick — wins)
+  //   → active Edition's recommendedTheme.cardRadius
+  //   → undefined (no var emission; v8 default in CSS wins)
   const themeRadius = (manifest as unknown as { theme?: { cardRadius?: string; photoRadius?: string } }).theme;
+  const effectiveCardRadiusToken = themeRadius?.cardRadius ?? editionRecommended?.cardRadius;
   const cardRadiusPx = (() => {
-    switch (themeRadius?.cardRadius) {
+    switch (effectiveCardRadiusToken) {
       case 'sharp': return 0;
       case 'soft': return 6;
       case 'pillow': return 24;
