@@ -14,6 +14,9 @@
 //   • Legibility note — WCAG contrast ratio of the active
 //     palette's ink-on-paper, plus a "Soften" button when
 //     intensity > 1.1 (port of LegibilityNote from themes.jsx).
+//   • Saved looks — 6-slot localStorage of edition+texture+density
+//     +intensity+voice combos. Click a chip to re-apply, × to
+//     remove. Port of SavedLooks from themes.jsx.
 //   • Matching Save-the-Date CTA — dark ink card linking to
 //     Pearloom Studio (the stationery editor at /dashboard/invite
 //     per CLAUDE.md).
@@ -22,13 +25,54 @@
 //   manifest.density           ('cozy' | 'comfortable' | 'spacious')
 //   manifest.textureIntensity  (0–1.5, default 1)
 //   manifest.voiceOverride     ('classic' | 'playful' | 'poetic' | undefined)
+//   manifest.edition           (read — for the Saved Looks swatch identity)
+//   manifest.texture           (read — for the Saved Looks swatch identity)
 // ─────────────────────────────────────────────────────────────
 
+import { useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { PanelSection } from '../atoms';
 
 type Density = NonNullable<StoryManifest['density']>;
 type VoiceOverride = NonNullable<StoryManifest['voiceOverride']>;
+type EditionId = NonNullable<StoryManifest['edition']>;
+type TextureId = NonNullable<StoryManifest['texture']>;
+
+/* A saved look — what gets stashed in localStorage. Same shape as
+   the prototype's SavedLooks current arg but using Pearloom's
+   axis names (edition/texture not theme/kit). */
+interface SavedLook {
+  edition?: EditionId;
+  texture?: TextureId;
+  density: Density;
+  textureIntensity: number;
+  voiceOverride?: VoiceOverride;
+}
+
+/* localStorage key — prototype uses 'pl-looks'; keep it so any
+   hosts who saved looks in the prototype get them surfaced here. */
+const LOOKS_KEY = 'pl-looks';
+const MAX_LOOKS = 6;
+
+/* Swatch background mix — picks a representative color pair for
+   the look chip. Edition drives one half, texture the other so
+   each saved look reads visually distinct. Falls back to cream
+   when fields are unset. */
+const EDITION_TINT: Record<EditionId, string> = {
+  almanac: '#5C6B3F',
+  cinema: '#0E0D0B',
+  'postcard-box': '#C49A6F',
+  'linen-folder': '#B8935A',
+  quiet: '#F5EFE2',
+};
+const TEXTURE_TINT: Record<TextureId, string> = {
+  smooth: '#FBF7EE',
+  watercolor: '#E8C8B4',
+  linen: '#D8CFB8',
+  letterpress: '#F2EAD6',
+  vellum: '#F4E9C8',
+  newsprint: '#E5DBC2',
+};
 
 interface Props {
   manifest: StoryManifest;
@@ -95,6 +139,54 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
   const intensity = manifest.textureIntensity ?? 1;
   const voiceOverride = manifest.voiceOverride; // undefined = "match event"
   const texture = manifest.texture ?? 'smooth';
+
+  /* Saved looks — hydrated from localStorage on mount. SSR-safe:
+     read inside an effect, never during render. Caps at 6 entries
+     to match the prototype's slice(-6). */
+  const [looks, setLooks] = useState<SavedLook[]>([]);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(LOOKS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) setLooks(parsed.slice(0, MAX_LOOKS));
+      }
+    } catch {
+      /* localStorage disabled / corrupted JSON — start fresh, no
+         user-facing failure mode. */
+    }
+  }, []);
+  function persistLooks(next: SavedLook[]) {
+    setLooks(next);
+    try {
+      localStorage.setItem(LOOKS_KEY, JSON.stringify(next));
+    } catch {
+      /* Quota / disabled — fail silent. */
+    }
+  }
+  function saveCurrent() {
+    const snapshot: SavedLook = {
+      edition: manifest.edition,
+      texture: manifest.texture,
+      density,
+      textureIntensity: intensity,
+      voiceOverride: manifest.voiceOverride,
+    };
+    persistLooks([...looks, snapshot].slice(-MAX_LOOKS));
+  }
+  function applyLook(lk: SavedLook) {
+    onChange({
+      ...manifest,
+      edition: lk.edition ?? manifest.edition,
+      texture: lk.texture ?? manifest.texture,
+      density: lk.density,
+      textureIntensity: lk.textureIntensity,
+      voiceOverride: lk.voiceOverride,
+    });
+  }
+  function removeLook(idx: number) {
+    persistLooks(looks.filter((_, i) => i !== idx));
+  }
 
   /* Active palette ink + paper for contrast check. Reads from
      manifest.theme.colors (the canonical location per
@@ -310,6 +402,144 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
               >
                 Soften
               </button>
+            </div>
+          )}
+        </div>
+
+        {/* SAVED LOOKS — 6-slot localStorage. Same shape + cap as the
+            prototype's SavedLooks (themes.jsx ~line 765). */}
+        <div
+          style={{
+            borderTop: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+            paddingTop: 14,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 9,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'var(--ink-muted, #6F6557)',
+              }}
+            >
+              Saved looks
+            </span>
+            <button
+              type="button"
+              onClick={saveCurrent}
+              disabled={looks.length >= MAX_LOOKS}
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: looks.length >= MAX_LOOKS ? 'var(--ink-muted, #6F6557)' : 'var(--ink, #0E0D0B)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                background: 'transparent',
+                border: 'none',
+                cursor: looks.length >= MAX_LOOKS ? 'not-allowed' : 'pointer',
+                padding: 0,
+              }}
+              title={
+                looks.length >= MAX_LOOKS
+                  ? `Max ${MAX_LOOKS} looks — remove one to save another`
+                  : 'Save the current dial settings'
+              }
+            >
+              + Save current
+            </button>
+          </div>
+          {looks.length === 0 ? (
+            <div style={{ fontSize: 11, color: 'var(--ink-muted, #6F6557)' }}>
+              Save a combo you love to revisit it later.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+              {looks.map((lk, i) => {
+                const editionColor = lk.edition ? EDITION_TINT[lk.edition] : '#5C6B3F';
+                const textureColor = lk.texture ? TEXTURE_TINT[lk.texture] : '#F5EFE2';
+                const title = [
+                  lk.edition ?? 'edition?',
+                  lk.texture ?? 'smooth',
+                  lk.density,
+                  `${(lk.textureIntensity ?? 1).toFixed(2)}×`,
+                  lk.voiceOverride ?? 'match-event',
+                ].join(' · ');
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => applyLook(lk)}
+                    title={title}
+                    style={{
+                      position: 'relative',
+                      width: 40,
+                      height: 40,
+                      borderRadius: 9,
+                      overflow: 'hidden',
+                      border: '1px solid var(--line, rgba(14,13,11,0.14))',
+                      background: textureColor,
+                      cursor: 'pointer',
+                      padding: 0,
+                      transition: 'transform 140ms ease',
+                    }}
+                  >
+                    {/* Diagonal split — texture color on top-right,
+                        edition color on bottom-left. Makes each chip
+                        visually distinct without needing thumbnails. */}
+                    <span
+                      aria-hidden
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: `linear-gradient(135deg, ${editionColor} 0 50%, ${textureColor} 50% 100%)`,
+                      }}
+                    />
+                    <span
+                      role="button"
+                      aria-label="Remove this saved look"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeLook(i);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.stopPropagation();
+                          removeLook(i);
+                        }
+                      }}
+                      style={{
+                        position: 'absolute',
+                        top: -3,
+                        right: -3,
+                        width: 16,
+                        height: 16,
+                        borderRadius: '50%',
+                        background: 'var(--ink, #0E0D0B)',
+                        color: 'var(--cream, #F5EFE2)',
+                        fontSize: 10,
+                        display: 'grid',
+                        placeItems: 'center',
+                        zIndex: 2,
+                        cursor: 'pointer',
+                        lineHeight: 1,
+                      }}
+                    >
+                      ×
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
