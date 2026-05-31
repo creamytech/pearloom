@@ -569,6 +569,26 @@ export interface StoryManifest {
    *  Editions are READ-TIME defaults, never written back.
    *  See src/lib/site-editions/. */
   edition?: 'almanac' | 'cinema' | 'postcard-box' | 'linen-folder' | 'quiet';
+  /** Texture intensity — multiplier applied to the texture grain
+   *  overlay opacity. 0 = no grain (smooth even when a material is
+   *  picked), 1 = default, up to 1.5 = exaggerated. Lets hosts
+   *  dial back the texture if their photos clash with the grain or
+   *  they want a quieter material feel without losing the palette
+   *  + edge treatments. Bound to CSS var --pl-texture-intensity. */
+  textureIntensity?: number;
+  /** Density — controls section padding (vertical rhythm) across
+   *  the whole site. 'cozy' compresses, 'spacious' opens, default
+   *  'comfortable' matches existing layouts. Bound to CSS var
+   *  --pl-density-scale on the .pl8-guest root. */
+  density?: 'cozy' | 'comfortable' | 'spacious';
+  /** Voice override — manually overrides the AI-drafting voice that
+   *  the event type defaults to. When unset, the renderer + AI pipes
+   *  read EVENT_TYPES[occasion].voice. Use 'classic' | 'playful' |
+   *  'poetic' from the prototype's three-voice system; mapped to
+   *  Pearloom's 5-voice EVENT_TYPES vocabulary inside the AI passes.
+   *  Per the Editor Redesign brief §5: hosts should be able to set
+   *  voice independent of event type. */
+  voiceOverride?: 'classic' | 'playful' | 'poetic';
   /** Toggles for the public RSVP form. Both default ON if absent
    *  (legacy behaviour). plusOnes hides the "+1?" field on the
    *  passport invite link; songRequests hides the SongCard on

@@ -4055,7 +4055,7 @@ html { scroll-behavior: smooth; }
    so the fibers look damp. */
 .pl8-guest[data-pl-texture="watercolor"]::before {
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'%3E%3Cfilter id='wc' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='4' seed='3' stitchTiles='stitch'/%3E%3CfeDiffuseLighting surfaceScale='2.4' diffuseConstant='1.2' lighting-color='%23F5E0CC'%3E%3CfeDistantLight azimuth='45' elevation='62'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix values='1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23wc)'/%3E%3C/svg%3E");
-  opacity: 0.42;
+  opacity: calc(0.42 * var(--pl-texture-intensity, 1));
 }
 
 /* LINEN — tight fiber weave. Directional baseFrequency (X high,
@@ -4063,7 +4063,7 @@ html { scroll-behavior: smooth; }
    feColorMatrix multiplies down to dark threads. */
 .pl8-guest[data-pl-texture="linen"]::before {
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'%3E%3Cfilter id='ln'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95 0.15' numOctaves='2' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.30 0 0 0 0 0.27 0 0 0 0 0.21 0 0 0 0.72 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23ln)'/%3E%3C/svg%3E");
-  opacity: 0.34;
+  opacity: calc(0.34 * var(--pl-texture-intensity, 1));
 }
 
 /* LETTERPRESS — smooth pressed bond paper. Higher baseFrequency =
@@ -4071,7 +4071,7 @@ html { scroll-behavior: smooth; }
    embossed press marks. */
 .pl8-guest[data-pl-texture="letterpress"]::before {
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Cfilter id='lp'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='3' seed='7' stitchTiles='stitch'/%3E%3CfeDiffuseLighting surfaceScale='1.4' diffuseConstant='1.1' lighting-color='%23F8F1E2'%3E%3CfeDistantLight azimuth='135' elevation='38'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix values='1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.42 0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23lp)'/%3E%3C/svg%3E");
-  opacity: 0.30;
+  opacity: calc(0.30 * var(--pl-texture-intensity, 1));
 }
 
 /* VELLUM — uneven amber translucent. Very low baseFrequency for
@@ -4082,7 +4082,7 @@ html { scroll-behavior: smooth; }
    the warm-amber work; this noise just adds fiber unevenness. */
 .pl8-guest[data-pl-texture="vellum"]::before {
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 280'%3E%3Cfilter id='vl'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.018' numOctaves='3' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.78 0 0 0 0 0.62 0 0 0 0 0.32 0 0 0 0.30 0'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23vl)'/%3E%3C/svg%3E");
-  opacity: 0.22;
+  opacity: calc(0.22 * var(--pl-texture-intensity, 1));
   mix-blend-mode: multiply;
 }
 
@@ -4092,7 +4092,7 @@ html { scroll-behavior: smooth; }
    opacity 0.38 → 0.18 so it doesn't fight the halftone. */
 .pl8-guest[data-pl-texture="newsprint"]::before {
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='np'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.58' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.18 0 0 0 0 0.15 0 0 0 0 0.10 0 0 0 0.42 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23np)'/%3E%3C/svg%3E");
-  opacity: 0.18;
+  opacity: calc(0.18 * var(--pl-texture-intensity, 1));
 }
 /* The grain stacks at z-index 1; force the site root to a stacking
    context so content sits on top, and bump z-index on the nav so
@@ -4337,7 +4337,7 @@ html { scroll-behavior: smooth; }
     radial-gradient(closest-side at 50% 50%, #000 80%, #FFF) 2px 2px / 4px 4px;
   filter: contrast(20);
   mix-blend-mode: multiply;
-  opacity: 0.35;
+  opacity: calc(0.35 * var(--pl-texture-intensity, 1));
 }
 .pl8-guest[data-pl-texture="newsprint"] section h1,
 .pl8-guest[data-pl-texture="newsprint"] section h2,
@@ -4501,4 +4501,29 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-texture="vellum"] *,
 .pl8-guest[data-pl-texture="newsprint"] * {
   transition-duration: 80ms !important;
+}
+
+/* ─────────────────────────────────────────────────────────
+   Density — per the Editor Redesign brief §1 (SiteLook.density).
+   Inline section padding is set by individual section components
+   in React (clamp() values), so CSS can't simply rewrite it. Two
+   approaches stack here to make density visibly shift vertical
+   rhythm without touching every section component:
+
+   1. margin-block on each section[id] — adds or removes gap
+      BETWEEN sections without fighting their inner padding.
+   2. --pl-density-scale CSS var on the root — sections that want
+      to participate can read it via React inline style:
+        padding: calc(40px * var(--pl-density-scale, 1)) 32px
+      Existing sections that don't read it stay put.
+
+   Result: cozy compresses the page by tightening section gaps,
+   spacious opens it up by adding 24px on top + bottom of every
+   section. Comfortable is the no-op default (margin 0).
+   ───────────────────────────────────────────────────────── */
+.pl8-guest[data-pl-density="cozy"] section[id]:not(#top) {
+  margin-block: -14px;
+}
+.pl8-guest[data-pl-density="spacious"] section[id]:not(#top) {
+  margin-block: 24px;
 }

@@ -8142,10 +8142,25 @@ export function SiteV8Renderer({
   // explicitly, that pick is what's stored on the manifest.
   const activeTexture =
     manifest.texture ?? recommendTextureFor(manifest.occasion ?? 'wedding');
+  // Density — section padding multiplier from the Editor Redesign
+  // brief §1 (SiteLook.density). Bound to --pl-density-scale on the
+  // root so per-section CSS can multiply its padding by it.
+  // cozy 0.7 / comfortable 1 / spacious 1.3 mirrors the prototype's
+  // padScale math (editor-redesign.jsx line ~232).
+  const activeDensity = manifest.density ?? 'comfortable';
+  const densityScale = { cozy: 0.7, comfortable: 1, spacious: 1.3 }[activeDensity];
+  // Texture intensity — 0–1.5 multiplier on the texture grain
+  // overlays. Default 1 keeps the rebuild from this morning intact;
+  // 0 fully suppresses grain (cards/edges still get the material
+  // treatment), 1.5 exaggerates. Bound to --pl-texture-intensity.
+  const activeTextureIntensity = manifest.textureIntensity ?? 1;
+  const lookEngineVars: React.CSSProperties = {};
+  (lookEngineVars as Record<string, string>)['--pl-density-scale'] = String(densityScale);
+  (lookEngineVars as Record<string, string>)['--pl-texture-intensity'] = String(activeTextureIntensity);
 
   return (
     <EditorCanvasProvider value={canvasCtxValue}>
-      <div className="pl8-guest" data-pl-edition={activeEdition.id} data-pl-texture={activeTexture} data-pl-edit-mode={editMode ? 'true' : undefined} style={{ ...themeStyle, ...radiusVars }}>
+      <div className="pl8-guest" data-pl-edition={activeEdition.id} data-pl-texture={activeTexture} data-pl-density={activeDensity} data-pl-edit-mode={editMode ? 'true' : undefined} style={{ ...themeStyle, ...radiusVars, ...lookEngineVars }}>
         {/* SVG filter defs for the texture system. Mounts an invisible
             <svg><defs><filter id="wc-card-edge"></filter></defs></svg>
             block so CSS `filter: url(#wc-card-edge)` declarations on

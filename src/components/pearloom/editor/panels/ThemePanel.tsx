@@ -16,6 +16,7 @@ import { SpacingPanel } from './SpacingPanel';
 import { SnapshotsPanel } from './SnapshotsPanel';
 import { EditionPicker } from './EditionPicker';
 import { TexturePicker } from './TexturePicker';
+import { LookEnginePanel } from './LookEnginePanel';
 import {
   DecorPromptComposer,
   DecorAlternatesStrip,
@@ -276,6 +277,15 @@ export function ThemePanel({
       </div>
       <div data-pl-design-anchor="texture">
         <TexturePicker manifest={manifest} onChange={onChange} />
+      </div>
+
+      {/* Look Engine — fine-tune dials below the persona pickers.
+          Ports the prototype's right-rail Fine-tune block (voice,
+          spacing, texture intensity, legibility note, matching
+          stationery CTA). Sits right after Edition + Texture
+          because those are the two persona dials this fine-tunes. */}
+      <div data-pl-design-anchor="look-engine">
+        <LookEnginePanel manifest={manifest} onChange={onChange} />
       </div>
 
       {/* "Look" cluster — palette + type + colors + motif + hero
