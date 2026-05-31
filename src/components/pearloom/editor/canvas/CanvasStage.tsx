@@ -218,11 +218,16 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
           padding: 'clamp(16px, 3vw, 32px) clamp(16px, 3vw, 32px) clamp(48px, 8vw, 96px)',
           // Warm dark slate so the device viewport reads as a real
           // object on a workbench instead of floating in cream space.
-          // Dotted-grid texture is layered on top via a fine repeating
-          // radial-gradient at low alpha — quiet but tangible.
+          // Three stacked layers per BRAND.md §3 ("paper texture under
+          // everything"):
+          //  1. fine SVG paper-grain noise overlay (warm cream specks
+          //     at ~6% opacity) — adds material identity to the chrome
+          //     so the workbench reads as warm dark linen, not OLED.
+          //  2. dotted-grid texture (existing) — quiet rhythm.
+          //  3. linear gradient base — top-down warm darkening.
           background:
-            'radial-gradient(rgba(251,247,238,0.06) 1px, transparent 1px) 0 0 / 18px 18px, linear-gradient(180deg, #1c1a16 0%, #15130f 100%)',
-          backgroundAttachment: 'local, local',
+            "url(\"data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='gn'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.96 0 0 0 0 0.90 0 0 0 0 0.78 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23gn)'/%3E%3C/svg%3E\"), radial-gradient(rgba(251,247,238,0.06) 1px, transparent 1px) 0 0 / 18px 18px, linear-gradient(180deg, #1c1a16 0%, #15130f 100%)",
+          backgroundAttachment: 'local, local, local',
           display: 'grid',
           placeItems: 'start center',
         }}

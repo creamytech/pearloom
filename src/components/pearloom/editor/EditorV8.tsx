@@ -2733,15 +2733,23 @@ function Outline({
           className="pl-tab-content"
           style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
         >
-      {/* Site identity — names + URL above the progress thread.
-          Reads like the title page of the editor, not just chrome. */}
+      {/* Site identity card — names + URL + completion progress, all
+          wrapped in a single bordered card at the top of the rail.
+          Ports the prototype's "site card" pattern (editor-redesign.jsx
+          SectionRail, ~line 197). Per BRAND.md §9 the editor stays
+          paper, not glass — `var(--card)` reads as a printed name plate
+          on the rail rather than a chrome panel. */}
       {(names[0] || displayUrl) && (
         <div
           style={{
+            padding: 12,
+            margin: '0 4px',
+            background: 'var(--card)',
+            border: '1px solid var(--line-soft)',
+            borderRadius: 12,
             display: 'flex',
             flexDirection: 'column',
-            gap: 2,
-            padding: '0 12px 6px',
+            gap: 8,
             minWidth: 0,
           }}
         >
@@ -2749,8 +2757,8 @@ function Outline({
             <div
               className="display"
               style={{
-                fontSize: 16,
-                fontWeight: 500,
+                fontSize: 14.5,
+                fontWeight: 600,
                 lineHeight: 1.15,
                 letterSpacing: '-0.01em',
                 color: 'var(--ink)',
@@ -2765,87 +2773,104 @@ function Outline({
           {displayUrl && (
             <div
               style={{
-                fontSize: 11,
+                fontSize: 10.5,
                 color: 'var(--ink-muted)',
                 fontFamily: 'var(--font-ui)',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
               }}
             >
+              <span aria-hidden style={{ fontSize: 9, opacity: 0.7 }}>◯</span>
               {displayUrl}
             </div>
           )}
-        </div>
-      )}
-      {/* Site-progress thread — a calm olive bar that answers
-          "how done is my site?" at a glance. Idle hosts read this
-          before they read the section list. Olive when things are
-          progressing, peach when nearly done so the colour shift
-          rewards the home stretch. */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 6,
-          padding: '0 12px 4px',
-          borderBottom: '1px solid var(--line-soft)',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'baseline',
-            gap: 8,
-          }}
-        >
-          <span
+          {/* Progress sliver — same value as the bar below; this is a
+              tiny preview inside the site card so the host sees
+              "done-ness" without scrolling past the section list. */}
+          <div
             style={{
-              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-              fontStyle: 'italic',
-              fontSize: 13,
-              color: 'var(--ink)',
-              letterSpacing: '-0.005em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              marginTop: 2,
             }}
           >
-            {progressLabel}
-          </span>
+            <div
+              style={{
+                flex: 1,
+                height: 4,
+                background: 'var(--cream-2)',
+                borderRadius: 999,
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  width: `${progressPct}%`,
+                  height: '100%',
+                  background:
+                    progressPct >= 60 ? 'var(--peach-ink, #A14A2C)' : 'var(--sage, #5C6B3F)',
+                  transition: 'width 320ms cubic-bezier(0.22, 1, 0.36, 1)',
+                }}
+              />
+            </div>
+            <span
+              style={{
+                fontSize: 10,
+                color: 'var(--ink-muted)',
+                fontWeight: 600,
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {progressPct}%
+            </span>
+          </div>
+        </div>
+      )}
+      {/* Editorial progress label — italic Fraunces line that names
+          the state ("Just started" / "Underway" / "Coming together"
+          / "Ready to publish"). The numeric % + bar moved up into
+          the site identity card; this is the character-rich
+          companion line below it. */}
+      <div
+        style={{
+          padding: '0 12px 8px',
+          borderBottom: '1px solid var(--line-soft)',
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          gap: 8,
+        }}
+      >
+        <span
+          style={{
+            fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+            fontStyle: 'italic',
+            fontSize: 12.5,
+            color: 'var(--ink)',
+            letterSpacing: '-0.005em',
+          }}
+        >
+          {progressLabel}
+        </span>
+        {progressPct >= 95 && (
           <span
             style={{
               fontFamily: 'var(--font-ui)',
-              fontSize: 10.5,
+              fontSize: 9.5,
               fontWeight: 700,
-              letterSpacing: '0.04em',
-              color: progressPct >= 95 ? 'var(--peach-ink, #C6703D)' : 'var(--ink-muted)',
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              color: 'var(--peach-ink, #C6703D)',
             }}
           >
-            {progressPct}%
+            Press it ↗
           </span>
-        </div>
-        <div
-          aria-hidden
-          style={{
-            position: 'relative',
-            height: 3,
-            borderRadius: 999,
-            background: 'rgba(14,13,11,0.06)',
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              right: `${100 - Math.max(2, Math.min(100, progressPct))}%`,
-              background: progressPct >= 95
-                ? 'linear-gradient(90deg, var(--sage-deep, #5C6B3F), var(--peach-ink, #C6703D))'
-                : 'var(--sage-deep, #5C6B3F)',
-              transition: 'right 360ms cubic-bezier(0.22, 1, 0.36, 1), background 240ms ease',
-              borderRadius: 999,
-            }}
-          />
-        </div>
+        )}
       </div>
 
       {/* Identity group — Hero is structurally pinned at the top
