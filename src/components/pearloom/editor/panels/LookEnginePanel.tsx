@@ -292,6 +292,73 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
     'Tuscan vineyard, lemons, romantic',
   ];
 
+  /* Shuffle — random dial pull across edition / texture / kit /
+     density / textureIntensity / voiceOverride. Port of the
+     prototype's shuffleLook() (editor-redesign.jsx ~line 1230).
+     Skips somber occasions (memorial / funeral) since shuffling
+     to "playful" or "newsprint" would break their tone — those
+     hosts stay on their event-shaped defaults.
+
+     Uses a closed list of intensity steps (not a continuous 0–1.5
+     range) so shuffle results read as deliberate picks rather
+     than arbitrary decimals — matches the prototype's
+     `pick([0.6, 1, 1.3])`. */
+  const SOMBER_OCCASIONS: ReadonlySet<string> = new Set(['memorial', 'funeral']);
+  function shuffleLook() {
+    const occ = manifest.occasion ?? '';
+    if (SOMBER_OCCASIONS.has(occ)) {
+      setLastRationale('Shuffle skipped — somber occasions stay on their event defaults.');
+      return;
+    }
+    const pick = <T,>(arr: readonly T[]): T => arr[Math.floor(Math.random() * arr.length)];
+    const editions: Array<NonNullable<StoryManifest['edition']>> = [
+      'almanac',
+      'cinema',
+      'postcard-box',
+      'linen-folder',
+      'quiet',
+    ];
+    const textures: Array<NonNullable<StoryManifest['texture']>> = [
+      'smooth',
+      'watercolor',
+      'linen',
+      'letterpress',
+      'vellum',
+      'newsprint',
+    ];
+    const kits: Array<NonNullable<StoryManifest['kitId']>> = [
+      'classic',
+      'ticket',
+      'plate',
+      'scrapbook',
+      'index',
+      'minimal',
+    ];
+    const densities: Array<NonNullable<StoryManifest['density']>> = [
+      'cozy',
+      'comfortable',
+      'spacious',
+    ];
+    const intensitySteps = [0.6, 1, 1.3];
+    const voices: Array<NonNullable<StoryManifest['voiceOverride']>> = [
+      'classic',
+      'playful',
+      'poetic',
+    ];
+    const next: Partial<StoryManifest> = {
+      edition: pick(editions),
+      texture: pick(textures),
+      kitId: pick(kits),
+      density: pick(densities),
+      textureIntensity: pick(intensitySteps),
+      voiceOverride: pick(voices),
+    };
+    onChange({ ...manifest, ...next } as StoryManifest);
+    setLastRationale(
+      `Shuffled · ${next.edition} · ${next.texture} · ${next.kitId} · ${next.density} · ${next.voiceOverride}`,
+    );
+  }
+
   /* Active palette ink + paper for contrast check. Reads from
      manifest.theme.colors (the canonical location per
      CLAUDE-DESIGN §7) with sensible cream/ink fallbacks. */
@@ -386,10 +453,34 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
                 fontSize: 12.5,
                 fontWeight: 700,
                 color: 'var(--peach-ink, #A14A2C)',
+                flex: 1,
               }}
             >
               Generate a look from your story
             </div>
+            <button
+              type="button"
+              onClick={shuffleLook}
+              title="Shuffle every dial — Edition, Texture, Kit, Spacing, Intensity, Voice. Skips somber occasions."
+              disabled={storyBusy}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '4px 10px',
+                borderRadius: 999,
+                background: 'var(--card, #FBF7EE)',
+                border: '1px solid var(--line, rgba(14,13,11,0.14))',
+                fontSize: 11,
+                fontWeight: 700,
+                color: 'var(--ink, #0E0D0B)',
+                cursor: storyBusy ? 'not-allowed' : 'pointer',
+                lineHeight: 1.2,
+              }}
+            >
+              <span aria-hidden>↻</span>
+              Shuffle
+            </button>
           </div>
           <div
             style={{
