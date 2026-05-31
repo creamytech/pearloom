@@ -38,6 +38,22 @@ import { PhotoDropTarget } from '../editor/canvas/PhotoDropTarget';
 import { PhotoActionMenu } from '../editor/canvas/PhotoActionMenu';
 import { OccasionDecor } from './OccasionDecor';
 import { TextureFilters } from './TextureFilters';
+import { MotifScatter, type MotifKind } from './MotifScatter';
+
+/* Per-Edition motif mapping (mirrors HeroPostcard's
+   EDITION_MOTIF). Section-level MotifScatter uses 'sparse'
+   density (one corner motif) vs hero's 'generous' (two). */
+const SECTION_MOTIF_BY_EDITION: Record<string, MotifKind> = {
+  almanac: 'pressed',
+  cinema: 'none',
+  'postcard-box': 'olive',
+  'linen-folder': 'olive',
+  quiet: 'none',
+};
+function motifForManifest(m: StoryManifest | undefined): MotifKind {
+  if (!m) return 'pressed';
+  return SECTION_MOTIF_BY_EDITION[m.edition ?? 'almanac'] ?? 'pressed';
+}
 import { OwnerEditPill } from './OwnerEditPill';
 import { BroadcastBar } from './BroadcastBar';
 import { DayOfBanner } from './DayOfBanner';
@@ -1433,6 +1449,7 @@ function StoryVariantSectionImpl({
   return (
     <section id="our-story" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="our-story" />
+      <MotifScatter motif={motifForManifest(manifest)} density="sparse" />
       <div style={{ maxWidth: 1160, margin: '0 auto' }}>
         {/* TSectionHead — port of the prototype's centered Story
             header (themed-site.jsx StoryBlock pattern). Tightened
@@ -1514,6 +1531,7 @@ function TimelineSectionImpl({ chapters, onEditField, manifest }: { chapters: Ch
   return (
     <section id="our-story" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="our-story" />
+      <MotifScatter motif={motifForManifest(manifest)} density="sparse" />
       <div style={{ maxWidth: 1160, margin: '0 auto' }}>
         {/* TSectionHead — port of the prototype's centered Story
             header (themed-site.jsx StoryBlock pattern). Tightened
@@ -1917,6 +1935,7 @@ function DetailsStripImpl({ manifest, siteSlug, onEditField }: { manifest: Story
       style={{ padding: 'clamp(48px, 7cqw, 80px) 32px', position: 'relative' }}
     >
       <SectionBackground manifest={manifest} sectionId="details" />
+      <MotifScatter motif={motifForManifest(manifest)} density="sparse" />
       <div style={{ maxWidth: 1160, margin: '0 auto', position: 'relative' }}>
         {edit && (
           <DraftedByPearBanner
@@ -4854,6 +4873,7 @@ function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest;
   return (
     <section id="travel" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="travel" />
+      <MotifScatter motif={motifForManifest(manifest)} density="sparse" />
       <div style={{ maxWidth: 1160, margin: '0 auto' }}>
         {edit && (
           <DraftedByPearBanner
