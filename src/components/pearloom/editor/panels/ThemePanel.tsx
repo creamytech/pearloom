@@ -16,6 +16,7 @@ import { SpacingPanel } from './SpacingPanel';
 import { SnapshotsPanel } from './SnapshotsPanel';
 import { EditionPicker } from './EditionPicker';
 import { TexturePicker } from './TexturePicker';
+import { KitPicker } from './KitPicker';
 import { LookEnginePanel } from './LookEnginePanel';
 import {
   DecorPromptComposer,
@@ -277,6 +278,14 @@ export function ThemePanel({
       </div>
       <div data-pl-design-anchor="texture">
         <TexturePicker manifest={manifest} onChange={onChange} />
+      </div>
+
+      {/* Component kit — restyles cards, dividers, chips, schedule
+          rows, FAQ rows. Independent of Edition so any persona can
+          wear any kit. See KitPicker.tsx for the 6 kits + per-kit
+          CSS in pearloom.css for the treatments. */}
+      <div data-pl-design-anchor="kit">
+        <KitPicker manifest={manifest} onChange={onChange} />
       </div>
 
       {/* Look Engine — fine-tune dials below the persona pickers.

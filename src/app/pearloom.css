@@ -4527,3 +4527,147 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-density="spacious"] section[id]:not(#top) {
   margin-block: 24px;
 }
+
+/* ─────────────────────────────────────────────────────────
+   COMPONENT KITS — per the Editor Redesign brief §4.
+   Six coordinated visual languages that restyle repeating
+   components (cards, chips, dividers) independent of Edition.
+   Phase 4 will add per-kit SECTION RENDERERS that change layout
+   too (KSchedule with perforated rows, plate with Roman numeral
+   counter, scrapbook with tilted polaroids); today's pass adds
+   the CSS treatment only. Cards keep their existing arrangement
+   but pick up the kit's personality on borders, shadows, and
+   type details.
+
+   data-pl-kit="classic" is the default no-op (no rules emitted).
+   ───────────────────────────────────────────────────────── */
+
+/* ── TICKET ──
+   Perforated stub feel: dashed borders, monospace times, pinhole
+   dots at row corners. Subtle inset shadow suggests a torn edge. */
+.pl8-guest[data-pl-kit="ticket"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="ticket"] .pl8-chapter-row,
+.pl8-guest[data-pl-kit="ticket"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="ticket"] .pl8-faq-row {
+  border: 1.5px dashed var(--pl-ink-soft, #3A332C) !important;
+  border-radius: 7px !important;
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  box-shadow:
+    inset 1px 0 0 rgba(14,13,11,0.06),
+    inset -1px 0 0 rgba(14,13,11,0.06) !important;
+  position: relative;
+}
+.pl8-guest[data-pl-kit="ticket"] .pl8-schedule-time,
+.pl8-guest[data-pl-kit="ticket"] .pl8-time-pill {
+  font-family: 'Courier New', ui-monospace, monospace !important;
+  letter-spacing: -0.02em !important;
+}
+
+/* ── PLATE ──
+   Engraved-frame feel: double 1px stroke around cards, no border-
+   radius, italic accent type. Inset rings suggest an engraved
+   plate. */
+.pl8-guest[data-pl-kit="plate"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="plate"] .pl8-chapter-row,
+.pl8-guest[data-pl-kit="plate"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="plate"] .pl8-faq-row {
+  border-radius: 1px !important;
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--pl-ink, #0E0D0B) 45%, transparent),
+    inset 0 0 0 4px var(--pl-cream-card, #FBF7EE),
+    inset 0 0 0 5px color-mix(in oklab, var(--pl-ink, #0E0D0B) 22%, transparent) !important;
+  border: none !important;
+}
+.pl8-guest[data-pl-kit="plate"] .pl8-schedule-time {
+  font-style: italic !important;
+  font-family: var(--pl-font-display, Fraunces, serif) !important;
+  font-weight: 600 !important;
+}
+
+/* ── SCRAPBOOK ──
+   Taped polaroid feel: slight rotation per row (nth-child alternates
+   direction), drop shadow, soft cream background, tape strip at top
+   via ::before pseudo. */
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-chapter-row,
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-faq-row {
+  background: #FFFDF7 !important;
+  border: none !important;
+  border-radius: 2px !important;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.12) !important;
+  position: relative;
+  padding-top: 24px !important;
+}
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-schedule-row:nth-child(odd),
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-chapter-row:nth-child(odd),
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row:nth-child(odd) {
+  transform: rotate(-1.4deg);
+}
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-schedule-row:nth-child(even),
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-chapter-row:nth-child(even),
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row:nth-child(even) {
+  transform: rotate(1.4deg);
+}
+/* Tape strip across the top of each scrapbook card */
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-schedule-row::before,
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-chapter-row::before,
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  width: 56px;
+  height: 12px;
+  background: color-mix(in oklab, var(--pl-gold, #B8935A) 32%, transparent);
+  z-index: 2;
+}
+
+/* ── INDEX ──
+   Ruled index-card feel: red 2px left margin line, faint blue rule
+   lines repeating background, square corners. */
+.pl8-guest[data-pl-kit="index"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="index"] .pl8-chapter-row,
+.pl8-guest[data-pl-kit="index"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="index"] .pl8-faq-row {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: none !important;
+  border-left: 2px solid rgba(199,80,80,0.5) !important;
+  border-radius: 2px !important;
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0 21px,
+    rgba(74,118,196,0.10) 21px 22px
+  ) !important;
+  box-shadow: 0 1px 2px rgba(75,65,52,0.06) !important;
+}
+
+/* ── MINIMAL ──
+   Borderless rows separated by a single hairline. Removes card
+   chrome entirely; relies on whitespace + a bottom rule. */
+.pl8-guest[data-pl-kit="minimal"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="minimal"] .pl8-chapter-row,
+.pl8-guest[data-pl-kit="minimal"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="minimal"] .pl8-faq-row {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid var(--pl-divider, #D8CFB8) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.pl8-guest[data-pl-kit="minimal"] .pl8-schedule-row:last-child,
+.pl8-guest[data-pl-kit="minimal"] .pl8-chapter-row:last-child,
+.pl8-guest[data-pl-kit="minimal"] .pl8-hotel-row:last-child,
+.pl8-guest[data-pl-kit="minimal"] .pl8-faq-row:last-child {
+  border-bottom: none !important;
+}
+/* Oversized numerals on schedule time pills */
+.pl8-guest[data-pl-kit="minimal"] .pl8-schedule-time {
+  font-size: clamp(1.6rem, 3vw, 2.4rem) !important;
+  line-height: 0.9 !important;
+  letter-spacing: -0.03em !important;
+  font-family: var(--pl-font-display, Fraunces, serif) !important;
+  font-weight: 500 !important;
+}

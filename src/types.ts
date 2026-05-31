@@ -589,6 +589,32 @@ export interface StoryManifest {
    *  Per the Editor Redesign brief §5: hosts should be able to set
    *  voice independent of event type. */
   voiceOverride?: 'classic' | 'playful' | 'poetic';
+  /** Component kit — coordinated design language for cards,
+   *  dividers, chips, badges, schedule rows, FAQ rows, gallery
+   *  tiles. Independent of Edition (per the brief's §1 SiteLook).
+   *
+   *  Six kits ported from the prototype's KITS registry
+   *  (shared/kits.jsx):
+   *    classic   - theme-native cards & rules (default)
+   *    ticket    - perforated stubs, dashed tear-lines, monospace
+   *    plate     - engraved frames, double rules, Roman counter
+   *    scrapbook - taped, tilted cards & handwritten tags
+   *    index     - ruled index cards, red margin & tab times
+   *    minimal   - borderless rows, hairlines, oversized numerals
+   *
+   *  Today (Phase 4 deferred): kit drives CSS card/divider/chip
+   *  treatments via [data-pl-kit] on the .pl8-guest root. Each
+   *  kit's CSS in pearloom.css restyles repeating components
+   *  (.pl8-schedule-row, .pl8-chapter-row, .pl8-hotel-row,
+   *  .pl8-faq-row) for the kit's personality.
+   *
+   *  Full implementation (Phase 4): per-kit SECTION renderers in
+   *  the SiteV8Renderer registry — KSchedule, KDetails, KFaq,
+   *  KGallery — that change BOTH styling and ARRANGEMENT
+   *  (e.g. ticket = perforated stub rows; plate = Roman-numeral
+   *  count + dotted leader; scrapbook = tilted polaroids). See
+   *  CLAUDE-PRODUCT.md §10 (2026-05-30 entry, Phase 4). */
+  kitId?: 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal';
   /** Toggles for the public RSVP form. Both default ON if absent
    *  (legacy behaviour). plusOnes hides the "+1?" field on the
    *  passport invite link; songRequests hides the SongCard on

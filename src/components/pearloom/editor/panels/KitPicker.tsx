@@ -1,0 +1,220 @@
+'use client';
+
+// ─────────────────────────────────────────────────────────────
+// KitPicker — component design-language axis, independent of
+// Edition. Port of the prototype's KitPick (themes.jsx ~line 690).
+//
+// Six kits, each restyles repeating components:
+//   classic    theme-native cards & rules (default)
+//   ticket     perforated stubs, dashed tear-lines, mono times
+//   plate      engraved frames, double rules, Roman counter
+//   scrapbook  taped, tilted cards & handwritten tags
+//   index      ruled index cards, red margin & tab times
+//   minimal    borderless rows, hairlines, oversized numerals
+//
+// Phase-4 follow-up: per-kit SECTION renderers in SiteV8Renderer
+// (KSchedule/KDetails/KFaq/KGallery) that change BOTH style and
+// arrangement. For now: kit drives CSS via [data-pl-kit] on the
+// .pl8-guest root + per-kit overrides for cards / dividers /
+// chips in pearloom.css.
+// ─────────────────────────────────────────────────────────────
+
+import type { StoryManifest } from '@/types';
+import { PanelSection } from '../atoms';
+
+type KitId = NonNullable<StoryManifest['kitId']>;
+
+interface KitSpec {
+  id: KitId;
+  label: string;
+  blurb: string;
+  /** Tiny inline-SVG preview — 80×48 strip suggesting the kit. */
+  Preview: () => React.ReactElement;
+}
+
+/* ── Per-kit preview thumbnails ──
+   Each preview is a stripped-down card or row that suggests the
+   kit's visual identity. Pure inline SVG — no assets, no fetch. */
+
+function ClassicPreview() {
+  return (
+    <svg viewBox="0 0 80 48" width="100%" height="100%" preserveAspectRatio="none">
+      <rect width="80" height="48" fill="#FBF7EE" />
+      <rect x="10" y="14" width="60" height="20" rx="3" fill="#FFFFFF" stroke="#D8CFB8" strokeWidth="0.6" />
+      <rect x="14" y="18" width="22" height="2.5" fill="#5C6B3F" />
+      <rect x="14" y="24" width="34" height="2" fill="#6F6557" opacity="0.6" />
+    </svg>
+  );
+}
+
+function TicketPreview() {
+  return (
+    <svg viewBox="0 0 80 48" width="100%" height="100%" preserveAspectRatio="none">
+      <rect width="80" height="48" fill="#FBF7EE" />
+      {/* Dashed stub */}
+      <rect x="8" y="14" width="64" height="20" rx="3" fill="#FFFFFF" stroke="#3A332C" strokeWidth="0.5" strokeDasharray="2 1.5" />
+      <line x1="26" y1="14" x2="26" y2="34" stroke="#3A332C" strokeWidth="0.5" strokeDasharray="1.5 1.5" />
+      {/* Pinhole dots top + bottom */}
+      <circle cx="26" cy="14" r="1.2" fill="#FBF7EE" stroke="#3A332C" strokeWidth="0.3" />
+      <circle cx="26" cy="34" r="1.2" fill="#FBF7EE" stroke="#3A332C" strokeWidth="0.3" />
+      <text x="12" y="26" fontSize="6" fontFamily="ui-monospace, monospace" fontWeight="700" fill="#5C6B3F">4:30</text>
+      <text x="30" y="24" fontSize="5" fontFamily="ui-sans-serif" fill="#0E0D0B">Ceremony</text>
+    </svg>
+  );
+}
+
+function PlatePreview() {
+  return (
+    <svg viewBox="0 0 80 48" width="100%" height="100%" preserveAspectRatio="none">
+      <rect width="80" height="48" fill="#FBF7EE" />
+      {/* Double-rule engraved frame */}
+      <rect x="8" y="12" width="64" height="24" fill="none" stroke="#0E0D0B" strokeWidth="0.4" />
+      <rect x="10" y="14" width="60" height="20" fill="none" stroke="#0E0D0B" strokeWidth="0.6" />
+      <text x="14" y="27" fontSize="8" fontFamily="serif" fontStyle="italic" fontWeight="600" fill="#5C6B3F">II</text>
+      <line x1="22" y1="25" x2="56" y2="25" stroke="#3A332C" strokeWidth="0.2" strokeDasharray="0.5 1" />
+      <text x="58" y="27" fontSize="6" fontFamily="serif" fontWeight="500" fill="#0E0D0B">5:30</text>
+    </svg>
+  );
+}
+
+function ScrapbookPreview() {
+  return (
+    <svg viewBox="0 0 80 48" width="100%" height="100%" preserveAspectRatio="none">
+      <rect width="80" height="48" fill="#F5EFE2" />
+      {/* Tilted polaroid */}
+      <g transform="rotate(-3 40 26)">
+        <rect x="14" y="12" width="52" height="28" fill="#FFFDF7" stroke="#D8CFB8" strokeWidth="0.4" />
+        {/* Tape strip */}
+        <rect x="33" y="9" width="14" height="4" fill="#C4A96A" opacity="0.65" />
+      </g>
+      <text x="22" y="28" fontSize="9" fontFamily="cursive" fontStyle="italic" fill="#5C6B3F" transform="rotate(-3 40 26)">4:30</text>
+      <text x="22" y="36" fontSize="5" fontFamily="cursive" fill="#0E0D0B" transform="rotate(-3 40 26)">ceremony</text>
+    </svg>
+  );
+}
+
+function IndexPreview() {
+  return (
+    <svg viewBox="0 0 80 48" width="100%" height="100%" preserveAspectRatio="none">
+      <rect width="80" height="48" fill="#FBF7EE" />
+      <rect x="10" y="12" width="60" height="24" fill="#FFFFFF" />
+      {/* Red margin */}
+      <line x1="14" y1="12" x2="14" y2="36" stroke="#C75050" strokeWidth="0.8" opacity="0.6" />
+      {/* Blue rule lines */}
+      <line x1="10" y1="19" x2="70" y2="19" stroke="#4A76C4" strokeWidth="0.3" opacity="0.4" />
+      <line x1="10" y1="26" x2="70" y2="26" stroke="#4A76C4" strokeWidth="0.3" opacity="0.4" />
+      <line x1="10" y1="33" x2="70" y2="33" stroke="#4A76C4" strokeWidth="0.3" opacity="0.4" />
+      {/* Tab time */}
+      <rect x="10" y="17" width="12" height="6" fill="#5C6B3F" />
+      <text x="11" y="22" fontSize="4.5" fontFamily="ui-monospace, monospace" fontWeight="700" fill="#FBF7EE">4:30pm</text>
+      <text x="24" y="22" fontSize="5" fontFamily="ui-sans-serif" fontWeight="600" fill="#0E0D0B">Ceremony</text>
+    </svg>
+  );
+}
+
+function MinimalPreview() {
+  return (
+    <svg viewBox="0 0 80 48" width="100%" height="100%" preserveAspectRatio="none">
+      <rect width="80" height="48" fill="#FBF7EE" />
+      <text x="10" y="32" fontSize="20" fontFamily="serif" fontWeight="500" letterSpacing="-0.04em" fill="#0E0D0B">4:30</text>
+      <text x="48" y="22" fontSize="5" fontFamily="ui-sans-serif" fontWeight="600" fill="#0E0D0B" textAnchor="start">Ceremony</text>
+      <text x="48" y="28" fontSize="4" fontFamily="ui-sans-serif" fill="#6F6557" textAnchor="start">Olive grove</text>
+      <line x1="10" y1="38" x2="70" y2="38" stroke="#D8CFB8" strokeWidth="0.5" />
+    </svg>
+  );
+}
+
+const KITS: KitSpec[] = [
+  { id: 'classic',   label: 'Classic',   blurb: 'Theme-native cards & rules',  Preview: ClassicPreview },
+  { id: 'ticket',    label: 'Ticket',    blurb: 'Perforated stubs · monospace', Preview: TicketPreview },
+  { id: 'plate',     label: 'Plate',     blurb: 'Engraved frames · Roman',      Preview: PlatePreview },
+  { id: 'scrapbook', label: 'Scrapbook', blurb: 'Taped, tilted, handwritten',   Preview: ScrapbookPreview },
+  { id: 'index',     label: 'Index',     blurb: 'Ruled cards · red margin',     Preview: IndexPreview },
+  { id: 'minimal',   label: 'Minimal',   blurb: 'Hairlines · big numerals',     Preview: MinimalPreview },
+];
+
+interface Props {
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+}
+
+export function KitPicker({ manifest, onChange }: Props) {
+  const active: KitId = manifest.kitId ?? 'classic';
+
+  function pick(id: KitId) {
+    if (id === active) return;
+    onChange({ ...manifest, kitId: id });
+  }
+
+  return (
+    <PanelSection
+      label="Component kit"
+      hint="How cards, dividers, schedule & badges are drawn. Independent of Edition — try any combination."
+      defaultOpen
+    >
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+        {KITS.map((k) => {
+          const on = active === k.id;
+          const Preview = k.Preview;
+          return (
+            <button
+              key={k.id}
+              type="button"
+              onClick={() => pick(k.id)}
+              aria-pressed={on}
+              title={k.blurb}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+                padding: 7,
+                borderRadius: 10,
+                background: on ? 'var(--ink, #0E0D0B)' : 'var(--card, #FBF7EE)',
+                border: on
+                  ? '2px solid var(--ink, #0E0D0B)'
+                  : '1px solid var(--line, rgba(14,13,11,0.14))',
+                cursor: 'pointer',
+                textAlign: 'left',
+                fontFamily: 'var(--font-ui)',
+                transition: 'background 140ms ease, border-color 140ms ease',
+              }}
+            >
+              <div
+                style={{
+                  width: '100%',
+                  aspectRatio: '10 / 6',
+                  borderRadius: 6,
+                  overflow: 'hidden',
+                  border: '1px solid var(--line-soft, rgba(14,13,11,0.06))',
+                  background: 'var(--cream-2, #EBE3D2)',
+                }}
+              >
+                <Preview />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: on ? 'var(--cream, #F5EFE2)' : 'var(--ink, #0E0D0B)',
+                  }}
+                >
+                  {k.label}
+                </span>
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: on ? 'rgba(248,241,228,0.72)' : 'var(--ink-muted, #6F6557)',
+                    lineHeight: 1.35,
+                  }}
+                >
+                  {k.blurb}
+                </span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </PanelSection>
+  );
+}

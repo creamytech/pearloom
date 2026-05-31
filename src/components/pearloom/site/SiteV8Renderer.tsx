@@ -8155,13 +8155,18 @@ export function SiteV8Renderer({
   // material treatment), 1.5 exaggerates. Bound to
   // --pl-texture-intensity.
   const activeTextureIntensity = manifest.textureIntensity ?? lookDefaults.textureIntensity;
+  // Active Kit — component design language overlay independent of
+  // Edition. Drives data-pl-kit on the .pl8-guest root so per-kit
+  // CSS in pearloom.css can restyle cards / dividers / chips /
+  // schedule rows / FAQ rows. 'classic' is the default no-op.
+  const activeKit = manifest.kitId ?? 'classic';
   const lookEngineVars: React.CSSProperties = {};
   (lookEngineVars as Record<string, string>)['--pl-density-scale'] = String(densityScale);
   (lookEngineVars as Record<string, string>)['--pl-texture-intensity'] = String(activeTextureIntensity);
 
   return (
     <EditorCanvasProvider value={canvasCtxValue}>
-      <div className="pl8-guest" data-pl-edition={activeEdition.id} data-pl-texture={activeTexture} data-pl-density={activeDensity} data-pl-edit-mode={editMode ? 'true' : undefined} style={{ ...themeStyle, ...radiusVars, ...lookEngineVars }}>
+      <div className="pl8-guest" data-pl-edition={activeEdition.id} data-pl-texture={activeTexture} data-pl-density={activeDensity} data-pl-kit={activeKit} data-pl-edit-mode={editMode ? 'true' : undefined} style={{ ...themeStyle, ...radiusVars, ...lookEngineVars }}>
         {/* SVG filter defs for the texture system. Mounts an invisible
             <svg><defs><filter id="wc-card-edge"></filter></defs></svg>
             block so CSS `filter: url(#wc-card-edge)` declarations on
