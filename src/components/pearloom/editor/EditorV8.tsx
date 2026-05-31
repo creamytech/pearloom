@@ -2813,7 +2813,7 @@ function Outline({
                   width: `${progressPct}%`,
                   height: '100%',
                   background:
-                    progressPct >= 60 ? 'var(--peach-ink, #A14A2C)' : 'var(--sage, #5C6B3F)',
+                    progressPct >= 60 ? 'var(--peach-ink, #C6703D)' : 'var(--sage, #5C6B3F)',
                   transition: 'width 320ms cubic-bezier(0.22, 1, 0.36, 1)',
                 }}
               />

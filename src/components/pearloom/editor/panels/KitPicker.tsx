@@ -190,7 +190,7 @@ export function KitPicker({ manifest, onChange }: Props) {
             border: '1px solid rgba(198,112,61,0.28)',
             fontSize: 11,
             fontWeight: 600,
-            color: 'var(--peach-ink, #A14A2C)',
+            color: 'var(--peach-ink, #C6703D)',
             cursor: 'pointer',
             marginBottom: 10,
           }}
@@ -250,7 +250,7 @@ export function KitPicker({ manifest, onChange }: Props) {
                       padding: '1px 6px',
                       borderRadius: 999,
                       background: 'var(--peach-bg, rgba(198,112,61,0.18))',
-                      color: 'var(--peach-ink, #A14A2C)',
+                      color: 'var(--peach-ink, #C6703D)',
                       fontSize: 8.5,
                       fontWeight: 700,
                       letterSpacing: '0.04em',

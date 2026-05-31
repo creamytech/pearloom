@@ -535,7 +535,7 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
               style={{
                 fontSize: 12.5,
                 fontWeight: 700,
-                color: 'var(--peach-ink, #A14A2C)',
+                color: 'var(--peach-ink, #C6703D)',
                 flex: 1,
               }}
             >
