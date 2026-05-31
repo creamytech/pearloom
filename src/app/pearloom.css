@@ -4947,3 +4947,139 @@ html { scroll-behavior: smooth; }
   mix-blend-mode: screen;
   opacity: calc(0.16 * var(--pl-texture-intensity, 1));
 }
+
+/* ─────────────────────────────────────────────────────────
+   PHASE 4 — per-kit SECTION layouts.
+   Up to this point, kit CSS only changed row chrome (border,
+   shadow, bg). Now each kit restructures the row's INTERNAL
+   layout to match the prototype's KSchedule per-kit variants
+   exactly. Achieved via aggressive [data-pl-kit] selectors
+   that override the row's flex-column + centered defaults.
+   ───────────────────────────────────────────────────────── */
+
+/* ── TICKET schedule layout — perforated stub. Time on the left
+   in monospace, content on the right, dashed divider between. */
+.pl8-guest[data-pl-kit="ticket"] .pl8-schedule-row {
+  display: grid !important;
+  grid-template-columns: 116px 1fr !important;
+  text-align: left !important;
+  align-items: stretch !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+.pl8-guest[data-pl-kit="ticket"] .pl8-schedule-row > * {
+  padding: 14px 16px;
+}
+.pl8-guest[data-pl-kit="ticket"] .pl8-schedule-row > *:first-child {
+  border-right: 2px dashed currentColor;
+  text-align: center;
+  font-family: 'Courier New', ui-monospace, monospace !important;
+  background: var(--pl-cream-2, #EBE3D2);
+}
+
+/* ── PLATE schedule layout — Roman numeral counter + dotted leader.
+   Counter increments via CSS counter; dotted leader fills between
+   row label and right-aligned time via a flex spacer with dotted
+   background. */
+.pl8-guest[data-pl-kit="plate"] .pl8-schedule-classic-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  max-width: 560px !important;
+  counter-reset: plate-roman;
+}
+.pl8-guest[data-pl-kit="plate"] .pl8-schedule-row {
+  display: grid !important;
+  grid-template-columns: 44px 1fr auto !important;
+  align-items: baseline !important;
+  text-align: left !important;
+  gap: 16px !important;
+  padding: 12px 4px !important;
+  border: none !important;
+  border-bottom: 1px solid var(--pl-divider, #D8CFB8) !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  counter-increment: plate-roman;
+  position: relative;
+}
+.pl8-guest[data-pl-kit="plate"] .pl8-schedule-row::before {
+  content: counter(plate-roman, upper-roman);
+  font-family: var(--pl-font-display, Fraunces, serif);
+  font-style: italic;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--pl-olive, var(--peach-ink));
+  grid-column: 1;
+  grid-row: 1;
+}
+
+/* ── SCRAPBOOK schedule layout — tilted polaroid grid. Already
+   has tape strip + rotation from a5890e9d, but the row currently
+   sits in a flex-column centered card. Reinforce the centered
+   stack so the rotation feels intentional. */
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-schedule-classic-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important;
+  gap: 22px !important;
+  padding-top: 14px !important;
+}
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-schedule-row .pl8-schedule-time {
+  font-family: 'Caveat', cursive, var(--pl-font-display) !important;
+  font-size: 26px !important;
+  color: var(--peach-ink, #C6703D) !important;
+  line-height: 1 !important;
+}
+
+/* ── INDEX schedule layout — red margin + blue rule lines + tab
+   time pill on the left. Time becomes a small floating pill on
+   the red margin; content fills the rest. */
+.pl8-guest[data-pl-kit="index"] .pl8-schedule-classic-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  max-width: 640px !important;
+}
+.pl8-guest[data-pl-kit="index"] .pl8-schedule-row {
+  display: block !important;
+  text-align: left !important;
+  padding: 14px 16px 14px 64px !important;
+  position: relative;
+}
+.pl8-guest[data-pl-kit="index"] .pl8-schedule-row .pl8-schedule-time {
+  position: absolute;
+  left: 0;
+  top: 12px;
+  padding: 3px 8px;
+  background: var(--peach-ink, #C6703D);
+  color: #FBF7EE;
+  font-family: 'Courier New', ui-monospace, monospace !important;
+  font-size: 11px !important;
+  font-weight: 700;
+  border-radius: 0 4px 4px 0 !important;
+  letter-spacing: 0;
+}
+
+/* ── MINIMAL schedule layout — oversized serif numerals, no card
+   chrome, hairline bottom borders. */
+.pl8-guest[data-pl-kit="minimal"] .pl8-schedule-classic-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  max-width: 620px !important;
+}
+.pl8-guest[data-pl-kit="minimal"] .pl8-schedule-row {
+  display: grid !important;
+  grid-template-columns: auto 1fr !important;
+  gap: 22px !important;
+  align-items: baseline !important;
+  padding: 20px 0 !important;
+  text-align: left !important;
+}
+.pl8-guest[data-pl-kit="minimal"] .pl8-schedule-row .pl8-schedule-time {
+  font-family: var(--pl-font-display, Fraunces, serif) !important;
+  font-size: clamp(28px, 4vw, 38px) !important;
+  font-weight: 500 !important;
+  line-height: 0.9 !important;
+  letter-spacing: -0.03em !important;
+}
