@@ -269,59 +269,129 @@ export function EditionPicker({ manifest, onChange }: Props) {
                 (e.currentTarget as HTMLButtonElement).style.transform = '';
               }}
             >
+              {/* Prototype theme-pack card preview — "Aa" letterform
+                  in the Edition's display font + italic "and"
+                  beneath. Reads as a tiny type sample, not a layout
+                  diagram (more like Apple/Adobe font picker). */}
               <div
                 style={{
                   width: '100%',
-                  aspectRatio: '12 / 5',
+                  aspectRatio: '12 / 7',
                   borderRadius: 8,
                   overflow: 'hidden',
                   border: '1px solid var(--line-soft, rgba(14,13,11,0.06))',
-                  background: 'var(--cream-2, #FBF7EE)',
+                  background: ed.recommendedTheme?.colors?.background ?? 'var(--cream-2, #FBF7EE)',
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 4,
                 }}
               >
-                <Preview />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'baseline',
-                    justifyContent: 'space-between',
-                    gap: 6,
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 12.5,
-                      fontWeight: 700,
-                      color: on ? 'var(--sage-deep, #3D4A1F)' : 'var(--ink)',
-                    }}
-                  >
-                    {ed.label}
-                  </span>
-                  {isRecommended && (
-                    <span
-                      style={{
-                        fontSize: 8.5,
-                        fontWeight: 800,
-                        letterSpacing: '0.14em',
-                        textTransform: 'uppercase',
-                        color: 'var(--peach-ink, #C6703D)',
-                      }}
-                    >
-                      ★ Recommended
-                    </span>
-                  )}
-                </div>
                 <span
                   style={{
+                    fontFamily: ed.recommendedTheme?.fonts?.heading ? `"${ed.recommendedTheme.fonts.heading}", Georgia, serif` : 'var(--font-display, Fraunces, serif)',
+                    fontSize: 26,
+                    fontWeight: ed.recommendedTheme?.displayWeight ?? 600,
+                    color: ed.recommendedTheme?.colors?.foreground ?? 'var(--ink)',
+                    lineHeight: 1,
+                  }}
+                >
+                  Aa
+                </span>
+                <span
+                  style={{
+                    fontFamily: ed.recommendedTheme?.fonts?.heading ? `"${ed.recommendedTheme.fonts.heading}", Georgia, serif` : 'var(--font-display, Fraunces, serif)',
+                    fontStyle: 'italic',
                     fontSize: 11,
+                    fontWeight: 400,
+                    color: ed.recommendedTheme?.colors?.accent ?? 'var(--peach-ink)',
+                    marginTop: 2,
+                    opacity: 0.7,
+                  }}
+                >
+                  and
+                </span>
+                {/* PICK badge — recommended state */}
+                {isRecommended && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: 4,
+                      left: 4,
+                      padding: '2px 8px',
+                      borderRadius: 999,
+                      background: 'rgba(255,255,255,0.85)',
+                      color: 'var(--ink, #0E0D0B)',
+                      fontSize: 8.5,
+                      fontWeight: 700,
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    ★ Pick
+                  </span>
+                )}
+              </div>
+              {/* Hidden Preview kept available for backward compat —
+                  hosts who liked the layout diagram can re-enable it
+                  in the panel via a toggle (future work). */}
+              <div style={{ display: 'none' }}>
+                <Preview />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span
+                  style={{
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    color: on ? 'var(--sage-deep, #3D4A1F)' : 'var(--ink)',
+                  }}
+                >
+                  {ed.label}
+                </span>
+                <span
+                  style={{
+                    fontSize: 10.5,
                     color: 'var(--ink-muted, #6F6557)',
                     lineHeight: 1.4,
                   }}
                 >
                   {ed.tagline}
                 </span>
+                {/* 4-swatch palette dots — prototype's signature */}
+                {ed.recommendedTheme?.colors && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: 4,
+                      marginTop: 4,
+                    }}
+                  >
+                    {[
+                      ed.recommendedTheme.colors.accent,
+                      ed.recommendedTheme.colors.foreground,
+                      (ed.recommendedTheme as { cardShadow?: string }).cardShadow?.includes('gold')
+                        ? '#B8935A'
+                        : ed.recommendedTheme.colors.accentLight,
+                      ed.recommendedTheme.colors.background,
+                    ]
+                      .filter((c): c is string => Boolean(c))
+                      .map((c, i) => (
+                        <span
+                          key={i}
+                          aria-hidden
+                          style={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: '50%',
+                            background: c,
+                            boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.08)',
+                          }}
+                        />
+                      ))}
+                  </div>
+                )}
               </div>
             </button>
           );
