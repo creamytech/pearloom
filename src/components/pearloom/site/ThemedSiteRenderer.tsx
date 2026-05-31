@@ -110,10 +110,10 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug }: Props) {
       <ThemedDetails manifest={manifest} motif={motif} />
       <ThemedSchedule manifest={manifest} />
       <ThemedTravel manifest={manifest} motif={motif} />
-      <ThemedSectionStub id="registry" eyebrow="If you're asking" title="Registry, gently" />
-      <ThemedSectionStub id="gallery" eyebrow="Along the way" title="A few favorites" />
-      <ThemedSectionStub id="rsvp" eyebrow="Save your seat" title="RSVP" />
-      <ThemedSectionStub id="faq" eyebrow="Good to know" title="Frequently asked" />
+      <ThemedRegistry manifest={manifest} />
+      <ThemedGallery manifest={manifest} />
+      <ThemedRsvp manifest={manifest} />
+      <ThemedFaq manifest={manifest} />
 
       <ThemedFooter siteSlug={siteSlug} names={[n1, n2]} />
     </div>
@@ -757,6 +757,234 @@ function ThemedTravel({ manifest, motif }: { manifest: StoryManifest; motif: Mot
               )}
             </div>
           </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ─── ThemedRegistry — chip row matching prototype RegistryBlock ─── */
+function ThemedRegistry({ manifest }: { manifest: StoryManifest }) {
+  const reg = (manifest as unknown as { registry?: { entries?: Array<{ name?: string; label?: string; url: string }>; message?: string } }).registry;
+  const entries = reg?.entries ?? [];
+  if (entries.length === 0) return null;
+  return (
+    <section
+      id="registry"
+      style={{
+        padding: 'calc(48px * var(--pl-density-scale, 1)) 32px',
+        textAlign: 'center',
+        position: 'relative',
+      }}
+    >
+      <ThemedSectionHead eyebrow="If you're asking" title="Registry," italic="gently" />
+      {reg?.message && (
+        <div
+          style={{
+            fontSize: 15,
+            color: 'var(--ink-soft, #3A332C)',
+            maxWidth: 540,
+            margin: '0 auto 22px',
+            lineHeight: 1.6,
+          }}
+        >
+          {reg.message}
+        </div>
+      )}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+        {entries.map((e, i) => (
+          <a
+            key={i}
+            href={e.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              padding: '12px 22px',
+              borderRadius: 'var(--pl-card-radius, 12px)',
+              background: 'var(--card, #FBF7EE)',
+              border: '1px solid var(--line, rgba(14,13,11,0.14))',
+              boxShadow: 'var(--pl-card-shadow, 0 1px 3px rgba(75,65,52,0.06))',
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'var(--ink, #0E0D0B)',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            {e.name ?? e.label ?? 'Registry'} ↗
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ─── ThemedGallery — tight 6-col mosaic. ─── */
+function ThemedGallery({ manifest }: { manifest: StoryManifest }) {
+  const photos = manifest.chapters?.flatMap((c) => (c.images ?? []).map((i) => i.url)) ?? [];
+  if (photos.length === 0) return null;
+  const tones = ['#E8C8B4', '#D8CFB8', '#C4B5D9', '#F4D5CD', '#F0C9A8', '#FBE8D6'];
+  return (
+    <section
+      id="gallery"
+      style={{
+        padding: 'calc(48px * var(--pl-density-scale, 1)) 32px',
+        background: 'var(--section, var(--cream-2, #EBE3D2))',
+        position: 'relative',
+      }}
+    >
+      <ThemedSectionHead eyebrow="Along the way" title="A few" italic="favorites" />
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+          gridAutoRows: '160px',
+          gap: 8,
+          maxWidth: 920,
+          margin: '0 auto',
+        }}
+      >
+        {photos.slice(0, 12).map((url, i) => (
+          <div
+            key={i}
+            style={{
+              backgroundImage: url ? `url(${url})` : 'none',
+              backgroundColor: tones[i % tones.length],
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              borderRadius: 'var(--pl-card-radius, 8px)',
+            }}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ─── ThemedRsvp — full-width dark CTA section. ─── */
+function ThemedRsvp({ manifest }: { manifest: StoryManifest }) {
+  const deadline = manifest.logistics?.rsvpDeadline;
+  return (
+    <section
+      id="rsvp"
+      style={{
+        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
+        textAlign: 'center',
+        background: 'var(--ink, #0E0D0B)',
+        color: 'var(--cream, #F5EFE2)',
+        position: 'relative',
+      }}
+    >
+      <div
+        className="eyebrow"
+        style={{
+          fontSize: 11.5,
+          fontWeight: 700,
+          letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+          textTransform: 'uppercase',
+          color: 'rgba(245,239,226,0.6)',
+          marginBottom: 8,
+        }}
+      >
+        {deadline ? `RSVP by ${deadline}` : 'RSVP'}
+      </div>
+      <h2
+        style={{
+          fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+          fontSize: 'clamp(36px, 5.5cqw, 48px)',
+          fontWeight: 'var(--pl-display-wght, 600)',
+          margin: '8px 0 6px',
+          color: 'var(--cream, #F5EFE2)',
+          lineHeight: 1.04,
+        }}
+      >
+        Save your <span style={{ fontStyle: 'italic', opacity: 0.85 }}>seat</span>
+      </h2>
+      <div style={{ fontSize: 13.5, opacity: 0.7, marginBottom: 22 }}>
+        It takes about 90 seconds. We&apos;ll follow up if anyone forgets.
+      </div>
+      <a
+        href="#"
+        style={{
+          display: 'inline-block',
+          padding: '12px 28px',
+          borderRadius: 999,
+          background: 'var(--cream, #F5EFE2)',
+          color: 'var(--ink, #0E0D0B)',
+          fontSize: 14,
+          fontWeight: 700,
+          textDecoration: 'none',
+        }}
+      >
+        Reply now →
+      </a>
+    </section>
+  );
+}
+
+/* ─── ThemedFaq — stacked individual accordion cards. ─── */
+function ThemedFaq({ manifest }: { manifest: StoryManifest }) {
+  const faq = manifest.faqs ?? [];
+  if (faq.length === 0) return null;
+  return (
+    <section
+      id="faq"
+      style={{
+        padding: 'calc(48px * var(--pl-density-scale, 1)) 32px',
+        position: 'relative',
+      }}
+    >
+      <ThemedSectionHead eyebrow="Good to know" title="The little" italic="things" />
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+          maxWidth: 640,
+          margin: '0 auto',
+        }}
+      >
+        {faq.map((item, i) => (
+          <details
+            key={item.id ?? i}
+            style={{
+              padding: '14px 18px',
+              background: 'var(--card, #FBF7EE)',
+              border: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+              borderRadius: 'var(--pl-card-radius, 10px)',
+              boxShadow: 'var(--pl-card-shadow, 0 1px 2px rgba(75,65,52,0.04))',
+            }}
+          >
+            <summary
+              style={{
+                fontSize: 13.5,
+                fontWeight: 600,
+                color: 'var(--ink, #0E0D0B)',
+                cursor: 'pointer',
+                listStyle: 'none',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              {item.question}
+              <Icon name="chev-down" size={13} color="var(--ink-muted, #6F6557)" />
+            </summary>
+            {item.answer && (
+              <p
+                style={{
+                  marginTop: 10,
+                  fontSize: 13,
+                  color: 'var(--ink-soft, #3A332C)',
+                  lineHeight: 1.6,
+                }}
+              >
+                {item.answer}
+              </p>
+            )}
+          </details>
         ))}
       </div>
     </section>
