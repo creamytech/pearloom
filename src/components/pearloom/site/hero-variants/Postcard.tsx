@@ -26,11 +26,24 @@
 import { Icon, PhotoPlaceholder } from '@/components/pearloom/motifs';
 import { PhotoDropTarget } from '@/components/pearloom/editor/canvas/PhotoDropTarget';
 import { PhotoActionMenu } from '@/components/pearloom/editor/canvas/PhotoActionMenu';
+import { MotifScatter, type MotifKind } from '../MotifScatter';
 import {
   HeroKicker, HeroNames, HeroDateVenue, HeroTagline,
   HeroPrimaryCta,
 } from './parts';
 import type { HeroVariantProps } from './types';
+
+/* Per-Edition recommended motif — matches the prototype's themed
+   look mapping. Almanac/garden = pressed flowers. Postcard Box +
+   Linen Folder (mediterranean events) = olive sprig. Cinema + Quiet
+   stay clean (no decorative motifs). */
+const EDITION_MOTIF: Record<string, MotifKind> = {
+  almanac: 'pressed',
+  cinema: 'none',
+  'postcard-box': 'olive',
+  'linen-folder': 'olive',
+  quiet: 'none',
+};
 
 /* Three-arch hero photo layout from the prototype's HeroPhotos
    (arch/deckle path). Middle photo is 150w + tallest 3:4; outer
@@ -44,8 +57,16 @@ const ARCH_ASPECTS = ['4/5', '3/4', '4/5'] as const;
 
 export function HeroPostcard({ manifest, names, siteSlug: _siteSlug, onEditField, onEditNames, context }: HeroVariantProps) {
   const { n1, n2, dateInfo, venue, deadlineStr, coverPhoto, photos } = context;
+  const edition = manifest.edition ?? 'almanac';
+  const motif = EDITION_MOTIF[edition] ?? 'pressed';
   return (
-    <>
+    <div style={{ position: 'relative' }}>
+      {/* MOTIF SCATTER — port of the prototype's MotifScatter
+          (themed-site.jsx HeroBlock). Decorative SVG sprigs /
+          pressed flowers / olive branches scattered in the hero's
+          corners. Per-Edition motif via EDITION_MOTIF mapping;
+          density 'generous' on hero (two motifs, mirrored). */}
+      <MotifScatter motif={motif} density="generous" />
       {/* 1. LEAD EYEBROW — uses Pearloom's existing HeroKicker which
             reads manifest.heroKicker (or derives from dateInfo
             weekday). Editable in edit mode. */}
@@ -216,6 +237,6 @@ export function HeroPostcard({ manifest, names, siteSlug: _siteSlug, onEditField
       <div style={{ textAlign: 'center', marginTop: 40, color: 'var(--ink-muted)', fontSize: 12, opacity: 0.65 }}>
         <Icon name="chev-down" size={12} />
       </div>
-    </>
+    </div>
   );
 }

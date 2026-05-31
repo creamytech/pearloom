@@ -132,6 +132,14 @@ export function TextureFilters() {
             <feFuncA type="linear" slope="0" intercept="1" />
           </feComponentTransfer>
         </filter>
+
+        {/* t-watercolor — organic edge displacement for the
+            WatercolorBloom decorative motif. Pushes the three
+            radial-gradient blobs into painterly shapes. */}
+        <filter id="t-watercolor" x="-30%" y="-30%" width="160%" height="160%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.013 0.016" numOctaves={3} seed={8} result="n" />
+          <feDisplacementMap in="SourceGraphic" in2="n" scale={34} xChannelSelector="R" yChannelSelector="G" />
+        </filter>
       </defs>
     </svg>
   );
