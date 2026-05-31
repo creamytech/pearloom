@@ -8592,6 +8592,17 @@ export function SiteV8Renderer({
             if (!renderBlock(k)) return null;
             const decorVis = (manifest as unknown as { decorVisibility?: Record<string, boolean> }).decorVisibility;
             const dividerHidden = decorVis?.[`divider-${k}`] === false;
+            /* Suppress the AI-drafted full-width banner divider on
+               non-Almanac Editions — they have their own EditionDivider
+               (thread / sprocket / stitch / gold-hairline / whitespace)
+               that takes over. Otherwise the AI banner stacks on top
+               of the Edition divider and creates the "row of sun
+               glyphs" decorative strip the user flagged. The AI
+               divider is still authored + saved on manifest.decor
+               Library so a host who wants it back can switch back to
+               Almanac which doesn't have a dedicated EditionDivider. */
+            const activeEd = manifest.edition ?? 'almanac';
+            const suppressBanner = activeEd !== 'almanac';
             return (
               <DecorEditOverlay
                 visibilityKey={`divider-${k}`}
@@ -8601,10 +8612,10 @@ export function SiteV8Renderer({
                 label="Divider"
               >
                 <DecorDivider
-                  url={dividerUrl}
+                  url={suppressBanner ? undefined : dividerUrl}
                   index={i}
                   strength={dividerStrength}
-                  hidden={dividerHidden}
+                  hidden={dividerHidden || suppressBanner}
                 />
               </DecorEditOverlay>
             );
