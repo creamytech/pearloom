@@ -1561,16 +1561,30 @@ function TimelineSectionImpl({ chapters, onEditField, manifest }: { chapters: Ch
               const left = i % 2 === 0;
               const tone = CHAPTER_TONES[i % CHAPTER_TONES.length];
               const isCurrent = i === chapters.length - 1;
-              // parseLocalDate avoids reading "2024-12-31" as UTC,
-              // which would render as 2023 in PT.
               const yearDate = parseLocalDate(c.date);
               const year = yearDate ? yearDate.getFullYear().toString() : String(i + 1);
+              /* Direct port of the prototype's StoryBlock default
+                 layout (themed-site.jsx ~line 380) — clean 2-col
+                 grid with photo on one side + text on the other,
+                 alternating per chapter. The v8 vine-thread +
+                 year-glyph middle column is gone; ChapterCard
+                 still handles all the rich chapter content
+                 (year, title, place, copy, photo, edit-mode
+                 chrome, current-chapter highlight) so no
+                 features are lost. */
               return (
                 <div
                   className="pl8-timeline-row"
-                  style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr', alignItems: 'center', gap: 20 }}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    alignItems: 'center',
+                    gap: 44,
+                    maxWidth: 1040,
+                    margin: '0 auto',
+                  }}
                 >
-                  {left ? (
+                  <div style={{ order: left ? 0 : 1 }}>
                     <ChapterCard
                       chapterIndex={i}
                       year={year}
@@ -1582,51 +1596,13 @@ function TimelineSectionImpl({ chapters, onEditField, manifest }: { chapters: Ch
                       cur={isCurrent}
                       onEditField={onEditField}
                     />
-                  ) : (
-                    <div />
-                  )}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                    <div
-                      style={{
-                        width: 52,
-                        height: 52,
-                        borderRadius: '50%',
-                        background: isCurrent ? 'var(--peach-2)' : '#fff',
-                        border: isCurrent ? 'none' : '2px solid var(--line)',
-                        display: 'grid',
-                        placeItems: 'center',
-                        boxShadow: '0 6px 16px rgba(61,74,31,0.1)',
-                      }}
-                    >
-                      {isCurrent ? (
-                        <Pear size={28} tone="cream" shadow={false} />
-                      ) : (
-                        <span className="display" style={{ fontSize: 17, color: 'var(--ink)' }}>
-                          {year}
-                        </span>
-                      )}
-                    </div>
-                    {isCurrent && (
-                      <div className="display-italic" style={{ fontSize: 18, color: 'var(--peach-ink)' }}>
-                        today
-                      </div>
-                    )}
                   </div>
-                  {!left ? (
-                    <ChapterCard
-                      chapterIndex={i}
-                      year={year}
-                      title={c.title}
-                      place={c.location?.label ?? c.subtitle ?? ''}
-                      copy={c.description}
-                      tone={tone}
-                      src={c.images?.[0]?.url}
-                      cur={isCurrent}
-                      onEditField={onEditField}
-                    />
-                  ) : (
-                    <div />
-                  )}
+                  {/* Placeholder for the OTHER column — ChapterCard's
+                      internal layout puts its photo + text in one
+                      cluster, so the second column intentionally
+                      stays empty. The visual balance comes from the
+                      alternating `order` flip per chapter. */}
+                  <div aria-hidden style={{ order: left ? 1 : 0 }} />
                 </div>
               );
             }}
