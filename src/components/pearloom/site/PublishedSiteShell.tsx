@@ -69,12 +69,14 @@ function GuestCrashFallback() {
 }
 
 export function PublishedSiteShell(props: Props) {
-  /* Dispatch — manifest.renderer === 'themed' picks the parallel
-     ThemedSiteRenderer (direct port of prototype's themed-site.jsx).
-     Anything else falls through to SiteV8Renderer (the rich v8
-     renderer). Default behavior unchanged for every existing site. */
+  /* Dispatch — ThemedSiteRenderer (direct port of the prototype's
+     themed-site.jsx) is the default. Hosts who explicitly set
+     manifest.renderer === 'v8' opt back into the rich v8 renderer
+     (Guestbook, Spotify embed, photo wall moderation, day-of
+     broadcast, edit-mode chrome, etc.) — those features aren't in
+     the prototype, so they only render when the host opts in. */
   const renderer = (props.manifest as unknown as { renderer?: 'themed' | 'v8' }).renderer;
-  const useThemed = renderer === 'themed';
+  const useThemed = renderer !== 'v8';
   return (
     <ErrorBoundary fallback={<GuestCrashFallback />}>
       {useThemed ? (
