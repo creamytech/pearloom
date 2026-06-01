@@ -68,12 +68,77 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug }: Props) {
 
   /* Themed shell — emits the same data attributes SiteV8Renderer
      does so all the per-Edition / per-texture / per-kit CSS
-     already shipped applies here too. */
+     already shipped applies here too.
+
+     CRITICAL: the activeEdition.recommendedTheme is STAMPED onto
+     the root as CSS variables. Without this, every Edition
+     rendered the same default cream-and-peach because the CSS
+     was reading from fallbacks that never flipped. Now Cinema
+     gets dark paper + gold accent, Coastal Ink gets navy + sea-
+     glass, etc. Host's manifest.theme.colors WINS over the
+     Edition defaults when set (per the read-time fallback
+     contract). */
+  const recTheme = activeEdition.recommendedTheme ?? {};
+  const recColors = recTheme.colors ?? {};
+  const recFonts = recTheme.fonts ?? {};
+  /* Read host theme overrides — they win over the Edition. */
+  const hostColors =
+    ((manifest as unknown as { theme?: { colors?: Record<string, string> } }).theme?.colors) ?? {};
+  const hostFonts =
+    ((manifest as unknown as { theme?: { fonts?: Record<string, string> } }).theme?.fonts) ?? {};
+  /* Final values: host > Edition recommended > prototype default */
+  const paper = hostColors.background ?? recColors.background ?? '#F5EFE2';
+  const ink = hostColors.foreground ?? recColors.foreground ?? '#0E0D0B';
+  const accent = hostColors.accent ?? recColors.accent ?? '#C6703D';
+  const accentLight = hostColors.accentLight ?? recColors.accentLight ?? 'rgba(198,112,61,0.10)';
+  const inkSoft = hostColors.muted ?? recColors.muted ?? '#3A332C';
+  const cardBg = hostColors.cardBg ?? recColors.cardBg ?? '#FBF7EE';
+  const displayFamily = hostFonts.heading ?? recFonts.heading ?? 'Fraunces';
+  const bodyFamily = hostFonts.body ?? recFonts.body ?? 'Inter';
+  /* Map cardRadius enum to actual px — matches the prototype's
+     theme registry where each value reads as a distinct shape. */
+  const cardRadiusPx = (() => {
+    switch (recTheme.cardRadius) {
+      case 'sharp': return '3px';
+      case 'soft': return '8px';
+      case 'rounded': return '14px';
+      case 'pillow': return '24px';
+      default: return '12px';
+    }
+  })();
+  const displayWeight = recTheme.displayWeight ?? 600;
+  const heroScale = recTheme.heroScale ?? 1;
+  const eyebrowLs = recTheme.eyebrowSpacing ?? '0.22em';
+  const cardShadow = recTheme.cardShadow ?? '0 4px 14px rgba(75,65,52,0.10)';
+
   const shellStyle: React.CSSProperties = {
-    background: 'var(--paper, #F5EFE2)',
-    color: 'var(--ink, #0E0D0B)',
+    background: paper,
+    color: ink,
     minHeight: '100vh',
     position: 'relative',
+    fontFamily: bodyFamily,
+    /* Edition-driven CSS vars — every section reads these. */
+    ['--paper' as string]: paper,
+    ['--ink' as string]: ink,
+    ['--ink-soft' as string]: inkSoft,
+    ['--ink-muted' as string]: '#6F6557',
+    ['--peach-ink' as string]: accent,
+    ['--peach-bg' as string]: accentLight,
+    ['--card' as string]: cardBg,
+    ['--cream' as string]: paper,
+    ['--cream-2' as string]: cardBg,
+    ['--line' as string]: 'rgba(14,13,11,0.16)',
+    ['--line-soft' as string]: 'rgba(14,13,11,0.08)',
+    ['--gold' as string]: '#B8935A',
+    ['--font-display' as string]: `"${displayFamily}", Georgia, serif`,
+    ['--font-ui' as string]: `"${bodyFamily}", system-ui, sans-serif`,
+    /* Per-edition typography + chrome multipliers */
+    ['--pl-display-wght' as string]: String(displayWeight),
+    ['--pl-hero-scale' as string]: String(heroScale),
+    ['--pl-eyebrow-ls' as string]: eyebrowLs,
+    ['--pl-card-radius' as string]: cardRadiusPx,
+    ['--pl-card-shadow' as string]: cardShadow,
+    /* Density + texture multipliers */
     ['--pl-texture-intensity' as string]: String(intensity),
     ['--pl-density-scale' as string]: String(
       density === 'cozy' ? 0.7 : density === 'spacious' ? 1.3 : 1,
