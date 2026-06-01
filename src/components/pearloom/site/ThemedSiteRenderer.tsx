@@ -191,7 +191,10 @@ function ThemedNav({ names }: { names: [string, string] }) {
   );
 }
 
-/* ─── ThemedHero — port of HeroBlock centered variant ─── */
+/* ─── ThemedHero — port of HeroBlock centered variant with the
+   prototype's 3-arch photo strip below the CTAs. The arches read
+   as a triptych — first three chapter photos rendered into top-
+   rounded frames matching the prototype's hero. ─── */
 function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names: [string, string]; motif: MotifKind }) {
   const [n1, n2] = names;
   const dateStr = manifest.logistics?.date ?? '';
@@ -202,6 +205,12 @@ function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names
   const heroCopyFull =
     (manifest as unknown as { poetry?: { heroTagline?: string } }).poetry?.heroTagline ?? '';
   const tagline = heroCopyFull.split(/[.!?]\s/, 2)[0];
+  /* First three photos for the arch strip — fallback to chapter
+     covers, then a single hero image if only one exists. */
+  const archPhotos = (manifest.chapters ?? [])
+    .flatMap((c) => (c.images ?? []).map((i) => i.url))
+    .filter((u): u is string => !!u)
+    .slice(0, 3);
 
   return (
     <section
@@ -341,15 +350,51 @@ function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names
             Read our story
           </a>
         </div>
+        {/* 3-arch photo triptych — the prototype's hero signature.
+            Each arch is top-rounded (50% radius on the top corners
+            only). Renders only when at least 3 photos exist. */}
+        {archPhotos.length >= 3 && (
+          <div
+            style={{
+              marginTop: 44,
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: 16,
+              maxWidth: 760,
+              marginInline: 'auto',
+            }}
+          >
+            {archPhotos.map((url, i) => (
+              <div
+                key={i}
+                style={{
+                  aspectRatio: '3/4',
+                  backgroundImage: `url(${url})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  borderTopLeftRadius: '50% 35%',
+                  borderTopRightRadius: '50% 35%',
+                  borderBottomLeftRadius: 8,
+                  borderBottomRightRadius: 8,
+                  boxShadow: '0 10px 28px rgba(61,74,31,0.14)',
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
 }
 
-/* ─── ThemedStory — port of prototype StoryBlock default variant.
-   Photo-left + text-right split per chapter, alternating sides.
-   Reads manifest.chapters → renders each one as a clean editorial
-   spread. ─── */
+/* ─── ThemedStory — book-spread chapters with Roman numeral chapter
+   marks. The prototype's StoryBlock reads as a paginated chapter
+   list — each chapter is a Roman-numeral kicker + italic display
+   title + body + photo, alternating photo-left/photo-right.
+   Photo column is 5/12; text 6/12 with 1/12 gutter on the inside
+   so the page reads with breathing room rather than the prior
+   50/50 split. ─── */
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 function ThemedStory({ manifest, motif }: { manifest: StoryManifest; motif: MotifKind }) {
   const chapters = manifest.chapters ?? [];
   if (chapters.length === 0) return null;
@@ -357,56 +402,31 @@ function ThemedStory({ manifest, motif }: { manifest: StoryManifest; motif: Moti
     <section
       id="our-story"
       style={{
-        padding: 'calc(48px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(64px * var(--pl-density-scale, 1)) 32px',
         background: 'var(--section, var(--cream-2, #EBE3D2))',
         position: 'relative',
       }}
     >
       <MotifScatter motif={motif} density="sparse" />
-      {/* Section header — TSectionHead pattern */}
-      <div style={{ textAlign: 'center', marginBottom: 48, position: 'relative' }}>
-        <div
-          className="eyebrow"
-          style={{
-            fontSize: 11.5,
-            fontWeight: 700,
-            letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
-            textTransform: 'uppercase',
-            color: 'var(--peach-ink, #C6703D)',
-            marginBottom: 12,
-          }}
-        >
-          Our story
-        </div>
-        <h2
-          style={{
-            fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-            fontSize: 'clamp(36px, 5.5cqw, 56px)',
-            fontWeight: 'var(--pl-display-wght, 600)',
-            margin: 0,
-            lineHeight: 1.04,
-          }}
-        >
-          How we got{' '}
-          <span style={{ fontStyle: 'italic', color: 'var(--ink-soft, #3A332C)' }}>here</span>
-        </h2>
-      </div>
-      {/* Chapter spreads — alternating photo + text */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 56, maxWidth: 1040, margin: '0 auto' }}>
+      <ThemedSectionHead eyebrow="Our story" title="How we got" italic="here" />
+      {/* Chapter spreads — alternating photo + text with Roman numeral marks */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 72, maxWidth: 1080, margin: '0 auto' }}>
         {chapters.map((c, i) => {
           const left = i % 2 === 0;
           const photo = c.images?.[0]?.url;
+          const numeral = ROMAN[i] ?? String(i + 1);
           return (
             <div
               key={c.id ?? i}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 44,
+                gridTemplateColumns: left ? '5fr 1fr 6fr' : '6fr 1fr 5fr',
+                gap: 0,
                 alignItems: 'center',
               }}
             >
-              <div style={{ order: left ? 0 : 1 }}>
+              {/* Photo column */}
+              <div style={{ order: left ? 0 : 2 }}>
                 {photo ? (
                   <div
                     style={{
@@ -416,7 +436,7 @@ function ThemedStory({ manifest, motif }: { manifest: StoryManifest; motif: Moti
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                       borderRadius: 'var(--pl-card-radius, 12px)',
-                      boxShadow: 'var(--pl-card-shadow, 0 10px 28px rgba(61,74,31,0.12))',
+                      boxShadow: 'var(--pl-card-shadow, 0 14px 36px rgba(61,74,31,0.16))',
                     }}
                   />
                 ) : (
@@ -424,23 +444,53 @@ function ThemedStory({ manifest, motif }: { manifest: StoryManifest; motif: Moti
                     style={{
                       width: '100%',
                       aspectRatio: '4/5',
-                      background: 'var(--cream-2, #EBE3D2)',
+                      background: 'var(--cream, #FBF7EE)',
                       borderRadius: 'var(--pl-card-radius, 12px)',
+                      display: 'grid',
+                      placeItems: 'center',
+                      color: 'var(--ink-muted, #8A8275)',
+                      fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                      fontSize: 64,
+                      fontStyle: 'italic',
+                      opacity: 0.25,
                     }}
-                  />
+                  >
+                    {numeral}
+                  </div>
                 )}
               </div>
-              <div style={{ order: left ? 1 : 0 }}>
+              {/* Gutter */}
+              <div style={{ order: 1 }} />
+              {/* Text column */}
+              <div style={{ order: left ? 2 : 0 }}>
+                {/* Roman numeral chapter mark — large outline-style
+                    so it reads as a book chapter heading, not a
+                    label. */}
+                <div
+                  style={{
+                    fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                    fontStyle: 'italic',
+                    fontSize: 44,
+                    fontWeight: 400,
+                    color: 'var(--peach-ink, #C6703D)',
+                    opacity: 0.7,
+                    lineHeight: 1,
+                    marginBottom: 8,
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  {numeral}.
+                </div>
                 {c.date && (
                   <div
                     className="eyebrow"
                     style={{
-                      fontSize: 11,
+                      fontSize: 10.5,
                       fontWeight: 700,
-                      letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+                      letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
                       textTransform: 'uppercase',
-                      color: 'var(--peach-ink, #C6703D)',
-                      marginBottom: 10,
+                      color: 'var(--ink-muted, #6F6557)',
+                      marginBottom: 14,
                     }}
                   >
                     {c.date}
@@ -449,11 +499,11 @@ function ThemedStory({ manifest, motif }: { manifest: StoryManifest; motif: Moti
                 <h3
                   style={{
                     fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-                    fontSize: 38,
+                    fontSize: 42,
                     fontWeight: 'var(--pl-display-wght, 600)',
                     margin: 0,
                     lineHeight: 1.02,
-                    letterSpacing: '-0.01em',
+                    letterSpacing: '-0.015em',
                   }}
                 >
                   {c.title}
@@ -461,10 +511,10 @@ function ThemedStory({ manifest, motif }: { manifest: StoryManifest; motif: Moti
                 {c.description && (
                   <p
                     style={{
-                      marginTop: 16,
-                      fontSize: 15,
+                      marginTop: 20,
+                      fontSize: 15.5,
                       color: 'var(--ink-soft, #3A332C)',
-                      lineHeight: 1.65,
+                      lineHeight: 1.7,
                     }}
                   >
                     {c.description}
@@ -473,16 +523,13 @@ function ThemedStory({ manifest, motif }: { manifest: StoryManifest; motif: Moti
                 {c.location?.label && (
                   <div
                     style={{
-                      marginTop: 14,
+                      marginTop: 18,
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: 6,
-                      padding: '4px 12px',
-                      borderRadius: 999,
-                      background: 'var(--peach-bg, rgba(198,112,61,0.10))',
-                      color: 'var(--peach-ink, #C6703D)',
                       fontSize: 12,
                       fontWeight: 600,
+                      color: 'var(--peach-ink, #C6703D)',
                     }}
                   >
                     <Icon name="pin" size={11} color="var(--peach-ink, #C6703D)" />
@@ -536,9 +583,11 @@ function ThemedSectionHead({ eyebrow, title, italic }: { eyebrow: string; title:
   );
 }
 
-/* ─── ThemedDetails — 3 detail cards in a tight grid (prototype's
-   DetailsBlock). Reads manifest.logistics.dresscode +
-   logistics.kids + custom details cards. ─── */
+/* ─── ThemedDetails — larger feature cards. Each card centers a
+   sage-tint icon disc, a small eyebrow label, and the value in
+   display font. The icon disc gives each card identity at a
+   glance; the grid is tighter (3 cols on wide) so the cards feel
+   like a magazine info-graphic, not a tight grid. ─── */
 function ThemedDetails({ manifest, motif }: { manifest: StoryManifest; motif: MotifKind }) {
   const l = manifest.logistics ?? {};
   const dresscode = l.dresscode;
@@ -548,12 +597,13 @@ function ThemedDetails({ manifest, motif }: { manifest: StoryManifest; motif: Mo
   if ((manifest as unknown as { registry?: { message?: string } }).registry?.message) {
     items.push({ icon: 'gift', label: 'Gifts', value: (manifest as unknown as { registry?: { message?: string } }).registry?.message ?? '' });
   }
+  if ((l as { parking?: string }).parking) items.push({ icon: 'pin', label: 'Parking', value: String((l as { parking?: string }).parking) });
   if (items.length === 0) return null;
   return (
     <section
       id="details"
       style={{
-        padding: 'calc(44px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
         background: 'var(--section, var(--cream-2, #EBE3D2))',
         position: 'relative',
       }}
@@ -563,9 +613,9 @@ function ThemedDetails({ manifest, motif }: { manifest: StoryManifest; motif: Mo
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: 18,
-          maxWidth: 760,
+          gridTemplateColumns: `repeat(${Math.min(items.length, 3)}, 1fr)`,
+          gap: 22,
+          maxWidth: 880,
           margin: '0 auto',
         }}
       >
@@ -574,21 +624,36 @@ function ThemedDetails({ manifest, motif }: { manifest: StoryManifest; motif: Mo
             key={it.label}
             style={{
               background: 'var(--card, #FBF7EE)',
-              borderRadius: 'var(--pl-card-radius, 12px)',
-              padding: 18,
+              borderRadius: 'var(--pl-card-radius, 14px)',
+              padding: '28px 22px 24px',
               border: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
-              boxShadow: 'var(--pl-card-shadow, 0 1px 3px rgba(75,65,52,0.06))',
+              boxShadow: 'var(--pl-card-shadow, 0 4px 14px rgba(75,65,52,0.08))',
+              textAlign: 'center',
             }}
           >
-            <Icon name={it.icon} size={18} color="var(--peach-ink, #C6703D)" />
+            {/* Icon disc — peach-bg circle with the icon centered.
+                Reads as a feature label, not a chip. */}
+            <div
+              aria-hidden
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: '50%',
+                margin: '0 auto 18px',
+                background: 'var(--peach-bg, rgba(198,112,61,0.10))',
+                display: 'grid',
+                placeItems: 'center',
+              }}
+            >
+              <Icon name={it.icon} size={24} color="var(--peach-ink, #C6703D)" />
+            </div>
             <div
               className="eyebrow"
               style={{
-                marginTop: 10,
-                marginBottom: 4,
+                marginBottom: 8,
                 fontSize: 10.5,
                 fontWeight: 700,
-                letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+                letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
                 textTransform: 'uppercase',
                 color: 'var(--ink-muted, #6F6557)',
               }}
@@ -598,9 +663,10 @@ function ThemedDetails({ manifest, motif }: { manifest: StoryManifest; motif: Mo
             <div
               style={{
                 fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: 600,
                 color: 'var(--ink, #0E0D0B)',
+                lineHeight: 1.2,
               }}
             >
               {it.value}
@@ -612,8 +678,11 @@ function ThemedDetails({ manifest, motif }: { manifest: StoryManifest; motif: Mo
   );
 }
 
-/* ─── ThemedSchedule — port of prototype's KSchedule classic.
-   4-col centered card grid. Reads manifest.events. ─── */
+/* ─── ThemedSchedule — vertical timeline. Time on the left in
+   display font, dot on the rule, event details on the right.
+   Reads as a printed program rather than a card grid. The
+   timeline rule is a 1px peach hairline running the full
+   height. ─── */
 function ThemedSchedule({ manifest }: { manifest: StoryManifest }) {
   const events = manifest.events ?? [];
   if (events.length === 0) return null;
@@ -621,59 +690,127 @@ function ThemedSchedule({ manifest }: { manifest: StoryManifest }) {
     <section
       id="schedule"
       style={{
-        padding: 'calc(48px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
         position: 'relative',
       }}
     >
-      <ThemedSectionHead eyebrow="The day" title="In moments" />
+      <ThemedSectionHead eyebrow="The day" title="In" italic="moments" />
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: 14,
-          maxWidth: 900,
+          maxWidth: 640,
           margin: '0 auto',
+          position: 'relative',
         }}
       >
-        {events.map((e, i) => (
-          <div
-            key={e.id ?? i}
-            style={{
-              padding: '18px 16px',
-              background: 'var(--card, #FBF7EE)',
-              border: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
-              borderRadius: 'var(--pl-card-radius, 12px)',
-              boxShadow: 'var(--pl-card-shadow, 0 1px 3px rgba(75,65,52,0.06))',
-              textAlign: 'center',
-            }}
-          >
+        {/* Vertical hairline rule — runs full column height behind
+            the dots. inset positions it inside the time column
+            margin so dots align cleanly. */}
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            top: 16,
+            bottom: 16,
+            left: 100,
+            width: 1,
+            background: 'linear-gradient(180deg, transparent 0%, var(--peach-ink, #C6703D) 8%, var(--peach-ink, #C6703D) 92%, transparent 100%)',
+            opacity: 0.35,
+          }}
+        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
+          {events.map((e, i) => (
             <div
+              key={e.id ?? i}
               style={{
-                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-                fontSize: 22,
-                fontWeight: 'var(--pl-display-wght, 600)',
-                color: 'var(--peach-ink, #C6703D)',
-                lineHeight: 1,
+                display: 'grid',
+                gridTemplateColumns: '90px 20px 1fr',
+                alignItems: 'baseline',
+                gap: 0,
               }}
             >
-              {e.time}
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 600, marginTop: 8, color: 'var(--ink, #0E0D0B)' }}>
-              {e.name}
-            </div>
-            {e.description && (
-              <div style={{ fontSize: 11.5, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>
-                {e.description}
+              {/* Time — display font, right-aligned to meet the rule */}
+              <div
+                style={{
+                  fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                  fontSize: 24,
+                  fontWeight: 'var(--pl-display-wght, 600)',
+                  color: 'var(--ink, #0E0D0B)',
+                  textAlign: 'right',
+                  lineHeight: 1.1,
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {e.time}
               </div>
-            )}
-          </div>
-        ))}
+              {/* Dot on the rule */}
+              <div style={{ position: 'relative', height: '100%' }}>
+                <div
+                  aria-hidden
+                  style={{
+                    position: 'absolute',
+                    top: 8,
+                    left: 5,
+                    width: 11,
+                    height: 11,
+                    borderRadius: '50%',
+                    background: 'var(--paper, #F5EFE2)',
+                    border: '2px solid var(--peach-ink, #C6703D)',
+                  }}
+                />
+              </div>
+              {/* Event name + description */}
+              <div style={{ paddingLeft: 14, paddingTop: 2 }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                    fontSize: 19,
+                    fontWeight: 600,
+                    color: 'var(--ink, #0E0D0B)',
+                    lineHeight: 1.15,
+                  }}
+                >
+                  {e.name}
+                </div>
+                {e.description && (
+                  <div
+                    style={{
+                      marginTop: 4,
+                      fontSize: 13,
+                      color: 'var(--ink-soft, #3A332C)',
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    {e.description}
+                  </div>
+                )}
+                {(e as { location?: string }).location && (
+                  <div
+                    className="eyebrow"
+                    style={{
+                      marginTop: 6,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+                      textTransform: 'uppercase',
+                      color: 'var(--ink-muted, #6F6557)',
+                    }}
+                  >
+                    {(e as { location?: string }).location}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
 }
 
-/* ─── ThemedTravel — 2-col hotel grid. ─── */
+/* ─── ThemedTravel — editorial hotel listing. Each hotel reads
+   as a small editorial card with display-font name, address-as-
+   eyebrow, distance label, and a "Book ↗" pill. Single column on
+   narrow screens, 2-col on wider. ─── */
 function ThemedTravel({ manifest, motif }: { manifest: StoryManifest; motif: MotifKind }) {
   const hotels = manifest.travelInfo?.hotels ?? [];
   if (hotels.length === 0) return null;
@@ -681,7 +818,7 @@ function ThemedTravel({ manifest, motif }: { manifest: StoryManifest; motif: Mot
     <section
       id="travel"
       style={{
-        padding: 'calc(48px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
         background: 'var(--section, var(--cream-2, #EBE3D2))',
         position: 'relative',
       }}
@@ -691,49 +828,74 @@ function ThemedTravel({ manifest, motif }: { manifest: StoryManifest; motif: Mot
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: 16,
-          maxWidth: 780,
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: 20,
+          maxWidth: 820,
           margin: '0 auto',
         }}
       >
-        {hotels.map((h, i) => (
-          <div
-            key={i}
-            style={{
-              background: 'var(--card, #FBF7EE)',
-              borderRadius: 'var(--pl-card-radius, 12px)',
-              padding: 14,
-              border: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
-              boxShadow: 'var(--pl-card-shadow, 0 1px 3px rgba(75,65,52,0.06))',
-              display: 'flex',
-              gap: 14,
-              alignItems: 'center',
-            }}
-          >
+        {hotels.map((h, i) => {
+          const distance = (h as unknown as { distance?: string }).distance;
+          return (
             <div
+              key={i}
               style={{
-                width: 84,
-                height: 84,
-                flexShrink: 0,
-                borderRadius: 8,
-                background: 'var(--cream-2, #EBE3D2)',
+                background: 'var(--card, #FBF7EE)',
+                borderRadius: 'var(--pl-card-radius, 12px)',
+                padding: '22px 22px 20px',
+                border: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+                boxShadow: 'var(--pl-card-shadow, 0 2px 8px rgba(75,65,52,0.08))',
               }}
-            />
-            <div>
+            >
+              {distance && (
+                <div
+                  className="eyebrow"
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
+                    textTransform: 'uppercase',
+                    color: 'var(--peach-ink, #C6703D)',
+                    marginBottom: 8,
+                  }}
+                >
+                  {distance}
+                </div>
+              )}
               <div
                 style={{
                   fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-                  fontSize: 18,
+                  fontSize: 24,
                   fontWeight: 'var(--pl-display-wght, 600)',
                   color: 'var(--ink, #0E0D0B)',
+                  lineHeight: 1.1,
+                  letterSpacing: '-0.01em',
                 }}
               >
                 {h.name}
               </div>
-              {(h.address || (h as unknown as { distance?: string }).distance) && (
-                <div style={{ fontSize: 12, color: 'var(--ink-muted, #6F6557)', marginTop: 4 }}>
-                  {(h as unknown as { distance?: string }).distance ?? h.address}
+              {h.address && (
+                <div
+                  style={{
+                    marginTop: 8,
+                    fontSize: 13,
+                    color: 'var(--ink-soft, #3A332C)',
+                    lineHeight: 1.55,
+                  }}
+                >
+                  {h.address}
+                </div>
+              )}
+              {(h as unknown as { groupRate?: string }).groupRate && (
+                <div
+                  style={{
+                    marginTop: 10,
+                    fontSize: 12,
+                    fontStyle: 'italic',
+                    color: 'var(--ink-muted, #6F6557)',
+                  }}
+                >
+                  {(h as unknown as { groupRate?: string }).groupRate}
                 </div>
               )}
               {h.bookingUrl && (
@@ -744,11 +906,14 @@ function ThemedTravel({ manifest, motif }: { manifest: StoryManifest; motif: Mot
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: 5,
-                    marginTop: 9,
-                    fontSize: 12,
-                    fontWeight: 600,
+                    gap: 6,
+                    marginTop: 16,
+                    padding: '8px 16px',
+                    borderRadius: 999,
+                    background: 'var(--peach-bg, rgba(198,112,61,0.10))',
                     color: 'var(--peach-ink, #C6703D)',
+                    fontSize: 12.5,
+                    fontWeight: 600,
                     textDecoration: 'none',
                   }}
                 >
@@ -756,14 +921,18 @@ function ThemedTravel({ manifest, motif }: { manifest: StoryManifest; motif: Mot
                 </a>
               )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
 }
 
-/* ─── ThemedRegistry — chip row matching prototype RegistryBlock ─── */
+/* ─── ThemedRegistry — elegant card row. Each registry entry is
+   a substantial card with a peach-tint gift glyph at the top,
+   the registry name in display font, and an "Open ↗" pill. The
+   message reads as the section's body copy in italic above the
+   row. ─── */
 function ThemedRegistry({ manifest }: { manifest: StoryManifest }) {
   const reg = (manifest as unknown as { registry?: { entries?: Array<{ name?: string; label?: string; url: string }>; message?: string } }).registry;
   const entries = reg?.entries ?? [];
@@ -772,7 +941,7 @@ function ThemedRegistry({ manifest }: { manifest: StoryManifest }) {
     <section
       id="registry"
       style={{
-        padding: 'calc(48px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
         textAlign: 'center',
         position: 'relative',
       }}
@@ -781,17 +950,28 @@ function ThemedRegistry({ manifest }: { manifest: StoryManifest }) {
       {reg?.message && (
         <div
           style={{
-            fontSize: 15,
+            fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+            fontStyle: 'italic',
+            fontSize: 17,
             color: 'var(--ink-soft, #3A332C)',
-            maxWidth: 540,
-            margin: '0 auto 22px',
-            lineHeight: 1.6,
+            maxWidth: 560,
+            margin: '0 auto 32px',
+            lineHeight: 1.55,
           }}
         >
           {reg.message}
         </div>
       )}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(auto-fit, minmax(220px, ${entries.length === 1 ? '320px' : '1fr'}))`,
+          gap: 18,
+          maxWidth: 820,
+          margin: '0 auto',
+          justifyContent: 'center',
+        }}
+      >
         {entries.map((e, i) => (
           <a
             key={i}
@@ -799,21 +979,54 @@ function ThemedRegistry({ manifest }: { manifest: StoryManifest }) {
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              padding: '12px 22px',
-              borderRadius: 'var(--pl-card-radius, 12px)',
+              padding: '28px 24px 22px',
+              borderRadius: 'var(--pl-card-radius, 14px)',
               background: 'var(--card, #FBF7EE)',
-              border: '1px solid var(--line, rgba(14,13,11,0.14))',
-              boxShadow: 'var(--pl-card-shadow, 0 1px 3px rgba(75,65,52,0.06))',
-              fontSize: 13,
-              fontWeight: 600,
-              color: 'var(--ink, #0E0D0B)',
+              border: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+              boxShadow: 'var(--pl-card-shadow, 0 4px 14px rgba(75,65,52,0.08))',
               textDecoration: 'none',
-              display: 'inline-flex',
+              display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              gap: 6,
+              gap: 12,
             }}
           >
-            {e.name ?? e.label ?? 'Registry'} ↗
+            <div
+              aria-hidden
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: '50%',
+                background: 'var(--peach-bg, rgba(198,112,61,0.10))',
+                display: 'grid',
+                placeItems: 'center',
+              }}
+            >
+              <Icon name="gift" size={20} color="var(--peach-ink, #C6703D)" />
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                fontSize: 18,
+                fontWeight: 600,
+                color: 'var(--ink, #0E0D0B)',
+                lineHeight: 1.15,
+                textAlign: 'center',
+              }}
+            >
+              {e.name ?? e.label ?? 'Registry'}
+            </div>
+            <span
+              style={{
+                marginTop: 4,
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                color: 'var(--peach-ink, #C6703D)',
+              }}
+            >
+              Open ↗
+            </span>
           </a>
         ))}
       </div>
@@ -821,7 +1034,11 @@ function ThemedRegistry({ manifest }: { manifest: StoryManifest }) {
   );
 }
 
-/* ─── ThemedGallery — tight 6-col mosaic. ─── */
+/* ─── ThemedGallery — staggered editorial mosaic. The grid uses
+   row spans to create a "wall of polaroids" feel — every fourth
+   tile spans 2 rows so the wall reads as natural rather than
+   uniform. Tones fall back when no photo URL exists so the grid
+   still reads. ─── */
 function ThemedGallery({ manifest }: { manifest: StoryManifest }) {
   const photos = manifest.chapters?.flatMap((c) => (c.images ?? []).map((i) => i.url)) ?? [];
   if (photos.length === 0) return null;
@@ -830,7 +1047,7 @@ function ThemedGallery({ manifest }: { manifest: StoryManifest }) {
     <section
       id="gallery"
       style={{
-        padding: 'calc(48px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
         background: 'var(--section, var(--cream-2, #EBE3D2))',
         position: 'relative',
       }}
@@ -839,25 +1056,34 @@ function ThemedGallery({ manifest }: { manifest: StoryManifest }) {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-          gridAutoRows: '160px',
-          gap: 8,
-          maxWidth: 920,
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridAutoRows: '130px',
+          gap: 10,
+          maxWidth: 940,
           margin: '0 auto',
         }}
       >
-        {photos.slice(0, 12).map((url, i) => (
-          <div
-            key={i}
-            style={{
-              backgroundImage: url ? `url(${url})` : 'none',
-              backgroundColor: tones[i % tones.length],
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              borderRadius: 'var(--pl-card-radius, 8px)',
-            }}
-          />
-        ))}
+        {photos.slice(0, 11).map((url, i) => {
+          /* Every 3rd tile spans 2 rows; every 5th spans 2 columns.
+             Pattern repeats so any-length gallery has visual rhythm. */
+          const tallSpan = i % 5 === 0 || i % 5 === 3;
+          const wideSpan = i % 7 === 2;
+          return (
+            <div
+              key={i}
+              style={{
+                gridRow: tallSpan ? 'span 2' : 'span 1',
+                gridColumn: wideSpan ? 'span 2' : 'span 1',
+                backgroundImage: url ? `url(${url})` : 'none',
+                backgroundColor: tones[i % tones.length],
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                borderRadius: 'var(--pl-card-radius, 10px)',
+                boxShadow: 'var(--pl-card-shadow, 0 4px 14px rgba(75,65,52,0.10))',
+              }}
+            />
+          );
+        })}
       </div>
     </section>
   );
