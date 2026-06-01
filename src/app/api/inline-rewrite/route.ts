@@ -65,37 +65,30 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 400,
-        system:
-          'You rewrite event-website microcopy with warmth and editorial precision. Preserve the original meaning. Keep length within ±20%. Do not add quote marks, headers, or explanation — return ONLY the rewritten text.',
-        messages: [
-          {
-            role: 'user',
-            content: `Rewrite this snippet to be tighter and warmer for a wedding/celebration site:\n\n${text}`,
-          },
-        ],
-      }),
+    /* Use the centralized claude client so all inline-rewrite
+       calls share the same retry + caching behaviour. The raw
+       fetch this replaced bypassed model-id central management
+       — when client.ts bumps Haiku, this endpoint stays in sync. */
+    const { generate, textFrom, CLAUDE_HAIKU } = await import('@/lib/claude/client');
+    void CLAUDE_HAIKU; // model id is read via tier alias below
+    const msg = await generate({
+      tier: 'haiku',
+      system:
+        'You rewrite event-website microcopy with warmth and editorial precision. Preserve the original meaning. Keep length within ±20%. Do not add quote marks, headers, or explanation — return ONLY the rewritten text.',
+      messages: [
+        {
+          role: 'user',
+          content: `Rewrite this snippet to be tighter and warmer for a wedding/celebration site:\n\n${text}`,
+        },
+      ],
+      maxTokens: 400,
+      temperature: 0.65,
     });
-    if (!res.ok) {
-      const err = await res.text().catch(() => '');
-      console.warn('[inline-rewrite] anthropic error:', res.status, err.slice(0, 200));
-      return NextResponse.json({ rewritten: text });
-    }
-    const data = (await res.json()) as { content?: Array<{ type?: string; text?: string }> };
-    const block = (data.content ?? []).find((b) => b.type === 'text');
-    const out = (block?.text ?? '').trim();
-    return NextResponse.json({ rewritten: out || text });
+    const rewritten = textFrom(msg).trim();
+    if (!rewritten) return NextResponse.json({ rewritten: text });
+    return NextResponse.json({ rewritten });
   } catch (err) {
-    console.warn('[inline-rewrite] failed:', err);
+    console.warn('[inline-rewrite] claude error:', err instanceof Error ? err.message : err);
     return NextResponse.json({ rewritten: text });
   }
 }

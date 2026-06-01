@@ -23,9 +23,22 @@ import type {
 
 // ── Model IDs ────────────────────────────────────────────────────
 // Keep these centralized so we can bump versions in one place.
-// Opus 4.7 is the current top-of-line (per the user). Haiku 4.5
-// is the cheapest fast model. Sonnet 4.6 is the middle tier.
-export const CLAUDE_OPUS = 'claude-opus-4-7';
+//
+// Current Anthropic lineup as of 2026-06-01 (verified
+// platform.claude.com/docs):
+//   Opus 4.8 = new flagship (May 2026) — $5/$25, 1M ctx, 128k out
+//   Opus 4.7 = previous flagship, GA + supported through next cycle
+//   Sonnet 4.6 = workhorse — $3/$15, 1M ctx, 64k out, ext. thinking
+//   Haiku 4.5 = fastest near-frontier — $1/$5, 200k ctx, ext. thinking
+//
+// Pearloom's creative passes (story chapters, hero poetry, vow
+// drafts) sit on Opus 4.8 to get the best literary voice.
+// Critique + structured output stays on Sonnet 4.6 (extended
+// thinking sweet spot). Micro-edits stay on Haiku 4.5.
+//
+// All three support: tool use, prompt caching (5m/1h ephemeral),
+// vision, batch API (50% off), Priority Tier.
+export const CLAUDE_OPUS = 'claude-opus-4-8';
 export const CLAUDE_SONNET = 'claude-sonnet-4-6';
 export const CLAUDE_HAIKU = 'claude-haiku-4-5-20251001';
 

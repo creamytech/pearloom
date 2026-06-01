@@ -13,7 +13,10 @@ export type AIState = 'idle' | 'running' | 'done' | 'error' | 'gated';
 
 export function AISuggestButton({
   label,
-  runningLabel = 'Pear is thinking…',
+  // Default runningLabel matches BRAND.md §7 + the new
+  // PearThinking voice: 'drafting…' (Pear is *a person*, never
+  // 'generating'; verb-first, not 'AI is thinking').
+  runningLabel = 'drafting…',
   state,
   onClick,
   error,

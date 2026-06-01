@@ -34,6 +34,7 @@ import {
 import { PatchProposalCard } from './pear/PatchProposalCard';
 import { PearActionCard } from './pear/PearActionCard';
 import { pearPromptFor } from './panels/pear-passes';
+import { PearThinking } from '../pear-thinking';
 
 // Minimal Web Speech API typing — TS doesn't ship a built-in
 // declaration. Only the subset we use is modelled.
@@ -1160,7 +1161,7 @@ function ChatBubble({
         }}
       >
         {message.content || (
-          <span style={{ opacity: 0.6 }}>Pear is thinking…</span>
+          <PearThinking active label="drafting" size="md" hideAvatar />
         )}
       </div>
       {showPatchCard && message.patch && (

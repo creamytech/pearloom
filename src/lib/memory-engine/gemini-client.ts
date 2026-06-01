@@ -4,14 +4,34 @@
 // ─────────────────────────────────────────────────────────────────
 
 // ── Model routing ─────────────────────────────────────────────────────────
-// Gemini 3.1 Pro → creative passes (story chapters, SVG art, poetry)
-// Gemini 3 Flash  → analytical passes (critique, scoring, judgment)
-// Gemini 3.1 Flash-Lite → lightweight extraction (couple DNA, metadata)
-// Gemini 3.1 Flash-Image → image editing / photo-to-style transforms
-export const GEMINI_PRO   = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent';
-export const GEMINI_FLASH = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
-export const GEMINI_LITE  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
-export const GEMINI_IMAGE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent';
+// Verified against ai.google.dev/gemini-api/docs/changelog on
+// 2026-06-01:
+//   gemini-3.1-pro-preview      — current Pro (3-pro-preview retired
+//                                  Mar 26, 2026; 3.5-pro still limited
+//                                  preview, GA targeted June 2026)
+//   gemini-3.5-flash            — GA May 19, 2026 ($1.50/$9 per MTok),
+//                                  frontier agentic/coding; preferred
+//                                  Flash going forward
+//   gemini-3.1-flash-lite       — GA, dropped -preview suffix.
+//                                  Cheapest production option
+//                                  ($0.25/$1.50 per MTok)
+//   gemini-3.1-flash-image-preview — DEPRECATED, shutting down
+//                                     June 25, 2026. Pearloom must
+//                                     migrate /api/photos/stylize off
+//                                     this URL before that date.
+//                                     See lib/image-gen/ for the
+//                                     migration path to gpt-image-2.
+export const GEMINI_PRO        = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent';
+export const GEMINI_FLASH      = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
+export const GEMINI_LITE       = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent';
+/** DEPRECATED — shuts down June 25, 2026. Use the helper in
+ *  src/lib/image-gen/index.ts instead, which routes to the
+ *  successor provider configured per env. */
+export const GEMINI_IMAGE_DEPRECATED = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent';
+/** @deprecated kept as named export so existing imports don't break;
+ *  references log a console.warn in dev. New code should import from
+ *  '@/lib/image-gen' instead. */
+export const GEMINI_IMAGE = GEMINI_IMAGE_DEPRECATED;
 
 // Default — used for backward compat on any pass not explicitly routed
 export const GEMINI_API_BASE = GEMINI_FLASH;

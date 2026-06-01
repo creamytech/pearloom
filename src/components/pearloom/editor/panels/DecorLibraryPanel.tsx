@@ -371,8 +371,38 @@ export function DecorLibraryPanel({
                 cursor: aiLoading ? 'wait' : 'pointer',
               }}
             >
-              <Icon name="sparkles" size={11} />
-              {aiLoading ? 'Pear is thinking…' : 'Ask Pear for ideas'}
+              {aiLoading ? (
+                <>
+                  <Icon name="sparkles" size={11} />
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    {[0, 1, 2].map((i) => (
+                      <span
+                        key={i}
+                        style={{
+                          width: 3,
+                          height: 3,
+                          borderRadius: '50%',
+                          background: 'currentColor',
+                          opacity: 0.4,
+                          animation: `pl-pear-dot-tiny 1.4s ease-in-out ${i * 0.18}s infinite`,
+                        }}
+                      />
+                    ))}
+                  </span>
+                  <span>drafting</span>
+                  <style jsx>{`
+                    @keyframes pl-pear-dot-tiny {
+                      0%, 80%, 100% { opacity: 0.25; }
+                      40%           { opacity: 1; }
+                    }
+                  `}</style>
+                </>
+              ) : (
+                <>
+                  <Icon name="sparkles" size={11} />
+                  Ask Pear for ideas
+                </>
+              )}
             </button>
             {aiError && (
               <span style={{ fontSize: 11, color: 'var(--plum-ink, #7A2D2D)' }}>{aiError}</span>
