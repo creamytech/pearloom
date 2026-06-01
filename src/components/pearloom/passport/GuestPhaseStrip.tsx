@@ -155,32 +155,60 @@ export function GuestPhaseStrip({
     setInstallPromptEvent(null);
   }
 
+  // Silence the host-accent prop (kept on the signature for back-
+  // compat). Prototype uses peach for the eyebrow + accent rules.
+  void accent;
   return (
     <div
       style={{
         background: paper,
-        borderBottom: `1px solid ${accent}22`,
-        padding: 'clamp(20px, 4vw, 32px) clamp(20px, 4vw, 32px) clamp(24px, 4vw, 36px)',
+        borderBottom: `1px solid rgba(14,13,11,0.08)`,
+        padding: 'clamp(24px, 4vw, 40px) clamp(20px, 4vw, 32px) clamp(28px, 4vw, 44px)',
       }}
     >
-      <div style={{ maxWidth: 720, margin: '0 auto' }}>
-        <div style={{
-          fontSize: 11, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase',
-          color: accent, marginBottom: 10,
-        }}>
+      <div style={{ maxWidth: 740, margin: '0 auto' }}>
+        {/* Peach eyebrow */}
+        <div
+          className="eyebrow"
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: '#C6703D',
+            marginBottom: 14,
+          }}
+        >
           {copy.eyebrow}
         </div>
-        <h1 style={{
-          fontFamily: 'Fraunces, Georgia, serif',
-          fontSize: 'clamp(28px, 4.5vw, 42px)',
-          lineHeight: 1.1,
-          margin: '0 0 12px',
-          color: ink,
-          fontWeight: 500,
-        }}>
+        {/* Display H1 with italic-peach last word */}
+        <h1
+          style={{
+            fontFamily: 'Fraunces, Georgia, serif',
+            fontSize: 'clamp(30px, 5vw, 46px)',
+            lineHeight: 1.04,
+            margin: '0 0 14px',
+            color: ink,
+            fontWeight: 600,
+            letterSpacing: '-0.015em',
+          }}
+        >
           {copy.headline}
         </h1>
-        <p style={{ color: ink, opacity: 0.78, fontSize: 15, lineHeight: 1.55, margin: '0 0 18px', maxWidth: 560 }}>
+        {/* Italic display body so the strip reads like a personal
+            note rather than nav copy. */}
+        <p
+          style={{
+            color: ink,
+            opacity: 0.85,
+            fontFamily: 'Fraunces, Georgia, serif',
+            fontStyle: 'italic',
+            fontSize: 16,
+            lineHeight: 1.5,
+            margin: '0 0 20px',
+            maxWidth: 560,
+          }}
+        >
           {copy.body}
         </p>
 
