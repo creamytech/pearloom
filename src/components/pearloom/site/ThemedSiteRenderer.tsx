@@ -342,7 +342,7 @@ function EmptyStateCallout({
     <section
       id={id}
       style={{
-        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(40px * var(--pl-density-scale, 1)) 32px',
         background,
         position: 'relative',
       }}
@@ -673,7 +673,7 @@ function ThemedStory({ manifest, motif, editMode }: { manifest: StoryManifest; m
     <section
       id="our-story"
       style={{
-        padding: 'calc(64px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(48px * var(--pl-density-scale, 1)) 32px',
         background: 'var(--section, var(--cream-2, #EBE3D2))',
         position: 'relative',
       }}
@@ -953,7 +953,7 @@ function ThemedDetails({ manifest, motif, editMode }: { manifest: StoryManifest;
     <section
       id="details"
       style={{
-        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(40px * var(--pl-density-scale, 1)) 32px',
         background: 'var(--section, var(--cream-2, #EBE3D2))',
         position: 'relative',
       }}
@@ -1061,7 +1061,7 @@ function ThemedSchedule({ manifest, editMode }: { manifest: StoryManifest; editM
     <section
       id="schedule"
       style={{
-        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(40px * var(--pl-density-scale, 1)) 32px',
         position: 'relative',
       }}
     >
@@ -1321,7 +1321,7 @@ function ThemedTravel({ manifest, motif, editMode }: { manifest: StoryManifest; 
     <section
       id="travel"
       style={{
-        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(40px * var(--pl-density-scale, 1)) 32px',
         background: 'var(--section, var(--cream-2, #EBE3D2))',
         position: 'relative',
       }}
@@ -1454,7 +1454,7 @@ function ThemedRegistry({ manifest, editMode }: { manifest: StoryManifest; editM
     <section
       id="registry"
       style={{
-        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(40px * var(--pl-density-scale, 1)) 32px',
         textAlign: 'center',
         position: 'relative',
       }}
@@ -1573,7 +1573,7 @@ function ThemedGallery({ manifest, editMode }: { manifest: StoryManifest; editMo
     <section
       id="gallery"
       style={{
-        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(40px * var(--pl-density-scale, 1)) 32px',
         background: 'var(--section, var(--cream-2, #EBE3D2))',
         position: 'relative',
       }}
@@ -1626,7 +1626,7 @@ function ThemedRsvp({ manifest }: { manifest: StoryManifest }) {
     <section
       id="rsvp"
       style={{
-        padding: 'calc(64px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(48px * var(--pl-density-scale, 1)) 32px',
         textAlign: 'center',
         background: 'var(--ink, #0E0D0B)',
         color: 'var(--cream, #F5EFE2)',
@@ -1790,7 +1790,7 @@ function ThemedFaq({ manifest, editMode }: { manifest: StoryManifest; editMode?:
     <section
       id="faq"
       style={{
-        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(40px * var(--pl-density-scale, 1)) 32px',
         position: 'relative',
       }}
     >
@@ -2035,7 +2035,7 @@ function ThemedPullQuote({ manifest }: { manifest: StoryManifest }) {
   return (
     <section
       style={{
-        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(40px * var(--pl-density-scale, 1)) 32px',
         textAlign: 'center',
         position: 'relative',
       }}
@@ -2099,7 +2099,7 @@ function ThemedWeddingParty({ manifest }: { manifest: StoryManifest }) {
   return (
     <section
       style={{
-        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(40px * var(--pl-density-scale, 1)) 32px',
         background: 'var(--section, var(--paper))',
         position: 'relative',
       }}
@@ -2208,7 +2208,7 @@ function ThemedMap({ manifest }: { manifest: StoryManifest }) {
     <section
       id="map"
       style={{
-        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(40px * var(--pl-density-scale, 1)) 32px',
         background: 'var(--paper, #F5EFE2)',
         position: 'relative',
       }}
