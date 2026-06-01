@@ -5783,7 +5783,16 @@ function RegistrySectionImpl({ manifest, onEditField, siteSlug }: { manifest: St
     cashFundCurrency?: string;
     message?: string;
   };
-  const entries = reg?.entries ?? [];
+  // Some seed manifests carry registry.entries as an object map
+  // ({"0": {...}, "1": {...}}) instead of a real array. Coerce so
+  // .forEach below doesn't blow up the whole render with
+  // "entries.forEach is not a function".
+  const rawEntries = reg?.entries;
+  const entries: NonNullable<typeof reg>['entries'] = Array.isArray(rawEntries)
+    ? rawEntries
+    : rawEntries && typeof rawEntries === 'object'
+      ? (Object.values(rawEntries) as NonNullable<typeof reg>['entries'])
+      : [];
   const hasCashFund = Boolean(reg?.cashFundUrl);
   // Legacy shape — registry sometimes lived as a flat array on the manifest.
   const legacyList = (manifest as unknown as { registry?: Array<{ label: string; url: string }> }).registry;
