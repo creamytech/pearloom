@@ -212,18 +212,22 @@ export function PassportSections({
 
 function Card({
   children,
-  accent,
+  accent: _accent,
 }: {
   children: React.ReactNode;
   accent: string;
 }) {
+  // Themed card tokens — cream paper, soft 1px line, matching
+  // shadow + radius so PassportSection cards sit in the same
+  // section rhythm as the rest of the themed renderer.
   return (
     <div
       style={{
-        padding: '1.5rem',
-        background: '#FBF7EE',
-        border: `1px solid ${accent}22`,
-        borderRadius: 16,
+        padding: '24px 24px',
+        background: 'var(--card, #FBF7EE)',
+        border: '1px solid rgba(14,13,11,0.08)',
+        borderRadius: 'var(--pl-card-radius, 14px)',
+        boxShadow: 'var(--pl-card-shadow, 0 4px 14px rgba(75,65,52,0.08))',
       }}
     >
       {children}
@@ -231,16 +235,19 @@ function Card({
   );
 }
 
-function Eyebrow({ label, accent }: { label: string; accent: string }) {
+function Eyebrow({ label, accent: _accent }: { label: string; accent: string }) {
+  // Peach uppercase kicker — matches ThemedSectionHead in the
+  // themed renderer. _accent kept for back-compat.
   return (
     <div
+      className="eyebrow"
       style={{
-        fontSize: '0.72rem',
+        fontSize: 10.5,
         fontWeight: 700,
-        letterSpacing: '0.12em',
+        letterSpacing: '0.22em',
         textTransform: 'uppercase',
-        color: accent,
-        marginBottom: 8,
+        color: '#C6703D',
+        marginBottom: 10,
       }}
     >
       {label}
@@ -253,10 +260,12 @@ function Title({ text, headingFont }: { text: string; headingFont: string }) {
     <h2
       style={{
         fontFamily: headingFont,
-        fontSize: '1.4rem',
+        fontSize: 22,
         margin: 0,
-        letterSpacing: '-0.01em',
-        fontWeight: 500,
+        letterSpacing: '-0.015em',
+        fontWeight: 600,
+        lineHeight: 1.15,
+        color: 'var(--ink, #0E0D0B)',
       }}
     >
       {text}
