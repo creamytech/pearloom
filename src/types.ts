@@ -318,7 +318,26 @@ export interface StoryManifest {
    *        - imageUrl: when kind='image' or 'ai', the R2 URL
    *  All fields optional — unset = current Pear default. */
   nav?: {
-    style?: string;
+    /** Desktop nav layout (≥ 720px). 9 variants registered in
+     *  SiteV8Renderer.NavBody. */
+    style?:
+      | 'classic'
+      | 'centered'
+      | 'stacked'
+      | 'minimal'
+      | 'hairline-horizontal'
+      | 'centered-lockup'
+      | 'stacked-editorial'
+      | 'folio-page-number'
+      | 'floating-pill';
+    /** Mobile nav layout (< 720px). 4 variants registered. Optional —
+     *  when unset, the renderer falls back to the desktop variant's
+     *  responsive degradation. */
+    mobileStyle?:
+      | 'drawer-hamburger'
+      | 'sticky-bottom-pill'
+      | 'hairline-collapsing'
+      | 'folded-expand';
     icon?: {
       kind?: 'pear' | 'asset' | 'image' | 'ai';
       assetId?: string;

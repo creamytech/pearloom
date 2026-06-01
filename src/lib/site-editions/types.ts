@@ -157,6 +157,29 @@ export interface EditionDefinition {
    *  resolver's recommendEdition() function picks from this list. */
   recommendedFor: SiteOccasion[];
 
+  /** Desktop nav layout this Edition recommends. NavPanel reads this
+   *  to badge the matching tile "★ Recommended" when the host hasn't
+   *  picked one explicitly. Maps to the StoryManifest['nav']['style']
+   *  union. */
+  recommendedNavStyle?:
+    | 'classic'
+    | 'centered'
+    | 'stacked'
+    | 'minimal'
+    | 'hairline-horizontal'
+    | 'centered-lockup'
+    | 'stacked-editorial'
+    | 'folio-page-number'
+    | 'floating-pill';
+
+  /** Mobile nav layout this Edition recommends. Same purpose as
+   *  recommendedNavStyle, for the < 720px viewport picker. */
+  recommendedNavMobileStyle?:
+    | 'drawer-hamburger'
+    | 'sticky-bottom-pill'
+    | 'hairline-collapsing'
+    | 'folded-expand';
+
   /** Full visual identity each Edition recommends — palette, fonts,
    *  card-radius scale. Ported from the design prototype's THEMES
    *  registry where each theme replaced the WHOLE site look (paper

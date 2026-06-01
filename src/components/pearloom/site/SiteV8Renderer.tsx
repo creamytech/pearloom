@@ -584,6 +584,195 @@ function NavBody({ navStyle, scrolled, coupleLabel, links, hasRsvp, rsvpHref, br
     );
   }
 
+  // ── Hairline horizontal: single thin row, maximum restraint. ──
+  // Quiet Edition. 1px bottom rule + 13px links + ghost RSVP button.
+  if (navStyle === 'hairline-horizontal') {
+    return (
+      <div className="pl8-nav-hairline" style={{ maxWidth: 1240, margin: '0 auto', padding: scrolled ? '8px 32px' : '11px 32px', display: 'flex', alignItems: 'center', gap: 24, transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
+        <NavBrand manifest={manifest} label={coupleLabel} size={22} href={brandHref} />
+        <div style={{ marginLeft: 'auto' }}>
+          <NavLinks links={links} gap={20} />
+        </div>
+        <LanguageSwitcher />
+        {hasRsvp && (
+          <a
+            href={rsvpHref}
+            className="pl8-nav-rsvp-hairline"
+            style={{
+              fontSize: 12,
+              padding: '6px 14px',
+              borderRadius: 0,
+              border: '1px solid var(--nav-ink, var(--ink))',
+              color: 'var(--nav-ink, var(--ink))',
+              textDecoration: 'none',
+              fontWeight: 500,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
+            }}
+          >
+            RSVP
+          </a>
+        )}
+      </div>
+    );
+  }
+
+  // ── Centered lockup: names + glyph at the geometric centre, two
+  // links flanking left, two flanking right. The classic wedding-
+  // invitation aesthetic. Almanac + Coastal default. ──
+  if (navStyle === 'centered-lockup') {
+    const half = Math.ceil(links.length / 2);
+    const left = links.slice(0, half);
+    const right = links.slice(half);
+    return (
+      <div className="pl8-nav-centered-lockup" style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 32, transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+          <NavLinks links={left} gap={26} />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          <NavBrand manifest={manifest} label={coupleLabel} size={30} href={brandHref} />
+          {/* Tiny gold hairline under the lockup — invitation-card detail. */}
+          <span aria-hidden style={{ display: 'block', width: 32, height: 1, background: 'var(--pl-gold, #B8935A)', opacity: 0.6 }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 18 }}>
+          <NavLinks links={right} gap={26} />
+          <LanguageSwitcher />
+          {hasRsvp && (
+            <a href={rsvpHref} className="btn btn-primary btn-sm pl8-btn-sheen pl8-nav-rsvp">
+              RSVP <Icon name="arrow-right" size={12} />
+            </a>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Stacked editorial: large names + glyph on top row, hairline
+  // rule, mono-uppercased link row below. Cinema default. ──
+  if (navStyle === 'stacked-editorial') {
+    return (
+      <div className="pl8-nav-stacked-editorial" style={{ maxWidth: 1240, margin: '0 auto', padding: scrolled ? '12px 32px' : '18px 32px', display: 'flex', flexDirection: 'column', gap: 10, transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+          <NavBrand manifest={manifest} label={coupleLabel} size={34} href={brandHref} />
+          {/* Right-anchored utilities — language + RSVP — absolutely
+              positioned so they don't pull the centred lockup. */}
+          <div style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <LanguageSwitcher />
+            {hasRsvp && (
+              <a href={rsvpHref} className="btn btn-primary btn-sm pl8-btn-sheen pl8-nav-rsvp">
+                RSVP <Icon name="arrow-right" size={12} />
+              </a>
+            )}
+          </div>
+        </div>
+        <div className="pl8-nav-editorial-rule" style={{ height: 1, background: 'var(--nav-divider, rgba(61,74,31,0.12))', margin: '0 auto', width: '100%', maxWidth: 920 }} />
+        <nav className="pl8-site-nav-links pl8-nav-editorial-links" style={{ display: 'flex', justifyContent: 'center', gap: 28, flexWrap: 'wrap' }}>
+          {links.map((l) => (
+            <a
+              key={l.label}
+              href={l.href}
+              style={{
+                fontSize: 10.5,
+                fontFamily: 'var(--font-ui, var(--pl-font-mono, monospace))',
+                fontWeight: 700,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: 'var(--nav-ink-soft, var(--ink-soft))',
+                textDecoration: 'none',
+                transition: 'color var(--pl-dur-fast) var(--pl-ease-out)',
+              }}
+            >
+              {l.label}
+            </a>
+          ))}
+        </nav>
+      </div>
+    );
+  }
+
+  // ── Folio page-number: names left, mono-uppercased section labels
+  // right with leading gold dot, page-number style. Linen Folder
+  // default. ──
+  if (navStyle === 'folio-page-number') {
+    return (
+      <div className="pl8-nav-folio" style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'grid', gridTemplateColumns: '1fr 1fr', alignItems: 'center', gap: 24, transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
+        <NavBrand manifest={manifest} label={coupleLabel} size={26} href={brandHref} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 22, flexWrap: 'wrap' }}>
+          <nav style={{ display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {links.map((l, i) => (
+              <a
+                key={l.label}
+                href={l.href}
+                className="pl8-nav-folio-link"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: 10.5,
+                  fontFamily: 'var(--font-ui, var(--pl-font-mono, monospace))',
+                  fontWeight: 600,
+                  letterSpacing: '0.20em',
+                  textTransform: 'uppercase',
+                  color: 'var(--nav-ink-soft, var(--ink-soft))',
+                  textDecoration: 'none',
+                }}
+              >
+                <span aria-hidden style={{ display: 'inline-block', width: 4, height: 4, borderRadius: '50%', background: 'var(--pl-gold, #B8935A)' }} />
+                <span>{String(i + 1).padStart(2, '0')}</span>
+                <span style={{ opacity: 0.5 }}>·</span>
+                {l.label}
+              </a>
+            ))}
+          </nav>
+          <LanguageSwitcher />
+          {hasRsvp && (
+            <a href={rsvpHref} className="btn btn-primary btn-sm pl8-btn-sheen pl8-nav-rsvp">
+              RSVP <Icon name="arrow-right" size={12} />
+            </a>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Floating pill: sticky centered pill, compacts on scroll.
+  // Postcard Box default. The actual sticky positioning lives on
+  // the parent <header>; this body just shapes the inner pill. ──
+  if (navStyle === 'floating-pill') {
+    return (
+      <div className="pl8-nav-floating-pill-wrap" style={{ maxWidth: 1280, margin: '0 auto', padding: scrolled ? '8px 16px' : '14px 16px', display: 'flex', justifyContent: 'center', transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
+        <div
+          className="pl8-nav-floating-pill"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: scrolled ? 14 : 22,
+            padding: scrolled ? '8px 14px' : '10px 18px',
+            borderRadius: 999,
+            background: 'var(--nav-pill-bg, rgba(244,236,216,0.86))',
+            border: '1px solid var(--nav-pill-border, rgba(61,74,31,0.10))',
+            backdropFilter: 'blur(14px) saturate(1.1)',
+            WebkitBackdropFilter: 'blur(14px) saturate(1.1)',
+            boxShadow: scrolled ? '0 10px 24px -14px rgba(40,28,12,0.20)' : '0 8px 20px -16px rgba(40,28,12,0.14)',
+            transition: 'padding var(--pl-dur-slow) var(--pl-ease-out), gap var(--pl-dur-slow) var(--pl-ease-out), box-shadow var(--pl-dur-slow) var(--pl-ease-out)',
+            maxWidth: '100%',
+          }}
+        >
+          <NavBrand manifest={manifest} label={coupleLabel} size={scrolled ? 22 : 26} href={brandHref} />
+          <span aria-hidden style={{ display: 'inline-block', width: 1, height: 18, background: 'var(--nav-divider, rgba(61,74,31,0.18))' }} />
+          <NavLinks links={links} gap={scrolled ? 14 : 18} />
+          <LanguageSwitcher />
+          {hasRsvp && (
+            <a href={rsvpHref} className="btn btn-primary btn-sm pl8-btn-sheen pl8-nav-rsvp">
+              RSVP <Icon name="arrow-right" size={12} />
+            </a>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   // ── Classic (default): brand left, links right, RSVP at end. ──
   return (
     <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'flex', alignItems: 'center', gap: 28, transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
@@ -597,6 +786,353 @@ function NavBody({ navStyle, scrolled, coupleLabel, links, hasRsvp, rsvpHref, br
           RSVP <Icon name="arrow-right" size={12} />
         </a>
       )}
+    </div>
+  );
+}
+
+/* ==================== MOBILE NAV BODY ====================
+   Mobile-specific nav layouts. Activated when window.innerWidth < 720
+   AND the host has set manifest.nav.mobileStyle. Four variants:
+     - drawer-hamburger   — top bar + slide-down overlay drawer
+     - sticky-bottom-pill — slim top + thumb-reach bottom pill menu
+     - hairline-collapsing— top hairline + chevron-dropdown menu
+     - folded-expand      — hidden until scroll past hero
+   ─────────────────────────────────────────────────────────── */
+interface MobileNavBodyProps {
+  mobileStyle: 'drawer-hamburger' | 'sticky-bottom-pill' | 'hairline-collapsing' | 'folded-expand';
+  coupleLabel: string;
+  links: NavLink[];
+  hasRsvp: boolean;
+  rsvpHref: string;
+  brandHref: string;
+  manifest: StoryManifest;
+  scrolled: boolean;
+}
+
+function MobileNavBody({ mobileStyle, coupleLabel, links, hasRsvp, rsvpHref, brandHref, manifest, scrolled }: MobileNavBodyProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Close menu when any link is tapped (so the page-scroll lands clean).
+  function onLinkTap() { setMenuOpen(false); }
+
+  // ── Drawer hamburger: 56px top bar + slide-down full-width overlay.
+  // Universal mobile fallback — works for every Edition. ──
+  if (mobileStyle === 'drawer-hamburger') {
+    return (
+      <>
+        <div className="pl8-mnav-bar pl8-mnav-drawer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', minHeight: 56 }}>
+          <button
+            type="button"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+            style={{
+              width: 36, height: 36, padding: 0, border: 'none', background: 'transparent',
+              display: 'grid', placeItems: 'center', cursor: 'pointer', color: 'var(--nav-ink, var(--ink))',
+            }}
+          >
+            <span style={{ display: 'inline-flex', flexDirection: 'column', gap: 4, alignItems: 'stretch', width: 18 }}>
+              <span style={{ height: 1.5, background: 'currentColor', transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)', transform: menuOpen ? 'translateY(2.75px) rotate(45deg)' : undefined }} />
+              <span style={{ height: 1.5, background: 'currentColor', opacity: menuOpen ? 0 : 1, transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out)' }} />
+              <span style={{ height: 1.5, background: 'currentColor', transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)', transform: menuOpen ? 'translateY(-2.75px) rotate(-45deg)' : undefined }} />
+            </span>
+          </button>
+          <NavBrand manifest={manifest} label={coupleLabel} size={20} href={brandHref} />
+          {hasRsvp ? (
+            <a href={rsvpHref} className="btn btn-primary btn-xs pl8-btn-sheen" style={{ fontSize: 11, padding: '6px 10px' }}>RSVP</a>
+          ) : (
+            <span style={{ width: 36 }} />
+          )}
+        </div>
+        {/* Overlay drawer */}
+        <div
+          aria-hidden={!menuOpen}
+          className="pl8-mnav-drawer-sheet"
+          style={{
+            position: 'absolute', top: '100%', left: 0, right: 0,
+            background: 'var(--nav-surface-scrolled, rgba(247,242,228,0.98))',
+            borderBottom: '1px solid var(--nav-divider, rgba(61,74,31,0.10))',
+            maxHeight: menuOpen ? '70vh' : 0,
+            overflow: 'hidden',
+            opacity: menuOpen ? 1 : 0,
+            pointerEvents: menuOpen ? 'auto' : 'none',
+            transition: 'max-height var(--pl-dur-slow) var(--pl-ease-out), opacity var(--pl-dur-fast) var(--pl-ease-out)',
+            backdropFilter: 'blur(16px) saturate(140%)',
+            WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+          }}
+        >
+          <nav style={{ display: 'flex', flexDirection: 'column', padding: '12px 20px 24px' }}>
+            {links.map((l) => (
+              <a
+                key={l.label}
+                href={l.href}
+                onClick={onLinkTap}
+                style={{
+                  padding: '14px 4px',
+                  fontSize: 18,
+                  fontFamily: 'var(--pl-font-display, var(--font-display, serif))',
+                  fontStyle: 'italic',
+                  color: 'var(--nav-ink, var(--ink))',
+                  textDecoration: 'none',
+                  borderBottom: '1px solid var(--nav-divider, rgba(61,74,31,0.08))',
+                }}
+              >
+                {l.label}
+              </a>
+            ))}
+            <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <LanguageSwitcher />
+            </div>
+          </nav>
+        </div>
+      </>
+    );
+  }
+
+  // ── Sticky bottom pill: slim top + bottom-fixed pill menu. ──
+  if (mobileStyle === 'sticky-bottom-pill') {
+    return (
+      <>
+        <div className="pl8-mnav-bar pl8-mnav-sticky-top" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', minHeight: 44 }}>
+          <NavBrand manifest={manifest} label={coupleLabel} size={18} href={brandHref} />
+        </div>
+        {/* Bottom pill — rendered as a sibling fixed element, NOT
+            inside the sticky header (sticky elements escape fixed
+            positioning). Mounted via portal-style absolute on the
+            document. */}
+        <MobileBottomPill
+          links={links}
+          hasRsvp={hasRsvp}
+          rsvpHref={rsvpHref}
+          menuOpen={menuOpen}
+          setMenuOpen={setMenuOpen}
+          onLinkTap={onLinkTap}
+          coupleLabel={coupleLabel}
+        />
+      </>
+    );
+  }
+
+  // ── Hairline collapsing: sticky top hairline + chevron dropdown. ──
+  if (mobileStyle === 'hairline-collapsing') {
+    return (
+      <div className="pl8-mnav-bar pl8-mnav-hairline" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', minHeight: 44 }}>
+        <NavBrand manifest={manifest} label={coupleLabel} size={16} href={brandHref} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {hasRsvp && (
+            <a href={rsvpHref} className="pl8-mnav-rsvp-chip" style={{ fontSize: 10.5, padding: '5px 10px', borderRadius: 999, border: '1px solid var(--nav-ink-soft, var(--ink-soft))', color: 'var(--nav-ink, var(--ink))', textDecoration: 'none', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>RSVP</a>
+          )}
+          <button
+            type="button"
+            aria-label={menuOpen ? 'Close chapter menu' : 'Open chapter menu'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+            style={{ width: 36, height: 36, padding: 0, border: 'none', background: 'transparent', display: 'grid', placeItems: 'center', cursor: 'pointer', color: 'var(--nav-ink, var(--ink))' }}
+          >
+            <span style={{ display: 'inline-block', width: 12, height: 12, position: 'relative' }}>
+              <span aria-hidden style={{ position: 'absolute', inset: 0, display: 'inline-block', borderLeft: '1.5px solid currentColor', borderBottom: '1.5px solid currentColor', width: 8, height: 8, top: 1, left: 2, transform: menuOpen ? 'rotate(135deg)' : 'rotate(-45deg)', transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)' }} />
+            </span>
+          </button>
+        </div>
+        <div
+          aria-hidden={!menuOpen}
+          className="pl8-mnav-hairline-sheet"
+          style={{
+            position: 'absolute', top: '100%', right: 12, minWidth: 200,
+            background: 'var(--nav-surface-scrolled, rgba(247,242,228,0.98))',
+            border: '1px solid var(--nav-divider, rgba(61,74,31,0.12))',
+            borderRadius: 12,
+            boxShadow: '0 12px 32px -12px rgba(40,28,12,0.20)',
+            maxHeight: menuOpen ? '60vh' : 0,
+            overflow: 'hidden',
+            opacity: menuOpen ? 1 : 0,
+            pointerEvents: menuOpen ? 'auto' : 'none',
+            transition: 'max-height var(--pl-dur-slow) var(--pl-ease-out), opacity var(--pl-dur-fast) var(--pl-ease-out)',
+            backdropFilter: 'blur(14px) saturate(140%)',
+            WebkitBackdropFilter: 'blur(14px) saturate(140%)',
+            marginTop: 4,
+          }}
+        >
+          <nav style={{ display: 'flex', flexDirection: 'column', padding: '6px 0' }}>
+            {links.map((l) => (
+              <a
+                key={l.label}
+                href={l.href}
+                onClick={onLinkTap}
+                style={{ padding: '12px 18px', fontSize: 14, color: 'var(--nav-ink, var(--ink))', textDecoration: 'none' }}
+              >
+                {l.label}
+              </a>
+            ))}
+          </nav>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Folded expand: hidden until past hero, then a thin sticky
+  // strip slides in. The "scrolled" prop from EventNav doubles as
+  // the past-hero signal. ──
+  return (
+    <div
+      className="pl8-mnav-bar pl8-mnav-folded"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '8px 16px',
+        minHeight: 40,
+        opacity: scrolled ? 1 : 0,
+        transform: scrolled ? 'translateY(0)' : 'translateY(-100%)',
+        pointerEvents: scrolled ? 'auto' : 'none',
+        transition: 'opacity var(--pl-dur-base) var(--pl-ease-out), transform var(--pl-dur-base) var(--pl-ease-out)',
+      }}
+    >
+      <NavBrand manifest={manifest} label={coupleLabel} size={16} href={brandHref} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <button
+          type="button"
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((v) => !v)}
+          style={{ width: 32, height: 32, padding: 0, border: 'none', background: 'transparent', display: 'grid', placeItems: 'center', cursor: 'pointer', color: 'var(--nav-ink, var(--ink))' }}
+        >
+          <span style={{ display: 'inline-flex', flexDirection: 'column', gap: 3, alignItems: 'stretch', width: 16 }}>
+            <span style={{ height: 1.5, background: 'currentColor' }} />
+            <span style={{ height: 1.5, background: 'currentColor' }} />
+            <span style={{ height: 1.5, background: 'currentColor' }} />
+          </span>
+        </button>
+      </div>
+      <div
+        aria-hidden={!menuOpen}
+        style={{
+          position: 'absolute', top: '100%', left: 0, right: 0,
+          background: 'var(--nav-surface-scrolled, rgba(247,242,228,0.98))',
+          maxHeight: menuOpen ? '70vh' : 0,
+          overflow: 'hidden',
+          opacity: menuOpen ? 1 : 0,
+          pointerEvents: menuOpen ? 'auto' : 'none',
+          transition: 'max-height var(--pl-dur-slow) var(--pl-ease-out), opacity var(--pl-dur-fast) var(--pl-ease-out)',
+          borderBottom: '1px solid var(--nav-divider, rgba(61,74,31,0.10))',
+          backdropFilter: 'blur(14px) saturate(140%)',
+          WebkitBackdropFilter: 'blur(14px) saturate(140%)',
+        }}
+      >
+        <nav style={{ display: 'flex', flexDirection: 'column', padding: '12px 20px 18px' }}>
+          {links.map((l) => (
+            <a key={l.label} href={l.href} onClick={onLinkTap} style={{ padding: '12px 4px', fontSize: 16, fontFamily: 'var(--pl-font-display, serif)', fontStyle: 'italic', color: 'var(--nav-ink, var(--ink))', textDecoration: 'none', borderBottom: '1px solid var(--nav-divider, rgba(61,74,31,0.08))' }}>
+              {l.label}
+            </a>
+          ))}
+          {hasRsvp && (
+            <a href={rsvpHref} onClick={onLinkTap} className="btn btn-primary btn-sm" style={{ marginTop: 12, justifyContent: 'center' }}>RSVP</a>
+          )}
+        </nav>
+      </div>
+    </div>
+  );
+}
+
+function MobileBottomPill({ links, hasRsvp, rsvpHref, menuOpen, setMenuOpen, onLinkTap, coupleLabel }: {
+  links: NavLink[];
+  hasRsvp: boolean;
+  rsvpHref: string;
+  menuOpen: boolean;
+  setMenuOpen: (v: boolean | ((p: boolean) => boolean)) => void;
+  onLinkTap: () => void;
+  coupleLabel: string;
+}) {
+  void coupleLabel;
+  // Rendered into a portal-like fixed container so the bottom pill
+  // sits in the viewport, not inside the sticky header (which would
+  // never reach the bottom).
+  return (
+    <div
+      className="pl8-mnav-bottom-pill-mount"
+      style={{
+        position: 'fixed',
+        left: 16,
+        right: 16,
+        bottom: 'max(14px, env(safe-area-inset-bottom))',
+        zIndex: 42,
+        display: 'flex',
+        justifyContent: 'center',
+        pointerEvents: 'none',
+      }}
+    >
+      <div style={{ position: 'relative', pointerEvents: 'auto', maxWidth: 480, width: '100%' }}>
+        {/* Pop-up menu — slides up from above the pill */}
+        <div
+          aria-hidden={!menuOpen}
+          style={{
+            position: 'absolute', bottom: 'calc(100% + 8px)', left: 0, right: 0,
+            background: 'var(--nav-surface-scrolled, rgba(247,242,228,0.98))',
+            border: '1px solid var(--nav-divider, rgba(61,74,31,0.10))',
+            borderRadius: 16,
+            boxShadow: '0 16px 32px -10px rgba(40,28,12,0.25)',
+            maxHeight: menuOpen ? '60vh' : 0,
+            overflow: 'hidden',
+            opacity: menuOpen ? 1 : 0,
+            pointerEvents: menuOpen ? 'auto' : 'none',
+            transition: 'max-height var(--pl-dur-slow) var(--pl-ease-out), opacity var(--pl-dur-fast) var(--pl-ease-out)',
+            backdropFilter: 'blur(16px) saturate(140%)',
+            WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+          }}
+        >
+          <nav style={{ display: 'flex', flexDirection: 'column', padding: '6px 0' }}>
+            {links.map((l) => (
+              <a key={l.label} href={l.href} onClick={onLinkTap} style={{ padding: '14px 22px', fontSize: 16, color: 'var(--nav-ink, var(--ink))', textDecoration: 'none' }}>
+                {l.label}
+              </a>
+            ))}
+          </nav>
+        </div>
+        {/* The pill itself */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            padding: 6,
+            borderRadius: 999,
+            background: 'var(--nav-pill-bg, rgba(244,236,216,0.94))',
+            border: '1px solid var(--nav-pill-border, rgba(61,74,31,0.12))',
+            boxShadow: '0 12px 28px -10px rgba(40,28,12,0.22)',
+            backdropFilter: 'blur(14px) saturate(140%)',
+            WebkitBackdropFilter: 'blur(14px) saturate(140%)',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-expanded={menuOpen}
+            style={{
+              flex: 1,
+              padding: '10px 16px',
+              border: 'none', background: 'transparent',
+              fontSize: 13, fontWeight: 600,
+              fontFamily: 'var(--font-ui)',
+              color: 'var(--nav-ink, var(--ink))',
+              textAlign: 'center',
+              cursor: 'pointer',
+              borderRadius: 999,
+            }}
+          >
+            {menuOpen ? 'Close' : 'Chapters'}
+          </button>
+          {hasRsvp && (
+            <a
+              href={rsvpHref}
+              onClick={onLinkTap}
+              className="btn btn-primary pl8-btn-sheen"
+              style={{ padding: '10px 18px', fontSize: 13, borderRadius: 999 }}
+            >
+              RSVP
+            </a>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -761,7 +1297,13 @@ function EventNav({ names, hasRsvp, manifest, siteSlug, basePath, siteMode, home
   void siteSlug; // reserved for future analytics hooks
   const coupleLabel = names.filter(Boolean).join(' & ') || 'Our celebration';
   const [scrolled, setScrolled] = useState(false);
+  // Viewport-aware mobile switch — mobile variants render in their own
+  // shape (drawer / bottom-pill / chevron-dropdown / fold-on-scroll).
+  // The 720px threshold mirrors pearloom.css site responsive rules so
+  // the editor's device frame queries map cleanly.
+  const [isMobile, setIsMobile] = useState(false);
   const navStyle = manifest.nav?.style ?? 'classic';
+  const mobileStyle = manifest.nav?.mobileStyle;
   // Per-host motion overrides set in NavPanel → manifest.navStyle.
   // Defaults match the pre-config behaviour exactly.
   const navMotion = (manifest as unknown as {
@@ -779,6 +1321,24 @@ function EventNav({ names, hasRsvp, manifest, siteSlug, basePath, siteMode, home
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Mobile-viewport detection. Match the published-site breakpoint
+  // (720px) for desktop-vs-mobile dispatch. The editor canvas exposes
+  // a container query that mirrors this; in the editor context the
+  // device frame's container-inline-size drives layout, but
+  // window.innerWidth is the correct guest-side signal.
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    const mql = window.matchMedia('(max-width: 720px)');
+    const apply = () => setIsMobile(mql.matches);
+    apply();
+    if (mql.addEventListener) mql.addEventListener('change', apply);
+    else mql.addListener(apply);
+    return () => {
+      if (mql.removeEventListener) mql.removeEventListener('change', apply);
+      else mql.removeListener(apply);
+    };
   }, []);
 
   // Smart contrast: read the theme's page background and pick a
@@ -838,16 +1398,29 @@ function EventNav({ names, hasRsvp, manifest, siteSlug, basePath, siteMode, home
         transition: 'background var(--pl-dur-slow) var(--pl-ease-out), backdrop-filter var(--pl-dur-slow) var(--pl-ease-out), border-color var(--pl-dur-slow) var(--pl-ease-out), box-shadow var(--pl-dur-slow) var(--pl-ease-out), transform var(--pl-dur-slow) var(--pl-ease-out)',
       }}
     >
-      <NavBody
-        navStyle={navStyle}
-        scrolled={scrolled}
-        coupleLabel={coupleLabel}
-        links={links}
-        hasRsvp={hasRsvp}
-        rsvpHref={rsvpHref}
-        brandHref={brandHref}
-        manifest={manifest}
-      />
+      {isMobile && mobileStyle ? (
+        <MobileNavBody
+          mobileStyle={mobileStyle}
+          coupleLabel={coupleLabel}
+          links={links}
+          hasRsvp={hasRsvp}
+          rsvpHref={rsvpHref}
+          brandHref={brandHref}
+          manifest={manifest}
+          scrolled={scrolled}
+        />
+      ) : (
+        <NavBody
+          navStyle={navStyle}
+          scrolled={scrolled}
+          coupleLabel={coupleLabel}
+          links={links}
+          hasRsvp={hasRsvp}
+          rsvpHref={rsvpHref}
+          brandHref={brandHref}
+          manifest={manifest}
+        />
+      )}
     </header>
   );
 }

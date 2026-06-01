@@ -48,6 +48,12 @@ export const EDITIONS: EditionDefinition[] = [
       rsvp:     { cardRadius: 'soft', cardShadow: 'none', cardBorder: 'hairline', cardPadding: 'generous' },
     },
     recommendedFor: ['wedding', 'anniversary', 'vow-renewal'],
+    /* Almanac → centered-lockup desktop + drawer-hamburger mobile —
+       names centered with links flanking is the classic wedding-
+       invitation aesthetic Almanac trades on. Drawer is the safest
+       mobile default for narrative-first sites. */
+    recommendedNavStyle: 'centered-lockup',
+    recommendedNavMobileStyle: 'drawer-hamburger',
     /* Almanac — warm cream paper, olive ink, Fraunces display +
        Inter body. Matches Pearloom's current v8 default so existing
        Almanac sites are byte-for-byte unchanged. Display weight
@@ -102,6 +108,11 @@ export const EDITIONS: EditionDefinition[] = [
       rsvp:     { cardRadius: 'sharp', cardShadow: 'lifted', cardBorder: 'none', cardPadding: 'compact' },
     },
     recommendedFor: ['engagement', 'milestone-birthday', 'sweet-sixteen'],
+    /* Cinema → stacked-editorial desktop + hairline-collapsing mobile.
+       The two-row masthead reads like a film-magazine title block.
+       Hairline-collapsing keeps the hero dominant on mobile. */
+    recommendedNavStyle: 'stacked-editorial',
+    recommendedNavMobileStyle: 'hairline-collapsing',
     /* Cinema — dark theatre paper, cream ink, italic Cormorant
        Garamond display, gold accent. Sharp 2-3px radii. The
        prototype's Midnight Velvet sits here. Display weight 500
@@ -161,6 +172,12 @@ export const EDITIONS: EditionDefinition[] = [
       'sip-and-see',
       'baby-shower',
     ],
+    /* Postcard Box → floating-pill desktop + sticky-bottom-pill mobile.
+       Both lean into the playful, minimal-intrusion aesthetic — the
+       pill mirrors a wax-seal shape on desktop, a thumb-reach handle
+       on mobile. */
+    recommendedNavStyle: 'floating-pill',
+    recommendedNavMobileStyle: 'sticky-bottom-pill',
     /* Postcard Box — warm cream-deep paper, peach accent, italic
        Fraunces (display) + Caveat (script handwritten tags). Pillow
        24px radii to match the polaroid stack. The prototype's
@@ -222,6 +239,12 @@ export const EDITIONS: EditionDefinition[] = [
       'confirmation',
       'retirement',
     ],
+    /* Linen Folder → folio-page-number desktop + drawer-hamburger
+       mobile. Mono-uppercased page markers right-aligned read like
+       a hotel-stationery program; drawer keeps the formal hero
+       uncluttered on mobile. */
+    recommendedNavStyle: 'folio-page-number',
+    recommendedNavMobileStyle: 'drawer-hamburger',
     /* Linen Folder — sun-bleached linen paper, deep navy ink,
        Cormorant Garamond upright (not italic) with gold accent.
        Sharp 5px radii. The prototype's Santorini Linen sits here.
@@ -272,6 +295,13 @@ export const EDITIONS: EditionDefinition[] = [
     },
     forbiddenMotifs: ['blob', 'sparkle', 'heart', 'postIt', 'polaroid', 'stamp'],
     recommendedFor: ['memorial', 'funeral'],
+    /* Quiet → hairline-horizontal desktop + folded-expand mobile.
+       Maximum restraint — single 1px rule with a thin link row,
+       and on mobile the nav stays out of the way until guests
+       scroll past the hero. Solemn events should never feel
+       crowded by chrome. */
+    recommendedNavStyle: 'hairline-horizontal',
+    recommendedNavMobileStyle: 'folded-expand',
     /* Modern Editorial — flat matte cream, near-black ink, single
        gold accent for high-contrast type. Prototype swatch reads
        black · gold · gray · cream so accent stops carry gold; no
@@ -322,6 +352,12 @@ export const EDITIONS: EditionDefinition[] = [
     },
     forbiddenMotifs: ['blob', 'sparkle', 'heart'],
     recommendedFor: ['wedding', 'engagement', 'rehearsal-dinner', 'welcome-party'],
+    /* Coastal → centered-lockup desktop + sticky-bottom-pill mobile.
+       Names centered matches the breezy, ceremonial feel; the bottom
+       pill keeps thumb-reach handy without competing with the
+       horizon-line hero on mobile. */
+    recommendedNavStyle: 'centered-lockup',
+    recommendedNavMobileStyle: 'sticky-bottom-pill',
     /* Coastal Ink — deckled cream paper, deep navy ink, sea-glass blue
        accent, gold hint. Cormorant Garamond display. Sharp 3px radii.
        Maps the prototype's Coastal Ink theme one-to-one. */

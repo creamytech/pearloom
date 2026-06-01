@@ -1902,6 +1902,74 @@ button.pl8-mobile-only { display: none !important; }
   .pl8-site-nav-links a::after { transition: none; }
 }
 
+/* ──────────────────────────────────────────────────────────────
+   pl8 — Per-variant nav polish (2026-06-01)
+   Five new desktop variants + four mobile variants ship with
+   their own micro-interactions. Each block stays scoped to its
+   variant container class so unrelated nav styles are untouched.
+   ────────────────────────────────────────────────────────────── */
+
+/* Hairline horizontal — pure restraint. The RSVP "button" is
+   a 1px outlined chip; on hover it flips ink. */
+.pl8-guest .pl8-nav-hairline { border-bottom: 1px solid var(--nav-divider, rgba(61,74,31,0.10)); }
+.pl8-guest .pl8-nav-rsvp-hairline:hover {
+  background: var(--nav-ink, var(--ink));
+  color: var(--nav-surface-scrolled, var(--cream, #FBF7EE)) !important;
+}
+
+/* Centered lockup — the tiny gold hairline under the names is
+   the brand signature. Subtle width-expand on header hover. */
+.pl8-guest .pl8-nav-centered-lockup { row-gap: 4px; }
+
+/* Stacked editorial — editorial mono link row. The thin rule
+   between the lockup and links should feel surgical, not heavy. */
+.pl8-guest .pl8-nav-editorial-links a:hover {
+  color: var(--nav-ink, var(--ink)) !important;
+}
+.pl8-guest .pl8-nav-editorial-rule {
+  background: linear-gradient(90deg, transparent 0%, var(--nav-divider, rgba(61,74,31,0.18)) 20%, var(--nav-divider, rgba(61,74,31,0.18)) 80%, transparent 100%);
+}
+
+/* Folio — page-number rows. Hover lifts the gold dot opacity
+   and underlines the label only (the number + dot stay still). */
+.pl8-guest .pl8-nav-folio-link { transition: color var(--pl-dur-fast) var(--pl-ease-out); }
+.pl8-guest .pl8-nav-folio-link:hover { color: var(--nav-ink, var(--ink)) !important; }
+
+/* Floating pill — lift on header hover, tighter shadow on scroll. */
+.pl8-guest .pl8-nav-floating-pill:hover {
+  box-shadow: 0 14px 28px -14px rgba(40,28,12,0.26);
+}
+
+/* ── Mobile nav scaffolding ─────────────────────────────────── */
+.pl8-guest .pl8-mnav-bar { position: relative; }
+.pl8-guest .pl8-mnav-drawer-sheet a:active,
+.pl8-guest .pl8-mnav-hairline-sheet a:active {
+  background: var(--nav-divider, rgba(61,74,31,0.08));
+}
+
+/* Sticky bottom pill — make sure the drop shadow respects the
+   safe-area inset on iPhones. The fixed positioning happens in
+   the JSX; we just polish the visual here. */
+.pl8-guest .pl8-mnav-bottom-pill-mount { padding-bottom: max(0px, env(safe-area-inset-bottom)); }
+
+/* Folded expand — when the nav is hidden (pre-hero-scroll), pad
+   out the editor canvas so the device frame's chrome doesn't
+   collapse onto the hero. The transform negative-translate is
+   handled inline. */
+@media (max-width: 720px) {
+  .pl8-guest .pl8-site-nav { z-index: 41; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pl8-guest .pl8-mnav-drawer-sheet,
+  .pl8-guest .pl8-mnav-hairline-sheet,
+  .pl8-guest .pl8-mnav-folded,
+  .pl8-guest .pl8-nav-floating-pill,
+  .pl8-guest .pl8-mnav-bottom-pill-mount {
+    transition: none !important;
+  }
+}
+
 
 /* ============================================================
    pl8 — Smoothness pass (2026-04-24)
