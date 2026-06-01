@@ -186,7 +186,8 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug, editMode = false
           section they could fill. */}
       <ThemedCountdown manifest={manifest} editMode={editMode} />
       <ThemedStory manifest={manifest} motif={motif} editMode={editMode} />
-      <ThemedPullQuote manifest={manifest} />
+      {/* PullQuote removed — not in the design prototype; the
+          story chapters carry the editorial rhythm on their own. */}
       <ThemedWeddingParty manifest={manifest} />
       <ThemedDetails manifest={manifest} motif={motif} editMode={editMode} />
       <ThemedSchedule manifest={manifest} editMode={editMode} />
@@ -1475,14 +1476,21 @@ function ThemedRegistry({ manifest, editMode }: { manifest: StoryManifest; editM
           {reg.message}
         </div>
       )}
+      {/* Registry chips — port of prototype's RegistryBlock (themed-
+          site.jsx ~line 412). Each entry is a small KChip-shaped
+          row, NOT a substantial card; the prototype's intent is
+          that the registry sits as a quiet footnote at the bottom
+          of the site, not as a hero feature. Per-kit treatment
+          inherits via kitCardStyle for chrome consistency. */}
       <div
+        className="pl8-registry-chips"
         style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(auto-fit, minmax(220px, ${entries.length === 1 ? '320px' : '1fr'}))`,
-          gap: 18,
-          maxWidth: 820,
-          margin: '0 auto',
+          display: 'flex',
           justifyContent: 'center',
+          gap: 12,
+          flexWrap: 'wrap',
+          maxWidth: 720,
+          margin: '0 auto',
         }}
       >
         {entries.map((e, i) => (
@@ -1492,54 +1500,19 @@ function ThemedRegistry({ manifest, editMode }: { manifest: StoryManifest; editM
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              padding: '28px 24px 22px',
-              borderRadius: 'var(--pl-card-radius, 14px)',
-              background: 'var(--card, #FBF7EE)',
-              border: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
-              boxShadow: 'var(--pl-card-shadow, 0 4px 14px rgba(75,65,52,0.08))',
+              ...kitCardStyle(manifest.kitId ?? 'classic', i),
+              padding: '11px 18px',
               textDecoration: 'none',
-              display: 'flex',
-              flexDirection: 'column',
+              display: 'inline-flex',
               alignItems: 'center',
-              gap: 12,
+              gap: 8,
+              fontSize: 13.5,
+              fontWeight: 600,
+              color: 'var(--ink, #0E0D0B)',
             }}
           >
-            <div
-              aria-hidden
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: '50%',
-                background: 'var(--peach-bg, rgba(198,112,61,0.10))',
-                display: 'grid',
-                placeItems: 'center',
-              }}
-            >
-              <Icon name="gift" size={20} color="var(--peach-ink, #C6703D)" />
-            </div>
-            <div
-              style={{
-                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-                fontSize: 18,
-                fontWeight: 600,
-                color: 'var(--ink, #0E0D0B)',
-                lineHeight: 1.15,
-                textAlign: 'center',
-              }}
-            >
-              {e.name ?? e.label ?? 'Registry'}
-            </div>
-            <span
-              style={{
-                marginTop: 4,
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: '0.04em',
-                color: 'var(--peach-ink, #C6703D)',
-              }}
-            >
-              Open ↗
-            </span>
+            <span>{e.name ?? e.label ?? 'Registry'}</span>
+            <Icon name="arrow-ur" size={11} color="var(--peach-ink, #C6703D)" />
           </a>
         ))}
       </div>
