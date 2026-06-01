@@ -30,6 +30,7 @@
 // in subsequent commits.
 // ─────────────────────────────────────────────────────────────
 
+import { useEffect, useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../motifs';
 import { MotifScatter, type MotifKind } from './MotifScatter';
@@ -447,11 +448,19 @@ function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names
     (manifest as unknown as { poetry?: { heroTagline?: string } }).poetry?.heroTagline ?? '';
   const tagline = heroCopyFull.split(/[.!?]\s/, 2)[0];
   /* First three photos for the arch strip — fallback to chapter
-     covers, then a single hero image if only one exists. */
+     covers. When no real photos exist, the hero falls back to
+     three soft-tinted arch placeholders so the iconic 3-arch
+     composition still reads. Tones pulled from the Edition's
+     accent palette so the placeholders feel theme-coherent
+     rather than generic gray. */
   const archPhotos = (manifest.chapters ?? [])
     .flatMap((c) => (c.images ?? []).map((i) => i.url))
     .filter((u): u is string => !!u)
     .slice(0, 3);
+  /* Three tones in Edition palette — accentLight / a peach wash /
+     a sage wash. When no real photos exist, the placeholder
+     fills the 3-arch composition with these tone blocks. */
+  const archFallbackTones: [string, string, string] = ['var(--peach-bg, rgba(198,112,61,0.18))', 'var(--peach-ink, #C6703D)', 'var(--peach-bg, rgba(198,112,61,0.10))'];
 
   return (
     <section
@@ -592,27 +601,36 @@ function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names
           </a>
         </div>
         {/* 3-arch photo triptych — the prototype's hero signature.
-            Each arch is top-rounded (50% radius on the top corners
-            only). Renders only when at least 3 photos exist. */}
-        {archPhotos.length >= 3 && (
-          <div
-            style={{
-              marginTop: 44,
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: 16,
-              maxWidth: 760,
-              marginInline: 'auto',
-            }}
-          >
-            {archPhotos.map((url, i) => (
+            Always renders so the hero's composition is preserved.
+            Uses real photos when available; otherwise falls back
+            to three tone-blocks from the Edition's palette so the
+            arches feel theme-coherent rather than empty. */}
+        <div
+          style={{
+            marginTop: 44,
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 16,
+            maxWidth: 760,
+            marginInline: 'auto',
+          }}
+        >
+          {[0, 1, 2].map((i) => {
+            const url = archPhotos[i];
+            return (
               <div
                 key={i}
                 style={{
                   aspectRatio: '3/4',
-                  backgroundImage: `url(${url})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
+                  ...(url
+                    ? {
+                        backgroundImage: `url(${url})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }
+                    : {
+                        background: archFallbackTones[i] ?? archFallbackTones[0],
+                      }),
                   borderTopLeftRadius: '50% 35%',
                   borderTopRightRadius: '50% 35%',
                   borderBottomLeftRadius: 8,
@@ -620,9 +638,9 @@ function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names
                   boxShadow: '0 10px 28px rgba(61,74,31,0.14)',
                 }}
               />
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
     </section>
   );
@@ -1887,13 +1905,45 @@ function ThemedCountdown({ manifest, editMode }: { manifest: StoryManifest; edit
   }
   const target = new Date(dateStr).getTime();
   if (!Number.isFinite(target)) return null;
-  /* SSR-safe: render -- placeholders, then the client effect
-     fills in the live numbers. */
+  return <CountdownTimer target={target} />;
+}
+
+/* CountdownTimer — real React component (the prior version
+   used <script dangerouslySetInnerHTML> which React doesn't
+   execute when hydrated, so the cells stayed at em-dashes
+   forever). useEffect + setInterval ticks the four cells.
+   SSR-safe: server renders em-dashes, client takes over on
+   mount and fills in live values. */
+function CountdownTimer({ target }: { target: number }) {
+  const computeRemaining = useMemo(() => {
+    return (now: number) => {
+      const d = Math.max(0, target - now);
+      const dd = Math.floor(d / 86400000);
+      const hh = Math.floor((d % 86400000) / 3600000);
+      const mm = Math.floor((d % 3600000) / 60000);
+      const ss = Math.floor((d % 60000) / 1000);
+      return {
+        days: String(dd),
+        hours: String(hh).padStart(2, '0'),
+        minutes: String(mm).padStart(2, '0'),
+        seconds: String(ss).padStart(2, '0'),
+      };
+    };
+  }, [target]);
+  const [tick, setTick] = useState<{ days: string; hours: string; minutes: string; seconds: string }>({
+    days: '—', hours: '—', minutes: '—', seconds: '—',
+  });
+  useEffect(() => {
+    const update = () => setTick(computeRemaining(Date.now()));
+    update();
+    const id = window.setInterval(update, 1000);
+    return () => window.clearInterval(id);
+  }, [computeRemaining]);
   const cells = [
-    { value: '—', label: 'Days' },
-    { value: '—', label: 'Hours' },
-    { value: '—', label: 'Minutes' },
-    { value: '—', label: 'Seconds' },
+    { value: tick.days, label: 'Days' },
+    { value: tick.hours, label: 'Hours' },
+    { value: tick.minutes, label: 'Minutes' },
+    { value: tick.seconds, label: 'Seconds' },
   ];
   return (
     <section
@@ -1966,20 +2016,6 @@ function ThemedCountdown({ manifest, editMode }: { manifest: StoryManifest; edit
           </div>
         ))}
       </div>
-      {/* Inline script — keeps the SSR markup intact while
-          letting the cells tick on the client. The script is
-          self-cleaning if the cells aren't there. */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `(function(){
-  var root=document.querySelector('[data-pl-countdown]');if(!root)return;
-  var target=parseInt(root.getAttribute('data-target'),10);if(!target)return;
-  var cells={days:root.querySelector('[data-pl-countdown-cell=days]'),hours:root.querySelector('[data-pl-countdown-cell=hours]'),minutes:root.querySelector('[data-pl-countdown-cell=minutes]'),seconds:root.querySelector('[data-pl-countdown-cell=seconds]')};
-  function tick(){var d=target-Date.now();if(d<0)d=0;var dd=Math.floor(d/86400000);var hh=Math.floor((d%86400000)/3600000);var mm=Math.floor((d%3600000)/60000);var ss=Math.floor((d%60000)/1000);if(cells.days)cells.days.textContent=String(dd);if(cells.hours)cells.hours.textContent=String(hh).padStart(2,'0');if(cells.minutes)cells.minutes.textContent=String(mm).padStart(2,'0');if(cells.seconds)cells.seconds.textContent=String(ss).padStart(2,'0');}
-  tick();setInterval(tick,1000);
-})();`,
-        }}
-      />
     </section>
   );
 }
