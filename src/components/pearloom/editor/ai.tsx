@@ -55,18 +55,41 @@ export function AISuggestButton({
         }}
       >
         {state === 'running' ? (
+          /* Three peach dots pulsing in sequence — unified
+             with the rest of the AI surface vocabulary
+             (PearThinking, GuestPearChat empty bubble, etc.). */
           <span
             aria-hidden
-            data-pl-spin
             style={{
-              width: 14,
-              height: 14,
-              borderRadius: '50%',
-              border: '2px solid var(--lavender-ink)',
-              borderTopColor: 'transparent',
-              animation: 'pl8-spin 700ms linear infinite',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 3,
+              marginRight: 2,
             }}
-          />
+          >
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                style={{
+                  width: 4,
+                  height: 4,
+                  borderRadius: '50%',
+                  background: 'var(--peach-ink, #C6703D)',
+                  opacity: 0.4,
+                  animation: `pl-ai-button-dot 1.4s ease-in-out ${i * 0.18}s infinite`,
+                }}
+              />
+            ))}
+            <style jsx>{`
+              @keyframes pl-ai-button-dot {
+                0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+                40%           { opacity: 1;    transform: translateY(-1px); }
+              }
+              @media (prefers-reduced-motion: reduce) {
+                span { animation: none !important; opacity: 0.7 !important; }
+              }
+            `}</style>
+          </span>
         ) : state === 'done' ? (
           <Icon name="check" size={12} color="var(--sage-deep)" />
         ) : (

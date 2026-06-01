@@ -348,34 +348,55 @@ export function GuestPearChat({ manifest, coupleNames, guest, domain }: Props) {
             </div>
           </div>
         ) : (
-          chat.map((m) => (
-            <div
-              key={m.id}
-              style={{
-                alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
-                maxWidth: '90%',
-                padding: '8px 12px',
-                borderRadius: 12,
-                background: m.role === 'user'
-                  ? 'rgba(198,112,61,0.12)'
-                  : 'var(--paper, #FFFFFF)',
-                border: m.role === 'user'
-                  ? '1px solid rgba(198,112,61,0.22)'
-                  : '1px solid rgba(14,13,11,0.08)',
-                color: 'var(--ink, #0E0D0B)',
-                fontSize: 13,
-                lineHeight: 1.55,
-                fontFamily: m.role === 'user' ? 'var(--font-ui)' : 'var(--font-display, "Fraunces", Georgia, serif)',
-                fontStyle: m.role === 'user' ? 'normal' : 'italic',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-              }}
-            >
-              {m.content || (
-                <PearThinking active label="drafting" size="sm" hideAvatar />
-              )}
-            </div>
-          ))
+          chat.map((m, idx) => {
+            /* Last assistant message while streaming gets a
+               blinking caret at the end so the host has a clear
+               "Pear is still writing" affordance. */
+            const isLast = idx === chat.length - 1;
+            const showCaret = streaming && isLast && m.role !== 'user' && Boolean(m.content);
+            return (
+              <div
+                key={m.id}
+                style={{
+                  alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
+                  maxWidth: '90%',
+                  padding: '8px 12px',
+                  borderRadius: 12,
+                  background: m.role === 'user'
+                    ? 'rgba(198,112,61,0.12)'
+                    : 'var(--paper, #FFFFFF)',
+                  border: m.role === 'user'
+                    ? '1px solid rgba(198,112,61,0.22)'
+                    : '1px solid rgba(14,13,11,0.08)',
+                  color: 'var(--ink, #0E0D0B)',
+                  fontSize: 13,
+                  lineHeight: 1.55,
+                  fontFamily: m.role === 'user' ? 'var(--font-ui)' : 'var(--font-display, "Fraunces", Georgia, serif)',
+                  fontStyle: m.role === 'user' ? 'normal' : 'italic',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                }}
+              >
+                {m.content || (
+                  <PearThinking active label="drafting" size="sm" hideAvatar />
+                )}
+                {showCaret && (
+                  <span
+                    aria-hidden
+                    style={{
+                      display: 'inline-block',
+                      width: 7,
+                      height: 14,
+                      marginLeft: 2,
+                      background: 'var(--peach-ink, #C6703D)',
+                      verticalAlign: '-2px',
+                      animation: 'pl-pear-caret 1s steps(2, end) infinite',
+                    }}
+                  />
+                )}
+              </div>
+            );
+          })
         )}
         {error && (
           <div
@@ -457,6 +478,19 @@ export function GuestPearChat({ manifest, coupleNames, guest, domain }: Props) {
         @keyframes pl-pear-chat-rise {
           from { opacity: 0; transform: translateY(12px) scale(0.98); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        /* Blinking caret at the end of a streaming Pear message.
+           Steps(2) gives a hard on/off blink so it reads as type-
+           writer-style, not a fade. */
+        @keyframes pl-pear-caret {
+          0%, 50%   { opacity: 1; }
+          50.01%, 100% { opacity: 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          [style*="pl-pear-caret"] {
+            animation: none !important;
+            opacity: 0.5 !important;
+          }
         }
       `}</style>
     </div>
