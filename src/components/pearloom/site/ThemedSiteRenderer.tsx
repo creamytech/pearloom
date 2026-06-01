@@ -1076,67 +1076,126 @@ function ThemedSchedule({ manifest, editMode }: { manifest: StoryManifest; editM
 
 type ScheduleEvent = NonNullable<StoryManifest['events']>[number];
 
+/* Split "4:00 PM" / "16:00" into {t, m} per the prototype's
+   schema. The prototype uses .t = "4:00" + .m = "PM" so the
+   meridian renders at a smaller size next to the time. Falls
+   back gracefully on already-split or 24h values. */
+function splitTime(raw: string | undefined | null): { t: string; m: string } {
+  if (!raw) return { t: '', m: '' };
+  const m = raw.match(/^(\d{1,2}:\d{2})\s*(AM|PM|am|pm)?$/);
+  if (m) return { t: m[1], m: (m[2] ?? '').toUpperCase() };
+  return { t: raw, m: '' };
+}
+
 function ScheduleClassic({ events }: { events: ScheduleEvent[] }) {
+  /* Prototype's KSchedule 'list' variant — `92px 1fr` grid with
+     display time + AM/PM eyebrow on the left, bold name + muted
+     subtitle on the right, hairline border-bottom between rows. */
   return (
-    <div style={{ maxWidth: 640, margin: '0 auto', position: 'relative' }}>
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute',
-          top: 16, bottom: 16, left: 100, width: 1,
-          background: 'linear-gradient(180deg, transparent 0%, var(--peach-ink, #C6703D) 8%, var(--peach-ink, #C6703D) 92%, transparent 100%)',
-          opacity: 0.35,
-        }}
-      />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
-        {events.map((e, i) => (
-          <div key={e.id ?? i} className="pl8-schedule-row" style={{ display: 'grid', gridTemplateColumns: '90px 20px 1fr', alignItems: 'baseline' }}>
-            <div className="pl8-schedule-time" style={{
-              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-              fontSize: 24, fontWeight: 'var(--pl-display-wght, 600)',
-              color: 'var(--ink, #0E0D0B)', textAlign: 'right',
-              lineHeight: 1.1, letterSpacing: '-0.01em',
-            }}>{e.time}</div>
-            <div style={{ position: 'relative', height: '100%' }}>
-              <div aria-hidden style={{ position: 'absolute', top: 8, left: 5, width: 11, height: 11, borderRadius: '50%', background: 'var(--paper, #F5EFE2)', border: '2px solid var(--peach-ink, #C6703D)' }} />
+    <div style={{ maxWidth: 620, margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
+      {events.map((e, i) => {
+        const { t, m } = splitTime(e.time);
+        return (
+          <div
+            key={e.id ?? i}
+            className="pl8-schedule-row"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '92px 1fr',
+              gap: 18,
+              alignItems: 'baseline',
+              padding: '16px 0',
+              borderBottom: i < events.length - 1 ? '1px solid var(--line-soft, rgba(14,13,11,0.08))' : 'none',
+            }}
+          >
+            <div
+              className="pl8-schedule-time"
+              style={{
+                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                fontWeight: 'var(--pl-display-wght, 600)',
+                fontSize: 24,
+                color: 'var(--peach-ink, #C6703D)',
+              }}
+            >
+              {t}
+              {m && (
+                <span style={{ fontSize: 11, marginLeft: 3, color: 'var(--ink-muted, #6F6557)' }}>
+                  {m}
+                </span>
+              )}
             </div>
-            <div style={{ paddingLeft: 14, paddingTop: 2 }}>
-              <div style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 19, fontWeight: 600, color: 'var(--ink, #0E0D0B)', lineHeight: 1.15 }}>{e.name}</div>
-              {e.description && <div style={{ marginTop: 4, fontSize: 13, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.55 }}>{e.description}</div>}
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>{e.name}</div>
+              {e.description && (
+                <div style={{ fontSize: 13, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>
+                  {e.description}
+                </div>
+              )}
             </div>
           </div>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 }
 
 function ScheduleTicket({ events }: { events: ScheduleEvent[] }) {
+  /* Prototype's KSchedule ticket — single-column stack of perforated
+     stubs. Each row is a 2-col grid with the time block stamped on
+     the left (mono, dashed border-right as perforation) and the
+     event detail on the right. Pinhole dots sit ON the perforation
+     line, top and bottom, in the section paper color so they read
+     as punched-through holes. */
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-      gap: 14, maxWidth: 900, margin: '0 auto',
-    }}>
-      {events.map((e, i) => (
-        <div key={e.id ?? i} className="pl8-schedule-row" style={{
-          padding: '20px 22px',
-          background: 'var(--card, #FBF7EE)',
-          border: '1.5px dashed var(--ink-soft, #3A332C)',
-          borderRadius: 6, position: 'relative',
-        }}>
-          {/* Pinhole corner dots */}
-          <span aria-hidden style={{ position: 'absolute', top: 6, left: 6, width: 6, height: 6, borderRadius: '50%', background: 'var(--paper, #F5EFE2)', border: '1px solid var(--ink-soft, #3A332C)' }} />
-          <span aria-hidden style={{ position: 'absolute', top: 6, right: 6, width: 6, height: 6, borderRadius: '50%', background: 'var(--paper, #F5EFE2)', border: '1px solid var(--ink-soft, #3A332C)' }} />
-          <div className="pl8-schedule-time" style={{
-            fontFamily: 'Courier New, ui-monospace, monospace',
-            fontSize: 22, fontWeight: 700, color: 'var(--peach-ink, #C6703D)',
-            letterSpacing: '-0.02em', marginBottom: 8,
-          }}>{e.time}</div>
-          <div style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 17, fontWeight: 600, color: 'var(--ink, #0E0D0B)', lineHeight: 1.2 }}>{e.name}</div>
-          {e.description && <div style={{ marginTop: 6, fontSize: 12.5, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.5 }}>{e.description}</div>}
-        </div>
-      ))}
+    <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {events.map((e, i) => {
+        const { t, m } = splitTime(e.time);
+        return (
+          <div
+            key={e.id ?? i}
+            className="pl8-schedule-row"
+            style={{
+              position: 'relative',
+              display: 'grid',
+              gridTemplateColumns: '116px 1fr',
+              background: 'var(--card, #FBF7EE)',
+              border: '1.5px dashed var(--ink-soft, rgba(14,13,11,0.30))',
+              borderRadius: 7,
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                padding: '16px 10px',
+                textAlign: 'center',
+                borderRight: '2px dashed var(--ink-soft, rgba(14,13,11,0.30))',
+                fontFamily: 'Courier New, ui-monospace, monospace',
+              }}
+            >
+              <div className="pl8-schedule-time" style={{ fontSize: 21, fontWeight: 700, color: 'var(--peach-ink, #C6703D)' }}>
+                {t}
+              </div>
+              {m && (
+                <div style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-muted, #6F6557)' }}>
+                  {m}
+                </div>
+              )}
+            </div>
+            <div style={{ padding: '14px 18px' }}>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>{e.name}</div>
+              {e.description && (
+                <div style={{ fontSize: 12.5, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>
+                  {e.description}
+                </div>
+              )}
+            </div>
+            {/* Pinholes on the perforation line, punched through to the
+                section background. */}
+            <span aria-hidden style={{ position: 'absolute', left: 110, top: -6, width: 12, height: 12, borderRadius: '50%', background: 'var(--cream-2, #EBE3D2)' }} />
+            <span aria-hidden style={{ position: 'absolute', left: 110, bottom: -6, width: 12, height: 12, borderRadius: '50%', background: 'var(--cream-2, #EBE3D2)' }} />
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -1144,68 +1203,140 @@ function ScheduleTicket({ events }: { events: ScheduleEvent[] }) {
 const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 
 function SchedulePlate({ events }: { events: ScheduleEvent[] }) {
+  /* Prototype's KSchedule plate — three-column row:
+     italic Roman numeral · name + inline " — subtitle" · display
+     time + AM/PM. Single hairline border between rows. */
   return (
-    <div style={{ maxWidth: 680, margin: '0 auto' }}>
-      <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 18 }}>
-        {events.map((e, i) => (
-          <li key={e.id ?? i} className="pl8-schedule-row" style={{
-            display: 'grid', gridTemplateColumns: '40px 1fr auto',
-            alignItems: 'baseline', gap: 16,
-            paddingBottom: 14, borderBottom: '1px solid var(--line-soft, rgba(14,13,11,0.10))',
-          }}>
-            <span aria-hidden style={{
-              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-              fontStyle: 'italic', fontWeight: 400, fontSize: 22,
-              color: 'var(--peach-ink, #C6703D)', textAlign: 'right',
-            }}>{ROMAN_NUMERALS[i] ?? String(i + 1)}.</span>
+    <div style={{ maxWidth: 560, margin: '0 auto' }}>
+      {events.map((e, i) => {
+        const { t, m } = splitTime(e.time);
+        return (
+          <div
+            key={e.id ?? i}
+            className="pl8-schedule-row"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '44px 1fr auto',
+              alignItems: 'baseline',
+              gap: 16,
+              padding: '16px 4px',
+              borderBottom:
+                i < events.length - 1
+                  ? '1px solid var(--line-soft, rgba(14,13,11,0.10))'
+                  : 'none',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                fontWeight: 'var(--pl-display-wght, 600)',
+                fontSize: 20,
+                color: 'var(--peach-ink, #C6703D)',
+                fontStyle: 'italic',
+              }}
+            >
+              {ROMAN_NUMERALS[i] ?? String(i + 1)}
+            </span>
             <div>
-              <div style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontStyle: 'italic', fontSize: 20, fontWeight: 500, color: 'var(--ink, #0E0D0B)', lineHeight: 1.15 }}>{e.name}</div>
-              {e.description && <div style={{ marginTop: 4, fontSize: 13, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.5 }}>{e.description}</div>}
+              <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>
+                {e.name}
+              </span>
+              {e.description && (
+                <span style={{ fontSize: 13, color: 'var(--ink-muted, #6F6557)' }}>
+                  {' — '}
+                  {e.description}
+                </span>
+              )}
             </div>
-            <span className="pl8-schedule-time" style={{
-              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-              fontStyle: 'italic', fontSize: 18, fontWeight: 600,
-              color: 'var(--ink, #0E0D0B)', whiteSpace: 'nowrap',
-            }}>{e.time}</span>
-          </li>
-        ))}
-      </ol>
+            <span
+              className="pl8-schedule-time"
+              style={{
+                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                fontWeight: 'var(--pl-display-wght, 600)',
+                fontSize: 18,
+                letterSpacing: '0.02em',
+                color: 'var(--ink, #0E0D0B)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {t}
+              {m && (
+                <span style={{ fontSize: 11, marginLeft: 2, color: 'var(--ink-muted, #6F6557)' }}>
+                  {m}
+                </span>
+              )}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
 function ScheduleScrapbook({ events }: { events: ScheduleEvent[] }) {
+  /* Prototype's KSchedule scrapbook — `repeat(N, 1fr)` grid up to
+     4 columns of tilted polaroids. Tape strip above each card
+     (translateY beyond the top edge). Time in script font centered
+     at the top of the card content. */
+  const cols = Math.min(events.length, 4);
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-      gap: 22, maxWidth: 920, margin: '0 auto',
-    }}>
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${cols}, 1fr)`,
+        gap: 18,
+        maxWidth: 880,
+        margin: '0 auto',
+        paddingTop: 8,
+      }}
+    >
       {events.map((e, i) => {
-        const tilt = i % 2 === 0 ? -1.4 : 1.4;
+        const { t } = splitTime(e.time);
         return (
-          <div key={e.id ?? i} className="pl8-schedule-row" style={{
-            padding: '32px 18px 22px',
-            background: '#FFFDF7',
-            boxShadow: '0 12px 26px rgba(0,0,0,0.14)',
-            borderRadius: 3, position: 'relative',
-            transform: `rotate(${tilt}deg)`,
-          }}>
-            {/* Tape strip */}
-            <span aria-hidden style={{
-              position: 'absolute', top: 6, left: '50%',
-              transform: 'translateX(-50%) rotate(-3deg)',
-              width: 60, height: 14,
-              background: 'color-mix(in oklab, var(--gold, #B8935A) 32%, transparent)',
-            }} />
-            <div className="pl8-schedule-time" style={{
-              fontFamily: 'var(--font-display, Caveat, cursive)',
-              fontStyle: 'italic', fontSize: 26, fontWeight: 500,
-              color: 'var(--peach-ink, #C6703D)', textAlign: 'center',
-              lineHeight: 1,
-            }}>{e.time}</div>
-            <div style={{ marginTop: 10, fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 17, fontWeight: 600, color: 'var(--ink, #0E0D0B)', textAlign: 'center', lineHeight: 1.2 }}>{e.name}</div>
-            {e.description && <div style={{ marginTop: 6, fontSize: 12.5, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.5, textAlign: 'center' }}>{e.description}</div>}
+          <div
+            key={e.id ?? i}
+            className="pl8-schedule-row"
+            style={{
+              position: 'relative',
+              background: '#fffdf7',
+              boxShadow: '0 10px 22px rgba(0,0,0,0.12)',
+              borderRadius: 2,
+              padding: '20px 14px 16px',
+              textAlign: 'center',
+              transform: `rotate(${i % 2 ? 1.6 : -1.6}deg)`,
+            }}
+          >
+            <span
+              aria-hidden
+              style={{
+                position: 'absolute',
+                top: -9,
+                left: '50%',
+                transform: 'translateX(-50%) rotate(-4deg)',
+                width: 50,
+                height: 16,
+                background: 'color-mix(in oklab, var(--peach-ink, #C6703D) 32%, transparent)',
+              }}
+            />
+            <div
+              className="pl8-schedule-time"
+              style={{
+                fontFamily: 'var(--font-script, Caveat, cursive)',
+                fontSize: 30,
+                color: 'var(--peach-ink, #C6703D)',
+                lineHeight: 1,
+              }}
+            >
+              {t}
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 600, marginTop: 8, color: 'var(--ink, #0E0D0B)' }}>
+              {e.name}
+            </div>
+            {e.description && (
+              <div style={{ fontSize: 11.5, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>
+                {e.description}
+              </div>
+            )}
           </div>
         );
       })}
@@ -1214,60 +1345,113 @@ function ScheduleScrapbook({ events }: { events: ScheduleEvent[] }) {
 }
 
 function ScheduleIndex({ events }: { events: ScheduleEvent[] }) {
+  /* Prototype's KSchedule index — black mono time TAB on the
+     left edge (positioned absolute, projects out of the card),
+     red left border + blue rule lines as the card bg, content
+     offset right to clear the tab. */
   return (
-    <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {events.map((e, i) => (
-        <div key={e.id ?? i} className="pl8-schedule-row" style={{
-          padding: '18px 22px',
-          background: 'var(--card, #FBF7EE)',
-          borderLeft: '2px solid rgba(199,80,80,0.55)',
-          backgroundImage: 'repeating-linear-gradient(180deg, transparent 0 21px, rgba(74,118,196,0.10) 21px 22px)',
-          borderRadius: 2, position: 'relative',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 16 }}>
-            <span className="pl8-schedule-time" style={{
-              fontFamily: 'Courier New, ui-monospace, monospace',
-              fontSize: 14, fontWeight: 700, color: 'var(--ink, #0E0D0B)',
-              minWidth: 70,
-            }}>{e.time}</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 17, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>{e.name}</div>
-              {e.description && <div style={{ marginTop: 4, fontSize: 13, color: 'var(--ink-soft, #3A332C)' }}>{e.description}</div>}
+    <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {events.map((e, i) => {
+        const { t, m } = splitTime(e.time);
+        return (
+          <div
+            key={e.id ?? i}
+            className="pl8-schedule-row"
+            style={{
+              position: 'relative',
+              background: 'var(--card, #FBF7EE)',
+              borderRadius: 2,
+              borderLeft: '2px solid rgba(199,80,80,0.55)',
+              padding: '14px 16px 14px 64px',
+              backgroundImage:
+                'repeating-linear-gradient(180deg, transparent 0 21px, rgba(74,118,196,0.10) 21px 22px)',
+            }}
+          >
+            <div
+              className="pl8-schedule-time"
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: 12,
+                padding: '3px 8px',
+                background: 'var(--peach-ink, #C6703D)',
+                color: 'var(--paper, #F5EFE2)',
+                fontFamily: 'Courier New, ui-monospace, monospace',
+                fontSize: 12,
+                fontWeight: 700,
+                borderRadius: '0 4px 4px 0',
+              }}
+            >
+              {t}
+              {m}
             </div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>{e.name}</div>
+            {e.description && (
+              <div style={{ fontSize: 12.5, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>
+                {e.description}
+              </div>
+            )}
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
 function ScheduleMinimal({ events }: { events: ScheduleEvent[] }) {
+  /* Prototype's KSchedule minimal — `auto 1fr` grid, 38px display
+     time on the LEFT (line-height 0.9 so it sits tight), content
+     RIGHT-ALIGNED on the right with the name + subtitle. Hairline
+     border between rows. */
   return (
-    <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 32 }}>
-      {events.map((e, i) => (
-        <div key={e.id ?? i} className="pl8-schedule-row" style={{
-          display: 'grid', gridTemplateColumns: '90px 1fr',
-          alignItems: 'baseline', gap: 28,
-          paddingBottom: 28,
-          borderBottom: i === events.length - 1 ? 'none' : '1px solid var(--line-soft, rgba(14,13,11,0.08))',
-        }}>
-          <span className="pl8-schedule-time" style={{
-            fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-            fontSize: 56, fontWeight: 600,
-            color: 'var(--ink, #0E0D0B)', lineHeight: 0.92,
-            letterSpacing: '-0.04em',
-          }}>{String(i + 1).padStart(2, '0')}</span>
-          <div style={{ paddingTop: 8 }}>
-            <div style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 22, fontWeight: 600, color: 'var(--ink, #0E0D0B)', lineHeight: 1.1 }}>{e.name}</div>
-            <div className="eyebrow" style={{
-              marginTop: 8, fontSize: 11, fontWeight: 700,
-              letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
-              textTransform: 'uppercase', color: 'var(--ink-muted, #6F6557)',
-            }}>{e.time}</div>
-            {e.description && <div style={{ marginTop: 8, fontSize: 14, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.55 }}>{e.description}</div>}
+    <div style={{ maxWidth: 620, margin: '0 auto' }}>
+      {events.map((e, i) => {
+        const { t, m } = splitTime(e.time);
+        return (
+          <div
+            key={e.id ?? i}
+            className="pl8-schedule-row"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'auto 1fr',
+              gap: 22,
+              alignItems: 'baseline',
+              padding: '20px 0',
+              borderBottom:
+                i < events.length - 1
+                  ? '1px solid var(--line-soft, rgba(14,13,11,0.10))'
+                  : 'none',
+            }}
+          >
+            <span
+              className="pl8-schedule-time"
+              style={{
+                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                fontWeight: 'var(--pl-display-wght, 600)',
+                fontSize: 38,
+                lineHeight: 0.9,
+                letterSpacing: '-0.03em',
+                color: 'var(--ink, #0E0D0B)',
+              }}
+            >
+              {t}
+              {m && (
+                <span style={{ fontSize: 12, marginLeft: 4, color: 'var(--ink-muted, #6F6557)' }}>
+                  {m}
+                </span>
+              )}
+            </span>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>{e.name}</div>
+              {e.description && (
+                <div style={{ fontSize: 13, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>
+                  {e.description}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
