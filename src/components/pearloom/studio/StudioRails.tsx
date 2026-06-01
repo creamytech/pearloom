@@ -16,6 +16,7 @@ import {
 import type { StudioState, SetStudioField } from './useStudioState';
 import { Pear, Stamp, Squiggle, Icon } from '../motifs';
 import { AssetGlyph } from './StudioAssetGlyph';
+import { PearThinking } from '../pear-thinking';
 
 interface RailProps {
   state: StudioState;
@@ -363,7 +364,11 @@ export function DraftsRail({ state, setField, content, nameA, nameB, onPickDraft
             }}
           >
             <Pear size={14} tone="sage" shadow={false} sparkle={aiBusy} />
-            {aiBusy ? 'Threading…' : 'Draft another direction'}
+            {aiBusy ? (
+              <PearThinking active label="drafting" size="sm" hideAvatar />
+            ) : (
+              'Draft another direction'
+            )}
           </button>
         )}
       </div>

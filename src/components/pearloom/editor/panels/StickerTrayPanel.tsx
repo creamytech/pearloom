@@ -14,6 +14,7 @@
 import { useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Field, PanelSection, TextInput } from '../atoms';
+import { PearThinking } from '../../pear-thinking';
 
 export function StickerTrayPanel({
   manifest,
@@ -263,7 +264,11 @@ export function StickerTrayPanel({
         disabled={status === 'running'}
         style={{ width: '100%', marginTop: 10, justifyContent: 'center' }}
       >
-        {status === 'running' ? 'Drafting your sticker…' : 'Draft a sticker'}
+        {status === 'running' ? (
+          <PearThinking active label="drafting" size="sm" hideAvatar />
+        ) : (
+          'Draft a sticker'
+        )}
       </button>
       {err && (
         <div style={{ marginTop: 8, fontSize: 12, color: 'var(--plum-ink, #7A2D2D)' }}>{err}</div>

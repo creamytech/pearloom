@@ -9,6 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { AIHint, useAICall } from '../editor/ai';
 import { Icon } from '../motifs';
+import { PearThinking } from '../pear-thinking';
 
 interface GuestContribution {
   guestId: string;
@@ -308,7 +309,9 @@ export function TwoTapThanks() {
                   onClick={() => void run()}
                   disabled={state === 'running'}
                 >
-                  <Icon name="sparkles" size={12} /> {state === 'running' ? 'Drafting…' : draft ? 'Try another' : 'Draft thanks'}
+                  <Icon name="sparkles" size={12} /> {state === 'running' ? (
+                    <PearThinking active label="drafting" size="sm" hideAvatar />
+                  ) : draft ? 'Try another' : 'Draft thanks'}
                 </button>
                 {draft && (
                   <>

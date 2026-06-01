@@ -14,7 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { generate, parseJsonFromText } from '@/lib/claude/client';
+import { generateJson } from '@/lib/claude/structured';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { buildPearContext } from '@/lib/pear/context';
 
@@ -116,7 +116,11 @@ export async function POST(req: NextRequest) {
     .join('\n\n');
 
   try {
-    const msg = await generate({
+    /* Forced tool_use: the schema below mirrors SpeechAnalysis so
+       any field drift fails fast at the tool-call layer instead of
+       silently dropping fields. Server-computed values (duration,
+       cliches) still override the model's pick after parse. */
+    const parsed = await generateJson<Partial<SpeechAnalysis>>({
       tier: 'haiku',
       temperature: 0.4,
       maxTokens: 900,
@@ -124,14 +128,32 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: 'user',
-          content:
-            `Analyze this ${kind} draft. Target read-aloud time: ${target.secondsLow}-${target.secondsHigh}s. Estimated current read-aloud time: ${durationSeconds}s (computed). Word count: ${words}.\n\nDRAFT:\n"""${text}"""\n\nReturn ONLY this JSON shape, no preface, no markdown fences:\n{\n  "duration_seconds": number,\n  "length_score": number,\n  "specificity_score": number,\n  "arc_score": number,\n  "cliches": [{"phrase": string, "count": number}],\n  "suggestions": [string, string, string],\n  "summary": string\n}`,
+          content: `Analyze this ${kind} draft. Target read-aloud time: ${target.secondsLow}-${target.secondsHigh}s. Estimated current read-aloud time: ${durationSeconds}s (computed). Word count: ${words}.\n\nDRAFT:\n"""${text}"""`,
         },
-        { role: 'assistant', content: '{' },
       ],
+      schemaName: 'emit_speech_analysis',
+      schemaDescription: 'Emit the structured analysis of the speech draft',
+      schema: {
+        type: 'object',
+        required: ['length_score', 'specificity_score', 'arc_score', 'suggestions', 'summary'],
+        properties: {
+          length_score: { type: 'number', minimum: 0, maximum: 100 },
+          specificity_score: { type: 'number', minimum: 0, maximum: 100 },
+          arc_score: { type: 'number', minimum: 0, maximum: 100 },
+          suggestions: {
+            type: 'array',
+            description: '3-5 surgical, line-specific suggestions, ordered most-impactful first',
+            items: { type: 'string' },
+            minItems: 1,
+            maxItems: 5,
+          },
+          summary: {
+            type: 'string',
+            description: 'One paragraph the user can read in 5 seconds',
+          },
+        },
+      },
     });
-    const raw = '{' + ((msg.content[0] as { text?: string })?.text ?? '').trim();
-    const parsed = parseJsonFromText<Partial<SpeechAnalysis>>(raw);
 
     // Override the model's duration/cliches with our objective values.
     const result: SpeechAnalysis = {

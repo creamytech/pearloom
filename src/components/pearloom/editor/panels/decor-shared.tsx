@@ -21,6 +21,7 @@
 import { useState } from 'react';
 import { Field, TextInput } from '../atoms';
 import type { DecorDraft, SectionStampsDraft } from '@/types';
+import { PearThinking } from '../../pear-thinking';
 
 interface ComposerProps {
   /** Current draft prompt the user has typed. */
@@ -137,7 +138,7 @@ export function DecorAlternatesStrip({
               letterSpacing: '0.08em', cursor: busy ? 'wait' : 'pointer', padding: 0,
             }}
           >
-            {busy ? 'Drafting…' : '+ Show another'}
+            {busy ? <PearThinking active label="drafting" size="sm" hideAvatar /> : '+ Show another'}
           </button>
         )}
       </div>

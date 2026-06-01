@@ -13,6 +13,7 @@
 import { useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Field, PanelDisclosure, PanelGroup, PanelSection } from '../atoms';
+import { PearThinking } from '../../pear-thinking';
 import { NAV_ICON_LIBRARY } from '@/components/pearloom/assets/nav-icons';
 
 interface Props {
@@ -294,7 +295,11 @@ export function NavPanel({ manifest, onChange }: Props) {
           className="btn btn-outline btn-sm"
           style={{ width: '100%', justifyContent: 'center' }}
         >
-          {aiBusy ? 'Drafting…' : 'Draft an icon'}
+          {aiBusy ? (
+            <PearThinking active label="drafting" size="sm" hideAvatar />
+          ) : (
+            'Draft an icon'
+          )}
         </button>
         {aiError && (
           <div role="alert" style={{ marginTop: 8, fontSize: 12, color: 'var(--plum-ink, #7A2D2D)' }}>{aiError}</div>

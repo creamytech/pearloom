@@ -17,6 +17,7 @@ import { SnapshotsPanel } from './SnapshotsPanel';
 import { EditionPicker } from './EditionPicker';
 import { LayoutPicker } from './LayoutPicker';
 import { KitPicker } from './KitPicker';
+import { PearThinking } from '../../pear-thinking';
 import { EDITIONS } from '@/lib/site-editions/editions';
 import { resolveEdition } from '@/lib/site-editions/resolve';
 import { getEventType } from '@/lib/event-os/event-types';
@@ -940,7 +941,13 @@ function AiAccentSection({
           disabled={running}
           className="btn btn-outline btn-sm"
         >
-          {running ? 'Drafting…' : existing ? 'Draft a new one' : 'Draft an accent'}
+          {running ? (
+            <PearThinking active label="drafting" size="sm" hideAvatar />
+          ) : existing ? (
+            'Draft a new one'
+          ) : (
+            'Draft an accent'
+          )}
         </button>
         {existing && (
           <button type="button" onClick={clear} className="btn btn-ghost btn-sm" disabled={running}>

@@ -36,6 +36,7 @@ import { IconifyBrowser } from '../IconifyBrowser';
 import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';
 import { pushDraft, pushSectionStampsDraft, buildAutoSummary } from './decor-shared';
 import type { DecorDraft, SectionStampsDraft } from '@/types';
+import { PearThinking } from '../../pear-thinking';
 
 interface LibraryPhoto {
   id: string;
@@ -1674,9 +1675,11 @@ function AtelierModal({
               fontFamily: 'var(--font-ui)',
             }}
           >
-            {busy
-              ? (mode === 'sheet' ? 'Pear is painting the sheet…' : 'Pear is painting…')
-              : (mode === 'sheet' ? 'Paint the sheet' : 'Paint it')}
+            {busy ? (
+              <PearThinking active label="painting" size="sm" hideAvatar />
+            ) : (
+              mode === 'sheet' ? 'Paint the sheet' : 'Paint it'
+            )}
           </button>
           <button
             type="button"

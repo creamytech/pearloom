@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';
 import { V8ColorPicker } from './v8-color-picker';
+import { PearThinking } from '../pear-thinking';
 
 type DecorKind = 'divider' | 'stamp' | 'flourish' | 'bouquet' | 'confetti' | 'sticker';
 
@@ -298,7 +299,11 @@ export function DecorRecolorModal({ manifest, onEditField }: Props) {
                   opacity: busy ? 0.7 : 1,
                 }}
               >
-                {busy ? 'Pear is painting…' : 'Preview recolor'}
+                {busy ? (
+                  <PearThinking active label="painting" size="sm" hideAvatar />
+                ) : (
+                  'Preview recolor'
+                )}
               </button>
             </div>
           </>

@@ -17,6 +17,7 @@ import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
 import { QR_THEMES, suggestThemesForOccasion, type QrThemeId } from '@/lib/qr-engine/themes';
 import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';
 import { DecorGenerationToast } from '../editor/DecorGenerationToast';
+import { PearThinking } from '../pear-thinking';
 
 // ── Async poster polling ─────────────────────────────────
 // /api/qr/poster now schedules the painter via Next's after()
@@ -375,7 +376,13 @@ export function QrPosterPage() {
                     opacity: generating ? 0.7 : 1,
                   }}
                 >
-                  {generating ? 'Pear is painting…' : themedPosterUrl ? 'Paint another' : 'Paint with Pear'}
+                  {generating ? (
+                    <PearThinking active label="painting" size="sm" hideAvatar />
+                  ) : themedPosterUrl ? (
+                    'Paint another'
+                  ) : (
+                    'Paint with Pear'
+                  )}
                 </button>
                 {themedPosterUrl && !generating && (
                   <button

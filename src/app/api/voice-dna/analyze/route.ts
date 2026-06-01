@@ -21,7 +21,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
-import { generate, parseJsonFromText, textFrom } from '@/lib/claude';
+import { generateJson } from '@/lib/claude/structured';
 import { getSiteConfig } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -87,17 +87,6 @@ export async function POST(req: NextRequest) {
 
   const system = `You are a linguistic profiler. Read the host's spoken transcripts and extract a voice profile that captures HOW they speak — the rhythm, vocabulary, formality, signature phrases. The output drives downstream AI copywriting that needs to sound like THEM.
 
-Output ONLY valid JSON matching this exact shape:
-{
-  "tone": "<one short phrase, max 8 words>",
-  "formality": <integer 1-5, 1=very casual, 5=very formal>,
-  "vocabulary": ["<6-12 distinctive words they actually used>"],
-  "phrases": ["<6-10 signature short phrases (3-8 words each) directly quoted from the samples>"],
-  "avoidList": ["<3-5 cliched words they noticeably did NOT use>"],
-  "greetingStyle": "<one example of how they'd open a note>",
-  "signoffStyle": "<one example of how they'd close a note>"
-}
-
 Rules:
 - Quote phrases verbatim from the transcripts when possible
 - Don't invent words they didn't say
@@ -105,15 +94,47 @@ Rules:
 - Never include personally identifying info (names, addresses)`;
 
   try {
-    const msg = await generate({
+    /* Forced tool_use: schema mirrors Omit<VoiceDNA, 'capturedAt'>.
+       Slot drift fails fast at the tool-call layer instead of
+       silently dropping fields downstream. */
+    const parsed = await generateJson<Omit<VoiceDNA, 'capturedAt'>>({
       tier: 'haiku',
       system,
       messages: [{ role: 'user', content: transcripts }],
       maxTokens: 900,
       temperature: 0.3,
+      schemaName: 'emit_voice_dna',
+      schemaDescription: 'Emit the structured voice profile from host transcripts',
+      schema: {
+        type: 'object',
+        required: ['tone', 'formality', 'vocabulary', 'phrases'],
+        properties: {
+          tone: { type: 'string', description: 'One short phrase, max 8 words' },
+          formality: { type: 'integer', minimum: 1, maximum: 5 },
+          vocabulary: {
+            type: 'array',
+            items: { type: 'string' },
+            minItems: 1,
+            maxItems: 12,
+            description: '6-12 distinctive words the host actually used',
+          },
+          phrases: {
+            type: 'array',
+            items: { type: 'string' },
+            minItems: 1,
+            maxItems: 10,
+            description: '6-10 signature short phrases (3-8 words each), quoted verbatim',
+          },
+          avoidList: {
+            type: 'array',
+            items: { type: 'string' },
+            maxItems: 5,
+          },
+          greetingStyle: { type: 'string' },
+          signoffStyle: { type: 'string' },
+        },
+      },
     });
-    const raw = textFrom(msg).trim();
-    const parsed = parseJsonFromText<Omit<VoiceDNA, 'capturedAt'>>(raw);
     const profile: VoiceDNA = {
       tone: parsed.tone || 'warm and personal',
       formality: typeof parsed.formality === 'number' ? Math.max(1, Math.min(5, parsed.formality)) : 3,
