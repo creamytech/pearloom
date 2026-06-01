@@ -2,7 +2,9 @@
 
 > **BRAND.md declares *why we exist*. CLAUDE-DESIGN.md documents *what's in the code*. This file documents *what the product does, what it doesn't, and what we're building next*.**
 >
-> Last updated: **2026-04-21**.
+> Last updated: **2026-06-01**.
+
+**Renderer contract (as of 2026-06-01):** ThemedSiteRenderer is canonical. SiteV8Renderer is legacy, being phased out as features port over. New work goes into Themed. Dispatch: `manifest.renderer === 'v8'` → SiteV8Renderer (legacy); unset or any other value → ThemedSiteRenderer (canonical). See §10 (2026-06-01 entry) for the full consolidation plan.
 
 ---
 
@@ -13,6 +15,7 @@
 - **Section 7 is the roadmap.** Ranked by acquisition impact × effort.
 - **Section 8 is where open decisions live.** If a session proposes a change that breaks an assumption, surface it here rather than shipping silently.
 - **New sessions should read §2 + §7 + §8 first** to know what's in scope.
+- **Renderer work goes into ThemedSiteRenderer.** SiteV8Renderer is legacy — only touch it for critical bug fixes during the transition. See §10 (2026-06-01).
 
 ---
 
@@ -440,6 +443,38 @@ How we actually ship this over many sessions without re-explaining every time.
 ---
 
 ## 10 · Changelog
+
+### 2026-06-01 — Renderer consolidation begins (Themed canonical, V8 legacy)
+
+ThemedSiteRenderer (the design-prototype port) is the canonical Pearloom renderer going forward. SiteV8Renderer becomes legacy and will be deleted after feature parity is reached.
+
+Dispatch contract during the transition:
+- `manifest.renderer` unset (or any non-`'v8'` value) → ThemedSiteRenderer (canonical)
+- `manifest.renderer === 'v8'` → SiteV8Renderer (legacy)
+
+Why this is happening: ThemedSiteRenderer is the visual identity the project committed to over the last few months (prototype port: themes.jsx/kits.jsx). V8 was the older renderer that accumulated product features (RSVP backend, Guestbook, Day-of broadcast, inline edit mode, photo lightbox) which Themed lacks. The path forward is to port V8's product features INTO Themed, then delete V8.
+
+**Phase 0** (this session, complete): rename toggle copy, add canvas banner on V8, document contract.
+
+**Phase 1** (this session, in progress): port V8's blocking product features into Themed:
+- Working RSVP form + backend integration + urgency tiers
+- Guestbook
+- Day-of broadcast (DayOfBanner, BroadcastBar, GuestPearChat)
+- Inline edit mode (EditableText, click-to-edit, onEditField)
+- Photo lightbox + action menu
+
+**Phase 2** (this session): port the recent component-roadmap improvements that landed in V8 only:
+- 9 nav variants (5 desktop + 4 mobile) + Edition recommendations
+- Hero variant registry + LivingAtmosphere parallax + gradient fallback
+- Story chapter accent from photo
+- Edition divider scroll-reveal
+- Footer share chips + Edition palette
+- FAQ inline CTAs by category
+- Gallery strip + wall variants + Edition tile frames
+
+**Phase 3** (future session): port Decor library, Event-OS custom blocks, multi-page routing, section backgrounds.
+
+**Phase 4** (future session): SQL migration + delete `SiteV8Renderer.tsx` + remove `manifest.renderer` field.
 
 ### 2026-05-30 — Site Editions: layout overhaul Phases 1-3a, 2b
 

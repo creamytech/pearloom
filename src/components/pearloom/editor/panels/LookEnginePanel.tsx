@@ -1075,12 +1075,13 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
         </div>
 
         {/* RENDERER TOGGLE — flips manifest.renderer between 'v8'
-            (default rich Pearloom renderer) and 'themed' (parallel
-            ThemedSiteRenderer that's a direct port of the prototype's
-            themed-site.jsx). The themed renderer ships every section
-            in the prototype's exact layout but skips Pearloom-only
-            features like Guestbook moderation, Photo wall, Day-of
-            broadcast, etc. */}
+            (legacy Pearloom renderer) and the canonical themed
+            renderer (ThemedSiteRenderer, a direct port of the
+            prototype's themed-site.jsx). Themed is canonical;
+            v8 is kept around only while we finish porting
+            features over. The toggle DELETES the renderer field
+            for the canonical path (absent = themed) and sets
+            'v8' for the legacy path. */}
         <div
           style={{
             borderTop: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
@@ -1101,27 +1102,34 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
           >
             Renderer
           </div>
-          <div style={{ fontSize: 11.5, color: 'var(--ink-muted, #6F6557)', lineHeight: 1.4 }}>
-            Themed = direct port of the prototype&apos;s clean layout.
-            Default = rich Pearloom renderer with full features.
-          </div>
           <div style={segmentedStyle}>
             {(
               [
-                { id: undefined as 'themed' | 'v8' | undefined, label: 'Default' },
-                { id: 'themed' as const, label: 'Themed' },
+                { id: 'v8' as const, label: 'Legacy (v8)' },
+                { id: undefined as 'themed' | 'v8' | undefined, label: 'Themed (canonical)' },
               ]
             ).map((o) => {
               const cur = (manifest as unknown as { renderer?: 'themed' | 'v8' }).renderer;
-              const on = (o.id === undefined && cur !== 'themed') || cur === o.id;
+              // Themed (canonical) is active when the field is absent
+              // OR explicitly 'themed'. Legacy is active only when
+              // explicitly 'v8'.
+              const on =
+                o.id === 'v8'
+                  ? cur === 'v8'
+                  : cur !== 'v8';
               return (
                 <button
                   key={o.label}
                   type="button"
                   onClick={() => {
                     const next = { ...manifest } as StoryManifest;
-                    if (o.id) (next as { renderer?: 'themed' | 'v8' }).renderer = o.id;
-                    else delete (next as { renderer?: 'themed' | 'v8' }).renderer;
+                    if (o.id === 'v8') {
+                      (next as { renderer?: 'themed' | 'v8' }).renderer = 'v8';
+                    } else {
+                      // Canonical path: delete the field entirely so
+                      // resolveRenderer() falls back to Themed.
+                      delete (next as { renderer?: 'themed' | 'v8' }).renderer;
+                    }
                     onChange(next);
                   }}
                   aria-pressed={on}
@@ -1132,6 +1140,48 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
               );
             })}
           </div>
+          {/* "Why?" hint chip — explains the canonical/legacy split
+              so hosts know which one is the recommended state. */}
+          <div
+            style={{
+              fontSize: 11,
+              color: 'var(--ink-muted, #6F6557)',
+              lineHeight: 1.45,
+              padding: '8px 10px',
+              background: 'var(--cream-2, #EBE3D2)',
+              borderRadius: 6,
+              display: 'flex',
+              gap: 6,
+              alignItems: 'flex-start',
+            }}
+          >
+            <span aria-hidden style={{ fontWeight: 700, fontSize: 11 }}>
+              Why?
+            </span>
+            <span>
+              Themed is the canonical Pearloom renderer with the new
+              design system. Legacy v8 is the prior renderer kept
+              while we finish porting features over.
+            </span>
+          </div>
+          {/* Active warning badge — only renders when the host has
+              opted into the legacy renderer, nudging them back. */}
+          {(manifest as unknown as { renderer?: 'themed' | 'v8' }).renderer === 'v8' && (
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: '#7A3E1F',
+                background: 'rgba(214,120,82,0.14)',
+                border: '1px solid rgba(214,120,82,0.3)',
+                borderRadius: 6,
+                padding: '6px 10px',
+                lineHeight: 1.35,
+              }}
+            >
+              Legacy renderer — switching to Themed soon
+            </div>
+          )}
         </div>
 
         {/* MATCHING STATIONERY CTA — links to Studio (/dashboard/invite). */}

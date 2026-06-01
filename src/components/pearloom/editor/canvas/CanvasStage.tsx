@@ -278,6 +278,12 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
                 // (the published site has its own renderer mount
                 // with editMode=false).
                 editMode={!previewMode}
+                // Inline edit wiring — matches the SiteV8Renderer
+                // branch below. When preview mode is on, both
+                // callbacks are suppressed so the canvas reads as
+                // guest-view.
+                onEditField={previewMode ? undefined : onEditField}
+                onEditNames={previewMode ? undefined : onNamesChange}
               />
             ) : (
               <SiteV8Renderer

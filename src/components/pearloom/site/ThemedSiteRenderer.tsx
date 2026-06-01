@@ -30,15 +30,56 @@
 // in subsequent commits.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../motifs';
+import { NavBrandIcon } from './NavBrandIcon';
 import { MotifScatter, type MotifKind } from './MotifScatter';
 import { TextureFilters } from './TextureFilters';
 import { resolveEdition } from '@/lib/site-editions/resolve';
 import { getEventType } from '@/lib/event-os/event-types';
 import { EditionSectionOpener } from './edition-openers';
+import { EditionDivider } from './edition-dividers';
 import { DEFAULT_BLOCK_ORDER, type SiteBlockKey } from '@/lib/site-mode';
+import { PresetRsvpForm } from '@/components/PresetRsvpForm';
+import { parseLocalDate } from '@/lib/date-utils';
+import { Guestbook } from '@/components/guestbook';
+import { DayOfBanner } from './DayOfBanner';
+import { BroadcastBar } from './BroadcastBar';
+import { GuestPearChat } from './GuestPearChat';
+import { computeDayOfState } from '@/lib/day-of/state';
+import { EditableText } from '../editor/canvas/EditableText';
+import { EditableField } from '../editor/canvas/EditableField';
+import { EditorCanvasProvider } from '../editor/canvas/EditorCanvasContext';
+import { PhotoLightbox, usePhotoLightbox } from './GuestKit2';
+import { PhotoActionMenu } from '../editor/canvas/PhotoActionMenu';
+import {
+  LivingAtmosphere,
+  defaultAtmosphereForOccasion,
+  type AtmosphereKind,
+  type AtmosphereIntensity,
+} from './LivingAtmosphere';
+import { useHeroParallax } from './useHeroParallax';
+import { getBlockStyle } from '@/lib/block-engine/block-styles';
+import { FooterBouquet } from './FooterBouquet';
+/* Side-effect import — registers strip / wall / mosaic gallery
+   variants with the block-styles registry. The variant dispatch
+   in ThemedGallery reads manifest.blockVariants?.gallery?.style
+   and branches between layouts; this import is what makes the
+   variant ids available in editor pickers + ensures parity with
+   SiteV8Renderer's GallerySection. */
+import './gallery-variants';
+/* Side-effect import — registers all 5 hero variants (postcard,
+   photo-first, split, carousel, minimal) with the block-styles
+   registry. The variants already ship with the gradient fallback
+   (heroFallbackGradient) used when no cover photo is set. Just
+   importing the barrel is what makes getBlockStyle('hero', id)
+   resolve when ThemedSiteRenderer dispatches the hero variant. */
+import './hero-variants';
+
+/** Patch function the editor passes down so deep fields can ship
+ *  their edits through a single channel. Matches SiteV8Renderer. */
+type FieldEditor = (patch: (m: StoryManifest) => StoryManifest) => void;
 
 interface Props {
   manifest: StoryManifest;
@@ -49,6 +90,14 @@ interface Props {
    *  returning null. Editor canvas passes true; the public site
    *  passes false / undefined so guests never see scaffolding. */
   editMode?: boolean;
+  /** Manifest patcher — when provided, inline edit affordances
+   *  light up across the canvas. Each editable field passes a
+   *  pure `(manifest) => newManifest` patch back to the editor.
+   *  Mirrors SiteV8Renderer's contract. */
+  onEditField?: FieldEditor;
+  /** Name changes ship outside the manifest (they live on the
+   *  editor state), so they get their own callback. */
+  onEditNames?: (next: [string, string]) => void;
 }
 
 /* Per-Edition motif kind — mirrors HeroPostcard / SiteV8Renderer
@@ -62,8 +111,181 @@ const EDITION_MOTIF: Record<string, MotifKind> = {
   quiet: 'none',
 };
 
-export function ThemedSiteRenderer({ manifest, names, siteSlug, editMode = false }: Props) {
+// ─────────────────────────────────────────────────────────────
+// useChapterTones — re-implementation of the same hook that
+// ships in src/components/blocks/StoryLayouts.tsx. We re-declare
+// here because the StoryLayouts copy is module-private. The
+// process-wide cache key is the photo URL so two callers
+// sampling the same image share the result; both copies of
+// the hook will hit the same cache.
+//
+// Returns a record keyed by URL: a CSS rgb() string when the
+// dominant tone resolved, null when the canvas was tainted or
+// the image failed to load. Callers fall back to their default
+// palette for null / undefined entries so the unaltered render
+// is byte-for-byte unchanged for existing sites.
+// ─────────────────────────────────────────────────────────────
+const CHAPTER_TONE_CACHE = new Map<string, string | null>();
+const CHAPTER_TONE_INFLIGHT = new Map<string, Promise<string | null>>();
+
+function dominantTone(url: string): Promise<string | null> {
+  if (CHAPTER_TONE_CACHE.has(url)) {
+    return Promise.resolve(CHAPTER_TONE_CACHE.get(url) ?? null);
+  }
+  const existing = CHAPTER_TONE_INFLIGHT.get(url);
+  if (existing) return existing;
+  if (typeof window === 'undefined') return Promise.resolve(null);
+  // Skip data URLs + the hero-art endpoint (synthetic
+  // illustrations) — they read off-brand against actual photos.
+  if (url.startsWith('data:') || url.includes('/api/hero-art')) {
+    CHAPTER_TONE_CACHE.set(url, null);
+    return Promise.resolve(null);
+  }
+  const p = new Promise<string | null>((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const c = document.createElement('canvas');
+        c.width = 32;
+        c.height = 32;
+        const ctx = c.getContext('2d');
+        if (!ctx) {
+          resolve(null);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, 32, 32);
+        const data = ctx.getImageData(0, 0, 32, 32).data;
+        let r = 0;
+        let g = 0;
+        let b = 0;
+        let n = 0;
+        for (let i = 0; i < data.length; i += 16) {
+          r += data[i];
+          g += data[i + 1];
+          b += data[i + 2];
+          n++;
+        }
+        if (n === 0) {
+          resolve(null);
+          return;
+        }
+        resolve(`rgb(${Math.round(r / n)}, ${Math.round(g / n)}, ${Math.round(b / n)})`);
+      } catch {
+        // Canvas tainted (cross-origin without CORS) — fall back.
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = url;
+  }).then((tone) => {
+    CHAPTER_TONE_CACHE.set(url, tone);
+    CHAPTER_TONE_INFLIGHT.delete(url);
+    return tone;
+  });
+  CHAPTER_TONE_INFLIGHT.set(url, p);
+  return p;
+}
+
+function useChapterTones(
+  urls: Array<string | undefined>,
+): Record<string, string | null> {
+  const [tones, setTones] = useState<Record<string, string | null>>(() => {
+    const seed: Record<string, string | null> = {};
+    for (const u of urls) {
+      if (u && CHAPTER_TONE_CACHE.has(u)) {
+        seed[u] = CHAPTER_TONE_CACHE.get(u) ?? null;
+      }
+    }
+    return seed;
+  });
+  const signature = urls.filter(Boolean).join('|');
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let cancelled = false;
+    const targets = urls.filter((u): u is string => !!u);
+    for (const url of targets) {
+      if (CHAPTER_TONE_CACHE.has(url)) continue;
+      void dominantTone(url).then((tone) => {
+        if (cancelled) return;
+        setTones((prev) => {
+          if (prev[url] === tone) return prev;
+          return { ...prev, [url]: tone };
+        });
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
+    // signature collapses array identity into a stable string key
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signature]);
+  return tones;
+}
+
+// ─────────────────────────────────────────────────────────────
+// FAQ category mapping — ported verbatim from SiteV8Renderer's
+// FaqSection. Powers the inline CTA chip beneath each expanded
+// answer (RSVP → #rsvp, Hotels → #travel, Gifts → #registry,
+// Schedule → #schedule). Informational categories return null.
+// Suppression rules: chips hide on very short answers (< 24
+// chars) and when the answer already mentions the affordance.
+// ─────────────────────────────────────────────────────────────
+const FAQ_CATEGORY_RULES: Array<[RegExp, string]> = [
+  [/\b(schedule|timeline|ceremony\s*(start|begin|time)|reception\s*(start|begin|time)|day[\s-]?of|what\s*time|start\s*time|run[\s-]?of[\s-]?show|order\s*of\s*events|when\s*does\s*(the|it))/i, 'Schedule'],
+  [/\b(airport|airline|flight|drive|driving|park|parking|direction|address|map|where is|how to get|car)/i, 'Travel'],
+  [/\b(dress|wear|attire|black\s*tie|cocktail|formal|outfit|tie|tux|gown|shoes|heels)/i, 'Dress code'],
+  [/\b(food|meal|dietary|allerg|vegan|vegetarian|gluten|menu|drink|bar|alcohol|kosher|halal)/i, 'Food + drink'],
+  [/\b(kid|child|children|baby|toddler|family|stroller|nanny)/i, 'Kids'],
+  [/\b(rsvp|reply|deadline|when do|how do i|let you know)/i, 'RSVP'],
+  [/\b(gift|registr|present|honey\s*moon\s*fund|cash)/i, 'Gifts'],
+  [/\b(hotel|stay|lodging|sleep|rooms|airbnb)/i, 'Hotels'],
+  [/\b(plus[\s-]?one|guest|invit|alone|date|partner)/i, 'Plus-ones'],
+  [/\b(photo|video|post|social|hashtag|instagram|share)/i, 'Photos'],
+];
+function categorizeFaq(question: string): string {
+  for (const [rx, label] of FAQ_CATEGORY_RULES) {
+    if (rx.test(question)) return label;
+  }
+  return 'Other';
+}
+function getFaqCta(
+  category: string,
+): { label: string; href: string; matchWord: RegExp } | null {
+  switch (category) {
+    case 'RSVP':
+    case 'Plus-ones':
+      return { label: 'RSVP now', href: '#rsvp', matchWord: /\brsvp\b/i };
+    case 'Travel':
+    case 'Hotels':
+      return { label: 'Book hotel', href: '#travel', matchWord: /\b(hotel|travel|book)\b/i };
+    case 'Gifts':
+      return { label: 'View registry', href: '#registry', matchWord: /\bregistr/i };
+    case 'Schedule':
+      return { label: 'See schedule', href: '#schedule', matchWord: /\bschedul/i };
+    default:
+      return null;
+  }
+}
+function shouldShowFaqCta(
+  answer: string,
+  cta: { matchWord: RegExp } | null,
+): cta is { label: string; href: string; matchWord: RegExp } {
+  if (!cta) return false;
+  const trimmed = (answer ?? '').trim();
+  if (trimmed.length < 24) return false;
+  if (cta.matchWord.test(trimmed)) return false;
+  return true;
+}
+
+export function ThemedSiteRenderer({ manifest, names, siteSlug, editMode = false, onEditField, onEditNames }: Props) {
   const [n1, n2] = names;
+  /* Edit mode is active when the editor passes onEditField AND we
+     aren't in preview-as-guest mode. The editMode prop alone
+     (from CanvasStage's !previewMode) controls scaffolding; the
+     inline-edit affordances additionally require onEditField so
+     the published-site mounts (which never pass it) stay read-only. */
+  const canEdit = editMode && Boolean(onEditField);
   const edition = manifest.edition ?? 'almanac';
   const occasion = manifest.occasion ?? 'wedding';
   const eventType = getEventType(occasion);
@@ -158,7 +380,17 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug, editMode = false
     ),
   };
 
+  /* Editor canvas context — every <EditableText> / <EditableField>
+     beneath this renderer reads `editMode` and `onEditField` from
+     this provider, so we never have to prop-drill through every
+     section component. Identical pattern to SiteV8Renderer. */
+  const canvasCtxValue = useMemo(
+    () => ({ editMode: canEdit, onEditField }),
+    [canEdit, onEditField],
+  );
+
   return (
+    <EditorCanvasProvider value={canvasCtxValue}>
     <div
       className="pl8-guest"
       data-pl-edition={activeEdition.id}
@@ -166,9 +398,33 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug, editMode = false
       data-pl-density={density}
       data-pl-kit={manifest.kitId ?? 'classic'}
       data-pl-page-layout={manifest.pageLayout ?? 'classic'}
+      data-pl-edit-mode={canEdit ? 'true' : undefined}
       style={shellStyle}
     >
       <TextureFilters />
+
+      {/* Day-of broadcast chrome — ports the SiteV8Renderer mount
+          pattern verbatim. All three gated on !editMode so the
+          editor canvas stays clean.
+
+          DayOfBanner is the sticky day-of state strip (pre / live
+          / post — pulls from manifest.eventDate). It renders
+          before the nav so its sticky top:0 / zIndex:240 stacks
+          above ThemedNav's sticky top:0 / zIndex:40.
+
+          BroadcastBar is the sticky "live update" peach strip
+          fed by /api/sites/live-updates polling every 30s.
+          Suppressed when computeDayOfState(manifest).active so
+          the day-of banner owns the sticky top during the
+          highest-attention window — stacking both creates
+          competing colored bars guests can't parse.
+
+          GuestPearChat is floating chrome (bottom-right pill).
+          Order in the tree doesn't affect layout — it self-
+          positions fixed. */}
+      {!editMode && <GuestPearChat manifest={manifest} coupleNames={[n1, n2]} domain={siteSlug} />}
+      {!editMode && <DayOfBanner manifest={manifest} />}
+      {!editMode && !computeDayOfState(manifest).active && <BroadcastBar subdomain={siteSlug} />}
 
       {/* Sub-nav — port of the prototype's themed-site.jsx nav.
           Sticky at top with brand left, section links center,
@@ -179,94 +435,377 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug, editMode = false
       {/* Section stack — prototype's ThemedSite renders sections
           in event.sections order. For the scaffold pass we render
           the canonical 8 in the prototype's default order. */}
-      <ThemedHero manifest={manifest} names={[n1, n2]} motif={motif} />
+      <ThemedHero manifest={manifest} names={[n1, n2]} motif={motif} onEditField={onEditField} onEditNames={onEditNames} />
 
       {/* Section stack in the prototype's default order. Each
           section returns null when its data is empty AND we're
           not in editMode. In editMode, an editable placeholder
           renders instead so the host sees scaffolding for every
-          section they could fill. */}
+          section they could fill.
+
+          Edition divider rhythm — between each pair of sections we
+          mount an <EditionDivider> styled by the active Edition
+          (thread / sprocket / stitch / gold-hairline / whitespace).
+          The dividers self-reveal on scroll via the useScrollReveal
+          hook inside edition-dividers/index.tsx. Matches V8's
+          inter-section rhythm. Orphan dividers (where an adjacent
+          section returned null) are acceptable for the same reason
+          they are in V8 — the divider chrome is intentionally
+          subtle (1px hairline / a row of dots / 80px gold rule). */}
       <ThemedCountdown manifest={manifest} editMode={editMode} />
-      <ThemedStory manifest={manifest} motif={motif} editMode={editMode} />
+      <EditionDivider style={activeEdition.divider} />
+      <ThemedStory manifest={manifest} motif={motif} editMode={editMode} onEditField={onEditField} />
+      <EditionDivider style={activeEdition.divider} />
       {/* PullQuote removed — not in the design prototype; the
           story chapters carry the editorial rhythm on their own. */}
       <ThemedWeddingParty manifest={manifest} />
+      <EditionDivider style={activeEdition.divider} />
       <ThemedDetails manifest={manifest} motif={motif} editMode={editMode} />
-      <ThemedSchedule manifest={manifest} editMode={editMode} />
+      <EditionDivider style={activeEdition.divider} />
+      <ThemedSchedule manifest={manifest} editMode={editMode} onEditField={onEditField} />
+      <EditionDivider style={activeEdition.divider} />
       <ThemedMap manifest={manifest} />
+      <EditionDivider style={activeEdition.divider} />
       <ThemedTravel manifest={manifest} motif={motif} editMode={editMode} />
+      <EditionDivider style={activeEdition.divider} />
       <ThemedRegistry manifest={manifest} editMode={editMode} />
-      <ThemedGallery manifest={manifest} editMode={editMode} />
+      <EditionDivider style={activeEdition.divider} />
+      <ThemedGallery manifest={manifest} editMode={editMode} onEditField={onEditField} />
+      <EditionDivider style={activeEdition.divider} />
       <ThemedSpotify manifest={manifest} />
+      <EditionDivider style={activeEdition.divider} />
       <ThemedHashtag manifest={manifest} />
-      <ThemedRsvp manifest={manifest} />
-      <ThemedFaq manifest={manifest} editMode={editMode} />
+      <EditionDivider style={activeEdition.divider} />
+      <ThemedRsvp manifest={manifest} siteSlug={siteSlug} />
+      <EditionDivider style={activeEdition.divider} />
+      <ThemedFaq manifest={manifest} editMode={editMode} onEditField={onEditField} />
+      <EditionDivider style={activeEdition.divider} />
+      <ThemedGuestbook manifest={manifest} names={[n1, n2]} siteSlug={siteSlug} />
 
       <ThemedFooter siteSlug={siteSlug} names={[n1, n2]} manifest={manifest} />
     </div>
+    </EditorCanvasProvider>
   );
 }
 
-/* ─── ThemedNav — sticky sub-nav with brand italic + dotted-
-   underline section links + peach RSVP pill. The prototype shows
-   all seven section links unconditionally so the page always
-   reads as a complete editorial spread; we mirror that — earlier
-   auto-hide was over-aggressive and left the nav empty on every
-   freshly-wired site. ─── */
-function ThemedNav({ manifest: _manifest, names }: { manifest: StoryManifest; names: [string, string] }) {
-  const [n1, n2] = names;
-  const brand = n1 && n2 ? `${n1} & ${n2}` : (n1 || n2 || 'Our celebration');
-  const visibleLinks: Array<[string, string]> = [
-    ['Story',    'our-story'],
-    ['Details',  'details'],
-    ['Schedule', 'schedule'],
-    ['Travel',   'travel'],
-    ['Registry', 'registry'],
-    ['Gallery',  'gallery'],
-    ['FAQ',      'faq'],
-  ];
+/* ─── ThemedNav — sticky sub-nav.
+ *
+ * Ports the SiteV8Renderer NavBody + MobileNavBody dispatch into
+ * Themed so hosts who flip `manifest.renderer === 'themed'` get the
+ * same 9 desktop variants + 4 mobile variants the v8 renderer
+ * exposes. CSS for every variant already lives in pearloom.css —
+ * we just route by `manifest.nav?.style` / `manifest.nav?.mobileStyle`.
+ *
+ * Default classic variant retains the prototype's dotted-underline
+ * link treatment with the peach RSVP pill so existing themed sites
+ * keep their look. The other 8 desktop variants and all 4 mobile
+ * variants reuse the same pl8-nav-* class hooks as SiteV8Renderer. */
+
+type ThemedNavLink = { label: string; href: string };
+
+interface ThemedNavBodyProps {
+  navStyle: string;
+  scrolled: boolean;
+  coupleLabel: string;
+  links: ThemedNavLink[];
+  rsvpHref: string;
+  brandHref: string;
+  manifest: StoryManifest;
+}
+
+const THEMED_NAV_LINK_STYLE: React.CSSProperties = {
+  fontSize: 13.5,
+  color: 'var(--nav-ink-soft, var(--ink-soft, #3A332C))',
+  fontWeight: 500,
+  textDecoration: 'none',
+  position: 'relative',
+  paddingBottom: 4,
+  transition: 'color var(--pl-dur-fast) var(--pl-ease-out)',
+};
+
+function ThemedNavLinks({ links, gap = 22 }: { links: ThemedNavLink[]; gap?: number }) {
   return (
-    <header
-      className="pl8-themed-nav"
-      style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 40,
-        background: 'var(--paper, #F5EFE2)',
-        borderBottom: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 18,
-        padding: '14px 32px',
-        fontSize: 12.5,
-        color: 'var(--ink-soft, #3A332C)',
-        backdropFilter: 'blur(8px)',
-      }}
-    >
-      <a
-        href="#top"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          minWidth: 200,
-          textDecoration: 'none',
-        }}
-      >
-        <span
-          className="display-italic"
-          style={{
-            fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-            fontStyle: 'italic',
-            fontSize: 17,
-            fontWeight: 500,
-            color: 'var(--ink, #0E0D0B)',
-            letterSpacing: '-0.01em',
+    <nav style={{ display: 'flex', gap, alignItems: 'center' }} className="pl8-site-nav-links">
+      {links.map((l) => (
+        <a
+          key={l.label}
+          href={l.href}
+          style={THEMED_NAV_LINK_STYLE}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--peach-ink, var(--pl-olive, #C6703D))';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = '';
           }}
         >
-          {brand}
-        </span>
-      </a>
+          {l.label}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
+function ThemedNavBrand({ manifest, label, size, href }: { manifest: StoryManifest; label: string; size: number; href: string }) {
+  return (
+    <a
+      href={href}
+      className="pl8-site-nav-brand"
+      style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        textDecoration: 'none',
+        transition: 'transform var(--pl-dur-slow) var(--pl-ease-spring)',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.transform = 'rotate(-2deg) translateY(-1px)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = ''; }}
+    >
+      <NavBrandIcon manifest={manifest} size={size} />
+      <span
+        className="display-italic"
+        style={{
+          fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+          fontStyle: 'italic',
+          fontSize: Math.max(16, Math.round(size * 0.78)),
+          color: 'var(--nav-ink, var(--ink, #0E0D0B))',
+          letterSpacing: '-0.01em',
+        }}
+      >
+        {label}
+      </span>
+    </a>
+  );
+}
+
+/* Themed-flavoured RSVP pill — peach-on-cream to keep the prototype
+   identity even on the new desktop variants. */
+function ThemedRsvpPill({ href, compact }: { href: string; compact?: boolean }) {
+  return (
+    <a
+      href={href}
+      className="pl8-nav-rsvp"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: compact ? '6px 12px' : '7px 16px',
+        borderRadius: 999,
+        background: 'var(--peach-ink, var(--pl-olive, #C6703D))',
+        color: 'var(--cream, #FBF7EE)',
+        fontSize: compact ? 11 : 11.5,
+        fontWeight: 700,
+        letterSpacing: '0.04em',
+        textDecoration: 'none',
+      }}
+    >
+      RSVP <Icon name="arrow-right" size={11} />
+    </a>
+  );
+}
+
+function ThemedNavBody({ navStyle, scrolled, coupleLabel, links, rsvpHref, brandHref, manifest }: ThemedNavBodyProps) {
+  const innerPadding = scrolled ? '10px 32px' : '14px 32px';
+
+  // ── Centered: brand centered, links split left/right around it. ──
+  if (navStyle === 'centered') {
+    const half = Math.ceil(links.length / 2);
+    const left = links.slice(0, half);
+    const right = links.slice(half);
+    return (
+      <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 28, transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
+        <ThemedNavLinks links={left} gap={22} />
+        <ThemedNavBrand manifest={manifest} label={coupleLabel} size={28} href={brandHref} />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 18 }}>
+          <ThemedNavLinks links={right} gap={22} />
+          <ThemedRsvpPill href={rsvpHref} />
+        </div>
+      </div>
+    );
+  }
+
+  // ── Minimal: brand only, no inline links. ──
+  if (navStyle === 'minimal') {
+    return (
+      <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 28, transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
+        <ThemedNavBrand manifest={manifest} label={coupleLabel} size={26} href={brandHref} />
+        <ThemedRsvpPill href={rsvpHref} />
+      </div>
+    );
+  }
+
+  // ── Stacked: brand on its own row, links underneath. ──
+  if (navStyle === 'stacked') {
+    return (
+      <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'flex', flexDirection: 'column', gap: 8, transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <ThemedNavBrand manifest={manifest} label={coupleLabel} size={32} href={brandHref} />
+          <ThemedRsvpPill href={rsvpHref} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', borderTop: '1px solid var(--nav-divider, rgba(14,13,11,0.08))', paddingTop: 8 }}>
+          <ThemedNavLinks links={links} gap={26} />
+        </div>
+      </div>
+    );
+  }
+
+  // ── Hairline horizontal: single thin row, maximum restraint. ──
+  if (navStyle === 'hairline-horizontal') {
+    return (
+      <div className="pl8-nav-hairline" style={{ maxWidth: 1240, margin: '0 auto', padding: scrolled ? '8px 32px' : '11px 32px', display: 'flex', alignItems: 'center', gap: 24, transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
+        <ThemedNavBrand manifest={manifest} label={coupleLabel} size={22} href={brandHref} />
+        <div style={{ marginLeft: 'auto' }}>
+          <ThemedNavLinks links={links} gap={20} />
+        </div>
+        <a
+          href={rsvpHref}
+          className="pl8-nav-rsvp-hairline"
+          style={{
+            fontSize: 12,
+            padding: '6px 14px',
+            borderRadius: 0,
+            border: '1px solid var(--nav-ink, var(--ink, #0E0D0B))',
+            color: 'var(--nav-ink, var(--ink, #0E0D0B))',
+            textDecoration: 'none',
+            fontWeight: 500,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
+          }}
+        >
+          RSVP
+        </a>
+      </div>
+    );
+  }
+
+  // ── Centered lockup: names + glyph centred, two links flanking each side. ──
+  if (navStyle === 'centered-lockup') {
+    const half = Math.ceil(links.length / 2);
+    const left = links.slice(0, half);
+    const right = links.slice(half);
+    return (
+      <div className="pl8-nav-centered-lockup" style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 32, transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+          <ThemedNavLinks links={left} gap={26} />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          <ThemedNavBrand manifest={manifest} label={coupleLabel} size={30} href={brandHref} />
+          <span aria-hidden style={{ display: 'block', width: 32, height: 1, background: 'var(--pl-gold, #B8935A)', opacity: 0.6 }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 18 }}>
+          <ThemedNavLinks links={right} gap={26} />
+          <ThemedRsvpPill href={rsvpHref} />
+        </div>
+      </div>
+    );
+  }
+
+  // ── Stacked editorial: large names on top, hairline rule, mono link row. ──
+  if (navStyle === 'stacked-editorial') {
+    return (
+      <div className="pl8-nav-stacked-editorial" style={{ maxWidth: 1240, margin: '0 auto', padding: scrolled ? '12px 32px' : '18px 32px', display: 'flex', flexDirection: 'column', gap: 10, transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+          <ThemedNavBrand manifest={manifest} label={coupleLabel} size={34} href={brandHref} />
+          <div style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)' }}>
+            <ThemedRsvpPill href={rsvpHref} />
+          </div>
+        </div>
+        <div className="pl8-nav-editorial-rule" style={{ height: 1, background: 'var(--nav-divider, rgba(14,13,11,0.12))', margin: '0 auto', width: '100%', maxWidth: 920 }} />
+        <nav className="pl8-site-nav-links pl8-nav-editorial-links" style={{ display: 'flex', justifyContent: 'center', gap: 28, flexWrap: 'wrap' }}>
+          {links.map((l) => (
+            <a
+              key={l.label}
+              href={l.href}
+              style={{
+                fontSize: 10.5,
+                fontFamily: 'var(--font-ui, var(--pl-font-mono, monospace))',
+                fontWeight: 700,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: 'var(--nav-ink-soft, var(--ink-soft, #3A332C))',
+                textDecoration: 'none',
+                transition: 'color var(--pl-dur-fast) var(--pl-ease-out)',
+              }}
+            >
+              {l.label}
+            </a>
+          ))}
+        </nav>
+      </div>
+    );
+  }
+
+  // ── Folio page-number: mono-uppercased section labels with leading gold dot. ──
+  if (navStyle === 'folio-page-number') {
+    return (
+      <div className="pl8-nav-folio" style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'grid', gridTemplateColumns: '1fr 1fr', alignItems: 'center', gap: 24, transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
+        <ThemedNavBrand manifest={manifest} label={coupleLabel} size={26} href={brandHref} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 22, flexWrap: 'wrap' }}>
+          <nav style={{ display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {links.map((l, i) => (
+              <a
+                key={l.label}
+                href={l.href}
+                className="pl8-nav-folio-link"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: 10.5,
+                  fontFamily: 'var(--font-ui, var(--pl-font-mono, monospace))',
+                  fontWeight: 600,
+                  letterSpacing: '0.20em',
+                  textTransform: 'uppercase',
+                  color: 'var(--nav-ink-soft, var(--ink-soft, #3A332C))',
+                  textDecoration: 'none',
+                }}
+              >
+                <span aria-hidden style={{ display: 'inline-block', width: 4, height: 4, borderRadius: '50%', background: 'var(--pl-gold, #B8935A)' }} />
+                <span>{String(i + 1).padStart(2, '0')}</span>
+                <span style={{ opacity: 0.5 }}>·</span>
+                {l.label}
+              </a>
+            ))}
+          </nav>
+          <ThemedRsvpPill href={rsvpHref} />
+        </div>
+      </div>
+    );
+  }
+
+  // ── Floating pill: sticky centred pill, compacts on scroll. ──
+  if (navStyle === 'floating-pill') {
+    return (
+      <div className="pl8-nav-floating-pill-wrap" style={{ maxWidth: 1280, margin: '0 auto', padding: scrolled ? '8px 16px' : '14px 16px', display: 'flex', justifyContent: 'center', transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
+        <div
+          className="pl8-nav-floating-pill"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: scrolled ? 14 : 22,
+            padding: scrolled ? '8px 14px' : '10px 18px',
+            borderRadius: 999,
+            background: 'var(--nav-pill-bg, rgba(244,236,216,0.86))',
+            border: '1px solid var(--nav-pill-border, rgba(14,13,11,0.10))',
+            backdropFilter: 'blur(14px) saturate(1.1)',
+            WebkitBackdropFilter: 'blur(14px) saturate(1.1)',
+            boxShadow: scrolled ? '0 10px 24px -14px rgba(40,28,12,0.20)' : '0 8px 20px -16px rgba(40,28,12,0.14)',
+            transition: 'padding var(--pl-dur-slow) var(--pl-ease-out), gap var(--pl-dur-slow) var(--pl-ease-out), box-shadow var(--pl-dur-slow) var(--pl-ease-out)',
+            maxWidth: '100%',
+          }}
+        >
+          <ThemedNavBrand manifest={manifest} label={coupleLabel} size={scrolled ? 22 : 26} href={brandHref} />
+          <span aria-hidden style={{ display: 'inline-block', width: 1, height: 18, background: 'var(--nav-divider, rgba(14,13,11,0.18))' }} />
+          <ThemedNavLinks links={links} gap={scrolled ? 14 : 18} />
+          <ThemedRsvpPill href={rsvpHref} compact />
+        </div>
+      </div>
+    );
+  }
+
+  // ── Classic (default): brand left, links centre, peach RSVP right.
+  //    Keeps the Themed prototype's signature dotted-underline links. ──
+  return (
+    <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'flex', alignItems: 'center', gap: 18, transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
+      <ThemedNavBrand manifest={manifest} label={coupleLabel} size={26} href={brandHref} />
       <nav
         style={{
           flex: 1,
@@ -276,14 +815,15 @@ function ThemedNav({ manifest: _manifest, names }: { manifest: StoryManifest; na
           opacity: 0.95,
         }}
       >
-        {visibleLinks.map(([label, anchor]: [string, string]) => (
+        {links.map((l) => (
           <a
-            key={label}
-            href={`#${anchor}`}
+            key={l.label}
+            href={l.href}
             style={{
-              color: 'inherit',
+              color: 'var(--ink-soft, #3A332C)',
               textDecoration: 'none',
               padding: '4px 2px',
+              fontSize: 12.5,
               borderBottom: '1px dotted transparent',
               transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
             }}
@@ -296,25 +836,375 @@ function ThemedNav({ manifest: _manifest, names }: { manifest: StoryManifest; na
               e.currentTarget.style.color = '';
             }}
           >
-            {label}
+            {l.label}
           </a>
         ))}
       </nav>
-      <a
-        href="#rsvp"
+      <ThemedRsvpPill href={rsvpHref} />
+    </div>
+  );
+}
+
+/* ───── Mobile nav body — ports MobileNavBody's 4 variants. ───── */
+interface ThemedMobileNavBodyProps {
+  mobileStyle: 'drawer-hamburger' | 'sticky-bottom-pill' | 'hairline-collapsing' | 'folded-expand';
+  coupleLabel: string;
+  links: ThemedNavLink[];
+  rsvpHref: string;
+  brandHref: string;
+  manifest: StoryManifest;
+  scrolled: boolean;
+}
+
+function ThemedMobileNavBody({ mobileStyle, coupleLabel, links, rsvpHref, brandHref, manifest, scrolled }: ThemedMobileNavBodyProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  function onLinkTap() { setMenuOpen(false); }
+
+  // ── Drawer hamburger ──
+  if (mobileStyle === 'drawer-hamburger') {
+    return (
+      <>
+        <div className="pl8-mnav-bar pl8-mnav-drawer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', minHeight: 56 }}>
+          <button
+            type="button"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+            style={{ width: 36, height: 36, padding: 0, border: 'none', background: 'transparent', display: 'grid', placeItems: 'center', cursor: 'pointer', color: 'var(--nav-ink, var(--ink, #0E0D0B))' }}
+          >
+            <span style={{ display: 'inline-flex', flexDirection: 'column', gap: 4, alignItems: 'stretch', width: 18 }}>
+              <span style={{ height: 1.5, background: 'currentColor', transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)', transform: menuOpen ? 'translateY(2.75px) rotate(45deg)' : undefined }} />
+              <span style={{ height: 1.5, background: 'currentColor', opacity: menuOpen ? 0 : 1, transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out)' }} />
+              <span style={{ height: 1.5, background: 'currentColor', transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)', transform: menuOpen ? 'translateY(-2.75px) rotate(-45deg)' : undefined }} />
+            </span>
+          </button>
+          <ThemedNavBrand manifest={manifest} label={coupleLabel} size={20} href={brandHref} />
+          <ThemedRsvpPill href={rsvpHref} compact />
+        </div>
+        <div
+          aria-hidden={!menuOpen}
+          className="pl8-mnav-drawer-sheet"
+          style={{
+            position: 'absolute', top: '100%', left: 0, right: 0,
+            background: 'var(--paper, rgba(247,242,228,0.98))',
+            borderBottom: '1px solid var(--nav-divider, rgba(14,13,11,0.10))',
+            maxHeight: menuOpen ? '70vh' : 0,
+            overflow: 'hidden',
+            opacity: menuOpen ? 1 : 0,
+            pointerEvents: menuOpen ? 'auto' : 'none',
+            transition: 'max-height var(--pl-dur-slow) var(--pl-ease-out), opacity var(--pl-dur-fast) var(--pl-ease-out)',
+            backdropFilter: 'blur(16px) saturate(140%)',
+            WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+          }}
+        >
+          <nav style={{ display: 'flex', flexDirection: 'column', padding: '12px 20px 24px' }}>
+            {links.map((l) => (
+              <a
+                key={l.label}
+                href={l.href}
+                onClick={onLinkTap}
+                style={{
+                  padding: '14px 4px',
+                  fontSize: 18,
+                  fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                  fontStyle: 'italic',
+                  color: 'var(--nav-ink, var(--ink, #0E0D0B))',
+                  textDecoration: 'none',
+                  borderBottom: '1px solid var(--nav-divider, rgba(14,13,11,0.08))',
+                }}
+              >
+                {l.label}
+              </a>
+            ))}
+          </nav>
+        </div>
+      </>
+    );
+  }
+
+  // ── Sticky bottom pill ──
+  if (mobileStyle === 'sticky-bottom-pill') {
+    return (
+      <>
+        <div className="pl8-mnav-bar pl8-mnav-sticky-top" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 16px', minHeight: 44 }}>
+          <ThemedNavBrand manifest={manifest} label={coupleLabel} size={18} href={brandHref} />
+        </div>
+        <div
+          className="pl8-mnav-bottom-pill-mount"
+          style={{
+            position: 'fixed',
+            left: 16,
+            right: 16,
+            bottom: 'max(14px, env(safe-area-inset-bottom))',
+            zIndex: 42,
+            display: 'flex',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          <div style={{ position: 'relative', pointerEvents: 'auto', maxWidth: 480, width: '100%' }}>
+            <div
+              aria-hidden={!menuOpen}
+              style={{
+                position: 'absolute', bottom: 'calc(100% + 8px)', left: 0, right: 0,
+                background: 'var(--paper, rgba(247,242,228,0.98))',
+                border: '1px solid var(--nav-divider, rgba(14,13,11,0.10))',
+                borderRadius: 16,
+                boxShadow: '0 16px 32px -10px rgba(40,28,12,0.25)',
+                maxHeight: menuOpen ? '60vh' : 0,
+                overflow: 'hidden',
+                opacity: menuOpen ? 1 : 0,
+                pointerEvents: menuOpen ? 'auto' : 'none',
+                transition: 'max-height var(--pl-dur-slow) var(--pl-ease-out), opacity var(--pl-dur-fast) var(--pl-ease-out)',
+                backdropFilter: 'blur(16px) saturate(140%)',
+                WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+              }}
+            >
+              <nav style={{ display: 'flex', flexDirection: 'column', padding: '6px 0' }}>
+                {links.map((l) => (
+                  <a key={l.label} href={l.href} onClick={onLinkTap} style={{ padding: '14px 22px', fontSize: 16, color: 'var(--nav-ink, var(--ink, #0E0D0B))', textDecoration: 'none' }}>
+                    {l.label}
+                  </a>
+                ))}
+              </nav>
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: 6,
+                borderRadius: 999,
+                background: 'var(--nav-pill-bg, rgba(244,236,216,0.94))',
+                border: '1px solid var(--nav-pill-border, rgba(14,13,11,0.12))',
+                boxShadow: '0 12px 28px -10px rgba(40,28,12,0.22)',
+                backdropFilter: 'blur(14px) saturate(140%)',
+                WebkitBackdropFilter: 'blur(14px) saturate(140%)',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setMenuOpen((v) => !v)}
+                aria-expanded={menuOpen}
+                style={{
+                  flex: 1,
+                  padding: '10px 16px',
+                  border: 'none', background: 'transparent',
+                  fontSize: 13, fontWeight: 600,
+                  fontFamily: 'inherit',
+                  color: 'var(--nav-ink, var(--ink, #0E0D0B))',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  borderRadius: 999,
+                }}
+              >
+                {menuOpen ? 'Close' : 'Chapters'}
+              </button>
+              <ThemedRsvpPill href={rsvpHref} compact />
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // ── Hairline collapsing ──
+  if (mobileStyle === 'hairline-collapsing') {
+    return (
+      <div className="pl8-mnav-bar pl8-mnav-hairline" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', minHeight: 44 }}>
+        <ThemedNavBrand manifest={manifest} label={coupleLabel} size={16} href={brandHref} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <a href={rsvpHref} className="pl8-mnav-rsvp-chip" style={{ fontSize: 10.5, padding: '5px 10px', borderRadius: 999, border: '1px solid var(--nav-ink-soft, var(--ink-soft, #3A332C))', color: 'var(--nav-ink, var(--ink, #0E0D0B))', textDecoration: 'none', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>RSVP</a>
+          <button
+            type="button"
+            aria-label={menuOpen ? 'Close chapter menu' : 'Open chapter menu'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+            style={{ width: 36, height: 36, padding: 0, border: 'none', background: 'transparent', display: 'grid', placeItems: 'center', cursor: 'pointer', color: 'var(--nav-ink, var(--ink, #0E0D0B))' }}
+          >
+            <span style={{ display: 'inline-block', width: 12, height: 12, position: 'relative' }}>
+              <span aria-hidden style={{ position: 'absolute', inset: 0, display: 'inline-block', borderLeft: '1.5px solid currentColor', borderBottom: '1.5px solid currentColor', width: 8, height: 8, top: 1, left: 2, transform: menuOpen ? 'rotate(135deg)' : 'rotate(-45deg)', transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)' }} />
+            </span>
+          </button>
+        </div>
+        <div
+          aria-hidden={!menuOpen}
+          className="pl8-mnav-hairline-sheet"
+          style={{
+            position: 'absolute', top: '100%', right: 12, minWidth: 200,
+            background: 'var(--paper, rgba(247,242,228,0.98))',
+            border: '1px solid var(--nav-divider, rgba(14,13,11,0.12))',
+            borderRadius: 12,
+            boxShadow: '0 12px 32px -12px rgba(40,28,12,0.20)',
+            maxHeight: menuOpen ? '60vh' : 0,
+            overflow: 'hidden',
+            opacity: menuOpen ? 1 : 0,
+            pointerEvents: menuOpen ? 'auto' : 'none',
+            transition: 'max-height var(--pl-dur-slow) var(--pl-ease-out), opacity var(--pl-dur-fast) var(--pl-ease-out)',
+            backdropFilter: 'blur(14px) saturate(140%)',
+            WebkitBackdropFilter: 'blur(14px) saturate(140%)',
+            marginTop: 4,
+          }}
+        >
+          <nav style={{ display: 'flex', flexDirection: 'column', padding: '6px 0' }}>
+            {links.map((l) => (
+              <a
+                key={l.label}
+                href={l.href}
+                onClick={onLinkTap}
+                style={{ padding: '12px 18px', fontSize: 14, color: 'var(--nav-ink, var(--ink, #0E0D0B))', textDecoration: 'none' }}
+              >
+                {l.label}
+              </a>
+            ))}
+          </nav>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Folded expand: hidden until scrolled past hero. ──
+  return (
+    <div
+      className="pl8-mnav-bar pl8-mnav-folded"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '8px 16px',
+        minHeight: 40,
+        opacity: scrolled ? 1 : 0,
+        transform: scrolled ? 'translateY(0)' : 'translateY(-100%)',
+        pointerEvents: scrolled ? 'auto' : 'none',
+        transition: 'opacity var(--pl-dur-base) var(--pl-ease-out), transform var(--pl-dur-base) var(--pl-ease-out)',
+      }}
+    >
+      <ThemedNavBrand manifest={manifest} label={coupleLabel} size={16} href={brandHref} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <button
+          type="button"
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((v) => !v)}
+          style={{ width: 32, height: 32, padding: 0, border: 'none', background: 'transparent', display: 'grid', placeItems: 'center', cursor: 'pointer', color: 'var(--nav-ink, var(--ink, #0E0D0B))' }}
+        >
+          <span style={{ display: 'inline-flex', flexDirection: 'column', gap: 3, alignItems: 'stretch', width: 16 }}>
+            <span style={{ height: 1.5, background: 'currentColor' }} />
+            <span style={{ height: 1.5, background: 'currentColor' }} />
+            <span style={{ height: 1.5, background: 'currentColor' }} />
+          </span>
+        </button>
+      </div>
+      <div
+        aria-hidden={!menuOpen}
         style={{
-          padding: '7px 16px',
-          borderRadius: 999,
-          background: 'var(--peach-ink, #C6703D)',
-          color: 'var(--cream, #FBF7EE)',
-          fontSize: 11.5,
-          fontWeight: 700,
-          letterSpacing: '0.04em',
-          textDecoration: 'none',
+          position: 'absolute', top: '100%', left: 0, right: 0,
+          background: 'var(--paper, rgba(247,242,228,0.98))',
+          maxHeight: menuOpen ? '70vh' : 0,
+          overflow: 'hidden',
+          opacity: menuOpen ? 1 : 0,
+          pointerEvents: menuOpen ? 'auto' : 'none',
+          transition: 'max-height var(--pl-dur-slow) var(--pl-ease-out), opacity var(--pl-dur-fast) var(--pl-ease-out)',
+          borderBottom: '1px solid var(--nav-divider, rgba(14,13,11,0.10))',
+          backdropFilter: 'blur(14px) saturate(140%)',
+          WebkitBackdropFilter: 'blur(14px) saturate(140%)',
         }}
       >
-        RSVP
-      </a>
+        <nav style={{ display: 'flex', flexDirection: 'column', padding: '12px 20px 18px' }}>
+          {links.map((l) => (
+            <a key={l.label} href={l.href} onClick={onLinkTap} style={{ padding: '12px 4px', fontSize: 16, fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontStyle: 'italic', color: 'var(--nav-ink, var(--ink, #0E0D0B))', textDecoration: 'none', borderBottom: '1px solid var(--nav-divider, rgba(14,13,11,0.08))' }}>
+              {l.label}
+            </a>
+          ))}
+          <a href={rsvpHref} onClick={onLinkTap} style={{ marginTop: 12, justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 999, background: 'var(--peach-ink, #C6703D)', color: 'var(--cream, #FBF7EE)', fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textDecoration: 'none' }}>RSVP</a>
+        </nav>
+      </div>
+    </div>
+  );
+}
+
+function ThemedNav({ manifest, names }: { manifest: StoryManifest; names: [string, string] }) {
+  const [n1, n2] = names;
+  const coupleLabel = n1 && n2 ? `${n1} & ${n2}` : (n1 || n2 || 'Our celebration');
+  const baseLinks: ThemedNavLink[] = [
+    { label: 'Story',    href: '#our-story' },
+    { label: 'Details',  href: '#details' },
+    { label: 'Schedule', href: '#schedule' },
+    { label: 'Travel',   href: '#travel' },
+    { label: 'Registry', href: '#registry' },
+    { label: 'Gallery',  href: '#gallery' },
+    { label: 'FAQ',      href: '#faq' },
+  ];
+  const rsvpHref = '#rsvp';
+  const brandHref = '#top';
+
+  const navStyle = manifest.nav?.style ?? 'classic';
+  const mobileStyle = manifest.nav?.mobileStyle;
+
+  const [scrolled, setScrolled] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 32);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Viewport-aware mobile switch — mirrors SiteV8Renderer's EventNav.
+  // 720px threshold matches pearloom.css site responsive rules.
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    const mql = window.matchMedia('(max-width: 720px)');
+    const apply = () => setIsMobile(mql.matches);
+    apply();
+    if (mql.addEventListener) mql.addEventListener('change', apply);
+    else mql.addListener(apply);
+    return () => {
+      if (mql.removeEventListener) mql.removeEventListener('change', apply);
+      else mql.removeListener(apply);
+    };
+  }, []);
+
+  return (
+    <header
+      className={`pl8-themed-nav pl8-site-nav${scrolled ? ' pl8-site-nav-scrolled' : ''}`}
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 40,
+        background: scrolled ? 'var(--paper, #F5EFE2)' : 'rgba(245,239,226,0.86)',
+        borderBottom: scrolled
+          ? '1px solid var(--line-soft, rgba(14,13,11,0.08))'
+          : '1px solid transparent',
+        fontSize: 12.5,
+        color: 'var(--ink-soft, #3A332C)',
+        backdropFilter: scrolled ? 'blur(18px) saturate(160%)' : 'blur(12px) saturate(140%)',
+        WebkitBackdropFilter: scrolled ? 'blur(18px) saturate(160%)' : 'blur(12px) saturate(140%)',
+        transition: 'background var(--pl-dur-slow) var(--pl-ease-out), backdrop-filter var(--pl-dur-slow) var(--pl-ease-out), border-color var(--pl-dur-slow) var(--pl-ease-out)',
+      }}
+    >
+      {isMobile && mobileStyle ? (
+        <ThemedMobileNavBody
+          mobileStyle={mobileStyle}
+          coupleLabel={coupleLabel}
+          links={baseLinks}
+          rsvpHref={rsvpHref}
+          brandHref={brandHref}
+          manifest={manifest}
+          scrolled={scrolled}
+        />
+      ) : (
+        <ThemedNavBody
+          navStyle={navStyle}
+          scrolled={scrolled}
+          coupleLabel={coupleLabel}
+          links={baseLinks}
+          rsvpHref={rsvpHref}
+          brandHref={brandHref}
+          manifest={manifest}
+        />
+      )}
     </header>
   );
 }
@@ -424,11 +1314,31 @@ function EmptyStateCallout({
   );
 }
 
-/* ─── ThemedHero — port of HeroBlock centered variant with the
-   prototype's 3-arch photo strip below the CTAs. The arches read
-   as a triptych — first three chapter photos rendered into top-
-   rounded frames matching the prototype's hero. ─── */
-function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names: [string, string]; motif: MotifKind }) {
+/* ─── ThemedHero — Edition + variant-aware hero.
+ *
+ * Resolution order (matches SiteV8Renderer's HeroSection):
+ *   1. Living atmosphere — explicit manifest.atmosphere >
+ *      active Edition's atmospherePreset > occasion default >
+ *      'standard'. Mounted as an absolute-positioned layer
+ *      behind the variant, with subtle cursor parallax drift.
+ *   2. Variant dispatch — manifest.blockVariants.hero.style >
+ *      active Edition's heroVariantId > 'postcard'. Looked up
+ *      via getBlockStyle('hero', id). When the registry has
+ *      the variant, its Component renders (postcard, photo-
+ *      first, split, carousel, minimal — all already ship the
+ *      gradient fallback via heroFallbackGradient when no
+ *      cover photo is set).
+ *   3. Legacy 3-arch fallback — when no variant is registered
+ *      (registry didn't initialise) we render the prototype's
+ *      original 3-arch composition so a Themed site without
+ *      block-styles still has a hero.
+ *
+ * The variant components handle their own composition (eyebrow,
+ * names, date/venue, CTAs, decoration). MotifScatter wraps the
+ * <section> so per-Edition motifs read through every variant.
+ * Atmosphere sits below the variant via z-index so it reads as
+ * paper lit from behind, not on top of the type. */
+function ThemedHero({ manifest, names, motif, onEditField, onEditNames }: { manifest: StoryManifest; names: [string, string]; motif: MotifKind; onEditField?: FieldEditor; onEditNames?: (next: [string, string]) => void }) {
   /* Name resolution — fall back through (provided → coupleId
      split → 'Your' / 'Celebration') so a freshly-generated site
      without explicit names doesn't render with empty placeholders
@@ -439,34 +1349,155 @@ function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names
     .map((s) => s.charAt(0).toUpperCase() + s.slice(1));
   const n1 = (names[0] && names[0] !== 'Your' ? names[0] : (coupleSplit[0] ?? names[0] ?? 'Your'));
   const n2 = (names[1] && names[1] !== 'Partner' ? names[1] : (coupleSplit[1] ?? names[1] ?? 'Celebration'));
-  const dateStr = manifest.logistics?.date ?? '';
+
+  /* Resolve the active Edition once — drives both the atmosphere
+     preset and the hero variant fallback. */
+  /* Cast occasion to satisfy EditionContext's SiteOccasion union —
+     getEventType + resolveEdition both validate the string at runtime
+     so an unknown value just falls back to the default. */
+  const occasion = (manifest as unknown as { occasion?: string }).occasion;
+  const eventType = occasion ? getEventType(occasion) : null;
+  const voice = eventType?.voice;
+  const activeEdition = resolveEdition({
+    edition: manifest.edition,
+    occasion: occasion as Parameters<typeof resolveEdition>[0]['occasion'],
+    voice,
+  });
+
+  /* Atmosphere config — explicit host pick > Edition preset >
+     occasion default. Editions are read-time defaults; an
+     explicit host setting always wins. */
+  const atmosphereCfg = (manifest as unknown as {
+    atmosphere?: { kind?: string; intensity?: string; sections?: string[]; accent?: string }
+  }).atmosphere;
+  const atmosphereKind = (atmosphereCfg?.kind as AtmosphereKind | undefined)
+    ?? (activeEdition.atmospherePreset.kind as AtmosphereKind | undefined)
+    ?? defaultAtmosphereForOccasion(occasion);
+  const atmosphereIntensity = (atmosphereCfg?.intensity as AtmosphereIntensity | undefined)
+    ?? (activeEdition.atmospherePreset.intensity as AtmosphereIntensity | undefined)
+    ?? 'standard';
+  const atmosphereAccent = atmosphereCfg?.accent
+    ?? (manifest as unknown as { theme?: { colors?: { accent?: string } } }).theme?.colors?.accent;
+  /* Cursor parallax — subtle drift on the atmosphere layer
+     (max 8px). Honours prefers-reduced-motion via the hook. */
+  const { ref: parallaxRef, style: parallaxStyle } = useHeroParallax(8);
+
+  /* Variant resolution — host pick > Edition default > postcard.
+     Side-effect-imported ./hero-variants populates the registry,
+     so getBlockStyle('hero', id) reliably returns a component. */
+  const styleId =
+    (manifest.blockVariants?.hero?.style as string | undefined) ?? activeEdition.heroVariantId;
+  const variant =
+    getBlockStyle('hero', styleId)
+    ?? getBlockStyle('hero', activeEdition.heroVariantId)
+    ?? getBlockStyle('hero', 'postcard');
+
+  /* Hero context — built once and passed into every variant.
+     Mirrors HeroVariantDispatch's `sharedProps.context` in
+     SiteV8Renderer so the same variant components plug in
+     unchanged. */
+  const dateIsoRaw = manifest.logistics?.date ?? '';
+  const dateDate = parseLocalDate(dateIsoRaw);
+  const dateInfo = dateDate
+    ? {
+        pretty: dateDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+        weekday: dateDate.toLocaleDateString('en-US', { weekday: 'long' }),
+      }
+    : null;
   const venue = manifest.logistics?.venue ?? '';
-  const place = manifest.logistics?.venueAddress ?? '';
-  /* Eyebrow — host's heroKicker wins, then prototype default. */
+  const rsvpDeadline = manifest.logistics?.rsvpDeadline;
+  const deadlineDate = parseLocalDate(rsvpDeadline);
+  const deadlineStr = deadlineDate
+    ? deadlineDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+    : null;
+  const heroCopy =
+    (manifest as unknown as { poetry?: { heroTagline?: string } }).poetry?.heroTagline ??
+    "We'd love you there. Come celebrate with us — the day will be better for it.";
+  const coverPhoto = manifest.coverPhoto;
+  const photos =
+    (manifest as unknown as { heroSlideshow?: string[] }).heroSlideshow ??
+    (manifest.chapters?.flatMap((c) => (c.images ?? []).slice(0, 1).map((i) => i.url)) ?? []);
   const heroKicker =
+    (manifest as unknown as { heroKicker?: string }).heroKicker ??
+    (dateInfo ? `together, ${dateInfo.weekday.toLowerCase()}` : 'save the date');
+
+  const sharedProps = {
+    manifest,
+    names: [n1, n2] as [string, string],
+    onEditField,
+    onEditNames,
+    context: {
+      n1, n2,
+      coverPhoto,
+      photos,
+      venue,
+      rsvpDeadline,
+      deadlineStr,
+      heroCopy,
+      dateInfo,
+      heroKicker,
+      signatureDecor: (manifest as unknown as { signatureDecor?: string }).signatureDecor,
+      occasion,
+    },
+  };
+
+  /* Variant rendering path. Postcard / Split / Carousel / Minimal
+     render inside a centred maxWidth wrapper; PhotoFirst owns its
+     full-bleed outer wrapper. The atmosphere layer + MotifScatter
+     wrap both paths. */
+  if (variant) {
+    const Variant = variant.Component as React.ComponentType<typeof sharedProps>;
+    return (
+      <section
+        ref={parallaxRef as React.RefObject<HTMLElement>}
+        id="top"
+        style={{
+          position: 'relative',
+          padding: 'calc(56px * var(--pl-density-scale, 1)) 32px calc(48px * var(--pl-density-scale, 1))',
+          background: 'var(--section, var(--paper))',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Living atmosphere underlay — drifts with cursor. */}
+        <div style={{ position: 'absolute', inset: 0, ...parallaxStyle, zIndex: 0 }} aria-hidden>
+          <LivingAtmosphere
+            kind={atmosphereKind}
+            intensity={atmosphereIntensity}
+            accent={atmosphereAccent}
+          />
+        </div>
+        <MotifScatter motif={motif} density="generous" />
+        {styleId === 'photo-first' ? (
+          <Variant {...sharedProps} />
+        ) : (
+          <div className="pl-hero-enter" style={{ maxWidth: 1160, margin: '0 auto', position: 'relative' }}>
+            <Variant {...sharedProps} />
+          </div>
+        )}
+      </section>
+    );
+  }
+
+  /* ── Legacy 3-arch fallback. Only reached when the variant
+        registry didn't initialise (the side-effect import above
+        guarantees it does in production — this branch is here so
+        a Themed site without block-styles still renders a hero). ── */
+  const dateStr = dateIsoRaw;
+  const place = manifest.logistics?.venueAddress ?? '';
+  const heroKickerLegacy =
     (manifest as unknown as { heroKicker?: string }).heroKicker?.trim() || 'Save the date';
-  /* Tagline — first sentence of poetry.heroTagline so it reads as
-     a short italic line, not a paragraph. */
   const heroCopyFull =
     (manifest as unknown as { poetry?: { heroTagline?: string } }).poetry?.heroTagline ?? '';
   const tagline = heroCopyFull.split(/[.!?]\s/, 2)[0];
-  /* First three photos for the arch strip — fallback to chapter
-     covers. When no real photos exist, the hero falls back to
-     three soft-tinted arch placeholders so the iconic 3-arch
-     composition still reads. Tones pulled from the Edition's
-     accent palette so the placeholders feel theme-coherent
-     rather than generic gray. */
   const archPhotos = (manifest.chapters ?? [])
     .flatMap((c) => (c.images ?? []).map((i) => i.url))
     .filter((u): u is string => !!u)
     .slice(0, 3);
-  /* Three tones in Edition palette — accentLight / a peach wash /
-     a sage wash. When no real photos exist, the placeholder
-     fills the 3-arch composition with these tone blocks. */
   const archFallbackTones: [string, string, string] = ['var(--peach-bg, rgba(198,112,61,0.18))', 'var(--peach-ink, #C6703D)', 'var(--peach-bg, rgba(198,112,61,0.10))'];
 
   return (
     <section
+      ref={parallaxRef as React.RefObject<HTMLElement>}
       id="top"
       style={{
         position: 'relative',
@@ -476,10 +1507,24 @@ function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names
         overflow: 'hidden',
       }}
     >
+      {/* Living atmosphere underlay — drifts with cursor. */}
+      <div style={{ position: 'absolute', inset: 0, ...parallaxStyle, zIndex: 0 }} aria-hidden>
+        <LivingAtmosphere
+          kind={atmosphereKind}
+          intensity={atmosphereIntensity}
+          accent={atmosphereAccent}
+        />
+      </div>
       <MotifScatter motif={motif} density="generous" />
       <div style={{ position: 'relative', maxWidth: 980, margin: '0 auto' }}>
-        <div
+        <EditableText
+          as="div"
           className="eyebrow"
+          value={heroKickerLegacy}
+          onSave={(v) => onEditField?.((m) => ({ ...m, heroKicker: v } as unknown as StoryManifest))}
+          ariaLabel="Hero eyebrow"
+          maxLength={60}
+          placeholder="Save the date"
           style={{
             fontSize: 11.5,
             fontWeight: 700,
@@ -488,22 +1533,31 @@ function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names
             color: 'var(--peach-ink, #C6703D)',
             marginBottom: 14,
           }}
-        >
-          {heroKicker}
-        </div>
-        {tagline && (
-          <div
-            style={{
-              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-              fontStyle: 'italic',
-              fontSize: 19,
-              color: 'var(--ink-soft, #3A332C)',
-              margin: '0 0 18px',
-            }}
-          >
-            {tagline}
-          </div>
-        )}
+        />
+        <EditableField
+          as="div"
+          context="hero tagline"
+          value={tagline}
+          onSave={(v) =>
+            onEditField?.(
+              (m) =>
+                ({
+                  ...m,
+                  poetry: { ...((m as unknown as { poetry?: object }).poetry ?? {}), heroTagline: v },
+                } as unknown as StoryManifest),
+            )
+          }
+          placeholder="Add a tagline…"
+          ariaLabel="Hero tagline"
+          maxLength={200}
+          style={{
+            fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+            fontStyle: 'italic',
+            fontSize: 19,
+            color: 'var(--ink-soft, #3A332C)',
+            margin: '0 0 18px',
+          }}
+        />
         <h1
           style={{
             fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
@@ -514,7 +1568,14 @@ function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names
             letterSpacing: '-0.02em',
           }}
         >
-          {n1}
+          <EditableText
+            as="span"
+            value={n1}
+            onSave={(v) => onEditNames?.([v, n2])}
+            ariaLabel="First name"
+            maxLength={60}
+            placeholder="Name"
+          />
           <span
             style={{
               fontStyle: 'italic',
@@ -526,7 +1587,14 @@ function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names
           >
             and
           </span>
-          {n2}
+          <EditableText
+            as="span"
+            value={n2}
+            onSave={(v) => onEditNames?.([n1, v])}
+            ariaLabel="Second name"
+            maxLength={60}
+            placeholder="Name"
+          />
         </h1>
         <div
           style={{
@@ -542,13 +1610,43 @@ function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names
           {dateStr && (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
               <Icon name="calendar" size={14} color="var(--peach-ink, #C6703D)" />
-              {dateStr}
+              <EditableText
+                as="span"
+                value={dateStr}
+                onSave={(v) =>
+                  onEditField?.(
+                    (m) =>
+                      ({
+                        ...m,
+                        logistics: { ...(m.logistics ?? {}), date: v },
+                      } as unknown as StoryManifest),
+                  )
+                }
+                ariaLabel="Event date"
+                maxLength={80}
+                placeholder="Add the date"
+              />
             </span>
           )}
           {venue && (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
               <Icon name="pin" size={14} color="var(--peach-ink, #C6703D)" />
-              {venue}
+              <EditableText
+                as="span"
+                value={venue}
+                onSave={(v) =>
+                  onEditField?.(
+                    (m) =>
+                      ({
+                        ...m,
+                        logistics: { ...(m.logistics ?? {}), venue: v },
+                      } as unknown as StoryManifest),
+                  )
+                }
+                ariaLabel="Venue"
+                maxLength={120}
+                placeholder="Add the venue"
+              />
               {place && ` · ${place}`}
             </span>
           )}
@@ -654,8 +1752,40 @@ function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names
    chapter list a distinct visual identity (book-spread / index-
    card / scrapbook / etc.), not just a CSS skin. ─── */
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
-function ThemedStory({ manifest, motif, editMode }: { manifest: StoryManifest; motif: MotifKind; editMode?: boolean }) {
+
+/* Helper: patch a single chapter field. Used by every kit's
+   chapter row so they all flow through the same onEditField
+   channel. Mirrors SiteV8Renderer's patchChapter pattern. */
+function makePatchChapter(onEditField: FieldEditor | undefined, chapterId: string | undefined, chapterIndex: number) {
+  return (field: 'title' | 'description' | 'date') => (value: string) => {
+    if (!onEditField) return;
+    onEditField((m) => {
+      const chapters = [...(m.chapters ?? [])];
+      // Prefer id match — chapters can be reordered and the index
+      // would drift. Fall back to index when an id isn't set.
+      let idx = chapterId ? chapters.findIndex((c) => c.id === chapterId) : -1;
+      if (idx < 0) idx = chapterIndex;
+      if (idx < 0 || idx >= chapters.length) return m;
+      chapters[idx] = { ...chapters[idx], [field]: value };
+      return { ...m, chapters } as StoryManifest;
+    });
+  };
+}
+
+function ThemedStory({ manifest, motif, editMode, onEditField }: { manifest: StoryManifest; motif: MotifKind; editMode?: boolean; onEditField?: FieldEditor }) {
   const chapters = manifest.chapters ?? [];
+  // Sample each chapter's first photo for its dominant tone, then
+  // align by index so each kit renderer can read `tones[i]` and
+  // tint its row border + year-glyph (numeral / date eyebrow).
+  // When a tone hasn't resolved (SSR, pre-load, canvas tainted),
+  // `tones[i]` is null and the kit falls back to the existing
+  // peach-ink palette — keeping the unaltered default render
+  // byte-for-byte unchanged. Mirrors the StoryLayouts hook.
+  const chapterPhotoUrls = chapters.map((c) => c.images?.[0]?.url);
+  const chapterTones = useChapterTones(chapterPhotoUrls);
+  const tones: Array<string | null> = chapterPhotoUrls.map((u) =>
+    u ? chapterTones[u] ?? null : null,
+  );
   if (chapters.length === 0) {
     if (!editMode) return null;
     return (
@@ -683,12 +1813,12 @@ function ThemedStory({ manifest, motif, editMode }: { manifest: StoryManifest; m
     >
       <MotifScatter motif={motif} density="sparse" />
       <ThemedSectionHead eyebrow="Our story" title="How we got" italic="here" manifest={manifest} sectionKey="story" />
-      {kit === 'ticket'    && <StoryTicket chapters={chapters} />}
-      {kit === 'plate'     && <StoryPlate chapters={chapters} />}
-      {kit === 'scrapbook' && <StoryScrapbook chapters={chapters} />}
-      {kit === 'index'     && <StoryIndex chapters={chapters} />}
-      {kit === 'minimal'   && <StoryMinimal chapters={chapters} />}
-      {kit === 'classic'   && <StoryClassic chapters={chapters} />}
+      {kit === 'ticket'    && <StoryTicket chapters={chapters} tones={tones} onEditField={onEditField} />}
+      {kit === 'plate'     && <StoryPlate chapters={chapters} tones={tones} onEditField={onEditField} />}
+      {kit === 'scrapbook' && <StoryScrapbook chapters={chapters} tones={tones} onEditField={onEditField} />}
+      {kit === 'index'     && <StoryIndex chapters={chapters} tones={tones} onEditField={onEditField} />}
+      {kit === 'minimal'   && <StoryMinimal chapters={chapters} tones={tones} onEditField={onEditField} />}
+      {kit === 'classic'   && <StoryClassic chapters={chapters} tones={tones} onEditField={onEditField} />}
     </section>
   );
 }
@@ -696,17 +1826,25 @@ function ThemedStory({ manifest, motif, editMode }: { manifest: StoryManifest; m
 type Chapter = NonNullable<StoryManifest['chapters']>[number];
 
 /* Classic — alternating photo-left / photo-right book spread. */
-function StoryClassic({ chapters }: { chapters: Chapter[] }) {
+function StoryClassic({ chapters, tones, onEditField }: { chapters: Chapter[]; tones?: Array<string | null>; onEditField?: FieldEditor }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 72, maxWidth: 1080, margin: '0 auto' }}>
       {chapters.map((c, i) => {
         const left = i % 2 === 0;
         const photo = c.images?.[0]?.url;
         const numeral = ROMAN[i] ?? String(i + 1);
+        // Photo-derived tone for this chapter — tints the year-glyph
+        // (Roman numeral). Falls through to the manifest peach when
+        // the sample hasn't resolved.
+        const photoTone = tones?.[i] ?? null;
+        const numeralColor = photoTone ?? 'var(--peach-ink, #C6703D)';
         return (
           <div key={c.id ?? i} className="pl8-chapter-row" style={{
             display: 'grid', gridTemplateColumns: left ? '5fr 1fr 6fr' : '6fr 1fr 5fr',
             alignItems: 'center',
+            // Side accent rails — only render when the photo tone
+            // resolved, so default chapters look unchanged.
+            ...(photoTone ? { borderLeft: `2px solid ${photoTone}`, paddingLeft: 16 } : {}),
           }}>
             <div style={{ order: left ? 0 : 2 }}>
               {photo ? (
@@ -730,10 +1868,39 @@ function StoryClassic({ chapters }: { chapters: Chapter[] }) {
             </div>
             <div style={{ order: 1 }} />
             <div style={{ order: left ? 2 : 0 }}>
-              <div style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontStyle: 'italic', fontSize: 44, fontWeight: 400, color: 'var(--peach-ink, #C6703D)', opacity: 0.7, lineHeight: 1, marginBottom: 8, letterSpacing: '-0.01em' }}>{numeral}.</div>
-              {c.date && <div className="eyebrow" style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)', textTransform: 'uppercase', color: 'var(--ink-muted, #6F6557)', marginBottom: 14 }}>{c.date}</div>}
-              <h3 style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 42, fontWeight: 'var(--pl-display-wght, 600)', margin: 0, lineHeight: 1.02, letterSpacing: '-0.015em' }}>{c.title}</h3>
-              {c.description && <p style={{ marginTop: 20, fontSize: 15.5, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.7 }}>{c.description}</p>}
+              <div style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontStyle: 'italic', fontSize: 44, fontWeight: 400, color: numeralColor, opacity: 0.7, lineHeight: 1, marginBottom: 8, letterSpacing: '-0.01em' }}>{numeral}.</div>
+              {c.date && (
+                <EditableText
+                  as="div"
+                  className="eyebrow"
+                  value={c.date}
+                  onSave={makePatchChapter(onEditField, c.id, i)('date')}
+                  ariaLabel={`Chapter ${i + 1} date`}
+                  maxLength={60}
+                  placeholder="Date"
+                  style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)', textTransform: 'uppercase', color: 'var(--ink-muted, #6F6557)', marginBottom: 14 }}
+                />
+              )}
+              <EditableText
+                as="h3"
+                value={c.title}
+                onSave={makePatchChapter(onEditField, c.id, i)('title')}
+                ariaLabel={`Chapter ${i + 1} title`}
+                maxLength={120}
+                placeholder="Chapter title"
+                style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 42, fontWeight: 'var(--pl-display-wght, 600)', margin: 0, lineHeight: 1.02, letterSpacing: '-0.015em' }}
+              />
+              <EditableField
+                as="p"
+                context={`chapter ${i + 1} description`}
+                value={c.description ?? ''}
+                onSave={makePatchChapter(onEditField, c.id, i)('description')}
+                multiline
+                maxLength={800}
+                placeholder="Tell the story of this moment…"
+                ariaLabel={`Chapter ${i + 1} description`}
+                style={{ marginTop: 20, fontSize: 15.5, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.7 }}
+              />
             </div>
           </div>
         );
@@ -744,24 +1911,58 @@ function StoryClassic({ chapters }: { chapters: Chapter[] }) {
 
 /* Ticket — perforated stub cards in a 2-col grid, dashed border,
    monospace date, photo above body. */
-function StoryTicket({ chapters }: { chapters: Chapter[] }) {
+function StoryTicket({ chapters, tones, onEditField }: { chapters: Chapter[]; tones?: Array<string | null>; onEditField?: FieldEditor }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 18, maxWidth: 920, margin: '0 auto' }}>
       {chapters.map((c, i) => {
         const photo = c.images?.[0]?.url;
+        // Photo-derived tone — repaints the dashed border + date
+        // eyebrow when the sample resolved. Falls back to the
+        // existing ink-soft / peach-ink palette otherwise.
+        const photoTone = tones?.[i] ?? null;
+        const borderColor = photoTone ?? 'var(--ink-soft, #3A332C)';
+        const dateColor = photoTone ?? 'var(--peach-ink, #C6703D)';
         return (
           <div key={c.id ?? i} className="pl8-chapter-row" style={{
             background: 'var(--card, #FBF7EE)',
-            border: '1.5px dashed var(--ink-soft, #3A332C)',
+            border: `1.5px dashed ${borderColor}`,
             borderRadius: 6, position: 'relative', overflow: 'hidden',
           }}>
-            <span aria-hidden style={{ position: 'absolute', top: 6, left: 6, width: 6, height: 6, borderRadius: '50%', background: 'var(--paper, #F5EFE2)', border: '1px solid var(--ink-soft, #3A332C)' }} />
-            <span aria-hidden style={{ position: 'absolute', top: 6, right: 6, width: 6, height: 6, borderRadius: '50%', background: 'var(--paper, #F5EFE2)', border: '1px solid var(--ink-soft, #3A332C)' }} />
-            {photo && <div style={{ width: '100%', aspectRatio: '16/9', backgroundImage: `url(${photo})`, backgroundSize: 'cover', backgroundPosition: 'center', borderBottom: '1.5px dashed var(--ink-soft, #3A332C)' }} />}
+            <span aria-hidden style={{ position: 'absolute', top: 6, left: 6, width: 6, height: 6, borderRadius: '50%', background: 'var(--paper, #F5EFE2)', border: `1px solid ${borderColor}` }} />
+            <span aria-hidden style={{ position: 'absolute', top: 6, right: 6, width: 6, height: 6, borderRadius: '50%', background: 'var(--paper, #F5EFE2)', border: `1px solid ${borderColor}` }} />
+            {photo && <div style={{ width: '100%', aspectRatio: '16/9', backgroundImage: `url(${photo})`, backgroundSize: 'cover', backgroundPosition: 'center', borderBottom: `1.5px dashed ${borderColor}` }} />}
             <div style={{ padding: '20px 22px' }}>
-              {c.date && <div style={{ fontFamily: 'Courier New, ui-monospace, monospace', fontSize: 12, fontWeight: 700, color: 'var(--peach-ink, #C6703D)', letterSpacing: '0.04em', marginBottom: 8, textTransform: 'uppercase' }}>{c.date}</div>}
-              <h3 style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 22, fontWeight: 600, margin: 0, lineHeight: 1.1 }}>{c.title}</h3>
-              {c.description && <p style={{ marginTop: 10, fontSize: 13, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.55 }}>{c.description}</p>}
+              {c.date && (
+                <EditableText
+                  as="div"
+                  value={c.date}
+                  onSave={makePatchChapter(onEditField, c.id, i)('date')}
+                  ariaLabel={`Chapter ${i + 1} date`}
+                  maxLength={60}
+                  placeholder="Date"
+                  style={{ fontFamily: 'Courier New, ui-monospace, monospace', fontSize: 12, fontWeight: 700, color: dateColor, letterSpacing: '0.04em', marginBottom: 8, textTransform: 'uppercase' }}
+                />
+              )}
+              <EditableText
+                as="h3"
+                value={c.title}
+                onSave={makePatchChapter(onEditField, c.id, i)('title')}
+                ariaLabel={`Chapter ${i + 1} title`}
+                maxLength={120}
+                placeholder="Chapter title"
+                style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 22, fontWeight: 600, margin: 0, lineHeight: 1.1 }}
+              />
+              <EditableField
+                as="p"
+                context={`chapter ${i + 1} description`}
+                value={c.description ?? ''}
+                onSave={makePatchChapter(onEditField, c.id, i)('description')}
+                multiline
+                maxLength={800}
+                placeholder="Tell the story…"
+                ariaLabel={`Chapter ${i + 1} description`}
+                style={{ marginTop: 10, fontSize: 13, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.55 }}
+              />
             </div>
           </div>
         );
@@ -772,29 +1973,65 @@ function StoryTicket({ chapters }: { chapters: Chapter[] }) {
 
 /* Plate — vertical Roman-numeral list, photo as a small inset
    square on the left, italic display name, hairline separator. */
-function StoryPlate({ chapters }: { chapters: Chapter[] }) {
+function StoryPlate({ chapters, tones, onEditField }: { chapters: Chapter[]; tones?: Array<string | null>; onEditField?: FieldEditor }) {
   return (
     <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 32 }}>
       {chapters.map((c, i) => {
         const photo = c.images?.[0]?.url;
         const numeral = ROMAN[i] ?? String(i + 1);
+        // Tint the Roman-numeral year-glyph from the chapter
+        // photo's dominant tone (defaults to peach-ink). Separator
+        // hairline stays a neutral muted line so the row read isn't
+        // dominated by the accent.
+        const photoTone = tones?.[i] ?? null;
+        const numeralColor = photoTone ?? 'var(--peach-ink, #C6703D)';
         return (
           <div key={c.id ?? i} className="pl8-chapter-row" style={{
             display: 'grid', gridTemplateColumns: '60px 96px 1fr',
             alignItems: 'center', gap: 20,
-            paddingBottom: 24, borderBottom: '1px solid var(--line-soft, rgba(14,13,11,0.10))',
+            paddingBottom: 24,
+            borderBottom: photoTone ? `1px solid ${photoTone}` : '1px solid var(--line-soft, rgba(14,13,11,0.10))',
           }}>
             <span style={{
               fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
               fontStyle: 'italic', fontWeight: 400, fontSize: 38,
-              color: 'var(--peach-ink, #C6703D)', textAlign: 'right',
+              color: numeralColor, textAlign: 'right',
               lineHeight: 1,
             }}>{numeral}.</span>
             <div style={{ width: 96, aspectRatio: '1/1', background: photo ? `center/cover no-repeat url(${photo})` : 'var(--cream, #FBF7EE)', borderRadius: 2, boxShadow: 'inset 0 0 0 1px rgba(14,13,11,0.20), inset 0 0 0 4px var(--card, #FBF7EE), inset 0 0 0 5px rgba(14,13,11,0.10)' }} />
             <div>
-              {c.date && <div className="eyebrow" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--ink-muted, #6F6557)', marginBottom: 6 }}>{c.date}</div>}
-              <h3 style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontStyle: 'italic', fontSize: 24, fontWeight: 500, margin: 0, lineHeight: 1.1, color: 'var(--ink, #0E0D0B)' }}>{c.title}</h3>
-              {c.description && <p style={{ marginTop: 8, fontSize: 13.5, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.55 }}>{c.description}</p>}
+              {c.date && (
+                <EditableText
+                  as="div"
+                  className="eyebrow"
+                  value={c.date}
+                  onSave={makePatchChapter(onEditField, c.id, i)('date')}
+                  ariaLabel={`Chapter ${i + 1} date`}
+                  maxLength={60}
+                  placeholder="Date"
+                  style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--ink-muted, #6F6557)', marginBottom: 6 }}
+                />
+              )}
+              <EditableText
+                as="h3"
+                value={c.title}
+                onSave={makePatchChapter(onEditField, c.id, i)('title')}
+                ariaLabel={`Chapter ${i + 1} title`}
+                maxLength={120}
+                placeholder="Chapter title"
+                style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontStyle: 'italic', fontSize: 24, fontWeight: 500, margin: 0, lineHeight: 1.1, color: 'var(--ink, #0E0D0B)' }}
+              />
+              <EditableField
+                as="p"
+                context={`chapter ${i + 1} description`}
+                value={c.description ?? ''}
+                onSave={makePatchChapter(onEditField, c.id, i)('description')}
+                multiline
+                maxLength={800}
+                placeholder="Tell the story…"
+                ariaLabel={`Chapter ${i + 1} description`}
+                style={{ marginTop: 8, fontSize: 13.5, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.55 }}
+              />
             </div>
           </div>
         );
@@ -805,12 +2042,20 @@ function StoryPlate({ chapters }: { chapters: Chapter[] }) {
 
 /* Scrapbook — tilted polaroid cards in a masonry grid with tape
    strips. Photo on top, handwritten-feel title underneath. */
-function StoryScrapbook({ chapters }: { chapters: Chapter[] }) {
+function StoryScrapbook({ chapters, tones, onEditField }: { chapters: Chapter[]; tones?: Array<string | null>; onEditField?: FieldEditor }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 26, maxWidth: 960, margin: '0 auto' }}>
       {chapters.map((c, i) => {
         const photo = c.images?.[0]?.url;
         const tilt = i % 2 === 0 ? -1.6 : 1.6;
+        // Tint the tape strip + handwritten date from the photo
+        // tone — the polaroid itself stays neutral cream so the
+        // photo reads cleanly, but the chrome inherits the mood.
+        const photoTone = tones?.[i] ?? null;
+        const tapeBg = photoTone
+          ? `color-mix(in oklab, ${photoTone} 40%, transparent)`
+          : 'color-mix(in oklab, var(--gold, #B8935A) 32%, transparent)';
+        const dateColor = photoTone ?? 'var(--peach-ink, #C6703D)';
         return (
           <div key={c.id ?? i} className="pl8-chapter-row" style={{
             background: '#FFFDF7', padding: '12px 12px 22px',
@@ -818,12 +2063,40 @@ function StoryScrapbook({ chapters }: { chapters: Chapter[] }) {
             borderRadius: 2, position: 'relative',
             transform: `rotate(${tilt}deg)`,
           }}>
-            <span aria-hidden style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%) rotate(-3deg)', width: 70, height: 16, background: 'color-mix(in oklab, var(--gold, #B8935A) 32%, transparent)' }} />
+            <span aria-hidden style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%) rotate(-3deg)', width: 70, height: 16, background: tapeBg }} />
             {photo && <div style={{ width: '100%', aspectRatio: '4/3', backgroundImage: `url(${photo})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />}
             <div style={{ paddingTop: 14, textAlign: 'center' }}>
-              {c.date && <div style={{ fontFamily: 'var(--font-display, Caveat, cursive)', fontStyle: 'italic', fontSize: 16, color: 'var(--peach-ink, #C6703D)' }}>{c.date}</div>}
-              <h3 style={{ fontFamily: 'var(--font-display, Caveat, cursive)', fontStyle: 'italic', fontSize: 26, fontWeight: 500, margin: '4px 0 0', color: 'var(--ink, #0E0D0B)', lineHeight: 1.1 }}>{c.title}</h3>
-              {c.description && <p style={{ marginTop: 8, fontSize: 12.5, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.5, padding: '0 8px' }}>{c.description}</p>}
+              {c.date && (
+                <EditableText
+                  as="div"
+                  value={c.date}
+                  onSave={makePatchChapter(onEditField, c.id, i)('date')}
+                  ariaLabel={`Chapter ${i + 1} date`}
+                  maxLength={60}
+                  placeholder="Date"
+                  style={{ fontFamily: 'var(--font-display, Caveat, cursive)', fontStyle: 'italic', fontSize: 16, color: dateColor }}
+                />
+              )}
+              <EditableText
+                as="h3"
+                value={c.title}
+                onSave={makePatchChapter(onEditField, c.id, i)('title')}
+                ariaLabel={`Chapter ${i + 1} title`}
+                maxLength={120}
+                placeholder="Chapter title"
+                style={{ fontFamily: 'var(--font-display, Caveat, cursive)', fontStyle: 'italic', fontSize: 26, fontWeight: 500, margin: '4px 0 0', color: 'var(--ink, #0E0D0B)', lineHeight: 1.1 }}
+              />
+              <EditableField
+                as="p"
+                context={`chapter ${i + 1} description`}
+                value={c.description ?? ''}
+                onSave={makePatchChapter(onEditField, c.id, i)('description')}
+                multiline
+                maxLength={800}
+                placeholder="Tell the story…"
+                ariaLabel={`Chapter ${i + 1} description`}
+                style={{ marginTop: 8, fontSize: 12.5, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.5, padding: '0 8px' }}
+              />
             </div>
           </div>
         );
@@ -834,35 +2107,78 @@ function StoryScrapbook({ chapters }: { chapters: Chapter[] }) {
 
 /* Index — ruled index cards, red left margin, blue rule lines,
    numbered date in monospace. */
-function StoryIndex({ chapters }: { chapters: Chapter[] }) {
+function StoryIndex({ chapters, tones, onEditField }: { chapters: Chapter[]; tones?: Array<string | null>; onEditField?: FieldEditor }) {
   return (
     <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
-      {chapters.map((c, i) => (
+      {chapters.map((c, i) => {
+        // The Index kit's red left margin is the chapter's
+        // year-glyph rail — repaint it from the photo tone when
+        // the sample resolved. Numeral №NN also picks up the
+        // tone so the eye links card identity to its image.
+        const photoTone = tones?.[i] ?? null;
+        const railColor = photoTone ?? 'rgba(199,80,80,0.55)';
+        const numeralColor = photoTone ?? 'var(--ink, #0E0D0B)';
+        return (
         <div key={c.id ?? i} className="pl8-chapter-row" style={{
           padding: '20px 24px',
           background: 'var(--card, #FBF7EE)',
-          borderLeft: '2px solid rgba(199,80,80,0.55)',
+          borderLeft: `2px solid ${railColor}`,
           backgroundImage: 'repeating-linear-gradient(180deg, transparent 0 22px, rgba(74,118,196,0.10) 22px 23px)',
           borderRadius: 2,
         }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 10 }}>
-            <span style={{ fontFamily: 'Courier New, ui-monospace, monospace', fontSize: 12, fontWeight: 700, color: 'var(--ink, #0E0D0B)', minWidth: 36 }}>№{String(i + 1).padStart(2, '0')}</span>
-            {c.date && <span style={{ fontFamily: 'Courier New, ui-monospace, monospace', fontSize: 12, color: 'var(--ink-muted, #6F6557)' }}>{c.date}</span>}
+            <span style={{ fontFamily: 'Courier New, ui-monospace, monospace', fontSize: 12, fontWeight: 700, color: numeralColor, minWidth: 36 }}>№{String(i + 1).padStart(2, '0')}</span>
+            {c.date && (
+              <EditableText
+                as="span"
+                value={c.date}
+                onSave={makePatchChapter(onEditField, c.id, i)('date')}
+                ariaLabel={`Chapter ${i + 1} date`}
+                maxLength={60}
+                placeholder="Date"
+                style={{ fontFamily: 'Courier New, ui-monospace, monospace', fontSize: 12, color: 'var(--ink-muted, #6F6557)' }}
+              />
+            )}
           </div>
-          <h3 style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 22, fontWeight: 600, margin: 0, lineHeight: 1.15 }}>{c.title}</h3>
-          {c.description && <p style={{ marginTop: 12, fontSize: 14, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.65 }}>{c.description}</p>}
+          <EditableText
+            as="h3"
+            value={c.title}
+            onSave={makePatchChapter(onEditField, c.id, i)('title')}
+            ariaLabel={`Chapter ${i + 1} title`}
+            maxLength={120}
+            placeholder="Chapter title"
+            style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 22, fontWeight: 600, margin: 0, lineHeight: 1.15 }}
+          />
+          <EditableField
+            as="p"
+            context={`chapter ${i + 1} description`}
+            value={c.description ?? ''}
+            onSave={makePatchChapter(onEditField, c.id, i)('description')}
+            multiline
+            maxLength={800}
+            placeholder="Tell the story…"
+            ariaLabel={`Chapter ${i + 1} description`}
+            style={{ marginTop: 12, fontSize: 14, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.65 }}
+          />
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
 /* Minimal — oversized numeral + title only, hairline dividers,
    no photos in card. */
-function StoryMinimal({ chapters }: { chapters: Chapter[] }) {
+function StoryMinimal({ chapters, tones, onEditField }: { chapters: Chapter[]; tones?: Array<string | null>; onEditField?: FieldEditor }) {
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 40 }}>
-      {chapters.map((c, i) => (
+      {chapters.map((c, i) => {
+        // Tint the oversized 01/02/03 numeral from the chapter
+        // photo's dominant tone — Minimal has no photo in-card
+        // so the numeral is the only place identity lands.
+        const photoTone = tones?.[i] ?? null;
+        const numeralColor = photoTone ?? 'var(--ink, #0E0D0B)';
+        return (
         <div key={c.id ?? i} className="pl8-chapter-row" style={{
           display: 'grid', gridTemplateColumns: '90px 1fr',
           alignItems: 'baseline', gap: 28,
@@ -872,15 +2188,45 @@ function StoryMinimal({ chapters }: { chapters: Chapter[] }) {
           <span style={{
             fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
             fontSize: 56, fontWeight: 600,
-            color: 'var(--ink, #0E0D0B)', lineHeight: 0.92, letterSpacing: '-0.04em',
+            color: numeralColor, lineHeight: 0.92, letterSpacing: '-0.04em',
           }}>{String(i + 1).padStart(2, '0')}</span>
           <div style={{ paddingTop: 8 }}>
-            {c.date && <div className="eyebrow" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)', textTransform: 'uppercase', color: 'var(--ink-muted, #6F6557)', marginBottom: 10 }}>{c.date}</div>}
-            <h3 style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 26, fontWeight: 600, margin: 0, lineHeight: 1.1 }}>{c.title}</h3>
-            {c.description && <p style={{ marginTop: 12, fontSize: 14, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.6 }}>{c.description}</p>}
+            {c.date && (
+              <EditableText
+                as="div"
+                className="eyebrow"
+                value={c.date}
+                onSave={makePatchChapter(onEditField, c.id, i)('date')}
+                ariaLabel={`Chapter ${i + 1} date`}
+                maxLength={60}
+                placeholder="Date"
+                style={{ fontSize: 11, fontWeight: 700, letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)', textTransform: 'uppercase', color: 'var(--ink-muted, #6F6557)', marginBottom: 10 }}
+              />
+            )}
+            <EditableText
+              as="h3"
+              value={c.title}
+              onSave={makePatchChapter(onEditField, c.id, i)('title')}
+              ariaLabel={`Chapter ${i + 1} title`}
+              maxLength={120}
+              placeholder="Chapter title"
+              style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 26, fontWeight: 600, margin: 0, lineHeight: 1.1 }}
+            />
+            <EditableField
+              as="p"
+              context={`chapter ${i + 1} description`}
+              value={c.description ?? ''}
+              onSave={makePatchChapter(onEditField, c.id, i)('description')}
+              multiline
+              maxLength={800}
+              placeholder="Tell the story…"
+              ariaLabel={`Chapter ${i + 1} description`}
+              style={{ marginTop: 12, fontSize: 14, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.6 }}
+            />
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -1393,7 +2739,7 @@ function DetailsMinimal({ items }: { items: DetailItem[] }) {
      scrapbook  — masonry of tilted polaroid cards
      index      — ruled red-margin index cards
      minimal    — big oversized numeral + name list, no chrome ─── */
-function ThemedSchedule({ manifest, editMode }: { manifest: StoryManifest; editMode?: boolean }) {
+function ThemedSchedule({ manifest, editMode, onEditField }: { manifest: StoryManifest; editMode?: boolean; onEditField?: FieldEditor }) {
   const events = manifest.events ?? [];
   if (events.length === 0) {
     if (!editMode) return null;
@@ -1419,17 +2765,34 @@ function ThemedSchedule({ manifest, editMode }: { manifest: StoryManifest; editM
       }}
     >
       <ThemedSectionHead eyebrow="The day" title="In" italic="moments" manifest={manifest} sectionKey="schedule" />
-      {kit === 'ticket'    && <ScheduleTicket events={events} />}
-      {kit === 'plate'     && <SchedulePlate events={events} />}
-      {kit === 'scrapbook' && <ScheduleScrapbook events={events} />}
-      {kit === 'index'     && <ScheduleIndex events={events} />}
-      {kit === 'minimal'   && <ScheduleMinimal events={events} />}
-      {kit === 'classic'   && <ScheduleClassic events={events} />}
+      {kit === 'ticket'    && <ScheduleTicket events={events} onEditField={onEditField} />}
+      {kit === 'plate'     && <SchedulePlate events={events} onEditField={onEditField} />}
+      {kit === 'scrapbook' && <ScheduleScrapbook events={events} onEditField={onEditField} />}
+      {kit === 'index'     && <ScheduleIndex events={events} onEditField={onEditField} />}
+      {kit === 'minimal'   && <ScheduleMinimal events={events} onEditField={onEditField} />}
+      {kit === 'classic'   && <ScheduleClassic events={events} onEditField={onEditField} />}
     </section>
   );
 }
 
 type ScheduleEvent = NonNullable<StoryManifest['events']>[number];
+
+/* Helper: patch a single event field. Mirrors SiteV8Renderer's
+   patchEvent — matches by id first (so reorders don't drift),
+   then by index as fallback. */
+function makePatchEvent(onEditField: FieldEditor | undefined, eventId: string | undefined, eventIndex: number) {
+  return (field: 'name' | 'description' | 'time') => (value: string) => {
+    if (!onEditField) return;
+    onEditField((m) => {
+      const events = [...(m.events ?? [])];
+      let idx = eventId ? events.findIndex((e) => e.id === eventId) : -1;
+      if (idx < 0) idx = eventIndex;
+      if (idx < 0 || idx >= events.length) return m;
+      events[idx] = { ...events[idx], [field]: value };
+      return { ...m, events } as StoryManifest;
+    });
+  };
+}
 
 /* Split "4:00 PM" / "16:00" into {t, m} per the prototype's
    schema. The prototype uses .t = "4:00" + .m = "PM" so the
@@ -1442,7 +2805,7 @@ function splitTime(raw: string | undefined | null): { t: string; m: string } {
   return { t: raw, m: '' };
 }
 
-function ScheduleClassic({ events }: { events: ScheduleEvent[] }) {
+function ScheduleClassic({ events, onEditField }: { events: ScheduleEvent[]; onEditField?: FieldEditor }) {
   /* Prototype's KSchedule 'list' variant — `92px 1fr` grid with
      display time + AM/PM eyebrow on the left, bold name + muted
      subtitle on the right, hairline border-bottom between rows. */
@@ -1480,12 +2843,25 @@ function ScheduleClassic({ events }: { events: ScheduleEvent[] }) {
               )}
             </div>
             <div>
-              <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>{e.name}</div>
-              {e.description && (
-                <div style={{ fontSize: 13, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>
-                  {e.description}
-                </div>
-              )}
+              <EditableText
+                as="div"
+                value={e.name}
+                onSave={makePatchEvent(onEditField, e.id, i)('name')}
+                ariaLabel={`Schedule item ${i + 1} title`}
+                maxLength={120}
+                placeholder="Event name"
+                style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}
+              />
+              <EditableField
+                as="div"
+                context={`Schedule item ${i + 1} description`}
+                value={e.description ?? ''}
+                onSave={makePatchEvent(onEditField, e.id, i)('description')}
+                multiline
+                placeholder="What guests can expect…"
+                ariaLabel={`Schedule item ${i + 1} description`}
+                style={{ fontSize: 13, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}
+              />
             </div>
           </div>
         );
@@ -1494,7 +2870,7 @@ function ScheduleClassic({ events }: { events: ScheduleEvent[] }) {
   );
 }
 
-function ScheduleTicket({ events }: { events: ScheduleEvent[] }) {
+function ScheduleTicket({ events, onEditField }: { events: ScheduleEvent[]; onEditField?: FieldEditor }) {
   /* Prototype's KSchedule ticket — single-column stack of perforated
      stubs. Each row is a 2-col grid with the time block stamped on
      the left (mono, dashed border-right as perforation) and the
@@ -1537,12 +2913,25 @@ function ScheduleTicket({ events }: { events: ScheduleEvent[] }) {
               )}
             </div>
             <div style={{ padding: '14px 18px' }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>{e.name}</div>
-              {e.description && (
-                <div style={{ fontSize: 12.5, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>
-                  {e.description}
-                </div>
-              )}
+              <EditableText
+                as="div"
+                value={e.name}
+                onSave={makePatchEvent(onEditField, e.id, i)('name')}
+                ariaLabel={`Schedule item ${i + 1} title`}
+                maxLength={120}
+                placeholder="Event name"
+                style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}
+              />
+              <EditableField
+                as="div"
+                context={`Schedule item ${i + 1} description`}
+                value={e.description ?? ''}
+                onSave={makePatchEvent(onEditField, e.id, i)('description')}
+                multiline
+                placeholder="What guests can expect…"
+                ariaLabel={`Schedule item ${i + 1} description`}
+                style={{ fontSize: 12.5, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}
+              />
             </div>
             {/* Pinholes on the perforation line, punched through to the
                 section background. */}
@@ -1557,7 +2946,10 @@ function ScheduleTicket({ events }: { events: ScheduleEvent[] }) {
 
 const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 
-function SchedulePlate({ events }: { events: ScheduleEvent[] }) {
+function SchedulePlate({ events, onEditField: _onEditField }: { events: ScheduleEvent[]; onEditField?: FieldEditor }) {
+  /* TODO: wire EditableText into the plate row layout (name +
+     description sit inline as siblings — Edit primitives need a
+     small refactor of the row to fit). */
   /* Prototype's KSchedule plate — three-column row:
      italic Roman numeral · name + inline " — subtitle" · display
      time + AM/PM. Single hairline border between rows. */
@@ -1628,7 +3020,7 @@ function SchedulePlate({ events }: { events: ScheduleEvent[] }) {
   );
 }
 
-function ScheduleScrapbook({ events }: { events: ScheduleEvent[] }) {
+function ScheduleScrapbook({ events, onEditField: _onEditField }: { events: ScheduleEvent[]; onEditField?: FieldEditor }) {
   /* Prototype's KSchedule scrapbook — `repeat(N, 1fr)` grid up to
      4 columns of tilted polaroids. Tape strip above each card
      (translateY beyond the top edge). Time in script font centered
@@ -1699,7 +3091,7 @@ function ScheduleScrapbook({ events }: { events: ScheduleEvent[] }) {
   );
 }
 
-function ScheduleIndex({ events }: { events: ScheduleEvent[] }) {
+function ScheduleIndex({ events, onEditField: _onEditField }: { events: ScheduleEvent[]; onEditField?: FieldEditor }) {
   /* Prototype's KSchedule index — black mono time TAB on the
      left edge (positioned absolute, projects out of the card),
      red left border + blue rule lines as the card bg, content
@@ -1753,7 +3145,7 @@ function ScheduleIndex({ events }: { events: ScheduleEvent[] }) {
   );
 }
 
-function ScheduleMinimal({ events }: { events: ScheduleEvent[] }) {
+function ScheduleMinimal({ events, onEditField: _onEditField }: { events: ScheduleEvent[]; onEditField?: FieldEditor }) {
   /* Prototype's KSchedule minimal — `auto 1fr` grid, 38px display
      time on the LEFT (line-height 0.9 so it sits tight), content
      RIGHT-ALIGNED on the right with the name + subtitle. Hairline
@@ -2064,13 +3456,157 @@ function ThemedRegistry({ manifest, editMode }: { manifest: StoryManifest; editM
   );
 }
 
-/* ─── ThemedGallery — staggered editorial mosaic. The grid uses
-   row spans to create a "wall of polaroids" feel — every fourth
-   tile spans 2 rows so the wall reads as natural rather than
-   uniform. Tones fall back when no photo URL exists so the grid
-   still reads. ─── */
-function ThemedGallery({ manifest, editMode }: { manifest: StoryManifest; editMode?: boolean }) {
-  const photos = manifest.chapters?.flatMap((c) => (c.images ?? []).map((i) => i.url)) ?? [];
+/* ─── Edition-aware tile frame helper — ported from
+   SiteV8Renderer's tileFrameForEdition. Returns a style fragment
+   applied to each gallery tile so the surrounding photo "frame"
+   picks up the active Edition's design language. Mosaic / strip /
+   wall all share the same per-Edition frame vocabulary so the
+   gallery reads as one design idea regardless of layout choice.
+
+   Cinema   — 2px sharp ink frame, no shadow (letterboxed film)
+   Linen    — 1px gold hairline inset 5px (formal stationery)
+   Postcard — pillow radius + lifted shadow (physical print)
+   Almanac  — soft 8px frame + 1px hairline (bound-book editorial)
+   Quiet    — borderless, no shadow (photos breathe)
+   Coastal  — 10px rounded + cyan-tint hairline */
+type ThemedTileFrame = {
+  borderRadius: number | string;
+  boxShadow: string;
+  border?: string;
+  padding?: number;
+  background?: string;
+};
+
+function themedTileFrameForEdition(editionId: string): ThemedTileFrame {
+  switch (editionId) {
+    case 'cinema':
+      return {
+        borderRadius: 2,
+        border: '2px solid var(--ink, #0E0D0B)',
+        boxShadow: 'none',
+      };
+    case 'linen-folder':
+      return {
+        borderRadius: 4,
+        padding: 5,
+        background: 'var(--card, #FBF7EE)',
+        border: '1px solid var(--gold, #B8935A)',
+        boxShadow: '0 1px 0 rgba(184,147,90,0.18)',
+      };
+    case 'postcard-box':
+      return {
+        borderRadius: 24,
+        padding: 0,
+        boxShadow: '0 18px 32px rgba(61,74,31,0.18), 0 4px 10px rgba(61,74,31,0.10)',
+      };
+    case 'quiet':
+      return {
+        borderRadius: 0,
+        boxShadow: 'none',
+      };
+    case 'coastal':
+      return {
+        borderRadius: 10,
+        border: '1px solid rgba(96, 144, 158, 0.45)',
+        boxShadow: '0 6px 14px rgba(58, 102, 122, 0.16)',
+      };
+    case 'almanac':
+    default:
+      return {
+        borderRadius: 8,
+        border: '1px solid rgba(14, 13, 11, 0.10)',
+        boxShadow: '0 8px 20px rgba(61,74,31,0.10)',
+      };
+  }
+}
+
+/* ─── ThemedGallery — variant-aware editorial photo grid.
+   Dispatches on manifest.blockVariants?.gallery?.style:
+     mosaic — bento grid (default). Row + col spans per tile so
+              the wall reads as natural rather than uniform.
+     wall   — uniform 1:1 tiles in auto-fit grid (180px min).
+              Every tile the same aspect ratio so the section
+              reads as wallpaper, not curated mix.
+     strip  — horizontal snap-scroll filmstrip at 280px fixed
+              width per tile, with desktop chevron affordances.
+
+   Each tile gets a per-Edition frame (Cinema sharp 2px, Linen
+   gold hairline, Postcard pillow lift, Almanac soft 8px, Quiet
+   borderless, Coastal cyan-tint rounded) so the layout choice
+   and the Edition's design language compound rather than
+   conflict. Mirrors SiteV8Renderer's GallerySectionImpl. ─── */
+function ThemedGallery({ manifest, editMode, onEditField }: { manifest: StoryManifest; editMode?: boolean; onEditField?: FieldEditor }) {
+  /* Build (url, chapterIndex, imageIndex) sources so edits patch
+     the real chapter that owns each photo — same pattern V8 uses
+     in GallerySectionImpl. */
+  const chapters = manifest.chapters ?? [];
+  const photoSources = chapters
+    .flatMap((c, ci) => (c.images ?? []).map((img, ii) => ({ url: img.url, chapterIndex: ci, imageIndex: ii })))
+    .filter((x) => x.url);
+  /* Cap at 12 to match the SiteV8Renderer cap — strip / wall
+     variants need a few extra tiles vs the prior 11 to read as
+     filled. PhotoActionMenu sources align by the same slice so
+     index math stays consistent between display + edit. */
+  const visibleSources = photoSources.slice(0, 12);
+  const photos = visibleSources.map((p) => p.url);
+
+  /* Lightbox state — only opens for real photos (no placeholders).
+     Always mounted via hook so React's hook order stays stable
+     regardless of edit mode. */
+  const lightboxImages = useMemo(() => photos.map((url) => ({ url })), [photos]);
+  const { index, open, close, next, prev } = usePhotoLightbox(lightboxImages);
+
+  /* Resolve active edition once so per-tile frames + variant
+     dispatch share the same source of truth. Mirrors the
+     resolution chain used elsewhere in ThemedSiteRenderer. */
+  const occasion = manifest.occasion ?? 'wedding';
+  const eventType = getEventType(occasion);
+  const voice = eventType?.voice ?? 'celebratory';
+  const activeEdition = resolveEdition({
+    edition: manifest.edition,
+    occasion: occasion as Parameters<typeof resolveEdition>[0]['occasion'],
+    voice,
+  });
+  const editionId = activeEdition.id;
+  const frame = themedTileFrameForEdition(editionId);
+
+  /* Variant dispatcher — strip / wall / mosaic. Defaults to
+     mosaic. Read once so all tiles share the same layout. */
+  const galleryVariant = (() => {
+    const raw = (manifest.blockVariants?.gallery?.style as string | undefined) ?? 'mosaic';
+    return raw === 'strip' || raw === 'wall' ? raw : 'mosaic';
+  })();
+
+  /* Filmstrip scroller state — desktop chevron affordances fade
+     when at the edge of the scroll. Hook always runs to keep
+     React hook order stable. */
+  const stripScrollerRef = useRef<HTMLDivElement | null>(null);
+  const [stripScroll, setStripScroll] = useState({ atStart: true, atEnd: false });
+  useEffect(() => {
+    if (galleryVariant !== 'strip') return;
+    const el = stripScrollerRef.current;
+    if (!el) return;
+    const update = () => {
+      const max = el.scrollWidth - el.clientWidth;
+      setStripScroll({
+        atStart: el.scrollLeft <= 4,
+        atEnd: max <= 4 || el.scrollLeft >= max - 4,
+      });
+    };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      el.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [galleryVariant, photos.length]);
+  function scrollStrip(direction: 1 | -1) {
+    const el = stripScrollerRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction * (el.clientWidth * 0.8), behavior: 'smooth' });
+  }
+
   if (photos.length === 0) {
     if (!editMode) return null;
     return (
@@ -2086,6 +3622,145 @@ function ThemedGallery({ manifest, editMode }: { manifest: StoryManifest; editMo
     );
   }
   const tones = ['#E8C8B4', '#D8CFB8', '#C4B5D9', '#F4D5CD', '#F0C9A8', '#FBE8D6'];
+  const canEdit = !!editMode && !!onEditField;
+
+  /* Mosaic span pattern — every 3rd tile spans 2 rows; every 5th
+     spans 2 columns. Pattern repeats so any-length gallery has
+     visual rhythm. */
+  const mosaicSpans = (i: number) => ({
+    tallSpan: i % 5 === 0 || i % 5 === 3,
+    wideSpan: i % 7 === 2,
+  });
+
+  /* Per-tile renderer — shared across all three variants so every
+     layout gets the same edition-frame + clickability + edit
+     dispatch. tileKind drives the variant-specific geometry. */
+  const renderTile = (i: number, tileKind: 'mosaic' | 'wall' | 'strip') => {
+    const url = photos[i];
+    const src = visibleSources[i];
+    const onReplace = src && onEditField
+      ? (nextUrl: string) => onEditField((m) => {
+          const arr = [...(m.chapters ?? [])];
+          const ch = arr[src.chapterIndex];
+          if (!ch) return m;
+          const imgs = [...(ch.images ?? [])];
+          const orig = imgs[src.imageIndex];
+          if (!orig) return m;
+          imgs[src.imageIndex] = { ...orig, url: nextUrl };
+          arr[src.chapterIndex] = { ...ch, images: imgs };
+          return { ...m, chapters: arr };
+        })
+      : undefined;
+    const onRemove = src && onEditField
+      ? () => onEditField((m) => {
+          const arr = [...(m.chapters ?? [])];
+          const ch = arr[src.chapterIndex];
+          if (!ch) return m;
+          const imgs = [...(ch.images ?? [])];
+          imgs.splice(src.imageIndex, 1);
+          arr[src.chapterIndex] = { ...ch, images: imgs };
+          return { ...m, chapters: arr };
+        })
+      : undefined;
+    const clickable = !canEdit && !!url;
+    /* Per-variant geometry. Mosaic respects the span hints; wall
+       forces uniform 1:1 tiles via aspect-ratio; strip pins each
+       tile to 280px width / 320px height so the row reads as a
+       filmstrip with snap-scroll points. */
+    const spans = mosaicSpans(i);
+    const variantStyle: React.CSSProperties = tileKind === 'mosaic'
+      ? {
+          gridRow: spans.tallSpan ? 'span 2' : 'span 1',
+          gridColumn: spans.wideSpan ? 'span 2' : 'span 1',
+        }
+      : tileKind === 'wall'
+        ? { aspectRatio: '1 / 1', width: '100%' }
+        : {
+            flex: '0 0 280px',
+            width: 280,
+            height: 320,
+            scrollSnapAlign: 'start',
+          };
+    /* Linen-folder frame has an inset cream-card "mat" with the
+       photo sitting inside it (5px padding). For that case the
+       frame's background paints the mat, and an inner element
+       carries the photo. For all other Editions the tile div
+       itself carries the photo bg-image + tone fallback. */
+    const hasInsetMat = !!frame.padding && frame.padding > 0;
+    const outerStyle: React.CSSProperties = {
+      borderRadius: frame.borderRadius,
+      border: frame.border,
+      padding: frame.padding,
+      background: frame.background,
+      boxShadow: frame.boxShadow,
+      cursor: clickable ? 'zoom-in' : 'default',
+      position: 'relative',
+      overflow: 'hidden',
+      ...variantStyle,
+      // When there's no inset mat, the outer div carries the photo
+      // directly so the frame border hugs the image. When there
+      // IS a mat (linen-folder), the photo lives in an inner div
+      // and the outer keeps the frame's cream-card background.
+      ...(hasInsetMat
+        ? {}
+        : {
+            backgroundImage: url ? `url(${url})` : undefined,
+            backgroundColor: url ? undefined : tones[i % tones.length],
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }),
+    };
+    const tile = (
+      <div
+        key={`${tileKind}-${i}`}
+        onClick={clickable ? () => open(i) : undefined}
+        className={`pl8-gallery-tile pl-edition-${editionId}`}
+        data-pl-edition={editionId}
+        style={outerStyle}
+        role={clickable ? 'button' : undefined}
+        aria-label={clickable ? `Open photo ${i + 1} of ${photos.length}` : undefined}
+        tabIndex={clickable ? 0 : undefined}
+        onKeyDown={clickable
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                open(i);
+              }
+            }
+          : undefined}
+      >
+        {hasInsetMat ? (
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              backgroundImage: url ? `url(${url})` : 'none',
+              backgroundColor: url ? undefined : tones[i % tones.length],
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              borderRadius: Math.max(0, Number(frame.borderRadius) - 1),
+            }}
+          />
+        ) : null}
+      </div>
+    );
+    /* In edit mode wrap with PhotoActionMenu so right-click /
+       long-press / hover reveals replace + remove. */
+    if (canEdit) {
+      return (
+        <PhotoActionMenu
+          key={`${tileKind}-${i}`}
+          imageUrl={url}
+          onReplace={onReplace}
+          onRemove={onRemove}
+        >
+          {tile}
+        </PhotoActionMenu>
+      );
+    }
+    return tile;
+  };
+
   return (
     <section
       id="gallery"
@@ -2096,57 +3771,236 @@ function ThemedGallery({ manifest, editMode }: { manifest: StoryManifest; editMo
       }}
     >
       <ThemedSectionHead eyebrow="Along the way" title="A few" italic="favorites" manifest={manifest} sectionKey="gallery" />
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gridAutoRows: '130px',
-          gap: 10,
-          maxWidth: 940,
-          margin: '0 auto',
-        }}
-      >
-        {photos.slice(0, 11).map((url, i) => {
-          /* Every 3rd tile spans 2 rows; every 5th spans 2 columns.
-             Pattern repeats so any-length gallery has visual rhythm. */
-          const tallSpan = i % 5 === 0 || i % 5 === 3;
-          const wideSpan = i % 7 === 2;
-          return (
-            <div
-              key={i}
-              style={{
-                gridRow: tallSpan ? 'span 2' : 'span 1',
-                gridColumn: wideSpan ? 'span 2' : 'span 1',
-                backgroundImage: url ? `url(${url})` : 'none',
-                backgroundColor: tones[i % tones.length],
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                borderRadius: 'var(--pl-card-radius, 10px)',
-                boxShadow: 'var(--pl-card-shadow, 0 4px 14px rgba(75,65,52,0.10))',
-              }}
-            />
-          );
-        })}
-      </div>
+
+      {galleryVariant === 'strip' && (
+        /* Filmstrip — horizontal snap-scroll row. Photos at 280px
+           fixed width, snap-x mandatory. Desktop chevrons fade at
+           the scroll edges. */
+        <div
+          className="pl8-gallery-strip-wrap"
+          style={{ position: 'relative', maxWidth: 1180, margin: '0 auto' }}
+        >
+          <div
+            ref={stripScrollerRef}
+            className="pl8-gallery-strip"
+            style={{
+              display: 'flex',
+              gap: 14,
+              overflowX: 'auto',
+              overflowY: 'hidden',
+              scrollSnapType: 'x mandatory',
+              paddingBottom: 8,
+              scrollbarWidth: 'thin',
+            }}
+          >
+            {photos.map((_, i) => renderTile(i, 'strip'))}
+          </div>
+          <button
+            type="button"
+            aria-label="Scroll left"
+            onClick={() => scrollStrip(-1)}
+            className="pl8-gallery-strip-arrow pl8-gallery-strip-arrow--left"
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: -6,
+              transform: 'translateY(-50%)',
+              width: 40,
+              height: 40,
+              borderRadius: 999,
+              border: '1px solid var(--ink-soft, #6F6557)',
+              background: 'var(--card, #FBF7EE)',
+              color: 'var(--ink, #0E0D0B)',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(14,13,11,0.12)',
+              fontSize: 18,
+              lineHeight: 1,
+              opacity: stripScroll.atStart ? 0 : 1,
+              pointerEvents: stripScroll.atStart ? 'none' : 'auto',
+              transition: 'opacity var(--pl-dur-fast, 180ms) var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1))',
+            }}
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            aria-label="Scroll right"
+            onClick={() => scrollStrip(1)}
+            className="pl8-gallery-strip-arrow pl8-gallery-strip-arrow--right"
+            style={{
+              position: 'absolute',
+              top: '50%',
+              right: -6,
+              transform: 'translateY(-50%)',
+              width: 40,
+              height: 40,
+              borderRadius: 999,
+              border: '1px solid var(--ink-soft, #6F6557)',
+              background: 'var(--card, #FBF7EE)',
+              color: 'var(--ink, #0E0D0B)',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(14,13,11,0.12)',
+              fontSize: 18,
+              lineHeight: 1,
+              opacity: stripScroll.atEnd ? 0 : 1,
+              pointerEvents: stripScroll.atEnd ? 'none' : 'auto',
+              transition: 'opacity var(--pl-dur-fast, 180ms) var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1))',
+            }}
+          >
+            ›
+          </button>
+        </div>
+      )}
+
+      {galleryVariant === 'wall' && (
+        /* Uniform photo wall. auto-fit grid at 180px min so the
+           4-col desktop / 2-col mobile reads as wallpaper rather
+           than a curated mix. 8px gap matches V8. */
+        <div
+          className="pl8-gallery-wall"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: 8,
+            maxWidth: 1180,
+            margin: '0 auto',
+          }}
+        >
+          {photos.map((_, i) => renderTile(i, 'wall'))}
+        </div>
+      )}
+
+      {galleryVariant === 'mosaic' && (
+        /* Bento mosaic — mixed sizes via the span pattern above.
+           Max-width 940 so the grid reads as a tight editorial
+           cluster vs. wallpaper. */
+        <div
+          className="pl8-gallery-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gridAutoRows: '130px',
+            gap: 10,
+            maxWidth: 940,
+            margin: '0 auto',
+          }}
+        >
+          {photos.map((_, i) => renderTile(i, 'mosaic'))}
+        </div>
+      )}
+
+      {/* PhotoLightbox always mounts — it self-hides when index===null
+          so guests in view mode get the full-screen viewer + keyboard
+          + swipe nav for free, while edit mode never opens it (the
+          tile click is short-circuited above). */}
+      <PhotoLightbox
+        images={lightboxImages}
+        index={index}
+        onClose={close}
+        onNext={next}
+        onPrev={prev}
+      />
     </section>
   );
 }
 
-/* ─── ThemedRsvp — dark CTA section with a cream form-card
-   preview inset. The card mocks two minimal fields (name +
-   attending pills) so the section looks like a real reply
-   surface, not a flat button. Form is presentational — the
-   primary action goes to the actual /g/[token] flow. ─── */
-function ThemedRsvp({ manifest }: { manifest: StoryManifest }) {
+/* ─── ThemedRsvp — dark CTA section with a real PresetRsvpForm
+   integrated against /api/rsvp.
+
+   Visual identity: keeps the dark section + eyebrow + display
+   heading so the kit-aware chrome (Edition opener, density,
+   texture intensity) still reads. The form itself sits inset
+   on the dark band as a cream card — the PresetRsvpForm
+   surface — so the section becomes a working reply surface
+   rather than a styled placeholder.
+
+   Urgency tier: ports the SiteV8Renderer urgency system —
+   computes daysUntilEvent from manifest.logistics.date and
+   maps to muted (>30d) / normal (7-30d) / soon (3-7d) /
+   urgent (<3d). Each tier shifts the deadline ribbon's
+   color + emphasis as the event approaches. Theme-coherent
+   colors (sage-deep / peach-ink / pl-plum) match the host's
+   palette via the CSS vars on .pl8-guest. ─── */
+function ThemedRsvp({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug: string }) {
   const deadline = manifest.logistics?.rsvpDeadline;
+  const occasion = manifest.occasion ?? 'wedding';
+  const eventType = getEventType(occasion);
+  const voice = eventType?.voice ?? 'celebratory';
+  /* The form preset — drives which fields render. wedding /
+     bachelor / shower / memorial / reunion / milestone /
+     cultural / casual. */
+  const rsvpPreset = eventType?.rsvpPreset ?? 'wedding';
+
+  /* ── RSVP urgency tier (ported verbatim from SiteV8Renderer) ──
+     Compute days-until-event from logistics.date. Map to a tier
+     that shifts the deadline ribbon's color + emphasis as the
+     day approaches:
+       >30d → muted   (default, no urgency cue)
+       7-30 → normal  (faint sage bg + sage ink)
+       3-7d → soon    (peach pulsing border + peach text)
+       <3d  → urgent  (plum glow + bold uppercase "RSVP TODAY")
+     When no eventDate is set, falls back to 'muted'. */
+  const eventIsoForUrgency = manifest.logistics?.date;
+  const rsvpUrgencyTier: 'muted' | 'normal' | 'soon' | 'urgent' = (() => {
+    if (!eventIsoForUrgency) return 'muted';
+    const d = parseLocalDate(eventIsoForUrgency);
+    if (!d) return 'muted';
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diffMs = d.getTime() - today.getTime();
+    const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    if (days > 30) return 'muted';
+    if (days > 7) return 'normal';
+    if (days >= 3) return 'soon';
+    return 'urgent';
+  })();
+
+  /* Per-tier ribbon style. Theme-coherent — peach-ink + sage-deep
+     come from .pl8-guest CSS vars so each Edition's palette
+     drives the urgency cue automatically. The dark section
+     inverts contrast: muted/normal use cream-ish tones; soon
+     and urgent break through with warm peach + plum that read
+     against the dark ink background. */
+  const rsvpUrgencyStyle: React.CSSProperties = (() => {
+    switch (rsvpUrgencyTier) {
+      case 'normal':
+        return {
+          color: 'rgba(245,239,226,0.85)',
+          background: 'rgba(245,239,226,0.08)',
+          border: '1px solid rgba(245,239,226,0.18)',
+        };
+      case 'soon':
+        return {
+          color: 'var(--peach-ink, #C6703D)',
+          background: 'color-mix(in oklab, var(--peach-ink, #C6703D) 14%, transparent)',
+          border: '1px solid var(--peach-ink, #C6703D)',
+          animation: 'pl-rsvp-soon-pulse 1800ms ease-in-out infinite',
+        };
+      case 'urgent':
+        return {
+          color: 'var(--pl-plum, #C46A6A)',
+          background: 'color-mix(in oklab, var(--pl-plum, #C46A6A) 14%, transparent)',
+          border: '1px solid var(--pl-plum, #C46A6A)',
+          fontWeight: 800,
+          textTransform: 'uppercase',
+          boxShadow: '0 0 0 4px color-mix(in oklab, var(--pl-plum, #C46A6A) 18%, transparent)',
+          animation: 'pl-rsvp-urgent-pulse 1200ms ease-in-out infinite',
+        };
+      default:
+        return {};
+    }
+  })();
+  const deadlineStr = deadline
+    ? new Date(deadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+    : 'soon';
+  const urgentKickerCopy =
+    rsvpUrgencyTier === 'urgent' ? 'RSVP TODAY' : (deadline ? `RSVP by ${deadlineStr}` : 'RSVP');
+
   /* Edition opener (chapter mark / slug line / stamp / mono /
      overline) above the dark section's eyebrow. Resolves the
      active Edition + index in the same order helper as the
      other ThemedSectionHead callers. */
   const openerNode = (() => {
-    const occasion = manifest.occasion ?? 'wedding';
-    const eventType = getEventType(occasion);
-    const voice = eventType?.voice ?? 'celebratory';
     const activeEdition = resolveEdition({ edition: manifest.edition, occasion, voice });
     const order = (manifest as unknown as { blockOrder?: SiteBlockKey[] }).blockOrder;
     const arr = (order && order.length > 0 ? order : DEFAULT_BLOCK_ORDER) as SiteBlockKey[];
@@ -2156,10 +4010,20 @@ function ThemedRsvp({ manifest }: { manifest: StoryManifest }) {
         style={activeEdition.sectionOpener}
         index={idx < 0 ? 1 : idx + 1}
         title="RSVP"
-        kicker={deadline ? `RSVP by ${deadline}` : 'RSVP'}
+        kicker={urgentKickerCopy}
       />
     );
   })();
+
+  /* Custom meal options from the manifest — wedding hosts who
+     wired the meal panel in the editor keep their menu rather
+     than the preset defaults. */
+  const customMealOptions = (manifest.mealOptions ?? []).map((m) => ({
+    id: m.id ?? m.name,
+    name: m.name,
+    dietaryTags: m.dietaryTags,
+  }));
+
   return (
     <section
       id="rsvp"
@@ -2172,18 +4036,28 @@ function ThemedRsvp({ manifest }: { manifest: StoryManifest }) {
       }}
     >
       {openerNode}
+      {/* Urgency-tiered deadline ribbon. Muted tier renders flat
+          text; the other three tiers wrap in a pill with theme-
+          coherent color + (soon/urgent) animation. */}
       <div
-        className="eyebrow"
+        data-pl-rsvp-urgency={rsvpUrgencyTier}
         style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
           fontSize: 11.5,
           fontWeight: 700,
           letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
           textTransform: 'uppercase',
           color: 'rgba(245,239,226,0.55)',
-          marginBottom: 12,
+          marginBottom: 14,
+          padding: rsvpUrgencyTier === 'muted' ? 0 : '8px 14px',
+          borderRadius: rsvpUrgencyTier === 'muted' ? 0 : 'var(--pl-radius-full, 100px)',
+          transition: 'all var(--pl-dur-base, 280ms) var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1))',
+          ...rsvpUrgencyStyle,
         }}
       >
-        {deadline ? `RSVP by ${deadline}` : 'RSVP'}
+        {rsvpUrgencyTier === 'urgent' ? 'RSVP TODAY' : (deadline ? `RSVP by ${deadlineStr}` : 'RSVP')}
       </div>
       <h2
         style={{
@@ -2209,96 +4083,27 @@ function ThemedRsvp({ manifest }: { manifest: StoryManifest }) {
       >
         Ninety seconds. We&apos;ll follow up if anyone forgets.
       </div>
-      {/* Form-card preview — sits inset on the dark band so the
-          section reads as a real reply surface. */}
+      {/* Real PresetRsvpForm — posts to /api/rsvp. Sits inset on
+          the dark band as a cream card so guests see a working
+          reply surface, not a flat preview. Wrapper inverts the
+          inner palette so the form's pl-ink + pl-cream tokens
+          read against its own card background, not the dark
+          section. */}
       <div
         style={{
-          maxWidth: 440,
+          maxWidth: 560,
           margin: '0 auto',
-          background: 'rgba(245,239,226,0.06)',
-          border: '1px solid rgba(245,239,226,0.14)',
-          borderRadius: 'var(--pl-card-radius, 14px)',
-          padding: '24px 22px',
           textAlign: 'left',
-        }}
+          ['--pl-ink' as string]: 'var(--ink, #0E0D0B)',
+          ['--pl-cream' as string]: 'var(--card, #FBF7EE)',
+        } as React.CSSProperties}
       >
-        <div
-          className="eyebrow"
-          style={{
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
-            textTransform: 'uppercase',
-            color: 'rgba(245,239,226,0.55)',
-            marginBottom: 6,
-          }}
-        >
-          Your name
-        </div>
-        <div
-          style={{
-            padding: '11px 14px',
-            background: 'rgba(245,239,226,0.04)',
-            border: '1px solid rgba(245,239,226,0.12)',
-            borderRadius: 8,
-            fontSize: 13,
-            color: 'rgba(245,239,226,0.45)',
-            marginBottom: 18,
-          }}
-        >
-          Type your full name…
-        </div>
-        <div
-          className="eyebrow"
-          style={{
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
-            textTransform: 'uppercase',
-            color: 'rgba(245,239,226,0.55)',
-            marginBottom: 8,
-          }}
-        >
-          Will you be there
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {['Joyfully yes', 'Sadly no', 'Maybe'].map((label, i) => (
-            <span
-              key={label}
-              style={{
-                flex: 1,
-                padding: '10px 0',
-                textAlign: 'center',
-                fontSize: 12.5,
-                fontWeight: 600,
-                borderRadius: 8,
-                background: i === 0 ? 'var(--peach-ink, #C6703D)' : 'rgba(245,239,226,0.04)',
-                color: i === 0 ? 'var(--cream, #FBF7EE)' : 'rgba(245,239,226,0.7)',
-                border: i === 0 ? 'none' : '1px solid rgba(245,239,226,0.12)',
-              }}
-            >
-              {label}
-            </span>
-          ))}
-        </div>
-        <a
-          href="#"
-          style={{
-            display: 'block',
-            marginTop: 22,
-            padding: '12px 0',
-            textAlign: 'center',
-            borderRadius: 999,
-            background: 'var(--cream, #F5EFE2)',
-            color: 'var(--ink, #0E0D0B)',
-            fontSize: 14,
-            fontWeight: 700,
-            textDecoration: 'none',
-            letterSpacing: '0.02em',
-          }}
-        >
-          Send your reply →
-        </a>
+        <PresetRsvpForm
+          siteId={siteSlug}
+          preset={rsvpPreset}
+          title=""
+          customMealOptions={customMealOptions.length > 0 ? customMealOptions : undefined}
+        />
       </div>
     </section>
   );
@@ -2308,7 +4113,22 @@ function ThemedRsvp({ manifest }: { manifest: StoryManifest }) {
    keeps the <details>/<summary> contract for accessibility and
    click behaviour but shapes the surrounding card distinctly. */
 type FaqItem = NonNullable<StoryManifest['faqs']>[number];
-function ThemedFaq({ manifest, editMode }: { manifest: StoryManifest; editMode?: boolean }) {
+
+/* Helper: patch a single FAQ field by index. Mirrors
+   SiteV8Renderer's patchFaq pattern. */
+function makePatchFaq(onEditField: FieldEditor | undefined, faqIndex: number) {
+  return (field: 'question' | 'answer') => (value: string) => {
+    if (!onEditField) return;
+    onEditField((m) => {
+      const faqs = [...(m.faqs ?? [])];
+      if (faqIndex < 0 || faqIndex >= faqs.length) return m;
+      faqs[faqIndex] = { ...faqs[faqIndex], [field]: value };
+      return { ...m, faqs } as StoryManifest;
+    });
+  };
+}
+
+function ThemedFaq({ manifest, editMode, onEditField }: { manifest: StoryManifest; editMode?: boolean; onEditField?: FieldEditor }) {
   const faq = manifest.faqs ?? [];
   if (faq.length === 0) {
     if (!editMode) return null;
@@ -2334,12 +4154,12 @@ function ThemedFaq({ manifest, editMode }: { manifest: StoryManifest; editMode?:
       }}
     >
       <ThemedSectionHead eyebrow="Good to know" title="The little" italic="things" manifest={manifest} sectionKey="faq" />
-      <FaqList faq={faq} kit={kit} />
+      <FaqList faq={faq} kit={kit} editMode={editMode} onEditField={onEditField} />
     </section>
   );
 }
 
-function FaqList({ faq, kit }: { faq: FaqItem[]; kit: string }) {
+function FaqList({ faq, kit, editMode, onEditField }: { faq: FaqItem[]; kit: string; editMode?: boolean; onEditField?: FieldEditor }) {
   /* Per-kit container + row styling. Summary/answer markup stays
      constant — only the chrome (background, border, numeral style,
      numeral color) varies. */
@@ -2353,13 +4173,13 @@ function FaqList({ faq, kit }: { faq: FaqItem[]; kit: string }) {
   return (
     <div style={containerStyle}>
       {faq.map((item, i) => (
-        <FaqRow key={item.id ?? i} item={item} index={i} kit={kit} totalCount={faq.length} />
+        <FaqRow key={item.id ?? i} item={item} index={i} kit={kit} totalCount={faq.length} editMode={editMode} onEditField={onEditField} />
       ))}
     </div>
   );
 }
 
-function FaqRow({ item, index, kit, totalCount }: { item: FaqItem; index: number; kit: string; totalCount: number }) {
+function FaqRow({ item, index, kit, totalCount, editMode, onEditField }: { item: FaqItem; index: number; kit: string; totalCount: number; editMode?: boolean; onEditField?: FieldEditor }) {
   /* Per-kit chrome + numeral pattern matches prototype's KFaq.
      The prototype's plate + minimal show a numeral; the other
      kits (ticket / scrapbook / index / classic) show just the
@@ -2443,24 +4263,76 @@ function FaqRow({ item, index, kit, totalCount }: { item: FaqItem; index: number
         }}
       >
         {numeral}
-        <span style={{ flex: 1, lineHeight: 1.35, fontSize: isPlate || isMinimal ? 15 : 14 }}>
-          {item.question}
-        </span>
+        <EditableText
+          as="span"
+          value={item.question}
+          onSave={makePatchFaq(onEditField, index)('question')}
+          ariaLabel={`FAQ ${index + 1} question`}
+          maxLength={240}
+          placeholder="Question?"
+          style={{ flex: 1, lineHeight: 1.35, fontSize: isPlate || isMinimal ? 15 : 14 }}
+        />
         <Icon name="chev-down" size={14} color="var(--ink-muted, #6F6557)" />
       </summary>
-      {item.answer && (
-        <p
-          style={{
-            marginTop: 12,
-            marginLeft: isMinimal ? 58 : isPlate ? 44 : 0,
-            fontSize: 13.5,
-            color: 'var(--ink-soft, #3A332C)',
-            lineHeight: 1.65,
-          }}
-        >
-          {item.answer}
-        </p>
-      )}
+      <EditableField
+        as="p"
+        context={`FAQ ${index + 1} answer`}
+        value={item.answer ?? ''}
+        onSave={makePatchFaq(onEditField, index)('answer')}
+        multiline
+        maxLength={800}
+        placeholder="Write the answer here…"
+        ariaLabel={`FAQ ${index + 1} answer`}
+        style={{
+          marginTop: 12,
+          marginLeft: isMinimal ? 58 : isPlate ? 44 : 0,
+          fontSize: 13.5,
+          color: 'var(--ink-soft, #3A332C)',
+          lineHeight: 1.65,
+        }}
+      />
+      {/* Inline CTA chip — the natural next action after reading
+          the answer. Only renders for categories with a clear
+          affordance (RSVP/Plus-ones → #rsvp, Travel/Hotels →
+          #travel, Gifts → #registry, Schedule → #schedule).
+          Informational categories (Dress code, Kids, Food, Photos,
+          Other) show no chip. Suppressed on very short answers
+          and when the answer text already mentions the affordance
+          inline (avoids the chip duplicating the punchline).
+          Hidden in edit mode so the host sees the raw answer
+          surface without competing affordances. */}
+      {(() => {
+        if (editMode) return null;
+        const cat = categorizeFaq(item.question ?? '');
+        const cta = getFaqCta(cat);
+        if (!shouldShowFaqCta(item.answer ?? '', cta)) return null;
+        return (
+          <div style={{ marginTop: 16, marginLeft: isMinimal ? 58 : isPlate ? 44 : 0 }}>
+            <a
+              href={cta.href}
+              className="pl8-faq-cta-chip pl-pearl-border"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '6px 14px',
+                borderRadius: 999,
+                background: 'var(--cream, #F5EFE2)',
+                color: 'var(--peach-ink, #C6703D)',
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                textDecoration: 'none',
+                fontFamily: 'var(--font-ui, system-ui, sans-serif)',
+                transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
+              }}
+            >
+              {cta.label}
+              <span aria-hidden style={{ fontSize: 11, marginLeft: 2 }}>→</span>
+            </a>
+          </div>
+        );
+      })()}
     </details>
   );
 }
@@ -3089,87 +4961,191 @@ function ThemedHashtag({ manifest }: { manifest: StoryManifest }) {
    brand → small "woven on Pearloom" colophon → date in mono
    eyebrow → back-to-top pill. Reads as the back-cover of a
    bound book rather than a copyright stripe. ─── */
+/* ─── ThemedGuestbook — host-toggled in RsvpPanel ('Guestbook on
+   published site'). Default off; flips on via
+   manifest.features.guestbook = true. Mirrors SiteV8Renderer's
+   gating + mount placement (after FAQ, before footer) so guests
+   scroll past every section before being asked to leave a wish.
+
+   The underlying <Guestbook /> component carries its own
+   form / wall / featured-card chrome on a cream ground. We wrap
+   it in a ThemedSectionHead so the section reads as a peer of
+   Story / Details / FAQ on theme-coherent paper, and let the
+   inner component render its own surface beneath. ─── */
+function ThemedGuestbook({
+  manifest,
+  names,
+  siteSlug,
+}: {
+  manifest: StoryManifest;
+  names: [string, string];
+  siteSlug: string;
+}) {
+  const features = (manifest as unknown as { features?: { guestbook?: boolean } }).features;
+  if (!features?.guestbook) return null;
+  const vibeSkin = (manifest as unknown as {
+    vibeSkin?: import('@/lib/vibe-engine').VibeSkin;
+  }).vibeSkin;
+  return (
+    <section
+      id="guestbook"
+      style={{
+        padding: 'calc(40px * var(--pl-density-scale, 1)) 32px 0',
+        background: 'var(--section, var(--paper))',
+        position: 'relative',
+      }}
+    >
+      {/* Guestbook isn't a SiteBlockKey (it's a feature toggle, not
+          a block in the canonical order), so we render the head
+          without a sectionKey — no Edition opener numeral, just the
+          theme-coherent eyebrow + display title. */}
+      <ThemedSectionHead
+        eyebrow="Guestbook"
+        title="Sign the"
+        italic="book"
+      />
+      {/* The Guestbook component carries its own <section> + form
+          + wall chrome; we let it render directly inside our
+          themed section so its internal cream ground inherits
+          the Edition's paper variable. */}
+      <Guestbook siteId={siteSlug} coupleNames={names} vibeSkin={vibeSkin} />
+    </section>
+  );
+}
+
+/* Per-Edition footer palette — mirrors the EDITION_PALETTE table
+   in FooterBouquet so the Themed footer reads as one continuous
+   editorial close (share chips → bouquet → brand colophon) on a
+   single themed surface. Cream-on-deep-ink for most Editions;
+   cream-deep-on-ink for scrapbook Postcard Box. */
+const THEMED_FOOTER_PALETTE: Record<string, { bg: string; ink: string; line: string }> = {
+  'almanac':      { bg: '#3D4A1F', ink: '#F5EFE2', line: 'rgba(245,239,226,0.20)' },
+  'cinema':       { bg: '#0E0D0B', ink: '#F1EBDC', line: 'rgba(241,235,220,0.18)' },
+  'postcard-box': { bg: '#EBE3D2', ink: '#0E0D0B', line: 'rgba(14,13,11,0.16)' },
+  'linen-folder': { bg: '#1B2A3A', ink: '#F0E9DA', line: 'rgba(240,233,218,0.20)' },
+  'quiet':        { bg: '#0E0D0B', ink: '#F5EFE2', line: 'rgba(245,239,226,0.18)' },
+  'coastal':      { bg: '#103B45', ink: '#F0EDE3', line: 'rgba(240,237,227,0.18)' },
+};
+
 function ThemedFooter({ siteSlug: _siteSlug, names, manifest }: { siteSlug: string; names: [string, string]; manifest: StoryManifest }) {
   const [n1, n2] = names;
   const date = manifest.logistics?.date;
   const venue = manifest.logistics?.venue;
+
+  /* Resolve the active Edition once so the share chips + bouquet
+     (FooterBouquet) and the colophon below all share the same
+     palette. Mirrors the resolution chain used everywhere else
+     in ThemedSiteRenderer. */
+  const occasion = manifest.occasion ?? 'wedding';
+  const eventType = getEventType(occasion);
+  const voice = eventType?.voice ?? 'celebratory';
+  const activeEdition = resolveEdition({
+    edition: manifest.edition,
+    occasion: occasion as Parameters<typeof resolveEdition>[0]['occasion'],
+    voice,
+  });
+  const palette = THEMED_FOOTER_PALETTE[activeEdition.id] ?? THEMED_FOOTER_PALETTE['almanac'];
+  const bouquetUrl = (manifest as unknown as { decorLibrary?: { footerBouquet?: string } }).decorLibrary?.footerBouquet;
+
   return (
     <footer
+      data-pl-themed-footer
       style={{
-        padding: '64px 32px 40px',
-        textAlign: 'center',
-        background: 'var(--paper, #F5EFE2)',
+        background: palette.bg,
+        color: palette.ink,
         position: 'relative',
       }}
     >
-      {/* Gold hairline */}
+      {/* FooterBouquet — share chip row + per-Edition palette wash +
+          (optional) closing flourish bouquet image. Single source of
+          truth for the share affordance + AI decor slot. Wrapped in
+          its own root that sets --pl-footer-bg / --pl-footer-ink. */}
+      <FooterBouquet url={bouquetUrl} manifest={manifest} />
+
+      {/* Brand colophon — gold hairline → italic brand name → meta
+          eyebrow → back-to-top pill → "woven on Pearloom" sign-off.
+          Inherits the FooterBouquet palette via the wrapping footer
+          element above so all three blocks read as one editorial
+          close on the Edition's themed surface. */}
       <div
-        aria-hidden
         style={{
-          width: 220,
-          height: 1,
-          margin: '0 auto 36px',
-          background: 'linear-gradient(90deg, transparent, var(--gold, #B8935A) 50%, transparent)',
-          opacity: 0.6,
-        }}
-      />
-      <span
-        className="display-italic"
-        style={{
-          fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-          fontStyle: 'italic',
-          fontSize: 26,
-          fontWeight: 500,
-          color: 'var(--ink, #0E0D0B)',
-          letterSpacing: '-0.01em',
+          padding: '40px 32px 40px',
+          textAlign: 'center',
         }}
       >
-        {n1 && n2 ? `${n1} & ${n2}` : 'Our celebration'}
-      </span>
-      {(date || venue) && (
         <div
-          className="eyebrow"
+          aria-hidden
           style={{
-            marginTop: 14,
-            fontSize: 10.5,
-            fontWeight: 700,
-            letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
-            textTransform: 'uppercase',
-            color: 'var(--ink-muted, #6F6557)',
+            width: 220,
+            height: 1,
+            margin: '0 auto 36px',
+            background: `linear-gradient(90deg, transparent, var(--gold, #B8935A) 50%, transparent)`,
+            opacity: 0.6,
+          }}
+        />
+        <span
+          className="display-italic"
+          style={{
+            fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+            fontStyle: 'italic',
+            fontSize: 26,
+            fontWeight: 500,
+            color: palette.ink,
+            letterSpacing: '-0.01em',
           }}
         >
-          {[date, venue].filter(Boolean).join(' · ')}
+          {n1 && n2 ? `${n1} & ${n2}` : 'Our celebration'}
+        </span>
+        {(date || venue) && (
+          <div
+            className="eyebrow"
+            style={{
+              marginTop: 14,
+              fontSize: 10.5,
+              fontWeight: 700,
+              letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
+              textTransform: 'uppercase',
+              color: palette.ink,
+              opacity: 0.7,
+            }}
+          >
+            {[date, venue].filter(Boolean).join(' · ')}
+          </div>
+        )}
+        <div>
+          <a
+            href="#top"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              marginTop: 28,
+              padding: '8px 18px',
+              borderRadius: 999,
+              background: 'transparent',
+              border: `1px solid ${palette.line}`,
+              color: palette.ink,
+              fontSize: 11.5,
+              fontWeight: 600,
+              textDecoration: 'none',
+              letterSpacing: '0.02em',
+              opacity: 0.85,
+            }}
+          >
+            ↑ back to top
+          </a>
         </div>
-      )}
-      <a
-        href="#top"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-          marginTop: 28,
-          padding: '8px 18px',
-          borderRadius: 999,
-          background: 'transparent',
-          border: '1px solid var(--line, rgba(14,13,11,0.16))',
-          color: 'var(--ink-soft, #3A332C)',
-          fontSize: 11.5,
-          fontWeight: 600,
-          textDecoration: 'none',
-          letterSpacing: '0.02em',
-        }}
-      >
-        ↑ back to top
-      </a>
-      <div
-        style={{
-          marginTop: 36,
-          fontSize: 11,
-          color: 'var(--ink-muted, #6F6557)',
-          fontStyle: 'italic',
-        }}
-      >
-        woven on Pearloom
+        <div
+          style={{
+            marginTop: 36,
+            fontSize: 11,
+            color: palette.ink,
+            opacity: 0.6,
+            fontStyle: 'italic',
+          }}
+        >
+          woven on Pearloom
+        </div>
       </div>
     </footer>
   );

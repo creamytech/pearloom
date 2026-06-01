@@ -26,6 +26,8 @@
 | Tailwind CSS var mapping | `tailwind.config.ts` | Thin layer — maps utility classes to CSS vars, no duplicate values. |
 | Theme generation | `src/lib/theme.ts` | `themeToCssBlocks`, `deriveDarkPalette`, `themeToCssVars`. |
 | Theme runtime | `src/components/theme-provider.tsx` | `[data-pl-site-root][data-theme=light\|dark]` scope + localStorage. |
+| **Site renderer (canonical)** | `src/components/pearloom/site/ThemedSiteRenderer.tsx` | **Primary entry for published sites.** ~5,152 lines / ~203 KB today; will absorb V8's product features over the next few sessions. |
+| Site renderer (legacy) | `src/components/pearloom/site/SiteV8Renderer.tsx` | **Being phased out.** ~411 KB / 10,324 lines; per-block extraction in progress (see §17.11). New surfaces should bind to `ThemedSiteRenderer`. |
 | Editor state | `src/lib/editor-state.ts` | `useEditor`, `EditorProvider`, 49 `EditorAction` variants, `SaveState`. |
 | URL construction | `src/lib/site-urls.ts` | `buildSiteUrl`, `buildSitePath`, `formatSiteDisplayUrl`. |
 | Gemini client | `src/lib/memory-engine/gemini-client.ts` | Pro / Flash / Lite / Image endpoints. |
@@ -488,7 +490,7 @@ V8 monoliths now live under `src/components/pearloom/`:
 
 - `src/components/pearloom/editor/EditorV8.tsx` — **~161 KB / 4,280 lines**. The full editor shell: rail + left section list + canvas + right rail dispatch. Replaces the old `FullscreenEditor` + `EditorCanvas` + `EditorSidebar` triad.
 - `src/components/pearloom/pages/WizardV8.tsx` — **~111 KB / 2,803 lines**. The wizard (category → occasion → photos → details → generating → review). Replaces `src/components/wizard/PearSpotlight.tsx` entirely.
-- `src/components/pearloom/site/SiteV8Renderer.tsx` — **~335 KB / 8,757 lines**. The published-site renderer + all block-type switch cases. Next refactor target: extract per-block-type renderers into `src/components/pearloom/site/blocks/<Block>.tsx` so the switch dispatches to standalone files rather than inline JSX.
+- `src/components/pearloom/site/SiteV8Renderer.tsx` — **~411 KB / 10,324 lines**. **Legacy renderer — being phased out.** `ThemedSiteRenderer.tsx` (~5,152 lines / ~203 KB) is now the canonical published-site entry; it will absorb SiteV8Renderer's product features over the next few sessions. See CLAUDE-PRODUCT.md §10 for the phased plan. Per-block extraction inside SiteV8Renderer continues in parallel so feature-parity migration stays manageable.
 
 Older monoliths to retire alongside the V8 dispatch extraction:
 - `src/components/blocks/StoryLayouts.tsx` — **76 KB**. Extract per-layout files.
@@ -855,7 +857,7 @@ Wired end-to-end as of this session; server validates + dedupes + deny-anon RLS.
 The V8 trio (see §10.7) replaced the old PearSpotlight monolith
 but introduced three new big files:
 
-- `src/components/pearloom/site/SiteV8Renderer.tsx` — **~335 KB / 8,757 lines**. Largest file in the repo. Extract per-block-type renderers into `src/components/pearloom/site/blocks/<Block>.tsx` so the switch dispatches to standalone files. Estimate: 3–4 sessions with visual-regression coverage.
+- `src/components/pearloom/site/SiteV8Renderer.tsx` — **~411 KB / 10,324 lines**. Largest file in the repo. Extract per-block-type renderers into `src/components/pearloom/site/blocks/<Block>.tsx` so the switch dispatches to standalone files. Estimate: 3–4 sessions with visual-regression coverage.
 - `src/components/pearloom/editor/EditorV8.tsx` — **~161 KB / 4,280 lines**. The full editor shell. Candidate for splitting along rail / canvas / right-rail boundaries.
 - `src/components/pearloom/pages/WizardV8.tsx` — **~111 KB / 2,803 lines**. Step-per-file extraction (same shape as the old PearSpotlight plan).
 - `src/components/blocks/StoryLayouts.tsx` — **76 KB**. Layout-per-file extraction.
@@ -925,6 +927,18 @@ A short list of what's actually left after today's fix-it pass.
 ---
 
 ## 19 · Changelog
+
+### 2026-06-01 — Renderer consolidation kickoff
+
+`ThemedSiteRenderer` (`src/components/pearloom/site/ThemedSiteRenderer.tsx`,
+~5,152 lines / ~203 KB) is now designated the canonical published-site
+renderer. `SiteV8Renderer` (~411 KB / 10,324 lines) is marked
+legacy and will be phased out as ThemedSiteRenderer absorbs its
+product features over the next few sessions. New site surfaces
+should bind to ThemedSiteRenderer; legacy SiteV8 block cases
+keep working in parallel until each is migrated. See
+CLAUDE-PRODUCT.md §10 for the phased plan and per-section
+migration order.
 
 ### 2026-06-01 — Status-audit fix-it pass (V8 architecture re-audit)
 
@@ -997,7 +1011,7 @@ tool_use:**
      is coming soon." placeholder so the host knows the block
      is real but not yet shipped.
 - This unblocks the per-block-type extraction in §17.11 — we
-  can pull one case at a time out of the 8,757-line switch
+  can pull one case at a time out of the 10,324-line switch
   without risking a runtime crash.
 
 **Microcopy + brand polish:**
@@ -1031,7 +1045,7 @@ tool_use:**
   - §10.7 + §10.8 rewritten around the V8 trio
     (`pearloom/editor/EditorV8.tsx` ~161 KB,
     `pearloom/pages/WizardV8.tsx` ~111 KB,
-    `pearloom/site/SiteV8Renderer.tsx` ~335 KB / 8,757 lines).
+    `pearloom/site/SiteV8Renderer.tsx` ~411 KB / 10,324 lines).
   - §17.11 file-size hotspots restructured: V8 trio replaces
     the old PearSpotlight monolith reference. Legacy
     `wizard/PearSpotlight.tsx` flagged as ready-to-delete.

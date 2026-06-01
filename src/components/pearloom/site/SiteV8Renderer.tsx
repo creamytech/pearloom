@@ -9467,6 +9467,79 @@ function CustomBlockCase({ block, siteSlug, editMode, manifest }: { block: PageB
   }
 }
 
+/* ──────────────────────────────────────────────────────────────
+   LegacyRendererBanner — surfaces in the editor canvas (editMode
+   only, never on the published view) to remind hosts that v8 is
+   the legacy renderer. Dismissable per-session via sessionStorage
+   so it doesn't churn while the host is mid-edit, but returns on
+   the next session so the warning isn't permanently silenced.
+   ────────────────────────────────────────────────────────────── */
+function LegacyRendererBanner() {
+  const [dismissed, setDismissed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return window.sessionStorage.getItem('pl-legacy-banner-dismissed') === '1';
+    } catch {
+      return false;
+    }
+  });
+  if (dismissed) return null;
+  return (
+    <div
+      role="status"
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '10px 16px',
+        background: 'rgba(214,120,82,0.14)',
+        borderBottom: '1px solid rgba(214,120,82,0.32)',
+        color: '#5A2D14',
+        fontSize: 12.5,
+        lineHeight: 1.4,
+        fontFamily: 'var(--pl-font-body, system-ui, sans-serif)',
+      }}
+    >
+      <span aria-hidden style={{ fontSize: 14, lineHeight: 1 }}>⚠</span>
+      <span style={{ flex: 1 }}>
+        <strong style={{ fontWeight: 700 }}>Legacy renderer.</strong>{' '}
+        Switching to Themed will unlock the new design system. Use the
+        Look Engine toggle to flip.
+      </span>
+      <button
+        type="button"
+        aria-label="Dismiss for this session"
+        onClick={() => {
+          try {
+            window.sessionStorage.setItem('pl-legacy-banner-dismissed', '1');
+          } catch {
+            /* sessionStorage may be unavailable in private mode — fall back to in-memory dismiss */
+          }
+          setDismissed(true);
+        }}
+        style={{
+          width: 22,
+          height: 22,
+          borderRadius: '50%',
+          border: 'none',
+          background: 'rgba(90,45,20,0.10)',
+          color: '#5A2D14',
+          fontSize: 14,
+          lineHeight: 1,
+          cursor: 'pointer',
+          display: 'grid',
+          placeItems: 'center',
+        }}
+      >
+        ×
+      </button>
+    </div>
+  );
+}
+
 export function SiteV8Renderer({
   manifest,
   names,
@@ -9921,6 +9994,12 @@ export function SiteV8Renderer({
             watercolor cards / letterpress type / etc actually resolve.
             Zero cost when nothing references the filter ids. */}
         <TextureFilters />
+        {/* Legacy-renderer banner — surfaces only inside the editor
+            canvas (editMode === true) so hosts know they're looking
+            at the deprecated renderer. Dismissable via × which sets
+            a session-only sessionStorage flag so it doesn't nag on
+            every keystroke during a session. */}
+        {editMode && <LegacyRendererBanner />}
         {/* Reading progress hairline — peach-to-gold gradient that
             fills L → R as guests scroll. Only on the published view
             (the editor's own scrollbar handles its own progress). */}
