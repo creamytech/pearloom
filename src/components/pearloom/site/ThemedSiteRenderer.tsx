@@ -1104,13 +1104,36 @@ function ScheduleMinimal({ events }: { events: ScheduleEvent[] }) {
   );
 }
 
-/* ─── ThemedTravel — editorial hotel listing. Each hotel reads
-   as a small editorial card with display-font name, address-as-
-   eyebrow, distance label, and a "Book ↗" pill. Single column on
-   narrow screens, 2-col on wider. ─── */
+/* ─── Per-kit card chrome helper. Returns the row container
+   style (background, border, radius, shadow, transform) for the
+   active kit so Travel + other small-card sections share the
+   same visual identity as Schedule/Story/FAQ without each one
+   duplicating a 5-case switch. ─── */
+function kitCardStyle(kit: string, index = 0): React.CSSProperties {
+  switch (kit) {
+    case 'ticket':
+      return { background: 'var(--card, #FBF7EE)', border: '1.5px dashed var(--ink-soft, #3A332C)', borderRadius: 6, position: 'relative' };
+    case 'plate':
+      return { background: 'var(--card, #FBF7EE)', borderRadius: 1, boxShadow: 'inset 0 0 0 1px rgba(14,13,11,0.30), inset 0 0 0 4px var(--card, #FBF7EE), inset 0 0 0 5px rgba(14,13,11,0.15)', border: 'none' };
+    case 'scrapbook':
+      return { background: '#FFFDF7', boxShadow: '0 12px 26px rgba(0,0,0,0.14)', borderRadius: 2, transform: `rotate(${index % 2 === 0 ? -1.2 : 1.2}deg)`, border: 'none' };
+    case 'index':
+      return { background: 'var(--card, #FBF7EE)', borderLeft: '2px solid rgba(199,80,80,0.55)', backgroundImage: 'repeating-linear-gradient(180deg, transparent 0 21px, rgba(74,118,196,0.10) 21px 22px)', borderRadius: 2, border: 'none' };
+    case 'minimal':
+      return { background: 'transparent', border: 'none', borderTop: '1px solid var(--line-soft, rgba(14,13,11,0.08))', borderRadius: 0, padding: '20px 0 0' };
+    default:
+      return { background: 'var(--card, #FBF7EE)', borderRadius: 'var(--pl-card-radius, 14px)', border: '1px solid var(--line-soft, rgba(14,13,11,0.08))', boxShadow: 'var(--pl-card-shadow, 0 4px 14px rgba(75,65,52,0.10))' };
+  }
+}
+
+/* ─── ThemedTravel — editorial hotel listing. Card chrome
+   inherits from the active Kit via kitCardStyle so a "scrapbook"
+   site has tilted polaroid hotels and a "ticket" site has
+   perforated stubs — same as schedule. ─── */
 function ThemedTravel({ manifest, motif }: { manifest: StoryManifest; motif: MotifKind }) {
   const hotels = manifest.travelInfo?.hotels ?? [];
   if (hotels.length === 0) return null;
+  const kit = manifest.kitId ?? 'classic';
   return (
     <section
       id="travel"
@@ -1126,7 +1149,7 @@ function ThemedTravel({ manifest, motif }: { manifest: StoryManifest; motif: Mot
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: 20,
+          gap: kit === 'scrapbook' ? 32 : 20,
           maxWidth: 820,
           margin: '0 auto',
         }}
@@ -1138,11 +1161,8 @@ function ThemedTravel({ manifest, motif }: { manifest: StoryManifest; motif: Mot
               key={i}
               className="pl8-hotel-row"
               style={{
-                background: 'var(--card, #FBF7EE)',
-                borderRadius: 'var(--pl-card-radius, 12px)',
-                padding: '22px 22px 20px',
-                border: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
-                boxShadow: 'var(--pl-card-shadow, 0 2px 8px rgba(75,65,52,0.08))',
+                ...kitCardStyle(kit, i),
+                padding: kit === 'minimal' ? '20px 0 0' : '22px 22px 20px',
               }}
             >
               {distance && (
