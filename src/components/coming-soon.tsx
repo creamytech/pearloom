@@ -240,47 +240,47 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
           width: '100%',
         }}
       >
-        {/* Eyebrow label */}
+        {/* Eyebrow — peach kicker (prototype style) replaces the
+            olive-hairline pattern. */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.2 }}
+          className="eyebrow"
           style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            gap: '0.75rem', marginBottom: '2.5rem', opacity: 0.65,
+            marginBottom: '2.5rem',
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: '#C6703D',
+            textAlign: 'center',
           }}
         >
-          <div style={{ width: '40px', height: '1px', background: 'var(--pl-olive)' }} />
-          <span style={{
-            fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.32em',
-            textTransform: 'uppercase', color: 'var(--pl-olive)',
-          }}>
-            Save the Date
-          </span>
-          <div style={{ width: '40px', height: '1px', background: 'var(--pl-olive)' }} />
+          Save the Date
         </motion.div>
 
-        {/* Icon */}
+        {/* Icon — peach accent matching the prototype's primary
+            affordance color. */}
         <motion.div
           animate={{ scale: [1, 1.04, 1] }}
           transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
           style={{
-            color: 'var(--pl-olive)', marginBottom: '2.5rem',
+            marginBottom: '2.5rem',
             display: 'flex', justifyContent: 'center',
           }}
         >
           <div style={{
             width: '80px', height: '80px', borderRadius: '50%',
-            background: 'var(--pl-ink)',
-            border: '1.5px solid rgba(163,177,138,0.25)',
+            background: 'rgba(198,112,61,0.10)',
+            border: '1.5px solid rgba(198,112,61,0.25)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 12px 40px rgba(163,177,138,0.2)',
-            backdropFilter: 'blur(8px)',
+            boxShadow: '0 12px 40px rgba(198,112,61,0.18)',
           }}>
             {config.passwordProtected ? (
-              <Lock size={30} strokeWidth={1.3} color="var(--pl-olive)" />
+              <Lock size={30} strokeWidth={1.3} color="#C6703D" />
             ) : (
-              <CalendarHeartIcon size={30} color="var(--pl-olive)" />
+              <CalendarHeartIcon size={30} color="#C6703D" />
             )}
           </div>
         </motion.div>
