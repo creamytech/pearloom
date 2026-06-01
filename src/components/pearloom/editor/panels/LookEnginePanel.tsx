@@ -84,9 +84,6 @@ const TEXTURE_TINT: Record<TextureId, string> = {
   letterpress: '#F2EAD6',
   vellum: '#F4E9C8',
   newsprint: '#E5DBC2',
-  paper: '#FDFAF0',
-  cotton: '#F7F2E6',
-  velvet: '#1A1B2E',
 };
 
 interface Props {

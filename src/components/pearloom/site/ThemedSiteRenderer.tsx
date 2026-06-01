@@ -806,14 +806,23 @@ function ThemedDetails({ manifest, motif }: { manifest: StoryManifest; motif: Mo
   );
 }
 
-/* ─── ThemedSchedule — vertical timeline. Time on the left in
-   display font, dot on the rule, event details on the right.
-   Reads as a printed program rather than a card grid. The
-   timeline rule is a 1px peach hairline running the full
-   height. ─── */
+/* ─── ThemedSchedule — dispatches to a per-Kit renderer.
+   Each kit gives Schedule a fundamentally different structure
+   (not just a CSS skin on the same row layout):
+
+     classic    — vertical timeline, peach dot on hairline rule
+     ticket     — perforated stub grid (2-col, monospace times,
+                  pinhole dots on the corners)
+     plate      — vertical Roman-numeral list with dotted leaders
+                  reaching to a right-aligned time column
+     scrapbook  — masonry of tilted polaroid cards
+     index      — ruled red-margin index cards
+     minimal    — big oversized numeral + name list, no chrome ─── */
 function ThemedSchedule({ manifest }: { manifest: StoryManifest }) {
   const events = manifest.events ?? [];
   if (events.length === 0) return null;
+  const kit = (manifest.kitId ?? 'classic') as
+    | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal';
   return (
     <section
       id="schedule"
@@ -823,117 +832,211 @@ function ThemedSchedule({ manifest }: { manifest: StoryManifest }) {
       }}
     >
       <ThemedSectionHead eyebrow="The day" title="In" italic="moments" />
-      <div
-        style={{
-          maxWidth: 640,
-          margin: '0 auto',
-          position: 'relative',
-        }}
-      >
-        {/* Vertical hairline rule — runs full column height behind
-            the dots. inset positions it inside the time column
-            margin so dots align cleanly. */}
-        <div
-          aria-hidden
-          style={{
-            position: 'absolute',
-            top: 16,
-            bottom: 16,
-            left: 100,
-            width: 1,
-            background: 'linear-gradient(180deg, transparent 0%, var(--peach-ink, #C6703D) 8%, var(--peach-ink, #C6703D) 92%, transparent 100%)',
-            opacity: 0.35,
-          }}
-        />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
-          {events.map((e, i) => (
-            <div
-              key={e.id ?? i}
-              className="pl8-schedule-row"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '90px 20px 1fr',
-                alignItems: 'baseline',
-                gap: 0,
-              }}
-            >
-              {/* Time — display font, right-aligned to meet the rule */}
-              <div
-                className="pl8-schedule-time"
-                style={{
-                  fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-                  fontSize: 24,
-                  fontWeight: 'var(--pl-display-wght, 600)',
-                  color: 'var(--ink, #0E0D0B)',
-                  textAlign: 'right',
-                  lineHeight: 1.1,
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                {e.time}
-              </div>
-              {/* Dot on the rule */}
-              <div style={{ position: 'relative', height: '100%' }}>
-                <div
-                  aria-hidden
-                  style={{
-                    position: 'absolute',
-                    top: 8,
-                    left: 5,
-                    width: 11,
-                    height: 11,
-                    borderRadius: '50%',
-                    background: 'var(--paper, #F5EFE2)',
-                    border: '2px solid var(--peach-ink, #C6703D)',
-                  }}
-                />
-              </div>
-              {/* Event name + description */}
-              <div style={{ paddingLeft: 14, paddingTop: 2 }}>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-                    fontSize: 19,
-                    fontWeight: 600,
-                    color: 'var(--ink, #0E0D0B)',
-                    lineHeight: 1.15,
-                  }}
-                >
-                  {e.name}
-                </div>
-                {e.description && (
-                  <div
-                    style={{
-                      marginTop: 4,
-                      fontSize: 13,
-                      color: 'var(--ink-soft, #3A332C)',
-                      lineHeight: 1.55,
-                    }}
-                  >
-                    {e.description}
-                  </div>
-                )}
-                {(e as { location?: string }).location && (
-                  <div
-                    className="eyebrow"
-                    style={{
-                      marginTop: 6,
-                      fontSize: 10,
-                      fontWeight: 700,
-                      letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
-                      textTransform: 'uppercase',
-                      color: 'var(--ink-muted, #6F6557)',
-                    }}
-                  >
-                    {(e as { location?: string }).location}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      {kit === 'ticket'    && <ScheduleTicket events={events} />}
+      {kit === 'plate'     && <SchedulePlate events={events} />}
+      {kit === 'scrapbook' && <ScheduleScrapbook events={events} />}
+      {kit === 'index'     && <ScheduleIndex events={events} />}
+      {kit === 'minimal'   && <ScheduleMinimal events={events} />}
+      {kit === 'classic'   && <ScheduleClassic events={events} />}
     </section>
+  );
+}
+
+type ScheduleEvent = NonNullable<StoryManifest['events']>[number];
+
+function ScheduleClassic({ events }: { events: ScheduleEvent[] }) {
+  return (
+    <div style={{ maxWidth: 640, margin: '0 auto', position: 'relative' }}>
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          top: 16, bottom: 16, left: 100, width: 1,
+          background: 'linear-gradient(180deg, transparent 0%, var(--peach-ink, #C6703D) 8%, var(--peach-ink, #C6703D) 92%, transparent 100%)',
+          opacity: 0.35,
+        }}
+      />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
+        {events.map((e, i) => (
+          <div key={e.id ?? i} className="pl8-schedule-row" style={{ display: 'grid', gridTemplateColumns: '90px 20px 1fr', alignItems: 'baseline' }}>
+            <div className="pl8-schedule-time" style={{
+              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+              fontSize: 24, fontWeight: 'var(--pl-display-wght, 600)',
+              color: 'var(--ink, #0E0D0B)', textAlign: 'right',
+              lineHeight: 1.1, letterSpacing: '-0.01em',
+            }}>{e.time}</div>
+            <div style={{ position: 'relative', height: '100%' }}>
+              <div aria-hidden style={{ position: 'absolute', top: 8, left: 5, width: 11, height: 11, borderRadius: '50%', background: 'var(--paper, #F5EFE2)', border: '2px solid var(--peach-ink, #C6703D)' }} />
+            </div>
+            <div style={{ paddingLeft: 14, paddingTop: 2 }}>
+              <div style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 19, fontWeight: 600, color: 'var(--ink, #0E0D0B)', lineHeight: 1.15 }}>{e.name}</div>
+              {e.description && <div style={{ marginTop: 4, fontSize: 13, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.55 }}>{e.description}</div>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ScheduleTicket({ events }: { events: ScheduleEvent[] }) {
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+      gap: 14, maxWidth: 900, margin: '0 auto',
+    }}>
+      {events.map((e, i) => (
+        <div key={e.id ?? i} className="pl8-schedule-row" style={{
+          padding: '20px 22px',
+          background: 'var(--card, #FBF7EE)',
+          border: '1.5px dashed var(--ink-soft, #3A332C)',
+          borderRadius: 6, position: 'relative',
+        }}>
+          {/* Pinhole corner dots */}
+          <span aria-hidden style={{ position: 'absolute', top: 6, left: 6, width: 6, height: 6, borderRadius: '50%', background: 'var(--paper, #F5EFE2)', border: '1px solid var(--ink-soft, #3A332C)' }} />
+          <span aria-hidden style={{ position: 'absolute', top: 6, right: 6, width: 6, height: 6, borderRadius: '50%', background: 'var(--paper, #F5EFE2)', border: '1px solid var(--ink-soft, #3A332C)' }} />
+          <div className="pl8-schedule-time" style={{
+            fontFamily: 'Courier New, ui-monospace, monospace',
+            fontSize: 22, fontWeight: 700, color: 'var(--peach-ink, #C6703D)',
+            letterSpacing: '-0.02em', marginBottom: 8,
+          }}>{e.time}</div>
+          <div style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 17, fontWeight: 600, color: 'var(--ink, #0E0D0B)', lineHeight: 1.2 }}>{e.name}</div>
+          {e.description && <div style={{ marginTop: 6, fontSize: 12.5, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.5 }}>{e.description}</div>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+
+function SchedulePlate({ events }: { events: ScheduleEvent[] }) {
+  return (
+    <div style={{ maxWidth: 680, margin: '0 auto' }}>
+      <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 18 }}>
+        {events.map((e, i) => (
+          <li key={e.id ?? i} className="pl8-schedule-row" style={{
+            display: 'grid', gridTemplateColumns: '40px 1fr auto',
+            alignItems: 'baseline', gap: 16,
+            paddingBottom: 14, borderBottom: '1px solid var(--line-soft, rgba(14,13,11,0.10))',
+          }}>
+            <span aria-hidden style={{
+              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+              fontStyle: 'italic', fontWeight: 400, fontSize: 22,
+              color: 'var(--peach-ink, #C6703D)', textAlign: 'right',
+            }}>{ROMAN_NUMERALS[i] ?? String(i + 1)}.</span>
+            <div>
+              <div style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontStyle: 'italic', fontSize: 20, fontWeight: 500, color: 'var(--ink, #0E0D0B)', lineHeight: 1.15 }}>{e.name}</div>
+              {e.description && <div style={{ marginTop: 4, fontSize: 13, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.5 }}>{e.description}</div>}
+            </div>
+            <span className="pl8-schedule-time" style={{
+              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+              fontStyle: 'italic', fontSize: 18, fontWeight: 600,
+              color: 'var(--ink, #0E0D0B)', whiteSpace: 'nowrap',
+            }}>{e.time}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function ScheduleScrapbook({ events }: { events: ScheduleEvent[] }) {
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+      gap: 22, maxWidth: 920, margin: '0 auto',
+    }}>
+      {events.map((e, i) => {
+        const tilt = i % 2 === 0 ? -1.4 : 1.4;
+        return (
+          <div key={e.id ?? i} className="pl8-schedule-row" style={{
+            padding: '32px 18px 22px',
+            background: '#FFFDF7',
+            boxShadow: '0 12px 26px rgba(0,0,0,0.14)',
+            borderRadius: 3, position: 'relative',
+            transform: `rotate(${tilt}deg)`,
+          }}>
+            {/* Tape strip */}
+            <span aria-hidden style={{
+              position: 'absolute', top: 6, left: '50%',
+              transform: 'translateX(-50%) rotate(-3deg)',
+              width: 60, height: 14,
+              background: 'color-mix(in oklab, var(--gold, #B8935A) 32%, transparent)',
+            }} />
+            <div className="pl8-schedule-time" style={{
+              fontFamily: 'var(--font-display, Caveat, cursive)',
+              fontStyle: 'italic', fontSize: 26, fontWeight: 500,
+              color: 'var(--peach-ink, #C6703D)', textAlign: 'center',
+              lineHeight: 1,
+            }}>{e.time}</div>
+            <div style={{ marginTop: 10, fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 17, fontWeight: 600, color: 'var(--ink, #0E0D0B)', textAlign: 'center', lineHeight: 1.2 }}>{e.name}</div>
+            {e.description && <div style={{ marginTop: 6, fontSize: 12.5, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.5, textAlign: 'center' }}>{e.description}</div>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ScheduleIndex({ events }: { events: ScheduleEvent[] }) {
+  return (
+    <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {events.map((e, i) => (
+        <div key={e.id ?? i} className="pl8-schedule-row" style={{
+          padding: '18px 22px',
+          background: 'var(--card, #FBF7EE)',
+          borderLeft: '2px solid rgba(199,80,80,0.55)',
+          backgroundImage: 'repeating-linear-gradient(180deg, transparent 0 21px, rgba(74,118,196,0.10) 21px 22px)',
+          borderRadius: 2, position: 'relative',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 16 }}>
+            <span className="pl8-schedule-time" style={{
+              fontFamily: 'Courier New, ui-monospace, monospace',
+              fontSize: 14, fontWeight: 700, color: 'var(--ink, #0E0D0B)',
+              minWidth: 70,
+            }}>{e.time}</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 17, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>{e.name}</div>
+              {e.description && <div style={{ marginTop: 4, fontSize: 13, color: 'var(--ink-soft, #3A332C)' }}>{e.description}</div>}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ScheduleMinimal({ events }: { events: ScheduleEvent[] }) {
+  return (
+    <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 32 }}>
+      {events.map((e, i) => (
+        <div key={e.id ?? i} className="pl8-schedule-row" style={{
+          display: 'grid', gridTemplateColumns: '90px 1fr',
+          alignItems: 'baseline', gap: 28,
+          paddingBottom: 28,
+          borderBottom: i === events.length - 1 ? 'none' : '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+        }}>
+          <span className="pl8-schedule-time" style={{
+            fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+            fontSize: 56, fontWeight: 600,
+            color: 'var(--ink, #0E0D0B)', lineHeight: 0.92,
+            letterSpacing: '-0.04em',
+          }}>{String(i + 1).padStart(2, '0')}</span>
+          <div style={{ paddingTop: 8 }}>
+            <div style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 22, fontWeight: 600, color: 'var(--ink, #0E0D0B)', lineHeight: 1.1 }}>{e.name}</div>
+            <div className="eyebrow" style={{
+              marginTop: 8, fontSize: 11, fontWeight: 700,
+              letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
+              textTransform: 'uppercase', color: 'var(--ink-muted, #6F6557)',
+            }}>{e.time}</div>
+            {e.description && <div style={{ marginTop: 8, fontSize: 14, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.55 }}>{e.description}</div>}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 

@@ -106,56 +106,16 @@ function NewsprintPreview() {
   );
 }
 
-/* Prototype-parity textures (paper / cotton / velvet) — added to
-   match the prototype's full texture set. Each uses the t-weave +
-   t-mottle + t-grain SVG filters from TextureFilters.tsx. */
-function PaperPreview() {
-  return (
-    <svg viewBox="0 0 240 72" width="100%" height="100%" preserveAspectRatio="none">
-      <rect width="240" height="72" fill="#FDFAF0" />
-      <rect x="0" y="0" width="240" height="72" filter="url(#t-mottle)" opacity="0.2" />
-      <rect x="0" y="0" width="240" height="72" filter="url(#t-weave)" opacity="0.16" />
-    </svg>
-  );
-}
-function CottonPreview() {
-  return (
-    <svg viewBox="0 0 240 72" width="100%" height="100%" preserveAspectRatio="none">
-      <rect width="240" height="72" fill="#F7F2E6" />
-      <rect x="0" y="0" width="240" height="72" filter="url(#t-mottle)" opacity="0.32" />
-      <rect x="0" y="0" width="240" height="72" filter="url(#t-weave)" opacity="0.36" />
-    </svg>
-  );
-}
-function VelvetPreview() {
-  return (
-    <svg viewBox="0 0 240 72" width="100%" height="100%" preserveAspectRatio="none">
-      <rect width="240" height="72" fill="#1A1B2E" />
-      <rect x="0" y="0" width="240" height="72" fill="url(#velvet-stripes)" opacity="0.6" />
-      <defs>
-        <pattern id="velvet-stripes" width="4" height="4" patternUnits="userSpaceOnUse">
-          <rect width="1" height="4" fill="rgba(255,255,255,0.07)" />
-        </pattern>
-      </defs>
-      <rect x="0" y="0" width="240" height="72" fill="url(#velvet-sheen)" opacity="0.6" />
-      <defs>
-        <linearGradient id="velvet-sheen" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="rgba(255,255,255,0)" />
-          <stop offset="50%" stopColor="rgba(255,255,255,0.18)" />
-          <stop offset="100%" stopColor="rgba(255,255,255,0)" />
-        </linearGradient>
-      </defs>
-    </svg>
-  );
-}
+/* Texture set — six options, each backed by real CSS in
+   pearloom.css. The prior catalog included 'paper' / 'cotton' /
+   'velvet' previews that had no CSS implementation; picking them
+   produced no visual change, so they're dropped. Only ids with
+   a matching .pl8-guest[data-pl-texture=…] rule remain. */
 
 const TEXTURES: TextureSpec[] = [
   { id: 'smooth',      label: 'Smooth',      tagline: 'Modern default — clean paper, soft shadows.',         Preview: SmoothPreview },
-  { id: 'paper',       label: 'Paper',       tagline: 'Handmade cotton paper. Fine fibre + light specks.',   Preview: PaperPreview },
-  { id: 'cotton',      label: 'Cotton',      tagline: 'Cold-press watercolour paper tooth. Coarser fibre.',  Preview: CottonPreview },
   { id: 'watercolor',  label: 'Watercolor',  tagline: 'Soft color bleeds. Cards look painted, not printed.',  Preview: WatercolorPreview },
   { id: 'linen',       label: 'Linen',       tagline: 'Woven fabric grain underfoot. Quiet, formal.',         Preview: LinenPreview },
-  { id: 'velvet',      label: 'Velvet',      tagline: 'Inky pile + raking sheen. Made for dark evenings.',   Preview: VelvetPreview },
   { id: 'letterpress', label: 'Letterpress', tagline: 'Type pressed into paper. Editorial book feel.',        Preview: LetterpressPreview },
   { id: 'vellum',      label: 'Vellum',      tagline: 'Translucent waxy paper. Warm cast on everything.',     Preview: VellumPreview },
   { id: 'newsprint',   label: 'Newsprint',   tagline: 'Halftone dots + ink. Reads like a broadsheet.',        Preview: NewsprintPreview },
