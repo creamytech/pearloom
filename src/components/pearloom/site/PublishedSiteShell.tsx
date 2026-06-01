@@ -84,6 +84,7 @@ export function PublishedSiteShell(props: Props) {
           manifest={props.manifest}
           names={props.names}
           siteSlug={props.siteSlug}
+          pageFilter={props.pageFilter}
         />
       ) : (
         <SiteV8Renderer {...props} />

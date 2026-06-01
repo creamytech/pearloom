@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getSiteConfig } from '@/lib/db';
 import { buildSiteUrl, formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
-import { SiteV8Renderer } from '@/components/pearloom/site/SiteV8Renderer';
+import { PublishedSiteShell } from '@/components/pearloom/site/PublishedSiteShell';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { WaveDivider } from '@/components/vibe/WaveDivider';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -173,8 +173,12 @@ export default async function SiteSubPage(
   const prettyUrl = formatSiteDisplayUrl(domain, '', normalizeOccasion(manifest.occasion));
   const creatorEmail = ((siteConfig as unknown as Record<string, unknown>).creator_email as string | undefined) ?? null;
 
+  // Route through PublishedSiteShell so the Themed/V8 dispatch
+  // (based on manifest.renderer) applies to sub-pages too — without
+  // this, a host on Themed would silently fall back to the V8
+  // renderer on every sub-page route.
   return (
-    <SiteV8Renderer
+    <PublishedSiteShell
       manifest={manifest}
       names={names}
       siteSlug={domain}

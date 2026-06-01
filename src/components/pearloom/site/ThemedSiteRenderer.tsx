@@ -30,8 +30,27 @@
 // in subsequent commits.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { StoryManifest } from '@/types';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import type { StoryManifest, PageBlock } from '@/types';
+/* Event-OS custom blocks — ported from SiteV8Renderer's
+   CustomBlocksRail. Each block is a standalone component under
+   src/components/site/* that reads its own config off the
+   PageBlock.config payload. The ThemedCustomBlocks rail below
+   recognizes these block types as it iterates manifest.blocks,
+   wraps each in a ThemedSectionHead (eyebrow + title from
+   block.config), and mounts the matching component. Any
+   manifest block whose type isn't recognized falls through to
+   the default-case "coming soon" placeholder in edit mode. */
+import { ActivityVoteBlock } from '@/components/site/ActivityVoteBlock';
+import { AdviceWallBlock } from '@/components/site/AdviceWallBlock';
+import { CostSplitterBlock } from '@/components/site/CostSplitterBlock';
+import { ItineraryBlock } from '@/components/site/ItineraryBlock';
+import { LivestreamBlock } from '@/components/site/LivestreamBlock';
+import { ObituaryBlock } from '@/components/site/ObituaryBlock';
+import { PackingListBlock } from '@/components/site/PackingListBlock';
+import { PrivacyGateBlock } from '@/components/site/PrivacyGateBlock';
+import { ProgramBlock } from '@/components/site/ProgramBlock';
+import { ToastSignupBlock } from '@/components/site/ToastSignupBlock';
 import { Icon } from '../motifs';
 import { NavBrandIcon } from './NavBrandIcon';
 import { MotifScatter, type MotifKind } from './MotifScatter';
@@ -40,13 +59,34 @@ import { resolveEdition } from '@/lib/site-editions/resolve';
 import { getEventType } from '@/lib/event-os/event-types';
 import { EditionSectionOpener } from './edition-openers';
 import { EditionDivider } from './edition-dividers';
-import { DEFAULT_BLOCK_ORDER, type SiteBlockKey } from '@/lib/site-mode';
+import {
+  DEFAULT_BLOCK_ORDER,
+  readHomePageBlocks,
+  readSiteMode,
+  type SiteBlockKey,
+  type SiteMode,
+} from '@/lib/site-mode';
 import { PresetRsvpForm } from '@/components/PresetRsvpForm';
 import { parseLocalDate } from '@/lib/date-utils';
 import { Guestbook } from '@/components/guestbook';
 import { DayOfBanner } from './DayOfBanner';
 import { BroadcastBar } from './BroadcastBar';
 import { GuestPearChat } from './GuestPearChat';
+/* Per-section background overlay (paper / wash / mesh / atmosphere /
+   none) — reads manifest.blockStyles[sectionId].background with a
+   fallback to legacy manifest.sectionBackgrounds[sectionId]. Mounts
+   as the first absolutely-positioned child of every <section> with
+   an id so hosts can flip the background of any individual section
+   from the editor without touching the global paper. */
+import { SectionBackground } from './SectionBackground';
+/* Scroll-reveal driver — sets data-pl-reveal="pending" on every
+   <section> at mount, then flips each to "shown" as it crosses the
+   viewport via IntersectionObserver. The actual fade-rise + filigree
+   stroke draw-on transitions live in pearloom.css. Honors
+   prefers-reduced-motion (sets shown immediately) and skips the hero
+   (#top) — already visible on load. Public-site only; never on the
+   editor canvas. */
+import { ScrollReveal } from './ScrollReveal';
 import { computeDayOfState } from '@/lib/day-of/state';
 import { EditableText } from '../editor/canvas/EditableText';
 import { EditableField } from '../editor/canvas/EditableField';
@@ -62,6 +102,27 @@ import {
 import { useHeroParallax } from './useHeroParallax';
 import { getBlockStyle } from '@/lib/block-engine/block-styles';
 import { FooterBouquet } from './FooterBouquet';
+/* V8 Decor system — layered on TOP of MotifScatter as an additive
+   atmospheric layer. Three pieces port over from SiteV8Renderer:
+   • OccasionDecor    — per-occasion decorative SVG shapes (rings
+                        for weddings, candles for memorial, etc.).
+                        Mounted once in the hero behind the variant
+                        content (z-index 0). Renders only when
+                        decorMode === 'occasion'.
+   • DecorDivider     — AI-generated horizontal banner art (lives
+                        on manifest.decorLibrary.divider). Wraps
+                        the existing EditionDivider so Almanac sites
+                        can opt in to a custom AI band between
+                        sections; other Editions keep their
+                        thread/sprocket/stitch/hairline/whitespace
+                        rhythm.
+   • TemplateSignatureDecor — bespoke per-template illustrations
+                              (citrus for Lake Como, monolith for
+                              Marfa). Section-anchored above the
+                              hero variant. */
+import { OccasionDecor } from './OccasionDecor';
+import { DecorDivider } from './DecorDivider';
+import { TemplateSignatureDecor, type SignatureDecorKind } from './TemplateSignatureDecor';
 /* Side-effect import — registers strip / wall / mosaic gallery
    variants with the block-styles registry. The variant dispatch
    in ThemedGallery reads manifest.blockVariants?.gallery?.style
@@ -98,6 +159,20 @@ interface Props {
   /** Name changes ship outside the manifest (they live on the
    *  editor state), so they get their own callback. */
   onEditNames?: (next: [string, string]) => void;
+  /** Multi-page filter. When set to a SiteBlockKey, the renderer
+   *  shows only that block (sub-page route). When set to 'home',
+   *  it shows the hero plus the homePageBlocks subset (multi-page
+   *  home). Undefined = scroll mode (render everything). Mirrors
+   *  SiteV8Renderer's contract. */
+  pageFilter?: SiteBlockKey | 'home';
+  /** Layout mode. When omitted, falls back to readSiteMode(manifest)
+   *  so callers that don't thread the prop still get correct
+   *  behaviour. Both reads come from @/lib/site-mode so there's no
+   *  drift. */
+  siteMode?: SiteMode;
+  /** Home-page block subset. When omitted, falls back to
+   *  readHomePageBlocks(manifest). */
+  homePageBlocks?: SiteBlockKey[];
 }
 
 /* Per-Edition motif kind — mirrors HeroPostcard / SiteV8Renderer
@@ -278,8 +353,71 @@ function shouldShowFaqCta(
   return true;
 }
 
-export function ThemedSiteRenderer({ manifest, names, siteSlug, editMode = false, onEditField, onEditNames }: Props) {
+export function ThemedSiteRenderer({
+  manifest,
+  names,
+  siteSlug,
+  editMode = false,
+  onEditField,
+  onEditNames,
+  pageFilter,
+  siteMode: siteModeProp,
+  homePageBlocks: homePageBlocksProp,
+}: Props) {
   const [n1, n2] = names;
+  /* Multi-page resolution — mirrors SiteV8Renderer. The caller can
+     override either field; otherwise we read from the manifest via
+     the canonical helpers in @/lib/site-mode so the two renderers
+     can never drift. */
+  const siteMode: SiteMode = siteModeProp ?? readSiteMode(manifest);
+  const homePageBlocks: SiteBlockKey[] = homePageBlocksProp ?? readHomePageBlocks(manifest);
+
+  /* shouldRenderBlock — single decision point for whether each
+     canonical SiteBlockKey section renders, given the current
+     pageFilter. Matches the V8 fullBlockOrder filter:
+       • no pageFilter  → render everything (scroll mode)
+       • 'home'         → render only homePageBlocks ∪ {'details'}
+       • specific key   → render only that key
+     Non-SiteBlockKey sections (countdown / weddingParty / map /
+     spotify / hashtag / guestbook) follow their own home-only rule
+     below (see showHomeExtras). */
+  const homeBlockSet = new Set<SiteBlockKey>([...homePageBlocks, 'details']);
+  const shouldRenderBlock = (key: SiteBlockKey): boolean => {
+    if (!pageFilter) return true;
+    if (pageFilter === 'home') return homeBlockSet.has(key);
+    return key === pageFilter;
+  };
+
+  /* Hero / non-SiteBlockKey extras render on scroll mode and on the
+     multi-page home — never on sub-pages, which are focused single-
+     block views. */
+  const showHero = !pageFilter || pageFilter === 'home';
+  const showHomeExtras = !pageFilter || pageFilter === 'home';
+
+  /* Divider visibility — only show a divider between two sections
+     that are both rendering. Prevents orphan dividers at the top or
+     bottom of a sub-page (where only one section actually renders).
+     Mirrors V8's "skip before first" rule but applied here against
+     the per-section render decision so a sub-page with just one
+     block has no surrounding dividers. */
+  const showDividerBefore = (key: SiteBlockKey | 'countdown' | 'weddingParty' | 'map' | 'spotify' | 'hashtag' | 'guestbook'): boolean => {
+    if (!pageFilter) return true;
+    if (pageFilter === 'home') {
+      // On home, only the canonical SiteBlockKey home-blocks render;
+      // the extras (countdown / weddingParty / map / spotify /
+      // hashtag / guestbook) follow showHomeExtras. So show the
+      // divider only when the section itself will render.
+      if (key === 'countdown' || key === 'weddingParty' || key === 'map' || key === 'spotify' || key === 'hashtag' || key === 'guestbook') {
+        return showHomeExtras;
+      }
+      return homeBlockSet.has(key as SiteBlockKey);
+    }
+    // Sub-page: divider only when this exact section renders.
+    if (key === 'countdown' || key === 'weddingParty' || key === 'map' || key === 'spotify' || key === 'hashtag' || key === 'guestbook') {
+      return false;
+    }
+    return key === pageFilter;
+  };
   /* Edit mode is active when the editor passes onEditField AND we
      aren't in preview-as-guest mode. The editMode prop alone
      (from CanvasStage's !previewMode) controls scaffolding; the
@@ -425,6 +563,14 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug, editMode = false
       {!editMode && <GuestPearChat manifest={manifest} coupleNames={[n1, n2]} domain={siteSlug} />}
       {!editMode && <DayOfBanner manifest={manifest} />}
       {!editMode && !computeDayOfState(manifest).active && <BroadcastBar subdomain={siteSlug} />}
+      {/* Scroll-reveal driver — published site only. Sets
+          data-pl-reveal="pending" on every <section> at mount and
+          flips each to "shown" as it crosses the viewport; the
+          actual fade-rise transition lives in pearloom.css. Skipped
+          in editMode so the editor canvas never starts sections
+          hidden (would block click targeting + edit affordances).
+          Honors prefers-reduced-motion internally. */}
+      {!editMode && <ScrollReveal />}
 
       {/* Sub-nav — port of the prototype's themed-site.jsx nav.
           Sticky at top with brand left, section links center,
@@ -434,8 +580,21 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug, editMode = false
 
       {/* Section stack — prototype's ThemedSite renders sections
           in event.sections order. For the scaffold pass we render
-          the canonical 8 in the prototype's default order. */}
-      <ThemedHero manifest={manifest} names={[n1, n2]} motif={motif} onEditField={onEditField} onEditNames={onEditNames} />
+          the canonical 8 in the prototype's default order.
+
+          Hero only renders when showHero is true (i.e. scroll mode
+          or multi-page home). Sub-page routes get a focused single-
+          block view with no hero — matches SiteV8Renderer. */}
+      {showHero && (
+        <ThemedHero manifest={manifest} names={[n1, n2]} motif={motif} onEditField={onEditField} onEditNames={onEditNames} />
+      )}
+
+      {/* ── V8 Decor system — additive layer over MotifScatter ──
+          Three pieces from SiteV8Renderer port over here. The
+          AI-banner + per-template signature illustration is mounted
+          per-section (see below) so each section can resolve its
+          own visibility. OccasionDecor is mounted inside the hero
+          variant via ThemedHero's own decorMode branch. */}
 
       {/* Section stack in the prototype's default order. Each
           section returns null when its data is empty AND we're
@@ -443,44 +602,105 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug, editMode = false
           renders instead so the host sees scaffolding for every
           section they could fill.
 
+          Multi-page filter — every canonical SiteBlockKey section
+          is gated on shouldRenderBlock(); the non-key extras
+          (countdown / weddingParty / map / spotify / hashtag /
+          guestbook) are gated on showHomeExtras so they appear on
+          scroll-mode + multi-page home, but never on a focused
+          sub-page. Dividers between two suppressed neighbours are
+          themselves suppressed via showDividerBefore() so a sub-
+          page doesn't render orphan dividers around its single
+          block.
+
           Edition divider rhythm — between each pair of sections we
           mount an <EditionDivider> styled by the active Edition
           (thread / sprocket / stitch / gold-hairline / whitespace).
           The dividers self-reveal on scroll via the useScrollReveal
           hook inside edition-dividers/index.tsx. Matches V8's
-          inter-section rhythm. Orphan dividers (where an adjacent
-          section returned null) are acceptable for the same reason
-          they are in V8 — the divider chrome is intentionally
-          subtle (1px hairline / a row of dots / 80px gold rule). */}
-      <ThemedCountdown manifest={manifest} editMode={editMode} />
-      <EditionDivider style={activeEdition.divider} />
-      <ThemedStory manifest={manifest} motif={motif} editMode={editMode} onEditField={onEditField} />
-      <EditionDivider style={activeEdition.divider} />
+          inter-section rhythm. */}
+      {showHomeExtras && <ThemedCountdown manifest={manifest} editMode={editMode} />}
+      {showDividerBefore('story') && (
+        <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="story" index={0} />
+      )}
+      {shouldRenderBlock('story') && (
+        <ThemedStory manifest={manifest} motif={motif} editMode={editMode} onEditField={onEditField} />
+      )}
+      {showDividerBefore('weddingParty') && (
+        <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="weddingParty" index={1} />
+      )}
       {/* PullQuote removed — not in the design prototype; the
           story chapters carry the editorial rhythm on their own. */}
-      <ThemedWeddingParty manifest={manifest} />
-      <EditionDivider style={activeEdition.divider} />
-      <ThemedDetails manifest={manifest} motif={motif} editMode={editMode} />
-      <EditionDivider style={activeEdition.divider} />
-      <ThemedSchedule manifest={manifest} editMode={editMode} onEditField={onEditField} />
-      <EditionDivider style={activeEdition.divider} />
-      <ThemedMap manifest={manifest} />
-      <EditionDivider style={activeEdition.divider} />
-      <ThemedTravel manifest={manifest} motif={motif} editMode={editMode} />
-      <EditionDivider style={activeEdition.divider} />
-      <ThemedRegistry manifest={manifest} editMode={editMode} />
-      <EditionDivider style={activeEdition.divider} />
-      <ThemedGallery manifest={manifest} editMode={editMode} onEditField={onEditField} />
-      <EditionDivider style={activeEdition.divider} />
-      <ThemedSpotify manifest={manifest} />
-      <EditionDivider style={activeEdition.divider} />
-      <ThemedHashtag manifest={manifest} />
-      <EditionDivider style={activeEdition.divider} />
-      <ThemedRsvp manifest={manifest} siteSlug={siteSlug} />
-      <EditionDivider style={activeEdition.divider} />
-      <ThemedFaq manifest={manifest} editMode={editMode} onEditField={onEditField} />
-      <EditionDivider style={activeEdition.divider} />
-      <ThemedGuestbook manifest={manifest} names={[n1, n2]} siteSlug={siteSlug} />
+      {showHomeExtras && <ThemedWeddingParty manifest={manifest} />}
+      {showDividerBefore('details') && (
+        <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="details" index={2} />
+      )}
+      {shouldRenderBlock('details') && (
+        <ThemedDetails manifest={manifest} motif={motif} editMode={editMode} />
+      )}
+      {showDividerBefore('schedule') && (
+        <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="schedule" index={3} />
+      )}
+      {shouldRenderBlock('schedule') && (
+        <ThemedSchedule manifest={manifest} editMode={editMode} onEditField={onEditField} />
+      )}
+      {showDividerBefore('map') && (
+        <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="map" index={4} />
+      )}
+      {showHomeExtras && <ThemedMap manifest={manifest} />}
+      {showDividerBefore('travel') && (
+        <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="travel" index={5} />
+      )}
+      {shouldRenderBlock('travel') && (
+        <ThemedTravel manifest={manifest} motif={motif} editMode={editMode} />
+      )}
+      {showDividerBefore('registry') && (
+        <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="registry" index={6} />
+      )}
+      {shouldRenderBlock('registry') && (
+        <ThemedRegistry manifest={manifest} editMode={editMode} />
+      )}
+      {showDividerBefore('gallery') && (
+        <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="gallery" index={7} />
+      )}
+      {shouldRenderBlock('gallery') && (
+        <ThemedGallery manifest={manifest} editMode={editMode} onEditField={onEditField} />
+      )}
+      {showDividerBefore('spotify') && (
+        <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="spotify" index={8} />
+      )}
+      {showHomeExtras && <ThemedSpotify manifest={manifest} />}
+      {showDividerBefore('hashtag') && (
+        <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="hashtag" index={9} />
+      )}
+      {showHomeExtras && <ThemedHashtag manifest={manifest} />}
+      {showDividerBefore('rsvp') && (
+        <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="rsvp" index={10} />
+      )}
+      {shouldRenderBlock('rsvp') && (
+        <ThemedRsvp manifest={manifest} siteSlug={siteSlug} />
+      )}
+      {showDividerBefore('faq') && (
+        <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="faq" index={11} />
+      )}
+      {shouldRenderBlock('faq') && (
+        <ThemedFaq manifest={manifest} editMode={editMode} onEditField={onEditField} />
+      )}
+      {showDividerBefore('guestbook') && (
+        <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="guestbook" index={12} />
+      )}
+      {showHomeExtras && <ThemedGuestbook manifest={manifest} names={[n1, n2]} siteSlug={siteSlug} />}
+
+      {/* Event-OS custom blocks — itinerary, costSplitter,
+          activityVote, toastSignup, adviceWall/tributeWall,
+          obituary, livestream, privacyGate, packingList, program.
+          Mounted after the canonical section stack and before
+          the footer. Only renders on scroll mode + multi-page
+          home (sub-page routes get a focused single-section view
+          and skip the rail). Unknown block types fall through to
+          a "coming soon" placeholder in edit mode only. */}
+      {showHomeExtras && (
+        <ThemedCustomBlocks manifest={manifest} siteSlug={siteSlug} editMode={canEdit} />
+      )}
 
       <ThemedFooter siteSlug={siteSlug} names={[n1, n2]} manifest={manifest} />
     </div>
@@ -1314,6 +1534,63 @@ function EmptyStateCallout({
   );
 }
 
+/* ─── ThemedDecorDivider — V8 decor + EditionDivider combo.
+ *
+ * Mirrors the SiteV8Renderer dispatch around DecorDivider:
+ *
+ *   1. Read manifest.decorVisibility[`divider-<sectionKey>`].
+ *      Editor "× Hide" pill writes false here — when present
+ *      the divider returns null entirely so the inter-section
+ *      gap collapses to whatever section padding allows.
+ *   2. Read manifest.decorLibrary.divider — when set AND we're
+ *      on the Almanac Edition (the only Edition without a
+ *      bespoke EditionDivider), render <DecorDivider> with the
+ *      AI-generated PNG banner. Honours decorLibrary.dividerStrength.
+ *   3. Otherwise fall through to <EditionDivider> with the
+ *      active Edition's divider style (thread / sprocket / stitch
+ *      / gold-hairline / whitespace). This is the existing Themed
+ *      behaviour, preserved as the default.
+ *
+ * The suppress-banner-on-non-Almanac rule matches V8: stacking the
+ * AI banner ON TOP of a Cinema sprocket strip creates the "row of
+ * sun glyphs" double-decor problem the host flagged.
+ *
+ * Honours prefers-reduced-motion via the underlying DecorDivider's
+ * weave keyframe + global reduced-motion blocks (the existing
+ * <EditionDivider> reveal animation already honours this too). */
+type ActiveEdition = ReturnType<typeof resolveEdition>;
+
+function ThemedDecorDivider({
+  manifest,
+  activeEdition,
+  sectionKey,
+  index,
+}: {
+  manifest: StoryManifest;
+  activeEdition: ActiveEdition;
+  sectionKey: string;
+  index: number;
+}) {
+  const decorVis = (manifest as unknown as { decorVisibility?: Record<string, boolean> }).decorVisibility;
+  /* Host hid this specific divider via the editor — return null
+     so the gap between sections collapses naturally. */
+  const dividerHidden = decorVis?.[`divider-${sectionKey}`] === false;
+  if (dividerHidden) return null;
+
+  const dividerUrl = manifest.decorLibrary?.divider;
+  const dividerStrength =
+    ((manifest as unknown as { decorLibrary?: { dividerStrength?: 'subtle' | 'standard' | 'tall' } })
+      .decorLibrary?.dividerStrength) ?? 'standard';
+
+  /* AI banner only renders on Almanac — every other Edition has
+     its own bespoke divider that owns the rhythm. */
+  const showAiBanner = !!dividerUrl && activeEdition.id === 'almanac';
+  if (showAiBanner) {
+    return <DecorDivider url={dividerUrl} index={index} strength={dividerStrength} />;
+  }
+  return <EditionDivider style={activeEdition.divider} />;
+}
+
 /* ─── ThemedHero — Edition + variant-aware hero.
  *
  * Resolution order (matches SiteV8Renderer's HeroSection):
@@ -1392,6 +1669,31 @@ function ThemedHero({ manifest, names, motif, onEditField, onEditNames }: { mani
     ?? getBlockStyle('hero', activeEdition.heroVariantId)
     ?? getBlockStyle('hero', 'postcard');
 
+  /* V8 decor resolution — additive layer over MotifScatter:
+     • signatureDecor (per-template bespoke illustration like
+       citrus / monolith / brushstroke). When set, suppresses the
+       generic OccasionDecor rings — the bespoke art IS the
+       template identity.
+     • decorMode: 'occasion' (per-event shape library — rings,
+       candles, balloons), 'classic' (legacy v8 atmosphere),
+       'off'. Falls through V8's resolution chain. Honours
+       prefers-reduced-motion via the underlying SVG / CSS layer.
+     • aiAccentUrl: when set, mounts a full-bleed cover image as
+       a multiply/screen blend overlay (decor-blend var swaps
+       between paper Editions and Cinema dark). */
+  const signatureDecorKind = (manifest as unknown as { signatureDecor?: string }).signatureDecor;
+  const decorMode: 'occasion' | 'classic' | 'off' =
+    ((manifest as unknown as { decorStyle?: 'classic' | 'occasion' | 'off' }).decorStyle) ??
+    (signatureDecorKind && signatureDecorKind !== 'none' ? 'off' : 'occasion');
+  const aiAccentUrl = (manifest as unknown as { aiAccentUrl?: string }).aiAccentUrl;
+  /* Decor visibility — host can hide the hero OccasionDecor via
+     the editor's decor visibility map. Key matches the V8
+     convention: `hero-occasion-decor`. */
+  const decorVis = (manifest as unknown as { decorVisibility?: Record<string, boolean> }).decorVisibility;
+  const occasionDecorVisible = decorVis?.['hero-occasion-decor'] !== false;
+  const signatureDecorVisible = decorVis?.['hero-signature-decor'] !== false;
+  const aiAccentVisible = decorVis?.['hero-ai-accent'] !== false;
+
   /* Hero context — built once and passed into every variant.
      Mirrors HeroVariantDispatch's `sharedProps.context` in
      SiteV8Renderer so the same variant components plug in
@@ -1467,6 +1769,61 @@ function ThemedHero({ manifest, names, motif, onEditField, onEditNames }: { mani
           />
         </div>
         <MotifScatter motif={motif} density="generous" />
+        {/* V8 OccasionDecor — per-event SVG shapes painted into
+            the hero. Sits above MotifScatter (which paints subtle
+            background motifs) but below the hero variant content
+            so the names + CTAs always read on top. */}
+        {decorMode === 'occasion' && occasionDecorVisible && (
+          <OccasionDecor occasion={occasion} variant="hero" />
+        )}
+        {/* V8 aiAccentUrl — when the host has run /api/decor/library
+            and the result includes a hero accent, mount it as a
+            cover image with Edition-aware blend mode. The decor-blend
+            CSS var swaps between multiply (paper Editions) and
+            screen (Cinema dark) so the wash reads correctly on
+            both. */}
+        {aiAccentUrl && aiAccentVisible && (
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage: `url(${aiAccentUrl})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              mixBlendMode: 'var(--decor-blend, multiply)' as 'multiply',
+              opacity: 0.38,
+              pointerEvents: 'none',
+              zIndex: 0,
+            }}
+          />
+        )}
+        {/* V8 TemplateSignatureDecor — bespoke per-template
+            illustration (citrus for Lake Como, monolith for Marfa,
+            brushstroke for Tokyo Modern, etc.). Anchored to the
+            section's top-right, hidden on mobile via pl8-hide-mobile
+            so the signature art doesn't compete with the name lockup
+            on small screens. */}
+        {signatureDecorKind && signatureDecorKind !== 'none' && signatureDecorVisible && (
+          <div
+            className="pl8-hide-mobile"
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: 'max(0px, calc((100cqw - 1160px) / 2))',
+              width: 240,
+              height: 240,
+              pointerEvents: 'none',
+              zIndex: 2,
+            }}
+          >
+            <TemplateSignatureDecor
+              kind={signatureDecorKind as SignatureDecorKind}
+              position="top-right"
+              size={220}
+            />
+          </div>
+        )}
         {styleId === 'photo-first' ? (
           <Variant {...sharedProps} />
         ) : (
@@ -1516,6 +1873,48 @@ function ThemedHero({ manifest, names, motif, onEditField, onEditNames }: { mani
         />
       </div>
       <MotifScatter motif={motif} density="generous" />
+      {/* V8 OccasionDecor / aiAccentUrl / TemplateSignatureDecor —
+          mirror the variant-branch mounts so the legacy 3-arch
+          fallback gets the same atmospheric layer when reached. */}
+      {decorMode === 'occasion' && occasionDecorVisible && (
+        <OccasionDecor occasion={occasion} variant="hero" />
+      )}
+      {aiAccentUrl && aiAccentVisible && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: `url(${aiAccentUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            mixBlendMode: 'var(--decor-blend, multiply)' as 'multiply',
+            opacity: 0.38,
+            pointerEvents: 'none',
+            zIndex: 0,
+          }}
+        />
+      )}
+      {signatureDecorKind && signatureDecorKind !== 'none' && signatureDecorVisible && (
+        <div
+          className="pl8-hide-mobile"
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: 'max(0px, calc((100cqw - 1160px) / 2))',
+            width: 240,
+            height: 240,
+            pointerEvents: 'none',
+            zIndex: 2,
+          }}
+        >
+          <TemplateSignatureDecor
+            kind={signatureDecorKind as SignatureDecorKind}
+            position="top-right"
+            size={220}
+          />
+        </div>
+      )}
       <div style={{ position: 'relative', maxWidth: 980, margin: '0 auto' }}>
         <EditableText
           as="div"
@@ -1811,6 +2210,7 @@ function ThemedStory({ manifest, motif, editMode, onEditField }: { manifest: Sto
         position: 'relative',
       }}
     >
+      <SectionBackground manifest={manifest} sectionId="our-story" />
       <MotifScatter motif={motif} density="sparse" />
       <ThemedSectionHead eyebrow="Our story" title="How we got" italic="here" manifest={manifest} sectionKey="story" />
       {kit === 'ticket'    && <StoryTicket chapters={chapters} tones={tones} onEditField={onEditField} />}
@@ -2345,6 +2745,7 @@ function ThemedDetails({ manifest, motif, editMode }: { manifest: StoryManifest;
         position: 'relative',
       }}
     >
+      <SectionBackground manifest={manifest} sectionId="details" />
       <MotifScatter motif={motif} density="sparse" />
       <ThemedSectionHead eyebrow="What you need to know" title="The day," italic="in details" manifest={manifest} sectionKey="details" />
       {kit === 'ticket'    && <DetailsTicket items={items} />}
@@ -2764,6 +3165,7 @@ function ThemedSchedule({ manifest, editMode, onEditField }: { manifest: StoryMa
         position: 'relative',
       }}
     >
+      <SectionBackground manifest={manifest} sectionId="schedule" />
       <ThemedSectionHead eyebrow="The day" title="In" italic="moments" manifest={manifest} sectionKey="schedule" />
       {kit === 'ticket'    && <ScheduleTicket events={events} onEditField={onEditField} />}
       {kit === 'plate'     && <SchedulePlate events={events} onEditField={onEditField} />}
@@ -3255,6 +3657,7 @@ function ThemedTravel({ manifest, motif, editMode }: { manifest: StoryManifest; 
         position: 'relative',
       }}
     >
+      <SectionBackground manifest={manifest} sectionId="travel" />
       <MotifScatter motif={motif} density="sparse" />
       <ThemedSectionHead eyebrow="Getting there" title="Where to" italic="stay" manifest={manifest} sectionKey="travel" />
       {/* Port of prototype's TravelBlock (themed-site.jsx ~line
@@ -3396,6 +3799,7 @@ function ThemedRegistry({ manifest, editMode }: { manifest: StoryManifest; editM
         position: 'relative',
       }}
     >
+      <SectionBackground manifest={manifest} sectionId="registry" />
       <ThemedSectionHead eyebrow="If you're asking" title="Registry," italic="gently" manifest={manifest} sectionKey="registry" />
       {reg?.message && (
         <div
@@ -3770,6 +4174,7 @@ function ThemedGallery({ manifest, editMode, onEditField }: { manifest: StoryMan
         position: 'relative',
       }}
     >
+      <SectionBackground manifest={manifest} sectionId="gallery" />
       <ThemedSectionHead eyebrow="Along the way" title="A few" italic="favorites" manifest={manifest} sectionKey="gallery" />
 
       {galleryVariant === 'strip' && (
@@ -4035,6 +4440,7 @@ function ThemedRsvp({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug:
         position: 'relative',
       }}
     >
+      <SectionBackground manifest={manifest} sectionId="rsvp" />
       {openerNode}
       {/* Urgency-tiered deadline ribbon. Muted tier renders flat
           text; the other three tiers wrap in a pill with theme-
@@ -4153,6 +4559,7 @@ function ThemedFaq({ manifest, editMode, onEditField }: { manifest: StoryManifes
         position: 'relative',
       }}
     >
+      <SectionBackground manifest={manifest} sectionId="faq" />
       <ThemedSectionHead eyebrow="Good to know" title="The little" italic="things" manifest={manifest} sectionKey="faq" />
       <FaqList faq={faq} kit={kit} editMode={editMode} onEditField={onEditField} />
     </section>
@@ -4359,7 +4766,7 @@ function ThemedCountdown({ manifest, editMode }: { manifest: StoryManifest; edit
   }
   const target = new Date(dateStr).getTime();
   if (!Number.isFinite(target)) return null;
-  return <CountdownTimer target={target} />;
+  return <CountdownTimer target={target} manifest={manifest} />;
 }
 
 /* CountdownTimer — real React component (the prior version
@@ -4368,7 +4775,7 @@ function ThemedCountdown({ manifest, editMode }: { manifest: StoryManifest; edit
    forever). useEffect + setInterval ticks the four cells.
    SSR-safe: server renders em-dashes, client takes over on
    mount and fills in live values. */
-function CountdownTimer({ target }: { target: number }) {
+function CountdownTimer({ target, manifest }: { target: number; manifest: StoryManifest }) {
   const computeRemaining = useMemo(() => {
     return (now: number) => {
       const d = Math.max(0, target - now);
@@ -4406,8 +4813,10 @@ function CountdownTimer({ target }: { target: number }) {
         padding: 'calc(40px * var(--pl-density-scale, 1)) 32px',
         textAlign: 'center',
         background: 'var(--paper, #F5EFE2)',
+        position: 'relative',
       }}
     >
+      <SectionBackground manifest={manifest} sectionId="countdown" />
       <div
         className="eyebrow"
         style={{
@@ -4667,6 +5076,7 @@ function ThemedMap({ manifest }: { manifest: StoryManifest }) {
         position: 'relative',
       }}
     >
+      <SectionBackground manifest={manifest} sectionId="map" />
       <ThemedSectionHead eyebrow="The place" title="Where it" italic="happens" />
       <div
         style={{
@@ -4834,6 +5244,7 @@ function ThemedSpotify({ manifest }: { manifest: StoryManifest }) {
         position: 'relative',
       }}
     >
+      <SectionBackground manifest={manifest} sectionId="soundtrack" />
       <ThemedSectionHead
         eyebrow="In the air"
         title={name ? 'Our' : 'The'}
@@ -4995,6 +5406,7 @@ function ThemedGuestbook({
         position: 'relative',
       }}
     >
+      <SectionBackground manifest={manifest} sectionId="guestbook" />
       {/* Guestbook isn't a SiteBlockKey (it's a feature toggle, not
           a block in the canonical order), so we render the head
           without a sectionKey — no Edition opener numeral, just the
@@ -5011,6 +5423,334 @@ function ThemedGuestbook({
       <Guestbook siteId={siteSlug} coupleNames={names} vibeSkin={vibeSkin} />
     </section>
   );
+}
+
+/* ─── ThemedCustomBlocks — Event-OS block rail.
+ *
+ * Ports SiteV8Renderer's CustomBlocksRail/CustomBlockCase pair
+ * into the Themed renderer. Each entry on manifest.blocks[] whose
+ * `type` matches one of the 10 known Event-OS blocks
+ * (itinerary, costSplitter, activityVote, toastSignup,
+ *  adviceWall/tributeWall, obituary, livestream, privacyGate,
+ *  packingList, program) gets mounted in order with a
+ * ThemedSectionHead above it (eyebrow + title pulled from
+ * block.config when set, with sensible per-type defaults).
+ *
+ * Any block.type that ISN'T recognized falls through to a
+ * "coming soon" placeholder — but ONLY in edit mode so guests
+ * never see a half-built block. Matches V8's default-case
+ * pattern verbatim.
+ *
+ * The rail is mounted after the canonical section stack and
+ * before the footer so Event-OS blocks read as additional
+ * content beneath the host's main site flow. Hidden on sub-
+ * page routes (pageFilter !== undefined && pageFilter !== 'home')
+ * since Event-OS blocks are home-page content. */
+const THEMED_CUSTOM_BLOCK_TYPES = new Set([
+  'itinerary',
+  'costSplitter',
+  'activityVote',
+  'toastSignup',
+  'adviceWall',
+  'tributeWall',
+  'obituary',
+  'livestream',
+  'privacyGate',
+  'packingList',
+  'program',
+]);
+
+function ThemedCustomBlocks({
+  manifest,
+  siteSlug,
+  editMode,
+}: {
+  manifest: StoryManifest;
+  siteSlug: string;
+  editMode?: boolean;
+}) {
+  const blocks = (manifest.blocks ?? []).filter(
+    (b): b is PageBlock =>
+      Boolean(b) && b.visible !== false && THEMED_CUSTOM_BLOCK_TYPES.has(b.type),
+  );
+  if (blocks.length === 0) return null;
+  const ordered = [...blocks].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  return (
+    <div className="pl8-custom-blocks">
+      {ordered.map((block) => (
+        <ThemedCustomBlockCase
+          key={block.id}
+          block={block}
+          siteSlug={siteSlug}
+          editMode={editMode}
+          manifest={manifest}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* Per-block-type default eyebrow + title labels — used when
+   block.config doesn't override them. Mirrors the editorial
+   tone of the rest of ThemedSiteRenderer's section heads. */
+const THEMED_CUSTOM_BLOCK_DEFAULTS: Record<
+  string,
+  { eyebrow: string; title: string; italic?: string }
+> = {
+  itinerary:    { eyebrow: 'Itinerary', title: 'The', italic: 'plan' },
+  costSplitter: { eyebrow: 'Shared costs', title: 'Splitting', italic: 'the tab' },
+  activityVote: { eyebrow: 'Vote', title: 'Help us', italic: 'decide' },
+  toastSignup:  { eyebrow: 'Toasts', title: 'Raise a', italic: 'glass' },
+  adviceWall:   { eyebrow: 'Advice', title: 'Words for the', italic: 'road' },
+  tributeWall:  { eyebrow: 'Tribute', title: 'A wall of', italic: 'memories' },
+  obituary:     { eyebrow: 'In memory', title: 'A life', italic: 'remembered' },
+  livestream:   { eyebrow: 'Livestream', title: 'Watch', italic: 'live' },
+  privacyGate:  { eyebrow: 'For our guests', title: 'A note on', italic: 'privacy' },
+  packingList:  { eyebrow: 'Packing list', title: 'Bring', italic: 'these' },
+  program:      { eyebrow: 'Program', title: 'Order of', italic: 'events' },
+};
+
+function ThemedCustomBlockCase({
+  block,
+  siteSlug,
+  editMode,
+  manifest,
+}: {
+  block: PageBlock;
+  siteSlug: string;
+  editMode?: boolean;
+  manifest: StoryManifest;
+}) {
+  const cfg = (block.config ?? {}) as Record<string, unknown>;
+  const str = (k: string): string | undefined =>
+    typeof cfg[k] === 'string' ? (cfg[k] as string) : undefined;
+  const arr = <T,>(k: string): T[] => (Array.isArray(cfg[k]) ? (cfg[k] as T[]) : []);
+
+  const defaults = THEMED_CUSTOM_BLOCK_DEFAULTS[block.type];
+  /* Block.config.title / .eyebrow win over the per-type
+     defaults. When neither is set we fall back to the defaults
+     so every block reads with a coherent themed head. */
+  const eyebrow = str('eyebrow') ?? defaults?.eyebrow ?? block.type;
+  const title = str('title') ?? defaults?.title ?? '';
+  const italic = str('italic') ?? defaults?.italic;
+  const showHead = Boolean(eyebrow || title);
+
+  const wrap = (node: ReactNode) => (
+    <section
+      data-pl-block={block.type}
+      data-pl-block-id={block.id}
+      data-pl-reveal="pending"
+      style={{
+        position: 'relative',
+        padding: 'clamp(56px, 9vw, 96px) 24px',
+        background: 'var(--cream, #F5EFE2)',
+      }}
+    >
+      {showHead && (
+        <ThemedSectionHead
+          eyebrow={eyebrow}
+          title={title}
+          italic={italic}
+        />
+      )}
+      <div style={{ maxWidth: 960, margin: '0 auto' }}>{node}</div>
+    </section>
+  );
+
+  switch (block.type) {
+    case 'itinerary': {
+      const days = arr<{
+        label: string;
+        date?: string;
+        slots: { time?: string; title: string; detail?: string; location?: string }[];
+      }>('days');
+      if (days.length === 0 && !editMode) return null;
+      return wrap(
+        <ItineraryBlock
+          title={str('title')}
+          subtitle={str('subtitle')}
+          days={days.length ? days : [{ label: 'Day 1', slots: [] }]}
+          accent="var(--peach-ink)"
+        />,
+      );
+    }
+    case 'costSplitter': {
+      const lineItems = arr<{ label: string; amount: number; note?: string }>('lineItems');
+      if (lineItems.length === 0 && !editMode) return null;
+      return wrap(
+        <CostSplitterBlock
+          title={str('title')}
+          subtitle={str('subtitle')}
+          currency={str('currency') ?? 'USD'}
+          headcount={typeof cfg.headcount === 'number' ? (cfg.headcount as number) : undefined}
+          lineItems={lineItems}
+          payoutHandle={str('payoutHandle')}
+          accent="var(--peach-ink)"
+        />,
+      );
+    }
+    case 'activityVote': {
+      const options = arr<{ id: string; label: string; detail?: string }>('options');
+      if (options.length === 0 && !editMode) return null;
+      return wrap(
+        <ActivityVoteBlock
+          title={str('title')}
+          subtitle={str('subtitle')}
+          question={str('question')}
+          storageKey={siteSlug}
+          options={options}
+          showResults
+          siteId={siteSlug}
+          blockId={block.id}
+          accent="var(--peach-ink)"
+        />,
+      );
+    }
+    case 'toastSignup': {
+      const slots = arr<{ id: string; label: string; detail?: string }>('slots');
+      if (slots.length === 0 && !editMode) return null;
+      return wrap(
+        <ToastSignupBlock
+          title={str('title')}
+          subtitle={str('subtitle')}
+          slots={slots}
+          storageKey={siteSlug}
+          siteId={siteSlug}
+          blockId={block.id}
+          accent="var(--peach-ink)"
+        />,
+      );
+    }
+    case 'adviceWall':
+    case 'tributeWall': {
+      const rawSeeds = arr<{ id?: string; from?: string; name?: string; body: string; at?: string }>(
+        'seeds',
+      );
+      const seeds = rawSeeds.map((s) => ({
+        from: s.from ?? s.name ?? 'Anonymous',
+        body: s.body,
+        at: s.at,
+      }));
+      return wrap(
+        <AdviceWallBlock
+          title={
+            str('title') ??
+            (block.type === 'tributeWall' ? 'A tribute wall' : 'Advice for the road ahead')
+          }
+          subtitle={str('subtitle')}
+          prompt={str('prompt')}
+          seeds={seeds}
+          storageKey={siteSlug}
+          siteId={siteSlug}
+          blockId={block.id}
+          accent="var(--peach-ink)"
+        />,
+      );
+    }
+    case 'obituary': {
+      const body = str('body');
+      if (!body && !editMode) return null;
+      return wrap(
+        <ObituaryBlock
+          name={str('name') ?? ''}
+          dates={str('dates')}
+          photoUrl={str('photoUrl')}
+          body={body ?? ''}
+          inMemoryOf={str('inMemoryOf')}
+          accent="var(--peach-ink)"
+        />,
+      );
+    }
+    case 'livestream': {
+      const url = str('url');
+      if (!url && !editMode) return null;
+      return wrap(
+        <LivestreamBlock
+          title={str('title')}
+          subtitle={str('subtitle')}
+          startsAt={str('startsAt')}
+          url={url ?? ''}
+          buttonLabel={str('buttonLabel')}
+          accent="var(--peach-ink)"
+        />,
+      );
+    }
+    case 'privacyGate': {
+      return wrap(
+        <PrivacyGateBlock
+          title={str('title')}
+          subtitle={str('subtitle')}
+          body={str('body')}
+          rules={arr<string>('rules')}
+          contact={str('contact')}
+          accent="var(--peach-ink)"
+        />,
+      );
+    }
+    case 'packingList': {
+      const items = arr<{ id: string; label: string; category?: string }>('items');
+      if (items.length === 0 && !editMode) return null;
+      return wrap(
+        <PackingListBlock
+          title={str('title')}
+          subtitle={str('subtitle')}
+          items={items}
+          storageKey={siteSlug}
+          accent="var(--peach-ink)"
+        />,
+      );
+    }
+    case 'program': {
+      const items = arr<{ id: string; time?: string; title: string; detail?: string }>('items');
+      if (items.length === 0 && !editMode) return null;
+      return wrap(
+        <ProgramBlock
+          title={str('title')}
+          subtitle={str('subtitle')}
+          items={items}
+          accent="var(--peach-ink)"
+        />,
+      );
+    }
+    default: {
+      /* Block type declared in BlockType union but with no
+         renderer case yet. Warn loudly (so dev + Sentry catch
+         it) and surface a coming-soon placeholder in edit mode
+         so the host knows the block is real but not yet
+         shipped. Published view stays null so guests never see
+         a half-built block. Matches V8's default-case pattern. */
+      if (typeof console !== 'undefined') {
+        console.warn(`[ThemedSiteRenderer] Unimplemented block type: ${block.type}`);
+      }
+      if (!editMode) return null;
+      return (
+        <section
+          data-pl-block={block.type}
+          data-pl-block-id={block.id}
+          style={{
+            padding: '32px 24px',
+            background: 'var(--cream, #F5EFE2)',
+          }}
+        >
+          <div
+            style={{
+              maxWidth: 640,
+              margin: '0 auto',
+              padding: '14px 18px',
+              background: 'var(--cream-2, #FBF7EE)',
+              border: '1px dashed var(--line, rgba(14,13,11,0.16))',
+              borderRadius: 'var(--pl-card-radius, 12px)',
+              color: 'var(--ink-soft, #3A332C)',
+              fontSize: 13,
+              textAlign: 'center',
+            }}
+          >
+            Block type &ldquo;{block.type}&rdquo; is coming soon.
+          </div>
+        </section>
+      );
+    }
+  }
 }
 
 /* Per-Edition footer palette — mirrors the EDITION_PALETTE table
