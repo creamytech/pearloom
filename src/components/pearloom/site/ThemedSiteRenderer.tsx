@@ -970,15 +970,12 @@ function ThemedDetails({ manifest, motif, editMode }: { manifest: StoryManifest;
           margin: '0 auto',
         }}
       >
-        {items.map((it) => (
+        {items.map((it, i) => (
           <div
             key={it.label}
             style={{
-              background: 'var(--card, #FBF7EE)',
-              borderRadius: 'var(--pl-card-radius, 14px)',
+              ...kitCardStyle(manifest.kitId ?? 'classic', i),
               padding: '28px 22px 24px',
-              border: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
-              boxShadow: 'var(--pl-card-shadow, 0 4px 14px rgba(75,65,52,0.08))',
               textAlign: 'center',
             }}
           >
