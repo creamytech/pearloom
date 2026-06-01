@@ -4277,7 +4277,10 @@ html { scroll-behavior: smooth; }
     radial-gradient(ellipse 70% 55% at 88% 58%, rgba(92,107,63,0.50) 0%, transparent 75%),
     radial-gradient(ellipse 60% 40% at 12% 68%, rgba(212,179,115,0.55) 0%, transparent 75%),
     radial-gradient(ellipse 75% 50% at 50% 92%, rgba(196,112,61,0.42) 0%, transparent 75%);
-  background-attachment: fixed;
+  /* background-attachment intentionally LEFT DEFAULT (scroll) — `fixed`
+     positions the background relative to the viewport, which leaks the
+     texture out past .pl8-guest into the editor's left/top rails. The
+     default keeps the wash contained to the .pl8-guest container. */
   background-blend-mode: multiply;
 }
 /* Cards on watercolor: hand-painted wobbly edges via SVG filter
@@ -4338,7 +4341,8 @@ html { scroll-behavior: smooth; }
     repeating-linear-gradient(45deg,
       rgba(139,156,90,0.18) 0px, rgba(139,156,90,0.18) 2px,
       transparent 2px, transparent 20px);
-  background-attachment: fixed;
+  /* background-attachment intentionally LEFT DEFAULT — fixed leaks
+     the weave into the editor rails. */
   filter: saturate(0.94);
 }
 /* Linen cards keep their Edition-chosen background; we add the
@@ -4374,7 +4378,8 @@ html { scroll-behavior: smooth; }
     /* A wide top-down gentle gradient suggests paper thickness;
        lighter at the top, slightly bruised at the bottom. */
     linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 30%, rgba(75,65,52,0.06) 100%);
-  background-attachment: fixed;
+  /* background-attachment intentionally LEFT DEFAULT — fixed leaks
+     the paper-thickness gradient into the editor rails. */
 }
 .pl8-guest[data-pl-texture="letterpress"] section h1,
 .pl8-guest[data-pl-texture="letterpress"] section h2,
@@ -4429,7 +4434,8 @@ html { scroll-behavior: smooth; }
     radial-gradient(ellipse 40% 30% at 88% 88%, rgba(212,179,115,0.22) 0%, transparent 65%),
     /* Top-down sheen — the waxy slick. */
     linear-gradient(180deg, rgba(255,250,220,0.20) 0%, transparent 40%, rgba(196,154,111,0.10) 100%);
-  background-attachment: fixed;
+  /* background-attachment intentionally LEFT DEFAULT — fixed leaks
+     the vellum mottle into the editor rails. */
   background-blend-mode: multiply;
   color: #4A3F25;
 }
