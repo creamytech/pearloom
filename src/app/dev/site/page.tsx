@@ -91,11 +91,42 @@ export default function SiteDevPreview() {
       { id: 'm2', name: 'Halibut', dietaryTags: [] },
       { id: 'm3', name: 'Garden plate', dietaryTags: ['vegetarian'] },
     ],
-    registry: [
-      { label: 'Honeymoon fund', url: 'https://example.com/honeymoon' },
-      { label: 'Our kitchen', url: 'https://example.com/kitchen' },
-      { label: 'Zola', url: 'https://zola.com/alex-jamie' },
+    /* Events — exercises ThemedSchedule kit dispatcher. */
+    events: [
+      { id: 'e1', time: '3:00 PM', name: 'Arrive & settle', description: 'Park, find your seat, breathe in the meadow.' },
+      { id: 'e2', time: '4:00 PM', name: 'Ceremony', description: 'Under the wildflower arch.' },
+      { id: 'e3', time: '5:00 PM', name: 'Cocktails & golden hour', description: 'Photos, hors d’oeuvres, the band warms up.' },
+      { id: 'e4', time: '6:30 PM', name: 'Dinner', description: 'Family-style. Short rib, halibut, garden plate.' },
+      { id: 'e5', time: '8:30 PM', name: 'Dancing under string lights', description: 'Until they kick us out.' },
     ],
+    /* Travel hotels — exercises ThemedTravel. */
+    travelInfo: {
+      hotels: [
+        { name: 'The Allison Inn & Spa', address: '2525 Allison Ln, Newberg, OR', bookingUrl: 'https://example.com/allison', distance: '12 min drive', groupRate: 'Wildflower group rate · $185/night' },
+        { name: 'Atticus Hotel', address: '375 NE Ford St, McMinnville, OR', bookingUrl: 'https://example.com/atticus', distance: '20 min drive', groupRate: 'Mention "Alex & Jamie"' },
+      ],
+    } as never,
+    /* Registry as the modern object shape so ThemedRegistry renders. */
+    registry: {
+      message: "Your presence is the gift. If you'd like to give more, these are the things we're building toward.",
+      entries: [
+        { name: 'Honeymoon fund', url: 'https://example.com/honeymoon', note: "We're going somewhere with no Wi-Fi." },
+        { name: 'Our kitchen', url: 'https://example.com/kitchen', note: 'The dream Le Creuset list.' },
+        { name: 'Zola registry', url: 'https://zola.com/alex-jamie', note: 'Everything else.' },
+      ],
+    } as never,
+    /* FAQs — exercises ThemedFaq kit dispatcher. */
+    faqs: [
+      { id: 'f1', question: 'What should I wear?', answer: 'Garden formal. Soft colors, block heels — it’s grass.' },
+      { id: 'f2', question: 'Are kids welcome?', answer: 'Of course. There’s a kid corner with quiet activities by the dance floor.' },
+      { id: 'f3', question: 'Can I bring a plus-one?', answer: 'Check your invite — if it says +1 you’re welcome to bring someone.' },
+      { id: 'f4', question: 'Will dinner accommodate dietary needs?', answer: 'Yes. Vegetarian, vegan, and gluten-free options — note anything else in your RSVP.' },
+    ],
+    /* Wedding hashtag — exercises ThemedHashtag. */
+    hashtags: ['AlexAndJamie2025'],
+    /* Spotify playlist — exercises ThemedSpotify. */
+    spotifyUrl: 'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M',
+    spotifyPlaylistName: 'soundtrack',
   } as unknown as StoryManifest;
 
   return (
