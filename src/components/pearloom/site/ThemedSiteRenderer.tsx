@@ -102,12 +102,16 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug }: Props) {
           the canonical 8 in the prototype's default order. */}
       <ThemedHero manifest={manifest} names={[n1, n2]} motif={motif} />
 
-      {/* Story / Details / Schedule / Travel / Registry / Gallery
-          / RSVP / FAQ — stub markers for the upcoming ports.
-          Each renders a minimal placeholder with the right id +
-          structure so the nav links work and the layout's bones
-          are correct. */}
+      {/* Section stack in the prototype's default order.
+          Countdown sits between hero and story so guests see the
+          date math first. PullQuote breaks the editorial rhythm
+          mid-body. WeddingParty sits before details so guests can
+          place names to faces. Each section returns null when its
+          source data is missing — no empty placeholders. */}
+      <ThemedCountdown manifest={manifest} />
       <ThemedStory manifest={manifest} motif={motif} />
+      <ThemedPullQuote manifest={manifest} />
+      <ThemedWeddingParty manifest={manifest} />
       <ThemedDetails manifest={manifest} motif={motif} />
       <ThemedSchedule manifest={manifest} />
       <ThemedTravel manifest={manifest} motif={motif} />
@@ -1373,51 +1377,267 @@ function ThemedFaq({ manifest }: { manifest: StoryManifest }) {
   );
 }
 
-/* ─── ThemedSectionStub — placeholder for sections not yet ported ─── */
-function ThemedSectionStub({ id, eyebrow, title }: { id: string; eyebrow: string; title: string }) {
+/* ─── ThemedCountdown — big-number countdown to the event date.
+   Reads manifest.logistics.date. Shows 4 cells (days / hours /
+   minutes / seconds) in display font with mono numerals,
+   eyebrow labels beneath. The math is client-side (so SSR
+   renders a stable placeholder then ticks once mounted). ─── */
+function ThemedCountdown({ manifest }: { manifest: StoryManifest }) {
+  const dateStr = manifest.logistics?.date;
+  if (!dateStr) return null;
+  const target = new Date(dateStr).getTime();
+  if (!Number.isFinite(target)) return null;
+  /* SSR-safe: render -- placeholders, then the client effect
+     fills in the live numbers. */
+  const cells = [
+    { value: '—', label: 'Days' },
+    { value: '—', label: 'Hours' },
+    { value: '—', label: 'Minutes' },
+    { value: '—', label: 'Seconds' },
+  ];
   return (
     <section
-      id={id}
+      id="countdown"
       style={{
-        padding: 'calc(48px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(40px * var(--pl-density-scale, 1)) 32px',
         textAlign: 'center',
-        position: 'relative',
+        background: 'var(--paper, #F5EFE2)',
       }}
     >
       <div
         className="eyebrow"
         style={{
-          fontSize: 11.5,
+          fontSize: 10.5,
           fontWeight: 700,
-          letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+          letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
           textTransform: 'uppercase',
           color: 'var(--peach-ink, #C6703D)',
-          marginBottom: 12,
+          marginBottom: 22,
         }}
       >
-        {eyebrow}
+        Until the day
       </div>
-      <h2
+      <div
+        data-pl-countdown
+        data-target={target}
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: 0,
+          maxWidth: 640,
+          margin: '0 auto',
+        }}
+      >
+        {cells.map((c, i) => (
+          <div
+            key={c.label}
+            style={{
+              padding: '12px 4px',
+              borderLeft: i === 0 ? 'none' : '1px solid var(--line-soft, rgba(14,13,11,0.10))',
+            }}
+          >
+            <div
+              data-pl-countdown-cell={c.label.toLowerCase()}
+              style={{
+                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                fontSize: 'clamp(40px, 6cqw, 64px)',
+                fontWeight: 'var(--pl-display-wght, 600)',
+                color: 'var(--ink, #0E0D0B)',
+                lineHeight: 1,
+                letterSpacing: '-0.02em',
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {c.value}
+            </div>
+            <div
+              className="eyebrow"
+              style={{
+                marginTop: 8,
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
+                textTransform: 'uppercase',
+                color: 'var(--ink-muted, #6F6557)',
+              }}
+            >
+              {c.label}
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* Inline script — keeps the SSR markup intact while
+          letting the cells tick on the client. The script is
+          self-cleaning if the cells aren't there. */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `(function(){
+  var root=document.querySelector('[data-pl-countdown]');if(!root)return;
+  var target=parseInt(root.getAttribute('data-target'),10);if(!target)return;
+  var cells={days:root.querySelector('[data-pl-countdown-cell=days]'),hours:root.querySelector('[data-pl-countdown-cell=hours]'),minutes:root.querySelector('[data-pl-countdown-cell=minutes]'),seconds:root.querySelector('[data-pl-countdown-cell=seconds]')};
+  function tick(){var d=target-Date.now();if(d<0)d=0;var dd=Math.floor(d/86400000);var hh=Math.floor((d%86400000)/3600000);var mm=Math.floor((d%3600000)/60000);var ss=Math.floor((d%60000)/1000);if(cells.days)cells.days.textContent=String(dd);if(cells.hours)cells.hours.textContent=String(hh).padStart(2,'0');if(cells.minutes)cells.minutes.textContent=String(mm).padStart(2,'0');if(cells.seconds)cells.seconds.textContent=String(ss).padStart(2,'0');}
+  tick();setInterval(tick,1000);
+})();`,
+        }}
+      />
+    </section>
+  );
+}
+
+/* ─── ThemedPullQuote — full-width italic display quote in the
+   middle of the page. Reads manifest.poetry.heroTagline (full
+   sentence, not the truncated one in Hero). The block has a
+   gold open/close mark to read as a literal pull-quote. ─── */
+function ThemedPullQuote({ manifest }: { manifest: StoryManifest }) {
+  const heroCopyFull =
+    (manifest as unknown as { poetry?: { heroTagline?: string } }).poetry?.heroTagline ?? '';
+  /* Use the SECOND sentence onwards if there is one (the first
+     is in Hero). Otherwise skip — don't repeat the hero line. */
+  const sentences = heroCopyFull.split(/(?<=[.!?])\s+/);
+  const quote = sentences.length > 1 ? sentences.slice(1).join(' ').trim() : '';
+  if (!quote) return null;
+  return (
+    <section
+      style={{
+        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
+        textAlign: 'center',
+        position: 'relative',
+      }}
+    >
+      <div
+        aria-hidden
         style={{
           fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-          fontSize: 'clamp(36px, 5.5cqw, 56px)',
-          fontWeight: 'var(--pl-display-wght, 600)',
-          margin: 0,
-          lineHeight: 1.04,
-        }}
-      >
-        {title}
-      </h2>
-      <p
-        style={{
-          marginTop: 16,
-          color: 'var(--ink-muted, #6F6557)',
           fontStyle: 'italic',
-          fontSize: 13,
+          fontSize: 72,
+          fontWeight: 400,
+          color: 'var(--gold, #B8935A)',
+          opacity: 0.45,
+          lineHeight: 0.6,
+          marginBottom: -8,
         }}
       >
-        — section port pending —
-      </p>
+        “
+      </div>
+      <blockquote
+        style={{
+          fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+          fontStyle: 'italic',
+          fontSize: 'clamp(22px, 3cqw, 32px)',
+          fontWeight: 400,
+          color: 'var(--ink, #0E0D0B)',
+          maxWidth: 720,
+          margin: '0 auto',
+          lineHeight: 1.35,
+          letterSpacing: '-0.005em',
+          padding: 0,
+          border: 0,
+        }}
+      >
+        {quote}
+      </blockquote>
+      <div
+        aria-hidden
+        style={{
+          width: 80,
+          height: 1,
+          margin: '24px auto 0',
+          background: 'var(--peach-ink, #C6703D)',
+          opacity: 0.35,
+        }}
+      />
+    </section>
+  );
+}
+
+/* ─── ThemedWeddingParty — face cards for honor list. Reads
+   manifest.weddingParty (array of { name, role, photo? }). 3-up
+   on wide, 2-up on tablet, 1-up on phone. Each card: circular
+   photo (or initial monogram), display-font name, eyebrow role.
+   Section is hidden if no party is set. ─── */
+function ThemedWeddingParty({ manifest }: { manifest: StoryManifest }) {
+  const party =
+    ((manifest as unknown as { weddingParty?: Array<{ name?: string; role?: string; photo?: string }> })
+      .weddingParty) ?? [];
+  if (party.length === 0) return null;
+  return (
+    <section
+      style={{
+        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
+        background: 'var(--section, var(--paper))',
+        position: 'relative',
+      }}
+    >
+      <ThemedSectionHead eyebrow="By our side" title="The honor" italic="list" />
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: 28,
+          maxWidth: 900,
+          margin: '0 auto',
+        }}
+      >
+        {party.map((p, i) => {
+          const name = p.name ?? '—';
+          const initial = name.trim().charAt(0).toUpperCase() || '·';
+          return (
+            <div key={i} style={{ textAlign: 'center' }}>
+              <div
+                aria-hidden
+                style={{
+                  width: 120,
+                  height: 120,
+                  borderRadius: '50%',
+                  margin: '0 auto 14px',
+                  backgroundImage: p.photo ? `url(${p.photo})` : 'none',
+                  backgroundColor: p.photo ? 'transparent' : 'var(--peach-bg, rgba(198,112,61,0.10))',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  display: p.photo ? 'block' : 'grid',
+                  placeItems: 'center',
+                  border: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+                  boxShadow: 'var(--pl-card-shadow, 0 8px 20px rgba(75,65,52,0.10))',
+                  fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                  fontStyle: 'italic',
+                  fontSize: 48,
+                  color: 'var(--peach-ink, #C6703D)',
+                  fontWeight: 400,
+                }}
+              >
+                {p.photo ? null : initial}
+              </div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                  fontSize: 19,
+                  fontWeight: 'var(--pl-display-wght, 600)',
+                  color: 'var(--ink, #0E0D0B)',
+                  lineHeight: 1.15,
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {name}
+              </div>
+              {p.role && (
+                <div
+                  className="eyebrow"
+                  style={{
+                    marginTop: 6,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
+                    textTransform: 'uppercase',
+                    color: 'var(--peach-ink, #C6703D)',
+                  }}
+                >
+                  {p.role}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </section>
   );
 }
