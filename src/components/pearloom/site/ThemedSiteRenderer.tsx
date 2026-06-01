@@ -93,8 +93,9 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug }: Props) {
 
       {/* Sub-nav — port of the prototype's themed-site.jsx nav.
           Sticky at top with brand left, section links center,
-          RSVP pill right. */}
-      <ThemedNav names={[n1, n2]} />
+          RSVP pill right. Reads manifest to auto-hide links
+          whose target section is empty. */}
+      <ThemedNav manifest={manifest} names={[n1, n2]} />
 
       {/* Section stack — prototype's ThemedSite renders sections
           in event.sections order. For the scaffold pass we render
@@ -115,15 +116,32 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug }: Props) {
       <ThemedRsvp manifest={manifest} />
       <ThemedFaq manifest={manifest} />
 
-      <ThemedFooter siteSlug={siteSlug} names={[n1, n2]} />
+      <ThemedFooter siteSlug={siteSlug} names={[n1, n2]} manifest={manifest} />
     </div>
   );
 }
 
-/* ─── ThemedNav — port of the prototype's sub-nav ─── */
-function ThemedNav({ names }: { names: [string, string] }) {
+/* ─── ThemedNav — sticky sub-nav with brand italic + dotted-
+   underline section links + peach RSVP pill. Links auto-hide
+   when their target section is empty (no chapters → no Story
+   link, no events → no Schedule link, etc.) so guests never
+   click a link that scrolls into emptiness. ─── */
+function ThemedNav({ manifest, names }: { manifest: StoryManifest; names: [string, string] }) {
   const [n1, n2] = names;
   const brand = n1 && n2 ? `${n1} & ${n2}` : (n1 || n2 || 'Our celebration');
+  /* Available section anchors — each tuple is (label, anchor,
+     visible-when). Filtering keeps the nav honest. */
+  const reg = (manifest as unknown as { registry?: { entries?: unknown[] } }).registry;
+  const links: Array<[string, string, boolean]> = [
+    ['Story',    'our-story', (manifest.chapters ?? []).length > 0],
+    ['Details',  'details',   !!manifest.logistics?.dresscode || !!(manifest.logistics as { kids?: string })?.kids],
+    ['Schedule', 'schedule',  (manifest.events ?? []).length > 0],
+    ['Travel',   'travel',    (manifest.travelInfo?.hotels ?? []).length > 0],
+    ['Registry', 'registry',  (reg?.entries ?? []).length > 0],
+    ['Gallery',  'gallery',   (manifest.chapters ?? []).some((c) => (c.images ?? []).length > 0)],
+    ['FAQ',      'faq',       (manifest.faqs ?? []).length > 0],
+  ];
+  const visibleLinks = links.filter(([, , vis]) => vis);
   return (
     <header
       className="pl8-themed-nav"
@@ -139,49 +157,76 @@ function ThemedNav({ names }: { names: [string, string] }) {
         padding: '14px 32px',
         fontSize: 12.5,
         color: 'var(--ink-soft, #3A332C)',
+        backdropFilter: 'blur(8px)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 200 }}>
+      <a
+        href="#top"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          minWidth: 200,
+          textDecoration: 'none',
+        }}
+      >
         <span
           className="display-italic"
           style={{
             fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
             fontStyle: 'italic',
-            fontSize: 16,
+            fontSize: 17,
+            fontWeight: 500,
             color: 'var(--ink, #0E0D0B)',
+            letterSpacing: '-0.01em',
           }}
         >
           {brand}
         </span>
-      </div>
+      </a>
       <nav
         style={{
           flex: 1,
           display: 'flex',
           justifyContent: 'center',
-          gap: 18,
-          opacity: 0.85,
+          gap: 22,
+          opacity: 0.95,
         }}
       >
-        {['Story', 'Details', 'Schedule', 'Travel', 'Registry', 'Gallery', 'FAQ'].map((l) => (
+        {visibleLinks.map(([label, anchor]) => (
           <a
-            key={l}
-            href={`#${l.toLowerCase().replace(' ', '-').replace('story', 'our-story')}`}
-            style={{ color: 'inherit', textDecoration: 'none' }}
+            key={label}
+            href={`#${anchor}`}
+            style={{
+              color: 'inherit',
+              textDecoration: 'none',
+              padding: '4px 2px',
+              borderBottom: '1px dotted transparent',
+              transition: 'border-color 180ms ease, color 180ms ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderBottomColor = 'var(--peach-ink, #C6703D)';
+              e.currentTarget.style.color = 'var(--peach-ink, #C6703D)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderBottomColor = 'transparent';
+              e.currentTarget.style.color = '';
+            }}
           >
-            {l}
+            {label}
           </a>
         ))}
       </nav>
       <a
         href="#rsvp"
         style={{
-          padding: '6px 14px',
+          padding: '7px 16px',
           borderRadius: 999,
-          background: 'var(--ink, #0E0D0B)',
-          color: 'var(--cream, #F5EFE2)',
+          background: 'var(--peach-ink, #C6703D)',
+          color: 'var(--cream, #FBF7EE)',
           fontSize: 11.5,
-          fontWeight: 600,
+          fontWeight: 700,
+          letterSpacing: '0.04em',
           textDecoration: 'none',
         }}
       >
@@ -1089,14 +1134,18 @@ function ThemedGallery({ manifest }: { manifest: StoryManifest }) {
   );
 }
 
-/* ─── ThemedRsvp — full-width dark CTA section. ─── */
+/* ─── ThemedRsvp — dark CTA section with a cream form-card
+   preview inset. The card mocks two minimal fields (name +
+   attending pills) so the section looks like a real reply
+   surface, not a flat button. Form is presentational — the
+   primary action goes to the actual /g/[token] flow. ─── */
 function ThemedRsvp({ manifest }: { manifest: StoryManifest }) {
   const deadline = manifest.logistics?.rsvpDeadline;
   return (
     <section
       id="rsvp"
       style={{
-        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(64px * var(--pl-density-scale, 1)) 32px',
         textAlign: 'center',
         background: 'var(--ink, #0E0D0B)',
         color: 'var(--cream, #F5EFE2)',
@@ -1108,10 +1157,10 @@ function ThemedRsvp({ manifest }: { manifest: StoryManifest }) {
         style={{
           fontSize: 11.5,
           fontWeight: 700,
-          letterSpacing: 'var(--pl-eyebrow-ls, 0.18em)',
+          letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
           textTransform: 'uppercase',
-          color: 'rgba(245,239,226,0.6)',
-          marginBottom: 8,
+          color: 'rgba(245,239,226,0.55)',
+          marginBottom: 12,
         }}
       >
         {deadline ? `RSVP by ${deadline}` : 'RSVP'}
@@ -1119,38 +1168,127 @@ function ThemedRsvp({ manifest }: { manifest: StoryManifest }) {
       <h2
         style={{
           fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-          fontSize: 'clamp(36px, 5.5cqw, 48px)',
+          fontSize: 'clamp(38px, 5.5cqw, 52px)',
           fontWeight: 'var(--pl-display-wght, 600)',
-          margin: '8px 0 6px',
+          margin: '0 0 8px',
           color: 'var(--cream, #F5EFE2)',
-          lineHeight: 1.04,
+          lineHeight: 1.02,
+          letterSpacing: '-0.015em',
         }}
       >
         Save your <span style={{ fontStyle: 'italic', opacity: 0.85 }}>seat</span>
       </h2>
-      <div style={{ fontSize: 13.5, opacity: 0.7, marginBottom: 22 }}>
-        It takes about 90 seconds. We&apos;ll follow up if anyone forgets.
-      </div>
-      <a
-        href="#"
+      <div
         style={{
-          display: 'inline-block',
-          padding: '12px 28px',
-          borderRadius: 999,
-          background: 'var(--cream, #F5EFE2)',
-          color: 'var(--ink, #0E0D0B)',
           fontSize: 14,
-          fontWeight: 700,
-          textDecoration: 'none',
+          opacity: 0.7,
+          marginBottom: 32,
+          fontStyle: 'italic',
+          fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
         }}
       >
-        Reply now →
-      </a>
+        Ninety seconds. We&apos;ll follow up if anyone forgets.
+      </div>
+      {/* Form-card preview — sits inset on the dark band so the
+          section reads as a real reply surface. */}
+      <div
+        style={{
+          maxWidth: 440,
+          margin: '0 auto',
+          background: 'rgba(245,239,226,0.06)',
+          border: '1px solid rgba(245,239,226,0.14)',
+          borderRadius: 'var(--pl-card-radius, 14px)',
+          padding: '24px 22px',
+          textAlign: 'left',
+        }}
+      >
+        <div
+          className="eyebrow"
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
+            textTransform: 'uppercase',
+            color: 'rgba(245,239,226,0.55)',
+            marginBottom: 6,
+          }}
+        >
+          Your name
+        </div>
+        <div
+          style={{
+            padding: '11px 14px',
+            background: 'rgba(245,239,226,0.04)',
+            border: '1px solid rgba(245,239,226,0.12)',
+            borderRadius: 8,
+            fontSize: 13,
+            color: 'rgba(245,239,226,0.45)',
+            marginBottom: 18,
+          }}
+        >
+          Type your full name…
+        </div>
+        <div
+          className="eyebrow"
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
+            textTransform: 'uppercase',
+            color: 'rgba(245,239,226,0.55)',
+            marginBottom: 8,
+          }}
+        >
+          Will you be there
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {['Joyfully yes', 'Sadly no', 'Maybe'].map((label, i) => (
+            <span
+              key={label}
+              style={{
+                flex: 1,
+                padding: '10px 0',
+                textAlign: 'center',
+                fontSize: 12.5,
+                fontWeight: 600,
+                borderRadius: 8,
+                background: i === 0 ? 'var(--peach-ink, #C6703D)' : 'rgba(245,239,226,0.04)',
+                color: i === 0 ? 'var(--cream, #FBF7EE)' : 'rgba(245,239,226,0.7)',
+                border: i === 0 ? 'none' : '1px solid rgba(245,239,226,0.12)',
+              }}
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+        <a
+          href="#"
+          style={{
+            display: 'block',
+            marginTop: 22,
+            padding: '12px 0',
+            textAlign: 'center',
+            borderRadius: 999,
+            background: 'var(--cream, #F5EFE2)',
+            color: 'var(--ink, #0E0D0B)',
+            fontSize: 14,
+            fontWeight: 700,
+            textDecoration: 'none',
+            letterSpacing: '0.02em',
+          }}
+        >
+          Send your reply →
+        </a>
+      </div>
     </section>
   );
 }
 
-/* ─── ThemedFaq — stacked individual accordion cards. ─── */
+/* ─── ThemedFaq — numbered accordion cards. Each row carries an
+   italic peach numeral prefix (01 / 02 / 03) that doubles as
+   the visual rhythm. Cards keep the same chev-down summary but
+   the question type-set is larger so the FAQ feels like real
+   reading, not a chip rail. ─── */
 function ThemedFaq({ manifest }: { manifest: StoryManifest }) {
   const faq = manifest.faqs ?? [];
   if (faq.length === 0) return null;
@@ -1158,7 +1296,7 @@ function ThemedFaq({ manifest }: { manifest: StoryManifest }) {
     <section
       id="faq"
       style={{
-        padding: 'calc(48px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
         position: 'relative',
       }}
     >
@@ -1167,51 +1305,69 @@ function ThemedFaq({ manifest }: { manifest: StoryManifest }) {
         style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: 8,
-          maxWidth: 640,
+          gap: 10,
+          maxWidth: 680,
           margin: '0 auto',
         }}
       >
-        {faq.map((item, i) => (
-          <details
-            key={item.id ?? i}
-            style={{
-              padding: '14px 18px',
-              background: 'var(--card, #FBF7EE)',
-              border: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
-              borderRadius: 'var(--pl-card-radius, 10px)',
-              boxShadow: 'var(--pl-card-shadow, 0 1px 2px rgba(75,65,52,0.04))',
-            }}
-          >
-            <summary
+        {faq.map((item, i) => {
+          const num = String(i + 1).padStart(2, '0');
+          return (
+            <details
+              key={item.id ?? i}
               style={{
-                fontSize: 13.5,
-                fontWeight: 600,
-                color: 'var(--ink, #0E0D0B)',
-                cursor: 'pointer',
-                listStyle: 'none',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
+                padding: '18px 22px',
+                background: 'var(--card, #FBF7EE)',
+                border: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+                borderRadius: 'var(--pl-card-radius, 12px)',
+                boxShadow: 'var(--pl-card-shadow, 0 2px 6px rgba(75,65,52,0.05))',
               }}
             >
-              {item.question}
-              <Icon name="chev-down" size={13} color="var(--ink-muted, #6F6557)" />
-            </summary>
-            {item.answer && (
-              <p
+              <summary
                 style={{
-                  marginTop: 10,
-                  fontSize: 13,
-                  color: 'var(--ink-soft, #3A332C)',
-                  lineHeight: 1.6,
+                  fontSize: 14.5,
+                  fontWeight: 600,
+                  color: 'var(--ink, #0E0D0B)',
+                  cursor: 'pointer',
+                  listStyle: 'none',
+                  display: 'flex',
+                  gap: 14,
+                  alignItems: 'baseline',
                 }}
               >
-                {item.answer}
-              </p>
-            )}
-          </details>
-        ))}
+                <span
+                  aria-hidden
+                  style={{
+                    fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                    fontStyle: 'italic',
+                    fontWeight: 400,
+                    fontSize: 18,
+                    color: 'var(--peach-ink, #C6703D)',
+                    opacity: 0.85,
+                    minWidth: 24,
+                  }}
+                >
+                  {num}.
+                </span>
+                <span style={{ flex: 1, lineHeight: 1.35 }}>{item.question}</span>
+                <Icon name="chev-down" size={14} color="var(--ink-muted, #6F6557)" />
+              </summary>
+              {item.answer && (
+                <p
+                  style={{
+                    marginTop: 12,
+                    marginLeft: 38,
+                    fontSize: 13.5,
+                    color: 'var(--ink-soft, #3A332C)',
+                    lineHeight: 1.65,
+                  }}
+                >
+                  {item.answer}
+                </p>
+              )}
+            </details>
+          );
+        })}
       </div>
     </section>
   );
@@ -1266,23 +1422,92 @@ function ThemedSectionStub({ id, eyebrow, title }: { id: string; eyebrow: string
   );
 }
 
-/* ─── ThemedFooter ─── */
-function ThemedFooter({ siteSlug: _siteSlug, names }: { siteSlug: string; names: [string, string] }) {
+/* ─── ThemedFooter — editorial close. Gold hairline → italic
+   brand → small "woven on Pearloom" colophon → date in mono
+   eyebrow → back-to-top pill. Reads as the back-cover of a
+   bound book rather than a copyright stripe. ─── */
+function ThemedFooter({ siteSlug: _siteSlug, names, manifest }: { siteSlug: string; names: [string, string]; manifest: StoryManifest }) {
   const [n1, n2] = names;
+  const date = manifest.logistics?.date;
+  const venue = manifest.logistics?.venue;
   return (
     <footer
       style={{
-        padding: '48px 32px',
+        padding: '64px 32px 40px',
         textAlign: 'center',
-        borderTop: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
-        color: 'var(--ink-muted, #6F6557)',
-        fontSize: 12,
+        background: 'var(--paper, #F5EFE2)',
+        position: 'relative',
       }}
     >
-      <span className="display-italic" style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontStyle: 'italic', fontSize: 14, color: 'var(--ink-soft, #3A332C)' }}>
+      {/* Gold hairline */}
+      <div
+        aria-hidden
+        style={{
+          width: 220,
+          height: 1,
+          margin: '0 auto 36px',
+          background: 'linear-gradient(90deg, transparent, var(--gold, #B8935A) 50%, transparent)',
+          opacity: 0.6,
+        }}
+      />
+      <span
+        className="display-italic"
+        style={{
+          fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+          fontStyle: 'italic',
+          fontSize: 26,
+          fontWeight: 500,
+          color: 'var(--ink, #0E0D0B)',
+          letterSpacing: '-0.01em',
+        }}
+      >
         {n1 && n2 ? `${n1} & ${n2}` : 'Our celebration'}
       </span>
-      <div style={{ marginTop: 6 }}>woven on Pearloom</div>
+      {(date || venue) && (
+        <div
+          className="eyebrow"
+          style={{
+            marginTop: 14,
+            fontSize: 10.5,
+            fontWeight: 700,
+            letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
+            textTransform: 'uppercase',
+            color: 'var(--ink-muted, #6F6557)',
+          }}
+        >
+          {[date, venue].filter(Boolean).join(' · ')}
+        </div>
+      )}
+      <a
+        href="#top"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          marginTop: 28,
+          padding: '8px 18px',
+          borderRadius: 999,
+          background: 'transparent',
+          border: '1px solid var(--line, rgba(14,13,11,0.16))',
+          color: 'var(--ink-soft, #3A332C)',
+          fontSize: 11.5,
+          fontWeight: 600,
+          textDecoration: 'none',
+          letterSpacing: '0.02em',
+        }}
+      >
+        ↑ back to top
+      </a>
+      <div
+        style={{
+          marginTop: 36,
+          fontSize: 11,
+          color: 'var(--ink-muted, #6F6557)',
+          fontStyle: 'italic',
+        }}
+      >
+        woven on Pearloom
+      </div>
     </footer>
   );
 }
