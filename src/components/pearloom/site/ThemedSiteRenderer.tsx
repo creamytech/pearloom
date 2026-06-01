@@ -1829,99 +1829,107 @@ function ThemedTravel({ manifest, motif, editMode }: { manifest: StoryManifest; 
     >
       <MotifScatter motif={motif} density="sparse" />
       <ThemedSectionHead eyebrow="Getting there" title="Where to" italic="stay" />
+      {/* Port of prototype's TravelBlock (themed-site.jsx ~line
+          389): 2-col grid, each card 14px padding flex layout
+          with an 84px-square photo placeholder + content block.
+          Photo placeholder uses a tone wash so each hotel reads
+          visually distinct even without a real image. Booking
+          CTA is INLINE (Book ↗) not a pill. */}
       <div
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: kit === 'scrapbook' ? 32 : 20,
-          maxWidth: 820,
+          gap: 16,
+          maxWidth: 780,
           margin: '0 auto',
         }}
       >
         {hotels.map((h, i) => {
           const distance = (h as unknown as { distance?: string }).distance;
+          const photoUrl = (h as unknown as { photoUrl?: string }).photoUrl;
+          // Tone block fallback when no photo — cycles through the
+          // edition's accent tones so each card is distinct.
+          const tonePalette = [
+            'var(--peach-bg, rgba(198,112,61,0.18))',
+            'color-mix(in oklab, var(--peach-ink, #C6703D) 12%, var(--paper, #F5EFE2))',
+            'color-mix(in oklab, var(--peach-ink, #C6703D) 22%, var(--paper, #F5EFE2))',
+          ];
           return (
             <div
               key={i}
               className="pl8-hotel-row"
               style={{
                 ...kitCardStyle(kit, i),
-                padding: kit === 'minimal' ? '20px 0 0' : '22px 22px 20px',
+                padding: 14,
+                display: 'flex',
+                gap: 14,
+                alignItems: 'center',
               }}
             >
-              {distance && (
-                <div
-                  className="eyebrow"
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
-                    textTransform: 'uppercase',
-                    color: 'var(--peach-ink, #C6703D)',
-                    marginBottom: 8,
-                  }}
-                >
-                  {distance}
-                </div>
-              )}
+              {/* Photo placeholder square — 84x84 with rounded
+                  corners. Real photo when manifest provides one,
+                  tone block otherwise. */}
               <div
                 style={{
-                  fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-                  fontSize: 24,
-                  fontWeight: 'var(--pl-display-wght, 600)',
-                  color: 'var(--ink, #0E0D0B)',
-                  lineHeight: 1.1,
-                  letterSpacing: '-0.01em',
+                  width: 84,
+                  height: 84,
+                  flexShrink: 0,
+                  borderRadius: 'var(--pl-card-radius, 8px)',
+                  ...(photoUrl
+                    ? {
+                        backgroundImage: `url(${photoUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }
+                    : {
+                        background: tonePalette[i % tonePalette.length],
+                      }),
                 }}
-              >
-                {h.name}
+              />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                    fontWeight: 'var(--pl-display-wght, 600)',
+                    fontSize: 19,
+                    color: 'var(--ink, #0E0D0B)',
+                    lineHeight: 1.15,
+                  }}
+                >
+                  {h.name}
+                </div>
+                {(distance || h.address) && (
+                  <div
+                    style={{
+                      fontSize: 12.5,
+                      color: 'var(--ink-muted, #6F6557)',
+                      marginTop: 4,
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {distance ?? h.address}
+                  </div>
+                )}
+                {h.bookingUrl && (
+                  <a
+                    href={h.bookingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      marginTop: 9,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: 'var(--peach-ink, #C6703D)',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    Book <Icon name="arrow-ur" size={11} color="var(--peach-ink, #C6703D)" />
+                  </a>
+                )}
               </div>
-              {h.address && (
-                <div
-                  style={{
-                    marginTop: 8,
-                    fontSize: 13,
-                    color: 'var(--ink-soft, #3A332C)',
-                    lineHeight: 1.55,
-                  }}
-                >
-                  {h.address}
-                </div>
-              )}
-              {(h as unknown as { groupRate?: string }).groupRate && (
-                <div
-                  style={{
-                    marginTop: 10,
-                    fontSize: 12,
-                    fontStyle: 'italic',
-                    color: 'var(--ink-muted, #6F6557)',
-                  }}
-                >
-                  {(h as unknown as { groupRate?: string }).groupRate}
-                </div>
-              )}
-              {h.bookingUrl && (
-                <a
-                  href={h.bookingUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    marginTop: 16,
-                    padding: '8px 16px',
-                    borderRadius: 999,
-                    background: 'var(--peach-bg, rgba(198,112,61,0.10))',
-                    color: 'var(--peach-ink, #C6703D)',
-                    fontSize: 12.5,
-                    fontWeight: 600,
-                    textDecoration: 'none',
-                  }}
-                >
-                  Book ↗
-                </a>
-              )}
             </div>
           );
         })}
@@ -2294,61 +2302,104 @@ function FaqList({ faq, kit }: { faq: FaqItem[]; kit: string }) {
 }
 
 function FaqRow({ item, index, kit, totalCount }: { item: FaqItem; index: number; kit: string; totalCount: number }) {
-  const num = String(index + 1).padStart(2, '0');
-  /* Per-kit row style. */
-  const rowStyle: React.CSSProperties = (() => {
-    switch (kit) {
-      case 'ticket':
-        return { padding: '20px 22px', background: 'var(--card, #FBF7EE)', border: '1.5px dashed var(--ink-soft, #3A332C)', borderRadius: 6, position: 'relative' };
-      case 'plate':
-        return { padding: '20px 24px', background: 'var(--card, #FBF7EE)', borderRadius: 1, boxShadow: 'inset 0 0 0 1px rgba(14,13,11,0.30), inset 0 0 0 4px var(--card, #FBF7EE), inset 0 0 0 5px rgba(14,13,11,0.15)' };
-      case 'scrapbook':
-        return { padding: '20px 22px', background: '#FFFDF7', boxShadow: '0 10px 22px rgba(0,0,0,0.12)', borderRadius: 2, transform: `rotate(${index % 2 === 0 ? -0.6 : 0.6}deg)` };
-      case 'index':
-        return { padding: '18px 22px', background: 'var(--card, #FBF7EE)', borderLeft: '2px solid rgba(199,80,80,0.55)', backgroundImage: 'repeating-linear-gradient(180deg, transparent 0 21px, rgba(74,118,196,0.10) 21px 22px)', borderRadius: 2 };
-      case 'minimal':
-        return {
-          padding: '18px 0', background: 'transparent', border: 'none',
-          borderBottom: index === totalCount - 1 ? 'none' : '1px solid var(--line-soft, rgba(14,13,11,0.08))',
-          borderRadius: 0,
+  /* Per-kit chrome + numeral pattern matches prototype's KFaq.
+     The prototype's plate + minimal show a numeral; the other
+     kits (ticket / scrapbook / index / classic) show just the
+     question + chev with KCard-style chrome around the row. */
+
+  const isPlate = kit === 'plate';
+  const isMinimal = kit === 'minimal';
+
+  // Wrapper chrome — for plate + minimal, hairline border between
+  // rows; for other kits, kitCardStyle chrome.
+  const wrapStyle: React.CSSProperties = isPlate
+    ? {
+        display: 'flex',
+        gap: 16,
+        alignItems: 'baseline',
+        padding: '16px 4px',
+        borderBottom: index < totalCount - 1 ? '1px solid var(--line-soft, rgba(14,13,11,0.10))' : 'none',
+      }
+    : isMinimal
+      ? {
+          display: 'grid',
+          gridTemplateColumns: 'auto 1fr',
+          gap: 18,
+          alignItems: 'baseline',
+          padding: '18px 0',
+          borderBottom: '1px solid var(--line-soft, rgba(14,13,11,0.10))',
+        }
+      : {
+          ...kitCardStyle(kit, index),
+          padding: '14px 18px',
         };
-      default:
-        return { padding: '18px 22px', background: 'var(--card, #FBF7EE)', border: '1px solid var(--line-soft, rgba(14,13,11,0.08))', borderRadius: 'var(--pl-card-radius, 12px)', boxShadow: 'var(--pl-card-shadow, 0 2px 6px rgba(75,65,52,0.05))' };
-    }
-  })();
-  /* Per-kit numeral style. */
-  const numeralStyle: React.CSSProperties = (() => {
-    switch (kit) {
-      case 'ticket':
-        return { fontFamily: 'Courier New, ui-monospace, monospace', fontStyle: 'normal', fontWeight: 700, fontSize: 14, color: 'var(--peach-ink, #C6703D)', minWidth: 30 };
-      case 'plate':
-        return { fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontStyle: 'italic', fontWeight: 400, fontSize: 22, color: 'var(--peach-ink, #C6703D)', minWidth: 30 };
-      case 'scrapbook':
-        return { fontFamily: 'var(--font-display, Caveat, cursive)', fontStyle: 'italic', fontWeight: 500, fontSize: 22, color: 'var(--peach-ink, #C6703D)', minWidth: 30 };
-      case 'index':
-        return { fontFamily: 'Courier New, ui-monospace, monospace', fontWeight: 700, fontSize: 12, color: 'var(--ink, #0E0D0B)', minWidth: 36 };
-      case 'minimal':
-        return { fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink, #0E0D0B)', minWidth: 50 };
-      default:
-        return { fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontStyle: 'italic', fontWeight: 400, fontSize: 18, color: 'var(--peach-ink, #C6703D)', opacity: 0.85, minWidth: 24 };
-    }
-  })();
+
+  // Numeral content/style per kit (only plate + minimal render
+  // a numeral per the prototype).
+  let numeral: React.ReactNode = null;
+  if (isPlate) {
+    numeral = (
+      <span
+        style={{
+          fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+          fontStyle: 'italic',
+          fontWeight: 'var(--pl-display-wght, 600)',
+          fontSize: 18,
+          color: 'var(--peach-ink, #C6703D)',
+          minWidth: 28,
+        }}
+      >
+        {ROMAN_NUMERALS[index] ?? String(index + 1)}
+      </span>
+    );
+  } else if (isMinimal) {
+    numeral = (
+      <span
+        style={{
+          fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+          fontWeight: 'var(--pl-display-wght, 600)',
+          fontSize: 24,
+          color: 'var(--ink-muted, #6F6557)',
+          minWidth: 40,
+        }}
+      >
+        {String(index + 1).padStart(2, '0')}
+      </span>
+    );
+  }
+
   return (
-    <details className="pl8-faq-row" style={rowStyle}>
-      <summary style={{
-        fontSize: 14.5, fontWeight: 600, color: 'var(--ink, #0E0D0B)',
-        cursor: 'pointer', listStyle: 'none',
-        display: 'flex', gap: 14, alignItems: 'baseline',
-      }}>
-        <span aria-hidden style={numeralStyle}>{kit === 'index' ? `№${num}` : `${num}.`}</span>
-        <span style={{ flex: 1, lineHeight: 1.35 }}>{item.question}</span>
+    <details className="pl8-faq-row" style={wrapStyle}>
+      <summary
+        style={{
+          fontSize: 15,
+          fontWeight: 600,
+          color: 'var(--ink, #0E0D0B)',
+          cursor: 'pointer',
+          listStyle: 'none',
+          display: 'flex',
+          gap: 14,
+          alignItems: 'baseline',
+          flex: 1,
+          width: '100%',
+        }}
+      >
+        {numeral}
+        <span style={{ flex: 1, lineHeight: 1.35, fontSize: isPlate || isMinimal ? 15 : 14 }}>
+          {item.question}
+        </span>
         <Icon name="chev-down" size={14} color="var(--ink-muted, #6F6557)" />
       </summary>
       {item.answer && (
-        <p style={{
-          marginTop: 12, marginLeft: kit === 'minimal' ? 64 : 38,
-          fontSize: 13.5, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.65,
-        }}>
+        <p
+          style={{
+            marginTop: 12,
+            marginLeft: isMinimal ? 58 : isPlate ? 44 : 0,
+            fontSize: 13.5,
+            color: 'var(--ink-soft, #3A332C)',
+            lineHeight: 1.65,
+          }}
+        >
           {item.answer}
         </p>
       )}
@@ -2810,17 +2861,19 @@ function ThemedSpotify({ manifest }: { manifest: StoryManifest }) {
   const url = manifest.spotifyUrl;
   const name = manifest.spotifyPlaylistName;
   if (!url) return null;
-  /* Transform a regular spotify URL into its embed counterpart.
-     Pattern: /playlist/, /track/, /album/, /show/, /episode/. */
-  const embedUrl = url.replace(
-    /open\.spotify\.com\/(playlist|track|album|show|episode)\//,
-    'open.spotify.com/embed/$1/',
-  );
+  /* Validate + transform the URL. Only known Spotify resource
+     paths get the iframe treatment; anything else falls back to
+     a "listen on Spotify" card with no embed (avoids the empty-
+     iframe ghost we see when the URL is invalid or blocked). */
+  const m = url.match(/open\.spotify\.com\/(playlist|track|album|show|episode)\/([A-Za-z0-9]+)/);
+  const embedUrl = m
+    ? url.replace(/open\.spotify\.com\/(playlist|track|album|show|episode)\//, 'open.spotify.com/embed/$1/')
+    : null;
   return (
     <section
       id="soundtrack"
       style={{
-        padding: 'calc(48px * var(--pl-density-scale, 1)) 32px',
+        padding: 'calc(40px * var(--pl-density-scale, 1)) 32px',
         textAlign: 'center',
         background: 'var(--section, var(--cream-2, #EBE3D2))',
         position: 'relative',
@@ -2842,16 +2895,39 @@ function ThemedSpotify({ manifest }: { manifest: StoryManifest }) {
           background: 'var(--card, #FBF7EE)',
         }}
       >
-        <iframe
-          title="Soundtrack"
-          src={embedUrl}
-          width="100%"
-          height="232"
-          frameBorder="0"
-          loading="lazy"
-          allow="encrypted-media; clipboard-write"
-          style={{ display: 'block', border: 0 }}
-        />
+        {embedUrl ? (
+          <iframe
+            title="Soundtrack"
+            src={embedUrl}
+            width="100%"
+            height="232"
+            frameBorder="0"
+            loading="lazy"
+            allow="encrypted-media; clipboard-write"
+            style={{ display: 'block', border: 0 }}
+          />
+        ) : (
+          /* Fallback — the URL didn't match a known Spotify
+             resource pattern. Render a quiet "listen on Spotify"
+             card so the section isn't an empty box. */
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              padding: '36px 24px',
+              textDecoration: 'none',
+              color: 'var(--ink, #0E0D0B)',
+            }}
+          >
+            <Icon name="play" size={16} color="var(--peach-ink, #C6703D)" />
+            <span style={{ fontSize: 14, fontWeight: 600 }}>Listen on Spotify ↗</span>
+          </a>
+        )}
       </div>
     </section>
   );
