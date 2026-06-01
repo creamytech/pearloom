@@ -61,7 +61,12 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug }: Props) {
   const eventType = getEventType(occasion);
   const voice = eventType?.voice ?? 'celebratory';
   const activeEdition = resolveEdition({ edition, occasion, voice });
-  const motif: MotifKind = EDITION_MOTIF[edition] ?? 'pressed';
+  /* Motifs honor the Fine-tune toggle. When motifsEnabled is
+     explicitly false, every section's MotifScatter receives
+     'none' so no decorative shapes render. Default = true so
+     existing sites are unchanged. */
+  const motifsOn = manifest.motifsEnabled ?? true;
+  const motif: MotifKind = motifsOn ? (EDITION_MOTIF[edition] ?? 'pressed') : 'none';
   const texture = manifest.texture ?? 'smooth';
   const density = manifest.density ?? 'comfortable';
   const intensity = manifest.textureIntensity ?? 1;

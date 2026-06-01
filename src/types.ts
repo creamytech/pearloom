@@ -577,6 +577,10 @@ export interface StoryManifest {
    *  Read by ThemedSiteRenderer as `data-pl-page-layout` on the
    *  .pl8-guest root so CSS can scope the framing. */
   pageLayout?: 'classic' | 'invitation' | 'split';
+  /** Motifs on/off — binary toggle the prototype's Fine-tune
+   *  section exposes. When false, the renderer suppresses
+   *  MotifScatter and per-Edition decor flourishes. */
+  motifsEnabled?: boolean;
   /** Texture intensity — multiplier applied to the texture grain
    *  overlay opacity. 0 = no grain (smooth even when a material is
    *  picked), 1 = default, up to 1.5 = exaggerated. Lets hosts

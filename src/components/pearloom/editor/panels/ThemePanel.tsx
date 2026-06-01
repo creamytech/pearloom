@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { DEFAULT_HOME_BLOCKS, type SiteMode } from '@/lib/site-mode';
 import { Field, PanelGroup, PanelSection, SegmentedToggle, SelectInput, TextInput } from '../atoms';
@@ -16,9 +16,19 @@ import { SpacingPanel } from './SpacingPanel';
 import { SnapshotsPanel } from './SnapshotsPanel';
 import { EditionPicker } from './EditionPicker';
 import { LayoutPicker } from './LayoutPicker';
-import { TexturePicker } from './TexturePicker';
 import { KitPicker } from './KitPicker';
-import { LookEnginePanel } from './LookEnginePanel';
+import { EDITIONS } from '@/lib/site-editions/editions';
+import { resolveEdition } from '@/lib/site-editions/resolve';
+import { getEventType } from '@/lib/event-os/event-types';
+import {
+  SiteLookHeader,
+  EventTypeSection,
+  GenerateFromStoryCard,
+  FineTuneSection,
+  MatchMyPhotosSection,
+  SavedLooksSection,
+  MatchingSaveTheDateCTA,
+} from './theme-panel-sections';
 import {
   DecorPromptComposer,
   DecorAlternatesStrip,
@@ -266,224 +276,199 @@ export function ThemePanel({
     } as unknown as StoryManifest);
   }
 
+  /* Active Edition resolution — used for the "Fine-tune ·
+     {THEME NAME}" header and the texture slider label. Falls
+     back to the recommendation when the host hasn't picked. */
+  const activeEditionId = manifest.edition ?? resolveEdition({
+    edition: undefined,
+    occasion: manifest.occasion ?? 'wedding',
+    voice: getEventType(manifest.occasion)?.voice ?? 'celebratory',
+  }).id;
+  const activeEdition = EDITIONS.find((e) => e.id === activeEditionId) ?? EDITIONS[0];
+
   return (
-    <div>
-      {/* ── EDITION ── the highest-altitude design decision. One
-          pick sets the hero variant, atmosphere preset, openers,
-          dividers, and (eventually) block ordering. Sits above
-          Look because picking an Edition is the host's primary
-          editorial voice; everything below is a finer override. */}
-      <ThemeCategory label="Edition" hint="Pick a layout persona — Pear sets the rest. Override anything below." />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <SiteLookHeader manifest={manifest} onChange={onChange} />
+      <EventTypeSection manifest={manifest} onChange={onChange} />
+      <GenerateFromStoryCard manifest={manifest} onChange={onChange} />
+
+      {/* Edition / Layout / Kit — the three high-altitude picks
+          that drive the whole-site look. EditionPicker stamps the
+          theme palette + fonts + naturalTexture; LayoutPicker
+          frames the page; KitPicker restyles repeating rows. */}
       <div data-pl-design-anchor="edition">
         <EditionPicker manifest={manifest} onChange={onChange} />
       </div>
-      <div data-pl-design-anchor="texture">
-        <TexturePicker manifest={manifest} onChange={onChange} />
-      </div>
-
-      {/* Layout — whole-page frame. Port of the prototype's LAYOUT
-          dial (Classic full scroll / Invitation card-on-mat /
-          Split sidebar). Independent of Edition + Kit. */}
       <div data-pl-design-anchor="layout">
         <LayoutPicker manifest={manifest} onChange={onChange} />
       </div>
-
-      {/* Component kit — restyles cards, dividers, chips, schedule
-          rows, FAQ rows. Independent of Edition so any persona can
-          wear any kit. See KitPicker.tsx for the 6 kits + per-kit
-          CSS in pearloom.css for the treatments. */}
       <div data-pl-design-anchor="kit">
         <KitPicker manifest={manifest} onChange={onChange} />
       </div>
 
-      {/* Look Engine — fine-tune dials below the persona pickers.
-          Ports the prototype's right-rail Fine-tune block (voice,
-          spacing, texture intensity, legibility note, matching
-          stationery CTA). Sits right after Edition + Texture
-          because those are the two persona dials this fine-tunes. */}
-      <div data-pl-design-anchor="look-engine">
-        <LookEnginePanel manifest={manifest} onChange={onChange} />
-      </div>
+      {/* Fine-tune · {ACTIVE THEME NAME} — voice, spacing,
+          theme-bound texture slider, motifs toggle, photos toggle,
+          AA contrast indicator. Port of the prototype's right-
+          rail Fine-tune block. */}
+      <FineTuneSection
+        manifest={manifest}
+        onChange={onChange}
+        activeEdition={activeEdition}
+      />
 
-      {/* "Look" cluster — palette + type + colors + motif + hero
-          decoration. The cluster band was removed (audit): the
-          first child IS the Palette section, so a "Look — Palette,
-          type, and the shapes" band immediately above a "Palette"
-          section header was two near-identical headers stacked.
-          Skipping the band lets Palette serve as its own header
-          and the Edition picker above stay the visible high-
-          altitude decision. */}
-      <PanelGroup>
-        <div data-pl-design-anchor="palette">
-          {/* Audited 2026-04-30: deleted the "Active theme" / "Theme
-              name" PanelSection above the palette grid. The text
-              input wrote manifest.themeName, which nothing read.
-              The swatch tile + name were redundant with the palette
-              grid below — the active palette is already highlighted
-              and labelled. One less form field, no functional loss. */}
-          <PaletteSection manifest={manifest} active={active} palette={active.id} applyPalette={applyPalette} onChange={onChange} />
-          {/* CustomPaletteEditor removed — the mix-your-own form
-              duplicated ColorTokenInspector below. Hosts who want
-              raw colour tweaks use the canonical token inspector.
-              The Custom tab in the palette grid keeps showing
-              Pear-saved palettes. */}
-        </div>
+      <MatchMyPhotosSection manifest={manifest} onChange={onChange} />
+      <SavedLooksSection manifest={manifest} onChange={onChange} />
+      <MatchingSaveTheDateCTA />
 
-        <div data-pl-design-anchor="motif">
-          <PanelSection label="Motif" hint="Decorative shapes that punctuate the design.">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-              {MOTIFS.map((m) => {
-                const on = motif === m.id;
-                return (
-                  <button
-                    key={m.id}
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => applyMotif(m.id as 'pear' | 'squiggle' | 'blob')}
-                    style={{
-                      padding: 12,
-                      borderRadius: 12,
-                      background: on ? 'var(--sage-tint)' : 'var(--card)',
-                      border: on ? '1.5px solid var(--sage-deep)' : '1.5px solid var(--line)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: 6,
-                      fontFamily: 'var(--font-ui)',
-                    }}
-                  >
-                    <div style={{ height: 30, display: 'grid', placeItems: 'center' }}>{m.icon}</div>
-                    <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ink)' }}>{m.name}</div>
-                  </button>
-                );
-              })}
-            </div>
-          </PanelSection>
-        </div>
-
-        <div data-pl-design-anchor="fonts">
-          <FontPicker manifest={manifest} onChange={onChange} />
-        </div>
-
-        <div data-pl-design-anchor="colors">
-          <ColorTokenInspector manifest={manifest} onChange={onChange} />
-        </div>
-
-        <div data-pl-design-anchor="hero-decor">
-          <PanelSection
-            label="Hero decoration"
-            hint="Occasion-aware shapes match your event; classic keeps the v8 cream blobs; off is clean."
-          >
-            <SegmentedToggle<string>
-              value={read<string>(manifest, 'decorStyle', 'occasion')}
-              onChange={(v) => update({ decorStyle: v })}
-              options={[
-                { value: 'occasion', label: 'By occasion' },
-                { value: 'classic', label: 'Classic' },
-                { value: 'off', label: 'Off' },
-              ]}
-            />
-          </PanelSection>
-        </div>
-      </PanelGroup>
-
-      {/* ── ATMOSPHERE ── motion + ambience that frame the content
-          rather than IS the content. Lower-touch than Look — most
-          hosts pick a palette and leave atmosphere on the default.
-          Collapsed-first cluster keeps the panel quieter. */}
-      <ThemeCategory label="Atmosphere" hint="Motion, accents, and the feeling between sections." />
-      <PanelGroup>
-        <div data-pl-design-anchor="ai-accent">
-          <AiAccentSection manifest={manifest} onChange={onChange} />
-        </div>
-
-        <div data-pl-design-anchor="atmosphere">
-          <AtmospherePanel manifest={manifest} onChange={onChange} />
-        </div>
-      </PanelGroup>
-
-      {/* ── LAYOUT ── structural choices: spacing scale, scroll vs
-          multi-page, footer composition. Hosts visit Layout once
-          early on and rarely return — collapsed-first is correct. */}
-      <ThemeCategory label="Layout" hint="Spacing, page structure, and the footer." />
-      <PanelGroup>
-        <div data-pl-design-anchor="spacing">
-          <SpacingPanel manifest={manifest} onChange={onChange} />
-        </div>
-
-        <div data-pl-design-anchor="layout-mode">
-          <SiteModeSection manifest={manifest} onChange={onChange} />
-        </div>
-
-        <div data-pl-design-anchor="footer">
-          <FooterCustomizationSection manifest={manifest} onChange={onChange} />
-        </div>
-      </PanelGroup>
-
-      {/* ── EXTRAS ── power features. Both were already inside
-          <details> disclosures so they don't bloat the scroll;
-          the category divider just makes it clear they're a
-          separate concern. */}
-      <ThemeCategory label="Extras" hint="Decor library, stickers, version history." />
-
-      {/* Snapshots — version-history power feature. Visible only on
-          demand so the Theme scroll doesn't surface a giant version
-          list to hosts who just want to pick a palette. Audited 2026-04-30. */}
-      <details>
+      {/* All other tools live behind one Advanced disclosure so
+          the main scroll stays focused on the prototype's exact
+          surface. Power features stay accessible without bloating
+          the default view. */}
+      <details
+        style={{
+          marginTop: 14,
+          padding: '4px 0',
+          borderTop: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+        }}
+      >
         <summary
           style={{
             cursor: 'pointer',
-            padding: '10px 14px',
-            borderRadius: 10,
-            background: 'var(--cream-2)',
-            border: '1px dashed var(--line)',
-            fontSize: 12.5,
+            padding: '12px 14px',
+            fontSize: 11,
             fontWeight: 700,
-            letterSpacing: '0.04em',
-            color: 'var(--ink-soft)',
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: 'var(--ink-muted, #6F6557)',
             userSelect: 'none',
-            margin: '6px 0',
           }}
         >
-          ↺ Version history (snapshots)
+          ⌄ Advanced
         </summary>
-        <div style={{ paddingTop: 6 }}>
-          <SnapshotsPanel manifest={manifest} onChange={onChange} />
-        </div>
-      </details>
-
-      {/* Decor library + Stickers — both are "extra flair" power
-          features that only some hosts ever touch. Wrapped in one
-          shared <details> so the theme scroll stays focused on
-          palette/type/colors/atmosphere. Audited 2026-04-30. */}
-      <div data-pl-design-anchor="decor">
-        <details>
-          <summary
-            style={{
-              cursor: 'pointer',
-              padding: '10px 14px',
-              borderRadius: 10,
-              background: 'var(--cream-2)',
-              border: '1px dashed var(--line)',
-              fontSize: 12.5,
-              fontWeight: 700,
-              letterSpacing: '0.04em',
-              color: 'var(--ink-soft)',
-              userSelect: 'none',
-              margin: '6px 0',
-            }}
-          >
-            ✦ Decor extras — AI-drafted dividers, stamps, stickers
-          </summary>
-          <div style={{ paddingTop: 6 }}>
-            <DecorLibraryPanel manifest={manifest} onChange={onChange} />
-            <div data-pl-design-anchor="stickers">
-              <StickerTrayPanel manifest={manifest} onChange={onChange} />
-            </div>
+        <PanelGroup>
+          <div data-pl-design-anchor="palette">
+            <PaletteSection manifest={manifest} active={active} palette={active.id} applyPalette={applyPalette} onChange={onChange} />
           </div>
-        </details>
-      </div>
+          <div data-pl-design-anchor="motif">
+            <PanelSection label="Motif shape" hint="The specific motif used when Motifs is on.">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                {MOTIFS.map((m) => {
+                  const on = motif === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => applyMotif(m.id as 'pear' | 'squiggle' | 'blob')}
+                      style={{
+                        padding: 12,
+                        borderRadius: 12,
+                        background: on ? 'var(--sage-tint)' : 'var(--card)',
+                        border: on ? '1.5px solid var(--sage-deep)' : '1.5px solid var(--line)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 6,
+                        fontFamily: 'var(--font-ui)',
+                      }}
+                    >
+                      <div style={{ height: 30, display: 'grid', placeItems: 'center' }}>{m.icon}</div>
+                      <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ink)' }}>{m.name}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </PanelSection>
+          </div>
+          <div data-pl-design-anchor="fonts">
+            <FontPicker manifest={manifest} onChange={onChange} />
+          </div>
+          <div data-pl-design-anchor="colors">
+            <ColorTokenInspector manifest={manifest} onChange={onChange} />
+          </div>
+          <div data-pl-design-anchor="hero-decor">
+            <PanelSection
+              label="Hero decoration"
+              hint="Occasion-aware shapes match your event; classic keeps the v8 cream blobs; off is clean."
+            >
+              <SegmentedToggle<string>
+                value={read<string>(manifest, 'decorStyle', 'occasion')}
+                onChange={(v) => update({ decorStyle: v })}
+                options={[
+                  { value: 'occasion', label: 'By occasion' },
+                  { value: 'classic', label: 'Classic' },
+                  { value: 'off', label: 'Off' },
+                ]}
+              />
+            </PanelSection>
+          </div>
+          <div data-pl-design-anchor="ai-accent">
+            <AiAccentSection manifest={manifest} onChange={onChange} />
+          </div>
+          <div data-pl-design-anchor="atmosphere">
+            <AtmospherePanel manifest={manifest} onChange={onChange} />
+          </div>
+          <div data-pl-design-anchor="spacing">
+            <SpacingPanel manifest={manifest} onChange={onChange} />
+          </div>
+          <div data-pl-design-anchor="layout-mode">
+            <SiteModeSection manifest={manifest} onChange={onChange} />
+          </div>
+          <div data-pl-design-anchor="footer">
+            <FooterCustomizationSection manifest={manifest} onChange={onChange} />
+          </div>
+          <details>
+            <summary
+              style={{
+                cursor: 'pointer',
+                padding: '10px 14px',
+                borderRadius: 10,
+                background: 'var(--cream-2)',
+                border: '1px dashed var(--line)',
+                fontSize: 12.5,
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                color: 'var(--ink-soft)',
+                userSelect: 'none',
+                margin: '6px 0',
+              }}
+            >
+              ↺ Version history (snapshots)
+            </summary>
+            <div style={{ paddingTop: 6 }}>
+              <SnapshotsPanel manifest={manifest} onChange={onChange} />
+            </div>
+          </details>
+          <div data-pl-design-anchor="decor">
+            <details>
+              <summary
+                style={{
+                  cursor: 'pointer',
+                  padding: '10px 14px',
+                  borderRadius: 10,
+                  background: 'var(--cream-2)',
+                  border: '1px dashed var(--line)',
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.04em',
+                  color: 'var(--ink-soft)',
+                  userSelect: 'none',
+                  margin: '6px 0',
+                }}
+              >
+                ✦ Decor extras — AI-drafted dividers, stamps, stickers
+              </summary>
+              <div style={{ paddingTop: 6 }}>
+                <DecorLibraryPanel manifest={manifest} onChange={onChange} />
+                <div data-pl-design-anchor="stickers">
+                  <StickerTrayPanel manifest={manifest} onChange={onChange} />
+                </div>
+              </div>
+            </details>
+          </div>
+        </PanelGroup>
+      </details>
     </div>
   );
 }

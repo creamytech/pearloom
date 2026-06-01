@@ -209,4 +209,18 @@ export interface EditionDefinition {
      *  --pl-card-shadow var; cards opt in via box-shadow: var(--pl-card-shadow). */
     cardShadow?: string;
   };
+
+  /** Texture this Edition naturally wears. The prototype binds
+   *  textures to themes — picking Tuscan Watercolor automatically
+   *  switches to watercolor texture; picking Santorini Linen
+   *  switches to linen weave. EditionPicker.pick() stamps this
+   *  onto manifest.texture so the texture follows the theme.
+   *  Hosts can still override via the fine-tune slider. */
+  naturalTexture?: 'smooth' | 'watercolor' | 'linen' | 'letterpress' | 'vellum' | 'newsprint';
+
+  /** Human-readable slider label for the texture intensity dial.
+   *  Reads as a property of the theme rather than the texture —
+   *  "Watercolor washes" for Tuscan, "Linen weave" for Santorini.
+   *  Falls back to a generic "Texture" when unset. */
+  textureSliderLabel?: string;
 }

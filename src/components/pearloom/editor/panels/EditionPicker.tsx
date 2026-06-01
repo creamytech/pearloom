@@ -223,6 +223,12 @@ export function EditionPicker({ manifest, onChange }: Props) {
       blockOrder: ed.blockOrder,
       // FULL theme stamp — palette + fonts + card radius
       theme: nextTheme,
+      // Theme dictates texture (prototype's contract): picking
+      // Tuscan Watercolor switches to watercolor, Santorini Linen
+      // switches to linen weave, etc. Hosts can still override the
+      // intensity via the Fine-tune slider; the texture material
+      // itself is theme-bound.
+      texture: ed.naturalTexture ?? manifest.texture,
     };
     onChange(next as unknown as StoryManifest);
   }
