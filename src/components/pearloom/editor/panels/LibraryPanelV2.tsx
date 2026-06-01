@@ -753,7 +753,7 @@ function CommunityTile({
         overflow: 'visible',
         background: 'var(--cream)',
         border: '1px solid var(--line)',
-        transition: 'border-color 160ms ease, transform 160ms cubic-bezier(0.22, 1, 0.36, 1)',
+        transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out)',
       }}
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.transform = 'translateY(0)'; }}
@@ -904,7 +904,7 @@ function PhotoTile({ url, caption }: { url: string; caption: string }) {
         background: `var(--cream-2) center / cover no-repeat url(${url})`,
         border: '1px solid var(--line)',
         cursor: 'grab',
-        transition: 'transform 160ms cubic-bezier(0.22, 1, 0.36, 1), border-color 160ms ease',
+        transition: 'transform var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
       }}
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.transform = 'translateY(0)'; }}
@@ -933,7 +933,7 @@ function DecorTile({
         overflow: 'visible',
         background: 'var(--cream)',
         border: '1px solid var(--line)',
-        transition: 'border-color 160ms ease, transform 160ms cubic-bezier(0.22, 1, 0.36, 1)',
+        transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out)',
       }}
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.transform = 'translateY(0)'; }}
@@ -1012,7 +1012,7 @@ function IconTile({
         borderRadius: 10,
         background: 'var(--cream)',
         border: '1px solid var(--line)',
-        transition: 'border-color 160ms ease, transform 160ms cubic-bezier(0.22, 1, 0.36, 1)',
+        transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out)',
       }}
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.transform = 'translateY(0)'; }}

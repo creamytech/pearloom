@@ -156,7 +156,7 @@ export function SectionStamp({ url, size = 20, style, alt = '', fallbackIcon, sl
         borderRadius: 999,
         cursor: 'pointer',
         opacity: 0.78,
-        transition: 'opacity 160ms ease, transform 160ms ease',
+        transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out)',
         verticalAlign: 'middle',
         fontFamily: 'inherit',
       }}

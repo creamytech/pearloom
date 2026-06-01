@@ -84,7 +84,7 @@ export function LiveNowHero({ manifest, names, onAddPhoto, onAddMemory }: Props)
         {state.status === 'live' && (
           <>
             <h1
-              className="display"
+              className="display pl-letterpress"
               style={{
                 fontFamily: 'Fraunces, Georgia, serif',
                 fontSize: 'clamp(36px, 6vw, 64px)',
@@ -108,7 +108,7 @@ export function LiveNowHero({ manifest, names, onAddPhoto, onAddMemory }: Props)
         {state.status === 'pre' && state.nextLabel && state.nextMomentAt && (
           <>
             <h1
-              className="display"
+              className="display pl-letterpress"
               style={{
                 fontFamily: 'Fraunces, Georgia, serif',
                 fontSize: 'clamp(36px, 6vw, 64px)',
@@ -130,7 +130,7 @@ export function LiveNowHero({ manifest, names, onAddPhoto, onAddMemory }: Props)
         {state.status === 'post' && (
           <>
             <h1
-              className="display"
+              className="display pl-letterpress"
               style={{
                 fontFamily: 'Fraunces, Georgia, serif',
                 fontSize: 'clamp(36px, 6vw, 64px)',

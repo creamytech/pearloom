@@ -219,7 +219,7 @@ export function TexturePicker({ manifest, onChange }: Props) {
                 cursor: 'pointer',
                 textAlign: 'left',
                 fontFamily: 'var(--font-ui)',
-                transition: 'background 160ms ease, border-color 160ms ease, transform 160ms ease',
+                transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out)',
               }}
               onMouseEnter={(e) => {
                 if (on) return;

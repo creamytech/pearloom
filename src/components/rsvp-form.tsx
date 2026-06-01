@@ -7,7 +7,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Loader2, PartyPopper, CloudOff, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Check, PartyPopper, CloudOff, ChevronRight, ChevronLeft } from 'lucide-react';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 import { LoomThreadIcon } from '@/components/icons/PearloomIcons';
 import type { RsvpStatus, WeddingEvent } from '@/types';
 
@@ -854,11 +855,11 @@ export function RsvpForm({ events, siteId, mealOptions }: RsvpFormProps) {
                 }}
               >
                 {loading ? (
-                  <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                  <WeaveLoader size="sm" inline />
                 ) : (
                   <Check size={16} />
                 )}
-                {loading ? 'Submitting...' : 'Send my RSVP'}
+                {loading ? 'Threading…' : 'Send my RSVP'}
               </button>
             </div>
             <AnimatePresence>

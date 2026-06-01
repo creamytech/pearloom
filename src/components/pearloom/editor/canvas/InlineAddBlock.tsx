@@ -67,7 +67,7 @@ export function InlineAddBlock({ onAdd, onDropBlock }: Props) {
       style={{
         position: 'relative',
         height: expanded ? 28 : 8,
-        transition: 'height 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+        transition: 'height var(--pl-dur-fast) var(--pl-ease-out)',
         margin: '2px 0',
         zIndex: 5,
       }}
@@ -82,7 +82,7 @@ export function InlineAddBlock({ onAdd, onDropBlock }: Props) {
           alignItems: 'center',
           justifyContent: 'center',
           opacity: expanded ? 1 : 0,
-          transition: 'opacity 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+          transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out)',
           pointerEvents: 'none',
         }}
       >
@@ -122,7 +122,7 @@ export function InlineAddBlock({ onAdd, onDropBlock }: Props) {
             cursor: 'pointer',
             opacity: expanded ? 1 : 0,
             pointerEvents: expanded ? 'auto' : 'none',
-            transition: 'opacity 220ms cubic-bezier(0.22, 1, 0.36, 1), transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+            transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out)',
             transform: expanded ? 'scale(1)' : 'scale(0.92)',
             boxShadow: '0 6px 16px -8px rgba(198,112,61,0.4)',
             display: 'inline-flex', alignItems: 'center', gap: 6,

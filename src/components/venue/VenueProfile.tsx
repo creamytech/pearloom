@@ -6,7 +6,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
-import { MapPin, Globe, Phone, Plus, Trash2, Loader2, ExternalLink } from 'lucide-react';
+import { MapPin, Globe, Phone, Plus, Trash2, ExternalLink } from 'lucide-react';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -556,8 +557,8 @@ export function VenueProfile({
       >
         {isSaving ? (
           <>
-            <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
-            Saving…
+            <WeaveLoader size="sm" inline />
+            Setting…
           </>
         ) : (
           'Save Venue'

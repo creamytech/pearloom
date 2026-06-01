@@ -346,7 +346,7 @@ export function QuickEditModalShell({
                 fontWeight: 700,
                 letterSpacing: '0.04em',
                 fontFamily: 'var(--font-ui)',
-                transition: 'background 160ms ease, color 160ms ease, border-color 160ms ease',
+                transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
               }}
             >
               {selectMode ? `${selectedIds.size} selected` : 'Select'}
@@ -803,7 +803,7 @@ function SidebarTile({
           fontFamily: 'var(--font-ui)',
           flexShrink: 0,
           maxWidth: 160,
-          transition: 'background 140ms ease, border-color 140ms ease',
+          transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
         }}
       >
         <div
@@ -858,7 +858,7 @@ function SidebarTile({
         textAlign: 'left',
         width: '100%',
         fontFamily: 'var(--font-ui)',
-        transition: 'background 140ms ease, border-color 140ms ease',
+        transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
       }}
       onMouseEnter={(e) => {
         if (!selected && !showActive) e.currentTarget.style.background = 'var(--cream-2, #F5EFE2)';
@@ -886,7 +886,7 @@ function SidebarTile({
             display: 'grid',
             placeItems: 'center',
             color: '#FFFFFF',
-            transition: 'background 140ms ease, border-color 140ms ease',
+            transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
           }}
         >
           {selected && (
@@ -992,7 +992,7 @@ function SortableSidebarTile({
             fontFamily: 'var(--font-ui)',
             maxWidth: 160,
             touchAction: 'none',
-            transition: 'background 140ms ease, border-color 140ms ease',
+            transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
           }}
         >
           <div
@@ -1053,7 +1053,7 @@ function SortableSidebarTile({
           textAlign: 'left',
           width: '100%',
           fontFamily: 'var(--font-ui)',
-          transition: 'background 140ms ease, border-color 140ms ease',
+          transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
         }}
         onMouseEnter={(e) => {
           if (!active) e.currentTarget.style.background = 'var(--cream-2, #F5EFE2)';

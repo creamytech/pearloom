@@ -8,7 +8,8 @@
 import { useEffect, useId, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, Loader2, Eye, EyeOff } from 'lucide-react';
+import { X, Mail, Eye, EyeOff } from 'lucide-react';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 
 interface AuthModalProps {
   open: boolean;
@@ -226,7 +227,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
                 opacity: loading ? 0.7 : 1,
               }}
             >
-              {loading ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <Mail size={16} aria-hidden />}
+              {loading ? <WeaveLoader size="sm" inline /> : <Mail size={16} aria-hidden />}
               {mode === 'register' ? 'Create Account' : 'Sign In'}
             </button>
 

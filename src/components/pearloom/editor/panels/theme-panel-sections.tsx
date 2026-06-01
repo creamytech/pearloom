@@ -448,7 +448,7 @@ function ToggleRow({ label, on, onChange }: { label: string; on: boolean; onChan
           width: 42, height: 24, padding: 2,
           background: on ? SAGE_DEEP : CREAM2, border: 'none',
           borderRadius: 999, cursor: 'pointer', position: 'relative',
-          transition: 'background 180ms ease',
+          transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
         }}
       >
         <span aria-hidden style={{
@@ -456,7 +456,7 @@ function ToggleRow({ label, on, onChange }: { label: string; on: boolean; onChan
           width: 20, height: 20, borderRadius: '50%',
           background: 'var(--cream, #FBF7EE)',
           boxShadow: '0 1px 2px rgba(0,0,0,0.20)',
-          transition: 'left 180ms ease',
+          transition: 'left var(--pl-dur-fast) var(--pl-ease-out)',
         }} />
       </button>
     </div>

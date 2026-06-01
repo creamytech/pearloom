@@ -8,7 +8,8 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Sparkles, AlertCircle, Send } from 'lucide-react';
+import { Sparkles, AlertCircle, Send } from 'lucide-react';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 import { ElegantHeartIcon } from '@/components/icons/PearloomIcons';
 import type { VibeSkin } from '@/lib/vibe-engine';
 
@@ -732,7 +733,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                   }}
                 >
                   {submitting ? (
-                    <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />
+                    <WeaveLoader size="xs" inline />
                   ) : (
                     <Send size={15} />
                   )}
@@ -877,10 +878,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
               color: 'var(--pl-muted)',
             }}
           >
-            <Loader2
-              size={24}
-              style={{ animation: 'spin 1s linear infinite', opacity: 0.5 }}
-            />
+            <WeaveLoader size="md" />
           </div>
         )}
       </div>

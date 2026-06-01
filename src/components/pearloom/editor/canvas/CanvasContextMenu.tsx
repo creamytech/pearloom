@@ -172,7 +172,7 @@ export function CanvasContextMenu() {
                 fontFamily: 'inherit',
                 color: item.danger ? 'var(--plum-ink, #7A2D2D)' : 'var(--ink)',
                 opacity: item.disabled ? 0.4 : 1,
-                transition: 'background-color 140ms ease',
+                transition: 'background-color var(--pl-dur-fast) var(--pl-ease-out)',
               }}
               onMouseEnter={(e) => {
                 if (item.disabled) return;

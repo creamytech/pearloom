@@ -165,6 +165,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
           </div>
 
           <h1
+            className="pl-letterpress"
             style={{
               ...DISPLAY_STYLE,
               fontSize: 'clamp(54px, 7.8vw, 120px)',
@@ -590,7 +591,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
                     fontWeight: 500,
                     cursor: 'pointer',
                     fontFamily: 'var(--pl-font-body)',
-                    transition: 'all 160ms',
+                    transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                   }}
                 >
                   {o.l}

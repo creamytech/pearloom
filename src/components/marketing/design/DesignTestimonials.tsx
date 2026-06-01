@@ -134,7 +134,7 @@ export function DesignTestimonials() {
                 borderRadius: 20,
                 padding: '32px 34px',
                 transform: `rotate(${q.rot}deg)`,
-                transition: 'transform 260ms',
+                transition: 'transform var(--pl-dur-base) var(--pl-ease-out)',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'rotate(0deg) translateY(-4px)';

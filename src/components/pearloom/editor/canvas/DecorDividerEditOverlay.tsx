@@ -88,7 +88,7 @@ export function DecorDividerEditOverlay({ blockKey, onEditField, children }: Pro
           opacity: 0,
           pointerEvents: 'none',
           transform: 'translateY(-3px)',
-          transition: 'opacity 180ms cubic-bezier(0.22, 1, 0.36, 1), transform 180ms cubic-bezier(0.22, 1, 0.36, 1)',
+          transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out)',
         }}
       >
         <span style={{ padding: '0 6px 0 2px' }}>Divider</span>

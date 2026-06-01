@@ -502,7 +502,7 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
       color: on ? 'var(--cream, #F5EFE2)' : 'var(--ink-soft, #3A332C)',
       border: 'none',
       cursor: 'pointer',
-      transition: 'background 140ms ease',
+      transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
     } as const);
 
   return (
@@ -1020,7 +1020,7 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
                       background: textureColor,
                       cursor: 'pointer',
                       padding: 0,
-                      transition: 'transform 140ms ease',
+                      transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)',
                     }}
                   >
                     {/* Diagonal split — texture color on top-right,
@@ -1146,7 +1146,7 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
             background: 'var(--ink, #0E0D0B)',
             color: 'var(--cream, #F5EFE2)',
             textDecoration: 'none',
-            transition: 'transform 140ms ease',
+            transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)',
           }}
         >
           <span aria-hidden style={{ fontSize: 16, lineHeight: 1 }}>✉</span>

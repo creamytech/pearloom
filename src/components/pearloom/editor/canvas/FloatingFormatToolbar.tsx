@@ -305,7 +305,7 @@ function ToolBtn({
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        transition: 'background 140ms ease',
+        transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
         fontFamily: 'inherit',
       }}
       onMouseEnter={(e) => { if (!disabled) e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}

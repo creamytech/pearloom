@@ -127,7 +127,7 @@ function SortableChapterItem({ id, children }: { id: string; children: ReactNode
           display: 'grid',
           placeItems: 'center',
           opacity: 0,
-          transition: 'opacity 160ms ease',
+          transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out)',
           touchAction: 'none',
           padding: 0,
           zIndex: 4,

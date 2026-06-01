@@ -311,7 +311,7 @@ export function FirstThreadTour({ siteSlug }: { siteSlug: string }) {
                     i === stepIdx
                       ? 'var(--peach-ink, #C6703D)'
                       : 'rgba(14,13,11,0.18)',
-                  transition: 'background 180ms ease',
+                  transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
                 }}
               />
             ))}
@@ -374,7 +374,7 @@ function SpotlightMask({ rect }: { rect: Rect | null }) {
           background: 'rgba(14,13,11,0.46)',
           backdropFilter: 'blur(2px)',
           WebkitBackdropFilter: 'blur(2px)',
-          transition: 'background 220ms ease',
+          transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
         }}
       />
     );
@@ -398,7 +398,7 @@ function SpotlightMask({ rect }: { rect: Rect | null }) {
           width: '100%',
           height: '100%',
           pointerEvents: 'none',
-          transition: 'opacity 180ms ease',
+          transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out)',
         }}
       >
         <defs>
@@ -437,7 +437,7 @@ function SpotlightMask({ rect }: { rect: Rect | null }) {
           boxShadow:
             '0 0 0 1.5px var(--peach-ink, #C6703D), 0 0 28px rgba(198,112,61,0.45)',
           pointerEvents: 'none',
-          transition: 'top 220ms ease, left 220ms ease, width 220ms ease, height 220ms ease',
+          transition: 'top var(--pl-dur-fast) var(--pl-ease-out), left var(--pl-dur-fast) var(--pl-ease-out), width var(--pl-dur-fast) var(--pl-ease-out), height var(--pl-dur-fast) var(--pl-ease-out)',
         }}
       />
     </>

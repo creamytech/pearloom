@@ -269,7 +269,7 @@ function Sidebar() {
                   fontFamily: 'inherit',
                   textAlign: 'left',
                   marginBottom: 2,
-                  transition: 'all 140ms',
+                  transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
                   textDecoration: 'none',
                 }}
                 onMouseEnter={(e) => {
@@ -417,7 +417,7 @@ function TopbarGlobal() {
           border: `1px solid rgba(31,36,24,${focus ? 0.2 : 0.1})`,
           borderRadius: 999,
           padding: '8px 14px',
-          transition: 'all 160ms',
+          transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
         }}
       >
         <span style={{ fontSize: 13, opacity: 0.5, fontFamily: '"Fraunces", Georgia, serif' }}>✦</span>

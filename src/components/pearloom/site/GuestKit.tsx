@@ -326,7 +326,7 @@ export function SaveContactButton({ names, domain, manifest, variant = 'pill' }:
           borderRadius: 0,
           cursor: 'pointer',
           fontFamily: 'inherit',
-          transition: 'border-color 200ms ease',
+          transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out)',
         }}
         onMouseEnter={(e) => { e.currentTarget.style.borderBottomColor = 'var(--peach-ink, #C6703D)'; }}
         onMouseLeave={(e) => { e.currentTarget.style.borderBottomColor = 'rgba(61,74,31,0.25)'; }}
@@ -362,8 +362,22 @@ export function SaveContactButton({ names, domain, manifest, variant = 'pill' }:
 
 // ─────────────────────────────────────────────────────────────
 // Sticky mobile CTA — anchors to #rsvp until guest has responded
+//
+// Copy is preset-aware so we don't surface a "RSVP by <date>"
+// deadline on events where it reads as off-key (memorial,
+// funeral) or where there isn't a real deadline (open-house
+// graduations, retirement parties, milestone birthdays without
+// an event date). Reads:
+//   - manifest.occasion         (SiteOccasion union)
+//   - manifest.rsvpConfig.preset (RsvpPreset union, if host set it)
 // ─────────────────────────────────────────────────────────────
-export function StickyMobileCta({ deadline }: { deadline?: string | null }) {
+export function StickyMobileCta({
+  deadline,
+  manifest,
+}: {
+  deadline?: string | null;
+  manifest?: StoryManifest;
+}) {
   // Both initial values come from window — lazy useState init
   // for each so render stays pure (react-hooks/set-state-in-effect).
   const [responded] = useState<boolean>(() => {
@@ -386,6 +400,38 @@ export function StickyMobileCta({ deadline }: { deadline?: string | null }) {
   }, []);
 
   if (!show || responded) return null;
+
+  // ── Preset-aware copy ────────────────────────────────────
+  // rsvpConfig.preset is the host-declared RsvpPreset (read
+  // via narrow inline cast — schema currently declares
+  // rsvpConfig with only plusOnes + songRequests, so preset
+  // is read but unauthored. Falls back to 'wedding' which is
+  // the legacy default behaviour.
+  const occasion = manifest?.occasion;
+  const preset = (manifest?.rsvpConfig as { preset?: string } | undefined)?.preset ?? 'wedding';
+  const eventDate = manifest?.logistics?.date;
+
+  // Memorial / funeral — never lead with a deadline.
+  const isSolemn = preset === 'memorial' || occasion === 'memorial' || occasion === 'funeral';
+
+  // Open-house / drop-in style events — only show a deadline
+  // when the host actually has a real eventDate set; otherwise
+  // soften to "Kindly RSVP".
+  const isOpenHouse =
+    occasion === 'milestone-birthday' ||
+    occasion === 'graduation' ||
+    occasion === 'retirement';
+
+  let label: string;
+  if (isSolemn) {
+    label = 'Kindly RSVP';
+  } else if (isOpenHouse && !eventDate) {
+    label = 'Kindly RSVP';
+  } else if (deadline) {
+    label = `RSVP by ${deadline}`;
+  } else {
+    label = 'RSVP now';
+  }
 
   return (
     <a
@@ -418,7 +464,7 @@ export function StickyMobileCta({ deadline }: { deadline?: string | null }) {
         animation: 'pl8-rsvp-cta-in 380ms cubic-bezier(0.22, 1, 0.36, 1)',
       }}
     >
-      RSVP {deadline ? `by ${deadline}` : 'now'} →
+      {label} →
       <style jsx>{`
         @keyframes pl8-rsvp-cta-in {
           from { opacity: 0; transform: translateY(40px); }

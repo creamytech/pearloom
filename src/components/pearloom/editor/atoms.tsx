@@ -81,7 +81,7 @@ export function PanelSearch({
           position: 'sticky',
           top: 0,
           zIndex: 1,
-          background: 'var(--cream)',
+          background: 'var(--pl-chrome-bg)',
           padding: '0 0 16px',
           marginBottom: 4,
         }}
@@ -94,7 +94,7 @@ export function PanelSearch({
               left: 12,
               top: '50%',
               transform: 'translateY(-50%)',
-              color: 'var(--ink-muted)',
+              color: 'var(--pl-chrome-text-muted)',
               display: 'inline-flex',
               pointerEvents: 'none',
             }}
@@ -127,7 +127,7 @@ export function PanelSearch({
                 height: 22,
                 background: 'transparent',
                 border: 'none',
-                color: 'var(--ink-muted)',
+                color: 'var(--pl-chrome-text-muted)',
                 cursor: 'pointer',
                 display: 'grid',
                 placeItems: 'center',
@@ -217,8 +217,8 @@ export function PanelSection({
         gap: expanded ? 16 : 0,
         marginBottom: expanded ? 24 : 6,
         paddingBottom: expanded ? 20 : 12,
-        borderBottom: '1px solid var(--line-soft)',
-        transition: 'gap 200ms ease, margin-bottom 200ms ease, padding-bottom 200ms ease',
+        borderBottom: '1px solid var(--pl-chrome-border)',
+        transition: 'gap var(--pl-dur-fast) var(--pl-ease-out), margin-bottom var(--pl-dur-fast) var(--pl-ease-out), padding-bottom var(--pl-dur-fast) var(--pl-ease-out)',
         ...style,
       }}
     >
@@ -242,7 +242,7 @@ export function PanelSection({
             padding: '6px 0 0',
             textAlign: 'left',
             cursor: collapsible ? 'pointer' : 'default',
-            color: 'var(--ink)',
+            color: 'var(--pl-chrome-text)',
             font: 'inherit',
             width: '100%',
           }}
@@ -259,7 +259,7 @@ export function PanelSection({
                   fontSize: 17,
                   fontWeight: 500,
                   letterSpacing: '-0.005em',
-                  color: 'var(--ink)',
+                  color: 'var(--pl-chrome-text)',
                   lineHeight: 1.2,
                 }}
               >
@@ -270,7 +270,7 @@ export function PanelSection({
               <div
                 style={{
                   fontSize: 12.5,
-                  color: 'var(--ink-muted)',
+                  color: 'var(--pl-chrome-text-muted)',
                   marginTop: 4,
                   fontWeight: 400,
                   letterSpacing: 0,
@@ -294,10 +294,10 @@ export function PanelSection({
                 borderRadius: 999,
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'var(--ink-muted)',
+                color: 'var(--pl-chrome-text-muted)',
                 background: expanded ? 'var(--cream-2, #F5EFE2)' : 'transparent',
                 transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1), background 160ms ease',
+                transition: 'transform var(--pl-dur-fast) var(--pl-ease-out), background var(--pl-dur-fast) var(--pl-ease-out)',
                 flexShrink: 0,
               }}
             >
@@ -369,15 +369,15 @@ export function PanelSmartActions({ actions }: { actions: PanelSmartAction[] }) 
             padding: '8px 14px',
             borderRadius: 999,
             background: a.primary ? undefined : 'var(--cream-2)',
-            color: a.primary ? undefined : 'var(--ink)',
-            border: a.primary ? undefined : '1px solid var(--line-soft)',
+            color: a.primary ? undefined : 'var(--pl-chrome-text)',
+            border: a.primary ? undefined : '1px solid var(--pl-chrome-border)',
             fontSize: 12,
             fontWeight: 600,
             fontFamily: 'var(--font-ui)',
             cursor: a.disabled ? 'not-allowed' : 'pointer',
             whiteSpace: 'nowrap',
             opacity: a.disabled ? 0.4 : 1,
-            transition: 'background 160ms ease, color 160ms ease, border-color 160ms ease',
+            transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
           }}
         >
           {a.icon && <Icon name={a.icon} size={12} />}
@@ -435,7 +435,7 @@ export function PanelDisclosure({
           padding: '4px 8px 4px 4px',
           background: 'transparent',
           border: 'none',
-          color: 'var(--ink-muted)',
+          color: 'var(--pl-chrome-text-muted)',
           fontSize: 11,
           fontWeight: 700,
           letterSpacing: '0.12em',
@@ -451,8 +451,8 @@ export function PanelDisclosure({
             display: 'inline-block',
             width: 12,
             transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
-            transition: 'transform 180ms cubic-bezier(0.22, 1, 0.36, 1)',
-            color: 'var(--ink-muted)',
+            transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)',
+            color: 'var(--pl-chrome-text-muted)',
             fontSize: 10,
           }}
         >
@@ -514,7 +514,7 @@ export function Field({
             gap: 6,
             fontSize: 13,
             fontWeight: 600,
-            color: 'var(--ink)',
+            color: 'var(--pl-chrome-text)',
             letterSpacing: '-0.005em',
             fontFamily: 'var(--font-ui)',
           }}
@@ -526,7 +526,7 @@ export function Field({
       </div>
       {children}
       {help && !error && (
-        <span style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.45 }}>{help}</span>
+        <span style={{ fontSize: 12, color: 'var(--pl-chrome-text-muted)', lineHeight: 1.45 }}>{help}</span>
       )}
       {error && (
         <span style={{ fontSize: 12, color: 'var(--plum-ink, #7A2D2D)', lineHeight: 1.45 }}>{error}</span>
@@ -569,7 +569,7 @@ export function PearFieldButton({ action }: { action: PearFieldAction }) {
         color: 'var(--peach-ink, #C6703D)',
         cursor: 'pointer',
         opacity: 0.75,
-        transition: 'opacity 140ms ease, background 140ms ease',
+        transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out), background var(--pl-dur-fast) var(--pl-ease-out)',
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.opacity = '1';
@@ -649,7 +649,7 @@ export function PanelTabs({
           padding: 4,
           marginBottom: 16,
           background: 'var(--cream-2, #F5EFE2)',
-          border: '1px solid var(--line-soft)',
+          border: '1px solid var(--pl-chrome-border)',
           borderRadius: 10,
         }}
       >
@@ -671,13 +671,13 @@ export function PanelTabs({
                 padding: '7px 8px',
                 borderRadius: 7,
                 border: 0,
-                background: on ? 'var(--ink)' : 'transparent',
-                color: on ? 'var(--cream)' : 'var(--ink-soft)',
+                background: on ? 'var(--pl-chrome-text)' : 'transparent',
+                color: on ? 'var(--pl-chrome-bg)' : 'var(--pl-chrome-text-soft)',
                 fontSize: 12,
                 fontWeight: 600,
                 cursor: 'pointer',
                 fontFamily: 'var(--font-ui)',
-                transition: 'background 160ms ease, color 160ms ease',
+                transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
               }}
             >
               <Icon name={meta.icon} size={11} />
@@ -760,13 +760,13 @@ export function PearSuggestionsStrip({
               borderRadius: 8,
               background: 'transparent',
               border: 'none',
-              color: 'var(--ink)',
+              color: 'var(--pl-chrome-text)',
               fontSize: 12.5,
               fontWeight: 500,
               cursor: 'pointer',
               fontFamily: 'var(--font-ui)',
               textAlign: 'left',
-              transition: 'background 140ms ease',
+              transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
             }}
             onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.45)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
@@ -798,15 +798,15 @@ const sharedInputStyle: CSSProperties = {
   width: '100%',
   padding: '11px 14px',
   background: 'var(--paper)',
-  border: '1.5px solid var(--line)',
+  border: '1.5px solid var(--pl-chrome-border)',
   borderRadius: 10,
   fontSize: 13.5,
   lineHeight: 1.4,
-  color: 'var(--ink)',
+  color: 'var(--pl-chrome-text)',
   fontFamily: 'var(--font-ui)',
   outline: 'none',
   boxSizing: 'border-box',
-  transition: 'border-color 180ms ease, box-shadow 180ms ease, background 180ms ease',
+  transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), box-shadow var(--pl-dur-fast) var(--pl-ease-out), background var(--pl-dur-fast) var(--pl-ease-out)',
 };
 
 export const TextInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
@@ -886,7 +886,7 @@ export function SegmentedToggle<T extends string>({
         background: 'var(--cream-2)',
         borderRadius: 10,
         gap: 2,
-        border: '1px solid var(--line-soft)',
+        border: '1px solid var(--pl-chrome-border)',
       }}
     >
       {options.map((o) => {
@@ -901,13 +901,13 @@ export function SegmentedToggle<T extends string>({
               padding: '8px 12px',
               borderRadius: 7,
               border: 0,
-              background: on ? 'var(--ink)' : 'transparent',
-              color: on ? 'var(--cream)' : 'var(--ink-soft)',
+              background: on ? 'var(--pl-chrome-text)' : 'transparent',
+              color: on ? 'var(--pl-chrome-bg)' : 'var(--pl-chrome-text-soft)',
               fontSize: 12.5,
               fontWeight: 600,
               cursor: 'pointer',
               fontFamily: 'var(--font-ui)',
-              transition: 'background 160ms ease, color 160ms ease',
+              transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
             }}
           >
             {o.label}
@@ -946,12 +946,12 @@ export function Toggle({
         width: '100%',
         padding: '12px 14px',
         background: 'var(--paper)',
-        border: '1.5px solid var(--line)',
+        border: '1.5px solid var(--pl-chrome-border)',
         borderRadius: 10,
         cursor: 'pointer',
         fontFamily: 'var(--font-ui)',
         textAlign: 'left',
-        transition: 'border-color 160ms ease, background 160ms ease',
+        transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), background var(--pl-dur-fast) var(--pl-ease-out)',
       }}
     >
       <span
@@ -959,10 +959,10 @@ export function Toggle({
           width: 36,
           height: 22,
           borderRadius: 999,
-          background: on ? 'var(--sage-deep, #5C6B3F)' : 'var(--line)',
+          background: on ? 'var(--sage-deep, #5C6B3F)' : 'var(--pl-chrome-border)',
           position: 'relative',
           flexShrink: 0,
-          transition: 'background 200ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+          transition: 'background var(--pl-dur-fast) var(--pl-ease-spring)',
         }}
       >
         <span
@@ -974,14 +974,14 @@ export function Toggle({
             height: 18,
             borderRadius: '50%',
             background: '#fff',
-            transition: 'left 200ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+            transition: 'left var(--pl-dur-fast) var(--pl-ease-spring)',
             boxShadow: '0 1px 3px rgba(0,0,0,0.22)',
           }}
         />
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>{label}</div>
-        {help && <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 2, lineHeight: 1.4 }}>{help}</div>}
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--pl-chrome-text)' }}>{label}</div>
+        {help && <div style={{ fontSize: 12, color: 'var(--pl-chrome-text-muted)', marginTop: 2, lineHeight: 1.4 }}>{help}</div>}
       </div>
     </button>
   );
@@ -1061,7 +1061,7 @@ export function PhotoSlot({
           width: '100%',
           aspectRatio: aspect,
           background: src ? `#e8e4d5 url(${src}) center/cover no-repeat` : 'var(--cream-2)',
-          border: `1.5px dashed ${src ? 'transparent' : 'var(--line)'}`,
+          border: `1.5px dashed ${src ? 'transparent' : 'var(--pl-chrome-border)'}`,
           borderRadius: 14,
           cursor: 'pointer',
           display: 'grid',
@@ -1076,7 +1076,7 @@ export function PhotoSlot({
               flexDirection: 'column',
               alignItems: 'center',
               gap: 6,
-              color: 'var(--ink-muted)',
+              color: 'var(--pl-chrome-text-muted)',
             }}
           >
             <Icon name="image" size={22} />
@@ -1092,10 +1092,10 @@ export function PhotoSlot({
               display: 'grid',
               placeItems: 'center',
               background: 'rgba(61,74,31,0.45)',
-              color: 'var(--cream)',
+              color: 'var(--pl-chrome-bg)',
               fontSize: 12,
               fontWeight: 600,
-              transition: 'opacity 180ms',
+              transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out)',
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLDivElement).style.opacity = '1';
@@ -1111,7 +1111,7 @@ export function PhotoSlot({
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Icon name="image" size={14} color="var(--cream)" /> Replace
+              <Icon name="image" size={14} color="var(--pl-chrome-bg)" /> Replace
             </div>
           </div>
         )}
@@ -1122,7 +1122,7 @@ export function PhotoSlot({
           onClick={() => inputRef.current?.click()}
           style={{
             fontSize: 11,
-            color: 'var(--ink-soft)',
+            color: 'var(--pl-chrome-text-soft)',
             background: 'transparent',
             border: 0,
             cursor: 'pointer',
@@ -1190,8 +1190,8 @@ export function ListRow({
         gridTemplateColumns: dragHandle ? '24px 1fr auto' : '1fr auto',
         gap: 14,
         padding: 16,
-        background: 'var(--card)',
-        border: '1px solid var(--card-ring)',
+        background: 'var(--pl-chrome-surface)',
+        border: '1px solid var(--pl-chrome-border)',
         borderRadius: 12,
         alignItems: 'start',
         ...style,
@@ -1202,7 +1202,7 @@ export function ListRow({
           style={{
             display: 'grid',
             placeItems: 'center',
-            color: 'var(--ink-muted)',
+            color: 'var(--pl-chrome-text-muted)',
             cursor: 'grab',
             marginTop: 6,
           }}
@@ -1212,7 +1212,7 @@ export function ListRow({
         </div>
       )}
       <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>{children}</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, color: 'var(--ink-muted)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, color: 'var(--pl-chrome-text-muted)' }}>
         {onMoveUp && (
           <button
             type="button"
@@ -1254,11 +1254,11 @@ const iconButtonStyle: CSSProperties = {
   display: 'grid',
   placeItems: 'center',
   background: 'transparent',
-  border: '1px solid var(--line-soft)',
+  border: '1px solid var(--pl-chrome-border)',
   borderRadius: 7,
   cursor: 'pointer',
   color: 'inherit',
-  transition: 'background 160ms ease, border-color 160ms ease',
+  transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
 };
 
 /* ---------- Color swatch row ---------- */
@@ -1303,7 +1303,7 @@ export function EmptyBlockState({
       style={{
         padding: '32px 28px',
         background: 'var(--cream-2)',
-        border: '1.5px dashed var(--line)',
+        border: '1.5px dashed var(--pl-chrome-border)',
         borderRadius: 14,
         textAlign: 'center',
         display: 'flex',
@@ -1328,7 +1328,7 @@ export function EmptyBlockState({
       <div className="display" style={{ fontSize: 22, lineHeight: 1.15, letterSpacing: '-0.01em' }}>
         {title}
       </div>
-      <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.55, maxWidth: 320 }}>{body}</div>
+      <div style={{ fontSize: 13, color: 'var(--pl-chrome-text-soft)', lineHeight: 1.55, maxWidth: 320 }}>{body}</div>
       {action && <div style={{ marginTop: 8 }}>{action}</div>}
     </div>
   );
@@ -1343,9 +1343,9 @@ export function AddRowButton({ label, onClick }: { label: string; onClick: () =>
       style={{
         padding: '12px 14px',
         background: 'transparent',
-        border: '1.5px dashed var(--line)',
+        border: '1.5px dashed var(--pl-chrome-border)',
         borderRadius: 10,
-        color: 'var(--ink-soft)',
+        color: 'var(--pl-chrome-text-soft)',
         fontSize: 13,
         fontWeight: 600,
         cursor: 'pointer',
@@ -1355,23 +1355,23 @@ export function AddRowButton({ label, onClick }: { label: string; onClick: () =>
         gap: 8,
         justifyContent: 'center',
         width: '100%',
-        transition: 'border-color 160ms ease, color 160ms ease, background 160ms ease',
+        transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out), background var(--pl-dur-fast) var(--pl-ease-out)',
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)';
         e.currentTarget.style.color = 'var(--peach-ink, #C6703D)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'var(--line)';
-        e.currentTarget.style.color = 'var(--ink-soft)';
+        e.currentTarget.style.borderColor = 'var(--pl-chrome-border)';
+        e.currentTarget.style.color = 'var(--pl-chrome-text-soft)';
       }}
       onFocus={(e) => {
         e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)';
         e.currentTarget.style.color = 'var(--peach-ink, #C6703D)';
       }}
       onBlur={(e) => {
-        e.currentTarget.style.borderColor = 'var(--line)';
-        e.currentTarget.style.color = 'var(--ink-soft)';
+        e.currentTarget.style.borderColor = 'var(--pl-chrome-border)';
+        e.currentTarget.style.color = 'var(--pl-chrome-text-soft)';
       }}
     >
       <Icon name="plus" size={13} /> {label}

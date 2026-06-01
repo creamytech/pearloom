@@ -148,7 +148,7 @@ export function DecorEditOverlay({
         position: 'relative',
         outline: dragOver ? '2px dashed var(--peach-ink, #C6703D)' : undefined,
         outlineOffset: dragOver ? 4 : undefined,
-        transition: 'outline-color 160ms ease',
+        transition: 'outline-color var(--pl-dur-fast) var(--pl-ease-out)',
       }}
       data-pl-decor-edit
       className={kind === 'divider' ? 'pl8-divider-edit-zone' : undefined}
@@ -170,7 +170,7 @@ export function DecorEditOverlay({
           boxShadow: '0 12px 32px rgba(14,13,11,0.32)',
           opacity: hovering ? 1 : 0,
           pointerEvents: hovering ? 'auto' : 'none',
-          transition: 'opacity 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+          transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out)',
           fontFamily: 'var(--font-ui)',
           zIndex: 30,
         }}

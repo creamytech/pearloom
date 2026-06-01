@@ -334,7 +334,7 @@ function Thumb({ p, onOpen, fixedHeight }: { p: ReelPhoto; onOpen: (p: ReelPhoto
         padding: 0,
         position: 'relative',
         overflow: 'hidden',
-        transition: 'transform 180ms',
+        transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)',
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'scale(1.02)';

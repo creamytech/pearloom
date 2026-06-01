@@ -147,7 +147,7 @@ export function EditableText({
         cursor: 'text',
         outline: '2px solid transparent',
         outlineOffset: 2,
-        transition: 'outline-color 140ms ease, background 140ms ease',
+        transition: 'outline-color var(--pl-dur-fast) var(--pl-ease-out), background var(--pl-dur-fast) var(--pl-ease-out)',
         borderRadius: 2,
       };
 

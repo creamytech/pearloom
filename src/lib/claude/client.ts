@@ -17,6 +17,7 @@ import type {
   MessageParam,
   TextBlockParam,
   Tool,
+  ToolChoice,
   ToolUseBlock,
   ContentBlock,
 } from '@anthropic-ai/sdk/resources/messages';
@@ -26,8 +27,8 @@ import type {
 //
 // Current Anthropic lineup as of 2026-06-01 (verified
 // platform.claude.com/docs):
-//   Opus 4.8 = new flagship (May 2026) — $5/$25, 1M ctx, 128k out
-//   Opus 4.7 = previous flagship, GA + supported through next cycle
+//   Opus 4.8 = current flagship (May 2026) — $5/$25, 1M ctx, 128k out
+//   (the previous Opus generation remains GA + supported through next cycle)
 //   Sonnet 4.6 = workhorse — $3/$15, 1M ctx, 64k out, ext. thinking
 //   Haiku 4.5 = fastest near-frontier — $1/$5, 200k ctx, ext. thinking
 //
@@ -122,12 +123,18 @@ export interface GenerateOptions {
   maxTokens?: number;
   temperature?: number;
   tools?: Tool[];
+  /** Force a specific tool / any tool / auto / none. Mirrors the
+   *  Anthropic SDK's `tool_choice` param. Defaults to undefined
+   *  (SDK default = 'auto' when tools are provided). Set
+   *  `{ type: 'tool', name: '<tool_name>' }` to guarantee
+   *  structured output from a single named tool. */
+  toolChoice?: ToolChoice;
   stopSequences?: string[];
   /** Extended thinking budget in tokens. When set, the model
    *  uses extended thinking with the given budget — observably
    *  better calibration on critique / judgment / agent loops
    *  per Anthropic docs. Only enable for Sonnet 4.6 or Haiku 4.5;
-   *  Opus 4.7 doesn't support it (Opus 4.8 does).
+   *  the previous Opus generation doesn't support it (Opus 4.8 does).
    *  Recommended: 4000-8000 for critique, 0 (disabled) for
    *  micro-edits / micro-classification. */
   thinkingBudget?: number;
@@ -154,6 +161,7 @@ export async function generate(opts: GenerateOptions): Promise<Message> {
         : opts.system,
       messages: opts.messages,
       ...(opts.tools && opts.tools.length > 0 ? { tools: opts.tools } : {}),
+      ...(opts.toolChoice ? { tool_choice: opts.toolChoice } : {}),
       ...(opts.stopSequences && opts.stopSequences.length > 0 ? { stop_sequences: opts.stopSequences } : {}),
       ...(thinkingOn
         ? { thinking: { type: 'enabled' as const, budget_tokens: opts.thinkingBudget! } }

@@ -8,7 +8,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { WifiOff, Wifi, Loader2, CheckCircle2 } from 'lucide-react';
+import { WifiOff, Wifi, CheckCircle2 } from 'lucide-react';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 import {
   isOnline,
   registerServiceWorker,
@@ -132,8 +133,8 @@ export function OfflineIndicator() {
     ),
     syncing: (
       <>
-        <Loader2 size={14} className="animate-spin" />
-        Syncing {pendingCount} pending change{pendingCount !== 1 ? 's' : ''}...
+        <WeaveLoader size="xs" inline />
+        Threading {pendingCount} pending change{pendingCount !== 1 ? 's' : ''}…
       </>
     ),
     synced: (

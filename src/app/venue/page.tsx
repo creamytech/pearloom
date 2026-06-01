@@ -10,7 +10,8 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import Link from 'next/link';
-import { ArrowLeft, Building2, Sparkles, Loader2 } from 'lucide-react';
+import { ArrowLeft, Building2, Sparkles } from 'lucide-react';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 import { VenueSearch, type VenuePartial } from '@/components/venue/VenueSearch';
 import { VenueProfile, type VenueData } from '@/components/venue/VenueProfile';
 import { TopNav } from '@/components/pearloom/chrome';
@@ -79,8 +80,7 @@ export default function VenuePage() {
           background: 'var(--cream)',
         }}
       >
-        <Loader2 size={32} style={{ color: 'var(--sage-deep)', animation: 'spin 1s linear infinite' }} />
-        <style>{`@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }`}</style>
+        <WeaveLoader size="lg" />
       </div>
     );
   }

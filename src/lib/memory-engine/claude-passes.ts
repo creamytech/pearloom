@@ -2,7 +2,7 @@
 // Pearloom / lib/memory-engine/claude-passes.ts
 //
 // Claude-powered implementations of the Memory Engine passes:
-//   - Pass 1   (core storytelling)    — Claude Opus 4.7
+//   - Pass 1   (core storytelling)    — Claude Opus 4.8
 //   - Pass 1.2 (chapter critique)     — Claude Sonnet 4.6
 //   - Pass 1.5 (couple DNA extract)   — Claude Haiku 4.5
 //   - Pass 4   (poetry + welcome)     — Claude Sonnet 4.6
@@ -21,7 +21,7 @@ import type { PhotoCluster, StoryManifest, Chapter } from '@/types';
 import { generate, generateJson, cached, text, textFrom, parseJsonFromText } from '@/lib/claude';
 import { buildPrompt } from './prompts';
 
-// ── Pass 1 — Core storytelling on Opus 4.7 ─────────────────────────
+// ── Pass 1 — Core storytelling on Opus 4.8 ─────────────────────────
 
 export interface Pass1Result {
   manifest: Partial<StoryManifest>;

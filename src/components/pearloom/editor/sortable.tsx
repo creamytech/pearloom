@@ -181,7 +181,7 @@ export function SortableRowCard({
         border: `1px solid ${highlighted ? 'var(--sage-deep)' : 'var(--card-ring)'}`,
         borderRadius: 14,
         alignItems: 'start',
-        transition: 'border-color 180ms, box-shadow 180ms, transform 180ms ease, box-shadow 180ms ease',
+        transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), box-shadow var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out), box-shadow var(--pl-dur-fast) var(--pl-ease-out)',
       }}
     >
       <div style={{ paddingTop: 4 }}>{handle}</div>

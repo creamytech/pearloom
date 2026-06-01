@@ -128,7 +128,7 @@ export function AmbientAudio({ preset, url, label = 'Ambient sound', storageKey 
           alignItems: 'center',
           justifyContent: 'center',
           boxShadow: '0 6px 18px rgba(14,13,11,0.10)',
-          transition: 'transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1), background 200ms ease',
+          transition: 'transform var(--pl-dur-base) var(--pl-ease-spring), background var(--pl-dur-fast) var(--pl-ease-out)',
         }}
         onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; }}
         onMouseLeave={(e) => { e.currentTarget.style.transform = ''; }}

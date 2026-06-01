@@ -10,7 +10,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Search, MapPin, Loader2, PlusCircle } from 'lucide-react';
+import { Search, MapPin, PlusCircle } from 'lucide-react';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -200,10 +201,7 @@ export function VenueSearch({
         }}
       >
         {isLoading ? (
-          <Loader2
-            size={darkMode ? 16 : 20}
-            style={{ color: darkMode ? 'rgba(163,177,138,0.7)' : '#8B774B', flexShrink: 0, animation: 'spin 1s linear infinite' }}
-          />
+          <WeaveLoader size={darkMode ? 'xs' : 'sm'} inline />
         ) : (
           <Search size={darkMode ? 16 : 20} style={{ color: darkMode ? 'var(--pl-muted)' : '#8B774B', flexShrink: 0 }} />
         )}

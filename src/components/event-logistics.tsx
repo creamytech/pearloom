@@ -7,7 +7,8 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Calendar, CheckCircle2, Gift, Loader2 } from 'lucide-react';
+import { MapPin, Calendar, CheckCircle2, Gift } from 'lucide-react';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 import type { StoryManifest } from '@/types';
 
 export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, siteId: string }) {
@@ -202,7 +203,7 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
                       opacity: attending === null ? 0.5 : 1, transition: 'opacity var(--pl-dur-fast)', marginTop: '1rem'
                     }}
                   >
-                    {status === 'loading' ? <Loader2 className="animate-spin m-auto" /> : 'Send RSVP'}
+                    {status === 'loading' ? <WeaveLoader size="sm" inline className="m-auto" /> : 'Send RSVP'}
                   </button>
                   {status === 'error' && <p style={{ color: '#ff4d4f', fontSize: '0.85rem', textAlign: 'center' }}>Something went wrong. Please try again.</p>}
                 </form>

@@ -50,7 +50,7 @@ export function AISuggestButton({
           cursor: state === 'running' ? 'wait' : 'pointer',
           opacity: state === 'running' ? 0.7 : 1,
           fontFamily: 'var(--font-ui)',
-          transition: 'background 180ms, border-color 180ms',
+          transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
           alignSelf: 'flex-start',
         }}
       >

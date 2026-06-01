@@ -55,12 +55,16 @@ export function HeroKicker({ manifest, dateInfo, onEditField }: {
   );
 }
 
-export function HeroNames({ n1, n2, onEditNames, scale = 1, color, italicColor }: {
+export function HeroNames({ n1, n2, onEditNames, scale = 1, color, italicColor, letterpress = true }: {
   n1: string; n2: string;
   onEditNames?: (next: [string, string]) => void;
   scale?: number;
   color?: string;
   italicColor?: string;
+  /** Apply BRAND.md §3's pl-letterpress treatment — glyphs pressed
+   *  into the paper. Defaults true; pass false on dark/photo-bleed
+   *  heroes where the inset shadow would muddy the type. */
+  letterpress?: boolean;
 }) {
   // cqw (container query width) reads the device-frame width in
   // the editor preview AND the viewport on the published site, so
@@ -70,7 +74,7 @@ export function HeroNames({ n1, n2, onEditNames, scale = 1, color, italicColor }
   const italic = `clamp(${Math.round(44 * scale)}px, ${10 * scale}cqw, ${Math.round(132 * scale)}px)`;
   return (
     <h1
-      className="display pl8-hero-names"
+      className={`display pl8-hero-names${letterpress ? ' pl-letterpress' : ''}`}
       style={{
         fontSize: main, lineHeight: 0.92, margin: 0,
         letterSpacing: '-0.02em', color,
@@ -233,7 +237,7 @@ const HeroFieldPill = forwardRef<HTMLButtonElement, {
         background: 'transparent',
         cursor: 'pointer',
         fontFamily: 'inherit',
-        transition: 'background-color 160ms ease, border-color 160ms ease',
+        transition: 'background-color var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
         opacity: placeholder ? 0.78 : 1,
         fontStyle: placeholder ? 'italic' : 'normal',
       }}
@@ -351,7 +355,7 @@ export function HeroLinkTray({ siteSlug, manifest, names }: {
         style={{
           color: 'var(--ink)', textDecoration: 'none',
           borderBottom: '1px solid rgba(61,74,31,0.25)',
-          paddingBottom: 1, transition: 'border-color 200ms ease',
+          paddingBottom: 1, transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out)',
         }}
         onMouseEnter={(e) => { e.currentTarget.style.borderBottomColor = 'var(--peach-ink, #C6703D)'; }}
         onMouseLeave={(e) => { e.currentTarget.style.borderBottomColor = 'rgba(61,74,31,0.25)'; }}

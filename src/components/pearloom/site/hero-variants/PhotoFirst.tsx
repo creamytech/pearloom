@@ -95,6 +95,7 @@ export function HeroPhotoFirst({ manifest, names: _names, siteSlug: _siteSlug, o
             onEditNames={onEditNames}
             color="var(--cream, #FBF7EE)"
             italicColor="rgba(251, 247, 238, 0.78)"
+            letterpress={false}
           />
           <HeroDateVenue
             dateInfo={dateInfo}
@@ -134,7 +135,7 @@ export function HeroPhotoFirst({ manifest, names: _names, siteSlug: _siteSlug, o
                 fontSize: 13,
                 fontWeight: 600,
                 textDecoration: 'none',
-                transition: 'background 200ms ease, border-color 200ms ease',
+                transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
               }}
             >
               Learn more

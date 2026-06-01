@@ -360,7 +360,7 @@ export function DashAnalytics() {
                           height: '100%',
                           background: r.c,
                           borderRadius: 99,
-                          transition: 'width 600ms',
+                          transition: 'width var(--pl-dur-slow) var(--pl-ease-out)',
                         }}
                       />
                     </div>

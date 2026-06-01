@@ -113,12 +113,12 @@ export async function generateStoryManifest(
   }
 
   // Pass 1 — core storytelling.
-  // Prefer Claude Opus 4.7 when ANTHROPIC_API_KEY is set (cheaper w/ prompt caching,
+  // Prefer Claude Opus when ANTHROPIC_API_KEY is set (cheaper w/ prompt caching,
   // stronger long-form literary voice). Falls back to Gemini 3.1 Pro otherwise.
   const claudeStoryEnabled = isClaudeStoryEnabled();
   let rawText: string;
   if (claudeStoryEnabled) {
-    log('[Memory Engine] Pass 1: Sending to Claude Opus 4.7 (core storytelling)...');
+    log('[Memory Engine] Pass 1: Sending to Claude Opus (core storytelling)...');
     try {
       const result = await corePassClaude(clusters, vibeString, coupleNames, {
         occasion,

@@ -289,7 +289,7 @@ function PatchBody({
                       : '1px solid rgba(198,112,61,0.22)',
                     cursor: applied ? 'default' : 'pointer',
                     overflow: 'hidden',
-                    transition: 'border-color 140ms ease, transform 140ms ease',
+                    transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out)',
                     transform: isSelected ? 'scale(0.98)' : 'scale(1)',
                   }}
                 >
@@ -365,7 +365,7 @@ function PatchBody({
                       : '1px solid rgba(198,112,61,0.18)',
                     cursor: applied ? 'default' : 'pointer',
                     fontFamily: 'var(--font-ui)',
-                    transition: 'background 140ms ease, border-color 140ms ease',
+                    transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
                   }}
                   onMouseEnter={(e) => {
                     if (applied || isSelected) return;

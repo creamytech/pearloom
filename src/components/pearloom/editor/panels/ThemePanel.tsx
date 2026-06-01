@@ -627,7 +627,7 @@ export function SiteModeSection({
                       cursor: 'pointer',
                       textAlign: 'left',
                       fontFamily: 'var(--font-ui)',
-                      transition: 'background 180ms ease, border-color 180ms ease',
+                      transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
                     }}
                   >
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

@@ -55,7 +55,7 @@ export function SectionActionMenu({
         boxShadow: '0 6px 18px rgba(14,13,11,0.22)',
         opacity: 0,
         pointerEvents: 'none',
-        transition: 'opacity 180ms cubic-bezier(0.22, 1, 0.36, 1), transform 180ms cubic-bezier(0.22, 1, 0.36, 1)',
+        transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out)',
         transform: 'translateY(-3px)',
         color: 'rgba(251, 247, 238, 0.92)',
         fontFamily: 'var(--font-ui)',
@@ -142,7 +142,7 @@ function ActionButton({
         color: danger ? '#FCA5A5' : 'rgba(243,233,212,0.92)',
         cursor: 'pointer',
         display: 'grid', placeItems: 'center',
-        transition: 'background-color 180ms ease, color 180ms ease',
+        transition: 'background-color var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.background = danger ? 'rgba(239, 68, 68, 0.18)' : 'rgba(243,233,212,0.14)';

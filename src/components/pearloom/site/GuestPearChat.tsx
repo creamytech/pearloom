@@ -81,9 +81,15 @@ export function GuestPearChat({ manifest, coupleNames, guest, domain }: Props) {
     })
       .then((r) => (r.ok ? r.json() : null))
       .then((data: null | { guest?: { name?: string; table?: string; meal?: string; dietary?: string; attending?: boolean | null } }) => {
+        // Shape validation: require at least a non-empty `name` on the guest
+        // payload. Malformed tokens or partial responses should be treated as
+        // "no resolved guest" rather than silently producing generic answers.
         const name = data?.guest?.name;
-        if (!name) return;
-        const g = data!.guest!;
+        if (!data || !data.guest || typeof name !== 'string' || !name.trim()) {
+          setResolvedGuest(null);
+          return;
+        }
+        const g = data.guest;
         const status: 'attending' | 'declined' | 'pending' =
           g.attending === true ? 'attending' : g.attending === false ? 'declined' : 'pending';
         setResolvedGuest({
@@ -94,7 +100,11 @@ export function GuestPearChat({ manifest, coupleNames, guest, domain }: Props) {
           selectedEventNames: null,
         });
       })
-      .catch(() => {});
+      .catch((err) => {
+        if (err?.name === 'AbortError') return;
+        console.warn('[GuestPearChat] passport resolution failed', err);
+        setResolvedGuest(null);
+      });
     return () => ctrl.abort();
   }, [guest, domain]);
 

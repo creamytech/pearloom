@@ -141,19 +141,7 @@ function buildVarMap(theme: ThemeSchema, colors: PaletteColors): Record<string, 
     '--pl-radius-md': cssRadius,
     '--pl-card-shadow': cardStyling.shadow,
     '--pl-card-border': cardStyling.border,
-    // Legacy --eg-* aliases
-    '--eg-bg': colors.background,
-    '--eg-fg': colors.foreground,
-    '--eg-accent': colors.accent,
-    '--eg-accent-light': colors.accentLight,
-    '--eg-muted': colors.muted,
-    '--eg-card-bg': cardStyling.bg,
-    '--eg-font-heading': `"${theme.fonts.heading}", serif`,
-    '--eg-font-body': `"${theme.fonts.body}", sans-serif`,
-    '--eg-radius': cssRadius,
-    '--eg-card-shadow': cardStyling.shadow,
-    '--eg-card-border': cardStyling.border,
-    '--eg-bg-pattern': theme.backgroundPattern || 'noise',
+    '--pl-bg-pattern': theme.backgroundPattern || 'noise',
   };
 }
 

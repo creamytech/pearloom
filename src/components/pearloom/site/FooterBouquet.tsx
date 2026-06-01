@@ -96,7 +96,7 @@ export function FooterBouquet({ url }: Props) {
           borderRadius: 999,
           cursor: 'pointer',
           opacity: 0.78,
-          transition: 'opacity 160ms ease, transform 160ms ease',
+          transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out)',
           fontFamily: 'inherit',
         }}
         onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.02)'; }}

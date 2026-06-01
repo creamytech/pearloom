@@ -749,7 +749,7 @@ export function EditorV8({
     // The fade-out gives the host a moment of "yes, that's the one"
     // without leaving a permanent mark on the canvas.
     el.setAttribute('data-pl8-active', '1');
-    el.style.transition = 'box-shadow 280ms cubic-bezier(0.16, 1, 0.3, 1)';
+    el.style.transition = 'box-shadow var(--pl-dur-base) var(--pl-ease-out)';
     el.style.boxShadow = 'inset 0 0 0 1px rgba(198,112,61,0.55), 0 0 0 6px rgba(198,112,61,0.10)';
     const flashEl = el;
     const t = setTimeout(() => {
@@ -1341,7 +1341,7 @@ function PublishToast({ url, onClose }: { url: string; onClose: () => void }) {
           cursor: 'pointer',
           fontFamily: 'inherit',
           letterSpacing: '0.04em',
-          transition: 'background 180ms ease',
+          transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
         }}
       >
         {copied ? 'Copied' : 'Copy link'}
@@ -1490,7 +1490,7 @@ function DesignMenu() {
           style={{
             display: 'inline-flex',
             transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+            transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)',
           }}
         >
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -1641,7 +1641,7 @@ function EditorTopbar({
     fontFamily: 'var(--font-ui)',
     cursor: 'pointer',
     textDecoration: 'none',
-    transition: 'background 160ms ease, color 160ms ease, border-color 160ms ease',
+    transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
   };
   const iconBtn: React.CSSProperties = {
     width: 30,
@@ -1812,7 +1812,7 @@ function EditorTopbar({
                     fontSize: 12.5,
                     fontWeight: 600,
                     fontFamily: 'var(--font-ui)',
-                    transition: 'background 180ms ease, color 180ms ease',
+                    transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
                   }}
                 >
                   <Icon name={p.icon} size={12} />
@@ -1970,7 +1970,7 @@ function SectionBreadcrumb({
           fontSize: 12,
           fontWeight: 600,
           fontFamily: 'var(--font-ui)',
-          transition: 'background 160ms ease, border-color 160ms ease',
+          transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
         }}
         onMouseEnter={(e) => {
           if (!open) e.currentTarget.style.background = 'var(--cream-2)';
@@ -2033,7 +2033,7 @@ function SectionBreadcrumb({
           style={{
             color: 'var(--ink-muted)',
             transform: open ? 'rotate(180deg)' : 'none',
-            transition: 'transform 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+            transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)',
           }}
         >
           <polyline points="6 9 12 15 18 9" />
@@ -2094,7 +2094,7 @@ function SectionBreadcrumb({
                     fontSize: 13,
                     color: 'var(--ink)',
                     textAlign: 'left',
-                    transition: 'background 140ms ease',
+                    transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
                   }}
                   onMouseEnter={(e) => {
                     if (!isCurrent) e.currentTarget.style.background = 'var(--cream-2)';
@@ -2235,7 +2235,7 @@ function SaveDot({
           placeItems: 'center',
           color: '#fff',
           animation: saveStatus === 'saving' ? 'pl-dot-pulse 1.4s ease-in-out infinite' : 'none',
-          transition: 'width 200ms cubic-bezier(0.34, 1.56, 0.64, 1), height 200ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+          transition: 'width var(--pl-dur-fast) var(--pl-ease-spring), height var(--pl-dur-fast) var(--pl-ease-spring)',
         }}
       >
         {showCheck && (
@@ -2607,7 +2607,7 @@ function Outline({
         // Keep the snap-on-tab transition only when the host hasn't
         // overridden the width. Once they're dragging, transitions
         // make the rail feel laggy.
-        transition: width === undefined ? 'width 200ms cubic-bezier(0.22, 1, 0.36, 1)' : undefined,
+        transition: width === undefined ? 'width var(--pl-dur-fast) var(--pl-ease-out)' : undefined,
       }}
     >
       {!fluid && onResize && (
@@ -2694,7 +2694,7 @@ function Outline({
                   fontWeight: 600,
                   cursor: 'pointer',
                   fontFamily: 'var(--font-ui)',
-                  transition: 'background 160ms ease, color 160ms ease',
+                  transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
                   position: 'relative',
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -2824,7 +2824,7 @@ function Outline({
                   height: '100%',
                   background:
                     progressPct >= 60 ? 'var(--peach-ink, #C6703D)' : 'var(--sage, #5C6B3F)',
-                  transition: 'width 320ms cubic-bezier(0.22, 1, 0.36, 1)',
+                  transition: 'width var(--pl-dur-base) var(--pl-ease-out)',
                 }}
               />
             </div>
@@ -3146,7 +3146,7 @@ function BlockRow({
         cursor: nativeDraggable ? 'grab' : 'pointer',
         fontFamily: 'var(--font-ui)',
         alignItems: 'center',
-        transition: 'background 160ms ease',
+        transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
       }}
       onClick={onSelect}
       title={nativeDraggable ? 'Drag onto the canvas to add' : undefined}
@@ -3187,7 +3187,7 @@ function BlockRow({
             touchAction: 'none',
             padding: 0,
             opacity: showChrome ? 0.7 : 0,
-            transition: 'opacity 140ms ease',
+            transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out)',
           }}
         >
           <Icon name="drag" size={12} />
@@ -3211,7 +3211,7 @@ function BlockRow({
               : 'var(--ink-soft)',
           opacity: hidden ? 0.55 : 1,
           flexShrink: 0,
-          transition: 'color 160ms ease',
+          transition: 'color var(--pl-dur-fast) var(--pl-ease-out)',
         }}
       >
         <Icon name={def.icon} size={16} />
@@ -3282,7 +3282,7 @@ function BlockRow({
             borderRadius: 6,
             padding: 0,
             opacity: hidden ? 1 : showChrome ? 0.7 : 0,
-            transition: 'opacity 140ms ease',
+            transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out)',
           }}
         >
           <Icon name={hidden ? 'eye-off' : 'eye'} size={13} />
@@ -3536,7 +3536,7 @@ function Inspector({
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 7,
-                transition: 'color 180ms ease',
+                transition: 'color var(--pl-dur-fast) var(--pl-ease-out)',
               }}
             >
               <Icon name={t.icon} size={13} />
@@ -3655,7 +3655,7 @@ function Inspector({
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
-                    transition: 'background 140ms ease, color 140ms ease',
+                    transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
                   }}
                 >
                   <Icon name={isHidden ? 'eye-off' : 'eye'} size={14} />
@@ -3706,7 +3706,7 @@ function Inspector({
                         color: on ? 'var(--cream)' : 'var(--ink-soft)',
                         border: 0,
                         cursor: 'pointer',
-                        transition: 'background 140ms ease, color 140ms ease',
+                        transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
                       }}
                     >
                       {label}
@@ -4053,7 +4053,7 @@ function OverflowMenuItem({
         fontWeight: 500,
         opacity: disabled ? 0.45 : 1,
         fontFamily: 'var(--font-ui)',
-        transition: 'background 140ms ease',
+        transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
       }}
       onMouseEnter={(e) => { if (!disabled && !highlighted) e.currentTarget.style.background = 'var(--cream-2)'; }}
       onMouseLeave={(e) => { if (!disabled && !highlighted) e.currentTarget.style.background = 'transparent'; }}
@@ -4144,7 +4144,7 @@ function MobileDrawer({ children, onClose }: { children: React.ReactNode; onClos
           background: expanded ? 'rgba(18, 15, 12, 0.38)' : 'rgba(18, 15, 12, 0.16)',
           backdropFilter: expanded ? 'blur(2px)' : 'none',
           zIndex: 40,
-          transition: 'background 200ms ease, backdrop-filter 200ms ease',
+          transition: 'background var(--pl-dur-fast) var(--pl-ease-out), backdrop-filter var(--pl-dur-fast) var(--pl-ease-out)',
         }}
       />
       <div
@@ -4167,7 +4167,7 @@ function MobileDrawer({ children, onClose }: { children: React.ReactNode; onClos
           overflow: 'hidden',
           boxShadow: '0 -12px 32px rgba(18, 15, 12, 0.16)',
           animation: 'pl8-drawer-up 220ms cubic-bezier(0.16, 1, 0.3, 1)',
-          transition: 'height 280ms cubic-bezier(0.22, 1, 0.36, 1)',
+          transition: 'height var(--pl-dur-base) var(--pl-ease-out)',
         }}
       >
         <button
@@ -4195,7 +4195,7 @@ function MobileDrawer({ children, onClose }: { children: React.ReactNode; onClos
               height: 4,
               borderRadius: 2,
               background: 'var(--line)',
-              transition: 'background 160ms ease, width 200ms ease',
+              transition: 'background var(--pl-dur-fast) var(--pl-ease-out), width var(--pl-dur-fast) var(--pl-ease-out)',
             }}
           />
         </button>

@@ -656,7 +656,7 @@ export function DesignAdvisor({
                   fontWeight: 600,
                   cursor: state === 'running' ? 'wait' : 'pointer',
                   fontFamily: 'var(--font-ui)',
-                  transition: 'background 160ms ease, color 160ms ease, border-color 160ms ease',
+                  transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
                 }}
               >
                 <Icon name={a.icon} size={11} />
@@ -850,7 +850,7 @@ export function DesignAdvisor({
                         fontWeight: 700,
                         cursor: 'pointer',
                         fontFamily: 'var(--font-ui)',
-                        transition: 'background 160ms ease',
+                        transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
                       }}
                       onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--peach-bg, rgba(198,112,61,0.08))'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
@@ -968,7 +968,7 @@ export function DesignAdvisor({
               background: 'var(--card)',
               border: '1px solid var(--line-soft)',
               borderRadius: 14,
-              transition: 'border-color 160ms ease, box-shadow 160ms ease',
+              transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), box-shadow var(--pl-dur-fast) var(--pl-ease-out)',
             }}
           >
             <textarea
@@ -1015,7 +1015,7 @@ export function DesignAdvisor({
                   display: 'grid',
                   placeItems: 'center',
                   flexShrink: 0,
-                  transition: 'background 160ms ease, border-color 160ms ease',
+                  transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
                   animation: listening ? 'pl-pear-mic-pulse 1.4s ease-in-out infinite' : 'none',
                 }}
               >
@@ -1042,7 +1042,7 @@ export function DesignAdvisor({
                 display: 'grid',
                 placeItems: 'center',
                 flexShrink: 0,
-                transition: 'background 160ms ease, color 160ms ease',
+                transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
               }}
             >
               {streaming ? (
@@ -1205,7 +1205,7 @@ function ChatBubble({
                 cursor: 'pointer',
                 fontFamily: 'var(--font-ui)',
                 letterSpacing: '-0.005em',
-                transition: 'background 140ms ease',
+                transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(198,112,61,0.08)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}

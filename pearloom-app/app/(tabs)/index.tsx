@@ -408,7 +408,7 @@ export default function HomeScreen() {
               Create your first site
             </Text>
             <Text style={styles.emptySubtext}>
-              Design a beautiful AI-powered celebration site in minutes.
+              Pear drafts a beautiful celebration site in minutes.
             </Text>
             <Animated.View style={{ transform: [{ scale: newSiteScale }] }}>
               <Pressable

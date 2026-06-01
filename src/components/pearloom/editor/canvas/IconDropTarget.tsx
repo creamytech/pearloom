@@ -195,7 +195,7 @@ export function IconDropTarget({ editMode, onEditField, canvasRoot }: Props) {
           boxShadow: '0 0 0 6px rgba(198,112,61,0.10)',
           pointerEvents: 'none',
           zIndex: 9000,
-          transition: 'left 90ms linear, top 90ms linear, width 90ms linear, height 90ms linear',
+          transition: 'left var(--pl-dur-instant) linear, top var(--pl-dur-instant) linear, width var(--pl-dur-instant) linear, height var(--pl-dur-instant) linear',
           animation: 'pl-icon-pulse 1.2s ease-in-out infinite',
         }}
       />

@@ -5,7 +5,7 @@ import type { StoryManifest } from '@/types';
 
 // ─────────────────────────────────────────────────────────────
 // POST /api/pear-critique
-// AI-powered review of a wedding/celebration site manifest.
+// Pear-drafted review of a wedding/celebration site manifest.
 // Returns Suggestion[] consumed by editor/SiteCritic.tsx.
 // Falls back to an empty list if the model is unavailable so
 // the client can render its own rule-based suggestions.

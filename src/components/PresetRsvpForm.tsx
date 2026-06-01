@@ -19,7 +19,8 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Loader2, CloudOff } from 'lucide-react';
+import { Check, CloudOff } from 'lucide-react';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 import {
   getRsvpFields,
   type RsvpFieldDef,
@@ -274,7 +275,7 @@ export function PresetRsvpForm({
           gap: 10,
         }}
       >
-        {loading ? (<><Loader2 size={14} className="animate-spin" />Sending</>) : 'Send it'}
+        {loading ? (<><WeaveLoader size="xs" inline />Threading</>) : 'Send it'}
       </button>
     </form>
   );

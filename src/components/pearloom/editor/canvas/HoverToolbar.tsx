@@ -4,7 +4,7 @@
 // Pearloom / editor/canvas/HoverToolbar.tsx
 //
 // The floating toolbar that appears over a block on hover in
-// edit mode. Shows AI-powered quick actions — Rewrite, Make
+// edit mode. Shows Pear-drafted quick actions — Rewrite, Make
 // Shorter, Make Warmer — using the existing /api/rewrite-text
 // endpoint we wired earlier.
 //
@@ -123,7 +123,7 @@ export function HoverToolbar({ value, onResult, actions, children, context }: Ho
     letterSpacing: '0.04em',
     opacity: hovered ? 1 : 0,
     transform: hovered ? 'translateY(0)' : 'translateY(-4px)',
-    transition: 'opacity 160ms ease, transform 160ms ease',
+    transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out)',
     pointerEvents: hovered ? 'auto' : 'none',
   };
 
@@ -189,7 +189,7 @@ export function HoverToolbar({ value, onResult, actions, children, context }: Ho
                 color: 'inherit',
                 background: busy ? 'rgba(255,255,255,0.12)' : 'transparent',
                 opacity: anyBusy && !busy ? 0.5 : 1,
-                transition: 'background 140ms ease',
+                transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
               }}
               onMouseEnter={(e) => {
                 if (anyBusy) return;

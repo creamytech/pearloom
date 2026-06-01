@@ -206,7 +206,7 @@ const STEP_BTN = (off: boolean): CSSProperties => ({
   flexShrink: 0,
   userSelect: 'none',
   touchAction: 'none',
-  transition: 'background 140ms ease',
+  transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
   opacity: off ? 0.4 : 1,
 });
 
@@ -344,7 +344,7 @@ export function CustomSelect<T extends string = string>({
           fontFamily: 'inherit',
           textAlign: 'left',
           opacity: disabled ? 0.55 : 1,
-          transition: 'border-color 160ms ease, background 160ms ease',
+          transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), background var(--pl-dur-fast) var(--pl-ease-out)',
         }}
       >
         <span style={{
@@ -357,7 +357,7 @@ export function CustomSelect<T extends string = string>({
         }}>
           {selected?.label ?? placeholder}
         </span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ flexShrink: 0, opacity: 0.6, transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 160ms ease' }}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ flexShrink: 0, opacity: 0.6, transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)' }}>
           <path d="M6 9l6 6 6-6" />
         </svg>
       </button>
@@ -568,7 +568,7 @@ export function V8Slider({
           box-shadow: 0 2px 6px rgba(14, 13, 11, 0.22);
           cursor: grab;
           margin-top: 2px;
-          transition: transform 160ms cubic-bezier(0.34, 1.56, 0.64, 1);
+          transition: transform var(--pl-dur-fast) var(--pl-ease-spring);
         }
         .pl8-v8-slider:active::-webkit-slider-thumb { cursor: grabbing; transform: scale(1.18); }
         .pl8-v8-slider::-moz-range-track { height: 4px; background: transparent; border: none; }
@@ -639,7 +639,7 @@ export function Switch({
         cursor: disabled ? 'not-allowed' : 'pointer',
         padding: 0,
         flexShrink: 0,
-        transition: 'background 240ms cubic-bezier(0.22,1,0.36,1), border-color 240ms ease',
+        transition: 'background var(--pl-dur-base) var(--pl-ease-out), border-color var(--pl-dur-base) var(--pl-ease-out)',
         opacity: disabled ? 0.55 : 1,
         outline: 'none',
       }}
@@ -655,7 +655,7 @@ export function Switch({
           borderRadius: '50%',
           background: knobBg,
           boxShadow: '0 1px 3px rgba(14,13,11,0.18)',
-          transition: 'left 220ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+          transition: 'left var(--pl-dur-fast) var(--pl-ease-spring)',
         }}
       />
     </button>
@@ -773,7 +773,7 @@ export function DatePicker({
           display: 'flex',
           alignItems: 'center',
           gap: 8,
-          transition: 'border-color 160ms ease',
+          transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out)',
         }}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ opacity: 0.6, flexShrink: 0 }}>
@@ -852,7 +852,7 @@ export function DatePicker({
                     fontFamily: 'inherit',
                     fontWeight: on ? 700 : 500,
                     opacity: blocked ? 0.4 : 1,
-                    transition: 'background 140ms ease',
+                    transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
                   }}
                   onMouseEnter={(e) => { if (!on && !blocked) e.currentTarget.style.background = 'var(--cream-2)'; }}
                   onMouseLeave={(e) => { if (!on && !blocked) e.currentTarget.style.background = c.isToday ? 'var(--cream-2)' : 'transparent'; }}
@@ -1037,7 +1037,7 @@ export function TimePicker({
           display: 'flex',
           alignItems: 'center',
           gap: 8,
-          transition: 'border-color 160ms ease',
+          transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out)',
         }}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ opacity: 0.6, flexShrink: 0 }}>

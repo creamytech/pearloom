@@ -65,7 +65,7 @@ export function useHeroParallax(maxOffset: number = 10): Result {
 
   const style: CSSProperties = {
     transform: `translate3d(${offset.x}px, ${offset.y}px, 0)`,
-    transition: 'transform 0ms linear',
+    transition: 'transform var(--pl-dur-instant) linear',
     willChange: 'transform',
   };
   return { ref, style };

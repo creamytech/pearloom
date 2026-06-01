@@ -248,5 +248,5 @@ const inputStyle: React.CSSProperties = {
   color: 'var(--ink)',
   fontFamily: 'inherit',
   outline: 'none',
-  transition: 'border-color 160ms ease',
+  transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out)',
 };

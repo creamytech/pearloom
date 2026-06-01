@@ -207,7 +207,7 @@ export default function SignInScreen() {
               },
             ]}
           >
-            AI-powered celebration sites
+            Pear-drafted celebration sites
           </Animated.Text>
         </View>
 

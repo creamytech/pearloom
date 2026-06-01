@@ -549,7 +549,7 @@ function EmailTrackingStrip({
                 height: 6,
                 borderRadius: 999,
                 background: lit ? p.tone : 'rgba(14,13,11,0.12)',
-                transition: 'background 200ms ease',
+                transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
               }}
             />
             {lit && (

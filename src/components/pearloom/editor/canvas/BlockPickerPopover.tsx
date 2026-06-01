@@ -153,7 +153,7 @@ export function BlockPickerPopover({ anchor, blocks, onPick, onClose }: Props) {
                 border: 'none', background: 'transparent',
                 borderRadius: 8, cursor: 'pointer', textAlign: 'left',
                 color: 'var(--ink)',
-                transition: 'background-color 140ms ease',
+                transition: 'background-color var(--pl-dur-fast) var(--pl-ease-out)',
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--cream-2)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}

@@ -95,7 +95,7 @@ function MobileSaveIndicatorInner({ saveStatus, onRetry }: Props) {
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
         cursor: saveStatus === 'error' ? 'pointer' : 'default',
-        transition: 'opacity 220ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+        transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out)',
       }}
     >
       <span

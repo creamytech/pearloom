@@ -283,7 +283,7 @@ function ThemedNav({ manifest: _manifest, names }: { manifest: StoryManifest; na
               textDecoration: 'none',
               padding: '4px 2px',
               borderBottom: '1px dotted transparent',
-              transition: 'border-color 180ms ease, color 180ms ease',
+              transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderBottomColor = 'var(--peach-ink, #C6703D)';

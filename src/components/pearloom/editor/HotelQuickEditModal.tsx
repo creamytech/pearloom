@@ -570,7 +570,7 @@ function HotelPhotoStrip({
               cursor: 'grab',
               flexShrink: 0,
               opacity: dragIdx === i ? 0.4 : 1,
-              transition: 'opacity 140ms ease',
+              transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out)',
             }}
             title={i === 0 ? 'Primary photo (drag to reorder)' : 'Drag to reorder'}
           >

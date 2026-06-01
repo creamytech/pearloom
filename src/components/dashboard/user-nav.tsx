@@ -9,9 +9,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  User, LogOut, Check, Loader2, Zap, Star, Crown,
+  User, LogOut, Check, Zap, Star, Crown,
   LayoutDashboard, LayoutGrid, ExternalLink,
 } from 'lucide-react';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 import { signOut, useSession } from 'next-auth/react';
 import { cn } from '@/lib/cn';
 
@@ -217,7 +218,7 @@ export function UserNav({ user, onDashboard }: UserNavProps) {
                       : { background: 'var(--pl-groove-blob-sunrise)' }
                   }
                 >
-                  {saving ? <Loader2 size={11} className="animate-spin" /> : saved ? <Check size={11} /> : 'Save'}
+                  {saving ? <WeaveLoader size="xs" inline /> : saved ? <Check size={11} /> : 'Save'}
                 </button>
               </div>
               <div className="text-[0.65rem] text-[var(--pl-muted)] mt-1.5">

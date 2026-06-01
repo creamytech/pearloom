@@ -139,7 +139,7 @@ export function HeroPostcard({ manifest, names, siteSlug: _siteSlug, onEditField
             fontSize: 13,
             fontWeight: 600,
             textDecoration: 'none',
-            transition: 'background 200ms ease, border-color 200ms ease',
+            transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
           }}
         >
           Learn more

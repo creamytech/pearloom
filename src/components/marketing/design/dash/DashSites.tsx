@@ -254,7 +254,7 @@ function SiteCard({ site }: { site: SiteSummary }) {
         overflow: 'hidden',
         textDecoration: 'none',
         color: PD.ink,
-        transition: 'transform 220ms cubic-bezier(.2,.8,.2,1), box-shadow 220ms',
+        transition: 'transform var(--pl-dur-fast) var(--pl-ease-out), box-shadow var(--pl-dur-fast) var(--pl-ease-out)',
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-3px)';
@@ -389,7 +389,7 @@ function NewSiteTile() {
         color: PD.ink,
         textAlign: 'center',
         padding: 24,
-        transition: 'all 220ms',
+        transition: 'all var(--pl-dur-fast) var(--pl-ease-out)',
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.background = PD.paper2;
@@ -446,7 +446,7 @@ function PathsGrid() {
             padding: '24px 24px 22px',
             textDecoration: 'none',
             transform: `rotate(${p.tilt}deg)`,
-            transition: 'all 260ms cubic-bezier(.2,.8,.2,1)',
+            transition: 'all var(--pl-dur-base) var(--pl-ease-out)',
             position: 'relative',
             overflow: 'hidden',
           }}

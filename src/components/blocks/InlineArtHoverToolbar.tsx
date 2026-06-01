@@ -34,7 +34,8 @@ import {
   onInlineToolbarActivated,
 } from './inline-toolbar-bus';
 import { createPortal } from 'react-dom';
-import { Trash2, Sparkles, Loader2, Settings, Check } from 'lucide-react';
+import { Trash2, Sparkles, Settings, Check } from 'lucide-react';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 import { SEPARATOR_PRESETS } from '@/lib/separator-presets';
 import type { StoryManifest } from '@/types';
 
@@ -606,7 +607,7 @@ export function InlineArtHoverToolbar({
               }}
             >
               {busy === 'regenerate'
-                ? <Loader2 size={11} style={{ animation: 'spin 0.8s linear infinite' }} />
+                ? <WeaveLoader size="xs" inline />
                 : <Sparkles size={11} />}
               Regenerate
             </button>
@@ -644,7 +645,7 @@ export function InlineArtHoverToolbar({
               }}
             >
               {busy === 'remove'
-                ? <Loader2 size={11} style={{ animation: 'spin 0.8s linear infinite' }} />
+                ? <WeaveLoader size="xs" inline />
                 : <Trash2 size={11} />}
             </button>
           </div>
@@ -785,7 +786,7 @@ function ArtBtn({
       }}
     >
       {loading ? (
-        <Loader2 size={11} style={{ animation: 'spin 0.8s linear infinite' }} />
+        <WeaveLoader size="xs" inline />
       ) : (
         <Icon size={11} />
       )}

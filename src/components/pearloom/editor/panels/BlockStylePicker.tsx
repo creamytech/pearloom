@@ -91,7 +91,7 @@ export function BlockStylePicker({
                 boxShadow: isActive
                   ? '0 0 0 4px rgba(198,112,61,0.12)'
                   : 'none',
-                transition: 'border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease',
+                transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), box-shadow var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out)',
               }}
               title={v.description}
               onMouseEnter={(e) => {

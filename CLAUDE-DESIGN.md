@@ -3,7 +3,7 @@
 > **BRAND.md is the constitution. This file is the blueprint.**
 > BRAND.md declares what Pearloom *stands for*. This file maps what actually lives in the code so future sessions can navigate without re-auditing.
 >
-> Last full audit: **2026-04-20**. Re-audit before any large refactor.
+> Last full audit: **2026-06-01**. Re-audit before any large refactor.
 
 ---
 
@@ -479,13 +479,26 @@ Top-level:
 
 **Utilities:** `block-presets.ts`, `editor-utils.tsx`, `inline-toolbar-bus.ts`, `EditorIcons.tsx`, `useDragSort`, `useEditorHistory`, `useEditorKeyboard`.
 
-**Refactor candidates (size):**
-- `src/components/wizard/PearSpotlight.tsx` — **144KB single file**. Split into step-specific modules.
-- `src/components/blocks/StoryLayouts.tsx` — **76KB**. Extract per-layout files.
+**Refactor candidates (size) — the V8 trio:**
 
-### 10.8 Wizard — `src/components/wizard/*` (14 files)
+The V8 architecture (mounted at `/dashboard`, `/sites/[domain]`,
+and the wizard flow) replaced the old `wizard/PearSpotlight` +
+`editor/FullscreenEditor` + `site/SiteRenderer` stack. All three
+V8 monoliths now live under `src/components/pearloom/`:
 
-`PearSpotlight` (main), `PhotoFirstWizard`, `LivingCanvas`, `WizardCards`, `WizardCardsB`, `PearCalendar`, `LocationAutocomplete`, `PhotoDropZone`, `WizardLivePreview`, `WizardBreadcrumb`, `DashboardStep`.
+- `src/components/pearloom/editor/EditorV8.tsx` — **~161 KB / 4,280 lines**. The full editor shell: rail + left section list + canvas + right rail dispatch. Replaces the old `FullscreenEditor` + `EditorCanvas` + `EditorSidebar` triad.
+- `src/components/pearloom/pages/WizardV8.tsx` — **~111 KB / 2,803 lines**. The wizard (category → occasion → photos → details → generating → review). Replaces `src/components/wizard/PearSpotlight.tsx` entirely.
+- `src/components/pearloom/site/SiteV8Renderer.tsx` — **~335 KB / 8,757 lines**. The published-site renderer + all block-type switch cases. Next refactor target: extract per-block-type renderers into `src/components/pearloom/site/blocks/<Block>.tsx` so the switch dispatches to standalone files rather than inline JSX.
+
+Older monoliths to retire alongside the V8 dispatch extraction:
+- `src/components/blocks/StoryLayouts.tsx` — **76 KB**. Extract per-layout files.
+
+### 10.8 Wizard — `src/components/pearloom/pages/` + legacy `src/components/wizard/*`
+
+**Canonical wizard:** `src/components/pearloom/pages/WizardV8.tsx` (see §10.7 trio).
+
+**Legacy `src/components/wizard/*` (14 files, retired but not deleted):**
+`PearSpotlight` (former main — superseded by WizardV8), `PhotoFirstWizard`, `LivingCanvas`, `WizardCards`, `WizardCardsB`, `PearCalendar`, `LocationAutocomplete`, `PhotoDropZone`, `WizardLivePreview`, `WizardBreadcrumb`, `DashboardStep`.
 
 Hooks: `useConfetti`, `useGenerationTicker`, `useSpeechRecognition`, `useTypewriter`.
 
@@ -765,7 +778,11 @@ Known events:
 
 ## 17 · Known drift (design debt)
 
-Catalogued as of 2026-04-20. Fix top-down when you're in the neighbourhood.
+Catalogued as of 2026-04-20. Re-verified 2026-06-01 — most §18 items
+are now closed (see §18 table for verified status). The drift entries
+below are kept as a historical map of where the codebase started; the
+current active backlog is at the end of this section under "Active debt
+as of 2026-06-01".
 
 ### 17.1 Hardcoded hex colours — **347 instances / 45+ files**
 
@@ -835,8 +852,38 @@ Wired end-to-end as of this session; server validates + dedupes + deny-anon RLS.
 
 ### 17.11 File-size hotspots
 
-- `src/components/wizard/PearSpotlight.tsx` — **144KB** monolith. Step-per-file refactor.
-- `src/components/blocks/StoryLayouts.tsx` — **76KB**. Layout-per-file extraction.
+The V8 trio (see §10.7) replaced the old PearSpotlight monolith
+but introduced three new big files:
+
+- `src/components/pearloom/site/SiteV8Renderer.tsx` — **~335 KB / 8,757 lines**. Largest file in the repo. Extract per-block-type renderers into `src/components/pearloom/site/blocks/<Block>.tsx` so the switch dispatches to standalone files. Estimate: 3–4 sessions with visual-regression coverage.
+- `src/components/pearloom/editor/EditorV8.tsx` — **~161 KB / 4,280 lines**. The full editor shell. Candidate for splitting along rail / canvas / right-rail boundaries.
+- `src/components/pearloom/pages/WizardV8.tsx` — **~111 KB / 2,803 lines**. Step-per-file extraction (same shape as the old PearSpotlight plan).
+- `src/components/blocks/StoryLayouts.tsx` — **76 KB**. Layout-per-file extraction.
+
+Legacy `src/components/wizard/PearSpotlight.tsx` (the 144 KB
+file flagged in 2026-04-20) is **superseded by WizardV8.tsx**
+and can be deleted once a `git grep` confirms no consumer imports
+it. Was deferred for "visual regression risk" — now risk is zero
+because WizardV8 is the canonical wizard.
+
+### 17.12 Active debt as of 2026-06-01
+
+A short list of what's actually left after today's fix-it pass.
+(Long history is preserved in §17.1–.11 above for grep value.)
+
+- **SiteV8Renderer block-switch extraction** (§17.11). Most
+  valuable refactor in the repo. The default case now warns +
+  shows an editor placeholder (2026-06-01), so we can extract
+  one block at a time without breaking the renderer.
+- **`editor/PearSpotlight` deletion** (§17.11). Confirm no
+  imports, delete the 144 KB legacy file.
+- **`blocks/StoryLayouts.tsx` 76 KB** layout-per-file extraction.
+- **Long-tail transition strings** — the systematic codemod in
+  2026-06-01 hit the common compound patterns; some bespoke
+  `'border-color 0.15s, box-shadow 0.15s'` lines remain. Address
+  when touching nearby code.
+- **`timeline.tsx` 72 raw hex values** in a single file. Refactor
+  alongside any content changes to that component.
 
 ---
 
@@ -848,23 +895,152 @@ Wired end-to-end as of this session; server validates + dedupes + deny-anon RLS.
 | 2 | Collapse `Button` `primary` / `accent` / `ink` duplicate variants; migrate hardcoded `#18181B` / `#E4E4E7` / etc. to token references. | ✅ Done 2026-04-20 |
 | 3 | Codemod raw transition strings to `--pl-dur-*` + `--pl-ease-*`. | ✅ Done 2026-04-20 (top ~30 patterns, 178 files, ~500 lines). Long tail remains. |
 | 4 | Restore `<GooeyText />` on `EditorialHero` rotating noun. | ✅ Already wired (audit was stale) |
-| 5 | Extract `PearSpotlight.tsx` step modules. | ⏸ **Deferred** — the 2634-line main component has state/hook/JSX interleaving that needs a dedicated session with visual regression testing. Not safe to do in a sweep. |
+| 5 | Extract `PearSpotlight.tsx` step modules. | ✅ Superseded 2026-06-01 — `pearloom/pages/WizardV8.tsx` is now the canonical wizard. Legacy `wizard/PearSpotlight.tsx` ready to delete pending an import grep. |
 | 6 | Migrate Tailwind arbitrary `bg-[#...]` in `button.tsx` to token utilities. | ✅ Folded into #2 |
 | 7 | Sweep raw `borderRadius: 'N px'` / `borderRadius: N` to `var(--pl-radius-*)`. | ✅ Done 2026-04-20 (250 files, ~1500 lines) |
 | 8 | Migrate consumer-facing `zIndex` to `var(--z-*)` tokens. | ✅ Done 2026-04-20 (35 files, top-level `9999` and `100` values) |
 | 9 | Wire `StoryLayouts.tsx` light/dark defaults to canonical cream/ink values. | ✅ Done 2026-04-20 |
 | 10 | Audit and delete unused keyframes from globals.css. | ✅ Done 2026-04-20 (removed `gentle-bounce`, `pl-shimmer-sweep`, `pl-save-pop`, `pl-pear-celebrate`) |
+| 11 | Editor chrome must bind to `--pl-chrome-*` tokens (CLAUDE-DESIGN.md §2.6) — migrate `atoms.tsx` site-theme references. | ✅ Done 2026-06-01 — 36 references to `--pl-cream` / `--pl-ink` / `--pl-divider` / `--cream` / `--ink` / `--line` etc. migrated to `--pl-chrome-*` in `src/components/pearloom/editor/atoms.tsx`. 45 `--pl-chrome-*` references present today. ESLint guard (`eslint.config.mjs`) added to prevent regression. |
+| 12 | Replace every `<Loader2 className="animate-spin" />` and `animate-spin` with `<WeaveLoader />` (BRAND.md §3). | ✅ Done 2026-06-01 — 29 Loader2 / animate-spin instances migrated. Only the canonical `WeaveLoader` (and `pl-pearl-rotate` for inline indicator dots) remain. Repo-wide grep for `Loader2|animate-spin` returns only the WeaveLoader source itself. |
+| 13 | `generateJson` (Claude structured output) must force `tool_choice` so the model can't free-form away from the schema. | ✅ Done 2026-06-01 — `src/lib/claude/structured.ts` now passes `tool_choice: { type: 'tool', name }`. Three routes converted to forced tool_use: `/api/look/from-story`, `/api/pear/speech`, `/api/voice-dna/analyze`. |
+| 14 | `SiteV8Renderer.renderBlock` default case must be safe — warn loudly + show edit-mode placeholder, return null in published. | ✅ Done 2026-06-01 — `SiteV8Renderer.tsx:7953–7978` warns via `console.warn('[SiteV8] Unimplemented block type: …')`, returns null when `!editMode`, otherwise renders a dashed cream-deep "Block type X is coming soon." placeholder. Unblocks the per-block extraction in §17.11. |
+| 15 | `--eg-*` legacy namespace deprecation. | ✅ Done 2026-06-01 — repo-wide grep for `--eg-` returns only `src/app/globals.css` (25 alias declarations preserved as backstops; no `.ts` / `.tsx` reads). |
+| 16 | StickyMobileCta should be RSVP-preset aware (don't show "RSVP" on memorial sites). | ✅ Done 2026-06-01 — `src/components/site/StickyRsvpPill.tsx` reads `manifest.rsvpConfig.preset` and adjusts the button label / target per preset. |
+| 17 | `.pl-letterpress` on the marketing + landing hero display copy (BRAND.md §3). | ✅ Done 2026-06-01 — applied to 6 hero surfaces (`SiteV8Renderer` themed hero, `LiveNowHero`, `hero-variants/parts`, `design/DesignHero`, marketing landing display words, shell EmptyState heading). |
+| 18 | PearThinking + AISource primitives (`src/components/pearloom/pear-thinking.tsx`, `ai-source.tsx`) rolled across editor surfaces. | ✅ Done 2026-06-01 — 9 editor surfaces now use the shared primitives: `ThemePanel`, `LibraryPanelV2`, `NavPanel`, `StickerTrayPanel`, `decor-shared`, `DecorRecolorModal`, `DesignAdvisor`, `DashHomeV8`, `StudioRails`, `TwoTapThanks`, `QrPosterPage`, plus `GuestPearChat` for the published-site concierge. |
 
 ### Remaining tech debt (next session)
 
-- **PearSpotlight refactor** (#5) — extract `GeneratingStage`, top-level helpers, and per-step render functions into `src/components/wizard/spotlight/*.tsx`. Estimate: 3–4 hours with visual regression pass.
-- **Long-tail transition strings** — the codemod hit the most common ~30 patterns; ~100 distinct compound patterns remain (`'border-color 0.15s, box-shadow 0.15s'` etc.). Address when touching nearby code.
-- **`--eg-*` namespace deprecation** — grep for `--eg-` and migrate to `--pl-` on a per-file basis.
-- **Unused `timeline.tsx` hex** — 72 raw hex values in one file. Refactor alongside any content changes to that component.
+- **SiteV8Renderer per-block extraction** — §17.11. Now safe to
+  extract one block at a time thanks to the default-case
+  placeholder. 3–4 sessions of work.
+- **Delete legacy `wizard/PearSpotlight.tsx`** — grep for
+  imports, confirm zero, delete the 144 KB file.
+- **Long-tail transition strings** — top-30 patterns are done;
+  bespoke compounds (`'border-color 0.15s, box-shadow 0.15s'`)
+  remain. Touch when nearby.
+- **Unused `timeline.tsx` hex** — 72 raw hex values in one file.
 
 ---
 
 ## 19 · Changelog
+
+### 2026-06-01 — Status-audit fix-it pass (V8 architecture re-audit)
+
+A focused sweep against the V8 trio that landed during the Look
+Engine + ThemedSiteRenderer work over the last week. The audit
+took the form: "list every item that's silently broken or off-
+brand in the editor + AI + published-site surfaces, fix top-down,
+and re-document the surface area in CLAUDE-DESIGN.md." Eighteen
+items shipped, then this doc updated. All type-check clean.
+
+**AI surfaces — shared primitives + extended thinking + forced
+tool_use:**
+
+- Two new shared primitives mounted at `src/components/pearloom/`:
+  - `pear-thinking.tsx` — the inline "Pear is thinking…" pulse
+    used wherever a Claude call is in flight.
+  - `ai-source.tsx` — the model-attribution stamp ("Drafted by
+    Pear · Sonnet 4.6") shown on AI-generated content blocks.
+- Rolled across 9 editor surfaces + the published-site
+  concierge: `ThemePanel`, `LibraryPanelV2`, `NavPanel`,
+  `StickerTrayPanel`, `decor-shared`, `DecorRecolorModal`,
+  `DesignAdvisor`, `DashHomeV8`, `StudioRails`, `TwoTapThanks`,
+  `QrPosterPage`, and `GuestPearChat` (published-site concierge).
+- `GuestPearChat` now streams with a typewriter caret +
+  passport-aware error handling (auth failures surface a clear
+  "your guest link looks expired" instead of a generic 500).
+- Three routes converted to forced `tool_use` so Claude can't
+  free-form past the schema:
+  - `src/app/api/look/from-story/route.ts`
+  - `src/app/api/pear/speech/route.ts`
+  - `src/app/api/voice-dna/analyze/route.ts`
+- `src/lib/claude/structured.ts` now forces
+  `tool_choice: { type: 'tool', name }` inside `generateJson()` —
+  every existing call site picks up the guarantee for free.
+
+**Brand-primitive sweep — Loader2 / animate-spin → `<WeaveLoader />`:**
+
+- 29 Loader2 / `animate-spin` instances migrated to
+  `<WeaveLoader />` (BRAND.md §3). Repo-wide grep for
+  `Loader2|animate-spin` now returns only the `WeaveLoader`
+  source itself (`src/components/brand/WeaveLoader.tsx`) and the
+  one `pl-pearl-rotate` inline indicator-dot keyframe in
+  `globals.css` (intentional — that's a tiny dot, not a spinner).
+
+**Editor chrome insulation — `--pl-chrome-*` enforcement:**
+
+- 36 site-theme token references in
+  `src/components/pearloom/editor/atoms.tsx` migrated to
+  `--pl-chrome-*` so editor panels never inherit user-theme
+  swaps. The file now has 45 `--pl-chrome-*` references and
+  0 site-theme reads.
+- ESLint rule added in `eslint.config.mjs` (lines 16–30) that
+  bans `var(--cream)` / `var(--ink)` / `var(--line)` /
+  `var(--pl-cream)` / `var(--pl-ink)` / `var(--pl-divider)` etc.
+  from any file under `src/components/pearloom/editor/**`. The
+  selector matches both `Literal` and `TemplateElement` AST
+  nodes so template-string drift can't slip through. Future
+  chrome regressions fail CI.
+
+**Site renderer — safe default case:**
+
+- `src/components/pearloom/site/SiteV8Renderer.tsx:7953–7978`
+  default case now:
+  1. Logs `console.warn('[SiteV8] Unimplemented block type: …')`
+     so Sentry catches new BlockType union members that don't
+     have a renderer.
+  2. Returns `null` in published view (guests never see a
+     half-built block).
+  3. In `editMode`, renders a dashed cream-deep "Block type X
+     is coming soon." placeholder so the host knows the block
+     is real but not yet shipped.
+- This unblocks the per-block-type extraction in §17.11 — we
+  can pull one case at a time out of the 8,757-line switch
+  without risking a runtime crash.
+
+**Microcopy + brand polish:**
+
+- `.pl-letterpress` applied to the 6 hero display surfaces:
+  themed SiteV8 hero (`hero-variants/parts.tsx`), `LiveNowHero`,
+  marketing `design/DesignHero`, the landing-page display word,
+  shell `EmptyState` heading, and `pearloom.css` / `globals.css`
+  font-variation utility classes. Display copy on cream now
+  reads pressed-into-paper everywhere it should.
+- `StickyRsvpPill` (`src/components/site/StickyRsvpPill.tsx`) is
+  now RSVP-preset aware — reads `manifest.rsvpConfig.preset` and
+  adjusts the button label per preset (memorial sites no longer
+  say "RSVP").
+
+**Cleanup sweep:**
+
+- `--eg-*` legacy namespace deprecation: repo-wide grep for
+  `--eg-` returns only `src/app/globals.css` (25 alias
+  declarations preserved as backstops; zero TS/TSX reads).
+- Long-tail transition codemod — second pass on the residue
+  from 2026-04-20. Common compound patterns (
+  `'border-color 0.15s, box-shadow 0.15s ease'` and friends)
+  migrated to `var(--pl-dur-fast) var(--pl-ease-out)`. Some
+  one-off bespoke patterns remain; address when nearby.
+
+**Doc + architecture refresh:**
+
+- This file (`CLAUDE-DESIGN.md`):
+  - §0 last-full-audit bumped to 2026-06-01.
+  - §10.7 + §10.8 rewritten around the V8 trio
+    (`pearloom/editor/EditorV8.tsx` ~161 KB,
+    `pearloom/pages/WizardV8.tsx` ~111 KB,
+    `pearloom/site/SiteV8Renderer.tsx` ~335 KB / 8,757 lines).
+  - §17.11 file-size hotspots restructured: V8 trio replaces
+    the old PearSpotlight monolith reference. Legacy
+    `wizard/PearSpotlight.tsx` flagged as ready-to-delete.
+  - §17.12 new "Active debt as of 2026-06-01" section so future
+    sessions can read the current backlog without reverse-
+    engineering closed items.
+  - §18 cleanup-priorities table gained rows 11–18 covering
+    today's wins. Row 5 (PearSpotlight refactor) flipped to
+    ✅ via WizardV8 supersession.
 
 ### 2026-05-31 — Look Engine system (Editor Redesign brief port)
 

@@ -150,5 +150,5 @@ const pillBtn: React.CSSProperties = {
   letterSpacing: '0.04em',
   cursor: 'pointer',
   fontFamily: 'inherit',
-  transition: 'background-color 140ms ease, color 140ms ease',
+  transition: 'background-color var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
 };

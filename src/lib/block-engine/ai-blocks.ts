@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / lib/block-engine/ai-blocks.ts
-// AI-powered block generation, content suggestions, and
+// Pear-drafted block generation, content suggestions, and
 // auto-layout optimization.
 //
 // Uses the Gemini API via /api/ai-blocks to generate block

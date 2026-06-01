@@ -225,7 +225,7 @@ export function KitPicker({ manifest, onChange }: Props) {
                 cursor: 'pointer',
                 textAlign: 'left',
                 fontFamily: 'var(--font-ui)',
-                transition: 'background 140ms ease, border-color 140ms ease',
+                transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
               }}
             >
               <div

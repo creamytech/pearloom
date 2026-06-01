@@ -120,7 +120,7 @@ export function LayoutPicker({ manifest, onChange }: Props) {
                 borderRadius: 10,
                 cursor: 'pointer',
                 textAlign: 'left',
-                transition: 'background 180ms ease, color 180ms ease',
+                transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
               }}
             >
               <div

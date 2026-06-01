@@ -201,7 +201,7 @@ export function PhotoLightbox({
             placeItems: 'center',
             fontSize: 18,
             fontWeight: 300,
-            transition: 'background 160ms ease, border-color 160ms ease',
+            transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = 'rgba(243,233,212,0.14)';
@@ -315,7 +315,7 @@ export function PhotoLightbox({
                 fontSize: 12,
                 fontWeight: 700,
                 fontFamily: 'inherit',
-                transition: 'background 140ms ease, transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+                transition: 'background var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-spring)',
               }}
               onMouseEnter={(e) => {
                 if (!reactions.mine[img.url]) e.currentTarget.style.background = 'rgba(243,233,212,0.14)';
@@ -324,7 +324,7 @@ export function PhotoLightbox({
                 if (!reactions.mine[img.url]) e.currentTarget.style.background = 'transparent';
               }}
             >
-              <span aria-hidden style={{ fontSize: 13, transform: reactions.mine[img.url] ? 'scale(1.1)' : 'scale(1)', transition: 'transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1)' }}>♥</span>
+              <span aria-hidden style={{ fontSize: 13, transform: reactions.mine[img.url] ? 'scale(1.1)' : 'scale(1)', transition: 'transform var(--pl-dur-fast) var(--pl-ease-spring)' }}>♥</span>
               {(reactions.counts[img.url] ?? 0) > 0 ? reactions.counts[img.url] : ''}
             </button>
             <span style={{ width: 1, height: 16, background: 'rgba(243,233,212,0.18)', margin: '0 2px' }} />
@@ -361,7 +361,7 @@ export function PhotoLightbox({
             fontWeight: 600,
             letterSpacing: '0.04em',
             borderRadius: 999,
-            transition: 'background 140ms ease',
+            transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
           }}
           onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(243,233,212,0.12)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
@@ -429,7 +429,7 @@ function RailButton({
         fontSize: 22,
         lineHeight: 1,
         fontFamily: 'inherit',
-        transition: 'background 140ms ease',
+        transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
       }}
       onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(243,233,212,0.14)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
@@ -776,7 +776,7 @@ export function GuestPhotoUploader({
               width: `${progress}%`,
               height: '100%',
               background: 'var(--peach-ink)',
-              transition: 'width 240ms cubic-bezier(0.22, 1, 0.36, 1)',
+              transition: 'width var(--pl-dur-base) var(--pl-ease-out)',
             }}
           />
         </div>

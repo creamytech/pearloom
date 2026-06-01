@@ -201,7 +201,7 @@ export function IconifyBrowser({ onPick }: Props) {
                 padding: 8,
                 display: 'grid',
                 placeItems: 'center',
-                transition: 'transform 140ms ease, border-color 140ms ease',
+                transition: 'transform var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)';

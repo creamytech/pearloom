@@ -225,7 +225,7 @@ export function PlaceAutocomplete({
           background: 'var(--card)',
           border: '1px solid var(--line)',
           borderRadius: 10,
-          transition: 'border-color 160ms ease, box-shadow 160ms ease',
+          transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), box-shadow var(--pl-dur-fast) var(--pl-ease-out)',
           boxShadow: open ? '0 0 0 3px rgba(198,112,61,0.10)' : undefined,
           borderColor: open ? 'var(--peach-ink, #C6703D)' : 'var(--line)',
         }}
@@ -333,7 +333,7 @@ export function PlaceAutocomplete({
                   borderRadius: 8,
                   cursor: 'pointer',
                   background: on ? 'var(--cream-2)' : 'transparent',
-                  transition: 'background 120ms ease',
+                  transition: 'background var(--pl-dur-instant) var(--pl-ease-out)',
                 }}
               >
                 <Icon name={kind === 'hotel' ? 'moon' : kind === 'airport' ? 'compass' : 'pin'} size={12} />

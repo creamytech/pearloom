@@ -8,7 +8,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Camera, Loader2, ChevronLeft, ChevronRight, Upload } from 'lucide-react';
+import { X, Camera, ChevronLeft, ChevronRight, Upload } from 'lucide-react';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 import type { GalleryPhoto } from '@/types';
 
 interface PhotoGalleryProps {
@@ -185,11 +186,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
         />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
           {uploading ? (
-            <Loader2
-              size={32}
-              color="var(--pl-olive)"
-              style={{ animation: 'spin 1s linear infinite' }}
-            />
+            <WeaveLoader size="lg" />
           ) : (
             <div
               style={{

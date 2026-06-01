@@ -460,7 +460,7 @@ export function DecorLibraryPanel({
                     fontWeight: 600,
                     fontFamily: 'var(--font-ui)',
                     cursor: 'pointer',
-                    transition: 'background 160ms ease, color 160ms ease',
+                    transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
                   }}
                 >
                   {active ? '✓ ' : ''}{m.label}

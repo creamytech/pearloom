@@ -484,7 +484,7 @@ const NAV_LINK_STYLE: React.CSSProperties = {
   textDecoration: 'none',
   position: 'relative',
   paddingBottom: 4,
-  transition: 'color 220ms ease',
+  transition: 'color var(--pl-dur-fast) var(--pl-ease-out)',
 };
 
 function NavLinks({ links, gap = 22 }: { links: NavLink[]; gap?: number }) {
@@ -507,7 +507,7 @@ function NavBrand({ manifest, label, size, href }: { manifest: StoryManifest; la
       style={{
         display: 'flex', alignItems: 'center', gap: 8,
         textDecoration: 'none',
-        transition: 'transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+        transition: 'transform var(--pl-dur-slow) var(--pl-ease-spring)',
       }}
       onMouseEnter={(e) => { e.currentTarget.style.transform = 'rotate(-2deg) translateY(-1px)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.transform = ''; }}
@@ -529,7 +529,7 @@ function NavBody({ navStyle, scrolled, coupleLabel, links, hasRsvp, rsvpHref, br
     const left = links.slice(0, half);
     const right = links.slice(half);
     return (
-      <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 28, transition: 'padding 380ms cubic-bezier(0.22, 1, 0.36, 1)' }}>
+      <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 28, transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
         <NavLinks links={left} gap={22} />
         <NavBrand manifest={manifest} label={coupleLabel} size={28} href={brandHref} />
         <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 18 }}>
@@ -548,7 +548,7 @@ function NavBody({ navStyle, scrolled, coupleLabel, links, hasRsvp, rsvpHref, br
   // ── Minimal: brand only, no inline links. Tight, magazine-cover. ──
   if (navStyle === 'minimal') {
     return (
-      <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 28, transition: 'padding 380ms cubic-bezier(0.22, 1, 0.36, 1)' }}>
+      <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 28, transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
         <NavBrand manifest={manifest} label={coupleLabel} size={26} href={brandHref} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <LanguageSwitcher />
@@ -565,7 +565,7 @@ function NavBody({ navStyle, scrolled, coupleLabel, links, hasRsvp, rsvpHref, br
   // ── Stacked: brand on its own row, links underneath. Editorial. ──
   if (navStyle === 'stacked') {
     return (
-      <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'flex', flexDirection: 'column', gap: 8, transition: 'padding 380ms cubic-bezier(0.22, 1, 0.36, 1)' }}>
+      <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'flex', flexDirection: 'column', gap: 8, transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <NavBrand manifest={manifest} label={coupleLabel} size={32} href={brandHref} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -586,7 +586,7 @@ function NavBody({ navStyle, scrolled, coupleLabel, links, hasRsvp, rsvpHref, br
 
   // ── Classic (default): brand left, links right, RSVP at end. ──
   return (
-    <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'flex', alignItems: 'center', gap: 28, transition: 'padding 380ms cubic-bezier(0.22, 1, 0.36, 1)' }}>
+    <div style={{ maxWidth: 1240, margin: '0 auto', padding: innerPadding, display: 'flex', alignItems: 'center', gap: 28, transition: 'padding var(--pl-dur-slow) var(--pl-ease-out)' }}>
       <NavBrand manifest={manifest} label={coupleLabel} size={28} href={brandHref} />
       <div style={{ marginLeft: 'auto' }}>
         <NavLinks links={links} gap={22} />
@@ -686,7 +686,7 @@ function SubPageHeader({
           <div style={{ flex: 1, maxWidth: 60, height: 1, background: 'var(--peach-ink, #C6703D)', opacity: 0.3 }} />
         </div>
         <h1
-          className="display-italic"
+          className="display-italic pl-letterpress"
           style={{
             fontSize: 'clamp(2.4rem, 5vw, 3.8rem)',
             fontWeight: 400,
@@ -835,8 +835,7 @@ function EventNav({ names, hasRsvp, manifest, siteSlug, basePath, siteMode, home
         boxShadow: scrolled ? '0 8px 24px -16px rgba(14,13,11,0.18)' : 'none',
         transformOrigin: 'top center',
         transform: scrolled && shrinkMode !== 'off' ? `scaleY(${shrinkScale})` : undefined,
-        transition:
-          'background 380ms cubic-bezier(0.22, 1, 0.36, 1), backdrop-filter 380ms cubic-bezier(0.22, 1, 0.36, 1), border-color 380ms ease, box-shadow 380ms ease, transform 380ms cubic-bezier(0.22, 1, 0.36, 1)',
+        transition: 'background var(--pl-dur-slow) var(--pl-ease-out), backdrop-filter var(--pl-dur-slow) var(--pl-ease-out), border-color var(--pl-dur-slow) var(--pl-ease-out), box-shadow var(--pl-dur-slow) var(--pl-ease-out), transform var(--pl-dur-slow) var(--pl-ease-out)',
       }}
     >
       <NavBody
@@ -2273,7 +2272,7 @@ const chipStyle: React.CSSProperties = {
   letterSpacing: '0.04em',
   textDecoration: 'none',
   fontFamily: 'var(--font-ui)',
-  transition: 'background 160ms ease, border-color 160ms ease',
+  transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
 };
 
 /* ==================== SCHEDULE ==================== */
@@ -2370,7 +2369,7 @@ function ScheduleTimeEditor({
         color: isLive ? 'var(--peach-ink)' : (emphasized ? 'var(--peach-ink)' : 'var(--ink)'),
         fontFamily: 'inherit',
         borderBottom: '1px dashed transparent',
-        transition: 'border-color 160ms ease',
+        transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out)',
       }}
       onMouseEnter={(e) => { e.currentTarget.style.borderBottomColor = 'var(--peach-ink, #C6703D)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.borderBottomColor = 'transparent'; }}
@@ -2669,7 +2668,7 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
                 border: `1px solid ${r.isLive ? 'var(--peach-ink, #C6703D)' : 'var(--line-soft)'}`,
                 borderRadius: 'var(--pl-card-radius, 12px)',
                 boxShadow: 'var(--pl-card-shadow, 0 1px 3px rgba(75,65,52,0.06))',
-                transition: 'background 220ms ease, border-color 220ms ease',
+                transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
                 cursor: edit ? 'pointer' : 'default',
               }}
             >
@@ -2696,7 +2695,7 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
                     fontSize: 13,
                     lineHeight: 1,
                     opacity: 0,
-                    transition: 'opacity 160ms ease',
+                    transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out)',
                   }}
                 >
                   ×
@@ -3009,7 +3008,7 @@ function VenueHero({ venue, address, manifest, onEditField }: { venue: string; a
             height: '100%',
             objectFit: 'cover',
             opacity: status === 'ready' ? 1 : 0,
-            transition: 'opacity 260ms cubic-bezier(0.22, 1, 0.36, 1)',
+            transition: 'opacity var(--pl-dur-base) var(--pl-ease-out)',
           }}
         />
       )}
@@ -3247,7 +3246,7 @@ function SortDropdown({ value, onChange }: { value: HotelSort; onChange: (v: Hot
           cursor: 'pointer',
           minWidth: 158,
           justifyContent: 'space-between',
-          transition: 'border-color 160ms ease, background 160ms ease',
+          transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), background var(--pl-dur-fast) var(--pl-ease-out)',
         }}
         onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--peach-ink, #C6703D)'; }}
         onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; }}
@@ -3256,7 +3255,7 @@ function SortDropdown({ value, onChange }: { value: HotelSort; onChange: (v: Hot
         <svg
           width="10" height="10" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-          aria-hidden style={{ opacity: 0.6, transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 160ms ease' }}
+          aria-hidden style={{ opacity: 0.6, transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)' }}
         >
           <path d="M6 9l6 6 6-6" />
         </svg>
@@ -3310,7 +3309,7 @@ function SortDropdown({ value, onChange }: { value: HotelSort; onChange: (v: Hot
                   fontFamily: 'var(--font-ui)',
                   cursor: 'pointer',
                   textAlign: 'left',
-                  transition: 'background 120ms ease',
+                  transition: 'background var(--pl-dur-instant) var(--pl-ease-out)',
                 }}
               >
                 <span>{HOTEL_SORT_LABELS[opt]}</span>
@@ -3481,7 +3480,7 @@ function HotelsList({
                       letterSpacing: '0.04em',
                       cursor: 'pointer',
                       fontFamily: 'var(--font-ui)',
-                      transition: 'background 160ms ease, color 160ms ease, border-color 160ms ease',
+                      transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
                     }}
                   >
                     {rule.label}
@@ -4580,7 +4579,7 @@ function HotelCard({
             fontSize: 14,
             lineHeight: 1,
             opacity: 0,
-            transition: 'opacity 160ms ease, transform 160ms ease',
+            transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out)',
           }}
         >
           ×
@@ -4608,7 +4607,7 @@ function HotelCard({
           color: 'var(--ink-soft)',
           flexShrink: 0,
           position: 'relative',
-          transition: 'background-image 220ms ease',
+          transition: 'background-image var(--pl-dur-fast) var(--pl-ease-out)',
         }}
       >
         {!currentPhoto && <Icon name="moon" size={32} />}
@@ -5133,7 +5132,7 @@ function RegistryCard({
             fontSize: 13,
             lineHeight: 1,
             opacity: 0,
-            transition: 'opacity 160ms ease',
+            transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out)',
           }}
         >
           ×
@@ -5620,7 +5619,7 @@ function CashFundProgress({
             height: '100%',
             background: 'linear-gradient(90deg, var(--sage-deep, #6d7d3f), var(--peach-ink, #C6703D))',
             borderRadius: 999,
-            transition: 'width 480ms cubic-bezier(0.22, 1, 0.36, 1)',
+            transition: 'width var(--pl-dur-slow) var(--pl-ease-out)',
           }}
         />
       </div>
@@ -6393,7 +6392,7 @@ function GalleryAddTile({
         fontWeight: 700,
         letterSpacing: '0.06em',
         textTransform: 'uppercase',
-        transition: 'background 160ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+        transition: 'background var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out)',
         minHeight: 180,
       }}
       onMouseEnter={(e) => { if (!busy) e.currentTarget.style.background = 'var(--peach-bg, rgba(198,112,61,0.10))'; }}
@@ -6562,7 +6561,7 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
                     letterSpacing: '0.04em',
                     cursor: 'pointer',
                     fontFamily: 'var(--font-ui)',
-                    transition: 'background 160ms ease, color 160ms ease, border-color 160ms ease',
+                    transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
                   }}
                 >
                   {c}
@@ -6624,7 +6623,7 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
                   borderRadius: 'var(--pl-card-radius, 10px)',
                   boxShadow: 'var(--pl-card-shadow, 0 1px 2px rgba(75,65,52,0.04))',
                   cursor: edit ? 'pointer' : 'default',
-                  transition: 'background 160ms ease, border-color 160ms ease',
+                  transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
                 }}
                 onMouseEnter={edit ? (e) => { e.currentTarget.style.background = 'rgba(198,112,61,0.04)'; } : undefined}
                 onMouseLeave={edit ? (e) => { e.currentTarget.style.background = 'transparent'; } : undefined}
@@ -6652,7 +6651,7 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
                       fontSize: 13,
                       lineHeight: 1,
                       opacity: 0,
-                      transition: 'opacity 160ms ease',
+                      transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out)',
                     }}
                   >
                     ×
@@ -7951,8 +7950,32 @@ function CustomBlockCase({ block, siteSlug, editMode, manifest }: { block: PageB
         </section>
       );
     }
-    default:
-      return null;
+    default: {
+      // Block type declared in BlockType union but with no
+      // renderer case yet. Warn loudly in the console (so it
+      // shows up in dev + Sentry) and surface a coming-soon
+      // placeholder in the editor so the host knows the block
+      // is real but not yet shipped. Published view stays null
+      // so guests never see a half-built block.
+      console.warn(`[SiteV8] Unimplemented block type: ${block.type}`);
+      if (!editMode) return null;
+      return wrap(
+        <div
+          style={{
+            padding: '12px 16px',
+            background: 'var(--pl-cream-deep)',
+            border: '1px dashed var(--pl-divider)',
+            borderRadius: 'var(--pl-radius-md)',
+            color: 'var(--pl-muted)',
+            fontSize: 13,
+            textAlign: 'center',
+            margin: '8px 0',
+          }}
+        >
+          Block type &ldquo;{block.type}&rdquo; is coming soon.
+        </div>
+      );
+    }
   }
 }
 
@@ -8693,6 +8716,7 @@ export function SiteV8Renderer({
                 const d = parseLocalDate(manifest.logistics?.rsvpDeadline);
                 return d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null;
               })()}
+              manifest={manifest}
             />
             {/* AskPearFloater removed — GuestPearChat (mounted higher
                 up in this tree) is the streaming, guest-passport-aware

@@ -937,7 +937,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
         border: 'none',
         cursor: 'pointer',
         position: 'relative',
-        transition: 'background 180ms',
+        transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
         padding: 0,
         flexShrink: 0,
       }}
@@ -951,7 +951,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
           height: 22,
           borderRadius: 999,
           background: PD.paperCard,
-          transition: 'left 180ms',
+          transition: 'left var(--pl-dur-fast) var(--pl-ease-out)',
           boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
         }}
       />

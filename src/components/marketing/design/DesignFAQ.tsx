@@ -142,7 +142,7 @@ export function DesignFAQ() {
                       color: PD.ink,
                       flexShrink: 0,
                       transform: isOpen ? 'rotate(45deg)' : 'rotate(0)',
-                      transition: 'transform 200ms',
+                      transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)',
                     }}
                   >
                     +

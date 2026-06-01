@@ -4,7 +4,7 @@ import { forwardRef } from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { motion } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
 import { cn } from '@/lib/cn';
 
 // ─────────────────────────────────────────────────────────────
@@ -134,9 +134,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...(props as React.ComponentProps<typeof motion.button>)}
       >
         {loading ? (
-          <Loader2
-            size={size === 'xs' || size === 'sm' ? 13 : 15}
-            className="animate-spin flex-shrink-0"
+          <WeaveLoader
+            size={size === 'xs' || size === 'sm' ? 'xs' : 'sm'}
+            inline
+            className="flex-shrink-0"
           />
         ) : icon ? (
           <span className="flex-shrink-0">{icon}</span>

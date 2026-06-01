@@ -329,7 +329,7 @@ function OccasionCard({ o, rotate }: { o: Occasion; rotate: number }) {
         padding: 22,
         aspectRatio: '0.82',
         transform: `rotate(${rotate}deg)`,
-        transition: 'transform 260ms cubic-bezier(.2,.8,.2,1), box-shadow 260ms',
+        transition: 'transform var(--pl-dur-base) var(--pl-ease-out), box-shadow var(--pl-dur-base) var(--pl-ease-out)',
         boxShadow: '0 1px 3px rgba(31,36,24,0.06)',
         position: 'relative',
         overflow: 'hidden',

@@ -79,7 +79,7 @@ export function DesignNav({ onGetStarted }: DesignNavProps) {
               href={href}
               style={{
                 opacity: 0.82,
-                transition: 'opacity 160ms',
+                transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out)',
                 textDecoration: 'none',
                 color: PD.ink,
               }}

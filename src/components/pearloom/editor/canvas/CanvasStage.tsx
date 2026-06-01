@@ -245,7 +245,7 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
             boxShadow:
               '0 30px 80px -30px rgba(0,0,0,0.6), 0 12px 32px -16px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,0,0,0.4)',
             overflow: 'hidden',
-            transition: 'width 240ms cubic-bezier(0.16, 1, 0.3, 1)',
+            transition: 'width var(--pl-dur-base) var(--pl-ease-out)',
             position: 'relative',
             // CSS container so site responsive rules can react to
             // the *device viewport* width via @container queries

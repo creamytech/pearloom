@@ -155,7 +155,7 @@ export function CanvasGripHandle({
         display: 'grid',
         placeItems: 'center',
         opacity: 0,
-        transition: 'opacity 160ms ease, background 140ms ease',
+        transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out), background var(--pl-dur-fast) var(--pl-ease-out)',
         touchAction: 'none',
       }}
     >

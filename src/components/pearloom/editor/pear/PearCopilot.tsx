@@ -265,7 +265,7 @@ export function PearCopilot({
               width: `${analysis.completeness}%`,
               height: '100%',
               background: analysis.completeness === 100 ? 'var(--sage-deep)' : 'var(--peach-2)',
-              transition: 'width 400ms',
+              transition: 'width var(--pl-dur-slow) var(--pl-ease-out)',
             }}
           />
         </div>

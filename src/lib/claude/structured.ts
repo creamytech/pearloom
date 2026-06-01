@@ -12,7 +12,7 @@ import type { ClaudeTier, GenerateOptions } from './client';
  * response-format hacks — Claude's tool-use is the structured output
  * escape hatch.
  */
-export async function generateJson<T>(opts: Omit<GenerateOptions, 'tools'> & {
+export async function generateJson<T>(opts: Omit<GenerateOptions, 'tools' | 'toolChoice'> & {
   schema: Record<string, unknown>;
   schemaName?: string;
   schemaDescription?: string;
@@ -28,8 +28,11 @@ export async function generateJson<T>(opts: Omit<GenerateOptions, 'tools'> & {
         properties?: Record<string, unknown>;
       },
     }],
-    // Force the tool so we always get structured JSON.
-    // (SDK accepts tool_choice in the create params.)
+    // Force the named tool so we always get structured JSON back as a
+    // tool_use block — no prose, no markdown fences, no leading
+    // apologies. parseJsonFromText() below stays as the defensive
+    // fallback if the API ever returns a text block anyway.
+    toolChoice: { type: 'tool', name },
   });
 
   // First try a tool_use block

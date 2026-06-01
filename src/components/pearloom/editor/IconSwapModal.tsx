@@ -491,7 +491,7 @@ function DecorPickTile({
           : asset.usage
             ? '1.5px solid var(--peach-ink, #C6703D)'
             : '1px solid var(--line-soft)',
-        transition: 'transform 180ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms ease',
+        transition: 'transform var(--pl-dur-fast) var(--pl-ease-out), box-shadow var(--pl-dur-fast) var(--pl-ease-out)',
         display: 'flex',
         flexDirection: 'column',
       }}
@@ -569,7 +569,7 @@ function IconPickTile({
         border: active ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
         cursor: 'pointer',
         color: 'var(--ink)',
-        transition: 'background 160ms ease, transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+        transition: 'background var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-spring)',
       }}
       onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.06)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.transform = ''; }}

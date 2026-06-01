@@ -75,7 +75,7 @@ export function BackToTop() {
         opacity: show ? 1 : 0,
         pointerEvents: show ? 'auto' : 'none',
         transform: show ? 'translateY(0)' : 'translateY(8px)',
-        transition: 'opacity 280ms cubic-bezier(0.22, 1, 0.36, 1), transform 280ms cubic-bezier(0.22, 1, 0.36, 1)',
+        transition: 'opacity var(--pl-dur-base) var(--pl-ease-out), transform var(--pl-dur-base) var(--pl-ease-out)',
       }}
     >
       <span
