@@ -172,6 +172,12 @@ export async function critiqueChaptersClaude(
     tier: 'sonnet',
     temperature: 0.7,
     maxTokens: 4096,
+    /* Extended thinking — observably better calibration on
+       chapter-score rubrics per Anthropic docs. 4000 tokens
+       gives Sonnet enough room to actually reason about why
+       a chapter is/isn't specific to this couple before
+       emitting the score + rewrite. */
+    thinkingBudget: 4000,
     system: cached(
       `You are a world-class story editor for Pearloom. You score chapter descriptions for specificity: could this chapter ONLY belong to this host, or could it fit any ${occ} site? Rewrite anything scoring below 7.\n\n` +
       `Voice for this event (${activeVoice}): ${VOICE_GUIDANCE[activeVoice]}\n` +

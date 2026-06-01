@@ -10,6 +10,7 @@ import { useSession } from 'next-auth/react';
 import { useMemo, useState } from 'react';
 import { Heart, Icon, PhotoPlaceholder, Pear, PostIt, Sparkle, Stamp } from '../motifs';
 import { DashLayout } from '../dash/DashShell';
+import { PearThinking } from '../pear-thinking';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
 import { useDashStats, useLinkedCelebrations, useDaysToGo } from '@/components/marketing/v2/useDashStats';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
@@ -722,7 +723,7 @@ function PearAssistant() {
                 fontStyle: 'italic',
               }}
             >
-              Pear is thinking…
+              <PearThinking active label="drafting" size="sm" hideAvatar />
             </div>
           </div>
         )}

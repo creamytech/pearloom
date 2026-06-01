@@ -18,6 +18,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
+import { PearThinking } from '../pear-thinking';
 
 interface Props {
   manifest: StoryManifest;
@@ -371,7 +372,7 @@ export function GuestPearChat({ manifest, coupleNames, guest, domain }: Props) {
               }}
             >
               {m.content || (
-                <span style={{ opacity: 0.55 }}>Threading…</span>
+                <PearThinking active label="drafting" size="sm" hideAvatar />
               )}
             </div>
           ))

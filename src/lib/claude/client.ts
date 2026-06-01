@@ -123,6 +123,14 @@ export interface GenerateOptions {
   temperature?: number;
   tools?: Tool[];
   stopSequences?: string[];
+  /** Extended thinking budget in tokens. When set, the model
+   *  uses extended thinking with the given budget — observably
+   *  better calibration on critique / judgment / agent loops
+   *  per Anthropic docs. Only enable for Sonnet 4.6 or Haiku 4.5;
+   *  Opus 4.7 doesn't support it (Opus 4.8 does).
+   *  Recommended: 4000-8000 for critique, 0 (disabled) for
+   *  micro-edits / micro-classification. */
+  thinkingBudget?: number;
 }
 
 /**
@@ -130,17 +138,26 @@ export interface GenerateOptions {
  */
 export async function generate(opts: GenerateOptions): Promise<Message> {
   const client = getAnthropicClient();
+  /* Extended thinking can't combine with temperature: when
+     thinking is on, the SDK rejects a non-1.0 temperature. So
+     when the caller asks for thinking we silently force
+     temperature=1 (the model picks its own creative variance
+     during thinking). */
+  const thinkingOn = (opts.thinkingBudget ?? 0) > 0;
   return withRetry(() =>
     client.messages.create({
       model: MODEL_BY_TIER[opts.tier],
       max_tokens: opts.maxTokens ?? 4096,
-      temperature: opts.temperature ?? 0.7,
+      temperature: thinkingOn ? 1 : (opts.temperature ?? 0.7),
       system: typeof opts.system === 'string'
         ? [{ type: 'text', text: opts.system }]
         : opts.system,
       messages: opts.messages,
       ...(opts.tools && opts.tools.length > 0 ? { tools: opts.tools } : {}),
       ...(opts.stopSequences && opts.stopSequences.length > 0 ? { stop_sequences: opts.stopSequences } : {}),
+      ...(thinkingOn
+        ? { thinking: { type: 'enabled' as const, budget_tokens: opts.thinkingBudget! } }
+        : {}),
     })
   );
 }

@@ -184,6 +184,12 @@ export async function POST(req: NextRequest) {
       ],
       maxTokens: 1600,
       temperature: 0.6,
+      /* Extended thinking budget — agent loops with multiple
+         tool-use steps see observable quality gains when the
+         model gets room to reason between turns. 6000 tokens
+         is enough for the director's 4-8 step plans without
+         blowing latency. Opus 4.8 supports extended thinking. */
+      thinkingBudget: 6000,
       tools: TOOLS,
       maxSteps: 8,
       messages: convo.slice(-20).map((m) => ({ role: m.role, content: m.content })),
