@@ -155,6 +155,23 @@ test.describe('UI tour', () => {
     await page.waitForTimeout(700);
     await page.screenshot({ path: shot('16-editor-no-slug-redirect'), fullPage: true });
 
+    // ── MOBILE VIEWPORT ── resize and re-capture the public site
+    // top + dashboard + wizard to verify the themed renderer
+    // collapses correctly under 720px.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`${baseURL}/dev/site`).catch(() => {});
+    await page.waitForLoadState('networkidle').catch(() => {});
+    await page.waitForTimeout(900);
+    await page.screenshot({ path: shot('17-mobile-dev-site-top'), fullPage: true });
+    await page.goto(`${baseURL}/dashboard`).catch(() => {});
+    await page.waitForLoadState('networkidle').catch(() => {});
+    await page.waitForTimeout(700);
+    await page.screenshot({ path: shot('18-mobile-dashboard'), fullPage: true });
+    await page.goto(`${baseURL}/wizard/new`).catch(() => {});
+    await page.waitForLoadState('networkidle').catch(() => {});
+    await page.waitForTimeout(700);
+    await page.screenshot({ path: shot('19-mobile-wizard'), fullPage: true });
+
     // ── LOGIN / MARKETING ── (logged-out)
     const ctx2 = await page.context().browser()?.newContext();
     if (ctx2) {

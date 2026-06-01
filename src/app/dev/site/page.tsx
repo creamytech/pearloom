@@ -2,7 +2,7 @@
 // Hidden in production so the /sites/[domain] real flow is used instead.
 
 import { notFound } from 'next/navigation';
-import { SiteV8Renderer } from '@/components/pearloom/site/SiteV8Renderer';
+import { PublishedSiteShell } from '@/components/pearloom/site/PublishedSiteShell';
 import type { StoryManifest } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -99,7 +99,7 @@ export default function SiteDevPreview() {
   } as unknown as StoryManifest;
 
   return (
-    <SiteV8Renderer
+    <PublishedSiteShell
       manifest={manifest}
       names={['Alex', 'Jamie']}
       siteSlug="demo"

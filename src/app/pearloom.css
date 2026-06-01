@@ -5751,3 +5751,141 @@ html { scroll-behavior: smooth; }
     grid-column: 2;
   }
 }
+
+/* ═════════════════════════════════════════════════════════════
+   MOBILE BREAKPOINTS — ThemedSiteRenderer
+   ═════════════════════════════════════════════════════════════
+   ThemedSiteRenderer uses inline styles with fixed grid columns
+   (e.g. '5fr 1fr 6fr' for the story spread, '90px 20px 1fr' for
+   the schedule timeline). Inline styles win against CSS, so we
+   need !important here to collapse them at narrow viewports.
+
+   Targeting both the public site (<720px) and the editor's
+   phone-device preview (containerType pl-site set at 420px).
+   ═════════════════════════════════════════════════════════════ */
+
+@media (max-width: 720px) {
+  /* ── Sub-nav: hide center link list; brand + RSVP pill survive. */
+  .pl8-guest .pl8-themed-nav {
+    padding: 12px 18px !important;
+    gap: 12px !important;
+  }
+  .pl8-guest .pl8-themed-nav nav {
+    display: none !important;
+  }
+  .pl8-guest .pl8-themed-nav > a:first-child > span {
+    font-size: 15px !important;
+  }
+
+  /* ── Hero: shrink display name + tighten meta row. */
+  .pl8-guest section#top {
+    padding: 36px 20px !important;
+  }
+  .pl8-guest section#top h1 {
+    font-size: calc(44px * var(--pl-hero-scale, 1)) !important;
+    line-height: 1 !important;
+  }
+  .pl8-guest section#top h1 span {
+    font-size: 0.72em !important;
+    margin: 0 0.12em !important;
+  }
+  /* 3-arch photo strip → 1 photo only on phone (the center one) */
+  .pl8-guest section#top > div > div[style*="grid-template-columns: repeat(3"] {
+    grid-template-columns: 1fr !important;
+    max-width: 280px !important;
+  }
+  .pl8-guest section#top > div > div[style*="grid-template-columns: repeat(3"] > div:not(:nth-child(2)) {
+    display: none !important;
+  }
+
+  /* ── Section heads: tighter margin + size. */
+  .pl8-guest section h2 {
+    font-size: clamp(28px, 8vw, 36px) !important;
+  }
+
+  /* ── Story: stack chapters into a single column, drop gutter. */
+  .pl8-guest .pl8-chapter-row {
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+  }
+  .pl8-guest .pl8-chapter-row > div:nth-child(1) { order: 0 !important; }
+  .pl8-guest .pl8-chapter-row > div:nth-child(2) { display: none !important; }
+  .pl8-guest .pl8-chapter-row > div:nth-child(3) { order: 1 !important; }
+  .pl8-guest .pl8-chapter-row h3 {
+    font-size: 28px !important;
+  }
+
+  /* ── Schedule (classic vertical timeline): collapse the
+        90 / 20 / 1fr grid to two columns (time / content) with
+        the dot tucked at the top-left of the content cell. */
+  .pl8-guest section#schedule .pl8-schedule-row[style*="90px 20px"] {
+    grid-template-columns: 70px 1fr !important;
+  }
+  .pl8-guest section#schedule .pl8-schedule-row[style*="90px 20px"] > div:nth-child(2) {
+    display: none !important;
+  }
+  .pl8-guest section#schedule .pl8-schedule-row[style*="90px 20px"] > div:nth-child(3) {
+    padding-left: 0 !important;
+  }
+
+  /* ── Details: card grid collapses to single column. */
+  .pl8-guest section#details > div[style*="grid-template-columns: repeat"] {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  /* ── Map: side-by-side → stacked, map below caption. */
+  .pl8-guest section#map > div[style*="grid-template-columns: minmax"] {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* ── Travel / Registry / Gallery / Wedding party — auto-fit
+        grids already collapse; just tighten gaps. */
+  .pl8-guest section#travel > div[style*="grid-template-columns"],
+  .pl8-guest section#registry > div[style*="grid-template-columns"],
+  .pl8-guest section#gallery > div[style*="grid-template-columns"] {
+    gap: 12px !important;
+  }
+
+  /* ── Gallery masonry: shrink rows on phone so the wall still
+        reads but takes less scroll. */
+  .pl8-guest section#gallery > div[style*="grid-auto-rows"] {
+    grid-auto-rows: 100px !important;
+  }
+
+  /* ── RSVP form-card inset: tighten padding. */
+  .pl8-guest section#rsvp > div[style*="rgba(245,239,226,0.06)"] {
+    padding: 20px 18px !important;
+  }
+
+  /* ── FAQ rows: tighter padding + numeral. */
+  .pl8-guest .pl8-faq-row {
+    padding: 14px 16px !important;
+  }
+  .pl8-guest .pl8-faq-row summary > span:first-child {
+    font-size: 15px !important;
+    min-width: 22px !important;
+  }
+}
+
+/* ── Phone-device editor preview (CSS container) ── */
+@container pl-site (max-width: 420px) {
+  .pl8-guest .pl8-themed-nav nav { display: none; }
+  .pl8-guest section#top h1 { font-size: calc(42px * var(--pl-hero-scale, 1)); }
+  .pl8-guest .pl8-chapter-row { grid-template-columns: 1fr; }
+  .pl8-guest .pl8-chapter-row > div:nth-child(2) { display: none; }
+  .pl8-guest section#schedule .pl8-schedule-row[style*="90px 20px"] {
+    grid-template-columns: 60px 1fr;
+  }
+  .pl8-guest section#schedule .pl8-schedule-row[style*="90px 20px"] > div:nth-child(2) {
+    display: none;
+  }
+  .pl8-guest section#details > div[style*="grid-template-columns: repeat"] {
+    grid-template-columns: 1fr;
+  }
+  .pl8-guest section#map > div[style*="grid-template-columns: minmax"] {
+    grid-template-columns: 1fr;
+  }
+}
+
