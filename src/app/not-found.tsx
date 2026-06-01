@@ -16,67 +16,73 @@ export default function NotFound() {
         color: 'var(--pl-ink, #0E0D0B)',
       }}
     >
+      {/* Eyebrow — peach kicker matching ThemedSectionHead */}
       <div
+        className="eyebrow"
         style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 10,
-          marginBottom: 22,
-          fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
-          fontSize: '0.6rem',
-          letterSpacing: '0.26em',
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: '0.22em',
           textTransform: 'uppercase',
-          color: 'var(--pl-muted, #6F6557)',
+          color: '#C6703D',
+          marginBottom: 18,
         }}
       >
-        <span style={{ width: 20, height: 1, background: 'var(--pl-gold, #C19A4B)' }} />
-        404 · Not found
-        <span style={{ width: 20, height: 1, background: 'var(--pl-gold, #C19A4B)' }} />
+        404 · Page not found
       </div>
       <h1
         style={{
           fontFamily: 'var(--pl-font-heading, "Fraunces", Georgia, serif)',
-          fontStyle: 'italic',
-          fontWeight: 400,
-          fontSize: 'clamp(2rem, 6vw, 3rem)',
-          color: 'var(--pl-ink, #18181B)',
-          margin: '0 0 12px',
-          letterSpacing: '-0.014em',
-          lineHeight: 1.1,
+          fontWeight: 600,
+          fontSize: 'clamp(40px, 7vw, 64px)',
+          color: '#0E0D0B',
+          margin: '0 0 16px',
+          letterSpacing: '-0.02em',
+          lineHeight: 1.0,
         }}
       >
-        This page isn&rsquo;t here.
+        This page isn&rsquo;t{' '}
+        <span style={{ fontStyle: 'italic', fontWeight: 400, color: '#C6703D' }}>here</span>.
       </h1>
       <p
         style={{
-          color: 'var(--pl-ink-soft, #4A5642)',
-          fontSize: '1rem',
-          maxWidth: 440,
-          lineHeight: 1.6,
-          marginBottom: 32,
+          color: '#3A332C',
+          fontSize: 17,
+          maxWidth: 460,
+          lineHeight: 1.55,
+          marginBottom: 28,
           fontFamily: 'var(--pl-font-heading, "Fraunces", Georgia, serif)',
           fontStyle: 'italic',
         }}
       >
         Either it moved, or it was never written. Let&rsquo;s get you back to somewhere real.
       </p>
+      {/* Gold hairline above the CTA */}
+      <div
+        aria-hidden
+        style={{
+          width: 120,
+          height: 1,
+          margin: '0 auto 28px',
+          background: 'linear-gradient(90deg, transparent, #B8935A 50%, transparent)',
+          opacity: 0.55,
+        }}
+      />
       <Link
         href="/"
         style={{
           display: 'inline-block',
           padding: '13px 28px',
-          borderRadius: 'var(--pl-radius-xs)',
-          background: 'var(--pl-ink, #0E0D0B)',
-          color: 'var(--pl-cream, #FDFAF0)',
-          fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+          borderRadius: 999,
+          background: '#C6703D',
+          color: '#FBF7EE',
           fontWeight: 700,
-          fontSize: '0.66rem',
+          fontSize: 13.5,
           textDecoration: 'none',
-          letterSpacing: '0.24em',
-          textTransform: 'uppercase',
+          letterSpacing: '0.02em',
         }}
       >
-        Back home
+        Back home →
       </Link>
     </div>
   );

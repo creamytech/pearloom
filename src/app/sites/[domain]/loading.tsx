@@ -27,27 +27,42 @@ export default function Loading() {
         dangerouslySetInnerHTML={{
           __html: `
             @keyframes pl-default-symbol {
-              0%, 100% { transform: scale(0.9); opacity: 0.4; }
+              0%, 100% { transform: scale(0.9); opacity: 0.5; }
               50%      { transform: scale(1.1); opacity: 1.0; }
             }
             @keyframes pl-default-ring {
-              0%, 100% { transform: scale(0.92); opacity: 0.08; }
-              50%      { transform: scale(1.08); opacity: 0.18; }
+              0%, 100% { transform: scale(0.92); opacity: 0.12; }
+              50%      { transform: scale(1.08); opacity: 0.25; }
             }
             @keyframes pl-default-glow {
-              0%, 100% { opacity: 0.12; filter: blur(12px); transform: scale(0.85); }
-              50%      { opacity: 0.3; filter: blur(18px); transform: scale(1.15); }
+              0%, 100% { opacity: 0.10; filter: blur(12px); transform: scale(0.85); }
+              50%      { opacity: 0.22; filter: blur(18px); transform: scale(1.15); }
             }
           `,
         }}
       />
 
-      {/* Symbol + ring container */}
+      {/* Eyebrow above the mark */}
+      <div
+        className="eyebrow"
+        style={{
+          fontSize: 10.5,
+          fontWeight: 700,
+          letterSpacing: '0.22em',
+          textTransform: 'uppercase',
+          color: '#C6703D',
+          marginBottom: 24,
+        }}
+      >
+        Weaving your story
+      </div>
+
+      {/* Symbol + ring container \u2014 peach accent matches the prototype */}
       <div
         style={{
           position: 'relative',
-          width: 88,
-          height: 88,
+          width: 96,
+          height: 96,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -59,8 +74,7 @@ export default function Loading() {
             position: 'absolute',
             inset: 0,
             borderRadius: '50%',
-            border: '2px solid #5C6B3F',
-            opacity: 0.15,
+            border: '1.5px solid #C6703D',
             animation: 'pl-default-ring 2s ease-in-out infinite',
           }}
         />
@@ -72,18 +86,21 @@ export default function Loading() {
             width: '60%',
             height: '60%',
             borderRadius: '50%',
-            background: '#5C6B3F',
-            opacity: 0.15,
+            background: '#C6703D',
             filter: 'blur(14px)',
             animation: 'pl-default-glow 2s ease-in-out infinite',
           }}
         />
 
-        {/* Accent symbol */}
+        {/* Display-italic & \u2014 the prototype's "and" letterform
+            instead of a generic sparkle. */}
         <span
           style={{
-            fontSize: '3.5rem',
-            color: '#5C6B3F',
+            fontFamily: 'Fraunces, Georgia, serif',
+            fontStyle: 'italic',
+            fontWeight: 400,
+            fontSize: '3.4rem',
+            color: '#C6703D',
             lineHeight: 1,
             animation: 'pl-default-symbol 2s ease-in-out infinite',
             userSelect: 'none',
@@ -92,19 +109,30 @@ export default function Loading() {
           }}
           aria-hidden="true"
         >
-          {'\u2726'}
+          and
         </span>
       </div>
+
+      {/* Gold hairline */}
+      <div
+        aria-hidden
+        style={{
+          width: 100,
+          height: 1,
+          margin: '24px auto 14px',
+          background: 'linear-gradient(90deg, transparent, #B8935A 50%, transparent)',
+          opacity: 0.55,
+        }}
+      />
 
       {/* Message */}
       <p
         style={{
-          marginTop: '1.25rem',
-          fontFamily: 'Cormorant Garamond, Georgia, serif',
-          fontSize: '0.9rem',
-          color: '#5C6B3F',
-          opacity: 0.7,
-          letterSpacing: '0.04em',
+          fontFamily: 'Fraunces, Georgia, serif',
+          fontStyle: 'italic',
+          fontSize: 15,
+          color: '#3A332C',
+          letterSpacing: '-0.005em',
           fontWeight: 400,
           textAlign: 'center',
         }}
