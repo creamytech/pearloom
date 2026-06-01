@@ -51,11 +51,12 @@ export function PersonalGuestHero({
   const coupleLine = coupleNames.filter(Boolean).join(' & ');
   const prettyDate = formatDate(eventDate);
 
+  const peachInk = '#C6703D';
   return (
     <header
       style={{
         position: 'relative',
-        padding: '6rem 1.5rem 4rem',
+        padding: 'calc(80px * var(--pl-density-scale, 1)) 24px calc(56px * var(--pl-density-scale, 1))',
         textAlign: 'center',
         overflow: 'hidden',
       }}
@@ -81,62 +82,105 @@ export function PersonalGuestHero({
           transition: 'opacity 900ms ease, transform 900ms ease',
         }}
       >
+        {/* Eyebrow — peach editorial kicker matching the themed
+            renderer's section heads. */}
         <div
+          className="eyebrow"
           style={{
             textTransform: 'uppercase',
             letterSpacing: '0.22em',
-            fontSize: '0.72rem',
-            opacity: 0.7,
-            marginBottom: '1.25rem',
+            fontSize: 11,
+            fontWeight: 700,
+            color: peachInk,
+            marginBottom: 18,
           }}
         >
           A letter for {guestFirstName}
         </div>
 
+        {/* Display H1 — name in upright Fraunces, then italic
+            "you're invited." in peach. Matches the prototype's
+            two-tier hero typography. */}
         <h1
           style={{
             fontFamily: headingFont,
-            fontSize: 'clamp(2.4rem, 6vw, 4.25rem)',
-            lineHeight: 1.05,
+            fontSize: 'calc(clamp(40px, 7cqw, 76px) * var(--pl-hero-scale, 1))',
+            lineHeight: 0.98,
             letterSpacing: '-0.02em',
             margin: 0,
-            marginBottom: '1.5rem',
-            fontWeight: 500,
+            marginBottom: 22,
+            fontWeight: 'var(--pl-display-wght, 600)',
           }}
         >
           {guestFirstName},
           <br />
-          <span style={{ color: accent }}>you're invited.</span>
+          <span style={{ fontStyle: 'italic', fontWeight: 400, color: peachInk }}>
+            you&apos;re invited.
+          </span>
         </h1>
 
+        {/* Tagline — italic display, not body — so it reads as a
+            handwritten note rather than marketing copy. */}
         <p
           style={{
-            fontSize: 'clamp(1.02rem, 2.1vw, 1.2rem)',
-            lineHeight: 1.6,
+            fontFamily: headingFont,
+            fontStyle: 'italic',
+            fontWeight: 400,
+            fontSize: 'clamp(17px, 2.1cqw, 21px)',
+            lineHeight: 1.5,
             maxWidth: 560,
-            margin: '0 auto 2rem',
-            opacity: 0.92,
+            margin: '0 auto 28px',
+            color: 'var(--ink-soft, #3A332C)',
           }}
         >
           {heroCopy}
         </p>
 
+        {/* Gold hairline above the couple plate */}
+        <div
+          aria-hidden
+          style={{
+            width: 160,
+            height: 1,
+            margin: '0 auto 22px',
+            background: 'linear-gradient(90deg, transparent, #B8935A 50%, transparent)',
+            opacity: 0.55,
+          }}
+        />
+
+        {/* Couple + date plate — italic couple line on top, eyebrow
+            meta beneath. */}
         <div
           style={{
             display: 'inline-flex',
             flexDirection: 'column',
-            gap: '0.35rem',
+            gap: 8,
             alignItems: 'center',
-            padding: '1rem 1.5rem',
-            border: `1px solid ${accent}55`,
-            borderRadius: 'var(--pl-radius-full)',
-            fontSize: '0.85rem',
-            letterSpacing: '0.04em',
           }}
         >
-          <span style={{ fontFamily: headingFont, fontSize: '1rem' }}>{coupleLine}</span>
+          <span
+            style={{
+              fontFamily: headingFont,
+              fontStyle: 'italic',
+              fontSize: 22,
+              fontWeight: 500,
+              color: 'var(--ink, #0E0D0B)',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            {coupleLine}
+          </span>
           {(prettyDate || venue) && (
-            <span style={{ opacity: 0.75 }}>
+            <span
+              className="eyebrow"
+              style={{
+                textTransform: 'uppercase',
+                letterSpacing: '0.22em',
+                fontSize: 10.5,
+                fontWeight: 700,
+                color: 'var(--ink-muted, #6F6557)',
+              }}
+            >
               {[prettyDate, venue].filter(Boolean).join(' · ')}
             </span>
           )}
