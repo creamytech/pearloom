@@ -216,7 +216,7 @@ export interface EditionDefinition {
    *  switches to linen weave. EditionPicker.pick() stamps this
    *  onto manifest.texture so the texture follows the theme.
    *  Hosts can still override via the fine-tune slider. */
-  naturalTexture?: 'smooth' | 'watercolor' | 'linen' | 'letterpress' | 'vellum' | 'newsprint';
+  naturalTexture?: 'none' | 'linen' | 'watercolor' | 'paper' | 'cotton' | 'velvet';
 
   /** Human-readable slider label for the texture intensity dial.
    *  Reads as a property of the theme rather than the texture —

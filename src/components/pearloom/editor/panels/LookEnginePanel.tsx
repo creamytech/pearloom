@@ -77,10 +77,15 @@ const EDITION_TINT: Record<EditionId, string> = {
   quiet: '#F5EFE2',
   coastal: '#2C5E7A',
 };
-const TEXTURE_TINT: Record<TextureId, string> = {
-  smooth: '#FBF7EE',
-  watercolor: '#E8C8B4',
+const TEXTURE_TINT: Partial<Record<TextureId, string>> = {
+  none: '#FBF7EE',
   linen: '#D8CFB8',
+  watercolor: '#E8C8B4',
+  paper: '#FDFAF0',
+  cotton: '#F0E8D6',
+  velvet: '#1A1B2E',
+  // legacy ids kept for backward-compat with old sites
+  smooth: '#FBF7EE',
   letterpress: '#F2EAD6',
   vellum: '#F4E9C8',
   newsprint: '#E5DBC2',

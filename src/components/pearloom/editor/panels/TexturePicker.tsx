@@ -106,19 +106,69 @@ function NewsprintPreview() {
   );
 }
 
-/* Texture set — six options, each backed by real CSS in
-   pearloom.css. The prior catalog included 'paper' / 'cotton' /
-   'velvet' previews that had no CSS implementation; picking them
-   produced no visual change, so they're dropped. Only ids with
-   a matching .pl8-guest[data-pl-texture=…] rule remain. */
+function PaperPreview() {
+  return (
+    <svg viewBox="0 0 240 72" width="100%" height="100%" preserveAspectRatio="none">
+      <defs>
+        <pattern id="paper-tooth" width="3" height="3" patternUnits="userSpaceOnUse">
+          <rect width="3" height="3" fill="#FDFAF0" />
+          <circle cx="1.5" cy="1.5" r="0.4" fill="#3D4A1F" opacity="0.10" />
+        </pattern>
+      </defs>
+      <rect width="240" height="72" fill="url(#paper-tooth)" />
+    </svg>
+  );
+}
+function CottonPreview() {
+  return (
+    <svg viewBox="0 0 240 72" width="100%" height="100%" preserveAspectRatio="none">
+      <defs>
+        <pattern id="cotton-tooth" width="4" height="4" patternUnits="userSpaceOnUse">
+          <rect width="4" height="4" fill="#EAE5D7" />
+          <circle cx="2" cy="2" r="0.6" fill="#1F3A4D" opacity="0.16" />
+        </pattern>
+      </defs>
+      <rect width="240" height="72" fill="url(#cotton-tooth)" />
+    </svg>
+  );
+}
+function VelvetPreview() {
+  return (
+    <svg viewBox="0 0 240 72" width="100%" height="100%" preserveAspectRatio="none">
+      <defs>
+        <pattern id="velvet-pile" width="3" height="6" patternUnits="userSpaceOnUse">
+          <rect width="3" height="6" fill="#1A1B2E" />
+          <rect x="0" y="0" width="1" height="6" fill="rgba(255,255,255,0.07)" />
+        </pattern>
+        <linearGradient id="velvet-sheen" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="rgba(255,255,255,0)" />
+          <stop offset="50%" stopColor="rgba(255,255,255,0.16)" />
+          <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+        </linearGradient>
+      </defs>
+      <rect width="240" height="72" fill="url(#velvet-pile)" />
+      <rect width="240" height="72" fill="url(#velvet-sheen)" />
+    </svg>
+  );
+}
+
+/* Texture set — six options matching the design prototype
+   exactly (themes.jsx TextureLayer). Each id is backed by real
+   .pl8-guest[data-pl-texture=…] CSS in pearloom.css.
+     none       — Modern Editorial. No overlay.
+     linen      — Santorini. Visible woven warp+weft threads.
+     watercolor — Tuscan. Multiple pigment washes pooling.
+     paper      — Pressed Garden. Cotton paper tooth + speck.
+     cotton     — Coastal. Coarse cold-press watercolour paper.
+     velvet     — Midnight. Inky pile + raking sheen for dark. */
 
 const TEXTURES: TextureSpec[] = [
-  { id: 'smooth',      label: 'Smooth',      tagline: 'Modern default — clean paper, soft shadows.',         Preview: SmoothPreview },
-  { id: 'watercolor',  label: 'Watercolor',  tagline: 'Soft color bleeds. Cards look painted, not printed.',  Preview: WatercolorPreview },
-  { id: 'linen',       label: 'Linen',       tagline: 'Woven fabric grain underfoot. Quiet, formal.',         Preview: LinenPreview },
-  { id: 'letterpress', label: 'Letterpress', tagline: 'Type pressed into paper. Editorial book feel.',        Preview: LetterpressPreview },
-  { id: 'vellum',      label: 'Vellum',      tagline: 'Translucent waxy paper. Warm cast on everything.',     Preview: VellumPreview },
-  { id: 'newsprint',   label: 'Newsprint',   tagline: 'Halftone dots + ink. Reads like a broadsheet.',        Preview: NewsprintPreview },
+  { id: 'none',        label: 'None',        tagline: 'Flat matte — no overlay, just the underlying paper.', Preview: SmoothPreview },
+  { id: 'linen',       label: 'Linen',       tagline: 'Sun-bleached warp + weft. Quiet, formal.',              Preview: LinenPreview },
+  { id: 'watercolor',  label: 'Watercolor',  tagline: 'Pigment washes pooling on wet paper.',                  Preview: WatercolorPreview },
+  { id: 'paper',       label: 'Paper',       tagline: 'Handmade cotton paper, fine fibre + light specks.',     Preview: PaperPreview },
+  { id: 'cotton',      label: 'Cotton',      tagline: 'Cold-press watercolour paper, coarser tooth.',          Preview: CottonPreview },
+  { id: 'velvet',      label: 'Velvet',      tagline: 'Inky pile + raking sheen. Made for dark evenings.',     Preview: VelvetPreview },
 ];
 
 interface Props {

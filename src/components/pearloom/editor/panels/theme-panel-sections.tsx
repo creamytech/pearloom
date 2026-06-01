@@ -349,7 +349,12 @@ export function FineTuneSection({
   const passes = ratio >= 4.5;
   const intensityName = intensity <= 0.05 ? 'Off' : intensity < 0.6 ? 'Faint' : intensity < 1.1 ? 'Natural' : intensity < 1.4 ? 'Rich' : 'Bold';
   const textureLabel = activeEdition.textureSliderLabel ?? 'Texture';
-  const textureSmooth = manifest.texture === 'smooth' || activeEdition.naturalTexture === 'smooth';
+  // Slider hidden when texture is 'none' (or legacy 'smooth') —
+  // Modern Editorial has no texture so the dial would be inert.
+  const textureSmooth =
+    manifest.texture === 'none' ||
+    manifest.texture === 'smooth' ||
+    activeEdition.naturalTexture === 'none';
   return (
     <div style={{ padding: '12px 14px 4px', display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div className="eyebrow" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: INK_MUTED }}>

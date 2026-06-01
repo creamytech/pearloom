@@ -76,8 +76,8 @@ export const EDITIONS: EditionDefinition[] = [
       eyebrowSpacing: '0.14em',
       cardShadow: '0 8px 22px rgba(61,74,31,0.08)',
     },
-    naturalTexture: 'vellum',
-    textureSliderLabel: 'Pressed vellum',
+    naturalTexture: 'paper',
+    textureSliderLabel: 'Paper grain',
   },
   {
     id: 'cinema',
@@ -127,8 +127,8 @@ export const EDITIONS: EditionDefinition[] = [
       eyebrowSpacing: '0.18em',
       cardShadow: '0 16px 40px rgba(0,0,0,0.40)',
     },
-    naturalTexture: 'letterpress',
-    textureSliderLabel: 'Letterpress depth',
+    naturalTexture: 'velvet',
+    textureSliderLabel: 'Velvet pile',
   },
   {
     id: 'postcard-box',
@@ -296,8 +296,8 @@ export const EDITIONS: EditionDefinition[] = [
       eyebrowSpacing: '0.24em',
       cardShadow: 'none',
     },
-    naturalTexture: 'smooth',
-    textureSliderLabel: 'Smooth matte',
+    naturalTexture: 'none',
+    textureSliderLabel: 'Flat matte',
   },
   {
     id: 'coastal',
@@ -345,8 +345,8 @@ export const EDITIONS: EditionDefinition[] = [
       eyebrowSpacing: '0.22em',
       cardShadow: '0 1px 0 rgba(31,58,77,0.06)',
     },
-    naturalTexture: 'newsprint',
-    textureSliderLabel: 'Newsprint grain',
+    naturalTexture: 'cotton',
+    textureSliderLabel: 'Cotton tooth',
   },
 ];
 

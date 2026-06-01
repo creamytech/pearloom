@@ -4014,25 +4014,25 @@ html { scroll-behavior: smooth; }
    for lit-paper depth (Codrops "Texture with feTurbulence"). */
 .pl8-guest[data-pl-texture="watercolor"],
 .pl8-guest[data-pl-texture="linen"],
-.pl8-guest[data-pl-texture="letterpress"],
-.pl8-guest[data-pl-texture="vellum"],
-.pl8-guest[data-pl-texture="newsprint"] {
+.pl8-guest[data-pl-texture="paper"],
+.pl8-guest[data-pl-texture="cotton"],
+.pl8-guest[data-pl-texture="velvet"] {
   position: relative;
   isolation: isolate;
 }
 .pl8-guest[data-pl-texture="watercolor"] > *,
 .pl8-guest[data-pl-texture="linen"] > *,
-.pl8-guest[data-pl-texture="letterpress"] > *,
-.pl8-guest[data-pl-texture="vellum"] > *,
-.pl8-guest[data-pl-texture="newsprint"] > * {
+.pl8-guest[data-pl-texture="paper"] > *,
+.pl8-guest[data-pl-texture="cotton"] > *,
+.pl8-guest[data-pl-texture="velvet"] > * {
   position: relative;
   z-index: 2;
 }
 .pl8-guest[data-pl-texture="watercolor"]::before,
 .pl8-guest[data-pl-texture="linen"]::before,
-.pl8-guest[data-pl-texture="letterpress"]::before,
-.pl8-guest[data-pl-texture="vellum"]::before,
-.pl8-guest[data-pl-texture="newsprint"]::before {
+.pl8-guest[data-pl-texture="paper"]::before,
+.pl8-guest[data-pl-texture="cotton"]::before,
+.pl8-guest[data-pl-texture="velvet"]::before {
   content: '';
   /* Was position: fixed which leaked the grain onto the editor's
      sidebars (fixed ignores parent boundaries). Now scoped to
@@ -4059,48 +4059,138 @@ html { scroll-behavior: smooth; }
    suggest the material. baseFrequency lower = larger features
    (pulp); higher = finer (paper); directional X/Y = grain. */
 
-/* WATERCOLOR — paint blooms on wet paper. Stacked soft radial
-   gradients in warm + cool pigments simulate pigment pooling at
-   uneven density. The fine noise tail keeps the paper grain
-   honest. Multiplied so the underlying paper shows through. */
+/* WATERCOLOR — direct port of prototype's TextureLayer
+   'watercolor' (themes.jsx ~line 289):
+   4 watercolour washes in 4 corners with mix-blend multiply
+   + tooth (t-weave at soft-light 0.2) + grain (t-grain at
+   multiply 0.08). Each wash uses tone-shifted multiply so
+   pigments pool naturally on the underlying paper. The fine
+   noise grains the wet paper. */
 .pl8-guest[data-pl-texture="watercolor"]::before {
   background-image:
-    radial-gradient(ellipse at 18% 22%, rgba(216,160,118,0.34) 0%, transparent 38%),
-    radial-gradient(ellipse at 78% 18%, rgba(168,124,158,0.26) 0%, transparent 42%),
-    radial-gradient(ellipse at 32% 78%, rgba(124,150,108,0.30) 0%, transparent 44%),
-    radial-gradient(ellipse at 85% 72%, rgba(196,128,98,0.22) 0%, transparent 38%),
-    radial-gradient(ellipse at 50% 50%, rgba(216,180,148,0.18) 0%, transparent 60%),
-    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'%3E%3Cfilter id='wc'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.022' numOctaves='3' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.74 0 0 0 0 0.58 0 0 0 0 0.42 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23wc)'/%3E%3C/svg%3E");
-  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 320px 320px;
-  opacity: calc(0.62 * var(--pl-texture-intensity, 1));
+    /* Watercolor washes — tones pulled from the prototype's
+       TextureLayer (terracotta / sage / amber / gold). */
+    radial-gradient(60% 55% at 18% 22%, rgba(194,105,62,0.30) 0%, transparent 70%),
+    radial-gradient(50% 60% at 82% 30%, rgba(138,154,107,0.34) 0%, transparent 72%),
+    radial-gradient(48% 50% at 28% 80%, rgba(217,154,106,0.30) 0%, transparent 70%),
+    radial-gradient(40% 42% at 72% 78%, rgba(201,154,78,0.26) 0%, transparent 68%);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+  opacity: calc(0.7 * var(--pl-texture-intensity, 1));
   mix-blend-mode: multiply;
 }
+.pl8-guest[data-pl-texture="watercolor"]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  /* Tooth + grain. The SVG filters mounted by TextureFilters.tsx
+     register t-weave (soft-light 0.2) and t-grain (multiply 0.08). */
+  background: var(--cream, transparent);
+  filter: url(#t-weave);
+  opacity: calc(0.20 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: soft-light;
+}
 
-/* LINEN — visible woven threads. Two crossed
-   repeating-linear-gradients draw the warp + weft of an actual
-   linen weave at 1px thread width with 3px gaps. The fine
-   noise underlay adds fibre randomness so the threads don't
-   read as a sterile grid. */
+/* LINEN — port of prototype TextureLayer 'linen' (themes.jsx
+   ~237): two crossed 1px-stripe gradients (warp + weft) at
+   overlay 0.5 + t-weave SVG filter at soft-light 0.4. */
 .pl8-guest[data-pl-texture="linen"]::before {
   background-image:
-    repeating-linear-gradient(
-      90deg,
-      rgba(75,65,52,0.10) 0px, rgba(75,65,52,0.10) 1px,
-      transparent 1px, transparent 3px,
-      rgba(75,65,52,0.06) 3px, rgba(75,65,52,0.06) 4px,
-      transparent 4px, transparent 6px
-    ),
-    repeating-linear-gradient(
-      0deg,
-      rgba(75,65,52,0.10) 0px, rgba(75,65,52,0.10) 1px,
-      transparent 1px, transparent 3px,
-      rgba(75,65,52,0.05) 3px, rgba(75,65,52,0.05) 4px,
-      transparent 4px, transparent 6px
-    ),
-    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'%3E%3Cfilter id='ln'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='1' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.30 0 0 0 0 0.27 0 0 0 0 0.21 0 0 0 0.28 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23ln)'/%3E%3C/svg%3E");
-  background-size: 6px 6px, 6px 6px, 160px 160px;
-  opacity: calc(0.68 * var(--pl-texture-intensity, 1));
-  mix-blend-mode: multiply;
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.13) 0 1px, transparent 1px 2px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 1px, transparent 1px 2px);
+  background-size: 2px 2px, 2px 2px;
+  opacity: calc(0.5 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: overlay;
+}
+.pl8-guest[data-pl-texture="linen"]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  filter: url(#t-weave);
+  background: var(--cream, transparent);
+  opacity: calc(0.4 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: soft-light;
+}
+
+/* PAPER — port of prototype TextureLayer 'paper' (themes.jsx
+   ~254): t-weave at soft-light 0.3 + t-mottle at soft-light
+   0.16 + t-grain at multiply 0.1. Production stacks them in
+   ::before background-images (the prototype uses 3 stacked
+   absolute divs). */
+.pl8-guest[data-pl-texture="paper"]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  filter: url(#t-weave);
+  background: var(--cream, transparent);
+  opacity: calc(0.30 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: soft-light;
+}
+.pl8-guest[data-pl-texture="paper"]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 101;
+  filter: url(#t-mottle);
+  background: var(--cream, transparent);
+  opacity: calc(0.16 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: soft-light;
+}
+
+/* COTTON — port of prototype TextureLayer 'cotton' (themes.jsx
+   ~265): t-mottle at soft-light 0.34 + t-weave at soft-light
+   0.42 + t-grain at multiply 0.16. Cold-press paper with a
+   visibly coarser tooth than 'paper'. */
+.pl8-guest[data-pl-texture="cotton"]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  filter: url(#t-mottle);
+  background: var(--cream, transparent);
+  opacity: calc(0.34 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: soft-light;
+}
+.pl8-guest[data-pl-texture="cotton"]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 101;
+  filter: url(#t-weave);
+  background: var(--cream, transparent);
+  opacity: calc(0.42 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: soft-light;
+}
+
+/* VELVET — port of prototype TextureLayer 'velvet' (themes.jsx
+   ~276): 1px vertical pile stripes at soft-light 0.6 + diagonal
+   sheen at screen 0.16 + t-mottle at soft-light 0.3. */
+.pl8-guest[data-pl-texture="velvet"]::before {
+  background-image:
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.07) 0 1px, transparent 1px 3px),
+    linear-gradient(118deg, transparent 28%, rgba(255,255,255,0.12) 50%, transparent 72%);
+  background-size: 3px 100%, 100% 100%;
+  opacity: calc(var(--pl-texture-intensity, 1));
+  mix-blend-mode: soft-light;
+}
+.pl8-guest[data-pl-texture="velvet"]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  filter: url(#t-mottle);
+  background: var(--cream, transparent);
+  opacity: calc(0.30 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: soft-light;
 }
 
 /* LETTERPRESS — smooth cotton bond with raking light. A

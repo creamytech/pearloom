@@ -559,7 +559,7 @@ export interface StoryManifest {
    *  Driven by [data-pl-texture] on the site root + scoped CSS in
    *  pearloom.css. Independent of Edition so any Edition can wear
    *  any texture. */
-  texture?: 'smooth' | 'watercolor' | 'linen' | 'letterpress' | 'vellum' | 'newsprint';
+  texture?: 'none' | 'linen' | 'watercolor' | 'paper' | 'cotton' | 'velvet' | 'smooth' | 'letterpress' | 'vellum' | 'newsprint';
   /** Site Edition — pre-composed layout persona that picks a hero
    *  variant, section opener style, divider rhythm, block order,
    *  type scale, atmosphere intensity, and CTA shape in one click.
