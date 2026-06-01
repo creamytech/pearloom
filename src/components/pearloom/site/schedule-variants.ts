@@ -8,10 +8,10 @@
 // Registering even a single variant sets up the picker pattern so
 // future variants (Card grid, Index, Live ribbon) can be added by
 // dropping a sibling file + an entry here, without touching
-// SiteV8Renderer's section dispatch.
+// ThemedSiteRenderer's section dispatch.
 //
 // Renderer continues to read the current ScheduleSectionImpl in
-// SiteV8Renderer until a future extraction lifts it into a
+// ThemedSiteRenderer until a future extraction lifts it into a
 // dedicated component per variant. registerBlockStyle below just
 // makes the variant id discoverable to the editor's picker —
 // safe and additive.

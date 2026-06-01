@@ -897,7 +897,7 @@ export function Atmosphere({
  *
  * Every Icon SVG carries `data-pl-icon-name={name}` so the editor's
  * canvas-level drag/click handler can target it. In edit mode the
- * editor's IconOverridesContext (set by SiteV8Renderer) supplies an
+ * editor's IconOverridesContext (set by ThemedSiteRenderer) supplies an
  * iconOverrides map keyed by the original icon name; if a key is
  * present, we render that icon instead. This is the per-name global
  * override (replacing every 'heart-icon' with 'sparkles' once
@@ -919,7 +919,7 @@ export function Icon({
   strokeWidth?: number;
 }) {
   // useEditorCanvas reads the EditorCanvasContext set by the
-  // editor's SiteV8Renderer mount. Outside the editor it falls
+  // editor's ThemedSiteRenderer mount. Outside the editor it falls
   // back to the default context (editMode: false, no overrides),
   // so this is safe on the public site.
   const ctx = useEditorCanvas();

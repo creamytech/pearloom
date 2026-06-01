@@ -1,7 +1,7 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// CanvasSortable — dnd-kit wrapper used by SiteV8Renderer to
+// CanvasSortable — dnd-kit wrapper used by ThemedSiteRenderer to
 // give every structured section (hotels, FAQ, schedule, registry)
 // a canvas-side drag-to-reorder UX in edit mode. Renderer-local
 // (parallel to src/components/pearloom/editor/sortable.tsx, which

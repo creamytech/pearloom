@@ -4,8 +4,8 @@
 // Pearloom / editor/canvas/CanvasStage.tsx
 //
 // Option A of the editor overhaul: render the published-site
-// component (SiteV8Renderer) DIRECTLY inside the editor's DOM
-// — no iframe. Text nodes wrapped with EditableText become
+// component (ThemedSiteRenderer) DIRECTLY inside the editor's
+// DOM — no iframe. Text nodes wrapped with EditableText become
 // contenteditable on click; every commit flows back through
 // onManifestChange. Single source of truth.
 //
@@ -21,15 +21,17 @@
 //   - Ability to drag blocks, photos, events between panels
 //     and the canvas in future phases
 //
-// CSS isolation: the v8 site uses `pl8-guest` as its root and
-// reads from `--pl-*` tokens the editor also uses, so nothing
-// needs special scoping. Device simulation wraps the render in
-// a fixed-width container.
+// CSS isolation: the themed site uses `pl8-guest` as its root
+// and reads from `--pl-*` tokens the editor also uses, so
+// nothing needs special scoping. Device simulation wraps the
+// render in a fixed-width container.
+//
+// ThemedSiteRenderer is the canonical renderer; legacy V8
+// dispatch was removed 2026-06-01.
 // ─────────────────────────────────────────────────────────────
 
 import { forwardRef, useEffect, useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
-import { SiteV8Renderer } from '../../site/SiteV8Renderer';
 import { ThemedSiteRenderer } from '../../site/ThemedSiteRenderer';
 import { FloatingFormatToolbar } from './FloatingFormatToolbar';
 import { CanvasContextMenu } from './CanvasContextMenu';
@@ -256,46 +258,27 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
             containerName: 'pl-site',
           }}
         >
-          {/* Renderer dispatch — matches PublishedSiteShell so the
-              editor preview shows the SAME thing guests will see.
-              Themed mode loses inline edit affordances on the canvas
-              (those live in SiteV8Renderer); edits happen in the
-              right inspector instead, which is the prototype's
-              three-pane shell pattern anyway. v8 mode keeps the
-              full inline-edit canvas for hosts who opt in. */}
-          {(() => {
-            const renderer = (manifest as unknown as { renderer?: 'themed' | 'v8' }).renderer;
-            const useThemed = renderer !== 'v8';
-            return useThemed ? (
-              <ThemedSiteRenderer
-                manifest={manifest}
-                names={names}
-                siteSlug={siteSlug}
-                // Editor canvas → scaffolding visible. Preview
-                // mode toggles inline-edit affordances; when the
-                // host is reading-as-guest we still show
-                // scaffolding because they're inside the editor
-                // (the published site has its own renderer mount
-                // with editMode=false).
-                editMode={!previewMode}
-                // Inline edit wiring — matches the SiteV8Renderer
-                // branch below. When preview mode is on, both
-                // callbacks are suppressed so the canvas reads as
-                // guest-view.
-                onEditField={previewMode ? undefined : onEditField}
-                onEditNames={previewMode ? undefined : onNamesChange}
-              />
-            ) : (
-              <SiteV8Renderer
-                manifest={manifest}
-                names={names}
-                siteSlug={siteSlug}
-                prettyUrl={prettyUrl}
-                onEditField={previewMode ? undefined : onEditField}
-                onEditNames={previewMode ? undefined : onNamesChange}
-              />
-            );
-          })()}
+          {/* ThemedSiteRenderer is the canonical renderer and
+              matches PublishedSiteShell so the editor preview
+              shows the SAME thing guests will see. Inline edits
+              flow through onEditField / onEditNames; when preview
+              mode is on, both callbacks are suppressed so the
+              canvas reads as guest-view. */}
+          <ThemedSiteRenderer
+            manifest={manifest}
+            names={names}
+            siteSlug={siteSlug}
+            // Editor canvas → scaffolding visible. Preview mode
+            // toggles inline-edit affordances; when the host is
+            // reading-as-guest we still show scaffolding because
+            // they're inside the editor (the published site has
+            // its own renderer mount with editMode=false).
+            editMode={!previewMode}
+            onEditField={previewMode ? undefined : onEditField}
+            onEditNames={previewMode ? undefined : onNamesChange}
+          />
+          {/* prettyUrl prop retained on CanvasStageProps for now —
+              consumed by toolbars / other surfaces above. */}
         </div>
         {/* Theme picker now lives in the inspector rail's Theme
             tab — no floating bottom-right card here anymore. */}

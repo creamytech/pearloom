@@ -37,7 +37,7 @@ export const BADGE_TONES: Array<{ value: BadgeTone; label: string; bg: string; f
 
 /** Renderer-side helper: a single custom badge pill. Used by site
  *  sections that surface host-authored badges. Consumers in
- *  SiteV8Renderer import this so the chip styling stays consistent
+ *  ThemedSiteRenderer import this so the chip styling stays consistent
  *  across hotel / FAQ / schedule / registry sections. */
 export function CustomBadgePill({ label, tone }: { label: string; tone: BadgeTone }) {
   const t = BADGE_TONES.find((x) => x.value === tone) ?? BADGE_TONES[0];

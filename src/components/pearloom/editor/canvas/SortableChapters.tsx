@@ -4,7 +4,7 @@
 // Pearloom / editor/canvas/SortableChapters.tsx
 //
 // Wraps the chapter list with @dnd-kit sortable infrastructure
-// when the SiteV8Renderer is in edit mode. On the published
+// when the ThemedSiteRenderer is in edit mode. On the published
 // site it's a transparent passthrough — zero runtime cost.
 //
 // The chapter row itself stays unchanged; we just give each

@@ -1,7 +1,7 @@
 // ──────────────────────────────────────────────────────────────
 // Hero variant barrel — registers all 5 with the block-style
 // registry on first import. Importing this file (e.g. from
-// SiteV8Renderer) is what makes the variants discoverable to the
+// ThemedSiteRenderer) is what makes the variants discoverable to the
 // Inspector picker via getBlockStyles('hero').
 // ──────────────────────────────────────────────────────────────
 

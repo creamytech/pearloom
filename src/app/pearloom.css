@@ -398,7 +398,7 @@
 .pl8 .input:focus,
 .pl8 .textarea:focus {
   /* Theme-aware focus ring. Defaults to sage on un-themed sites.
-     SiteV8Renderer's themeStyle sets --focus-ring-color +
+     ThemedSiteRenderer's themeStyle sets --focus-ring-color +
      --focus-ring-glow when a theme is applied so the focus state
      matches the chosen accent. */
   border-color: var(--focus-ring-color, var(--sage-deep));
@@ -613,7 +613,7 @@
 .pl8-guest .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 .pl8-guest .btn-primary {
   /* Primary CTA reads the theme's accent first (--btn-primary-bg
-     is set by SiteV8Renderer's themeStyle when manifest.theme is
+     is set by ThemedSiteRenderer's themeStyle when manifest.theme is
      applied) and falls back to the editorial olive ink for
      un-themed default sites. Text color is contrast-aware via
      --btn-primary-fg, also set per-theme. */
@@ -3170,7 +3170,7 @@ html { scroll-behavior: smooth; }
 /* ──────────────────────────────────────────────────────────────
    Nav motion variants — driven by data-pl-link-underline /
    data-pl-brand-hover attributes set from manifest.navStyle in
-   the SiteV8Renderer header. ────────────────────────────────── */
+   the ThemedSiteRenderer header. ────────────────────────────────── */
 
 /* Link underline */
 .pl8-site-nav[data-pl-link-underline="hover"] .pl8-site-nav-links a::after {
@@ -3334,7 +3334,7 @@ html { scroll-behavior: smooth; }
    ═══════════════════════════════════════════════════════════════
    Each Edition gets its own scoped CSS so picking one genuinely
    transforms every section, not just the hero. Targets the live
-   site root via [data-pl-edition="…"] set by SiteV8Renderer from
+   site root via [data-pl-edition="…"] set by ThemedSiteRenderer from
    the active Edition id. Per the user 2026-05-30: "I want actual
    beautiful changes in the sections for the different layouts
    like actually change the designs to be unique to the editions".
@@ -4081,7 +4081,7 @@ html { scroll-behavior: smooth; }
 /* ═══════════════════════════════════════════════════════════════
    PER-TEXTURE MATERIAL TREATMENTS
    ═══════════════════════════════════════════════════════════════
-   data-pl-texture set on the .pl8-guest root by SiteV8Renderer.
+   data-pl-texture set on the .pl8-guest root by ThemedSiteRenderer.
    Each texture is a MATERIAL identity — paper grain, watercolor
    bleed, linen weave, letterpress impression, vellum cast,
    newsprint halftone. Editions are about layout; Textures are
@@ -5091,7 +5091,7 @@ html { scroll-behavior: smooth; }
 
 /* ── Per-kit visual cascade — EYEBROWS / SECTION CHIPS ──
    Targets the canonical .eyebrow class used by section heads
-   throughout SiteV8Renderer. Each kit overlays a coherent chip
+   throughout ThemedSiteRenderer. Each kit overlays a coherent chip
    treatment so eyebrows feel like they belong to the same
    visual family as that kit's cards. */
 .pl8-guest[data-pl-kit="ticket"] :where(.eyebrow, .pl-overline) {
@@ -5125,7 +5125,7 @@ html { scroll-behavior: smooth; }
 }
 
 /* ── Per-kit visual cascade — TIME PILLS (light pass) ──
-   pl8-time-pill exists in SiteV8Renderer for some block variants;
+   pl8-time-pill exists in ThemedSiteRenderer for some block variants;
    apply minimal/index/scrapbook treatments so it stays coherent
    with the kit even where pl8-schedule-time isn't the target. */
 .pl8-guest[data-pl-kit="ticket"] .pl8-time-pill {
@@ -5186,7 +5186,7 @@ html { scroll-behavior: smooth; }
 /* ─────────────────────────────────────────────────────────
    Per-Edition typographic identity — display weight, hero
    scale, eyebrow letter-spacing. CSS vars emitted by
-   SiteV8Renderer from the active Edition's recommendedTheme.
+   ThemedSiteRenderer from the active Edition's recommendedTheme.
    Rules below consume them on the surfaces that matter most
    for hero / section character.
 
@@ -5362,7 +5362,7 @@ html { scroll-behavior: smooth; }
    prototype's TextureLayer pattern exactly.
 
    Filters t-weave, t-mottle, t-grain are registered in
-   TextureFilters.tsx (mounted in SiteV8Renderer).
+   TextureFilters.tsx (mounted in ThemedSiteRenderer).
    ───────────────────────────────────────────────────────── */
 
 /* PAPER — handmade cotton paper. Fine fibre + light specks +

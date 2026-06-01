@@ -5,7 +5,7 @@
 //
 // The core inline-edit primitive. Renders a plain tag
 // (<span>, <h1>, <p>, etc.) by default. When the enclosing
-// SiteV8Renderer is in edit mode, hover reveals a subtle
+// ThemedSiteRenderer is in edit mode, hover reveals a subtle
 // outline + a 'click to edit' affordance; click makes it
 // contentEditable; Enter (single-line) / Esc / blur commits
 // the change back to the editor via onSave.

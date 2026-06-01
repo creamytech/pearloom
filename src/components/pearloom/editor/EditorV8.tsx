@@ -3293,7 +3293,7 @@ function BlockRow({
 }
 
 // (Old iframe-based Preview component removed — replaced by
-//  CanvasStage which renders SiteV8Renderer in-DOM.)
+//  CanvasStage which renders ThemedSiteRenderer in-DOM.)
 
 /* ---------- Right inspector ---------- */
 // Configuration lives in the right inspector — matches the
@@ -3872,7 +3872,7 @@ function Inspector({
 }
 
 /** Map editor block keys to the section IDs the renderer uses, so
- *  BlockStylePanel writes to the same key SiteV8Renderer reads. */
+ *  BlockStylePanel writes to the same key ThemedSiteRenderer reads. */
 function blockToSectionId(block: BlockKey): string {
   if (block === 'hero') return 'top';
   if (block === 'story') return 'our-story';

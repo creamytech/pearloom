@@ -4,7 +4,7 @@
 >
 > Last updated: **2026-06-01**.
 
-**Renderer contract (as of 2026-06-01):** ThemedSiteRenderer is canonical. SiteV8Renderer is legacy, being phased out as features port over. New work goes into Themed. Dispatch: `manifest.renderer === 'v8'` → SiteV8Renderer (legacy); unset or any other value → ThemedSiteRenderer (canonical). See §10 (2026-06-01 entry) for the full consolidation plan.
+**Renderer contract (as of 2026-06-01):** ThemedSiteRenderer (`src/components/pearloom/site/ThemedSiteRenderer.tsx`) is THE renderer. There is no dispatch, no fallback, no legacy path. `PublishedSiteShell` and `CanvasStage` mount it directly. V8 is gone — see §10 (2026-06-01 V8-deletion entry).
 
 ---
 
@@ -15,7 +15,7 @@
 - **Section 7 is the roadmap.** Ranked by acquisition impact × effort.
 - **Section 8 is where open decisions live.** If a session proposes a change that breaks an assumption, surface it here rather than shipping silently.
 - **New sessions should read §2 + §7 + §8 first** to know what's in scope.
-- **Renderer work goes into ThemedSiteRenderer.** SiteV8Renderer is legacy — only touch it for critical bug fixes during the transition. See §10 (2026-06-01).
+- **Renderer work goes into ThemedSiteRenderer.** It is the only renderer — V8 was deleted 2026-06-01. See §10.
 
 ---
 
@@ -443,6 +443,31 @@ How we actually ship this over many sessions without re-explaining every time.
 ---
 
 ## 10 · Changelog
+
+### 2026-06-01 — V8 renderer deleted (Phase 4 complete)
+
+Renderer consolidation finished. `SiteV8Renderer.tsx` deleted
+(was 10,324 lines / ~411 KB — formerly the largest file in the
+repo). `ThemedSiteRenderer.tsx` is now the only renderer; no
+dispatch, no fallback, no legacy code path.
+
+Shipped:
+- `src/components/pearloom/site/SiteV8Renderer.tsx` — **deleted**.
+- `StoryManifest.renderer` field removed from `src/types.ts`.
+- Look Engine renderer toggle removed from
+  `src/components/pearloom/editor/panels/LookEnginePanel.tsx`.
+- `PublishedSiteShell` (`src/components/pearloom/site/PublishedSiteShell.tsx`)
+  + `CanvasStage` (`src/components/pearloom/editor/CanvasStage.tsx`)
+  hardcoded to mount `ThemedSiteRenderer` directly.
+- Supabase migration `supabase/migrations/20260617_drop_manifest_renderer.sql`
+  drops the `renderer` key from existing rows' `manifest` JSONB.
+
+Phase 1–3 product-feature ports (RSVP, Guestbook, Day-of
+broadcast, inline edit mode, photo lightbox, nav/hero/story/
+divider/footer/FAQ/gallery improvements, Decor library,
+Event-OS custom blocks, multi-page routing, section
+backgrounds) all landed in ThemedSiteRenderer before this
+deletion — feature parity reached.
 
 ### 2026-06-01 — Renderer consolidation begins (Themed canonical, V8 legacy)
 

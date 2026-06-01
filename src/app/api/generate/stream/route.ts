@@ -845,7 +845,7 @@ export async function POST(req: Request) {
         // ── User-picked palette wins over AI-generated vibeSkin ──
         // When the wizard user picked a palette (either a preset or
         // an AI-suggested one), honour their choice on `manifest.theme.colors`
-        // — that's what SiteV8Renderer reads. Without this, we spent
+        // — that's what ThemedSiteRenderer reads. Without this, we spent
         // pipeline time on colour picking and then ignored the user's
         // actual selection.
         if (Array.isArray(selectedPaletteColors) && selectedPaletteColors.length >= 3) {

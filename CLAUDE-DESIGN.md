@@ -26,8 +26,7 @@
 | Tailwind CSS var mapping | `tailwind.config.ts` | Thin layer — maps utility classes to CSS vars, no duplicate values. |
 | Theme generation | `src/lib/theme.ts` | `themeToCssBlocks`, `deriveDarkPalette`, `themeToCssVars`. |
 | Theme runtime | `src/components/theme-provider.tsx` | `[data-pl-site-root][data-theme=light\|dark]` scope + localStorage. |
-| **Site renderer (canonical)** | `src/components/pearloom/site/ThemedSiteRenderer.tsx` | **Primary entry for published sites.** ~5,152 lines / ~203 KB today; will absorb V8's product features over the next few sessions. |
-| Site renderer (legacy) | `src/components/pearloom/site/SiteV8Renderer.tsx` | **Being phased out.** ~411 KB / 10,324 lines; per-block extraction in progress (see §17.11). New surfaces should bind to `ThemedSiteRenderer`. |
+| Site renderer | `src/components/pearloom/site/ThemedSiteRenderer.tsx` | **The renderer.** Mounted directly by `PublishedSiteShell` + `CanvasStage`. No dispatch, no fallback. V8 deleted 2026-06-01. |
 | Editor state | `src/lib/editor-state.ts` | `useEditor`, `EditorProvider`, 49 `EditorAction` variants, `SaveState`. |
 | URL construction | `src/lib/site-urls.ts` | `buildSiteUrl`, `buildSitePath`, `formatSiteDisplayUrl`. |
 | Gemini client | `src/lib/memory-engine/gemini-client.ts` | Pro / Flash / Lite / Image endpoints. |
@@ -485,14 +484,16 @@ Top-level:
 
 The V8 architecture (mounted at `/dashboard`, `/sites/[domain]`,
 and the wizard flow) replaced the old `wizard/PearSpotlight` +
-`editor/FullscreenEditor` + `site/SiteRenderer` stack. All three
-V8 monoliths now live under `src/components/pearloom/`:
+`editor/FullscreenEditor` + `site/SiteRenderer` stack. The two
+surviving V8 monoliths live under `src/components/pearloom/`:
 
 - `src/components/pearloom/editor/EditorV8.tsx` — **~161 KB / 4,280 lines**. The full editor shell: rail + left section list + canvas + right rail dispatch. Replaces the old `FullscreenEditor` + `EditorCanvas` + `EditorSidebar` triad.
 - `src/components/pearloom/pages/WizardV8.tsx` — **~111 KB / 2,803 lines**. The wizard (category → occasion → photos → details → generating → review). Replaces `src/components/wizard/PearSpotlight.tsx` entirely.
-- `src/components/pearloom/site/SiteV8Renderer.tsx` — **~411 KB / 10,324 lines**. **Legacy renderer — being phased out.** `ThemedSiteRenderer.tsx` (~5,152 lines / ~203 KB) is now the canonical published-site entry; it will absorb SiteV8Renderer's product features over the next few sessions. See CLAUDE-PRODUCT.md §10 for the phased plan. Per-block extraction inside SiteV8Renderer continues in parallel so feature-parity migration stays manageable.
 
-Older monoliths to retire alongside the V8 dispatch extraction:
+The third member, `SiteV8Renderer.tsx`, was deleted 2026-06-01 after
+`ThemedSiteRenderer.tsx` reached feature parity. See §19 changelog.
+
+Older monoliths to retire next:
 - `src/components/blocks/StoryLayouts.tsx` — **76 KB**. Extract per-layout files.
 
 ### 10.8 Wizard — `src/components/pearloom/pages/` + legacy `src/components/wizard/*`
@@ -927,6 +928,28 @@ A short list of what's actually left after today's fix-it pass.
 ---
 
 ## 19 · Changelog
+
+### 2026-06-01 — Renderer consolidation complete (Phase 4)
+
+`SiteV8Renderer.tsx` deleted (was 10,324 lines / ~411 KB —
+formerly the largest file in the repo). `ThemedSiteRenderer.tsx`
+(`src/components/pearloom/site/ThemedSiteRenderer.tsx`) is now the
+sole renderer.
+
+- `StoryManifest.renderer` field removed from `src/types.ts`.
+- Look Engine renderer toggle removed from
+  `src/components/pearloom/editor/panels/LookEnginePanel.tsx`.
+- `PublishedSiteShell` (`src/components/pearloom/site/PublishedSiteShell.tsx`)
+  + `CanvasStage` (`src/components/pearloom/editor/CanvasStage.tsx`)
+  hardcoded to mount `ThemedSiteRenderer` directly — no dispatch,
+  no fallback.
+- Supabase migration
+  `supabase/migrations/20260617_drop_manifest_renderer.sql`
+  drops the `renderer` key from existing rows' `manifest` JSONB.
+
+The §1 source-of-truth map collapses the two renderer rows into
+one. §10.7 drops the V8 size description. See CLAUDE-PRODUCT.md
+§10 (2026-06-01 V8-deletion entry) for the product-side recap.
 
 ### 2026-06-01 — Renderer consolidation kickoff
 

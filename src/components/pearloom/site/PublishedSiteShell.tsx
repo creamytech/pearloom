@@ -3,19 +3,20 @@
 // ─────────────────────────────────────────────────────────────
 // PublishedSiteShell — client wrapper for the public site
 // renderer. Adds ErrorBoundary insurance: a render-time throw
-// from any reachable child of SiteV8Renderer (a corrupt
+// from any reachable child of ThemedSiteRenderer (a corrupt
 // chapter, a malformed sticker, an outdated block id) shouldn't
 // take the entire wedding site offline. Guests see a calm
 // fallback that points them at the dashboard for hosts (a
 // no-op for guests without auth).
 //
-// Server pages mount this instead of SiteV8Renderer directly.
+// Server pages mount this instead of ThemedSiteRenderer directly.
+// ThemedSiteRenderer is the canonical renderer; legacy V8
+// dispatch was removed 2026-06-01.
 // ─────────────────────────────────────────────────────────────
 
 import type { StoryManifest } from '@/types';
 import type { SiteBlockKey } from '@/lib/site-mode';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { SiteV8Renderer } from './SiteV8Renderer';
 import { ThemedSiteRenderer } from './ThemedSiteRenderer';
 
 interface Props {
@@ -69,26 +70,16 @@ function GuestCrashFallback() {
 }
 
 export function PublishedSiteShell(props: Props) {
-  /* Dispatch — ThemedSiteRenderer (direct port of the prototype's
-     themed-site.jsx) is the default. Hosts who explicitly set
-     manifest.renderer === 'v8' opt back into the rich v8 renderer
-     (Guestbook, Spotify embed, photo wall moderation, day-of
-     broadcast, edit-mode chrome, etc.) — those features aren't in
-     the prototype, so they only render when the host opts in. */
-  const renderer = (props.manifest as unknown as { renderer?: 'themed' | 'v8' }).renderer;
-  const useThemed = renderer !== 'v8';
+  /* ThemedSiteRenderer is the canonical (and only) renderer.
+     Legacy v8 dispatch was removed 2026-06-01. */
   return (
     <ErrorBoundary fallback={<GuestCrashFallback />}>
-      {useThemed ? (
-        <ThemedSiteRenderer
-          manifest={props.manifest}
-          names={props.names}
-          siteSlug={props.siteSlug}
-          pageFilter={props.pageFilter}
-        />
-      ) : (
-        <SiteV8Renderer {...props} />
-      )}
+      <ThemedSiteRenderer
+        manifest={props.manifest}
+        names={props.names}
+        siteSlug={props.siteSlug}
+        pageFilter={props.pageFilter}
+      />
     </ErrorBoundary>
   );
 }

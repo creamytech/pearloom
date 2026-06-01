@@ -160,7 +160,7 @@ export function TemplatePreview({ template, small = false }: { template: Templat
           <div style={{ width: 28, height: 10, borderRadius: 4, background: t.deep }} />
         </div>
 
-        {/* Hero body — mirrors SiteV8Renderer's hero treatment so
+        {/* Hero body — mirrors ThemedSiteRenderer's hero treatment so
             the tile is fidelity-matched to the editor output. The
             layout prop still sub-decorates the area beneath the
             hero, but the hero itself is consistent. */}
@@ -226,7 +226,7 @@ function V8HeroBody({
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 6 }}>
-      {/* Stamp motif — matches SiteV8Renderer hero stamp. Hidden when
+      {/* Stamp motif — matches ThemedSiteRenderer hero stamp. Hidden when
           a signature illustration is showing in the tile corner so we
           don't double up on the template's identity marker. */}
       {showStamp && (
@@ -294,7 +294,7 @@ function V8HeroBody({
         {sub}
       </div>
 
-      {/* Photo-strip hint — mirrors SiteV8Renderer photostrip */}
+      {/* Photo-strip hint — mirrors ThemedSiteRenderer photostrip */}
       <LayoutHint layout={layout} tone={t} scale={scale} />
     </div>
   );

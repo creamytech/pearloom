@@ -1,38 +1,22 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// ThemedSiteRenderer — direct port of the Editor Redesign
-// prototype's themed-site.jsx, augmented with Pearloom data
-// integration.
+// ThemedSiteRenderer — THE Pearloom site renderer. Direct port
+// of the Editor Redesign prototype's themed-site.jsx, augmented
+// with full Pearloom production features (RSVP form + backend +
+// urgency tiers, Guestbook, Day-of broadcast, inline edit mode,
+// photo lightbox, decor library, multi-page routing, Event-OS
+// custom blocks, etc.).
 //
-// This is a PARALLEL renderer to SiteV8Renderer — not a
-// replacement. Sites pick which renderer via:
-//   manifest.renderer === 'themed' → this component
-//   anything else (default)        → SiteV8Renderer
-//
-// The host can flip the renderer field from the editor to
-// preview their site in the prototype's exact structural style
-// without losing the existing v8 site (which has months of
-// features the prototype doesn't have: RSVP form, Guestbook,
-// Spotify embed, photo wall moderation, day-of broadcast,
-// edit-mode chrome, etc.).
-//
-// Goal: visible parity with the prototype's rendered output for
-// the 8 core sections (hero / story / details / schedule /
-// travel / registry / gallery / rsvp / faq). Each section is a
-// thin Pearloom-data-aware port of the corresponding prototype
-// section block, using the themed primitives (TButton / TCard /
-// KDivider / TPhoto / MotifScatter) that the prototype composes.
-//
-// SCAFFOLD STATUS (this commit): structure + Hero block. Story
-// / Details / Schedule / Travel / Registry / Gallery / RSVP /
-// FAQ blocks are stubs that mark the slot — they'll be ported
-// in subsequent commits.
+// As of 2026-06-01, this is the ONLY site renderer. The prior
+// dual-renderer system (SiteV8Renderer + manifest.renderer
+// dispatch) was consolidated away — see CLAUDE-PRODUCT.md §10
+// for the migration narrative.
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { StoryManifest, PageBlock } from '@/types';
-/* Event-OS custom blocks — ported from SiteV8Renderer's
+/* Event-OS custom blocks — ported from ThemedSiteRenderer's
    CustomBlocksRail. Each block is a standalone component under
    src/components/site/* that reads its own config off the
    PageBlock.config payload. The ThemedCustomBlocks rail below
@@ -103,7 +87,7 @@ import { useHeroParallax } from './useHeroParallax';
 import { getBlockStyle } from '@/lib/block-engine/block-styles';
 import { FooterBouquet } from './FooterBouquet';
 /* V8 Decor system — layered on TOP of MotifScatter as an additive
-   atmospheric layer. Three pieces port over from SiteV8Renderer:
+   atmospheric layer. Three pieces port over from ThemedSiteRenderer:
    • OccasionDecor    — per-occasion decorative SVG shapes (rings
                         for weddings, candles for memorial, etc.).
                         Mounted once in the hero behind the variant
@@ -128,7 +112,7 @@ import { TemplateSignatureDecor, type SignatureDecorKind } from './TemplateSigna
    in ThemedGallery reads manifest.blockVariants?.gallery?.style
    and branches between layouts; this import is what makes the
    variant ids available in editor pickers + ensures parity with
-   SiteV8Renderer's GallerySection. */
+   ThemedSiteRenderer's GallerySection. */
 import './gallery-variants';
 /* Side-effect import — registers all 5 hero variants (postcard,
    photo-first, split, carousel, minimal) with the block-styles
@@ -139,13 +123,18 @@ import './gallery-variants';
 import './hero-variants';
 
 /** Patch function the editor passes down so deep fields can ship
- *  their edits through a single channel. Matches SiteV8Renderer. */
+ *  their edits through a single channel. Matches ThemedSiteRenderer. */
 type FieldEditor = (patch: (m: StoryManifest) => StoryManifest) => void;
 
 interface Props {
   manifest: StoryManifest;
   names: [string, string];
   siteSlug: string;
+  /** Display URL for share previews + canonical URL hints
+   *  (e.g. "pearloom.com/wedding/anna-liam"). Optional —
+   *  consumers that don't have a published URL yet (template
+   *  preview modal, wizard) omit it. */
+  prettyUrl?: string;
   /** When true, sections with empty data render an editable
    *  placeholder ("Add your first chapter →") instead of
    *  returning null. Editor canvas passes true; the public site
@@ -154,7 +143,7 @@ interface Props {
   /** Manifest patcher — when provided, inline edit affordances
    *  light up across the canvas. Each editable field passes a
    *  pure `(manifest) => newManifest` patch back to the editor.
-   *  Mirrors SiteV8Renderer's contract. */
+   *  Mirrors ThemedSiteRenderer's contract. */
   onEditField?: FieldEditor;
   /** Name changes ship outside the manifest (they live on the
    *  editor state), so they get their own callback. */
@@ -163,7 +152,7 @@ interface Props {
    *  shows only that block (sub-page route). When set to 'home',
    *  it shows the hero plus the homePageBlocks subset (multi-page
    *  home). Undefined = scroll mode (render everything). Mirrors
-   *  SiteV8Renderer's contract. */
+   *  ThemedSiteRenderer's contract. */
   pageFilter?: SiteBlockKey | 'home';
   /** Layout mode. When omitted, falls back to readSiteMode(manifest)
    *  so callers that don't thread the prop still get correct
@@ -175,7 +164,7 @@ interface Props {
   homePageBlocks?: SiteBlockKey[];
 }
 
-/* Per-Edition motif kind — mirrors HeroPostcard / SiteV8Renderer
+/* Per-Edition motif kind — mirrors HeroPostcard / ThemedSiteRenderer
    mapping. Source of truth for which decoration each Edition
    wears. */
 const EDITION_MOTIF: Record<string, MotifKind> = {
@@ -299,7 +288,7 @@ function useChapterTones(
 }
 
 // ─────────────────────────────────────────────────────────────
-// FAQ category mapping — ported verbatim from SiteV8Renderer's
+// FAQ category mapping — ported verbatim from ThemedSiteRenderer's
 // FaqSection. Powers the inline CTA chip beneath each expanded
 // answer (RSVP → #rsvp, Hotels → #travel, Gifts → #registry,
 // Schedule → #schedule). Informational categories return null.
@@ -357,6 +346,7 @@ export function ThemedSiteRenderer({
   manifest,
   names,
   siteSlug,
+  prettyUrl,
   editMode = false,
   onEditField,
   onEditNames,
@@ -364,8 +354,14 @@ export function ThemedSiteRenderer({
   siteMode: siteModeProp,
   homePageBlocks: homePageBlocksProp,
 }: Props) {
+  // prettyUrl is accepted for parity with the old ThemedSiteRenderer
+  // contract (used by share previews + canonical hints) but is not
+  // currently consumed in the render tree. Threading it from
+  // PublishedSiteShell / TemplatePreviewModal callers keeps the API
+  // stable; downstream sections that need it can read this prop.
+  void prettyUrl;
   const [n1, n2] = names;
-  /* Multi-page resolution — mirrors SiteV8Renderer. The caller can
+  /* Multi-page resolution — mirrors ThemedSiteRenderer. The caller can
      override either field; otherwise we read from the manifest via
      the canonical helpers in @/lib/site-mode so the two renderers
      can never drift. */
@@ -439,7 +435,7 @@ export function ThemedSiteRenderer({
   const density = manifest.density ?? 'comfortable';
   const intensity = manifest.textureIntensity ?? 1;
 
-  /* Themed shell — emits the same data attributes SiteV8Renderer
+  /* Themed shell — emits the same data attributes ThemedSiteRenderer
      does so all the per-Edition / per-texture / per-kit CSS
      already shipped applies here too.
 
@@ -521,7 +517,7 @@ export function ThemedSiteRenderer({
   /* Editor canvas context — every <EditableText> / <EditableField>
      beneath this renderer reads `editMode` and `onEditField` from
      this provider, so we never have to prop-drill through every
-     section component. Identical pattern to SiteV8Renderer. */
+     section component. Identical pattern to ThemedSiteRenderer. */
   const canvasCtxValue = useMemo(
     () => ({ editMode: canEdit, onEditField }),
     [canEdit, onEditField],
@@ -541,7 +537,7 @@ export function ThemedSiteRenderer({
     >
       <TextureFilters />
 
-      {/* Day-of broadcast chrome — ports the SiteV8Renderer mount
+      {/* Day-of broadcast chrome — ports the ThemedSiteRenderer mount
           pattern verbatim. All three gated on !editMode so the
           editor canvas stays clean.
 
@@ -584,13 +580,13 @@ export function ThemedSiteRenderer({
 
           Hero only renders when showHero is true (i.e. scroll mode
           or multi-page home). Sub-page routes get a focused single-
-          block view with no hero — matches SiteV8Renderer. */}
+          block view with no hero — matches ThemedSiteRenderer. */}
       {showHero && (
         <ThemedHero manifest={manifest} names={[n1, n2]} motif={motif} onEditField={onEditField} onEditNames={onEditNames} />
       )}
 
       {/* ── V8 Decor system — additive layer over MotifScatter ──
-          Three pieces from SiteV8Renderer port over here. The
+          Three pieces from ThemedSiteRenderer port over here. The
           AI-banner + per-template signature illustration is mounted
           per-section (see below) so each section can resolve its
           own visibility. OccasionDecor is mounted inside the hero
@@ -710,16 +706,14 @@ export function ThemedSiteRenderer({
 
 /* ─── ThemedNav — sticky sub-nav.
  *
- * Ports the SiteV8Renderer NavBody + MobileNavBody dispatch into
- * Themed so hosts who flip `manifest.renderer === 'themed'` get the
- * same 9 desktop variants + 4 mobile variants the v8 renderer
- * exposes. CSS for every variant already lives in pearloom.css —
- * we just route by `manifest.nav?.style` / `manifest.nav?.mobileStyle`.
+ * Dispatches on `manifest.nav?.style` (9 desktop variants) and
+ * `manifest.nav?.mobileStyle` (4 mobile variants). CSS for every
+ * variant lives in pearloom.css.
  *
  * Default classic variant retains the prototype's dotted-underline
  * link treatment with the peach RSVP pill so existing themed sites
  * keep their look. The other 8 desktop variants and all 4 mobile
- * variants reuse the same pl8-nav-* class hooks as SiteV8Renderer. */
+ * variants reuse the same pl8-nav-* class hooks as ThemedSiteRenderer. */
 
 type ThemedNavLink = { label: string; href: string };
 
@@ -1371,7 +1365,7 @@ function ThemedNav({ manifest, names }: { manifest: StoryManifest; names: [strin
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Viewport-aware mobile switch — mirrors SiteV8Renderer's EventNav.
+  // Viewport-aware mobile switch — mirrors ThemedSiteRenderer's EventNav.
   // 720px threshold matches pearloom.css site responsive rules.
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
@@ -1536,7 +1530,7 @@ function EmptyStateCallout({
 
 /* ─── ThemedDecorDivider — V8 decor + EditionDivider combo.
  *
- * Mirrors the SiteV8Renderer dispatch around DecorDivider:
+ * Mirrors the ThemedSiteRenderer dispatch around DecorDivider:
  *
  *   1. Read manifest.decorVisibility[`divider-<sectionKey>`].
  *      Editor "× Hide" pill writes false here — when present
@@ -1593,7 +1587,7 @@ function ThemedDecorDivider({
 
 /* ─── ThemedHero — Edition + variant-aware hero.
  *
- * Resolution order (matches SiteV8Renderer's HeroSection):
+ * Resolution order (matches ThemedSiteRenderer's HeroSection):
  *   1. Living atmosphere — explicit manifest.atmosphere >
  *      active Edition's atmospherePreset > occasion default >
  *      'standard'. Mounted as an absolute-positioned layer
@@ -1696,7 +1690,7 @@ function ThemedHero({ manifest, names, motif, onEditField, onEditNames }: { mani
 
   /* Hero context — built once and passed into every variant.
      Mirrors HeroVariantDispatch's `sharedProps.context` in
-     SiteV8Renderer so the same variant components plug in
+     ThemedSiteRenderer so the same variant components plug in
      unchanged. */
   const dateIsoRaw = manifest.logistics?.date ?? '';
   const dateDate = parseLocalDate(dateIsoRaw);
@@ -2154,7 +2148,7 @@ const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 
 /* Helper: patch a single chapter field. Used by every kit's
    chapter row so they all flow through the same onEditField
-   channel. Mirrors SiteV8Renderer's patchChapter pattern. */
+   channel. Mirrors ThemedSiteRenderer's patchChapter pattern. */
 function makePatchChapter(onEditField: FieldEditor | undefined, chapterId: string | undefined, chapterIndex: number) {
   return (field: 'title' | 'description' | 'date') => (value: string) => {
     if (!onEditField) return;
@@ -3179,7 +3173,7 @@ function ThemedSchedule({ manifest, editMode, onEditField }: { manifest: StoryMa
 
 type ScheduleEvent = NonNullable<StoryManifest['events']>[number];
 
-/* Helper: patch a single event field. Mirrors SiteV8Renderer's
+/* Helper: patch a single event field. Mirrors ThemedSiteRenderer's
    patchEvent — matches by id first (so reorders don't drift),
    then by index as fallback. */
 function makePatchEvent(onEditField: FieldEditor | undefined, eventId: string | undefined, eventIndex: number) {
@@ -3861,7 +3855,7 @@ function ThemedRegistry({ manifest, editMode }: { manifest: StoryManifest; editM
 }
 
 /* ─── Edition-aware tile frame helper — ported from
-   SiteV8Renderer's tileFrameForEdition. Returns a style fragment
+   ThemedSiteRenderer's tileFrameForEdition. Returns a style fragment
    applied to each gallery tile so the surrounding photo "frame"
    picks up the active Edition's design language. Mosaic / strip /
    wall all share the same per-Edition frame vocabulary so the
@@ -3938,7 +3932,7 @@ function themedTileFrameForEdition(editionId: string): ThemedTileFrame {
    gold hairline, Postcard pillow lift, Almanac soft 8px, Quiet
    borderless, Coastal cyan-tint rounded) so the layout choice
    and the Edition's design language compound rather than
-   conflict. Mirrors SiteV8Renderer's GallerySectionImpl. ─── */
+   conflict. Mirrors ThemedSiteRenderer's GallerySectionImpl. ─── */
 function ThemedGallery({ manifest, editMode, onEditField }: { manifest: StoryManifest; editMode?: boolean; onEditField?: FieldEditor }) {
   /* Build (url, chapterIndex, imageIndex) sources so edits patch
      the real chapter that owns each photo — same pattern V8 uses
@@ -3947,7 +3941,7 @@ function ThemedGallery({ manifest, editMode, onEditField }: { manifest: StoryMan
   const photoSources = chapters
     .flatMap((c, ci) => (c.images ?? []).map((img, ii) => ({ url: img.url, chapterIndex: ci, imageIndex: ii })))
     .filter((x) => x.url);
-  /* Cap at 12 to match the SiteV8Renderer cap — strip / wall
+  /* Cap at 12 to match the ThemedSiteRenderer cap — strip / wall
      variants need a few extra tiles vs the prior 11 to read as
      filled. PhotoActionMenu sources align by the same slice so
      index math stays consistent between display + edit. */
@@ -4319,7 +4313,7 @@ function ThemedGallery({ manifest, editMode, onEditField }: { manifest: StoryMan
    surface — so the section becomes a working reply surface
    rather than a styled placeholder.
 
-   Urgency tier: ports the SiteV8Renderer urgency system —
+   Urgency tier: ports the ThemedSiteRenderer urgency system —
    computes daysUntilEvent from manifest.logistics.date and
    maps to muted (>30d) / normal (7-30d) / soon (3-7d) /
    urgent (<3d). Each tier shifts the deadline ribbon's
@@ -4336,7 +4330,7 @@ function ThemedRsvp({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug:
      cultural / casual. */
   const rsvpPreset = eventType?.rsvpPreset ?? 'wedding';
 
-  /* ── RSVP urgency tier (ported verbatim from SiteV8Renderer) ──
+  /* ── RSVP urgency tier (ported verbatim from ThemedSiteRenderer) ──
      Compute days-until-event from logistics.date. Map to a tier
      that shifts the deadline ribbon's color + emphasis as the
      day approaches:
@@ -4521,7 +4515,7 @@ function ThemedRsvp({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug:
 type FaqItem = NonNullable<StoryManifest['faqs']>[number];
 
 /* Helper: patch a single FAQ field by index. Mirrors
-   SiteV8Renderer's patchFaq pattern. */
+   ThemedSiteRenderer's patchFaq pattern. */
 function makePatchFaq(onEditField: FieldEditor | undefined, faqIndex: number) {
   return (field: 'question' | 'answer') => (value: string) => {
     if (!onEditField) return;
@@ -5374,7 +5368,7 @@ function ThemedHashtag({ manifest }: { manifest: StoryManifest }) {
    bound book rather than a copyright stripe. ─── */
 /* ─── ThemedGuestbook — host-toggled in RsvpPanel ('Guestbook on
    published site'). Default off; flips on via
-   manifest.features.guestbook = true. Mirrors SiteV8Renderer's
+   manifest.features.guestbook = true. Mirrors ThemedSiteRenderer's
    gating + mount placement (after FAQ, before footer) so guests
    scroll past every section before being asked to leave a wish.
 
@@ -5427,7 +5421,7 @@ function ThemedGuestbook({
 
 /* ─── ThemedCustomBlocks — Event-OS block rail.
  *
- * Ports SiteV8Renderer's CustomBlocksRail/CustomBlockCase pair
+ * Ports ThemedSiteRenderer's CustomBlocksRail/CustomBlockCase pair
  * into the Themed renderer. Each entry on manifest.blocks[] whose
  * `type` matches one of the 10 known Event-OS blocks
  * (itinerary, costSplitter, activityVote, toastSignup,

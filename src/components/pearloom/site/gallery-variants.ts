@@ -7,7 +7,7 @@
 // Future variants per the plan: LightboxGrid (3×3 numbered),
 // Polaroid scatter (overlapping rotated polaroids).
 //
-// Renderer continues to read GallerySectionImpl in SiteV8Renderer;
+// Renderer continues to read GallerySectionImpl in ThemedSiteRenderer;
 // the section reads manifest.blockVariants?.gallery?.style and
 // branches between mosaic (default), strip, and wall layouts.
 // Each tile gets an edition-aware frame (Cinema sharp 2px,

@@ -10,7 +10,7 @@
 // metadata (id, label, preview) so the BlockStylePicker can
 // surface them.
 //
-// SiteV8Renderer's StoryVariantSection reads
+// ThemedSiteRenderer's StoryVariantSection reads
 // `manifest.blockVariants.story.style` first (this file's
 // registry IDs), falling back to the legacy `manifest.storyLayout`
 // / `manifest.layoutFormat` fields. Existing sites stay
@@ -22,7 +22,7 @@ import { LAYOUT_OPTIONS, MiniDiagram, type StoryLayoutType } from '@/components/
 import { createElement } from 'react';
 
 // The registry's Component is required, but story rendering happens
-// upstream in SiteV8Renderer. The Component here is a no-op marker —
+// upstream in ThemedSiteRenderer. The Component here is a no-op marker —
 // the picker only consumes preview + label + description.
 function NoopStoryComponent(): null {
   return null;

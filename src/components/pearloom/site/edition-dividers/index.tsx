@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────
 // edition-dividers — the rule between sections that gives an
 // Edition its visual rhythm. Picked by the active Edition's
-// `divider` field; mounted in SiteV8Renderer via
+// `divider` field; mounted in ThemedSiteRenderer via
 // EditionDivider which dispatches by style id.
 //
 // Each divider is full-width, ~24-72px tall depending on style,

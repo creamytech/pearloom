@@ -18,7 +18,7 @@
 //     editor (ThemePanel checklist preselects these) and the
 //     renderer (uses these when manifest.homePageBlocks is unset).
 //
-// Both ThemePanel and SiteV8Renderer import from here so the two
+// Both ThemePanel and ThemedSiteRenderer import from here so the two
 // can never drift out of agreement.
 // ─────────────────────────────────────────────────────────────
 

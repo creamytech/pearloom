@@ -398,7 +398,7 @@ export const EDITIONS_BY_ID: Record<EditionId, EditionDefinition> = EDITIONS.red
 );
 
 /** Default Edition when nothing matches — Almanac is the closest
- *  to the current SiteV8Renderer's behaviour (postcard hero,
+ *  to the current ThemedSiteRenderer's behaviour (postcard hero,
  *  thread divider, narrative-led ordering). Picking it here
  *  ensures legacy manifests resolve to a visually-similar
  *  default. */

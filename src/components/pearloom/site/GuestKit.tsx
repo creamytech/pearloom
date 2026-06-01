@@ -580,13 +580,13 @@ export function PersonalGuestGreeting({ domain }: { domain: string }) {
 }
 
 // AskPearFloater + summarizeManifest helper removed — GuestPearChat
-// (mounted in SiteV8Renderer) is the strictly-better streaming,
+// (mounted in ThemedSiteRenderer) is the strictly-better streaming,
 // guest-passport-aware replacement. Two 🍐 buttons in the same
 // bottom-right corner was the bug; ~200 lines of obsolete code
 // deleted in this pass.
 
 // Render-prop helper that wraps an entire DashLayout-free node so
-// hosts can opt in to the kit. Right now SiteV8Renderer just imports
+// hosts can opt in to the kit. Right now ThemedSiteRenderer just imports
 // the individual components.
 export function GuestKitProvider({ children }: { children: ReactNode }) {
   return <>{children}</>;

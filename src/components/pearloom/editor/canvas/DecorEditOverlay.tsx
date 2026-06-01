@@ -43,7 +43,7 @@ interface Props {
    *  to the recolor flow. When undefined, the recolor chip is
    *  hidden (nothing to recolor yet). */
   url?: string | null;
-  /** Manifest patcher from SiteV8Renderer's onEditField. */
+  /** Manifest patcher from ThemedSiteRenderer's onEditField. */
   onEditField?: (patch: (m: StoryManifest) => StoryManifest) => void;
   /** Optional human label shown in the chip (e.g. "Story stamp"). */
   label?: string;

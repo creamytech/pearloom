@@ -12,7 +12,7 @@
 //   index      ruled index cards, red margin & tab times
 //   minimal    borderless rows, hairlines, oversized numerals
 //
-// Phase-4 follow-up: per-kit SECTION renderers in SiteV8Renderer
+// Phase-4 follow-up: per-kit SECTION renderers in ThemedSiteRenderer
 // (KSchedule/KDetails/KFaq/KGallery) that change BOTH style and
 // arrangement. For now: kit drives CSS via [data-pl-kit] on the
 // .pl8-guest root + per-kit overrides for cards / dividers /

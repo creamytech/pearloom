@@ -250,7 +250,7 @@ export function ThemePanel({
   }
 
   /** Writes the preset's full theme to manifest.theme.colors so
-   *  SiteV8Renderer's themeStyle CSS-var overrides see the change
+   *  ThemedSiteRenderer's themeStyle CSS-var overrides see the change
    *  the moment the user picks a swatch.
    *
    *  Audited 2026-04-29: dropped legacy `palette` / `themeName`
@@ -269,7 +269,7 @@ export function ThemePanel({
   }
 
   /** Patches manifest.theme.fonts.{heading|body} so typography
-   *  changes from this panel flow through to SiteV8Renderer.
+   *  changes from this panel flow through to ThemedSiteRenderer.
    *
    *  Audited 2026-04-29: dropped duplicate top-level `headingFont`
    *  / `bodyFont` writes — the renderer only reads theme.fonts.*. */

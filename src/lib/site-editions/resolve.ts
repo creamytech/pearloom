@@ -47,7 +47,7 @@ export function recommendEdition(
 }
 
 /** The shape resolveEdition() needs out of a manifest. Loose by
- *  design so SiteV8Renderer can call this without coupling to the
+ *  design so ThemedSiteRenderer can call this without coupling to the
  *  full StoryManifest type. */
 export interface EditionContext {
   /** Explicit host pick — manifest.edition. */

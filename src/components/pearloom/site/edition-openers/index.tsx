@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────
 // edition-openers — the small mark above each section title that
 // gives an Edition its rhythm. Picked by the active Edition's
-// `sectionOpener` field; mounted in SiteV8Renderer via
+// `sectionOpener` field; mounted in ThemedSiteRenderer via
 // EditionSectionOpener which dispatches by style id.
 //
 // Each opener receives the same loose interface so the renderer

@@ -10,7 +10,7 @@
 //   • Clear selection.
 //
 // Reads selection state from EditorCanvasContext (already wired
-// at the SiteV8Renderer root; multi-select via shift/cmd-click on
+// at the ThemedSiteRenderer root; multi-select via shift/cmd-click on
 // CanvasBlockSortable). Writes via the same onEditField patcher
 // so undo/redo works without special-casing.
 // ─────────────────────────────────────────────────────────────

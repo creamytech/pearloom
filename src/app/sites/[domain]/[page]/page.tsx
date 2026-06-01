@@ -173,10 +173,9 @@ export default async function SiteSubPage(
   const prettyUrl = formatSiteDisplayUrl(domain, '', normalizeOccasion(manifest.occasion));
   const creatorEmail = ((siteConfig as unknown as Record<string, unknown>).creator_email as string | undefined) ?? null;
 
-  // Route through PublishedSiteShell so the Themed/V8 dispatch
-  // (based on manifest.renderer) applies to sub-pages too — without
-  // this, a host on Themed would silently fall back to the V8
-  // renderer on every sub-page route.
+  // Route through PublishedSiteShell so sub-pages mount the same
+  // ThemedSiteRenderer as the home page (with pageFilter narrowing
+  // the visible block).
   return (
     <PublishedSiteShell
       manifest={manifest}

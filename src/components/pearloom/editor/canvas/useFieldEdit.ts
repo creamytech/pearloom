@@ -79,7 +79,7 @@ function writePath<T>(root: T, ts: Array<string | number>, value: unknown): T {
   // objects + arrays on the path get new identities. Sibling
   // subtrees (e.g. manifest.chapters when only manifest.poetry
   // changed) keep referential equality, which is what makes the
-  // memoized block-renderers in SiteV8Renderer actually bail out
+  // memoized block-renderers in ThemedSiteRenderer actually bail out
   // of re-rendering.
   return produce(root, (draft) => {
     let cur = draft as unknown as Record<string | number, unknown>;

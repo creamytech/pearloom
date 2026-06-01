@@ -4,12 +4,12 @@
 // Pearloom / marketplace/TemplatePreviewModal.tsx
 //
 // Full-site preview modal. Previously this rendered a hand-coded
-// mock that visually *didn't match* what SiteV8Renderer actually
+// mock that visually *didn't match* what ThemedSiteRenderer actually
 // produces — the user saw one thing in the preview and got a
 // different site in the editor.
 //
 // Now: we seed a plausible manifest for the template and mount
-// the real <SiteV8Renderer> inside the scroll pane. What you see
+// the real <ThemedSiteRenderer> inside the scroll pane. What you see
 // here is exactly what the editor will render on day one.
 //
 // The left pane is the real site. The right pane keeps a slim
@@ -24,7 +24,7 @@ import type { Template } from './templates-data';
 import { findMatchingSiteTemplate } from './template-matcher';
 import { resolveTemplateDesign } from './template-themes';
 import { seedPreviewManifest } from './seed-preview-manifest';
-import { SiteV8Renderer } from '../site/SiteV8Renderer';
+import { ThemedSiteRenderer } from '../site/ThemedSiteRenderer';
 
 interface Props {
   open: boolean;
@@ -162,7 +162,7 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
           gridTemplateColumns: 'minmax(0, 1.35fr) minmax(0, 0.8fr)',
         }}
       >
-        {/* ── LEFT: real SiteV8Renderer scroll pane ── */}
+        {/* ── LEFT: real ThemedSiteRenderer scroll pane ── */}
         <div
           style={{
             background: 'var(--paper, #FDFAF0)',
@@ -172,7 +172,7 @@ export function TemplatePreviewModal({ open, template, onClose }: Props) {
             position: 'relative',
           }}
         >
-          <SiteV8Renderer
+          <ThemedSiteRenderer
             manifest={seed.manifest}
             names={seed.names}
             siteSlug={seed.slug}

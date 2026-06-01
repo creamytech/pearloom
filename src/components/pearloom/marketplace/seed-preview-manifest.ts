@@ -1,5 +1,5 @@
 /* ========================================================================
-   Preview manifest seeder — hands SiteV8Renderer a plausible manifest so
+   Preview manifest seeder — hands ThemedSiteRenderer a plausible manifest so
    the marketplace modal shows what the real editor will render.
 
    Pulls theme colours + motifs + poetry from the matched SITE_TEMPLATE

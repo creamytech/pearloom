@@ -319,7 +319,7 @@ export interface StoryManifest {
    *  All fields optional — unset = current Pear default. */
   nav?: {
     /** Desktop nav layout (≥ 720px). 9 variants registered in
-     *  SiteV8Renderer.NavBody. */
+     *  ThemedSiteRenderer.NavBody. */
     style?:
       | 'classic'
       | 'centered'
@@ -640,22 +640,12 @@ export interface StoryManifest {
    *  .pl8-faq-row) for the kit's personality.
    *
    *  Full implementation (Phase 4): per-kit SECTION renderers in
-   *  the SiteV8Renderer registry — KSchedule, KDetails, KFaq,
+   *  the ThemedSiteRenderer registry — KSchedule, KDetails, KFaq,
    *  KGallery — that change BOTH styling and ARRANGEMENT
    *  (e.g. ticket = perforated stub rows; plate = Roman-numeral
    *  count + dotted leader; scrapbook = tilted polaroids). See
    *  CLAUDE-PRODUCT.md §10 (2026-05-30 entry, Phase 4). */
   kitId?: 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal';
-  /** Parallel renderer toggle. When 'themed', the site renders
-   *  via ThemedSiteRenderer — a direct port of the Editor
-   *  Redesign prototype's themed-site.jsx, augmented with
-   *  Pearloom data integration. Anything else (default) uses
-   *  SiteV8Renderer (the rich Pearloom renderer with months of
-   *  features the prototype doesn't have).
-   *
-   *  Designed so hosts can preview the prototype's exact look
-   *  without losing the existing v8 site. */
-  renderer?: 'themed' | 'v8';
   /** Toggles for the public RSVP form. Both default ON if absent
    *  (legacy behaviour). plusOnes hides the "+1?" field on the
    *  passport invite link; songRequests hides the SongCard on
