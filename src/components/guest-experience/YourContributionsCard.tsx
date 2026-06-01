@@ -77,39 +77,48 @@ export function YourContributionsCard({
 }: Props) {
   if (photos.length === 0 && claims.length === 0 && moments.length === 0) return null;
 
+  // Underscore-prefix the unused `accent` so a future contributor
+  // doesn't accidentally re-wire the chrome through it. Peach is
+  // canonical for the editorial eyebrow now.
+  void accent;
   return (
     <div
       style={{
-        padding: '1.25rem 1.5rem',
-        background: 'var(--card, #ffffff)',
-        borderRadius: '0.75rem',
-        border: `1px solid ${accent}33`,
+        padding: '24px 24px',
+        background: 'var(--card, #FBF7EE)',
+        borderRadius: 'var(--pl-card-radius, 14px)',
+        border: '1px solid rgba(14,13,11,0.08)',
+        boxShadow: 'var(--pl-card-shadow, 0 4px 14px rgba(75,65,52,0.08))',
         display: 'flex',
         flexDirection: 'column',
-        gap: '1rem',
+        gap: 16,
         fontFamily: 'var(--font-ui)',
       }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {/* Peach eyebrow — matches ThemedSectionHead */}
         <span
+          className="eyebrow"
           style={{
-            fontSize: '0.75rem',
+            fontSize: 10.5,
             textTransform: 'uppercase',
-            letterSpacing: '0.18em',
+            letterSpacing: '0.22em',
             fontWeight: 700,
-            color: accent,
+            color: '#C6703D',
           }}
         >
           What you&apos;ve added
         </span>
+        {/* Display H3 — "summary" reads as the section title */}
         <h3
           style={{
             margin: 0,
-            fontSize: '1.25rem',
+            fontSize: 24,
             fontFamily: headingFont,
-            fontWeight: 500,
-            letterSpacing: '-0.005em',
-            color: 'var(--ink, #2B2B2B)',
+            fontWeight: 600,
+            letterSpacing: '-0.015em',
+            color: 'var(--ink, #0E0D0B)',
+            lineHeight: 1.15,
           }}
         >
           {summary(photos.length, claims.length, moments.length)}
