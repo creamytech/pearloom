@@ -514,17 +514,16 @@ function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names
   );
 }
 
-/* ─── ThemedStory — book-spread chapters with Roman numeral chapter
-   marks. The prototype's StoryBlock reads as a paginated chapter
-   list — each chapter is a Roman-numeral kicker + italic display
-   title + body + photo, alternating photo-left/photo-right.
-   Photo column is 5/12; text 6/12 with 1/12 gutter on the inside
-   so the page reads with breathing room rather than the prior
-   50/50 split. ─── */
+/* ─── ThemedStory — dispatches to a per-Kit chapter renderer.
+   Same shape as the schedule dispatch — each kit gives the
+   chapter list a distinct visual identity (book-spread / index-
+   card / scrapbook / etc.), not just a CSS skin. ─── */
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 function ThemedStory({ manifest, motif }: { manifest: StoryManifest; motif: MotifKind }) {
   const chapters = manifest.chapters ?? [];
   if (chapters.length === 0) return null;
+  const kit = (manifest.kitId ?? 'classic') as
+    | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal';
   return (
     <section
       id="our-story"
@@ -536,140 +535,205 @@ function ThemedStory({ manifest, motif }: { manifest: StoryManifest; motif: Moti
     >
       <MotifScatter motif={motif} density="sparse" />
       <ThemedSectionHead eyebrow="Our story" title="How we got" italic="here" />
-      {/* Chapter spreads — alternating photo + text with Roman numeral marks */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 72, maxWidth: 1080, margin: '0 auto' }}>
-        {chapters.map((c, i) => {
-          const left = i % 2 === 0;
-          const photo = c.images?.[0]?.url;
-          const numeral = ROMAN[i] ?? String(i + 1);
-          return (
-            <div
-              key={c.id ?? i}
-              className="pl8-chapter-row"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: left ? '5fr 1fr 6fr' : '6fr 1fr 5fr',
-                gap: 0,
-                alignItems: 'center',
-              }}
-            >
-              {/* Photo column */}
-              <div style={{ order: left ? 0 : 2 }}>
-                {photo ? (
-                  <div
-                    style={{
-                      width: '100%',
-                      aspectRatio: '4/5',
-                      backgroundImage: `url(${photo})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                      borderRadius: 'var(--pl-card-radius, 12px)',
-                      boxShadow: 'var(--pl-card-shadow, 0 14px 36px rgba(61,74,31,0.16))',
-                    }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      width: '100%',
-                      aspectRatio: '4/5',
-                      background: 'var(--cream, #FBF7EE)',
-                      borderRadius: 'var(--pl-card-radius, 12px)',
-                      display: 'grid',
-                      placeItems: 'center',
-                      color: 'var(--ink-muted, #8A8275)',
-                      fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-                      fontSize: 64,
-                      fontStyle: 'italic',
-                      opacity: 0.25,
-                    }}
-                  >
-                    {numeral}
-                  </div>
-                )}
-              </div>
-              {/* Gutter */}
-              <div style={{ order: 1 }} />
-              {/* Text column */}
-              <div style={{ order: left ? 2 : 0 }}>
-                {/* Roman numeral chapter mark — large outline-style
-                    so it reads as a book chapter heading, not a
-                    label. */}
-                <div
-                  style={{
-                    fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-                    fontStyle: 'italic',
-                    fontSize: 44,
-                    fontWeight: 400,
-                    color: 'var(--peach-ink, #C6703D)',
-                    opacity: 0.7,
-                    lineHeight: 1,
-                    marginBottom: 8,
-                    letterSpacing: '-0.01em',
-                  }}
-                >
-                  {numeral}.
-                </div>
-                {c.date && (
-                  <div
-                    className="eyebrow"
-                    style={{
-                      fontSize: 10.5,
-                      fontWeight: 700,
-                      letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
-                      textTransform: 'uppercase',
-                      color: 'var(--ink-muted, #6F6557)',
-                      marginBottom: 14,
-                    }}
-                  >
-                    {c.date}
-                  </div>
-                )}
-                <h3
-                  style={{
-                    fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-                    fontSize: 42,
-                    fontWeight: 'var(--pl-display-wght, 600)',
-                    margin: 0,
-                    lineHeight: 1.02,
-                    letterSpacing: '-0.015em',
-                  }}
-                >
-                  {c.title}
-                </h3>
-                {c.description && (
-                  <p
-                    style={{
-                      marginTop: 20,
-                      fontSize: 15.5,
-                      color: 'var(--ink-soft, #3A332C)',
-                      lineHeight: 1.7,
-                    }}
-                  >
-                    {c.description}
-                  </p>
-                )}
-                {c.location?.label && (
-                  <div
-                    style={{
-                      marginTop: 18,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: 'var(--peach-ink, #C6703D)',
-                    }}
-                  >
-                    <Icon name="pin" size={11} color="var(--peach-ink, #C6703D)" />
-                    {c.location.label}
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {kit === 'ticket'    && <StoryTicket chapters={chapters} />}
+      {kit === 'plate'     && <StoryPlate chapters={chapters} />}
+      {kit === 'scrapbook' && <StoryScrapbook chapters={chapters} />}
+      {kit === 'index'     && <StoryIndex chapters={chapters} />}
+      {kit === 'minimal'   && <StoryMinimal chapters={chapters} />}
+      {kit === 'classic'   && <StoryClassic chapters={chapters} />}
     </section>
+  );
+}
+
+type Chapter = NonNullable<StoryManifest['chapters']>[number];
+
+/* Classic — alternating photo-left / photo-right book spread. */
+function StoryClassic({ chapters }: { chapters: Chapter[] }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 72, maxWidth: 1080, margin: '0 auto' }}>
+      {chapters.map((c, i) => {
+        const left = i % 2 === 0;
+        const photo = c.images?.[0]?.url;
+        const numeral = ROMAN[i] ?? String(i + 1);
+        return (
+          <div key={c.id ?? i} className="pl8-chapter-row" style={{
+            display: 'grid', gridTemplateColumns: left ? '5fr 1fr 6fr' : '6fr 1fr 5fr',
+            alignItems: 'center',
+          }}>
+            <div style={{ order: left ? 0 : 2 }}>
+              {photo ? (
+                <div style={{
+                  width: '100%', aspectRatio: '4/5',
+                  backgroundImage: `url(${photo})`, backgroundSize: 'cover', backgroundPosition: 'center',
+                  borderRadius: 'var(--pl-card-radius, 12px)',
+                  boxShadow: 'var(--pl-card-shadow, 0 14px 36px rgba(61,74,31,0.16))',
+                }} />
+              ) : (
+                <div style={{
+                  width: '100%', aspectRatio: '4/5',
+                  background: 'var(--cream, #FBF7EE)',
+                  borderRadius: 'var(--pl-card-radius, 12px)',
+                  display: 'grid', placeItems: 'center',
+                  color: 'var(--ink-muted, #8A8275)',
+                  fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                  fontSize: 64, fontStyle: 'italic', opacity: 0.25,
+                }}>{numeral}</div>
+              )}
+            </div>
+            <div style={{ order: 1 }} />
+            <div style={{ order: left ? 2 : 0 }}>
+              <div style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontStyle: 'italic', fontSize: 44, fontWeight: 400, color: 'var(--peach-ink, #C6703D)', opacity: 0.7, lineHeight: 1, marginBottom: 8, letterSpacing: '-0.01em' }}>{numeral}.</div>
+              {c.date && <div className="eyebrow" style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)', textTransform: 'uppercase', color: 'var(--ink-muted, #6F6557)', marginBottom: 14 }}>{c.date}</div>}
+              <h3 style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 42, fontWeight: 'var(--pl-display-wght, 600)', margin: 0, lineHeight: 1.02, letterSpacing: '-0.015em' }}>{c.title}</h3>
+              {c.description && <p style={{ marginTop: 20, fontSize: 15.5, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.7 }}>{c.description}</p>}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* Ticket — perforated stub cards in a 2-col grid, dashed border,
+   monospace date, photo above body. */
+function StoryTicket({ chapters }: { chapters: Chapter[] }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 18, maxWidth: 920, margin: '0 auto' }}>
+      {chapters.map((c, i) => {
+        const photo = c.images?.[0]?.url;
+        return (
+          <div key={c.id ?? i} className="pl8-chapter-row" style={{
+            background: 'var(--card, #FBF7EE)',
+            border: '1.5px dashed var(--ink-soft, #3A332C)',
+            borderRadius: 6, position: 'relative', overflow: 'hidden',
+          }}>
+            <span aria-hidden style={{ position: 'absolute', top: 6, left: 6, width: 6, height: 6, borderRadius: '50%', background: 'var(--paper, #F5EFE2)', border: '1px solid var(--ink-soft, #3A332C)' }} />
+            <span aria-hidden style={{ position: 'absolute', top: 6, right: 6, width: 6, height: 6, borderRadius: '50%', background: 'var(--paper, #F5EFE2)', border: '1px solid var(--ink-soft, #3A332C)' }} />
+            {photo && <div style={{ width: '100%', aspectRatio: '16/9', backgroundImage: `url(${photo})`, backgroundSize: 'cover', backgroundPosition: 'center', borderBottom: '1.5px dashed var(--ink-soft, #3A332C)' }} />}
+            <div style={{ padding: '20px 22px' }}>
+              {c.date && <div style={{ fontFamily: 'Courier New, ui-monospace, monospace', fontSize: 12, fontWeight: 700, color: 'var(--peach-ink, #C6703D)', letterSpacing: '0.04em', marginBottom: 8, textTransform: 'uppercase' }}>{c.date}</div>}
+              <h3 style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 22, fontWeight: 600, margin: 0, lineHeight: 1.1 }}>{c.title}</h3>
+              {c.description && <p style={{ marginTop: 10, fontSize: 13, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.55 }}>{c.description}</p>}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* Plate — vertical Roman-numeral list, photo as a small inset
+   square on the left, italic display name, hairline separator. */
+function StoryPlate({ chapters }: { chapters: Chapter[] }) {
+  return (
+    <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 32 }}>
+      {chapters.map((c, i) => {
+        const photo = c.images?.[0]?.url;
+        const numeral = ROMAN[i] ?? String(i + 1);
+        return (
+          <div key={c.id ?? i} className="pl8-chapter-row" style={{
+            display: 'grid', gridTemplateColumns: '60px 96px 1fr',
+            alignItems: 'center', gap: 20,
+            paddingBottom: 24, borderBottom: '1px solid var(--line-soft, rgba(14,13,11,0.10))',
+          }}>
+            <span style={{
+              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+              fontStyle: 'italic', fontWeight: 400, fontSize: 38,
+              color: 'var(--peach-ink, #C6703D)', textAlign: 'right',
+              lineHeight: 1,
+            }}>{numeral}.</span>
+            <div style={{ width: 96, aspectRatio: '1/1', background: photo ? `center/cover no-repeat url(${photo})` : 'var(--cream, #FBF7EE)', borderRadius: 2, boxShadow: 'inset 0 0 0 1px rgba(14,13,11,0.20), inset 0 0 0 4px var(--card, #FBF7EE), inset 0 0 0 5px rgba(14,13,11,0.10)' }} />
+            <div>
+              {c.date && <div className="eyebrow" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--ink-muted, #6F6557)', marginBottom: 6 }}>{c.date}</div>}
+              <h3 style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontStyle: 'italic', fontSize: 24, fontWeight: 500, margin: 0, lineHeight: 1.1, color: 'var(--ink, #0E0D0B)' }}>{c.title}</h3>
+              {c.description && <p style={{ marginTop: 8, fontSize: 13.5, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.55 }}>{c.description}</p>}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* Scrapbook — tilted polaroid cards in a masonry grid with tape
+   strips. Photo on top, handwritten-feel title underneath. */
+function StoryScrapbook({ chapters }: { chapters: Chapter[] }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 26, maxWidth: 960, margin: '0 auto' }}>
+      {chapters.map((c, i) => {
+        const photo = c.images?.[0]?.url;
+        const tilt = i % 2 === 0 ? -1.6 : 1.6;
+        return (
+          <div key={c.id ?? i} className="pl8-chapter-row" style={{
+            background: '#FFFDF7', padding: '12px 12px 22px',
+            boxShadow: '0 14px 30px rgba(0,0,0,0.18)',
+            borderRadius: 2, position: 'relative',
+            transform: `rotate(${tilt}deg)`,
+          }}>
+            <span aria-hidden style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%) rotate(-3deg)', width: 70, height: 16, background: 'color-mix(in oklab, var(--gold, #B8935A) 32%, transparent)' }} />
+            {photo && <div style={{ width: '100%', aspectRatio: '4/3', backgroundImage: `url(${photo})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />}
+            <div style={{ paddingTop: 14, textAlign: 'center' }}>
+              {c.date && <div style={{ fontFamily: 'var(--font-display, Caveat, cursive)', fontStyle: 'italic', fontSize: 16, color: 'var(--peach-ink, #C6703D)' }}>{c.date}</div>}
+              <h3 style={{ fontFamily: 'var(--font-display, Caveat, cursive)', fontStyle: 'italic', fontSize: 26, fontWeight: 500, margin: '4px 0 0', color: 'var(--ink, #0E0D0B)', lineHeight: 1.1 }}>{c.title}</h3>
+              {c.description && <p style={{ marginTop: 8, fontSize: 12.5, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.5, padding: '0 8px' }}>{c.description}</p>}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* Index — ruled index cards, red left margin, blue rule lines,
+   numbered date in monospace. */
+function StoryIndex({ chapters }: { chapters: Chapter[] }) {
+  return (
+    <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {chapters.map((c, i) => (
+        <div key={c.id ?? i} className="pl8-chapter-row" style={{
+          padding: '20px 24px',
+          background: 'var(--card, #FBF7EE)',
+          borderLeft: '2px solid rgba(199,80,80,0.55)',
+          backgroundImage: 'repeating-linear-gradient(180deg, transparent 0 22px, rgba(74,118,196,0.10) 22px 23px)',
+          borderRadius: 2,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 10 }}>
+            <span style={{ fontFamily: 'Courier New, ui-monospace, monospace', fontSize: 12, fontWeight: 700, color: 'var(--ink, #0E0D0B)', minWidth: 36 }}>№{String(i + 1).padStart(2, '0')}</span>
+            {c.date && <span style={{ fontFamily: 'Courier New, ui-monospace, monospace', fontSize: 12, color: 'var(--ink-muted, #6F6557)' }}>{c.date}</span>}
+          </div>
+          <h3 style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 22, fontWeight: 600, margin: 0, lineHeight: 1.15 }}>{c.title}</h3>
+          {c.description && <p style={{ marginTop: 12, fontSize: 14, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.65 }}>{c.description}</p>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* Minimal — oversized numeral + title only, hairline dividers,
+   no photos in card. */
+function StoryMinimal({ chapters }: { chapters: Chapter[] }) {
+  return (
+    <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 40 }}>
+      {chapters.map((c, i) => (
+        <div key={c.id ?? i} className="pl8-chapter-row" style={{
+          display: 'grid', gridTemplateColumns: '90px 1fr',
+          alignItems: 'baseline', gap: 28,
+          paddingBottom: 40,
+          borderBottom: i === chapters.length - 1 ? 'none' : '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+        }}>
+          <span style={{
+            fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+            fontSize: 56, fontWeight: 600,
+            color: 'var(--ink, #0E0D0B)', lineHeight: 0.92, letterSpacing: '-0.04em',
+          }}>{String(i + 1).padStart(2, '0')}</span>
+          <div style={{ paddingTop: 8 }}>
+            {c.date && <div className="eyebrow" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)', textTransform: 'uppercase', color: 'var(--ink-muted, #6F6557)', marginBottom: 10 }}>{c.date}</div>}
+            <h3 style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 26, fontWeight: 600, margin: 0, lineHeight: 1.1 }}>{c.title}</h3>
+            {c.description && <p style={{ marginTop: 12, fontSize: 14, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.6 }}>{c.description}</p>}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -1473,14 +1537,15 @@ function ThemedRsvp({ manifest }: { manifest: StoryManifest }) {
   );
 }
 
-/* ─── ThemedFaq — numbered accordion cards. Each row carries an
-   italic peach numeral prefix (01 / 02 / 03) that doubles as
-   the visual rhythm. Cards keep the same chev-down summary but
-   the question type-set is larger so the FAQ feels like real
-   reading, not a chip rail. ─── */
+/* ─── ThemedFaq — dispatches to a per-Kit FAQ renderer. Each kit
+   keeps the <details>/<summary> contract for accessibility and
+   click behaviour but shapes the surrounding card distinctly. */
+type FaqItem = NonNullable<StoryManifest['faqs']>[number];
 function ThemedFaq({ manifest }: { manifest: StoryManifest }) {
   const faq = manifest.faqs ?? [];
   if (faq.length === 0) return null;
+  const kit = (manifest.kitId ?? 'classic') as
+    | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal';
   return (
     <section
       id="faq"
@@ -1490,76 +1555,91 @@ function ThemedFaq({ manifest }: { manifest: StoryManifest }) {
       }}
     >
       <ThemedSectionHead eyebrow="Good to know" title="The little" italic="things" />
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 10,
-          maxWidth: 680,
-          margin: '0 auto',
-        }}
-      >
-        {faq.map((item, i) => {
-          const num = String(i + 1).padStart(2, '0');
-          return (
-            <details
-              key={item.id ?? i}
-              className="pl8-faq-row"
-              style={{
-                padding: '18px 22px',
-                background: 'var(--card, #FBF7EE)',
-                border: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
-                borderRadius: 'var(--pl-card-radius, 12px)',
-                boxShadow: 'var(--pl-card-shadow, 0 2px 6px rgba(75,65,52,0.05))',
-              }}
-            >
-              <summary
-                style={{
-                  fontSize: 14.5,
-                  fontWeight: 600,
-                  color: 'var(--ink, #0E0D0B)',
-                  cursor: 'pointer',
-                  listStyle: 'none',
-                  display: 'flex',
-                  gap: 14,
-                  alignItems: 'baseline',
-                }}
-              >
-                <span
-                  aria-hidden
-                  style={{
-                    fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-                    fontStyle: 'italic',
-                    fontWeight: 400,
-                    fontSize: 18,
-                    color: 'var(--peach-ink, #C6703D)',
-                    opacity: 0.85,
-                    minWidth: 24,
-                  }}
-                >
-                  {num}.
-                </span>
-                <span style={{ flex: 1, lineHeight: 1.35 }}>{item.question}</span>
-                <Icon name="chev-down" size={14} color="var(--ink-muted, #6F6557)" />
-              </summary>
-              {item.answer && (
-                <p
-                  style={{
-                    marginTop: 12,
-                    marginLeft: 38,
-                    fontSize: 13.5,
-                    color: 'var(--ink-soft, #3A332C)',
-                    lineHeight: 1.65,
-                  }}
-                >
-                  {item.answer}
-                </p>
-              )}
-            </details>
-          );
-        })}
-      </div>
+      <FaqList faq={faq} kit={kit} />
     </section>
+  );
+}
+
+function FaqList({ faq, kit }: { faq: FaqItem[]; kit: string }) {
+  /* Per-kit container + row styling. Summary/answer markup stays
+     constant — only the chrome (background, border, numeral style,
+     numeral color) varies. */
+  const containerStyle: React.CSSProperties = (() => {
+    switch (kit) {
+      case 'ticket':    return { maxWidth: 720, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 };
+      case 'minimal':   return { maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 0 };
+      default:          return { display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 720, margin: '0 auto' };
+    }
+  })();
+  return (
+    <div style={containerStyle}>
+      {faq.map((item, i) => (
+        <FaqRow key={item.id ?? i} item={item} index={i} kit={kit} totalCount={faq.length} />
+      ))}
+    </div>
+  );
+}
+
+function FaqRow({ item, index, kit, totalCount }: { item: FaqItem; index: number; kit: string; totalCount: number }) {
+  const num = String(index + 1).padStart(2, '0');
+  /* Per-kit row style. */
+  const rowStyle: React.CSSProperties = (() => {
+    switch (kit) {
+      case 'ticket':
+        return { padding: '20px 22px', background: 'var(--card, #FBF7EE)', border: '1.5px dashed var(--ink-soft, #3A332C)', borderRadius: 6, position: 'relative' };
+      case 'plate':
+        return { padding: '20px 24px', background: 'var(--card, #FBF7EE)', borderRadius: 1, boxShadow: 'inset 0 0 0 1px rgba(14,13,11,0.30), inset 0 0 0 4px var(--card, #FBF7EE), inset 0 0 0 5px rgba(14,13,11,0.15)' };
+      case 'scrapbook':
+        return { padding: '20px 22px', background: '#FFFDF7', boxShadow: '0 10px 22px rgba(0,0,0,0.12)', borderRadius: 2, transform: `rotate(${index % 2 === 0 ? -0.6 : 0.6}deg)` };
+      case 'index':
+        return { padding: '18px 22px', background: 'var(--card, #FBF7EE)', borderLeft: '2px solid rgba(199,80,80,0.55)', backgroundImage: 'repeating-linear-gradient(180deg, transparent 0 21px, rgba(74,118,196,0.10) 21px 22px)', borderRadius: 2 };
+      case 'minimal':
+        return {
+          padding: '18px 0', background: 'transparent', border: 'none',
+          borderBottom: index === totalCount - 1 ? 'none' : '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+          borderRadius: 0,
+        };
+      default:
+        return { padding: '18px 22px', background: 'var(--card, #FBF7EE)', border: '1px solid var(--line-soft, rgba(14,13,11,0.08))', borderRadius: 'var(--pl-card-radius, 12px)', boxShadow: 'var(--pl-card-shadow, 0 2px 6px rgba(75,65,52,0.05))' };
+    }
+  })();
+  /* Per-kit numeral style. */
+  const numeralStyle: React.CSSProperties = (() => {
+    switch (kit) {
+      case 'ticket':
+        return { fontFamily: 'Courier New, ui-monospace, monospace', fontStyle: 'normal', fontWeight: 700, fontSize: 14, color: 'var(--peach-ink, #C6703D)', minWidth: 30 };
+      case 'plate':
+        return { fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontStyle: 'italic', fontWeight: 400, fontSize: 22, color: 'var(--peach-ink, #C6703D)', minWidth: 30 };
+      case 'scrapbook':
+        return { fontFamily: 'var(--font-display, Caveat, cursive)', fontStyle: 'italic', fontWeight: 500, fontSize: 22, color: 'var(--peach-ink, #C6703D)', minWidth: 30 };
+      case 'index':
+        return { fontFamily: 'Courier New, ui-monospace, monospace', fontWeight: 700, fontSize: 12, color: 'var(--ink, #0E0D0B)', minWidth: 36 };
+      case 'minimal':
+        return { fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink, #0E0D0B)', minWidth: 50 };
+      default:
+        return { fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontStyle: 'italic', fontWeight: 400, fontSize: 18, color: 'var(--peach-ink, #C6703D)', opacity: 0.85, minWidth: 24 };
+    }
+  })();
+  return (
+    <details className="pl8-faq-row" style={rowStyle}>
+      <summary style={{
+        fontSize: 14.5, fontWeight: 600, color: 'var(--ink, #0E0D0B)',
+        cursor: 'pointer', listStyle: 'none',
+        display: 'flex', gap: 14, alignItems: 'baseline',
+      }}>
+        <span aria-hidden style={numeralStyle}>{kit === 'index' ? `№${num}` : `${num}.`}</span>
+        <span style={{ flex: 1, lineHeight: 1.35 }}>{item.question}</span>
+        <Icon name="chev-down" size={14} color="var(--ink-muted, #6F6557)" />
+      </summary>
+      {item.answer && (
+        <p style={{
+          marginTop: 12, marginLeft: kit === 'minimal' ? 64 : 38,
+          fontSize: 13.5, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.65,
+        }}>
+          {item.answer}
+        </p>
+      )}
+    </details>
   );
 }
 
