@@ -114,9 +114,12 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug }: Props) {
       <ThemedWeddingParty manifest={manifest} />
       <ThemedDetails manifest={manifest} motif={motif} />
       <ThemedSchedule manifest={manifest} />
+      <ThemedMap manifest={manifest} />
       <ThemedTravel manifest={manifest} motif={motif} />
       <ThemedRegistry manifest={manifest} />
       <ThemedGallery manifest={manifest} />
+      <ThemedSpotify manifest={manifest} />
+      <ThemedHashtag manifest={manifest} />
       <ThemedRsvp manifest={manifest} />
       <ThemedFaq manifest={manifest} />
 
@@ -1637,6 +1640,281 @@ function ThemedWeddingParty({ manifest }: { manifest: StoryManifest }) {
             </div>
           );
         })}
+      </div>
+    </section>
+  );
+}
+
+/* ─── ThemedMap — venue strip with embedded map iframe and an
+   "Open in Maps" CTA. Reads logistics.venueLat / venueLng for a
+   precise pin; falls back to a search by venue + address when no
+   coords. Uses the OpenStreetMap embed (no API key); production
+   can swap to Mapbox if desired. ─── */
+function ThemedMap({ manifest }: { manifest: StoryManifest }) {
+  const l = manifest.logistics ?? {};
+  const lat = (l as { venueLat?: number }).venueLat;
+  const lng = (l as { venueLng?: number }).venueLng;
+  const venue = l.venue;
+  const address = l.venueAddress;
+  if (!venue && !address && (lat == null || lng == null)) return null;
+  /* Bounding box around the pin — small enough to read as
+     "this exact spot." 0.005° ≈ 550m at the equator. */
+  const hasCoords = typeof lat === 'number' && typeof lng === 'number';
+  const bbox = hasCoords
+    ? `${lng - 0.005},${lat - 0.005},${lng + 0.005},${lat + 0.005}`
+    : null;
+  const embed = hasCoords
+    ? `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`
+    : null;
+  const openLink = hasCoords
+    ? `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        [venue, address].filter(Boolean).join(' '),
+      )}`;
+  return (
+    <section
+      id="map"
+      style={{
+        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
+        background: 'var(--paper, #F5EFE2)',
+        position: 'relative',
+      }}
+    >
+      <ThemedSectionHead eyebrow="The place" title="Where it" italic="happens" />
+      <div
+        style={{
+          maxWidth: 920,
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr) minmax(220px, 280px)',
+          gap: 24,
+          alignItems: 'center',
+        }}
+      >
+        {/* Map frame */}
+        <div
+          style={{
+            aspectRatio: '5/3',
+            borderRadius: 'var(--pl-card-radius, 14px)',
+            overflow: 'hidden',
+            border: '1px solid var(--line-soft, rgba(14,13,11,0.10))',
+            boxShadow: 'var(--pl-card-shadow, 0 4px 14px rgba(75,65,52,0.10))',
+            background: 'var(--cream-2, #EBE3D2)',
+          }}
+        >
+          {embed ? (
+            <iframe
+              title="Venue map"
+              src={embed}
+              loading="lazy"
+              style={{ width: '100%', height: '100%', border: 0 }}
+            />
+          ) : (
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'grid',
+                placeItems: 'center',
+                color: 'var(--ink-muted, #6F6557)',
+                fontStyle: 'italic',
+                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                fontSize: 16,
+              }}
+            >
+              Find it on Maps
+            </div>
+          )}
+        </div>
+        {/* Venue caption */}
+        <div>
+          <div
+            className="eyebrow"
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
+              textTransform: 'uppercase',
+              color: 'var(--peach-ink, #C6703D)',
+              marginBottom: 8,
+            }}
+          >
+            Venue
+          </div>
+          {venue && (
+            <div
+              style={{
+                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                fontSize: 24,
+                fontWeight: 'var(--pl-display-wght, 600)',
+                color: 'var(--ink, #0E0D0B)',
+                lineHeight: 1.15,
+                letterSpacing: '-0.01em',
+              }}
+            >
+              {venue}
+            </div>
+          )}
+          {address && (
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 13,
+                color: 'var(--ink-soft, #3A332C)',
+                lineHeight: 1.5,
+              }}
+            >
+              {address}
+            </div>
+          )}
+          <a
+            href={openLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              marginTop: 16,
+              padding: '8px 16px',
+              borderRadius: 999,
+              background: 'var(--peach-bg, rgba(198,112,61,0.10))',
+              color: 'var(--peach-ink, #C6703D)',
+              fontSize: 12.5,
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            <Icon name="pin" size={11} color="var(--peach-ink, #C6703D)" />
+            Open in Maps ↗
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── ThemedSpotify — soundtrack strip. Reads manifest.spotifyUrl
+   (playlist or track) + optional spotifyPlaylistName. Embeds the
+   Spotify iframe in a compact card with a playlist eyebrow + the
+   playlist name in display font. Renders nothing if no URL set.
+   The iframe URL transform: open.spotify.com/playlist/X →
+   open.spotify.com/embed/playlist/X. ─── */
+function ThemedSpotify({ manifest }: { manifest: StoryManifest }) {
+  const url = manifest.spotifyUrl;
+  const name = manifest.spotifyPlaylistName;
+  if (!url) return null;
+  /* Transform a regular spotify URL into its embed counterpart.
+     Pattern: /playlist/, /track/, /album/, /show/, /episode/. */
+  const embedUrl = url.replace(
+    /open\.spotify\.com\/(playlist|track|album|show|episode)\//,
+    'open.spotify.com/embed/$1/',
+  );
+  return (
+    <section
+      id="soundtrack"
+      style={{
+        padding: 'calc(48px * var(--pl-density-scale, 1)) 32px',
+        textAlign: 'center',
+        background: 'var(--section, var(--cream-2, #EBE3D2))',
+        position: 'relative',
+      }}
+    >
+      <ThemedSectionHead
+        eyebrow="In the air"
+        title={name ? 'Our' : 'The'}
+        italic={name ?? 'soundtrack'}
+      />
+      <div
+        style={{
+          maxWidth: 600,
+          margin: '0 auto',
+          borderRadius: 'var(--pl-card-radius, 14px)',
+          overflow: 'hidden',
+          border: '1px solid var(--line-soft, rgba(14,13,11,0.10))',
+          boxShadow: 'var(--pl-card-shadow, 0 4px 14px rgba(75,65,52,0.10))',
+          background: 'var(--card, #FBF7EE)',
+        }}
+      >
+        <iframe
+          title="Soundtrack"
+          src={embedUrl}
+          width="100%"
+          height="232"
+          frameBorder="0"
+          loading="lazy"
+          allow="encrypted-media; clipboard-write"
+          style={{ display: 'block', border: 0 }}
+        />
+      </div>
+    </section>
+  );
+}
+
+/* ─── ThemedHashtag — single-line callout for wedding hashtag.
+   Reads manifest.hashtags[0]. Renders as a centered band: peach
+   "#" prefix + the hashtag in display italic + a small "tap to
+   copy" affordance. ─── */
+function ThemedHashtag({ manifest }: { manifest: StoryManifest }) {
+  const tag = (manifest.hashtags ?? [])[0];
+  if (!tag) return null;
+  const clean = tag.replace(/^#/, '');
+  return (
+    <section
+      style={{
+        padding: 'calc(36px * var(--pl-density-scale, 1)) 32px',
+        textAlign: 'center',
+        background: 'var(--paper, #F5EFE2)',
+      }}
+    >
+      <div
+        className="eyebrow"
+        style={{
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
+          textTransform: 'uppercase',
+          color: 'var(--peach-ink, #C6703D)',
+          marginBottom: 14,
+        }}
+      >
+        Tag your photos
+      </div>
+      <div
+        style={{
+          display: 'inline-flex',
+          alignItems: 'baseline',
+          gap: 4,
+          padding: '14px 28px',
+          borderRadius: 999,
+          background: 'var(--card, #FBF7EE)',
+          border: '1px solid var(--peach-ink, #C6703D)',
+          fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+        }}
+      >
+        <span
+          aria-hidden
+          style={{
+            fontStyle: 'italic',
+            fontSize: 30,
+            color: 'var(--peach-ink, #C6703D)',
+            fontWeight: 400,
+            lineHeight: 1,
+          }}
+        >
+          #
+        </span>
+        <span
+          style={{
+            fontSize: 26,
+            fontWeight: 'var(--pl-display-wght, 600)',
+            color: 'var(--ink, #0E0D0B)',
+            letterSpacing: '-0.01em',
+            lineHeight: 1,
+          }}
+        >
+          {clean}
+        </span>
       </div>
     </section>
   );
