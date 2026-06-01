@@ -391,10 +391,9 @@ export function EditorV8({
     function onFocusTab(e: Event) {
       const detail = (e as CustomEvent<{ tab?: 'section' | 'theme' | 'library' | 'pear' }>).detail;
       if (!detail?.tab) return;
-      // Theme moved to the outline rail in V2 — route legacy
-      // 'theme' jumps there instead of the inspector.
-      if (detail.tab === 'theme') setOutlineTab('theme');
-      else setInspectorTab(detail.tab);
+      // V3 — Theme is back on the right inspector; all four inspector
+      // tab keys route directly to setInspectorTab now.
+      setInspectorTab(detail.tab);
     }
     // ── pearloom:design-jump ─────────────────────────────────
     // Top-level Design dropdown + ⌘K design entries fire this with
@@ -414,11 +413,11 @@ export function EditorV8({
       }
       const anchor = detail?.anchor;
       if (!anchor) return;
-      // Theme moved to the left rail in the V2 redesign; the
-      // design-jump anchors live inside ThemePanel which now mounts
-      // there, so flip to the Theme outline tab and let the panel
-      // render before scrolling the anchor into view.
-      setOutlineTab('theme');
+      // V3 — Theme back on the right inspector; design-jump anchors
+      // live inside ThemePanel which mounts there. Flip the
+      // inspector tab and let the panel render before scrolling the
+      // anchor into view.
+      setInspectorTab('theme');
       setTimeout(() => {
         const el = document.querySelector(`[data-pl-design-anchor="${anchor}"]`);
         el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -862,15 +861,14 @@ export function EditorV8({
         queueSave(manifest, names);
       } else if (!isTyping && !e.shiftKey && !e.altKey && (e.key === '1' || e.key === '2' || e.key === '3' || e.key === '4')) {
         e.preventDefault();
-        // ⌘1 = Sections (left rail) + Section (right inspector)
-        // ⌘2 = Theme (left rail) — moved from the inspector
-        // ⌘3 = Library (right inspector)
-        // ⌘4 = Pear   (right inspector)
+        // V3 — all four shortcuts target the right inspector now
+        // since all configuration lives there.
+        // ⌘1 = Section · ⌘2 = Theme · ⌘3 = Library · ⌘4 = Pear
         if (e.key === '1') {
           setOutlineTab('sections');
           setInspectorTab('section');
         } else if (e.key === '2') {
-          setOutlineTab('theme');
+          setInspectorTab('theme');
         } else if (e.key === '3') {
           setInspectorTab('library');
         } else {
@@ -2545,17 +2543,14 @@ function Outline({
       /* localStorage unavailable — fail safe to no badge. */
     }
   }, []);
-  /* Dismiss the badge as soon as the host visits Theme. */
+  /* Dismiss the badge as soon as the host visits Theme — the badge
+     now lives on the right inspector's Theme tab; the dismissal is
+     triggered there. This effect is intentionally a no-op on the
+     outline (sections/pages) tabs; kept around so the localStorage
+     key is still readable for the inspector tab to react to. */
   useEffect(() => {
-    if (tab === 'theme' && showThemeNewBadge) {
-      setShowThemeNewBadge(false);
-      try {
-        localStorage.setItem('pearloom:look-engine-intro:v1', '1');
-      } catch {
-        /* Quota / disabled — the visual badge is already cleared
-           via state, so worst case it pops back next session. */
-      }
-    }
+    void tab;
+    void showThemeNewBadge;
   }, [tab, showThemeNewBadge]);
 
   // Aggregate completion across the 10 scored blocks (excludes nav +
@@ -2566,11 +2561,9 @@ function Outline({
   const progressLabel =
     progressPct >= 95 ? 'Ready to publish' : progressPct >= 60 ? 'Coming together' : progressPct >= 25 ? 'Underway' : 'Just started';
 
-  const onTheme = tab === 'theme';
-  // Host-controlled width takes precedence (persisted in localStorage).
-  // Falls back to the per-tab defaults: theme tab gets a wider rail
-  // because its swatch grids crowd at 252.
-  const railWidth = fluid ? '100%' : (width ?? (onTheme ? 340 : 252));
+  // Outline rail is now a single-purpose section list — narrower
+  // default since the Theme swatches no longer crowd here.
+  const railWidth = fluid ? '100%' : (width ?? 252);
 
   function onResizeStart(e: React.PointerEvent<HTMLDivElement>) {
     if (!onResize) return;
@@ -2666,7 +2659,7 @@ function Outline({
           aria-label="Outline tabs"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
+            gridTemplateColumns: 'repeat(2, 1fr)',
             gap: 2,
             padding: 4,
             background: 'var(--cream-2)',
@@ -2675,10 +2668,10 @@ function Outline({
           }}
         >
           {(() => {
-            const keys = ['sections', 'pages', 'theme'] as const;
+            const keys = ['sections', 'pages'] as const;
             return keys.map((k, i) => {
             const on = tab === k;
-            const label = k === 'sections' ? 'Sections' : k === 'pages' ? 'Pages' : 'Theme';
+            const label = k === 'sections' ? 'Sections' : 'Pages';
             return (
               <button
                 key={k}
@@ -2687,11 +2680,7 @@ function Outline({
                 role="tab"
                 aria-selected={on}
                 aria-controls={`pl8-outline-panel-${k}`}
-                aria-keyshortcuts={
-                  k === 'sections' ? 'Meta+1 Control+1'
-                  : k === 'theme' ? 'Meta+2 Control+2'
-                  : undefined
-                }
+                aria-keyshortcuts={k === 'sections' ? 'Meta+1 Control+1' : undefined}
                 tabIndex={on ? 0 : -1}
                 onClick={() => setTab(k)}
                 onKeyDown={(e) => tablistKeydown(e, i, keys, (item) => setTab(item))}
@@ -2714,24 +2703,13 @@ function Outline({
                 }}
               >
                 {label}
-                {k === 'theme' && showThemeNewBadge && !on && (
-                  <span
-                    aria-hidden
-                    title="New: Look Engine, kits, generate-from-story, palette-from-photo"
-                    style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: '50%',
-                      background: 'var(--peach-ink, #C6703D)',
-                      boxShadow: '0 0 0 0 rgba(198,112,61,0.55)',
-                      animation: 'pl-dot-pulse 1.8s ease-out infinite',
-                    }}
-                  />
-                )}
               </button>
             );
             });
           })()}
+          {/* Suppress unused-badge warning — Theme badge moved to the
+              inspector's Theme tab. */}
+          {void showThemeNewBadge}
         </div>
       )}
 
@@ -2751,31 +2729,10 @@ function Outline({
         </div>
       )}
 
-      {/* Theme tab — lifted from the inspector. Same content
-          (ThemeQuickBar + searchable ThemePanel) so the design-jump
-          anchors in src/lib/design-anchors.ts still resolve. */}
-      {onTheme && (
-        <EditorCanvasProvider value={{ editMode: true }}>
-          <div
-            id="pl8-outline-panel-theme"
-            role="tabpanel"
-            aria-labelledby="pl8-outline-tab-theme"
-            className="pl-tab-content"
-            style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
-          >
-            <ThemeQuickBar
-              manifest={manifest}
-              names={names}
-              onApply={(nextTheme) => onChange({ ...manifest, theme: nextTheme ?? manifest.theme })}
-              docked
-            />
-            <div style={{ height: 1, background: 'var(--line-soft)' }} />
-            <PanelSearch placeholder="Search palette, fonts, decor, stickers…">
-              <ThemePanel manifest={manifest} onChange={onChange} />
-            </PanelSearch>
-          </div>
-        </EditorCanvasProvider>
-      )}
+      {/* Theme tab body removed from the outline rail — now lives
+          on the right inspector's Theme tab. The prototype's three-
+          pane shell puts ALL configuration on the right; the left
+          rail stays focused on navigation. */}
 
       {/* Sections tab — the original outline body. */}
       {tab === 'sections' && (
@@ -3339,13 +3296,15 @@ function BlockRow({
 //  CanvasStage which renders SiteV8Renderer in-DOM.)
 
 /* ---------- Right inspector ---------- */
-// Theme used to live here; moved to the left rail's tab strip in
-// the V2 editor redesign so the inspector can stay focused on the
-// active section + Pear. The string union keeps 'theme' as a
-// legacy synonym so any cached/persisted tab-state silently falls
-// back to 'section' instead of breaking.
-type InspectorTab = 'section' | 'library' | 'pear' | 'decor';
-type OutlineTab = 'sections' | 'pages' | 'theme';
+// Configuration lives in the right inspector — matches the
+// prototype's three-pane shell (LEFT = section list, CANVAS,
+// RIGHT = all configuration). 'theme' is back on the right rail
+// after the V3 alignment.
+type InspectorTab = 'section' | 'theme' | 'library' | 'pear' | 'decor';
+// Theme dropped from the left outline tab strip — now lives on
+// the right inspector. Outline stays focused on what it does
+// well: pick a section, pick a page.
+type OutlineTab = 'sections' | 'pages';
 
 function Inspector({
   block,
@@ -3525,20 +3484,20 @@ function Inspector({
         aria-label="Inspector tabs"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns: 'repeat(4, 1fr)',
           borderBottom: '1px solid var(--line-soft)',
           background: 'var(--cream)',
           padding: '0 4px',
         }}
       >
         {(() => {
-          // Theme moved to the left rail in V2 — inspector is now
-          // Section / Library / Pear only. Library is the unified
-          // asset drawer (was Decor + Library until the v2 redesign
-          // folded them together). Tabs inside the panel cover
-          // Your stuff / Editorial / Browse more.
+          // V3 — Theme moved back to the right inspector to match the
+          // prototype's three-pane shell. All configuration lives on
+          // the right: Section (block-specific), Theme (whole-site
+          // look engine), Library (assets), Pear (concierge).
           const tabs = [
             { key: 'section', label: 'Section', icon: 'sliders' },
+            { key: 'theme', label: 'Theme', icon: 'palette' },
             { key: 'library', label: 'Library', icon: 'fleuron' },
             { key: 'pear', label: 'Pear', icon: 'sparkles' },
           ] as Array<{ key: InspectorTab; label: string; icon: string }>;
@@ -3554,6 +3513,7 @@ function Inspector({
               aria-controls={`pl8-inspector-panel-${t.key}`}
               aria-keyshortcuts={
                 t.key === 'section' ? 'Meta+1 Control+1'
+                : t.key === 'theme' ? 'Meta+2 Control+2'
                 : t.key === 'library' ? 'Meta+3 Control+3'
                 : t.key === 'pear' ? 'Meta+4 Control+4'
                 : undefined
@@ -3835,6 +3795,40 @@ function Inspector({
           redesign so the inspector stays focused on the active
           section + Pear. The design-jump anchors continue to work
           because ThemePanel just mounts in a different parent. */}
+
+      {/* Theme tab — V3 alignment to the prototype's right-rail
+          configuration pattern. Renders the ThemeQuickBar +
+          ThemePanel that used to live on the left outline. */}
+      {tab === 'theme' && (
+        <EditorCanvasProvider value={{ editMode: true }}>
+          <div
+            id="pl8-inspector-panel-theme"
+            role="tabpanel"
+            aria-labelledby="pl8-inspector-tab-theme"
+            className="pl-tab-content"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1,
+              minHeight: 0,
+              overflowY: 'auto',
+              padding: '16px',
+              gap: 16,
+            }}
+          >
+            <ThemeQuickBar
+              manifest={manifest}
+              names={names}
+              onApply={(nextTheme) => onChange({ ...manifest, theme: nextTheme ?? manifest.theme })}
+              docked
+            />
+            <div style={{ height: 1, background: 'var(--line-soft)' }} />
+            <PanelSearch placeholder="Search palette, fonts, decor, stickers…">
+              <ThemePanel manifest={manifest} onChange={onChange} />
+            </PanelSearch>
+          </div>
+        </EditorCanvasProvider>
+      )}
 
       {/* Decor tab merged into Library; LibraryPanelV2 covers
           AI marks, photos, editorial motifs, and Iconify search
