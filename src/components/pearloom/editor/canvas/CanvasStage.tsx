@@ -271,6 +271,13 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
                 manifest={manifest}
                 names={names}
                 siteSlug={siteSlug}
+                // Editor canvas → scaffolding visible. Preview
+                // mode toggles inline-edit affordances; when the
+                // host is reading-as-guest we still show
+                // scaffolding because they're inside the editor
+                // (the published site has its own renderer mount
+                // with editMode=false).
+                editMode={!previewMode}
               />
             ) : (
               <SiteV8Renderer

@@ -41,6 +41,11 @@ interface Props {
   manifest: StoryManifest;
   names: [string, string];
   siteSlug: string;
+  /** When true, sections with empty data render an editable
+   *  placeholder ("Add your first chapter →") instead of
+   *  returning null. Editor canvas passes true; the public site
+   *  passes false / undefined so guests never see scaffolding. */
+  editMode?: boolean;
 }
 
 /* Per-Edition motif kind — mirrors HeroPostcard / SiteV8Renderer
@@ -54,7 +59,7 @@ const EDITION_MOTIF: Record<string, MotifKind> = {
   quiet: 'none',
 };
 
-export function ThemedSiteRenderer({ manifest, names, siteSlug }: Props) {
+export function ThemedSiteRenderer({ manifest, names, siteSlug, editMode = false }: Props) {
   const [n1, n2] = names;
   const edition = manifest.edition ?? 'almanac';
   const occasion = manifest.occasion ?? 'wedding';
@@ -173,26 +178,25 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug }: Props) {
           the canonical 8 in the prototype's default order. */}
       <ThemedHero manifest={manifest} names={[n1, n2]} motif={motif} />
 
-      {/* Section stack in the prototype's default order.
-          Countdown sits between hero and story so guests see the
-          date math first. PullQuote breaks the editorial rhythm
-          mid-body. WeddingParty sits before details so guests can
-          place names to faces. Each section returns null when its
-          source data is missing — no empty placeholders. */}
-      <ThemedCountdown manifest={manifest} />
-      <ThemedStory manifest={manifest} motif={motif} />
+      {/* Section stack in the prototype's default order. Each
+          section returns null when its data is empty AND we're
+          not in editMode. In editMode, an editable placeholder
+          renders instead so the host sees scaffolding for every
+          section they could fill. */}
+      <ThemedCountdown manifest={manifest} editMode={editMode} />
+      <ThemedStory manifest={manifest} motif={motif} editMode={editMode} />
       <ThemedPullQuote manifest={manifest} />
       <ThemedWeddingParty manifest={manifest} />
-      <ThemedDetails manifest={manifest} motif={motif} />
-      <ThemedSchedule manifest={manifest} />
+      <ThemedDetails manifest={manifest} motif={motif} editMode={editMode} />
+      <ThemedSchedule manifest={manifest} editMode={editMode} />
       <ThemedMap manifest={manifest} />
-      <ThemedTravel manifest={manifest} motif={motif} />
-      <ThemedRegistry manifest={manifest} />
-      <ThemedGallery manifest={manifest} />
+      <ThemedTravel manifest={manifest} motif={motif} editMode={editMode} />
+      <ThemedRegistry manifest={manifest} editMode={editMode} />
+      <ThemedGallery manifest={manifest} editMode={editMode} />
       <ThemedSpotify manifest={manifest} />
       <ThemedHashtag manifest={manifest} />
       <ThemedRsvp manifest={manifest} />
-      <ThemedFaq manifest={manifest} />
+      <ThemedFaq manifest={manifest} editMode={editMode} />
 
       <ThemedFooter siteSlug={siteSlug} names={[n1, n2]} manifest={manifest} />
     </div>
@@ -308,6 +312,111 @@ function ThemedNav({ manifest: _manifest, names }: { manifest: StoryManifest; na
         RSVP
       </a>
     </header>
+  );
+}
+
+/* ───── EmptyStateCallout ──────────────────────────────────
+   Editorial-but-clearly-scaffolding placeholder rendered in
+   editMode for sections whose data is empty. Tells the host
+   what would appear here and how to add it. Public site never
+   sees this — it's gated on the editMode prop in each section. */
+function EmptyStateCallout({
+  eyebrow,
+  title,
+  italic,
+  body,
+  cta,
+  background = 'var(--paper, #F5EFE2)',
+  id,
+}: {
+  eyebrow: string;
+  title: string;
+  italic?: string;
+  body: string;
+  cta: string;
+  background?: string;
+  id?: string;
+}) {
+  return (
+    <section
+      id={id}
+      style={{
+        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
+        background,
+        position: 'relative',
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 640,
+          margin: '0 auto',
+          padding: '36px 32px',
+          background: 'var(--card, #FBF7EE)',
+          border: '1.5px dashed var(--line, rgba(14,13,11,0.20))',
+          borderRadius: 'var(--pl-card-radius, 14px)',
+          textAlign: 'center',
+        }}
+      >
+        <div
+          className="eyebrow"
+          style={{
+            fontSize: 10.5,
+            fontWeight: 700,
+            letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
+            textTransform: 'uppercase',
+            color: 'var(--peach-ink, #C6703D)',
+            marginBottom: 12,
+          }}
+        >
+          {eyebrow}
+        </div>
+        <h2
+          style={{
+            fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+            fontSize: 'clamp(28px, 4cqw, 38px)',
+            fontWeight: 'var(--pl-display-wght, 600)',
+            margin: 0,
+            lineHeight: 1.04,
+            letterSpacing: '-0.015em',
+          }}
+        >
+          {title}
+          {italic && (
+            <>
+              {' '}
+              <span style={{ fontStyle: 'italic', color: 'var(--ink-soft, #3A332C)' }}>{italic}</span>
+            </>
+          )}
+        </h2>
+        <p
+          style={{
+            fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+            fontStyle: 'italic',
+            fontSize: 15,
+            color: 'var(--ink-soft, #3A332C)',
+            margin: '16px auto 22px',
+            maxWidth: 460,
+            lineHeight: 1.55,
+          }}
+        >
+          {body}
+        </p>
+        <span
+          style={{
+            display: 'inline-block',
+            padding: '10px 22px',
+            borderRadius: 999,
+            background: 'var(--peach-bg, rgba(198,112,61,0.10))',
+            color: 'var(--peach-ink, #C6703D)',
+            fontSize: 12.5,
+            fontWeight: 700,
+            letterSpacing: '0.02em',
+          }}
+        >
+          {cta} →
+        </span>
+      </div>
+    </section>
   );
 }
 
@@ -524,9 +633,22 @@ function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names
    chapter list a distinct visual identity (book-spread / index-
    card / scrapbook / etc.), not just a CSS skin. ─── */
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
-function ThemedStory({ manifest, motif }: { manifest: StoryManifest; motif: MotifKind }) {
+function ThemedStory({ manifest, motif, editMode }: { manifest: StoryManifest; motif: MotifKind; editMode?: boolean }) {
   const chapters = manifest.chapters ?? [];
-  if (chapters.length === 0) return null;
+  if (chapters.length === 0) {
+    if (!editMode) return null;
+    return (
+      <EmptyStateCallout
+        id="our-story"
+        background="var(--cream-2, #EBE3D2)"
+        eyebrow="Our story"
+        title="How you got"
+        italic="here"
+        body="Open the Story panel on the right to add chapters — how you met, the proposal, the moments that matter."
+        cta="Add a chapter"
+      />
+    );
+  }
   const kit = (manifest.kitId ?? 'classic') as
     | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal';
   return (
@@ -785,7 +907,7 @@ function ThemedSectionHead({ eyebrow, title, italic }: { eyebrow: string; title:
    display font. The icon disc gives each card identity at a
    glance; the grid is tighter (3 cols on wide) so the cards feel
    like a magazine info-graphic, not a tight grid. ─── */
-function ThemedDetails({ manifest, motif }: { manifest: StoryManifest; motif: MotifKind }) {
+function ThemedDetails({ manifest, motif, editMode }: { manifest: StoryManifest; motif: MotifKind; editMode?: boolean }) {
   const l = manifest.logistics ?? {};
   const dresscode = l.dresscode;
   const items: Array<{ icon: string; label: string; value: string }> = [];
@@ -795,7 +917,20 @@ function ThemedDetails({ manifest, motif }: { manifest: StoryManifest; motif: Mo
     items.push({ icon: 'gift', label: 'Gifts', value: (manifest as unknown as { registry?: { message?: string } }).registry?.message ?? '' });
   }
   if ((l as { parking?: string }).parking) items.push({ icon: 'pin', label: 'Parking', value: String((l as { parking?: string }).parking) });
-  if (items.length === 0) return null;
+  if (items.length === 0) {
+    if (!editMode) return null;
+    return (
+      <EmptyStateCallout
+        id="details"
+        background="var(--cream-2, #EBE3D2)"
+        eyebrow="What you need to know"
+        title="The day,"
+        italic="in details"
+        body="Dress code · kids · parking · gifts. Open the Details panel to fill in what guests should know before the day."
+        cta="Add details"
+      />
+    );
+  }
   return (
     <section
       id="details"
@@ -887,9 +1022,21 @@ function ThemedDetails({ manifest, motif }: { manifest: StoryManifest; motif: Mo
      scrapbook  — masonry of tilted polaroid cards
      index      — ruled red-margin index cards
      minimal    — big oversized numeral + name list, no chrome ─── */
-function ThemedSchedule({ manifest }: { manifest: StoryManifest }) {
+function ThemedSchedule({ manifest, editMode }: { manifest: StoryManifest; editMode?: boolean }) {
   const events = manifest.events ?? [];
-  if (events.length === 0) return null;
+  if (events.length === 0) {
+    if (!editMode) return null;
+    return (
+      <EmptyStateCallout
+        id="schedule"
+        eyebrow="The day"
+        title="In"
+        italic="moments"
+        body="Ceremony · cocktails · dinner · dancing. Open the Schedule panel to add your run of show."
+        cta="Add an event"
+      />
+    );
+  }
   const kit = (manifest.kitId ?? 'classic') as
     | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal';
   return (
@@ -1135,9 +1282,22 @@ function kitCardStyle(kit: string, index = 0): React.CSSProperties {
    inherits from the active Kit via kitCardStyle so a "scrapbook"
    site has tilted polaroid hotels and a "ticket" site has
    perforated stubs — same as schedule. ─── */
-function ThemedTravel({ manifest, motif }: { manifest: StoryManifest; motif: MotifKind }) {
+function ThemedTravel({ manifest, motif, editMode }: { manifest: StoryManifest; motif: MotifKind; editMode?: boolean }) {
   const hotels = manifest.travelInfo?.hotels ?? [];
-  if (hotels.length === 0) return null;
+  if (hotels.length === 0) {
+    if (!editMode) return null;
+    return (
+      <EmptyStateCallout
+        id="travel"
+        background="var(--cream-2, #EBE3D2)"
+        eyebrow="Getting there"
+        title="Where to"
+        italic="stay"
+        body="Drop in hotels, group rates, transit notes. Pear can suggest places near your venue."
+        cta="Add a hotel"
+      />
+    );
+  }
   const kit = manifest.kitId ?? 'classic';
   return (
     <section
@@ -1256,10 +1416,22 @@ function ThemedTravel({ manifest, motif }: { manifest: StoryManifest; motif: Mot
    the registry name in display font, and an "Open ↗" pill. The
    message reads as the section's body copy in italic above the
    row. ─── */
-function ThemedRegistry({ manifest }: { manifest: StoryManifest }) {
+function ThemedRegistry({ manifest, editMode }: { manifest: StoryManifest; editMode?: boolean }) {
   const reg = (manifest as unknown as { registry?: { entries?: Array<{ name?: string; label?: string; url: string }>; message?: string } }).registry;
   const entries = reg?.entries ?? [];
-  if (entries.length === 0) return null;
+  if (entries.length === 0) {
+    if (!editMode) return null;
+    return (
+      <EmptyStateCallout
+        id="registry"
+        eyebrow="If you're asking"
+        title="Registry,"
+        italic="gently"
+        body="Paste links to your registry, or set up a cash fund. Pear will format the cards in your theme."
+        cta="Link a registry"
+      />
+    );
+  }
   return (
     <section
       id="registry"
@@ -1362,9 +1534,22 @@ function ThemedRegistry({ manifest }: { manifest: StoryManifest }) {
    tile spans 2 rows so the wall reads as natural rather than
    uniform. Tones fall back when no photo URL exists so the grid
    still reads. ─── */
-function ThemedGallery({ manifest }: { manifest: StoryManifest }) {
+function ThemedGallery({ manifest, editMode }: { manifest: StoryManifest; editMode?: boolean }) {
   const photos = manifest.chapters?.flatMap((c) => (c.images ?? []).map((i) => i.url)) ?? [];
-  if (photos.length === 0) return null;
+  if (photos.length === 0) {
+    if (!editMode) return null;
+    return (
+      <EmptyStateCallout
+        id="gallery"
+        background="var(--cream-2, #EBE3D2)"
+        eyebrow="Along the way"
+        title="A few"
+        italic="favorites"
+        body="Photos from your chapters land here automatically — or upload to the Gallery panel for a curated mosaic."
+        cta="Add photos"
+      />
+    );
+  }
   const tones = ['#E8C8B4', '#D8CFB8', '#C4B5D9', '#F4D5CD', '#F0C9A8', '#FBE8D6'];
   return (
     <section
@@ -1566,9 +1751,21 @@ function ThemedRsvp({ manifest }: { manifest: StoryManifest }) {
    keeps the <details>/<summary> contract for accessibility and
    click behaviour but shapes the surrounding card distinctly. */
 type FaqItem = NonNullable<StoryManifest['faqs']>[number];
-function ThemedFaq({ manifest }: { manifest: StoryManifest }) {
+function ThemedFaq({ manifest, editMode }: { manifest: StoryManifest; editMode?: boolean }) {
   const faq = manifest.faqs ?? [];
-  if (faq.length === 0) return null;
+  if (faq.length === 0) {
+    if (!editMode) return null;
+    return (
+      <EmptyStateCallout
+        id="faq"
+        eyebrow="Good to know"
+        title="The little"
+        italic="things"
+        body="Open the FAQ panel to add the questions guests will ask. Pear can suggest 6 based on your event."
+        cta="Add a question"
+      />
+    );
+  }
   const kit = (manifest.kitId ?? 'classic') as
     | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal';
   return (
@@ -1673,9 +1870,21 @@ function FaqRow({ item, index, kit, totalCount }: { item: FaqItem; index: number
    minutes / seconds) in display font with mono numerals,
    eyebrow labels beneath. The math is client-side (so SSR
    renders a stable placeholder then ticks once mounted). ─── */
-function ThemedCountdown({ manifest }: { manifest: StoryManifest }) {
+function ThemedCountdown({ manifest, editMode }: { manifest: StoryManifest; editMode?: boolean }) {
   const dateStr = manifest.logistics?.date;
-  if (!dateStr) return null;
+  if (!dateStr) {
+    if (!editMode) return null;
+    return (
+      <EmptyStateCallout
+        id="countdown"
+        eyebrow="Until the day"
+        title="Pick a"
+        italic="date"
+        body="Set the event date in the Hero panel — the countdown updates automatically."
+        cta="Set the date"
+      />
+    );
+  }
   const target = new Date(dateStr).getTime();
   if (!Number.isFinite(target)) return null;
   /* SSR-safe: render -- placeholders, then the client effect

@@ -5787,11 +5787,11 @@ function RegistrySectionImpl({ manifest, onEditField, siteSlug }: { manifest: St
   // ({"0": {...}, "1": {...}}) instead of a real array. Coerce so
   // .forEach below doesn't blow up the whole render with
   // "entries.forEach is not a function".
-  const rawEntries = reg?.entries;
-  const entries: NonNullable<typeof reg>['entries'] = Array.isArray(rawEntries)
-    ? rawEntries
+  const rawEntries: unknown = reg?.entries;
+  const entries: NonNullable<NonNullable<typeof reg>['entries']> = Array.isArray(rawEntries)
+    ? (rawEntries as NonNullable<NonNullable<typeof reg>['entries']>)
     : rawEntries && typeof rawEntries === 'object'
-      ? (Object.values(rawEntries) as NonNullable<typeof reg>['entries'])
+      ? (Object.values(rawEntries) as NonNullable<NonNullable<typeof reg>['entries']>)
       : [];
   const hasCashFund = Boolean(reg?.cashFundUrl);
   // Legacy shape — registry sometimes lived as a flat array on the manifest.
