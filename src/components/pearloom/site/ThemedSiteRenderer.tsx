@@ -1357,6 +1357,7 @@ function ThemedNav({ manifest, names }: { manifest: StoryManifest; names: [strin
 
   const [scrolled, setScrolled] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const headerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 32);
@@ -1365,23 +1366,47 @@ function ThemedNav({ manifest, names }: { manifest: StoryManifest; names: [strin
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Viewport-aware mobile switch — mirrors ThemedSiteRenderer's EventNav.
+  // Container-aware mobile switch.
+  //
+  // We can't use window.matchMedia('(max-width: 720px)') here because
+  // the editor renders the site inside `.pl8-canvas-device-frame`,
+  // which is a CSS container (container-type: inline-size, name
+  // pl-site) whose width is driven by the editor's device picker
+  // (390 / 820 / 1280px), not the browser window. matchMedia reads
+  // the actual viewport, so it never flipped to mobile in the editor
+  // — the Look Engine could pick a mobile nav variant and the canvas
+  // would silently keep rendering the desktop nav.
+  //
+  // Instead we observe the rendered width of the nearest .pl8-guest
+  // ancestor with a ResizeObserver. On the published site .pl8-guest
+  // spans the viewport, so this still flips at 720px just like the
+  // old matchMedia path. In the editor it flips when the device-frame
+  // container narrows past 720px (i.e. when the host picks phone). The
   // 720px threshold matches pearloom.css site responsive rules.
   useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
-    const mql = window.matchMedia('(max-width: 720px)');
-    const apply = () => setIsMobile(mql.matches);
-    apply();
-    if (mql.addEventListener) mql.addEventListener('change', apply);
-    else mql.addListener(apply);
-    return () => {
-      if (mql.removeEventListener) mql.removeEventListener('change', apply);
-      else mql.removeListener(apply);
-    };
+    if (typeof window === 'undefined') return;
+    const header = headerRef.current;
+    if (!header) return;
+    const guest = header.closest('.pl8-guest') as HTMLElement | null;
+    const target: HTMLElement = guest ?? header;
+    if (typeof ResizeObserver === 'undefined') {
+      // Fallback for environments without ResizeObserver — read once.
+      setIsMobile(target.getBoundingClientRect().width < 720);
+      return;
+    }
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const w = entry.contentRect.width;
+        setIsMobile(w < 720);
+      }
+    });
+    ro.observe(target);
+    return () => ro.disconnect();
   }, []);
 
   return (
     <header
+      ref={headerRef}
       className={`pl8-themed-nav pl8-site-nav${scrolled ? ' pl8-site-nav-scrolled' : ''}`}
       style={{
         position: 'sticky',
