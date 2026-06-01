@@ -113,28 +113,59 @@ export function SigninV8({
         {/* LEFT — form */}
         <Reveal y={18}>
           <div style={{ maxWidth: 420 }}>
-            <Sparkle size={16} style={{ marginBottom: 8 }} />
-            <h1 className="display" style={{ fontSize: 56, margin: '4px 0 0', lineHeight: 1.02 }}>
+            {/* Peach editorial eyebrow — matches ThemedSectionHead. */}
+            <div
+              className="eyebrow"
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: '#C6703D',
+                marginBottom: 18,
+              }}
+            >
+              Sign in
+            </div>
+            <h1
+              className="display"
+              style={{
+                fontSize: 56,
+                margin: '0',
+                lineHeight: 0.98,
+                fontWeight: 600,
+                letterSpacing: '-0.02em',
+              }}
+            >
               Welcome back,
             </h1>
             <h1
               className="display-italic"
-              style={{ fontSize: 56, margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 10, lineHeight: 1.02 }}
+              style={{
+                fontSize: 56,
+                margin: '0 0 18px',
+                lineHeight: 0.98,
+                fontStyle: 'italic',
+                fontWeight: 400,
+                color: '#C6703D',
+                letterSpacing: '-0.02em',
+              }}
             >
-              beautiful soul. <Heart size={24} />
+              beautiful soul.
             </h1>
+            {/* Italic display body so the page reads as personal
+                letterhead, not marketing copy. */}
             <p
               style={{
+                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                fontStyle: 'italic',
                 color: 'var(--ink-soft)',
-                fontSize: 15,
+                fontSize: 17,
+                lineHeight: 1.5,
                 marginBottom: 28,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
               }}
             >
               Every moment matters. Let&apos;s keep your story growing.
-              <Sparkle size={12} />
             </p>
 
             {errorMessage && (
