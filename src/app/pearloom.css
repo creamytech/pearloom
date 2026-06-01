@@ -3010,6 +3010,26 @@ html { scroll-behavior: smooth; }
   }
 }
 
+/* Edition-driven photo fallback gradient drift — when a hero variant
+   has NO cover photo, the gradient fallback (heroFallbackGradient() in
+   parts.tsx) wears this class. A slow hue-rotate (0 → 8deg → 0) gives
+   the static gradient enough life to feel intentional without ever
+   becoming a focal point. Honours prefers-reduced-motion. */
+@keyframes pl-hero-grad-drift {
+  0%   { filter: hue-rotate(0deg); }
+  50%  { filter: hue-rotate(8deg); }
+  100% { filter: hue-rotate(0deg); }
+}
+.pl-hero-grad-drift {
+  animation: pl-hero-grad-drift 5s ease-in-out infinite;
+  will-change: filter;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-hero-grad-drift {
+    animation: none;
+  }
+}
+
 /* Hero kicker entrance — the first time the page paints, the
    "save the date" kicker fades in from below. Subtle, runs
    once. Display headings already letterpress-shadow so the
@@ -4905,6 +4925,262 @@ html { scroll-behavior: smooth; }
   letter-spacing: -0.03em !important;
   font-family: var(--pl-font-display, Fraunces, serif) !important;
   font-weight: 500 !important;
+}
+
+/* ── Per-kit visual cascade — DIVIDERS ──
+   The EditionDivider components render with .pl8-divider so each
+   kit can re-paint the rule between sections without forking the
+   component. Kit-level rules layer on top of the divider's own
+   inline style; they fight inline with !important when needed so
+   the kit's personality survives Edition's default.
+
+   These targets land on the wrapper div the EditionDivider mounts;
+   when the kit wants a glyph (plate's diamond), it uses ::before
+   on the same wrapper. */
+.pl8-guest[data-pl-kit="ticket"] .pl8-divider {
+  border-top: 2px dashed var(--pl-divider, #D8CFB8) !important;
+  background: transparent !important;
+  background-image: none !important;
+  height: 0 !important;
+  opacity: 1 !important;
+}
+.pl8-guest[data-pl-kit="plate"] .pl8-divider {
+  background: transparent !important;
+  background-image: none !important;
+  height: 0 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  opacity: 1 !important;
+}
+.pl8-guest[data-pl-kit="plate"] .pl8-divider::before {
+  content: "◆";
+  color: var(--pl-gold, #B8935A);
+  font-size: 0.85rem;
+  letter-spacing: 0.6em;
+  padding-left: 0.6em;
+}
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-divider {
+  background: transparent !important;
+  background-image: repeating-linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--pl-gold, #B8935A) 36%, transparent) 0 10px,
+    transparent 10px 20px
+  ) !important;
+  height: 6px !important;
+  opacity: 0.7 !important;
+  border-radius: 1px;
+}
+.pl8-guest[data-pl-kit="index"] .pl8-divider {
+  background: rgba(199, 80, 80, 0.45) !important;
+  background-image: none !important;
+  height: 1.5px !important;
+  width: min(720px, 88%) !important;
+  opacity: 1 !important;
+}
+.pl8-guest[data-pl-kit="minimal"] .pl8-divider {
+  background: transparent !important;
+  background-image: none !important;
+  height: 0 !important;
+  margin-block: clamp(48px, 8vw, 96px) !important;
+}
+
+/* ── Edition divider scroll-reveal ──────────────────────────────
+   The divider components (edition-dividers/index.tsx) set
+   data-pl-revealed="true" via IntersectionObserver the first
+   time they hit the viewport. Each Edition's divider gets its
+   own reveal flavor — thread fades + stretches, sprocket
+   pulses left→right, stitch wipes from the left, gold hairline
+   scales from the center, whitespace stays still on purpose.
+   Honors prefers-reduced-motion via the dedicated block below. */
+
+/* Thread — Almanac: scale-x from center + fade-in. The 1px
+   stroke 'draws' from the middle outward by going from
+   scaleX(0) to scaleX(1). */
+.pl8-divider[data-pl-divider-style="thread"] {
+  transform: scaleX(0);
+  transform-origin: 50% 50%;
+  opacity: 0;
+  transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 600ms ease-out;
+}
+.pl8-divider[data-pl-divider-style="thread"][data-pl-revealed="true"] {
+  transform: scaleX(1);
+  opacity: 0.35;
+}
+
+/* Sprocket — Cinema: 24 teeth, each pulsing opacity 0→1 with
+   an 80ms stagger driven by --pl-sprocket-i. */
+.pl8-divider[data-pl-divider-style="sprocket"] .pl8-divider-sprocket-tooth {
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 380ms ease-out, transform 380ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-delay: calc(var(--pl-sprocket-i, 0) * 80ms);
+}
+.pl8-divider[data-pl-divider-style="sprocket"][data-pl-revealed="true"] .pl8-divider-sprocket-tooth {
+  opacity: 0.32;
+  transform: scale(1);
+}
+
+/* Stitch — Postcard Box: clip-path wipe from left to right so
+   the dashed line self-traces across the section break. */
+.pl8-divider[data-pl-divider-style="stitch"] {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 1100ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pl8-divider[data-pl-divider-style="stitch"][data-pl-revealed="true"] {
+  clip-path: inset(0 0 0 0);
+}
+
+/* Gold hairline — Linen Folder: scale-x from center, the rule
+   blooms outward to its 80px width. */
+.pl8-divider[data-pl-divider-style="gold-hairline"] {
+  transform: scaleX(0);
+  transform-origin: 50% 50%;
+  transition: transform 800ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pl8-divider[data-pl-divider-style="gold-hairline"][data-pl-revealed="true"] {
+  transform: scaleX(1);
+}
+
+/* Reduced motion: every divider reveals instantly at its
+   resting state. Whitespace was never animated. */
+@media (prefers-reduced-motion: reduce) {
+  .pl8-divider[data-pl-divider-style="thread"],
+  .pl8-divider[data-pl-divider-style="stitch"],
+  .pl8-divider[data-pl-divider-style="gold-hairline"] {
+    transform: none !important;
+    clip-path: none !important;
+    opacity: 0.35 !important;
+    transition: none !important;
+  }
+  .pl8-divider[data-pl-divider-style="sprocket"] .pl8-divider-sprocket-tooth {
+    transform: none !important;
+    opacity: 0.32 !important;
+    transition: none !important;
+  }
+}
+
+/* ── RSVP urgency tier — deadline ribbon pulses ───────────────
+   Driven by data-pl-rsvp-urgency on the deadline copy.
+   muted/normal/soon/urgent map to the four pre-event windows
+   (>30d / 7-30d / 3-7d / <3d). 'soon' breathes peach;
+   'urgent' throbs plum. */
+@keyframes pl-rsvp-soon-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--peach-ink, #C6703D) 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in oklab, var(--peach-ink, #C6703D) 0%, transparent);
+  }
+}
+@keyframes pl-rsvp-urgent-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--pl-plum, #7A2D2D) 18%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 10px color-mix(in oklab, var(--pl-plum, #7A2D2D) 0%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-pl-rsvp-urgency="soon"],
+  [data-pl-rsvp-urgency="urgent"] {
+    animation: none !important;
+  }
+}
+
+/* ── Per-kit visual cascade — EYEBROWS / SECTION CHIPS ──
+   Targets the canonical .eyebrow class used by section heads
+   throughout SiteV8Renderer. Each kit overlays a coherent chip
+   treatment so eyebrows feel like they belong to the same
+   visual family as that kit's cards. */
+.pl8-guest[data-pl-kit="ticket"] :where(.eyebrow, .pl-overline) {
+  font-family: var(--pl-font-mono, 'Courier New', monospace) !important;
+  border: 1px dashed var(--pl-ink-soft, #3A332C);
+  padding: 2px 8px;
+  border-radius: 2px;
+  display: inline-block;
+}
+.pl8-guest[data-pl-kit="plate"] :where(.eyebrow, .pl-overline) {
+  font-style: italic;
+  letter-spacing: 0.32em !important;
+  color: var(--pl-gold, #B8935A);
+}
+.pl8-guest[data-pl-kit="scrapbook"] :where(.eyebrow, .pl-overline) {
+  background: color-mix(in oklab, var(--pl-gold, #B8935A) 22%, transparent);
+  padding: 2px 10px;
+  transform: rotate(-1.2deg);
+  display: inline-block;
+}
+.pl8-guest[data-pl-kit="index"] :where(.eyebrow, .pl-overline) {
+  font-family: var(--pl-font-mono, 'Courier New', monospace) !important;
+  color: rgba(199, 80, 80, 0.85);
+  border-bottom: 1px dotted rgba(74, 118, 196, 0.55);
+  padding-bottom: 2px;
+}
+.pl8-guest[data-pl-kit="minimal"] :where(.eyebrow, .pl-overline) {
+  letter-spacing: 0.36em !important;
+  color: var(--pl-muted, #6F6557);
+  opacity: 0.85;
+}
+
+/* ── Per-kit visual cascade — TIME PILLS (light pass) ──
+   pl8-time-pill exists in SiteV8Renderer for some block variants;
+   apply minimal/index/scrapbook treatments so it stays coherent
+   with the kit even where pl8-schedule-time isn't the target. */
+.pl8-guest[data-pl-kit="ticket"] .pl8-time-pill {
+  font-family: var(--pl-font-mono, 'Courier New', monospace) !important;
+  letter-spacing: 0.04em !important;
+}
+.pl8-guest[data-pl-kit="minimal"] .pl8-time-pill {
+  font-size: clamp(1.4rem, 2.6vw, 2rem) !important;
+  font-family: var(--pl-font-display, Fraunces, serif) !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.02em !important;
+}
+.pl8-guest[data-pl-kit="index"] .pl8-time-pill {
+  font-family: var(--pl-font-mono, 'Courier New', monospace) !important;
+  color: rgba(199, 80, 80, 0.85) !important;
+}
+
+/* ── Edit-mode safety: kill scrapbook rotation in the editor ──
+   :where() keeps specificity low so per-block overrides still
+   win. Without this, the chapter list reads as a chaotic stack
+   in the editor canvas where hosts expect a tidy ordered list. */
+.pl8-guest[data-pl-edit-mode="true"] :where(
+  [data-pl-kit="scrapbook"] .pl8-schedule-row,
+  [data-pl-kit="scrapbook"] .pl8-chapter-row,
+  [data-pl-kit="scrapbook"] .pl8-hotel-row,
+  [data-pl-kit="scrapbook"] .pl8-faq-row
+),
+.pl8-guest[data-pl-kit="scrapbook"][data-pl-edit-mode="true"] :where(
+  .pl8-schedule-row,
+  .pl8-chapter-row,
+  .pl8-hotel-row,
+  .pl8-faq-row
+) {
+  transform: none !important;
+}
+
+/* ── Reduced motion: collapse scrapbook tilt + tape strip ──
+   Per BRAND.md §6, every motion respects prefers-reduced-motion.
+   Scrapbook's ±1.4° tilt and gold tape strip are decorative; flat
+   them under reduce so the page reads calm. */
+@media (prefers-reduced-motion: reduce) {
+  .pl8-guest[data-pl-kit="scrapbook"] .pl8-schedule-row,
+  .pl8-guest[data-pl-kit="scrapbook"] .pl8-chapter-row,
+  .pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row,
+  .pl8-guest[data-pl-kit="scrapbook"] .pl8-faq-row {
+    transform: none !important;
+  }
+  .pl8-guest[data-pl-kit="scrapbook"] .pl8-schedule-row::before,
+  .pl8-guest[data-pl-kit="scrapbook"] .pl8-chapter-row::before,
+  .pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row::before {
+    transform: translateX(-50%) !important;
+  }
+  .pl8-guest[data-pl-kit="scrapbook"] :where(.eyebrow, .pl-overline) {
+    transform: none !important;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────

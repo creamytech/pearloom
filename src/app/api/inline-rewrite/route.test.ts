@@ -19,6 +19,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const h = vi.hoisted(() => ({
   sessionMock: { value: { user: { email: 'host@example.test' } } as unknown },
   checkPearGateMock: vi.fn() as ReturnType<typeof vi.fn>,
+  /* Claude client mock — the route moved to the centralized
+     generate() wrapper (which uses the Anthropic SDK, not raw
+     fetch), so mocking globalThis.fetch no longer intercepts
+     the Claude call. We mock the wrapper itself. The captured
+     call args are exposed via h.claudeCalls for assertion. */
+  generateMock: vi.fn() as ReturnType<typeof vi.fn> & ((opts: Record<string, unknown>) => Promise<unknown>),
+  claudeCalls: [] as Array<Record<string, unknown>>,
 }));
 
 vi.mock('next-auth', () => ({
@@ -32,11 +39,22 @@ vi.mock('@/lib/rate-limit', async (orig) => {
     checkPearGate: h.checkPearGateMock,
   };
 });
+vi.mock('@/lib/claude/client', () => ({
+  generate: (opts: Record<string, unknown>) => {
+    h.claudeCalls.push(opts);
+    return h.generateMock(opts);
+  },
+  textFrom: (msg: { content?: Array<{ text?: string }> }) =>
+    msg.content?.[0]?.text ?? '',
+  CLAUDE_HAIKU: 'claude-haiku-4-5-20251001',
+}));
 
 const originalFetch = globalThis.fetch;
 beforeEach(() => {
   h.sessionMock.value = { user: { email: 'host@example.test' } };
   h.checkPearGateMock.mockReset();
+  h.generateMock.mockReset();
+  h.claudeCalls.length = 0;
   // Default: unlimited plan so cases focus on the route's own logic.
   h.checkPearGateMock.mockImplementation(async () => ({
     blocked: undefined,
@@ -73,15 +91,19 @@ function postReq(body: unknown, ip = nextIp()): NextRequest {
 }
 
 function mockAnthropic(reply: string, status = 200): void {
-  globalThis.fetch = (async () => {
-    const body = {
-      content: [{ type: 'text', text: reply }],
-    };
-    return new Response(JSON.stringify(body), {
-      status,
-      headers: { 'content-type': 'application/json' },
+  // The route now uses the centralized generate() wrapper, so we
+  // mock the SDK return shape directly. A non-200 status is
+  // simulated by throwing — matches the route's try/catch path
+  // (which falls back to returning the original text).
+  if (status !== 200) {
+    h.generateMock.mockImplementation(async () => {
+      throw new Error(`Anthropic API error: ${status}`);
     });
-  }) as typeof globalThis.fetch;
+    return;
+  }
+  h.generateMock.mockResolvedValue({
+    content: [{ type: 'text', text: reply }],
+  });
 }
 
 describe('POST /api/inline-rewrite — gates', () => {
@@ -209,21 +231,18 @@ describe('POST /api/inline-rewrite — happy path', () => {
     expect(json.rewritten).toBe('A warmer, tighter version.');
   });
 
-  it('sends the right model + system prompt to Anthropic', async () => {
-    const captured: { url?: string; body?: Record<string, unknown> } = {};
-    globalThis.fetch = (async (url: string, init: RequestInit) => {
-      captured.url = url;
-      captured.body = JSON.parse(init.body as string) as Record<string, unknown>;
-      return new Response(
-        JSON.stringify({ content: [{ type: 'text', text: 'ok' }] }),
-        { status: 200, headers: { 'content-type': 'application/json' } },
-      );
-    }) as typeof globalThis.fetch;
-
+  it('sends the right tier + system prompt to the Claude wrapper', async () => {
+    mockAnthropic('ok');
     await POST(postReq({ text: 'a selection' }));
-    expect(captured.url).toContain('api.anthropic.com');
-    expect((captured.body as { model: string }).model).toBe('claude-haiku-4-5-20251001');
-    const system = (captured.body as { system: string }).system;
+
+    expect(h.claudeCalls).toHaveLength(1);
+    const call = h.claudeCalls[0];
+    // The route uses tier: 'haiku' which the wrapper maps to the
+    // current Haiku model id. Pinning the tier is what guarantees
+    // model-id central management — the test should care about the
+    // contract, not the literal model string.
+    expect(call.tier).toBe('haiku');
+    const system = call.system as string;
     // Regression guard for the prompt's two non-negotiable rules:
     // ±20% length AND no extraneous quotes/headers. If either is
     // dropped, hosts see rewrites that drift in length or come

@@ -37,6 +37,14 @@ import {
   buildAutoSummary,
 } from './decor-shared';
 import type { DecorDraft } from '@/types';
+import {
+  reportContrast,
+  suggestTweak,
+  formatRatio,
+  ratingLabel,
+  type ContrastRating,
+  type ContrastTweak,
+} from '@/lib/wcag-contrast';
 
 interface ThemePreset {
   id: string;
@@ -1096,7 +1104,13 @@ function PaletteSection({
       {tab === 'curated' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
           {PALETTES.map((p) => (
-            <PaletteTile key={p.id} preset={p} active={palette === p.id} onPick={() => applyPalette(p)} />
+            <PaletteTile
+              key={p.id}
+              preset={p}
+              active={palette === p.id}
+              onPick={() => applyPalette(p)}
+              onApplyTweak={(t) => applyPalette(applyTweakToPreset(p, t))}
+            />
           ))}
         </div>
       )}
@@ -1129,6 +1143,7 @@ function PaletteSection({
                   rationale={p.rationale}
                   onPick={() => applyPalette(p)}
                   onSave={() => saveToCustom(p, 'ai')}
+                  onApplyTweak={(t) => applyPalette(applyTweakToPreset(p, t))}
                 />
               ))}
             </div>
@@ -1152,6 +1167,7 @@ function PaletteSection({
               rationale={p.rationale}
               onPick={() => applyPalette(p)}
               onDelete={() => deleteCustom(p.id)}
+              onApplyTweak={(t) => applyPalette(applyTweakToPreset(p, t))}
             />
           ))}
           {customPalettes.length === 0 && (
@@ -1178,6 +1194,7 @@ function PaletteTile({
   onPick,
   onSave,
   onDelete,
+  onApplyTweak,
 }: {
   preset: ThemePresetWithExtras;
   active: boolean;
@@ -1186,7 +1203,23 @@ function PaletteTile({
   onPick: () => void;
   onSave?: () => void;
   onDelete?: () => void;
+  /** Apply a one-click contrast fix. Called with the suggested
+   *  shift (`foreground` or `background` + new hex); the caller
+   *  patches the preset's theme.colors and writes it through
+   *  `applyPalette`. */
+  onApplyTweak?: (tweak: ContrastTweak) => void;
 }) {
+  // Body-text contrast on this palette: paper ↔ ink. This is the
+  // ratio that actually matters for reading the site; the accent
+  // contrast is incidental (the renderer's
+  // `ensureContrast`/`enforcePaletteContrast` already keeps CTA
+  // accents legible via auto-correction at render time).
+  const contrast = reportContrast(preset.theme.background, preset.theme.foreground);
+  const tweak =
+    contrast.rating === 'fail' || contrast.rating === 'aa-large'
+      ? suggestTweak(preset.theme.background, preset.theme.foreground)
+      : null;
+
   return (
     <div
       style={{
@@ -1233,6 +1266,16 @@ function PaletteTile({
           <div style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.4 }}>{rationale}</div>
         )}
       </button>
+      <ContrastChip
+        rating={contrast.rating}
+        ratio={contrast.ratio}
+      />
+      {tweak && onApplyTweak && (
+        <ContrastTweakPill
+          tweak={tweak}
+          onApply={() => onApplyTweak(tweak)}
+        />
+      )}
       {badge && (
         <span
           style={{
@@ -1341,4 +1384,144 @@ function lighten(hex: string, amount: number): string {
   const adjust = (v: number) => Math.max(0, Math.min(255, Math.round(v + 255 * amount)));
   const toHex = (v: number) => v.toString(16).padStart(2, '0');
   return `#${toHex(adjust(r))}${toHex(adjust(g))}${toHex(adjust(b))}`;
+}
+
+/* ────────────────────────────────────────────────────────────────────
+   WCAG contrast indicator + one-click tweak.
+
+   ContrastChip — small pill rendered under every palette tile that
+   shows the paper↔ink (body-text) contrast bucketed against WCAG
+   2.1 normal-text thresholds:
+       AAA  (≥ 7.0:1)   sage-tint background, sage-deep ink
+       AA   (≥ 4.5:1)   peach-bg background, peach-ink ink
+       AA·L (≥ 3.0:1)   peach-bg background, peach-ink ink
+                        — informational only, not body-safe
+       FAIL (< 3.0:1)   plum-tinted background, plum ink
+
+   Informational only — selecting a failing palette never blocks
+   the host. We trust them to override if they have a strong
+   reason; the chip + the suggestion pill below it are the polite
+   nudge toward legibility.
+
+   ContrastTweakPill — appears only when contrast falls short of
+   AA (4.5:1). One click applies the suggested 12% shift through
+   the existing applyPalette() pipe so the tweak flows into
+   manifest.theme.colors exactly like any other palette pick
+   (autosave + undo wired automatically).
+   ──────────────────────────────────────────────────────────────────── */
+
+function chipStyleFor(rating: ContrastRating): { bg: string; fg: string } {
+  switch (rating) {
+    case 'aaa':
+      // Quiet sage so AAA reads as a calm green check, not a
+      // shouty "win" — it's expected, not exceptional.
+      return { bg: 'var(--sage-tint, #E3E6C8)', fg: 'var(--sage-deep, #6d7d3f)' };
+    case 'aa':
+      // AA gets the peach treatment: passes-but-watch-it. Same
+      // warm palette we use for borderline indicators elsewhere.
+      return { bg: 'var(--peach-bg, #FBE8D6)', fg: 'var(--peach-ink, #C6703D)' };
+    case 'aa-large':
+      // Same peach as AA but the label disambiguates that this
+      // doesn't clear body text.
+      return { bg: 'var(--peach-bg, #FBE8D6)', fg: 'var(--peach-ink, #C6703D)' };
+    case 'fail':
+      // Plum is the BRAND.md §5 destructive token — used here in
+      // its mist form so it warns without screaming.
+      return { bg: 'rgba(122,45,45,0.10)', fg: 'var(--plum-ink, #7A2D2D)' };
+  }
+}
+
+function ContrastChip({
+  rating,
+  ratio,
+}: {
+  rating: ContrastRating;
+  ratio: number | null;
+}) {
+  const style = chipStyleFor(rating);
+  const label = ratingLabel(rating);
+  const ratioText = ratio === null ? '—' : formatRatio(ratio);
+  return (
+    <div
+      aria-label={`Text contrast ${label}, ${ratioText}`}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        alignSelf: 'flex-start',
+        padding: '2px 8px',
+        borderRadius: 999,
+        background: style.bg,
+        color: style.fg,
+        fontFamily: 'var(--font-ui)',
+        fontSize: 10.5,
+        fontWeight: 700,
+        letterSpacing: '0.06em',
+        lineHeight: 1.4,
+      }}
+    >
+      <span aria-hidden style={{ fontWeight: 800 }}>{label}</span>
+      <span aria-hidden style={{ opacity: 0.55, fontWeight: 600 }}>·</span>
+      <span style={{ fontVariantNumeric: 'tabular-nums' }}>{ratioText}</span>
+    </div>
+  );
+}
+
+function ContrastTweakPill({
+  tweak,
+  onApply,
+}: {
+  tweak: ContrastTweak;
+  onApply: () => void;
+}) {
+  // Single-line suggestion copy. The phrasing follows BRAND.md §7
+  // microcopy rules: verb-first, lowercase, no exclamation, no
+  // "AI". The pill itself is the affordance — the click applies
+  // the tweak.
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onApply();
+      }}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '6px 10px',
+        borderRadius: 999,
+        background: 'var(--peach-bg, #FBE8D6)',
+        color: 'var(--peach-ink, #C6703D)',
+        border: '1px solid color-mix(in srgb, var(--peach-ink, #C6703D) 30%, transparent)',
+        cursor: 'pointer',
+        fontFamily: 'var(--font-ui)',
+        fontSize: 11,
+        lineHeight: 1.4,
+        textAlign: 'left',
+      }}
+    >
+      <span aria-hidden style={{ fontWeight: 700 }}>↑</span>
+      <span>
+        Ink reads too faint on this paper — try{' '}
+        <span style={{ fontWeight: 700 }}>{tweak.label}</span>
+      </span>
+    </button>
+  );
+}
+
+/**
+ * Returns a new `ThemePreset` with the suggested tweak baked in,
+ * preserving every other colour. Used by the picker to feed the
+ * tweak through the existing `applyPalette` → manifest.theme.colors
+ * pipe so undo/autosave/theme-binding all kick in automatically.
+ */
+function applyTweakToPreset(preset: ThemePreset, tweak: ContrastTweak): ThemePreset {
+  return {
+    ...preset,
+    theme: {
+      ...preset.theme,
+      [tweak.target]: tweak.hex,
+    },
+  };
 }

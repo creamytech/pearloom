@@ -29,7 +29,7 @@ import { PhotoActionMenu } from '@/components/pearloom/editor/canvas/PhotoAction
 import { MotifScatter, type MotifKind } from '../MotifScatter';
 import {
   HeroKicker, HeroNames, HeroDateVenue, HeroTagline,
-  HeroPrimaryCta,
+  HeroPrimaryCta, heroFallbackGradient,
 } from './parts';
 import type { HeroVariantProps } from './types';
 
@@ -60,6 +60,11 @@ export function HeroPostcard({ manifest, names, siteSlug: _siteSlug, onEditField
   const { n1, n2, dateInfo, venue, deadlineStr, coverPhoto, photos } = context;
   const edition = manifest.edition ?? 'almanac';
   const motif = EDITION_MOTIF[edition] ?? 'pressed';
+  // Edition-driven gradient for empty arch slots — the three arches
+  // each wear it when no photo is assigned. Replaces the neutral
+  // tonal PhotoPlaceholder so the empty hero still carries the
+  // Edition's palette through the Mediterranean-window silhouette.
+  const fallback = heroFallbackGradient(manifest);
   return (
     <div style={{ position: 'relative' }}>
       {/* MOTIF SCATTER — port of the prototype's MotifScatter
@@ -218,11 +223,24 @@ export function HeroPostcard({ manifest, names, siteSlug: _siteSlug, onEditField
                         '0 10px 28px rgba(61,74,31,0.14), 0 1px 2px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(255,255,255,0.6)',
                     }}
                   >
-                    <PhotoPlaceholder
-                      tone={tone}
-                      aspect={ARCH_ASPECTS[i]}
-                      src={photoSrc}
-                    />
+                    {photoSrc ? (
+                      <PhotoPlaceholder
+                        tone={tone}
+                        aspect={ARCH_ASPECTS[i]}
+                        src={photoSrc}
+                      />
+                    ) : (
+                      <div
+                        aria-hidden
+                        data-pl-edition={fallback.editionId}
+                        className={fallback.className}
+                        style={{
+                          width: '100%',
+                          aspectRatio: ARCH_ASPECTS[i],
+                          background: fallback.background,
+                        }}
+                      />
+                    )}
                   </div>
                 </PhotoActionMenu>
               </PhotoDropTarget>

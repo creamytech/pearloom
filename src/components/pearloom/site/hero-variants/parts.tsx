@@ -12,8 +12,98 @@ import { HoverToolbar } from '@/components/pearloom/editor/canvas/HoverToolbar';
 import { HeroFieldPopover } from '@/components/pearloom/editor/canvas/HeroFieldPopover';
 import { Icon } from '@/components/pearloom/motifs';
 import { CalendarAddButton, SaveContactButton } from '@/components/pearloom/site/GuestKit';
+import { resolveEdition } from '@/lib/site-editions/resolve';
+import { getEventType } from '@/lib/event-os/event-types';
+import type { SiteOccasion } from '@/lib/site-urls';
+import type { EditionId } from '@/lib/site-editions/types';
 import type { HeroVariantProps } from './types';
 import type { StoryManifest } from '@/types';
+
+// ──────────────────────────────────────────────────────────────
+// Edition-driven photo fallback gradient.
+//
+// When a hero variant has NO cover photo, we render a coherent
+// Edition-themed gradient instead of the flat tonal placeholder.
+// Editions carry rich palette identity (warm cream→peach→olive for
+// Almanac, midnight→ink→gold for Cinema, etc.) — wasting that on a
+// generic placeholder is a missed opportunity.
+//
+// `heroFallbackGradient(manifest)` reads manifest.edition AND falls
+// through resolveEdition()'s recommendation chain (occasion → voice
+// → DEFAULT_EDITION_ID) so wizard-generated sites without explicit
+// edition still get a palette-coherent gradient.
+//
+// Returns:
+//   background — a 3-stop linear-gradient CSS string ready to drop
+//                into a style attr's `background` field
+//   className  — 'pl-hero-grad-drift' for the subtle hue-rotate
+//                drift; honours prefers-reduced-motion via the
+//                keyframe rule in pearloom.css
+//   editionId  — the resolved id so consumers can tag data attrs
+//                if they need per-Edition CSS tweaks downstream
+// ──────────────────────────────────────────────────────────────
+type HeroFallbackGradient = {
+  background: string;
+  className: string;
+  editionId: EditionId;
+};
+
+/* Per-Edition 3-stop gradient recipes. Each pulls colors that match
+   the Edition's recommendedTheme so the fallback feels like the same
+   editorial object the rest of the site is wearing. Angles vary so no
+   two Editions read identically when a host clicks through them with
+   no photo set. */
+const EDITION_GRADIENTS: Record<EditionId, string> = {
+  // Almanac → warm cream → peach → olive sage. Mirrors the pressed
+  // garden palette (cream paper, lavender wash, sage primary) with
+  // a peach midpoint that lifts the page when no photo grounds it.
+  almanac:
+    'linear-gradient(135deg, #F5EFE2 0%, #F4D9C2 48%, #8B9C5A 100%)',
+  // Cinema → midnight velvet → ink → candlelight gold. Reads as a
+  // half-lit theatre curtain when the host hasn't supplied a photo.
+  cinema:
+    'linear-gradient(145deg, #1A1B2E 0%, #0E0D0B 55%, #C9A24B 100%)',
+  // Postcard Box → tuscan cream → soft peach → watercolor sage.
+  // Lifts off the cream-deep gauze the polaroid stack normally sits on.
+  'postcard-box':
+    'linear-gradient(125deg, #FBF6EC 0%, #F4E3D3 50%, #C2693E 100%)',
+  // Linen Folder → sun-bleached linen → gold hairline → deep navy.
+  // Hotel-stationery formality — sweep ends in the Aegean ink.
+  'linen-folder':
+    'linear-gradient(155deg, #F5F1E8 0%, #D9C089 48%, #283D4E 100%)',
+  // Quiet → flat matte cream → soft warm grey → near-black ink.
+  // No saturation; reads as a sheet of editorial paper folded under
+  // a single shadow band. Honors the "design steps back" promise.
+  quiet:
+    'linear-gradient(180deg, #F4F3EF 0%, #D6D3CB 55%, #0E0D0B 100%)',
+  // Coastal → deckled cream → sea-glass sky → warm sand. Replaces
+  // the harbor-light photo with the sky/sand band itself.
+  coastal:
+    'linear-gradient(130deg, #EAE5D7 0%, #B6CFDC 50%, #C9A877 100%)',
+};
+
+export function heroFallbackGradient(manifest: StoryManifest): HeroFallbackGradient {
+  const occasion = (manifest as unknown as { occasion?: string }).occasion as
+    | SiteOccasion
+    | undefined;
+  const voice = occasion ? getEventType(occasion)?.voice : undefined;
+  // resolveEdition() handles BOTH the explicit edition AND the
+  // recommendation chain (occasion match → voice match →
+  // DEFAULT_EDITION_ID). Wizard-generated sites without explicit
+  // manifest.edition still get a coherent gradient.
+  const edition = resolveEdition({
+    edition: manifest.edition,
+    occasion,
+    voice,
+  });
+  const background =
+    EDITION_GRADIENTS[edition.id] ?? EDITION_GRADIENTS.almanac;
+  return {
+    background,
+    className: 'pl-hero-grad-drift',
+    editionId: edition.id,
+  };
+}
 
 export function HeroKicker({ manifest, dateInfo, onEditField }: {
   manifest: StoryManifest;

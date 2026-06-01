@@ -257,6 +257,131 @@ function useAutoTextColor(
   return { textColor: light, overlayOpacity: 0.55 };
 }
 
+// ── Per-chapter dominant-tone extractor ───────────────────────
+// Process-wide cache so a given photo URL is only sampled once
+// across mounts (chapter re-renders during editing don't refetch).
+// Values: a CSS rgb() string when extraction succeeded, null when
+// the image failed to load or the canvas was tainted.
+const CHAPTER_TONE_CACHE = new Map<string, string | null>();
+const CHAPTER_TONE_INFLIGHT = new Map<string, Promise<string | null>>();
+
+/**
+ * Sample an image client-side and return its dominant tone as a
+ * CSS rgb() string. Skips data URLs and the hero-art endpoint
+ * (synthetic illustrations) for the same reason useAutoTextColor
+ * does. Resolves to `null` when the image can't be sampled —
+ * callers fall back to their default chapter palette.
+ */
+function dominantTone(url: string): Promise<string | null> {
+  if (CHAPTER_TONE_CACHE.has(url)) {
+    return Promise.resolve(CHAPTER_TONE_CACHE.get(url) ?? null);
+  }
+  const existing = CHAPTER_TONE_INFLIGHT.get(url);
+  if (existing) return existing;
+  if (typeof window === 'undefined') return Promise.resolve(null);
+  // Skip synthetic illustrations + data URLs — they're not the
+  // photographs the host uploaded and the average colour reads
+  // off-brand against the chapter's photographic content.
+  if (url.startsWith('data:') || url.includes('/api/hero-art')) {
+    CHAPTER_TONE_CACHE.set(url, null);
+    return Promise.resolve(null);
+  }
+  const p = new Promise<string | null>((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const c = document.createElement('canvas');
+        c.width = 32;
+        c.height = 32;
+        const ctx = c.getContext('2d');
+        if (!ctx) {
+          resolve(null);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, 32, 32);
+        const data = ctx.getImageData(0, 0, 32, 32).data;
+        let r = 0;
+        let g = 0;
+        let b = 0;
+        let n = 0;
+        // Sample every 4th pixel (stride 16 bytes = 4 RGBA quads).
+        for (let i = 0; i < data.length; i += 16) {
+          r += data[i];
+          g += data[i + 1];
+          b += data[i + 2];
+          n++;
+        }
+        if (n === 0) {
+          resolve(null);
+          return;
+        }
+        resolve(`rgb(${Math.round(r / n)}, ${Math.round(g / n)}, ${Math.round(b / n)})`);
+      } catch {
+        // Canvas tainted (cross-origin image without CORS headers)
+        // — fall through and let callers use their defaults.
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = url;
+  })
+    .then((tone) => {
+      CHAPTER_TONE_CACHE.set(url, tone);
+      CHAPTER_TONE_INFLIGHT.delete(url);
+      return tone;
+    });
+  CHAPTER_TONE_INFLIGHT.set(url, p);
+  return p;
+}
+
+/**
+ * Resolve dominant tones for a list of chapter photo URLs. Returns
+ * a record keyed by URL. Undefined keys = still loading; null = the
+ * sample failed (caller should keep its default palette). The
+ * effect re-runs only when the *set* of URLs actually changes.
+ */
+function useChapterTones(
+  urls: Array<string | undefined>,
+): Record<string, string | null> {
+  const [tones, setTones] = useState<Record<string, string | null>>(() => {
+    // Seed from the process-wide cache so already-sampled photos
+    // render with their tone on first paint (no flash to default).
+    const seed: Record<string, string | null> = {};
+    for (const u of urls) {
+      if (u && CHAPTER_TONE_CACHE.has(u)) {
+        seed[u] = CHAPTER_TONE_CACHE.get(u) ?? null;
+      }
+    }
+    return seed;
+  });
+  // Join the URL list into a stable signature so the effect's
+  // dependency array compares by content, not array identity.
+  const signature = urls.filter(Boolean).join('|');
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let cancelled = false;
+    const targets = urls.filter((u): u is string => !!u);
+    for (const url of targets) {
+      // Seed cache hit handled by initial state — skip in-flight work.
+      if (CHAPTER_TONE_CACHE.has(url)) continue;
+      void dominantTone(url).then((tone) => {
+        if (cancelled) return;
+        setTones((prev) => {
+          if (prev[url] === tone) return prev;
+          return { ...prev, [url]: tone };
+        });
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
+  // signature collapses array identity into a stable string key
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signature]);
+  return tones;
+}
+
 // ─────────────────────────────────────────────────────────────
 // 1. ParallaxScroll
 // ─────────────────────────────────────────────────────────────
@@ -2124,6 +2249,19 @@ export function StorySection({
     previousCountRef.current = chapters.length;
   }, [chapters.length]);
 
+  // Sample each chapter's first photo for its dominant tone. Tones
+  // tint the chapter wrapper's side borders + the chapter icon
+  // (the "year-glyph" indicator) so each card inherits its photo's
+  // mood instead of every card sharing the manifest accent.
+  // Undefined entries = still computing; null = sample failed.
+  // Both cases fall back to the existing palette below.
+  const chapterPhotoUrls = chapters.map((ch) => {
+    const raw = ch.images?.[0]?.url;
+    if (!raw) return undefined;
+    return transformUrl ? transformUrl(raw) : raw;
+  });
+  const chapterTones = useChapterTones(chapterPhotoUrls);
+
   return (
     <>
       {medallionSvg && (() => {
@@ -2195,6 +2333,17 @@ export function StorySection({
         }));
         const locationLabel = chapter.location?.label || null;
 
+        // Photo-derived tone for this chapter. Only applied when
+        // the extractor returned an rgb() string (image loaded +
+        // canvas wasn't tainted). On SSR / pre-load / failure we
+        // fall through to the existing `tint` palette so the
+        // default render is byte-for-byte unchanged.
+        const chapterPhotoUrl = photos[0]?.url;
+        const photoTone = chapterPhotoUrl
+          ? chapterTones[chapterPhotoUrl] ?? null
+          : null;
+        const iconTint = photoTone || tint;
+
         // Only newly-added chapters get the reveal animation.
         // Previously rendered chapters stay still so edits don't
         // trigger a full re-animate on every keystroke.
@@ -2202,6 +2351,17 @@ export function StorySection({
         const enterDelay = isNew
           ? Math.min((chapterIndex - previousCount) * 0.28, 1.4)
           : 0;
+
+        // Compose wrapper style. Side-border tint only renders
+        // when the photo tone resolved — keeps default chapters
+        // identical to before.
+        const wrapperStyle: React.CSSProperties = { position: 'relative' };
+        if (photoTone) {
+          wrapperStyle.borderLeft = `4px solid ${photoTone}`;
+          wrapperStyle.borderRight = `4px solid ${photoTone}`;
+          // Expose for any descendant that wants to opt in via CSS var.
+          (wrapperStyle as Record<string, string>)['--pl-chapter-accent'] = photoTone;
+        }
 
         return (
           <motion.div
@@ -2219,7 +2379,7 @@ export function StorySection({
               delay: enterDelay,
               ease: [0.22, 1, 0.36, 1],
             }}
-            style={{ position: 'relative' }}
+            style={wrapperStyle}
           >
             {/* ── Inline photo replace button — editor only ── */}
             {editable && (
@@ -2295,7 +2455,9 @@ export function StorySection({
                     width: '100%',
                     height: '100%',
                     pointerEvents: 'none',
-                    color: tint,
+                    // Per-chapter override when the photo tone resolved,
+                    // otherwise the section-wide accent.
+                    color: iconTint,
                   }}
                   dangerouslySetInnerHTML={{ __html: icon }}
                 />

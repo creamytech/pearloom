@@ -86,6 +86,7 @@ import { EDITIONS_BY_ID } from '@/lib/site-editions/editions';
 import { getEventType, recommendTextureFor, lookDefaultsFor } from '@/lib/event-os/event-types';
 import type { SiteOccasion } from '@/lib/site-urls';
 import { EditionDivider } from './edition-dividers';
+import { EditionSectionOpener } from './edition-openers';
 void HERO_VARIANTS_REGISTERED;
 void STORY_VARIANTS_REGISTERED;
 void SCHEDULE_VARIANTS_REGISTERED;
@@ -1718,6 +1719,17 @@ function editionContextFromManifest(manifest: StoryManifest): EditionContext {
   };
 }
 
+/* 1-indexed position of a section in the page. Honors the host's
+ * blockOrder when set; falls back to DEFAULT_BLOCK_ORDER. The
+ * Almanac chapter mark (Roman numeral) and Cinema slug line
+ * (Scene 02) both read this. */
+function sectionIndexOf(manifest: StoryManifest, key: SiteBlockKey): number {
+  const order = (manifest as unknown as { blockOrder?: SiteBlockKey[] }).blockOrder;
+  const arr = (order && order.length > 0 ? order : DEFAULT_ORDER) as SiteBlockKey[];
+  const idx = arr.indexOf(key);
+  return idx < 0 ? 1 : idx + 1;
+}
+
 /* ==================== HERO ==================== */
 function HeroSection({
   names,
@@ -2024,6 +2036,23 @@ function StoryVariantSectionImpl({
       <SectionBackground manifest={manifest} sectionId="our-story" />
       <MotifScatter motif={motifForManifest(manifest)} density="sparse" />
       <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+        {/* Edition section opener — picks chapter-mark / slug-line /
+            stamp / mono-label / overline per the active Edition,
+            sits ABOVE the existing eyebrow + h2 so Editions read
+            on top of the section without breaking edit-mode markup. */}
+        {manifest && (() => {
+          const activeEdition = resolveEdition(editionContextFromManifest(manifest));
+          return (
+            <div style={{ textAlign: 'center' }}>
+              <EditionSectionOpener
+                style={activeEdition.sectionOpener}
+                index={sectionIndexOf(manifest, 'story')}
+                title="Our story"
+                kicker="Our story so far"
+              />
+            </div>
+          );
+        })()}
         {/* TSectionHead — port of the prototype's centered Story
             header (themed-site.jsx StoryBlock pattern). Tightened
             from clamp(42–72px) to clamp(36–60px) so it doesn't
@@ -2106,6 +2135,19 @@ function TimelineSectionImpl({ chapters, onEditField, manifest }: { chapters: Ch
       <SectionBackground manifest={manifest} sectionId="our-story" />
       <MotifScatter motif={motifForManifest(manifest)} density="sparse" />
       <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+        {manifest && (() => {
+          const activeEdition = resolveEdition(editionContextFromManifest(manifest));
+          return (
+            <div style={{ textAlign: 'center' }}>
+              <EditionSectionOpener
+                style={activeEdition.sectionOpener}
+                index={sectionIndexOf(manifest, 'story')}
+                title="Our story"
+                kicker="Our story so far"
+              />
+            </div>
+          );
+        })()}
         {/* TSectionHead — port of the prototype's centered Story
             header (themed-site.jsx StoryBlock pattern). Tightened
             from clamp(42–72px) to clamp(36–60px) so it doesn't
@@ -2519,6 +2561,19 @@ function DetailsStripImpl({ manifest, siteSlug, onEditField }: { manifest: Story
             onClear={() => onEditField?.((m) => ({ ...m, logistics: { ...(m.logistics ?? {}), dresscode: undefined, notes: undefined }, draftedByPear: { ...(m.draftedByPear ?? {}), details: false } } as StoryManifest))}
           />
         )}
+        {(() => {
+          const activeEdition = resolveEdition(editionContextFromManifest(manifest));
+          return (
+            <div style={{ textAlign: 'center' }}>
+              <EditionSectionOpener
+                style={activeEdition.sectionOpener}
+                index={sectionIndexOf(manifest, 'details')}
+                title="The details"
+                kicker="What you need to know"
+              />
+            </div>
+          );
+        })()}
         {/* TSectionHead — port of the prototype's centered Details
             header. Adds a consistent eyebrow + title above the cards
             so Details reads as a real section, not a bare card grid
@@ -3022,6 +3077,338 @@ function computeLiveEventIndex(
   return -1;
 }
 
+/* ──────────── Schedule per-kit variants ──────────────
+   Verbatim port of the prototype's KSchedule variants
+   (ticket / plate / scrapbook / index / minimal). 'classic'
+   keeps the rich edit-mode classic layout in ScheduleSectionImpl;
+   these alt kits render published-style layouts that still emit
+   pl8-schedule-row + data-pl-event-id so the editor's selection
+   layer + click-to-jump-to-panel keep working.
+   ─────────────────────────────────────────────────────── */
+const SCHEDULE_ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+
+function splitScheduleTime(raw: string | undefined | null): { t: string; m: string } {
+  if (!raw) return { t: '', m: '' };
+  const m = raw.match(/^(\d{1,2}:\d{2})\s*(AM|PM|am|pm)?$/);
+  if (m) return { t: m[1], m: (m[2] ?? '').toUpperCase() };
+  return { t: raw, m: '' };
+}
+
+type ScheduleRow = {
+  id: string | undefined;
+  rawTime: string;
+  time: string;
+  title: string;
+  d: string;
+  tag: string;
+  cur: boolean;
+  isMain: boolean;
+  isLive: boolean;
+  badges?: unknown;
+};
+
+function ScheduleByKit({
+  kit,
+  rows,
+  edit,
+  onRowClick,
+}: {
+  kit: 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal';
+  rows: ScheduleRow[];
+  edit: boolean;
+  onRowClick: (eventId: string) => void;
+}) {
+  // Shared edit-mode click handler — keeps the editor's selection
+  // layer + jumpToPanelRow flow working in every variant.
+  const handleClick = (r: ScheduleRow) => (e: React.MouseEvent) => {
+    if (!edit || !r.id) return;
+    const target = e.target as Element;
+    if (target.closest('a, button, input, textarea, [contenteditable="true"], [role="button"]')) return;
+    onRowClick(r.id);
+  };
+  const rowClassName = `pl8-schedule-row${edit ? ' pl8-canvas-row' : ''}`;
+
+  if (kit === 'ticket') {
+    return (
+      <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {rows.map((r, i) => {
+          const { t, m } = splitScheduleTime(r.rawTime || r.time);
+          return (
+            <div
+              key={r.id ?? i}
+              className={rowClassName}
+              data-pl-event-id={r.id}
+              onClick={handleClick(r)}
+              style={{
+                position: 'relative',
+                display: 'grid',
+                gridTemplateColumns: '116px 1fr',
+                background: 'var(--card, #FBF7EE)',
+                border: '1.5px dashed var(--ink-soft, rgba(14,13,11,0.30))',
+                borderRadius: 7,
+                overflow: 'hidden',
+                cursor: edit ? 'pointer' : 'default',
+              }}
+            >
+              <div
+                style={{
+                  padding: '16px 10px',
+                  textAlign: 'center',
+                  borderRight: '2px dashed var(--ink-soft, rgba(14,13,11,0.30))',
+                  fontFamily: 'Courier New, ui-monospace, monospace',
+                }}
+              >
+                <div className="pl8-schedule-time" style={{ fontSize: 21, fontWeight: 700, color: 'var(--peach-ink, #C6703D)' }}>{t}</div>
+                {m && (
+                  <div style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-muted, #6F6557)' }}>{m}</div>
+                )}
+              </div>
+              <div style={{ padding: '14px 18px' }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>{r.title}</div>
+                {r.d && (
+                  <div style={{ fontSize: 12.5, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>{r.d}</div>
+                )}
+              </div>
+              {/* Pinholes punched through the perforation line. */}
+              <span aria-hidden style={{ position: 'absolute', left: 110, top: -6, width: 12, height: 12, borderRadius: '50%', background: 'var(--cream-2, #EBE3D2)' }} />
+              <span aria-hidden style={{ position: 'absolute', left: 110, bottom: -6, width: 12, height: 12, borderRadius: '50%', background: 'var(--cream-2, #EBE3D2)' }} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (kit === 'plate') {
+    return (
+      <div style={{ maxWidth: 560, margin: '0 auto' }}>
+        {rows.map((r, i) => {
+          const { t, m } = splitScheduleTime(r.rawTime || r.time);
+          return (
+            <div
+              key={r.id ?? i}
+              className={rowClassName}
+              data-pl-event-id={r.id}
+              onClick={handleClick(r)}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '44px 1fr auto',
+                alignItems: 'baseline',
+                gap: 16,
+                padding: '16px 4px',
+                borderBottom:
+                  i < rows.length - 1 ? '1px solid var(--line-soft, rgba(14,13,11,0.10))' : 'none',
+                cursor: edit ? 'pointer' : 'default',
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                  fontWeight: 'var(--pl-display-wght, 600)',
+                  fontSize: 20,
+                  color: 'var(--peach-ink, #C6703D)',
+                  fontStyle: 'italic',
+                }}
+              >
+                {SCHEDULE_ROMAN[i] ?? String(i + 1)}
+              </span>
+              <div>
+                <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>{r.title}</span>
+                {r.d && (
+                  <span style={{ fontSize: 13, color: 'var(--ink-muted, #6F6557)' }}>{' — '}{r.d}</span>
+                )}
+              </div>
+              <span
+                className="pl8-schedule-time"
+                style={{
+                  fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                  fontWeight: 'var(--pl-display-wght, 600)',
+                  fontSize: 18,
+                  letterSpacing: '0.02em',
+                  color: 'var(--ink, #0E0D0B)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {t}
+                {m && (
+                  <span style={{ fontSize: 11, marginLeft: 2, color: 'var(--ink-muted, #6F6557)' }}>{m}</span>
+                )}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (kit === 'scrapbook') {
+    const cols = Math.min(Math.max(rows.length, 1), 4);
+    return (
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${cols}, 1fr)`,
+          gap: 18,
+          maxWidth: 880,
+          margin: '0 auto',
+          paddingTop: 8,
+        }}
+      >
+        {rows.map((r, i) => {
+          const { t } = splitScheduleTime(r.rawTime || r.time);
+          return (
+            <div
+              key={r.id ?? i}
+              className={rowClassName}
+              data-pl-event-id={r.id}
+              onClick={handleClick(r)}
+              style={{
+                position: 'relative',
+                background: '#fffdf7',
+                boxShadow: '0 10px 22px rgba(0,0,0,0.12)',
+                borderRadius: 2,
+                padding: '20px 14px 16px',
+                textAlign: 'center',
+                transform: `rotate(${i % 2 ? 1.4 : -1.4}deg)`,
+                cursor: edit ? 'pointer' : 'default',
+              }}
+            >
+              <span
+                aria-hidden
+                style={{
+                  position: 'absolute',
+                  top: -9,
+                  left: '50%',
+                  transform: 'translateX(-50%) rotate(-4deg)',
+                  width: 50,
+                  height: 16,
+                  background: 'color-mix(in oklab, var(--peach-ink, #C6703D) 32%, transparent)',
+                }}
+              />
+              <div
+                className="pl8-schedule-time"
+                style={{
+                  fontFamily: 'var(--font-script, Caveat, cursive)',
+                  fontSize: 30,
+                  color: 'var(--peach-ink, #C6703D)',
+                  lineHeight: 1,
+                }}
+              >
+                {t}
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 600, marginTop: 8, color: 'var(--ink, #0E0D0B)' }}>{r.title}</div>
+              {r.d && (
+                <div style={{ fontSize: 11.5, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>{r.d}</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (kit === 'index') {
+    return (
+      <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {rows.map((r, i) => {
+          const { t, m } = splitScheduleTime(r.rawTime || r.time);
+          return (
+            <div
+              key={r.id ?? i}
+              className={rowClassName}
+              data-pl-event-id={r.id}
+              onClick={handleClick(r)}
+              style={{
+                position: 'relative',
+                background: 'var(--card, #FBF7EE)',
+                borderRadius: 2,
+                borderLeft: '2px solid rgba(199,80,80,0.55)',
+                padding: '14px 16px 14px 64px',
+                backgroundImage:
+                  'repeating-linear-gradient(180deg, transparent 0 21px, rgba(74,118,196,0.10) 21px 22px)',
+                cursor: edit ? 'pointer' : 'default',
+              }}
+            >
+              <div
+                className="pl8-schedule-time"
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 12,
+                  padding: '3px 8px',
+                  background: 'var(--peach-ink, #C6703D)',
+                  color: 'var(--paper, #F5EFE2)',
+                  fontFamily: 'Courier New, ui-monospace, monospace',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  borderRadius: '0 4px 4px 0',
+                }}
+              >
+                {t}
+                {m}
+              </div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>{r.title}</div>
+              {r.d && (
+                <div style={{ fontSize: 12.5, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>{r.d}</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // 'minimal' — auto 1fr grid, oversized serif time numerals.
+  return (
+    <div style={{ maxWidth: 620, margin: '0 auto' }}>
+      {rows.map((r, i) => {
+        const { t, m } = splitScheduleTime(r.rawTime || r.time);
+        return (
+          <div
+            key={r.id ?? i}
+            className={rowClassName}
+            data-pl-event-id={r.id}
+            onClick={handleClick(r)}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'auto 1fr',
+              gap: 22,
+              alignItems: 'baseline',
+              padding: '20px 0',
+              borderBottom:
+                i < rows.length - 1 ? '1px solid var(--line-soft, rgba(14,13,11,0.10))' : 'none',
+              cursor: edit ? 'pointer' : 'default',
+            }}
+          >
+            <span
+              className="pl8-schedule-time"
+              style={{
+                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                fontWeight: 'var(--pl-display-wght, 600)',
+                fontSize: '3.5rem',
+                lineHeight: 0.9,
+                letterSpacing: '-0.03em',
+                color: 'var(--ink, #0E0D0B)',
+              }}
+            >
+              {t}
+              {m && (
+                <span style={{ fontSize: 14, marginLeft: 4, color: 'var(--ink-muted, #6F6557)' }}>{m}</span>
+              )}
+            </span>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>{r.title}</div>
+              {r.d && (
+                <div style={{ fontSize: 13, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>{r.d}</div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: StoryManifest; names: [string, string]; onEditField?: FieldEditor }) {
   const edit = useIsEditMode();
   const dateInfo = fmtEventDate(manifest.logistics?.date, manifest.dateFormat, manifest.logistics?.timezone);
@@ -3097,6 +3484,15 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
   }));
   void names;
 
+  // Active kit dispatch — mirrors the root SiteV8 pattern. Classic
+  // keeps the rich edit-mode layout below; the 5 alt kits render via
+  // ScheduleByKit (verbatim port of the prototype's KSchedule
+  // variants). Each variant still emits data-pl-event-id +
+  // pl8-schedule-row so the editor selection layer + click-to-jump-
+  // to-panel keep working.
+  const lookDefaults = lookDefaultsFor(manifest.occasion);
+  const activeKit = manifest.kitId ?? lookDefaults.kitId;
+
   // Patch a single event by ID — the sorted array decoupled
   // display order from manifest order, so we always go through
   // the canonical id lookup.
@@ -3157,6 +3553,19 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
             onClear={() => onEditField?.((m) => ({ ...m, events: [], draftedByPear: { ...(m.draftedByPear ?? {}), schedule: false } }))}
           />
         )}
+        {(() => {
+          const activeEdition = resolveEdition(editionContextFromManifest(manifest));
+          return (
+            <div style={{ textAlign: 'center' }}>
+              <EditionSectionOpener
+                style={activeEdition.sectionOpener}
+                index={sectionIndexOf(manifest, 'schedule')}
+                title={term.scheduleLabel}
+                kicker="How the day flows"
+              />
+            </div>
+          );
+        })()}
         {/* TSectionHead — port of the prototype's centered section
             header: tiny accented eyebrow above large italic-tail title.
             Replaces the v8 inline-flex stamp header with the cleaner
@@ -3185,13 +3594,54 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
           </h2>
         </div>
 
-        {/* Schedule rows — direct port of the prototype's KSchedule
-            CLASSIC variant (themed-site.jsx KSchedule fallback,
-            ~line 188). 4-column responsive card grid (auto-fit
-            minmax(180px, 1fr)) capped at 900px center, gap 14px.
-            Each row renders as a centered card via the .pl8-schedule-
-            classic-grid CSS class. Per-kit CSS still wins when a kit
-            is picked. */}
+        {/* Schedule rows — when a kit is set (and isn't 'classic'),
+            dispatch to ScheduleByKit which renders the prototype's
+            verbatim KSchedule variant for that kit (ticket / plate /
+            scrapbook / index / minimal). 'classic' falls through to
+            the original responsive 4-col card grid below, which keeps
+            the full edit-mode kit: drag-to-reorder, inline editable
+            fields, ScheduleTimeEditor, remove buttons, live/main
+            badges. The alt kits emit data-pl-event-id +
+            pl8-schedule-row markers so editor selection + click-to-
+            focus continue working — but inline-edit details only show
+            in 'classic'. */}
+        {activeKit !== 'classic' && (
+          <ScheduleByKit
+            kit={activeKit as 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal'}
+            rows={rows}
+            edit={edit}
+            onRowClick={(eventId) => {
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('pearloom:schedule-quick-edit', { detail: { eventId } }));
+              }
+              jumpToPanelRow('schedule', 'pearloom:focus-schedule-row', { eventId });
+            }}
+          />
+        )}
+        {activeKit !== 'classic' && edit && (
+          <div style={{ maxWidth: 640, margin: '12px auto 0' }}>
+            <button
+              type="button"
+              onClick={addEvent}
+              className="pl8-canvas-add"
+              style={{
+                width: '100%',
+                padding: '14px 26px',
+                background: 'transparent',
+                border: '1px dashed var(--line-soft)',
+                borderRadius: 'var(--pl-card-radius, 8px)',
+                color: 'var(--sage-deep)',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+                textAlign: 'center',
+              }}
+            >
+              + Add an event
+            </button>
+          </div>
+        )}
+        {activeKit === 'classic' && (
         <div
           className="pl-cascade-row pl8-schedule-classic-grid"
           style={{
@@ -3432,6 +3882,7 @@ function ScheduleSectionImpl({ manifest, names, onEditField }: { manifest: Story
             </button>
           )}
         </div>
+        )}
       </div>
     </section>
   );
@@ -5474,6 +5925,19 @@ function TravelSectionImpl({ manifest, onEditField }: { manifest: StoryManifest;
             onClear={() => onEditField?.((m) => ({ ...m, travelInfo: { ...(m.travelInfo ?? {}), hotels: [] } as StoryManifest['travelInfo'], draftedByPear: { ...(m.draftedByPear ?? {}), travel: false } }))}
           />
         )}
+        {(() => {
+          const activeEdition = resolveEdition(editionContextFromManifest(manifest));
+          return (
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <EditionSectionOpener
+                style={activeEdition.sectionOpener}
+                index={sectionIndexOf(manifest, 'travel')}
+                title="Getting there"
+                kicker="Travel"
+              />
+            </div>
+          );
+        })()}
         <div className="pl8-cols-2" style={{ gap: 40 }}>
           <div>
             <div
@@ -6439,6 +6903,19 @@ function RegistrySectionImpl({ manifest, onEditField, siteSlug }: { manifest: St
             onClear={() => onEditField?.((m) => ({ ...m, registry: { enabled: true, ...((m.registry as Record<string, unknown>) ?? {}), entries: [] }, draftedByPear: { ...(m.draftedByPear ?? {}), registry: false } } as unknown as StoryManifest))}
           />
         )}
+        {(() => {
+          const activeEdition = resolveEdition(editionContextFromManifest(manifest));
+          return (
+            <div style={{ textAlign: 'center' }}>
+              <EditionSectionOpener
+                style={activeEdition.sectionOpener}
+                index={sectionIndexOf(manifest, 'registry')}
+                title="Registry"
+                kicker="If you're asking"
+              />
+            </div>
+          );
+        })()}
         {/* TSectionHead — port of the prototype's centered header
             pattern. Tighter scale + Edition-aware eyebrow letter-
             spacing. */}
@@ -6578,6 +7055,75 @@ function RegistrySectionImpl({ manifest, onEditField, siteSlug }: { manifest: St
 }
 
 /* ==================== GALLERY ==================== */
+// Edition-aware tile frame. Returns a style fragment applied to
+// each gallery tile so the surrounding photo "frame" picks up the
+// active Edition's design language. Mosaic / strip / wall all
+// share the same per-Edition frame vocabulary so the gallery
+// reads as one design idea regardless of layout choice.
+type EditionTileFrame = {
+  borderRadius: number | string;
+  boxShadow: string;
+  border?: string;
+  padding?: number;
+  background?: string;
+};
+
+function tileFrameForEdition(editionId: string, isMostLoved: boolean): EditionTileFrame {
+  // Most-loved keeps the peach halo on top of any per-edition
+  // frame so the badge still reads. We layer the peach ring
+  // first then the edition's native shadow.
+  const lovedRing = isMostLoved
+    ? '0 0 0 2px var(--peach-ink, #C6703D), 0 12px 28px rgba(198,112,61,0.30)'
+    : '';
+  switch (editionId) {
+    case 'cinema':
+      // Sharp 2px frame, no shadow — letterboxed film feel.
+      return {
+        borderRadius: 2,
+        border: '2px solid var(--ink, #0E0D0B)',
+        boxShadow: lovedRing || 'none',
+      };
+    case 'linen-folder':
+      // Gold hairline frame at 5px inset — formal stationery.
+      return {
+        borderRadius: 4,
+        padding: 5,
+        background: 'var(--cream-card, #FBF7EE)',
+        border: '1px solid var(--pl-gold, #B8935A)',
+        boxShadow: lovedRing || '0 1px 0 rgba(184,147,90,0.18)',
+      };
+    case 'postcard-box':
+      // Thick pillow + lifted shadow — physical photo print.
+      return {
+        borderRadius: 24,
+        padding: 0,
+        boxShadow: lovedRing
+          || '0 18px 32px rgba(61,74,31,0.18), 0 4px 10px rgba(61,74,31,0.10)',
+      };
+    case 'quiet':
+      // No frame, just spacing. Photos breathe on their own.
+      return {
+        borderRadius: 0,
+        boxShadow: lovedRing || 'none',
+      };
+    case 'coastal':
+      // 10px rounded + cyan-tint hairline.
+      return {
+        borderRadius: 10,
+        border: '1px solid rgba(96, 144, 158, 0.45)',
+        boxShadow: lovedRing || '0 6px 14px rgba(58, 102, 122, 0.16)',
+      };
+    case 'almanac':
+    default:
+      // Soft 8px frame + 1px hairline — bound-book editorial.
+      return {
+        borderRadius: 8,
+        border: '1px solid rgba(14, 13, 11, 0.10)',
+        boxShadow: lovedRing || '0 8px 20px rgba(61,74,31,0.10)',
+      };
+  }
+}
+
 function GallerySectionImpl({
   chapters, manifest, onEditField, siteSlug,
 }: {
@@ -6663,6 +7209,46 @@ function GallerySectionImpl({
   const renderCount = edit && photos.length === 0 ? 4 : photos.length;
   if (renderCount === 0) return null;
 
+  // Variant dispatcher — strip / wall / mosaic. Defaults to
+  // mosaic. Read once so all tiles share the same layout.
+  const galleryVariant = (() => {
+    const raw = (manifest?.blockVariants?.gallery?.style as string | undefined) ?? 'mosaic';
+    return raw === 'strip' || raw === 'wall' ? raw : 'mosaic';
+  })();
+  // Resolve the active edition once so per-tile frames pick up
+  // the same edition.id. Renderer falls back to almanac via the
+  // resolver chain.
+  const activeEdition = manifest ? resolveEdition(editionContextFromManifest(manifest)) : null;
+  const editionId = activeEdition?.id ?? 'almanac';
+  // Filmstrip scroller ref + arrow visibility — desktop only.
+  // Tracks scrollLeft to fade the leading / trailing chevrons.
+  const stripScrollerRef = useRef<HTMLDivElement | null>(null);
+  const [stripScroll, setStripScroll] = useState({ atStart: true, atEnd: false });
+  useEffect(() => {
+    if (galleryVariant !== 'strip') return;
+    const el = stripScrollerRef.current;
+    if (!el) return;
+    const update = () => {
+      const max = el.scrollWidth - el.clientWidth;
+      setStripScroll({
+        atStart: el.scrollLeft <= 4,
+        atEnd: max <= 4 || el.scrollLeft >= max - 4,
+      });
+    };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      el.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [galleryVariant, renderCount]);
+  function scrollStrip(direction: 1 | -1) {
+    const el = stripScrollerRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction * (el.clientWidth * 0.8), behavior: 'smooth' });
+  }
+
   async function toggleReaction(photoUrl: string) {
     if (!siteSlug) return;
     try {
@@ -6681,6 +7267,19 @@ function GallerySectionImpl({
     <section id="gallery" style={{ padding: 'clamp(48px, 8cqw, 100px) 32px', background: 'var(--cream-2)', position: 'relative' }}>
       <SectionBackground manifest={manifest} sectionId="gallery" />
       <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+        {manifest && (() => {
+          const activeEdition = resolveEdition(editionContextFromManifest(manifest));
+          return (
+            <div style={{ marginBottom: 20 }}>
+              <EditionSectionOpener
+                style={activeEdition.sectionOpener}
+                index={sectionIndexOf(manifest, 'gallery')}
+                title="Gallery"
+                kicker="Along the way"
+              />
+            </div>
+          );
+        })()}
         <div
           className="pl8-gallery-header"
           style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: 36 }}
@@ -6709,23 +7308,18 @@ function GallerySectionImpl({
           </div>
         </div>
 
-        <div
-          className="pl8-gallery-grid"
-          style={{
-            /* Prototype gallery grid (themed-site.jsx ~line 460):
-               repeat(6, 1fr) with 8px gap + max-width 920 center.
-               Each photo is 1:1 (controlled per-tile below). At 6
-               columns the grid reads as a tight mosaic vs the v8
-               4-col layout that felt too card-like. */
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-            gridAutoRows: '160px',
-            gap: 8,
-            maxWidth: 920,
-            margin: '0 auto',
-          }}
-        >
-          {tones.slice(0, renderCount).map((t, i) => {
+        {/* Variant dispatcher — three layouts share the same
+            per-tile renderer below. Mosaic = bento grid (default).
+            Wall = uniform 4-col / 2-col grid. Strip = horizontal
+            snap-scroll filmstrip with desktop chevrons. All three
+            tile through the same edition-aware frame helper so
+            the gallery reads coherently with the rest of the site. */}
+        {(() => {
+          // Per-tile render — shared across all three variants so
+          // every layout gets the same edition-frame + most-loved
+          // + reaction-count + clickability + edit dispatch.
+          const renderTile = (i: number, tileKind: 'mosaic' | 'wall' | 'strip') => {
+            const t = tones[i] ?? 'warm';
             const s = spans[i] ?? {};
             const url = photos[i];
             const photoIndex = url ? lightboxImages.findIndex((img) => img.url === url) : -1;
@@ -6757,34 +7351,58 @@ function GallerySectionImpl({
               : undefined;
             const reactionCount = url ? (reactions.counts[url] ?? 0) : 0;
             const isMostLoved = !!url && url === mostLovedUrl;
-            // In edit mode, clicking a gallery tile opens the
-            // GalleryQuickEditModal scoped to that photo. Falls back
-            // to the lightbox on the published view.
             const onTileClick = edit && url
               ? () => {
                   if (typeof window === 'undefined') return;
                   window.dispatchEvent(new CustomEvent('pearloom:gallery-quick-edit', { detail: { url } }));
                 }
               : (clickable ? () => open(photoIndex) : undefined);
+            const frame = tileFrameForEdition(editionId, isMostLoved);
+            // Per-variant geometry. Mosaic respects the bento
+            // span hints; wall + strip force uniform 1:1 tiles
+            // so the layouts read as their own ideas.
+            const variantStyle: React.CSSProperties = tileKind === 'mosaic'
+              ? { gridColumn: s.cs, gridRow: s.rs }
+              : tileKind === 'wall'
+                ? { aspectRatio: '1 / 1', width: '100%' }
+                : {
+                    flex: '0 0 280px',
+                    width: 280,
+                    height: 320,
+                    scrollSnapAlign: 'start',
+                  };
             return (
               <div
-                key={i}
+                key={`${tileKind}-${i}`}
                 onClick={onTileClick}
-                className={`pl8-gallery-tile pl-tile-reveal${clickable ? ' is-clickable' : ''}`}
+                className={`pl8-gallery-tile pl-tile-reveal pl-edition-${editionId}${clickable ? ' is-clickable' : ''}`}
+                data-pl-edition={editionId}
                 style={{
                   position: 'relative',
-                  gridColumn: s.cs,
-                  gridRow: s.rs,
-                  borderRadius: 14,
                   overflow: 'hidden',
-                  boxShadow: isMostLoved
-                    ? '0 12px 28px rgba(198,112,61,0.30), 0 0 0 2px var(--peach-ink, #C6703D)'
-                    : '0 8px 20px rgba(61,74,31,0.1)',
+                  borderRadius: frame.borderRadius,
+                  border: frame.border,
+                  padding: frame.padding,
+                  background: frame.background,
+                  boxShadow: frame.boxShadow,
                   cursor: clickable ? 'zoom-in' : 'default',
+                  ...variantStyle,
                 }}
               >
                 <PhotoActionMenu imageUrl={url} onReplace={onReplace} onRemove={onRemove}>
-                  <PhotoPlaceholder tone={t} aspect="auto" src={url} style={{ height: '100%' }} />
+                  <PhotoPlaceholder
+                    tone={t}
+                    aspect="auto"
+                    src={url}
+                    style={{
+                      height: '100%',
+                      width: '100%',
+                      // When the frame has padding (linen-folder),
+                      // inset the radius slightly so the inner
+                      // photo respects the outer hairline.
+                      borderRadius: frame.padding ? Math.max(0, Number(frame.borderRadius) - 1) : undefined,
+                    }}
+                  />
                 </PhotoActionMenu>
                 {isMostLoved && (
                   <span
@@ -6836,18 +7454,151 @@ function GallerySectionImpl({
                 )}
               </div>
             );
-          })}
-          {/* Inline + tile in edit mode — host can add a photo
-              without diving into the Story panel. Clicking
-              triggers a file picker; on pick we POST the bytes
-              to /api/photos/upload and append to the first
-              chapter's images so it lands in the gallery
-              immediately. Tile sits inside the grid so the
-              spacing matches the surrounding mosaic. */}
-          {edit && onEditField && photos.length > 0 && (
-            <GalleryAddTile manifest={manifest} onEditField={onEditField} chapters={chapters} />
-          )}
-        </div>
+          };
+
+          if (galleryVariant === 'strip') {
+            // Filmstrip — horizontal snap-scroll row. Photos at
+            // 280px fixed width, snap-x mandatory. Desktop only
+            // gets chevron affordances at the section edges
+            // since touch already has its own scroll affordance.
+            return (
+              <div
+                className="pl8-gallery-strip-wrap"
+                style={{ position: 'relative', maxWidth: 1180, margin: '0 auto' }}
+              >
+                <div
+                  ref={stripScrollerRef}
+                  className="pl8-gallery-strip"
+                  style={{
+                    display: 'flex',
+                    gap: 14,
+                    overflowX: 'auto',
+                    overflowY: 'hidden',
+                    scrollSnapType: 'x mandatory',
+                    paddingBottom: 8,
+                    // Hide the native scrollbar on most chrome
+                    // platforms — purely cosmetic, swipe still
+                    // works on touch.
+                    scrollbarWidth: 'thin',
+                  }}
+                >
+                  {Array.from({ length: renderCount }).map((_, i) => renderTile(i, 'strip'))}
+                  {edit && onEditField && photos.length > 0 && (
+                    <div style={{ flex: '0 0 280px', width: 280, height: 320, scrollSnapAlign: 'start' }}>
+                      <GalleryAddTile manifest={manifest} onEditField={onEditField} chapters={chapters} />
+                    </div>
+                  )}
+                </div>
+                {/* Chevron affordances — fade when at edge. Hidden
+                    on small touch viewports via CSS media query. */}
+                <button
+                  type="button"
+                  aria-label="Scroll left"
+                  onClick={() => scrollStrip(-1)}
+                  className="pl8-gallery-strip-arrow pl8-gallery-strip-arrow--left"
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: -6,
+                    transform: 'translateY(-50%)',
+                    width: 40,
+                    height: 40,
+                    borderRadius: 999,
+                    border: '1px solid var(--ink-soft, #6F6557)',
+                    background: 'var(--cream-card, #FBF7EE)',
+                    color: 'var(--ink, #0E0D0B)',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(14,13,11,0.12)',
+                    fontSize: 18,
+                    lineHeight: 1,
+                    opacity: stripScroll.atStart ? 0 : 1,
+                    pointerEvents: stripScroll.atStart ? 'none' : 'auto',
+                    transition: 'opacity var(--pl-dur-fast, 180ms) var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1))',
+                  }}
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  aria-label="Scroll right"
+                  onClick={() => scrollStrip(1)}
+                  className="pl8-gallery-strip-arrow pl8-gallery-strip-arrow--right"
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    right: -6,
+                    transform: 'translateY(-50%)',
+                    width: 40,
+                    height: 40,
+                    borderRadius: 999,
+                    border: '1px solid var(--ink-soft, #6F6557)',
+                    background: 'var(--cream-card, #FBF7EE)',
+                    color: 'var(--ink, #0E0D0B)',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(14,13,11,0.12)',
+                    fontSize: 18,
+                    lineHeight: 1,
+                    opacity: stripScroll.atEnd ? 0 : 1,
+                    pointerEvents: stripScroll.atEnd ? 'none' : 'auto',
+                    transition: 'opacity var(--pl-dur-fast, 180ms) var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1))',
+                  }}
+                >
+                  ›
+                </button>
+              </div>
+            );
+          }
+
+          if (galleryVariant === 'wall') {
+            // Uniform photo wall. 4-col desktop, 2-col mobile.
+            // 8px gap — every tile the same 1:1 aspect ratio so
+            // the grid reads as a wallpaper, not a curated mix.
+            return (
+              <div
+                className="pl8-gallery-wall"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                  gap: 8,
+                  maxWidth: 1180,
+                  margin: '0 auto',
+                }}
+              >
+                {Array.from({ length: renderCount }).map((_, i) => renderTile(i, 'wall'))}
+                {edit && onEditField && photos.length > 0 && (
+                  <GalleryAddTile manifest={manifest} onEditField={onEditField} chapters={chapters} />
+                )}
+              </div>
+            );
+          }
+
+          // Default — bento mosaic. Mixed sizes via the spans[]
+          // table; max-width 920 so the grid reads as a tight,
+          // editorial cluster (vs. wallpaper).
+          return (
+            <div
+              className="pl8-gallery-grid"
+              style={{
+                /* Prototype gallery grid (themed-site.jsx ~line 460):
+                   repeat(6, 1fr) with 8px gap + max-width 920 center.
+                   Each photo is 1:1 (controlled per-tile below). At 6
+                   columns the grid reads as a tight mosaic vs the v8
+                   4-col layout that felt too card-like. */
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                gridAutoRows: '160px',
+                gap: 8,
+                maxWidth: 920,
+                margin: '0 auto',
+              }}
+            >
+              {Array.from({ length: renderCount }).map((_, i) => renderTile(i, 'mosaic'))}
+              {edit && onEditField && photos.length > 0 && (
+                <GalleryAddTile manifest={manifest} onEditField={onEditField} chapters={chapters} />
+              )}
+            </div>
+          );
+        })()}
       </div>
       <PhotoLightbox
         images={lightboxImages}
@@ -6991,6 +7742,7 @@ function GalleryAddTile({
 // The category chips are guest-side filters; "Most asked" is the
 // host-curated first item.
 const FAQ_CATEGORY_RULES: Array<[RegExp, string]> = [
+  [/\b(schedule|timeline|ceremony\s*(start|begin|time)|reception\s*(start|begin|time)|day[\s-]?of|what\s*time|start\s*time|run[\s-]?of[\s-]?show|order\s*of\s*events|when\s*does\s*(the|it))/i, 'Schedule'],
   [/\b(airport|airline|flight|drive|driving|park|parking|direction|address|map|where is|how to get|car)/i, 'Travel'],
   [/\b(dress|wear|attire|black\s*tie|cocktail|formal|outfit|tie|tux|gown|shoes|heels)/i, 'Dress code'],
   [/\b(food|meal|dietary|allerg|vegan|vegetarian|gluten|menu|drink|bar|alcohol|kosher|halal)/i, 'Food + drink'],
@@ -7006,6 +7758,42 @@ function categorizeFaq(question: string): string {
     if (rx.test(question)) return label;
   }
   return 'Other';
+}
+
+// Inline CTA injection — when a FAQ answer is read, surface the
+// natural next-action as a small pill at the bottom. Category drives
+// the suggestion; informational categories (Dress code, Kids, Food,
+// Photos, Other) return null so we don't litter the panel with chips.
+// Suppression rules (caller-applied):
+//  - Don't show on very short answers (< 24 chars) — they're already
+//    the punchline; a chip would dwarf the copy.
+//  - Don't show if the answer already mentions the affordance (we
+//    look for the word in the answer text — e.g. if the host wrote
+//    "RSVP here" inline, the CTA is redundant).
+function getFaqCta(
+  category: string,
+): { label: string; href: string; matchWord: RegExp } | null {
+  switch (category) {
+    case 'RSVP':
+    case 'Plus-ones':
+      return { label: 'RSVP now', href: '#rsvp', matchWord: /\brsvp\b/i };
+    case 'Travel':
+    case 'Hotels':
+      return { label: 'Book hotel', href: '#travel', matchWord: /\b(hotel|travel|book)\b/i };
+    case 'Gifts':
+      return { label: 'View registry', href: '#registry', matchWord: /\bregistr/i };
+    case 'Schedule':
+      return { label: 'See schedule', href: '#schedule', matchWord: /\bschedul/i };
+    default:
+      return null;
+  }
+}
+function shouldShowFaqCta(answer: string, cta: { matchWord: RegExp } | null): cta is { label: string; href: string; matchWord: RegExp } {
+  if (!cta) return false;
+  const trimmed = (answer ?? '').trim();
+  if (trimmed.length < 24) return false;
+  if (cta.matchWord.test(trimmed)) return false;
+  return true;
 }
 
 function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; onEditField?: FieldEditor }) {
@@ -7079,6 +7867,19 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
             onClear={() => onEditField?.((m) => ({ ...m, faq: [], draftedByPear: { ...(m.draftedByPear ?? {}), faq: false } } as StoryManifest))}
           />
         )}
+        {(() => {
+          const activeEdition = resolveEdition(editionContextFromManifest(manifest));
+          return (
+            <div style={{ textAlign: 'center' }}>
+              <EditionSectionOpener
+                style={activeEdition.sectionOpener}
+                index={sectionIndexOf(manifest, 'faq')}
+                title="FAQ"
+                kicker="Good to know"
+              />
+            </div>
+          );
+        })()}
         {/* TSectionHead — port of prototype's centered FAQ header. */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div
@@ -7296,6 +8097,45 @@ function FaqSectionImpl({ manifest, onEditField }: { manifest: StoryManifest; on
                   maxLength={800}
                   style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.65 }}
                 />
+                {/* Inline CTA chip — the natural next action after
+                    reading the answer. Only renders for categories
+                    with a clear affordance (RSVP/Plus-ones, Travel/
+                    Hotels, Gifts, Schedule). Informational categories
+                    (Dress code, Kids, Food + drink, Photos, Other)
+                    show no chip. Suppressed on very short answers
+                    and when the answer text already mentions the
+                    affordance inline. */}
+                {(() => {
+                  if (edit) return null;
+                  const cta = getFaqCta(cat);
+                  if (!shouldShowFaqCta(item.answer ?? '', cta)) return null;
+                  return (
+                    <div style={{ marginTop: 20 }}>
+                      <a
+                        href={cta.href}
+                        className="pl8-faq-cta-chip pl-pearl-border"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          padding: '6px 14px',
+                          borderRadius: 999,
+                          background: 'var(--cream, #F5EFE2)',
+                          color: 'var(--peach-ink, #C6703D)',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          letterSpacing: '0.04em',
+                          textDecoration: 'none',
+                          fontFamily: 'var(--font-ui)',
+                          transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
+                        }}
+                      >
+                        {cta.label}
+                        <span aria-hidden style={{ fontSize: 11, marginLeft: 2 }}>→</span>
+                      </a>
+                    </div>
+                  );
+                })()}
               </div>
               );
             };
@@ -7387,6 +8227,63 @@ function RSVPSectionImpl({
   const deadlineStr = deadline
     ? new Date(deadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
     : 'soon';
+  // ── RSVP urgency tier ─────────────────────────────────────────
+  // Compute days-until-event from logistics.date (the canonical
+  // event date). Map to a tier that shifts the deadline ribbon's
+  // color + emphasis as the day approaches:
+  //   >30d → muted   (default, no urgency cue)
+  //   7-30 → normal  (faint olive bg + olive ink)
+  //   3-7d → soon    (peach pulsing border + peach text)
+  //   <3d  → urgent  (red glow + bold uppercase "RSVP TODAY")
+  // When no eventDate is set, falls back to 'muted'.
+  const eventIsoForUrgency = manifest.logistics?.date;
+  const rsvpUrgencyTier: 'muted' | 'normal' | 'soon' | 'urgent' = (() => {
+    if (!eventIsoForUrgency) return 'muted';
+    const d = parseLocalDate(eventIsoForUrgency);
+    if (!d) return 'muted';
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diffMs = d.getTime() - today.getTime();
+    const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    if (days > 30) return 'muted';
+    if (days > 7) return 'normal';
+    if (days >= 3) return 'soon';
+    return 'urgent';
+  })();
+  // Per-tier ribbon style. Read by the deadline copy below + the
+  // EditionSectionOpener kicker. Urgent tier flips the kicker copy
+  // to the imperative all-caps form.
+  const rsvpUrgencyStyle: React.CSSProperties = (() => {
+    switch (rsvpUrgencyTier) {
+      case 'normal':
+        return {
+          color: 'var(--sage-deep, #5C6B3F)',
+          background: 'color-mix(in oklab, var(--sage-deep, #5C6B3F) 6%, transparent)',
+          border: '1px solid transparent',
+        };
+      case 'soon':
+        return {
+          color: 'var(--peach-ink, #C6703D)',
+          background: 'color-mix(in oklab, var(--peach-ink, #C6703D) 8%, transparent)',
+          border: '1px solid var(--peach-ink, #C6703D)',
+          animation: 'pl-rsvp-soon-pulse 1800ms ease-in-out infinite',
+        };
+      case 'urgent':
+        return {
+          color: 'var(--pl-plum, #7A2D2D)',
+          background: 'color-mix(in oklab, var(--pl-plum, #7A2D2D) 8%, transparent)',
+          border: '1px solid var(--pl-plum, #7A2D2D)',
+          fontWeight: 800,
+          textTransform: 'uppercase',
+          boxShadow: '0 0 0 4px color-mix(in oklab, var(--pl-plum, #7A2D2D) 12%, transparent)',
+          animation: 'pl-rsvp-urgent-pulse 1200ms ease-in-out infinite',
+        };
+      default:
+        return {};
+    }
+  })();
+  const urgentKickerCopy =
+    rsvpUrgencyTier === 'urgent' ? 'RSVP TODAY' : `Kindly respond by ${deadlineStr}`;
   const initials = names.filter(Boolean).map((n) => n[0] ?? '').join(' & ') || '';
 
   async function handleSubmit(e: React.FormEvent) {
@@ -7469,8 +8366,22 @@ function RSVPSectionImpl({
       <Blob tone="theme-accent" size={400} opacity={0.18} style={{ position: 'absolute', bottom: -140, right: -120 }} />
 
       <div style={{ maxWidth: 680, margin: '0 auto', position: 'relative' }}>
+        {(() => {
+          const activeEdition = resolveEdition(editionContextFromManifest(manifest));
+          return (
+            <div style={{ textAlign: 'center' }}>
+              <EditionSectionOpener
+                style={activeEdition.sectionOpener}
+                index={sectionIndexOf(manifest, 'rsvp')}
+                title="RSVP"
+                kicker={urgentKickerCopy}
+              />
+            </div>
+          );
+        })()}
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
           <div
+            data-pl-rsvp-urgency={rsvpUrgencyTier}
             style={{
               fontSize: 12,
               fontWeight: 700,
@@ -7481,10 +8392,14 @@ function RSVPSectionImpl({
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
+              padding: rsvpUrgencyTier === 'muted' ? 0 : '8px 14px',
+              borderRadius: rsvpUrgencyTier === 'muted' ? 0 : 'var(--pl-radius-full, 100px)',
+              transition: 'all var(--pl-dur-base, 280ms) var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1))',
+              ...rsvpUrgencyStyle,
             }}
           >
             <SectionStamp url={manifest.decorLibrary?.sectionStamps?.rsvp} fallbackIcon="mail" size={20} slotKey="rsvp" />
-            Kindly respond by {deadlineStr}
+            {rsvpUrgencyTier === 'urgent' ? 'RSVP TODAY' : `Kindly respond by ${deadlineStr}`}
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(44px, 7cqw, 72px)', margin: 0 }}>
             Will you <span className="display-italic">be there?</span>
@@ -9274,7 +10189,7 @@ export function SiteV8Renderer({
           const vibeSkin = (manifest as unknown as { vibeSkin?: import('@/lib/vibe-engine').VibeSkin }).vibeSkin;
           return <Guestbook siteId={siteSlug} coupleNames={names} vibeSkin={vibeSkin} />;
         })()}
-        <FooterBouquet url={bouquetUrl} />
+        <FooterBouquet url={bouquetUrl} manifest={manifest} />
         <SiteFooter names={names} prettyUrl={prettyUrl} manifest={manifest} onEditField={onEditField} />
         {/* Guest-side helpers — only on the published site, never in the editor.
             Each is independently dismissable / mobile-aware. */}

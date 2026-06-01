@@ -8,16 +8,19 @@
 // ──────────────────────────────────────────────────────────────
 
 import { PhotoDropTarget } from '@/components/pearloom/editor/canvas/PhotoDropTarget';
-import { PhotoPlaceholder } from '@/components/pearloom/motifs';
 import {
   HeroKicker, HeroNames, HeroDateVenue, HeroTagline,
-  HeroPrimaryCta,
+  HeroPrimaryCta, heroFallbackGradient,
 } from './parts';
 import type { HeroVariantProps } from './types';
 
 export function HeroSplit({ manifest, names: _names, siteSlug: _siteSlug, onEditField, onEditNames, context }: HeroVariantProps) {
   const { n1, n2, dateInfo, venue, deadlineStr, coverPhoto, photos } = context;
   const photoSrc = coverPhoto ?? photos[0];
+  // Edition-driven gradient fallback when the left photo slot is
+  // empty. Photo path is untouched — the gradient ONLY paints the
+  // 4:5 frame when photoSrc is missing.
+  const fallback = heroFallbackGradient(manifest);
 
   return (
     <div
@@ -37,19 +40,30 @@ export function HeroSplit({ manifest, names: _names, siteSlug: _siteSlug, onEdit
           onDrop={(url) => onEditField?.((m) => ({ ...m, coverPhoto: url }))}
           label="Drop to set cover"
         >
-          <div
-            style={{
-              aspectRatio: '4/5',
-              borderRadius: 6,
-              overflow: 'hidden',
-              boxShadow: '0 24px 56px rgba(61,74,31,0.18), 0 1px 2px rgba(0,0,0,0.05)',
-              background: photoSrc
-                ? `url(${photoSrc}) center/cover no-repeat`
-                : 'var(--cream-2)',
-            }}
-          >
-            {!photoSrc && <PhotoPlaceholder tone="warm" aspect="4/5" />}
-          </div>
+          {photoSrc ? (
+            <div
+              style={{
+                aspectRatio: '4/5',
+                borderRadius: 6,
+                overflow: 'hidden',
+                boxShadow: '0 24px 56px rgba(61,74,31,0.18), 0 1px 2px rgba(0,0,0,0.05)',
+                background: `url(${photoSrc}) center/cover no-repeat`,
+              }}
+            />
+          ) : (
+            <div
+              aria-hidden
+              data-pl-edition={fallback.editionId}
+              className={fallback.className}
+              style={{
+                aspectRatio: '4/5',
+                borderRadius: 6,
+                overflow: 'hidden',
+                boxShadow: '0 24px 56px rgba(61,74,31,0.18), 0 1px 2px rgba(0,0,0,0.05)',
+                background: fallback.background,
+              }}
+            />
+          )}
         </PhotoDropTarget>
       </div>
 

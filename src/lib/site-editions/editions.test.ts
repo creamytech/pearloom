@@ -9,8 +9,12 @@ import type { EditionId } from './types';
 
 describe('Site Editions', () => {
   describe('EDITIONS registry', () => {
-    it('ships exactly 5 editions', () => {
-      expect(EDITIONS).toHaveLength(5);
+    it('ships exactly 6 editions', () => {
+      // 5 originals (almanac, cinema, postcard-box, linen-folder, quiet)
+      // + coastal added in a later port. Updating this count is the
+      // signal we've intentionally added an Edition vs accidentally
+      // dropped one.
+      expect(EDITIONS).toHaveLength(6);
     });
 
     it('every edition id is unique', () => {

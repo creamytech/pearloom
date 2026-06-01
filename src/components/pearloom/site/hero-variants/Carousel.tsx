@@ -8,17 +8,19 @@
 // ──────────────────────────────────────────────────────────────
 
 import { PhotoDropTarget } from '@/components/pearloom/editor/canvas/PhotoDropTarget';
-import { PhotoPlaceholder } from '@/components/pearloom/motifs';
 import {
   HeroKicker, HeroNames, HeroDateVenue, HeroTagline,
-  HeroPrimaryCta,
+  HeroPrimaryCta, heroFallbackGradient,
 } from './parts';
 import type { HeroVariantProps } from './types';
 
-const STRIP_TONES = ['warm', 'lavender', 'dusk', 'peach', 'field', 'cream'] as const;
-
 export function HeroCarousel({ manifest, names: _names, siteSlug: _siteSlug, onEditField, onEditNames, context }: HeroVariantProps) {
   const { n1, n2, dateInfo, venue, deadlineStr, coverPhoto, photos } = context;
+  // Edition-driven gradient fallback for empty slots in the reel.
+  // Replaces the per-tile tonal PhotoPlaceholder; each empty slot
+  // shows the same Edition gradient so the strip reads as a coherent
+  // editorial band rather than a row of mismatched neutral tiles.
+  const fallback = heroFallbackGradient(manifest);
 
   // Up to 6 slots: cover + 5 slideshow.
   const slots: Array<{ url?: string; isCover: boolean; idx: number }> = [];
@@ -67,7 +69,16 @@ export function HeroCarousel({ manifest, names: _names, siteSlug: _siteSlug, onE
                 {s.url ? (
                   <div style={{ width: '100%', height: '100%', background: `url(${s.url}) center/cover no-repeat` }} />
                 ) : (
-                  <PhotoPlaceholder tone={STRIP_TONES[i]} aspect="4/5" />
+                  <div
+                    aria-hidden
+                    data-pl-edition={fallback.editionId}
+                    className={fallback.className}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      background: fallback.background,
+                    }}
+                  />
                 )}
               </PhotoDropTarget>
             </div>

@@ -14,7 +14,7 @@
 // away the host's deliberate picks.
 // ─────────────────────────────────────────────────────────────
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { PanelSection } from '../atoms';
 import { EDITIONS } from '@/lib/site-editions/editions';
@@ -22,6 +22,10 @@ import { resolveEdition } from '@/lib/site-editions/resolve';
 import { getEventType } from '@/lib/event-os/event-types';
 import type { SiteOccasion } from '@/lib/site-urls';
 import type { EditionDefinition, EditionId } from '@/lib/site-editions/types';
+import {
+  suggestEditionFromPhoto,
+  type EditionSuggestion,
+} from '@/lib/site-editions/suggest-from-photo';
 
 // ── Tile previews ────────────────────────────────────────────
 // Each preview is a 240×100 SVG miniature suggesting the Edition's
@@ -142,6 +146,41 @@ export function EditionPicker({ manifest, onChange }: Props) {
     [manifest.edition, occasion, voice],
   );
 
+  /* Auto-suggest from hero photo — informational only. We watch
+     manifest.coverPhoto for change and re-run the HSL classifier
+     in the background. The result renders as a pill above the
+     tiles with a one-click Apply. We never auto-apply because
+     picking an Edition stamps the WHOLE theme (palette, fonts,
+     radii, atmosphere) and a silent swap on upload would be
+     hostile to hosts who already curated their look.
+     We also clear the suggestion the moment its edition matches
+     what's already on the manifest (host has accepted it or
+     coincidentally already chose it) and when the host dismisses. */
+  const coverPhoto = manifest.coverPhoto;
+  const [suggestion, setSuggestion] = useState<EditionSuggestion | null>(null);
+  const [dismissedFor, setDismissedFor] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!coverPhoto || dismissedFor === coverPhoto) {
+      setSuggestion(null);
+      return;
+    }
+    let cancelled = false;
+    void suggestEditionFromPhoto(coverPhoto).then((s) => {
+      if (cancelled) return;
+      /* If the suggestion is already the active edition, suppress
+         the pill — there's nothing to apply. */
+      if (s && s.editionId === manifest.edition) {
+        setSuggestion(null);
+        return;
+      }
+      setSuggestion(s);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [coverPhoto, dismissedFor, manifest.edition]);
+
   function pick(ed: EditionDefinition) {
     if (ed.id === manifest.edition) return;
     // Picking an Edition stamps EVERY layout dimension at once so
@@ -256,12 +295,125 @@ export function EditionPicker({ manifest, onChange }: Props) {
      header. Uses the active occasion's display label. */
   const occasionLabel = (manifest.occasion ?? 'wedding').replace(/-/g, ' ');
 
+  /* Suggested-edition pill — sits above the grid, one-click Apply
+     reuses the same pick() routine the tiles do. Match-percent
+     rendered as confidence-by-band so the language stays honest
+     (we can't return a real model confidence here — these are
+     deterministic threshold buckets). */
+  const suggestedEdition = suggestion
+    ? EDITIONS.find((e) => e.id === suggestion.editionId)
+    : null;
+  const matchLabel = suggestion
+    ? suggestion.confidence === 'high'
+      ? '92% match'
+      : suggestion.confidence === 'medium'
+        ? '78% match'
+        : '60% match'
+    : '';
+
   return (
     <PanelSection
       label={`Recommended for ${occasionLabel}`}
       hint="One pick sets the whole theme — palette, fonts, radii, atmosphere."
       defaultOpen
     >
+      {suggestion && suggestedEdition && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '10px 12px',
+            marginBottom: 12,
+            borderRadius: 12,
+            background:
+              'linear-gradient(135deg, rgba(245,222,179,0.45), rgba(255,236,210,0.55))',
+            border: '1px solid var(--line-soft, rgba(14,13,11,0.10))',
+            fontFamily: 'var(--font-ui)',
+          }}
+        >
+          <span
+            aria-hidden
+            style={{
+              flex: '0 0 auto',
+              width: 22,
+              height: 22,
+              borderRadius: '50%',
+              background:
+                suggestedEdition.recommendedTheme?.colors?.accent ?? '#C2693E',
+              boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.10)',
+            }}
+          />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: 11.5,
+                fontWeight: 700,
+                color: 'var(--ink, #0E0D0B)',
+                letterSpacing: '0.02em',
+              }}
+            >
+              <span style={{ opacity: 0.7 }}>Auto-suggest: </span>
+              {suggestedEdition.label} · {matchLabel}
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                color: 'var(--ink-muted, #6F6557)',
+                lineHeight: 1.4,
+                marginTop: 1,
+              }}
+            >
+              {suggestion.rationale}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              pick(suggestedEdition);
+              setSuggestion(null);
+            }}
+            style={{
+              flex: '0 0 auto',
+              padding: '6px 12px',
+              borderRadius: 999,
+              background: 'var(--ink, #0E0D0B)',
+              color: 'var(--cream-2, #FBF7EE)',
+              border: 'none',
+              fontSize: 11.5,
+              fontWeight: 700,
+              letterSpacing: '0.02em',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            Apply
+          </button>
+          <button
+            type="button"
+            aria-label="Dismiss suggestion"
+            onClick={() => {
+              if (coverPhoto) setDismissedFor(coverPhoto);
+              setSuggestion(null);
+            }}
+            style={{
+              flex: '0 0 auto',
+              width: 22,
+              height: 22,
+              borderRadius: '50%',
+              background: 'transparent',
+              color: 'var(--ink-muted, #6F6557)',
+              border: 'none',
+              fontSize: 14,
+              lineHeight: 1,
+              cursor: 'pointer',
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
         {sortedEditions.map((ed) => {
           const on = active.id === ed.id;

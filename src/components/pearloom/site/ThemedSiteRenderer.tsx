@@ -37,6 +37,8 @@ import { MotifScatter, type MotifKind } from './MotifScatter';
 import { TextureFilters } from './TextureFilters';
 import { resolveEdition } from '@/lib/site-editions/resolve';
 import { getEventType } from '@/lib/event-os/event-types';
+import { EditionSectionOpener } from './edition-openers';
+import { DEFAULT_BLOCK_ORDER, type SiteBlockKey } from '@/lib/site-mode';
 
 interface Props {
   manifest: StoryManifest;
@@ -680,7 +682,7 @@ function ThemedStory({ manifest, motif, editMode }: { manifest: StoryManifest; m
       }}
     >
       <MotifScatter motif={motif} density="sparse" />
-      <ThemedSectionHead eyebrow="Our story" title="How we got" italic="here" />
+      <ThemedSectionHead eyebrow="Our story" title="How we got" italic="here" manifest={manifest} sectionKey="story" />
       {kit === 'ticket'    && <StoryTicket chapters={chapters} />}
       {kit === 'plate'     && <StoryPlate chapters={chapters} />}
       {kit === 'scrapbook' && <StoryScrapbook chapters={chapters} />}
@@ -884,9 +886,43 @@ function StoryMinimal({ chapters }: { chapters: Chapter[] }) {
 }
 
 /* ─── ThemedSectionHead — shared centered header (TSectionHead) ─── */
-function ThemedSectionHead({ eyebrow, title, italic }: { eyebrow: string; title: string; italic?: string }) {
+function ThemedSectionHead({
+  eyebrow,
+  title,
+  italic,
+  manifest,
+  sectionKey,
+}: {
+  eyebrow: string;
+  title: string;
+  italic?: string;
+  /** When provided alongside sectionKey, the section's Edition
+   *  opener (chapter mark / slug line / stamp / mono label /
+   *  overline) renders above the eyebrow. */
+  manifest?: StoryManifest;
+  sectionKey?: SiteBlockKey;
+}) {
+  const opener = (() => {
+    if (!manifest || !sectionKey) return null;
+    const occasion = manifest.occasion ?? 'wedding';
+    const eventType = getEventType(occasion);
+    const voice = eventType?.voice ?? 'celebratory';
+    const activeEdition = resolveEdition({ edition: manifest.edition, occasion, voice });
+    const order = (manifest as unknown as { blockOrder?: SiteBlockKey[] }).blockOrder;
+    const arr = (order && order.length > 0 ? order : DEFAULT_BLOCK_ORDER) as SiteBlockKey[];
+    const idx = arr.indexOf(sectionKey);
+    return (
+      <EditionSectionOpener
+        style={activeEdition.sectionOpener}
+        index={idx < 0 ? 1 : idx + 1}
+        title={eyebrow}
+        kicker={eyebrow}
+      />
+    );
+  })();
   return (
     <div style={{ textAlign: 'center', marginBottom: 36, position: 'relative' }}>
+      {opener}
       <div
         className="eyebrow"
         style={{
@@ -964,7 +1000,7 @@ function ThemedDetails({ manifest, motif, editMode }: { manifest: StoryManifest;
       }}
     >
       <MotifScatter motif={motif} density="sparse" />
-      <ThemedSectionHead eyebrow="What you need to know" title="The day," italic="in details" />
+      <ThemedSectionHead eyebrow="What you need to know" title="The day," italic="in details" manifest={manifest} sectionKey="details" />
       {kit === 'ticket'    && <DetailsTicket items={items} />}
       {kit === 'plate'     && <DetailsPlate items={items} />}
       {kit === 'scrapbook' && <DetailsScrapbook items={items} />}
@@ -1382,7 +1418,7 @@ function ThemedSchedule({ manifest, editMode }: { manifest: StoryManifest; editM
         position: 'relative',
       }}
     >
-      <ThemedSectionHead eyebrow="The day" title="In" italic="moments" />
+      <ThemedSectionHead eyebrow="The day" title="In" italic="moments" manifest={manifest} sectionKey="schedule" />
       {kit === 'ticket'    && <ScheduleTicket events={events} />}
       {kit === 'plate'     && <SchedulePlate events={events} />}
       {kit === 'scrapbook' && <ScheduleScrapbook events={events} />}
@@ -1828,7 +1864,7 @@ function ThemedTravel({ manifest, motif, editMode }: { manifest: StoryManifest; 
       }}
     >
       <MotifScatter motif={motif} density="sparse" />
-      <ThemedSectionHead eyebrow="Getting there" title="Where to" italic="stay" />
+      <ThemedSectionHead eyebrow="Getting there" title="Where to" italic="stay" manifest={manifest} sectionKey="travel" />
       {/* Port of prototype's TravelBlock (themed-site.jsx ~line
           389): 2-col grid, each card 14px padding flex layout
           with an 84px-square photo placeholder + content block.
@@ -1968,7 +2004,7 @@ function ThemedRegistry({ manifest, editMode }: { manifest: StoryManifest; editM
         position: 'relative',
       }}
     >
-      <ThemedSectionHead eyebrow="If you're asking" title="Registry," italic="gently" />
+      <ThemedSectionHead eyebrow="If you're asking" title="Registry," italic="gently" manifest={manifest} sectionKey="registry" />
       {reg?.message && (
         <div
           style={{
@@ -2059,7 +2095,7 @@ function ThemedGallery({ manifest, editMode }: { manifest: StoryManifest; editMo
         position: 'relative',
       }}
     >
-      <ThemedSectionHead eyebrow="Along the way" title="A few" italic="favorites" />
+      <ThemedSectionHead eyebrow="Along the way" title="A few" italic="favorites" manifest={manifest} sectionKey="gallery" />
       <div
         style={{
           display: 'grid',
@@ -2103,6 +2139,27 @@ function ThemedGallery({ manifest, editMode }: { manifest: StoryManifest; editMo
    primary action goes to the actual /g/[token] flow. ─── */
 function ThemedRsvp({ manifest }: { manifest: StoryManifest }) {
   const deadline = manifest.logistics?.rsvpDeadline;
+  /* Edition opener (chapter mark / slug line / stamp / mono /
+     overline) above the dark section's eyebrow. Resolves the
+     active Edition + index in the same order helper as the
+     other ThemedSectionHead callers. */
+  const openerNode = (() => {
+    const occasion = manifest.occasion ?? 'wedding';
+    const eventType = getEventType(occasion);
+    const voice = eventType?.voice ?? 'celebratory';
+    const activeEdition = resolveEdition({ edition: manifest.edition, occasion, voice });
+    const order = (manifest as unknown as { blockOrder?: SiteBlockKey[] }).blockOrder;
+    const arr = (order && order.length > 0 ? order : DEFAULT_BLOCK_ORDER) as SiteBlockKey[];
+    const idx = arr.indexOf('rsvp');
+    return (
+      <EditionSectionOpener
+        style={activeEdition.sectionOpener}
+        index={idx < 0 ? 1 : idx + 1}
+        title="RSVP"
+        kicker={deadline ? `RSVP by ${deadline}` : 'RSVP'}
+      />
+    );
+  })();
   return (
     <section
       id="rsvp"
@@ -2114,6 +2171,7 @@ function ThemedRsvp({ manifest }: { manifest: StoryManifest }) {
         position: 'relative',
       }}
     >
+      {openerNode}
       <div
         className="eyebrow"
         style={{
@@ -2275,7 +2333,7 @@ function ThemedFaq({ manifest, editMode }: { manifest: StoryManifest; editMode?:
         position: 'relative',
       }}
     >
-      <ThemedSectionHead eyebrow="Good to know" title="The little" italic="things" />
+      <ThemedSectionHead eyebrow="Good to know" title="The little" italic="things" manifest={manifest} sectionKey="faq" />
       <FaqList faq={faq} kit={kit} />
     </section>
   );

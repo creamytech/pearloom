@@ -9,10 +9,9 @@
 
 import { PhotoDropTarget } from '@/components/pearloom/editor/canvas/PhotoDropTarget';
 import { PhotoActionMenu } from '@/components/pearloom/editor/canvas/PhotoActionMenu';
-import { PhotoPlaceholder } from '@/components/pearloom/motifs';
 import {
   HeroKicker, HeroNames, HeroDateVenue, HeroTagline,
-  HeroPrimaryCta,
+  HeroPrimaryCta, heroFallbackGradient,
 } from './parts';
 import type { HeroVariantProps } from './types';
 
@@ -22,6 +21,12 @@ export function HeroPhotoFirst({ manifest, names: _names, siteSlug: _siteSlug, o
   const focalPoint =
     (manifest as unknown as { coverFocalPoint?: { x: number; y: number } }).coverFocalPoint;
   const bgPosition = focalPoint ? `${focalPoint.x}% ${focalPoint.y}%` : 'center';
+  // Edition-driven gradient fallback when no photo is set. The
+  // gradient REPLACES the flat PhotoPlaceholder so the hero still
+  // wears the active Edition's palette identity (Cinema midnight,
+  // Postcard Box tuscan, Quiet matte, etc.) instead of a neutral
+  // dusk tone. Photo path is untouched.
+  const fallback = heroFallbackGradient(manifest);
 
   return (
     <div
@@ -62,7 +67,15 @@ export function HeroPhotoFirst({ manifest, names: _names, siteSlug: _siteSlug, o
                 }}
               />
             ) : (
-              <PhotoPlaceholder tone="dusk" aspect="16/10" />
+              <div
+                aria-hidden
+                data-pl-edition={fallback.editionId}
+                className={fallback.className}
+                style={{
+                  width: '100%', height: '100%', minHeight: 'inherit',
+                  background: fallback.background,
+                }}
+              />
             )}
           </PhotoActionMenu>
         </PhotoDropTarget>
