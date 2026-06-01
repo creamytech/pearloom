@@ -197,12 +197,30 @@ export default async function PersonalGuestPage({
   const bodyFont = manifest.theme?.fonts?.body ?? 'Inter';
   const sitePublicUrl = `/sites/${site.subdomain}`;
 
+  /* Themed surface — same data-attribute contract as
+     ThemedSiteRenderer so all per-edition / per-texture / per-
+     kit CSS already shipped applies here. The guest page is the
+     personal hub but it should LOOK like the site it belongs
+     to. */
+  const edition = (manifest as unknown as { edition?: string }).edition ?? 'almanac';
+  const texture = (manifest as unknown as { texture?: string }).texture ?? 'smooth';
+  const density = (manifest as unknown as { density?: string }).density ?? 'comfortable';
+  const kitId = (manifest as unknown as { kitId?: string }).kitId ?? 'classic';
+  const peachInk = '#C6703D';
+  const inkMuted = '#6F6557';
+  const inkSoft = '#3A332C';
+
   return (
     <div
+      className="pl8-guest"
+      data-pl-edition={edition}
+      data-pl-texture={texture}
+      data-pl-density={density}
+      data-pl-kit={kitId}
       style={{
         minHeight: '100vh',
-        background: theme?.background ?? '#F5F1E8',
-        color: theme?.foreground ?? '#2B2B2B',
+        background: theme?.background ?? '#F5EFE2',
+        color: theme?.foreground ?? '#0E0D0B',
         fontFamily: bodyFont,
       }}
     >
@@ -364,32 +382,88 @@ export default async function PersonalGuestPage({
         />
       </section>
 
-      <section style={{ padding: '3rem 1.5rem', maxWidth: 720, margin: '0 auto' }}>
+      <section style={{ padding: 'calc(48px * var(--pl-density-scale, 1)) 24px', maxWidth: 760, margin: '0 auto' }}>
         {personalization.chapter_highlights.length > 0 && (
-          <div style={{ marginBottom: '2.5rem' }}>
-            <h2 style={{
-              fontFamily: headingFont,
-              fontSize: '1.5rem',
-              marginBottom: '1rem',
-              letterSpacing: '-0.01em',
-            }}>
-              Chapters with you in them
-            </h2>
-            <ul className="pl-cascade-row" style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '1rem' }}>
-              {personalization.chapter_highlights.map((h) => {
+          <div style={{ marginBottom: 44 }}>
+            {/* Editorial section head — eyebrow + display title with
+                italic accent, matching ThemedSectionHead in the
+                themed renderer. */}
+            <div style={{ textAlign: 'center', marginBottom: 22 }}>
+              <div
+                className="eyebrow"
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  color: peachInk,
+                  marginBottom: 10,
+                }}
+              >
+                Just for you
+              </div>
+              <h2
+                style={{
+                  fontFamily: headingFont,
+                  fontSize: 'clamp(28px, 4cqw, 40px)',
+                  fontWeight: 600,
+                  margin: 0,
+                  lineHeight: 1.04,
+                  letterSpacing: '-0.015em',
+                }}
+              >
+                Chapters with you in{' '}
+                <span style={{ fontStyle: 'italic', color: inkSoft }}>them</span>
+              </h2>
+            </div>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 14 }}>
+              {personalization.chapter_highlights.map((h, i) => {
                 const chapter = manifest.chapters?.find((c) => c.id === h.chapterId);
+                const numeral = ['I', 'II', 'III', 'IV', 'V', 'VI'][i] ?? String(i + 1);
                 return (
-                  <li key={h.chapterId} style={{
-                    padding: '1rem 1.25rem',
-                    background: theme?.cardBg ?? '#ffffff',
-                    borderRadius: '0.75rem',
-                    border: `1px solid ${theme?.accentLight ?? '#EEE8DC'}`,
-                  }}>
-                    <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: theme?.muted ?? '#9A9488', marginBottom: '0.35rem' }}>
-                      {chapter?.title || 'A chapter'}
-                    </div>
-                    <div style={{ fontSize: '0.95rem', lineHeight: 1.6 }}>
-                      {h.whyTheyreMentioned}
+                  <li
+                    key={h.chapterId}
+                    style={{
+                      padding: '18px 22px',
+                      background: theme?.cardBg ?? '#FBF7EE',
+                      borderRadius: 'var(--pl-card-radius, 12px)',
+                      border: `1px solid ${theme?.accentLight ?? 'rgba(14,13,11,0.08)'}`,
+                      display: 'grid',
+                      gridTemplateColumns: '28px 1fr',
+                      gap: 14,
+                      alignItems: 'baseline',
+                    }}
+                  >
+                    <span
+                      aria-hidden
+                      style={{
+                        fontFamily: headingFont,
+                        fontStyle: 'italic',
+                        fontWeight: 400,
+                        fontSize: 18,
+                        color: peachInk,
+                        opacity: 0.85,
+                      }}
+                    >
+                      {numeral}.
+                    </span>
+                    <div>
+                      <div
+                        className="eyebrow"
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          letterSpacing: '0.22em',
+                          textTransform: 'uppercase',
+                          color: inkMuted,
+                          marginBottom: 6,
+                        }}
+                      >
+                        {chapter?.title || 'A chapter'}
+                      </div>
+                      <div style={{ fontSize: 14.5, lineHeight: 1.65, color: inkSoft }}>
+                        {h.whyTheyreMentioned}
+                      </div>
                     </div>
                   </li>
                 );
@@ -398,43 +472,122 @@ export default async function PersonalGuestPage({
           </div>
         )}
 
-        <div className="pl-cascade-row" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', marginBottom: '2.5rem' }}>
-          <div style={{
-            padding: '1.25rem 1.5rem',
-            background: theme?.cardBg ?? '#ffffff',
-            borderRadius: '0.75rem',
-            border: `1px solid ${theme?.accentLight ?? '#EEE8DC'}`,
-          }}>
-            <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: theme?.muted ?? '#9A9488', marginBottom: '0.35rem' }}>
-              Your seat
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 18, marginBottom: 44 }}>
+          {/* Seat card — peach icon disc + eyebrow + display seat */}
+          <div
+            style={{
+              padding: '22px 22px',
+              background: theme?.cardBg ?? '#FBF7EE',
+              borderRadius: 'var(--pl-card-radius, 14px)',
+              border: `1px solid ${theme?.accentLight ?? 'rgba(14,13,11,0.08)'}`,
+              display: 'grid',
+              gridTemplateColumns: '52px 1fr',
+              gap: 18,
+              alignItems: 'center',
+            }}
+          >
+            <div
+              aria-hidden
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: '50%',
+                background: 'rgba(198,112,61,0.10)',
+                display: 'grid',
+                placeItems: 'center',
+                fontFamily: headingFont,
+                fontStyle: 'italic',
+                fontSize: 26,
+                color: peachInk,
+              }}
+            >
+              ✦
             </div>
-            <div style={{ fontSize: '1rem', lineHeight: 1.55 }}>
-              {personalization.seat_summary}
+            <div>
+              <div
+                className="eyebrow"
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  color: peachInk,
+                  marginBottom: 6,
+                }}
+              >
+                Your seat
+              </div>
+              <div
+                style={{
+                  fontFamily: headingFont,
+                  fontSize: 17,
+                  fontWeight: 600,
+                  color: theme?.foreground ?? '#0E0D0B',
+                  lineHeight: 1.45,
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {personalization.seat_summary}
+              </div>
             </div>
           </div>
 
           {(personalization.travel_tips.nearestAirport || personalization.travel_tips.recommendedHotels?.length) && (
-            <div style={{
-              padding: '1.25rem 1.5rem',
-              background: theme?.cardBg ?? '#ffffff',
-              borderRadius: '0.75rem',
-              border: `1px solid ${theme?.accentLight ?? '#EEE8DC'}`,
-            }}>
-              <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: theme?.muted ?? '#9A9488', marginBottom: '0.5rem' }}>
+            <div
+              style={{
+                padding: '22px 22px',
+                background: theme?.cardBg ?? '#FBF7EE',
+                borderRadius: 'var(--pl-card-radius, 14px)',
+                border: `1px solid ${theme?.accentLight ?? 'rgba(14,13,11,0.08)'}`,
+              }}
+            >
+              <div
+                className="eyebrow"
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  color: peachInk,
+                  marginBottom: 10,
+                }}
+              >
                 Getting here from {guest.home_city ?? 'home'}
               </div>
               {personalization.travel_tips.nearestAirport && (
-                <div style={{ fontSize: '0.9rem', marginBottom: '0.25rem' }}>
-                  Nearest airport: <strong>{personalization.travel_tips.nearestAirport}</strong>
-                  {personalization.travel_tips.driveTime && ` — ${personalization.travel_tips.driveTime}`}
+                <div
+                  style={{
+                    fontFamily: headingFont,
+                    fontSize: 17,
+                    fontWeight: 600,
+                    color: theme?.foreground ?? '#0E0D0B',
+                    lineHeight: 1.3,
+                    marginBottom: 4,
+                  }}
+                >
+                  {personalization.travel_tips.nearestAirport}
+                  {personalization.travel_tips.driveTime && (
+                    <span style={{ fontStyle: 'italic', color: inkSoft, fontWeight: 400, fontSize: 14 }}>
+                      {' — '}{personalization.travel_tips.driveTime}
+                    </span>
+                  )}
                 </div>
               )}
               {personalization.travel_tips.recommendedHotels?.length ? (
-                <ul style={{ listStyle: 'none', padding: 0, margin: '0.5rem 0 0', fontSize: '0.9rem' }}>
+                <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0 0', fontSize: 13.5, lineHeight: 1.6 }}>
                   {personalization.travel_tips.recommendedHotels.map((h, i) => (
-                    <li key={i} style={{ margin: '0.25rem 0' }}>
-                      {h.url ? <a href={h.url} style={{ color: theme?.accent ?? '#5C6B3F' }}>{h.name}</a> : h.name}
-                      {h.note && <span style={{ color: theme?.muted ?? '#9A9488' }}> — {h.note}</span>}
+                    <li key={i} style={{ margin: '4px 0', color: inkSoft }}>
+                      {h.url ? (
+                        <a
+                          href={h.url}
+                          style={{ color: peachInk, fontWeight: 600, textDecoration: 'none', borderBottom: `1px dotted ${peachInk}` }}
+                        >
+                          {h.name}
+                        </a>
+                      ) : (
+                        <span style={{ fontWeight: 600 }}>{h.name}</span>
+                      )}
+                      {h.note && <span style={{ color: inkMuted }}> — {h.note}</span>}
                     </li>
                   ))}
                 </ul>
@@ -457,19 +610,21 @@ export default async function PersonalGuestPage({
         occasion={(manifest as unknown as { occasion?: string }).occasion ?? null}
       />
 
-      <section style={{ padding: '0 1.5rem 2rem', maxWidth: 720, margin: '0 auto' }}>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+      <section style={{ padding: '0 24px 32px', maxWidth: 760, margin: '0 auto' }}>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', marginTop: 8 }}>
+          {/* Primary CTA — peach pill (prototype's primary affordance
+              treatment) so it stands out against the host's accent. */}
           <a
             href={`/rsvp?site=${site.subdomain}&g=${token}`}
             style={{
-              padding: '0.85rem 1.5rem',
-              background: theme?.accent ?? '#5C6B3F',
-              color: theme?.background ?? '#F5F1E8',
-              borderRadius: 'var(--pl-radius-full)',
-              fontSize: '0.9rem',
+              padding: '13px 26px',
+              background: peachInk,
+              color: '#FBF7EE',
+              borderRadius: 999,
+              fontSize: 13.5,
+              fontWeight: 700,
               letterSpacing: '0.02em',
               textDecoration: 'none',
-              fontWeight: 600,
             }}
           >
             RSVP now →
@@ -477,13 +632,14 @@ export default async function PersonalGuestPage({
           <a
             href={sitePublicUrl}
             style={{
-              padding: '0.85rem 1.5rem',
+              padding: '13px 26px',
               background: 'transparent',
-              color: theme?.foreground ?? '#2B2B2B',
-              borderRadius: 'var(--pl-radius-full)',
-              fontSize: '0.9rem',
+              color: theme?.foreground ?? '#0E0D0B',
+              borderRadius: 999,
+              fontSize: 13.5,
+              fontWeight: 600,
               textDecoration: 'none',
-              border: `1px solid ${theme?.accentLight ?? '#EEE8DC'}`,
+              border: '1px solid rgba(14,13,11,0.16)',
             }}
           >
             See the full site →
@@ -491,8 +647,45 @@ export default async function PersonalGuestPage({
         </div>
       </section>
 
-      <footer style={{ padding: '2rem 1rem', textAlign: 'center', fontSize: '0.75rem', color: theme?.muted ?? '#9A9488' }}>
-        Personalized for {guest.display_name} · <a href="https://pearloom.com" style={{ color: 'inherit' }}>Pearloom</a>
+      {/* Editorial footer — gold hairline → italic display name →
+          colophon. Matches ThemedFooter so the guest page closes
+          the same way the public site does. */}
+      <footer style={{ padding: '48px 24px 36px', textAlign: 'center', background: theme?.background ?? '#F5EFE2' }}>
+        <div
+          aria-hidden
+          style={{
+            width: 180,
+            height: 1,
+            margin: '0 auto 24px',
+            background: 'linear-gradient(90deg, transparent, #B8935A 50%, transparent)',
+            opacity: 0.6,
+          }}
+        />
+        <span
+          style={{
+            fontFamily: headingFont,
+            fontStyle: 'italic',
+            fontSize: 20,
+            fontWeight: 500,
+            color: theme?.foreground ?? '#0E0D0B',
+            letterSpacing: '-0.01em',
+          }}
+        >
+          Personalized for {guest.display_name}
+        </span>
+        <div
+          style={{
+            marginTop: 14,
+            fontSize: 11,
+            color: inkMuted,
+            fontStyle: 'italic',
+          }}
+        >
+          woven on{' '}
+          <a href="https://pearloom.com" style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px dotted currentColor' }}>
+            Pearloom
+          </a>
+        </div>
       </footer>
 
       {/* Guest-aware Pear concierge — same chat pill as the public
