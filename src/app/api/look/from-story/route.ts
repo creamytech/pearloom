@@ -134,19 +134,39 @@ export async function POST(req: Request) {
   }
 
   try {
-    const msg = await generate({
-      tier: 'haiku', // lightweight understanding task — Haiku is plenty
+    /* Use forced tool_use (generateJson) so Claude can't return
+       prose-wrapped JSON. The schema below mirrors SuggestedLook
+       so any field drift fails fast at the tool-call layer and
+       we drop to heuristic, never silently render a malformed
+       SuggestedLook in the UI. */
+    const { generateJson } = await import('@/lib/claude/structured');
+    const parsed = await generateJson<SuggestedLook>({
+      tier: 'haiku',
       system: [cached(SYSTEM_PROMPT, '5m')],
       messages: [{ role: 'user', content: text }],
       maxTokens: 400,
       temperature: 0.6,
+      schemaName: 'emit_suggested_look',
+      schemaDescription: 'Emit the inferred site look from a free-text story',
+      schema: {
+        type: 'object',
+        required: ['occasion', 'edition', 'texture', 'voiceOverride', 'density', 'textureIntensity'],
+        properties: {
+          occasion: { type: 'string' },
+          edition: { type: 'string' },
+          texture: { type: 'string' },
+          voiceOverride: { type: 'string' },
+          density: { type: 'string' },
+          textureIntensity: { type: 'number', minimum: 0, maximum: 1.5 },
+          rationale: { type: 'string' },
+        },
+      },
     });
-    const raw = textFrom(msg);
-    const parsed = parseJsonFromText<SuggestedLook>(raw);
 
-    /* Validate the shape — if Claude returned something unexpected
-       (wrong occasion id, missing field, intensity out of range),
-       fall back to the heuristic. */
+    /* Defensive validation — the schema gives us almost everything
+       but we still want belt-and-braces on the field VALUES
+       (string enums Claude could pick from but doesn't HAVE to
+       constrain itself to). */
     if (
       !parsed.occasion ||
       !parsed.edition ||
@@ -155,7 +175,7 @@ export async function POST(req: Request) {
       !parsed.density ||
       typeof parsed.textureIntensity !== 'number'
     ) {
-      console.warn('[look/from-story] Claude returned malformed JSON; falling back');
+      console.warn('[look/from-story] Claude returned malformed structured output; falling back');
       return NextResponse.json(heuristicResponse);
     }
     /* Clamp intensity to valid range. */

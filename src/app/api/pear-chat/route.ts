@@ -464,6 +464,19 @@ export async function POST(req: NextRequest) {
   // patches); host mode is the full editor experience.
   const systemPrompt = body.mode === 'guest' ? SYSTEM_GUEST : SYSTEM;
 
+  /* Provider choice — Sonnet for editorial quality when
+     ANTHROPIC_API_KEY is set, Gemini Flash as fallback. The
+     audit-recommended path: Sonnet 4.6 reads as much more
+     "Pear" than Gemini Flash for the concierge surface. */
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  if (anthropicKey) {
+    return streamFromAnthropic({
+      systemPrompt,
+      contents,
+      maxTokens: body.mode === 'guest' ? 512 : 1024,
+    });
+  }
+
   // Stream from Gemini's streamGenerateContent endpoint and
   // re-emit as plain text chunks via SSE.
   const upstreamUrl = `${GEMINI_FLASH.replace(':generateContent', ':streamGenerateContent')}?key=${apiKey}&alt=sse`;
@@ -528,6 +541,75 @@ export async function POST(req: NextRequest) {
   });
 
   return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+    },
+  });
+}
+
+/* ───────── Anthropic streaming path ─────────
+   When ANTHROPIC_API_KEY is set we route Pear-chat through
+   Claude Sonnet 4.6 — the audit-recommended editorial-quality
+   model for concierge surfaces. Same SSE wire format the
+   Gemini path uses (`data: {"delta":"…"}` / `data: {"done":true}`)
+   so the chat UI doesn't care which provider answered. */
+async function streamFromAnthropic({
+  systemPrompt,
+  contents,
+  maxTokens,
+}: {
+  systemPrompt: string;
+  contents: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }>;
+  maxTokens: number;
+}): Promise<Response> {
+  const { getAnthropicClient, CLAUDE_SONNET } = await import('@/lib/claude/client');
+  /* Translate Gemini's role 'model' to Anthropic's 'assistant'
+     and collapse the parts[] arrays into a single string per
+     turn (Pearloom's chat is text-only). */
+  const messages: Array<{ role: 'user' | 'assistant'; content: string }> = contents.map((c) => ({
+    role: c.role === 'model' ? 'assistant' : 'user',
+    content: c.parts.map((p) => p.text).join('\n'),
+  }));
+  const client = getAnthropicClient();
+  const stream = client.messages.stream({
+    model: CLAUDE_SONNET,
+    max_tokens: maxTokens,
+    temperature: 0.7,
+    system: [
+      {
+        type: 'text',
+        text: systemPrompt,
+        cache_control: { type: 'ephemeral', ttl: '1h' },
+      },
+    ],
+    messages,
+  });
+  const sse = new ReadableStream({
+    async start(controller) {
+      const send = (obj: Record<string, unknown>) => {
+        controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(obj)}\n\n`));
+      };
+      try {
+        for await (const event of stream) {
+          if (
+            event.type === 'content_block_delta' &&
+            event.delta.type === 'text_delta' &&
+            event.delta.text
+          ) {
+            send({ delta: event.delta.text });
+          }
+        }
+        send({ done: true });
+      } catch (e) {
+        send({ error: e instanceof Error ? e.message : 'Stream interrupted' });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+  return new Response(sse, {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache, no-transform',
