@@ -52,14 +52,18 @@ export const EDITIONS: EditionDefinition[] = [
        Inter body. Matches Pearloom's current v8 default so existing
        Almanac sites are byte-for-byte unchanged. Display weight
        600 + scale 1.0 + 0.14em eyebrow = the Pearloom v8 baseline. */
+    /* Pressed Garden — cotton paper cream, sage-green primary,
+       lavender wash, peach highlight. The prototype's swatch order
+       (lavender · sage · peach · cream) maps to:
+         accent=sage, accentLight=lavender, gold-stop=peach. */
     recommendedTheme: {
       colors: {
-        background: '#F5EFE2',
+        background: '#F5EFE2',   // cream paper
         cardBg: '#FBF7EE',
-        foreground: '#0E0D0B',
-        muted: '#6F6557',
-        accent: '#5C6B3F',
-        accentLight: '#E3E6C8',
+        foreground: '#3D4A1F',   // sage-deep ink
+        muted: '#7A8467',
+        accent: '#8B9C5A',       // sage primary
+        accentLight: '#E5DCEF',  // lavender wash
       },
       fonts: {
         heading: 'Fraunces',
@@ -260,15 +264,17 @@ export const EDITIONS: EditionDefinition[] = [
     },
     forbiddenMotifs: ['blob', 'sparkle', 'heart', 'postIt', 'polaroid', 'stamp'],
     recommendedFor: ['memorial', 'funeral'],
-    /* Quiet — pure ivory paper, near-black ink, monochrome editorial
-       Inter (no serif at all — restraint posture). Sharp 2px radii. */
+    /* Modern Editorial — flat matte cream, near-black ink, single
+       gold accent for high-contrast type. Prototype swatch reads
+       black · gold · gray · cream so accent stops carry gold; no
+       serif at all. Sharp 2px radii. */
     recommendedTheme: {
       colors: {
         background: '#F4F3EF',
         cardBg: '#FBFAF7',
-        foreground: '#1A1A17',
+        foreground: '#0E0D0B',
         muted: '#8A8980',
-        accent: '#46453E',
+        accent: '#B8935A',        // gold accent
         accentLight: '#E9E7E0',
       },
       fonts: {
