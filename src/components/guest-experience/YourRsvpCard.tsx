@@ -154,42 +154,62 @@ export function YourRsvpCard({
   return (
     <div
       style={{
-        padding: '1.25rem 1.5rem',
-        background: 'var(--card, #ffffff)',
-        borderRadius: '0.75rem',
-        border: `1px solid ${accent}33`,
+        padding: '24px 24px',
+        background: 'var(--card, #FBF7EE)',
+        borderRadius: 'var(--pl-card-radius, 14px)',
+        border: '1px solid rgba(14,13,11,0.08)',
+        boxShadow: 'var(--pl-card-shadow, 0 4px 14px rgba(75,65,52,0.08))',
         display: 'flex',
         flexDirection: 'column',
-        gap: '0.85rem',
+        gap: 14,
         fontFamily: 'var(--font-ui)',
       }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {/* Peach eyebrow matching ThemedSectionHead */}
         <span
+          className="eyebrow"
           style={{
-            fontSize: '0.75rem',
+            fontSize: 10.5,
             textTransform: 'uppercase',
-            letterSpacing: '0.18em',
+            letterSpacing: '0.22em',
             fontWeight: 700,
-            color: accent,
+            color: '#C6703D',
           }}
         >
           Your RSVP
         </span>
+        {/* Status as display-italic — same two-tier treatment the
+            themed renderer uses ("How we got [here]") */}
         <h3
           style={{
             margin: 0,
-            fontSize: '1.25rem',
+            fontSize: 26,
             fontFamily: headingFont,
-            fontWeight: 500,
-            letterSpacing: '-0.005em',
-            color: 'var(--ink, #2B2B2B)',
+            fontWeight: 600,
+            letterSpacing: '-0.015em',
+            color: 'var(--ink, #0E0D0B)',
+            lineHeight: 1.1,
           }}
         >
-          {STATUS_LABELS[status]}{firstName ? `, ${firstName}` : ''}.
+          {firstName ? `${firstName},` : ''}
+          {firstName && <br />}
+          <span style={{ fontStyle: 'italic', fontWeight: 400, color: '#C6703D' }}>
+            {STATUS_LABELS[status].toLowerCase()}
+          </span>
+          .
         </h3>
         {savedAt && status !== 'pending' && (
-          <span style={{ fontSize: '0.78rem', color: 'var(--ink-muted, #9A9488)' }}>
+          <span
+            className="eyebrow"
+            style={{
+              fontSize: 10,
+              textTransform: 'uppercase',
+              letterSpacing: '0.22em',
+              fontWeight: 700,
+              color: 'var(--ink-muted, #6F6557)',
+            }}
+          >
             Updated {relativeTime(savedAt)}
           </span>
         )}
