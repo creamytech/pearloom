@@ -5373,7 +5373,11 @@ html { scroll-behavior: smooth; }
 }
 .pl8-guest[data-pl-texture="paper"]::before {
   content: '';
-  position: fixed;
+  /* position: absolute (NOT fixed) so the overlay is contained
+     to .pl8-guest. `fixed` paints relative to the viewport which
+     leaks the grain onto the editor's left/top rails — same bug
+     fixed previously for watercolor/linen/letterpress/vellum. */
+  position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 100;
@@ -5384,7 +5388,7 @@ html { scroll-behavior: smooth; }
 }
 .pl8-guest[data-pl-texture="paper"]::after {
   content: '';
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 100;
@@ -5402,7 +5406,8 @@ html { scroll-behavior: smooth; }
 }
 .pl8-guest[data-pl-texture="cotton"]::before {
   content: '';
-  position: fixed;
+  /* position: absolute (NOT fixed) — contains to .pl8-guest. */
+  position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 100;
@@ -5413,7 +5418,7 @@ html { scroll-behavior: smooth; }
 }
 .pl8-guest[data-pl-texture="cotton"]::after {
   content: '';
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 100;
@@ -5431,7 +5436,8 @@ html { scroll-behavior: smooth; }
 }
 .pl8-guest[data-pl-texture="velvet"]::before {
   content: '';
-  position: fixed;
+  /* position: absolute (NOT fixed) — contains to .pl8-guest. */
+  position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 100;
@@ -5441,7 +5447,7 @@ html { scroll-behavior: smooth; }
 }
 .pl8-guest[data-pl-texture="velvet"]::after {
   content: '';
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 100;
