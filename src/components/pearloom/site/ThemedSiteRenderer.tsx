@@ -2767,19 +2767,44 @@ function ThemedMap({ manifest }: { manifest: StoryManifest }) {
               style={{ width: '100%', height: '100%', border: 0 }}
             />
           ) : (
+            /* No coords on the manifest — render a styled pin
+               placeholder so the section reads as intentional
+               instead of as an empty box. */
             <div
               style={{
                 width: '100%',
                 height: '100%',
-                display: 'grid',
-                placeItems: 'center',
-                color: 'var(--ink-muted, #6F6557)',
-                fontStyle: 'italic',
-                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-                fontSize: 16,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 10,
+                background:
+                  'radial-gradient(circle at 50% 60%, color-mix(in oklab, var(--peach-ink, #C6703D) 12%, var(--cream-2, #EBE3D2)) 0%, var(--cream-2, #EBE3D2) 60%)',
               }}
             >
-              Find it on Maps
+              <div
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: '50%',
+                  background: 'var(--peach-bg, rgba(198,112,61,0.12))',
+                  display: 'grid',
+                  placeItems: 'center',
+                }}
+              >
+                <Icon name="pin" size={22} color="var(--peach-ink, #C6703D)" />
+              </div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                  fontStyle: 'italic',
+                  fontSize: 17,
+                  color: 'var(--ink-soft, #3A332C)',
+                }}
+              >
+                Find it on Maps
+              </div>
             </div>
           )}
         </div>
