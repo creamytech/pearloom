@@ -926,10 +926,12 @@ function ThemedSectionHead({ eyebrow, title, italic }: { eyebrow: string; title:
    display font. The icon disc gives each card identity at a
    glance; the grid is tighter (3 cols on wide) so the cards feel
    like a magazine info-graphic, not a tight grid. ─── */
+type DetailItem = { icon: string; label: string; value: string; sub?: string };
+
 function ThemedDetails({ manifest, motif, editMode }: { manifest: StoryManifest; motif: MotifKind; editMode?: boolean }) {
   const l = manifest.logistics ?? {};
   const dresscode = l.dresscode;
-  const items: Array<{ icon: string; label: string; value: string }> = [];
+  const items: DetailItem[] = [];
   if (dresscode) items.push({ icon: 'sparkles', label: 'Dress code', value: dresscode });
   if ((l as { kids?: string }).kids) items.push({ icon: 'users', label: 'Kids', value: String((l as { kids?: string }).kids) });
   if ((manifest as unknown as { registry?: { message?: string } }).registry?.message) {
@@ -950,6 +952,8 @@ function ThemedDetails({ manifest, motif, editMode }: { manifest: StoryManifest;
       />
     );
   }
+  const kit = (manifest.kitId ?? 'classic') as
+    | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal';
   return (
     <section
       id="details"
@@ -961,68 +965,383 @@ function ThemedDetails({ manifest, motif, editMode }: { manifest: StoryManifest;
     >
       <MotifScatter motif={motif} density="sparse" />
       <ThemedSectionHead eyebrow="What you need to know" title="The day," italic="in details" />
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${Math.min(items.length, 3)}, 1fr)`,
-          gap: 22,
-          maxWidth: 880,
-          margin: '0 auto',
-        }}
-      >
-        {items.map((it, i) => (
+      {kit === 'ticket'    && <DetailsTicket items={items} />}
+      {kit === 'plate'     && <DetailsPlate items={items} />}
+      {kit === 'scrapbook' && <DetailsScrapbook items={items} />}
+      {kit === 'index'     && <DetailsIndex items={items} />}
+      {kit === 'minimal'   && <DetailsMinimal items={items} />}
+      {kit === 'classic'   && <DetailsClassic items={items} />}
+    </section>
+  );
+}
+
+/* DetailsClassic — tile grid. Port of KDetails default branch. */
+function DetailsClassic({ items }: { items: DetailItem[] }) {
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${Math.min(items.length, 3)}, 1fr)`,
+        gap: 16,
+        maxWidth: 800,
+        margin: '0 auto',
+      }}
+    >
+      {items.map((d, i) => (
+        <div
+          key={d.label}
+          style={{
+            ...kitCardStyle('classic', i),
+            padding: 20,
+          }}
+        >
           <div
-            key={it.label}
+            aria-hidden
             style={{
-              ...kitCardStyle(manifest.kitId ?? 'classic', i),
-              padding: '28px 22px 24px',
-              textAlign: 'center',
+              width: 38,
+              height: 38,
+              borderRadius: 10,
+              background: 'var(--peach-bg, rgba(198,112,61,0.10))',
+              display: 'grid',
+              placeItems: 'center',
+              marginBottom: 12,
             }}
           >
-            {/* Icon disc — peach-bg circle with the icon centered.
-                Reads as a feature label, not a chip. */}
-            <div
-              aria-hidden
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: '50%',
-                margin: '0 auto 18px',
-                background: 'var(--peach-bg, rgba(198,112,61,0.10))',
-                display: 'grid',
-                placeItems: 'center',
-              }}
-            >
-              <Icon name={it.icon} size={24} color="var(--peach-ink, #C6703D)" />
-            </div>
-            <div
-              className="eyebrow"
-              style={{
-                marginBottom: 8,
-                fontSize: 10.5,
-                fontWeight: 700,
-                letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
-                textTransform: 'uppercase',
-                color: 'var(--ink-muted, #6F6557)',
-              }}
-            >
-              {it.label}
-            </div>
-            <div
+            <Icon name={d.icon} size={18} color="var(--peach-ink, #C6703D)" />
+          </div>
+          <div
+            className="eyebrow"
+            style={{
+              fontSize: 10.5,
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-muted, #6F6557)',
+              marginBottom: 4,
+            }}
+          >
+            {d.label}
+          </div>
+          <div
+            style={{
+              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+              fontWeight: 'var(--pl-display-wght, 600)',
+              fontSize: 20,
+              color: 'var(--ink, #0E0D0B)',
+            }}
+          >
+            {d.value}
+          </div>
+          {d.sub && (
+            <div style={{ fontSize: 12.5, color: 'var(--ink-muted, #6F6557)', marginTop: 3 }}>{d.sub}</div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* DetailsTicket — single dashed-bordered row spanning the page,
+   each item a column separated by dashed verticals. Prototype's
+   KDetails ticket branch. */
+function DetailsTicket({ items }: { items: DetailItem[] }) {
+  return (
+    <div
+      style={{
+        maxWidth: 760,
+        margin: '0 auto',
+        display: 'grid',
+        gridTemplateColumns: `repeat(${items.length}, 1fr)`,
+        background: 'var(--card, #FBF7EE)',
+        border: '1.5px dashed var(--ink-soft, rgba(14,13,11,0.30))',
+        borderRadius: 8,
+        overflow: 'hidden',
+      }}
+    >
+      {items.map((d, i) => (
+        <div
+          key={d.label}
+          style={{
+            padding: '18px 14px',
+            textAlign: 'center',
+            borderRight: i < items.length - 1 ? '2px dashed var(--ink-soft, rgba(14,13,11,0.30))' : 'none',
+          }}
+        >
+          <Icon name={d.icon} size={17} color="var(--peach-ink, #C6703D)" />
+          <div
+            style={{
+              fontFamily: 'Courier New, ui-monospace, monospace',
+              fontSize: 10,
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-muted, #6F6557)',
+              margin: '8px 0 3px',
+            }}
+          >
+            {d.label}
+          </div>
+          <div
+            style={{
+              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+              fontWeight: 'var(--pl-display-wght, 600)',
+              fontSize: 18,
+              color: 'var(--ink, #0E0D0B)',
+            }}
+          >
+            {d.value}
+          </div>
+          {d.sub && (
+            <div style={{ fontSize: 11.5, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>{d.sub}</div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* DetailsPlate — vertical "dotted leader" list. Each row is
+   label LEFT (uppercase eyebrow) + dotted leader stretching to
+   value RIGHT (display font right-aligned). Prototype's
+   KDetails plate branch. */
+function DetailsPlate({ items }: { items: DetailItem[] }) {
+  return (
+    <div style={{ maxWidth: 560, margin: '0 auto' }}>
+      {items.map((d, i) => (
+        <div
+          key={d.label}
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            gap: 12,
+            padding: '15px 4px',
+            borderBottom:
+              i < items.length - 1
+                ? '1px solid var(--line-soft, rgba(14,13,11,0.10))'
+                : 'none',
+          }}
+        >
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-muted, #6F6557)',
+              minWidth: 96,
+            }}
+          >
+            {d.label}
+          </span>
+          <span
+            aria-hidden
+            style={{
+              flex: 1,
+              borderBottom: '1px dotted var(--line-soft, rgba(14,13,11,0.20))',
+              transform: 'translateY(-4px)',
+            }}
+          />
+          <span
+            style={{
+              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+              fontWeight: 'var(--pl-display-wght, 600)',
+              fontSize: 18,
+              textAlign: 'right',
+              color: 'var(--ink, #0E0D0B)',
+            }}
+          >
+            {d.value}
+            {d.sub && (
+              <span
+                style={{
+                  display: 'block',
+                  fontFamily: 'var(--font-ui, Inter, sans-serif)',
+                  fontWeight: 400,
+                  fontSize: 12,
+                  color: 'var(--ink-muted, #6F6557)',
+                }}
+              >
+                {d.sub}
+              </span>
+            )}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* DetailsScrapbook — tilted polaroid mini-cards arranged in a
+   flex-wrap row. Tape strip above each, script-font label, then
+   display-font value. Prototype's KDetails scrapbook branch. */
+function DetailsScrapbook({ items }: { items: DetailItem[] }) {
+  const tilts = [-2.5, 1.8, -1.2, 2.4];
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 16, paddingTop: 8 }}>
+      {items.map((d, i) => (
+        <div
+          key={d.label}
+          style={{
+            width: 168,
+            position: 'relative',
+            background: '#fffdf7',
+            boxShadow: '0 10px 22px rgba(0,0,0,0.12)',
+            borderRadius: 2,
+            padding: '20px 16px 16px',
+            transform: `rotate(${tilts[i % 4]}deg)`,
+            marginTop: i % 2 ? 14 : 0,
+          }}
+        >
+          <span
+            aria-hidden
+            style={{
+              position: 'absolute',
+              top: -9,
+              left: '50%',
+              transform: 'translateX(-50%) rotate(-4deg)',
+              width: 48,
+              height: 16,
+              background: 'color-mix(in oklab, var(--peach-ink, #C6703D) 32%, transparent)',
+            }}
+          />
+          <Icon name={d.icon} size={18} color="var(--peach-ink, #C6703D)" />
+          <div
+            style={{
+              fontFamily: 'var(--font-script, Caveat, cursive)',
+              fontSize: 20,
+              color: 'var(--peach-ink, #C6703D)',
+              marginTop: 6,
+            }}
+          >
+            {d.label}
+          </div>
+          <div
+            style={{
+              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+              fontWeight: 'var(--pl-display-wght, 600)',
+              fontSize: 18,
+              marginTop: 2,
+              color: 'var(--ink, #0E0D0B)',
+            }}
+          >
+            {d.value}
+          </div>
+          {d.sub && (
+            <div style={{ fontSize: 11.5, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>{d.sub}</div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* DetailsIndex — ruled index cards with red-margin + blue rule
+   lines. Icon left, mono-uppercase label, then value + subtitle
+   inline. Prototype's KDetails index branch. */
+function DetailsIndex({ items }: { items: DetailItem[] }) {
+  return (
+    <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {items.map((d) => (
+        <div
+          key={d.label}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+            background: 'var(--card, #FBF7EE)',
+            borderRadius: 2,
+            borderLeft: '2px solid rgba(199,80,80,0.55)',
+            padding: '14px 18px',
+            backgroundImage:
+              'repeating-linear-gradient(180deg, transparent 0 20px, rgba(74,118,196,0.10) 20px 21px)',
+          }}
+        >
+          <Icon name={d.icon} size={18} color="var(--peach-ink, #C6703D)" />
+          <div
+            style={{
+              minWidth: 96,
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-muted, #6F6557)',
+            }}
+          >
+            {d.label}
+          </div>
+          <div style={{ flex: 1 }}>
+            <span
               style={{
                 fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-                fontSize: 20,
-                fontWeight: 600,
+                fontWeight: 'var(--pl-display-wght, 600)',
+                fontSize: 18,
                 color: 'var(--ink, #0E0D0B)',
-                lineHeight: 1.2,
               }}
             >
-              {it.value}
-            </div>
+              {d.value}
+            </span>
+            {d.sub && (
+              <span style={{ fontSize: 12.5, color: 'var(--ink-muted, #6F6557)', marginLeft: 8 }}>
+                {d.sub}
+              </span>
+            )}
           </div>
-        ))}
-      </div>
-    </section>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* DetailsMinimal — borderless columns separated by hairline
+   verticals. Big display-font values centered. Prototype's
+   KDetails minimal branch. */
+function DetailsMinimal({ items }: { items: DetailItem[] }) {
+  return (
+    <div
+      style={{
+        maxWidth: 760,
+        margin: '0 auto',
+        display: 'grid',
+        gridTemplateColumns: `repeat(${items.length}, 1fr)`,
+      }}
+    >
+      {items.map((d, i) => (
+        <div
+          key={d.label}
+          style={{
+            padding: '4px 22px',
+            borderLeft: i ? '1px solid var(--line-soft, rgba(14,13,11,0.10))' : 'none',
+            textAlign: 'center',
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-muted, #6F6557)',
+              marginBottom: 8,
+            }}
+          >
+            {d.label}
+          </div>
+          <div
+            style={{
+              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+              fontWeight: 'var(--pl-display-wght, 600)',
+              fontSize: 26,
+              lineHeight: 1.05,
+              color: 'var(--ink, #0E0D0B)',
+            }}
+          >
+            {d.value}
+          </div>
+          {d.sub && (
+            <div style={{ fontSize: 12, color: 'var(--ink-muted, #6F6557)', marginTop: 6 }}>{d.sub}</div>
+          )}
+        </div>
+      ))}
+    </div>
   );
 }
 
