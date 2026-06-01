@@ -569,6 +569,14 @@ export interface StoryManifest {
    *  Editions are READ-TIME defaults, never written back.
    *  See src/lib/site-editions/. */
   edition?: 'almanac' | 'cinema' | 'postcard-box' | 'linen-folder' | 'quiet' | 'coastal';
+  /** Whole-page layout feel — ports the prototype's LAYOUT dial.
+   *  Independent of Edition (theme) and kitId (component identity).
+   *    'classic'    — full scroll, sections stack the entire viewport
+   *    'invitation' — content sits on a card on a mat (framed)
+   *    'split'      — sidebar lockup with fixed nav column
+   *  Read by ThemedSiteRenderer as `data-pl-page-layout` on the
+   *  .pl8-guest root so CSS can scope the framing. */
+  pageLayout?: 'classic' | 'invitation' | 'split';
   /** Texture intensity — multiplier applied to the texture grain
    *  overlay opacity. 0 = no grain (smooth even when a material is
    *  picked), 1 = default, up to 1.5 = exaggerated. Lets hosts

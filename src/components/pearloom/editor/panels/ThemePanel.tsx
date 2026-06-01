@@ -15,6 +15,7 @@ import { V8ColorPicker } from '../v8-color-picker';
 import { SpacingPanel } from './SpacingPanel';
 import { SnapshotsPanel } from './SnapshotsPanel';
 import { EditionPicker } from './EditionPicker';
+import { LayoutPicker } from './LayoutPicker';
 import { TexturePicker } from './TexturePicker';
 import { KitPicker } from './KitPicker';
 import { LookEnginePanel } from './LookEnginePanel';
@@ -278,6 +279,13 @@ export function ThemePanel({
       </div>
       <div data-pl-design-anchor="texture">
         <TexturePicker manifest={manifest} onChange={onChange} />
+      </div>
+
+      {/* Layout — whole-page frame. Port of the prototype's LAYOUT
+          dial (Classic full scroll / Invitation card-on-mat /
+          Split sidebar). Independent of Edition + Kit. */}
+      <div data-pl-design-anchor="layout">
+        <LayoutPicker manifest={manifest} onChange={onChange} />
       </div>
 
       {/* Component kit — restyles cards, dividers, chips, schedule

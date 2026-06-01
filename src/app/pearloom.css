@@ -5516,3 +5516,86 @@ html { scroll-behavior: smooth; }
   mix-blend-mode: screen;
   opacity: calc(0.5 * var(--pl-texture-intensity, 1));
 }
+
+/* ─────────────────────────────────────────────────────────
+   PAGE LAYOUT — port of the prototype's LAYOUT · WHOLE-PAGE
+   FEEL dial. Three frames:
+     classic    — full scroll (default, unframed)
+     invitation — content sits on a card on a mat (framed)
+     split      — fixed sidebar lockup with scrolling content
+   Reads .pl8-guest[data-pl-page-layout="..."]. Independent of
+   Edition + Kit.
+   ───────────────────────────────────────────────────────── */
+
+/* Invitation — narrow column, card on a mat. The .pl8-guest
+   root becomes a mat (deeper paper background); each section
+   sits inside a constrained inner column with the regular
+   --paper background, giving a "card pinned to a board" feel. */
+.pl8-guest[data-pl-page-layout="invitation"] {
+  background: color-mix(in oklab, var(--paper, #F5EFE2) 88%, #000 4%);
+  padding: clamp(24px, 4vw, 48px) clamp(16px, 4vw, 64px);
+}
+.pl8-guest[data-pl-page-layout="invitation"] > * {
+  max-width: 880px;
+  margin-inline: auto;
+  background: var(--paper, #F5EFE2);
+  border: 1px solid var(--line-soft, rgba(14,13,11,0.10));
+  border-radius: 4px;
+}
+.pl8-guest[data-pl-page-layout="invitation"] > header.pl8-themed-nav {
+  border-bottom: 1px solid var(--line-soft, rgba(14,13,11,0.10));
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-bottom: 0;
+}
+.pl8-guest[data-pl-page-layout="invitation"] > section {
+  border-top: 0;
+  border-radius: 0;
+  border-left-width: 1px;
+  border-right-width: 1px;
+}
+.pl8-guest[data-pl-page-layout="invitation"] > footer {
+  border-top: 1px solid var(--line-soft, rgba(14,13,11,0.10));
+  border-radius: 0;
+}
+
+/* Split — fixed dark sidebar with brand + section list pinned
+   to the left. Content scrolls on the right. The sidebar mirrors
+   ThemedNav's labels. Sidebar is hidden under 900px (mobile uses
+   the regular nav). */
+@media (min-width: 900px) {
+  .pl8-guest[data-pl-page-layout="split"] {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+  }
+  .pl8-guest[data-pl-page-layout="split"] > header.pl8-themed-nav {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    grid-column: 1;
+    grid-row: 1 / -1;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--ink, #0E0D0B);
+    color: var(--cream, #F5EFE2);
+    padding: 32px 24px;
+    border-bottom: 0;
+    border-right: 1px solid rgba(245,239,226,0.10);
+    align-items: flex-start;
+    gap: 24px;
+  }
+  .pl8-guest[data-pl-page-layout="split"] > header.pl8-themed-nav nav {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    justify-content: flex-start;
+  }
+  .pl8-guest[data-pl-page-layout="split"] > header.pl8-themed-nav nav a {
+    color: rgba(245,239,226,0.78);
+  }
+  .pl8-guest[data-pl-page-layout="split"] > section,
+  .pl8-guest[data-pl-page-layout="split"] > footer {
+    grid-column: 2;
+  }
+}

@@ -152,6 +152,7 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug }: Props) {
       data-pl-texture={texture}
       data-pl-density={density}
       data-pl-kit={manifest.kitId ?? 'classic'}
+      data-pl-page-layout={manifest.pageLayout ?? 'classic'}
       style={shellStyle}
     >
       <TextureFilters />

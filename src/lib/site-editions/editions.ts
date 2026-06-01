@@ -28,8 +28,8 @@ const STANDARD_ORDER: SiteBlockKey[] = [
 export const EDITIONS: EditionDefinition[] = [
   {
     id: 'almanac',
-    label: 'The Almanac',
-    tagline: 'A bound book. Chapter-marked. Serif drop cap.',
+    label: 'Pressed Garden',
+    tagline: 'Cotton paper, pressed wildflowers, the Pearloom warmth.',
     description:
       "Postcard-style hero with a serif drop cap and a foliated date glyph. Chapter markers ('I — How we met') open every section. Generous body type, a single hairline thread between sections, paper grain underfoot. Built for sites whose center of gravity is the narrative.",
     heroVariantId: 'postcard',
@@ -75,8 +75,8 @@ export const EDITIONS: EditionDefinition[] = [
   },
   {
     id: 'cinema',
-    label: 'The Cinema',
-    tagline: 'Letterboxed film magazine. Full-bleed photo. Slow Ken Burns.',
+    label: 'Midnight Velvet',
+    tagline: 'Inky velvet, candlelight gold — made for evenings.',
     description:
       "Photo-first hero pushed to full viewport with a slow Ken Burns. Sans-serif uppercase kickers ('REEL ONE · WINTER 2026'). Black-bar slug lines open each section. Photos default to 21:9, divider is a single sprocket row. Pearl reserved for the one RSVP CTA. Built for cinematic destinations.",
     heroVariantId: 'photo-first',
@@ -124,8 +124,8 @@ export const EDITIONS: EditionDefinition[] = [
   },
   {
     id: 'postcard-box',
-    label: 'The Postcard Box',
-    tagline: 'Stacked tilted cards. Stamps. Torn paper. Handwritten.',
+    label: 'Tuscan Watercolor',
+    tagline: 'Soft washes, terracotta & sage, blooms and lemons.',
     description:
       "A bundle of cards on a soft cream-deep gauze. Tilted polaroid hero, each section is its own card with a 6° rotated stamp and a typed handwritten kicker. Thread-stitch dividers, torn-paper bottom edges, no atmosphere shader — the cards ARE the chrome. Built for travel-flavored, multi-day, fun-leaning events.",
     heroVariantId: 'postcard',
@@ -181,8 +181,8 @@ export const EDITIONS: EditionDefinition[] = [
   },
   {
     id: 'linen-folder',
-    label: 'The Linen Folder',
-    tagline: 'Hotel stationery formal. Two-column. Gold hairline.',
+    label: 'Santorini Linen',
+    tagline: 'Sun-bleached linen, Aegean blue, whitewash & olive.',
     description:
       "Split hero — 4:5 photo left, names right in Fraunces upright (not italic) with a gold hairline rule above and below the date. Mono-uppercased section labels with a leading gold dot ('. PROGRAMME'), centered gold hairline dividers, paper-only atmosphere. No emoji, no stickers. Built for formal events.",
     heroVariantId: 'split',
@@ -240,8 +240,8 @@ export const EDITIONS: EditionDefinition[] = [
   },
   {
     id: 'quiet',
-    label: 'The Quiet Edition',
-    tagline: 'Whitespace and restraint. Minimal. No chrome.',
+    label: 'Modern Editorial',
+    tagline: 'Flat matte, high-contrast type. The clean counterpoint.',
     description:
       "Centered 560px column, single thread above the names. Wide-margined sections (max 640px), tiny mono overlines, 24px of whitespace as the divider. No countdown, no broadcast bar, no decor. Photos render small and centered when at all. Built for events that ask the design to step back.",
     heroVariantId: 'minimal',

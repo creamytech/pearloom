@@ -227,17 +227,48 @@ export function EditionPicker({ manifest, onChange }: Props) {
     onChange(next as unknown as StoryManifest);
   }
 
+  /* Prototype display order — visual rhythm of the picker per the
+     theme-pack screenshot:
+       Row 1: Santorini Linen, Pressed Garden
+       Row 2: Tuscan Watercolor, Midnight Velvet
+       Row 3: Coastal Ink, Modern Editorial
+     EDITIONS array order in editions.ts is logical (almanac first
+     by convention) — we reorder here for the picker without
+     touching the canonical list. */
+  const PROTOTYPE_ORDER: Array<typeof EDITIONS[number]['id']> = [
+    'linen-folder',   // Santorini Linen
+    'almanac',        // Pressed Garden
+    'postcard-box',   // Tuscan Watercolor
+    'cinema',         // Midnight Velvet
+    'coastal',        // Coastal Ink
+    'quiet',          // Modern Editorial
+  ];
+  const sortedEditions = [...EDITIONS].sort(
+    (a, b) => PROTOTYPE_ORDER.indexOf(a.id) - PROTOTYPE_ORDER.indexOf(b.id),
+  );
+  /* "RECOMMENDED FOR …" eyebrow — matches the prototype's section
+     header. Uses the active occasion's display label. */
+  const occasionLabel = (manifest.occasion ?? 'wedding').replace(/-/g, ' ');
+
   return (
     <PanelSection
-      label="Edition"
-      hint="One pick sets the whole layout — hero, dividers, type, atmosphere. Override anything below."
+      label={`Recommended for ${occasionLabel}`}
+      hint="One pick sets the whole theme — palette, fonts, radii, atmosphere."
       defaultOpen
     >
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
-        {EDITIONS.map((ed) => {
+        {sortedEditions.map((ed) => {
           const on = active.id === ed.id;
           const Preview = PREVIEWS[ed.id];
-          const isRecommended = !manifest.edition && on;
+          /* PICK badge — appears on every Edition that's recommended
+             for the current occasion. Matches the prototype where
+             3 tiles get the badge for weddings (Santorini Linen,
+             Pressed Garden, Tuscan Watercolor) and 1 for memorials
+             (Modern Editorial), etc. Multi-recommended is correct:
+             several Editions can suit one occasion. */
+          const isRecommended = ed.recommendedFor.includes(
+            manifest.occasion ?? 'wedding',
+          );
           return (
             <button
               key={ed.id}
@@ -330,7 +361,7 @@ export function EditionPicker({ manifest, onChange }: Props) {
                       textTransform: 'uppercase',
                     }}
                   >
-                    ★ Pick
+                    ★ PICK
                   </span>
                 )}
               </div>
