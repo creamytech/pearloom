@@ -136,17 +136,54 @@ export function VoiceToastRecorder({
   return (
     <section
       style={{
-        marginTop: '2rem',
-        padding: '1.5rem',
-        background: '#FFFFFF',
-        borderRadius: '0.75rem',
-        border: `1px solid ${accent}33`,
+        marginTop: 32,
+        padding: '24px 24px',
+        background: 'var(--card, #FBF7EE)',
+        borderRadius: 'var(--pl-card-radius, 14px)',
+        border: '1px solid rgba(14,13,11,0.08)',
+        boxShadow: 'var(--pl-card-shadow, 0 4px 14px rgba(75,65,52,0.08))',
       }}
     >
-      <h3 style={{ fontFamily: headingFont, fontSize: '1.15rem', margin: 0, marginBottom: '0.35rem' }}>
-        Leave them a toast
+      {/* Peach editorial eyebrow */}
+      <div
+        className="eyebrow"
+        style={{
+          fontSize: 10.5,
+          textTransform: 'uppercase',
+          letterSpacing: '0.22em',
+          fontWeight: 700,
+          color: '#C6703D',
+          marginBottom: 8,
+        }}
+      >
+        For the film
+      </div>
+      <h3
+        style={{
+          fontFamily: headingFont,
+          fontSize: 22,
+          fontWeight: 600,
+          letterSpacing: '-0.01em',
+          margin: 0,
+          marginBottom: 6,
+          color: 'var(--ink, #0E0D0B)',
+          lineHeight: 1.15,
+        }}
+      >
+        Leave them a{' '}
+        <span style={{ fontStyle: 'italic', fontWeight: 400, color: '#C6703D' }}>toast</span>
       </h3>
-      <p style={{ fontSize: '0.9rem', opacity: 0.75, marginTop: 0, marginBottom: '1rem', lineHeight: 1.5 }}>
+      <p
+        style={{
+          fontFamily: headingFont,
+          fontStyle: 'italic',
+          fontSize: 14.5,
+          color: 'var(--ink-soft, #3A332C)',
+          marginTop: 0,
+          marginBottom: 18,
+          lineHeight: 1.55,
+        }}
+      >
         Record up to two minutes. Your words could end up in the film they watch every anniversary.
       </p>
 
@@ -205,27 +242,30 @@ export function VoiceToastRecorder({
   );
 }
 
-function primaryBtn(accent: string): React.CSSProperties {
+function primaryBtn(_accent: string): React.CSSProperties {
+  // Prototype primary affordance — peach pill, not host accent.
   return {
-    padding: '0.75rem 1.5rem',
-    background: accent,
-    color: '#FFFFFF',
+    padding: '12px 26px',
+    background: '#C6703D',
+    color: '#FBF7EE',
     border: 'none',
-    borderRadius: 'var(--pl-radius-full)',
-    fontSize: '0.9rem',
-    fontWeight: 600,
+    borderRadius: 999,
+    fontSize: 13.5,
+    fontWeight: 700,
+    letterSpacing: '0.02em',
     cursor: 'pointer',
   };
 }
 
 function secondaryBtn(): React.CSSProperties {
   return {
-    padding: '0.75rem 1.5rem',
+    padding: '12px 26px',
     background: 'transparent',
-    color: '#2B2B2B',
-    border: '1px solid #EEE8DC',
-    borderRadius: 'var(--pl-radius-full)',
-    fontSize: '0.9rem',
+    color: 'var(--ink, #0E0D0B)',
+    border: '1px solid rgba(14,13,11,0.16)',
+    borderRadius: 999,
+    fontSize: 13.5,
+    fontWeight: 600,
     cursor: 'pointer',
   };
 }
