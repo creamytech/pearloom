@@ -4059,28 +4059,79 @@ html { scroll-behavior: smooth; }
    suggest the material. baseFrequency lower = larger features
    (pulp); higher = finer (paper); directional X/Y = grain. */
 
-/* WATERCOLOR — wet pulpy paper. Low frequency + 4 octaves = soft
-   uneven cloud-like texture. feDiffuseLighting adds raking light
-   so the fibers look damp. */
+/* WATERCOLOR — paint blooms on wet paper. Stacked soft radial
+   gradients in warm + cool pigments simulate pigment pooling at
+   uneven density. The fine noise tail keeps the paper grain
+   honest. Multiplied so the underlying paper shows through. */
 .pl8-guest[data-pl-texture="watercolor"]::before {
-  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'%3E%3Cfilter id='wc' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='4' seed='3' stitchTiles='stitch'/%3E%3CfeDiffuseLighting surfaceScale='2.4' diffuseConstant='1.2' lighting-color='%23F5E0CC'%3E%3CfeDistantLight azimuth='45' elevation='62'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix values='1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23wc)'/%3E%3C/svg%3E");
-  opacity: calc(0.42 * var(--pl-texture-intensity, 1));
+  background-image:
+    radial-gradient(ellipse at 18% 22%, rgba(216,160,118,0.34) 0%, transparent 38%),
+    radial-gradient(ellipse at 78% 18%, rgba(168,124,158,0.26) 0%, transparent 42%),
+    radial-gradient(ellipse at 32% 78%, rgba(124,150,108,0.30) 0%, transparent 44%),
+    radial-gradient(ellipse at 85% 72%, rgba(196,128,98,0.22) 0%, transparent 38%),
+    radial-gradient(ellipse at 50% 50%, rgba(216,180,148,0.18) 0%, transparent 60%),
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'%3E%3Cfilter id='wc'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.022' numOctaves='3' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.74 0 0 0 0 0.58 0 0 0 0 0.42 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23wc)'/%3E%3C/svg%3E");
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 320px 320px;
+  opacity: calc(0.62 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: multiply;
 }
 
-/* LINEN — tight fiber weave. Directional baseFrequency (X high,
-   Y high but with stitchTiles) creates a grid feel. Then
-   feColorMatrix multiplies down to dark threads. */
+/* LINEN — visible woven threads. Two crossed
+   repeating-linear-gradients draw the warp + weft of an actual
+   linen weave at 1px thread width with 3px gaps. The fine
+   noise underlay adds fibre randomness so the threads don't
+   read as a sterile grid. */
 .pl8-guest[data-pl-texture="linen"]::before {
-  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'%3E%3Cfilter id='ln'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95 0.15' numOctaves='2' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.30 0 0 0 0 0.27 0 0 0 0 0.21 0 0 0 0.72 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23ln)'/%3E%3C/svg%3E");
-  opacity: calc(0.34 * var(--pl-texture-intensity, 1));
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(75,65,52,0.10) 0px, rgba(75,65,52,0.10) 1px,
+      transparent 1px, transparent 3px,
+      rgba(75,65,52,0.06) 3px, rgba(75,65,52,0.06) 4px,
+      transparent 4px, transparent 6px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(75,65,52,0.10) 0px, rgba(75,65,52,0.10) 1px,
+      transparent 1px, transparent 3px,
+      rgba(75,65,52,0.05) 3px, rgba(75,65,52,0.05) 4px,
+      transparent 4px, transparent 6px
+    ),
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'%3E%3Cfilter id='ln'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='1' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.30 0 0 0 0 0.27 0 0 0 0 0.21 0 0 0 0.28 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23ln)'/%3E%3C/svg%3E");
+  background-size: 6px 6px, 6px 6px, 160px 160px;
+  opacity: calc(0.68 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: multiply;
 }
 
-/* LETTERPRESS — smooth pressed bond paper. Higher baseFrequency =
-   finer grain; feDiffuseLighting at low angle catches the
-   embossed press marks. */
+/* LETTERPRESS — smooth cotton bond with raking light. A
+   diagonal highlight + shadow gradient catches the pressed
+   paper feel; fine noise reads as soft paper fibre. The real
+   "pressed into the paper" effect is the inset text-shadow on
+   headings (see rule below). */
 .pl8-guest[data-pl-texture="letterpress"]::before {
-  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Cfilter id='lp'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='3' seed='7' stitchTiles='stitch'/%3E%3CfeDiffuseLighting surfaceScale='1.4' diffuseConstant='1.1' lighting-color='%23F8F1E2'%3E%3CfeDistantLight azimuth='135' elevation='38'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix values='1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.42 0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23lp)'/%3E%3C/svg%3E");
-  opacity: calc(0.30 * var(--pl-texture-intensity, 1));
+  background-image:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,0.18) 0%,
+      rgba(255,255,255,0) 30%,
+      rgba(0,0,0,0) 70%,
+      rgba(0,0,0,0.05) 100%
+    ),
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Cfilter id='lp'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.30 0 0 0 0 0.26 0 0 0 0 0.20 0 0 0 0.22 0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23lp)'/%3E%3C/svg%3E");
+  background-size: 100% 100%, 400px 400px;
+  opacity: calc(0.55 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: multiply;
+}
+/* Pressed-into-paper headings — only active when letterpress
+   texture is selected. The white drop-shadow + dark inset are
+   what actually makes glyphs look pressed; the background CSS
+   above carries the paper feel. */
+.pl8-guest[data-pl-texture="letterpress"] h1,
+.pl8-guest[data-pl-texture="letterpress"] h2,
+.pl8-guest[data-pl-texture="letterpress"] h3 {
+  text-shadow:
+    0 1px 0 rgba(255,255,255,0.55),
+    0 -1px 0 rgba(0,0,0,0.18);
 }
 
 /* VELLUM — uneven amber translucent. Very low baseFrequency for
@@ -4090,18 +4141,29 @@ html { scroll-behavior: smooth; }
    leather. The radial color blobs on the background do most of
    the warm-amber work; this noise just adds fiber unevenness. */
 .pl8-guest[data-pl-texture="vellum"]::before {
-  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 280'%3E%3Cfilter id='vl'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.018' numOctaves='3' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.78 0 0 0 0 0.62 0 0 0 0 0.32 0 0 0 0.30 0'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23vl)'/%3E%3C/svg%3E");
-  opacity: calc(0.22 * var(--pl-texture-intensity, 1));
+  background-image:
+    radial-gradient(ellipse at 25% 30%, rgba(216,170,82,0.22) 0%, transparent 55%),
+    radial-gradient(ellipse at 75% 70%, rgba(196,148,72,0.20) 0%, transparent 50%),
+    linear-gradient(160deg, rgba(244,220,156,0.18) 0%, rgba(196,144,68,0.08) 100%),
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 280'%3E%3Cfilter id='vl'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.028' numOctaves='3' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.78 0 0 0 0 0.62 0 0 0 0 0.32 0 0 0 0.22 0'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23vl)'/%3E%3C/svg%3E");
+  background-size: 100% 100%, 100% 100%, 100% 100%, 280px 280px;
+  opacity: calc(0.58 * var(--pl-texture-intensity, 1));
   mix-blend-mode: multiply;
 }
 
-/* NEWSPRINT — coarse pulp paper. The actual halftone dots are on
-   ::after below; this ::before is just a subtle fiber underlay so
-   the dots sit on something that reads as broadsheet pulp. Reduced
-   opacity 0.38 → 0.18 so it doesn't fight the halftone. */
+/* NEWSPRINT — broadsheet pulp with visible halftone dots. Two
+   offset dot patterns (radial-gradient at 1px spots) create the
+   real screened-newspaper-photo feel. The fibre noise underlay
+   stays thin so the dots are the dominant material signal. */
 .pl8-guest[data-pl-texture="newsprint"]::before {
-  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='np'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.58' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.18 0 0 0 0 0.15 0 0 0 0 0.10 0 0 0 0.42 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23np)'/%3E%3C/svg%3E");
-  opacity: calc(0.18 * var(--pl-texture-intensity, 1));
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(14,13,11,0.42) 1px, transparent 1.2px),
+    radial-gradient(circle at 3px 3px, rgba(14,13,11,0.30) 0.7px, transparent 0.9px),
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='np'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.18 0 0 0 0 0.15 0 0 0 0 0.10 0 0 0 0.30 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23np)'/%3E%3C/svg%3E");
+  background-size: 4px 4px, 4px 4px, 200px 200px;
+  background-position: 0 0, 2px 2px, 0 0;
+  opacity: calc(0.42 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: multiply;
 }
 /* The grain stacks at z-index 1; force the site root to a stacking
    context so content sits on top, and bump z-index on the nav so
