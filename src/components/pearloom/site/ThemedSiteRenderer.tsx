@@ -194,26 +194,23 @@ export function ThemedSiteRenderer({ manifest, names, siteSlug }: Props) {
 }
 
 /* ─── ThemedNav — sticky sub-nav with brand italic + dotted-
-   underline section links + peach RSVP pill. Links auto-hide
-   when their target section is empty (no chapters → no Story
-   link, no events → no Schedule link, etc.) so guests never
-   click a link that scrolls into emptiness. ─── */
-function ThemedNav({ manifest, names }: { manifest: StoryManifest; names: [string, string] }) {
+   underline section links + peach RSVP pill. The prototype shows
+   all seven section links unconditionally so the page always
+   reads as a complete editorial spread; we mirror that — earlier
+   auto-hide was over-aggressive and left the nav empty on every
+   freshly-wired site. ─── */
+function ThemedNav({ manifest: _manifest, names }: { manifest: StoryManifest; names: [string, string] }) {
   const [n1, n2] = names;
   const brand = n1 && n2 ? `${n1} & ${n2}` : (n1 || n2 || 'Our celebration');
-  /* Available section anchors — each tuple is (label, anchor,
-     visible-when). Filtering keeps the nav honest. */
-  const reg = (manifest as unknown as { registry?: { entries?: unknown[] } }).registry;
-  const links: Array<[string, string, boolean]> = [
-    ['Story',    'our-story', (manifest.chapters ?? []).length > 0],
-    ['Details',  'details',   !!manifest.logistics?.dresscode || !!(manifest.logistics as { kids?: string })?.kids],
-    ['Schedule', 'schedule',  (manifest.events ?? []).length > 0],
-    ['Travel',   'travel',    (manifest.travelInfo?.hotels ?? []).length > 0],
-    ['Registry', 'registry',  (reg?.entries ?? []).length > 0],
-    ['Gallery',  'gallery',   (manifest.chapters ?? []).some((c) => (c.images ?? []).length > 0)],
-    ['FAQ',      'faq',       (manifest.faqs ?? []).length > 0],
+  const visibleLinks: Array<[string, string]> = [
+    ['Story',    'our-story'],
+    ['Details',  'details'],
+    ['Schedule', 'schedule'],
+    ['Travel',   'travel'],
+    ['Registry', 'registry'],
+    ['Gallery',  'gallery'],
+    ['FAQ',      'faq'],
   ];
-  const visibleLinks = links.filter(([, , vis]) => vis);
   return (
     <header
       className="pl8-themed-nav"
@@ -265,7 +262,7 @@ function ThemedNav({ manifest, names }: { manifest: StoryManifest; names: [strin
           opacity: 0.95,
         }}
       >
-        {visibleLinks.map(([label, anchor]) => (
+        {visibleLinks.map(([label, anchor]: [string, string]) => (
           <a
             key={label}
             href={`#${anchor}`}
@@ -313,10 +310,22 @@ function ThemedNav({ manifest, names }: { manifest: StoryManifest; names: [strin
    as a triptych — first three chapter photos rendered into top-
    rounded frames matching the prototype's hero. ─── */
 function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names: [string, string]; motif: MotifKind }) {
-  const [n1, n2] = names;
+  /* Name resolution — fall back through (provided → coupleId
+     split → 'Your' / 'Celebration') so a freshly-generated site
+     without explicit names doesn't render with empty placeholders
+     in the middle of the H1. */
+  const coupleSplit = ((manifest as unknown as { coupleId?: string }).coupleId ?? '')
+    .split(/[-_]/)
+    .filter(Boolean)
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1));
+  const n1 = (names[0] && names[0] !== 'Your' ? names[0] : (coupleSplit[0] ?? names[0] ?? 'Your'));
+  const n2 = (names[1] && names[1] !== 'Partner' ? names[1] : (coupleSplit[1] ?? names[1] ?? 'Celebration'));
   const dateStr = manifest.logistics?.date ?? '';
   const venue = manifest.logistics?.venue ?? '';
   const place = manifest.logistics?.venueAddress ?? '';
+  /* Eyebrow — host's heroKicker wins, then prototype default. */
+  const heroKicker =
+    (manifest as unknown as { heroKicker?: string }).heroKicker?.trim() || 'Save the date';
   /* Tagline — first sentence of poetry.heroTagline so it reads as
      a short italic line, not a paragraph. */
   const heroCopyFull =
@@ -353,7 +362,7 @@ function ThemedHero({ manifest, names, motif }: { manifest: StoryManifest; names
             marginBottom: 14,
           }}
         >
-          Save the date
+          {heroKicker}
         </div>
         {tagline && (
           <div

@@ -30,6 +30,7 @@
 import { forwardRef, useEffect, useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { SiteV8Renderer } from '../../site/SiteV8Renderer';
+import { ThemedSiteRenderer } from '../../site/ThemedSiteRenderer';
 import { FloatingFormatToolbar } from './FloatingFormatToolbar';
 import { CanvasContextMenu } from './CanvasContextMenu';
 import { IconDropTarget } from './IconDropTarget';
@@ -255,14 +256,33 @@ export const CanvasStage = forwardRef<HTMLDivElement, CanvasStageProps>(
             containerName: 'pl-site',
           }}
         >
-          <SiteV8Renderer
-            manifest={manifest}
-            names={names}
-            siteSlug={siteSlug}
-            prettyUrl={prettyUrl}
-            onEditField={previewMode ? undefined : onEditField}
-            onEditNames={previewMode ? undefined : onNamesChange}
-          />
+          {/* Renderer dispatch — matches PublishedSiteShell so the
+              editor preview shows the SAME thing guests will see.
+              Themed mode loses inline edit affordances on the canvas
+              (those live in SiteV8Renderer); edits happen in the
+              right inspector instead, which is the prototype's
+              three-pane shell pattern anyway. v8 mode keeps the
+              full inline-edit canvas for hosts who opt in. */}
+          {(() => {
+            const renderer = (manifest as unknown as { renderer?: 'themed' | 'v8' }).renderer;
+            const useThemed = renderer !== 'v8';
+            return useThemed ? (
+              <ThemedSiteRenderer
+                manifest={manifest}
+                names={names}
+                siteSlug={siteSlug}
+              />
+            ) : (
+              <SiteV8Renderer
+                manifest={manifest}
+                names={names}
+                siteSlug={siteSlug}
+                prettyUrl={prettyUrl}
+                onEditField={previewMode ? undefined : onEditField}
+                onEditNames={previewMode ? undefined : onNamesChange}
+              />
+            );
+          })()}
         </div>
         {/* Theme picker now lives in the inspector rail's Theme
             tab — no floating bottom-right card here anymore. */}
