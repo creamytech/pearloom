@@ -70,27 +70,67 @@ function Hero() {
           </Reveal>
 
           <div style={{ paddingLeft: 90 }}>
+            {/* Peach eyebrow — matches the prototype's editorial
+                kicker pattern. */}
+            <Reveal delay={100}>
+              <div
+                className="eyebrow"
+                style={{
+                  fontSize: 11.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  color: '#C6703D',
+                  marginBottom: 16,
+                }}
+              >
+                The operating system for the days that matter
+              </div>
+            </Reveal>
             <Reveal delay={140} y={24}>
-              <h1 className="display" style={{ fontSize: 78, lineHeight: 0.98, margin: 0 }}>
+              <h1
+                className="display"
+                style={{
+                  fontSize: 78,
+                  lineHeight: 0.98,
+                  margin: 0,
+                  fontWeight: 600,
+                  letterSpacing: '-0.02em',
+                }}
+              >
                 Plan with heart.
               </h1>
             </Reveal>
             <Reveal delay={260} y={24}>
-              <h1 className="display" style={{ fontSize: 78, lineHeight: 0.98, margin: '6px 0 0', color: 'var(--lavender-2)' }}>
+              {/* Second line in italic peach matching the themed
+                  renderer's hero treatment. */}
+              <h1
+                className="display"
+                style={{
+                  fontSize: 78,
+                  lineHeight: 0.98,
+                  margin: '6px 0 0',
+                  fontStyle: 'italic',
+                  fontWeight: 400,
+                  color: '#C6703D',
+                  letterSpacing: '-0.02em',
+                }}
+              >
                 Keep every
                 <br />
                 moment.
-                <Float amplitude={6} duration={5} style={{ display: 'inline-block', marginLeft: 10, verticalAlign: '-6px' }}>
-                  <Heart size={44} color="#F0B098" />
-                </Float>
               </h1>
             </Reveal>
 
             <Reveal delay={400}>
+              {/* Italic display body so the page reads as personal
+                  letterhead, not marketing tagline. */}
               <p
                 style={{
-                  fontSize: 17,
-                  lineHeight: 1.55,
+                  fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                  fontStyle: 'italic',
+                  fontSize: 19,
+                  lineHeight: 1.5,
                   color: 'var(--ink-soft)',
                   maxWidth: 460,
                   margin: '28px 0 32px',
