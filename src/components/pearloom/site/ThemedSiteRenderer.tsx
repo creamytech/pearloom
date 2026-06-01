@@ -545,6 +545,7 @@ function ThemedStory({ manifest, motif }: { manifest: StoryManifest; motif: Moti
           return (
             <div
               key={c.id ?? i}
+              className="pl8-chapter-row"
               style={{
                 display: 'grid',
                 gridTemplateColumns: left ? '5fr 1fr 6fr' : '6fr 1fr 5fr',
@@ -848,6 +849,7 @@ function ThemedSchedule({ manifest }: { manifest: StoryManifest }) {
           {events.map((e, i) => (
             <div
               key={e.id ?? i}
+              className="pl8-schedule-row"
               style={{
                 display: 'grid',
                 gridTemplateColumns: '90px 20px 1fr',
@@ -857,6 +859,7 @@ function ThemedSchedule({ manifest }: { manifest: StoryManifest }) {
             >
               {/* Time — display font, right-aligned to meet the rule */}
               <div
+                className="pl8-schedule-time"
                 style={{
                   fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
                   fontSize: 24,
@@ -966,6 +969,7 @@ function ThemedTravel({ manifest, motif }: { manifest: StoryManifest; motif: Mot
           return (
             <div
               key={i}
+              className="pl8-hotel-row"
               style={{
                 background: 'var(--card, #FBF7EE)',
                 borderRadius: 'var(--pl-card-radius, 12px)',
@@ -1397,6 +1401,7 @@ function ThemedFaq({ manifest }: { manifest: StoryManifest }) {
           return (
             <details
               key={item.id ?? i}
+              className="pl8-faq-row"
               style={{
                 padding: '18px 22px',
                 background: 'var(--card, #FBF7EE)',
