@@ -150,12 +150,12 @@ export function DashSettings() {
       <main
         className="pd-settings-main"
         style={{
-          padding: '0 clamp(20px, 4vw, 40px) 32px',
-          maxWidth: 1240,
+          padding: '0 clamp(20px, 4vw, 40px) 60px',
+          maxWidth: 1040,
           margin: '0 auto',
           display: 'grid',
-          gridTemplateColumns: '240px 1fr',
-          gap: 28,
+          gridTemplateColumns: '200px minmax(0, 1fr)',
+          gap: 26,
           alignItems: 'flex-start',
         }}
       >
@@ -168,16 +168,18 @@ export function DashSettings() {
               key={s.k}
               onClick={() => setSection(s.k)}
               style={{
-                padding: '10px 14px',
-                background: section === s.k ? PD.paper2 : 'transparent',
+                padding: '9px 13px',
+                background: section === s.k && s.k !== 'danger' ? 'var(--cream-2)' : 'transparent',
                 border: 'none',
-                borderRadius: 12,
+                borderRadius: 9,
                 cursor: 'pointer',
                 fontFamily: 'inherit',
                 textAlign: 'left',
-                fontSize: 14,
-                fontWeight: section === s.k ? 600 : 500,
-                color: s.k === 'danger' ? PD.terra : PD.ink,
+                fontSize: 13,
+                fontWeight: section === s.k ? 700 : 500,
+                color: s.k === 'danger' ? 'var(--peach-ink)' : 'var(--ink)',
+                marginTop: s.k === 'danger' ? 4 : 0,
+                transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
               }}
             >
               {s.l}
@@ -196,28 +198,28 @@ export function DashSettings() {
             <>
               <Panel
                 bg={PD.paperCard}
-                style={{ padding: 32, display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}
+                style={{ padding: 18, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', borderRadius: 16 }}
               >
                 {session?.user?.image ? (
                   <img
                     src={session.user.image}
                     alt={fullName}
-                    style={{ width: 92, height: 92, borderRadius: 999, objectFit: 'cover' }}
+                    style={{ width: 60, height: 60, borderRadius: 999, objectFit: 'cover' }}
                   />
                 ) : (
                   <div
                     style={{
-                      width: 92,
-                      height: 92,
+                      width: 60,
+                      height: 60,
                       borderRadius: 999,
                       background: `linear-gradient(135deg, ${PD.pear}, ${PD.olive})`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       color: PD.paper,
-                      fontSize: 40,
+                      fontSize: 24,
                       fontFamily: '"Fraunces", Georgia, serif',
-                      fontStyle: 'italic',
+                      fontWeight: 600,
                     }}
                   >
                     {(fullName[0] || 'P').toUpperCase()}
@@ -227,55 +229,92 @@ export function DashSettings() {
                   <div
                     style={{
                       ...DISPLAY_STYLE,
-                      fontSize: 32,
+                      fontSize: 24,
                       lineHeight: 1,
-                      fontWeight: 400,
-                      letterSpacing: '-0.02em',
+                      fontWeight: 600,
+                      letterSpacing: '-0.01em',
                     }}
                   >
                     {fullName}
                   </div>
                   <div
                     style={{
-                      fontSize: 14,
+                      fontSize: 13,
                       color: PD.inkSoft,
-                      marginTop: 6,
+                      marginTop: 4,
                       fontFamily: 'var(--pl-font-body)',
                     }}
                   >
                     {session?.user?.email}
                   </div>
-                  <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: 7, marginTop: 7, flexWrap: 'wrap' }}>
                     <span
                       style={{
-                        ...MONO_STYLE,
-                        fontSize: 9,
-                        padding: '4px 10px',
-                        background: PD.butter,
-                        color: PD.oliveDeep,
+                        fontSize: 9.5,
+                        fontWeight: 800,
+                        letterSpacing: '0.05em',
+                        textTransform: 'uppercase',
+                        color: 'var(--peach-ink)',
+                        background: 'var(--peach-bg)',
+                        padding: '3px 9px',
                         borderRadius: 999,
                       }}
                     >
-                      LOOM TIER
+                      Bloom tier
                     </span>
                     <span
                       style={{
-                        ...MONO_STYLE,
-                        fontSize: 9,
-                        padding: '4px 10px',
-                        background: PD.paper3,
-                        border: '1px solid rgba(31,36,24,0.12)',
+                        fontSize: 9.5,
+                        fontWeight: 800,
+                        letterSpacing: '0.05em',
+                        textTransform: 'uppercase',
+                        color: 'var(--sage-deep)',
+                        background: 'var(--sage-tint)',
+                        padding: '3px 9px',
                         borderRadius: 999,
                       }}
                     >
-                      {sites?.length ?? 0} {sites && sites.length === 1 ? 'SITE' : 'SITES'} HOSTED
+                      {sites?.length ?? 0} {sites && sites.length === 1 ? 'site hosted' : 'sites hosted'}
                     </span>
                   </div>
                 </div>
               </Panel>
 
-              <Panel bg={PD.paper} style={{ padding: 28 }}>
-                <SectionTitle eyebrow="THE BASICS" title="How you" italic="show up." />
+              <Panel
+                bg="var(--peach-bg)"
+                style={{ padding: 22, border: 'none', borderRadius: 16 }}
+              >
+                <div
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    color: 'var(--peach-ink)',
+                    marginBottom: 4,
+                  }}
+                >
+                  The basics
+                </div>
+                <h2
+                  style={{
+                    ...DISPLAY_STYLE,
+                    fontSize: 24,
+                    fontWeight: 600,
+                    margin: '0 0 18px',
+                  }}
+                >
+                  How you{' '}
+                  <span
+                    style={{
+                      fontStyle: 'italic',
+                      fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                    }}
+                  >
+                    show up
+                  </span>
+                  .
+                </h2>
                 <div
                   className="pd-settings-fields"
                   style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}

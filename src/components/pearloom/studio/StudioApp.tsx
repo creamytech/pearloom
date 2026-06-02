@@ -32,6 +32,7 @@ import { useStudioState } from './useStudioState';
 import { CardFront, CardBack, CardEnvelope } from './StudioCard';
 import { StudioTopbar, DraftsRail, RemixRail } from './StudioRails';
 import { StudioSendOverlay } from './StudioSendOverlay';
+import { StudioPrintPreview } from './StudioPrintPreview';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { parseLocalDate } from '@/lib/date-utils';
 
@@ -111,6 +112,12 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
 
   const { state, setField, setMany, savedAt, saving, saveError, retrySave } = useStudioState({ siteSlug, manifest });
   const [aiBusy, setAiBusy] = useState(false);
+  // Print-pair overlay — card front + matching envelope, side by
+  // side, drawn from the same palette + motif as the canvas. The
+  // prototype's stationery.jsx surfaces this as the entire page;
+  // production keeps the full editor as the home base and opens
+  // this overlay on demand.
+  const [showPrintPair, setShowPrintPair] = useState(false);
   // Last AI flow error, shown as a short-lived toast at the
   // bottom of the canvas. Auto-clears after 6s — the toast itself
   // owns the timer so the catch sites stay simple.
@@ -496,6 +503,26 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
           >
             <Icon name="chev-right" size={12} />
           </button>
+          <span aria-hidden="true" style={{ width: 1, height: 14, background: 'var(--line, rgba(14,13,11,0.16))' }} />
+          <button
+            type="button"
+            onClick={() => setShowPrintPair(true)}
+            style={{
+              padding: '0 10px',
+              height: 28,
+              borderRadius: 999,
+              background: 'transparent',
+              color: 'var(--ink, #0E0D0B)',
+              border: 'none',
+              fontSize: 11.5,
+              fontWeight: 600,
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+              letterSpacing: '0.02em',
+            }}
+          >
+            See pair
+          </button>
         </div>
       </CanvasStage>
 
@@ -570,6 +597,28 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
         </div>
       )}
 
+
+      {showPrintPair && (
+        <StudioPrintPreview
+          type={state.type}
+          layout={state.layout}
+          motif={state.motif}
+          palette={palette}
+          font={font}
+          content={content}
+          nameA={nameA}
+          nameB={nameB}
+          monogram={monogram}
+          photoUrl={(manifest.coverPhoto as string | undefined) ?? null}
+          customMotifUrl={state.customMotifUrl}
+          siteUrl={siteUrl}
+          rsvpDeadline={rsvpDeadline}
+          returnAddress={returnAddress}
+          manifest={manifest}
+          onPrint={() => window.print()}
+          onClose={() => setShowPrintPair(false)}
+        />
+      )}
 
       {state.showSend && (
         <StudioSendOverlay

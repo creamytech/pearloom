@@ -3,22 +3,34 @@
 /* ========================================================================
    DecorLibraryPanel — couple-side admin for the AI decor library.
 
-   v9 upgrades over the original 1-shot black box:
-   - Custom prompt composer per slot — user dictates exactly what
-     gets drawn ("a single olive sprig" vs "trailing ivy"). The
-     auto-context (palette, occasion, venue) still wraps the prompt.
-   - × remove on every slot — clears just that piece.
-   - Alternates strip per slot — every successful draft is saved
-     (capped 5 per slot). Click a thumb to revert; "+ Show another"
-     keeps the current piece active and adds a new alternate.
-   - Per-slot error + isolated-warning surfacing, so the user knows
-     when the white-flood post-process couldn't isolate the cutout
-     and they should retry with a clearer prompt.
+   Visual treatment: faithful port of the prototype's `DecorLibrary`
+   drawer (ClaudeDesign/pages/decor-library.jsx). Renders as an
+   embedded card with a header + 5-tab strip (Motifs · Dividers ·
+   Patterns · Monogram · Generate) + scrollable body + footer reset
+   pill. Each tab maps to a coherent slice of the existing manifest
+   data flow:
+
+     Motifs   → manifest.motifs (blob/stamp/squiggle/sparkle/heart/
+                postIt/polaroid) + color picker (writes nothing — the
+                renderer derives motif tint from the theme accent) +
+                density slider (writes manifest.density).
+     Dividers → manifest.decorLibrary.dividerStrength enum picker
+                + slot-card for the AI-painted divider image.
+     Patterns → manifest.pattern (12 print tiles).
+     Monogram → manifest.monogram (initials + frame + joiner).
+     Generate → /api/decor/generate-from-text → applies pattern +
+                motif + accent + dividerStrength in one shot.
+
+   The AI decor library (full draft of divider + section stamps +
+   confetti + footer flourish) lives at the bottom of the Dividers
+   tab — it's the "advanced" path most hosts won't touch on first
+   open. Per-slot custom-prompt composer + alternates strip + error
+   surfacing all preserved.
    ======================================================================== */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import type { StoryManifest, DecorDraft, SectionStampsDraft } from '@/types';
-import { PanelSection } from '../atoms';
+import { PanelSection, PanelGroup } from '../atoms';
 import { Icon } from '../../motifs';
 import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';
 
@@ -52,6 +64,183 @@ const SLOT_META: Record<LibrarySlot, { label: string; hint: string; aspect: '5/2
   footerBouquet: { label: 'Footer flourish', hint: 'Closing bouquet above the footer.', aspect: '2/3' },
 };
 
+/* ── Tab strip primitive — direct port of the prototype's `TabBtn`.
+   Active tab = ink fill, inactive = transparent + ink-soft label,
+   icon above 10.5px label, equal flex distribution. ── */
+function DLTabBtn({
+  on, onClick, icon, label,
+}: { on: boolean; onClick: () => void; icon: string; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 4,
+        padding: '9px 4px',
+        borderRadius: 10,
+        cursor: 'pointer',
+        background: on ? 'var(--ink, var(--pl-ink, #0E0D0B))' : 'transparent',
+        color: on ? 'var(--cream, #FBF7EE)' : 'var(--ink-soft, var(--pl-ink-soft, #3A332C))',
+        border: 'none',
+        transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
+        fontFamily: 'var(--font-ui)',
+      }}
+    >
+      <Icon name={icon} size={16} color={on ? 'var(--cream, #FBF7EE)' : 'var(--ink-soft, #3A332C)'} />
+      <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em' }}>{label}</span>
+    </button>
+  );
+}
+
+/* ── Gallery label — uppercase muted micro-label above each
+   tile grid, ported verbatim from the prototype. ── */
+function DLGalleryLabel({ children }: { children: ReactNode }) {
+  return (
+    <div
+      style={{
+        fontSize: 11,
+        fontWeight: 700,
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase',
+        color: 'var(--ink-muted, var(--pl-ink-soft, #6F6557))',
+        margin: '14px 2px 10px',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/* ── ThemedTile — squarish picker tile with active outline + tick
+   badge. Used by the Motifs + Patterns grids. The prototype scopes
+   theme vars inside each tile so motif color matches the live
+   palette; here we just bind to the surrounding theme. ── */
+function DLThemedTile({
+  active, onClick, children, padding = 14, minHeight = 78, background,
+}: {
+  active?: boolean;
+  onClick: () => void;
+  children: ReactNode;
+  padding?: number | string;
+  minHeight?: number;
+  background?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        position: 'relative',
+        background: background ?? 'var(--cream-2, #FBF7EE)',
+        borderRadius: 12,
+        overflow: 'hidden',
+        display: 'grid',
+        placeItems: 'center',
+        minHeight,
+        padding,
+        cursor: 'pointer',
+        outline: active
+          ? '2.5px solid var(--lavender-2, var(--pl-olive, #5C6B3F))'
+          : '1px solid var(--line-soft, rgba(14,13,11,0.10))',
+        outlineOffset: active ? -1 : 0,
+        border: 'none',
+        transition: 'outline-color var(--pl-dur-fast) var(--pl-ease-out)',
+      }}
+    >
+      {children}
+      {active && (
+        <span
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: 6,
+            right: 6,
+            width: 18,
+            height: 18,
+            borderRadius: '50%',
+            background: 'var(--lavender-2, var(--pl-olive, #5C6B3F))',
+            display: 'grid',
+            placeItems: 'center',
+            zIndex: 3,
+          }}
+        >
+          <Icon name="check" size={11} color="#fff" />
+        </span>
+      )}
+    </button>
+  );
+}
+
+/* ── DL_MOTIF_TILES — production motif palette mapped to the
+   prototype's pickable-tile model. Mutually exclusive: choosing
+   one motif clears the others (the renderer composes ONE motif
+   on the hero, not multiple). The blob icon legend matches the
+   ThemePanel's existing motif preview. ── */
+type ProdMotifKey = 'none' | 'blob' | 'stamp' | 'squiggle' | 'sparkle' | 'heart' | 'postIt' | 'polaroid';
+const DL_MOTIF_TILES: { id: ProdMotifKey; label: string; icon?: ReactNode }[] = [
+  { id: 'none', label: 'None' },
+  { id: 'blob', label: 'Blob', icon: <span style={{ width: 38, height: 38, borderRadius: '50% 60% 55% 45% / 55% 45% 60% 50%', background: 'var(--sage-tint, var(--pl-olive, #5C6B3F))', opacity: 0.7 }} /> },
+  { id: 'stamp', label: 'Stamp', icon: <span style={{ width: 42, height: 42, borderRadius: 8, border: '1.5px dashed var(--sage-deep, var(--pl-olive, #5C6B3F))', display: 'grid', placeItems: 'center', fontSize: 14, fontFamily: 'var(--font-display, serif)', color: 'var(--sage-deep, var(--pl-olive, #5C6B3F))' }}>EST.</span> },
+  { id: 'squiggle', label: 'Squiggle', icon: <svg width="48" height="22" viewBox="0 0 48 22" aria-hidden="true"><path d="M2 11 Q 8 2, 14 11 T 26 11 T 38 11 T 46 11" fill="none" stroke="var(--sage-deep, var(--pl-olive, #5C6B3F))" strokeWidth="1.6" strokeLinecap="round" /></svg> },
+  { id: 'sparkle', label: 'Sparkle', icon: <svg width="38" height="38" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.8L18.6 9l-4.8 1.8L12 15.6 10.2 10.8 5.4 9l4.8-1.2z" fill="var(--gold, #B8935A)" /></svg> },
+  { id: 'heart', label: 'Heart', icon: <svg width="36" height="34" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-4.6-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.4-7 10-7 10z" fill="var(--peach-ink, #C6703D)" opacity="0.85" /></svg> },
+  { id: 'postIt', label: 'Post-it', icon: <span style={{ width: 44, height: 36, background: 'var(--peach-bg, #FCE6D7)', border: '1px solid var(--peach-2, #F4C7A4)', borderRadius: 2, transform: 'rotate(-3deg)', display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 600, color: 'var(--peach-ink, #C6703D)' }}>save the date</span> },
+  { id: 'polaroid', label: 'Polaroid', icon: <span style={{ width: 36, height: 42, background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.15)', border: '1px solid var(--line-soft, rgba(14,13,11,0.10))', transform: 'rotate(2deg)', display: 'grid', gridTemplateRows: '1fr auto' }}><span style={{ background: 'var(--sage-tint, color-mix(in oklab, var(--pl-olive, #5C6B3F) 14%, #fff))' }} /><span style={{ fontSize: 7, color: 'var(--ink-muted, #6F6557)', padding: '2px 0', textAlign: 'center' }}>1985</span></span> },
+];
+
+/* ── DL_COLOR_CHIPS — recolor row beneath the motif grid. The
+   prototype writes a CSS var to a tile-scoped `--t-motif`; in
+   production, motif tint flows from `theme.colors.accent`. This
+   row offers the active accent + 3 alternates and patches
+   `manifest.theme.colors.accent` (which the renderer picks up via
+   CSS-var overrides). The "Ink" / "Deep" options are read-only
+   reminders so the visual treatment matches the prototype. ── */
+const DL_COLOR_CHIPS: { id: 'accent' | 'soft' | 'gold' | 'ink'; label: string; valueFn: (t?: { accent?: string; accentLight?: string; foreground?: string }) => string }[] = [
+  { id: 'accent', label: 'Accent', valueFn: (t) => t?.accent ?? 'var(--pl-olive, #5C6B3F)' },
+  { id: 'soft', label: 'Soft', valueFn: (t) => t?.accentLight ?? 'var(--peach-ink, #C6703D)' },
+  { id: 'gold', label: 'Gold', valueFn: () => 'var(--gold, #B8935A)' },
+  { id: 'ink', label: 'Ink', valueFn: (t) => t?.foreground ?? 'var(--pl-ink, #0E0D0B)' },
+];
+
+/* ── DL_DIVIDER_TILES — maps prototype's 5 divider looks onto
+   production's 3-tier dividerStrength enum + the "kit default"
+   reset row. Each preview is a hairline SVG so the user can read
+   the shape without painting a real divider. ── */
+type DividerStrengthId = 'subtle' | 'standard' | 'tall';
+const DL_DIVIDER_TILES: { id: DividerStrengthId; label: string; render: () => ReactNode }[] = [
+  { id: 'subtle', label: 'Hairline', render: () => (
+    <svg width="170" height="20" viewBox="0 0 170 20" aria-hidden="true"><line x1="0" y1="10" x2="170" y2="10" stroke="var(--ink-soft, #3A332C)" strokeOpacity="0.35" strokeWidth="0.6" /></svg>
+  ) },
+  { id: 'standard', label: 'Standard', render: () => (
+    <svg width="170" height="30" viewBox="0 0 170 30" aria-hidden="true">
+      <line x1="0" y1="15" x2="68" y2="15" stroke="var(--ink-soft, #3A332C)" strokeOpacity="0.55" strokeWidth="1" />
+      <line x1="102" y1="15" x2="170" y2="15" stroke="var(--ink-soft, #3A332C)" strokeOpacity="0.55" strokeWidth="1" />
+      <circle cx="85" cy="15" r="3" fill="var(--sage-deep, var(--pl-olive, #5C6B3F))" />
+    </svg>
+  ) },
+  { id: 'tall', label: 'Statement', render: () => (
+    <svg width="170" height="44" viewBox="0 0 170 44" aria-hidden="true">
+      <path d="M0 22 Q42 8 85 22 T 170 22" stroke="var(--sage-deep, var(--pl-olive, #5C6B3F))" strokeWidth="1.2" fill="none" opacity="0.7" />
+      <circle cx="85" cy="22" r="4.5" fill="none" stroke="var(--gold, #B8935A)" strokeWidth="1" />
+    </svg>
+  ) },
+];
+
+/* ── DL_DENSITY — production density enum (cozy / comfortable /
+   spacious). The prototype's "Subtle / Generous" binary is a
+   subset of this trichotomy. ── */
+const DL_DENSITY: { id: 'cozy' | 'comfortable' | 'spacious'; label: string }[] = [
+  { id: 'cozy', label: 'Cozy' },
+  { id: 'comfortable', label: 'Comfortable' },
+  { id: 'spacious', label: 'Spacious' },
+];
+
+type DLTab = 'motifs' | 'dividers' | 'patterns' | 'monogram' | 'generate';
+
 export function DecorLibraryPanel({
   manifest,
   onChange,
@@ -62,6 +251,8 @@ export function DecorLibraryPanel({
   const lib = manifest.decorLibrary;
   const drafts = manifest.decorDrafts ?? {};
   const ctx = useContext(manifest);
+
+  const [tab, setTab] = useState<DLTab>('motifs');
 
   const [status, setStatus] = useState<Record<LibrarySlot, Status>>({
     divider: 'idle', sectionStamps: 'idle', confetti: 'idle', footerBouquet: 'idle',
@@ -312,44 +503,340 @@ export function DecorLibraryPanel({
     });
   }
 
+  // Read the active motif key (mutually exclusive across blob /
+  // stamp / squiggle / sparkle / heart / postIt / polaroid).
+  const motifs = manifest.motifs ?? {};
+  const activeMotif: ProdMotifKey =
+    motifs.blob && motifs.blob !== 'none' ? 'blob'
+    : motifs.stamp ? 'stamp'
+    : motifs.squiggle ? 'squiggle'
+    : motifs.sparkle ? 'sparkle'
+    : motifs.heart ? 'heart'
+    : motifs.postIt ? 'postIt'
+    : motifs.polaroid ? 'polaroid'
+    : 'none';
+
+  function applyMotif(id: ProdMotifKey) {
+    const next: NonNullable<StoryManifest['motifs']> = {};
+    if (id === 'blob') next.blob = 'sage';
+    else if (id === 'stamp') next.stamp = manifest.motifs?.stamp ?? { text: 'EST.', tone: 'sage' };
+    else if (id === 'squiggle') next.squiggle = manifest.motifs?.squiggle ?? 2;
+    else if (id === 'sparkle') next.sparkle = true;
+    else if (id === 'heart') next.heart = true;
+    else if (id === 'postIt') next.postIt = manifest.motifs?.postIt ?? { text: 'save the date' };
+    else if (id === 'polaroid') next.polaroid = true;
+    // 'none' → empty object (clears all)
+    onChange({ ...manifest, motifs: next } as StoryManifest);
+  }
+
+  const themeColors = ((manifest as unknown as { theme?: { colors?: Record<string, string> } }).theme?.colors) as { accent?: string; accentLight?: string; foreground?: string; muted?: string; background?: string; cardBg?: string } | undefined;
+  const activeAccent = themeColors?.accent ?? '';
+
+  function applyAccent(hex: string) {
+    const existingTheme = (manifest as unknown as { theme?: Record<string, unknown> }).theme ?? {};
+    const existingColors = (existingTheme.colors as Record<string, string> | undefined) ?? {};
+    onChange({
+      ...manifest,
+      theme: {
+        ...existingTheme,
+        colors: { ...existingColors, accent: hex },
+      },
+    } as unknown as StoryManifest);
+  }
+
+  const activePattern: PatternId = manifest.pattern ?? 'none';
+  function pickPattern(id: PatternId) {
+    onChange({ ...manifest, pattern: id === 'none' ? undefined : id } as StoryManifest);
+  }
+
+  const activeDivider: DividerStrengthId | null = lib?.dividerStrength ?? null;
+  function pickDividerStrength(id: DividerStrengthId | null) {
+    const next = { ...(manifest.decorLibrary ?? {}) };
+    if (id === null) delete next.dividerStrength;
+    else next.dividerStrength = id;
+    onChange({ ...manifest, decorLibrary: next } as StoryManifest);
+  }
+
+  const activeDensity = manifest.density ?? 'comfortable';
+  function pickDensity(id: 'cozy' | 'comfortable' | 'spacious') {
+    onChange({ ...manifest, density: id } as StoryManifest);
+  }
+
+  function resetAllDecor() {
+    const next = { ...manifest } as StoryManifest;
+    next.motifs = {};
+    delete next.pattern;
+    if (next.decorLibrary) {
+      const nextLib = { ...next.decorLibrary };
+      delete nextLib.dividerStrength;
+      next.decorLibrary = nextLib;
+    }
+    onChange(next);
+  }
+
   return (
-    <div data-pl-decor-library>
-    <GenerateFromTextSection manifest={manifest} onChange={onChange} />
-    <PatternPickerSection manifest={manifest} onChange={onChange} />
-    <PanelSection
-      label="Decor library (AI)"
-      hint="Ask Pear to draft a full set of bespoke graphics that match your venue, palette, and occasion — divider, six section stamps, RSVP confetti, and a closing flourish. All pieces ship with transparent backgrounds."
-    >
-      {!ctx.venue && (
+    <div data-pl-decor-library style={{ marginBottom: 14 }}>
+      {/* ────── Embedded drawer card ────── */}
+      <div
+        style={{
+          borderRadius: 16,
+          background: 'var(--card, var(--pl-cream-card, #FBF7EE))',
+          border: '1px solid var(--line-soft, rgba(14,13,11,0.10))',
+          boxShadow: '0 1px 2px rgba(40,28,12,0.05), 0 8px 24px rgba(40,28,12,0.06)',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Header: lavender icon-tile + title + tab strip */}
         <div
           style={{
-            marginBottom: 12,
-            padding: 10,
-            borderRadius: 12,
-            background: 'var(--cream-2)',
-            border: '1px dashed var(--line-soft)',
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 8,
+            padding: '16px 20px 13px',
+            borderBottom: '1px solid var(--line-soft, rgba(14,13,11,0.10))',
+            background: 'var(--card, var(--pl-cream-card, #FBF7EE))',
           }}
         >
-          <Icon name="pin" size={13} />
-          <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
-            <span style={{ fontWeight: 600, color: 'var(--ink)' }}>Set a venue first.</span> Pear pulls motif
-            suggestions (Joshua trees, cypress, palm fronds…) from the Hero panel's venue field.
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <span
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 9,
+                background: 'var(--lavender-bg, var(--peach-bg, #FCE6D7))',
+                display: 'grid',
+                placeItems: 'center',
+              }}
+            >
+              <Icon name="sparkles" size={16} color="var(--lavender-ink, var(--peach-ink, #C6703D))" />
+            </span>
+            <h3
+              style={{
+                fontFamily: 'var(--font-display, "Fraunces", serif)',
+                fontSize: 20,
+                fontWeight: 600,
+                color: 'var(--ink, var(--pl-ink, #0E0D0B))',
+                margin: 0,
+                lineHeight: 1.1,
+              }}
+            >
+              Decor Library
+            </h3>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              gap: 6,
+              marginTop: 12,
+              padding: 4,
+              background: 'var(--cream-2, color-mix(in oklab, var(--pl-cream, #F5EFE2) 80%, white))',
+              borderRadius: 12,
+            }}
+          >
+            <DLTabBtn on={tab === 'motifs'} onClick={() => setTab('motifs')} icon="leaf" label="Motifs" />
+            <DLTabBtn on={tab === 'dividers'} onClick={() => setTab('dividers')} icon="minus" label="Dividers" />
+            <DLTabBtn on={tab === 'patterns'} onClick={() => setTab('patterns')} icon="grid" label="Patterns" />
+            <DLTabBtn on={tab === 'monogram'} onClick={() => setTab('monogram')} icon="heart-icon" label="Monogram" />
+            <DLTabBtn on={tab === 'generate'} onClick={() => setTab('generate')} icon="wand" label="Generate" />
           </div>
         </div>
-      )}
-      {ctx.venue && !venueMotifs && (
-        <div
-          style={{
-            marginBottom: 12,
-            padding: 10,
-            borderRadius: 12,
-            background: 'var(--cream-2)',
-            border: '1px solid var(--line-soft)',
-          }}
-        >
+
+        {/* Body: scrollable tab content */}
+        <div style={{ padding: 18, maxHeight: 720, overflowY: 'auto' }}>
+          {/* ───── MOTIFS tab ───── */}
+          {tab === 'motifs' && (
+            <>
+              <DLGalleryLabel>Motif — tap to place around your sections</DLGalleryLabel>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                {DL_MOTIF_TILES.map((m) => (
+                  <DLThemedTile
+                    key={m.id}
+                    active={activeMotif === m.id}
+                    onClick={() => applyMotif(m.id)}
+                  >
+                    {m.icon ?? (
+                      <span style={{ fontSize: 11.5, color: 'var(--ink-muted, #6F6557)', fontWeight: 600 }}>
+                        {m.label}
+                      </span>
+                    )}
+                  </DLThemedTile>
+                ))}
+              </div>
+
+              <DLGalleryLabel>Motif color</DLGalleryLabel>
+              <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap' }}>
+                {DL_COLOR_CHIPS.map((c) => {
+                  const value = c.valueFn(themeColors);
+                  const isAccentChip = c.id === 'accent';
+                  const on = isAccentChip; // active accent always shows the live theme accent
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => {
+                        // Only the accent chip rewrites the theme. Soft/Gold/Ink
+                        // are read-only previews — clicking them would silently
+                        // change colors users didn't intend.
+                        if (isAccentChip && activeAccent) applyAccent(activeAccent);
+                      }}
+                      title={isAccentChip ? 'Active accent' : `${c.label} (preview)`}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 4,
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: isAccentChip ? 'pointer' : 'default',
+                        padding: 0,
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 30,
+                          height: 30,
+                          borderRadius: '50%',
+                          background: value,
+                          boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.12)',
+                          border: on ? '2.5px solid var(--ink, var(--pl-ink, #0E0D0B))' : '2.5px solid transparent',
+                        }}
+                      />
+                      <span style={{ fontSize: 9.5, color: 'var(--ink-muted, #6F6557)', fontWeight: 600 }}>
+                        {c.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <DLGalleryLabel>Amount</DLGalleryLabel>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 6,
+                  padding: 3,
+                  background: 'var(--cream-2, #FBF7EE)',
+                  borderRadius: 9,
+                  width: 'fit-content',
+                }}
+              >
+                {DL_DENSITY.map((d) => {
+                  const on = activeDensity === d.id;
+                  return (
+                    <button
+                      key={d.id}
+                      type="button"
+                      onClick={() => pickDensity(d.id)}
+                      style={{
+                        padding: '6px 16px',
+                        borderRadius: 7,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        background: on ? 'var(--ink, var(--pl-ink, #0E0D0B))' : 'transparent',
+                        color: on ? 'var(--cream, #FBF7EE)' : 'var(--ink-soft, #3A332C)',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontFamily: 'var(--font-ui)',
+                      }}
+                    >
+                      {d.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {/* ───── DIVIDERS tab ───── */}
+          {tab === 'dividers' && (
+            <>
+              <DLGalleryLabel>Section dividers — tap to apply everywhere</DLGalleryLabel>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => pickDividerStrength(null)}
+                  style={{
+                    padding: '12px 14px',
+                    borderRadius: 11,
+                    background: 'var(--cream-2, #FBF7EE)',
+                    border: activeDivider === null
+                      ? '2px solid var(--ink, var(--pl-ink, #0E0D0B))'
+                      : '1px solid var(--line, rgba(14,13,11,0.12))',
+                    textAlign: 'left',
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    color: 'var(--ink-soft, #3A332C)',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-ui)',
+                  }}
+                >
+                  Use the kit&rsquo;s default divider
+                </button>
+                {DL_DIVIDER_TILES.map((d) => (
+                  <DLThemedTile
+                    key={d.id}
+                    active={activeDivider === d.id}
+                    onClick={() => pickDividerStrength(d.id)}
+                    minHeight={64}
+                    padding="16px 22px"
+                    background="var(--paper, var(--pl-cream, #F5EFE2))"
+                  >
+                    <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          position: 'absolute',
+                          left: 14,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          fontSize: 10,
+                          fontWeight: 700,
+                          letterSpacing: '0.05em',
+                          textTransform: 'uppercase',
+                          color: 'var(--ink-muted, #6F6557)',
+                        }}
+                      >
+                        {d.label}
+                      </span>
+                      <span style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>{d.render()}</span>
+                    </div>
+                  </DLThemedTile>
+                ))}
+              </div>
+
+              {/* ── AI decor library (full draft) — was the legacy
+                  top-level "Decor library" PanelSection. Moved
+                  under Dividers because divider art is the most
+                  visible AI piece; the other 3 slots are subtler. ── */}
+              <div style={{ marginTop: 18 }}>
+                <DLGalleryLabel>AI-painted set — divider, stamps, confetti, flourish</DLGalleryLabel>
+                {!ctx.venue && (
+                  <div
+                    style={{
+                      marginBottom: 12,
+                      padding: 10,
+                      borderRadius: 12,
+                      background: 'var(--cream-2, #FBF7EE)',
+                      border: '1px dashed var(--line-soft, rgba(14,13,11,0.10))',
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 8,
+                    }}
+                  >
+                    <Icon name="pin" size={13} />
+                    <div style={{ fontSize: 11.5, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.45 }}>
+                      <span style={{ fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>Set a venue first.</span> Pear pulls motif
+                      suggestions (Joshua trees, cypress, palm fronds…) from the Hero panel&apos;s venue field.
+                    </div>
+                  </div>
+                )}
+                {ctx.venue && !venueMotifs && (
+                  <div
+                    style={{
+                      marginBottom: 12,
+                      padding: 10,
+                      borderRadius: 12,
+                      background: 'var(--cream-2, #FBF7EE)',
+                      border: '1px solid var(--line-soft, rgba(14,13,11,0.10))',
+                    }}
+                  >
           <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.45, marginBottom: 8 }}>
             <span style={{ fontWeight: 600, color: 'var(--ink)' }}>"{ctx.venue}"</span> didn't match a known
             archetype. Ask Pear to read your venue and propose motifs, or write a custom prompt below.
@@ -473,55 +960,169 @@ export function DecorLibraryPanel({
           </div>
         </div>
       )}
-      <button
-        type="button"
-        className="btn btn-primary btn-sm"
-        onClick={() => void generate(allSlots)}
-        style={{ width: '100%', marginBottom: 12, justifyContent: 'center' }}
-        disabled={Object.values(status).some((v) => v === 'running')}
-      >
-        {lib && Object.keys(lib).length > 1 ? 'Re-draft the whole library' : 'Draft the decor library'}
-      </button>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 14 }}>
-        {allSlots.map((slot) => (
-          <SlotCard
-            key={slot}
-            slot={slot}
-            lib={lib}
-            status={status[slot]}
-            error={errors[slot]}
-            customPrompt={customPrompts[slot]}
-            onCustomPromptChange={(v) => setCustomPrompts((p) => ({ ...p, [slot]: v }))}
-            onRegen={() => void generate([slot])}
-            onClear={() => clearSlot(slot)}
-            ctx={ctx}
-            drafts={
-              slot === 'sectionStamps'
-                ? (drafts.sectionStamps ?? [])
-                : (drafts[slot as 'divider' | 'confetti' | 'footerBouquet'] ?? [])
-            }
-            onPickDraft={(d) => {
-              if (slot === 'sectionStamps') pickStampsDraft(d as SectionStampsDraft);
-              else pickDraft(slot as 'divider' | 'confetti' | 'footerBouquet', d as DecorDraft);
-            }}
-            onDeleteDraft={(d) => {
-              if (slot === 'sectionStamps') deleteStampsDraft(d as SectionStampsDraft);
-              else deleteDraft(slot as 'divider' | 'confetti' | 'footerBouquet', d as DecorDraft);
-            }}
-          />
-        ))}
-      </div>
-      <p style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 12, lineHeight: 1.5 }}>
-        Each full-library draft makes 4 generations. Per-slot regen + alternates count against your hourly budget of 3 full libraries.
-      </p>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => void generate(allSlots)}
+                  style={{ width: '100%', marginBottom: 12, justifyContent: 'center' }}
+                  disabled={Object.values(status).some((v) => v === 'running')}
+                >
+                  {lib && Object.keys(lib).length > 1 ? 'Re-draft the whole library' : 'Draft the decor library'}
+                </button>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 14 }}>
+                  {allSlots.map((slot) => (
+                    <SlotCard
+                      key={slot}
+                      slot={slot}
+                      lib={lib}
+                      status={status[slot]}
+                      error={errors[slot]}
+                      customPrompt={customPrompts[slot]}
+                      onCustomPromptChange={(v) => setCustomPrompts((p) => ({ ...p, [slot]: v }))}
+                      onRegen={() => void generate([slot])}
+                      onClear={() => clearSlot(slot)}
+                      ctx={ctx}
+                      drafts={
+                        slot === 'sectionStamps'
+                          ? (drafts.sectionStamps ?? [])
+                          : (drafts[slot as 'divider' | 'confetti' | 'footerBouquet'] ?? [])
+                      }
+                      onPickDraft={(d) => {
+                        if (slot === 'sectionStamps') pickStampsDraft(d as SectionStampsDraft);
+                        else pickDraft(slot as 'divider' | 'confetti' | 'footerBouquet', d as DecorDraft);
+                      }}
+                      onDeleteDraft={(d) => {
+                        if (slot === 'sectionStamps') deleteStampsDraft(d as SectionStampsDraft);
+                        else deleteDraft(slot as 'divider' | 'confetti' | 'footerBouquet', d as DecorDraft);
+                      }}
+                    />
+                  ))}
+                </div>
+                <p style={{ fontSize: 11, color: 'var(--ink-muted, #6F6557)', marginTop: 12, lineHeight: 1.5 }}>
+                  Each full-library draft makes 4 generations. Per-slot regen + alternates count against your hourly budget of 3 full libraries.
+                </p>
+              </div>
+            </>
+          )}
 
-      {/* Audited 2026-04-30: dropped the divider-strength picker
-          (subtle / standard / tall). Renderer defaults to 'standard'
-          when the field is unset, which is what 99% of hosts want.
-          The dividerStrength field stays in the schema for back-
-          compat; only the UI is gone. */}
-    </PanelSection>
-    <MonogramSection manifest={manifest} onChange={onChange} />
+          {/* ───── PATTERNS tab ───── */}
+          {tab === 'patterns' && (
+            <>
+              <DLGalleryLabel>Background prints — tap to apply behind sections</DLGalleryLabel>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                {PATTERN_TILES.map((tile) => {
+                  const on = activePattern === tile.id;
+                  return (
+                    <DLThemedTile
+                      key={tile.id}
+                      active={on}
+                      onClick={() => pickPattern(tile.id)}
+                      padding={0}
+                      background="var(--paper, var(--pl-cream, #F5EFE2))"
+                    >
+                      <div
+                        style={{
+                          position: 'relative',
+                          width: '100%',
+                          height: 78,
+                          overflow: 'hidden',
+                          borderRadius: 12,
+                        }}
+                      >
+                        <PatternMiniature id={tile.id} />
+                        <span
+                          style={{
+                            position: 'absolute',
+                            bottom: 6,
+                            left: 0,
+                            right: 0,
+                            textAlign: 'center',
+                            fontSize: 10,
+                            fontWeight: 700,
+                            color: 'var(--ink-soft, #3A332C)',
+                            zIndex: 2,
+                            textShadow: '0 1px 2px rgba(255,255,255,0.6)',
+                          }}
+                        >
+                          {tile.label}
+                        </span>
+                      </div>
+                    </DLThemedTile>
+                  );
+                })}
+              </div>
+              <p style={{ fontSize: 11, color: 'var(--ink-muted, #6F6557)', marginTop: 14, lineHeight: 1.5 }}>
+                Patterns sit BEHIND every section, like wallpaper. Different from texture (the material grain ON TOP).
+              </p>
+            </>
+          )}
+
+          {/* ───── MONOGRAM tab ───── */}
+          {tab === 'monogram' && (
+            <div data-pl-decor-monogram-tab>
+              {/* Fresh PanelGroup → MonogramSection's PanelSection opens
+                  by default no matter where this drawer is mounted. */}
+              <PanelGroup>
+                <MonogramSection manifest={manifest} onChange={onChange} />
+              </PanelGroup>
+            </div>
+          )}
+
+          {/* ───── GENERATE tab ───── */}
+          {tab === 'generate' && (
+            <div data-pl-decor-generate-tab>
+              <PanelGroup>
+                <GenerateFromTextSection manifest={manifest} onChange={onChange} />
+              </PanelGroup>
+            </div>
+          )}
+        </div>
+
+        {/* Footer: Reset all + tab-specific tip */}
+        <div
+          style={{
+            padding: '12px 18px',
+            borderTop: '1px solid var(--line-soft, rgba(14,13,11,0.10))',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 10,
+            background: 'var(--card, var(--pl-cream-card, #FBF7EE))',
+          }}
+        >
+          <button
+            type="button"
+            onClick={resetAllDecor}
+            style={{
+              fontSize: 12.5,
+              fontWeight: 600,
+              color: 'var(--ink-soft, #3A332C)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'transparent',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            <Icon name="close" size={13} color="var(--ink-soft, #3A332C)" />
+            Reset decor
+          </button>
+          <span
+            style={{
+              fontSize: 10.5,
+              color: 'var(--ink-muted, #6F6557)',
+              fontFamily: 'var(--font-ui)',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+            }}
+          >
+            Live-applied — your site updates as you tap.
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

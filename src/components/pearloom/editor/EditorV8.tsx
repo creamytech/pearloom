@@ -1794,14 +1794,25 @@ function EditorTopbar({
   return (
     <header
       aria-label="Editor toolbar"
+      // Prototype-fidelity: fixed 56px height (matches
+      // ClaudeDesign/pages/editor-redesign.jsx gridTemplateRows
+      // '56px 1fr'), no flex-wrap (single row at all widths the
+      // editor supports — narrow viewports already render the
+      // mobile shell), 16px horizontal padding to align with the
+      // outline rail's 16px left padding so logo + outline header
+      // stack vertically on the same axis.
       style={{
         display: 'flex',
         alignItems: 'center',
         gap: 14,
-        padding: '10px 22px',
+        padding: '0 16px',
+        height: 56,
+        minHeight: 56,
         background: 'var(--cream)',
         borderBottom: '1px solid var(--line-soft)',
-        flexWrap: 'wrap',
+        flexWrap: 'nowrap',
+        position: 'relative',
+        zIndex: 5,
       }}
     >
       {/* Zone 1 — Identity (logo + slug + status) */}
@@ -1912,6 +1923,12 @@ function EditorTopbar({
             // render mode + device size, not separate tab content.
             // role="radio" + aria-checked is the canonical mutually-
             // exclusive choice pattern. Arrow-key roving still works.
+            //
+            // Prototype-fidelity (editor-redesign.jsx ~L80–84): card
+            // surface + 1px line-soft border. The earlier cream-2
+            // chip read as a darker recessed sticker; the bordered
+            // card chip reads as a raised toggle — matches what the
+            // prototype ships.
             role="radiogroup"
             aria-label="Editor mode"
             style={{
@@ -1919,7 +1936,8 @@ function EditorTopbar({
               gap: 2,
               margin: '0 auto',
               padding: 3,
-              background: 'var(--cream-2)',
+              background: 'var(--card)',
+              border: '1px solid var(--line-soft)',
               borderRadius: 999,
             }}
           >

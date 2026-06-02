@@ -460,24 +460,24 @@ export function CommandPalette({
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        background: 'rgba(14,13,11,0.42)',
+        background: 'rgba(40,40,30,0.40)',
         backdropFilter: 'blur(5px)',
         WebkitBackdropFilter: 'blur(5px)',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'flex-start',
         paddingTop: '12vh',
+        animation: 'pl-cmd-fade 180ms cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         onKeyDown={onKey}
         style={{
-          width: 'min(620px, 94vw)',
-          maxHeight: '70vh',
+          width: 'min(580px, 94vw)',
           background: 'var(--card, #FBF7EE)',
           borderRadius: 16,
-          boxShadow: '0 30px 80px rgba(14,13,11,0.32), 0 2px 6px rgba(0,0,0,0.10)',
+          boxShadow: '0 30px 80px rgba(40,40,30,0.32)',
           overflow: 'hidden',
           border: '1px solid var(--line-soft, rgba(14,13,11,0.10))',
           animation: 'pl-cmd-in 180ms cubic-bezier(0.16, 1, 0.3, 1)',
@@ -486,7 +486,7 @@ export function CommandPalette({
           fontFamily: 'var(--font-ui)',
         }}
       >
-        <style>{`@keyframes pl-cmd-in { from { transform: translateY(-8px) scale(0.99); opacity: 0 } to { transform: none; opacity: 1 } }`}</style>
+        <style>{`@keyframes pl-cmd-in { from { transform: translateY(-8px) scale(0.99); opacity: 0 } to { transform: none; opacity: 1 } } @keyframes pl-cmd-fade { from { opacity: 0 } to { opacity: 1 } }`}</style>
 
         {/* Search input */}
         <div
@@ -534,10 +534,9 @@ export function CommandPalette({
         <div
           ref={listRef}
           style={{
-            flex: 1,
+            maxHeight: '52vh',
             overflowY: 'auto',
             padding: 8,
-            minHeight: 0,
           }}
         >
           {results.length === 0 && (
@@ -550,7 +549,7 @@ export function CommandPalette({
               }}
             >
               <Pear size={36} tone="sage" shadow={false} />
-              <div style={{ marginTop: 8 }}>Nothing matched.</div>
+              <div style={{ marginTop: 8 }}>No matches</div>
             </div>
           )}
           {groups.map(([groupLabel, groupItems]) => (
@@ -648,7 +647,7 @@ export function CommandPalette({
                             display: 'block',
                             fontSize: 11.5,
                             color: isActive
-                              ? 'rgba(248,241,228,0.72)'
+                              ? 'rgba(248,241,228,0.7)'
                               : 'var(--ink-muted, #6F6557)',
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
@@ -679,7 +678,6 @@ export function CommandPalette({
             borderTop: '1px solid var(--line-soft, rgba(14,13,11,0.10))',
             fontSize: 11,
             color: 'var(--ink-muted, #6F6557)',
-            background: 'var(--cream-2, #EBE3D2)',
           }}
         >
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>

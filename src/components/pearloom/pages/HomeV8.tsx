@@ -1,916 +1,1558 @@
 'use client';
 
 /* ========================================================================
-   PEARLOOM — HOME (v8 handoff port)
-   "Plan with heart. Keep every moment."
+   PEARLOOM — HOME (logged-in dashboard)
+   Visual-fidelity port of ClaudeDesign/pages/home-redesign.jsx (745 lines).
+
+   Three planning stages, all real:
+   - early  — far out, almost nothing done. Lavender stage pill.
+   - mid    — replies trickling in. Sage stage pill.
+   - late   — RSVPs closing, day-of room warming up. Peach stage pill.
+
+   The page is laid out top-down:
+   1. Custom topbar (denser than DashLayout's default) — name + View live + Open editor
+   2. HeroBand — names + days-until + stage pill + next-milestone callout
+                 + planning progress + "N things since you last visited"
+                 + a botanical OliveSprig (Sprig) accent + Blob atmosphere
+   3. QuickJumps — 4 stage-aware tiles
+   4. Two-column work zone:
+        Left  — PearRecommendations (3 todos) + ActivityFeed
+        Right — HomeSitePreview themed vignette card (Edit / Themes)
+                + GuestPulse + Milestones
    ======================================================================== */
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState, type ReactNode } from 'react';
-import {
-  Blob,
-  Heart,
-  Icon,
-  Pear,
-  PearMascot,
-  PhotoPlaceholder,
-  PostIt,
-  Sparkle,
-  Squiggle,
-  Stamp,
-} from '../motifs';
-import { Float, Reveal } from '../motion';
-import { TopNav } from '../chrome';
-import { LandingPricing } from '@/components/marketing/v2/LandingPricing';
-import { LandingPillars } from '@/components/marketing/v2/LandingPillars';
-import { LandingProof } from '@/components/marketing/v2/LandingProof';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { DashLayout } from '../dash/DashShell';
+import { Icon, Pear, Sprig, Wash } from '../motifs';
+import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
+import { parseLocalDate } from '@/lib/date-utils';
+import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
+import type { GuestInsight } from '@/app/api/guests/intelligence/route';
 
-function Eyebrow({ children, color = 'var(--peach-ink)' }: { children: ReactNode; color?: string }) {
-  return (
-    <div
-      style={{
-        fontSize: 11,
-        fontWeight: 700,
-        letterSpacing: '0.14em',
-        textTransform: 'uppercase',
-        color,
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 8,
-      }}
-    >
-      <Sparkle size={11} color="var(--gold)" />
-      {children}
-    </div>
-  );
+interface Guest {
+  id: string;
+  name: string;
+  status: 'pending' | 'yes' | 'no' | 'maybe' | string;
+  respondedAt?: string | null;
+  message?: string | null;
+  plusOneName?: string | null;
 }
 
-/* ==================== HERO ==================== */
-function Hero() {
+type Stage = 'early' | 'mid' | 'late';
+
+function stageFromDaysUntil(daysUntil: number | null): Stage {
+  if (daysUntil == null) return 'early';
+  if (daysUntil <= 30) return 'late';
+  if (daysUntil >= 180) return 'early';
+  return 'mid';
+}
+
+/* ========================================================================
+   HomeV8 — the actual logged-in landing dashboard.
+   ======================================================================== */
+export function HomeV8() {
+  const { site } = useSelectedSite();
+  const [insights, setInsights] = useState<GuestInsight[] | null>(null);
+  const [guests, setGuests] = useState<Guest[] | null>(null);
+
+  useEffect(() => {
+    if (!site?.domain) return;
+    let cancelled = false;
+    fetch(`/api/guests/intelligence?siteId=${encodeURIComponent(site.domain)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { insights?: GuestInsight[] } | null) => {
+        if (!cancelled && data?.insights) setInsights(data.insights);
+      })
+      .catch(() => {});
+    fetch(`/api/guests?site=${encodeURIComponent(site.domain)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { guests?: Guest[] } | null) => {
+        if (!cancelled && data?.guests) setGuests(data.guests);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [site?.domain]);
+
+  // Derived: dates, stage, names
+  const eventDate = parseLocalDate(site?.eventDate);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
+  const daysUntil = eventDate
+    ? Math.max(0, Math.round((eventDate.getTime() - now) / 86_400_000))
+    : null;
+  const eventDateLabel = eventDate
+    ? eventDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+    : null;
+  const eventDateShort = eventDate
+    ? eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : null;
+  const stage = stageFromDaysUntil(daysUntil);
+  const namesArr = (site?.names ?? []).filter(Boolean) as string[];
+  const firstName = namesArr[0] ?? 'friend';
+  const occasion = site?.occasion ?? 'wedding';
+  const editorHref = site?.domain ? `/editor/${site.domain}` : '/dashboard/event';
+  const liveHref = site?.domain ? buildSiteUrl(site.domain, '', undefined, occasion) : '#';
+  const liveDisplay = site?.domain ? formatSiteDisplayUrl(site.domain, '', occasion) : '';
+
+  // Guest counts
+  const guestCounts = useMemo(() => {
+    if (!guests) return null;
+    let yes = 0, no = 0, maybe = 0, pending = 0;
+    for (const g of guests) {
+      if (g.status === 'yes' || g.status === 'attending') yes++;
+      else if (g.status === 'no' || g.status === 'declined') no++;
+      else if (g.status === 'maybe') maybe++;
+      else pending++;
+    }
+    return { invited: guests.length, yes, no, maybe, pending };
+  }, [guests]);
+
+  const recentActivity = useMemo(() => {
+    if (!guests) return [];
+    return guests
+      .filter((g) => g.respondedAt && (g.status === 'yes' || g.status === 'no' || g.status === 'maybe'))
+      .sort((a, b) => new Date(b.respondedAt!).getTime() - new Date(a.respondedAt!).getTime())
+      .slice(0, 7);
+  }, [guests]);
+
+  const pearTodos = usePearTodos({ stage, insights, guestCounts, daysUntil });
+  const milestones = useMemo(
+    () => buildMilestones({ stage, eventDate, eventDateShort, daysUntil, guestCounts }),
+    [stage, eventDate, eventDateShort, daysUntil, guestCounts],
+  );
+  const nextMilestone =
+    milestones.find((m) => m.status === 'urgent') ??
+    milestones.find((m) => m.status === 'next') ??
+    milestones.find((m) => m.status === 'upcoming') ??
+    null;
+
+  const stageBlurb =
+    stage === 'early'
+      ? 'Just getting started. Pear has a few ideas to get the ball rolling.'
+      : stage === 'late'
+      ? 'The home stretch — RSVPs are closing and the day-of room is open.'
+      : "Mid-planning. Replies are landing. Keep the schedule moving.";
+
   return (
-    <section style={{ position: 'relative', padding: '48px 0 140px', overflow: 'hidden' }}>
-      {/* Two restrained paper washes + a single hairline filigree —
-          a calmer hero atmosphere than the original three blobs +
-          two squiggles. */}
-      <Blob tone="lavender" size={520} opacity={0.42} seed={0} style={{ position: 'absolute', top: -120, left: -160, zIndex: 0 }} />
-      <Blob tone="peach" size={420} opacity={0.32} seed={2} style={{ position: 'absolute', bottom: -120, right: -120, zIndex: 0 }} />
-      <Squiggle width={240} variant={3} style={{ position: 'absolute', top: 40, right: 120, opacity: 0.45, zIndex: 0 }} />
+    <DashLayout active="home" title="Welcome back" subtitle={stageBlurb} hideTopbar>
+      {/* Custom topbar — denser, more intentional than DashLayout's default.
+          Matches the prototype's "Welcome back, Scott" treatment. */}
+      <div
+        style={{
+          padding: '20px clamp(20px, 4vw, 40px) 8px',
+          maxWidth: 1320,
+          margin: '0 auto',
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: 24,
+          flexWrap: 'wrap',
+        }}
+      >
+        <div style={{ minWidth: 0 }}>
+          <h1
+            className="display"
+            style={{
+              fontSize: 'clamp(28px, 4vw, 36px)',
+              margin: 0,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              lineHeight: 1.05,
+            }}
+          >
+            Welcome back, {firstName}
+          </h1>
+          <div style={{ marginTop: 4, fontSize: 14, color: 'var(--ink-soft)' }}>{stageBlurb}</div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {site?.domain && (
+            <a
+              href={liveHref}
+              target="_blank"
+              rel="noreferrer"
+              className="btn btn-outline btn-sm"
+              style={{ textDecoration: 'none' }}
+            >
+              <Icon name="eye" size={13} /> View live
+            </a>
+          )}
+          <Link href={editorHref} className="btn btn-primary btn-sm" style={{ textDecoration: 'none' }}>
+            <Icon name="brush" size={13} color="var(--cream)" /> Open editor
+          </Link>
+        </div>
+      </div>
 
       <div
-        className="container pl8-hero-grid"
-        style={{ position: 'relative', zIndex: 2, display: 'grid', gridTemplateColumns: '1fr 1.05fr', gap: 56, alignItems: 'center' }}
+        style={{
+          padding: '0 clamp(20px, 4vw, 40px) 32px',
+          maxWidth: 1320,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+        }}
       >
-        {/* LEFT */}
-        <div className="pl8-hero-left" style={{ position: 'relative' }}>
-          <Reveal delay={100}>
-            <div data-stamp style={{ position: 'absolute', top: 0, left: -20 }}>
-              <Stamp size={88} tone="lavender" icon="pear" rotation={-12} text="MADE FOR MEANINGFUL MOMENTS" />
-            </div>
-          </Reveal>
+        <HeroBand
+          firstName={firstName}
+          namesArr={namesArr}
+          eventDateLabel={eventDateLabel}
+          venue={site?.venue ?? null}
+          daysUntil={daysUntil}
+          stage={stage}
+          nextMilestone={nextMilestone}
+          progressDone={milestones.filter((m) => m.status === 'done').length}
+          progressTotal={milestones.length}
+          newSinceVisit={recentActivity.length}
+        />
 
-          <div style={{ paddingLeft: 90 }}>
-            {/* Peach eyebrow — matches the prototype's editorial
-                kicker pattern. */}
-            <Reveal delay={100}>
-              <div
-                className="eyebrow"
-                style={{
-                  fontSize: 11.5,
-                  fontWeight: 700,
-                  letterSpacing: '0.22em',
-                  textTransform: 'uppercase',
-                  color: '#C6703D',
-                  marginBottom: 16,
-                }}
-              >
-                The operating system for the days that matter
-              </div>
-            </Reveal>
-            <Reveal delay={140} y={24}>
-              <h1
-                className="display"
-                style={{
-                  fontSize: 78,
-                  lineHeight: 0.98,
-                  margin: 0,
-                  fontWeight: 600,
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                Plan with heart.
-              </h1>
-            </Reveal>
-            <Reveal delay={260} y={24}>
-              {/* Second line in italic peach matching the themed
-                  renderer's hero treatment. */}
-              <h1
-                className="display"
-                style={{
-                  fontSize: 78,
-                  lineHeight: 0.98,
-                  margin: '6px 0 0',
-                  fontStyle: 'italic',
-                  fontWeight: 400,
-                  color: '#C6703D',
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                Keep every
-                <br />
-                moment.
-              </h1>
-            </Reveal>
+        <QuickJumps
+          stage={stage}
+          editorHref={editorHref}
+          liveHref={liveHref}
+          liveDisplay={liveDisplay}
+          domain={site?.domain ?? null}
+        />
 
-            <Reveal delay={400}>
-              {/* Italic display body so the page reads as personal
-                  letterhead, not marketing tagline. */}
-              <p
-                style={{
-                  fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-                  fontStyle: 'italic',
-                  fontSize: 19,
-                  lineHeight: 1.5,
-                  color: 'var(--ink-soft)',
-                  maxWidth: 460,
-                  margin: '28px 0 32px',
-                }}
-              >
-                Pearloom helps you plan, host, and preserve life&apos;s most meaningful events—all in one beautiful place.
-              </p>
-            </Reveal>
-
-            <Reveal delay={520}>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 28, flexWrap: 'wrap' }}>
-                <Link className="btn btn-primary btn-lg pl8-btn-sheen" href="/wizard/new">
-                  Start your event <Pear size={14} tone="cream" shadow={false} />
-                </Link>
-                <button type="button" className="btn btn-outline btn-lg">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                  See how it works
-                </button>
-              </div>
-            </Reveal>
-
-            <Reveal delay={640}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ display: 'flex' }}>
-                  {['#EAB286', '#C4B5D9', '#8B9C5A', '#F0C9A8', '#CBD29E'].map((c, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: '50%',
-                        background: c,
-                        border: '2px solid var(--cream)',
-                        marginLeft: i === 0 ? 0 : -10,
-                      }}
-                    />
-                  ))}
-                </div>
-                <div>
-                  <div style={{ display: 'flex', gap: 1, color: 'var(--gold)', fontSize: 13 }}>
-                    {'★★★★★'.split('').map((s, i) => (
-                      <span key={i}>{s}</span>
-                    ))}
-                  </div>
-                  <div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>Loved by families everywhere</div>
-                </div>
-              </div>
-            </Reveal>
+        {/* Two-column work zone — verbatim from the prototype's layout. */}
+        <div className="home-grid">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <PearRecommendations todos={pearTodos} />
+            <ActivityFeed activity={recentActivity} />
           </div>
-
-          <Float amplitude={6} duration={7} className="pl8-hero-right">
-            <div style={{ position: 'absolute', left: -24, bottom: -120, zIndex: 1 }}>
-              <Pear size={110} tone="cream" />
-            </div>
-          </Float>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <HomeSitePreview
+              names={namesArr}
+              eventDateShort={eventDateShort}
+              venue={site?.venue ?? null}
+              editorHref={editorHref}
+              liveHref={liveHref}
+              hasSite={Boolean(site?.domain)}
+            />
+            <GuestPulse counts={guestCounts} loading={guests === null} />
+            <Milestones milestones={milestones} dateShort={eventDateShort} />
+          </div>
         </div>
-
-        {/* RIGHT — device + polaroid */}
-        <Reveal delay={320} y={32} duration={900} className="pl8-hero-right">
-          <div style={{ position: 'relative', height: 640, paddingRight: 48 }}>
-            {/* Dashboard window — positioned slightly right + up so the phone has room at bottom-left */}
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 88,
-                right: 0,
-                background: '#fff',
-                borderRadius: 16,
-                boxShadow: '0 24px 56px rgba(61,74,31,0.14), 0 2px 6px rgba(0,0,0,0.06)',
-                border: '1px solid rgba(0,0,0,0.05)',
-                overflow: 'hidden',
-                zIndex: 2,
-              }}
-            >
-              <DashboardPreview />
-            </div>
-
-            {/* Phone — bottom-left, overlapping dashboard */}
-            <Float amplitude={5} duration={7} style={{ position: 'absolute', left: 0, bottom: 0, zIndex: 4 }}>
-              <PhoneMock />
-            </Float>
-
-            {/* Couple polaroid — top-right, rotated (rotation outside Float to avoid animation override) */}
-            <div style={{ position: 'absolute', top: 16, right: -20, zIndex: 5, transform: 'rotate(6deg)' }}>
-              <Float amplitude={4} duration={8} delay={0.5}>
-                <CouplePolaroid />
-              </Float>
-            </div>
-
-            {/* PostIt — tucked behind polaroid corner */}
-            <div style={{ position: 'absolute', top: -20, right: 200, zIndex: 3 }}>
-              <PostIt tone="lavender" width={180} rotation={8}>
-                <div style={{ fontFamily: 'var(--font-script)', fontSize: 20 }}>
-                  Every detail,
-                  <br />
-                  together.
-                </div>
-                <div style={{ marginTop: 6, opacity: 0.5, fontFamily: 'var(--font-script)', fontSize: 22 }}>~</div>
-              </PostIt>
-            </div>
-
-            {/* Stamp — bottom-right, peeking below the polaroid */}
-            <div style={{ position: 'absolute', bottom: 40, right: 20, zIndex: 6 }}>
-              <Stamp size={84} tone="peach" icon="pear" rotation={12} text="MADE TO BE REMEMBERED" />
-            </div>
-          </div>
-        </Reveal>
       </div>
-    </section>
+
+      <style jsx>{`
+        .home-grid {
+          display: grid;
+          grid-template-columns: 1.25fr 1fr;
+          gap: 16px;
+          align-items: start;
+        }
+        @media (max-width: 960px) {
+          .home-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+    </DashLayout>
   );
 }
 
-function DashboardPreview() {
-  const items = [
-    { icon: 'home', label: 'Home', on: true },
-    { icon: 'calendar', label: 'Timeline' },
-    { icon: 'users', label: 'Guests' },
-    { icon: 'section', label: 'Details' },
-    { icon: 'gallery', label: 'Gallery' },
-    { icon: 'text', label: 'Notes' },
-    { icon: 'gift', label: 'Gifts' },
-    { icon: 'settings', label: 'Settings' },
-  ];
+/* ========================================================================
+   HeroBand — names + next milestone + progress
+   Verbatim port of the prototype's HeroBand (lines 191–304) with the
+   olive sprig botanical accent and peach Blob atmosphere preserved.
+   ======================================================================== */
+function HeroBand({
+  namesArr,
+  eventDateLabel,
+  venue,
+  daysUntil,
+  stage,
+  nextMilestone,
+  progressDone,
+  progressTotal,
+  newSinceVisit,
+}: {
+  firstName: string;
+  namesArr: string[];
+  eventDateLabel: string | null;
+  venue: string | null;
+  daysUntil: number | null;
+  stage: Stage;
+  nextMilestone: Milestone | null;
+  progressDone: number;
+  progressTotal: number;
+  newSinceVisit: number;
+}) {
+  const pct = progressTotal === 0 ? 0 : Math.round((progressDone / progressTotal) * 100);
+  const stagePill = STAGE_PILL[stage];
+  const urgencyTone = nextMilestone?.urgency === 'urgent' ? 'peach'
+    : nextMilestone?.urgency === 'soon' ? 'lavender' : 'sage';
+  const urgencyColor =
+    urgencyTone === 'peach' ? 'var(--peach-ink)' :
+    urgencyTone === 'lavender' ? 'var(--lavender-ink)' : 'var(--sage-deep)';
+  const urgencyBg =
+    urgencyTone === 'peach' ? 'var(--peach-bg)' :
+    urgencyTone === 'lavender' ? 'var(--lavender-bg)' : 'var(--sage-tint)';
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '170px 1fr', minHeight: 380 }}>
-      <div style={{ background: '#FBF7EC', borderRight: '1px solid rgba(0,0,0,0.06)', padding: '16px 14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 18 }}>
-          <Pear size={22} tone="sage" shadow={false} />
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700 }}>Pearloom</div>
+    <div
+      className="hero-band"
+      style={{
+        background: 'linear-gradient(180deg, var(--card, #FBF7EE) 0%, #FBF6E8 100%)',
+        border: '1px solid var(--card-ring, rgba(14,13,11,0.08))',
+        borderRadius: 20,
+        padding: 'clamp(20px, 3vw, 28px) clamp(20px, 3vw, 32px)',
+        display: 'grid',
+        gridTemplateColumns: '1.4fr 1fr 1fr',
+        gap: 28,
+        alignItems: 'center',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Atmosphere — peach Blob + olive Sprig. Matches the prototype's
+          botanical hero accent / motif scatter. */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          top: -100,
+          right: -80,
+          opacity: 0.5,
+          pointerEvents: 'none',
+        }}
+      >
+        <Wash tone="peach" size={300} opacity={0.7} />
+      </div>
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          top: 18,
+          right: 196,
+          opacity: 0.55,
+          transform: 'rotate(-8deg)',
+          pointerEvents: 'none',
+        }}
+      >
+        <Sprig size={130} color="var(--sage, #8B9C5A)" accent="var(--gold, #B8935A)" />
+      </div>
+
+      {/* LEFT — names + meta */}
+      <div style={{ position: 'relative', zIndex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
+          <span
+            className="eyebrow"
+            style={{
+              color: 'var(--peach-ink)',
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+            }}
+          >
+            {daysUntil == null
+              ? 'Your celebration'
+              : daysUntil === 0
+              ? 'Today'
+              : `${daysUntil} days until`}
+          </span>
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '4px 10px',
+              borderRadius: 999,
+              fontSize: 11.5,
+              fontWeight: 600,
+              background: stagePill.bg,
+              color: stagePill.fg,
+            }}
+          >
+            {stagePill.label}
+          </span>
         </div>
-        {items.map((it) => (
+        <h2
+          className="display"
+          style={{
+            fontSize: 'clamp(32px, 4.4vw, 52px)',
+            margin: 0,
+            lineHeight: 0.98,
+            fontWeight: 500,
+            letterSpacing: '-0.02em',
+          }}
+        >
+          {namesArr.length >= 2 ? (
+            <>
+              {namesArr[0]}{' '}
+              <span className="display-italic" style={{ color: 'var(--ink)', fontStyle: 'italic', fontWeight: 400 }}>
+                &amp;
+              </span>{' '}
+              {namesArr[1]}
+            </>
+          ) : (
+            namesArr[0] ?? 'Your celebration'
+          )}
+        </h2>
+        <div
+          style={{
+            marginTop: 8,
+            fontSize: 14,
+            color: 'var(--ink-soft)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            flexWrap: 'wrap',
+          }}
+        >
+          {eventDateLabel ? (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <Icon name="calendar" size={13} /> {eventDateLabel}
+            </span>
+          ) : (
+            <span style={{ fontStyle: 'italic', color: 'var(--ink-muted)' }}>Set a date in the editor.</span>
+          )}
+          {venue && (
+            <>
+              <span style={{ width: 3, height: 3, background: 'var(--ink-muted)', borderRadius: '50%' }} />
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <Icon name="pin" size={13} /> {venue}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* MIDDLE — next milestone */}
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        {nextMilestone ? (
           <div
-            key={it.label}
+            style={{
+              padding: '14px 16px',
+              borderRadius: 16,
+              background: urgencyBg,
+              border: `1px solid ${urgencyTone === 'peach' ? 'rgba(198,112,61,0.18)' : 'transparent'}`,
+            }}
+          >
+            <div
+              className="eyebrow"
+              style={{
+                color: urgencyColor,
+                marginBottom: 4,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Next up
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 22,
+                fontWeight: 600,
+                color: urgencyColor,
+                lineHeight: 1.1,
+              }}
+            >
+              {nextMilestone.label}
+            </div>
+            <div style={{ fontSize: 13, color: urgencyColor, opacity: 0.85, marginTop: 4 }}>
+              {nextMilestone.sub}
+            </div>
+          </div>
+        ) : (
+          <div
+            style={{
+              padding: '14px 16px',
+              borderRadius: 16,
+              background: 'var(--cream-2)',
+              fontSize: 13,
+              color: 'var(--ink-muted)',
+              fontStyle: 'italic',
+            }}
+          >
+            All quiet. Pear&apos;s keeping watch.
+          </div>
+        )}
+      </div>
+
+      {/* RIGHT — progress + activity */}
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+            <span
+              className="eyebrow"
+              style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}
+            >
+              Planning
+            </span>
+            <span style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
+              <strong style={{ fontWeight: 700, color: 'var(--ink)' }}>{progressDone}</strong> of {progressTotal}
+            </span>
+          </div>
+          <div style={{ height: 8, background: 'var(--cream-2)', borderRadius: 999, overflow: 'hidden' }}>
+            <div
+              style={{
+                width: `${pct}%`,
+                height: '100%',
+                background: 'linear-gradient(90deg, var(--sage), var(--sage-deep))',
+                borderRadius: 999,
+                transition: 'width 600ms cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+            />
+          </div>
+        </div>
+
+        {newSinceVisit > 0 ? (
+          <a
+            href="#feed"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 8,
-              padding: '7px 10px',
-              borderRadius: 8,
-              marginBottom: 2,
-              background: it.on ? '#fff' : 'transparent',
-              boxShadow: it.on ? '0 1px 2px rgba(0,0,0,0.04)' : 'none',
-              fontSize: 12.5,
-              color: it.on ? 'var(--ink)' : 'var(--ink-soft)',
-              fontWeight: it.on ? 600 : 500,
+              fontSize: 13,
+              color: 'var(--ink)',
+              fontWeight: 500,
+              padding: '8px 12px',
+              borderRadius: 10,
+              background: 'var(--cream-2)',
+              textDecoration: 'none',
             }}
           >
-            <Icon name={it.icon} size={13} />
-            {it.label}
+            <span
+              style={{ width: 7, height: 7, background: 'var(--peach-ink)', borderRadius: '50%' }}
+              className="pulse-dot"
+            />
+            <strong style={{ fontWeight: 700 }}>{newSinceVisit}</strong>{' '}
+            {newSinceVisit === 1 ? 'thing' : 'things'} since you last visited
+            <Icon name="arrow-right" size={13} style={{ marginLeft: 'auto' }} />
+          </a>
+        ) : (
+          <div style={{ fontSize: 12.5, color: 'var(--ink-muted)', padding: '8px 12px' }}>
+            All quiet. Pear&apos;s keeping watch.
           </div>
-        ))}
+        )}
       </div>
 
-      <div style={{ padding: '14px 18px 18px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, fontSize: 13, fontWeight: 600 }}>
-          The Anderson Wedding <Icon name="chev-down" size={12} color="var(--ink-muted)" />
+      <style jsx>{`
+        @media (max-width: 960px) {
+          .hero-band {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+const STAGE_PILL: Record<Stage, { label: string; bg: string; fg: string }> = {
+  early: { label: 'Just getting started', bg: 'var(--lavender-bg)', fg: 'var(--lavender-ink)' },
+  mid:   { label: 'Mid-planning',         bg: 'var(--sage-tint)',   fg: 'var(--sage-deep)'    },
+  late:  { label: 'Final stretch',        bg: 'var(--peach-bg)',    fg: 'var(--peach-ink)'    },
+};
+
+/* ========================================================================
+   QuickJumps — 4 stage-aware tiles
+   Verbatim port of the prototype's QuickJumps (lines 584–632).
+   ======================================================================== */
+interface JumpTile {
+  label: string;
+  sub: string;
+  icon: string;
+  href: string;
+  glow?: boolean;
+  dim?: boolean;
+}
+
+function QuickJumps({
+  stage,
+  editorHref,
+  liveHref,
+  liveDisplay,
+  domain,
+}: {
+  stage: Stage;
+  editorHref: string;
+  liveHref: string;
+  liveDisplay: string;
+  domain: string | null;
+}) {
+  const tiles: JumpTile[] = (() => {
+    if (stage === 'early') {
+      return [
+        { label: 'Open the editor',  sub: 'Edit your wedding site',           icon: 'brush',    href: editorHref },
+        { label: 'Build guest list', sub: 'Import or draft with Pear',        icon: 'users',    href: '/dashboard/invite' },
+        { label: 'Studio',           sub: 'Save-the-dates & invites',         icon: 'palette',  href: '/dashboard/print' },
+        { label: 'Day-of room',      sub: 'Locked until 30 days out',         icon: 'lock',     href: '/dashboard/day-of', dim: true },
+      ];
+    }
+    if (stage === 'late') {
+      return [
+        { label: 'Day-of room',      sub: 'Open now — timeline & vendors',    icon: 'calendar', href: '/dashboard/day-of', glow: true },
+        { label: 'Seating chart',    sub: 'Place guests at tables',           icon: 'grid',     href: '/dashboard/seating' },
+        { label: 'Open the editor',  sub: 'Final tweaks to the site',         icon: 'brush',    href: editorHref },
+        { label: 'Print orders',     sub: 'Programs ready to send',           icon: 'send',     href: '/dashboard/print' },
+      ];
+    }
+    return [
+      { label: 'Open the editor',  sub: 'Edit your wedding site',              icon: 'brush',   href: editorHref },
+      { label: 'Send invitations', sub: 'Pear has cadences ready',             icon: 'send',    href: '/dashboard/cadence' },
+      { label: 'Studio',           sub: 'Save-the-dates & invites',            icon: 'palette', href: '/dashboard/print' },
+      { label: 'View live site',   sub: domain ? liveDisplay : 'Publish to share', icon: 'eye', href: liveHref },
+    ];
+  })();
+
+  return (
+    <div className="qj-grid">
+      {tiles.map((j) => (
+        <Link
+          key={j.label}
+          href={j.href}
+          className="lift"
+          style={{
+            padding: '14px 16px',
+            borderRadius: 14,
+            background: j.glow ? 'var(--ink)' : 'var(--card, #FBF7EE)',
+            color: j.glow ? 'var(--cream)' : 'var(--ink)',
+            border: j.glow ? 'none' : '1px solid var(--card-ring, rgba(14,13,11,0.08))',
+            opacity: j.dim ? 0.55 : 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6,
+            minHeight: 78,
+            position: 'relative',
+            textDecoration: 'none',
+            fontFamily: 'var(--font-ui)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <Icon name={j.icon} size={18} color={j.glow ? 'var(--cream)' : 'var(--gold)'} />
+            {j.glow && (
+              <span
+                style={{ width: 6, height: 6, background: 'var(--peach)', borderRadius: '50%' }}
+                className="pulse-dot"
+              />
+            )}
+          </div>
+          <div style={{ marginTop: 'auto' }}>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>{j.label}</div>
+            <div style={{ fontSize: 11.5, opacity: 0.7, marginTop: 2 }}>{j.sub}</div>
+          </div>
+        </Link>
+      ))}
+      <style jsx>{`
+        .qj-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 12px;
+        }
+        @media (max-width: 760px) {
+          .qj-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+/* ========================================================================
+   HomeSitePreview — a themed vignette of the couple's actual site.
+   This is the prototype's signature card (lines 33–65). Renders a
+   small "Save the date" preview with motif scatter + olive-sprig
+   accents and two pill actions: Edit / Themes.
+   ======================================================================== */
+function HomeSitePreview({
+  names,
+  eventDateShort,
+  venue,
+  editorHref,
+  liveHref,
+  hasSite,
+}: {
+  names: string[];
+  eventDateShort: string | null;
+  venue: string | null;
+  editorHref: string;
+  liveHref: string;
+  hasSite: boolean;
+}) {
+  const [a, b] = names;
+  return (
+    <div
+      className="card"
+      style={{
+        padding: 16,
+        background: 'var(--card, #FBF7EE)',
+        border: '1px solid var(--card-ring, rgba(14,13,11,0.08))',
+        borderRadius: 20,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 12,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Icon name="eye" size={15} color="var(--gold)" />
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600 }}>Your site</span>
+          <span
+            style={{
+              fontSize: 10.5,
+              fontWeight: 700,
+              color: 'var(--sage-deep)',
+              background: 'var(--sage-tint)',
+              padding: '2px 8px',
+              borderRadius: 999,
+            }}
+          >
+            Santorini
+          </span>
         </div>
-        <div style={{ fontFamily: 'var(--font-script)', fontSize: 22, color: 'var(--ink)', marginBottom: 12 }}>
-          We&apos;re so glad you&apos;re here <Sparkle size={11} />
+        {hasSite ? (
+          <a
+            href={liveHref}
+            target="_blank"
+            rel="noreferrer"
+            style={{ fontSize: 12, color: 'var(--ink-soft)', textDecoration: 'none' }}
+          >
+            View live
+          </a>
+        ) : (
+          <span style={{ fontSize: 12, color: 'var(--ink-muted)' }}>Not published</span>
+        )}
+      </div>
+
+      {/* The vignette — themed mini hero with a motif scatter */}
+      <div
+        style={{
+          position: 'relative',
+          height: 188,
+          borderRadius: 14,
+          overflow: 'hidden',
+          background:
+            'linear-gradient(180deg, #F1EDDE 0%, #E9E2C9 100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+          padding: '22px 18px',
+          border: '1px solid var(--line-soft, rgba(14,13,11,0.06))',
+        }}
+      >
+        {/* Motif scatter — olive sprig top-left (mirrored) + top-right */}
+        <div
+          aria-hidden
+          style={{ position: 'absolute', top: 10, left: 12, opacity: 0.55, transform: 'scaleX(-1)' }}
+        >
+          <Sprig size={48} color="var(--sage-deep, #5C6B3F)" />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 14 }}>
-          {[
-            { label: 'Event Date', value: 'June 22, 2025' },
-            { label: 'Days to go', value: '87' },
-            { label: 'Guests', value: '124' },
-          ].map((s, i) => (
+        <div aria-hidden style={{ position: 'absolute', top: 10, right: 12, opacity: 0.55 }}>
+          <Sprig size={48} color="var(--sage-deep, #5C6B3F)" />
+        </div>
+
+        {/* Centered themed content */}
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          <div
+            style={{
+              fontSize: 9.5,
+              fontWeight: 700,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: 'var(--sage-deep, #5C6B3F)',
+              marginBottom: 7,
+            }}
+          >
+            Save the date
+          </div>
+          <div
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontWeight: 500,
+              fontSize: 30,
+              lineHeight: 0.98,
+              color: 'var(--ink, #2A2A28)',
+            }}
+          >
+            {a ?? 'Someone'}
+            <span
+              style={{
+                fontStyle: 'italic',
+                fontSize: '0.6em',
+                color: 'var(--ink-soft)',
+                margin: '0 0.16em',
+                fontWeight: 400,
+              }}
+            >
+              &amp;
+            </span>
+            {b ?? 'Someone'}
+          </div>
+          {/* Mini divider — a delicate hairline with three berries */}
+          <div style={{ display: 'flex', justifyContent: 'center', margin: '9px 0' }}>
+            <svg width={120} height={10} viewBox="0 0 120 10" aria-hidden>
+              <line x1="2" y1="5" x2="48" y2="5" stroke="var(--gold, #B8935A)" strokeWidth="1" strokeLinecap="round" />
+              <circle cx="56" cy="5" r="1.6" fill="var(--gold, #B8935A)" />
+              <circle cx="64" cy="5" r="1.6" fill="var(--gold, #B8935A)" />
+              <circle cx="72" cy="5" r="1.6" fill="var(--gold, #B8935A)" />
+              <line x1="80" y1="5" x2="118" y2="5" stroke="var(--gold, #B8935A)" strokeWidth="1" strokeLinecap="round" />
+            </svg>
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--ink-soft)' }}>
+            {eventDateShort ?? 'Date pending'}
+            {venue ? ` · ${venue}` : ''}
+          </div>
+        </div>
+      </div>
+
+      {/* Action pills — Edit / Themes */}
+      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+        <Link
+          href={editorHref}
+          className="btn btn-outline btn-sm"
+          style={{ flex: 1, justifyContent: 'center', textDecoration: 'none' }}
+        >
+          <Icon name="brush" size={12} /> Edit
+        </Link>
+        <Link
+          href="/store"
+          className="btn btn-outline btn-sm"
+          style={{ flex: 1, justifyContent: 'center', textDecoration: 'none' }}
+        >
+          <Icon name="sparkles" size={12} /> Themes
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================
+   PearRecommendations — Pear's 3 "worth your minute" todos
+   Verbatim port of the prototype's PearRecommendations (lines 308–363).
+   ======================================================================== */
+interface PearTodo {
+  title: string;
+  sub: string;
+  cta: string;
+  href: string;
+  urgency: 'now' | 'soon' | 'later';
+}
+
+function usePearTodos({
+  stage,
+  insights,
+  guestCounts,
+  daysUntil,
+}: {
+  stage: Stage;
+  insights: GuestInsight[] | null;
+  guestCounts: { invited: number; yes: number; no: number; maybe: number; pending: number } | null;
+  daysUntil: number | null;
+}): PearTodo[] {
+  return useMemo(() => {
+    const out: PearTodo[] = [];
+
+    const ordered = insights
+      ? [...insights].sort((a, b) => severityRank(a.severity) - severityRank(b.severity))
+      : [];
+    for (const ins of ordered.slice(0, 2)) {
+      out.push({
+        title: ins.title,
+        sub: ins.detail,
+        cta: ins.action?.label ?? 'Review',
+        href: '/dashboard/guest-review',
+        urgency: ins.severity === 'urgent' ? 'now' : ins.severity === 'attention' ? 'soon' : 'later',
+      });
+    }
+
+    if (stage === 'early') {
+      if (out.length < 3)
+        out.push({
+          title: 'Build your guest list',
+          sub: 'Pear can suggest one from your story, or import contacts.',
+          cta: 'Start with Pear',
+          href: '/dashboard/invite',
+          urgency: 'now',
+        });
+      if (out.length < 3)
+        out.push({
+          title: 'Pick a save-the-date',
+          sub: 'Three styles ready to try in the studio.',
+          cta: 'Preview',
+          href: '/dashboard/print',
+          urgency: 'soon',
+        });
+    } else if (stage === 'late') {
+      if (out.length < 3 && guestCounts && guestCounts.pending > 0)
+        out.push({
+          title: `Chase ${guestCounts.pending} pending RSVP${guestCounts.pending === 1 ? '' : 's'}`,
+          sub: daysUntil != null
+            ? `${daysUntil} days until the date. Pear has a final-reminder draft.`
+            : 'Pear has a final-reminder draft ready.',
+          cta: 'Send for me',
+          href: '/dashboard/cadence',
+          urgency: 'now',
+        });
+      if (out.length < 3)
+        out.push({
+          title: 'Day-of timeline',
+          sub: 'Vendors, run-of-show, and a single source of truth.',
+          cta: 'Open Day-of',
+          href: '/dashboard/day-of',
+          urgency: 'soon',
+        });
+    } else {
+      if (out.length < 3 && guestCounts && guestCounts.pending > 0)
+        out.push({
+          title: 'Send a reminder cadence',
+          sub: `${guestCounts.pending} guest${guestCounts.pending === 1 ? '' : 's'} haven't replied yet.`,
+          cta: 'Review draft',
+          href: '/dashboard/cadence',
+          urgency: 'soon',
+        });
+      if (out.length < 3)
+        out.push({
+          title: 'Confirm the schedule',
+          sub: 'Welcome dinner, ceremony, reception — all on one page.',
+          cta: 'Open Schedule',
+          href: '/editor',
+          urgency: 'soon',
+        });
+    }
+    return out.slice(0, 3);
+  }, [stage, insights, guestCounts, daysUntil]);
+}
+
+function severityRank(s: GuestInsight['severity']): number {
+  return s === 'urgent' ? 0 : s === 'attention' ? 1 : 2;
+}
+
+function PearRecommendations({ todos }: { todos: PearTodo[] }) {
+  if (todos.length === 0) return null;
+  return (
+    <div
+      className="card"
+      style={{
+        padding: 20,
+        background: 'var(--card, #FBF7EE)',
+        border: '1px solid var(--card-ring, rgba(14,13,11,0.08))',
+        borderRadius: 20,
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 14,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Pear size={28} tone="sage" sparkle shadow={false} />
+          <div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, lineHeight: 1 }}>
+              From Pear
+            </div>
+            <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 2 }}>
+              {todos.length} {todos.length === 1 ? 'thing' : 'things'} I think are worth your minute
+            </div>
+          </div>
+        </div>
+        <span
+          style={{ fontSize: 12.5, color: 'var(--ink-soft)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+        >
+          Ask Pear <Icon name="sparkles" size={12} color="var(--gold)" />
+        </span>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {todos.map((it, i) => {
+          const urgent = it.urgency === 'now';
+          const stripeColor =
+            it.urgency === 'now'
+              ? 'var(--peach-ink)'
+              : it.urgency === 'soon'
+              ? 'var(--lavender-2)'
+              : 'var(--sage)';
+          return (
             <div
               key={i}
               style={{
-                background: '#FDFAF0',
-                borderRadius: 8,
-                border: '1px solid rgba(0,0,0,0.05)',
-                padding: '8px 10px',
+                display: 'grid',
+                gridTemplateColumns: '6px 1fr auto',
+                gap: 14,
+                alignItems: 'center',
+                padding: '12px 14px',
+                borderRadius: 12,
+                background: 'var(--card)',
+                border: '1px solid var(--line-soft)',
               }}
             >
-              <div style={{ fontSize: 10, color: 'var(--ink-muted)', marginBottom: 2 }}>{s.label}</div>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600 }}>{s.value}</div>
+              <span style={{ width: 6, height: 36, borderRadius: 999, background: stripeColor }} />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{it.title}</div>
+                <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginTop: 2 }}>{it.sub}</div>
+              </div>
+              <Link
+                href={it.href}
+                className={`btn ${urgent ? 'btn-primary' : 'btn-outline'} btn-sm`}
+                style={{ textDecoration: 'none' }}
+              >
+                {it.cta}
+                {urgent && <Icon name="arrow-right" size={12} color="var(--cream)" />}
+              </Link>
             </div>
-          ))}
-        </div>
-        <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginBottom: 4 }}>Your progress</div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================
+   ActivityFeed — recent RSVPs as a vertical timeline
+   Verbatim port of the prototype's ActivityFeed (lines 367–422).
+   ======================================================================== */
+function ActivityFeed({ activity }: { activity: Guest[] }) {
+  return (
+    <div
+      className="card"
+      id="feed"
+      style={{
+        padding: 20,
+        borderRadius: 20,
+        background: 'var(--card, #FBF7EE)',
+        border: '1px solid var(--card-ring, rgba(14,13,11,0.08))',
+      }}
+    >
+      <SectionHeader icon="bell">Activity</SectionHeader>
+      {activity.length === 0 ? (
         <div
           style={{
-            height: 8,
-            borderRadius: 999,
-            background: '#EFE8D4',
-            overflow: 'hidden',
-            marginBottom: 14,
+            padding: '24px 8px',
+            fontSize: 13,
+            color: 'var(--ink-muted)',
+            textAlign: 'center',
+            fontStyle: 'italic',
           }}
         >
+          Nothing yet. As guests RSVP, leave notes, or Pear acts on your behalf, it&apos;ll show up here.
+        </div>
+      ) : (
+        <div style={{ position: 'relative' }}>
+          {/* timeline line */}
           <div
             style={{
-              height: '100%',
-              width: '75%',
-              background: 'linear-gradient(90deg, #A8BA72, #8B9C5A)',
-              borderRadius: 999,
+              position: 'absolute',
+              left: 17,
+              top: 8,
+              bottom: 8,
+              width: 1.5,
+              background: 'var(--line-soft)',
             }}
           />
-        </div>
-        <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginBottom: 6 }}>Next up</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 14 }}>
-          {[
-            { label: 'Send invitations', due: 'Due May 1', done: false },
-            { label: 'Choose ceremony music', due: 'Due May 8', done: true },
-            { label: 'Finalize seating', due: 'Due May 15', done: false },
-          ].map((t, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, padding: '5px 0' }}>
-              <div
-                style={{
-                  width: 14,
-                  height: 14,
-                  borderRadius: '50%',
-                  background: t.done ? 'var(--sage)' : 'transparent',
-                  border: `1.5px solid ${t.done ? 'var(--sage)' : 'rgba(0,0,0,0.2)'}`,
-                  display: 'grid',
-                  placeItems: 'center',
-                }}
-              >
-                {t.done && <Icon name="check" size={8} color="#fff" strokeWidth={3} />}
-              </div>
-              <div style={{ flex: 1, textDecoration: t.done ? 'line-through' : 'none', opacity: t.done ? 0.6 : 1 }}>
-                {t.label}
-              </div>
-              <div style={{ fontSize: 10.5, color: 'var(--ink-muted)' }}>{t.due}</div>
-            </div>
-          ))}
-        </div>
-        <button className="btn btn-outline btn-sm" style={{ padding: '6px 12px', fontSize: 12 }}>
-          Open timeline
-        </button>
-        <div style={{ marginTop: 12, padding: 10, background: '#FBF7EC', borderRadius: 10, border: '1px solid rgba(0,0,0,0.05)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-            <div style={{ fontSize: 11.5, fontWeight: 600 }}>Guestbook</div>
-            <div style={{ display: 'flex' }}>
-              {['#EAB286', '#C4B5D9', '#8B9C5A'].map((c, i) => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            {activity.map((g) => {
+              const declined = g.status === 'no' || g.status === 'declined';
+              const tone = declined
+                ? { bg: 'var(--cream-2)', fg: 'var(--ink-soft)' }
+                : { bg: 'var(--sage-tint)', fg: 'var(--sage-deep)' };
+              const verb =
+                g.status === 'yes' || g.status === 'attending'
+                  ? 'said yes'
+                  : declined
+                  ? 'declined'
+                  : 'said maybe';
+              return (
                 <div
-                  key={i}
+                  key={g.id}
                   style={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: '50%',
-                    background: c,
-                    border: '1.5px solid #FBF7EC',
-                    marginLeft: i === 0 ? 0 : -5,
+                    display: 'grid',
+                    gridTemplateColumns: '36px 1fr auto',
+                    gap: 12,
+                    alignItems: 'flex-start',
+                    padding: '10px 0',
                   }}
-                />
-              ))}
-            </div>
-          </div>
-          <div style={{ fontFamily: 'var(--font-script)', fontSize: 16, color: 'var(--ink-soft)' }}>
-            So much love for you both!
+                >
+                  <div
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: '50%',
+                      background: tone.bg,
+                      color: tone.fg,
+                      display: 'grid',
+                      placeItems: 'center',
+                      position: 'relative',
+                      zIndex: 1,
+                      border: '2px solid var(--card)',
+                    }}
+                  >
+                    <Icon name="check" size={15} color={tone.fg} />
+                  </div>
+                  <div style={{ minWidth: 0, paddingTop: 6 }}>
+                    <div style={{ fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.4 }}>
+                      <strong style={{ fontWeight: 600 }}>{g.name}</strong> {verb}
+                      {g.plusOneName ? (
+                        <>
+                          {' '}
+                          — bringing +1 (<em style={{ fontStyle: 'normal' }}>{g.plusOneName}</em>)
+                        </>
+                      ) : null}
+                    </div>
+                    {g.message && (
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: 'var(--ink-muted)',
+                          marginTop: 2,
+                          fontStyle: 'italic',
+                        }}
+                      >
+                        &ldquo;{g.message}&rdquo;
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 11.5,
+                      color: 'var(--ink-muted)',
+                      paddingTop: 8,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {relativeTime(g.respondedAt)}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
 
-function PhoneMock() {
-  const times = [
-    { t: '4:00', label: 'Ceremony', icon: 'heart-icon', tone: '#E3E6C8' },
-    { t: '5:00', label: 'Cocktail Hour', icon: 'star', tone: '#F7DDC2' },
-    { t: '6:00', label: 'Dinner & Toasts', icon: 'gift', tone: '#E8E0F0' },
-    { t: '8:00', label: 'Dancing', icon: 'music', tone: '#F7DDC2' },
-    { t: '10:30', label: 'Send Off', icon: 'sparkles', tone: '#E3E6C8' },
-  ];
-  return (
-    <div style={{ width: 200, height: 400, background: '#1A1A1A', borderRadius: 32, padding: 7, boxShadow: '0 30px 60px rgba(61,74,31,0.25)' }}>
+/* ========================================================================
+   GuestPulse — % responded + stacked bar
+   Verbatim port of the prototype's GuestPulse (lines 426–501).
+   ======================================================================== */
+function GuestPulse({
+  counts,
+  loading,
+}: {
+  counts: { invited: number; yes: number; no: number; maybe: number; pending: number } | null;
+  loading: boolean;
+}) {
+  if (loading) {
+    return (
       <div
+        className="card"
         style={{
-          width: '100%',
-          height: '100%',
-          background: '#FDFAF0',
-          borderRadius: 26,
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative',
+          padding: 20,
+          borderRadius: 20,
+          background: 'var(--card, #FBF7EE)',
+          border: '1px solid var(--card-ring, rgba(14,13,11,0.08))',
+          fontSize: 13,
+          color: 'var(--ink-muted)',
+          fontStyle: 'italic',
         }}
       >
-        <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', width: 70, height: 18, background: '#1A1A1A', borderRadius: 10, zIndex: 2 }} />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '36px 14px 10px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 700 }}>Timeline</div>
-          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-            <div style={{ padding: '2px 8px', fontSize: 9, background: '#F3E9D4', borderRadius: 999 }}>All</div>
-            <Icon name="chev-down" size={10} />
+        Threading…
+      </div>
+    );
+  }
+  if (!counts || counts.invited === 0) {
+    return (
+      <div
+        className="card"
+        style={{
+          padding: 20,
+          borderRadius: 20,
+          background: 'var(--card, #FBF7EE)',
+          border: '1px solid var(--card-ring, rgba(14,13,11,0.08))',
+        }}
+      >
+        <SectionHeader icon="users">Guests</SectionHeader>
+        <div
+          style={{
+            padding: '20px 8px',
+            background: 'var(--cream-2)',
+            borderRadius: 14,
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 6 }}>No guests yet</div>
+          <div
+            style={{
+              fontSize: 12.5,
+              color: 'var(--ink-soft)',
+              marginBottom: 14,
+              maxWidth: 240,
+              marginInline: 'auto',
+            }}
+          >
+            Pear can draft a list from your story, or import from your contacts.
+          </div>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link href="/dashboard/invite" className="btn btn-primary btn-sm" style={{ textDecoration: 'none' }}>
+              Start with Pear <Icon name="sparkles" size={11} color="var(--cream)" />
+            </Link>
+            <Link href="/dashboard/invite" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
+              Import contacts
+            </Link>
           </div>
         </div>
-        <div style={{ flex: 1, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {times.map((e, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: '#FFFEF7', borderRadius: 10, border: '1px solid rgba(0,0,0,0.04)' }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', width: 30 }}>{e.t}</div>
-              <div style={{ width: 22, height: 22, borderRadius: '50%', background: e.tone, display: 'grid', placeItems: 'center' }}>
-                <Icon name={e.icon} size={11} />
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 600 }}>{e.label}</div>
+      </div>
+    );
+  }
+
+  const { invited, yes, no, maybe, pending } = counts;
+  const respondedPct = invited === 0 ? 0 : Math.round(((yes + no + maybe) / invited) * 100);
+  const segs: { val: number; color: string; label: string }[] = [
+    { val: yes,     color: 'var(--sage)',       label: 'Yes' },
+    { val: no,      color: 'var(--ink-muted)',  label: 'No' },
+    { val: maybe,   color: 'var(--lavender-2)', label: 'Maybe' },
+    { val: pending, color: 'var(--cream-3)',    label: 'Pending' },
+  ];
+
+  return (
+    <div
+      className="card"
+      style={{
+        padding: 20,
+        borderRadius: 20,
+        background: 'var(--card, #FBF7EE)',
+        border: '1px solid var(--card-ring, rgba(14,13,11,0.08))',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 14,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Icon name="users" size={15} color="var(--gold)" />
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600 }}>Guests</span>
+        </div>
+        <Link href="/rsvps" style={{ fontSize: 12, color: 'var(--ink-soft)', textDecoration: 'none' }}>
+          Open Guests
+        </Link>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
+        <span style={{ fontFamily: 'var(--font-display)', fontSize: 36, fontWeight: 600, lineHeight: 1 }}>
+          {respondedPct}
+          <span style={{ fontSize: 18, color: 'var(--ink-muted)' }}>%</span>
+        </span>
+        <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
+          responded · {yes + no + maybe} of {invited}
+        </span>
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          height: 10,
+          borderRadius: 999,
+          overflow: 'hidden',
+          marginTop: 12,
+          marginBottom: 12,
+          background: 'var(--cream-2)',
+        }}
+      >
+        {segs.map(
+          (s) =>
+            s.val > 0 && (
+              <div
+                key={s.label}
+                style={{ flex: s.val, background: s.color, transition: 'flex 400ms ease' }}
+                title={`${s.label}: ${s.val}`}
+              />
+            ),
+        )}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+        {segs.map((s) => (
+          <div key={s.label} style={{ padding: '8px 6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: s.color }} />
+              <span
+                style={{
+                  fontSize: 10.5,
+                  color: 'var(--ink-muted)',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                {s.label}
+              </span>
             </div>
-          ))}
-        </div>
-        <div style={{ textAlign: 'center', padding: '8px 12px 14px', fontSize: 10.5, fontWeight: 600, color: 'var(--ink-soft)', borderTop: '1px solid rgba(0,0,0,0.04)' }}>
-          View full timeline
-        </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 22,
+                fontWeight: 600,
+                color: 'var(--ink)',
+              }}
+            >
+              {s.val}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-function CouplePolaroid() {
+/* ========================================================================
+   Milestones — vertical roadmap
+   Verbatim port of the prototype's Milestones (lines 506–566) with the
+   five status states (done / urgent / next / upcoming / distant).
+   ======================================================================== */
+type MilestoneStatus = 'done' | 'urgent' | 'next' | 'upcoming' | 'distant';
+interface Milestone {
+  date: string;
+  label: string;
+  sub: string;
+  status: MilestoneStatus;
+  urgency: 'urgent' | 'soon' | 'on-track';
+}
+
+function buildMilestones({
+  stage,
+  eventDate,
+  eventDateShort,
+  daysUntil,
+  guestCounts,
+}: {
+  stage: Stage;
+  eventDate: Date | null;
+  eventDateShort: string | null;
+  daysUntil: number | null;
+  guestCounts: { invited: number; yes: number; no: number; maybe: number; pending: number } | null;
+}): Milestone[] {
+  const out: Milestone[] = [];
+  out.push({ date: 'Done', label: 'Site claimed', sub: '', status: 'done', urgency: 'on-track' });
+  if (eventDate) {
+    out.push({ date: 'Done', label: 'Date locked', sub: eventDateShort ?? '', status: 'done', urgency: 'on-track' });
+  } else {
+    out.push({ date: 'Now', label: 'Lock the date', sub: 'Anchors every milestone', status: 'next', urgency: 'soon' });
+  }
+
+  if (stage === 'early') {
+    out.push({ date: 'This week', label: 'Send save-the-dates', sub: 'recommended now', status: 'next', urgency: 'soon' });
+    out.push({ date: '~4 mo', label: 'Book vendors', sub: 'in roughly four months', status: 'upcoming', urgency: 'on-track' });
+    out.push({ date: '~10 mo', label: 'Send invitations', sub: 'with the guest list', status: 'upcoming', urgency: 'on-track' });
+  } else if (stage === 'mid') {
+    if (guestCounts && guestCounts.invited > 0) {
+      out.push({
+        date: 'Done',
+        label: 'Save-the-dates sent',
+        sub: `${guestCounts.invited} invited`,
+        status: 'done',
+        urgency: 'on-track',
+      });
+    }
+    out.push({
+      date: 'Soon',
+      label: 'RSVP cutoff',
+      sub: daysUntil ? `~${Math.max(30, Math.round(daysUntil / 4))} days out` : '~30 days',
+      status: 'next',
+      urgency: 'soon',
+    });
+    out.push({ date: 'Later', label: 'Final menu count', sub: 'caterer needs the headcount', status: 'upcoming', urgency: 'on-track' });
+    out.push({ date: 'Later', label: 'Seating chart', sub: 'after RSVPs close', status: 'upcoming', urgency: 'on-track' });
+  } else if (stage === 'late') {
+    if (guestCounts && guestCounts.invited > 0) {
+      out.push({
+        date: 'Done',
+        label: 'Invitations sent',
+        sub: `${guestCounts.invited} invited`,
+        status: 'done',
+        urgency: 'on-track',
+      });
+    }
+    if (guestCounts && guestCounts.pending > 0) {
+      out.push({
+        date: 'Now',
+        label: 'RSVP cutoff',
+        sub: `${guestCounts.pending} pending · ${daysUntil ?? 0} days out`,
+        status: 'urgent',
+        urgency: 'urgent',
+      });
+    } else {
+      out.push({ date: 'Done', label: 'RSVP cutoff', sub: 'all replies in', status: 'done', urgency: 'on-track' });
+    }
+    out.push({ date: 'Soon', label: 'Final count to caterer', sub: 'lock the headcount', status: 'next', urgency: 'soon' });
+    out.push({ date: 'Soon', label: 'Seating finalized', sub: 'place every name', status: 'upcoming', urgency: 'on-track' });
+  }
+
+  if (eventDateShort) {
+    out.push({
+      date: eventDateShort,
+      label: 'The big day',
+      sub: daysUntil != null ? `${daysUntil} days out` : '',
+      status: 'distant',
+      urgency: 'on-track',
+    });
+  }
+  return out;
+}
+
+function Milestones({ milestones, dateShort }: { milestones: Milestone[]; dateShort: string | null }) {
+  return (
+    <div
+      className="card"
+      style={{
+        padding: 20,
+        borderRadius: 20,
+        background: 'var(--card, #FBF7EE)',
+        border: '1px solid var(--card-ring, rgba(14,13,11,0.08))',
+      }}
+    >
+      <SectionHeader icon="calendar">{dateShort ? `The road to ${dateShort}` : 'Your timeline'}</SectionHeader>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+        {milestones.map((m, i) => {
+          const isLast = i === milestones.length - 1;
+          const dot = milestoneDotStyle(m.status);
+          return (
+            <div
+              key={i}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '76px 22px 1fr auto',
+                gap: 12,
+                alignItems: 'center',
+                padding: '12px 0',
+                borderBottom: !isLast ? '1px solid var(--line-soft)' : 'none',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  color:
+                    m.status === 'urgent'
+                      ? 'var(--peach-ink)'
+                      : m.status === 'done'
+                      ? 'var(--sage-deep)'
+                      : 'var(--ink-muted)',
+                  textTransform: m.status === 'done' || m.status === 'urgent' ? 'uppercase' : 'none',
+                  letterSpacing: m.status === 'done' || m.status === 'urgent' ? '0.05em' : 0,
+                }}
+              >
+                {m.date}
+              </div>
+
+              <div style={{ position: 'relative', display: 'grid', placeItems: 'center', height: 22 }}>
+                <span
+                  style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: '50%',
+                    background: dot.bg,
+                    border: `2px solid ${dot.border}`,
+                    display: 'grid',
+                    placeItems: 'center',
+                  }}
+                  className={dot.pulse ? 'pulse-dot' : ''}
+                >
+                  {dot.check && <Icon name="check" size={8} color="white" strokeWidth={3} />}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  fontSize: 14,
+                  color: 'var(--ink)',
+                  fontWeight: m.status === 'urgent' || m.status === 'next' ? 600 : 500,
+                  textDecoration: m.status === 'done' ? 'line-through' : 'none',
+                  opacity: m.status === 'done' ? 0.7 : 1,
+                }}
+              >
+                {m.label}
+              </div>
+              <div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>{m.sub}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function milestoneDotStyle(status: MilestoneStatus): {
+  bg: string;
+  border: string;
+  check: boolean;
+  pulse: boolean;
+} {
+  if (status === 'done')    return { bg: 'var(--sage)',       border: 'var(--sage)',       check: true,  pulse: false };
+  if (status === 'urgent')  return { bg: 'var(--peach-ink)',  border: 'var(--peach-ink)',  check: false, pulse: true  };
+  if (status === 'next')    return { bg: 'var(--card)',       border: 'var(--ink)',        check: false, pulse: false };
+  if (status === 'distant') return { bg: 'var(--ink)',        border: 'var(--ink)',        check: false, pulse: false };
+  return                          { bg: 'var(--card)',       border: 'var(--ink-muted)',  check: false, pulse: false };
+}
+
+/* ========================================================================
+   Helpers
+   ======================================================================== */
+function SectionHeader({
+  icon,
+  children,
+  extra,
+}: {
+  icon: string;
+  children: ReactNode;
+  extra?: ReactNode;
+}) {
   return (
     <div
       style={{
-        background: '#fff',
-        padding: '10px 10px 40px',
-        width: 220,
-        boxShadow: '0 18px 40px rgba(61,74,31,0.18)',
-        borderRadius: 3,
-        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 14,
       }}
     >
-      <div style={{ position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%) rotate(-3deg)', width: 70, height: 20, background: 'rgba(234,178,134,0.55)' }} />
-      <PhotoPlaceholder tone="warm" aspect="1 / 1" />
-      <div style={{ position: 'absolute', bottom: 8, left: 14 }}>
-        <Heart size={14} color="#E8A07A" />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Icon name={icon} size={15} color="var(--gold)" />
+        <span style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600 }}>{children}</span>
       </div>
-      <div style={{ position: 'absolute', bottom: 10, right: 14, fontFamily: 'var(--font-script)', fontSize: 15, color: 'var(--ink-soft)' }}>The big day</div>
+      {extra}
     </div>
   );
 }
 
-/* ==================== FEATURE TRIAD ==================== */
-function FeatureTriad() {
-  // anchored via wrapper id="product" below
-  const items = [
-    {
-      title: 'Compose',
-      tone: 'lavender',
-      bg: 'var(--lavender-bg)',
-      body: 'Bring your vision to life with planning tools that make it easy and joyful.',
-      icon: (
-        <svg viewBox="0 0 40 40" width="24" height="24">
-          <path d="M8 30 L8 28 L26 10 L30 14 L12 32 L8 32 Z" fill="#3D4A1F" />
-          <path d="M24 10 L28 14" stroke="#fff" strokeWidth={1.5} />
-        </svg>
-      ),
-    },
-    {
-      title: 'Conduct',
-      tone: 'peach',
-      bg: 'var(--peach-bg)',
-      body: 'Run your event smoothly with timelines, roles, and real-time updates.',
-      icon: (
-        <svg viewBox="0 0 40 40" width="26" height="26">
-          <circle cx="20" cy="20" r="5" fill="#D4A95D" />
-          <path
-            d="M20 10 v3 M20 27 v3 M10 20 h3 M27 20 h3 M13 13 l2 2 M25 25 l2 2 M27 13 l-2 2 M15 25 l-2 2"
-            stroke="#3D4A1F"
-            strokeWidth={1.5}
-            strokeLinecap="round"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: 'Remember',
-      tone: 'sage',
-      bg: 'var(--sage-tint)',
-      body: 'Collect photos, messages, and moments that last long after the day.',
-      icon: (
-        <svg viewBox="0 0 40 40" width="24" height="24">
-          <rect x="10" y="8" width="20" height="26" rx="2" fill="none" stroke="#3D4A1F" strokeWidth={1.8} />
-          <path d="M14 8 v26" stroke="#3D4A1F" strokeWidth={1.2} />
-          <path
-            d="M22 20 c0 -2 -2 -3 -3 -2 c -1 1 -1 3 3 5 c 4 -2 4 -4 3 -5 c -1 -1 -3 0 -3 2 z"
-            fill="#E8A07A"
-          />
-          <path d="M18 28 L26 28 M18 31 L24 31" stroke="#3D4A1F" strokeWidth={1} strokeLinecap="round" />
-        </svg>
-      ),
-    },
-  ];
-  return (
-    <section id="product" className="container" style={{ padding: '48px 32px 24px', position: 'relative', scrollMarginTop: 96 }}>
-      <Reveal>
-        <div style={{ textAlign: 'center', marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-          <Sparkle size={11} />
-          <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 20, color: 'var(--ink-soft)', fontWeight: 400 }}>
-            Everything you need, beautifully connected.
-          </span>
-          <Sparkle size={11} />
-        </div>
-      </Reveal>
-
-      <div className="pl8-cols-3" style={{ gap: 36 }}>
-        {items.map((it, i) => (
-          <Reveal key={i} delay={i * 120}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
-              <div
-                style={{
-                  width: 72,
-                  height: 72,
-                  borderRadius: '50%',
-                  background: it.bg,
-                  display: 'grid',
-                  placeItems: 'center',
-                  flexShrink: 0,
-                  boxShadow: '0 6px 16px rgba(61,74,31,0.06)',
-                }}
-              >
-                {it.icon}
-              </div>
-              <div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: 22,
-                    fontWeight: 600,
-                    color:
-                      it.tone === 'lavender'
-                        ? 'var(--lavender-ink)'
-                        : it.tone === 'peach'
-                          ? 'var(--peach-ink)'
-                          : 'var(--ink)',
-                    marginBottom: 4,
-                  }}
-                >
-                  {it.title}
-                </div>
-                <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>{it.body}</div>
-              </div>
-            </div>
-          </Reveal>
-        ))}
-      </div>
-    </section>
-  );
+function relativeTime(iso?: string | null): string {
+  if (!iso) return '';
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return '';
+  const delta = Date.now() - t;
+  const min = Math.round(delta / 60_000);
+  if (min < 1) return 'just now';
+  if (min < 60) return `${min} min ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const d = Math.round(hr / 24);
+  if (d === 1) return 'yesterday';
+  if (d < 7) return `${d} days ago`;
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-/* ==================== SIGNATURE FEATURE ==================== */
-function SignatureFeature() {
-  const [active, setActive] = useState(2);
-  const moments = [
-    { label: 'The beginning', date: '2016', tone: 'sage' as const },
-    { label: 'The proposal', date: '2022', tone: 'cream' as const },
-    { label: 'The big day', date: 'June 22, 2025', tone: 'warm' as const, current: true },
-    { label: 'The celebration', date: '2025', tone: 'peach' as const },
-    { label: 'And beyond', date: 'Forever', tone: 'lavender' as const },
-  ];
-  return (
-    <section className="container" style={{ padding: '40px 32px', position: 'relative' }}>
-      <Reveal>
-        <div
-          style={{
-            background: 'var(--lavender-bg)',
-            borderRadius: 24,
-            padding: '32px 36px',
-            display: 'grid',
-            gridTemplateColumns: '1fr 2.1fr',
-            gap: 40,
-            alignItems: 'center',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <Squiggle width={160} variant={2} stroke="#D4A95D" style={{ position: 'absolute', top: 10, right: 30, opacity: 0.45 }} />
-          <Sparkle size={14} style={{ position: 'absolute', top: 18, left: 24 }} />
-
-          <div>
-            <Eyebrow color="var(--lavender-ink)">Our signature feature</Eyebrow>
-            <h2 className="display" style={{ fontSize: 30, margin: '10px 0 12px', letterSpacing: '-0.015em' }}>
-              Your story, <span style={{ fontStyle: 'italic', fontWeight: 400 }}>told through time.</span>
-            </h2>
-            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.55, marginBottom: 18, maxWidth: 340 }}>
-              Upload your photos and Pearloom builds a beautiful timeline that weaves your memories into a shareable
-              story—before, during, and long after your day.
-            </p>
-            <Link className="btn btn-primary btn-sm" href="/wizard/new">
-              See your story come to life <Pear size={12} tone="cream" shadow={false} />
-            </Link>
-          </div>
-
-          <div style={{ position: 'relative' }}>
-            <svg
-              style={{ position: 'absolute', top: 75, left: 40, right: 40, height: 4, width: 'calc(100% - 80px)' }}
-              preserveAspectRatio="none"
-              viewBox="0 0 1000 4"
-            >
-              <path d="M0 2 L1000 2" stroke="#B7A4D0" strokeWidth={1.2} strokeDasharray="3 5" fill="none" />
-            </svg>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8, position: 'relative' }}>
-              {moments.map((m, i) => {
-                const isActive = i === active;
-                return (
-                  <Reveal key={i} delay={120 + i * 90}>
-                    <button
-                      type="button"
-                      onClick={() => setActive(i)}
-                      style={{
-                        cursor: 'pointer',
-                        textAlign: 'center',
-                        padding: '8px 4px',
-                        background: isActive ? 'rgba(255,255,255,0.75)' : 'transparent',
-                        borderRadius: 10,
-                        border: isActive ? '1.5px solid var(--peach-2)' : '1.5px solid transparent',
-                        transition: 'all 360ms cubic-bezier(0.16, 1, 0.3, 1)',
-                        position: 'relative',
-                        width: '100%',
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 22,
-                          height: 22,
-                          borderRadius: '50%',
-                          background: isActive ? 'var(--peach-2)' : '#fff',
-                          color: isActive ? '#fff' : 'var(--ink-soft)',
-                          fontSize: 10,
-                          fontWeight: 700,
-                          display: 'grid',
-                          placeItems: 'center',
-                          margin: '0 auto 10px',
-                          boxShadow: isActive ? '0 0 0 4px rgba(240,201,168,0.3)' : '0 2px 4px rgba(0,0,0,0.06)',
-                          position: 'relative',
-                        }}
-                      >
-                        {i + 1}
-                        {isActive && (
-                          <div style={{ position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)' }}>
-                            <Heart size={12} color="#E8A07A" />
-                          </div>
-                        )}
-                      </div>
-                      <div style={{ background: '#fff', padding: 3, boxShadow: '0 4px 10px rgba(61,74,31,0.1)', marginBottom: 8 }}>
-                        <PhotoPlaceholder tone={m.tone} aspect="1/1" />
-                      </div>
-                      <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 12, color: 'var(--ink-soft)' }}>
-                        {m.label}
-                      </div>
-                      <div style={{ fontSize: 10, color: 'var(--ink-muted)', marginTop: 1 }}>{m.date}</div>
-                    </button>
-                  </Reveal>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </Reveal>
-    </section>
-  );
-}
-
-/* ==================== EVENT TYPES ==================== */
-function EventTypes() {
-  const types = [
-    {
-      name: 'Weddings',
-      body: 'Celebrate your love your way.',
-      icon: (
-        <svg viewBox="0 0 40 40" width="26" height="26">
-          <circle cx="16" cy="22" r="7" fill="none" stroke="#3D4A1F" strokeWidth={1.8} />
-          <circle cx="26" cy="22" r="7" fill="none" stroke="#D4A95D" strokeWidth={1.8} />
-        </svg>
-      ),
-    },
-    {
-      name: 'Memorials',
-      body: 'Honor a life beautifully.',
-      icon: (
-        <svg viewBox="0 0 40 40" width="26" height="26">
-          <path
-            d="M20 8 c -4 0 -7 3 -7 7 c 0 5 7 10 7 10 s 7 -5 7 -10 c 0 -4 -3 -7 -7 -7 z"
-            fill="none"
-            stroke="#3D4A1F"
-            strokeWidth={1.5}
-          />
-          <path d="M13 30 L20 25 L27 30 L27 32 L13 32 z" fill="#F0C9A8" />
-        </svg>
-      ),
-    },
-    {
-      name: 'Birthdays',
-      body: 'Make every year worth remembering.',
-      icon: (
-        <svg viewBox="0 0 40 40" width="26" height="26">
-          <path d="M10 20 L30 20 L30 30 Q 30 32 28 32 L 12 32 Q 10 32 10 30 z" fill="#F0C9A8" />
-          <path d="M8 20 L32 20" stroke="#3D4A1F" strokeWidth={1.5} />
-          <rect x="14" y="14" width="12" height="6" fill="#C4B5D9" />
-          <path
-            d="M17 10 Q 17 8 19 8 Q 21 8 21 10 M 23 10 Q 23 8 25 8 Q 27 8 27 10"
-            stroke="#D4A95D"
-            strokeWidth={1.2}
-            fill="none"
-            strokeLinecap="round"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: 'Reunions',
-      body: 'Reconnect and make new memories.',
-      icon: (
-        <svg viewBox="0 0 40 40" width="28" height="28">
-          <circle cx="14" cy="15" r="4" fill="#8B9C5A" />
-          <circle cx="26" cy="15" r="4" fill="#C4B5D9" />
-          <circle cx="20" cy="22" r="4" fill="#F0C9A8" />
-          <path d="M8 32 c 0 -4 3 -6 6 -6 h 12 c 3 0 6 2 6 6" fill="#3D4A1F" opacity="0.15" />
-        </svg>
-      ),
-    },
-    {
-      name: 'And more',
-      body: 'Showers, anniversaries, retirements & more.',
-      icon: (
-        <svg viewBox="0 0 40 40" width="26" height="26">
-          <path d="M20 6 l2 5 l5 1 l-4 4 l1 5 l-4 -2 l-4 2 l1 -5 l-4 -4 l5 -1 z" fill="#D4A95D" />
-          <circle cx="10" cy="28" r="2" fill="#C4B5D9" />
-          <circle cx="30" cy="28" r="2" fill="#8B9C5A" />
-        </svg>
-      ),
-    },
-  ];
-  return (
-    <section id="event-types" className="container" style={{ padding: '20px 32px 40px', scrollMarginTop: 96 }}>
-      <Reveal>
-        <div style={{ textAlign: 'center', marginBottom: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-          <Sparkle size={11} />
-          <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 20, color: 'var(--ink-soft)', fontWeight: 400 }}>
-            Made for every kind of meaningful.
-          </span>
-          <Sparkle size={11} />
-        </div>
-      </Reveal>
-
-      <div className="pl8-cols-5">
-        {types.map((t, i) => (
-          <Reveal key={i} delay={i * 80}>
-            <Link
-              href="/wizard/new"
-              className="lift"
-              style={{
-                background: 'var(--card)',
-                border: '1px solid var(--card-ring)',
-                borderRadius: 16,
-                padding: '18px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                cursor: 'pointer',
-              }}
-            >
-              <div
-                style={{
-                  width: 46,
-                  height: 46,
-                  borderRadius: 12,
-                  background: 'var(--cream-2)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  flexShrink: 0,
-                }}
-              >
-                {t.icon}
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 600 }}>{t.name}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.4, marginTop: 2 }}>{t.body}</div>
-              </div>
-            </Link>
-          </Reveal>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/* ==================== FOOTER STRIP ==================== */
-function FooterStrip() {
-  return (
-    <section style={{ padding: '30px 0 0' }}>
-      <Reveal>
-        <div
-          className="container pl8-footer-strip"
-          style={{
-            background: 'var(--ink)',
-            borderRadius: 24,
-            padding: '20px 28px',
-            color: 'var(--cream)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ position: 'relative', width: 100, marginLeft: 8 }}>
-            <Float amplitude={4}>
-              <PearMascot size={110} mood="happy" />
-            </Float>
-            <div style={{ position: 'absolute', top: 30, right: -14 }}>
-              <svg width="22" height="22" viewBox="0 0 24 24">
-                <circle r={3} cx={12} cy={12} fill="#F8F1E4" />
-                <circle r={2.2} cx={12} cy={5} fill="#F8F1E4" />
-                <circle r={2.2} cx={12} cy={19} fill="#F8F1E4" />
-                <circle r={2.2} cx={5} cy={12} fill="#F8F1E4" />
-                <circle r={2.2} cx={19} cy={12} fill="#F8F1E4" />
-              </svg>
-            </div>
-          </div>
-
-          <div>
-            <div className="display" style={{ fontSize: 26, color: 'var(--cream)' }}>
-              Let&apos;s make it meaningful.
-            </div>
-            <div style={{ fontSize: 13, opacity: 0.75, marginTop: 4 }}>
-              Start planning today and create an event that&apos;s perfectly you—and unforgettable.
-            </div>
-          </div>
-
-          <Link
-            className="btn"
-            href="/wizard/new"
-            style={{ background: 'transparent', color: 'var(--cream)', border: '1.5px solid var(--cream)' }}
-          >
-            Create your event <Pear size={14} tone="cream" shadow={false} />
-          </Link>
-
-          <div style={{ fontFamily: 'var(--font-script)', fontSize: 22, color: 'var(--cream)', lineHeight: 1.1, opacity: 0.95 }}>
-            It&apos;s free
-            <br />
-            to get started!
-          </div>
-
-          <Float amplitude={3} duration={6}>
-            <Stamp size={76} tone="lavender" icon="pear" rotation={-8} text="WITH YOU EVERY STEP OF THE WAY" />
-          </Float>
-        </div>
-      </Reveal>
-
-      <div
-        className="container"
-        style={{
-          margin: '18px auto 40px',
-          display: 'flex',
-          justifyContent: 'space-around',
-          fontSize: 12.5,
-          color: 'var(--ink-soft)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Icon name="lock" size={13} /> Your data is private and secure
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Icon name="heart-icon" size={13} /> Built with care, by real humans
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Icon name="sparkles" size={13} /> Here for life&apos;s big (and small) moments
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ==================== HOME V8 ==================== */
-export function HomeV8() {
-  const router = useRouter();
-  const startEvent = () => router.push('/wizard/new');
-  return (
-    <div className="pl8" style={{ minHeight: '100vh', background: 'var(--cream)', position: 'relative', overflow: 'hidden' }}>
-      <TopNav active="Home" />
-      <Hero />
-      <FeatureTriad />
-      <SignatureFeature />
-      <EventTypes />
-      <div id="features" style={{ scrollMarginTop: 96 }}>
-        <LandingPillars />
-      </div>
-      <LandingProof />
-      <div id="pricing" style={{ scrollMarginTop: 96 }}>
-        <LandingPricing onStart={startEvent} />
-      </div>
-      <FooterStrip />
-    </div>
-  );
-}

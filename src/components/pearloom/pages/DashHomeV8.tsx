@@ -7,18 +7,204 @@
 
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { useMemo, useState } from 'react';
-import { Heart, Icon, PhotoPlaceholder, Pear, PostIt, Sparkle, Stamp } from '../motifs';
+import { useMemo, type CSSProperties } from 'react';
+import { Heart, Icon, Pear, PostIt, Sparkle, Stamp } from '../motifs';
 import { DashLayout } from '../dash/DashShell';
 import { PLAtmosphere } from '../dash/PLChrome';
-import { PearThinking } from '../pear-thinking';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
-import { useDashStats, useLinkedCelebrations, useDaysToGo } from '@/components/marketing/v2/useDashStats';
+import { useDashStats, useDaysToGo } from '@/components/marketing/v2/useDashStats';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { getKickoffCards, getKickoffEyebrow, type KickoffCard } from '@/lib/event-os/dashboard-presets';
 import { siteProgressPct } from '@/lib/site-progress';
 import { parseLocalDate } from '@/lib/date-utils';
+import { PACKS, getPackById, type Pack } from '@/lib/theme-store/packs';
 import type { StoryManifest } from '@/types';
+
+/* ─── MiniThemeThumb ────────────────────────────────────────────────
+   A faithful port of the prototype's MiniThemeThumb: a tiny `.pl8-guest`
+   scope with the pack's theme vars stamped on it, the matching texture
+   layer, and a centered motif glyph. This is the same approach the
+   theme-store PackPreview uses — real themed CSS, no screenshot — so
+   the dashboard surfaces what each site actually looks like.
+   ─────────────────────────────────────────────────────────────────── */
+
+/** Pick a pack for a site. In priority order:
+ *  1. Match by site index into a rotating, occasion-aware curated set
+ *     (so a list of sites reads as varied as the prototype).
+ *  2. Fallback to santorini-linen (the prototype's default).
+ *
+ *  We don't yet persist a per-site `themePackId`, so this is a
+ *  visual-only derivation. The curated rotation keeps each site
+ *  visually distinct without random churn between renders. */
+function pickPackForSite(
+  occasion: string | undefined,
+  index: number,
+): Pack {
+  // Occasion-keyed rotations — same vibe as the prototype's
+  // [santorini, tuscan, garden, coastal] sequence, but per
+  // occasion family so memorial/birthday/etc don't all look like
+  // a wedding site.
+  const rotations: Record<string, readonly string[]> = {
+    wedding: ['santorini-linen', 'tuscan-watercolor', 'pressed-garden', 'coastal-ink'],
+    engagement: ['blush-bloom', 'english-rose', 'pressed-garden', 'tuscan-watercolor'],
+    anniversary: ['antique-rosegold', 'pressed-garden', 'tuscan-watercolor', 'santorini-linen'],
+    birthday: ['confetti-fete', 'citrus-pop', 'sunshine-day', 'pressed-garden'],
+    memorial: ['ivory-minimal', 'mono-press', 'modern-editorial', 'eucalyptus-press'],
+    funeral: ['ivory-minimal', 'mono-press', 'modern-editorial', 'eucalyptus-press'],
+    'bridal-shower': ['english-rose', 'blush-bloom', 'pressed-garden', 'spring-blossom'],
+    'baby-shower': ['blush-bloom', 'pressed-garden', 'spring-blossom', 'sunshine-day'],
+    'bachelor-party': ['noir-matte', 'midnight-velvet', 'modern-editorial', 'obsidian-gold'],
+    'bachelorette-party': ['confetti-fete', 'palm-springs', 'blush-bloom', 'citrus-pop'],
+    reunion: ['cabana-stripe', 'pressed-garden', 'palm-springs', 'tuscan-watercolor'],
+    graduation: ['modern-editorial', 'swiss-grid', 'pressed-garden', 'sunshine-day'],
+  };
+  const seq = rotations[occasion ?? 'wedding'] ?? rotations.wedding!;
+  const picked = getPackById(seq[index % seq.length]!);
+  if (picked) return picked;
+  // Final safety net — first pack in PACKS is always santorini-linen.
+  return PACKS[0]!;
+}
+
+/** Render a single motif glyph used in the mini swatch. Mirrors the
+ *  prototype's <Motif kind=… size=26/>. We use simple inline SVG
+ *  glyphs so we don't need to import MotifScatter (which is
+ *  primarily a positional scatterer). */
+function MiniMotif({ pack, size = 26 }: { pack: Pack; size?: number }) {
+  const color = 'var(--t-accent-ink, var(--t-ink, #2A2A28))';
+  const gold = 'var(--t-gold, #B8935A)';
+  switch (pack.motif) {
+    case 'olive':
+      return (
+        <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden>
+          <path d="M16 4 C 12 10 12 16 16 28 C 20 16 20 10 16 4 Z" fill="none" stroke={color} strokeWidth="1.2" />
+          <ellipse cx="11" cy="14" rx="2.2" ry="1.2" fill={color} opacity={0.78} transform="rotate(-30 11 14)" />
+          <ellipse cx="21" cy="14" rx="2.2" ry="1.2" fill={color} opacity={0.78} transform="rotate(30 21 14)" />
+          <circle cx="16" cy="20" r="1.6" fill={gold} />
+        </svg>
+      );
+    case 'bloom':
+      return (
+        <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden>
+          <circle cx="16" cy="10" r="3.4" fill={color} opacity={0.62} />
+          <circle cx="10" cy="17" r="3" fill={color} opacity={0.5} />
+          <circle cx="22" cy="17" r="3" fill={color} opacity={0.5} />
+          <circle cx="16" cy="22" r="3.2" fill={color} opacity={0.55} />
+          <circle cx="16" cy="16" r="2" fill={gold} />
+        </svg>
+      );
+    case 'pressed':
+      return (
+        <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden>
+          <path d="M16 5 L16 27" stroke={color} strokeWidth="1.1" />
+          <path d="M10 11 Q 16 8 16 14" stroke={color} strokeWidth="1.1" fill="none" />
+          <path d="M22 11 Q 16 8 16 14" stroke={color} strokeWidth="1.1" fill="none" />
+          <path d="M9 18 Q 16 15 16 21" stroke={color} strokeWidth="1.1" fill="none" />
+          <path d="M23 18 Q 16 15 16 21" stroke={color} strokeWidth="1.1" fill="none" />
+          <circle cx="16" cy="25" r="1.6" fill={gold} />
+        </svg>
+      );
+    case 'laurel':
+      return (
+        <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden>
+          <path d="M9 6 Q 12 16 16 26" stroke={color} strokeWidth="1.1" fill="none" />
+          <path d="M23 6 Q 20 16 16 26" stroke={color} strokeWidth="1.1" fill="none" />
+          <ellipse cx="12" cy="13" rx="1.6" ry="0.9" fill={color} opacity={0.75} transform="rotate(-22 12 13)" />
+          <ellipse cx="20" cy="13" rx="1.6" ry="0.9" fill={color} opacity={0.75} transform="rotate(22 20 13)" />
+          <ellipse cx="13" cy="19" rx="1.6" ry="0.9" fill={color} opacity={0.7} transform="rotate(-18 13 19)" />
+          <ellipse cx="19" cy="19" rx="1.6" ry="0.9" fill={color} opacity={0.7} transform="rotate(18 19 19)" />
+        </svg>
+      );
+    case 'sun':
+    case 'citrus':
+      return (
+        <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden>
+          <circle cx="16" cy="16" r="6" fill={gold} opacity={0.85} />
+          {Array.from({ length: 8 }).map((_, i) => {
+            const a = (i * Math.PI) / 4;
+            const x1 = 16 + Math.cos(a) * 9;
+            const y1 = 16 + Math.sin(a) * 9;
+            const x2 = 16 + Math.cos(a) * 13;
+            const y2 = 16 + Math.sin(a) * 13;
+            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth="1.1" />;
+          })}
+        </svg>
+      );
+    case 'shell':
+      return (
+        <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden>
+          <path d="M16 6 L4 24 L28 24 Z" fill="none" stroke={color} strokeWidth="1.2" />
+          <path d="M16 10 L16 24" stroke={color} strokeWidth="0.8" opacity={0.6} />
+          <path d="M12 14 L13 24" stroke={color} strokeWidth="0.8" opacity={0.6} />
+          <path d="M20 14 L19 24" stroke={color} strokeWidth="0.8" opacity={0.6} />
+        </svg>
+      );
+    case 'deco':
+      return (
+        <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden>
+          <rect x="8" y="8" width="16" height="16" fill="none" stroke={color} strokeWidth="1.2" />
+          <rect x="12" y="12" width="8" height="8" fill="none" stroke={gold} strokeWidth="1.2" />
+          <line x1="8" y1="16" x2="4" y2="16" stroke={color} strokeWidth="1.1" />
+          <line x1="24" y1="16" x2="28" y2="16" stroke={color} strokeWidth="1.1" />
+          <line x1="16" y1="8" x2="16" y2="4" stroke={color} strokeWidth="1.1" />
+          <line x1="16" y1="24" x2="16" y2="28" stroke={color} strokeWidth="1.1" />
+        </svg>
+      );
+    case 'none':
+    default:
+      // No motif — show a single accent circle (matches the
+      // prototype's MiniThemeThumb fallback when motif === 'none').
+      return (
+        <span
+          style={{
+            display: 'inline-block',
+            width: 16,
+            height: 16,
+            borderRadius: '50%',
+            background: 'var(--t-accent, #2A2A28)',
+          }}
+        />
+      );
+  }
+}
+
+function MiniThemeThumb({
+  occasion,
+  index = 0,
+  packId,
+}: {
+  occasion?: string;
+  index?: number;
+  /** Explicit pack id (when a site persists `themePackId`). */
+  packId?: string;
+}) {
+  const pack = packId ? getPackById(packId) ?? pickPackForSite(occasion, index) : pickPackForSite(occasion, index);
+  const scopeStyle: CSSProperties = {
+    ...(pack.themeRef as unknown as CSSProperties),
+    position: 'relative',
+    width: '100%',
+    height: '100%',
+    background: 'var(--t-section, var(--t-paper))',
+    display: 'grid',
+    placeItems: 'center',
+    overflow: 'hidden',
+  };
+  return (
+    <div
+      className="pl8-guest"
+      data-pl-texture={pack.texture}
+      data-pl-pattern={pack.pattern}
+      data-pl-kit={pack.kit}
+      data-pl-density="comfortable"
+      style={scopeStyle}
+      aria-hidden
+    >
+      <div className="pl8-pattern-layer" data-pl-pattern={pack.pattern} aria-hidden />
+      <div style={{ position: 'relative', zIndex: 2, opacity: 0.92 }}>
+        <MiniMotif pack={pack} size={26} />
+      </div>
+    </div>
+  );
+}
 
 function Section({
   title,
@@ -227,7 +413,7 @@ function EventSites({
             <div style={{ marginTop: 8 }}>No sites yet — let&apos;s make one.</div>
           </div>
         )}
-        {sites.slice(0, 4).map((s) => {
+        {sites.slice(0, 4).map((s, idx) => {
           const name =
             siteDisplayName({
               id: s.id,
@@ -253,12 +439,12 @@ function EventSites({
                 background: 'var(--cream-2)',
               }}
             >
+              {/* Themed mini swatch — real `.pl8-guest` scope so the
+                  thumbnail renders the same texture / palette / motif
+                  vocabulary as the site itself. No screenshots, no
+                  cover-photo dependency. */}
               <div style={{ width: 54, height: 44, borderRadius: 8, flexShrink: 0, overflow: 'hidden' }}>
-                <PhotoPlaceholder
-                  tone={s.coverPhoto ? undefined : 'warm'}
-                  src={s.coverPhoto ?? undefined}
-                  aspect="54/44"
-                />
+                <MiniThemeThumb occasion={s.occasion} index={idx} />
               </div>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{name}</div>
@@ -493,312 +679,13 @@ function GuestTasks({ invited = 0, responded = 0, yes = 0, no = 0, awaiting = 0,
   );
 }
 
-function Moments() {
-  const tones = ['warm', 'cream', 'dusk', 'peach'] as const;
-  return (
-    <Section
-      title="Moments & memories"
-      icon="image"
-      right={
-        <Link href="/dashboard/gallery" style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
-          View all photos
-        </Link>
-      }
-    >
-      <div className="pl8-cols-5" style={{ gap: 8 }}>
-        {tones.map((t, i) => (
-          <div key={i} style={{ borderRadius: 10, overflow: 'hidden' }}>
-            <PhotoPlaceholder tone={t} aspect="1/1" />
-          </div>
-        ))}
-        <Link
-          href="/dashboard/gallery"
-          style={{
-            borderRadius: 10,
-            background: 'var(--lavender-bg)',
-            display: 'grid',
-            placeItems: 'center',
-            color: 'var(--lavender-ink)',
-            fontSize: 12,
-            fontWeight: 600,
-            textAlign: 'center',
-            padding: 10,
-            gap: 6,
-            aspectRatio: '1/1',
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: '50%',
-                background: 'var(--lavender)',
-                display: 'grid',
-                placeItems: 'center',
-              }}
-            >
-              <Icon name="plus" size={14} color="#fff" strokeWidth={2.5} />
-            </div>
-            Upload
-            <br />
-            more
-          </div>
-        </Link>
-      </div>
-    </Section>
-  );
-}
-
-function LinkedCelebrations({
-  items,
-}: {
-  items: Array<{ id?: string; name: string; date?: string | null; tone: string }>;
-}) {
-  return (
-    <Section
-      title="Linked celebrations"
-      icon="link"
-      right={
-        <Link href="/dashboard/event" style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
-          View all
-        </Link>
-      }
-    >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {items.length === 0 && (
-          <div style={{ padding: '8px 4px', color: 'var(--ink-muted)', fontSize: 13 }}>
-            No linked events yet.
-          </div>
-        )}
-        {items.map((i) => (
-          <div key={i.id ?? i.name} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                background:
-                  i.tone === 'sage'
-                    ? 'var(--sage-tint)'
-                    : i.tone === 'lavender'
-                      ? 'var(--lavender-bg)'
-                      : 'var(--peach-bg)',
-                display: 'grid',
-                placeItems: 'center',
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" color="var(--ink-soft)">
-                <path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" />
-              </svg>
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>{i.name}</div>
-              {i.date && <div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>{i.date}</div>}
-            </div>
-            <Icon name="check" size={16} color="var(--sage-deep)" />
-          </div>
-        ))}
-      </div>
-      <div style={{ textAlign: 'center', marginTop: 10 }}>
-        <Link href="/wizard/new" className="btn btn-outline btn-sm">
-          + Add celebration
-        </Link>
-      </div>
-    </Section>
-  );
-}
-
-interface PearChatMessage {
-  role: 'pear' | 'user';
-  text: string;
-}
-
-function PearAssistant() {
-  const [messages, setMessages] = useState<PearChatMessage[]>([
-    {
-      role: 'pear',
-      text:
-        "Hi! I'm Pear. Ask me to draft a guest reminder, brainstorm menu ideas, write invite copy, or anything else — I'll help.",
-    },
-  ]);
-  const [input, setInput] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const send = async (text: string) => {
-    const trimmed = text.trim();
-    if (!trimmed || busy) return;
-    setMessages((prev) => [...prev, { role: 'user', text: trimmed }]);
-    setInput('');
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/ai-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: trimmed,
-          // Dashboard-level chat has no single active manifest; send an
-          // empty one and a dashboard siteState so Pear knows this is
-          // general guidance, not a specific-site edit.
-          manifest: {},
-          siteState: 'dashboard',
-          names: null,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data?.error ?? `Pear is unavailable (${res.status})`);
-      }
-      const reply: string =
-        typeof data?.reply === 'string'
-          ? data.reply
-          : typeof data?.message === 'string'
-            ? data.message
-            : typeof data?.text === 'string'
-              ? data.text
-              : "I'm here whenever you need me. — Pear";
-      setMessages((prev) => [...prev, { role: 'pear', text: reply }]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Pear is resting. Try again in a moment.');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const quickActions = [
-    'Write a save-the-date reminder',
-    'Draft a welcome message for guests',
-    'Brainstorm menu ideas',
-  ];
-
-  return (
-    <Section title="Pear Assistant" icon="sparkles">
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 10,
-          marginBottom: 14,
-          maxHeight: 280,
-          overflowY: 'auto',
-          paddingRight: 4,
-        }}
-      >
-        {messages.map((m, i) => {
-          const mine = m.role === 'user';
-          return (
-            <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', justifyContent: mine ? 'flex-end' : 'flex-start' }}>
-              {!mine && <Pear size={36} tone="sage" sparkle />}
-              <div
-                style={{
-                  background: mine ? 'var(--ink, #18181B)' : 'var(--cream-2)',
-                  color: mine ? 'var(--cream, #FDFAF0)' : 'var(--ink-soft)',
-                  padding: '10px 14px',
-                  borderRadius: 14,
-                  borderBottomLeftRadius: mine ? 14 : 2,
-                  borderBottomRightRadius: mine ? 2 : 14,
-                  fontSize: 13,
-                  lineHeight: 1.5,
-                  maxWidth: '82%',
-                  whiteSpace: 'pre-wrap',
-                }}
-              >
-                {m.text}
-              </div>
-            </div>
-          );
-        })}
-        {busy && (
-          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-            <Pear size={36} tone="sage" sparkle />
-            <div
-              style={{
-                background: 'var(--cream-2)',
-                padding: '10px 14px',
-                borderRadius: 14,
-                borderBottomLeftRadius: 2,
-                fontSize: 13,
-                color: 'var(--ink-muted)',
-                fontStyle: 'italic',
-              }}
-            >
-              <PearThinking active label="drafting" size="sm" hideAvatar />
-            </div>
-          </div>
-        )}
-      </div>
-      {error && (
-        <div style={{ fontSize: 12, color: 'var(--peach-ink)', marginBottom: 8 }}>{error}</div>
-      )}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          void send(input);
-        }}
-        style={{ position: 'relative', marginBottom: 10 }}
-      >
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask Pear anything…"
-          disabled={busy}
-          style={{
-            width: '100%',
-            padding: '12px 48px 12px 16px',
-            background: 'var(--cream-2)',
-            border: '1px solid var(--line)',
-            borderRadius: 999,
-            fontSize: 13,
-            outline: 'none',
-            color: 'var(--ink)',
-            fontFamily: 'inherit',
-          }}
-        />
-        <button
-          type="submit"
-          disabled={busy || !input.trim()}
-          style={{
-            position: 'absolute',
-            right: 6,
-            top: 6,
-            width: 34,
-            height: 34,
-            borderRadius: '50%',
-            background: input.trim() ? 'var(--lavender-ink, #6B5A8C)' : 'var(--line)',
-            display: 'grid',
-            placeItems: 'center',
-            border: 0,
-            cursor: busy ? 'wait' : input.trim() ? 'pointer' : 'not-allowed',
-          }}
-          aria-label="Send"
-        >
-          <Icon name="arrow-right" size={14} color="#fff" strokeWidth={2.5} />
-        </button>
-      </form>
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        {quickActions.map((c) => (
-          <button
-            key={c}
-            type="button"
-            onClick={() => void send(c)}
-            disabled={busy}
-            className="pill pill-cream"
-            style={{
-              fontSize: 11,
-              cursor: busy ? 'wait' : 'pointer',
-              border: 'none',
-              fontFamily: 'inherit',
-            }}
-          >
-            {c}
-          </button>
-        ))}
-      </div>
-    </Section>
-  );
-}
+/* Moments / LinkedCelebrations / PearAssistant sections were removed
+   in the 2026-04-30 simplification audit (Moments had no real data,
+   LinkedCelebrations duplicated /dashboard/connections, PearAssistant
+   was a context-less duplicate of DesignAdvisor). The dashboard now
+   renders only data-grounded cards: Kickoff + Sites + Milestones +
+   Guests. See CLAUDE-PRODUCT.md §10 (2026-04-30 entry) for the
+   rationale. */
 
 function HelpBand() {
   return (
@@ -858,16 +745,9 @@ export function DashHomeV8() {
   const { data: session } = useSession();
   const { sites, site, loading } = useSelectedSite();
   const stats = useDashStats(site?.id);
-  const linked = useLinkedCelebrations(site?.id);
   const daysToGo = useDaysToGo(site?.eventDate ?? undefined);
   const first = (session?.user?.name || session?.user?.email || 'there').split(/[\s@]/)[0];
   const activeName = site ? siteDisplayName(site) : 'your celebration';
-  const linkedItems = (linked?.siblings ?? []).map((i, idx) => ({
-    id: i.domain,
-    name: i.title || i.domain,
-    date: i.date ?? null,
-    tone: idx % 3 === 0 ? 'sage' : idx % 3 === 1 ? 'lavender' : 'peach',
-  }));
 
   return (
     <DashLayout

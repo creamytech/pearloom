@@ -6,7 +6,7 @@
    ======================================================================== */
 
 import Link from 'next/link';
-import { use, useState, type FormEvent } from 'react';
+import { use, useState, type CSSProperties, type FormEvent } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import {
@@ -16,11 +16,11 @@ import {
   Icon,
   Pear,
   PearloomLogo,
-  PhotoPlaceholder,
   Sparkle,
   Stamp,
 } from '../motifs';
 import { Reveal, Float } from '../motion';
+import { getPackById, PACKS, type Pack } from '@/lib/theme-store/packs';
 
 const ERROR_COPY: Record<string, string> = {
   OAuthCallback: 'Google sign-in couldn’t complete. Try once more.',
@@ -29,6 +29,141 @@ const ERROR_COPY: Record<string, string> = {
   AccessDenied: 'Sign-in was declined. Try again or contact support.',
   Default: 'Something went wrong signing in. Please try again.',
 };
+
+/* ─── SigninSiteCard ────────────────────────────────────────────────
+   A real themed Save-the-Date vignette inside the signin collage.
+   Verbatim port of the prototype's SigninSiteCard: a `.pl8-guest`
+   scope with the Santorini Linen pack's --t-* vars stamped on it,
+   a centered motif glyph in each top corner, and the pressed-into-
+   paper "Save the date" / couple-names / sprig divider / date-line
+   stack. Shows guests on first arrival what Pearloom actually makes.
+   ─────────────────────────────────────────────────────────────── */
+
+function SigninMotif({ pack, size = 46, flip = false }: { pack: Pack; size?: number; flip?: boolean }) {
+  const color = 'var(--t-accent-ink, var(--t-ink, #2A2A28))';
+  const gold = 'var(--t-gold, #B8935A)';
+  const transform = flip ? 'scaleX(-1)' : undefined;
+  if (pack.motif === 'olive') {
+    return (
+      <svg width={size} height={size} viewBox="0 0 60 60" style={{ transform }} aria-hidden>
+        <path d="M30 6 Q 22 24 30 54 Q 38 24 30 6 Z" fill="none" stroke={color} strokeWidth="1.4" />
+        <ellipse cx="18" cy="22" rx="4" ry="2" fill={color} opacity={0.78} transform="rotate(-30 18 22)" />
+        <ellipse cx="42" cy="22" rx="4" ry="2" fill={color} opacity={0.78} transform="rotate(30 42 22)" />
+        <ellipse cx="20" cy="34" rx="4" ry="2" fill={color} opacity={0.7} transform="rotate(-22 20 34)" />
+        <ellipse cx="40" cy="34" rx="4" ry="2" fill={color} opacity={0.7} transform="rotate(22 40 34)" />
+        <circle cx="30" cy="40" r="2.6" fill={gold} />
+      </svg>
+    );
+  }
+  // Fallback bloom shape — used when the resolved pack doesn't
+  // carry an 'olive' motif (e.g., a future SigninSiteCard variant
+  // that ships with a different pack).
+  return (
+    <svg width={size} height={size} viewBox="0 0 60 60" style={{ transform }} aria-hidden>
+      <circle cx="30" cy="18" r="6" fill={color} opacity={0.62} />
+      <circle cx="20" cy="32" r="5.4" fill={color} opacity={0.5} />
+      <circle cx="40" cy="32" r="5.4" fill={color} opacity={0.5} />
+      <circle cx="30" cy="42" r="6" fill={color} opacity={0.55} />
+      <circle cx="30" cy="30" r="3.6" fill={gold} />
+    </svg>
+  );
+}
+
+function SigninSprigDivider({ width = 104 }: { width?: number }) {
+  const color = 'var(--t-accent-ink, var(--t-ink, #2A2A28))';
+  const gold = 'var(--t-gold, #B8935A)';
+  return (
+    <svg width={width} height={14} viewBox={`0 0 ${width} 14`} aria-hidden>
+      <line x1="2" y1="7" x2={width - 2} y2="7" stroke={color} strokeWidth="1" />
+      <ellipse cx={width / 2 - 12} cy="7" rx="3.4" ry="1.4" fill={color} opacity={0.75} transform={`rotate(-22 ${width / 2 - 12} 7)`} />
+      <ellipse cx={width / 2 + 12} cy="7" rx="3.4" ry="1.4" fill={color} opacity={0.75} transform={`rotate(22 ${width / 2 + 12} 7)`} />
+      <circle cx={width / 2} cy="7" r="2.6" fill={gold} />
+    </svg>
+  );
+}
+
+function SigninSiteCard() {
+  // Santorini Linen — the prototype's chosen vignette palette.
+  // Falls back to the first PACKS entry (also santorini-linen) if
+  // the id ever drifts, so the card never silently disappears.
+  const pack = getPackById('santorini-linen') ?? PACKS[0]!;
+  const scopeStyle: CSSProperties = {
+    ...(pack.themeRef as unknown as CSSProperties),
+    position: 'relative',
+    borderRadius: 8,
+    overflow: 'hidden',
+    background: 'var(--t-section, var(--t-paper))',
+    color: 'var(--t-ink)',
+    textAlign: 'center',
+    padding: '26px 18px',
+    aspectRatio: '4/5',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+  return (
+    <div
+      className="pl8-guest"
+      data-pl-texture={pack.texture}
+      data-pl-pattern={pack.pattern}
+      data-pl-kit={pack.kit}
+      data-pl-density="comfortable"
+      style={scopeStyle}
+    >
+      <div className="pl8-pattern-layer" data-pl-pattern={pack.pattern} aria-hidden />
+      {/* Top-corner motifs — mirrored sprig pair, the prototype's
+          signature framing device. */}
+      <div style={{ position: 'absolute', top: 10, left: 12, opacity: 0.55 }}>
+        <SigninMotif pack={pack} size={46} flip />
+      </div>
+      <div style={{ position: 'absolute', top: 10, right: 12, opacity: 0.55 }}>
+        <SigninMotif pack={pack} size={46} />
+      </div>
+      <div style={{ position: 'relative', zIndex: 2 }}>
+        <div
+          style={{
+            fontSize: 8.5,
+            fontWeight: 700,
+            letterSpacing: 'var(--t-eyebrow-ls, 0.2em)',
+            textTransform: 'uppercase',
+            color: 'var(--t-accent-ink, var(--t-ink))',
+            marginBottom: 7,
+          }}
+        >
+          Save the date
+        </div>
+        <div
+          style={{
+            fontFamily: 'var(--t-display)',
+            fontWeight: 'var(--t-display-wght, 600)' as unknown as number,
+            fontSize: 27,
+            lineHeight: 1,
+            color: 'var(--t-ink)',
+          }}
+        >
+          Alex
+          <span
+            style={{
+              fontStyle: 'italic',
+              fontSize: '0.6em',
+              color: 'var(--t-ink-soft)',
+              margin: '0 0.14em',
+              fontWeight: 400,
+            }}
+          >
+            &amp;
+          </span>
+          Jamie
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', margin: '9px 0' }}>
+          <SigninSprigDivider width={104} />
+        </div>
+        <div style={{ fontSize: 10, color: 'var(--t-ink-soft)' }}>June 22 · Portland</div>
+      </div>
+    </div>
+  );
+}
 
 export function SigninV8({
   searchParamsPromise,
@@ -113,25 +248,15 @@ export function SigninV8({
         {/* LEFT — form */}
         <Reveal y={18}>
           <div style={{ maxWidth: 420 }}>
-            {/* Peach editorial eyebrow — matches ThemedSectionHead. */}
-            <div
-              className="eyebrow"
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: '0.22em',
-                textTransform: 'uppercase',
-                color: '#C6703D',
-                marginBottom: 18,
-              }}
-            >
-              Sign in
-            </div>
+            {/* Sparkle glyph — the prototype's understated eyebrow.
+                Replaces the earlier peach "SIGN IN" wordmark; the
+                page reads as personal letterhead, not marketing. */}
+            <Sparkle size={16} style={{ marginBottom: 8 }} />
             <h1
               className="display"
               style={{
                 fontSize: 56,
-                margin: '0',
+                margin: '4px 0 0',
                 lineHeight: 0.98,
                 fontWeight: 600,
                 letterSpacing: '-0.02em',
@@ -143,29 +268,31 @@ export function SigninV8({
               className="display-italic"
               style={{
                 fontSize: 56,
-                margin: '0 0 18px',
+                margin: '0 0 16px',
                 lineHeight: 0.98,
                 fontStyle: 'italic',
                 fontWeight: 400,
-                color: '#C6703D',
+                color: 'var(--ink)',
                 letterSpacing: '-0.02em',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
               }}
             >
-              beautiful soul.
+              beautiful soul. <Heart size={24} />
             </h1>
-            {/* Italic display body so the page reads as personal
-                letterhead, not marketing copy. */}
             <p
               style={{
-                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-                fontStyle: 'italic',
                 color: 'var(--ink-soft)',
-                fontSize: 17,
-                lineHeight: 1.5,
+                fontSize: 15,
                 marginBottom: 28,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
               }}
             >
               Every moment matters. Let&apos;s keep your story growing.
+              <Sparkle size={12} />
             </p>
 
             {errorMessage && (
@@ -434,12 +561,35 @@ export function SigninV8({
             </Float>
           </div>
 
-          <div style={{ position: 'absolute', top: 40, right: 20, width: 260, zIndex: 5 }}>
+          {/* "Their site" — a real themed Save-the-Date vignette wrapped
+              in the prototype's white-mat polaroid frame with a peach
+              washi-tape strip. The vignette is a live `.pl8-guest`
+              scope so visitors see what Pearloom actually makes, not
+              a placeholder. */}
+          <div style={{ position: 'absolute', top: 40, right: 20, width: 264, zIndex: 5 }}>
             <Float amplitude={8} duration={6} delay={0.5}>
               <div style={{ transform: 'rotate(3deg)' }}>
-                <div style={{ background: '#fff', padding: '14px 14px 50px', boxShadow: '0 20px 40px rgba(61,74,31,0.2)', position: 'relative' }}>
-                  <div style={{ position: 'absolute', top: -12, right: 30, width: 80, height: 26, background: 'rgba(234,178,134,0.55)', transform: 'rotate(-3deg)' }} />
-                  <PhotoPlaceholder tone="warm" aspect="1/1" label="together" />
+                <div
+                  style={{
+                    background: '#fff',
+                    padding: 10,
+                    borderRadius: 14,
+                    boxShadow: '0 20px 40px rgba(61,74,31,0.2)',
+                    position: 'relative',
+                  }}
+                >
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: -12,
+                      right: 30,
+                      width: 80,
+                      height: 26,
+                      background: 'rgba(234,178,134,0.55)',
+                      transform: 'rotate(-3deg)',
+                    }}
+                  />
+                  <SigninSiteCard />
                 </div>
               </div>
             </Float>
@@ -479,6 +629,44 @@ export function SigninV8({
           </div>
           <div style={{ position: 'absolute', bottom: 40, right: 120, zIndex: 7 }}>
             <Stamp size={74} tone="lavender" text="WITH YOU EVERY STEP OF THE WAY" rotation={-8} icon="heart" />
+          </div>
+
+          {/* Botanical accents — the prototype's wildflower sprig,
+              butterfly, and green-heart corner. Tiny details that
+              read the collage as "made by hand" rather than
+              templated. */}
+          <svg
+            aria-hidden
+            style={{ position: 'absolute', top: 0, right: 120, zIndex: 6 }}
+            width="80"
+            height="120"
+            viewBox="0 0 80 120"
+          >
+            <path d="M40 100 Q 35 60, 45 20" stroke="#8B9C5A" strokeWidth="1.5" fill="none" />
+            <circle cx="40" cy="25" r="3" fill="#F3E9D4" />
+            <circle cx="46" cy="22" r="3" fill="#F3E9D4" />
+            <circle cx="34" cy="22" r="3" fill="#F3E9D4" />
+            <circle cx="42" cy="18" r="3" fill="#F3E9D4" />
+            <circle cx="38" cy="28" r="3" fill="#F3E9D4" />
+            <circle cx="42" cy="23" r="2" fill="#D4A95D" />
+            <path d="M30 60 Q 25 50, 28 40" stroke="#8B9C5A" strokeWidth="1" fill="none" />
+            <circle cx="28" cy="40" r="2" fill="#F3E9D4" />
+          </svg>
+
+          <svg
+            aria-hidden
+            style={{ position: 'absolute', bottom: 140, left: 260, zIndex: 6 }}
+            width="30"
+            height="30"
+            viewBox="0 0 40 40"
+          >
+            <path d="M20 20 C 10 10, 4 14, 6 22 C 8 28, 16 24, 20 20 Z" fill="#C4B5D9" />
+            <path d="M20 20 C 30 10, 36 14, 34 22 C 32 28, 24 24, 20 20 Z" fill="#C4B5D9" />
+            <circle cx="20" cy="20" r="2" fill="#3D4A1F" />
+          </svg>
+
+          <div style={{ position: 'absolute', bottom: 10, left: 220 }}>
+            <Heart size={28} color="#6d7d3f" />
           </div>
         </div>
       </div>

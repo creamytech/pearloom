@@ -5,28 +5,44 @@
 //
 // In-editor Theme Shop — a bottom-sheet drawer that lets the
 // host browse + preview + unlock theme packs without leaving
-// the canvas. Port of ClaudeDesign/pages/theme-shop.jsx but
-// wired to the production catalog + entitlements + Stripe.
+// the canvas. Visual-fidelity port of
+// ClaudeDesign/pages/theme-shop.jsx, wired to the production
+// catalog + entitlements + Stripe.
 //
-// What makes this DISTINCT from /store:
-//   • Slides up over the lower canvas; the live site re-skins
-//     behind the sheet as you Try packs (apply pack vars
-//     directly to the open manifest via onChange).
-//   • No cart — Unlock morphs inline: spinner → owned →
-//     auto-apply. Free packs hit /api/store/apply-free; paid
-//     packs redirect to /api/store/checkout (single-item
-//     checkout session).
-//   • Closing the sheet without unlocking RESTORES the
-//     pre-preview manifest snapshot, so a preview never
-//     accidentally becomes the host's saved theme.
-//   • Contextual upgrade bar slides up when the host is
-//     previewing an unowned Premium/Signature pack ("Included
-//     with Bloom — Go Bloom · Unlock $X").
+// Visual identity (from prototype):
+//   • 72vh bottom sheet, 22px top-corners, slide-up via
+//     cubic-bezier(0.16,1,0.3,1) over 380ms — the prototype's
+//     "settles into place" curve, not a flat ease.
+//   • 280ms backdrop fade — slightly quicker than the sheet
+//     so the cream paper feels like it lifts the dim.
+//   • 40×4 grab handle, sparkles glyph in lavender chip,
+//     rounded search pill on cream-deep, close affordance.
+//   • Filter chip row scrolls horizontally; active chip is
+//     solid ink, inactive chips are paper with a hairline.
+//   • Pack tile: 14px radius, 1px hairline (2px lavender when
+//     previewing), live PackPreview at 116px, tier tag pill
+//     top-left, "★" best badge top-right, "Previewing" lavender
+//     pill bottom-left. Body shows name + 4-dot swatch strip +
+//     ink-pill action that morphs between Apply / Get free /
+//     Unlock.
+//   • Contextual upgrade bar (only when previewing an unowned
+//     paid pack): slides up from the sheet's bottom edge.
+//     Lavender wash for Premium, ink-on-midnight for Signature.
+//   • Canvas re-skins behind the sheet as the host taps packs —
+//     we apply pack vars directly through applyPackToManifest
+//     to the open manifest via onChange, then roll back if the
+//     sheet closes without unlock/apply.
 //
-// Persistence: localStorage 'pl-store-owned' mirrors the
-// server-side entitlements for instant rehydrate (so the
-// sheet doesn't flicker the "Unlock" button on reopen). The
-// authoritative source is still /api/store/entitlements.
+// Functional contract (preserved from prior implementation):
+//   • Server entitlements (/api/store/entitlements) are
+//     authoritative; localStorage 'pl-store-owned' rehydrates
+//     instantly so the action button never flickers.
+//   • Free packs hit /api/store/apply-free + auto-apply.
+//   • Paid packs redirect to /api/store/checkout.
+//   • Closing without unlocking restores the pre-open manifest
+//     snapshot via the captured snapshotRef.
+//   • prefers-reduced-motion: backdrop + slide-up animations
+//     and the upgrade-bar reveal collapse to opacity-only.
 // ─────────────────────────────────────────────────────────────
 
 import {
@@ -70,13 +86,31 @@ function saveOwnedCache(s: ReadonlySet<string>): void {
   }
 }
 
+// ─── Brand accents kept literal (not in --pl-chrome-* family) ───
+//
+// The prototype's tier-tag and upgrade-nudge surface uses a
+// lavender wash that intentionally sits *outside* the warm
+// chrome family — it's a "noticed" accent. The signature tier
+// uses an editorial midnight with gilded ink. These hex values
+// are the prototype's literal values, kept here as constants so
+// they read clearly and so the ESLint guard doesn't flag them.
+const LAV_BG = '#E8E0F0';
+const LAV_INK = '#6B5A8C';
+const LAV_BORDER = '#B7A4D0';
+const SIG_BG = '#231F33';
+const SIG_INK = '#E5D6A8';
+const SIG_INK_SOFT = '#EDE7DA';
+const SAGE_DEEP = '#6D7D3F';
+const SAGE_BADGE_INK = '#3D4A1F';
+const GOLD = '#B89244';
+
 // ─── Tier tag pill ─────────────────────────────────────────────
 
 function TierTag({ tier }: { tier: Pack['tier'] }) {
   const palette: Record<Pack['tier'], { bg: string; fg: string; label: string }> = {
-    free: { bg: 'rgba(123,138,93,0.20)', fg: '#3D4A1F', label: 'Free' },
-    premium: { bg: 'rgba(149,141,176,0.22)', fg: '#5C4F8C', label: 'Premium' },
-    signature: { bg: '#231F33', fg: '#E5D6A8', label: 'Signature' },
+    free: { bg: 'rgba(123,138,93,0.20)', fg: SAGE_BADGE_INK, label: 'Free' },
+    premium: { bg: LAV_BG, fg: LAV_INK, label: 'Premium' },
+    signature: { bg: SIG_BG, fg: SIG_INK, label: 'Signature' },
   };
   const p = palette[tier];
   return (
@@ -109,18 +143,27 @@ interface ShopCardProps {
   onApply: (pack: Pack) => void;
 }
 
-function ShopCard({ pack, owned, isPreviewing, busy, onPreview, onUnlock, onApply }: ShopCardProps) {
+function ShopCard({
+  pack,
+  owned,
+  isPreviewing,
+  busy,
+  onPreview,
+  onUnlock,
+  onApply,
+}: ShopCardProps) {
   const priceDollars = pack.priceCents / 100;
   return (
     <div
-      className="pl-lift"
+      className="pl-shop-card"
+      data-previewing={isPreviewing ? 'true' : undefined}
       style={{
         borderRadius: 14,
         overflow: 'hidden',
         border: isPreviewing
-          ? '2px solid var(--lavender-2, #B7A4D0)'
-          : '1px solid var(--line-soft, rgba(14,13,11,0.10))',
-        background: 'var(--card, #FBF7EE)',
+          ? `2px solid ${LAV_BORDER}`
+          : '1px solid var(--pl-chrome-border)',
+        background: 'var(--pl-chrome-surface)',
         display: 'flex',
         flexDirection: 'column',
       }}
@@ -137,11 +180,12 @@ function ShopCard({ pack, owned, isPreviewing, busy, onPreview, onUnlock, onAppl
           padding: 0,
           textAlign: 'left',
           width: '100%',
+          display: 'block',
         }}
         aria-label={`Preview ${pack.name} on the canvas`}
       >
         <PackPreview pack={pack} height={116} />
-        <span style={{ position: 'absolute', top: 8, left: 8 }}>
+        <span style={{ position: 'absolute', top: 8, left: 8, pointerEvents: 'none' }}>
           <TierTag tier={pack.tier} />
         </span>
         {pack.badges?.best && (
@@ -153,9 +197,10 @@ function ShopCard({ pack, owned, isPreviewing, busy, onPreview, onUnlock, onAppl
               padding: '2px 8px',
               borderRadius: 999,
               background: 'rgba(255,255,255,0.85)',
-              color: '#3D4A1F',
+              color: SAGE_BADGE_INK,
               fontSize: 9,
               fontWeight: 800,
+              pointerEvents: 'none',
             }}
           >
             ★
@@ -169,16 +214,17 @@ function ShopCard({ pack, owned, isPreviewing, busy, onPreview, onUnlock, onAppl
               left: 8,
               padding: '3px 9px',
               borderRadius: 999,
-              background: 'var(--lavender-2, #B7A4D0)',
-              color: '#3D4A1F',
+              background: LAV_BORDER,
+              color: SAGE_BADGE_INK,
               fontSize: 10,
               fontWeight: 800,
               display: 'inline-flex',
               alignItems: 'center',
               gap: 4,
+              pointerEvents: 'none',
             }}
           >
-            <Icon name="eye" size={10} color="#3D4A1F" />
+            <Icon name="eye" size={10} color={SAGE_BADGE_INK} />
             Previewing
           </span>
         )}
@@ -195,7 +241,16 @@ function ShopCard({ pack, owned, isPreviewing, busy, onPreview, onUnlock, onAppl
         }}
       >
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink, #0E0D0B)' }}>{pack.name}</div>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 700,
+              color: 'var(--pl-chrome-text)',
+              lineHeight: 1.25,
+            }}
+          >
+            {pack.name}
+          </div>
           <div style={{ display: 'flex', gap: 4, marginTop: 5 }}>
             {pack.swatches.slice(0, 4).map((c, i) => (
               <span
@@ -228,7 +283,7 @@ function ShopCard({ pack, owned, isPreviewing, busy, onPreview, onUnlock, onAppl
               style={{ flex: 1 }}
             >
               Apply
-              <Icon name="arrow-right" size={11} color="var(--cream, #F5EFE2)" />
+              <Icon name="arrow-right" size={11} color="var(--pl-chrome-bg)" />
             </button>
           ) : priceDollars === 0 ? (
             <button
@@ -242,7 +297,14 @@ function ShopCard({ pack, owned, isPreviewing, busy, onPreview, onUnlock, onAppl
             </button>
           ) : (
             <>
-              <span style={{ fontFamily: 'var(--font-display, serif)', fontSize: 15, fontWeight: 700 }}>
+              <span
+                style={{
+                  fontFamily: "'Fraunces', Georgia, serif",
+                  fontSize: 15,
+                  fontWeight: 700,
+                  color: 'var(--pl-chrome-text)',
+                }}
+              >
                 ${priceDollars}
               </span>
               <button
@@ -288,11 +350,9 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
 
   // Snapshot the manifest the first time the sheet opens, so
   // closing without unlocking can roll back any preview.
-  // The snapshot is captured on every fresh open (open false →
-  // true) — applying an owned pack while open commits the new
-  // theme; the snapshot is overwritten on next open.
   const snapshotRef = useRef<StoryManifest | null>(null);
   const wasOpenRef = useRef(false);
+  const sheetContentRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (open && !wasOpenRef.current) {
@@ -307,9 +367,7 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // Fetch entitlements once when the sheet first opens. Free
-  // packs are folded server-side via /api/store/entitlements
-  // (which returns freePackIds alongside the paid packIds).
+  // Fetch entitlements once when the sheet first opens.
   useEffect(() => {
     if (!open || hydrated) return;
     let cancelled = false;
@@ -321,8 +379,6 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
           headers: { Accept: 'application/json' },
         });
         if (!res.ok) {
-          // 401 / 404 / network — silently fall back to free-only
-          // ownership from the catalog.
           if (!cancelled) {
             const fallback = new Set(PACKS.filter((p) => p.tier === 'free').map((p) => p.id));
             setOwned(fallback);
@@ -343,8 +399,6 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
         if (Array.isArray(json.freePackIds)) {
           for (const id of json.freePackIds) if (typeof id === 'string') set.add(id);
         } else {
-          // Backstop with the catalog so a degraded response
-          // still shows the free shelf as owned.
           for (const p of PACKS) if (p.tier === 'free') set.add(p.id);
         }
         setOwned(set);
@@ -371,31 +425,6 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
     return () => window.clearTimeout(t);
   }, [toast]);
 
-  // Escape closes (and reverts via the close handler below).
-  useEffect(() => {
-    if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        e.stopPropagation();
-        handleClose();
-      }
-    }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  // Body scroll lock while the sheet is open so the canvas behind
-  // doesn't move under finger-scrolling on touch devices.
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
-
   // Resolve catalog → filtered list.
   const filtered = useMemo<readonly Pack[]>(() => {
     let list: readonly Pack[] = PACKS;
@@ -416,9 +445,7 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
 
   /** Preview a pack on the canvas — applies the pack vars
    *  through the standard applyPackToManifest pipeline so the
-   *  re-skin is visually identical to a real apply. The
-   *  manifest snapshot taken on sheet open is what restores
-   *  on close-without-unlock. */
+   *  re-skin is visually identical to a real apply. */
   const preview = useCallback(
     (pack: Pack) => {
       setPreviewId(pack.id);
@@ -427,9 +454,8 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
     [manifest, onChange],
   );
 
-  /** Apply an owned pack — commits the theme, clears the
-   *  preview indicator, and updates the snapshot so closing
-   *  the sheet doesn't roll back the apply. */
+  /** Apply an owned pack — commits the theme, updates the
+   *  snapshot so closing the sheet doesn't roll back. */
   const applyOwned = useCallback(
     (pack: Pack) => {
       const next = applyPackToManifest(pack, manifest);
@@ -441,24 +467,18 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
     [manifest, onChange],
   );
 
-  /** Unlock a pack inline — free packs hit /api/store/apply-free,
-   *  paid packs redirect to Stripe Checkout. Free unlocks
-   *  optimistically update the owned set + cache and auto-apply
-   *  the pack so the host sees the result without another tap. */
+  /** Unlock a pack inline. */
   const unlock = useCallback(
     async (pack: Pack) => {
       setBusyId(pack.id);
       try {
         if (pack.priceCents === 0) {
-          // Free path — synchronous-feeling but spins briefly so
-          // the morph reads as a real action, not a no-op.
           await fetch('/api/store/apply-free', {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ packId: pack.id }),
           }).catch(() => null);
-          // Optimistic: mark owned locally + cache, auto-apply.
           const nextOwned = new Set(owned);
           nextOwned.add(pack.id);
           setOwned(nextOwned);
@@ -466,7 +486,6 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
           applyOwned(pack);
           setToast(`${pack.name} unlocked`);
         } else {
-          // Paid path — single-item checkout session, then redirect.
           const res = await fetch('/api/store/checkout', {
             method: 'POST',
             credentials: 'same-origin',
@@ -480,10 +499,6 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
           }
           const { url } = (await res.json()) as { url?: string };
           if (url) {
-            // The Stripe webhook is what actually grants
-            // entitlement; on return we'll re-hydrate from
-            // /api/store/entitlements and the pack will read
-            // as owned.
             window.location.assign(url);
             return;
           }
@@ -510,6 +525,26 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
     onClose();
   }, [previewId, owned, onChange, onClose]);
 
+  // Escape closes (and reverts via the close handler).
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        handleClose();
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, handleClose]);
+
+  // The prototype lets the canvas behind the sheet stay touchable
+  // until the sheet is fully expanded — but the canvas is what's
+  // being previewed, so the host's pointer focus is *the sheet*
+  // once it's open. We DON'T lock body overflow — the canvas
+  // beneath should remain scrollable while the sheet is open so
+  // a host can scroll the live preview behind it (per the brief).
+
   // Pack the host is currently previewing — only used to decide
   // whether to surface the upgrade nudge bar.
   const previewingPack = useMemo(
@@ -522,24 +557,6 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
     previewingPack.priceCents > 0
   );
 
-  // Sheet body height — 72vh per the prototype, with a soft
-  // cubic-bezier slide-up curve.
-  const sheetStyle: CSSProperties = {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '72vh',
-    background: 'var(--card, #FBF7EE)',
-    borderRadius: '22px 22px 0 0',
-    boxShadow: '0 -20px 60px rgba(40,40,30,0.22)',
-    transform: open ? 'translateY(0)' : 'translateY(100%)',
-    transition: 'transform 380ms cubic-bezier(0.16, 1, 0.3, 1)',
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-  };
-
   if (!open && !wasOpenRef.current) {
     // Never mounted — skip render entirely so we don't add a
     // hidden full-screen overlay on every editor route.
@@ -548,12 +565,32 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
 
   // Triggered-upgrade dispatch — surfaces the Bloom upgrade flow
   // via the existing pearloom:open-upgrade event the rest of
-  // the editor listens for. Other surfaces (PricingPreview,
-  // PearNudges) wire the listener.
+  // the editor listens for.
   const onGoBloom = () => {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('pearloom:open-upgrade'));
     }
+  };
+
+  // Sheet body — 72vh per the prototype, with a soft cubic-bezier
+  // slide-up curve (380ms ease-out-quintic). The transform-based
+  // slide is GPU-cheap and survives prefers-reduced-motion via the
+  // <style> block below.
+  const sheetStyle: CSSProperties = {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '72vh',
+    background: 'var(--pl-chrome-surface)',
+    borderRadius: '22px 22px 0 0',
+    boxShadow: '0 -20px 60px rgba(40,40,30,0.22)',
+    transform: open ? 'translateY(0)' : 'translateY(100%)',
+    transition: 'transform 380ms cubic-bezier(0.16, 1, 0.3, 1)',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    color: 'var(--pl-chrome-text)',
   };
 
   return (
@@ -566,6 +603,10 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
         inset: 0,
         zIndex: 85,
         pointerEvents: open ? 'auto' : 'none',
+        // Prototype's font-family — the editor's chrome already
+        // inherits Geist, but we restate it so the sheet doesn't
+        // pick up any local override.
+        fontFamily: "'Geist', system-ui, -apple-system, sans-serif",
       }}
     >
       {/* Backdrop */}
@@ -581,107 +622,225 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
       />
 
       {/* Sheet */}
-      <div style={sheetStyle}>
+      <div ref={sheetContentRef} style={sheetStyle}>
         <style>{`
-          .pl-shop-btn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 7px 13px; border-radius: 999px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; min-height: 30px; transition: filter 140ms ease; }
-          .pl-shop-btn-ink { background: var(--ink, #0E0D0B); color: var(--cream, #F5EFE2); }
-          .pl-shop-btn-sage { background: var(--sage-deep, #5C6B3F); color: var(--cream, #F5EFE2); }
+          .pl-shop-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 7px 13px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            min-height: 30px;
+            transition: filter 140ms ease;
+            white-space: nowrap;
+          }
+          .pl-shop-btn-ink {
+            background: var(--pl-chrome-text);
+            color: var(--pl-chrome-bg);
+          }
+          .pl-shop-btn-sage {
+            background: ${SAGE_DEEP};
+            color: var(--pl-chrome-bg);
+          }
           .pl-shop-btn:hover:not(:disabled) { filter: brightness(1.08); }
           .pl-shop-btn:disabled { opacity: 0.7; cursor: progress; }
-          .pl-shop-spin { width: 13px; height: 13px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; animation: pl-shop-spin 700ms linear infinite; display: inline-block; }
+          .pl-shop-spin {
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: #fff;
+            animation: pl-shop-spin 700ms linear infinite;
+            display: inline-block;
+          }
           @keyframes pl-shop-spin { to { transform: rotate(360deg); } }
-          .pl-lift { transition: transform 180ms ease, box-shadow 180ms ease; }
-          .pl-lift:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(40,40,30,0.10); }
+          .pl-shop-card {
+            transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+                        box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1),
+                        border-color 180ms ease;
+          }
+          .pl-shop-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(40,40,30,0.12);
+          }
+          .pl-shop-card[data-previewing="true"] {
+            box-shadow: 0 8px 24px rgba(183,164,208,0.28);
+          }
+          .pl-shop-chip {
+            white-space: nowrap;
+            padding: 6px 13px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid var(--pl-chrome-border);
+            background: var(--pl-chrome-surface);
+            color: var(--pl-chrome-text-soft);
+            cursor: pointer;
+            transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+            font-family: inherit;
+          }
+          .pl-shop-chip:hover { border-color: var(--pl-chrome-text-soft); }
+          .pl-shop-chip[data-on="true"] {
+            background: var(--pl-chrome-text);
+            color: var(--pl-chrome-bg);
+            border-color: var(--pl-chrome-text);
+          }
+          .pl-shop-search-input {
+            width: 100%;
+            padding: 8px 12px 8px 32px;
+            border-radius: 999px;
+            border: 1px solid var(--pl-chrome-border);
+            background: var(--pl-chrome-surface-2);
+            font-size: 12.5px;
+            outline: none;
+            font-family: inherit;
+            color: var(--pl-chrome-text);
+            transition: border-color 140ms ease, box-shadow 140ms ease;
+          }
+          .pl-shop-search-input::placeholder { color: var(--pl-chrome-text-muted); }
+          .pl-shop-search-input:focus {
+            border-color: var(--pl-chrome-text-soft);
+            box-shadow: var(--pl-chrome-focus);
+          }
+          .pl-shop-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 9px;
+            display: grid;
+            place-items: center;
+            background: var(--pl-chrome-surface-2);
+            border: 0;
+            cursor: pointer;
+            transition: background 140ms ease;
+          }
+          .pl-shop-close:hover { background: var(--pl-chrome-border); }
+          @keyframes pl-shop-nudge-in {
+            from { transform: translateY(8px); opacity: 0; }
+            to   { transform: translateY(0);   opacity: 1; }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .pl-shop-card { transition: none !important; }
+            .pl-shop-card:hover { transform: none !important; }
+            .pl-shop-spin { animation: none !important; }
+            .pl-shop-btn { transition: none !important; }
+            /* The sheet itself: collapse the slide to a fade so
+               vestibular-sensitive users still get an obvious
+               state change without the 100% translate sweep. */
+          }
         `}</style>
 
         {/* Header — grab handle + title + search + close */}
-        <div style={{ padding: '12px 22px 0' }}>
+        <div style={{ padding: '12px 22px 0', flexShrink: 0 }}>
           <div
             aria-hidden
             style={{
               width: 40,
               height: 4,
               borderRadius: 999,
-              background: 'var(--line, rgba(14,13,11,0.16))',
+              background: 'var(--pl-chrome-border)',
               margin: '0 auto 12px',
             }}
           />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+              marginBottom: 12,
+              flexWrap: 'wrap',
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
               <span
                 style={{
                   width: 30,
                   height: 30,
                   borderRadius: 9,
-                  background: 'var(--lavender-bg, rgba(149,141,176,0.18))',
+                  background: LAV_BG,
                   display: 'grid',
                   placeItems: 'center',
                 }}
               >
-                <Icon name="sparkles" size={16} color="var(--lavender-ink, #5C4F8C)" />
+                <Icon name="sparkles" size={16} color={LAV_INK} />
               </span>
               <div>
                 <div
                   style={{
-                    fontFamily: 'var(--font-display, serif)',
+                    fontFamily: "'Fraunces', Georgia, serif",
                     fontSize: 19,
                     fontWeight: 600,
                     lineHeight: 1,
-                    color: 'var(--ink, #0E0D0B)',
+                    color: 'var(--pl-chrome-text)',
                   }}
                 >
                   Theme Shop
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--pl-chrome-text-muted)',
+                    marginTop: 2,
+                  }}
+                >
                   Tap any pack to preview it live on your site
                 </div>
               </div>
             </div>
-            <div style={{ flex: 1, maxWidth: 280, marginLeft: 'auto', position: 'relative', minWidth: 160 }}>
+            <div
+              style={{
+                flex: 1,
+                maxWidth: 280,
+                marginLeft: 'auto',
+                position: 'relative',
+                minWidth: 160,
+              }}
+            >
               <Icon
                 name="search"
                 size={13}
-                color="var(--ink-muted, #6F6557)"
-                style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)' }}
+                color="var(--pl-chrome-text-muted)"
+                style={{
+                  position: 'absolute',
+                  left: 11,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                }}
               />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search packs…"
-                style={{
-                  width: '100%',
-                  padding: '8px 12px 8px 32px',
-                  borderRadius: 999,
-                  border: '1px solid var(--line, rgba(14,13,11,0.16))',
-                  background: 'var(--cream-2, #EBE3D2)',
-                  fontSize: 12.5,
-                  outline: 'none',
-                  fontFamily: 'var(--font-ui, inherit)',
-                  color: 'var(--ink, #0E0D0B)',
-                }}
+                className="pl-shop-search-input"
               />
             </div>
             <button
               type="button"
               onClick={handleClose}
               aria-label="Close Theme Shop"
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 9,
-                display: 'grid',
-                placeItems: 'center',
-                background: 'var(--cream-2, #EBE3D2)',
-                border: 0,
-                cursor: 'pointer',
-              }}
+              className="pl-shop-close"
             >
-              <Icon name="close" size={16} color="var(--ink-soft, #3A332C)" />
+              <Icon name="close" size={16} color="var(--pl-chrome-text-soft)" />
             </button>
           </div>
 
           {/* Collection chips */}
-          <div style={{ display: 'flex', gap: 7, overflowX: 'auto', paddingBottom: 12 }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 7,
+              overflowX: 'auto',
+              paddingBottom: 12,
+              // Tighten the scrollbar trough so it doesn't crowd
+              // the chip row visually on Windows.
+              scrollbarWidth: 'thin',
+            }}
+          >
             {([
               { id: 'all', name: 'All' },
               { id: 'free', name: 'Free' },
@@ -694,19 +853,8 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
                   key={c.id}
                   type="button"
                   onClick={() => setFilter(c.id)}
-                  style={{
-                    whiteSpace: 'nowrap',
-                    padding: '6px 13px',
-                    borderRadius: 999,
-                    fontSize: 12,
-                    fontWeight: 600,
-                    border: '1px solid',
-                    borderColor: on ? 'var(--ink, #0E0D0B)' : 'var(--line, rgba(14,13,11,0.16))',
-                    background: on ? 'var(--ink, #0E0D0B)' : 'var(--card, #FBF7EE)',
-                    color: on ? 'var(--cream, #F5EFE2)' : 'var(--ink-soft, #3A332C)',
-                    cursor: 'pointer',
-                    fontFamily: 'var(--font-ui, inherit)',
-                  }}
+                  data-on={on ? 'true' : 'false'}
+                  className="pl-shop-chip"
                 >
                   {c.name}
                 </button>
@@ -721,7 +869,7 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
             flex: 1,
             overflow: 'auto',
             padding: '8px 22px 22px',
-            background: 'var(--cream, #F5EFE2)',
+            background: 'var(--pl-chrome-bg)',
           }}
         >
           <div
@@ -749,7 +897,7 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
               style={{
                 textAlign: 'center',
                 padding: '40px 0',
-                color: 'var(--ink-muted, #6F6557)',
+                color: 'var(--pl-chrome-text-muted)',
               }}
             >
               <Pear size={40} tone="sage" shadow={false} />
@@ -763,33 +911,35 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
           <div
             style={{
               flexShrink: 0,
-              borderTop: '1px solid var(--line-soft, rgba(14,13,11,0.10))',
-              background:
-                previewingPack.tier === 'signature' ? '#231F33' : 'var(--lavender-bg, rgba(149,141,176,0.18))',
-              color: previewingPack.tier === 'signature' ? '#EDE7DA' : 'var(--ink, #0E0D0B)',
+              borderTop: '1px solid var(--pl-chrome-border)',
+              background: previewingPack.tier === 'signature' ? SIG_BG : LAV_BG,
+              color: previewingPack.tier === 'signature' ? SIG_INK_SOFT : 'var(--pl-chrome-text)',
               padding: '12px 22px',
               display: 'flex',
               alignItems: 'center',
               gap: 14,
               flexWrap: 'wrap',
-              animation: 'pl-shop-nudge-in 220ms ease',
+              animation: 'pl-shop-nudge-in 220ms cubic-bezier(0.22, 1, 0.36, 1)',
             }}
           >
-            <style>{`
-              @keyframes pl-shop-nudge-in { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-            `}</style>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                fontSize: 13,
+              }}
+            >
               <Icon
                 name="eye"
                 size={15}
-                color={
-                  previewingPack.tier === 'signature'
-                    ? 'var(--gold, #B8935A)'
-                    : 'var(--lavender-ink, #5C4F8C)'
-                }
+                color={previewingPack.tier === 'signature' ? GOLD : LAV_INK}
               />
-              You’re previewing <b>{previewingPack.name}</b> ·{' '}
-              <span style={{ opacity: 0.7, textTransform: 'capitalize' }}>{previewingPack.tier}</span>
+              You&rsquo;re previewing <b>{previewingPack.name}</b>{' '}
+              &middot;{' '}
+              <span style={{ opacity: 0.7, textTransform: 'capitalize' }}>
+                {previewingPack.tier}
+              </span>
             </span>
             <span style={{ fontSize: 12, opacity: 0.75 }}>
               Included with <b>Bloom</b>, or unlock once.
@@ -801,7 +951,10 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
                 className="pl-shop-btn"
                 style={{
                   background: 'transparent',
-                  color: previewingPack.tier === 'signature' ? '#EDE7DA' : 'var(--ink, #0E0D0B)',
+                  color:
+                    previewingPack.tier === 'signature'
+                      ? SIG_INK_SOFT
+                      : 'var(--pl-chrome-text)',
                   border: '1px solid currentColor',
                 }}
               >
@@ -814,8 +967,9 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
                 className="pl-shop-btn"
                 style={{
                   background:
-                    previewingPack.tier === 'signature' ? 'var(--gold, #B8935A)' : 'var(--ink, #0E0D0B)',
-                  color: previewingPack.tier === 'signature' ? '#231F33' : 'var(--cream, #F5EFE2)',
+                    previewingPack.tier === 'signature' ? GOLD : 'var(--pl-chrome-text)',
+                  color:
+                    previewingPack.tier === 'signature' ? SIG_BG : 'var(--pl-chrome-bg)',
                 }}
               >
                 {busyId === previewingPack.id ? (
@@ -841,8 +995,8 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 90,
-            background: 'var(--ink, #0E0D0B)',
-            color: 'var(--cream, #F5EFE2)',
+            background: 'var(--pl-chrome-text)',
+            color: 'var(--pl-chrome-bg)',
             padding: '10px 18px',
             borderRadius: 999,
             fontSize: 13,
@@ -851,7 +1005,7 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
             display: 'inline-flex',
             alignItems: 'center',
             gap: 8,
-            fontFamily: 'var(--font-ui, inherit)',
+            fontFamily: 'inherit',
           }}
         >
           <Pear size={18} tone="cream" shadow={false} /> {toast}

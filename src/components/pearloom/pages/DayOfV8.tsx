@@ -7,7 +7,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { buildSitePath } from '@/lib/site-urls';
-import { Icon, Pear, PhotoPlaceholder, Squiggle } from '../motifs';
+import { Icon, PhotoPlaceholder, Sprig, Squiggle } from '../motifs';
 import { DashEmpty } from '../dash/DashEmpty';
 
 // Shared deep-link helper for day-of CTAs. EditorV8 reads ?focus=
@@ -23,7 +23,7 @@ function editorDeepLink(siteDomain: string | null | undefined, block?: string, a
   return `/editor/${encodeURIComponent(siteDomain)}${q ? `?${q}` : ''}`;
 }
 import { DashLayout } from '../dash/DashShell';
-import { PLAtmosphere } from '../dash/PLChrome';
+import { PLAtmosphere, PLTabs } from '../dash/PLChrome';
 import { BroadcastComposer } from '../dash/BroadcastComposer';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
 import { useDashStats } from '@/components/marketing/v2/useDashStats';
@@ -90,62 +90,90 @@ function PulseBar({
       style={{
         background: 'var(--ink)',
         color: 'var(--cream)',
-        padding: '20px 32px',
-        borderRadius: 24,
-        marginBottom: 24,
+        padding: '20px 24px',
+        borderRadius: 20,
+        marginBottom: 20,
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      <div style={{ position: 'absolute', top: -60, right: -40, opacity: 0.08 }}>
-        <Pear size={200} tone="cream" />
+      <div style={{ position: 'absolute', top: -16, right: -8, opacity: 0.16, pointerEvents: 'none' }}>
+        <Sprig size={150} color="var(--cream)" accent="var(--gold)" />
       </div>
       <div
         className="pl8-pulse-layout"
-        style={{ position: 'relative' }}
+        style={{
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 28,
+          flexWrap: 'wrap',
+        }}
       >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <div
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
+            <span
               className="pulse-dot"
               style={{
-                width: 8,
-                height: 8,
+                width: 7,
+                height: 7,
                 borderRadius: '50%',
                 background: '#B8D66A',
-                boxShadow: '0 0 0 4px rgba(184,214,106,0.3)',
               }}
             />
             <span
               style={{
-                fontSize: 11,
+                fontSize: 10.5,
                 fontWeight: 700,
-                letterSpacing: '0.12em',
+                letterSpacing: '0.1em',
                 textTransform: 'uppercase',
-                opacity: 0.7,
+                color: 'rgba(241,235,221,0.6)',
               }}
             >
               Live · {dateStr}
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
-            <div className="display" style={{ fontSize: 56, color: 'var(--cream)', lineHeight: 1 }}>
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 46,
+                fontWeight: 600,
+                color: 'var(--cream)',
+                lineHeight: 1,
+              }}
+            >
               {timeStr}
-            </div>
-            <div className="display-italic" style={{ fontSize: 20, color: 'var(--peach-2)' }}>
+            </span>
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontStyle: 'italic',
+                fontSize: 18,
+                color: 'var(--peach-2)',
+              }}
+            >
               it&apos;s happening
-            </div>
+            </span>
           </div>
         </div>
-        <div className="pl8-pulse-metrics">
+        <div
+          style={{
+            flex: 1,
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: 18,
+            minWidth: 280,
+          }}
+        >
           {metrics.map((m) => (
             <div key={m.k}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <div
+                <span
                   style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 8,
+                    width: 26,
+                    height: 26,
+                    borderRadius: 7,
                     background:
                       m.tone === 'sage'
                         ? 'var(--sage-2)'
@@ -154,24 +182,45 @@ function PulseBar({
                           : m.tone === 'lavender'
                             ? 'var(--lavender-2)'
                             : 'var(--cream-2)',
-                    color: 'var(--ink)',
+                    color: '#2a2a22',
                     display: 'grid',
                     placeItems: 'center',
+                    flexShrink: 0,
                   }}
                 >
-                  <Icon name={m.icon} size={14} />
-                </div>
-                <span style={{ fontSize: 11, opacity: 0.75, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  <Icon name={m.icon} size={13} color="#2a2a22" />
+                </span>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(241,235,221,0.6)',
+                  }}
+                >
                   {m.k}
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                <span className="display" style={{ fontSize: 30, color: 'var(--cream)' }}>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 28,
+                    fontWeight: 600,
+                    color: 'var(--cream)',
+                    lineHeight: 1,
+                  }}
+                >
                   {m.v}
                 </span>
-                {'of' in m && m.of && <span style={{ fontSize: 13, opacity: 0.5 }}>/ {m.of}</span>}
+                {'of' in m && m.of && (
+                  <span style={{ fontSize: 12, color: 'rgba(241,235,221,0.5)' }}>/ {m.of}</span>
+                )}
               </div>
-              <div style={{ fontSize: 11, opacity: 0.6, marginTop: 2 }}>{m.trend}</div>
+              <div style={{ fontSize: 11, color: 'rgba(241,235,221,0.55)', marginTop: 3 }}>
+                {m.trend}
+              </div>
             </div>
           ))}
         </div>
@@ -872,9 +921,27 @@ export function DayOfV8() {
           prototype's atmosphere layer; the DashLayout's sidebar already
           owns the cream + nav chrome. */}
       <PLAtmosphere />
-      <div className="pl8-dayof-wrap" style={{ padding: '24px clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        <div className="pl8-dayof-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <div>
+      <div className="pl8-dayof-wrap" style={{ padding: '24px clamp(20px, 4vw, 40px) 60px', maxWidth: 1160, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        {/* Editorial tabs — Timeline (default) / Seating. Matches the
+            prototype's centered filled-pill tab strip. */}
+        <PLTabs
+          tabs={[
+            { label: 'Timeline' },
+            { label: 'Seating', href: '/dashboard/seating' },
+          ]}
+          active={0}
+        />
+        <div
+          className="pl8-dayof-header"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: 16,
+            marginBottom: 20,
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
             <div
               style={{
                 fontSize: 11,
@@ -887,11 +954,11 @@ export function DayOfV8() {
             >
               {siteName} · Day-of room
             </div>
-            <h1 className="display" style={{ fontSize: 42, margin: 0 }}>
-              {headline.a} <span className="display-italic">{headline.b}</span>
+            <h1 className="display" style={{ fontSize: 'clamp(28px, 3.6vw, 42px)', margin: 0, letterSpacing: '-0.01em' }}>
+              {headline.a} <span className="display-italic" style={{ color: 'var(--lavender-ink)' }}>{headline.b}</span>
             </h1>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
             <button className="btn btn-outline btn-sm">
               <Icon name="share" size={13} /> Share with crew
             </button>
@@ -912,13 +979,13 @@ export function DayOfV8() {
           totalGuests={null}
         />
 
-        <div className="pl8-dayof-main" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 22 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+        <div className="pl8-dayof-main" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1fr)', gap: 18, alignItems: 'start' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             {site?.domain && <BroadcastComposer subdomain={site.domain} />}
             <MomentTimeline items={events} siteDomain={site?.domain} occasion={occasion} />
             <LiveReel siteDomain={site?.domain} siteId={site?.id} occasion={occasion} />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <RequestsCard siteDomain={site?.domain} occasion={occasion} />
             <AttendanceCard siteId={site?.id} occasion={occasion} siteDomain={site?.domain} />
             {/* Song queue is wedding / birthday / bachelor-ish only — hide for solemn occasions */}

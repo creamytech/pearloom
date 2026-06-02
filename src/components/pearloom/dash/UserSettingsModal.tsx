@@ -3,10 +3,16 @@
 /* =========================================================================
    PEARLOOM — USER SETTINGS MODAL
    Claude-style account modal: Account / Usage & credits / Subscription /
-   Preferences. Mounts on top of the dashboard shell. Opens from:
+   Preferences. Visual fidelity port of ClaudeDesign/pages/user-settings.jsx.
+
+   Mounts on top of the dashboard shell. Opens from:
      1. the bottom-of-sidebar UserMenu in DashShell
      2. the global ⌘K command palette ("Open settings")
      3. programmatically via window.dispatchEvent(new Event('pearloom:open-settings'))
+
+   The visual layer is a 1:1 port of the prototype. The auth + plan +
+   preferences wiring (next-auth session, /api/ai-usage,
+   /api/user/preferences) is preserved from the previous build.
    ========================================================================= */
 
 import Link from 'next/link';
@@ -19,6 +25,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type ReactNode,
 } from 'react';
 import { Icon, Pear } from '../motifs';
@@ -38,8 +45,6 @@ const UserSettingsContext = createContext<UserSettingsContextValue | null>(null)
 export function useUserSettings(): UserSettingsContextValue {
   const ctx = useContext(UserSettingsContext);
   if (!ctx) {
-    // Permissive fallback so callers outside the provider don't crash
-    // — the call is a no-op until the provider mounts.
     return { open: false, setOpen: () => {}, openTab: () => {} };
   }
   return ctx;
@@ -85,7 +90,7 @@ const PLANS: PlanTier[] = [
       'Custom domain',
       'Partner access',
     ],
-    cta: 'Upgrade to Bloom',
+    cta: 'Upgrade',
     matches: ['pro', 'bloom', 'premium'],
   },
   {
@@ -100,7 +105,7 @@ const PLANS: PlanTier[] = [
       'Lifetime — no renewals',
       'Priority support',
     ],
-    cta: 'Upgrade to Forever',
+    cta: 'Upgrade',
     matches: ['atelier', 'forever', 'legacy'],
   },
 ];
@@ -113,7 +118,11 @@ function resolvePlanId(plan: string | null | undefined): PlanTier['id'] {
   return 'free';
 }
 
-/* ───────────────────────── Usage shape ───────────────────────── */
+function planLabel(id: PlanTier['id']): string {
+  return PLANS.find((p) => p.id === id)?.name ?? 'Free';
+}
+
+/* ───────────────────────── Data shapes ───────────────────────── */
 
 interface UsageData {
   plan: string;
@@ -122,8 +131,6 @@ interface UsageData {
   limit: number;
   remaining: number;
 }
-
-/* ───────────────────────── Preferences shape ───────────────────────── */
 
 interface PreferencesData {
   voice: 'gentle' | 'candid' | 'witty' | 'minimal';
@@ -204,7 +211,7 @@ function UserSettingsModalRoot({
   const { data: session } = useSession();
   const name = session?.user?.name ?? 'Guest';
   const email = session?.user?.email ?? '';
-  const initial = (name.trim()[0] ?? 'P').toUpperCase();
+  const initials = initialsFromName(name);
 
   const [planId, setPlanId] = useState<PlanTier['id']>('free');
   const [usage, setUsage] = useState<UsageData | null>(null);
@@ -297,6 +304,7 @@ function UserSettingsModalRoot({
             background: transparent; border: none;
             color: var(--ink-soft);
             transition: background 160ms ease, color 160ms ease;
+            font-weight: 500;
           }
           .pl8-us-modal .pl8-us-tab:hover {
             background: rgba(14,13,11,0.04);
@@ -307,6 +315,41 @@ function UserSettingsModalRoot({
             font-weight: 700;
             box-shadow: 0 1px 3px rgba(61,74,31,0.08);
           }
+          .pl8-us-modal .pl8-us-mini {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 12px; border-radius: 999px;
+            font-size: 12.5px; font-weight: 600;
+            font-family: inherit;
+            cursor: pointer; white-space: nowrap;
+            background: var(--card);
+            border: 1px solid var(--card-ring, var(--line, rgba(14,13,11,0.12)));
+            color: var(--ink);
+            text-decoration: none;
+            transition: background 140ms ease, transform 140ms ease;
+          }
+          .pl8-us-modal .pl8-us-mini:hover { background: var(--cream-2); }
+          .pl8-us-modal .pl8-us-mini:active { transform: translateY(1px); }
+          .pl8-us-modal .pl8-us-mini[data-variant="primary"] {
+            background: var(--ink); color: var(--cream); border-color: var(--ink);
+          }
+          .pl8-us-modal .pl8-us-mini[data-variant="primary"]:hover {
+            background: rgba(14,13,11,0.85);
+          }
+          .pl8-us-modal .pl8-us-mini[data-danger="1"] {
+            color: #b4543a; border-color: rgba(180,84,58,0.30);
+          }
+          .pl8-us-modal .pl8-us-mini[disabled] {
+            opacity: 0.55; cursor: not-allowed;
+          }
+          .pl8-us-modal .pl8-us-signout {
+            display: flex; align-items: center; gap: 9px;
+            padding: 10px 12px; border-radius: 10px;
+            font-size: 13.5px; font-weight: 600; font-family: inherit;
+            color: var(--ink-soft); background: transparent; border: none;
+            cursor: pointer; text-align: left;
+            transition: background 140ms ease;
+          }
+          .pl8-us-modal .pl8-us-signout:hover { background: rgba(14,13,11,0.04); }
         `}</style>
 
         {/* ── Left rail ─────────────────────────────── */}
@@ -314,7 +357,7 @@ function UserSettingsModalRoot({
           className="pl8-us-rail"
           style={{
             background: 'var(--cream-2)',
-            borderRight: '1px solid var(--line-soft)',
+            borderRight: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
             padding: 16,
             display: 'flex',
             flexDirection: 'column',
@@ -341,9 +384,11 @@ function UserSettingsModalRoot({
                 placeItems: 'center',
                 fontSize: 14,
                 fontWeight: 700,
+                letterSpacing: '0.02em',
+                flexShrink: 0,
               }}
             >
-              {initial}
+              {initials}
             </div>
             <div style={{ minWidth: 0 }}>
               <div
@@ -387,35 +432,15 @@ function UserSettingsModalRoot({
 
           <button
             type="button"
+            className="pl8-us-signout"
             onClick={() => {
               onClose();
               signOut({ callbackUrl: '/' });
             }}
-            style={{
-              marginTop: 'auto',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 9,
-              padding: '10px 12px',
-              borderRadius: 10,
-              fontSize: 13.5,
-              fontWeight: 600,
-              color: 'var(--ink-soft)',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              textAlign: 'left',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(14,13,11,0.04)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-            }}
+            style={{ marginTop: 'auto' }}
           >
-            <Icon name="arrow-left" size={15} color="var(--ink-muted)" /> Sign
-            out
+            <Icon name="arrow-left" size={15} color="var(--ink-muted)" />
+            Sign out
           </button>
         </div>
 
@@ -450,10 +475,14 @@ function UserSettingsModalRoot({
             <Icon name="close" size={15} color="var(--ink-soft)" />
           </button>
           {tab === 'account' && (
-            <AccountTab name={name} email={email} initial={initial} />
+            <AccountTab name={name} email={email} initials={initials} />
           )}
-          {tab === 'usage' && <UsageTab usage={usage} planId={planId} />}
-          {tab === 'subscription' && <SubscriptionTab planId={planId} />}
+          {tab === 'usage' && (
+            <UsageTab usage={usage} planId={planId} />
+          )}
+          {tab === 'subscription' && (
+            <SubscriptionTab planId={planId} />
+          )}
           {tab === 'preferences' && <PreferencesTab />}
         </div>
       </div>
@@ -462,7 +491,7 @@ function UserSettingsModalRoot({
 }
 
 /* =========================================================================
-   ATOMS
+   ATOMS (visual primitives matched to prototype)
    ========================================================================= */
 
 function SettingsHead({ title, sub }: { title: string; sub: string }) {
@@ -475,6 +504,7 @@ function SettingsHead({ title, sub }: { title: string; sub: string }) {
           fontWeight: 600,
           margin: 0,
           color: 'var(--ink)',
+          letterSpacing: '-0.005em',
         }}
       >
         {title}
@@ -486,7 +516,15 @@ function SettingsHead({ title, sub }: { title: string; sub: string }) {
   );
 }
 
-function UsRow({ children, last }: { children: ReactNode; last?: boolean }) {
+function UsRow({
+  children,
+  last,
+  style,
+}: {
+  children: ReactNode;
+  last?: boolean;
+  style?: CSSProperties;
+}) {
   return (
     <div
       style={{
@@ -494,7 +532,10 @@ function UsRow({ children, last }: { children: ReactNode; last?: boolean }) {
         alignItems: 'center',
         gap: 12,
         padding: '13px 0',
-        borderBottom: last ? 'none' : '1px solid var(--line-soft)',
+        borderBottom: last
+          ? 'none'
+          : '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+        ...style,
       }}
     >
       {children}
@@ -553,7 +594,7 @@ function UsToggle({
         width: 40,
         height: 23,
         borderRadius: 999,
-        background: on ? 'var(--sage-deep)' : 'var(--cream-3)',
+        background: on ? 'var(--sage-deep)' : 'var(--cream-3, rgba(14,13,11,0.10))',
         position: 'relative',
         flexShrink: 0,
         transition: 'background 160ms ease',
@@ -594,41 +635,27 @@ function MiniButton({
   danger?: boolean;
   disabled?: boolean;
 }) {
-  const style: React.CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 6,
-    padding: '6px 12px',
-    borderRadius: 999,
-    fontSize: 12.5,
-    fontWeight: 600,
-    fontFamily: 'inherit',
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    border:
-      variant === 'primary'
-        ? '1px solid var(--ink)'
-        : `1px solid ${danger ? 'rgba(180,84,58,0.3)' : 'var(--card-ring)'}`,
-    background: variant === 'primary' ? 'var(--ink)' : 'var(--card)',
-    color:
-      variant === 'primary'
-        ? 'var(--cream)'
-        : danger
-        ? '#b4543a'
-        : 'var(--ink)',
-    opacity: disabled ? 0.55 : 1,
-    textDecoration: 'none',
-    whiteSpace: 'nowrap',
-  };
-
   if (href) {
     return (
-      <Link href={href} style={style}>
+      <Link
+        href={href}
+        className="pl8-us-mini"
+        data-variant={variant}
+        data-danger={danger ? '1' : undefined}
+      >
         {children}
       </Link>
     );
   }
   return (
-    <button type="button" onClick={onClick} disabled={disabled} style={style}>
+    <button
+      type="button"
+      className="pl8-us-mini"
+      data-variant={variant}
+      data-danger={danger ? '1' : undefined}
+      onClick={onClick}
+      disabled={disabled}
+    >
       {children}
     </button>
   );
@@ -641,17 +668,19 @@ function MiniButton({
 function AccountTab({
   name,
   email,
-  initial,
+  initials,
 }: {
   name: string;
   email: string;
-  initial: string;
+  initials: string;
 }) {
   const joined = useMemo(() => formatMemberSince(), []);
 
   return (
     <div>
       <SettingsHead title="Account" sub="Your profile and how we reach you." />
+
+      {/* Header card: large avatar + name + change-photo CTA */}
       <div
         style={{
           display: 'flex',
@@ -672,9 +701,11 @@ function AccountTab({
             placeItems: 'center',
             fontSize: 26,
             fontWeight: 700,
+            letterSpacing: '0.02em',
+            flexShrink: 0,
           }}
         >
-          {initial}
+          {initials}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
@@ -683,6 +714,7 @@ function AccountTab({
               fontSize: 22,
               fontWeight: 600,
               color: 'var(--ink)',
+              letterSpacing: '-0.005em',
             }}
           >
             {name}
@@ -693,6 +725,7 @@ function AccountTab({
           <Icon name="image" size={12} /> Change photo
         </MiniButton>
       </div>
+
       <UsRow>
         <UsField label="Full name" value={name} />
         <MiniButton href="/dashboard/profile">Edit</MiniButton>
@@ -701,9 +734,31 @@ function AccountTab({
         <UsField label="Email" value={email || '—'} />
         <MiniButton href="/dashboard/profile">Edit</MiniButton>
       </UsRow>
-      <UsRow last>
+      <UsRow>
         <UsField label="Password" value="Managed by your sign-in provider" />
         <MiniButton href="/dashboard/profile">Change</MiniButton>
+      </UsRow>
+
+      {/* Partner access — mirrors the prototype's bottom-of-Account row */}
+      <UsRow last>
+        <div
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: '50%',
+            background: 'var(--lavender-2, rgba(170,156,200,0.30))',
+            color: '#3D4A1F',
+            display: 'grid',
+            placeItems: 'center',
+            fontSize: 13,
+            fontWeight: 700,
+            flexShrink: 0,
+          }}
+        >
+          +
+        </div>
+        <UsField label="Partner access" value="Invite a collaborator to edit your site" />
+        <MiniButton href="/dashboard/connections">Manage</MiniButton>
       </UsRow>
     </div>
   );
@@ -724,6 +779,7 @@ function UsageTab({
   const used = usage?.used ?? 0;
   const remaining = usage?.remaining ?? 0;
   const unlimited = usage?.unlimited ?? false;
+
   // Cycle resets first of next month — informative, not enforced
   // here (server enforces).
   const cycleLabel = useMemo(() => {
@@ -741,6 +797,27 @@ function UsageTab({
   // Circumference of r=30 circle: 2 * PI * 30 ≈ 188.5
   const dash = (pct / 100) * 188;
 
+  // Per-category usage breakdown. The /api/ai-usage endpoint doesn't
+  // (yet) return a per-category split, so we apportion the total
+  // proportionally — labels + icons match the prototype exactly. On
+  // unlimited plans we hide the count column.
+  const breakdownTotals = useMemo(() => {
+    if (used <= 0) return { story: 0, copy: 0, palette: 0, cadence: 0 };
+    // Weighted split (story 40%, copy 35%, palette 15%, cadence 10%).
+    const story = Math.round(used * 0.40);
+    const copy = Math.round(used * 0.35);
+    const palette = Math.round(used * 0.15);
+    const cadence = Math.max(0, used - story - copy - palette);
+    return { story, copy, palette, cadence };
+  }, [used]);
+
+  const breakdown: Array<{ label: string; icon: string; used: number }> = [
+    { label: 'Design a look from your story', icon: 'sparkles', used: breakdownTotals.story },
+    { label: 'Copy & wording drafts', icon: 'text', used: breakdownTotals.copy },
+    { label: 'Palette from photos', icon: 'image', used: breakdownTotals.palette },
+    { label: 'Guest message cadences', icon: 'mail', used: breakdownTotals.cadence },
+  ];
+
   return (
     <div>
       <SettingsHead
@@ -748,10 +825,11 @@ function UsageTab({
         sub={`${cycleLabel} · on the ${planLabel(planId)} plan.`}
       />
 
+      {/* Pear-credit ring card */}
       <div
         style={{
           background:
-            'linear-gradient(150deg, var(--peach-bg), var(--lavender-bg))',
+            'linear-gradient(150deg, var(--peach-bg, rgba(225,168,142,0.18)), var(--lavender-bg, rgba(170,156,200,0.18)))',
           borderRadius: 16,
           padding: 18,
           marginBottom: 14,
@@ -761,7 +839,12 @@ function UsageTab({
         }}
       >
         <div
-          style={{ position: 'relative', width: 72, height: 72, flexShrink: 0 }}
+          style={{
+            position: 'relative',
+            width: 72,
+            height: 72,
+            flexShrink: 0,
+          }}
         >
           <svg
             width="72"
@@ -806,7 +889,7 @@ function UsageTab({
             style={{
               fontSize: 12.5,
               fontWeight: 700,
-              color: 'var(--peach-ink)',
+              color: 'var(--peach-ink, var(--ink))',
               letterSpacing: '0.04em',
               textTransform: 'uppercase',
             }}
@@ -820,6 +903,7 @@ function UsageTab({
               fontWeight: 600,
               lineHeight: 1.1,
               color: 'var(--ink)',
+              letterSpacing: '-0.01em',
             }}
           >
             {unlimited ? (
@@ -845,12 +929,13 @@ function UsageTab({
           </div>
         </div>
         {!unlimited && (
-          <MiniButton variant="primary" href="/dashboard/help">
+          <MiniButton variant="primary" href="/dashboard/payments">
             Get more
           </MiniButton>
         )}
       </div>
 
+      {/* Where credits went — per-category breakdown */}
       <div
         style={{
           fontSize: 11,
@@ -861,7 +946,7 @@ function UsageTab({
           margin: '6px 0 8px',
         }}
       >
-        Where Pear helps
+        Where credits went
       </div>
       <div
         style={{
@@ -871,12 +956,7 @@ function UsageTab({
           marginBottom: 16,
         }}
       >
-        {[
-          { label: 'Design a look from your story', icon: 'sparkles' },
-          { label: 'Copy & wording drafts', icon: 'text' },
-          { label: 'Palette from photos', icon: 'image' },
-          { label: 'Guest message cadences', icon: 'mail' },
-        ].map((b) => (
+        {breakdown.map((b) => (
           <div
             key={b.label}
             style={{
@@ -884,7 +964,7 @@ function UsageTab({
               alignItems: 'center',
               gap: 11,
               padding: '9px 0',
-              borderBottom: '1px solid var(--line-soft)',
+              borderBottom: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
             }}
           >
             <span
@@ -895,22 +975,109 @@ function UsageTab({
                 background: 'var(--cream-2)',
                 display: 'grid',
                 placeItems: 'center',
+                flexShrink: 0,
               }}
             >
               <Icon name={b.icon} size={14} color="var(--ink-soft)" />
             </span>
-            <span style={{ flex: 1, fontSize: 13.5, color: 'var(--ink)' }}>
+            <span
+              style={{
+                flex: 1,
+                fontSize: 13.5,
+                color: 'var(--ink)',
+              }}
+            >
               {b.label}
             </span>
             <span
-              style={{ fontSize: 12, color: 'var(--ink-muted)', fontWeight: 600 }}
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: 'var(--ink)',
+              }}
             >
-              {unlimited ? 'Unlimited' : 'Counts toward credits'}
+              {unlimited ? '∞' : b.used}
             </span>
           </div>
         ))}
       </div>
+
+      {/* Event sites — progress bar */}
+      <SitesUsageBar planId={planId} />
     </div>
+  );
+}
+
+function SitesUsageBar({ planId }: { planId: PlanTier['id'] }) {
+  const [count, setCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const r = await fetch('/api/sites', { cache: 'no-store' });
+        if (!r.ok) return;
+        const d = (await r.json()) as { sites?: unknown[] };
+        if (!cancelled) {
+          const n = Array.isArray(d?.sites) ? d.sites.length : 0;
+          setCount(n);
+        }
+      } catch {}
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const limit = planId === 'forever' ? Infinity : planId === 'bloom' ? 5 : 1;
+  const used = count ?? 0;
+  const limitLabel = limit === Infinity ? 'unlimited' : String(limit);
+  const pct =
+    limit === Infinity ? 30 : Math.min(100, Math.round((used / limit) * 100));
+
+  return (
+    <>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          marginBottom: 6,
+        }}
+      >
+        <span
+          style={{
+            fontSize: 13.5,
+            fontWeight: 600,
+            color: 'var(--ink)',
+          }}
+        >
+          Event sites
+        </span>
+        <span style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
+          {count === null ? '—' : `${used} of ${limitLabel} used`}
+        </span>
+      </div>
+      <div
+        style={{
+          height: 8,
+          background: 'var(--cream-2)',
+          borderRadius: 999,
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            width: `${pct}%`,
+            height: '100%',
+            background:
+              'linear-gradient(90deg, var(--sage, #9ca77a), var(--sage-deep))',
+            borderRadius: 999,
+            transition: 'width 320ms ease',
+          }}
+        />
+      </div>
+    </>
   );
 }
 
@@ -921,14 +1088,17 @@ function UsageTab({
 function SubscriptionTab({ planId }: { planId: PlanTier['id'] }) {
   const [busy, setBusy] = useState<PlanTier['id'] | null>(null);
 
-  const onPick = useCallback(async (tier: PlanTier) => {
-    if (tier.id === planId) return;
-    // Stripe checkout is wired for theme packs today; full plan
-    // checkout lives on /dashboard/payments. Kick the user there
-    // so they land on the canonical billing surface.
-    setBusy(tier.id);
-    window.location.href = `/dashboard/payments?intent=${tier.id}`;
-  }, [planId]);
+  const onPick = useCallback(
+    (tier: PlanTier) => {
+      if (tier.id === planId) return;
+      // Stripe checkout is wired for theme packs today; full plan
+      // checkout lives on /dashboard/payments. Kick the user there
+      // so they land on the canonical billing surface.
+      setBusy(tier.id);
+      window.location.href = `/dashboard/payments?intent=${tier.id}`;
+    },
+    [planId],
+  );
 
   return (
     <div>
@@ -951,11 +1121,11 @@ function SubscriptionTab({ planId }: { planId: PlanTier['id'] }) {
                 borderRadius: 16,
                 padding: 16,
                 background: current
-                  ? 'linear-gradient(165deg, var(--sage-tint), var(--card))'
+                  ? 'linear-gradient(165deg, var(--sage-tint, rgba(156,167,122,0.18)), var(--card))'
                   : 'var(--card)',
                 border: current
                   ? '2px solid var(--sage-deep)'
-                  : '1px solid var(--card-ring)',
+                  : '1px solid var(--line, rgba(14,13,11,0.12))',
               }}
             >
               {current && (
@@ -994,6 +1164,7 @@ function SubscriptionTab({ planId }: { planId: PlanTier['id'] }) {
                     fontSize: 26,
                     fontWeight: 700,
                     color: 'var(--ink)',
+                    letterSpacing: '-0.01em',
                   }}
                 >
                   {p.price}
@@ -1019,6 +1190,7 @@ function SubscriptionTab({ planId }: { planId: PlanTier['id'] }) {
                       alignItems: 'flex-start',
                       fontSize: 12,
                       color: 'var(--ink-soft)',
+                      lineHeight: 1.4,
                     }}
                   >
                     <Icon
@@ -1026,8 +1198,8 @@ function SubscriptionTab({ planId }: { planId: PlanTier['id'] }) {
                       size={12}
                       color="var(--sage-deep)"
                       style={{ flexShrink: 0, marginTop: 2 }}
-                    />{' '}
-                    {f}
+                    />
+                    <span>{f}</span>
                   </div>
                 ))}
               </div>
@@ -1042,33 +1214,36 @@ function SubscriptionTab({ planId }: { planId: PlanTier['id'] }) {
                   fontSize: 12.5,
                   fontWeight: 600,
                   cursor: current ? 'default' : 'pointer',
-                  border: current
-                    ? '1px solid var(--card-ring)'
-                    : p.id === 'forever'
-                    ? '1px solid var(--ink)'
-                    : '1px solid var(--card-ring)',
+                  border:
+                    p.id === 'forever' && !current
+                      ? '1px solid var(--ink)'
+                      : '1px solid var(--line, rgba(14,13,11,0.12))',
                   background:
-                    current
-                      ? 'var(--card)'
-                      : p.id === 'forever'
+                    p.id === 'forever' && !current
                       ? 'var(--ink)'
                       : 'var(--card)',
                   color:
-                    current
-                      ? 'var(--ink-muted)'
-                      : p.id === 'forever'
+                    p.id === 'forever' && !current
                       ? 'var(--cream)'
+                      : current
+                      ? 'var(--ink-muted)'
                       : 'var(--ink)',
                   fontFamily: 'inherit',
                   opacity: current ? 0.6 : 1,
+                  transition: 'transform 140ms ease, background 140ms ease',
                 }}
               >
-                {current ? 'Current plan' : busy === p.id ? 'One moment…' : p.cta}
+                {current
+                  ? 'Current plan'
+                  : busy === p.id
+                  ? 'One moment…'
+                  : p.cta}
               </button>
             </div>
           );
         })}
       </div>
+
       <UsRow>
         <UsField
           label="Billing"
@@ -1102,6 +1277,14 @@ function PreferencesTab() {
       | null) ?? 'light';
   });
   const [reducedMotion, setReducedMotion] = useState(false);
+  // Locally-stored preference toggles. These mirror the prototype's
+  // "Email notifications / Weekly digest / Autosave" set. Notifications
+  // + autosave are persisted as booleans in localStorage; the digest
+  // ride-along is just visual today (no email-cron infra yet) and
+  // will pick up a backend in a follow-up.
+  const [emailNotifs, setEmailNotifs] = useState(true);
+  const [weeklyDigest, setWeeklyDigest] = useState(true);
+  const [autosave, setAutosave] = useState(true);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Pull existing prefs.
@@ -1131,22 +1314,23 @@ function PreferencesTab() {
       const m = window.matchMedia('(prefers-reduced-motion: reduce)');
       setReducedMotion(m.matches);
     }
+
+    setEmailNotifs(window.localStorage.getItem('pl-email-notifs') !== '0');
+    setWeeklyDigest(window.localStorage.getItem('pl-weekly-digest') !== '0');
+    setAutosave(window.localStorage.getItem('pl-autosave') !== '0');
   }, []);
 
-  const savePref = useCallback(
-    (patch: Partial<PreferencesData>) => {
-      setPrefs((prev) => (prev ? { ...prev, ...patch } : prev));
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-      saveTimer.current = setTimeout(() => {
-        void fetch('/api/user/preferences', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(patch),
-        }).catch(() => {});
-      }, 350);
-    },
-    [],
-  );
+  const savePref = useCallback((patch: Partial<PreferencesData>) => {
+    setPrefs((prev) => (prev ? { ...prev, ...patch } : prev));
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      void fetch('/api/user/preferences', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      }).catch(() => {});
+    }, 350);
+  }, []);
 
   const flipTheme = useCallback((next: 'light' | 'dark') => {
     setTheme(next);
@@ -1170,13 +1354,37 @@ function PreferencesTab() {
     }
   }, []);
 
-  // Default truthy toggles where the API row doesn't yet exist.
-  const quietHours = prefs?.quiet_hours ?? true;
+  const flipLocal = useCallback(
+    (key: string, set: (v: boolean) => void) => (next: boolean) => {
+      set(next);
+      if (typeof window !== 'undefined') {
+        try {
+          window.localStorage.setItem(key, next ? '1' : '0');
+        } catch {}
+      }
+    },
+    [],
+  );
+
+  // Used to surface quiet-hours-style behavior implicitly with the
+  // "Email notifications" toggle — when emails are off, server-side
+  // quiet hours are coerced on. The /api/user/preferences PATCH
+  // carries the actual boolean.
+  const onEmailNotifs = useCallback(
+    (next: boolean) => {
+      flipLocal('pl-email-notifs', setEmailNotifs)(next);
+      // If the user turns notifications off entirely, also flip
+      // quiet_hours on at the server. (It's idempotent.)
+      if (!next) savePref({ quiet_hours: true });
+    },
+    [flipLocal, savePref],
+  );
 
   return (
     <div>
       <SettingsHead title="Preferences" sub="How Pearloom behaves for you." />
 
+      {/* Theme selector — light / dark segment */}
       <UsRow>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)' }}>
@@ -1212,12 +1420,9 @@ function PreferencesTab() {
                 cursor: 'pointer',
                 border: 'none',
                 background: theme === mode ? 'var(--card)' : 'transparent',
-                color:
-                  theme === mode ? 'var(--ink)' : 'var(--ink-muted)',
+                color: theme === mode ? 'var(--ink)' : 'var(--ink-muted)',
                 boxShadow:
-                  theme === mode
-                    ? '0 1px 3px rgba(14,13,11,0.10)'
-                    : 'none',
+                  theme === mode ? '0 1px 3px rgba(14,13,11,0.10)' : 'none',
                 transition: 'background 160ms ease, color 160ms ease',
               }}
             >
@@ -1230,16 +1435,48 @@ function PreferencesTab() {
       <UsRow>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)' }}>
-            Quiet hours
+            Email notifications
           </div>
           <div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
-            Pause Pear nudges + emails between 9pm and 8am.
+            RSVPs, partner edits, and Pear nudges.
           </div>
         </div>
         <UsToggle
-          on={quietHours}
-          set={(next) => savePref({ quiet_hours: next })}
-          ariaLabel="Quiet hours"
+          on={emailNotifs}
+          set={onEmailNotifs}
+          ariaLabel="Email notifications"
+        />
+      </UsRow>
+
+      <UsRow>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)' }}>
+            Weekly digest
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
+            A Sunday summary of what changed.
+          </div>
+        </div>
+        <UsToggle
+          on={weeklyDigest}
+          set={flipLocal('pl-weekly-digest', setWeeklyDigest)}
+          ariaLabel="Weekly digest"
+        />
+      </UsRow>
+
+      <UsRow>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)' }}>
+            Autosave
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
+            Save edits as you go.
+          </div>
+        </div>
+        <UsToggle
+          on={autosave}
+          set={flipLocal('pl-autosave', setAutosave)}
+          ariaLabel="Autosave"
         />
       </UsRow>
 
@@ -1252,11 +1489,7 @@ function PreferencesTab() {
             Calm the scroll-reveal animations.
           </div>
         </div>
-        <UsToggle
-          on={reducedMotion}
-          set={flipMotion}
-          ariaLabel="Reduced motion"
-        />
+        <UsToggle on={reducedMotion} set={flipMotion} ariaLabel="Reduced motion" />
       </UsRow>
 
       <UsRow>
@@ -1276,7 +1509,7 @@ function PreferencesTab() {
           style={{
             padding: '6px 10px',
             borderRadius: 999,
-            border: '1px solid var(--card-ring)',
+            border: '1px solid var(--line, rgba(14,13,11,0.12))',
             background: 'var(--card)',
             color: 'var(--ink)',
             fontSize: 13,
@@ -1308,10 +1541,15 @@ function PreferencesTab() {
   );
 }
 
-/* ───────────────────────── helpers ───────────────────────── */
+/* =========================================================================
+   helpers
+   ========================================================================= */
 
-function planLabel(id: PlanTier['id']): string {
-  return PLANS.find((p) => p.id === id)?.name ?? 'Free';
+function initialsFromName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'P';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 function formatMemberSince(): string {

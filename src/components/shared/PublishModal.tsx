@@ -7,11 +7,15 @@
 //   • review     — claim a pearloom.com/<slug> address, pick
 //                  visibility (public / password / private),
 //                  preview the themed OG share card.
-//   • publishing — "Going live…" loader (sage spinner) while
-//                  the host's /api/sites/publish call resolves.
-//   • live       — "You're live!" success with copy-link,
-//                  themed OG embed, and Web Share API fallout
-//                  to X / Facebook / iMessage / Email.
+//   • publishing — "Going live…" themed atmosphere: a horizon
+//                  of woven threads + drifting motif glyphs +
+//                  the canonical WeaveLoader. Matches the rest
+//                  of Pearloom's loading vocabulary instead of
+//                  a generic CSS spinner.
+//   • live       — "You're live!" success with a thread-weave
+//                  reveal flourish, copy-link, themed OG
+//                  embed, and Web Share API fallout to
+//                  X / Facebook / iMessage / Email.
 //
 // Port of ClaudeDesign/pages/publish-flow.jsx into production
 // types + the canonical /api/og endpoint (Edition-aware).
@@ -21,6 +25,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '@/components/pearloom/motifs';
+import { WeaveLoader } from '@/components/brand/WeaveLoader';
+import { Thread } from '@/components/brand/Thread';
 import { resolveThemeFamily } from '@/lib/event-os/theme-family';
 import { normalizeOccasion } from '@/lib/site-urls';
 
@@ -268,7 +274,39 @@ export function PublishModal({
             from { transform: scale(0.97); opacity: 0; }
             to   { transform: none;        opacity: 1; }
           }
-          @keyframes pl-pub-spin { to { transform: rotate(360deg); } }
+          /* Drifting motif glyphs for the publishing atmosphere.
+             Two parallax bands cross the panel at different speeds
+             so the loader reads as a horizon being woven, not a
+             single line of marquee tape. */
+          @keyframes pl-pub-drift-a {
+            from { transform: translateX(-30%); }
+            to   { transform: translateX(130%); }
+          }
+          @keyframes pl-pub-drift-b {
+            from { transform: translateX(130%); }
+            to   { transform: translateX(-30%); }
+          }
+          @keyframes pl-pub-fade-up {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: none; }
+          }
+          /* Celebration reveal — the success card breathes in,
+             the thread sweeps under "You're live", and the pearl
+             halo pulses once. Honours reduced-motion via the
+             media query below. */
+          @keyframes pl-pub-halo {
+            0%   { box-shadow: 0 0 0 0   rgba(184, 147, 90, 0.45); }
+            70%  { box-shadow: 0 0 0 22px rgba(184, 147, 90, 0); }
+            100% { box-shadow: 0 0 0 0   rgba(184, 147, 90, 0); }
+          }
+          @keyframes pl-pub-confetti {
+            0%   { transform: translateY(-8px) rotate(0deg);   opacity: 0; }
+            10%  { opacity: 1; }
+            100% { transform: translateY(96px) rotate(320deg); opacity: 0; }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .pl-pub-anim { animation: none !important; }
+          }
         `}</style>
         <button
           type="button"
@@ -355,6 +393,11 @@ function ReviewStep({
     { value: 'password', icon: 'lock', label: 'Password protected', sub: 'Guests enter a shared password' },
     { value: 'private', icon: 'eye-off', label: 'Private', sub: 'Only you can see it' },
   ];
+  // Live availability hint. We don't yet hit a real /api/sites/slug
+  // endpoint from here — claim collisions surface as publishError on
+  // submit — but the green check still gives the host the prototype's
+  // "ready to ship" reassurance whenever the slug looks well-formed.
+  const slugLooksOk = slug.length >= 3 && /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(slug);
   return (
     <div style={{ padding: '28px 28px 24px' }}>
       <div
@@ -433,19 +476,21 @@ function ReviewStep({
             fontFamily: 'var(--font-ui, var(--pl-font-body))',
           }}
         />
-        <span
-          style={{
-            padding: '0 13px',
-            fontSize: 12,
-            color: 'var(--sage-deep, #5C6B3F)',
-            fontWeight: 700,
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 4,
-          }}
-        >
-          <Icon name="check" size={12} color="var(--sage-deep, #5C6B3F)" /> Available
-        </span>
+        {slugLooksOk && (
+          <span
+            style={{
+              padding: '0 13px',
+              fontSize: 12,
+              color: 'var(--sage-deep, #5C6B3F)',
+              fontWeight: 700,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
+            <Icon name="check" size={12} color="var(--sage-deep, #5C6B3F)" /> Available
+          </span>
+        )}
       </div>
 
       <div
@@ -567,42 +612,130 @@ function ReviewStep({
 }
 
 // ─── PUBLISHING STEP ───────────────────────────────────────────
+//
+// The themed loader — not just a CSS spinner. We layer:
+//   1. Two horizon Threads (top + bottom) framing the panel,
+//      drawing in on mount so the editor "weaves a horizon".
+//   2. A drifting motif strip that travels horizontally across
+//      the band — the brand's visual atom (•·•·•) skimming past
+//      so the host feels something is being assembled, not
+//      buffered.
+//   3. The canonical <WeaveLoader/> at xl — the same two-strand
+//      shuttle used everywhere else loading happens.
+// All motion respects prefers-reduced-motion via the .pl-pub-anim
+// class declared in the parent <style> block.
 
 function PublishingStep({ displayUrl }: { displayUrl: string }) {
+  // A small repeating glyph row — the editorial "loom shuttle"
+  // language. Six characters of olive + gold typographic
+  // breadcrumbs the eye can track across the panel.
+  const glyphs = '• · ✻ · • · ✦ · • · ✻ · • · ✦ · • · ✻ · • · ✦ · ';
   return (
-    <div style={{ padding: '70px 28px', textAlign: 'center' }}>
+    <div style={{ padding: '56px 28px 50px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+      {/* Top horizon — Thread weaves in on mount, then drifting
+          motif glyphs skim past it. The two layers together read
+          as a horizon line that's *being* assembled, matching
+          BRAND.md §6 ("threading," not spinning). */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 18, overflow: 'hidden' }}>
+        <Thread variant="weave" animated height={14} weight={1} />
+      </div>
       <div
         aria-hidden
+        className="pl-pub-anim"
         style={{
-          width: 44,
-          height: 44,
-          borderRadius: '50%',
-          border: '3px solid var(--cream-3, #E8DFC9)',
-          borderTopColor: 'var(--sage-deep, #5C6B3F)',
-          marginInline: 'auto',
-          animation: 'pl-pub-spin 0.8s linear infinite',
+          position: 'absolute',
+          top: 22,
+          left: 0,
+          right: 0,
+          height: 14,
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+          fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+          fontSize: 11,
+          letterSpacing: '0.24em',
+          color: 'var(--pl-gold, #B8935A)',
+          opacity: 0.55,
         }}
-      />
+      >
+        <span
+          className="pl-pub-anim"
+          style={{
+            display: 'inline-block',
+            animation: 'pl-pub-drift-a 12s linear infinite',
+          }}
+        >
+          {glyphs}{glyphs}
+        </span>
+      </div>
+
+      {/* Canonical loader — the same WeaveLoader used everywhere
+          loading happens. xl size + 'Threading' label, no extra
+          chrome. */}
+      <div style={{ marginTop: 32, marginBottom: 8 }}>
+        <WeaveLoader size="xl" />
+      </div>
+
       <div
+        className="pl-pub-anim"
         style={{
           fontFamily: 'var(--font-display, var(--pl-font-display))',
-          fontSize: 20,
+          fontSize: 22,
           fontWeight: 600,
-          marginTop: 18,
+          marginTop: 14,
           color: 'var(--ink, #0E0D0B)',
+          animation: 'pl-pub-fade-up 480ms cubic-bezier(0.16, 1, 0.3, 1) both',
+          animationDelay: '120ms',
         }}
       >
         Going live…
       </div>
       <div
+        className="pl-pub-anim"
         style={{
           fontSize: 13,
           color: 'var(--ink-soft, #3A332C)',
           marginTop: 4,
           fontFamily: 'var(--font-ui, var(--pl-font-body))',
+          animation: 'pl-pub-fade-up 480ms cubic-bezier(0.16, 1, 0.3, 1) both',
+          animationDelay: '220ms',
         }}
       >
-        Securing {displayUrl} and generating share cards.
+        Securing {displayUrl} and pressing share cards.
+      </div>
+
+      {/* Bottom horizon — counter-drifting glyph row + Thread
+          mirror the top so the panel reads as a woven band end to
+          end. */}
+      <div
+        aria-hidden
+        className="pl-pub-anim"
+        style={{
+          position: 'absolute',
+          bottom: 22,
+          left: 0,
+          right: 0,
+          height: 14,
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+          fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+          fontSize: 11,
+          letterSpacing: '0.24em',
+          color: 'var(--pl-olive, #5C6B3F)',
+          opacity: 0.5,
+        }}
+      >
+        <span
+          className="pl-pub-anim"
+          style={{
+            display: 'inline-block',
+            animation: 'pl-pub-drift-b 16s linear infinite',
+          }}
+        >
+          {glyphs}{glyphs}
+        </span>
+      </div>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 18, overflow: 'hidden' }}>
+        <Thread variant="weave" animated height={14} weight={1} />
       </div>
     </div>
   );
@@ -650,32 +783,98 @@ function LiveStep({
     textDecoration: 'none',
   };
 
+  // Tiny confetti pieces — eight olive/gold scraps that drop once
+  // when the success view mounts. Cheap, on-brand, no library.
+  // Suppressed under prefers-reduced-motion via the .pl-pub-anim
+  // class so reader-mode hosts get the still version.
+  const confettiPieces = useMemo(() => {
+    const colors = ['var(--pl-olive, #5C6B3F)', 'var(--pl-gold, #B8935A)', 'var(--pl-rind, #E9D9A8)', 'var(--pl-olive-hover, #4A5731)'];
+    return Array.from({ length: 14 }, (_, i) => ({
+      left: `${(i / 13) * 100}%`,
+      color: colors[i % colors.length],
+      delay: `${(i % 7) * 0.08}s`,
+      size: 5 + (i % 3) * 2,
+    }));
+  }, []);
+
   return (
-    <div style={{ padding: '30px 28px 24px', textAlign: 'center' }}>
+    <div style={{ padding: '30px 28px 24px', textAlign: 'center', position: 'relative' }}>
+      {/* Confetti — drops from above the modal card edge so it
+          reads as a "you're live!" flourish without obscuring the
+          OG preview below. Fires once on mount. */}
       <div
+        aria-hidden
         style={{
-          width: 56,
-          height: 56,
+          position: 'absolute',
+          top: -6,
+          left: 0,
+          right: 0,
+          height: 96,
+          pointerEvents: 'none',
+          overflow: 'hidden',
+        }}
+      >
+        {confettiPieces.map((p, i) => (
+          <span
+            key={i}
+            className="pl-pub-anim"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: p.left,
+              width: p.size,
+              height: p.size * 1.4,
+              background: p.color,
+              borderRadius: 1,
+              animation: `pl-pub-confetti 1400ms cubic-bezier(0.22, 1, 0.36, 1) both`,
+              animationDelay: p.delay,
+            }}
+          />
+        ))}
+      </div>
+
+      <div
+        className="pl-pub-anim"
+        style={{
+          width: 64,
+          height: 64,
           borderRadius: '50%',
           background: 'var(--pl-olive-mist, var(--sage-tint, #E0DDC9))',
           display: 'grid',
           placeItems: 'center',
           marginInline: 'auto',
+          position: 'relative',
+          animation: 'pl-pub-halo 1400ms cubic-bezier(0.22, 1, 0.36, 1) 200ms both',
         }}
       >
-        <Pear size={32} tone="sage" sparkle shadow={false} />
+        <Pear size={36} tone="sage" sparkle shadow={false} />
       </div>
       <h2
         style={{
           fontFamily: 'var(--font-display, var(--pl-font-display))',
           fontSize: 26,
           fontWeight: 600,
-          margin: '14px 0 4px',
+          margin: '14px 0 6px',
           color: 'var(--ink, #0E0D0B)',
         }}
       >
-        You{'’'}re live
+        You{'’'}re live! <span aria-hidden>🎉</span>
       </h2>
+
+      {/* Celebration thread — sweeps under the headline as the
+          card lands. The brand's "thread weaves in, content
+          settles between" entrance, applied to the moment that
+          matters most in the editor. */}
+      <div
+        style={{
+          maxWidth: 220,
+          marginInline: 'auto',
+          marginBottom: 10,
+        }}
+      >
+        <Thread variant="weave" animated height={12} weight={1.25} />
+      </div>
+
       <p
         style={{
           fontSize: 13.5,
@@ -746,7 +945,7 @@ function LiveStep({
 
       <OgCardEmbed ogQuery={ogQuery} />
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+      <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
         {hasNativeShare && (
           <button
             type="button"

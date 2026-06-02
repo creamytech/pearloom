@@ -4,11 +4,12 @@
 // the guest list client-side.
 
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { Bloom } from '@/components/brand/groove';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
-import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost } from './DashShell';
+import { Panel, EmptyShell, btnInk, btnGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
-import { PLAtmosphere } from '@/components/pearloom/dash/PLChrome';
+import { PLAtmosphere, PLTabs } from '@/components/pearloom/dash/PLChrome';
+import { Icon, Sprig } from '@/components/pearloom/motifs';
+import Link from 'next/link';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getEventType } from '@/lib/event-os/event-types';
 import { GuestImportDialog } from '@/components/dashboard/GuestImportDialog';
@@ -802,15 +803,24 @@ export function DashGuests() {
       }
     >
       <PLAtmosphere />
+      <PLTabs
+        tabs={[
+          { label: 'Roster' },
+          { label: 'Submissions', href: '/dashboard/submissions' },
+          { label: 'Registry', href: '/dashboard/registry' },
+        ]}
+        active={0}
+        style={{ marginTop: 4, marginBottom: 18 }}
+      />
       <main
         className="pd-guests-main"
         style={{
           padding: '0 clamp(20px, 4vw, 40px) 32px',
-          maxWidth: 1240,
+          maxWidth: 1180,
           margin: '0 auto',
           display: 'grid',
-          gridTemplateColumns: '1fr 320px',
-          gap: 20,
+          gridTemplateColumns: 'minmax(0,1fr) 300px',
+          gap: 22,
           alignItems: 'flex-start',
         }}
       >
@@ -1277,61 +1287,158 @@ export function DashGuests() {
             bg={PD.ink}
             style={{
               color: PD.paper,
-              padding: 22,
+              padding: 18,
               border: 'none',
               position: 'relative',
               overflow: 'hidden',
+              borderRadius: 16,
             }}
           >
-            <div style={{ position: 'absolute', top: -20, right: -20, opacity: 0.4 }} aria-hidden>
-              <Bloom size={100} color={PD.butter} centerColor={PD.terra} speed={9} />
+            <div
+              style={{ position: 'absolute', top: -14, right: -10, opacity: 0.18, pointerEvents: 'none' }}
+              aria-hidden
+            >
+              <Sprig size={120} color="var(--cream)" accent="var(--gold)" />
             </div>
-            <div style={{ ...MONO_STYLE, fontSize: 9, color: PD.butter, marginBottom: 6 }}>
-              PEAR NOTICED
+            <div style={{ position: 'relative' }}>
+              <div
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: 'var(--gold)',
+                  marginBottom: 8,
+                }}
+              >
+                Pear noticed
+              </div>
+              <div
+                style={{
+                  ...DISPLAY_STYLE,
+                  fontSize: 18,
+                  lineHeight: 1.35,
+                  fontWeight: 400,
+                  fontStyle: 'italic',
+                  marginBottom: 12,
+                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                }}
+              >
+                {counts.pending > 0
+                  ? `${counts.pending} guests haven’t replied. Want me to send a gentle nudge?`
+                  : counts.yes === 0
+                  ? 'No RSVPs yet. Want me to send the invitation?'
+                  : 'Everyone accounted for. Nice.'}
+              </div>
+              {counts.pending > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setFilter('pending')}
+                  style={{
+                    background: PD.paperCard,
+                    color: PD.ink,
+                    border: 'none',
+                    padding: '7px 14px',
+                    borderRadius: 999,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  Draft the reminder
+                </button>
+              )}
+            </div>
+          </Panel>
+
+          <Panel
+            bg="var(--peach-bg)"
+            style={{ padding: 18, border: 'none', borderRadius: 16 }}
+          >
+            <div
+              style={{
+                fontSize: 10.5,
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                color: 'var(--peach-ink)',
+                marginBottom: 8,
+              }}
+            >
+              Soft insights
             </div>
             <div
               style={{
                 ...DISPLAY_STYLE,
                 fontSize: 20,
-                lineHeight: 1.25,
-                fontWeight: 400,
-                fontStyle: 'italic',
-                marginBottom: 16,
-                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                fontWeight: 600,
+                marginBottom: 12,
+                color: PD.ink,
               }}
             >
-              {counts.pending > 0
-                ? `${counts.pending} ${counts.pending === 1 ? 'guest hasn’t' : 'guests haven’t'} responded yet. Want me to send a warm nudge?`
-                : counts.yes === 0
-                ? 'No RSVPs yet. Want me to send the invitation?'
-                : 'Everyone accounted for. Nice.'}
+              Small things{' '}
+              <span
+                style={{
+                  fontStyle: 'italic',
+                  fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                }}
+              >
+                matter
+              </span>
+              .
             </div>
+            <Insight label="Dietary notes" n={rows?.filter((r) => r.tags.includes('dietary')).length ?? 0} total="guests" />
+            <Insight label="Plus-ones confirmed" n={rows?.filter((r) => r.tags.includes('plus-one') && r.rsvp === 'yes').length ?? 0} total="guests" />
+            <Insight label="Messages left" n={rows?.filter((r) => r.note.length > 0).length ?? 0} total="notes" />
           </Panel>
 
-          <Panel bg={PD.paperDeep} style={{ padding: 20 }}>
-            <SectionTitle
-              eyebrow="SOFT INSIGHTS"
-              title="Small things"
-              italic="matter."
-              accent={PD.gold}
-              style={{ marginBottom: 14 }}
-            />
-            <div
+          {/* Lavender "try the guest RSVP" preview link — mirrors the
+              prototype's bottom-right paper card. Opens the actual
+              published site so the host can experience what guests see. */}
+          {site?.domain && (
+            <Link
+              href={`/sites/${site.domain}`}
+              target="_blank"
+              rel="noreferrer"
               style={{
                 display: 'flex',
-                flexDirection: 'column',
+                alignItems: 'center',
                 gap: 10,
-                fontSize: 13,
-                color: PD.inkSoft,
-                lineHeight: 1.5,
-                fontFamily: 'var(--pl-font-body)',
+                padding: 14,
+                borderRadius: 14,
+                background: 'var(--card, var(--cream-2))',
+                border: '1px solid var(--line-soft)',
+                textDecoration: 'none',
+                color: 'inherit',
+                transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)',
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
             >
-              <Insight label="Dietary notes" n={rows?.filter((r) => r.tags.includes('dietary')).length ?? 0} total="guests" />
-              <Insight label="Plus-ones confirmed" n={rows?.filter((r) => r.tags.includes('plus-one') && r.rsvp === 'yes').length ?? 0} total="guests" />
-              <Insight label="Messages left" n={rows?.filter((r) => r.note.length > 0).length ?? 0} total="notes" />
-            </div>
-          </Panel>
+              <span
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 9,
+                  background: 'var(--lavender-bg)',
+                  display: 'grid',
+                  placeItems: 'center',
+                  flexShrink: 0,
+                }}
+                aria-hidden
+              >
+                <Icon name="eye" size={16} color="var(--lavender-ink)" />
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700 }}>Try the guest RSVP</div>
+                <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
+                  See what guests fill in
+                </div>
+              </div>
+              <Icon name="arrow-right" size={14} color="var(--ink-soft)" />
+            </Link>
+          )}
         </div>
       </main>
 
@@ -1588,13 +1695,23 @@ const inputStyle: CSSProperties = {
 };
 
 function Insight({ label, n, total }: { label: string; n: number; total: string }) {
-  const style: CSSProperties = { padding: '10px 12px', background: PD.paperCard, borderRadius: 10 };
   return (
-    <div style={style}>
-      <span style={{ fontWeight: 600 }}>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '10px 12px',
+        borderRadius: 10,
+        background: 'var(--card, var(--cream-2))',
+        marginBottom: 7,
+        fontSize: 12.5,
+        fontFamily: 'var(--pl-font-body)',
+      }}
+    >
+      <span style={{ fontWeight: 700, color: PD.ink }}>
         {n} {n === 1 ? total.slice(0, -1) : total}
-      </span>{' '}
-      — {label}
+      </span>
+      <span style={{ color: 'var(--ink-muted)' }}>{label}</span>
     </div>
   );
 }
