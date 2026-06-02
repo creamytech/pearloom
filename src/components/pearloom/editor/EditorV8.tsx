@@ -488,6 +488,17 @@ export function EditorV8({
     return () => window.removeEventListener('pearloom:open-decor-library', open);
   }, []);
 
+  // Topbar Library button dispatches pearloom:open-library; we route
+  // it to the inspector's library tab so the existing library panel
+  // mounts in the right rail. Toggle off (back to section) if the
+  // library is already showing.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const open = () => setInspectorTab((cur) => (cur === 'library' ? 'section' : 'library'));
+    window.addEventListener('pearloom:open-library', open);
+    return () => window.removeEventListener('pearloom:open-library', open);
+  }, []);
+
   // If the site was already published before this session, hydrate
   // the live-URL pill from the manifest flag so the topbar shows
   // "Live" immediately on load. Without this the pill wouldn't
@@ -1984,6 +1995,19 @@ function EditorTopbar({
         </button>
         <button
           type="button"
+          onClick={() => {
+            if (typeof window === 'undefined') return;
+            window.dispatchEvent(new CustomEvent('pearloom:open-library'));
+          }}
+          aria-label="Open Library"
+          title="Library — assets, photos, fonts"
+          className="pl8-icon-btn"
+          style={{ ...iconBtn, color: 'var(--ink-soft)' }}
+        >
+          <Icon name="fleuron" size={15} />
+        </button>
+        <button
+          type="button"
           onClick={onUndo}
           disabled={!canUndo}
           aria-label="Undo (Cmd+Z)"
@@ -2970,7 +2994,8 @@ function Outline({
                 gap: 4,
               }}
             >
-              <span aria-hidden style={{ fontSize: 9, opacity: 0.7 }}>◯</span>
+              {/* Prototype L160: globe icon at 10px before the URL. */}
+              <Icon name="globe" size={10} color="var(--ink-muted)" />
               {displayUrl}
             </div>
           )}
@@ -2987,9 +3012,12 @@ function Outline({
           >
             <div
               style={{
+                /* Prototype L164: progress track bg is cream-3
+                    (warmer than cream-2 — reads against the cream-2
+                    rail and the card). */
                 flex: 1,
                 height: 4,
-                background: 'var(--cream-2)',
+                background: 'var(--cream-3)',
                 borderRadius: 999,
                 overflow: 'hidden',
               }}
@@ -3647,27 +3675,15 @@ function Inspector({
           }}
         />
       )}
-      {/* Rail tabs — Section / Library / Pear. Bigger touch target
-          (14px vertical), clear active indicator (peach underline
-          pill). Only one body shows at a time, so floaters never
-          overlap the canvas. (Theme tab moved to the left rail
-          in the V2 redesign.) */}
-      <div
-        role="tablist"
-        aria-label="Inspector tabs"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          borderBottom: '1px solid var(--line-soft)',
-          background: 'var(--cream)',
-          padding: '0 4px',
-        }}
-      >
+      {/* Inspector tab strip removed to match the prototype
+          (editor-redesign.jsx L668-793): the right rail is a single
+          PropertyRail surface dedicated to the active section. Theme
+          lives on the left rail's Theme tab; Pear is the 4th column;
+          Library is a topbar icon. The inspectorTab state is kept so
+          existing ⌘1-4 shortcuts still dispatch — just no visible
+          tab chrome on the right rail. */}
+      <div hidden aria-hidden>
         {(() => {
-          // V3 — Theme moved back to the right inspector to match the
-          // prototype's three-pane shell. All configuration lives on
-          // the right: Section (block-specific), Theme (whole-site
-          // look engine), Library (assets), Pear (concierge).
           const tabs = [
             { key: 'section', label: 'Section', icon: 'sliders' },
             { key: 'theme', label: 'Theme', icon: 'palette' },
@@ -3684,50 +3700,12 @@ function Inspector({
               role="tab"
               aria-selected={active}
               aria-controls={`pl8-inspector-panel-${t.key}`}
-              aria-keyshortcuts={
-                t.key === 'section' ? 'Meta+1 Control+1'
-                : t.key === 'theme' ? 'Meta+2 Control+2'
-                : t.key === 'library' ? 'Meta+3 Control+3'
-                : t.key === 'pear' ? 'Meta+4 Control+4'
-                : undefined
-              }
               tabIndex={active ? 0 : -1}
               onClick={() => setTab(t.key)}
               onKeyDown={(e) => tablistKeydown(e, i, tabs, (item) => setTab(item.key))}
-              style={{
-                position: 'relative',
-                padding: '14px 8px 12px',
-                fontFamily: 'var(--font-ui)',
-                fontSize: 12.5,
-                fontWeight: active ? 700 : 600,
-                letterSpacing: '0.02em',
-                color: active ? 'var(--ink)' : 'var(--ink-muted)',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 7,
-                transition: 'color var(--pl-dur-fast) var(--pl-ease-out)',
-              }}
             >
               <Icon name={t.icon} size={13} />
               {t.label}
-              {active && (
-                <span
-                  aria-hidden
-                  style={{
-                    position: 'absolute',
-                    bottom: -1,
-                    left: '14%',
-                    right: '14%',
-                    height: 2,
-                    borderRadius: 2,
-                    background: 'var(--peach-ink, #C6703D)',
-                  }}
-                />
-              )}
             </button>
             );
           });
@@ -3768,35 +3746,40 @@ function Inspector({
           )}
           <header
             style={{
-              padding: '18px 22px 16px',
+              /* Prototype L684 literal: 16px 20px 10px header padding. */
+              padding: '16px 20px 10px',
               borderBottom: '1px solid var(--line-soft)',
               position: 'sticky',
               top: 0,
-              background: 'var(--cream)',
+              background: 'var(--card)',
               zIndex: 2,
             }}
           >
+            {/* Prototype L685: "EDITING SECTION" eyebrow in lavender-ink. */}
             <div
+              className="eyebrow"
               style={{
+                color: 'var(--lavender-ink)',
+                marginBottom: 4,
                 fontSize: 10,
                 fontWeight: 700,
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
-                color: 'var(--ink-muted)',
                 fontFamily: 'var(--font-ui)',
-                marginBottom: 6,
               }}
             >
-              Editing section
+              EDITING SECTION
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <h2
-                className="display"
+            {/* Prototype L686-692: title row with section name on the
+                left + hide-eye + more icon buttons on the right
+                (26×26, cream-2 bg, ink-soft icon). */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h3
                 style={{
-                  fontSize: 24,
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 22,
                   margin: 0,
-                  lineHeight: 1.05,
-                  letterSpacing: '-0.01em',
+                  fontWeight: 600,
                   flex: 1,
                   minWidth: 0,
                   whiteSpace: 'nowrap',
@@ -3807,45 +3790,45 @@ function Inspector({
                 }}
               >
                 {meta.label}
-              </h2>
-              {meta.togglable && (
-                <button
-                  type="button"
-                  onClick={() => onToggleHidden(block)}
-                  aria-pressed={isHidden}
-                  aria-label={isHidden ? `Show ${meta.label} section` : `Hide ${meta.label} section`}
-                  title={isHidden ? `Show ${meta.label}` : `Hide ${meta.label} on the live site`}
-                  style={{
-                    width: 30,
-                    height: 30,
-                    padding: 0,
-                    borderRadius: 8,
-                    background: isHidden ? 'var(--peach-bg, rgba(198,112,61,0.14))' : 'transparent',
-                    border: '1px solid var(--line-soft)',
-                    color: isHidden ? 'var(--peach-ink, #C6703D)' : 'var(--ink-soft)',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
-                  }}
-                >
-                  <Icon name={isHidden ? 'eye-off' : 'eye'} size={14} />
-                </button>
-              )}
-              <SectionOverflowMenu meta={meta} prettyUrl={prettyUrl} />
+              </h3>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {meta.togglable && (
+                  <button
+                    type="button"
+                    onClick={() => onToggleHidden(block)}
+                    aria-pressed={isHidden}
+                    aria-label={isHidden ? `Show ${meta.label} section` : `Hide ${meta.label} section`}
+                    title={isHidden ? `Show ${meta.label}` : `Hide ${meta.label} section`}
+                    style={{
+                      width: 26,
+                      height: 26,
+                      padding: 0,
+                      borderRadius: 6,
+                      background: 'var(--cream-2)',
+                      border: 'none',
+                      color: isHidden ? 'var(--peach-ink, #C6703D)' : 'var(--ink-soft)',
+                      cursor: 'pointer',
+                      display: 'grid',
+                      placeItems: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Icon name={isHidden ? 'eye-off' : 'eye'} size={13} />
+                  </button>
+                )}
+                <SectionOverflowMenu meta={meta} prettyUrl={prettyUrl} />
+              </div>
             </div>
             {meta.description && (
-              <p style={{ margin: '6px 0 0', fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
+              <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 4 }}>
                 {meta.description}
-              </p>
+              </div>
             )}
 
-            {/* Property tabs — Content / Layout / Style. Port of the
-                prototype's PropertyRail tabs. Style is non-applicable
-                for theme + toasts (already global / non-section), so
-                they keep the single-tab content-only flow. */}
+            {/* Property tabs — Content / Layout / Style. Literal port
+                of prototype L695-715: flex with gap 4, padding 3,
+                cream-2 background, border-radius 8, marginTop 12.
+                Includes an icon glyph before each label per L710. */}
             {block !== 'theme' && block !== 'toasts' && (
               <div
                 role="tablist"
@@ -3862,6 +3845,7 @@ function Inspector({
                 {(['content', 'layout', 'style'] as const).map((t) => {
                   const on = propertyTab === t;
                   const label = t === 'content' ? 'Content' : t === 'layout' ? 'Layout' : 'Style';
+                  const iconName = t === 'content' ? 'text' : t === 'layout' ? 'layout' : 'palette';
                   return (
                     <button
                       key={t}
@@ -3879,9 +3863,14 @@ function Inspector({
                         color: on ? 'var(--cream)' : 'var(--ink-soft)',
                         border: 0,
                         cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 4,
                         transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
                       }}
                     >
+                      <Icon name={iconName} size={11} color={on ? 'var(--cream)' : 'var(--ink-soft)'} />
                       {label}
                     </button>
                   );
