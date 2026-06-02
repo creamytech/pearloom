@@ -258,6 +258,15 @@ function StoryBlock({ ctx }: { ctx: SectionCtx }) {
         <p style={{ marginTop: 16, fontSize: 15, color: 'var(--t-ink-soft)', lineHeight: 1.65 }}>
           {C.story.body}
         </p>
+        {C.story.chips && C.story.chips.length > 0 && (
+          <div style={{ marginTop: 18, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {C.story.chips.map((c, i) => (
+              <span key={i} style={{ padding: '6px 13px', borderRadius: 999, background: 'var(--t-accent-bg)', color: 'var(--t-accent-ink)', fontSize: 12, fontWeight: 600 }}>
+                {c}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -388,7 +397,7 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
     <div style={{ padding: `${36 * pad}px 32px`, background: 'var(--t-section)' }}>
       <TSectionHead eyebrow={C.gallery.eyebrow} title={C.gallery.title} italic={C.gallery.italic} />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8, maxWidth: 920, marginInline: 'auto' }}>
-        {(['warm', 'sage', 'dusk', 'peach', 'lavender', 'cream', 'warm', 'sage', 'dusk', 'peach', 'lavender', 'cream'] as PhotoTone[]).map((t, i) => (
+        {C.gallery.tones.map((t, i) => (
           <PhotoPlaceholder key={i} tone={t} aspect="1/1" style={{ borderRadius: 8 }} />
         ))}
       </div>
@@ -657,12 +666,12 @@ interface Copy {
   tagline: string;
   cta: string;
   meta: { date: string; place: string };
-  story: { eyebrow: string; title: string; italic?: string; body: string };
+  story: { eyebrow: string; title: string; italic?: string; body: string; chips?: string[] };
   details: { eyebrow: string; title: string; italic?: string; items: { l: string; v: string; icon: string }[] };
   schedule: { eyebrow: string; title: string; italic?: string; rows: { t: string; l: string; s: string }[] };
   travel: { eyebrow: string; title: string; italic?: string; hotels: { name: string; price: string; rating: number; reviews: number; dist: string; tone: PhotoTone; blurb: string; amenities: string[] }[] };
   registry: { eyebrow: string; title: string; italic?: string; body: string; stores: string[] };
-  gallery: { eyebrow: string; title: string; italic?: string };
+  gallery: { eyebrow: string; title: string; italic?: string; tones: PhotoTone[] };
   rsvp: { eyebrow: string; title: string; body: string };
   faq: { eyebrow: string; title: string; italic?: string; questions: string[] };
 }
@@ -836,6 +845,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
      rsvpDeadline, etc. — every one a field a section panel writes). */
   const loose = manifest as unknown as Record<string, unknown>;
   const storySection = (loose.storySection as { headline?: string; body?: string; chips?: string[] } | undefined) ?? {};
+  const galleryTones = (loose.galleryTones as PhotoTone[] | undefined);
   const detailsCards = (loose.detailsCards as Array<[string, string]> | undefined) ?? [];
   const eventsRaw = (loose.events as Array<{ time?: string; name?: string; venue?: string; description?: string }> | undefined) ?? [];
   const faqsRaw = (loose.faqs as Array<{ question?: string }> | undefined) ?? [];
@@ -859,6 +869,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       title: storySection.headline ? splitHeading(storySection.headline).head : 'How we',
       italic: storySection.headline ? splitHeading(storySection.headline).italic : 'met',
       body: storySection.body || 'We met on an ordinary Tuesday and spent the evening arguing, fondly, about whether olives belong on pizza. Ten years later, we would be honoured to have you with us as we marry — there is no story we would rather tell, and no one we would rather tell it to.',
+      chips: Array.isArray(storySection.chips) ? storySection.chips : undefined,
     },
     details: {
       eyebrow: 'The fine print',
@@ -911,7 +922,14 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
         ? registryStoresRaw.slice(0, 6)
         : ['Honeymoon fund', 'Crate & Barrel', 'Zola'],
     },
-    gallery: { eyebrow: 'Gallery', title: 'A few', italic: 'favorites' },
+    gallery: {
+      eyebrow: 'Gallery',
+      title: 'A few',
+      italic: 'favorites',
+      tones: galleryTones && galleryTones.length > 0
+        ? galleryTones
+        : (['warm', 'sage', 'dusk', 'peach', 'lavender', 'cream', 'warm', 'sage', 'dusk', 'peach', 'lavender', 'cream'] as PhotoTone[]),
+    },
     rsvp: {
       eyebrow: rsvpDeadline ? `RSVP by ${formatHeroDate(rsvpDeadline) || rsvpDeadline}` : 'RSVP by April 28',
       title: isWedding ? 'Save your seat' : 'Reply by the date',
