@@ -1318,37 +1318,12 @@ export function EditorV8({
           a one-row bar so theme/voice/density/grain/motifs read at
           a glance. Hidden in preview-as-guest + on narrow viewports
           (the mobile tabbar takes the space). */}
-      {!isNarrow && !previewMode && (
-        <EditorDialBar
-          manifest={manifest}
-          onChange={onManifestChange}
-          onOpenEvent={() => {
-            // Event chip → command palette so the host can pick from
-            // the full EVENT_TYPES registry (28 entries, beats a
-            // bespoke modal).
-            if (typeof window === 'undefined') return;
-            window.dispatchEvent(new CustomEvent(COMMAND_PALETTE_OPEN_EVENT));
-          }}
-          onOpenTheme={() => setThemeShopOpen(true)}
-          onOpenKit={() => {
-            // Kit / Layout dials jump to the inspector Theme tab and
-            // scroll their picker anchor into view. Same pattern as
-            // CommandPalette's onOpenDecorLibrary handler.
-            setInspectorTab('theme');
-            setTimeout(() => {
-              const el = document.querySelector('[data-pl-design-anchor="kit-picker"]');
-              el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 80);
-          }}
-          onOpenLayout={() => {
-            setInspectorTab('theme');
-            setTimeout(() => {
-              const el = document.querySelector('[data-pl-design-anchor="site-layout"]');
-              el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 80);
-          }}
-        />
-      )}
+      {/* Bottom dial bar (EditorDialBar) is a production-only addition
+          that doesn't exist in handoff/pages/editor-redesign.jsx. The
+          prototype puts all those controls (Event / Theme / Kit /
+          Layout / Voice / Spacing / Grain / Motifs / Match-my-photos)
+          in the RIGHT RAIL, not in a bottom bar. Unmounted to match
+          the prototype's three-pane shell. */}
       {isNarrow && (
         <MobileTabbar
           mobileDrawer={mobileDrawer}
@@ -3150,40 +3125,34 @@ function Outline({
         </SortableContext>
       </DndContext>
 
-      <div
+      {/* "+ Add section" — literal port of prototype L223-230. Dashed
+          border, transparent background, sits at the bottom of the
+          section list. Replaces the "Tip from Pear" callout that
+          isn't in the prototype editor. */}
+      <button
+        type="button"
         style={{
-          marginTop: 'auto',
-          background: 'var(--lavender-bg)',
-          border: '1px solid rgba(196,181,217,0.35)',
-          borderRadius: 12,
-          padding: '12px 14px',
+          marginTop: 4,
+          padding: '8px 10px',
+          borderRadius: 8,
+          fontSize: 11.5,
+          color: 'var(--ink-muted)',
           display: 'flex',
-          gap: 10,
-          alignItems: 'flex-start',
+          alignItems: 'center',
+          gap: 6,
+          border: '1px dashed var(--line)',
+          background: 'transparent',
+          cursor: 'pointer',
+          fontFamily: 'var(--font-ui)',
+          width: '100%',
+        }}
+        onClick={() => {
+          if (typeof window === 'undefined') return;
+          window.dispatchEvent(new CustomEvent(COMMAND_PALETTE_OPEN_EVENT));
         }}
       >
-        <span style={{ flexShrink: 0, marginTop: 1 }}>
-          <Pear size={24} tone="sage" />
-        </span>
-        <div style={{ minWidth: 0 }}>
-          <div
-            style={{
-              fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
-              fontSize: 9.5,
-              fontWeight: 700,
-              letterSpacing: '0.22em',
-              color: 'var(--lavender-ink)',
-              textTransform: 'uppercase',
-              marginBottom: 4,
-            }}
-          >
-            Tip from Pear
-          </div>
-          <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
-            Drag to reorder, eye to hide. Drag hidden rows onto the canvas to add them back. Click anything in the preview to edit it.
-          </div>
-        </div>
-      </div>
+        <Icon name="plus" size={11} color="var(--ink-muted)" /> Add section
+      </button>
         </div>
       )}
     </aside>
