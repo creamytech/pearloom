@@ -1,5 +1,5 @@
 // ──────────────────────────────────────────────────────────────
-// Hero variant barrel — registers all 5 with the block-style
+// Hero variant barrel — registers all 8 with the block-style
 // registry on first import. Importing this file (e.g. from
 // ThemedSiteRenderer) is what makes the variants discoverable to the
 // Inspector picker via getBlockStyles('hero').
@@ -11,6 +11,9 @@ import { HeroPhotoFirst } from './PhotoFirst';
 import { HeroSplit } from './Split';
 import { HeroCarousel } from './Carousel';
 import { HeroMinimal } from './Minimal';
+import { HeroCentered } from './Centered';
+import { HeroFullBleed } from './FullBleed';
+import { HeroTypographic } from './Typographic';
 import type { HeroVariantProps } from './types';
 
 export type { HeroVariantProps } from './types';
@@ -126,13 +129,12 @@ registerBlockStyle<HeroVariantProps>({
   Component: HeroMinimal,
 });
 
-// ── Prototype-only hero variants. Renderer status: registered
-// (picker discoverable). The current dispatch in ThemedSiteRenderer
-// resolves these IDs through getBlockStyle('hero', id); when an
-// unwired id is picked it falls back to 'postcard'. Source:
+// ── Prototype-ported hero variants. Renderer status: SHIPPED —
+// each has a dedicated component file in this directory. Source:
 // ClaudeDesign/pages/themed-site.jsx HeroBlock — these three
 // variants (centered, fullbleed, typographic) are part of the
-// prototype's LAYOUTS.hero catalog.
+// prototype's LAYOUTS.hero catalog and now render as distinct
+// visuals (not Postcard / PhotoFirst / Minimal fallbacks).
 
 const CenteredPreview = (
   <svg viewBox="0 0 64 40" width="100%" height="100%">
@@ -174,31 +176,27 @@ registerBlockStyle<HeroVariantProps>({
   blockType: 'hero',
   id: 'centered',
   label: 'Centered',
-  description: 'Names centered, gold hairlines top and bottom, photo cluster underneath.',
+  description: 'Names centered, gold hairline accent, flat photo row underneath.',
   preview: CenteredPreview,
-  // Falls back to the closest production variant until a dedicated
-  // renderer is wired. Postcard is the editorial-centered match.
-  Component: HeroPostcard,
+  Component: HeroCentered,
 });
 
 registerBlockStyle<HeroVariantProps>({
   blockType: 'hero',
   id: 'fullbleed',
   label: 'Full-bleed',
-  description: 'Edge-to-edge cover photo with overlaid names and date.',
+  description: 'Edge-to-edge cover photo, center-anchored type, single CTA.',
   preview: FullBleedPreview,
-  // Falls back to photo-first until the dedicated variant ships.
-  Component: HeroPhotoFirst,
+  Component: HeroFullBleed,
 });
 
 registerBlockStyle<HeroVariantProps>({
   blockType: 'hero',
   id: 'typographic',
   label: 'Typographic',
-  description: 'Oversized stacked names — display type as the hero.',
+  description: 'Stacked oversized names with italic connector — type as hero.',
   preview: TypographicPreview,
-  // Falls back to minimal (type-only) until the dedicated variant ships.
-  Component: HeroMinimal,
+  Component: HeroTypographic,
 });
 
 // Ensure side-effect registration on import even if tree-shaking

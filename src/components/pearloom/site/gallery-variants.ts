@@ -113,10 +113,19 @@ registerBlockStyle({
 
 // ── Prototype variants — extend the existing trio (mosaic / strip
 // / wall) with the four the prototype's LAYOUTS.gallery declares.
-// Renderer status: registered (picker discoverable, fall back to
-// the editor's existing gallery variant until each gets a
-// dedicated renderer). Source: ClaudeDesign/shared/site-config.jsx
+// Renderer status: SHIPPED. Each variant has a dedicated render
+// branch in ThemedGallery (src/components/pearloom/site/
+// ThemedSiteRenderer.tsx) keyed off manifest.blockVariants?.
+// gallery?.style. Source: ClaudeDesign/shared/site-config.jsx
 // LAYOUTS.gallery + the GalleryBlock renderer in themed-site.jsx.
+//
+// Geometry per variant:
+//   • grid      — auto-fit 1:1 tiles at minmax(120px, 1fr).
+//   • masonry   — CSS columns waterfall, 4-up desktop, varied
+//                 aspect ratios per row so the grid reads natural.
+//   • slideshow — 16:9 hero on top + 6-up 1:1 thumbnail strip.
+//   • polaroid  — cream "card" wrap with per-tile rotation on a
+//                 flex wrap row, capped at 8 tiles for legibility.
 
 function GridPreview() {
   return createElement(

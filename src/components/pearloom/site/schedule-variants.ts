@@ -18,7 +18,15 @@
 // ──────────────────────────────────────────────────────────────
 
 import { registerBlockStyle } from '@/lib/block-engine/block-styles';
-import { createElement } from 'react';
+import { createElement, type ComponentType } from 'react';
+// Real variant Components — each renders a visually distinct
+// layout that honors the active Edition / Kit CSS vars and
+// supports inline edits via EditableText / EditableField.
+// Source: ClaudeDesign/shared/kits.jsx KSchedule + the
+// ScheduleBlock dispatcher in ClaudeDesign/pages/themed-site.jsx.
+import { ScheduleCards } from './schedule-variants/Cards';
+import { ScheduleList } from './schedule-variants/List';
+import { ScheduleRunOfShow } from './schedule-variants/RunOfShow';
 
 function NoopScheduleComponent(): null {
   return null;
@@ -66,7 +74,7 @@ registerBlockStyle({
   label: 'Run of show',
   description: 'Vertical timeline rail with a dot per event — the classic flow.',
   preview: createElement(RunOfShowPreview),
-  Component: NoopScheduleComponent,
+  Component: ScheduleRunOfShow,
 });
 
 // ── Prototype variants. Renderer status: registered (picker
@@ -266,17 +274,25 @@ function TimelinePreview() {
   );
 }
 
+// Per-variant Component dispatch. `cards`, `list`, and `run-of-show`
+// have dedicated implementations under ./schedule-variants/*; the
+// remaining variants (timeline, stepper, numbered) are dispatched by
+// kitId directly in ThemedSiteRenderer's ThemedSchedule and stay
+// Noop here so they're picker-discoverable without a duplicate
+// implementation. As each gets extracted in a future session, swap
+// the Noop for the real Component on this map.
 const PROTOTYPE_SCHEDULE_VARIANTS: Array<{
   id: string;
   label: string;
   description: string;
   preview: () => ReturnType<typeof createElement>;
+  Component: ComponentType<any>;
 }> = [
-  { id: 'cards',    label: 'Cards',    description: 'Grid of event cards — time, title, blurb per tile.', preview: CardsPreview },
-  { id: 'list',     label: 'List',     description: 'Rows of time / title / detail with a hairline between each.', preview: ListPreview },
-  { id: 'timeline', label: 'Timeline', description: 'Vertical rail with a dot per event.', preview: TimelinePreview },
-  { id: 'stepper',  label: 'Stepper',  description: 'Horizontal numbered dots — like a recipe or progress bar.', preview: StepperPreview },
-  { id: 'numbered', label: 'Numbered', description: 'Oversized 01, 02, 03 down the left column.', preview: NumberedPreview },
+  { id: 'cards',    label: 'Cards',    description: 'Grid of event cards — time, title, blurb per tile.',                         preview: CardsPreview,    Component: ScheduleCards },
+  { id: 'list',     label: 'List',     description: 'Rows of time / title / detail with a hairline between each.',                 preview: ListPreview,     Component: ScheduleList },
+  { id: 'timeline', label: 'Timeline', description: 'Vertical rail with a dot per event.',                                         preview: TimelinePreview, Component: NoopScheduleComponent },
+  { id: 'stepper',  label: 'Stepper',  description: 'Horizontal numbered dots — like a recipe or progress bar.',                   preview: StepperPreview,  Component: NoopScheduleComponent },
+  { id: 'numbered', label: 'Numbered', description: 'Oversized 01, 02, 03 down the left column.',                                  preview: NumberedPreview, Component: NoopScheduleComponent },
 ];
 
 for (const v of PROTOTYPE_SCHEDULE_VARIANTS) {
@@ -286,7 +302,7 @@ for (const v of PROTOTYPE_SCHEDULE_VARIANTS) {
     label: v.label,
     description: v.description,
     preview: createElement(v.preview),
-    Component: NoopScheduleComponent,
+    Component: v.Component,
   });
 }
 

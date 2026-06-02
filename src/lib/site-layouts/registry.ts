@@ -114,10 +114,10 @@ export const LAYOUTS: Record<SectionKey, LayoutVariant[]> = {
 
   // ── TRAVEL ──────────────────────────────────────────────────
   travel: [
-    { id: 'map',      label: 'Map + cards', oneLiner: 'Illustrated map strip with hotel cards underneath.',         status: 'registered' },
+    { id: 'map',      label: 'Map + cards', oneLiner: 'Illustrated map strip with hotel cards underneath.',         status: 'shipped' },
     { id: 'rows',     label: 'Rows',        oneLiner: 'Wide single-column rows — photo left, info right per hotel.', status: 'shipped' },
-    { id: 'table',    label: 'Comparison',  oneLiner: 'Compact table — name, rating, price, distance per row.',     status: 'registered' },
-    { id: 'carousel', label: 'Carousel',    oneLiner: 'Horizontal swipe of hotel cards — fixed 300px per slide.',   status: 'registered' },
+    { id: 'table',    label: 'Comparison',  oneLiner: 'Compact table — name, rating, price, distance per row.',     status: 'shipped' },
+    { id: 'carousel', label: 'Carousel',    oneLiner: 'Horizontal swipe of hotel cards — fixed 300px per slide.',   status: 'shipped' },
   ],
 
   // ── REGISTRY ────────────────────────────────────────────────
@@ -151,9 +151,9 @@ export const LAYOUTS: Record<SectionKey, LayoutVariant[]> = {
   // ── FAQ ─────────────────────────────────────────────────────
   faq: [
     { id: 'accordion', label: 'Accordion',   oneLiner: 'Tappable Q&A rows that expand inline.',                          status: 'shipped' },
-    { id: 'twocol',    label: 'Two column',  oneLiner: 'Side-by-side Q&A pairs in two columns.',                         status: 'registered' },
-    { id: 'numbered',  label: 'Numbered',    oneLiner: 'Numbered list — 01 / 02 / 03 down the left.',                    status: 'registered' },
-    { id: 'cards',     label: 'Cards',       oneLiner: 'Each Q&A as its own padded card in a 2-column grid.',            status: 'registered' },
+    { id: 'twocol',    label: 'Two column',  oneLiner: 'Side-by-side Q&A pairs in two columns.',                         status: 'shipped' },
+    { id: 'numbered',  label: 'Numbered',    oneLiner: 'Numbered list — 01 / 02 / 03 down the left.',                    status: 'shipped' },
+    { id: 'cards',     label: 'Cards',       oneLiner: 'Each Q&A as its own padded card in a 2-column grid.',            status: 'shipped' },
   ],
 };
 

@@ -4,10 +4,11 @@
 // Source: ClaudeDesign/shared/site-config.jsx LAYOUTS.faq +
 // the FaqBlock renderer in ClaudeDesign/pages/themed-site.jsx.
 //
-// Renderer status: the current ThemedSiteRenderer.ThemedFaq
-// implements the 'accordion' layout. Other variants live in the
-// registry for picker discovery; the section renderer falls back
-// to accordion when an unsupported id is picked.
+// Renderer status: ThemedSiteRenderer.ThemedFaq dispatches on
+// manifest.blockVariants.faq.style across all 4 variants. The
+// renderers (FaqList for accordion, FaqTwoCol, FaqNumbered,
+// FaqCards) live alongside ThemedFaq. Each variant produces a
+// visually distinct layout that matches the prototype intent.
 // ─────────────────────────────────────────────────────────────
 
 import { registerBlockStyle } from '@/lib/block-engine/block-styles';

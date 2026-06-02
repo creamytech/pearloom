@@ -19,7 +19,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { checkRateLimit } from '@/lib/rate-limit';
+import { checkRateLimitAsync } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Sign in required.' }, { status: 401 });
   }
 
-  const rate = checkRateLimit(`places-details:${session.user.email}`, PLACES_DETAILS_LIMIT);
+  const rate = await checkRateLimitAsync(`places-details:${session.user.email}`, PLACES_DETAILS_LIMIT);
   if (!rate.allowed) {
     return NextResponse.json(
       { error: 'Too many lookups. Try again shortly.' },

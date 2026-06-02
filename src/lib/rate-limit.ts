@@ -1,8 +1,21 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / lib/rate-limit.ts
+//
 // In-memory sliding-window rate limiter for API routes.
 // Works on serverless (Vercel) with per-instance memory.
-// For production at scale, swap to Redis/Vercel KV.
+//
+// For multi-region production we ALSO ship a Redis-backed
+// limiter in ./rate-limit-redis.ts that uses Upstash when
+// UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN are set.
+// Callers that need multi-region correctness should import
+// `checkRateLimitAsync` (or the explicit `checkRateLimitRedis`)
+// from this file — it's re-exported below for convenience and
+// transparently falls back to the in-memory path when the
+// Upstash env vars aren't configured.
+//
+// Public signature for checkRateLimit (sync, in-memory) is
+// intentionally unchanged so the 80+ existing callers keep
+// working untouched.
 // ─────────────────────────────────────────────────────────────
 
 interface RateLimitEntry {
@@ -224,3 +237,9 @@ export const RATE_LIMITS = {
   /** Pear messages — 15 per month for free users (monthly window) */
   pearMessages: { max: PEAR_MONTHLY_LIMIT, windowMs: 30 * 24 * 60 * 60 * 1000 },
 } as const;
+
+// ─── Multi-region (Upstash Redis) re-exports ────────────────
+// Convenience re-exports so callers can keep a single import:
+//   import { checkRateLimitAsync } from '@/lib/rate-limit';
+// and get the Redis path automatically when env vars are set.
+export { checkRateLimitAsync, checkRateLimitRedis, isRedisRateLimitEnabled } from './rate-limit-redis';

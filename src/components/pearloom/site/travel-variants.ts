@@ -4,14 +4,17 @@
 // Source: ClaudeDesign/shared/site-config.jsx LAYOUTS.travel +
 // the TravelBlock renderer in ClaudeDesign/pages/themed-site.jsx.
 //
-// Renderer status: the current ThemedSiteRenderer.ThemedTravel
-// renders the 'rows' variant only. Other variants live in the
-// registry so the picker can show them; renderer falls back to
-// rows when an unsupported id is picked.
+// Renderer status: ThemedSiteRenderer.ThemedTravel dispatches on
+// `manifest.blockVariants.travel.style` and ships all 4 variants
+// (rows / map / table / carousel). The registry entries below
+// drive the picker — each Component is a Noop because the actual
+// renderers live inside ThemedTravel (they need access to many
+// shared helpers — kitCardStyle, EditableText, makePatchHotel,
+// ThemedSectionHead — that aren't worth lifting into separate
+// files). The picker only reads `.preview`; it doesn't render
+// `.Component`.
 //
-// Phase 2+ will extend ThemedTravel to dispatch on variant id +
-// add the map strip / comparison table / carousel renderers. The
-// rich hotel data shape (stars, reviews, price, distance,
+// The rich hotel data shape (stars, reviews, price, distance,
 // amenities, blurb, room-block code) is captured below in
 // HotelEnriched — consumers can extend manifest.travelInfo.hotels
 // entries with these optional fields without breaking the

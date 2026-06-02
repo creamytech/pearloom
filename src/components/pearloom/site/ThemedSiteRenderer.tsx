@@ -133,9 +133,10 @@ import './hero-variants';
    sites are unaffected. */
 import './story-variants';
 import './schedule-variants';
-import './details-variants';
+import { getDetailsVariantComponent } from './details-variants';
 import './travel-variants';
 import './registry-variants';
+import { renderRegistryVariant } from './registry-variants';
 import './rsvp-variants';
 import './faq-variants';
 
@@ -2982,6 +2983,13 @@ function ThemedDetails({ manifest, motif, editMode, onEditField }: { manifest: S
   const kit = (manifest.kitId ?? 'classic') as
     | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal'
     | 'arch' | 'stamp' | 'deco';
+  /* Variant dispatch — host-pick wins over kit-based render. When
+     manifest.blockVariants.details.style names a registered variant
+     (tiles / iconrow / list / accordion / bento), render its
+     dedicated Component; otherwise fall through to the kit dispatch
+     so existing sites keep their current visual. */
+  const detailsVariantId = (manifest.blockVariants?.details?.style as string | undefined);
+  const DetailsVariant = getDetailsVariantComponent(detailsVariantId);
   return (
     <section
       id="details"
@@ -2994,12 +3002,18 @@ function ThemedDetails({ manifest, motif, editMode, onEditField }: { manifest: S
       <SectionBackground manifest={manifest} sectionId="details" />
       <MotifScatter motif={motif} density="sparse" />
       <ThemedSectionHead eyebrow="What you need to know" title="The day," italic="in details" manifest={manifest} sectionKey="details" />
-      {kit === 'ticket'    && <DetailsTicket items={items} onEditField={onEditField} />}
-      {kit === 'plate'     && <DetailsPlate items={items} onEditField={onEditField} />}
-      {kit === 'scrapbook' && <DetailsScrapbook items={items} onEditField={onEditField} />}
-      {kit === 'index'     && <DetailsIndex items={items} onEditField={onEditField} />}
-      {kit === 'minimal'   && <DetailsMinimal items={items} onEditField={onEditField} />}
-      {kit === 'classic'   && <DetailsClassic items={items} onEditField={onEditField} />}
+      {DetailsVariant ? (
+        <DetailsVariant items={items} onEditField={onEditField} />
+      ) : (
+        <>
+          {kit === 'ticket'    && <DetailsTicket items={items} onEditField={onEditField} />}
+          {kit === 'plate'     && <DetailsPlate items={items} onEditField={onEditField} />}
+          {kit === 'scrapbook' && <DetailsScrapbook items={items} onEditField={onEditField} />}
+          {kit === 'index'     && <DetailsIndex items={items} onEditField={onEditField} />}
+          {kit === 'minimal'   && <DetailsMinimal items={items} onEditField={onEditField} />}
+          {kit === 'classic'   && <DetailsClassic items={items} onEditField={onEditField} />}
+        </>
+      )}
     </section>
   );
 }
@@ -4013,6 +4027,433 @@ function makePatchHotel(
   };
 }
 
+/* Shared hotel-card content used by `rows`, `map`, and `carousel`
+ * variants. Encapsulates the photo block + name + rating /
+ * price line + distance + blurb + amenity chips + Book CTA so each
+ * variant just sets up the outer container (single column, 2-col
+ * grid, or horizontal swipe) without re-deriving fields. */
+function ThemedHotelCard({
+  hotel,
+  index,
+  kit,
+  onEditField,
+  compact,
+}: {
+  hotel: NonNullable<StoryManifest['travelInfo']>['hotels'][number];
+  index: number;
+  kit: string;
+  onEditField?: FieldEditor;
+  /** `true` for carousel — narrower card, photo on top instead of left. */
+  compact?: boolean;
+}) {
+  const extra = hotel as unknown as {
+    distance?: string;
+    photoUrl?: string;
+    rating?: number;
+    ratingCount?: number;
+    amenities?: string;
+    priceLevel?: string;
+    description?: string;
+    notes?: string;
+  };
+  const distance = extra.distance;
+  const photoUrl = extra.photoUrl;
+  const rating = typeof extra.rating === 'number' ? extra.rating : undefined;
+  const ratingCount = extra.ratingCount;
+  const priceTier = extra.priceLevel;
+  const amenityChips = (extra.amenities ?? '')
+    .split(/\s·\s|,\s?/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+  const blurb = extra.description || extra.notes;
+  const tonePalette = [
+    'var(--peach-bg, rgba(198,112,61,0.18))',
+    'color-mix(in oklab, var(--peach-ink, #C6703D) 12%, var(--paper, #F5EFE2))',
+    'color-mix(in oklab, var(--peach-ink, #C6703D) 22%, var(--paper, #F5EFE2))',
+  ];
+  const patch = makePatchHotel(onEditField, (hotel as { id?: string }).id, index);
+  const photoStyle: React.CSSProperties = photoUrl
+    ? { backgroundImage: `url(${photoUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : { background: tonePalette[index % tonePalette.length] };
+  return (
+    <div
+      className="pl8-hotel-row"
+      style={{
+        ...kitCardStyle(kit, index),
+        padding: compact ? 0 : 14,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: compact ? 0 : 12,
+        overflow: 'hidden',
+      }}
+    >
+      {compact ? (
+        // Carousel layout — photo banner on top, content below.
+        <>
+          <div style={{ aspectRatio: '16/9', width: '100%', ...photoStyle }} />
+          <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+              <EditableText
+                as="div"
+                value={hotel.name ?? ''}
+                onSave={patch('name')}
+                ariaLabel={`Hotel ${index + 1} name`}
+                maxLength={140}
+                placeholder="Hotel name"
+                style={{
+                  fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                  fontWeight: 'var(--pl-display-wght, 600)',
+                  fontSize: 19,
+                  color: 'var(--ink, #0E0D0B)',
+                  lineHeight: 1.15,
+                  flex: 1,
+                  minWidth: 0,
+                }}
+              />
+              {priceTier && (
+                <span style={{ fontSize: 12.5, color: 'var(--ink-muted, #6F6557)', fontWeight: 700 }}>
+                  {priceTier}
+                </span>
+              )}
+            </div>
+            {(typeof rating === 'number' || distance) && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 7,
+                  fontSize: 12,
+                  color: 'var(--ink-soft, #3A332C)',
+                  flexWrap: 'wrap',
+                }}
+              >
+                {typeof rating === 'number' && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Icon
+                        key={n}
+                        name="star"
+                        size={11}
+                        color={n <= Math.round(rating) ? 'var(--gold, #B8935A)' : 'var(--cream-3, #D8CFB8)'}
+                      />
+                    ))}
+                    <b style={{ marginLeft: 4, color: 'var(--ink, #0E0D0B)' }}>{rating.toFixed(1)}</b>
+                    {ratingCount ? (
+                      <span style={{ color: 'var(--ink-muted, #6F6557)' }}> ({ratingCount.toLocaleString()})</span>
+                    ) : null}
+                  </span>
+                )}
+                {distance && typeof rating === 'number' && (
+                  <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--ink-muted, #6F6557)' }} />
+                )}
+                {distance && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    <Icon name="pin" size={11} color="var(--peach-ink, #C6703D)" /> {distance}
+                  </span>
+                )}
+              </div>
+            )}
+            {(blurb || onEditField) && (
+              <EditableField
+                as="div"
+                context={`Hotel ${index + 1} description`}
+                value={blurb ?? ''}
+                onSave={patch('description')}
+                multiline
+                maxLength={500}
+                placeholder="Add a short editorial line about this hotel…"
+                ariaLabel={`Hotel ${index + 1} description`}
+                style={{ fontSize: 12.5, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.5 }}
+              />
+            )}
+            {amenityChips.length > 0 && (
+              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                {amenityChips.map((a) => (
+                  <span
+                    key={a}
+                    style={{
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      color: 'var(--sage-deep, #5C6B3F)',
+                      background: 'var(--sage-tint, rgba(92,107,63,0.10))',
+                      padding: '3px 8px',
+                      borderRadius: 999,
+                      border: '1px solid rgba(92,107,63,0.18)',
+                    }}
+                  >
+                    {a}
+                  </span>
+                ))}
+              </div>
+            )}
+            {hotel.bookingUrl && (
+              <a
+                href={hotel.bookingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  alignSelf: 'flex-start',
+                  gap: 5,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: 'var(--peach-ink, #C6703D)',
+                  textDecoration: 'none',
+                }}
+              >
+                Book <Icon name="arrow-ur" size={11} color="var(--peach-ink, #C6703D)" />
+              </a>
+            )}
+          </div>
+        </>
+      ) : (
+        // Default (rows / map) — 84x84 photo block on the left.
+        <>
+          <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+            <div
+              style={{
+                width: 84,
+                height: 84,
+                flexShrink: 0,
+                borderRadius: 'var(--pl-card-radius, 8px)',
+                ...photoStyle,
+              }}
+            />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <EditableText
+                as="div"
+                value={hotel.name ?? ''}
+                onSave={patch('name')}
+                ariaLabel={`Hotel ${index + 1} name`}
+                maxLength={140}
+                placeholder="Hotel name"
+                style={{
+                  fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                  fontWeight: 'var(--pl-display-wght, 600)',
+                  fontSize: 19,
+                  color: 'var(--ink, #0E0D0B)',
+                  lineHeight: 1.15,
+                }}
+              />
+              {(typeof rating === 'number' || priceTier) && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 7,
+                    marginTop: 4,
+                    fontSize: 12,
+                    color: 'var(--ink-soft, #3A332C)',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  {typeof rating === 'number' && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <Icon
+                          key={n}
+                          name="star"
+                          size={11}
+                          color={n <= Math.round(rating) ? 'var(--gold, #B8935A)' : 'var(--cream-3, #D8CFB8)'}
+                        />
+                      ))}
+                      <b style={{ marginLeft: 4, color: 'var(--ink, #0E0D0B)' }}>{rating.toFixed(1)}</b>
+                      {ratingCount ? (
+                        <span style={{ color: 'var(--ink-muted, #6F6557)' }}>
+                          {' '}({ratingCount.toLocaleString()})
+                        </span>
+                      ) : null}
+                    </span>
+                  )}
+                  {priceTier && (
+                    <>
+                      {typeof rating === 'number' && <span style={{ color: 'var(--ink-muted, #6F6557)' }}>·</span>}
+                      <span style={{ fontWeight: 700 }}>{priceTier}</span>
+                    </>
+                  )}
+                </div>
+              )}
+              {(distance || hotel.address) && (
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--ink-muted, #6F6557)',
+                    marginTop: 3,
+                    lineHeight: 1.4,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <Icon name="pin" size={10} color="var(--ink-muted, #6F6557)" />
+                  {distance ?? hotel.address}
+                </div>
+              )}
+              {hotel.bookingUrl && (
+                <a
+                  href={hotel.bookingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    marginTop: 7,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: 'var(--peach-ink, #C6703D)',
+                    textDecoration: 'none',
+                  }}
+                >
+                  Book <Icon name="arrow-ur" size={11} color="var(--peach-ink, #C6703D)" />
+                </a>
+              )}
+            </div>
+          </div>
+          {(blurb || onEditField) && (
+            <EditableField
+              as="div"
+              context={`Hotel ${index + 1} description`}
+              value={blurb ?? ''}
+              onSave={patch('description')}
+              multiline
+              maxLength={500}
+              placeholder="Add a short editorial line about this hotel…"
+              ariaLabel={`Hotel ${index + 1} description`}
+              style={{ fontSize: 12.5, color: 'var(--ink-soft, #3A332C)', lineHeight: 1.5 }}
+            />
+          )}
+          {amenityChips.length > 0 && (
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+              {amenityChips.map((a) => (
+                <span
+                  key={a}
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 600,
+                    color: 'var(--sage-deep, #5C6B3F)',
+                    background: 'var(--sage-tint, rgba(92,107,63,0.10))',
+                    padding: '3px 8px',
+                    borderRadius: 999,
+                    border: '1px solid rgba(92,107,63,0.18)',
+                  }}
+                >
+                  {a}
+                </span>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+/* Illustrated map strip used by the `map` and `carousel` travel
+ * variants. Pure decorative CSS composition — checker grid + two
+ * tilted accent "roads" + three teardrop pins, capped by a place
+ * label in the corner. Mirrors the prototype's map block in
+ * themed-site.jsx TravelBlock (lines 604-617). Honours the active
+ * Edition's accent through var(--accent) / var(--peach-ink). */
+function ThemedTravelMapStrip({ place }: { place: string }) {
+  const pins: Array<{ left: string; top: string; icon: 'home' | 'heart-icon'; color: string }> = [
+    { left: '28%', top: '30%', icon: 'heart-icon', color: 'var(--peach-ink, #C6703D)' },
+    { left: '52%', top: '58%', icon: 'home', color: 'var(--accent, #5C6B3F)' },
+    { left: '72%', top: '38%', icon: 'home', color: 'var(--accent, #5C6B3F)' },
+  ];
+  return (
+    <div
+      style={{
+        position: 'relative',
+        height: 150,
+        borderRadius: 'var(--pl-card-radius, 14px)',
+        overflow: 'hidden',
+        border: '1px solid var(--line, var(--cream-3, #D8CFB8))',
+        marginBottom: 18,
+      }}
+    >
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'linear-gradient(135deg, color-mix(in oklab, var(--accent, #5C6B3F) 12%, var(--card, #FBF7EE)), color-mix(in oklab, var(--peach-ink, #C6703D) 16%, var(--card, #FBF7EE)))',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage:
+            'repeating-linear-gradient(0deg, var(--line-soft, rgba(14,13,11,0.08)) 0 1px, transparent 1px 30px), repeating-linear-gradient(90deg, var(--line-soft, rgba(14,13,11,0.08)) 0 1px, transparent 1px 30px)',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          top: 40,
+          left: '18%',
+          width: 130,
+          height: 9,
+          background: 'color-mix(in oklab, var(--accent, #5C6B3F) 35%, transparent)',
+          borderRadius: 5,
+          transform: 'rotate(16deg)',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 34,
+          right: '20%',
+          width: 160,
+          height: 9,
+          background: 'color-mix(in oklab, var(--accent, #5C6B3F) 30%, transparent)',
+          borderRadius: 5,
+          transform: 'rotate(-10deg)',
+        }}
+      />
+      {pins.map((p, i) => (
+        <div key={i} style={{ position: 'absolute', left: p.left, top: p.top }}>
+          <span
+            style={{
+              display: 'grid',
+              placeItems: 'center',
+              width: 28,
+              height: 28,
+              borderRadius: '50% 50% 50% 0',
+              background: p.color,
+              transform: 'rotate(-45deg)',
+              boxShadow: '0 3px 8px rgba(0,0,0,0.22)',
+            }}
+          >
+            <span style={{ transform: 'rotate(45deg)', display: 'inline-flex' }}>
+              <Icon name={p.icon} size={13} color="var(--paper, #F5EFE2)" />
+            </span>
+          </span>
+        </div>
+      ))}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 10,
+          left: 12,
+          fontSize: 11,
+          fontWeight: 700,
+          color: 'var(--ink, #0E0D0B)',
+          background: 'var(--card, #FBF7EE)',
+          padding: '3px 10px',
+          borderRadius: 999,
+          boxShadow: '0 4px 10px rgba(0,0,0,0.10)',
+        }}
+      >
+        {place}
+      </div>
+    </div>
+  );
+}
+
 function ThemedTravel({ manifest, motif, editMode, onEditField }: { manifest: StoryManifest; motif: MotifKind; editMode?: boolean; onEditField?: FieldEditor }) {
   const hotels = manifest.travelInfo?.hotels ?? [];
   if (hotels.length === 0) {
@@ -4034,6 +4475,30 @@ function ThemedTravel({ manifest, motif, editMode, onEditField }: { manifest: St
   // shape (panel writes both). Block code renders as a small pill
   // under the section head when present.
   const travelMeta = (manifest as unknown as { travel?: { blockCode?: string } }).travel ?? {};
+
+  /* Variant dispatch — reads manifest.blockVariants.travel.style
+     with a `rows` default. Each variant lays out the hotels list
+     differently using the shared ThemedHotelCard (rows / map /
+     carousel) or a dedicated compact row (table). Mirrors the
+     prototype's TravelBlock in themed-site.jsx (~line 572) which
+     switches between 'table' and the card-grid layout with an
+     optional map strip + carousel mode. */
+  type TravelVariant = 'rows' | 'map' | 'table' | 'carousel';
+  const travelVariant: TravelVariant = (() => {
+    const raw = (manifest.blockVariants?.travel?.style as string | undefined) ?? 'rows';
+    const known: TravelVariant[] = ['rows', 'map', 'table', 'carousel'];
+    return (known.includes(raw as TravelVariant) ? raw : 'rows') as TravelVariant;
+  })();
+
+  /* Place label for the map strip. Prefer logistics city when set;
+     falls through to venue + the first hotel's address so the pill
+     never reads 'undefined'. */
+  const placeLabel =
+    ((manifest.logistics as unknown as { city?: string })?.city) ??
+    manifest.logistics?.venue ??
+    (hotels[0]?.address as string | undefined) ??
+    'Find us here';
+
   return (
     <section
       id="travel"
@@ -4074,88 +4539,41 @@ function ThemedTravel({ manifest, motif, editMode, onEditField }: { manifest: St
           </span>
         </div>
       )}
-      {/* Port of prototype's TravelBlock (themed-site.jsx ~line
-          389): 2-col grid, each card 14px padding flex layout
-          with an 84px-square photo placeholder + content block.
-          Photo placeholder uses a tone wash so each hotel reads
-          visually distinct even without a real image. Booking
-          CTA is INLINE (Book ↗) not a pill. */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: 16,
-          maxWidth: 780,
-          margin: '0 auto',
-        }}
-      >
-        {hotels.map((h, i) => {
-          const extra = h as unknown as {
-            distance?: string;
-            photoUrl?: string;
-            rating?: number;
-            ratingCount?: number;
-            amenities?: string;
-            priceLevel?: string;
-            description?: string;
-            notes?: string;
-          };
-          const distance = extra.distance;
-          const photoUrl = extra.photoUrl;
-          const rating = typeof extra.rating === 'number' ? extra.rating : undefined;
-          const ratingCount = extra.ratingCount;
-          const priceTier = extra.priceLevel;
-          // Amenities split on ' · ' (matches deriveAmenities +
-          // map-search adder); each token becomes a chip.
-          const amenityChips = (extra.amenities ?? '')
-            .split(/\s·\s|,\s?/)
-            .map((s) => s.trim())
-            .filter(Boolean)
-            .slice(0, 4);
-          // Editorial line — prefer description (Claude blurb /
-          // map-search blurb) over the legacy notes channel.
-          const blurb = extra.description || extra.notes;
-          // Tone block fallback when no photo — cycles through the
-          // edition's accent tones so each card is distinct.
-          const tonePalette = [
-            'var(--peach-bg, rgba(198,112,61,0.18))',
-            'color-mix(in oklab, var(--peach-ink, #C6703D) 12%, var(--paper, #F5EFE2))',
-            'color-mix(in oklab, var(--peach-ink, #C6703D) 22%, var(--paper, #F5EFE2))',
-          ];
-          return (
-            <div
-              key={i}
-              className="pl8-hotel-row"
-              style={{
-                ...kitCardStyle(kit, i),
-                padding: 14,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 12,
-              }}
-            >
-              <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-                {/* Photo placeholder square — 84x84 with rounded
-                    corners. Real photo when manifest provides one,
-                    tone block otherwise. */}
-                <div
-                  style={{
-                    width: 84,
-                    height: 84,
-                    flexShrink: 0,
-                    borderRadius: 'var(--pl-card-radius, 8px)',
-                    ...(photoUrl
-                      ? {
-                          backgroundImage: `url(${photoUrl})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                        }
-                      : {
-                          background: tonePalette[i % tonePalette.length],
-                        }),
-                  }}
-                />
-                <div style={{ flex: 1, minWidth: 0 }}>
+
+      {travelVariant === 'table' ? (
+        // Comparison table — name+amenity sub | stars | price | distance.
+        // 4-col grid, one row per hotel, hairline separators. No
+        // photos — this variant reads as a quick at-a-glance
+        // comparison sheet like a travel agent's printout. Port of
+        // TravelBlock's table branch in themed-site.jsx (~line 579-596).
+        <div style={{ maxWidth: 680, marginInline: 'auto' }}>
+          {hotels.map((h, i) => {
+            const extra = h as unknown as {
+              distance?: string;
+              rating?: number;
+              amenities?: string;
+              priceLevel?: string;
+            };
+            const amenitySub = (extra.amenities ?? '')
+              .split(/\s·\s|,\s?/)
+              .map((s) => s.trim())
+              .filter(Boolean)
+              .slice(0, 2)
+              .join(' · ');
+            const rating = typeof extra.rating === 'number' ? extra.rating : undefined;
+            return (
+              <div
+                key={i}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1.4fr auto auto auto',
+                  gap: 14,
+                  alignItems: 'center',
+                  padding: '14px 4px',
+                  borderBottom: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+                }}
+              >
+                <div>
                   <EditableText
                     as="div"
                     value={h.name ?? ''}
@@ -4166,140 +4584,115 @@ function ThemedTravel({ manifest, motif, editMode, onEditField }: { manifest: St
                     style={{
                       fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
                       fontWeight: 'var(--pl-display-wght, 600)',
-                      fontSize: 19,
+                      fontSize: 18,
                       color: 'var(--ink, #0E0D0B)',
                       lineHeight: 1.15,
                     }}
                   />
-                  {/* Rating + reviews + price tier — single
-                      summary line under the name. Each fragment
-                      is conditional so a host who skipped a row
-                      still reads cleanly. */}
-                  {(typeof rating === 'number' || priceTier) && (
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 7,
-                        marginTop: 4,
-                        fontSize: 12,
-                        color: 'var(--ink-soft, #3A332C)',
-                        flexWrap: 'wrap',
-                      }}
-                    >
-                      {typeof rating === 'number' && (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-                          {[1, 2, 3, 4, 5].map((n) => (
-                            <Icon
-                              key={n}
-                              name="star"
-                              size={11}
-                              color={
-                                n <= Math.round(rating)
-                                  ? 'var(--gold, #B8935A)'
-                                  : 'var(--cream-3, #D8CFB8)'
-                              }
-                            />
-                          ))}
-                          <b style={{ marginLeft: 4, color: 'var(--ink, #0E0D0B)' }}>
-                            {rating.toFixed(1)}
-                          </b>
-                          {ratingCount ? (
-                            <span style={{ color: 'var(--ink-muted, #6F6557)' }}>
-                              {' '}
-                              ({ratingCount.toLocaleString()})
-                            </span>
-                          ) : null}
-                        </span>
-                      )}
-                      {priceTier && (
-                        <>
-                          {typeof rating === 'number' && (
-                            <span style={{ color: 'var(--ink-muted, #6F6557)' }}>·</span>
-                          )}
-                          <span style={{ fontWeight: 700 }}>{priceTier}</span>
-                        </>
-                      )}
+                  {amenitySub && (
+                    <div style={{ fontSize: 12, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>
+                      {amenitySub}
                     </div>
-                  )}
-                  {(distance || h.address) && (
-                    <div
-                      style={{
-                        fontSize: 12,
-                        color: 'var(--ink-muted, #6F6557)',
-                        marginTop: 3,
-                        lineHeight: 1.4,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4,
-                      }}
-                    >
-                      <Icon name="pin" size={10} color="var(--ink-muted, #6F6557)" />
-                      {distance ?? h.address}
-                    </div>
-                  )}
-                  {h.bookingUrl && (
-                    <a
-                      href={h.bookingUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 5,
-                        marginTop: 7,
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: 'var(--peach-ink, #C6703D)',
-                        textDecoration: 'none',
-                      }}
-                    >
-                      Book <Icon name="arrow-ur" size={11} color="var(--peach-ink, #C6703D)" />
-                    </a>
                   )}
                 </div>
-              </div>
-              {(blurb || onEditField) && (
-                <EditableField
-                  as="div"
-                  context={`Hotel ${i + 1} description`}
-                  value={blurb ?? ''}
-                  onSave={makePatchHotel(onEditField, (h as { id?: string }).id, i)('description')}
-                  multiline
-                  maxLength={500}
-                  placeholder="Add a short editorial line about this hotel…"
-                  ariaLabel={`Hotel ${i + 1} description`}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13 }}>
+                  <Icon name="star" size={12} color="var(--gold, #B8935A)" />
+                  <b style={{ color: 'var(--ink, #0E0D0B)' }}>
+                    {typeof rating === 'number' ? rating.toFixed(1) : '—'}
+                  </b>
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--ink-soft, #3A332C)', fontWeight: 600 }}>
+                  {extra.priceLevel ?? '—'}
+                </div>
+                <div
                   style={{
                     fontSize: 12.5,
-                    color: 'var(--ink-soft, #3A332C)',
-                    lineHeight: 1.5,
+                    color: 'var(--peach-ink, #C6703D)',
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    whiteSpace: 'nowrap',
                   }}
-                />
-              )}
-              {amenityChips.length > 0 && (
-                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                  {amenityChips.map((a) => (
-                    <span
-                      key={a}
-                      style={{
-                        fontSize: 10.5,
-                        fontWeight: 600,
-                        color: 'var(--sage-deep, #5C6B3F)',
-                        background: 'var(--sage-tint, rgba(92,107,63,0.10))',
-                        padding: '3px 8px',
-                        borderRadius: 999,
-                        border: '1px solid rgba(92,107,63,0.18)',
-                      }}
-                    >
-                      {a}
-                    </span>
-                  ))}
+                >
+                  <Icon name="pin" size={11} color="var(--peach-ink, #C6703D)" />
+                  {extra.distance ?? (h.address ? 'On site' : '—')}
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : travelVariant === 'carousel' ? (
+        // Horizontal swipe — fixed 300px slides flex-flowing past
+        // the viewport edge. Photos sit on top of each card
+        // (compact mode). The map strip sits ABOVE the carousel as
+        // a banner — the intent mirrors the prototype's "map +
+        // cards in a swipe" feel.
+        <div style={{ position: 'relative', maxWidth: 820, marginInline: 'auto' }}>
+          <ThemedTravelMapStrip place={placeLabel} />
+          <div
+            style={{
+              display: 'flex',
+              gap: 16,
+              overflowX: 'auto',
+              paddingBottom: 6,
+              scrollSnapType: 'x mandatory',
+              WebkitOverflowScrolling: 'touch',
+            }}
+          >
+            {hotels.map((h, i) => (
+              <div
+                key={i}
+                style={{
+                  flex: '0 0 300px',
+                  scrollSnapAlign: 'start',
+                }}
+              >
+                <ThemedHotelCard hotel={h} index={i} kit={kit} onEditField={onEditField} compact />
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : travelVariant === 'map' ? (
+        // Illustrated map strip with hotel cards underneath in a
+        // 2-col grid. Map sits as the section anchor; the cards
+        // are the "pin keys". Cards reuse the standard 84x84 photo
+        // + side content layout so the section reads consistently
+        // with rows.
+        <div style={{ position: 'relative', maxWidth: 820, marginInline: 'auto' }}>
+          <ThemedTravelMapStrip place={placeLabel} />
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: 16,
+            }}
+          >
+            {hotels.map((h, i) => (
+              <ThemedHotelCard key={i} hotel={h} index={i} kit={kit} onEditField={onEditField} />
+            ))}
+          </div>
+        </div>
+      ) : (
+        // Default 'rows' — port of prototype's TravelBlock
+        // card-grid layout (themed-site.jsx ~line 619-644). 2-col
+        // auto-fit grid, each card 14px padding flex layout with
+        // an 84x84 photo placeholder + content block. Booking CTA
+        // is INLINE (Book ↗) not a pill.
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: 16,
+            maxWidth: 780,
+            margin: '0 auto',
+          }}
+        >
+          {hotels.map((h, i) => (
+            <ThemedHotelCard key={i} hotel={h} index={i} kit={kit} onEditField={onEditField} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -4325,6 +4718,18 @@ function ThemedRegistry({ manifest, editMode, onEditField }: { manifest: StoryMa
       />
     );
   }
+
+  /* Variant dispatcher — chips / progress / logowall live in
+     registry-variants.ts. Unknown ids (or the default 'cards' id)
+     fall through to the existing chip-row body below so the
+     shipped layout stays byte-for-byte unchanged. */
+  const variantId = (manifest.blockVariants?.registry?.style as string | undefined) ?? 'cards';
+  const message = reg?.message ?? '';
+  const variantNode =
+    variantId === 'chips' || variantId === 'progress' || variantId === 'logowall'
+      ? renderRegistryVariant(variantId, { manifest, entries, message, editMode, onEditField })
+      : null;
+
   return (
     <section
       id="registry"
@@ -4336,75 +4741,79 @@ function ThemedRegistry({ manifest, editMode, onEditField }: { manifest: StoryMa
     >
       <SectionBackground manifest={manifest} sectionId="registry" />
       <ThemedSectionHead eyebrow="If you're asking" title="Registry," italic="gently" manifest={manifest} sectionKey="registry" />
-      {(reg?.message || onEditField) && (
-        <EditableField
-          as="div"
-          context="Registry note"
-          value={reg?.message ?? ''}
-          onSave={(v) =>
-            onEditField?.((m) => {
-              const r = (m as unknown as { registry?: Record<string, unknown> }).registry ?? {};
-              return {
-                ...m,
-                registry: { ...r, message: v },
-              } as unknown as StoryManifest;
-            })
-          }
-          multiline
-          maxLength={400}
-          placeholder="Add a gentle note about gifts…"
-          ariaLabel="Registry note"
-          style={{
-            fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-            fontStyle: 'italic',
-            fontSize: 17,
-            color: 'var(--ink-soft, #3A332C)',
-            maxWidth: 560,
-            margin: '0 auto 32px',
-            lineHeight: 1.55,
-          }}
-        />
-      )}
-      {/* Registry chips — port of prototype's RegistryBlock (themed-
-          site.jsx ~line 412). Each entry is a small KChip-shaped
-          row, NOT a substantial card; the prototype's intent is
-          that the registry sits as a quiet footnote at the bottom
-          of the site, not as a hero feature. Per-kit treatment
-          inherits via kitCardStyle for chrome consistency. */}
-      <div
-        className="pl8-registry-chips"
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: 12,
-          flexWrap: 'wrap',
-          maxWidth: 720,
-          margin: '0 auto',
-        }}
-      >
-        {entries.map((e, i) => (
-          <a
-            key={i}
-            href={e.url}
-            target="_blank"
-            rel="noopener noreferrer"
+      {variantNode ?? (
+        <>
+          {(reg?.message || onEditField) && (
+            <EditableField
+              as="div"
+              context="Registry note"
+              value={reg?.message ?? ''}
+              onSave={(v) =>
+                onEditField?.((m) => {
+                  const r = (m as unknown as { registry?: Record<string, unknown> }).registry ?? {};
+                  return {
+                    ...m,
+                    registry: { ...r, message: v },
+                  } as unknown as StoryManifest;
+                })
+              }
+              multiline
+              maxLength={400}
+              placeholder="Add a gentle note about gifts…"
+              ariaLabel="Registry note"
+              style={{
+                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                fontStyle: 'italic',
+                fontSize: 17,
+                color: 'var(--ink-soft, #3A332C)',
+                maxWidth: 560,
+                margin: '0 auto 32px',
+                lineHeight: 1.55,
+              }}
+            />
+          )}
+          {/* Registry chips — port of prototype's RegistryBlock (themed-
+              site.jsx ~line 412). Each entry is a small KChip-shaped
+              row, NOT a substantial card; the prototype's intent is
+              that the registry sits as a quiet footnote at the bottom
+              of the site, not as a hero feature. Per-kit treatment
+              inherits via kitCardStyle for chrome consistency. */}
+          <div
+            className="pl8-registry-chips"
             style={{
-              ...kitCardStyle(manifest.kitId ?? 'classic', i),
-              padding: '11px 18px',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              fontSize: 13.5,
-              fontWeight: 600,
-              color: 'var(--ink, #0E0D0B)',
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 12,
+              flexWrap: 'wrap',
+              maxWidth: 720,
+              margin: '0 auto',
             }}
           >
-            <span>{e.name ?? e.label ?? 'Registry'}</span>
-            <Icon name="arrow-ur" size={11} color="var(--peach-ink, #C6703D)" />
-          </a>
-        ))}
-      </div>
+            {entries.map((e, i) => (
+              <a
+                key={i}
+                href={e.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  ...kitCardStyle(manifest.kitId ?? 'classic', i),
+                  padding: '11px 18px',
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 13.5,
+                  fontWeight: 600,
+                  color: 'var(--ink, #0E0D0B)',
+                }}
+              >
+                <span>{e.name ?? e.label ?? 'Registry'}</span>
+                <Icon name="arrow-ur" size={11} color="var(--peach-ink, #C6703D)" />
+              </a>
+            ))}
+          </div>
+        </>
+      )}
     </section>
   );
 }
@@ -4523,11 +4932,22 @@ function ThemedGallery({ manifest, editMode, onEditField }: { manifest: StoryMan
   const editionId = activeEdition.id;
   const frame = themedTileFrameForEdition(editionId);
 
-  /* Variant dispatcher — strip / wall / mosaic. Defaults to
-     mosaic. Read once so all tiles share the same layout. */
-  const galleryVariant = (() => {
+  /* Variant dispatcher — supports all 7 gallery variants. Read
+     once so all tiles share the same layout. Defaults to mosaic
+     when blockVariants is unset or carries an unknown value.
+     Variants:
+       mosaic    — bento grid w/ row+col span pattern (default).
+       wall      — uniform 1:1 tiles, auto-fit 180px min.
+       strip     — horizontal snap-scroll filmstrip.
+       grid      — 6-column uniform 1:1 — wider density than wall.
+       masonry   — CSS-columns waterfall, varied tile heights.
+       slideshow — hero photo on top + 6-up thumbnail strip.
+       polaroid  — scattered tilted polaroid cards on a flex wrap. */
+  type GalleryVariant = 'mosaic' | 'wall' | 'strip' | 'grid' | 'masonry' | 'slideshow' | 'polaroid';
+  const galleryVariant: GalleryVariant = (() => {
     const raw = (manifest.blockVariants?.gallery?.style as string | undefined) ?? 'mosaic';
-    return raw === 'strip' || raw === 'wall' ? raw : 'mosaic';
+    const known: GalleryVariant[] = ['mosaic', 'wall', 'strip', 'grid', 'masonry', 'slideshow', 'polaroid'];
+    return (known.includes(raw as GalleryVariant) ? raw : 'mosaic') as GalleryVariant;
   })();
 
   /* Filmstrip scroller state — desktop chevron affordances fade
@@ -4585,10 +5005,13 @@ function ThemedGallery({ manifest, editMode, onEditField }: { manifest: StoryMan
     wideSpan: i % 7 === 2,
   });
 
-  /* Per-tile renderer — shared across all three variants so every
+  /* Per-tile renderer — shared across all variants so every
      layout gets the same edition-frame + clickability + edit
      dispatch. tileKind drives the variant-specific geometry. */
-  const renderTile = (i: number, tileKind: 'mosaic' | 'wall' | 'strip') => {
+  const renderTile = (
+    i: number,
+    tileKind: 'mosaic' | 'wall' | 'strip' | 'grid' | 'masonry' | 'slideshow-hero' | 'slideshow-thumb' | 'polaroid',
+  ) => {
     const url = photos[i];
     const src = visibleSources[i];
     const onReplace = src && onEditField
@@ -4621,19 +5044,59 @@ function ThemedGallery({ manifest, editMode, onEditField }: { manifest: StoryMan
        tile to 280px width / 320px height so the row reads as a
        filmstrip with snap-scroll points. */
     const spans = mosaicSpans(i);
-    const variantStyle: React.CSSProperties = tileKind === 'mosaic'
-      ? {
-          gridRow: spans.tallSpan ? 'span 2' : 'span 1',
-          gridColumn: spans.wideSpan ? 'span 2' : 'span 1',
-        }
-      : tileKind === 'wall'
-        ? { aspectRatio: '1 / 1', width: '100%' }
-        : {
+    /* Masonry uses a repeating aspect-ratio pattern so each tile
+       takes its own height in the CSS-columns waterfall. Polaroid
+       uses a per-tile rotation so the wall reads as scattered. */
+    const masonryAspects = ['3 / 4', '1 / 1', '4 / 5', '1 / 1', '3 / 4', '1 / 1'];
+    const polaroidRotations = [-3, 2, -1.5, 3, -2, 1.5, -2.5, 2];
+    const variantStyle: React.CSSProperties = (() => {
+      switch (tileKind) {
+        case 'mosaic':
+          return {
+            gridRow: spans.tallSpan ? 'span 2' : 'span 1',
+            gridColumn: spans.wideSpan ? 'span 2' : 'span 1',
+          };
+        case 'wall':
+          return { aspectRatio: '1 / 1', width: '100%' };
+        case 'grid':
+          /* Uniform 6-col tighter density than wall — same square
+             tile but at a denser packing. */
+          return { aspectRatio: '1 / 1', width: '100%' };
+        case 'masonry':
+          /* Waterfall — each tile keeps its column width and
+             takes the assigned aspect ratio. break-inside avoid
+             keeps the tile intact across columns. */
+          return {
+            aspectRatio: masonryAspects[i % masonryAspects.length],
+            width: '100%',
+            breakInside: 'avoid',
+            display: 'block',
+            marginBottom: 9,
+          };
+        case 'slideshow-hero':
+          return { aspectRatio: '16 / 9', width: '100%' };
+        case 'slideshow-thumb':
+          return { aspectRatio: '1 / 1', width: '100%' };
+        case 'polaroid':
+          /* Scattered tilted polaroid card — outer wrapper carries
+             the cream "card" + tilt, the tile inside is the photo
+             itself with a 1:1 aspect. */
+          return { aspectRatio: '1 / 1', width: '100%' };
+        case 'strip':
+        default:
+          return {
             flex: '0 0 280px',
             width: 280,
             height: 320,
             scrollSnapAlign: 'start',
           };
+      }
+    })();
+    /* Polaroid: wrap the tile in a cream card with bottom-padding
+       and rotation. Cards stack on a flex-wrap row so each polaroid
+       sits beside its neighbor. */
+    const polaroidWrap = tileKind === 'polaroid';
+    const polaroidRot = polaroidRotations[i % polaroidRotations.length];
     /* Linen-folder frame has an inset cream-card "mat" with the
        photo sitting inside it (5px padding). For that case the
        frame's background paints the mat, and an inner element
@@ -4697,6 +5160,25 @@ function ThemedGallery({ manifest, editMode, onEditField }: { manifest: StoryMan
         ) : null}
       </div>
     );
+    /* Polaroid: wrap the tile in a tilted cream card so each
+       photo reads as a printed snapshot. Card carries the rotate
+       transform + a subtle drop shadow + extra bottom padding for
+       the "handwritten label" feel. */
+    const wrapped = polaroidWrap ? (
+      <div
+        key={`${tileKind}-${i}-poly`}
+        style={{
+          width: 170,
+          background: 'var(--card, #FBF7EE)',
+          padding: '10px 10px 30px',
+          boxShadow: '0 10px 22px rgba(14,13,11,0.16)',
+          transform: `rotate(${polaroidRot}deg)`,
+          transition: 'transform var(--pl-dur-base, 280ms) var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1))',
+        }}
+      >
+        {tile}
+      </div>
+    ) : tile;
     /* In edit mode wrap with PhotoActionMenu so right-click /
        long-press / hover reveals replace + remove. */
     if (canEdit) {
@@ -4707,10 +5189,11 @@ function ThemedGallery({ manifest, editMode, onEditField }: { manifest: StoryMan
           onReplace={onReplace}
           onRemove={onRemove}
         >
-          {tile}
+          {wrapped}
         </PhotoActionMenu>
       );
     }
+    if (polaroidWrap) return wrapped;
     return tile;
   };
 
@@ -4840,6 +5323,94 @@ function ThemedGallery({ manifest, editMode, onEditField }: { manifest: StoryMan
           }}
         >
           {photos.map((_, i) => renderTile(i, 'mosaic'))}
+        </div>
+      )}
+
+      {galleryVariant === 'grid' && (
+        /* Editorial 6-column 1:1 grid — denser than wall, no
+           gridTemplateColumns auto-fit. Matches the prototype's
+           default GalleryBlock dispatch (6-up uniform squares at
+           ~940 max-width). Responsive: collapses to 3 columns on
+           narrow viewports via auto-fit fallback. */
+        <div
+          className="pl8-gallery-grid-6"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+            gap: 9,
+            maxWidth: 940,
+            margin: '0 auto',
+          }}
+        >
+          {photos.map((_, i) => renderTile(i, 'grid'))}
+        </div>
+      )}
+
+      {galleryVariant === 'masonry' && (
+        /* CSS-columns waterfall — each tile takes its own
+           aspect ratio so the layout reads as natural rather
+           than uniform. 4-column desktop, fallback for narrow
+           viewports via columnCount media. */
+        <div
+          className="pl8-gallery-masonry"
+          style={{
+            columnCount: 4,
+            columnGap: 9,
+            maxWidth: 940,
+            margin: '0 auto',
+          }}
+        >
+          {photos.map((_, i) => renderTile(i, 'masonry'))}
+        </div>
+      )}
+
+      {galleryVariant === 'slideshow' && (
+        /* Hero photo on top, 6-up thumbnail strip beneath.
+           Max-width 760 so the hero reads as a cinema-frame
+           rather than a wall. First photo is the hero; the
+           remaining six form the strip. */
+        <div
+          className="pl8-gallery-slideshow"
+          style={{ maxWidth: 760, margin: '0 auto' }}
+        >
+          {photos.length > 0 && (
+            <div style={{ marginBottom: 9 }}>
+              {renderTile(0, 'slideshow-hero')}
+            </div>
+          )}
+          {photos.length > 1 && (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(6, 1fr)',
+                gap: 8,
+              }}
+            >
+              {photos.slice(1, 7).map((_, idx) => renderTile(idx + 1, 'slideshow-thumb'))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {galleryVariant === 'polaroid' && (
+        /* Scattered tilted polaroids — flex-wrap so each card
+           sits beside its neighbor with handwritten gap. The
+           tile renderer wraps each photo in a cream "card" with
+           per-tile rotation so the row reads as a casual
+           snapshot collage. Capped at 8 to keep the wall
+           legible. */
+        <div
+          className="pl8-gallery-polaroid"
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            gap: 18,
+            maxWidth: 940,
+            margin: '0 auto',
+          }}
+        >
+          {photos.slice(0, 8).map((_, i) => renderTile(i, 'polaroid'))}
         </div>
       )}
 
@@ -4978,6 +5549,313 @@ function ThemedRsvp({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug:
     dietaryTags: m.dietaryTags,
   }));
 
+  /* ── Variant dispatch — reads manifest.blockVariants.rsvp.style.
+     Four variants registered in src/lib/site-layouts/registry.ts:
+       centered (default) — dark CTA section with inset form
+       split             — photo left, content + form right
+       banner            — thin horizontal band w/ pill CTA
+       minimal           — light cream, hairline CTA, no chrome
+     Unknown ids fall through to centered. ── */
+  type RsvpVariant = 'centered' | 'split' | 'banner' | 'minimal';
+  const rsvpVariant: RsvpVariant = (() => {
+    const raw = (manifest.blockVariants?.rsvp?.style as string | undefined) ?? 'centered';
+    const known: RsvpVariant[] = ['centered', 'split', 'banner', 'minimal'];
+    return (known.includes(raw as RsvpVariant) ? raw : 'centered') as RsvpVariant;
+  })();
+
+  /* First chapter photo, for the split variant's left column.
+     Falls back to coverPhoto, then to a placeholder gradient
+     when no imagery has been uploaded yet. */
+  const firstChapterPhoto = manifest.chapters
+    ?.flatMap((c) => (c.images ?? []).map((i) => i.url))
+    .filter(Boolean)[0];
+  const splitPhoto = firstChapterPhoto ?? manifest.coverPhoto ?? undefined;
+
+  /* Foil flag — when on, banner variant promotes to a warm gold
+     gradient (mirrors prototype RsvpBlock's foil branch). */
+  const foil = Boolean((manifest as unknown as { foil?: boolean }).foil);
+
+  /* ── Split variant — photo left, headline + CTA + form right.
+     Lighter background (var(--paper)) so it reads as a cream
+     reply panel against the dark ink coupon next to it. The
+     form sits inline rather than inset so the right column
+     remains the focus. ── */
+  if (rsvpVariant === 'split') {
+    return (
+      <section
+        id="rsvp"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+          alignItems: 'stretch',
+          background: 'var(--paper, #F5EFE2)',
+          color: 'var(--ink, #0E0D0B)',
+          position: 'relative',
+          minHeight: 'calc(420px * var(--pl-density-scale, 1))',
+        }}
+      >
+        <SectionBackground manifest={manifest} sectionId="rsvp" />
+        {/* Left — photo column. Falls back to a soft accent
+            gradient when no chapter imagery exists. */}
+        <div
+          style={{
+            minHeight: 320,
+            background: splitPhoto
+              ? `center / cover no-repeat url("${splitPhoto}")`
+              : 'linear-gradient(135deg, color-mix(in oklab, var(--t-accent, #5C6B3F) 35%, var(--paper, #F5EFE2)) 0%, var(--paper, #F5EFE2) 100%)',
+            position: 'relative',
+          }}
+          aria-hidden={splitPhoto ? undefined : true}
+        />
+        {/* Right — content + form column. */}
+        <div
+          style={{
+            padding: 'calc(52px * var(--pl-density-scale, 1)) clamp(20px, 4vw, 44px)',
+            display: 'grid',
+            alignContent: 'center',
+            gap: 0,
+            textAlign: 'left',
+          }}
+        >
+          {openerNode}
+          <div
+            data-pl-rsvp-urgency={rsvpUrgencyTier}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 11.5,
+              fontWeight: 700,
+              letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
+              textTransform: 'uppercase',
+              color: 'var(--t-accent-ink, var(--ink, #0E0D0B))',
+              marginBottom: 14,
+              padding: rsvpUrgencyTier === 'muted' ? 0 : '8px 14px',
+              borderRadius: rsvpUrgencyTier === 'muted' ? 0 : 'var(--pl-radius-full, 100px)',
+              transition: 'all var(--pl-dur-base, 280ms) var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1))',
+              alignSelf: 'start',
+              ...rsvpUrgencyStyle,
+            }}
+          >
+            {rsvpUrgencyTier === 'urgent' ? 'RSVP TODAY' : (deadline ? `RSVP by ${deadlineStr}` : 'RSVP')}
+          </div>
+          <h2
+            style={{
+              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+              fontSize: 'clamp(34px, 4.5cqw, 48px)',
+              fontWeight: 'var(--pl-display-wght, 600)',
+              margin: '0 0 8px',
+              color: 'var(--ink, #0E0D0B)',
+              lineHeight: 1.02,
+              letterSpacing: '-0.015em',
+            }}
+          >
+            Save your <span style={{ fontStyle: 'italic', opacity: 0.85 }}>seat</span>
+          </h2>
+          <div
+            style={{
+              fontSize: 14,
+              opacity: 0.78,
+              marginBottom: 22,
+              maxWidth: 440,
+              color: 'var(--ink-soft, #3A332C)',
+              fontStyle: 'italic',
+              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+            }}
+          >
+            Ninety seconds. We&apos;ll follow up if anyone forgets.
+          </div>
+          <div style={{ maxWidth: 460 }}>
+            <PresetRsvpForm
+              siteId={siteSlug}
+              preset={rsvpPreset}
+              title=""
+              customMealOptions={customMealOptions.length > 0 ? customMealOptions : undefined}
+            />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  /* ── Banner variant — thin horizontal strip. Eyebrow + title
+     on the left, CTA pill on the right. No inline form — the
+     pill fires the global 'pl-open-rsvp' event so the existing
+     modal/sticky form picks up the request. Foil flag swaps the
+     band to a warm gold gradient. ── */
+  if (rsvpVariant === 'banner') {
+    const fireRsvp = () => {
+      if (typeof window !== 'undefined') {
+        try { window.dispatchEvent(new CustomEvent('pl-open-rsvp')); } catch { /* noop */ }
+      }
+    };
+    return (
+      <section
+        id="rsvp"
+        style={{
+          padding: 'calc(28px * var(--pl-density-scale, 1)) clamp(20px, 4vw, 40px)',
+          background: foil
+            ? 'linear-gradient(135deg, #B8893A 0%, #E6C877 28%, #C9A24B 52%, #F0DDA0 74%, #B8893A 100%)'
+            : 'var(--ink, #0E0D0B)',
+          color: foil ? '#3A2D08' : 'var(--cream, #F5EFE2)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 20,
+          flexWrap: 'wrap',
+          position: 'relative',
+        }}
+      >
+        <SectionBackground manifest={manifest} sectionId="rsvp" />
+        <div style={{ flex: '1 1 auto', minWidth: 220 }}>
+          <div
+            data-pl-rsvp-urgency={rsvpUrgencyTier}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              opacity: foil ? 0.85 : 0.7,
+              marginBottom: 4,
+              ...rsvpUrgencyStyle,
+            }}
+          >
+            {rsvpUrgencyTier === 'urgent' ? 'RSVP TODAY' : (deadline ? `RSVP by ${deadlineStr}` : 'RSVP')}
+          </div>
+          <div
+            style={{
+              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+              fontWeight: 'var(--pl-display-wght, 600)',
+              fontSize: 'clamp(24px, 3.4cqw, 32px)',
+              lineHeight: 1.05,
+              letterSpacing: '-0.015em',
+            }}
+          >
+            Save your <span style={{ fontStyle: 'italic', opacity: 0.85 }}>seat</span>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={fireRsvp}
+          style={{
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '13px 28px',
+            borderRadius: 'var(--pl-radius-full, 100px)',
+            background: foil ? '#3A2D08' : 'var(--cream, #F5EFE2)',
+            color: foil ? '#F0DDA0' : 'var(--ink, #0E0D0B)',
+            fontSize: 14,
+            fontWeight: 700,
+            border: 'none',
+            letterSpacing: '0.02em',
+          }}
+        >
+          RSVP <span aria-hidden style={{ fontSize: 16, lineHeight: 1 }}>→</span>
+        </button>
+      </section>
+    );
+  }
+
+  /* ── Minimal variant — centered cream layout with a hairline
+     divider above the CTA. No dark ground, no chrome — the
+     reply is presented as quiet punctuation. The form is
+     inlined below the headline for guests who do choose to
+     reply directly from the page. ── */
+  if (rsvpVariant === 'minimal') {
+    return (
+      <section
+        id="rsvp"
+        style={{
+          padding: 'calc(56px * var(--pl-density-scale, 1)) 32px',
+          textAlign: 'center',
+          background: 'var(--paper, #F5EFE2)',
+          color: 'var(--ink, #0E0D0B)',
+          position: 'relative',
+        }}
+      >
+        <SectionBackground manifest={manifest} sectionId="rsvp" />
+        {openerNode}
+        <div
+          data-pl-rsvp-urgency={rsvpUrgencyTier}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            fontSize: 11.5,
+            fontWeight: 700,
+            letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
+            textTransform: 'uppercase',
+            color: 'var(--ink-muted, #6F6557)',
+            marginBottom: 14,
+            padding: rsvpUrgencyTier === 'muted' ? 0 : '8px 14px',
+            borderRadius: rsvpUrgencyTier === 'muted' ? 0 : 'var(--pl-radius-full, 100px)',
+            transition: 'all var(--pl-dur-base, 280ms) var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1))',
+            ...rsvpUrgencyStyle,
+          }}
+        >
+          {rsvpUrgencyTier === 'urgent' ? 'RSVP TODAY' : (deadline ? `RSVP by ${deadlineStr}` : 'RSVP')}
+        </div>
+        <h2
+          style={{
+            fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+            fontSize: 'clamp(38px, 5.5cqw, 52px)',
+            fontWeight: 'var(--pl-display-wght, 600)',
+            margin: '0 0 12px',
+            color: 'var(--ink, #0E0D0B)',
+            lineHeight: 1.02,
+            letterSpacing: '-0.015em',
+          }}
+        >
+          Save your <span style={{ fontStyle: 'italic', opacity: 0.85 }}>seat</span>
+        </h2>
+        {/* Hairline rule — gold accent, the minimal variant's
+            signature visual punctuation. */}
+        <div
+          aria-hidden
+          style={{
+            width: 80,
+            height: 1,
+            margin: '20px auto',
+            background: 'var(--t-accent, var(--gold, #B8935A))',
+            opacity: 0.55,
+          }}
+        />
+        <div
+          style={{
+            fontSize: 14,
+            opacity: 0.7,
+            marginBottom: 28,
+            fontStyle: 'italic',
+            fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+            color: 'var(--ink-soft, #3A332C)',
+          }}
+        >
+          Ninety seconds. We&apos;ll follow up if anyone forgets.
+        </div>
+        <div
+          style={{
+            maxWidth: 560,
+            margin: '0 auto',
+            textAlign: 'left',
+          }}
+        >
+          <PresetRsvpForm
+            siteId={siteSlug}
+            preset={rsvpPreset}
+            title=""
+            customMealOptions={customMealOptions.length > 0 ? customMealOptions : undefined}
+          />
+        </div>
+      </section>
+    );
+  }
+
+  /* ── Centered variant (default) — original dark CTA section. ── */
   return (
     <section
       id="rsvp"
@@ -5101,6 +5979,22 @@ function ThemedFaq({ manifest, editMode, onEditField }: { manifest: StoryManifes
   const kit = (manifest.kitId ?? 'classic') as
     | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal'
     | 'arch' | 'stamp' | 'deco';
+
+  /* Variant dispatcher — supports all 4 FAQ variants. Defaults to
+     accordion when blockVariants is unset or carries an unknown
+     value. Variants:
+       accordion — tappable <details>/<summary> with chevron (default,
+                   per-kit chrome via FaqList).
+       twocol    — side-by-side Q&A pairs in a 2-column grid.
+       numbered  — oversized 01/02/03 numerals down the left.
+       cards     — each Q&A in its own padded card, 2-column grid. */
+  type FaqVariant = 'accordion' | 'twocol' | 'numbered' | 'cards';
+  const faqVariant: FaqVariant = (() => {
+    const raw = (manifest.blockVariants?.faq?.style as string | undefined) ?? 'accordion';
+    const known: FaqVariant[] = ['accordion', 'twocol', 'numbered', 'cards'];
+    return (known.includes(raw as FaqVariant) ? raw : 'accordion') as FaqVariant;
+  })();
+
   return (
     <section
       id="faq"
@@ -5111,8 +6005,218 @@ function ThemedFaq({ manifest, editMode, onEditField }: { manifest: StoryManifes
     >
       <SectionBackground manifest={manifest} sectionId="faq" />
       <ThemedSectionHead eyebrow="Good to know" title="The little" italic="things" manifest={manifest} sectionKey="faq" />
-      <FaqList faq={faq} kit={kit} editMode={editMode} onEditField={onEditField} />
+      {faqVariant === 'twocol' ? (
+        <FaqTwoCol faq={faq} editMode={editMode} onEditField={onEditField} />
+      ) : faqVariant === 'numbered' ? (
+        <FaqNumbered faq={faq} editMode={editMode} onEditField={onEditField} />
+      ) : faqVariant === 'cards' ? (
+        <FaqCards faq={faq} kit={kit} editMode={editMode} onEditField={onEditField} />
+      ) : (
+        <FaqList faq={faq} kit={kit} editMode={editMode} onEditField={onEditField} />
+      )}
     </section>
+  );
+}
+
+/* ─── FAQ variant: twocol — side-by-side Q&A pairs in a 2-column
+   grid (collapses to 1 col on narrow viewports via auto-fit).
+   Question in display type tinted with the accent ink; answer in
+   ink-soft below. No chrome, no expand/collapse — every answer is
+   surfaced inline. Source: ClaudeDesign/pages/themed-site.jsx
+   FaqBlock variant === 'twocol'. */
+function FaqTwoCol({ faq, editMode, onEditField }: { faq: FaqItem[]; editMode?: boolean; onEditField?: FieldEditor }) {
+  void editMode;
+  return (
+    <div
+      style={{
+        maxWidth: 820,
+        margin: '0 auto',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+        gap: '20px 32px',
+      }}
+    >
+      {faq.map((item, i) => {
+        const patch = makePatchFaq(onEditField, i);
+        return (
+          <div key={item.id ?? i}>
+            <EditableText
+              as="div"
+              value={item.question}
+              onSave={patch('question')}
+              ariaLabel={`FAQ ${i + 1} question`}
+              maxLength={240}
+              placeholder="Question?"
+              style={{
+                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                fontWeight: 'var(--pl-display-wght, 600)',
+                fontSize: 16,
+                color: 'var(--peach-ink, var(--ink, #0E0D0B))',
+                lineHeight: 1.3,
+              }}
+            />
+            <EditableField
+              as="div"
+              context={`FAQ ${i + 1} answer`}
+              value={item.answer ?? ''}
+              onSave={patch('answer')}
+              multiline
+              maxLength={800}
+              placeholder="A short, friendly answer goes here."
+              ariaLabel={`FAQ ${i + 1} answer`}
+              style={{
+                fontSize: 13,
+                color: 'var(--ink-soft, #3A332C)',
+                lineHeight: 1.55,
+                marginTop: 4,
+              }}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─── FAQ variant: numbered — oversized 01/02/03 down the left,
+   question to the right, hairline divider between rows. All answers
+   visible inline (no toggle). Distinctly editorial — the numerals
+   are display-italic and tinted ink-muted so the question gets the
+   weight. Source: prototype FaqBlock variant === 'numbered'. */
+function FaqNumbered({ faq, editMode, onEditField }: { faq: FaqItem[]; editMode?: boolean; onEditField?: FieldEditor }) {
+  void editMode;
+  return (
+    <div style={{ maxWidth: 680, margin: '0 auto' }}>
+      {faq.map((item, i) => {
+        const patch = makePatchFaq(onEditField, i);
+        const isLast = i === faq.length - 1;
+        return (
+          <div
+            key={item.id ?? i}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'auto 1fr',
+              gap: 18,
+              alignItems: 'baseline',
+              padding: '18px 0',
+              borderBottom: isLast ? 'none' : '1px solid var(--line-soft, rgba(14,13,11,0.10))',
+            }}
+          >
+            <span
+              aria-hidden
+              style={{
+                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                fontStyle: 'italic',
+                fontWeight: 'var(--pl-display-wght, 600)',
+                fontSize: 26,
+                color: 'var(--ink-muted, #6F6557)',
+                minWidth: 42,
+                lineHeight: 1,
+              }}
+            >
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <div>
+              <EditableText
+                as="div"
+                value={item.question}
+                onSave={patch('question')}
+                ariaLabel={`FAQ ${i + 1} question`}
+                maxLength={240}
+                placeholder="Question?"
+                style={{
+                  fontSize: 15,
+                  fontWeight: 600,
+                  color: 'var(--ink, #0E0D0B)',
+                  lineHeight: 1.35,
+                }}
+              />
+              <EditableField
+                as="p"
+                context={`FAQ ${i + 1} answer`}
+                value={item.answer ?? ''}
+                onSave={patch('answer')}
+                multiline
+                maxLength={800}
+                placeholder="Write the answer here…"
+                ariaLabel={`FAQ ${i + 1} answer`}
+                style={{
+                  marginTop: 8,
+                  fontSize: 13.5,
+                  color: 'var(--ink-soft, #3A332C)',
+                  lineHeight: 1.6,
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─── FAQ variant: cards — each Q&A as its own padded card in a
+   2-column grid (auto-fits to a single column on narrow viewports).
+   Question + answer always visible inline. Card chrome inherits
+   from the active Kit via kitCardStyle so a "scrapbook" kit gets
+   tape strips, "index" gets ruled lines, etc. Source: prototype
+   FaqBlock variant === 'cards'. */
+function FaqCards({ faq, kit, editMode, onEditField }: { faq: FaqItem[]; kit: string; editMode?: boolean; onEditField?: FieldEditor }) {
+  void editMode;
+  return (
+    <div
+      style={{
+        maxWidth: 820,
+        margin: '0 auto',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: 14,
+      }}
+    >
+      {faq.map((item, i) => {
+        const patch = makePatchFaq(onEditField, i);
+        return (
+          <div
+            key={item.id ?? i}
+            style={{
+              ...kitCardStyle(kit, i),
+              padding: 18,
+            }}
+          >
+            <EditableText
+              as="div"
+              value={item.question}
+              onSave={patch('question')}
+              ariaLabel={`FAQ ${i + 1} question`}
+              maxLength={240}
+              placeholder="Question?"
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: 'var(--ink, #0E0D0B)',
+                lineHeight: 1.35,
+              }}
+            />
+            <EditableField
+              as="div"
+              context={`FAQ ${i + 1} answer`}
+              value={item.answer ?? ''}
+              onSave={patch('answer')}
+              multiline
+              maxLength={800}
+              placeholder="A short, friendly answer goes here."
+              ariaLabel={`FAQ ${i + 1} answer`}
+              style={{
+                fontSize: 12.5,
+                color: 'var(--ink-soft, #3A332C)',
+                marginTop: 6,
+                lineHeight: 1.55,
+              }}
+            />
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

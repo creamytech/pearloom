@@ -22,7 +22,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimitAsync, RATE_LIMITS } from '@/lib/rate-limit';
 import { generate, textFrom } from '@/lib/claude';
 
 export const dynamic = 'force-dynamic';
@@ -172,7 +172,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.email) {
     return NextResponse.json({ error: 'Sign in required.' }, { status: 401 });
   }
-  const rate = checkRateLimit(`hotels-enrich:${session.user.email}`, RATE_LIMITS.aiBlocks);
+  const rate = await checkRateLimitAsync(`hotels-enrich:${session.user.email}`, RATE_LIMITS.aiBlocks);
   if (!rate.allowed) {
     return NextResponse.json({ error: 'Too many enrichments. Try again shortly.' }, { status: 429 });
   }
