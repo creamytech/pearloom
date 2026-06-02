@@ -92,9 +92,27 @@ export const DEFAULT_VARIANT: Record<Exclude<SectionId, null>, string> = {
 };
 
 export function readVariant(
-  manifest: { layouts?: Record<string, string> } | unknown,
+  manifest: { layouts?: Record<string, string>; edition?: string } | unknown,
   section: Exclude<SectionId, null>,
 ): string {
-  const layouts = ((manifest as { layouts?: Record<string, string> })?.layouts) ?? {};
-  return layouts[section] || DEFAULT_VARIANT[section];
+  const m = manifest as { layouts?: Record<string, string>; edition?: string };
+  const layouts = m?.layouts ?? {};
+  /* 1. Explicit host pick → 2. Edition's layoutDefaults[section]
+     → 3. per-section hardcoded default. */
+  if (layouts[section]) return layouts[section];
+  const editionFallback = EDITION_LAYOUT_DEFAULTS[m?.edition ?? ''];
+  if (editionFallback && editionFallback[section]) return editionFallback[section] ?? '';
+  return DEFAULT_VARIANT[section];
 }
+
+/* Read-time mirror of EditionDefinition.layoutDefaults from
+   src/lib/site-editions/editions.ts so ThemedSite doesn't need to
+   import the full Edition module. Sync if Editions get new defaults. */
+const EDITION_LAYOUT_DEFAULTS: Record<string, Partial<Record<Exclude<SectionId, null>, string>>> = {
+  almanac:       { hero: 'postcard', story: 'sidebyside' },
+  cinema:        { hero: 'fullbleed', story: 'quote' },
+  'postcard-box':{ hero: 'postcard', story: 'letter' },
+  'linen-folder':{ hero: 'split', story: 'sidebyside' },
+  quiet:         { hero: 'minimal', story: 'stacked' },
+  bloom:         { hero: 'typographic', story: 'timeline' },
+};

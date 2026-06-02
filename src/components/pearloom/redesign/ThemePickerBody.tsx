@@ -117,7 +117,7 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor }:
         <Icon name="arrow-right" size={15} color="var(--ink-soft)" />
       </button>
 
-      <MatchMyPhotos />
+      <MatchMyPhotos manifest={manifest} onChange={onChange} />
 
       {/* Matching Save-the-Date — dark pill linking to Studio. */}
       <a
@@ -545,8 +545,52 @@ function LegibilityNote({ manifest, theme, onChange }: { manifest: StoryManifest
 
 /* ─── MatchMyPhotos — prototype L1188-1228 stub. ─────────────── */
 
-function MatchMyPhotos() {
+function MatchMyPhotos({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [swatches, setSwatches] = useState<string[]>([]);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function handleFile(file: File) {
+    setBusy(true); setErr(null);
+    try {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      const palette: string[] = await new Promise((resolve, reject) => {
+        img.onload = () => {
+          try { resolve(extractPalette(img, 6)); }
+          catch (e) { reject(e); }
+        };
+        img.onerror = () => reject(new Error('Could not read that image'));
+        img.src = url;
+      });
+      URL.revokeObjectURL(url);
+      setSwatches(palette);
+      /* Patch manifest.theme.colors with palette[0] as accent,
+         palette[1] as accentLight, etc. The renderer reads these and
+         repaints. */
+      const next = { ...(manifest as unknown as Record<string, unknown>) };
+      const existingTheme = (next.theme as Record<string, unknown> | undefined) ?? {};
+      const existingColors = (existingTheme.colors as Record<string, string> | undefined) ?? {};
+      next.theme = {
+        ...existingTheme,
+        colors: {
+          ...existingColors,
+          accent: palette[0] ?? existingColors.accent,
+          accentLight: palette[1] ?? existingColors.accentLight,
+          muted: palette[2] ?? existingColors.muted,
+          cardBg: palette[3] ?? existingColors.cardBg,
+        },
+      };
+      onChange(next as unknown as StoryManifest);
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 9 }}>
       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
@@ -555,17 +599,85 @@ function MatchMyPhotos() {
       <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', lineHeight: 1.4 }}>
         Pear pulls the palette from a photo and retints this theme.
       </div>
-      <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }} />
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        className="btn btn-outline btn-sm"
-        style={{ fontSize: 12, alignSelf: 'flex-start' }}
-      >
-        <Icon name="image" size={13} /> Upload a photo
-      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) void handleFile(file);
+          e.currentTarget.value = '';
+        }}
+      />
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={busy}
+          className="btn btn-outline btn-sm"
+          style={{ fontSize: 12 }}
+        >
+          <Icon name="image" size={13} /> {busy ? 'Reading…' : 'Upload a photo'}
+        </button>
+        {swatches.length > 0 && (
+          <>
+            <div style={{ display: 'flex', gap: 4 }}>
+              {swatches.map((c, i) => (
+                <span key={i} style={{ width: 18, height: 18, borderRadius: '50%', background: c, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.10)' }} />
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setSwatches([])}
+              title="Clear palette"
+              style={{ width: 24, height: 24, borderRadius: 6, display: 'grid', placeItems: 'center', background: 'var(--cream-2)', border: 'none', cursor: 'pointer' }}
+            >
+              <Icon name="close" size={12} color="var(--ink-soft)" />
+            </button>
+          </>
+        )}
+      </div>
+      {err && (
+        <div style={{ padding: '6px 10px', borderRadius: 7, background: 'rgba(122,45,45,0.08)', fontSize: 11.5, color: '#7A2D2D' }}>
+          {err}
+        </div>
+      )}
     </div>
   );
+}
+
+/* extractPalette — quantize an image to N dominant colors using a
+   48x48 canvas downsample + RGB bucket histogram. Cheap, client-side,
+   matches handoff's PaletteFromPhotos approach. */
+function extractPalette(img: HTMLImageElement, count: number): string[] {
+  const SIZE = 48;
+  const canvas = document.createElement('canvas');
+  canvas.width = SIZE; canvas.height = SIZE;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return [];
+  ctx.drawImage(img, 0, 0, SIZE, SIZE);
+  const { data } = ctx.getImageData(0, 0, SIZE, SIZE);
+  const buckets = new Map<string, { r: number; g: number; b: number; n: number }>();
+  /* Quantize each pixel to a 6-step-per-channel grid (216 colors). */
+  const step = (v: number): number => Math.round(v / 51) * 51;
+  for (let i = 0; i < data.length; i += 4) {
+    const a = data[i + 3];
+    if (a < 100) continue;
+    const r = step(data[i]); const g = step(data[i + 1]); const b = step(data[i + 2]);
+    /* Ignore near-white / near-black so we get accent-y swatches. */
+    const sum = r + g + b;
+    if (sum > 720 || sum < 60) continue;
+    const key = `${r}-${g}-${b}`;
+    const cur = buckets.get(key);
+    if (cur) { cur.r += r; cur.g += g; cur.b += b; cur.n += 1; }
+    else buckets.set(key, { r, g, b, n: 1 });
+  }
+  const sorted = [...buckets.values()].sort((a, b) => b.n - a.n).slice(0, count);
+  return sorted.map(({ r, g, b, n }) => {
+    const ar = Math.round(r / n); const ag = Math.round(g / n); const ab = Math.round(b / n);
+    return `#${[ar, ag, ab].map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+  });
 }
 
 /* ─── shared atoms ────────────────────────────────────────── */
