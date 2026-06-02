@@ -1088,11 +1088,8 @@ export function EditorV8({
         open={publishModalOpen}
         onClose={() => setPublishModalOpen(false)}
         manifest={manifest}
-        names={names}
+        onChange={(m) => setManifest(m)}
         siteSlug={siteSlug}
-        liveUrl={publishedAt?.url ?? null}
-        publishError={publishError}
-        onPublish={(o) => handlePublish({ privacy: o.privacy, password: o.password })}
       />
 
       {/* Preview-as-guest mode hides the topbar entirely so the host
@@ -1846,202 +1843,108 @@ function EditorTopbar({
     cursor: 'pointer',
   };
 
+  // Prototype-literal: derive "saved" display text from lastSavedAt.
+  const savedAt = saveStatus === 'saving' ? 'just now'
+    : lastSavedAt ? new Date(lastSavedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+    : 'just now';
+  const pearOpen = false;
+  const setPearOpen = (_v: boolean) => onOpenAdvisor();
+  const onPublishClick = onPublish;
   return (
-    <header
-      aria-label="Editor toolbar"
-      // Prototype-fidelity: fixed 56px height (matches
-      // ClaudeDesign/pages/editor-redesign.jsx gridTemplateRows
-      // '56px 1fr'), no flex-wrap (single row at all widths the
-      // editor supports — narrow viewports already render the
-      // mobile shell), 16px horizontal padding to align with the
-      // outline rail's 16px left padding so logo + outline header
-      // stack vertically on the same axis.
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 14,
-        padding: '0 16px',
-        height: 56,
-        minHeight: 56,
-        background: 'var(--cream)',
-        borderBottom: '1px solid var(--line-soft)',
-        flexWrap: 'nowrap',
-        position: 'relative',
-        zIndex: 5,
-      }}
-    >
+    <header style={{
+      gridArea: 'top',
+      background: 'var(--cream)',
+      borderBottom: '1px solid var(--line-soft)',
+      padding: '0 16px',
+      display: 'flex', alignItems: 'center', gap: 16,
+      height: 56,
+      position: 'relative', zIndex: 5,
+    }}>
       {/* Zone 1 — Identity (logo + slug + status) */}
-      <Link href="/dashboard" aria-label="Back to dashboard" style={{ display: 'inline-flex', flexShrink: 0 }}>
-        <PearloomLogo />
-      </Link>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0, flexShrink: 0 }}>
-        <div
-          title={displayNames}
-          style={{
-            fontSize: 13.5,
-            fontWeight: 600,
-            lineHeight: 1.15,
-            // Ellipsify long names so the topbar doesn't crowd the
-            // breadcrumb + mode pills. The full name surfaces on
-            // hover via title=, and the canvas itself shows the
-            // unabridged version.
-            maxWidth: 280,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >{displayNames}</div>
-        <div style={{ fontSize: 11, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 6, lineHeight: 1.15 }}>
-          <span title={prettyUrl} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 240 }}>{prettyUrl}</span>
-          <SaveDot saveStatus={saveStatus} lastSavedAt={lastSavedAt} />
-          {liveUrl && (
-            <a
-              href={liveUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`Open the live site at ${liveUrl} in a new tab`}
-              title={`Live: ${liveUrl}`}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 4,
-                padding: '2px 8px',
-                marginLeft: 4,
-                borderRadius: 999,
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: 'var(--sage-deep, #5C6B3F)',
-                background: 'rgba(92,107,63,0.10)',
-                border: '1px solid rgba(92,107,63,0.30)',
-                textDecoration: 'none',
-              }}
-            >
-              <span
-                aria-hidden
-                style={{
-                  width: 5,
-                  height: 5,
-                  borderRadius: 999,
-                  background: 'currentColor',
-                }}
-              />
-              Live
-            </a>
-          )}
+      {/* Left: logo + back — LITERAL port from editor-redesign.jsx L70–76. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 232 }}>
+        <Link href="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--ink-soft)' }}>
+          <Icon name="chev-left" size={14}/>
+          <Pear size={20} tone="sage" shadow={false}/>
+          Dashboard
+        </Link>
+      </div>
+
+      {/* Center: device/mode toggle — LITERAL port from editor-redesign.jsx L79–106. */}
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+        <div style={{
+          display: showDeviceToggle ? 'flex' : 'none', gap: 2, padding: 3,
+          background: 'var(--card)', borderRadius: 999,
+          border: '1px solid var(--line-soft)',
+        }}>
+          {([
+            { id: 'edit',    label: 'Edit',    icon: 'brush'   },
+            { id: 'preview', label: 'Preview', icon: 'eye'     },
+            { id: 'mobile',  label: 'Mobile',  icon: 'phone'   },
+          ] as const).map(m => {
+            const currentMode: 'edit' | 'preview' | 'mobile' =
+              device === 'phone' ? 'mobile' : previewMode ? 'preview' : 'edit';
+            const on = currentMode === m.id;
+            return (
+              <button key={m.id} onClick={() => {
+                if (m.id === 'edit') {
+                  if (device !== 'desktop') setDevice('desktop');
+                  if (previewMode) onTogglePreview();
+                } else if (m.id === 'preview') {
+                  if (device !== 'desktop') setDevice('desktop');
+                  if (!previewMode) onTogglePreview();
+                } else {
+                  if (device !== 'phone') setDevice('phone');
+                  if (previewMode) onTogglePreview();
+                }
+              }} style={{
+                padding: '6px 14px', borderRadius: 999,
+                fontSize: 12.5, fontWeight: 600,
+                background: on ? 'var(--ink)' : 'transparent',
+                color: on ? 'var(--cream)' : 'var(--ink-soft)',
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                border: 0, cursor: 'pointer',
+                transition: 'background 140ms ease',
+              }}>
+                <Icon name={m.icon} size={12} color={on ? 'var(--cream)' : 'var(--ink-soft)'}/>
+                {m.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Zone 1.5 — Section breadcrumb. Shows the current block
-          name + a dropdown of every other section so the host can
-          jump anywhere without leaving the topbar. Pinned just
-          after the identity zone — close to where the eye lands
-          when scanning "where am I editing right now?". */}
-      <SectionBreadcrumb currentBlock={currentBlock} onJump={onJumpBlock} />
-
-      {/* Zone 2 — Mode toggle (centered). Edit / Preview / Mobile.
-          Hidden on narrow viewports where the editor forces phone
-          preview anyway. The toggle is derived state across two
-          underlying knobs:
-            • previewMode — chrome-on / chrome-off
-            • device      — 'desktop' | 'tablet' | 'phone'
-          The three pills collapse them into the conceptual modes
-          hosts actually think in: "I'm editing", "I'm reading it
-          like a guest", or "I'm checking the phone view." Tablet
-          stays available via keyboard or the resize handle for the
-          rare host who needs it; the toggle just doesn't surface it. */}
-      {(() => {
-        const mode: 'edit' | 'preview' | 'mobile' =
-          device === 'phone' ? 'mobile' : previewMode ? 'preview' : 'edit';
-        function setMode(next: 'edit' | 'preview' | 'mobile') {
-          if (next === 'edit') {
-            if (device !== 'desktop') setDevice('desktop');
-            if (previewMode) onTogglePreview();
-          } else if (next === 'preview') {
-            if (device !== 'desktop') setDevice('desktop');
-            if (!previewMode) onTogglePreview();
-          } else {
-            if (device !== 'phone') setDevice('phone');
-            if (previewMode) onTogglePreview();
-          }
-        }
-        const pills: Array<{ key: 'edit' | 'preview' | 'mobile'; label: string; icon: string }> = [
-          { key: 'edit',    label: 'Edit',    icon: 'brush' },
-          { key: 'preview', label: 'Preview', icon: 'eye' },
-          { key: 'mobile',  label: 'Mobile',  icon: 'phone' },
-        ];
-        return (
-          <div
-            // role="radiogroup" instead of "tablist" because there
-            // are no tabpanels — these three pills mutate the canvas
-            // render mode + device size, not separate tab content.
-            // role="radio" + aria-checked is the canonical mutually-
-            // exclusive choice pattern. Arrow-key roving still works.
-            //
-            // Prototype-fidelity (editor-redesign.jsx ~L80–84): card
-            // surface + 1px line-soft border. The earlier cream-2
-            // chip read as a darker recessed sticker; the bordered
-            // card chip reads as a raised toggle — matches what the
-            // prototype ships.
-            role="radiogroup"
-            aria-label="Editor mode"
-            style={{
-              display: showDeviceToggle ? 'flex' : 'none',
-              gap: 2,
-              margin: '0 auto',
-              padding: 3,
-              background: 'var(--card)',
-              border: '1px solid var(--line-soft)',
-              borderRadius: 999,
-            }}
-          >
-            {pills.map((p, i) => {
-              const on = mode === p.key;
-              return (
-                <button
-                  key={p.key}
-                  type="button"
-                  role="radio"
-                  aria-checked={on}
-                  tabIndex={on ? 0 : -1}
-                  onClick={() => setMode(p.key)}
-                  onKeyDown={(e) => tablistKeydown(e, i, pills, (item) => setMode(item.key))}
-                  title={p.label}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '6px 14px',
-                    borderRadius: 999,
-                    background: on ? 'var(--ink)' : 'transparent',
-                    color: on ? 'var(--cream)' : 'var(--ink-soft)',
-                    border: 0,
-                    cursor: 'pointer',
-                    fontSize: 12.5,
-                    fontWeight: 600,
-                    fontFamily: 'var(--font-ui)',
-                    transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out)',
-                  }}
-                >
-                  <Icon name={p.icon} size={12} />
-                  {p.label}
-                </button>
-              );
-            })}
-          </div>
-        );
-      })()}
-
-      {/* Zone 3 — Action cluster (auto-margin keeps it right-aligned
-          even when the device toggle is hidden). */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, marginLeft: showDeviceToggle ? 0 : 'auto' }}>
+      {/* Right: save state + share + publish — LITERAL port from editor-redesign.jsx L108–132. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: 'var(--ink-muted)' }}>
+          <span style={{ width: 6, height: 6, background: 'var(--sage)', borderRadius: '50%' }}/>
+          Saved {savedAt}
+        </div>
+        <div style={{ width: 1, height: 18, background: 'var(--line-soft)' }}/>
+        <button onClick={() => setPearOpen(!pearOpen)} className="btn btn-outline btn-sm" style={{
+          background: pearOpen ? 'var(--peach-bg)' : 'var(--card)',
+          borderColor: pearOpen ? 'transparent' : 'var(--line)',
+          color: pearOpen ? 'var(--peach-ink)' : 'var(--ink)',
+        }}>
+          <Pear size={14} tone="sage" shadow={false}/>
+          Ask Pear
+        </button>
+        <button className="btn btn-outline btn-sm" onClick={onOpenThemeShop} title="Browse theme packs">
+          <Icon name="share" size={12}/> Share
+        </button>
+        <button className="btn btn-primary btn-sm pl-pearl-accent" onClick={onPublishClick} data-tour-anchor="publish">
+          Publish
+          <Icon name="arrow-up" size={12} color="var(--cream)"/>
+        </button>
+        <div style={{ width: 1, height: 18, background: 'var(--line-soft)' }}/>
+        {/* Section breadcrumb retained for quick-jump (production-only addition). */}
+        <SectionBreadcrumb currentBlock={currentBlock} onJump={onJumpBlock} />
+        <PearNudges manifest={manifest} siteSlug={siteSlug} />
         <button
           type="button"
           onClick={onUndo}
           disabled={!canUndo}
           aria-label="Undo (Cmd+Z)"
-          aria-keyshortcuts="Meta+Z Control+Z"
           title="Undo (⌘Z)"
           className="pl8-icon-btn"
           style={{ ...iconBtn, opacity: canUndo ? 1 : 0.35 }}
@@ -2053,39 +1956,12 @@ function EditorTopbar({
           onClick={onRedo}
           disabled={!canRedo}
           aria-label="Redo (Cmd+Shift+Z)"
-          aria-keyshortcuts="Meta+Shift+Z Control+Shift+Z"
           title="Redo (⌘⇧Z)"
           className="pl8-icon-btn"
           style={{ ...iconBtn, opacity: canRedo ? 1 : 0.35 }}
         >
           <Icon name="redo" size={15} />
         </button>
-        <span style={{ width: 1, height: 18, background: 'var(--line-soft)', margin: '0 4px' }} aria-hidden />
-        <DesignMenu />
-        {/* Proactive Pear pip — surfaces a single context-aware
-            nudge based on what's missing on the site. Sits next
-            to the explicit "Ask Pear" button so the host has
-            both a passive (pip) and active (button) entry point. */}
-        <PearNudges manifest={manifest} siteSlug={siteSlug} />
-        <button type="button" onClick={onOpenAdvisor} className="pl8-ghost-btn" style={ghostBtn}>
-          <Icon name="sparkles" size={12} /> Ask Pear
-        </button>
-        {/* Browse themes — opens the in-editor Theme Shop bottom
-            sheet. Sits between Pear and the command-palette pill
-            because it's a Design-flavoured action, not an AI one. */}
-        <button
-          type="button"
-          onClick={onOpenThemeShop}
-          className="pl8-ghost-btn"
-          style={ghostBtn}
-          title="Browse theme packs"
-          aria-label="Browse theme packs"
-        >
-          <Icon name="palette" size={12} /> Browse themes
-        </button>
-        {/* ⌘K command palette pill — keyboard hosts can hit ⌘K
-            directly; this button surfaces the same flow for
-            trackpad-only users + sells the shortcut. */}
         <button
           type="button"
           onClick={onOpenCommandPalette}
@@ -2093,7 +1969,6 @@ function EditorTopbar({
           style={{ ...iconBtn, color: 'var(--ink-soft)' }}
           title="Open the command palette (⌘K / Ctrl K)"
           aria-label="Open the command palette"
-          aria-keyshortcuts="Meta+K Control+K"
         >
           <Icon name="search" size={13} />
         </button>
@@ -2107,34 +1982,30 @@ function EditorTopbar({
         >
           <Icon name="arrow-ur" size={13} />
         </Link>
-        <Link href="/dashboard" className="pl8-ghost-btn" style={ghostBtn}>
-          <Icon name="grid" size={12} /> Dashboard
-        </Link>
+        {liveUrl && (
+          <a
+            href={liveUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Open the live site at ${liveUrl} in a new tab`}
+            title={`Live: ${liveUrl}`}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 700,
+              letterSpacing: '0.08em', textTransform: 'uppercase',
+              color: 'var(--sage-deep, #5C6B3F)',
+              background: 'rgba(92,107,63,0.10)',
+              border: '1px solid rgba(92,107,63,0.30)',
+              textDecoration: 'none',
+            }}
+          >
+            <span aria-hidden style={{ width: 5, height: 5, borderRadius: 999, background: 'currentColor' }} />
+            Live
+          </a>
+        )}
         <KbdHint />
-        <button
-          type="button"
-          onClick={onPublish}
-          className="pl-pearl-accent"
-          data-tour-anchor="publish"
-          title="Save and publish (⌘⇧P / Ctrl⇧P)"
-          aria-keyshortcuts="Meta+Shift+P Control+Shift+P"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '8px 16px',
-            borderRadius: 999,
-            fontSize: 12.5,
-            fontWeight: 700,
-            fontFamily: 'var(--font-ui)',
-            cursor: 'pointer',
-            border: 'none',
-            marginLeft: 4,
-          }}
-        >
-          Save &amp; publish <Icon name="arrow-right" size={12} />
-        </button>
       </div>
+
     </header>
   );
 }

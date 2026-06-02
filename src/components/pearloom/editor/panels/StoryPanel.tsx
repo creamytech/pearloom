@@ -1,421 +1,76 @@
 'use client';
 
-import { useRef, type ChangeEvent } from 'react';
-import type { StoryManifest, Chapter } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelHeaderTag, PanelSection, PanelSmartActions, PanelTabs, PearChip, PhotoSlot, TextArea, TextInput, type PanelSmartAction } from '../atoms';
-import { SortableList, SortableRowCard } from '../sortable';
-import { AIHint, AISuggestButton, useAICall } from '../ai';
-import { Icon } from '../../motifs';
-import { todayLocal } from '@/lib/date-utils';
-import { BlockStylePicker } from './BlockStylePicker';
-// Side-effect import — registers the 6 story layouts with the
-// block-style registry before the picker reads from it.
-import '@/components/pearloom/site/story-variants';
+import { useState, type CSSProperties, type ReactNode } from 'react';
+import type { StoryManifest } from '@/types';
+import { Icon, Pear } from '@/components/pearloom/motifs';
 
-function PhotoChaptersAI({
-  manifest,
-  names,
-  onResult,
-}: {
-  manifest: StoryManifest;
-  names: [string, string];
-  onResult: (chapters: Chapter[]) => void;
-}) {
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const { state, error, run } = useAICall(async () => {
-    const files = Array.from(inputRef.current?.files ?? []);
-    if (!files.length) throw new Error('Pick at least 3 photos first');
-    // Convert to data URLs so /api/generate can see them (the real Google
-    // Photos flow sends access tokens; here we send inline previews).
-    const clusters = await Promise.all(
-      files.map(
-        (f, i) =>
-          new Promise<{ id: string; photos: { mediaId: string; dataUrl: string; creationTime?: string }[] }>((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () =>
-              resolve({
-                id: `cl-${i}`,
-                photos: [{ mediaId: `m-${i}`, dataUrl: typeof reader.result === 'string' ? reader.result : '' }],
-              });
-            reader.readAsDataURL(f);
-          })
-      )
-    );
-    const occasion = (manifest as unknown as { occasion?: string }).occasion ?? 'wedding';
-    const vibes = (manifest as unknown as { vibes?: string[] }).vibes?.join(' ') ?? 'warm';
-    // 120s timeout — protects against hung uploads locking the UI.
-    // The 7-pass engine normally returns in 30-90s.
-    const ctl = new AbortController();
-    const timer = setTimeout(() => ctl.abort(), 120_000);
-    let res: Response;
-    try {
-      res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          clusters,
-          vibeString: vibes,
-          coupleNames: names,
-          occasion,
-        }),
-        signal: ctl.signal,
-      });
-    } catch (err) {
-      if ((err as { name?: string }).name === 'AbortError') {
-        throw new Error("Pear took too long to draft chapters. Try again with fewer photos.");
-      }
-      throw err;
-    } finally {
-      clearTimeout(timer);
-    }
-    if (!res.ok) {
-      const data = (await res.json().catch(() => null)) as { error?: string } | null;
-      throw new Error(data?.error ?? `Pear couldn't write chapters (${res.status})`);
-    }
-    const data = (await res.json()) as { manifest?: { chapters?: Chapter[] } };
-    const next = data.manifest?.chapters ?? [];
-    if (!next.length) throw new Error('No chapters returned');
-    onResult(next);
-    if (inputRef.current) inputRef.current.value = '';
-    return next;
-  });
+function FGroup({ label, hint, children, action }: { label: string; hint?: string; children: ReactNode; action?: ReactNode }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <AIHint>
-        Pick 6–20 photos. Pear clusters them by location + time, writes a chapter per cluster, and adds warm captions. Fully editable after.
-      </AIHint>
-      <input ref={inputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} />
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <button
-          type="button"
-          className="btn btn-outline btn-sm"
-          onClick={() => inputRef.current?.click()}
-        >
-          <Icon name="upload" size={12} /> Pick photos
-        </button>
-        <AISuggestButton
-          label="Write chapters from these"
-          runningLabel="Clustering + drafting…"
-          state={state}
-          onClick={() => void run()}
-          error={error ?? undefined}
-        />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <label style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>{label}</label>
+        {action}
       </div>
+      {children}
+      {hint && <div style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.4 }}>{hint}</div>}
+    </div>
+  );
+}
+function FInput({ value, onChange, placeholder, icon }: { value: string; onChange?: (v: string) => void; placeholder?: string; icon?: string }) {
+  return (
+    <div style={{ position: 'relative' }}>
+      {icon && <Icon name={icon} size={13} color="var(--ink-muted)" style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)' } as CSSProperties}/>}
+      <input value={value} onChange={(e) => onChange && onChange(e.target.value)} placeholder={placeholder}
+        style={{ width: '100%', padding: icon ? '10px 12px 10px 32px' : '10px 12px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--cream-2)', fontSize: 13, color: 'var(--ink)', outline: 'none' }}/>
+    </div>
+  );
+}
+function PearChip({ children }: { children: ReactNode }) {
+  return (
+    <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 11px', borderRadius: 999, background: 'var(--peach-bg)', border: '1px solid rgba(198,112,61,0.22)', fontSize: 11.5, fontWeight: 600, color: 'var(--peach-ink)', cursor: 'pointer' }}>
+      <Pear size={13} tone="sage" shadow={false}/> {children}
+    </button>
+  );
+}
+
+export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; names?: [string, string]; onChange: (m: StoryManifest) => void }) {
+  const firstChapter = manifest.chapters?.[0] as any;
+  const [headline, setHeadline] = useState<string>(firstChapter?.title ?? 'How we got here');
+  const [body, setBody] = useState<string>((firstChapter?.body as string | undefined) ?? 'We met on an ordinary Tuesday and spent the evening arguing, fondly, about whether olives belong on pizza…');
+
+  const writeChapter = (next: { headline?: string; body?: string }) => {
+    const newTitle = next.headline ?? headline;
+    const newBody = next.body ?? body;
+    const chapters = Array.isArray(manifest.chapters) ? [...manifest.chapters] : [];
+    if (chapters[0]) {
+      chapters[0] = { ...chapters[0], title: newTitle, body: newBody } as any;
+    }
+    onChange({ ...manifest, chapters: chapters as any });
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <FGroup label="Headline">
+        <FInput value={headline} onChange={(v) => { setHeadline(v); writeChapter({ headline: v }); }}/>
+      </FGroup>
+      <FGroup label="Your story" action={<PearChip>Draft for me</PearChip>}>
+        <textarea value={body} onChange={(e) => { setBody(e.target.value); writeChapter({ body: e.target.value }); }} rows={6} style={{ width: '100%', padding: '11px 13px', borderRadius: 11, border: '1px solid var(--line)', background: 'var(--cream-2)', fontSize: 13, lineHeight: 1.5, resize: 'vertical', fontFamily: 'inherit', outline: 'none' }}/>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+          {['Shorten', 'Warmer', 'Funnier', 'More poetic'].map((s) => (
+            <button key={s} style={{ fontSize: 11, fontWeight: 600, padding: '5px 10px', borderRadius: 999, background: 'var(--cream-2)', border: '1px solid var(--line)', color: 'var(--ink-soft)' }}>{s}</button>
+          ))}
+        </div>
+      </FGroup>
+      <FGroup label="Highlight chips" hint="Little facts shown as pills.">
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {(manifest.hashtags && manifest.hashtags.length > 0 ? manifest.hashtags : ['Together since 2017', 'Santorini, Greece', 'Aegean blue']).map((c) => (
+            <span key={c} style={{ fontSize: 11.5, fontWeight: 600, padding: '5px 10px', borderRadius: 999, background: 'var(--lavender-bg)', color: 'var(--lavender-ink)', display: 'inline-flex', gap: 5, alignItems: 'center' }}>{c} <Icon name="close" size={9} color="var(--lavender-ink)"/></span>
+          ))}
+          <button style={{ fontSize: 11.5, fontWeight: 600, padding: '5px 10px', borderRadius: 999, border: '1px dashed var(--line)', color: 'var(--ink-soft)' }}>+ Add</button>
+        </div>
+      </FGroup>
     </div>
   );
 }
 
-// Prototype-port: 4 tone chips that drive /api/rewrite-chapter with a
-// specific tone instead of the generic 'polish'. Matches the
-// ClaudeDesign StoryEditor's "Shorten / Warmer / Funnier / More
-// poetic" row.
-const REWRITE_TONES: Array<{ label: string; tone: string }> = [
-  { label: 'Shorten', tone: 'shorten' },
-  { label: 'Warmer', tone: 'warmer' },
-  { label: 'Funnier', tone: 'funnier' },
-  { label: 'More poetic', tone: 'poetic' },
-];
-
-function rewriteChapterTone(chapter: Chapter, tone: string, onResult: (text: string) => void) {
-  // Fire-and-forget — caller handles the streaming/state UI via
-  // ChapterRewriteAI's button. This helper exists for the tone
-  // chips that dispatch a one-shot rewrite without occupying the
-  // primary "Polish" affordance.
-  return fetch('/api/rewrite-chapter', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chapter, tone }),
-  })
-    .then(async (res) => {
-      if (!res.ok) throw new Error(String(res.status));
-      const raw = (await res.json().catch(() => null)) as unknown;
-      let text = '';
-      if (raw && typeof raw === 'object') {
-        const obj = raw as Record<string, unknown>;
-        if (typeof obj.description === 'string') text = obj.description.trim();
-        else if (obj.chapter && typeof obj.chapter === 'object') {
-          const ch = obj.chapter as Record<string, unknown>;
-          if (typeof ch.description === 'string') text = ch.description.trim();
-        }
-      }
-      if (text) onResult(text);
-    })
-    .catch(() => undefined);
-}
-
-function ChapterRewriteAI({ chapter, onResult }: { chapter: Chapter; onResult: (text: string) => void }) {
-  const { state, error, run } = useAICall(async () => {
-    const res = await fetch('/api/rewrite-chapter', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chapter, tone: 'polish' }),
-    });
-    if (!res.ok) {
-      const body = await res.json().catch(() => null) as { error?: string } | null;
-      throw new Error(body?.error ?? `Pear couldn't rewrite (${res.status})`);
-    }
-    // Tolerate either shape: { description } OR { chapter: { description } }
-    // Guard both so a shape change doesn't silently produce "no result".
-    const raw = (await res.json().catch(() => null)) as unknown;
-    let text = '';
-    if (raw && typeof raw === 'object') {
-      const obj = raw as Record<string, unknown>;
-      if (typeof obj.description === 'string') text = obj.description.trim();
-      else if (obj.chapter && typeof obj.chapter === 'object') {
-        const ch = obj.chapter as Record<string, unknown>;
-        if (typeof ch.description === 'string') text = ch.description.trim();
-      }
-    }
-    if (!text) throw new Error('Pear came back empty');
-    onResult(text);
-    return text;
-  });
-  return (
-    <AISuggestButton
-      label="Polish with Pear"
-      runningLabel="Polishing…"
-      state={state}
-      onClick={() => void run()}
-      error={error ?? undefined}
-      size="sm"
-    />
-  );
-}
-
-export function StoryPanel({
-  manifest,
-  names,
-  onChange,
-}: {
-  manifest: StoryManifest;
-  names?: [string, string];
-  onChange: (m: StoryManifest) => void;
-}) {
-  const chapters: Chapter[] = manifest.chapters ?? [];
-  // The editor keeps `names` in its own state separate from the
-  // manifest. Fall through: prop → manifest.names → default.
-  const effectiveNames: [string, string] =
-    (names && names[0]) ? names
-    : (manifest.names && manifest.names[0]) ? (manifest.names as [string, string])
-    : ['You', ''];
-
-  function updateChapter(idx: number, patch: Partial<Chapter>) {
-    const next = chapters.map((c, i) => (i === idx ? { ...c, ...patch } : c));
-    onChange({ ...manifest, chapters: next });
-  }
-
-  function addChapter() {
-    const order = chapters.length;
-    const next: Chapter = {
-      id: `ch-${Date.now().toString(36)}`,
-      date: todayLocal(),
-      title: 'New chapter',
-      subtitle: '',
-      description: 'The story of this moment…',
-      images: [],
-      location: null,
-      mood: 'warm',
-      order,
-    };
-    onChange({ ...manifest, chapters: [...chapters, next] });
-  }
-
-  const smartActions: PanelSmartAction[] = [
-    {
-      label: 'Add a chapter',
-      icon: 'plus',
-      onClick: addChapter,
-      primary: true,
-    },
-    {
-      label: 'Pick a layout',
-      icon: 'layout',
-      onClick: () => {
-        document
-          .querySelector('[data-pl-block-style-picker="story"]')
-          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      },
-    },
-    {
-      label: 'Draft from photos',
-      icon: 'sparkles',
-      onClick: () => {
-        // PhotoChaptersAI lives in the first PanelSection — scroll
-        // to the panel area where the AI button sits.
-        const section = document.querySelector('[data-pl-photo-chapters-ai]');
-        section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      },
-    },
-  ];
-
-  // Content tab — the chapters themselves + the photo→chapters AI
-  // entry point. Layout tab carries the story-layout variant
-  // picker, since it changes structural composition without
-  // touching the chapter copy.
-  const layout = (
-    <PanelGroup>
-      <BlockStylePicker
-        blockType="story"
-        manifest={manifest}
-        onChange={onChange}
-        defaultStyleId={(manifest.storyLayout as string | undefined) ?? 'timeline'}
-        label="Story layout"
-        hint="How chapters render — parallax photos, magazine spreads, bento mosaic, or the classic timeline vine."
-      />
-    </PanelGroup>
-  );
-
-  const content = (
-    <PanelGroup>
-      <PanelSection label="Photos → chapters" hint="Upload a batch and Pear drafts your story from them.">
-        <div data-pl-photo-chapters-ai>
-          <PhotoChaptersAI manifest={manifest} names={effectiveNames} onResult={(next) => onChange({ ...manifest, chapters: [...chapters, ...next] })} />
-        </div>
-      </PanelSection>
-
-      <PanelSection
-        label="Chapters"
-        hint="Drag to reorder. Each chapter is a moment — a photo, a date, a few words."
-        action={<AddRowButton label="Add chapter" onClick={addChapter} />}
-      >
-        <SortableList
-          items={chapters.map((c) => ({ id: c.id ?? `ch-${c.order}`, ref: c }))}
-          onReorder={(next) =>
-            onChange({ ...manifest, chapters: next.map((it, i) => ({ ...it.ref, order: i })) })
-          }
-          emptyState={
-            <EmptyBlockState
-              title="Nothing yet"
-              body="Tell the story of how you got here — first date, big move, the proposal. 3–6 chapters is a sweet spot."
-              action={<AddRowButton label="Add your first chapter" onClick={addChapter} />}
-            />
-          }
-          renderItem={({ ref: c }, { handle }) => {
-            const i = chapters.findIndex((x) => (x.id ?? `ch-${x.order}`) === (c.id ?? `ch-${c.order}`));
-            return (
-              <SortableRowCard
-                handle={handle}
-                deleteLabel={`Delete chapter ${i + 1}${c.title ? `: ${c.title}` : ''}`}
-                onDelete={() => {
-                  const next = chapters.filter((_, idx) => idx !== i).map((x, idx) => ({ ...x, order: idx }));
-                  onChange({ ...manifest, chapters: next });
-                }}
-              >
-                <div style={{ display: 'grid', gridTemplateColumns: '96px 1fr', gap: 12 }}>
-                  <PhotoSlot
-                    src={c.images?.[0]?.url}
-                    aspect="1/1"
-                    label="Photo"
-                    onChange={(url) => {
-                      const nextImages = url
-                        ? [{ id: 'img-' + i, url, alt: c.title, width: 800, height: 800 }]
-                        : [];
-                      updateChapter(i, { images: nextImages });
-                    }}
-                  />
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: 10 }}>
-                      <Field label="Title">
-                        <TextInput
-                          value={c.title}
-                          onChange={(e) => updateChapter(i, { title: e.target.value })}
-                          placeholder="The spring we met"
-                        />
-                      </Field>
-                      <Field label="Date">
-                        <TextInput
-                          type="date"
-                          value={(c.date ?? '').slice(0, 10)}
-                          onChange={(e) => updateChapter(i, { date: e.target.value })}
-                        />
-                      </Field>
-                    </div>
-                    <Field label="Place">
-                      <TextInput
-                        value={c.location?.label ?? c.subtitle ?? ''}
-                        onChange={(e) =>
-                          updateChapter(i, {
-                            subtitle: e.target.value,
-                            location: c.location
-                              ? { ...c.location, label: e.target.value }
-                              : { lat: 0, lng: 0, label: e.target.value },
-                          })
-                        }
-                        placeholder="Pearl District · Portland"
-                      />
-                    </Field>
-                  </div>
-                </div>
-                <Field
-                  label="What happened"
-                  pearAction={{ block: 'story', pass: 'tighten-prose', label: 'Tighten this with Pear' }}
-                  right={
-                    // Prototype-port: "Draft for me" PearChip in the
-                    // field action slot — fires the rewrite-chapter
-                    // pass scoped to this chapter via the advisor.
-                    <PearChip
-                      label="Draft for me"
-                      title="Pear writes a first draft from the title + date + place"
-                      onClick={() => {
-                        if (typeof window === 'undefined') return;
-                        window.dispatchEvent(
-                          new CustomEvent('pearloom:open-pear-for', {
-                            detail: { block: 'story', pass: 'tighten-prose', intent: 'draft', chapterId: c.id },
-                          }),
-                        );
-                      }}
-                    />
-                  }
-                >
-                  <TextArea
-                    value={c.description}
-                    onChange={(e) => updateChapter(i, { description: e.target.value })}
-                    rows={3}
-                    placeholder="A friend's birthday, a crowded kitchen, and the worst dad joke that somehow worked."
-                  />
-                </Field>
-                {/* Prototype-port: 4 tone chips below the textarea —
-                    Shorten / Warmer / Funnier / More poetic — each
-                    one fires the rewrite endpoint with that tone. */}
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
-                  {REWRITE_TONES.map((t) => (
-                    <button
-                      key={t.tone}
-                      type="button"
-                      onClick={() => void rewriteChapterTone(c, t.tone, (text) => updateChapter(i, { description: text }))}
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 600,
-                        padding: '5px 10px',
-                        borderRadius: 999,
-                        background: 'var(--pl-chrome-surface-2)',
-                        border: '1px solid var(--pl-chrome-border)',
-                        color: 'var(--pl-chrome-text-soft)',
-                        cursor: 'pointer',
-                        fontFamily: 'var(--font-ui)',
-                      }}
-                    >
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-                <ChapterRewriteAI chapter={c} onResult={(text) => updateChapter(i, { description: text })} />
-              </SortableRowCard>
-            );
-          }}
-        />
-      </PanelSection>
-    </PanelGroup>
-  );
-
-  return (
-    <>
-      <PanelHeaderTag
-        label="Story"
-        hint="How you got here — chapters that read like a slow scroll, not a wall of text."
-      />
-      <PanelSmartActions actions={smartActions} />
-      <PanelTabs slots={{ content, layout }} />
-    </>
-  );
-}
+export default StoryPanel;

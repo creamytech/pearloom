@@ -1,330 +1,89 @@
 'use client';
 
-import { useEffect } from 'react';
+import { type CSSProperties, type ReactNode } from 'react';
 import type { StoryManifest, WeddingEvent } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelHeaderTag, PanelSection, PanelSmartActions, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
-import { SortableList, SortableRowCard } from '../sortable';
-import { BadgesEditor } from './BadgesEditor';
-import { focusPanelRow } from './focus-row';
-import { BlockStylePicker } from './BlockStylePicker';
-// Side-effect import — registers the 5 prototype Schedule layouts
-// (cards / list / timeline / stepper / numbered) + the
-// production run-of-show variant with the block-style registry.
-import '@/components/pearloom/site/schedule-variants';
+import { Icon, Pear } from '@/components/pearloom/motifs';
 
-// Schedule auto-tags one badge today: 'main' for the highlighted
-// "main moment" event (ceremony or main-event-of-the-day). Hosts
-// can suppress it via the BadgesEditor's hideAuto toggle.
-type ScheduleAutoBadge = 'main';
-const SCHEDULE_AUTO_LABELS: Record<ScheduleAutoBadge, string> = {
-  main: 'Main moment',
-};
-
-// Listen for canvas → panel focus jumps. Renderer emits
-// `pearloom:focus-schedule-row` with { eventId }.
-function useScheduleRowFocus() {
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    function onFocus(e: Event) {
-      const eid = (e as CustomEvent<{ eventId?: string }>).detail?.eventId;
-      if (!eid) return;
-      focusPanelRow(`[data-pl-event-row-id="${CSS.escape(eid)}"]`);
-    }
-    window.addEventListener('pearloom:focus-schedule-row', onFocus);
-    return () => window.removeEventListener('pearloom:focus-schedule-row', onFocus);
-  }, []);
-}
-
-// The canvas renderer reads `manifest.events` — keep this panel on
-// the same shape so edits flow through. (Earlier versions wrote to
-// `manifest.schedule` which the v8 renderer never read, so panel
-// changes silently did nothing.)
-
-const TYPE_OPTIONS: Array<{ value: WeddingEvent['type']; label: string }> = [
-  { value: 'welcome-party', label: 'Welcome' },
-  { value: 'rehearsal', label: 'Rehearsal' },
-  { value: 'ceremony', label: 'Ceremony' },
-  { value: 'reception', label: 'Reception' },
-  { value: 'brunch', label: 'Brunch' },
-  { value: 'other', label: 'Other' },
-];
-
-function getEvents(manifest: StoryManifest): WeddingEvent[] {
-  const arr = (manifest as unknown as { events?: WeddingEvent[] }).events;
-  return Array.isArray(arr) ? arr : [];
-}
-
-export function SchedulePanel({
-  manifest,
-  onChange,
-}: {
-  manifest: StoryManifest;
-  onChange: (m: StoryManifest) => void;
-}) {
-  const items = getEvents(manifest);
-  useScheduleRowFocus();
-
-  function set(next: WeddingEvent[]) {
-    onChange({ ...manifest, events: next.map((e, i) => ({ ...e, order: i })) } as unknown as StoryManifest);
-  }
-
-  function update(idx: number, patch: Partial<WeddingEvent>) {
-    set(items.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
-  }
-
-  function add() {
-    set([
-      ...items,
-      {
-        id: `evt-${Date.now().toString(36)}`,
-        name: 'New moment',
-        type: 'reception',
-        date: manifest.logistics?.date ?? '',
-        time: '4:00',
-        venue: '',
-        address: '',
-        description: '',
-        order: items.length,
-        // Initialize badges so the BadgesEditor never receives a
-        // freshly-minted `{}` whose reference identity changes on
-        // every render — that was causing the editor to forget
-        // edits between strokes for newly-added rows.
-        badges: { hideAuto: [], custom: [] },
-      } as WeddingEvent,
-    ]);
-  }
-
-  function preset() {
-    const d = manifest.logistics?.date ?? '';
-    const occ = (manifest as unknown as { occasion?: string }).occasion ?? 'wedding';
-    const make = (id: string, name: string, type: WeddingEvent['type'], time: string, description: string): WeddingEvent => ({
-      id, name, type, date: d, time, venue: '', address: '', description, order: 0,
-      badges: { hideAuto: [], custom: [] },
-    } as WeddingEvent);
-    // Presets tuned to occasion. Single-person events use shorter
-    // sequences; memorials are reverent; birthdays are punchy.
-    let next: WeddingEvent[] = [];
-    if (occ === 'memorial' || occ === 'funeral' || occ === 'celebration-life') {
-      next = [
-        make('evt-gather', 'Gathering', 'welcome-party', '10:30', 'Coffee, quiet, presence.'),
-        make('evt-service', 'Service', 'ceremony', '11:00', 'Readings, music, a few words from family.'),
-        make('evt-reception', 'Reception', 'reception', '12:30', 'Lunch in the hall. Stay as long as you like.'),
-      ];
-    } else if (occ === 'birthday' || occ === 'milestone-birthday' || occ === 'sweet-sixteen') {
-      next = [
-        make('evt-arrive', 'Doors open', 'welcome-party', '7:00', 'Drinks + first hellos.'),
-        make('evt-dinner', 'Dinner', 'reception', '7:45', 'Family-style, long tables.'),
-        make('evt-toast', 'Toasts', 'reception', '9:00', 'A few words from the people who know you best.'),
-        make('evt-dance', 'Dance floor', 'reception', '9:30', 'Stay late.'),
-      ];
-    } else if (occ === 'baby-shower' || occ === 'bridal-shower') {
-      next = [
-        make('evt-brunch', 'Brunch', 'brunch', '11:00', 'Quiches, fruit, coffee.'),
-        make('evt-games', 'Shower moments', 'reception', '12:15', 'Games, wishes, small rituals.'),
-        make('evt-gifts', 'Gifts', 'reception', '1:00', 'Opening together. No rush.'),
-      ];
-    } else if (occ === 'retirement') {
-      next = [
-        make('evt-cocktails', 'Cocktails', 'welcome-party', '6:00', 'Arrive and say hello.'),
-        make('evt-dinner', 'Dinner', 'reception', '7:00', 'Plated, stories between courses.'),
-        make('evt-toasts', 'Toasts', 'reception', '8:30', "The good ones from people who've been there the longest."),
-      ];
-    } else if (occ === 'graduation') {
-      next = [
-        make('evt-ceremony', 'Ceremony', 'ceremony', '10:00', 'Walk across the stage. Brief, proud, loud.'),
-        make('evt-lunch', 'Family lunch', 'reception', '12:30', 'Local spot, long table.'),
-        make('evt-party', 'Open house', 'reception', '2:00', 'Drop by until 7. Food, cake, friends.'),
-      ];
-    } else if (occ === 'reunion') {
-      next = [
-        make('evt-meet', 'Friday mixer', 'welcome-party', '7:00', 'Name tags, drinks, a slideshow on loop.'),
-        make('evt-dinner', 'Saturday dinner', 'reception', '6:30', 'Plated, reunion-committee speeches.'),
-        make('evt-farewell', 'Sunday farewell brunch', 'brunch', '10:00', 'Coffee + last goodbyes.'),
-      ];
-    } else {
-      // Default wedding-arc preset.
-      next = [
-        make('evt-arrive', 'Arrive & settle', 'welcome-party', '3:30', 'Grab a drink, grab a seat.'),
-        make('evt-ceremony', 'Ceremony', 'ceremony', '4:00', 'Forty minutes, give or take a few happy tears.'),
-        make('evt-cocktail', 'Cocktail hour', 'reception', '4:45', 'Signature drinks. Lawn games for the brave.'),
-        make('evt-dinner', 'Dinner', 'reception', '6:00', 'Family-style, local. Toasts from family.'),
-        make('evt-dance', 'First dance + open floor', 'reception', '8:30', 'The slow one, then the loud one.'),
-        make('evt-pie', 'Late-night bites', 'reception', '10:30', "You'll be hungry again, promise."),
-        make('evt-sendoff', 'Send-off', 'other', '11:30', 'Safe travels.'),
-      ];
-    }
-    set(next);
-  }
-
-  const smartActions: PanelSmartAction[] = [
-    {
-      label: 'Add a moment',
-      icon: 'plus',
-      onClick: add,
-      primary: true,
-    },
-    {
-      label: 'Use a preset',
-      icon: 'sparkles',
-      onClick: preset,
-      disabled: items.length > 0,
-    },
-  ];
-
+function FGroup({ label, hint, children, action }: { label: string; hint?: string; children: ReactNode; action?: ReactNode }) {
   return (
-    <PanelGroup>
-      <PanelHeaderTag
-        label="Schedule"
-        hint="The order of the day — moments, times, and where each one lands."
-      />
-      <PanelSmartActions actions={smartActions} />
-      {/* Per-section layout — 5 prototype variants (cards / list /
-          timeline / stepper / numbered) plus the production
-          run-of-show variant. Timeline (run-of-show) is wired in
-          ThemedSiteRenderer today; the others are registered for
-          picker discovery and ship with Phase 2 renderers. */}
-      <BlockStylePicker
-        blockType="schedule"
-        manifest={manifest}
-        onChange={onChange}
-        defaultStyleId="run-of-show"
-        label="Schedule layout"
-        hint="How the run of show renders — vertical rail, card grid, simple list, horizontal stepper, or numbered."
-      />
-      <PanelSection
-        label="Today's rundown"
-        hint="Drag to reorder. Times are free-form — '4:00', '4 PM', 'Sunset'."
-        action={items.length > 0 ? <AddRowButton label="Add moment" onClick={add} /> : null}
-      >
-        <SortableList
-          items={items as unknown as Array<{ id: string }>}
-          onReorder={(next) => set(next as unknown as WeddingEvent[])}
-          emptyState={
-            <EmptyBlockState
-              icon="clock"
-              title="Nothing yet"
-              body="Draft a starter schedule — you can edit every row, or start from scratch."
-              action={
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button type="button" className="btn btn-primary btn-sm" onClick={preset}>
-                    Use wedding preset
-                  </button>
-                  <button type="button" className="btn btn-outline btn-sm" onClick={add}>
-                    Start empty
-                  </button>
-                </div>
-              }
-            />
-          }
-          renderItem={(itRaw, { handle }) => {
-            const it = itRaw as unknown as WeddingEvent;
-            const i = items.findIndex((x) => x.id === it.id);
-            return (
-              <SortableRowCard
-                handle={handle}
-                deleteLabel={`Delete moment ${i + 1}${it.name ? `: ${it.name}` : ''}`}
-                onDelete={() => set(items.filter((_, idx) => idx !== i))}
-                rootProps={{ 'data-pl-event-row-id': it.id }}
-              >
-                <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr 130px', gap: 10 }}>
-                  <Field label="Time">
-                    <TextInput value={it.time ?? ''} onChange={(e) => update(i, { time: e.target.value })} placeholder="4:00" />
-                  </Field>
-                  <Field label="Title">
-                    <TextInput value={it.name ?? ''} onChange={(e) => update(i, { name: e.target.value })} placeholder="Ceremony" />
-                  </Field>
-                  <Field label="Type">
-                    <SelectInput
-                      value={(it.type ?? 'reception') as string}
-                      onChange={(v) => update(i, { type: v as WeddingEvent['type'] })}
-                      options={TYPE_OPTIONS.map((o) => ({ value: o.value as string, label: o.label }))}
-                    />
-                  </Field>
-                </div>
-                <Field
-                  label="Short description"
-                  pearAction={{ block: 'schedule', pass: 'fill-schedule-gaps', label: 'Suggest a description with Pear' }}
-                >
-                  <TextArea
-                    rows={2}
-                    value={it.description ?? ''}
-                    onChange={(e) => update(i, { description: e.target.value })}
-                    placeholder="Forty minutes, give or take a few happy tears."
-                  />
-                </Field>
-                {/* Main-moment toggle — explicit host control beats
-                    the renderer's name/type heuristic. Click here
-                    promotes this event to "Main moment" on the
-                    canvas and clears the flag from any sibling
-                    that had it. The auto-badge then renders unless
-                    the host also hides it via the Hide pill below. */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '8px 12px',
-                    background: 'var(--cream-2, #F5EFE2)',
-                    border: '1px dashed var(--line-soft)',
-                    borderRadius: 10,
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // Promote this event; demote everyone else.
-                      const promoting = !it.isMain;
-                      set(items.map((x, ii) => ({
-                        ...x,
-                        isMain: ii === i ? promoting : false,
-                      })));
-                    }}
-                    aria-pressed={!!it.isMain}
-                    style={{
-                      padding: '5px 11px',
-                      borderRadius: 999,
-                      background: it.isMain ? 'var(--peach-ink, #C6703D)' : 'transparent',
-                      color: it.isMain ? '#FFFFFF' : 'var(--peach-ink, #C6703D)',
-                      border: `1px solid var(--peach-ink, #C6703D)`,
-                      fontSize: 10.5,
-                      fontWeight: 700,
-                      letterSpacing: '0.08em',
-                      textTransform: 'uppercase',
-                      cursor: 'pointer',
-                      fontFamily: 'var(--font-ui)',
-                    }}
-                  >
-                    {it.isMain ? '★ Main moment' : 'Mark as main'}
-                  </button>
-                  <span style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>
-                    {it.isMain
-                      ? 'This event gets the spotlight badge on the schedule.'
-                      : 'Click to spotlight this event.'}
-                  </span>
-                </div>
-                <BadgesEditor<ScheduleAutoBadge>
-                  badges={(it.badges ?? {}) as { hideAuto?: ScheduleAutoBadge[]; custom?: Array<{ id: string; label: string; tone?: 'peach' | 'sage' | 'lavender' | 'ink' }> }}
-                  onChange={(next) => {
-                    // Coerce hideAuto back to the canonical string[] shape
-                    // (BadgesEditor narrows it to AutoKey[] for the input
-                    // chips). Round-trip ensures downstream readers see
-                    // the canonical empty array, not a narrow-typed
-                    // `'main'[]` that some treated as "unset".
-                    update(i, {
-                      badges: {
-                        hideAuto: (next.hideAuto ?? []) as string[],
-                        custom: next.custom ?? [],
-                      },
-                    });
-                  }}
-                  autoLabels={SCHEDULE_AUTO_LABELS}
-                  placeholder="Optional, After-party, Photographer…"
-                />
-              </SortableRowCard>
-            );
-          }}
-        />
-      </PanelSection>
-    </PanelGroup>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <label style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>{label}</label>
+        {action}
+      </div>
+      {children}
+      {hint && <div style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.4 }}>{hint}</div>}
+    </div>
   );
 }
+function PearChip({ children }: { children: ReactNode }) {
+  return (
+    <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 11px', borderRadius: 999, background: 'var(--peach-bg)', border: '1px solid rgba(198,112,61,0.22)', fontSize: 11.5, fontWeight: 600, color: 'var(--peach-ink)', cursor: 'pointer' }}>
+      <Pear size={13} tone="sage" shadow={false}/> {children}
+    </button>
+  );
+}
+function AddCard({ label, onClick }: { label: string; onClick?: () => void }) {
+  return (
+    <button onClick={onClick} className="lift" style={{ width: '100%', padding: '11px 13px', borderRadius: 11, border: '1.5px dashed var(--line)', background: 'transparent', color: 'var(--ink-soft)', fontSize: 12.5, fontWeight: 600, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, cursor: 'pointer' }}>
+      <Icon name="plus" size={13} color="var(--ink-soft)"/> {label}
+    </button>
+  );
+}
+
+type Row = { t: string; l: string; s: string; tone: string };
+const FALLBACK_ROWS: Row[] = [
+  { t: '4:30 pm', l: 'Ceremony', s: 'Clifftop', tone: 'peach' },
+  { t: '5:30 pm', l: 'Cocktails', s: 'Caldera terrace', tone: 'lavender' },
+  { t: '7:00 pm', l: 'Dinner', s: 'Long table', tone: 'sage' },
+  { t: '9:00 pm', l: 'Dancing', s: 'Until late', tone: 'peach' },
+];
+const TONES = ['peach', 'lavender', 'sage'];
+
+export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const events = manifest.events ?? [];
+  const rows: Row[] = events.length > 0
+    ? events.map((e: WeddingEvent, i: number) => ({
+        t: (e.time as string | undefined) ?? '',
+        l: (e.name as string | undefined) ?? '',
+        s: ((e as any).location as string | undefined) ?? e.venue ?? '',
+        tone: TONES[i % TONES.length],
+      }))
+    : FALLBACK_ROWS;
+
+  const addEvent = () => {
+    const next: WeddingEvent = {
+      id: `evt-${Date.now()}`,
+      name: 'New moment',
+      type: 'other',
+      date: '',
+      time: '',
+      venue: '',
+      address: '',
+    } as WeddingEvent;
+    onChange({ ...manifest, events: [...events, next] });
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <FGroup label={`Timeline · ${rows.length} moments`} action={<PearChip>Build from notes</PearChip>}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {rows.map((r, i) => (
+            <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: 10, borderRadius: 11, background: 'var(--card)', border: '1px solid var(--line)' }}>
+              <Icon name="drag" size={14} color="var(--ink-muted)"/>
+              <span style={{ width: 32, height: 32, borderRadius: 8, background: `var(--${r.tone}-2)`, display: 'grid', placeItems: 'center', flexShrink: 0 } as CSSProperties}><Icon name="clock" size={14} color="#3D4A1F"/></span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>{r.l}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>{r.t} · {r.s}</div>
+              </div>
+              <Icon name="more" size={14} color="var(--ink-muted)"/>
+            </div>
+          ))}
+          <AddCard label="Add a moment" onClick={addEvent}/>
+        </div>
+      </FGroup>
+    </div>
+  );
+}
+
+export default SchedulePanel;
