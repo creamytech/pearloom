@@ -464,13 +464,14 @@ export function ThemePanel({
               <SnapshotsPanel manifest={manifest} onChange={onChange} />
             </div>
           </details>
-          <div data-pl-design-anchor="decor">
-            {/* Decor Library is now a slide-in drawer mounted at
-                the EditorV8 root. Dispatch a window event so
-                EditorV8's pearloom:open-decor-library listener
-                opens the drawer — same pattern as ⌘K + topbar. */}
+          <div data-pl-design-anchor="decor" className="pl8">
+            {/* Decor Library CTA — literal port of themes.jsx L896-912.
+                Gradient lavender-bg→peach-bg with a cream icon plate.
+                Prominent: this is the primary entry point to motifs,
+                dividers, patterns, and the monogram generator. */}
             <button
               type="button"
+              className="lift"
               onClick={() => {
                 if (typeof window === 'undefined') return;
                 window.dispatchEvent(new CustomEvent('pearloom:open-decor-library'));
@@ -478,24 +479,34 @@ export function ThemePanel({
               style={{
                 width: '100%',
                 cursor: 'pointer',
-                padding: '12px 14px',
-                borderRadius: 10,
-                background: 'var(--cream-2)',
-                border: '1px dashed var(--line)',
-                fontSize: 13,
-                fontWeight: 700,
-                letterSpacing: '0.02em',
-                color: 'var(--ink-soft)',
-                margin: '6px 0',
-                textAlign: 'left',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 8,
+                gap: 11,
+                padding: '13px 15px',
+                borderRadius: 13,
+                background: 'linear-gradient(120deg, var(--lavender-bg), var(--peach-bg))',
+                border: '1px solid var(--line-soft)',
+                textAlign: 'left',
+                margin: '6px 0',
               }}
             >
-              <span>✦ Decor Library — motifs, dividers, patterns, monogram, generate</span>
-              <span style={{ fontSize: 11, color: 'var(--ink-muted)', fontWeight: 600 }}>Open →</span>
+              <span style={{
+                width: 38, height: 38, borderRadius: 10,
+                background: 'var(--card)',
+                display: 'grid', placeItems: 'center', flexShrink: 0,
+                boxShadow: '0 2px 6px rgba(61,74,31,0.08)',
+              }}>
+                <Icon name="sparkles" size={18} color="var(--lavender-ink)" />
+              </span>
+              <span style={{ flex: 1 }}>
+                <span style={{ display: 'block', fontSize: 13.5, fontWeight: 700, color: 'var(--ink)' }}>
+                  Decor Library
+                </span>
+                <span style={{ display: 'block', fontSize: 11, color: 'var(--ink-soft)' }}>
+                  Motifs, dividers, patterns &amp; monograms
+                </span>
+              </span>
+              <Icon name="arrow-right" size={15} color="var(--ink-soft)" />
             </button>
             <details>
               <summary
@@ -709,32 +720,41 @@ function OwnedPacksSection({
   if (ownedPacks.length === 0) {
     return (
       <PanelSection label="Your packs" hint="Theme-Store packs you own.">
+        {/* Theme Shop CTA — literal port of themes.jsx L886-894.
+            Ink-on-cream dark pill with gold sparkle icon. The primary
+            "discover new looks" affordance. */}
         <button
           type="button"
+          className="lift pl8"
           onClick={openThemeShop}
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 10,
-            padding: '11px 14px',
-            borderRadius: 12,
-            border: '1px dashed var(--line, rgba(14,13,11,0.16))',
-            background: 'var(--card, #FBF7EE)',
-            textAlign: 'left',
+            gap: 11,
+            padding: '13px 15px',
+            borderRadius: 13,
             width: '100%',
-            color: 'var(--ink, #0E0D0B)',
-            fontFamily: 'var(--font-ui)',
             cursor: 'pointer',
+            background: 'var(--ink)',
+            color: 'var(--cream)',
+            border: 'none',
+            textAlign: 'left',
           }}
         >
-          <span style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: 13, fontWeight: 600 }}>Browse the Theme Shop</span>
-            <span style={{ fontSize: 11, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>
-              Designer packs of palette, type, material & components.
+          <span style={{
+            width: 36, height: 36, borderRadius: 10,
+            background: 'rgba(255,255,255,0.12)',
+            display: 'grid', placeItems: 'center', flexShrink: 0,
+          }}>
+            <Icon name="sparkles" size={17} color="var(--gold)" />
+          </span>
+          <span style={{ flex: 1 }}>
+            <span style={{ display: 'block', fontSize: 13.5, fontWeight: 700 }}>Theme Shop</span>
+            <span style={{ display: 'block', fontSize: 11, opacity: 0.7 }}>
+              60+ premium packs · try live
             </span>
           </span>
-          <Icon name="arrow-right" size={13} color="var(--ink, #0E0D0B)" />
+          <Icon name="arrow-up" size={15} color="var(--cream)" />
         </button>
       </PanelSection>
     );

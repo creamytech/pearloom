@@ -1971,6 +1971,19 @@ function EditorTopbar({
         <PearNudges manifest={manifest} siteSlug={siteSlug} />
         <button
           type="button"
+          onClick={() => {
+            if (typeof window === 'undefined') return;
+            window.dispatchEvent(new CustomEvent('pearloom:open-decor-library'));
+          }}
+          aria-label="Open Decor Library"
+          title="Decor Library — motifs, dividers, patterns"
+          className="pl8-icon-btn"
+          style={{ ...iconBtn, color: 'var(--lavender-ink)' }}
+        >
+          <Icon name="sparkles" size={15} />
+        </button>
+        <button
+          type="button"
           onClick={onUndo}
           disabled={!canUndo}
           aria-label="Undo (Cmd+Z)"
