@@ -2704,7 +2704,7 @@ function Outline({
         width: railWidth,
         flexShrink: 0,
         borderRight: '1px solid var(--line-soft)',
-        background: 'var(--cream)',
+        background: 'var(--cream-2)',
         padding: '16px 10px',
         overflowY: 'auto',
         display: 'flex',
@@ -2929,8 +2929,7 @@ function Outline({
                 style={{
                   width: `${progressPct}%`,
                   height: '100%',
-                  background:
-                    progressPct >= 60 ? 'var(--peach-ink, #C6703D)' : 'var(--sage, #5C6B3F)',
+                  background: 'var(--sage)',
                   transition: 'width var(--pl-dur-base) var(--pl-ease-out)',
                 }}
               />
@@ -3010,15 +3009,24 @@ function Outline({
           interaction hint alone tells hosts the rows below can be
           dragged without doubling up on the heading. Right-aligned
           so it doesn't compete with the rows for the eye. */}
-      <div style={{ padding: '0 12px', textAlign: 'right' }}>
-        <span
-          style={{
-            fontSize: 10,
-            color: 'var(--ink-muted)',
-            opacity: 0.65,
-          }}
-        >
-          Drag to reorder
+      {/* Prototype L185-188 literal: 'Page sections' uppercase label on the
+          left, 'drag to reorder' lowercase hint on the right. */}
+      <div
+        style={{
+          padding: '0 12px',
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          color: 'var(--ink-muted)',
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+        }}
+      >
+        <span>Page sections</span>
+        <span style={{ fontWeight: 500, letterSpacing: 0, textTransform: 'none', fontSize: 10.5 }}>
+          drag to reorder
         </span>
       </div>
 
@@ -3247,9 +3255,9 @@ function BlockRow({
         gridTemplateColumns: `${dragHandleProps ? '14px ' : ''}24px 1fr ${onToggleHidden ? '22px' : ''}`.trim(),
         gap: 10,
         padding: '8px 10px',
-        borderRadius: 10,
-        background: active ? 'var(--cream-2)' : hovered ? 'rgba(14,13,11,0.03)' : 'transparent',
-        color: 'var(--ink)',
+        borderRadius: 8,
+        background: active ? 'var(--ink)' : hovered ? 'rgba(14,13,11,0.03)' : 'transparent',
+        color: active ? 'var(--cream)' : 'var(--ink)',
         cursor: nativeDraggable ? 'grab' : 'pointer',
         fontFamily: 'var(--font-ui)',
         alignItems: 'center',
@@ -3261,20 +3269,9 @@ function BlockRow({
       {/* Active marker — peach hairline on the leading edge, signals
           "this is the open block" without surrounding the row in a
           loud peach box. Hides when not active so idle rows breathe. */}
-      {active && (
-        <span
-          aria-hidden
-          style={{
-            position: 'absolute',
-            left: 0,
-            top: 8,
-            bottom: 8,
-            width: 2,
-            borderRadius: 2,
-            background: 'var(--peach-ink, #C6703D)',
-          }}
-        />
-      )}
+      {/* Prototype L194-222 active row uses solid var(--ink) background
+          with cream type — no peach rail. The previous left-edge rail
+          is suppressed; the whole row becomes the affordance. */}
       {dragHandleProps && (
         <button
           type="button"
@@ -3289,11 +3286,11 @@ function BlockRow({
             placeItems: 'center',
             background: 'transparent',
             border: 'none',
-            color: 'var(--ink-muted)',
+            color: active ? 'var(--cream)' : 'var(--ink-muted)',
             cursor: 'grab',
             touchAction: 'none',
             padding: 0,
-            opacity: showChrome ? 0.7 : 0,
+            opacity: showChrome ? (active ? 0.5 : 0.7) : 0,
             transition: 'opacity var(--pl-dur-fast) var(--pl-ease-out)',
           }}
         >
@@ -3312,7 +3309,7 @@ function BlockRow({
           display: 'grid',
           placeItems: 'center',
           color: active
-            ? 'var(--peach-ink, #C6703D)'
+            ? 'var(--cream)'
             : hidden
               ? 'var(--ink-muted)'
               : 'var(--ink-soft)',
@@ -3534,7 +3531,7 @@ function Inspector({
         width: resolvedWidth,
         flexShrink: 0,
         borderLeft: fluid ? 'none' : '1px solid var(--line-soft)',
-        background: 'var(--cream)',
+        background: 'var(--card)',
         display: 'flex',
         flexDirection: 'column',
         minHeight: 0,

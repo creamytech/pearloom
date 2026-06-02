@@ -672,8 +672,44 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
   }
 }
 
-/* ── Published guest site — full-bleed, no pl8 chrome needed ── */
-.pl8-guest { background: var(--paper); color: var(--ink); font-family: var(--font-ui); }
+/* ── Published guest site — full-bleed, no pl8 chrome needed ──
+
+   --t-* THEME NAMESPACE: the prototype ThemedSite uses theme-scoped
+   tokens (--t-paper, --t-ink, --t-section, --t-accent, etc.) that
+   themeRootStyle() injects per-theme (see ClaudeDesign/shared/themes.jsx
+   line 164). Production aliases the namespace to the same backing
+   tokens as the rest of pl8 so every var(--t-*) reference inside the
+   guest site resolves to the same swatches the dashboard uses. Per-
+   theme overrides set on .pl8-guest via inline style still win.
+*/
+.pl8-guest {
+  background: var(--paper); color: var(--ink); font-family: var(--font-ui);
+  --t-paper:        var(--paper);
+  --t-card:         var(--card);
+  --t-section:      var(--cream-2);
+  --t-section-2:    var(--cream-3);
+  --t-ink:          var(--ink);
+  --t-ink-soft:     var(--ink-soft);
+  --t-ink-muted:    var(--ink-muted);
+  --t-line:         var(--line);
+  --t-line-soft:    var(--line-soft);
+  --t-accent:       var(--sage-deep);
+  --t-accent-bg:    var(--sage-tint);
+  --t-accent-ink:   var(--sage-deep);
+  --t-gold:         var(--gold);
+  --t-rsvp:         var(--ink);
+  --t-rsvp-ink:     var(--cream);
+  --t-shadow:       var(--shadow-md);
+  --t-radius:       var(--r);
+  --t-radius-lg:    var(--r-lg);
+  --t-display:      var(--font-display);
+  --t-display-wght: 600;
+  --t-body:         var(--font-ui);
+  --t-script:       var(--font-script);
+  --t-eyebrow-ls:   0.18em;
+  --t-hero-scale:   1;
+  --t-pad:          1;
+}
 .pl8-guest *, .pl8-guest *::before, .pl8-guest *::after { box-sizing: border-box; }
 .pl8-guest img, .pl8-guest svg { max-width: 100%; }
 .pl8-guest a { color: inherit; text-decoration: none; }

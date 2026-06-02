@@ -390,7 +390,7 @@ function TabBtn({ on, onClick, icon, label }: { on: boolean; onClick: () => void
 
 function GalleryLabel({ children }: { children: ReactNode }) {
   return (
-    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--ink-muted, var(--pl-ink-soft, #6F6557))', margin: '14px 2px 10px' }}>
+    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--ink-muted, var(--pl-ink-soft, #6F6557))', margin: '4px 2px 10px' }}>
       {children}
     </div>
   );
@@ -723,7 +723,7 @@ export function DecorLibraryPanel({
         </div>
 
         {/* Body */}
-        <div style={{ flex: 1, overflow: 'auto', padding: 18, maxHeight: 720 }}>
+        <div style={{ flex: 1, overflow: 'auto', padding: 18 }}>
           {tab === 'motifs' && (
             <>
               <GalleryLabel>Motif art — tap to place around your sections</GalleryLabel>
