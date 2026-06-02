@@ -36,9 +36,22 @@ export interface EditorBridge {
    keystroke bursts coalesce into a single POST. */
 const AUTOSAVE_DEBOUNCE_MS = 2000;
 
+/* Names sanitiser — strips UUID/hex/numeric-only slug fragments from
+   either name slot so the published renderer never shows "F7d9a3b2"
+   in the hero. Applies once when the manifest first loads + on every
+   setNames call. */
+const isUuidLike = (s: string): boolean =>
+  /^[0-9a-f]{4,}$/i.test(s) || /^\d+$/.test(s) || s.toLowerCase() === 'couple';
+const cleanName = (s: string, fallback: string): string =>
+  s && !isUuidLike(s) ? s : fallback;
+const sanitiseNames = (raw: [string, string]): [string, string] => [
+  cleanName(raw[0] ?? '', ''),
+  cleanName(raw[1] ?? '', ''),
+];
+
 export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlug }: BridgeInput): EditorBridge {
   const [manifest, setManifestState] = useState<StoryManifest>(initialManifest);
-  const [names, setNamesState] = useState<[string, string]>(initialNames);
+  const [names, setNamesState] = useState<[string, string]>(() => sanitiseNames(initialNames));
   const [savedAt, setSavedAt] = useState<string>('just now');
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -95,8 +108,9 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
   }, [persist, names]);
 
   const setNames = useCallback((next: [string, string]) => {
-    setNamesState(next);
-    persist(manifest, next);
+    const clean = sanitiseNames(next);
+    setNamesState(clean);
+    persist(manifest, clean);
   }, [persist, manifest]);
 
   /* editField — patch-function variant matching the renderer's

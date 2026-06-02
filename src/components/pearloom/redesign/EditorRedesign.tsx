@@ -113,7 +113,7 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
         onEditField={bridge.editField}
         onEditNames={bridge.setNames}
         pearOpen={pearOpen}
-        usePrototypeCanvas
+        usePrototypeCanvas={false}
       />
 
       {mode !== 'preview' && (
