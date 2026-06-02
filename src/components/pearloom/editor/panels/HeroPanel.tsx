@@ -9,11 +9,19 @@ import { FGroup, FInput, PearChip, SectionPanelShell } from './_section-atoms';
 
 export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const [n1, n2] = manifest.names ?? ['', ''];
-  const tagline = (manifest as unknown as { poetry?: { heroTagline?: string } }).poetry?.heroTagline ?? '';
+  /* Read tagline from manifest.tagline (canonical) with fallback to
+     the legacy poetry.heroTagline path so existing sites don't lose
+     their saved tagline. Write to manifest.tagline only. */
+  const tagline = ((manifest as unknown as { tagline?: string }).tagline)
+    ?? ((manifest as unknown as { poetry?: { heroTagline?: string } }).poetry?.heroTagline)
+    ?? '';
   const date = manifest.logistics?.date ?? '';
   const venue = manifest.logistics?.venue ?? '';
 
-  const setTagline = (v: string) => onChange({ ...manifest, poetry: { ...(manifest as unknown as { poetry?: Record<string, unknown> }).poetry, heroTagline: v } } as StoryManifest);
+  const setTagline = (v: string) => onChange({
+    ...(manifest as unknown as Record<string, unknown>),
+    tagline: v,
+  } as unknown as StoryManifest);
   const setA = (v: string) => onChange({ ...manifest, names: [v, n2] });
   const setB = (v: string) => onChange({ ...manifest, names: [n1, v] });
   const setDate = (v: string) => onChange({ ...manifest, logistics: { ...(manifest.logistics ?? {}), date: v } });

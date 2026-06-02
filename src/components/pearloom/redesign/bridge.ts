@@ -150,8 +150,18 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
   }, [siteSlug, saveState]);
 
   const setManifest = useCallback((next: StoryManifest) => {
+    /* Auto-sync manifest.names → the bridge's separate names tuple.
+       HeroPanel writes manifest.names directly; without this sync,
+       the renderer prop drifts and the canvas hero stays stale. */
+    const incomingNames = (next as unknown as { names?: [string, string] }).names;
+    const nextNames = Array.isArray(incomingNames) && incomingNames.length === 2
+      ? sanitiseNames(incomingNames as [string, string])
+      : names;
     setManifestState(next);
-    persist(next, names);
+    if (nextNames[0] !== names[0] || nextNames[1] !== names[1]) {
+      setNamesState(nextNames);
+    }
+    persist(next, nextNames);
   }, [persist, names]);
 
   const setNames = useCallback((next: [string, string]) => {

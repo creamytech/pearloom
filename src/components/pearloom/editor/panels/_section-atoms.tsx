@@ -104,8 +104,12 @@ export function PearChip({ children, onClick }: { children: ReactNode; onClick?:
   );
 }
 
-export function FToggleStandalone({ label, sub, def = false }: { label: string; sub?: string; def?: boolean }) {
+export function FToggleStandalone({ label, sub, def = false, onChange }: { label: string; sub?: string; def?: boolean; onChange?: (next: boolean) => void }) {
   const [on, set] = useState(!!def);
+  if (onChange) {
+    /* Controlled: defer to parent. */
+    return <FToggle label={label} sub={sub} on={def} set={onChange} />;
+  }
   return <FToggle label={label} sub={sub} on={on} set={set} />;
 }
 

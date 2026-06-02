@@ -1,45 +1,83 @@
 'use client';
 
 /* eslint-disable no-restricted-syntax */
-/* LITERAL PORT of ClaudeDesign/pages/section-fields.jsx DetailsEditor. */
+/* LITERAL PORT of ClaudeDesign/pages/section-fields.jsx DetailsEditor.
+   Writes the canonical manifest.detailsCards array that ThemedSite
+   reads (each entry is [label, value]). The dressCode toggle now
+   writes to detailsCards[0] so the Dress Code card on the canvas
+   actually updates. */
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
 import { AddCard, FGroup, FInput, FToggleStandalone, SectionPanelShell } from './_section-atoms';
 
+type Card = [string, string];
+
 export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
-  const dressCode = (manifest as unknown as { dressCode?: string }).dressCode ?? 'Aegean formal — linen & light colors';
-  const cards = (manifest as unknown as { detailsCards?: [string, string][] }).detailsCards ?? [
+  const cards: Card[] = ((manifest as unknown as { detailsCards?: Card[] }).detailsCards) ?? [
     ['Dress code', 'Aegean formal'],
     ['Parking', 'Valet on-site'],
     ['Weather', 'Warm evenings, ~22°C'],
   ];
 
-  const setDressCode = (v: string) => onChange({ ...(manifest as unknown as Record<string, unknown>), dressCode: v } as unknown as StoryManifest);
+  const setCards = (next: Card[]) => onChange({
+    ...(manifest as unknown as Record<string, unknown>),
+    detailsCards: next,
+  } as unknown as StoryManifest);
+
+  const setCardValue = (i: number, value: string) => {
+    const next = [...cards];
+    next[i] = [next[i]?.[0] ?? 'Detail', value];
+    setCards(next);
+  };
+  const setCardLabel = (i: number, label: string) => {
+    const next = [...cards];
+    next[i] = [label, next[i]?.[1] ?? ''];
+    setCards(next);
+  };
+  const addCard = () => {
+    if (cards.length >= 3) return;
+    setCards([...cards, ['New detail', '']]);
+  };
+
+  const kidsWelcome = ((manifest as unknown as { kidsWelcome?: boolean }).kidsWelcome) ?? false;
+  const adultsOnly = ((manifest as unknown as { adultsOnly?: boolean }).adultsOnly) ?? true;
+  const setKidsWelcome = (v: boolean) => onChange({
+    ...(manifest as unknown as Record<string, unknown>),
+    kidsWelcome: v,
+  } as unknown as StoryManifest);
+  const setAdultsOnly = (v: boolean) => onChange({
+    ...(manifest as unknown as Record<string, unknown>),
+    adultsOnly: v,
+  } as unknown as StoryManifest);
 
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <FGroup label="Dress code">
-          <FInput value={dressCode} onChange={setDressCode} icon="sparkles" />
+          <FInput
+            value={cards[0]?.[1] ?? ''}
+            onChange={(v) => setCardValue(0, v)}
+            icon="sparkles"
+            placeholder="Aegean formal — linen & light colors"
+          />
         </FGroup>
-        <FToggleStandalone label="Kids welcome" sub="Shown on the details card" def={false} />
-        <FToggleStandalone label="Adults-only evening" def={true} />
+        <FToggleStandalone label="Kids welcome" sub="Shown on the details card" def={kidsWelcome} onChange={setKidsWelcome} />
+        <FToggleStandalone label="Adults-only evening" def={adultsOnly} onChange={setAdultsOnly} />
         <FGroup label="Good-to-know cards" hint="Up to three quick facts.">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {cards.map(([l, v]) => (
-              <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 11, background: 'var(--card)', border: '1px solid var(--line)' }}>
-                <span style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--cream-2)', display: 'grid', placeItems: 'center' }}>
+            {cards.map(([l, v], i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'stretch', gap: 8 }}>
+                <span style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--cream-2)', display: 'grid', placeItems: 'center', flexShrink: 0, marginTop: 8 }}>
                   <Icon name="sparkles" size={13} color="var(--ink-soft)" />
                 </span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 600 }}>{l}</div>
-                  <div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>{v}</div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <FInput value={l} onChange={(next) => setCardLabel(i, next)} placeholder="Label (e.g. Parking)" />
+                  <FInput value={v} onChange={(next) => setCardValue(i, next)} placeholder="Value (e.g. Valet on-site)" />
                 </div>
-                <Icon name="more" size={13} color="var(--ink-muted)" />
               </div>
             ))}
-            <AddCard label="Add a detail" />
+            {cards.length < 3 && <AddCard label="Add a detail" onClick={addCard} />}
           </div>
         </FGroup>
       </div>
