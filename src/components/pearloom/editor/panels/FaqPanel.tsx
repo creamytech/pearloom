@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import type { StoryManifest } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, TextArea, TextInput } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelHeaderTag, PanelSection, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { BadgesEditor } from './BadgesEditor';
@@ -100,6 +100,10 @@ export function FaqPanel({
 
   return (
     <PanelGroup>
+      <PanelHeaderTag
+        label="FAQ"
+        hint="The questions guests will ask — Pear can suggest more from your details."
+      />
       {/* Per-section layout — 4 prototype variants (accordion is
           wired today; twocol / numbered / cards live in the
           registry for picker discovery, awaiting renderers). */}

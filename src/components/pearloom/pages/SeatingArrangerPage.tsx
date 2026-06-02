@@ -8,6 +8,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { DashLayout } from '../dash/DashShell';
+import { PLHead } from '../dash/PLChrome';
 import { Icon, Pear } from '../motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { NumberInput } from '../editor/v8-forms';
@@ -176,18 +177,37 @@ export function SeatingArrangerPage() {
   }
 
   return (
-    <DashLayout active="seating" title="Seating arranger" subtitle="Drag guests onto tables. Pear auto-solves with constraints.">
-      <div className="pl8" style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-          <button type="button" className="btn btn-primary btn-sm" onClick={autoSolve} disabled={!guests.length}>
-            <Pear size={12} tone="cream" shadow={false} /> Auto-solve
-          </button>
-          <button type="button" className="btn btn-outline btn-sm" onClick={addTable}>
-            <Icon name="plus" size={12} /> Add table
-          </button>
-          <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--ink-muted)' }}>
-            {guests.length} guests · {tables.length} tables · {unseated.length} unseated
-          </span>
+    <DashLayout active="seating" hideTopbar>
+      <div className="pl8" style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1240, margin: '0 auto' }}>
+        <PLHead
+          pre="Day-of"
+          title="Seating"
+          italic="arranger."
+          sub="Drag guests onto tables. Set constraints. Pear auto-solves the rest with must-sit-together and avoid rules."
+          actions={
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button type="button" className="btn btn-primary btn-sm" onClick={autoSolve} disabled={!guests.length}>
+                <Pear size={12} tone="cream" shadow={false} /> Auto-solve
+              </button>
+              <button type="button" className="btn btn-outline btn-sm" onClick={addTable}>
+                <Icon name="plus" size={12} /> Add table
+              </button>
+            </div>
+          }
+          style={{ marginBottom: 18 }}
+        />
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          marginBottom: 18,
+          fontSize: 10.5,
+          fontWeight: 700,
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+          color: 'var(--ink-muted)',
+        }}>
+          <span>{guests.length} guests · {tables.length} tables · {unseated.length} unseated</span>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 22 }} className="pl8-seating-grid">

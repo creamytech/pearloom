@@ -14,6 +14,7 @@ import { Bloom, Sparkle } from '@/components/brand/groove';
 import { Pear, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
+import { PLHead } from '@/components/pearloom/dash/PLChrome';
 import { siteDisplayName, useUserSites, type SiteSummary } from './hooks';
 
 interface CelebrationRef {
@@ -123,30 +124,38 @@ export function DashConnections() {
 
   if (!loading && (!sites || sites.length === 0)) {
     return (
-      <DashLayout active="connections" title="Connections" subtitle="Create two sites first and you can weave them together here.">
-        <EmptyShell message="Create two sites first and you can weave them together here." />
+      <DashLayout active="connections" hideTopbar>
+        <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1180, margin: '0 auto' }}>
+          <PLHead
+            align="center"
+            pre="Connections"
+            title="One weekend,"
+            italic="many threads."
+            sub="Create two sites first and you can weave them together here."
+            style={{ marginBottom: 28 }}
+          />
+          <EmptyShell message="Create two sites first and you can weave them together here." />
+        </div>
       </DashLayout>
     );
   }
 
   return (
-    <DashLayout
-      active="connections"
-      title={
-        <span>
-          One weekend,{' '}
-          <i style={{ color: PD.plum, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-            many threads.
-          </i>
-        </span>
-      }
-      subtitle="Pearloom celebrations group sibling sites together. A wedding weekend with a rehearsal dinner + brunch. A memorial with a family directory. A reunion split across three days. Each site still has its own host, its own guests, its own voice — but they link into one story."
-      actions={
-        <Link href="/wizard/new" style={{ ...btnInk, textDecoration: 'none' }}>
-          ✦ New site
-        </Link>
-      }
-    >
+    <DashLayout active="connections" hideTopbar>
+      <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
+        <PLHead
+          pre="Connections"
+          title="One weekend,"
+          italic="many threads."
+          sub="Pearloom celebrations group sibling sites together. A wedding weekend with a rehearsal dinner + brunch. A memorial with a family directory. A reunion split across three days. Each site still has its own host, its own guests, its own voice — but they link into one story."
+          actions={
+            <Link href="/wizard/new" style={{ ...btnInk, textDecoration: 'none' }}>
+              ✦ New site
+            </Link>
+          }
+          style={{ marginBottom: 24 }}
+        />
+      </div>
 
       <main
         className="pd-connections-main"

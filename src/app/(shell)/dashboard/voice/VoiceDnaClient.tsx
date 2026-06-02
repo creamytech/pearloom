@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
-import { Icon } from '@/components/pearloom/motifs';
+import { PLHead, PLCard } from '@/components/pearloom/dash/PLChrome';
+import { Icon, Pear } from '@/components/pearloom/motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 
 const PROMPTS = [
@@ -153,45 +154,65 @@ export function VoiceDnaClient({ siteSlug: urlSiteSlug }: { siteSlug: string | n
   const recordedCount = Object.values(samples).filter((s) => s.text.trim().length > 0).length;
 
   return (
-    <DashLayout
-      active="creative"
-      title="Capture your voice"
-      subtitle="Five minutes of you talking, eight short prompts. Pear listens, extracts your tone + signature phrases, and uses them in every draft from now on — save-the-dates, vows, thank-yous, anniversary recaps. So the words sound like you."
-    >
-      <div style={{ padding: 'clamp(20px, 3vw, 32px)', maxWidth: 1100, margin: '0 auto' }}>
+    <DashLayout active="creative" hideTopbar>
+      <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1080, margin: '0 auto' }}>
+
+        <PLHead
+          align="center"
+          pre="Pear's voice"
+          title="Capture your"
+          italic="voice"
+          sub="Five minutes of you talking, eight short prompts. Pear listens, extracts your tone + signature phrases, and uses them in every draft from now on — save-the-dates, vows, thank-yous, anniversary recaps. So the words sound like you."
+          style={{ marginBottom: 28 }}
+        />
 
         {profile && (
-          <div style={{
-            background: 'rgba(92,107,63,0.08)',
-            border: '1px solid rgba(92,107,63,0.22)',
-            borderRadius: 14,
-            padding: 18,
-            marginBottom: 24,
-          }}>
-            <div className="eyebrow" style={{ color: '#3D4A1F', marginBottom: 6 }}>
-              Captured · {new Date(profile.capturedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-            </div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--ink)', marginBottom: 10 }}>
-              {profile.tone}
-            </div>
-            {profile.phrases.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
-                {profile.phrases.slice(0, 8).map((p) => (
-                  <span key={p} style={{
-                    padding: '4px 10px',
-                    borderRadius: 999,
-                    background: 'rgba(92,107,63,0.12)',
-                    color: '#3D4A1F',
-                    fontSize: 11.5,
-                    fontWeight: 600,
-                  }}>“{p}”</span>
-                ))}
+          <PLCard tone="sage" style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+              <Pear size={28} tone="sage" shadow={false} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: 'var(--sage-deep, #3D4A1F)',
+                  marginBottom: 4,
+                }}>
+                  Captured · {new Date(profile.capturedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </div>
+                <div style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 22,
+                  fontWeight: 600,
+                  color: 'var(--ink)',
+                  marginBottom: 12,
+                  lineHeight: 1.25,
+                }}>
+                  {profile.tone}
+                </div>
+                {profile.phrases.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                    {profile.phrases.slice(0, 8).map((p) => (
+                      <span key={p} style={{
+                        padding: '4px 11px',
+                        borderRadius: 999,
+                        background: 'var(--card, var(--cream-2))',
+                        border: '1px solid var(--line-soft)',
+                        color: 'var(--sage-deep, #3D4A1F)',
+                        fontSize: 11.5,
+                        fontWeight: 600,
+                        fontStyle: 'italic',
+                      }}>"{p}"</span>
+                    ))}
+                  </div>
+                )}
+                <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
+                  Pear is now writing in your voice across the cadence, story passes, and thank-you drafts. Re-record any time to refresh.
+                </div>
               </div>
-            )}
-            <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 8 }}>
-              Pear is now writing in your voice across the cadence, story passes, and thank-you drafts. Re-record any time to refresh.
             </div>
-          </div>
+          </PLCard>
         )}
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
@@ -232,13 +253,9 @@ export function VoiceDnaClient({ siteSlug: urlSiteSlug }: { siteSlug: string | n
             const isRecording = recordingForId === p.id;
             const isExpanded = activeId === p.id || s?.text || isRecording;
             return (
-              <div
+              <PLCard
                 key={p.id}
-                className="pl8-card-lift"
                 style={{
-                  background: 'var(--cream-2)',
-                  border: '1px solid var(--line-soft)',
-                  borderRadius: 14,
                   padding: 16,
                 }}
               >
@@ -310,7 +327,7 @@ export function VoiceDnaClient({ siteSlug: urlSiteSlug }: { siteSlug: string | n
                   <div className="pl8-tab-enter" style={{
                     marginTop: 12,
                     padding: 12,
-                    background: 'var(--paper)',
+                    background: 'var(--paper, var(--cream))',
                     borderRadius: 10,
                     fontSize: 13,
                     color: 'var(--ink-soft)',
@@ -325,7 +342,7 @@ export function VoiceDnaClient({ siteSlug: urlSiteSlug }: { siteSlug: string | n
                     )}
                   </div>
                 )}
-              </div>
+              </PLCard>
             );
           })}
         </div>

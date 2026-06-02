@@ -1,7 +1,7 @@
 'use client';
 
 import type { StoryManifest, MealOption } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelDisclosure, PanelGroup, PanelSection, PanelSmartActions, PanelTabs, TextArea, TextInput, Toggle, type PanelSmartAction } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelDisclosure, PanelGroup, PanelHeaderTag, PanelSection, PanelSmartActions, PanelTabs, TextArea, TextInput, Toggle, type PanelSmartAction } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { BlockStylePicker } from './BlockStylePicker';
@@ -281,6 +281,10 @@ export function RsvpPanel({
 
   return (
     <>
+      <PanelHeaderTag
+        label="RSVP"
+        hint="What you ask guests, when they reply by, and how Pear chases the stragglers."
+      />
       <PanelSmartActions actions={smartActions} />
       <PanelTabs slots={{ content, layout }} />
     </>

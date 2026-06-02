@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import type { StoryManifest, WeddingEvent } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PanelSmartActions, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelHeaderTag, PanelSection, PanelSmartActions, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { BadgesEditor } from './BadgesEditor';
 import { focusPanelRow } from './focus-row';
@@ -173,6 +173,10 @@ export function SchedulePanel({
 
   return (
     <PanelGroup>
+      <PanelHeaderTag
+        label="Schedule"
+        hint="The order of the day — moments, times, and where each one lands."
+      />
       <PanelSmartActions actions={smartActions} />
       {/* Per-section layout — 5 prototype variants (cards / list /
           timeline / stepper / numbered) plus the production

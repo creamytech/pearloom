@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PanelTabs, SegmentedToggle, TextArea, TextInput } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelHeaderTag, PanelSection, PanelTabs, SegmentedToggle, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { PlaceAutocomplete } from './PlaceAutocomplete';
@@ -793,7 +793,15 @@ export function TravelPanel({
     </PanelGroup>
   );
 
-  return <PanelTabs slots={{ content, layout }} />;
+  return (
+    <>
+      <PanelHeaderTag
+        label="Travel"
+        hint="Hotels, airports, and arrival notes — Pear pulls ratings, photos & amenities automatically."
+      />
+      <PanelTabs slots={{ content, layout }} />
+    </>
+  );
 }
 
 // ── AirportsField ──────────────────────────────────────────

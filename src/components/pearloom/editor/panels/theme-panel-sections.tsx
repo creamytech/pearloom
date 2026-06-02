@@ -397,9 +397,37 @@ export function FineTuneSection({
       )}
       <ToggleRow label="Motifs" on={motifsOn} onChange={(v) => onChange({ ...manifest, motifsEnabled: v } as unknown as StoryManifest)} />
       <ToggleRow label="Use my photos" on={photosOn} onChange={(v) => onChange({ ...manifest, usePhotosForPalette: v } as unknown as StoryManifest)} />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: passes ? SAGE_DEEP : '#A14A2C' }}>
-        <span aria-hidden style={{ fontWeight: 700 }}>{passes ? '✓' : '!'}</span>
-        <span>Text contrast {passes ? 'AA' : 'low'} · {ratio.toFixed(1)}:1</span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: passes ? SAGE_DEEP : '#A14A2C' }}>
+          <span aria-hidden style={{ fontWeight: 700 }}>{passes ? '✓' : '!'}</span>
+          <span>Text contrast {passes ? 'AA' : 'low'} · {ratio.toFixed(1)}:1</span>
+        </div>
+        {/* High-texture legibility nudge — direct port of the
+            prototype's LegibilityNote second branch. When the
+            texture slider is past 1.1 the grain starts to muddy
+            body type; offer a one-tap "Soften" that snaps the
+            intensity to 0.7 (the prototype's chosen safe point). */}
+        {intensity > 1.1 && !textureSmooth && (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+            padding: '7px 10px', borderRadius: 8,
+            background: 'color-mix(in oklab, var(--pl-gold, #B8935A) 16%, var(--cream-2, #EBE3D2))',
+          }}>
+            <span style={{ fontSize: 11, color: INK_MUTED }}>High texture can reduce legibility</span>
+            <button
+              type="button"
+              onClick={() => onChange({ ...manifest, textureIntensity: 0.7 } as unknown as StoryManifest)}
+              style={{
+                fontSize: 11, fontWeight: 700, color: INK,
+                padding: '3px 9px', borderRadius: 999,
+                background: CARD, border: '1px solid var(--line, rgba(14,13,11,0.16))',
+                cursor: 'pointer', fontFamily: 'var(--font-ui)',
+              }}
+            >
+              Soften
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

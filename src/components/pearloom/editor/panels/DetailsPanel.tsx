@@ -14,7 +14,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { StoryManifest } from '@/types';
-import { Field, PanelDisclosure, PanelGroup, PanelSection, PanelSmartActions, PanelTabs, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
+import { Field, PanelDisclosure, PanelGroup, PanelHeaderTag, PanelSection, PanelSmartActions, PanelTabs, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { TimePicker } from '../v8-forms';
 import { Icon } from '../../motifs';
 import { LivestreamPanel } from './LivestreamPanel';
@@ -304,6 +304,10 @@ export function DetailsPanel({
 
   return (
     <>
+      <PanelHeaderTag
+        label="Details"
+        hint="Cards guests read — ceremony, dress code, parking, and your own custom callouts."
+      />
       <PanelSmartActions actions={smartActions} />
       <PanelTabs slots={{ content, layout }} />
     </>

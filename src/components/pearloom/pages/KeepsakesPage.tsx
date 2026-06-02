@@ -97,7 +97,9 @@ export function KeepsakesPage() {
       <PLTabs tabs={[{ label: 'Keepsakes' }, { label: 'Book', href: '/dashboard/memory-book' }]} active={0} />
       <PLHead
         align="center"
-        title="Keepsakes"
+        pre="After the celebration"
+        title="Keepsakes,"
+        italic="drafted by Pear."
         sub={subtitle}
       />
 

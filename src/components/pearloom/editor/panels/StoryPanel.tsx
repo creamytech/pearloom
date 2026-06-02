@@ -2,7 +2,7 @@
 
 import { useRef, type ChangeEvent } from 'react';
 import type { StoryManifest, Chapter } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PanelSmartActions, PanelTabs, PhotoSlot, TextArea, TextInput, type PanelSmartAction } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelHeaderTag, PanelSection, PanelSmartActions, PanelTabs, PhotoSlot, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { Icon } from '../../motifs';
@@ -330,6 +330,10 @@ export function StoryPanel({
 
   return (
     <>
+      <PanelHeaderTag
+        label="Story"
+        hint="How you got here — chapters that read like a slow scroll, not a wall of text."
+      />
       <PanelSmartActions actions={smartActions} />
       <PanelTabs slots={{ content, layout }} />
     </>

@@ -2,7 +2,6 @@
 
 import { use, useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { SiteNav } from '@/components/site-nav';
 import { ThemeProvider } from '@/components/theme-provider';
 import {
   CheckCircle2,
@@ -19,8 +18,9 @@ import {
 import { LoomThreadIcon } from '@/components/icons/PearloomIcons';
 import Link from 'next/link';
 import { formatSiteDisplayUrl } from '@/lib/site-urls';
-import { BlurFade, GrooveBlob } from '@/components/brand/groove';
+import { BlurFade } from '@/components/brand/groove';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
+import { PLAtmosphere } from '@/components/pearloom/dash/PLChrome';
 
 // Force dynamic since we pull live RSVP data
 export const dynamic = 'force-dynamic';
@@ -63,10 +63,11 @@ function StatCard({
   return (
     <div
       style={{
-        background: '#ffffff',
-        borderRadius: '1rem',
+        background: 'var(--card, var(--cream-2))',
+        border: '1px solid var(--line-soft)',
+        borderRadius: 16,
         padding: '1.5rem',
-        boxShadow: '0 2px 8px rgba(43,43,43,0.07)',
+        boxShadow: 'var(--pl-shadow-sm, 0 1px 3px rgba(40,28,12,0.06))',
         display: 'flex',
         alignItems: 'center',
         gap: '1rem',
@@ -77,12 +78,12 @@ function StatCard({
         <p
           style={{
             fontSize: '0.72rem',
-            fontWeight: 600,
-            letterSpacing: '0.06em',
+            fontWeight: 700,
+            letterSpacing: '0.18em',
             textTransform: 'uppercase',
-            color: 'var(--ink-muted)',
-            fontFamily: 'var(--pl-font-body)',
-            marginBottom: '0.25rem',
+            color: 'var(--peach-ink, #C6703D)',
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            marginBottom: '0.35rem',
           }}
         >
           {label}
@@ -90,10 +91,11 @@ function StatCard({
         <p
           style={{
             fontSize: '2rem',
-            fontWeight: 700,
-            fontFamily: 'var(--pl-font-heading)',
+            fontWeight: 600,
+            fontFamily: 'var(--font-display, var(--pl-font-heading))',
             color: valueColor,
             lineHeight: 1,
+            letterSpacing: '-0.01em',
           }}
         >
           {value}
@@ -268,10 +270,11 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
     <>
       <div
         style={{
-          background: '#ffffff',
-          borderRadius: '1rem',
+          background: 'var(--card, var(--cream-2))',
+          border: '1px solid var(--line-soft)',
+          borderRadius: 16,
           overflow: 'hidden',
-          boxShadow: '0 2px 8px rgba(43,43,43,0.07)',
+          boxShadow: 'var(--pl-shadow-sm, 0 1px 3px rgba(40,28,12,0.06))',
         }}
       >
         <div
@@ -280,18 +283,19 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '1.25rem 1.5rem',
-            borderBottom: '1px solid rgba(0,0,0,0.05)',
+            borderBottom: '1px solid var(--line-soft)',
           }}
         >
           <p
             style={{
-              fontFamily: 'var(--pl-font-heading)',
-              fontSize: '1.1rem',
+              fontFamily: 'var(--font-display, var(--pl-font-heading))',
+              fontSize: '1.15rem',
               fontWeight: 600,
               color: 'var(--ink)',
+              letterSpacing: '-0.005em',
             }}
           >
-            Guest List
+            Guest list
           </p>
           <button
             onClick={() => exportCsv(guests, domain)}
@@ -323,8 +327,8 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
             <thead>
               <tr
                 style={{
-                  borderBottom: '1px solid rgba(0,0,0,0.05)',
-                  background: '#F5F1E8',
+                  borderBottom: '1px solid var(--line-soft)',
+                  background: 'var(--cream-2, #F5EFE2)',
                 }}
               >
                 <th style={{ padding: 0 }}>
@@ -988,10 +992,11 @@ function MealSummary({ guests }: { guests: Guest[] }) {
   return (
     <div
       style={{
-        background: '#ffffff',
-        borderRadius: '1rem',
+        background: 'var(--card, var(--cream-2))',
+        border: '1px solid var(--line-soft)',
+        borderRadius: 16,
         padding: '1.25rem 1.5rem',
-        boxShadow: '0 2px 8px rgba(43,43,43,0.07)',
+        boxShadow: 'var(--pl-shadow-sm, 0 1px 3px rgba(40,28,12,0.06))',
         display: 'flex',
         alignItems: 'center',
         flexWrap: 'wrap',
@@ -1000,17 +1005,17 @@ function MealSummary({ guests }: { guests: Guest[] }) {
     >
       <p
         style={{
-          fontSize: '0.72rem',
+          fontSize: '0.7rem',
           fontWeight: 700,
           textTransform: 'uppercase',
-          letterSpacing: '0.06em',
-          color: 'var(--ink-muted)',
-          fontFamily: 'var(--pl-font-body)',
-          marginRight: '0.25rem',
+          letterSpacing: '0.18em',
+          color: 'var(--peach-ink, #C6703D)',
+          fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+          marginRight: '0.5rem',
           flexShrink: 0,
         }}
       >
-        Meal Preferences
+        Meal preferences
       </p>
       {entries.map(([label, count], i) => (
         <span
@@ -1044,10 +1049,11 @@ function SongPlaylist({ guests }: { guests: Guest[] }) {
   return (
     <div
       style={{
-        background: '#ffffff',
-        borderRadius: '1rem',
+        background: 'var(--card, var(--cream-2))',
+        border: '1px solid var(--line-soft)',
+        borderRadius: 16,
         padding: '1.5rem',
-        boxShadow: '0 2px 8px rgba(43,43,43,0.07)',
+        boxShadow: 'var(--pl-shadow-sm, 0 1px 3px rgba(40,28,12,0.06))',
       }}
     >
       <div
@@ -1061,13 +1067,14 @@ function SongPlaylist({ guests }: { guests: Guest[] }) {
         <LoomThreadIcon size={20} color="var(--sage-deep)" />
         <h2
           style={{
-            fontFamily: 'var(--pl-font-heading)',
-            fontSize: '1.15rem',
+            fontFamily: 'var(--font-display, var(--pl-font-heading))',
+            fontSize: '1.2rem',
             fontWeight: 600,
             color: 'var(--ink)',
+            letterSpacing: '-0.005em',
           }}
         >
-          Your Playlist
+          Your playlist
         </h2>
         <span
           style={{
@@ -1214,23 +1221,18 @@ function RsvpPageContent({ domain }: { domain: string }) {
   return (
     <main
       style={{
-        maxWidth: '1000px',
+        maxWidth: '1180px',
         margin: '0 auto',
-        paddingTop: '8rem',
+        paddingTop: '2rem',
         paddingBottom: '4rem',
-        paddingLeft: '1.5rem',
-        paddingRight: '1.5rem',
-        fontFamily: 'var(--pl-font-body)',
+        paddingLeft: 'clamp(20px, 4vw, 40px)',
+        paddingRight: 'clamp(20px, 4vw, 40px)',
+        fontFamily: 'var(--font-ui, var(--pl-font-body))',
         position: 'relative',
+        zIndex: 1,
       }}
     >
-      <GrooveBlob
-        palette="orchard"
-        size={480}
-        blur={80}
-        opacity={0.2}
-        style={{ position: 'absolute', top: '-100px', right: '-80px', zIndex: 0, pointerEvents: 'none' }}
-      />
+      <PLAtmosphere />
 
       {/* ── Header row ── */}
       <div
@@ -1238,9 +1240,11 @@ function RsvpPageContent({ domain }: { domain: string }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: '2rem',
+          marginBottom: '1.5rem',
           flexWrap: 'wrap',
           gap: '0.75rem',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <Link
@@ -1249,11 +1253,11 @@ function RsvpPageContent({ domain }: { domain: string }) {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.4rem',
-            color: 'var(--ink-muted)',
+            color: 'var(--ink-soft)',
             fontSize: '0.88rem',
-            fontFamily: 'var(--pl-font-body)',
+            fontFamily: 'var(--font-ui, var(--pl-font-body))',
             textDecoration: 'none',
-            fontWeight: 500,
+            fontWeight: 600,
           }}
         >
           <ArrowLeft size={15} />
@@ -1264,14 +1268,15 @@ function RsvpPageContent({ domain }: { domain: string }) {
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            padding: '0.3rem 0.9rem',
+            padding: '0.35rem 0.9rem',
             borderRadius: 'var(--pl-radius-full)',
-            background: 'rgba(163,177,138,0.12)',
-            border: '1px solid rgba(163,177,138,0.25)',
+            background: 'var(--sage-tint)',
+            border: '1px solid var(--line-soft)',
             fontSize: '0.78rem',
-            color: 'var(--ink-muted)',
-            fontFamily: 'var(--pl-font-body)',
-            letterSpacing: '0.02em',
+            color: 'var(--sage-deep)',
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            letterSpacing: '0.04em',
+            fontWeight: 600,
           }}
         >
           {siteUrl}
@@ -1283,13 +1288,13 @@ function RsvpPageContent({ domain }: { domain: string }) {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.4rem',
-            padding: '0.5rem 1rem',
-            borderRadius: '0.5rem',
+            padding: '0.55rem 1.1rem',
+            borderRadius: 'var(--pl-radius-full)',
             background: 'var(--ink)',
-            color: '#ffffff',
+            color: 'var(--cream)',
             fontSize: '0.82rem',
-            fontWeight: 500,
-            fontFamily: 'var(--pl-font-body)',
+            fontWeight: 600,
+            fontFamily: 'var(--font-ui, var(--pl-font-body))',
             border: 'none',
             cursor: 'pointer',
           }}
@@ -1299,21 +1304,54 @@ function RsvpPageContent({ domain }: { domain: string }) {
         </button>
       </div>
 
+      {/* PLHead-style editorial header */}
       <BlurFade>
-      <h1
-        style={{
-          fontFamily: 'var(--pl-font-body)',
-          fontSize: 'clamp(1.8rem, 4vw, 2.6rem)',
-          fontWeight: 700,
-          color: 'var(--pl-groove-ink)',
-          marginBottom: '2rem',
-          letterSpacing: '-0.02em',
-          position: 'relative',
-          zIndex: 1,
-        }}
-      >
-        Your guest list
-      </h1>
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--peach-ink, #C6703D)',
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            marginBottom: 8,
+          }}
+        >
+          Your loom · Guests
+        </div>
+        <h1
+          style={{
+            fontFamily: 'var(--font-display, var(--pl-font-heading))',
+            fontSize: 'clamp(2rem, 4.5vw, 2.8rem)',
+            fontWeight: 600,
+            color: 'var(--ink)',
+            marginBottom: '0.4rem',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          The{' '}
+          <span
+            style={{
+              fontStyle: 'italic',
+              color: 'var(--lavender-ink)',
+              fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+            }}
+          >
+            guest list
+          </span>
+          .
+        </h1>
+        <div
+          style={{
+            fontSize: 13.5,
+            color: 'var(--ink-soft)',
+            marginBottom: '2rem',
+            maxWidth: 520,
+            lineHeight: 1.55,
+          }}
+        >
+          Every RSVP, meal note, song pick, and message — gathered in one place.
+        </div>
       </BlurFade>
 
       {/* ── Stats row ── */}
@@ -1378,27 +1416,31 @@ function RsvpPageContent({ domain }: { domain: string }) {
         /* Loading skeleton */
         <div
           style={{
-            background: '#ffffff',
-            borderRadius: '1rem',
+            background: 'var(--card, var(--cream-2))',
+            border: '1px solid var(--line-soft)',
+            borderRadius: 16,
             padding: '3rem 2rem',
             textAlign: 'center',
-            boxShadow: '0 2px 8px rgba(43,43,43,0.07)',
+            boxShadow: 'var(--pl-shadow-sm, 0 1px 3px rgba(40,28,12,0.06))',
             marginBottom: '1.5rem',
-            color: 'var(--ink-muted)',
-            fontFamily: 'var(--pl-font-body)',
-            fontSize: '0.9rem',
+            color: 'var(--ink-soft)',
+            fontFamily: 'var(--font-display, var(--pl-font-heading))',
+            fontStyle: 'italic',
+            fontSize: '1.1rem',
+            fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
           }}
         >
-          Loading guests...
+          Threading…
         </div>
       ) : list.length === 0 ? (
         <div
           style={{
-            background: '#ffffff',
-            borderRadius: '1rem',
+            background: 'var(--card, var(--cream-2))',
+            border: '1px solid var(--line-soft)',
+            borderRadius: 16,
             padding: '4rem 2rem',
             textAlign: 'center',
-            boxShadow: '0 2px 8px rgba(43,43,43,0.07)',
+            boxShadow: 'var(--pl-shadow-sm, 0 1px 3px rgba(40,28,12,0.06))',
             marginBottom: '1.5rem',
           }}
         >
@@ -1444,10 +1486,49 @@ export default function RsvpManagementPage({
   if (!domain) {
     return (
       <DashLayout active="guests" hideTopbar>
-        <div style={{ padding: '80px 32px', textAlign: 'center', color: 'var(--ink-muted)', fontFamily: 'var(--font-ui)' }}>
-          <p>No domain provided. Go back to your dashboard to view RSVPs.</p>
-          <Link href="/dashboard" className="btn btn-outline btn-sm" style={{ marginTop: 16 }}>
-            ← Back to dashboard
+        <PLAtmosphere />
+        <div
+          style={{
+            padding: '80px 32px',
+            textAlign: 'center',
+            color: 'var(--ink-soft)',
+            fontFamily: 'var(--font-ui, var(--pl-font-body))',
+            position: 'relative',
+            zIndex: 1,
+            maxWidth: 520,
+            margin: '0 auto',
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'var(--font-display, var(--pl-font-heading))',
+              fontStyle: 'italic',
+              fontSize: 24,
+              color: 'var(--sage-deep)',
+              marginBottom: 12,
+              fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+            }}
+          >
+            Nothing yet.
+          </div>
+          <p style={{ marginBottom: 18 }}>Pick a celebration from your dashboard to see its RSVPs.</p>
+          <Link
+            href="/dashboard"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '0.55rem 1.1rem',
+              borderRadius: 'var(--pl-radius-full)',
+              background: 'var(--ink)',
+              color: 'var(--cream)',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            <ArrowLeft size={15} />
+            Back to dashboard
           </Link>
         </div>
       </DashLayout>

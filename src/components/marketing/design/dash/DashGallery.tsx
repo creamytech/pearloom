@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, EmptyShell, btnInk } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
+import { PLHead } from '@/components/pearloom/dash/PLChrome';
 import { useUserSites } from './hooks';
 
 interface ReelPhoto {
@@ -82,68 +83,66 @@ export function DashGallery() {
   // same on every render (rules-of-hooks).
   if (!sitesLoading && (!sites || sites.length === 0)) {
     return (
-      <DashLayout active="gallery" title="The Reel" subtitle="Create a site and upload a photo — your Reel fills up as you go.">
-        <EmptyShell message="Create a site and upload a photo — your Reel fills up as you go." />
+      <DashLayout active="gallery" hideTopbar>
+        <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1080, margin: '0 auto' }}>
+          <PLHead
+            align="center"
+            pre="The Reel"
+            title="Your Reel is"
+            italic="empty."
+            sub="Create a site and upload a photo — your Reel fills up as you go."
+            style={{ marginBottom: 28 }}
+          />
+          <EmptyShell message="Create a site and upload a photo — your Reel fills up as you go." />
+        </div>
       </DashLayout>
     );
   }
 
-  return (
-    <DashLayout
-      active="gallery"
-      title={
-        counts.all > 0 ? (
-          <span>
-            Every frame,{' '}
-            <i style={{ color: PD.plum, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-              in one place.
-            </i>
-          </span>
-        ) : (
-          <span>
-            Your Reel is{' '}
-            <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>
-              empty.
-            </i>
-          </span>
-        )
-      }
-      subtitle="Every photograph across every site you've made — covers, heroes, chapters, guest submissions. Tap any to open full-size."
-      actions={
-        <div
+  const viewSwitcher = (
+    <div
+      style={{
+        display: 'flex',
+        background: PD.paper3,
+        borderRadius: 999,
+        padding: 3,
+        border: '1px solid rgba(31,36,24,0.1)',
+      }}
+    >
+      {(['masonry', 'strip', 'slideshow'] as const).map((v) => (
+        <button
+          key={v}
+          onClick={() => setView(v)}
           style={{
-            display: 'flex',
-            background: PD.paper3,
+            padding: '6px 14px',
+            fontSize: 12,
             borderRadius: 999,
-            padding: 3,
-            border: '1px solid rgba(31,36,24,0.1)',
+            background: view === v ? PD.ink : 'transparent',
+            color: view === v ? PD.paper : PD.ink,
+            border: 'none',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            textTransform: 'capitalize',
+            fontWeight: 500,
           }}
         >
-          {(['masonry', 'strip', 'slideshow'] as const).map((v) => (
-            <button
-              key={v}
-              onClick={() => setView(v)}
-              style={{
-                padding: '6px 14px',
-                fontSize: 12,
-                borderRadius: 999,
-                background: view === v ? PD.ink : 'transparent',
-                color: view === v ? PD.paper : PD.ink,
-                border: 'none',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                textTransform: 'capitalize',
-                fontWeight: 500,
-              }}
-            >
-              {v}
-            </button>
-          ))}
-        </div>
-      }
-    >
+          {v}
+        </button>
+      ))}
+    </div>
+  );
 
-      <main style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
+  return (
+    <DashLayout active="gallery" hideTopbar>
+      <main style={{ padding: 'clamp(20px, 3vw, 32px) clamp(20px, 4vw, 40px) 60px', maxWidth: 1240, margin: '0 auto' }}>
+        <PLHead
+          pre="The Reel"
+          title={counts.all > 0 ? 'Every frame,' : 'Your Reel is'}
+          italic={counts.all > 0 ? 'in one place.' : 'empty.'}
+          sub="Every photograph across every site you've made — covers, heroes, chapters, guest submissions. Tap any to open full-size."
+          actions={viewSwitcher}
+          style={{ marginBottom: 24 }}
+        />
         {error && (
           <Panel bg="#F1D7CE" style={{ padding: 14, marginBottom: 16, color: PD.terra, fontSize: 13 }}>
             {error}

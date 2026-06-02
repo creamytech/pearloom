@@ -2,7 +2,7 @@
 
 import { useRef, useState, type ChangeEvent } from 'react';
 import type { StoryManifest, Chapter } from '@/types';
-import { EmptyBlockState, PanelGroup, PanelSection } from '../atoms';
+import { EmptyBlockState, PanelGroup, PanelHeaderTag, PanelSection } from '../atoms';
 import { Icon } from '../../motifs';
 import { todayLocal } from '@/lib/date-utils';
 import { BlockStylePicker } from './BlockStylePicker';
@@ -151,6 +151,10 @@ export function GalleryPanel({
 
   return (
     <PanelGroup>
+      <PanelHeaderTag
+        label="Gallery"
+        hint="Photos that anchor the page — Pear can auto-arrange them in your chosen layout."
+      />
       <input ref={inputRef} type="file" accept="image/*" multiple onChange={onFiles} style={{ display: 'none' }} />
 
       {/* Per-section layout — 7 variants total. Mosaic / strip /

@@ -1861,6 +1861,12 @@ button.pl8-mobile-only { display: none !important; }
   }
   .pl8-dashshell, .pl8-dashshell aside, .pl8-dashshell header { display: none !important; }
   .pl8-dashshell main { padding: 0 !important; }
+  /* PLChrome — hide sidebar + atmosphere, collapse main padding */
+  .pl8-pl-chrome > aside,
+  .pl8-pl-chrome .pl8-pl-sidebar,
+  .pl8-pl-chrome > div[aria-hidden] { display: none !important; }
+  .pl8-pl-chrome { background: #fff !important; }
+  .pl8-pl-chrome > main { padding: 0 !important; max-width: none !important; }
   @page { margin: 12mm; size: A4; }
 }
 

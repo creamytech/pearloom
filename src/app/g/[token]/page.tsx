@@ -30,6 +30,9 @@ import { BroadcastBar } from '@/components/pearloom/site/BroadcastBar';
 import { DayOfBanner } from '@/components/pearloom/site/DayOfBanner';
 import { PassportSections } from '@/components/pearloom/passport/PassportSections';
 import { GuestPhaseStrip } from '@/components/pearloom/passport/GuestPhaseStrip';
+import { TextureFilters } from '@/components/pearloom/site/TextureFilters';
+import { resolveEdition } from '@/lib/site-editions/resolve';
+import { getEventType } from '@/lib/event-os/event-types';
 
 export const metadata: Metadata = {
   title: "You're Invited | Pearloom",
@@ -192,38 +195,128 @@ export default async function PersonalGuestPage({
     };
   }
 
-  const theme = manifest.theme?.colors;
-  const headingFont = manifest.theme?.fonts?.heading ?? 'Playfair Display';
-  const bodyFont = manifest.theme?.fonts?.body ?? 'Inter';
   const sitePublicUrl = `/sites/${site.subdomain}`;
 
-  /* Themed surface — same data-attribute contract as
-     ThemedSiteRenderer so all per-edition / per-texture / per-
-     kit CSS already shipped applies here. The guest page is the
-     personal hub but it should LOOK like the site it belongs
-     to. */
-  const edition = (manifest as unknown as { edition?: string }).edition ?? 'almanac';
-  const texture = (manifest as unknown as { texture?: string }).texture ?? 'smooth';
-  const density = (manifest as unknown as { density?: string }).density ?? 'comfortable';
-  const kitId = (manifest as unknown as { kitId?: string }).kitId ?? 'classic';
-  const peachInk = '#C6703D';
+  /* Themed surface — mirrors ThemedSiteRenderer's contract so the
+     guest passport reads as a continuation of the published site:
+     same paper texture, same Fraunces display, same olive/peach
+     palette. Without these CSS vars on the root, every child
+     component (YourRsvpCard, YourContributionsCard, the cards
+     below) silently falls through to its hardcoded defaults — the
+     guest page looks generic even when the host has theme overrides.
+
+     Resolution order mirrors ThemedSiteRenderer:
+       host theme override > Edition recommended > prototype default. */
+  const editionId = (manifest.edition ?? undefined) as
+    | 'almanac' | 'cinema' | 'postcard-box' | 'linen-folder' | 'quiet' | 'coastal' | undefined;
+  const occasion = (manifest as unknown as { occasion?: string }).occasion ?? 'wedding';
+  const eventType = getEventType(occasion as never);
+  const voice = eventType?.voice ?? 'celebratory';
+  const activeEdition = resolveEdition({
+    edition: editionId,
+    occasion: occasion as never,
+    voice,
+  });
+  const recTheme = activeEdition.recommendedTheme ?? {};
+  const recColors = recTheme.colors ?? {};
+  const recFonts = recTheme.fonts ?? {};
+
+  const hostColors = manifest.theme?.colors ?? {};
+  const hostFonts = manifest.theme?.fonts ?? {};
+
+  const paper = hostColors.background ?? recColors.background ?? '#F5EFE2';
+  const ink = hostColors.foreground ?? recColors.foreground ?? '#0E0D0B';
+  const accent = hostColors.accent ?? recColors.accent ?? '#C6703D';
+  const accentLight =
+    (hostColors as { accentLight?: string }).accentLight ??
+    recColors.accentLight ??
+    'rgba(198,112,61,0.10)';
+  const inkSoft =
+    (hostColors as { muted?: string }).muted ?? recColors.muted ?? '#3A332C';
+  const cardBg =
+    (hostColors as { cardBg?: string }).cardBg ?? recColors.cardBg ?? '#FBF7EE';
+  const headingFont = hostFonts.heading ?? recFonts.heading ?? 'Fraunces';
+  const bodyFont = hostFonts.body ?? recFonts.body ?? 'Inter';
+  const cardRadiusPx = (() => {
+    switch (recTheme.cardRadius) {
+      case 'sharp': return '3px';
+      case 'soft': return '8px';
+      case 'rounded': return '14px';
+      case 'pillow': return '24px';
+      default: return '12px';
+    }
+  })();
+  const displayWeight = recTheme.displayWeight ?? 600;
+  const heroScale = recTheme.heroScale ?? 1;
+  const eyebrowLs = recTheme.eyebrowSpacing ?? '0.22em';
+  const cardShadow = recTheme.cardShadow ?? '0 4px 14px rgba(75,65,52,0.10)';
+
+  const texture = manifest.texture ?? activeEdition.naturalTexture ?? 'smooth';
+  const density = manifest.density ?? 'comfortable';
+  const intensity = manifest.textureIntensity ?? 1;
+  const kitId = manifest.kitId ?? 'classic';
+  const peachInk = accent;
   const inkMuted = '#6F6557';
-  const inkSoft = '#3A332C';
+
+  /* Root CSS-var stamp — every editorial atom on the guest page
+     (eyebrows, cards, italics, hairlines) reads from this shell.
+     Match ThemedSiteRenderer's shellStyle exactly. */
+  const shellStyle: React.CSSProperties = {
+    background: paper,
+    color: ink,
+    minHeight: '100vh',
+    position: 'relative',
+    fontFamily: bodyFont,
+    ['--paper' as string]: paper,
+    ['--ink' as string]: ink,
+    ['--ink-soft' as string]: inkSoft,
+    ['--ink-muted' as string]: inkMuted,
+    ['--peach-ink' as string]: accent,
+    ['--peach-bg' as string]: accentLight,
+    ['--card' as string]: cardBg,
+    ['--cream' as string]: paper,
+    ['--cream-2' as string]: cardBg,
+    ['--line' as string]: 'rgba(14,13,11,0.16)',
+    ['--line-soft' as string]: 'rgba(14,13,11,0.08)',
+    ['--gold' as string]: '#B8935A',
+    ['--sage-deep' as string]: accent,
+    ['--font-display' as string]: `"${headingFont}", Georgia, serif`,
+    ['--font-ui' as string]: `"${bodyFont}", system-ui, sans-serif`,
+    ['--pl-display-wght' as string]: String(displayWeight),
+    ['--pl-hero-scale' as string]: String(heroScale),
+    ['--pl-eyebrow-ls' as string]: eyebrowLs,
+    ['--pl-card-radius' as string]: cardRadiusPx,
+    ['--pl-card-shadow' as string]: cardShadow,
+    ['--pl-texture-intensity' as string]: String(intensity),
+    ['--pl-density-scale' as string]: String(
+      density === 'cozy' ? 0.7 : density === 'spacious' ? 1.3 : 1,
+    ),
+  };
 
   return (
     <div
       className="pl8-guest"
-      data-pl-edition={edition}
+      data-pl-edition={activeEdition.id}
       data-pl-texture={texture}
       data-pl-density={density}
       data-pl-kit={kitId}
-      style={{
-        minHeight: '100vh',
-        background: theme?.background ?? '#F5EFE2',
-        color: theme?.foreground ?? '#0E0D0B',
-        fontFamily: bodyFont,
-      }}
+      data-pl-pattern={manifest.pattern ?? 'none'}
+      style={shellStyle}
     >
+      {/* PatternLayer — sits BEHIND everything (zIndex 0, pointer-
+          events: none). Same contract ThemedSiteRenderer uses; CSS
+          lives in pearloom.css. Without it, motif treatments on
+          .pl8-guest never paint the warm under-layer the published
+          site has. */}
+      <div
+        className="pl8-pattern-layer"
+        data-pl-pattern={manifest.pattern ?? 'none'}
+        aria-hidden="true"
+      />
+      {/* TextureFilters registers the SVG <filter> defs every
+          texture treatment references via `filter: url(#xxx)`.
+          Zero layout cost. */}
+      <TextureFilters />
       {/* Day-of banner + host's broadcast bar at the very top so a
           guest who lands on their personal page during the event
           gets the live state without having to navigate to the
@@ -245,9 +338,9 @@ export default async function PersonalGuestPage({
         venue={manifest.logistics?.venue}
         sitePath={sitePublicUrl}
         rsvpHref={`/rsvp?site=${site.subdomain}&g=${token}`}
-        accent={theme?.accent ?? '#5C6B3F'}
-        paper={theme?.background ?? '#F5F1E8'}
-        ink={theme?.foreground ?? '#0E0D0B'}
+        accent={accent}
+        paper={paper}
+        ink={ink}
         guestToken={token}
         logistics={{
           dietary: Array.isArray(guest.dietary) ? guest.dietary : undefined,
@@ -258,7 +351,7 @@ export default async function PersonalGuestPage({
         guestFirstName={guest.display_name.split(' ')[0]}
         coupleNames={coupleNames}
         heroCopy={personalization.hero_copy}
-        accent={theme?.accent ?? '#5C6B3F'}
+        accent={accent}
         headingFont={headingFont}
         eventDate={manifest.logistics?.date ?? ''}
         venue={manifest.logistics?.venue ?? ''}
@@ -348,7 +441,7 @@ export default async function PersonalGuestPage({
               photos={photosForCard}
               claims={claimsForCard}
               moments={momentsForCard}
-              accent={theme?.accent ?? '#5C6B3F'}
+              accent={accent}
               headingFont={headingFont}
             />
           </section>
@@ -377,7 +470,7 @@ export default async function PersonalGuestPage({
               time: ev.time,
             }))
           }
-          accent={theme?.accent ?? '#5C6B3F'}
+          accent={accent}
           headingFont={headingFont}
         />
       </section>
@@ -425,9 +518,10 @@ export default async function PersonalGuestPage({
                     key={h.chapterId}
                     style={{
                       padding: '18px 22px',
-                      background: theme?.cardBg ?? '#FBF7EE',
+                      background: cardBg,
                       borderRadius: 'var(--pl-card-radius, 12px)',
-                      border: `1px solid ${theme?.accentLight ?? 'rgba(14,13,11,0.08)'}`,
+                      border: `1px solid ${accentLight}`,
+                      boxShadow: 'var(--pl-card-shadow, 0 4px 14px rgba(75,65,52,0.08))',
                       display: 'grid',
                       gridTemplateColumns: '28px 1fr',
                       gap: 14,
@@ -473,13 +567,16 @@ export default async function PersonalGuestPage({
         )}
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 18, marginBottom: 44 }}>
-          {/* Seat card — peach icon disc + eyebrow + display seat */}
+          {/* Seat card — peach icon disc + eyebrow + display seat.
+              Card chrome reads from --pl-card-radius / --pl-card-shadow
+              on the root so Edition-per-paper-stock variation lands. */}
           <div
             style={{
               padding: '22px 22px',
-              background: theme?.cardBg ?? '#FBF7EE',
+              background: cardBg,
               borderRadius: 'var(--pl-card-radius, 14px)',
-              border: `1px solid ${theme?.accentLight ?? 'rgba(14,13,11,0.08)'}`,
+              border: `1px solid ${accentLight}`,
+              boxShadow: 'var(--pl-card-shadow, 0 4px 14px rgba(75,65,52,0.08))',
               display: 'grid',
               gridTemplateColumns: '52px 1fr',
               gap: 18,
@@ -492,7 +589,7 @@ export default async function PersonalGuestPage({
                 width: 52,
                 height: 52,
                 borderRadius: '50%',
-                background: 'rgba(198,112,61,0.10)',
+                background: accentLight,
                 display: 'grid',
                 placeItems: 'center',
                 fontFamily: headingFont,
@@ -509,7 +606,7 @@ export default async function PersonalGuestPage({
                 style={{
                   fontSize: 10,
                   fontWeight: 700,
-                  letterSpacing: '0.22em',
+                  letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
                   textTransform: 'uppercase',
                   color: peachInk,
                   marginBottom: 6,
@@ -522,7 +619,7 @@ export default async function PersonalGuestPage({
                   fontFamily: headingFont,
                   fontSize: 17,
                   fontWeight: 600,
-                  color: theme?.foreground ?? '#0E0D0B',
+                  color: ink,
                   lineHeight: 1.45,
                   letterSpacing: '-0.01em',
                 }}
@@ -536,17 +633,30 @@ export default async function PersonalGuestPage({
             <div
               style={{
                 padding: '22px 22px',
-                background: theme?.cardBg ?? '#FBF7EE',
+                background: cardBg,
                 borderRadius: 'var(--pl-card-radius, 14px)',
-                border: `1px solid ${theme?.accentLight ?? 'rgba(14,13,11,0.08)'}`,
+                border: `1px solid ${accentLight}`,
+                boxShadow: 'var(--pl-card-shadow, 0 4px 14px rgba(75,65,52,0.08))',
               }}
             >
+              {/* Gold hairline above the eyebrow — editorial signature
+                  matching ThemedSectionHead in the published site. */}
+              <div
+                aria-hidden
+                style={{
+                  width: 60,
+                  height: 1,
+                  marginBottom: 12,
+                  background: 'linear-gradient(90deg, #B8935A 0%, transparent 100%)',
+                  opacity: 0.6,
+                }}
+              />
               <div
                 className="eyebrow"
                 style={{
                   fontSize: 10,
                   fontWeight: 700,
-                  letterSpacing: '0.22em',
+                  letterSpacing: 'var(--pl-eyebrow-ls, 0.22em)',
                   textTransform: 'uppercase',
                   color: peachInk,
                   marginBottom: 10,
@@ -560,7 +670,7 @@ export default async function PersonalGuestPage({
                     fontFamily: headingFont,
                     fontSize: 17,
                     fontWeight: 600,
-                    color: theme?.foreground ?? '#0E0D0B',
+                    color: ink,
                     lineHeight: 1.3,
                     marginBottom: 4,
                   }}
@@ -598,14 +708,14 @@ export default async function PersonalGuestPage({
 
         <VoiceToastRecorder
           token={token}
-          accent={theme?.accent ?? '#5C6B3F'}
+          accent={accent}
           headingFont={headingFont}
         />
       </section>
 
       <PassportSections
         token={token}
-        accent={theme?.accent ?? '#5C6B3F'}
+        accent={accent}
         headingFont={headingFont}
         occasion={(manifest as unknown as { occasion?: string }).occasion ?? null}
       />
@@ -613,13 +723,15 @@ export default async function PersonalGuestPage({
       <section style={{ padding: '0 24px 32px', maxWidth: 760, margin: '0 auto' }}>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', marginTop: 8 }}>
           {/* Primary CTA — peach pill (prototype's primary affordance
-              treatment) so it stands out against the host's accent. */}
+              treatment) so it stands out against the host's accent.
+              Card bg as the foreground so dark-paper Editions
+              (Cinema, Coastal Ink) keep contrast. */}
           <a
             href={`/rsvp?site=${site.subdomain}&g=${token}`}
             style={{
               padding: '13px 26px',
               background: peachInk,
-              color: '#FBF7EE',
+              color: cardBg,
               borderRadius: 999,
               fontSize: 13.5,
               fontWeight: 700,
@@ -634,7 +746,7 @@ export default async function PersonalGuestPage({
             style={{
               padding: '13px 26px',
               background: 'transparent',
-              color: theme?.foreground ?? '#0E0D0B',
+              color: ink,
               borderRadius: 999,
               fontSize: 13.5,
               fontWeight: 600,
@@ -650,7 +762,7 @@ export default async function PersonalGuestPage({
       {/* Editorial footer — gold hairline → italic display name →
           colophon. Matches ThemedFooter so the guest page closes
           the same way the public site does. */}
-      <footer style={{ padding: '48px 24px 36px', textAlign: 'center', background: theme?.background ?? '#F5EFE2' }}>
+      <footer style={{ padding: '48px 24px 36px', textAlign: 'center', background: paper }}>
         <div
           aria-hidden
           style={{
@@ -667,7 +779,7 @@ export default async function PersonalGuestPage({
             fontStyle: 'italic',
             fontSize: 20,
             fontWeight: 500,
-            color: theme?.foreground ?? '#0E0D0B',
+            color: ink,
             letterSpacing: '-0.01em',
           }}
         >

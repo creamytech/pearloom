@@ -1,7 +1,7 @@
 'use client';
 
 import type { StoryManifest } from '@/types';
-import { AddRowButton, Field, ListRow, PanelGroup, PanelSection, PanelSmartActions, PanelTabs, PhotoSlot, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
+import { AddRowButton, Field, ListRow, PanelGroup, PanelHeaderTag, PanelSection, PanelSmartActions, PanelTabs, PhotoSlot, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { PlaceAutocomplete } from './PlaceAutocomplete';
 import { FocalPointPicker } from './FocalPointPicker';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
@@ -470,6 +470,10 @@ export function HeroPanel({
 
   return (
     <>
+      <PanelHeaderTag
+        label="Hero"
+        hint="The first thing guests see — names, tagline, date, and the photo that anchors the page."
+      />
       <PanelSmartActions actions={smartActions} />
       <PanelTabs slots={{ content, layout }} />
     </>

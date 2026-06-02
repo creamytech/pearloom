@@ -9,7 +9,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Icon, Pear, PearloomLogo, Sparkle, Squiggle, Blob } from '../motifs';
+import { Icon, Pear, PearloomLogo, Sparkle, Sprig } from '../motifs';
 import { OccasionGlyph } from '../icons/OccasionGlyph';
 import { Reveal } from '../motion';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
@@ -1055,6 +1055,113 @@ function ContextChips({ st }: { st: WizardState }) {
   );
 }
 
+/**
+ * WizardLiveVignette — slim "your site, live" preview ribbon rendered on the
+ * Vibe + Palette steps. Mirrors the prototype's right-rail SiteVignette but
+ * fits inline above the chip/palette grid so the single-column letterpress
+ * flow stays intact. Updates as the host picks vibes + palettes — turning
+ * the two Look steps into a live design feedback loop.
+ */
+function WizardLiveVignette({ st }: { st: WizardState }) {
+  const names = st.names.filter(Boolean);
+  const a = names[0] || 'Alex';
+  const b = names[1] || 'Jamie';
+  const dateLabel = parseLocalDate(st.eventDate)?.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  }) || 'Your date';
+  const placeLabel = st.location || 'Your place';
+  const firstVibe = st.vibes
+    .map((id) => VIBES.find((v) => v.id === id)?.label ?? id)
+    .filter(Boolean)[0];
+
+  // Pull live colours from the selected palette (smart or classic).
+  const paletteColors =
+    st.paletteColors && st.paletteColors.length > 0
+      ? st.paletteColors
+      : PALETTES.find((p) => p.id === st.palette)?.colors;
+  const accent = paletteColors?.[1] || 'var(--sage-deep, #5C6B3F)';
+  const ground = paletteColors?.[2] || 'var(--cream-2, #F0E8D6)';
+  const ink = paletteColors?.[3] || 'var(--ink, #2A2A2A)';
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        marginBottom: 22,
+        padding: '20px 22px 22px',
+        borderRadius: 16,
+        background: ground,
+        border: '1px solid var(--line-soft)',
+        overflow: 'hidden',
+        textAlign: 'center',
+      }}
+    >
+      {/* eyebrow */}
+      <div
+        style={{
+          fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+          fontSize: 9.5,
+          fontWeight: 700,
+          letterSpacing: '0.22em',
+          textTransform: 'uppercase',
+          color: accent,
+          marginBottom: 8,
+        }}
+      >
+        {firstVibe ? `${firstVibe} • Your site, live` : 'Your site, live'}
+      </div>
+
+      {/* Names — letterpress display */}
+      <div
+        className="display"
+        style={{
+          fontFamily: 'var(--font-display, Fraunces, serif)',
+          fontSize: 32,
+          lineHeight: 1.02,
+          color: ink,
+          letterSpacing: '-0.01em',
+        }}
+      >
+        {a}
+        <span
+          className="display-italic"
+          style={{ fontSize: '0.55em', color: accent, margin: '0 0.16em', fontStyle: 'italic', fontWeight: 400 }}
+        >
+          &amp;
+        </span>
+        {b}
+      </div>
+
+      {/* Sprig-flanked rule */}
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, margin: '12px 0 6px' }}>
+        <span style={{ width: 50, height: 1, background: accent, opacity: 0.5 }} />
+        <Sparkle size={10} color={accent} />
+        <span style={{ width: 50, height: 1, background: accent, opacity: 0.5 }} />
+      </div>
+
+      {/* Date + place */}
+      <div style={{ fontSize: 12, letterSpacing: '0.04em', color: ink, opacity: 0.7 }}>
+        {dateLabel} · {placeLabel}
+      </div>
+
+      {/* Footer hint */}
+      <div
+        style={{
+          marginTop: 14,
+          fontSize: 11,
+          color: 'var(--ink-muted)',
+          fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+          letterSpacing: '0.06em',
+        }}
+      >
+        Updates as you pick.
+      </div>
+    </div>
+  );
+}
+
 // Inline tips per step — replaces the floating PearHelper sidebar.
 // Each step can opt in by reading STEP_TIPS[step] and rendering it
 // as a single low-key line under the question heading.
@@ -1621,9 +1728,23 @@ export function WizardV8() {
 
   return (
     <div className="pl8" style={{ minHeight: '100vh', background: 'var(--cream)', position: 'relative', overflow: 'hidden' }}>
-      <Blob tone="lavender" size={320} opacity={0.4} seed={0} style={{ position: 'absolute', top: -100, left: -100 }} />
-      <Blob tone="peach" size={260} opacity={0.35} seed={2} style={{ position: 'absolute', top: 200, right: -80 }} />
-      <Squiggle variant={1} width={180} stroke="#D4A95D" style={{ position: 'absolute', top: 120, right: 220, opacity: 0.5 }} />
+      {/* Botanical atmosphere — replaces the older Blob/Squiggle
+          underlay with the prototype's subtle Sprig + flower glyphs.
+          Reads as paper-grain garden, not AI-startup gradient mesh. */}
+      <div
+        aria-hidden
+        style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, color: 'var(--sage, #5C6B3F)' }}
+      >
+        <div style={{ position: 'absolute', top: 90, left: -20, opacity: 0.10, transform: 'rotate(-12deg)' }}>
+          <Sprig size={220} color="var(--sage-deep, #5C6B3F)" />
+        </div>
+        <div style={{ position: 'absolute', bottom: 40, right: -30, opacity: 0.09, transform: 'rotate(8deg) scaleX(-1)' }}>
+          <Sprig size={260} color="var(--sage-deep, #5C6B3F)" />
+        </div>
+        <div style={{ position: 'absolute', top: '44%', right: '32%', opacity: 0.18 }}>
+          <Sparkle size={28} color="var(--gold, #B89244)" />
+        </div>
+      </div>
 
       {/* Background cook indicator — surfaces "Pear is preparing
           things" while the speculative decor + warm-up runs in
@@ -2071,9 +2192,14 @@ export function WizardV8() {
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
                     Set the <span className="display-italic">vibe.</span>
                   </h2>
-                  <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 8px' }}>
+                  <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 18px' }}>
                     Pick 2–4. Your vibes shape tone, language, and flow.
                   </p>
+                  {/* Live "Your site" vignette — confirms the host's
+                      choices coalesce into something real. Mirrors the
+                      prototype's right-rail SiteVignette in a centered
+                      inline ribbon. */}
+                  <WizardLiveVignette st={st} />
                   {/* Live counter so the host knows how close to the
                       2-vibe floor they are. Plum when at 0–1 (can't
                       continue), sage when ≥2 (good to go). */}
@@ -2137,9 +2263,13 @@ export function WizardV8() {
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
                     Choose a <span className="display-italic">palette.</span>
                   </h2>
-                  <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
+                  <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 18px' }}>
                     Pear read your venue and vibes and mixed three palettes just for you — or pick a classic below.
                   </p>
+                  {/* Live preview — re-renders the moment a palette is
+                      tapped so the host sees how their names land in
+                      the chosen colours before continuing. */}
+                  <WizardLiveVignette st={st} />
 
                   {/* ── Smart palettes header ──────────────────── */}
                   <div

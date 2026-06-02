@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PhotoSlot, SelectInput, TextArea, TextInput } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelHeaderTag, PanelSection, PhotoSlot, SelectInput, TextArea, TextInput } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { BadgesEditor } from './BadgesEditor';
@@ -308,6 +308,10 @@ export function RegistryPanel({
 
   return (
     <PanelGroup>
+      <PanelHeaderTag
+        label="Registry"
+        hint="Your presence is the gift — but if guests insist, link the registries here."
+      />
       {/* Per-section layout — 4 prototype variants. Cards is
           wired today in ThemedSiteRenderer.ThemedRegistry; chips,
           progress (honeymoon-fund hero), and logowall are

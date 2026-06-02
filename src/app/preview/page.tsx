@@ -225,52 +225,127 @@ function PreviewContent() {
 
   if (!manifest) {
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FDFAF0', padding: 32 }}>
-        <div style={{ textAlign: 'center', maxWidth: 440 }}>
-          <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 40, fontStyle: 'italic', color: '#18181B', margin: '0 0 10px', fontWeight: 500 }}>
-            Preview
+      <div
+        style={{
+          minHeight: '100dvh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--pl-cream, #F5EFE2)',
+          padding: 32,
+          fontFamily: 'var(--pl-font-body, system-ui, sans-serif)',
+          color: 'var(--pl-ink, #0E0D0B)',
+          textAlign: 'center',
+        }}
+      >
+        <div style={{ maxWidth: 460 }}>
+          {/* Peach kicker — matches the 404 + error treatment */}
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: '#C6703D',
+              marginBottom: 18,
+            }}
+          >
+            Nothing on the loom yet
+          </div>
+          <h1
+            style={{
+              fontFamily: 'var(--pl-font-heading, "Fraunces", Georgia, serif)',
+              fontSize: 'clamp(36px, 6vw, 56px)',
+              fontWeight: 600,
+              color: 'var(--pl-ink, #0E0D0B)',
+              margin: '0 0 16px',
+              letterSpacing: '-0.02em',
+              lineHeight: 1.0,
+            }}
+          >
+            Begin a{' '}
+            <span style={{ fontStyle: 'italic', fontWeight: 400, color: '#C6703D' }}>thread</span>.
           </h1>
-          <p style={{ color: '#4A5642', fontSize: 14.5, margin: '0 0 26px', lineHeight: 1.55 }}>
-            There's no story here yet. Start a site from a template, or jump into the
-            dashboard to generate one from your photos.
+          <p
+            style={{
+              color: 'var(--pl-ink-soft, #3A332C)',
+              fontSize: 16,
+              margin: '0 0 28px',
+              lineHeight: 1.55,
+              fontFamily: 'var(--pl-font-heading, "Fraunces", Georgia, serif)',
+              fontStyle: 'italic',
+            }}
+          >
+            There&rsquo;s no story to preview. Pick a template, or open the dashboard to
+            weave one from your photos.
           </p>
+          {/* Gold hairline — Pearloom signature */}
+          <div
+            aria-hidden
+            style={{
+              width: 120,
+              height: 1,
+              margin: '0 auto 28px',
+              background: 'linear-gradient(90deg, transparent, #B8935A 50%, transparent)',
+              opacity: 0.55,
+            }}
+          />
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a
+            <Link
               href="/templates"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                padding: '10px 18px',
+                padding: '13px 24px',
                 borderRadius: 999,
-                background: '#18181B',
-                color: '#FDFAF0',
-                fontSize: 14,
-                fontWeight: 600,
+                background: '#C6703D',
+                color: 'var(--pl-cream-card, #FBF7EE)',
+                fontSize: 13.5,
+                fontWeight: 700,
                 textDecoration: 'none',
+                letterSpacing: '0.02em',
               }}
             >
               Browse templates
-            </a>
+            </Link>
             <Link
               href="/dashboard"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                padding: '10px 18px',
+                padding: '13px 24px',
                 borderRadius: 999,
                 background: 'transparent',
-                color: '#18181B',
-                fontSize: 14,
+                color: 'var(--pl-ink, #0E0D0B)',
+                fontSize: 13.5,
                 fontWeight: 600,
-                border: '1.5px solid #E2D9C3',
+                border: '1.5px solid var(--pl-divider, #D8CFB8)',
                 textDecoration: 'none',
+                letterSpacing: '0.02em',
               }}
             >
               Go to dashboard
             </Link>
           </div>
-          <div style={{ marginTop: 28, fontSize: 12, color: '#6F6557' }}>
-            <Link href="/" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: 3 }}>
+          <div
+            style={{
+              marginTop: 28,
+              fontSize: 11.5,
+              color: 'var(--pl-muted, #6F6557)',
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            }}
+          >
+            <Link
+              href="/"
+              style={{
+                color: 'inherit',
+                textDecoration: 'none',
+                borderBottom: '1px solid currentColor',
+                paddingBottom: 1,
+              }}
+            >
               ← Back to Pearloom
             </Link>
           </div>
@@ -913,8 +988,28 @@ export default function PreviewPage() {
   return (
     <Suspense
       fallback={
-        <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <p style={{ color: '#9A9488' }}>Loading preview…</p>
+        <div
+          style={{
+            minHeight: '100dvh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'var(--pl-cream, #F5EFE2)',
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+          }}
+        >
+          <p
+            style={{
+              color: 'var(--pl-muted, #6F6557)',
+              fontSize: 11,
+              letterSpacing: '0.24em',
+              textTransform: 'uppercase',
+              fontWeight: 700,
+              margin: 0,
+            }}
+          >
+            Threading…
+          </p>
         </div>
       }
     >

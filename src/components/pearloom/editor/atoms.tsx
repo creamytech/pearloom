@@ -469,6 +469,131 @@ export function PanelDisclosure({
   );
 }
 
+/* ---------- PanelHeaderTag ----------
+ *  Visual port from the section-fields prototype: every per-section
+ *  rail editor opens with a small italic-Fraunces "Section" eyebrow,
+ *  the section name set in display type, an optional one-line hint,
+ *  and a hairline divider. Gives every panel the same warm editorial
+ *  header without forcing each panel to reimplement the chrome.
+ *
+ *  Mount once at the top of a panel body (above PanelSmartActions
+ *  + PanelTabs). The rest of the panel stays untouched. */
+export function PanelHeaderTag({
+  label,
+  hint,
+  eyebrow = 'Section',
+}: {
+  label: string;
+  hint?: string;
+  eyebrow?: string;
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+        paddingBottom: 14,
+        marginBottom: 16,
+        borderBottom: '1px solid var(--pl-chrome-border)',
+      }}
+    >
+      <span
+        style={{
+          fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+          fontStyle: 'italic',
+          fontSize: 12,
+          color: 'var(--peach-ink, #C6703D)',
+          letterSpacing: '0.04em',
+          lineHeight: 1,
+        }}
+      >
+        {eyebrow}
+      </span>
+      <h2
+        style={{
+          margin: 0,
+          fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+          fontSize: 22,
+          fontWeight: 500,
+          letterSpacing: '-0.01em',
+          color: 'var(--pl-chrome-text)',
+          lineHeight: 1.15,
+        }}
+      >
+        {label}
+      </h2>
+      {hint && (
+        <p
+          style={{
+            margin: 0,
+            fontSize: 12.5,
+            color: 'var(--pl-chrome-text-muted)',
+            lineHeight: 1.5,
+            fontFamily: 'var(--font-ui)',
+          }}
+        >
+          {hint}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/* ---------- FieldCard ----------
+ *  Warm paper-card wrapper for a single field. Visual port from the
+ *  section-fields prototype where each field reads as a small lifted
+ *  card on a cream background rather than a bare label+input on the
+ *  panel surface. Use sparingly — best for "list of distinct things"
+ *  blocks (event-detail cards, timeline rows, registry stores) where
+ *  every row is conceptually its own object. Plain Field is still
+ *  the right answer inside dense PanelSections. */
+export function FieldCard({
+  children,
+  style,
+  emphasis = false,
+}: {
+  children: ReactNode;
+  style?: CSSProperties;
+  /** When true, applies a subtle peach hairline on the leading edge
+   *  to mark the card as the "primary" row (e.g. the venue card in
+   *  a hotel-block list). */
+  emphasis?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        position: 'relative',
+        padding: '12px 14px',
+        background: 'var(--pl-chrome-surface, #FBF7EE)',
+        border: '1px solid var(--pl-chrome-border)',
+        borderRadius: 12,
+        boxShadow: '0 1px 0 rgba(40,28,12,0.03)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+        ...style,
+      }}
+    >
+      {emphasis && (
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 12,
+            bottom: 12,
+            width: 2,
+            background: 'var(--peach-ink, #C6703D)',
+            borderRadius: 999,
+          }}
+        />
+      )}
+      {children}
+    </div>
+  );
+}
+
 /* ---------- Field wrapper (label + help text + error slot) ---------- *
  *  `pearAction` (optional) renders a small pear glyph next to the
  *  label. Click dispatches `pearloom:open-pear-for` carrying the
