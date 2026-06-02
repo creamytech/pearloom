@@ -6,6 +6,8 @@
    live behind a stable interface. */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+/* useEffect imported above; explicit so the beforeunload + cleanup
+   wiring stays obvious to future readers. */
 import type { StoryManifest } from '@/types';
 import { buildSitePath, formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 
@@ -15,6 +17,8 @@ interface BridgeInput {
   siteSlug: string;
 }
 
+export type SaveState = 'saved' | 'saving' | 'unsaved' | 'error';
+
 export interface EditorBridge {
   manifest: StoryManifest;
   names: [string, string];
@@ -22,6 +26,7 @@ export interface EditorBridge {
   setNames: (next: [string, string]) => void;
   editField: (patch: (m: StoryManifest) => StoryManifest) => void;
   savedAt: string;
+  saveState: SaveState;
   displayNames: string;
   prettyUrl: string;
   prettyPath: string;
@@ -53,7 +58,11 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
   const [manifest, setManifestState] = useState<StoryManifest>(initialManifest);
   const [names, setNamesState] = useState<[string, string]>(() => sanitiseNames(initialNames));
   const [savedAt, setSavedAt] = useState<string>('just now');
+  const [saveState, setSaveState] = useState<SaveState>('saved');
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /* Keep the latest payload in a ref so beforeunload can sendBeacon
+     the in-flight changes without re-reading React state. */
+  const latestPayload = useRef<{ manifest: StoryManifest; names: [string, string] }>({ manifest: initialManifest, names: initialNames });
 
   const occasion = normalizeOccasion((manifest as unknown as { occasion?: string }).occasion);
   const prettyPath = buildSitePath(siteSlug, '', occasion);
@@ -85,22 +94,60 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
   const persist = useCallback(
     (m: StoryManifest, n: [string, string]) => {
       if (typeof window === 'undefined') return;
+      latestPayload.current = { manifest: m, names: n };
+      setSaveState('unsaved');
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => {
+        setSaveState('saving');
         const body = JSON.stringify({ siteSlug, manifest: m, names: n });
         fetch('/api/sites', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body,
-        }).then(() => {
+          /* keepalive lets the request complete even if the user
+             navigates away mid-flight. Same body the beforeunload
+             handler sendBeacon's on unload. */
+          keepalive: true,
+        }).then((res) => {
+          if (!res.ok) throw new Error(`save failed: ${res.status}`);
           setSavedAt(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
+          setSaveState('saved');
         }).catch(() => {
-          /* swallow — the next change will retry */
+          setSaveState('error');
+          /* Next change will retry via the debounce timer. */
         });
       }, AUTOSAVE_DEBOUNCE_MS);
     },
     [siteSlug],
   );
+
+  /* beforeunload — flush in-flight changes via sendBeacon so the
+     last edit makes it to the server even if the user closes the
+     tab during the 2-second debounce window. */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const flush = () => {
+      const { manifest: m, names: n } = latestPayload.current;
+      const body = JSON.stringify({ siteSlug, manifest: m, names: n });
+      try {
+        navigator.sendBeacon('/api/sites', new Blob([body], { type: 'application/json' }));
+      } catch {
+        /* sendBeacon can throw on some browsers when the page is
+           already unloading — swallow. */
+      }
+    };
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (saveState !== 'saved') {
+        flush();
+        /* Show the native "you have unsaved changes" prompt while
+           the beacon fires in the background. */
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [siteSlug, saveState]);
 
   const setManifest = useCallback((next: StoryManifest) => {
     setManifestState(next);
@@ -150,6 +197,7 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
     setNames,
     editField,
     savedAt,
+    saveState,
     displayNames,
     prettyUrl,
     prettyPath,

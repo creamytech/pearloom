@@ -81,7 +81,7 @@ export function ThemedSite({ active, hover, setActive, setHover, editable, manif
 
   /* Section copy + content — pulls from manifest with prototype
      fallbacks. Keeps the renderer data-driven per handoff L141-153. */
-  const C = buildCopy(theme, { nameA, nameB, date, place: `${venue} · ${place}` });
+  const C = buildCopy(theme, manifest, { nameA, nameB, date, place: `${venue} · ${place}` });
   const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, textureIntensity, showWashHero, dividerLook, C };
 
   const sections: SectionKind[] = ['hero', 'story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
@@ -828,40 +828,70 @@ function PatternLayer({ pattern, intensity = 1 }: { pattern: string; intensity?:
   return <div aria-hidden style={{ ...base, backgroundImage: bg, backgroundSize: size, ...extra }} />;
 }
 
-function buildCopy(theme: Theme, args: { nameA: string; nameB: string; date: string; place: string }): Copy {
+function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string; nameB: string; date: string; place: string }): Copy {
   void theme;
+  /* Loose-typed reads — the right-rail panels write to a wider
+     manifest shape than StoryManifest officially declares (tagline,
+     storySection, detailsCards, registryIntro, registryStores,
+     rsvpDeadline, etc. — every one a field a section panel writes). */
+  const loose = manifest as unknown as Record<string, unknown>;
+  const storySection = (loose.storySection as { headline?: string; body?: string; chips?: string[] } | undefined) ?? {};
+  const detailsCards = (loose.detailsCards as Array<[string, string]> | undefined) ?? [];
+  const eventsRaw = (loose.events as Array<{ time?: string; name?: string; venue?: string; description?: string }> | undefined) ?? [];
+  const faqsRaw = (loose.faqs as Array<{ question?: string }> | undefined) ?? [];
+  const registryStoresRaw = (loose.registryStores as string[] | undefined);
+  const registryIntro = (loose.registryIntro as string | undefined);
+  const rsvpDeadline = (loose.rsvpDeadline as string | undefined);
+  const tagline = (loose.tagline as string | undefined);
+  const occasion = (loose.occasion as string | undefined) ?? 'wedding';
+
+  const occasionDate = formatHeroDate(rsvpDeadline) || args.date;
+  const isWedding = occasion === 'wedding';
+
   return {
     subject: { type: 'couple', a: args.nameA, b: args.nameB },
     lead: 'Save the date',
-    tagline: 'together, at last',
+    tagline: tagline || 'together, at last',
     cta: 'RSVP',
     meta: { date: args.date, place: args.place },
     story: {
       eyebrow: 'Our story',
-      title: 'How we',
-      italic: 'met',
-      body: 'We met on an ordinary Tuesday and spent the evening arguing, fondly, about whether olives belong on pizza. Ten years later, we would be honoured to have you with us as we marry — there is no story we would rather tell, and no one we would rather tell it to.',
+      title: storySection.headline ? splitHeading(storySection.headline).head : 'How we',
+      italic: storySection.headline ? splitHeading(storySection.headline).italic : 'met',
+      body: storySection.body || 'We met on an ordinary Tuesday and spent the evening arguing, fondly, about whether olives belong on pizza. Ten years later, we would be honoured to have you with us as we marry — there is no story we would rather tell, and no one we would rather tell it to.',
     },
     details: {
       eyebrow: 'The fine print',
       title: 'Everything you',
       italic: 'should know',
-      items: [
-        { l: 'Dress code', v: 'Garden formal', icon: 'sparkles' },
-        { l: 'Kids welcome', v: 'Ages 10 +', icon: 'users' },
-        { l: 'Gifts', v: 'Your presence is enough', icon: 'gift' },
-      ],
+      items: detailsCards.length > 0
+        ? detailsCards.slice(0, 3).map(([l, v], i) => ({
+            l: l ?? '',
+            v: v ?? '',
+            icon: ['sparkles', 'users', 'gift'][i] ?? 'sparkles',
+          }))
+        : [
+            { l: 'Dress code', v: 'Garden formal', icon: 'sparkles' },
+            { l: 'Kids welcome', v: 'Ages 10 +', icon: 'users' },
+            { l: 'Gifts', v: 'Your presence is enough', icon: 'gift' },
+          ],
     },
     schedule: {
-      eyebrow: 'The day, April 26',
+      eyebrow: 'The day',
       title: 'In',
       italic: 'moments',
-      rows: [
-        { t: '4:30 pm', l: 'Ceremony', s: 'Olive grove' },
-        { t: '5:30 pm', l: 'Cocktails', s: 'Terrace bar' },
-        { t: '7:00 pm', l: 'Dinner', s: 'Long table' },
-        { t: '9:00 pm', l: 'Dancing', s: 'Until late' },
-      ],
+      rows: eventsRaw.length > 0
+        ? eventsRaw.slice(0, 4).map((e) => ({
+            t: e.time ?? '',
+            l: e.name ?? '',
+            s: e.venue ?? e.description ?? '',
+          }))
+        : [
+            { t: '4:30 pm', l: 'Ceremony', s: 'Olive grove' },
+            { t: '5:30 pm', l: 'Cocktails', s: 'Terrace bar' },
+            { t: '7:00 pm', l: 'Dinner', s: 'Long table' },
+            { t: '9:00 pm', l: 'Dancing', s: 'Until late' },
+          ],
     },
     travel: {
       eyebrow: 'Getting there',
@@ -876,25 +906,39 @@ function buildCopy(theme: Theme, args: { nameA: string; nameB: string; date: str
       eyebrow: 'Registry',
       title: 'Your presence is',
       italic: 'the gift',
-      body: "If you'd like to celebrate further, we've put a few things together.",
-      stores: ['Honeyfund', 'Crate & Barrel', 'Zola'],
+      body: registryIntro || "If you'd like to celebrate further, we've put a few things together.",
+      stores: registryStoresRaw && registryStoresRaw.length > 0
+        ? registryStoresRaw.slice(0, 6)
+        : ['Honeymoon fund', 'Crate & Barrel', 'Zola'],
     },
     gallery: { eyebrow: 'Gallery', title: 'A few', italic: 'favorites' },
     rsvp: {
-      eyebrow: 'RSVP by April 28',
-      title: 'Save your seat',
+      eyebrow: rsvpDeadline ? `RSVP by ${formatHeroDate(rsvpDeadline) || rsvpDeadline}` : 'RSVP by April 28',
+      title: isWedding ? 'Save your seat' : 'Reply by the date',
       body: 'It takes about 90 seconds. Pear will follow up if anyone forgets.',
     },
     faq: {
       eyebrow: 'Questions & answers',
       title: 'The',
       italic: 'little things',
-      questions: [
-        "What's the dress code, really?",
-        'Can I bring a plus-one?',
-        'Are kids welcome at the ceremony?',
-        'Where should I stay in Santorini?',
-      ],
+      questions: faqsRaw.length > 0
+        ? faqsRaw.slice(0, 6).map((q) => q.question ?? '').filter(Boolean)
+        : [
+            "What's the dress code, really?",
+            'Can I bring a plus-one?',
+            'Are kids welcome at the ceremony?',
+            'Where should I stay in Santorini?',
+          ],
     },
   };
+}
+
+/* Story headline ("How we met") into ["How we", "met"] so the
+   italic accent word reads like the handoff. Falls through to the
+   whole heading when no obvious split point exists. */
+function splitHeading(s: string): { head: string; italic: string } {
+  const parts = s.trim().split(/\s+/);
+  if (parts.length <= 1) return { head: s, italic: '' };
+  const italic = parts.pop() ?? '';
+  return { head: parts.join(' '), italic };
 }

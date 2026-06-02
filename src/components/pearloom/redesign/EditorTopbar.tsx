@@ -6,11 +6,13 @@
 import Link from 'next/link';
 import { Icon, Pear } from '../motifs';
 import type { EditorMode } from './EditorRedesign';
+import type { SaveState } from './bridge';
 
 interface Props {
   mode: EditorMode;
   setMode: (m: EditorMode) => void;
   savedAt: string;
+  saveState?: SaveState;
   onPublish: () => void;
   pearOpen: boolean;
   setPearOpen: (next: boolean) => void;
@@ -18,7 +20,14 @@ interface Props {
   displayNames: string;
 }
 
-export function EditorTopbar({ mode, setMode, savedAt, onPublish, pearOpen, setPearOpen, onOpenSettings, displayNames }: Props) {
+export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPublish, pearOpen, setPearOpen, onOpenSettings, displayNames }: Props) {
+  const saveLabel = saveState === 'saving' ? 'Saving…'
+    : saveState === 'unsaved' ? 'Saving…'
+    : saveState === 'error' ? 'Save failed'
+    : `Saved ${savedAt}`;
+  const saveDot = saveState === 'error' ? 'var(--peach-ink)'
+    : saveState === 'saved' ? 'var(--sage)'
+    : 'var(--gold)';
   return (
     <header
       style={{
@@ -87,9 +96,20 @@ export function EditorTopbar({ mode, setMode, savedAt, onPublish, pearOpen, setP
       {/* Right zone — save state · | · Ask Pear · Share · Publish · | · avatar.
           Prototype L108-132. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: 'var(--ink-muted)' }}>
-          <span style={{ width: 6, height: 6, background: 'var(--sage)', borderRadius: '50%' }} />
-          Saved {savedAt}
+        <div
+          aria-live="polite"
+          title={saveState === 'error' ? 'Last save attempt failed — next edit will retry.' : `Last saved at ${savedAt}`}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: 'var(--ink-muted)' }}
+        >
+          <span
+            aria-hidden
+            style={{
+              width: 6, height: 6, borderRadius: '50%',
+              background: saveDot,
+              animation: saveState === 'saving' || saveState === 'unsaved' ? 'pl-dot-pulse 1.4s ease-in-out infinite' : 'none',
+            }}
+          />
+          {saveLabel}
         </div>
         <div style={{ width: 1, height: 18, background: 'var(--line-soft)' }} />
         <button

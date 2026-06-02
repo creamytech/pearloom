@@ -84,6 +84,7 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
         mode={mode}
         setMode={setMode}
         savedAt={bridge.savedAt}
+        saveState={bridge.saveState}
         onPublish={bridge.openPublish}
         pearOpen={pearOpen}
         setPearOpen={setPearOpen}
