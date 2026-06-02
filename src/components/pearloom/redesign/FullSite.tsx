@@ -16,6 +16,7 @@ import { type CSSProperties, type ReactNode } from 'react';
 import type { StoryManifest } from '@/types';
 import { Blob, Icon, Pear, Squiggle } from '../motifs';
 import { getTheme, themeRootStyle, type Density } from '../site/themes';
+import { TextureFilters } from '../site/TextureFilters';
 import type { SectionId } from './EditorRedesign';
 
 type AccentTone = 'lavender' | 'peach' | 'sage' | 'cream';
@@ -97,14 +98,40 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
 
   return (
     <div
+      data-pl-texture={theme.texture}
+      data-pl-density={density}
       onMouseLeave={() => setHover(null)}
       style={{
         ...themeStyle,
         background: themePaper,
-        backgroundImage: texturePaint,
         position: 'relative',
+        ['--pl-texture-intensity' as string]: String(textureIntensity),
       }}
     >
+      {/* SVG filter defs for the per-texture <feTurbulence> filters
+          referenced by data-pl-texture CSS layers (linen / watercolor
+          / paper / cotton / velvet / etc.). Mounted once; transparent
+          and pointer-events: none. */}
+      <TextureFilters />
+      {/* Texture overlay — quiet grain layer painted across the
+          canvas root with the theme's natural texture applied as a
+          mix-blend overlay. Driven by data-pl-texture CSS in
+          pearloom.css. The local backgroundImage falls through for
+          themes whose texture isn't in the .pl8-guest CSS map. */}
+      {textureIntensity > 0 && (
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            backgroundImage: texturePaint,
+            mixBlendMode: 'soft-light',
+            opacity: textureIntensity * 0.55,
+            zIndex: 1,
+          }}
+        />
+      )}
       {/* Sub-nav — prototype L332-347. */}
       <SectionFrame id="nav" label="Site nav" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable} hideHandle>
         <div
