@@ -36,6 +36,22 @@ interface Props {
   onOpenDecor: () => void;
 }
 
+/* Texture → 6-theme catalog id mapping. /api/look/from-story
+   returns Edition + texture; we map to the prototype theme id so
+   the canvas re-paints with the right theme tokens. */
+const TEXTURE_TO_THEME_ID: Record<string, string> = {
+  linen: 'santorini',
+  watercolor: 'tuscan',
+  paper: 'garden',
+  cotton: 'coastal',
+  velvet: 'midnight',
+  none: 'editorial',
+  kraft: 'garden',
+  canvas: 'santorini',
+  marble: 'editorial',
+  gilded: 'midnight',
+};
+
 export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor }: Props) {
   const themeId = ((manifest as unknown as { themeId?: string }).themeId)
     ?? ((manifest as unknown as { theme?: { id?: string } }).theme?.id);
@@ -44,7 +60,7 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor }:
   return (
     <div style={{ flex: 1, overflow: 'auto', padding: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <EventTypeChip manifest={manifest} onChange={onChange} />
-      <GenerateCard />
+      <GenerateCard manifest={manifest} onChange={onChange} />
       {/* Recommended themes — already lives at the right shape after
           earlier ThemePackPicker rewrite (Aa/and tiles + ★ Pick badge
           + ✓ active checkmark + corner motif + footer). */}
@@ -164,13 +180,66 @@ function EventTypeChip({ manifest, onChange }: { manifest: StoryManifest; onChan
 
 /* ─── Generate-from-story — prototype L1158-1185 condensed. ─────── */
 
-function GenerateCard() {
+function GenerateCard({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const [text, setText] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [rationale, setRationale] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
   const examples = [
     'July wedding in Santorini',
     'Black-tie evening gala',
     'Tuscan vineyard',
   ];
+
+  async function design(q?: string) {
+    const query = (q ?? text).trim();
+    if (!query) return;
+    if (q) setText(q);
+    setBusy(true); setErr(null); setRationale(null);
+    try {
+      const res = await fetch('/api/look/from-story', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: query }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+      }
+      const data = await res.json() as {
+        occasion?: string;
+        edition?: string;
+        texture?: string;
+        voiceOverride?: string;
+        density?: 'cozy' | 'comfortable' | 'spacious';
+        textureIntensity?: number;
+        rationale?: string;
+      };
+      /* Patch manifest with the suggested look. The texture maps to
+         the 6-theme catalog id so ThemedSite repaints; the rest land
+         on their canonical manifest paths the right-rail Fine-tune
+         section already reads. */
+      const themeId = data.texture && TEXTURE_TO_THEME_ID[data.texture]
+        ? TEXTURE_TO_THEME_ID[data.texture]
+        : undefined;
+      const next = { ...(manifest as unknown as Record<string, unknown>) };
+      if (themeId) next.themeId = themeId;
+      if (data.occasion) next.occasion = data.occasion;
+      if (data.edition) next.edition = data.edition;
+      if (data.voiceOverride) next.voiceOverride = data.voiceOverride;
+      if (data.density) next.density = data.density;
+      if (typeof data.textureIntensity === 'number') {
+        next.textureIntensity = Math.max(0, Math.min(1.5, data.textureIntensity));
+      }
+      onChange(next as unknown as StoryManifest);
+      setRationale(data.rationale ?? 'Pear styled your site.');
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(198,112,61,0.28)' }}>
       <div style={{ padding: '11px 13px', background: 'var(--peach-bg)', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -185,6 +254,7 @@ function GenerateCard() {
           onChange={(e) => setText(e.target.value)}
           rows={2}
           placeholder="e.g. Sunset wedding in Santorini, lots of olive groves, relaxed and warm…"
+          disabled={busy}
           style={{
             width: '100%', padding: '9px 11px', borderRadius: 9,
             border: '1px solid var(--line)', background: 'var(--cream-2)',
@@ -197,11 +267,13 @@ function GenerateCard() {
             <button
               key={ex}
               type="button"
-              onClick={() => setText(ex)}
+              onClick={() => design(ex)}
+              disabled={busy}
               style={{
                 padding: '4px 9px', borderRadius: 999,
                 background: 'var(--cream-2)', border: '1px solid var(--line-soft)',
-                fontSize: 10.5, color: 'var(--ink-soft)', cursor: 'pointer',
+                fontSize: 10.5, color: 'var(--ink-soft)', cursor: busy ? 'wait' : 'pointer',
+                opacity: busy ? 0.6 : 1,
               }}
             >
               {ex}
@@ -210,11 +282,33 @@ function GenerateCard() {
         </div>
         <button
           type="button"
+          onClick={() => design()}
+          disabled={busy || !text.trim()}
           className="btn btn-primary btn-sm"
-          style={{ justifyContent: 'center', width: '100%' }}
+          style={{ justifyContent: 'center', width: '100%', opacity: busy ? 0.7 : 1, gap: 8 }}
         >
-          <Icon name="sparkles" size={13} color="var(--cream)" /> Design my site
+          {busy ? (
+            <>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--cream)', animation: 'pl-dot-pulse 1.4s ease-in-out infinite' }} />
+              Pear is designing…
+            </>
+          ) : (
+            <>
+              <Icon name="sparkles" size={13} color="var(--cream)" /> Design my site
+            </>
+          )}
         </button>
+        {rationale && !busy && (
+          <div style={{ display: 'flex', gap: 7, padding: '8px 10px', borderRadius: 9, background: 'var(--sage-tint)', fontSize: 11.5, color: 'var(--sage-deep)', alignItems: 'flex-start' }}>
+            <Icon name="check" size={13} color="var(--sage-deep)" style={{ flexShrink: 0, marginTop: 1 }} />
+            <span><b>Done.</b> {rationale}</span>
+          </div>
+        )}
+        {err && (
+          <div style={{ padding: '8px 10px', borderRadius: 9, background: 'rgba(122,45,45,0.10)', fontSize: 11.5, color: '#7A2D2D' }}>
+            {err}
+          </div>
+        )}
       </div>
     </div>
   );
