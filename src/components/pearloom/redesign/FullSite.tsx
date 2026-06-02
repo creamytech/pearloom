@@ -15,6 +15,7 @@
 import { type CSSProperties, type ReactNode } from 'react';
 import type { StoryManifest } from '@/types';
 import { Blob, Icon, Pear, Squiggle } from '../motifs';
+import { getTheme, themeRootStyle, type Density } from '../site/themes';
 import type { SectionId } from './EditorRedesign';
 
 type AccentTone = 'lavender' | 'peach' | 'sage' | 'cream';
@@ -30,20 +31,45 @@ interface Props {
 }
 
 export function FullSite({ active, hover, setActive, setHover, editable, manifest, names }: Props) {
-  const accent: AccentTone = 'lavender';
-  const accentBg = ACCENT_BG[accent];
-  const density = manifest.density ?? 'comfortable';
-  const padScale = { cozy: 0.7, comfortable: 1, spacious: 1.3 }[density];
-  const headFont = 'var(--font-display)';
+  /* Resolve active theme — host pick → manifest.themeId → default.
+     Spreads the theme's full --t-* token bag onto a root wrapper
+     so every section's var(--t-paper) / var(--t-accent) / etc.
+     reads the host's picked theme. This is what makes theme/color
+     picks visually repaint the canvas. */
+  const themeId =
+    ((manifest as unknown as { themeId?: string }).themeId)
+    ?? ((manifest as unknown as { theme?: { id?: string } }).theme?.id);
+  const theme = getTheme(themeId);
+  const density = (manifest.density ?? 'comfortable') as Density;
+  const themeStyle = themeRootStyle(theme, density);
 
-  const nameA = names[0] || 'Scott';
-  const nameB = names[1] || 'Shauna';
+  /* The hero accent BG follows the theme's --t-accent-bg when set,
+     falling back to the prototype's lavender wash. */
+  const accent: AccentTone = 'lavender';
+  const accentBg = (theme.vars['--t-accent-bg'] as string | undefined) || ACCENT_BG[accent];
+  const padScale = { cozy: 0.7, comfortable: 1, spacious: 1.3 }[density];
+  /* Theme display font wins over the chrome default. */
+  const headFont = (theme.vars['--t-display'] as string | undefined) || 'var(--font-display)';
+  const themeInk = (theme.vars['--t-ink'] as string | undefined) || 'var(--ink)';
+  const themeInkSoft = (theme.vars['--t-ink-soft'] as string | undefined) || 'var(--ink-soft)';
+  const themeAccent = (theme.vars['--t-accent'] as string | undefined) || 'var(--peach-ink)';
+  const themePaper = (theme.vars['--t-paper'] as string | undefined) || 'var(--paper)';
+
+  /* Filter UUID-like strings out of names — the slug "F7d9a3b2"
+     was leaking into the H1 as a couple name. Hex-only / pure-
+     numeric / 'couple' = reject; fall back to prototype defaults. */
+  const isUuidLike = (s: string): boolean =>
+    /^[0-9a-f]{4,}$/i.test(s) || /^\d+$/.test(s) || s.toLowerCase() === 'couple';
+  const cleanA = names[0] && !isUuidLike(names[0]) ? names[0] : '';
+  const cleanB = names[1] && !isUuidLike(names[1]) ? names[1] : '';
+  const nameA = cleanA || 'Scott';
+  const nameB = cleanB || 'Shauna';
   const date = (manifest as unknown as { logistics?: { date?: string } }).logistics?.date || 'Monday, April 26, 2027';
   const venue = (manifest as unknown as { logistics?: { venue?: string } }).logistics?.venue || 'Casa Chorro';
   const place = (manifest as unknown as { logistics?: { place?: string } }).logistics?.place || 'Santorini, Greece';
 
   return (
-    <div onMouseLeave={() => setHover(null)} style={{ background: 'var(--paper)' }}>
+    <div onMouseLeave={() => setHover(null)} style={{ ...themeStyle, background: themePaper }}>
       {/* Sub-nav — prototype L332-347. */}
       <SectionFrame id="nav" label="Site nav" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable} hideHandle>
         <div
@@ -87,29 +113,29 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
           <Squiggle variant={1} width={180} stroke="var(--gold-line)" style={{ position: 'absolute', top: 60, right: 80, opacity: 0.6, transform: 'rotate(-8deg)' }} />
 
           <div style={{ position: 'relative' }}>
-            <div className="display-italic" style={{ fontSize: 18, color: 'var(--ink-soft)' }}>
+            <div className="display-italic" style={{ fontSize: 18, color: themeInkSoft }}>
               together, finally
             </div>
-            <h1 style={{ fontFamily: headFont, fontSize: 84, lineHeight: 0.95, margin: '14px 0 0', letterSpacing: '-0.02em', fontWeight: 600 }}>
+            <h1 style={{ fontFamily: headFont, fontSize: 84, lineHeight: 0.95, margin: '14px 0 0', letterSpacing: '-0.02em', fontWeight: Number(theme.vars['--t-display-wght'] ?? 600), color: themeInk }}>
               {nameA}
-              <span className="display-italic" style={{ fontSize: 64, color: 'var(--ink-soft)', margin: '0 12px' }}>
+              <span style={{ fontStyle: 'italic', fontFamily: headFont, fontSize: 64, color: themeInkSoft, margin: '0 12px' }}>
                 and
               </span>
               {nameB}
             </h1>
-            <div style={{ marginTop: 22, fontSize: 14, color: 'var(--ink-soft)', display: 'flex', gap: 22, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div style={{ marginTop: 22, fontSize: 14, color: themeInkSoft, display: 'flex', gap: 22, justifyContent: 'center', flexWrap: 'wrap' }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <Icon name="calendar" size={13} /> {date}
+                <Icon name="calendar" size={13} color={themeAccent} /> {date}
               </span>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <Icon name="pin" size={13} /> {venue} · {place}
+                <Icon name="pin" size={13} color={themeAccent} /> {venue} · {place}
               </span>
             </div>
             <div style={{ marginTop: 22, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <span style={{ padding: '10px 22px', borderRadius: 999, background: 'var(--ink)', color: 'var(--cream)', fontSize: 13, fontWeight: 600 }}>
+              <span style={{ padding: '10px 22px', borderRadius: 999, background: themeInk, color: themePaper, fontSize: 13, fontWeight: 600 }}>
                 RSVP by April 28 →
               </span>
-              <span style={{ padding: '10px 22px', borderRadius: 999, background: 'var(--card)', border: '1px solid var(--line)', fontSize: 13, fontWeight: 600 }}>
+              <span style={{ padding: '10px 22px', borderRadius: 999, background: 'var(--card)', border: '1px solid var(--line)', fontSize: 13, fontWeight: 600, color: themeInk }}>
                 Read our story
               </span>
             </div>
@@ -120,14 +146,14 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
 
       {/* Story — prototype L377-392. */}
       <SectionFrame id="story" label="Our story" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable}>
-        <div style={{ padding: `${44 * padScale}px 80px`, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 36, alignItems: 'center' }}>
+        <div style={{ padding: `${44 * padScale}px 80px`, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 36, alignItems: 'center', background: themePaper }}>
           <PhotoPlaceholder tone="warm" aspect="4/5" style={{ borderRadius: 12 }} />
           <div>
-            <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 8 }}>OUR STORY</div>
-            <h2 style={{ fontFamily: headFont, fontSize: 36, margin: 0, lineHeight: 1, fontWeight: 600 }}>
+            <div className="eyebrow" style={{ color: themeAccent, marginBottom: 8 }}>OUR STORY</div>
+            <h2 style={{ fontFamily: headFont, fontSize: 36, margin: 0, lineHeight: 1, fontWeight: 600, color: themeInk }}>
               How we got here
             </h2>
-            <p style={{ marginTop: 16, fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
+            <p style={{ marginTop: 16, fontSize: 14.5, color: themeInkSoft, lineHeight: 1.6 }}>
               Two strangers on a Tuesday, an argument about whether olives belong on
               pizza, and a long walk that turned into ten years. We can&apos;t imagine a
               wedding without you in it — and we couldn&apos;t imagine our story without

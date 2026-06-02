@@ -177,11 +177,12 @@ function EditorCanvas({
   void _pearOpen;
   const isMobile = mode === 'mobile';
   const isPreview = mode === 'preview';
-  /* In Edit mode + when prototype canvas is requested, render FullSite
-     (cheap, prototype-style stand-in with the arch decorations the
-     host sees in the handoff). Preview mode swaps to the real
-     ThemedSiteRenderer so the host can see the published page. */
-  const showFullSite = usePrototypeCanvas && !isPreview;
+  /* In the handoff, the canvas content is IDENTICAL between Edit and
+     Preview modes — Preview just hides the section-frame chrome.
+     Production now does the same: FullSite renders in both modes;
+     Preview turns editable=false so the lavender hover/click chrome
+     is suppressed. */
+  const showFullSite = usePrototypeCanvas;
 
   return (
     <div
