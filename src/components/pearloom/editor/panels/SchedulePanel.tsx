@@ -6,6 +6,11 @@ import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelSection, PanelSm
 import { SortableList, SortableRowCard } from '../sortable';
 import { BadgesEditor } from './BadgesEditor';
 import { focusPanelRow } from './focus-row';
+import { BlockStylePicker } from './BlockStylePicker';
+// Side-effect import — registers the 5 prototype Schedule layouts
+// (cards / list / timeline / stepper / numbered) + the
+// production run-of-show variant with the block-style registry.
+import '@/components/pearloom/site/schedule-variants';
 
 // Schedule auto-tags one badge today: 'main' for the highlighted
 // "main moment" event (ceremony or main-event-of-the-day). Hosts
@@ -169,6 +174,19 @@ export function SchedulePanel({
   return (
     <PanelGroup>
       <PanelSmartActions actions={smartActions} />
+      {/* Per-section layout — 5 prototype variants (cards / list /
+          timeline / stepper / numbered) plus the production
+          run-of-show variant. Timeline (run-of-show) is wired in
+          ThemedSiteRenderer today; the others are registered for
+          picker discovery and ship with Phase 2 renderers. */}
+      <BlockStylePicker
+        blockType="schedule"
+        manifest={manifest}
+        onChange={onChange}
+        defaultStyleId="run-of-show"
+        label="Schedule layout"
+        hint="How the run of show renders — vertical rail, card grid, simple list, horizontal stepper, or numbered."
+      />
       <PanelSection
         label="Today's rundown"
         hint="Drag to reorder. Times are free-form — '4:00', '4 PM', 'Sunset'."

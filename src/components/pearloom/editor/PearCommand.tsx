@@ -79,17 +79,26 @@ export function PearCommand({
   const [chatOutput, setChatOutput] = useState<string>('');
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  /* PearCommand listens for `pearloom:open-pear-ai` (dispatched by
+     the new CommandPalette's "Ask Pear (AI)" flow item) instead of
+     binding ⌘K directly. CommandPalette owns ⌘K so the two palettes
+     don't race for the same keystroke. Esc still closes from within
+     this overlay's own input. */
   useEffect(() => {
+    function onOpen() {
+      setOpen(true);
+    }
     function onKey(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setOpen((v) => !v);
-      } else if (e.key === 'Escape' && open) {
+      if (e.key === 'Escape' && open) {
         setOpen(false);
       }
     }
+    window.addEventListener('pearloom:open-pear-ai', onOpen);
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('pearloom:open-pear-ai', onOpen);
+      window.removeEventListener('keydown', onKey);
+    };
   }, [open]);
 
   useEffect(() => {

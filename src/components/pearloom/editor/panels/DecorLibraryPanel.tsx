@@ -314,6 +314,7 @@ export function DecorLibraryPanel({
 
   return (
     <div data-pl-decor-library>
+    <GenerateFromTextSection manifest={manifest} onChange={onChange} />
     <PatternPickerSection manifest={manifest} onChange={onChange} />
     <PanelSection
       label="Decor library (AI)"
@@ -670,6 +671,261 @@ function SlotCard({
         />
       </div>
     </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+   GenerateFromTextSection — direct port of the prototype's
+   GenerateCard (themes.jsx §1129). One-shot "describe your event,
+   get a decor preset" surface.
+
+   Prototype called `window.claude.complete(prompt)` directly in
+   the browser; production routes through /api/decor/generate-from-text
+   so the API key never leaves the host and the call is rate-limited
+   + tool_use-forced. The deterministic
+   `generateDecorFromText()` matcher in src/lib/decor/ runs server-
+   side when the API key is missing or Claude fails.
+
+   Writes:
+     manifest.pattern        ← preset.patternId  (or unset when 'none')
+     manifest.motifs.<slot>  ← preset.motifId    (mutually exclusive)
+     manifest.decorLibrary.dividerStrength ← preset.dividerId
+     manifest.theme.colors.accent ← preset.accentColor
+   ════════════════════════════════════════════════════════════════ */
+
+type DecorPatternId =
+  | 'none'
+  | 'gingham'
+  | 'stripe'
+  | 'cabana'
+  | 'diagonal'
+  | 'dots'
+  | 'grid'
+  | 'deco'
+  | 'scallop'
+  | 'wave'
+  | 'confetti'
+  | 'terrazzo'
+  | 'celestial';
+
+type DecorMotifId = 'blob' | 'stamp' | 'squiggle' | 'sparkle' | 'heart' | 'postIt' | 'polaroid';
+type DecorDividerId = 'subtle' | 'standard' | 'tall';
+
+interface DecorPresetResponse {
+  patternId: DecorPatternId;
+  motifId: DecorMotifId;
+  dividerId: DecorDividerId;
+  accentColor: string;
+  rationale: string;
+  source: 'claude' | 'heuristic';
+}
+
+const STORY_EXAMPLES = [
+  'July wedding in Santorini, olive groves, relaxed',
+  'Black-tie evening gala, candlelit',
+  'Tuscan vineyard, lemons, romantic',
+];
+
+function GenerateFromTextSection({
+  manifest,
+  onChange,
+}: {
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+}) {
+  const [text, setText] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<DecorPresetResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const ctx = useContext(manifest);
+
+  const run = useCallback(
+    async (q?: string) => {
+      const query = (q ?? text).trim();
+      if (!query) return;
+      if (q != null) setText(q);
+      setBusy(true);
+      setResult(null);
+      setError(null);
+      try {
+        const res = await fetch('/api/decor/generate-from-text', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: query,
+            occasion: ctx.occasion,
+            paletteHex: ctx.paletteHex,
+          }),
+        });
+        const data = (await res.json().catch(() => ({}))) as Partial<DecorPresetResponse> & { error?: string };
+        if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status})`);
+        if (!data.patternId || !data.motifId || !data.dividerId || !data.accentColor) {
+          throw new Error('Pear returned a malformed preset — try again.');
+        }
+        const preset = data as DecorPresetResponse;
+
+        // Apply the preset across the four manifest surfaces.
+        // motifId is mutually exclusive — clear the other slots so the
+        // renderer doesn't compose multiple motifs on the hero.
+        const motifSlot = preset.motifId;
+        const nextMotifs: NonNullable<StoryManifest['motifs']> = {};
+        if (motifSlot === 'blob') nextMotifs.blob = 'sage';
+        else if (motifSlot === 'stamp') {
+          // Preserve existing stamp text/icon if the host had set one,
+          // otherwise leave the slot enabled with a sensible default.
+          const existing = manifest.motifs?.stamp;
+          nextMotifs.stamp = existing ?? { text: 'EST.' };
+        } else if (motifSlot === 'squiggle') nextMotifs.squiggle = 2;
+        else if (motifSlot === 'sparkle') nextMotifs.sparkle = true;
+        else if (motifSlot === 'heart') nextMotifs.heart = true;
+        else if (motifSlot === 'postIt') {
+          const existing = manifest.motifs?.postIt;
+          nextMotifs.postIt = existing ?? { text: 'save the date' };
+        } else if (motifSlot === 'polaroid') nextMotifs.polaroid = true;
+
+        const nextTheme: NonNullable<StoryManifest['theme']> = {
+          ...(manifest.theme ?? { colors: { background: '#FBF7EE', foreground: '#0E0D0B', accent: preset.accentColor, accentLight: preset.accentColor, muted: '#6F6557', cardBg: '#FBF7EE' }, fonts: { heading: 'Fraunces', body: 'Geist' } }),
+          colors: {
+            ...(manifest.theme?.colors ?? { background: '#FBF7EE', foreground: '#0E0D0B', accent: preset.accentColor, accentLight: preset.accentColor, muted: '#6F6557', cardBg: '#FBF7EE' }),
+            accent: preset.accentColor,
+          },
+        };
+
+        const nextDecorLibrary = {
+          ...(manifest.decorLibrary ?? {}),
+          dividerStrength: preset.dividerId,
+        };
+
+        onChange({
+          ...manifest,
+          pattern: preset.patternId === 'none' ? undefined : preset.patternId,
+          motifs: nextMotifs,
+          theme: nextTheme,
+          decorLibrary: nextDecorLibrary,
+        } as StoryManifest);
+
+        setResult(preset);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Pear is unreachable. Try again in a moment.');
+      } finally {
+        setBusy(false);
+      }
+    },
+    [text, ctx.occasion, ctx.paletteHex, manifest, onChange],
+  );
+
+  return (
+    <PanelSection
+      label="Generate decor from your story"
+      hint="Describe the event in a sentence — Pear picks a pattern, motif, divider, and accent that match. Falls back to keyword matching when offline."
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={2}
+          placeholder="e.g. Sunset wedding in Santorini, lots of olive groves, relaxed and warm…"
+          disabled={busy}
+          style={{
+            width: '100%',
+            padding: '9px 11px',
+            borderRadius: 9,
+            border: '1px solid var(--line, rgba(14,13,11,0.12))',
+            background: 'var(--cream-2, #FBF7EE)',
+            fontSize: 12.5,
+            color: 'var(--ink)',
+            resize: 'vertical',
+            fontFamily: 'inherit',
+            lineHeight: 1.45,
+            outline: 'none',
+          }}
+        />
+        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+          {STORY_EXAMPLES.map((ex) => (
+            <button
+              key={ex}
+              type="button"
+              onClick={() => void run(ex)}
+              disabled={busy}
+              style={{
+                padding: '4px 9px',
+                borderRadius: 999,
+                background: 'var(--cream-2, #FBF7EE)',
+                border: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+                fontSize: 10.5,
+                color: 'var(--ink-soft, #3A332C)',
+                cursor: busy ? 'wait' : 'pointer',
+                textAlign: 'left',
+                fontFamily: 'inherit',
+              }}
+            >
+              {ex.split(',')[0]}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => void run()}
+          disabled={busy || !text.trim()}
+          className="btn btn-primary btn-sm"
+          style={{
+            justifyContent: 'center',
+            width: '100%',
+            opacity: busy || !text.trim() ? 0.7 : 1,
+          }}
+        >
+          {busy ? (
+            <>
+              <Icon name="sparkles" size={13} />
+              Pear is designing…
+            </>
+          ) : (
+            <>
+              <Icon name="sparkles" size={13} />
+              Design my decor
+            </>
+          )}
+        </button>
+        {result && !busy && (
+          <div
+            style={{
+              display: 'flex',
+              gap: 7,
+              alignItems: 'flex-start',
+              padding: '8px 10px',
+              borderRadius: 9,
+              background: 'var(--sage-tint, color-mix(in oklab, var(--pl-olive, #5C6B3F) 12%, var(--cream, #FBF7EE)))',
+              fontSize: 11.5,
+              color: 'var(--sage-deep, var(--pl-olive, #5C6B3F))',
+              lineHeight: 1.45,
+            }}
+          >
+            <Icon name="check" size={13} />
+            <span>
+              <b>Done.</b> {result.rationale}
+              {result.source === 'heuristic' && (
+                <span style={{ opacity: 0.7, marginLeft: 4 }}>(offline match)</span>
+              )}
+            </span>
+          </div>
+        )}
+        {error && !busy && (
+          <div
+            style={{
+              padding: '8px 10px',
+              borderRadius: 9,
+              background: 'var(--plum-tint, rgba(122,45,45,0.08))',
+              color: 'var(--plum-ink, #7A2D2D)',
+              fontSize: 11.5,
+              lineHeight: 1.4,
+            }}
+          >
+            {error}
+          </div>
+        )}
+      </div>
+    </PanelSection>
   );
 }
 

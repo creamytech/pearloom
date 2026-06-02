@@ -42,6 +42,7 @@ import { DecorGenerationToast } from './DecorGenerationToast';
 import { DecorRecolorModal } from './DecorRecolorModal';
 import { DecorSwapModal } from './DecorSwapModal';
 import { IconSwapModal } from './IconSwapModal';
+import { PublishModal } from '@/components/shared/PublishModal';
 import { HotelQuickEditModal } from './HotelQuickEditModal';
 import { PearNudges } from './PearNudges';
 import { PearWelcome } from './PearWelcome';
@@ -443,6 +444,12 @@ export function EditorV8({
   // the toast doesn't promise a URL the publish API didn't return.
   const [publishedAt, setPublishedAt] = useState<{ url: string; at: number } | null>(null);
   const [publishToast, setPublishToast] = useState<{ url: string } | null>(null);
+  // Publish & share modal — the "Going live → You're live" cinema
+  // hand-off. Clicking the topbar's "Save & publish" pearl pill
+  // opens it; the modal calls handlePublish (POST /api/sites/publish)
+  // and reads back the resolved URL via publishedAt for the success
+  // step's copy-link + share controls.
+  const [publishModalOpen, setPublishModalOpen] = useState(false);
 
   // If the site was already published before this session, hydrate
   // the live-URL pill from the manifest flag so the topbar shows
@@ -655,11 +662,47 @@ export function EditorV8({
     [manifest, queueSave, history]
   );
 
-  async function handlePublish() {
+  /** Open the Publish & share modal — the canonical entry point
+   *  for user-initiated publish. The modal owns the
+   *  "Going live → You're live" cinema and calls handlePublish
+   *  under the hood when the host confirms their address +
+   *  visibility choice. */
+  function openPublishModal() {
+    setPublishError(null);
+    setPublishModalOpen(true);
+  }
+
+  async function handlePublish(opts?: { privacy?: 'public' | 'password' | 'private'; password?: string }) {
     // Real publish: hits /api/sites/publish which mirrors photos to
     // permanent storage, generates the vibe skin, and upserts the
     // published site row. The autosave endpoint only saves the draft.
-    const saveable = stripArtForStorage(manifest);
+    // When the Publish & share modal forwards a privacy choice, fold
+    // it into the manifest's comingSoon block (the existing
+    // PasswordGate / SitePasswordWrapper enforcement path) so the
+    // gate matches the host's pick without a separate API call.
+    let workingManifest: StoryManifest = manifest;
+    if (opts?.privacy === 'password' && opts.password) {
+      workingManifest = {
+        ...manifest,
+        comingSoon: {
+          ...(manifest.comingSoon ?? { enabled: false }),
+          passwordProtected: true,
+          password: opts.password,
+        },
+      } as StoryManifest;
+      setManifest(workingManifest);
+    } else if (opts?.privacy === 'public' && manifest.comingSoon?.passwordProtected) {
+      workingManifest = {
+        ...manifest,
+        comingSoon: {
+          ...manifest.comingSoon,
+          passwordProtected: false,
+          password: '',
+        },
+      } as StoryManifest;
+      setManifest(workingManifest);
+    }
+    const saveable = stripArtForStorage(workingManifest);
     setSaveStatus('saving');
     setPublishError(null);
     try {
@@ -675,7 +718,7 @@ export function EditorV8({
       // Capture a snapshot at publish time — this is the "version
       // your guests saw" record so the host can always rewind here.
       const snapped = captureSnapshot(
-        { ...manifest, published: true } as StoryManifest,
+        { ...workingManifest, published: true } as StoryManifest,
         `Published ${new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`
       );
       setManifest(snapped);
@@ -702,6 +745,10 @@ export function EditorV8({
       const msg = err instanceof Error ? err.message : 'Publish failed';
       setPublishError(msg);
       setSaveStatus('error');
+      // Re-throw so the Publish & share modal's await-onPublish
+      // path knows the publish failed and stays on 'review' rather
+      // than flipping to the 'live' success step.
+      throw err instanceof Error ? err : new Error(msg);
     }
   }
 
@@ -843,7 +890,7 @@ export function EditorV8({
         setBlock(all[Math.max(0, i - 1)]);
       } else if (e.shiftKey && (e.key === 'P' || e.key === 'p')) {
         e.preventDefault();
-        void handlePublish();
+        openPublishModal();
       } else if (!e.shiftKey && !e.altKey && !isTyping && (e.key === 'p' || e.key === 'P')) {
         // ⌘P — toggle preview-as-guest. Browsers normally bind this
         // to Print; we override inside the editor since the print
@@ -1000,6 +1047,17 @@ export function EditorV8({
           onClose={() => setPublishToast(null)}
         />
       )}
+      <PublishModal
+        open={publishModalOpen}
+        onClose={() => setPublishModalOpen(false)}
+        manifest={manifest}
+        names={names}
+        siteSlug={siteSlug}
+        liveUrl={publishedAt?.url ?? null}
+        publishError={publishError}
+        onPublish={(o) => handlePublish({ privacy: o.privacy, password: o.password })}
+      />
+
       {/* Preview-as-guest mode hides the topbar entirely so the host
           sees a full-bleed canvas — exactly what a guest would see. A
           tiny floating "Back to editing" pill (rendered below) replaces
@@ -1016,7 +1074,7 @@ export function EditorV8({
           saveStatus={saveStatus}
           lastSavedAt={lastSavedAt}
           liveUrl={publishedAt?.url ?? null}
-          onPublish={handlePublish}
+          onPublish={openPublishModal}
           onOpenAdvisor={() => setAdvisorOpen(true)}
           canUndo={history.canUndo}
           canRedo={history.canRedo}
@@ -1127,7 +1185,7 @@ export function EditorV8({
             setTab={setInspectorTab}
             onJumpBlock={(b) => setBlock(b)}
             onOpenPreview={() => window.open(prettyPath, '_blank')}
-            onPublish={() => void handlePublish()}
+            onPublish={openPublishModal}
             hiddenBlocks={hiddenBlocks}
             onToggleHidden={toggleBlockHidden}
             width={inspectorWidth}
@@ -1169,7 +1227,7 @@ export function EditorV8({
                 setTab={setInspectorTab}
                 onJumpBlock={(b) => setBlock(b)}
                 onOpenPreview={() => window.open(prettyPath, '_blank')}
-                onPublish={() => void handlePublish()}
+                onPublish={openPublishModal}
                 hiddenBlocks={hiddenBlocks}
                 onToggleHidden={toggleBlockHidden}
                 prettyUrl={prettyUrl}
@@ -1193,7 +1251,7 @@ export function EditorV8({
         onPatchManifest={onManifestChange}
         onOpenInvite={() => router.push(`/dashboard/invite?site=${encodeURIComponent(siteSlug)}`)}
         onOpenPreview={() => window.open(prettyPath, '_blank')}
-        onPublish={() => void handlePublish()}
+        onPublish={openPublishModal}
       />
       {/* PearCopilot + ThemeQuickBar are docked into the inspector
           rail's tabs now, so no floating instances live here. The

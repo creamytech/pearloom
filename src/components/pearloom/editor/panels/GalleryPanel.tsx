@@ -5,6 +5,11 @@ import type { StoryManifest, Chapter } from '@/types';
 import { EmptyBlockState, PanelGroup, PanelSection } from '../atoms';
 import { Icon } from '../../motifs';
 import { todayLocal } from '@/lib/date-utils';
+import { BlockStylePicker } from './BlockStylePicker';
+// Side-effect import — registers the 3 production Gallery
+// variants (mosaic / strip / wall) + the 4 prototype variants
+// (grid / masonry / slideshow / polaroid).
+import '@/components/pearloom/site/gallery-variants';
 
 /** Reads natural width/height of a data-URL image so we persist
  *  real dimensions on manifest.chapter.images[] instead of the
@@ -147,6 +152,19 @@ export function GalleryPanel({
   return (
     <PanelGroup>
       <input ref={inputRef} type="file" accept="image/*" multiple onChange={onFiles} style={{ display: 'none' }} />
+
+      {/* Per-section layout — 7 variants total. Mosaic / strip /
+          wall ship in ThemedSiteRenderer.ThemedGallery today; grid
+          / masonry / slideshow / polaroid are registered for
+          picker discovery and ship with Phase 2 renderers. */}
+      <BlockStylePicker
+        blockType="gallery"
+        manifest={manifest}
+        onChange={onChange}
+        defaultStyleId="mosaic"
+        label="Gallery layout"
+        hint="How photos arrange themselves — bento mosaic, filmstrip, photo wall, masonry waterfall, slideshow, or polaroid scatter."
+      />
 
       <PanelSection
         label="Gallery"

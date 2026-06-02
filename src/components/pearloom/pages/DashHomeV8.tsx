@@ -10,6 +10,7 @@ import { useSession } from 'next-auth/react';
 import { useMemo, useState } from 'react';
 import { Heart, Icon, PhotoPlaceholder, Pear, PostIt, Sparkle, Stamp } from '../motifs';
 import { DashLayout } from '../dash/DashShell';
+import { PLAtmosphere } from '../dash/PLChrome';
 import { PearThinking } from '../pear-thinking';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
 import { useDashStats, useLinkedCelebrations, useDaysToGo } from '@/components/marketing/v2/useDashStats';
@@ -886,6 +887,7 @@ export function DashHomeV8() {
       ctaText="Create new event"
       ctaHref="/wizard/new"
     >
+      <PLAtmosphere />
       <div data-welcome-notes style={{ position: 'absolute', top: 60, right: 160, zIndex: 2, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
         <PostIt tone="lavender" width={160} rotation={-6}>
           Every detail,

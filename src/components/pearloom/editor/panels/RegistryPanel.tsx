@@ -8,6 +8,11 @@ import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { BadgesEditor } from './BadgesEditor';
 import { focusPanelRow } from './focus-row';
 import { RegistryClaimsFeed, useRegistryClaims } from '@/components/registry/RegistryClaimsFeed';
+import { BlockStylePicker } from './BlockStylePicker';
+// Side-effect import — registers the 4 prototype Registry
+// layouts (cards / chips / progress / logowall) with the
+// block-style registry.
+import '@/components/pearloom/site/registry-variants';
 
 // Registry auto-tags one badge: 'mostLoved' on the first card so
 // the host's preferred order surfaces visually. Hosts can hide it
@@ -303,6 +308,19 @@ export function RegistryPanel({
 
   return (
     <PanelGroup>
+      {/* Per-section layout — 4 prototype variants. Cards is
+          wired today in ThemedSiteRenderer.ThemedRegistry; chips,
+          progress (honeymoon-fund hero), and logowall are
+          registered for picker discovery and ship with Phase 2
+          renderers. */}
+      <BlockStylePicker
+        blockType="registry"
+        manifest={manifest}
+        onChange={onChange}
+        defaultStyleId="cards"
+        label="Registry layout"
+        hint="How registry links render — substantial cards, link chips, a fund-progress hero, or a branded logo wall."
+      />
       {/* Cash fund — surfaces at the top of the public registry as
           a peach progress strip when a target is set. Honeyfund /
           Venmo / Zelle URLs all work here; we just present the

@@ -8,6 +8,7 @@ import { Bloom } from '@/components/brand/groove';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
+import { PLAtmosphere } from '@/components/pearloom/dash/PLChrome';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getEventType } from '@/lib/event-os/event-types';
 import { GuestImportDialog } from '@/components/dashboard/GuestImportDialog';
@@ -800,7 +801,7 @@ export function DashGuests() {
         </>
       }
     >
-
+      <PLAtmosphere />
       <main
         className="pd-guests-main"
         style={{

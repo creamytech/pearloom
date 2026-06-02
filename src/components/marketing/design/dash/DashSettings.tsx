@@ -11,6 +11,7 @@ import { Bloom } from '@/components/brand/groove';
 import { Pear, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, SectionTitle, btnInk, btnGhost, btnMini } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
+import { PLAtmosphere } from '@/components/pearloom/dash/PLChrome';
 import { useUserPrefs, useUserSites, type AutonomyKey, type PearVoice } from './hooks';
 
 type Section = 'profile' | 'pear' | 'domain' | 'privacy' | 'billing' | 'export' | 'danger';
@@ -145,7 +146,7 @@ export function DashSettings() {
         </>
       }
     >
-
+      <PLAtmosphere />
       <main
         className="pd-settings-main"
         style={{

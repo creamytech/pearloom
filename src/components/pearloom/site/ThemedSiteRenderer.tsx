@@ -56,6 +56,7 @@ import { Guestbook } from '@/components/guestbook';
 import { DayOfBanner } from './DayOfBanner';
 import { BroadcastBar } from './BroadcastBar';
 import { GuestPearChat } from './GuestPearChat';
+import { GuestRsvpModal } from './GuestRsvpModal';
 /* Per-section background overlay (paper / wash / mesh / atmosphere /
    none) — reads manifest.blockStyles[sectionId].background with a
    fallback to legacy manifest.sectionBackgrounds[sectionId]. Mounts
@@ -122,6 +123,21 @@ import './gallery-variants';
    importing the barrel is what makes getBlockStyle('hero', id)
    resolve when ThemedSiteRenderer dispatches the hero variant. */
 import './hero-variants';
+/* Side-effect imports — register the prototype's per-section
+   layout variants (48 across 9 sections; see
+   src/lib/site-layouts/registry.ts). The picker in the editor's
+   Layout tab uses getBlockStyles(section) to discover these; the
+   renderer falls back to its existing default layout when an
+   unwired variant id is picked. Adding a new variant ships by
+   extending the per-section file + wiring its renderer; existing
+   sites are unaffected. */
+import './story-variants';
+import './schedule-variants';
+import './details-variants';
+import './travel-variants';
+import './registry-variants';
+import './rsvp-variants';
+import './faq-variants';
 
 /** Patch function the editor passes down so deep fields can ship
  *  their edits through a single channel. Matches ThemedSiteRenderer. */
@@ -601,6 +617,7 @@ export function ThemedSiteRenderer({
           Order in the tree doesn't affect layout — it self-
           positions fixed. */}
       {!editMode && <GuestPearChat manifest={manifest} coupleNames={[n1, n2]} domain={siteSlug} />}
+      {!editMode && <GuestRsvpModal siteSlug={siteSlug} manifest={manifest} />}
       {!editMode && <DayOfBanner manifest={manifest} />}
       {!editMode && !computeDayOfState(manifest).active && <BroadcastBar subdomain={siteSlug} />}
       {/* Scroll-reveal driver — published site only. Sets
@@ -839,6 +856,21 @@ function ThemedRsvpPill({ href, compact }: { href: string; compact?: boolean }) 
   return (
     <a
       href={href}
+      onClick={() => {
+        // Progressive enhancement: dispatch the modal-open event but
+        // do NOT preventDefault — the anchor still scrolls to #rsvp
+        // as a fallback when the modal isn't mounted (e.g. JS-off
+        // browsers, scrape-style previews, an old PublishedSiteShell
+        // build). Modal listeners read window events synchronously
+        // so the modal opens at the same paint as the scroll begins;
+        // when both fire, the modal wins visually because it's fixed
+        // overlay above the page.
+        try {
+          window.dispatchEvent(new CustomEvent('pl-open-rsvp'));
+        } catch {
+          /* noop */
+        }
+      }}
       className="pl8-nav-rsvp"
       style={{
         display: 'inline-flex',
@@ -914,6 +946,7 @@ function ThemedNavBody({ navStyle, scrolled, coupleLabel, links, rsvpHref, brand
         </div>
         <a
           href={rsvpHref}
+          onClick={() => { try { window.dispatchEvent(new CustomEvent('pl-open-rsvp')); } catch { /* noop */ } }}
           className="pl8-nav-rsvp-hairline"
           style={{
             fontSize: 12,
@@ -1272,7 +1305,7 @@ function ThemedMobileNavBody({ mobileStyle, coupleLabel, links, rsvpHref, brandH
       <div className="pl8-mnav-bar pl8-mnav-hairline" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', minHeight: 44 }}>
         <ThemedNavBrand manifest={manifest} label={coupleLabel} size={16} href={brandHref} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <a href={rsvpHref} className="pl8-mnav-rsvp-chip" style={{ fontSize: 10.5, padding: '5px 10px', borderRadius: 999, border: '1px solid var(--nav-ink-soft, var(--ink-soft, #3A332C))', color: 'var(--nav-ink, var(--ink, #0E0D0B))', textDecoration: 'none', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>RSVP</a>
+          <a href={rsvpHref} onClick={() => { try { window.dispatchEvent(new CustomEvent('pl-open-rsvp')); } catch { /* noop */ } }} className="pl8-mnav-rsvp-chip" style={{ fontSize: 10.5, padding: '5px 10px', borderRadius: 999, border: '1px solid var(--nav-ink-soft, var(--ink-soft, #3A332C))', color: 'var(--nav-ink, var(--ink, #0E0D0B))', textDecoration: 'none', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>RSVP</a>
           <button
             type="button"
             aria-label={menuOpen ? 'Close chapter menu' : 'Open chapter menu'}
@@ -1374,7 +1407,16 @@ function ThemedMobileNavBody({ mobileStyle, coupleLabel, links, rsvpHref, brandH
               {l.label}
             </a>
           ))}
-          <a href={rsvpHref} onClick={onLinkTap} style={{ marginTop: 12, justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 999, background: 'var(--peach-ink, #C6703D)', color: 'var(--cream, #FBF7EE)', fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textDecoration: 'none' }}>RSVP</a>
+          <a
+            href={rsvpHref}
+            onClick={() => {
+              try { window.dispatchEvent(new CustomEvent('pl-open-rsvp')); } catch { /* noop */ }
+              onLinkTap();
+            }}
+            style={{ marginTop: 12, justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 999, background: 'var(--peach-ink, #C6703D)', color: 'var(--cream, #FBF7EE)', fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textDecoration: 'none' }}
+          >
+            RSVP
+          </a>
         </nav>
       </div>
     </div>
@@ -2176,6 +2218,7 @@ function ThemedHero({ manifest, names, motif, onEditField, onEditNames }: { mani
         >
           <a
             href="#rsvp"
+            onClick={() => { try { window.dispatchEvent(new CustomEvent('pl-open-rsvp')); } catch { /* noop */ } }}
             style={{
               padding: '12px 22px',
               borderRadius: 999,
@@ -3755,6 +3798,10 @@ function ThemedTravel({ manifest, motif, editMode }: { manifest: StoryManifest; 
     );
   }
   const kit = manifest.kitId ?? 'classic';
+  // Travel-level metadata read off the legacy `manifest.travel`
+  // shape (panel writes both). Block code renders as a small pill
+  // under the section head when present.
+  const travelMeta = (manifest as unknown as { travel?: { blockCode?: string } }).travel ?? {};
   return (
     <section
       id="travel"
@@ -3767,6 +3814,34 @@ function ThemedTravel({ manifest, motif, editMode }: { manifest: StoryManifest; 
       <SectionBackground manifest={manifest} sectionId="travel" />
       <MotifScatter motif={motif} density="sparse" />
       <ThemedSectionHead eyebrow="Getting there" title="Where to" italic="stay" manifest={manifest} sectionKey="travel" />
+      {/* Optional group block code — peach pill centred under the
+          head. Surfaces the hotel block code Pear lets the host
+          negotiate (TravelPanel "Group block code" field). */}
+      {travelMeta.blockCode && (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            margin: '-4px 0 22px',
+          }}
+        >
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              padding: '5px 12px',
+              borderRadius: 999,
+              background: 'var(--peach-bg, rgba(198,112,61,0.10))',
+              color: 'var(--peach-ink, #C6703D)',
+              border: '1px solid rgba(198,112,61,0.20)',
+            }}
+          >
+            Block code · {travelMeta.blockCode}
+          </span>
+        </div>
+      )}
       {/* Port of prototype's TravelBlock (themed-site.jsx ~line
           389): 2-col grid, each card 14px padding flex layout
           with an 84px-square photo placeholder + content block.
@@ -3783,8 +3858,31 @@ function ThemedTravel({ manifest, motif, editMode }: { manifest: StoryManifest; 
         }}
       >
         {hotels.map((h, i) => {
-          const distance = (h as unknown as { distance?: string }).distance;
-          const photoUrl = (h as unknown as { photoUrl?: string }).photoUrl;
+          const extra = h as unknown as {
+            distance?: string;
+            photoUrl?: string;
+            rating?: number;
+            ratingCount?: number;
+            amenities?: string;
+            priceLevel?: string;
+            description?: string;
+            notes?: string;
+          };
+          const distance = extra.distance;
+          const photoUrl = extra.photoUrl;
+          const rating = typeof extra.rating === 'number' ? extra.rating : undefined;
+          const ratingCount = extra.ratingCount;
+          const priceTier = extra.priceLevel;
+          // Amenities split on ' · ' (matches deriveAmenities +
+          // map-search adder); each token becomes a chip.
+          const amenityChips = (extra.amenities ?? '')
+            .split(/\s·\s|,\s?/)
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .slice(0, 4);
+          // Editorial line — prefer description (Claude blurb /
+          // map-search blurb) over the legacy notes channel.
+          const blurb = extra.description || extra.notes;
           // Tone block fallback when no photo — cycles through the
           // edition's accent tones so each card is distinct.
           const tonePalette = [
@@ -3800,74 +3898,162 @@ function ThemedTravel({ manifest, motif, editMode }: { manifest: StoryManifest; 
                 ...kitCardStyle(kit, i),
                 padding: 14,
                 display: 'flex',
-                gap: 14,
-                alignItems: 'center',
+                flexDirection: 'column',
+                gap: 12,
               }}
             >
-              {/* Photo placeholder square — 84x84 with rounded
-                  corners. Real photo when manifest provides one,
-                  tone block otherwise. */}
-              <div
-                style={{
-                  width: 84,
-                  height: 84,
-                  flexShrink: 0,
-                  borderRadius: 'var(--pl-card-radius, 8px)',
-                  ...(photoUrl
-                    ? {
-                        backgroundImage: `url(${photoUrl})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                      }
-                    : {
-                        background: tonePalette[i % tonePalette.length],
-                      }),
-                }}
-              />
-              <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+                {/* Photo placeholder square — 84x84 with rounded
+                    corners. Real photo when manifest provides one,
+                    tone block otherwise. */}
                 <div
                   style={{
-                    fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-                    fontWeight: 'var(--pl-display-wght, 600)',
-                    fontSize: 19,
-                    color: 'var(--ink, #0E0D0B)',
-                    lineHeight: 1.15,
+                    width: 84,
+                    height: 84,
+                    flexShrink: 0,
+                    borderRadius: 'var(--pl-card-radius, 8px)',
+                    ...(photoUrl
+                      ? {
+                          backgroundImage: `url(${photoUrl})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                        }
+                      : {
+                          background: tonePalette[i % tonePalette.length],
+                        }),
                   }}
-                >
-                  {h.name}
-                </div>
-                {(distance || h.address) && (
+                />
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div
                     style={{
-                      fontSize: 12.5,
-                      color: 'var(--ink-muted, #6F6557)',
-                      marginTop: 4,
-                      lineHeight: 1.4,
+                      fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                      fontWeight: 'var(--pl-display-wght, 600)',
+                      fontSize: 19,
+                      color: 'var(--ink, #0E0D0B)',
+                      lineHeight: 1.15,
                     }}
                   >
-                    {distance ?? h.address}
+                    {h.name}
                   </div>
-                )}
-                {h.bookingUrl && (
-                  <a
-                    href={h.bookingUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 5,
-                      marginTop: 9,
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: 'var(--peach-ink, #C6703D)',
-                      textDecoration: 'none',
-                    }}
-                  >
-                    Book <Icon name="arrow-ur" size={11} color="var(--peach-ink, #C6703D)" />
-                  </a>
-                )}
+                  {/* Rating + reviews + price tier — single
+                      summary line under the name. Each fragment
+                      is conditional so a host who skipped a row
+                      still reads cleanly. */}
+                  {(typeof rating === 'number' || priceTier) && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 7,
+                        marginTop: 4,
+                        fontSize: 12,
+                        color: 'var(--ink-soft, #3A332C)',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      {typeof rating === 'number' && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <Icon
+                              key={n}
+                              name="star"
+                              size={11}
+                              color={
+                                n <= Math.round(rating)
+                                  ? 'var(--gold, #B8935A)'
+                                  : 'var(--cream-3, #D8CFB8)'
+                              }
+                            />
+                          ))}
+                          <b style={{ marginLeft: 4, color: 'var(--ink, #0E0D0B)' }}>
+                            {rating.toFixed(1)}
+                          </b>
+                          {ratingCount ? (
+                            <span style={{ color: 'var(--ink-muted, #6F6557)' }}>
+                              {' '}
+                              ({ratingCount.toLocaleString()})
+                            </span>
+                          ) : null}
+                        </span>
+                      )}
+                      {priceTier && (
+                        <>
+                          {typeof rating === 'number' && (
+                            <span style={{ color: 'var(--ink-muted, #6F6557)' }}>·</span>
+                          )}
+                          <span style={{ fontWeight: 700 }}>{priceTier}</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  {(distance || h.address) && (
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: 'var(--ink-muted, #6F6557)',
+                        marginTop: 3,
+                        lineHeight: 1.4,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}
+                    >
+                      <Icon name="pin" size={10} color="var(--ink-muted, #6F6557)" />
+                      {distance ?? h.address}
+                    </div>
+                  )}
+                  {h.bookingUrl && (
+                    <a
+                      href={h.bookingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 5,
+                        marginTop: 7,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: 'var(--peach-ink, #C6703D)',
+                        textDecoration: 'none',
+                      }}
+                    >
+                      Book <Icon name="arrow-ur" size={11} color="var(--peach-ink, #C6703D)" />
+                    </a>
+                  )}
+                </div>
               </div>
+              {blurb && (
+                <div
+                  style={{
+                    fontSize: 12.5,
+                    color: 'var(--ink-soft, #3A332C)',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {blurb}
+                </div>
+              )}
+              {amenityChips.length > 0 && (
+                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                  {amenityChips.map((a) => (
+                    <span
+                      key={a}
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 600,
+                        color: 'var(--sage-deep, #5C6B3F)',
+                        background: 'var(--sage-tint, rgba(92,107,63,0.10))',
+                        padding: '3px 8px',
+                        borderRadius: 999,
+                        border: '1px solid rgba(92,107,63,0.18)',
+                      }}
+                    >
+                      {a}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}

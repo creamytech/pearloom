@@ -7,6 +7,11 @@ import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { BadgesEditor } from './BadgesEditor';
 import { focusPanelRow } from './focus-row';
+import { BlockStylePicker } from './BlockStylePicker';
+// Side-effect import — registers the 4 prototype FAQ layouts
+// (accordion / twocol / numbered / cards) with the block-style
+// registry.
+import '@/components/pearloom/site/faq-variants';
 
 // Local FAQ row shape — mirror of the manifest's FaqItem (which
 // also carries `order`) plus the new badges field. Both panels
@@ -95,6 +100,17 @@ export function FaqPanel({
 
   return (
     <PanelGroup>
+      {/* Per-section layout — 4 prototype variants (accordion is
+          wired today; twocol / numbered / cards live in the
+          registry for picker discovery, awaiting renderers). */}
+      <BlockStylePicker
+        blockType="faq"
+        manifest={manifest}
+        onChange={onChange}
+        defaultStyleId="accordion"
+        label="FAQ layout"
+        hint="How questions render — accordion (default), two-column, numbered list, or padded cards."
+      />
       <PanelSection label="Frequently asked" hint="Drag to reorder. Guests see these below the schedule.">
         <AIHint>
           Pear drafts an 8–10 question FAQ from your occasion, venue, date, and vibes. Everything is editable.

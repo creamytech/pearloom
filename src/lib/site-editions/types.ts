@@ -24,6 +24,7 @@
 
 import type { SiteBlockKey } from '@/lib/site-mode';
 import type { SiteOccasion } from '@/lib/site-urls';
+import type { SectionKey } from '@/lib/site-layouts/registry';
 
 /** Canonical Edition identifiers. */
 export type EditionId =
@@ -102,6 +103,18 @@ export interface EditionDefinition {
 
   /** Hero variant to fall back on when the host hasn't picked one. */
   heroVariantId: HeroVariantHint;
+
+  /** Per-section layout variant defaults — what the Edition
+   *  prescribes when the host hasn't set an explicit
+   *  manifest.blockVariants[section].style. Variant ids must be
+   *  registered in src/lib/site-layouts/registry.ts (LAYOUTS map).
+   *
+   *  Resolution order matches resolveLayout() in the registry:
+   *    1. host pick > 2. this map > 3. registry's LAYOUT_DEFAULTS.
+   *
+   *  Optional — Editions that don't set a per-section default fall
+   *  through to the registry's default for that section. */
+  layoutDefaults?: Partial<Record<SectionKey, string>>;
 
   /** Story layout variant this Edition prescribes. Stamped into
    *  manifest on Edition pick so the Story section visibly reshapes

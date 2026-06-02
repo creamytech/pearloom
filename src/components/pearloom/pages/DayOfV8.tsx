@@ -23,6 +23,7 @@ function editorDeepLink(siteDomain: string | null | undefined, block?: string, a
   return `/editor/${encodeURIComponent(siteDomain)}${q ? `?${q}` : ''}`;
 }
 import { DashLayout } from '../dash/DashShell';
+import { PLAtmosphere } from '../dash/PLChrome';
 import { BroadcastComposer } from '../dash/BroadcastComposer';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
 import { useDashStats } from '@/components/marketing/v2/useDashStats';
@@ -867,7 +868,11 @@ export function DayOfV8() {
 
   return (
     <DashLayout active="timeline" hideTopbar>
-      <div className="pl8-dayof-wrap" style={{ padding: '24px clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
+      {/* Botanical underlay — olive sprigs at low opacity. Matches the
+          prototype's atmosphere layer; the DashLayout's sidebar already
+          owns the cream + nav chrome. */}
+      <PLAtmosphere />
+      <div className="pl8-dayof-wrap" style={{ padding: '24px clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto', position: 'relative', zIndex: 1 }}>
         <div className="pl8-dayof-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <div>
             <div

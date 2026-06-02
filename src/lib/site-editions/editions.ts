@@ -33,6 +33,20 @@ export const EDITIONS: EditionDefinition[] = [
     description:
       "Postcard-style hero with a serif drop cap and a foliated date glyph. Chapter markers ('I — How we met') open every section. Generous body type, a single hairline thread between sections, paper grain underfoot. Built for sites whose center of gravity is the narrative.",
     heroVariantId: 'postcard',
+    /* Almanac → narrative-leaning per-section defaults. Story
+       gets the timeline (chapter-marks down a centre line),
+       schedule the same, gallery a soft grid, details as tiles. */
+    layoutDefaults: {
+      hero: 'postcard',
+      story: 'timeline',
+      details: 'tiles',
+      schedule: 'timeline',
+      travel: 'rows',
+      registry: 'cards',
+      gallery: 'grid',
+      rsvp: 'centered',
+      faq: 'accordion',
+    },
     storyLayoutId: 'timeline',
     sectionOpener: 'chapter-mark',
     divider: 'thread',
@@ -95,6 +109,20 @@ export const EDITIONS: EditionDefinition[] = [
     description:
       "Photo-first hero pushed to full viewport with a slow Ken Burns. Sans-serif uppercase kickers ('REEL ONE · WINTER 2026'). Black-bar slug lines open each section. Photos default to 21:9, divider is a single sprocket row. Pearl reserved for the one RSVP CTA. Built for cinematic destinations.",
     heroVariantId: 'photo-first',
+    /* Cinema → photo-led + filmstrip rhythm. Story is parallax,
+       gallery is the strip (matches the film metaphor), schedule
+       is a stepper, travel is a carousel. */
+    layoutDefaults: {
+      hero: 'photo-first',
+      story: 'parallax',
+      details: 'iconrow',
+      schedule: 'stepper',
+      travel: 'carousel',
+      registry: 'cards',
+      gallery: 'strip',
+      rsvp: 'banner',
+      faq: 'twocol',
+    },
     storyLayoutId: 'parallax',
     sectionOpener: 'slug-line',
     divider: 'sprocket',
@@ -154,6 +182,20 @@ export const EDITIONS: EditionDefinition[] = [
     description:
       "A bundle of cards on a soft cream-deep gauze. Tilted polaroid hero, each section is its own card with a 6° rotated stamp and a typed handwritten kicker. Thread-stitch dividers, torn-paper bottom edges, no atmosphere shader — the cards ARE the chrome. Built for travel-flavored, multi-day, fun-leaning events.",
     heroVariantId: 'postcard',
+    /* Postcard Box → casual, card-stacked rhythm. Story is bento
+       (mosaic of cards), gallery is polaroid wall (signature),
+       schedule is cards, registry is chips. */
+    layoutDefaults: {
+      hero: 'postcard',
+      story: 'bento',
+      details: 'bento',
+      schedule: 'cards',
+      travel: 'map',
+      registry: 'chips',
+      gallery: 'polaroid',
+      rsvp: 'centered',
+      faq: 'cards',
+    },
     storyLayoutId: 'bento',
     sectionOpener: 'stamp',
     divider: 'stitch',
@@ -222,6 +264,20 @@ export const EDITIONS: EditionDefinition[] = [
     description:
       "Split hero — 4:5 photo left, names right in Fraunces upright (not italic) with a gold hairline rule above and below the date. Mono-uppercased section labels with a leading gold dot ('. PROGRAMME'), centered gold hairline dividers, paper-only atmosphere. No emoji, no stickers. Built for formal events.",
     heroVariantId: 'split',
+    /* Linen Folder → hotel-stationery formal. Story is magazine
+       (editorial spread), schedule is the leader-list, registry is
+       logowall (brand-formal), gallery is the uniform grid. */
+    layoutDefaults: {
+      hero: 'split',
+      story: 'magazine',
+      details: 'list',
+      schedule: 'list',
+      travel: 'table',
+      registry: 'logowall',
+      gallery: 'grid',
+      rsvp: 'split',
+      faq: 'numbered',
+    },
     storyLayoutId: 'magazine',
     sectionOpener: 'mono-label',
     divider: 'gold-hairline',
@@ -293,6 +349,20 @@ export const EDITIONS: EditionDefinition[] = [
     description:
       "Centered 560px column, single thread above the names. Wide-margined sections (max 640px), tiny mono overlines, 24px of whitespace as the divider. No countdown, no broadcast bar, no decor. Photos render small and centered when at all. Built for events that ask the design to step back.",
     heroVariantId: 'minimal',
+    /* Quiet → minimum chrome. Hero is type-only, story is the
+       stacked centered column, schedule is the leader list, RSVP
+       is the minimal variant. Gallery falls back to the grid. */
+    layoutDefaults: {
+      hero: 'minimal',
+      story: 'stacked',
+      details: 'list',
+      schedule: 'list',
+      travel: 'rows',
+      registry: 'chips',
+      gallery: 'grid',
+      rsvp: 'minimal',
+      faq: 'numbered',
+    },
     storyLayoutId: 'timeline',
     sectionOpener: 'overline',
     divider: 'whitespace',
@@ -352,6 +422,20 @@ export const EDITIONS: EditionDefinition[] = [
     description:
       "Deckled hand-cut paper edges, navy line-work, sea-glass blue accent. Square 3px radii. Built for seaside / coastal / cape destinations and any event that wants the calm of harbor light rather than the warmth of olive groves. Photos sit in deckled frames; dividers are torn-paper hairlines.",
     heroVariantId: 'split',
+    /* Coastal → close to Linen Folder but a hair softer. Travel
+       is the map (seaside maps matter), story is a quote-led
+       letter, gallery is the strip (postcard reel). */
+    layoutDefaults: {
+      hero: 'split',
+      story: 'quote',
+      details: 'iconrow',
+      schedule: 'cards',
+      travel: 'map',
+      registry: 'cards',
+      gallery: 'strip',
+      rsvp: 'split',
+      faq: 'twocol',
+    },
     storyLayoutId: 'magazine',
     sectionOpener: 'mono-label',
     divider: 'gold-hairline',

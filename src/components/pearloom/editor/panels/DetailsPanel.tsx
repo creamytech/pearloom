@@ -18,6 +18,11 @@ import { Field, PanelDisclosure, PanelGroup, PanelSection, PanelSmartActions, Pa
 import { TimePicker } from '../v8-forms';
 import { Icon } from '../../motifs';
 import { LivestreamPanel } from './LivestreamPanel';
+import { BlockStylePicker } from './BlockStylePicker';
+// Side-effect import — registers the 5 prototype Details layouts
+// (tiles / iconrow / list / accordion / bento) with the
+// block-style registry.
+import '@/components/pearloom/site/details-variants';
 
 const DRESS_CODES = [
   { value: '', label: 'Not specified' },
@@ -280,6 +285,19 @@ export function DetailsPanel({
   // voice / glyph / day-of behaviour.
   const layout = (
     <PanelGroup>
+      {/* Per-section layout variant — the 5 prototype shapes
+          (tiles / iconrow / list / accordion / bento). Registered
+          for picker discovery; ThemedSiteRenderer's ThemedDetails
+          currently dispatches on kit (classic/ticket/plate/…) and
+          will dispatch on this variant id in Phase 2. */}
+      <BlockStylePicker
+        blockType="details"
+        manifest={manifest}
+        onChange={onChange}
+        defaultStyleId="tiles"
+        label="Details layout"
+        hint="How the detail cards render — equal tiles, icon row, leader list, accordion, or asymmetric bento."
+      />
       <WeatherStyleSection manifest={manifest} onChange={onChange} />
     </PanelGroup>
   );

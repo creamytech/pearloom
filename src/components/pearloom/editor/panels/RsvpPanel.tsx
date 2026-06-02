@@ -4,6 +4,11 @@ import type { StoryManifest, MealOption } from '@/types';
 import { AddRowButton, EmptyBlockState, Field, PanelDisclosure, PanelGroup, PanelSection, PanelSmartActions, PanelTabs, TextArea, TextInput, Toggle, type PanelSmartAction } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
+import { BlockStylePicker } from './BlockStylePicker';
+// Side-effect import — registers the 4 prototype RSVP layouts
+// (centered / split / banner / minimal) with the block-style
+// registry before the picker reads from it.
+import '@/components/pearloom/site/rsvp-variants';
 
 const DIETARY_TAGS = ['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-free', 'halal', 'kosher'] as const;
 
@@ -121,6 +126,19 @@ export function RsvpPanel({
   // RSVP form collects.
   const layout = (
     <PanelGroup>
+      {/* The 4 prototype RSVP layouts (centered / split / banner /
+          minimal). Only 'centered' is fully wired in
+          ThemedSiteRenderer.ThemedRsvp today; picking another
+          falls back until Phase 2 ships the dedicated renderers.
+          See src/lib/site-layouts/registry.ts for the catalog. */}
+      <BlockStylePicker
+        blockType="rsvp"
+        manifest={manifest}
+        onChange={onChange}
+        defaultStyleId="centered"
+        label="RSVP layout"
+        hint="How the RSVP block lays out — centered, split with photo, banner, or minimal hairline."
+      />
       <RsvpButtonStyleSection manifest={manifest} onChange={onChange} />
     </PanelGroup>
   );

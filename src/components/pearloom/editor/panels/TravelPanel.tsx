@@ -8,8 +8,13 @@ import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { PlaceAutocomplete } from './PlaceAutocomplete';
 import { stableHotelId } from '@/lib/hotel-id';
 import { focusPanelRow } from './focus-row';
+import { BlockStylePicker } from './BlockStylePicker';
+// Side-effect import — registers the 4 prototype Travel layouts
+// (map / rows / table / carousel) with the block-style registry.
+import '@/components/pearloom/site/travel-variants';
 
 import { BadgesEditor } from './BadgesEditor';
+import { TravelMapSearch, type MapSearchHotel } from './TravelMapSearch';
 
 // Hotels carry three auto-detected badges. The shared BadgesEditor
 // is parametric over the auto-key set; we type the call site here
@@ -502,6 +507,20 @@ export function TravelPanel({
   // stays focused on data, not visual treatment.
   const layout = (
     <PanelGroup>
+      {/* Section-wide layout — 4 prototype variants (rows is wired
+          today in ThemedSiteRenderer.ThemedTravel; map / table /
+          carousel are registered for picker discovery and ship
+          with Phase 2 renderers). Separate from the per-hotel
+          "Hotel display" toggle below (which controls each
+          individual card's chrome). */}
+      <BlockStylePicker
+        blockType="travel"
+        manifest={manifest}
+        onChange={onChange}
+        defaultStyleId="rows"
+        label="Travel layout"
+        hint="How the hotel list arranges itself — illustrated map + cards, single-column rows, compact comparison, or carousel."
+      />
       <PanelSection label="Hotel display" hint="How the hotel list renders for guests.">
         <Field
           label="Cards"
@@ -610,6 +629,23 @@ export function TravelPanel({
             placeholder="ALEXJAMIE"
           />
         </Field>
+        {/* Map-style picker — port of the prototype's flagship
+            section-editor card (ClaudeDesign/section-fields.jsx
+            VenueSearch). Curated mock dataset so a host can see
+            the visual affordance before they pick a venue. Once a
+            venue is set, the real Google Places search row below
+            remains the canonical add path. */}
+        <TravelMapSearch
+          venueCity={logistics.venue}
+          onAdd={(picked: MapSearchHotel) => {
+            // MapSearchHotel maps 1-to-1 onto Hotel — the optional
+            // fields the map picker doesn't populate (lat/lng,
+            // photoUrl, photoUrls, priceRange, badges) stay
+            // undefined; the host can fill them by re-picking
+            // the row via the real Places autocomplete below.
+            setTravel({ hotels: [...hotels, picked as Hotel] });
+          }}
+        />
         <Field
           label="Search a hotel by name"
           help={

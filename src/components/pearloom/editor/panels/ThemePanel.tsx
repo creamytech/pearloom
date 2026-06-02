@@ -667,15 +667,21 @@ function OwnedPacksSection({
     );
   }
 
-  // Empty state — keep the section visible with a link to the
-  // store so hosts learn the feature exists.
+  // Empty state — keep the section visible with a CTA into
+  // the in-editor Theme Shop bottom sheet (preferred over a
+  // new-tab redirect to /store, since the sheet re-skins the
+  // canvas live as the host previews packs).
+  function openThemeShop() {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('pearloom:open-theme-shop'));
+    }
+  }
   if (ownedPacks.length === 0) {
     return (
       <PanelSection label="Your packs" hint="Theme-Store packs you own.">
-        <a
-          href="/store"
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          type="button"
+          onClick={openThemeShop}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -685,19 +691,21 @@ function OwnedPacksSection({
             borderRadius: 12,
             border: '1px dashed var(--line, rgba(14,13,11,0.16))',
             background: 'var(--card, #FBF7EE)',
-            textDecoration: 'none',
+            textAlign: 'left',
+            width: '100%',
             color: 'var(--ink, #0E0D0B)',
             fontFamily: 'var(--font-ui)',
+            cursor: 'pointer',
           }}
         >
           <span style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: 13, fontWeight: 600 }}>Browse the Theme Store</span>
+            <span style={{ fontSize: 13, fontWeight: 600 }}>Browse the Theme Shop</span>
             <span style={{ fontSize: 11, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>
               Designer packs of palette, type, material & components.
             </span>
           </span>
           <Icon name="arrow-right" size={13} color="var(--ink, #0E0D0B)" />
-        </a>
+        </button>
       </PanelSection>
     );
   }
@@ -707,20 +715,23 @@ function OwnedPacksSection({
       label="Your packs"
       hint="Tap any pack you own to apply its theme to this site."
       action={
-        <a
-          href="/store"
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          type="button"
+          onClick={openThemeShop}
+          title="Open the Theme Shop"
           style={{
             fontSize: 11,
             fontWeight: 600,
             color: 'var(--ink-muted, #6F6557)',
-            textDecoration: 'none',
             letterSpacing: '0.04em',
+            background: 'transparent',
+            border: 0,
+            cursor: 'pointer',
+            padding: 0,
           }}
         >
-          Store →
-        </a>
+          Shop →
+        </button>
       }
     >
       <div

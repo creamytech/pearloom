@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DASH_SECTIONS } from './DashShell';
+import { useUserSettings } from './UserSettingsModal';
 import { useSelectedSite, useUserSites, siteDisplayName, type SiteSummary } from '@/components/marketing/design/dash/hooks';
 import { Icon } from '../motifs';
 
@@ -43,6 +44,7 @@ export function DashCommandPalette() {
   const router = useRouter();
   const { sites, selectSite, site: selectedSite } = useSelectedSite();
   const { sites: allSites } = useUserSites();
+  const { openTab: openSettingsTab } = useUserSettings();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [activeIdx, setActiveIdx] = useState(0);
@@ -87,6 +89,52 @@ export function DashCommandPalette() {
         });
       }
     }
+    // Settings modal entries — opens the in-shell modal rather
+    // than routing to a page. Mirrors the four tabs.
+    items.push({
+      id: 'action-settings-account',
+      kind: 'action',
+      label: 'Open settings',
+      hint: 'Account',
+      icon: 'user',
+      onSelect: () => {
+        openSettingsTab('account');
+        setOpen(false);
+      },
+    });
+    items.push({
+      id: 'action-settings-usage',
+      kind: 'action',
+      label: 'Usage & credits',
+      hint: 'Pear AI credits',
+      icon: 'sparkles',
+      onSelect: () => {
+        openSettingsTab('usage');
+        setOpen(false);
+      },
+    });
+    items.push({
+      id: 'action-settings-subscription',
+      kind: 'action',
+      label: 'Subscription & billing',
+      hint: 'Manage your plan',
+      icon: 'star',
+      onSelect: () => {
+        openSettingsTab('subscription');
+        setOpen(false);
+      },
+    });
+    items.push({
+      id: 'action-settings-preferences',
+      kind: 'action',
+      label: 'Preferences',
+      hint: 'Theme, voice, quiet hours',
+      icon: 'settings',
+      onSelect: () => {
+        openSettingsTab('preferences');
+        setOpen(false);
+      },
+    });
     // Site switcher entries.
     const list = (allSites ?? sites ?? []) as SiteSummary[];
     for (const s of list) {
@@ -105,7 +153,7 @@ export function DashCommandPalette() {
       });
     }
     return items;
-  }, [allSites, sites, selectedSite, selectSite]);
+  }, [allSites, sites, selectedSite, selectSite, openSettingsTab]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -266,7 +314,7 @@ export function DashCommandPalette() {
                     color: 'var(--ink-muted)',
                     textTransform: 'uppercase',
                   }}>
-                    {item.kind === 'site' ? 'Switch' : 'Go'}
+                    {item.kind === 'site' ? 'Switch' : item.kind === 'action' ? 'Open' : 'Go'}
                   </span>
                 </div>
               );

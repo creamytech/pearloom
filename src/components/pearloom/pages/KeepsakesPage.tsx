@@ -1,14 +1,24 @@
 'use client';
 
+/* ========================================================================
+   PEARLOOM — KEEPSAKES (Memory hub)
+
+   Editorial port of ClaudeDesign/pages/memory-redesign.jsx. Mounts the
+   shared PLChrome (sidebar + atmosphere + tabs + head + paper cards)
+   around the existing data flow: ThankYouGenerator, AnniversaryPreview,
+   TwoTapThanks, and any occasion-specific keepsake tools the registry
+   serves up.
+   ======================================================================== */
+
 import Link from 'next/link';
-import { DashLayout } from '../dash/DashShell';
 import { ThankYouGenerator } from '../dash/ThankYouGenerator';
 import { AnniversaryPreview } from '../dash/AnniversaryPreview';
 import { TwoTapThanks } from '../dash/TwoTapThanks';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { getEventType } from '@/lib/event-os/event-types';
 import { getKeepsakeTools } from '@/lib/event-os/dashboard-presets';
-import { Icon } from '../motifs';
+import { Icon, Pear } from '../motifs';
+import { PLChrome, PLHead, PLTabs, PLCard } from '../dash/PLChrome';
 
 function KeepsakeCard({
   title,
@@ -32,12 +42,8 @@ function KeepsakeCard({
           ? 'var(--lavender-bg)'
           : 'var(--cream-2)';
   return (
-    <div
+    <PLCard
       style={{
-        background: 'var(--card)',
-        border: '1px solid var(--card-ring)',
-        borderRadius: 18,
-        padding: 22,
         display: 'flex',
         flexDirection: 'column',
         gap: 14,
@@ -45,7 +51,15 @@ function KeepsakeCard({
       }}
     >
       <div style={{ background: bg, borderRadius: 12, padding: 12, fontSize: 12, color: 'var(--ink-soft)' }}>
-        <div className="display" style={{ fontSize: 20, color: 'var(--ink)', marginBottom: 6 }}>
+        <div
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 20,
+            fontWeight: 600,
+            color: 'var(--ink)',
+            marginBottom: 6,
+          }}
+        >
           {title}
         </div>
         {body}
@@ -53,7 +67,7 @@ function KeepsakeCard({
       <Link href={actionHref} className="btn btn-outline btn-sm" style={{ marginTop: 'auto' }}>
         <Icon name="sparkles" size={12} /> {actionLabel}
       </Link>
-    </div>
+    </PLCard>
   );
 }
 
@@ -76,33 +90,102 @@ export function KeepsakesPage() {
           ? 'Thank-yous and a keepsake card of the advice guests left.'
           : preset === 'reunion'
             ? 'Thank-yous, the yearbook export, and a head start on next year.'
-            : 'Thank-you notes, anniversary nudges, and every other after-the-day kindness — drafted by Pear.';
+            : 'Thank-you notes, anniversary nudges, and every after-the-day kindness — drafted by Pear.';
 
   return (
-    <DashLayout active="keepsakes" title="Keepsakes" subtitle={subtitle}>
-      <div style={{ padding: '0 clamp(20px, 4vw, 40px) 32px', maxWidth: 1240, margin: '0 auto' }}>
-        {/* Two-Tap Thanks lives full-width above the grid; it's the
-            headline "write 150 notes on a plane" feature. */}
-        <div style={{ marginBottom: 22 }}>
-          <TwoTapThanks />
+    <PLChrome active="memory" maxWidth={1080}>
+      <PLTabs tabs={[{ label: 'Keepsakes' }, { label: 'Book', href: '/dashboard/memory-book' }]} active={0} />
+      <PLHead
+        align="center"
+        title="Keepsakes"
+        sub={subtitle}
+      />
+
+      {/* Two-tap thanks editorial intro card — peach-tinted */}
+      <PLCard tone="peach" style={{ marginBottom: 18 }}>
+        <div
+          style={{
+            fontSize: 10.5,
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            color: 'var(--peach-ink)',
+            marginBottom: 4,
+          }}
+        >
+          Two-tap thanks
         </div>
-        <div className="pl8-keepsakes-grid pl8-dash-stagger">
-          {showThanks && <ThankYouGenerator />}
-          {showAnniversary && <AnniversaryPreview />}
-          {tools
-            .filter((t) => !['thanks', 'anniversary-nudge'].includes(t.id))
-            .map((t) => (
-              <KeepsakeCard
-                key={t.id}
-                title={t.title}
-                body={t.body}
-                actionLabel={t.actionLabel}
-                actionHref={t.actionHref}
-                tone={t.tone}
-              />
-            ))}
+        <h2
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 24,
+            fontWeight: 600,
+            margin: '0 0 10px',
+            color: 'var(--ink)',
+          }}
+        >
+          Drafted from <span style={{ fontStyle: 'italic' }}>what they did</span>.
+        </h2>
+        <div
+          style={{
+            display: 'flex',
+            gap: 10,
+            alignItems: 'center',
+            padding: '11px 13px',
+            borderRadius: 11,
+            background: 'var(--card, var(--cream-2))',
+          }}
+        >
+          <span
+            aria-hidden
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: 8,
+              background: 'var(--lavender-bg)',
+              display: 'grid',
+              placeItems: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <Pear size={16} tone="sage" shadow={false} />
+          </span>
+          <span style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
+            Tap a guest → see what they did (memory, song, attendance) → tap Draft → Pear writes a note
+            grounded in their specific contribution. Copy and send. Next.
+          </span>
         </div>
+      </PLCard>
+
+      {/* Headline two-tap composer (real data wiring kept intact) */}
+      <div style={{ marginBottom: 22 }}>
+        <TwoTapThanks />
       </div>
-    </DashLayout>
+
+      <div
+        className="pl8-keepsakes-grid pl8-dash-stagger"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: 18,
+          alignItems: 'start',
+        }}
+      >
+        {showThanks && <ThankYouGenerator />}
+        {showAnniversary && <AnniversaryPreview />}
+        {tools
+          .filter((t) => !['thanks', 'anniversary-nudge'].includes(t.id))
+          .map((t) => (
+            <KeepsakeCard
+              key={t.id}
+              title={t.title}
+              body={t.body}
+              actionLabel={t.actionLabel}
+              actionHref={t.actionHref}
+              tone={t.tone}
+            />
+          ))}
+      </div>
+    </PLChrome>
   );
 }

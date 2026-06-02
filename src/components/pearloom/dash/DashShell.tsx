@@ -16,6 +16,7 @@ import { Blob, Heart, Icon, Pear, PearloomLogo, Squiggle } from '../motifs';
 import { useIsInsideShell } from './ShellPersistentLayout';
 import { NotificationBell } from './NotificationBell';
 import { useDashDrawer } from './useDashDrawer';
+import { useUserSettings } from './UserSettingsModal';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
 
 interface DashNavItem {
@@ -315,6 +316,7 @@ function UserMenu({ name, email, initial }: { name: string; email: string; initi
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const { openTab } = useUserSettings();
 
   useEffect(() => {
     if (!open) return;
@@ -426,17 +428,29 @@ function UserMenu({ name, email, initial }: { name: string; email: string; initi
           }}
         >
           <UserMenuItem
-            href="/dashboard/profile"
+            onClick={() => {
+              setOpen(false);
+              openTab('account');
+            }}
             icon="sliders"
             label="Settings"
             description="Profile, preferences, theme"
-            onSelect={() => setOpen(false)}
           />
           <UserMenuItem
-            href="/dashboard/payments"
+            onClick={() => {
+              setOpen(false);
+              openTab('subscription');
+            }}
             icon="star"
             label="Plan & billing"
-            onSelect={() => setOpen(false)}
+          />
+          <UserMenuItem
+            onClick={() => {
+              setOpen(false);
+              openTab('usage');
+            }}
+            icon="sparkles"
+            label="Usage & credits"
           />
           <UserMenuItem
             href="/dashboard/help"
@@ -480,34 +494,36 @@ function UserMenu({ name, email, initial }: { name: string; email: string; initi
 
 function UserMenuItem({
   href,
+  onClick,
   icon,
   label,
   description,
   onSelect,
 }: {
-  href: string;
+  href?: string;
+  onClick?: () => void;
   icon: string;
   label: string;
   description?: string;
-  onSelect: () => void;
+  onSelect?: () => void;
 }) {
-  return (
-    <Link
-      href={href}
-      role="menuitem"
-      onClick={onSelect}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '8px 10px',
-        borderRadius: 8,
-        textDecoration: 'none',
-        color: 'var(--ink)',
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--cream-2)'; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-    >
+  const sharedStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: '8px 10px',
+    borderRadius: 8,
+    textDecoration: 'none',
+    color: 'var(--ink)',
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    width: '100%',
+    textAlign: 'left',
+  };
+  const inner = (
+    <>
       <span style={{ display: 'inline-flex', color: 'var(--ink-soft)', flexShrink: 0 }}>
         <Icon name={icon} size={14} />
       </span>
@@ -517,7 +533,36 @@ function UserMenuItem({
           <span style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.25 }}>{description}</span>
         )}
       </span>
-    </Link>
+    </>
+  );
+  if (href) {
+    return (
+      <Link
+        href={href}
+        role="menuitem"
+        onClick={onSelect}
+        style={sharedStyle}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--cream-2)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+      >
+        {inner}
+      </Link>
+    );
+  }
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={() => {
+        onSelect?.();
+        onClick?.();
+      }}
+      style={sharedStyle}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--cream-2)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+    >
+      {inner}
+    </button>
   );
 }
 
@@ -1109,6 +1154,46 @@ function MobileMenuButton() {
   );
 }
 
+/** Avatar button at the top-right of every dashboard topbar. Opens
+ *  the user-settings modal directly. Mirrors the Claude-app pattern
+ *  of "tap your face for account". The sidebar UserMenu remains the
+ *  primary entry; this is the alternate path the user expects from
+ *  a topbar avatar. */
+function TopbarAvatarButton() {
+  const { data: session } = useSession();
+  const { openTab } = useUserSettings();
+  const name = session?.user?.name ?? 'Guest';
+  const initial = (name.trim()[0] ?? 'P').toUpperCase();
+  return (
+    <button
+      type="button"
+      onClick={() => openTab('account')}
+      aria-label="Open account settings"
+      title="Account"
+      style={{
+        width: 32,
+        height: 32,
+        borderRadius: '50%',
+        cursor: 'pointer',
+        flexShrink: 0,
+        background: 'linear-gradient(135deg, var(--sage-deep), var(--sage, #9ca77a))',
+        color: 'var(--cream)',
+        display: 'grid',
+        placeItems: 'center',
+        fontSize: 13,
+        fontWeight: 700,
+        border: '2px solid var(--card)',
+        boxShadow: '0 1px 3px rgba(61,74,31,0.18)',
+        transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
+      onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
+    >
+      {initial}
+    </button>
+  );
+}
+
 export function DashTopbar({
   title = 'Welcome back',
   subtitle,
@@ -1201,6 +1286,7 @@ export function DashTopbar({
             topbar so the host doesn't have to scan multiple
             widgets to see what's new. Polls every 60s. */}
         <NotificationBell />
+        <TopbarAvatarButton />
         {actions}
         {ctaText && ctaHref && (
           <Link
