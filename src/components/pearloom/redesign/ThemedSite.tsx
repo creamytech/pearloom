@@ -49,6 +49,18 @@ export function ThemedSite({ active, hover, setActive, setHover, editable, manif
   const textureIntensity = (manifest as unknown as { textureIntensity?: number }).textureIntensity ?? 1;
   const siteLayout = ((manifest as unknown as { siteLayout?: string }).siteLayout) ?? 'stacked';
 
+  /* Decor Library overrides — handoff themed-site.jsx L116-117 +
+     L176. Host writes manifest.motifKind / dividerLook / pattern
+     / decorColor via the Decor Library drawer; ThemedSite reads
+     them and overrides the theme's per-pack defaults. Each falls
+     back to the theme's value when not set. */
+  const decor = {
+    motif: ((manifest as unknown as { motifKind?: string }).motifKind),
+    divider: ((manifest as unknown as { dividerLook?: string }).dividerLook),
+    pattern: ((manifest as unknown as { pattern?: string }).pattern),
+    color: ((manifest as unknown as { decorColor?: string }).decorColor),
+  };
+
   const nameA = names[0] || 'Scott';
   const nameB = names[1] || 'Shauna';
   const rawDate = (manifest as unknown as { logistics?: { date?: string } }).logistics?.date;
@@ -56,14 +68,21 @@ export function ThemedSite({ active, hover, setActive, setHover, editable, manif
   const venue = (manifest as unknown as { logistics?: { venue?: string } }).logistics?.venue || 'Casa Chorro';
   const place = (manifest as unknown as { logistics?: { place?: string } }).logistics?.place || 'Santorini, Greece';
 
-  const motif: MotifKind = !motifsOn ? 'none' : (theme.motif !== 'none' ? theme.motif : 'olive') as MotifKind;
+  /* Motif resolution (handoff L116-117):
+       host's Decor Library pick wins over theme default; if motifs
+       are toggled off entirely, force 'none'. */
+  const baseMotif: MotifKind = !motifsOn ? 'none' : (theme.motif !== 'none' ? (theme.motif as MotifKind) : 'olive');
+  const motif: MotifKind = decor.motif
+    ? (decor.motif === 'none' ? 'none' : (decor.motif as MotifKind))
+    : baseMotif;
+  const dividerLook = decor.divider || theme.look.divider;
   const pad = { cozy: 0.74, comfortable: 1, spacious: 1.32 }[density] || 1;
   const showWashHero = textureIntensity > 0 && theme.texture === 'watercolor';
 
   /* Section copy + content — pulls from manifest with prototype
      fallbacks. Keeps the renderer data-driven per handoff L141-153. */
   const C = buildCopy(theme, { nameA, nameB, date, place: `${venue} · ${place}` });
-  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, textureIntensity, showWashHero, C };
+  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, textureIntensity, showWashHero, dividerLook, C };
 
   const sections: SectionKind[] = ['hero', 'story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
   const navLinks = sections.filter((s) => s !== 'hero' && s !== 'rsvp').map((s) => SECTION_LABEL[s]);
@@ -72,6 +91,9 @@ export function ThemedSite({ active, hover, setActive, setHover, editable, manif
   const rootStyle: CSSProperties = {
     ...themeRootStyle(theme, density),
     position: 'relative',
+    /* Decor color override → --t-motif scope var that the motif
+       SVGs read for their fill (handoff L176). */
+    ...(decor.color ? { ['--t-motif' as string]: `var(${decor.color})` } : {}),
   };
 
   const navEl = (
@@ -109,6 +131,12 @@ export function ThemedSite({ active, hover, setActive, setHover, editable, manif
   return (
     <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={theme.texture}>
       <TextureFilters />
+      {/* PatternLayer behind content (zIndex 0) — handoff L178. */}
+      {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
+      {/* TextureLayer above content (zIndex 6) — handoff L177.
+          Material grain (linen / watercolor / paper / cotton / velvet
+          / kraft / canvas / marble / gilded). */}
+      <TextureLayer texture={textureIntensity > 0 ? theme.texture : 'none'} intensity={textureIntensity} />
       <div style={{ position: 'relative', zIndex: 1 }}>
         {navEl}
         {sections.map(sectionEl)}
@@ -175,7 +203,7 @@ function HeroBlock({ ctx }: { ctx: SectionCtx }) {
           </span>
         </div>
         <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
-          <KDivider look={theme.look.divider} width={200} />
+          <KDivider look={ctx.dividerLook} width={200} />
         </div>
         <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center' }}>
           <TButton variant="primary">
@@ -618,6 +646,8 @@ interface SectionCtx {
   motifsOn: boolean;
   textureIntensity: number;
   showWashHero: boolean;
+  /** Decor Library divider override OR theme.look.divider fallback. */
+  dividerLook: string;
   C: Copy;
 }
 
@@ -635,6 +665,167 @@ interface Copy {
   gallery: { eyebrow: string; title: string; italic?: string };
   rsvp: { eyebrow: string; title: string; body: string };
   faq: { eyebrow: string; title: string; italic?: string; questions: string[] };
+}
+
+/* ─── TextureLayer — handoff/shared/themes.jsx L239-351 verbatim.
+       Per-theme material grain painted on top of content (zIndex 6).
+       Uses SVG filter ids from TextureFilters (t-weave / t-grain /
+       t-mottle / t-wash). */
+
+function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?: number }) {
+  if (!texture || texture === 'none') return null;
+  const base: CSSProperties = { position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 6 };
+
+  if (texture === 'linen') {
+    return (
+      <div aria-hidden style={base}>
+        <div style={{
+          position: 'absolute', inset: 0, mixBlendMode: 'overlay', opacity: 0.5 * intensity,
+          backgroundImage: `repeating-linear-gradient(0deg, rgba(0,0,0,0.13) 0 1px, transparent 1px 2px), repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 1px, transparent 1px 2px)`,
+          backgroundSize: '2px 2px, 2px 2px',
+        }} />
+        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-weave)', opacity: 0.4 * intensity, mixBlendMode: 'soft-light' }} />
+      </div>
+    );
+  }
+  if (texture === 'paper') {
+    return (
+      <div aria-hidden style={base}>
+        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-weave)', opacity: 0.3 * intensity, mixBlendMode: 'soft-light' }} />
+        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-mottle)', opacity: 0.16 * intensity, mixBlendMode: 'soft-light' }} />
+        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-grain)', opacity: 0.1 * intensity, mixBlendMode: 'multiply' }} />
+      </div>
+    );
+  }
+  if (texture === 'cotton') {
+    return (
+      <div aria-hidden style={base}>
+        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-mottle)', opacity: 0.34 * intensity, mixBlendMode: 'soft-light' }} />
+        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-weave)', opacity: 0.42 * intensity, mixBlendMode: 'soft-light' }} />
+        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-grain)', opacity: 0.16 * intensity, mixBlendMode: 'multiply' }} />
+      </div>
+    );
+  }
+  if (texture === 'velvet') {
+    return (
+      <div aria-hidden style={base}>
+        <div style={{
+          position: 'absolute', inset: 0, mixBlendMode: 'soft-light', opacity: 0.6 * intensity,
+          backgroundImage: 'repeating-linear-gradient(90deg, rgba(255,255,255,0.07) 0 1px, transparent 1px 3px)',
+        }} />
+        <div style={{
+          position: 'absolute', inset: 0, mixBlendMode: 'screen', opacity: 0.16 * intensity,
+          background: 'linear-gradient(118deg, transparent 28%, rgba(255,255,255,0.12) 50%, transparent 72%)',
+        }} />
+        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-mottle)', opacity: 0.3 * intensity, mixBlendMode: 'soft-light' }} />
+      </div>
+    );
+  }
+  if (texture === 'watercolor') {
+    return (
+      <div aria-hidden style={{ ...base, overflow: 'hidden' }}>
+        <WatercolorWash tone="rgba(194,105,62,0.30)" style={{ top: '-6%', left: '-12%', width: 720, height: 580, mixBlendMode: 'multiply' }} seed={0} opacity={0.7 * intensity} />
+        <WatercolorWash tone="rgba(138,154,107,0.34)" style={{ top: '30%', right: '-14%', width: 640, height: 540, mixBlendMode: 'multiply' }} seed={1} opacity={0.7 * intensity} />
+        <WatercolorWash tone="rgba(217,154,106,0.30)" style={{ bottom: '-8%', left: '24%', width: 600, height: 500, mixBlendMode: 'multiply' }} seed={2} opacity={0.6 * intensity} />
+        <WatercolorWash tone="rgba(201,154,78,0.26)" style={{ top: '52%', left: '-8%', width: 460, height: 420, mixBlendMode: 'multiply' }} seed={1} opacity={0.55 * intensity} />
+        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-weave)', opacity: 0.2 * intensity, mixBlendMode: 'soft-light' }} />
+        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-grain)', opacity: 0.08 * intensity, mixBlendMode: 'multiply' }} />
+      </div>
+    );
+  }
+  if (texture === 'kraft') {
+    return (
+      <div aria-hidden style={base}>
+        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-mottle)', opacity: 0.28 * intensity, mixBlendMode: 'multiply' }} />
+        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-weave)', opacity: 0.3 * intensity, mixBlendMode: 'soft-light' }} />
+        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-grain)', opacity: 0.2 * intensity, mixBlendMode: 'multiply' }} />
+      </div>
+    );
+  }
+  if (texture === 'canvas') {
+    return (
+      <div aria-hidden style={base}>
+        <div style={{
+          position: 'absolute', inset: 0, mixBlendMode: 'overlay', opacity: 0.55 * intensity,
+          backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,0.10) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 1px, transparent 1px 3px)',
+          backgroundSize: '3px 3px, 3px 3px',
+        }} />
+        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-weave)', opacity: 0.35 * intensity, mixBlendMode: 'soft-light' }} />
+      </div>
+    );
+  }
+  if (texture === 'marble') {
+    return (
+      <div aria-hidden style={{ ...base, overflow: 'hidden' }}>
+        <div style={{
+          position: 'absolute', inset: '-20%', filter: 'url(#t-wash)', opacity: 0.5 * intensity, mixBlendMode: 'multiply',
+          background: 'repeating-linear-gradient(58deg, transparent 0 26px, color-mix(in oklab, var(--t-ink) 12%, transparent) 26px 27px, transparent 27px 62px), radial-gradient(42% 30% at 30% 24%, color-mix(in oklab, var(--t-ink) 9%, transparent), transparent 70%)',
+        }} />
+        <div style={{
+          position: 'absolute', inset: '-20%', filter: 'url(#t-watercolor)', opacity: 0.4 * intensity, mixBlendMode: 'soft-light',
+          background: 'repeating-linear-gradient(58deg, transparent 0 46px, rgba(255,255,255,0.55) 46px 48px, transparent 48px 94px)',
+        }} />
+      </div>
+    );
+  }
+  if (texture === 'gilded') {
+    return (
+      <div aria-hidden style={base}>
+        <div style={{
+          position: 'absolute', inset: 0, mixBlendMode: 'overlay', opacity: 0.5 * intensity,
+          background: 'linear-gradient(120deg, transparent 22%, color-mix(in oklab, var(--t-gold) 62%, transparent) 48%, transparent 64%)',
+        }} />
+        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-mottle)', opacity: 0.18 * intensity, mixBlendMode: 'soft-light' }} />
+        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-grain)', opacity: 0.12 * intensity, mixBlendMode: 'multiply' }} />
+      </div>
+    );
+  }
+  return null;
+}
+
+function WatercolorWash({ tone = 'var(--t-accent-bg)', style = {}, seed = 0, opacity = 0.6 }: { tone?: string; style?: CSSProperties; seed?: number; opacity?: number }) {
+  return (
+    <div aria-hidden style={{ position: 'absolute', opacity, ...style }}>
+      <div style={{
+        position: 'absolute', inset: 0,
+        filter: 'url(#t-wash)',
+        background: `radial-gradient(60% 55% at ${40 + seed * 12}% ${44 - seed * 8}%, ${tone} 0%, transparent 70%), radial-gradient(50% 60% at ${64 - seed * 10}% ${60 + seed * 6}%, ${tone} 0%, transparent 72%)`,
+      }} />
+    </div>
+  );
+}
+
+/* ─── PatternLayer — handoff/shared/themes.jsx L360-385 verbatim.
+       Decorative print BEHIND content (zIndex 0). Tinted from the
+       theme's own accent/gold via color-mix. */
+
+function PatternLayer({ pattern, intensity = 1 }: { pattern: string; intensity?: number }) {
+  if (!pattern || pattern === 'none') return null;
+  const k = intensity;
+  const a = (p: number) => `color-mix(in oklab, var(--t-accent) ${p * k}%, transparent)`;
+  const a2 = (p: number) => `color-mix(in oklab, var(--t-accent-2) ${p * k}%, transparent)`;
+  const g = (p: number) => `color-mix(in oklab, var(--t-gold) ${p * k}%, transparent)`;
+  const ink = (p: number) => `color-mix(in oklab, var(--t-ink) ${p * k}%, transparent)`;
+  const base: CSSProperties = { position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 };
+  let bg: string | null = null;
+  let size: string = 'auto';
+  let extra: CSSProperties = {};
+  switch (pattern) {
+    case 'gingham':  bg = `repeating-linear-gradient(0deg, ${a(13)} 0 14px, transparent 14px 28px), repeating-linear-gradient(90deg, ${a(13)} 0 14px, transparent 14px 28px)`; break;
+    case 'stripe':   bg = `repeating-linear-gradient(90deg, ${a(12)} 0 10px, transparent 10px 22px)`; break;
+    case 'cabana':   bg = `repeating-linear-gradient(90deg, ${a(15)} 0 28px, transparent 28px 56px)`; break;
+    case 'diagonal': bg = `repeating-linear-gradient(45deg, ${a(11)} 0 12px, transparent 12px 26px)`; break;
+    case 'dots':     bg = `radial-gradient(${a(22)} 22%, transparent 24%)`; size = '20px 20px'; break;
+    case 'grid':     bg = `repeating-linear-gradient(0deg, var(--t-line) 0 1px, transparent 1px 26px), repeating-linear-gradient(90deg, var(--t-line) 0 1px, transparent 1px 26px)`; break;
+    case 'deco':     bg = `repeating-linear-gradient(135deg, ${a(13)} 0 14px, transparent 14px 28px, ${g(13)} 28px 42px, transparent 42px 56px)`; break;
+    case 'scallop':  bg = `radial-gradient(circle at 50% 0, transparent 11px, ${a(13)} 12px 13px, transparent 14px)`; size = '30px 30px'; break;
+    case 'wave':     bg = `radial-gradient(circle at 50% 100%, transparent 13px, ${a(12)} 14px 15px, transparent 16px)`; size = '34px 17px'; break;
+    case 'confetti': bg = `radial-gradient(${a(42)} 30%, transparent 32%), radial-gradient(${a2(42)} 30%, transparent 32%), radial-gradient(${g(42)} 30%, transparent 32%)`; size = '46px 46px, 62px 62px, 38px 38px'; extra = { backgroundPosition: '0 0, 18px 24px, 32px 8px' }; break;
+    case 'terrazzo': bg = `radial-gradient(${a(34)} 18%, transparent 20%), radial-gradient(${a2(30)} 16%, transparent 18%), radial-gradient(${g(30)} 14%, transparent 16%), radial-gradient(${ink(12)} 12%, transparent 14%)`; size = '52px 52px, 72px 72px, 44px 44px, 90px 90px'; extra = { backgroundPosition: '0 0, 26px 30px, 40px 12px, 60px 50px' }; break;
+    case 'celestial':bg = `radial-gradient(${g(75)} 6%, transparent 8%), radial-gradient(rgba(255,255,255,0.65) 5%, transparent 7%), radial-gradient(rgba(255,255,255,0.4) 4%, transparent 6%)`; size = '88px 88px, 118px 118px, 152px 152px'; extra = { backgroundPosition: '0 0, 34px 48px, 86px 24px' }; break;
+    default: return null;
+  }
+  return <div aria-hidden style={{ ...base, backgroundImage: bg, backgroundSize: size, ...extra }} />;
 }
 
 function buildCopy(theme: Theme, args: { nameA: string; nameB: string; date: string; place: string }): Copy {
