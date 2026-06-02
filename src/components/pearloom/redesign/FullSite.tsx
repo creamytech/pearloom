@@ -92,7 +92,11 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
   const cleanB = names[1] && !isUuidLike(names[1]) ? names[1] : '';
   const nameA = cleanA || 'Scott';
   const nameB = cleanB || 'Shauna';
-  const date = (manifest as unknown as { logistics?: { date?: string } }).logistics?.date || 'Monday, April 26, 2027';
+  /* Date formatter — accepts ISO ("2027-04-27") or pre-formatted
+     strings ("Monday, April 26, 2027") and always renders the long
+     human form the handoff hero uses. */
+  const rawDate = (manifest as unknown as { logistics?: { date?: string } }).logistics?.date;
+  const date = formatHeroDate(rawDate) || 'Monday, April 26, 2027';
   const venue = (manifest as unknown as { logistics?: { venue?: string } }).logistics?.venue || 'Casa Chorro';
   const place = (manifest as unknown as { logistics?: { place?: string } }).logistics?.place || 'Santorini, Greece';
 
@@ -181,10 +185,23 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
           )}
 
           <div style={{ position: 'relative' }}>
-            <div className="display-italic" style={{ fontSize: 18, color: themeInkSoft }}>
-              together, finally
+            {/* SAVE THE DATE eyebrow — handoff themed-site.jsx hero L341-345. */}
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: theme.vars['--t-eyebrow-ls'] ?? '0.18em',
+                textTransform: 'uppercase',
+                color: themeAccent,
+                marginBottom: 10,
+              }}
+            >
+              Save the date
             </div>
-            <h1 style={{ fontFamily: headFont, fontSize: 84, lineHeight: 0.95, margin: '14px 0 0', letterSpacing: '-0.02em', fontWeight: Number(theme.vars['--t-display-wght'] ?? 600), color: themeInk }}>
+            <div style={{ fontFamily: headFont, fontStyle: 'italic', fontSize: 18, color: themeInkSoft, marginBottom: 14 }}>
+              together, at last
+            </div>
+            <h1 style={{ fontFamily: headFont, fontSize: 84, lineHeight: 0.95, margin: 0, letterSpacing: '-0.02em', fontWeight: Number(theme.vars['--t-display-wght'] ?? 600), color: themeInk }}>
               {nameA}
               <span style={{ fontStyle: 'italic', fontFamily: headFont, fontSize: 64, color: themeInkSoft, margin: '0 12px' }}>
                 and
@@ -199,12 +216,19 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
                 <Icon name="pin" size={13} color={themeAccent} /> {venue} · {place}
               </span>
             </div>
-            <div style={{ marginTop: 22, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <span style={{ padding: '10px 22px', borderRadius: 999, background: themeInk, color: themePaper, fontSize: 13, fontWeight: 600 }}>
-                RSVP by April 28 →
+            {/* Horizontal hairline with center dot — handoff hero
+                divider between location and RSVP buttons. */}
+            <div style={{ marginTop: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, opacity: 0.6 }}>
+              <span style={{ flex: 0.18, height: 1, background: themeInkSoft }} />
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: themeAccent }} />
+              <span style={{ flex: 0.18, height: 1, background: themeInkSoft }} />
+            </div>
+            <div style={{ marginTop: 18, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <span style={{ padding: '11px 24px', borderRadius: 999, background: themePaper, color: themeInk, fontSize: 13, fontWeight: 700, border: `1px solid ${themeInkSoft}` }}>
+                RSVP →
               </span>
-              <span style={{ padding: '10px 22px', borderRadius: 999, background: 'var(--card)', border: '1px solid var(--line)', fontSize: 13, fontWeight: 600, color: themeInk }}>
-                Read our story
+              <span style={{ padding: '11px 24px', borderRadius: 999, background: 'transparent', border: `1px solid ${themeInkSoft}`, fontSize: 13, fontWeight: 600, color: themeInkSoft }}>
+                Learn more
               </span>
             </div>
             <PhotoStrip />
@@ -212,20 +236,32 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
         </div>
       </SectionFrame>
 
-      {/* Story — prototype L377-392. */}
+      {/* Story — handoff themed-site.jsx hero story section. */}
       <SectionFrame id="story" label="Our story" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable}>
         <div style={{ padding: `${44 * padScale}px 80px`, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 36, alignItems: 'center', background: themePaper }}>
           <PhotoPlaceholder tone="warm" aspect="4/5" style={{ borderRadius: 12 }} />
           <div>
-            <div className="eyebrow" style={{ color: themeAccent, marginBottom: 8 }}>OUR STORY</div>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: theme.vars['--t-eyebrow-ls'] ?? '0.18em',
+                textTransform: 'uppercase',
+                color: themeAccent,
+                marginBottom: 8,
+              }}
+            >
+              Our story
+            </div>
             <h2 style={{ fontFamily: headFont, fontSize: 36, margin: 0, lineHeight: 1, fontWeight: 600, color: themeInk }}>
-              How we got here
+              How we{' '}
+              <span style={{ fontStyle: 'italic', color: themeInkSoft }}>met</span>
             </h2>
             <p style={{ marginTop: 16, fontSize: 14.5, color: themeInkSoft, lineHeight: 1.6 }}>
-              Two strangers on a Tuesday, an argument about whether olives belong on
-              pizza, and a long walk that turned into ten years. We can&apos;t imagine a
-              wedding without you in it — and we couldn&apos;t imagine our story without
-              each other.
+              We met on an ordinary Tuesday and spent the evening arguing, fondly,
+              about whether olives belong on pizza. Ten years later, we would be
+              honoured to have you with us as we marry — there is no story we would
+              rather tell, and no one we would rather tell it to.
             </p>
           </div>
         </div>
@@ -390,6 +426,17 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
   );
 }
 
+/* "2027-04-27" / "2027-04-27T..." → "Tuesday, April 27, 2027".
+   Pre-formatted strings ("Monday, April 26, 2027") pass through. */
+function formatHeroDate(raw: string | undefined): string {
+  if (!raw) return '';
+  const iso = /^\d{4}-\d{2}-\d{2}/.exec(raw);
+  if (!iso) return raw;
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return raw;
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+}
+
 const ACCENT_BG: Record<AccentTone, string> = {
   lavender: 'var(--lavender-bg)',
   peach: 'var(--peach-bg)',
@@ -507,25 +554,32 @@ function PhotoPlaceholder({ tone = 'lavender', aspect = '1 / 1', style = {} }: {
   );
 }
 
-/* ─── PhotoStrip — prototype L601-616. The 5 tilted circles in hero. ── */
+/* ─── PhotoStrip — 4 large photo cards in a row beneath the hero
+   buttons. Matches the handoff themed-site.jsx hero photo grid. */
 
 function PhotoStrip() {
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 28 }}>
-      {(['warm', 'sage', 'peach', 'lavender', 'dusk'] as PhotoTone[]).map((t, i) => (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: 14,
+        marginTop: 40,
+        maxWidth: 940,
+        marginInline: 'auto',
+      }}
+    >
+      {(['warm', 'lavender', 'peach', 'sage'] as PhotoTone[]).map((t, i) => (
         <div
           key={i}
           style={{
-            width: 56,
-            height: 56,
-            borderRadius: '50%',
+            aspectRatio: '3 / 4',
+            borderRadius: 4,
             overflow: 'hidden',
-            border: '3px solid var(--paper)',
-            boxShadow: '0 2px 8px rgba(61,74,31,0.15)',
-            transform: `rotate(${(i - 2) * 3}deg) translateY(${Math.abs(i - 2) * -2}px)`,
+            boxShadow: '0 8px 22px rgba(0,0,0,0.18)',
           }}
         >
-          <PhotoPlaceholder tone={t} aspect="1/1" />
+          <PhotoPlaceholder tone={t} aspect="3/4" />
         </div>
       ))}
     </div>
