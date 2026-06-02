@@ -2460,7 +2460,12 @@ function ThemedStory({ manifest, motif, editMode, onEditField }: { manifest: Sto
       {kit === 'scrapbook' && <StoryScrapbook chapters={chapters} tones={tones} onEditField={onEditField} />}
       {kit === 'index'     && <StoryIndex chapters={chapters} tones={tones} onEditField={onEditField} />}
       {kit === 'minimal'   && <StoryMinimal chapters={chapters} tones={tones} onEditField={onEditField} />}
-      {kit === 'classic'   && <StoryClassic chapters={chapters} tones={tones} motif={motif} onEditField={onEditField} />}
+      {/* Classic + arch / stamp / deco fall through to StoryClassic;
+          arch/stamp/deco get their personality from per-kit CSS
+          on the data-pl-kit attribute. */}
+      {(kit === 'classic' || kit === 'arch' || kit === 'stamp' || kit === 'deco' || !kit) && (
+        <StoryClassic chapters={chapters} tones={tones} motif={motif} onEditField={onEditField} />
+      )}
     </section>
   );
 }
@@ -3053,7 +3058,10 @@ function ThemedDetails({ manifest, motif, editMode, onEditField }: { manifest: S
           {kit === 'scrapbook' && <DetailsScrapbook items={items} onEditField={onEditField} />}
           {kit === 'index'     && <DetailsIndex items={items} onEditField={onEditField} />}
           {kit === 'minimal'   && <DetailsMinimal items={items} onEditField={onEditField} />}
-          {kit === 'classic'   && <DetailsClassic items={items} onEditField={onEditField} />}
+          {/* Classic + arch / stamp / deco → DetailsClassic with per-kit CSS. */}
+          {(kit === 'classic' || kit === 'arch' || kit === 'stamp' || kit === 'deco' || !kit) && (
+            <DetailsClassic items={items} onEditField={onEditField} />
+          )}
         </>
       )}
     </section>
@@ -3528,7 +3536,10 @@ function ThemedSchedule({ manifest, editMode, onEditField }: { manifest: StoryMa
       {kit === 'scrapbook' && <ScheduleScrapbook events={events} onEditField={onEditField} />}
       {kit === 'index'     && <ScheduleIndex events={events} onEditField={onEditField} />}
       {kit === 'minimal'   && <ScheduleMinimal events={events} onEditField={onEditField} />}
-      {kit === 'classic'   && <ScheduleClassic events={events} onEditField={onEditField} />}
+      {/* Classic + arch / stamp / deco → ScheduleClassic with per-kit CSS. */}
+      {(kit === 'classic' || kit === 'arch' || kit === 'stamp' || kit === 'deco' || !kit) && (
+        <ScheduleClassic events={events} onEditField={onEditField} />
+      )}
     </section>
   );
 }
