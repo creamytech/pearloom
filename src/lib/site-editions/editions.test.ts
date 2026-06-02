@@ -6,6 +6,23 @@ import { describe, it, expect } from 'vitest';
 import { EDITIONS, EDITIONS_BY_ID, DEFAULT_EDITION_ID } from './editions';
 import { resolveEdition, recommendEdition, editionById } from './resolve';
 import type { EditionId } from './types';
+import { LAYOUTS, type SectionKey } from '@/lib/site-layouts/registry';
+
+/** Every section that takes a layout variant. The layoutDefaults
+ *  map must cover all of these on every Edition so there are no
+ *  silent gaps where the picker falls through to the prototype
+ *  default. Mirrors the SectionKey union exactly. */
+const ALL_SECTIONS: SectionKey[] = [
+  'hero',
+  'story',
+  'details',
+  'schedule',
+  'travel',
+  'registry',
+  'gallery',
+  'rsvp',
+  'faq',
+];
 
 describe('Site Editions', () => {
   describe('EDITIONS registry', () => {
@@ -50,6 +67,47 @@ describe('Site Editions', () => {
 
     it('DEFAULT_EDITION_ID maps to a real edition', () => {
       expect(EDITIONS_BY_ID[DEFAULT_EDITION_ID]).toBeTruthy();
+    });
+
+    /* layoutDefaults is the read-time fallback the renderer reads
+       when the host hasn't set an explicit per-section variant.
+       Every Edition must cover all 9 sections so the picker never
+       silently falls through to the prototype default — that would
+       defeat the whole point of an Edition being "one click = a
+       finished editorial object". */
+    it('every edition declares a layoutDefaults entry for all 9 sections', () => {
+      for (const ed of EDITIONS) {
+        expect(ed.layoutDefaults, `${ed.id} is missing layoutDefaults`).toBeTruthy();
+        for (const section of ALL_SECTIONS) {
+          const value = ed.layoutDefaults?.[section];
+          expect(
+            value,
+            `${ed.id} is missing layoutDefaults.${section}`,
+          ).toBeTruthy();
+          expect(
+            typeof value,
+            `${ed.id}.layoutDefaults.${section} should be a string`,
+          ).toBe('string');
+        }
+      }
+    });
+
+    /* Every variant id an Edition prescribes must be a real variant
+       registered for that section — typos would silently fall back
+       to the section default and the Edition's personality would
+       disappear. */
+    it('every layoutDefaults variant id is registered in LAYOUTS', () => {
+      for (const ed of EDITIONS) {
+        for (const section of ALL_SECTIONS) {
+          const variantId = ed.layoutDefaults?.[section];
+          if (!variantId) continue;
+          const exists = LAYOUTS[section].some((v) => v.id === variantId);
+          expect(
+            exists,
+            `${ed.id}.layoutDefaults.${section} = "${variantId}" is not registered in LAYOUTS.${section}`,
+          ).toBe(true);
+        }
+      }
     });
 
     /* SiteLayoutPicker badges the matching tile "★ Recommended"

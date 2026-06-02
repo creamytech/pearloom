@@ -444,6 +444,131 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-06-01 — Brief #2 surface-layer port + orphan/stale cleanup
+
+Brief #2 from `ClaudeDesign/` shipped as commit `334f6f19`,
+sitting on top of the engine pieces (textures / patterns /
+motifs / kits) that landed in the previous session
+(`cf79cb47`, `87fb527d`). This is the surface-layer work that
+makes the new engine visible.
+
+**Layout variants registry — 48 variants across 9 sections:**
+
+Ported from the prototype's `LAYOUTS` map. Each section now
+ships a registry of named variants that ThemedSiteRenderer
+dispatches via `manifest.blockVariants?.<section>`,
+`activeEdition.layoutDefaults?.<section>`, falling back to the
+first variant.
+
+New variant files under `src/components/pearloom/site/`:
+- `details-variants.ts` — tiles / iconrow / list / accordion / bento
+- `faq-variants.ts` — accordion / twocol / numbered / cards
+- `registry-variants.ts` — cards / chips / progress / logowall
+  (honeymoon-fund progress bar, per-store status)
+- `rsvp-variants.ts` — centered / split / banner / minimal
+- `travel-variants.ts` — map / rows / table / carousel
+  (star ratings, review counts, price tiers, distance,
+  amenity chips, blurbs, room-block codes)
+
+Extended existing registries:
+- `gallery-variants.ts` — added masonry / slideshow / polaroid
+  (now 7 variants total: grid / mosaic / strip / masonry /
+  slideshow / polaroid / wall)
+- `hero-variants/index.tsx` — added typographic / fullbleed
+  (5 shipped + 3 prototype-fallback variants)
+- `schedule-variants.ts` — added list / stepper / numbered
+- `story-variants.ts` — added quote / zigzag / letter
+
+`EditionDefinition` (`src/lib/site-editions/types.ts`) gained a
+`layoutDefaults?: Partial<Record<SectionKey, string>>` field so
+each Edition prescribes its preferred variant per section. All
+9 variant files are imported by ThemedSiteRenderer as
+side-effect imports — registration markers
+(`DETAILS_VARIANTS_REGISTERED`, etc.) confirm the dispatch
+table is hot.
+
+**Command palette (⌘K / Ctrl+K):**
+
+`src/components/pearloom/editor/CommandPalette.tsx` ports the
+prototype's fuzzy-search modal. Items pulled from existing
+registries (editions, kits, events) + flow openers (theme
+shop, decor library, publish, settings, preview). Arrow keys
+navigate, Esc closes, Enter selects. Mounted in `EditorV8.tsx`
+via global keypress listener. The existing dashboard ⌘K
+(`DashCommandPalette`) extended for parity.
+
+**In-editor theme shop bottom sheet:**
+
+`src/components/pearloom/editor/EditorThemeShop.tsx` is a
+bottom-drawer (distinct from the standalone `/store` route)
+that lets hosts preview + unlock packs without leaving the
+canvas. Pack tiles in horizontal-scroll strip + filter chips;
+tapping a pack re-skins the canvas BEHIND the sheet via vars +
+kit + motif override (preview, not purchase). Inline "Unlock"
+button morphs spinner → owned → auto-apply. Owned set persists
+to `localStorage 'pl-store-owned'` (SHARED key with `/store`).
+Closing without unlock restores the snapshot manifest. Reuses
+the `PACKS` catalog + `applyPackToManifest` + `useEntitlements`
+from the store module.
+
+**Guest RSVP modal:**
+
+`src/components/pearloom/site/GuestRsvpModal.tsx` ports the
+prototype's overlay RSVP flow as a complement to the inline
+PresetRsvpForm. Reads occasion-specific fields via the same
+`rsvpConfig.mealOptions` shape the existing form consumes.
+
+**Dashboard chrome refresh:**
+
+`src/components/pearloom/dash/PLChrome.tsx` +
+`UserSettingsModal.tsx` — new dashboard top-chrome with
+account dropdown. `DashShell` + `ShellPersistentLayout` +
+`DashGuests` / `DashSettings` updated to match.
+
+**Orphan + stale cleanup (this thread):**
+
+Audit returned CLEAN — no critical orphans remained after the
+Phase 4 V8 deletion + Theme Store migration. The 4 prior
+sweeps in this session (status-audit, V8 deletion, Theme
+Store, Brief #2) properly removed everything they touched:
+- Zero broken imports of deleted files (SiteV8Renderer,
+  MarketplaceV8, TemplatePreview, legacy marketplace pages).
+- 100% of new variant files imported + dispatched via
+  ThemedSiteRenderer side-effect imports.
+- 100% of `pearloom/store/index.ts` exports consumed inside
+  `ThemeStore.tsx` (CartProvider, useCart, PackCard,
+  PackPreview, QuickLookModal, CartDrawer).
+- Only 2 files remain in `src/components/pearloom/marketplace/`:
+  `template-themes.ts` (used by `lib/templates/apply-template.ts`)
+  + `templates-data.ts` (used by `WizardV8.tsx`).
+
+Stale-comment refresh:
+- `src/types.ts` — `rendererVersion?: 'classic' | 'v2'` docblock
+  rewritten. Was claiming the field selects between
+  `SiteRendererV2` and a "legacy block-driven renderer";
+  neither exists anymore. Now correctly framed as a pure
+  backwards-compat flag preserved for older DB rows.
+- `src/components/pearloom/site/GuestRsvpModal.tsx` — line 167
+  comment updated from "SiteV8Renderer/PresetRsvpForm" to
+  "ThemedSiteRenderer's PresetRsvpForm" (V8 was deleted).
+- `src/components/pearloom/marketplace/templates-data.ts` —
+  header comment no longer references the retired `/marketplace`
+  + `/templates` routes; now correctly attributes the consumer
+  as `WizardV8`.
+
+Intentionally preserved (legacy-compat with proper context):
+- `src/app/api/generate/stream/route.ts:835` —
+  `manifest.rendererVersion = 'v2'` set on new wizard
+  generations for legacy DB consumers that still dispatch on
+  it. The site route ignores it; `themeFamily='v8'` is the
+  live dispatch axis.
+- `src/app/api/celebrations/weekend/route.ts:123` — same
+  field, same reason.
+- `src/components/pearloom/site/ThemedSiteRenderer.tsx:12` —
+  header references the deleted `SiteV8Renderer` only to
+  document the consolidation; this is the canonical migration
+  narrative, not stale code.
+
 ### 2026-06-01 — V8 renderer deleted (Phase 4 complete)
 
 Renderer consolidation finished. `SiteV8Renderer.tsx` deleted

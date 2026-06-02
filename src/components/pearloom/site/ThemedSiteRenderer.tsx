@@ -14,7 +14,7 @@
 // for the migration narrative.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { StoryManifest, PageBlock } from '@/types';
 /* Event-OS custom blocks — ported from ThemedSiteRenderer's
    CustomBlocksRail. Each block is a standalone component under
@@ -378,6 +378,13 @@ export function ThemedSiteRenderer({
   // stable; downstream sections that need it can read this prop.
   void prettyUrl;
   const [n1, n2] = names;
+  /* Memoized names tuple — the `names` prop is freshly destructured
+     by callers (e.g. PublishedSiteShell passing [first, last]) so
+     downstream components like ThemedNav/Hero/Footer would receive
+     a new tuple identity every render. Stabilize once here so any
+     React.memo on those children short-circuits when names are
+     unchanged. */
+  const namesTuple = useMemo<[string, string]>(() => [n1, n2], [n1, n2]);
   /* Multi-page resolution — mirrors ThemedSiteRenderer. The caller can
      override either field; otherwise we read from the manifest via
      the canonical helpers in @/lib/site-mode so the two renderers
@@ -393,13 +400,24 @@ export function ThemedSiteRenderer({
        • specific key   → render only that key
      Non-SiteBlockKey sections (countdown / weddingParty / map /
      spotify / hashtag / guestbook) follow their own home-only rule
-     below (see showHomeExtras). */
-  const homeBlockSet = new Set<SiteBlockKey>([...homePageBlocks, 'details']);
-  const shouldRenderBlock = (key: SiteBlockKey): boolean => {
-    if (!pageFilter) return true;
-    if (pageFilter === 'home') return homeBlockSet.has(key);
-    return key === pageFilter;
-  };
+     below (see showHomeExtras).
+
+     Memoized — homePageBlocks identity is stable across renders
+     unless the manifest's blocks order actually changes, so the
+     Set + closure are reused. Prevents new Set/closure identities
+     from invalidating any downstream memoization. */
+  const homeBlockSet = useMemo(
+    () => new Set<SiteBlockKey>([...homePageBlocks, 'details']),
+    [homePageBlocks],
+  );
+  const shouldRenderBlock = useCallback(
+    (key: SiteBlockKey): boolean => {
+      if (!pageFilter) return true;
+      if (pageFilter === 'home') return homeBlockSet.has(key);
+      return key === pageFilter;
+    },
+    [pageFilter, homeBlockSet],
+  );
 
   /* Hero / non-SiteBlockKey extras render on scroll mode and on the
      multi-page home — never on sub-pages, which are focused single-
@@ -441,7 +459,15 @@ export function ThemedSiteRenderer({
   const occasion = manifest.occasion ?? 'wedding';
   const eventType = getEventType(occasion);
   const voice = eventType?.voice ?? 'celebratory';
-  const activeEdition = resolveEdition({ edition, occasion, voice });
+  /* Memoized — resolveEdition() walks the Edition registry + theme
+     defaults on every call. Stable identity here is critical: the
+     same activeEdition object flows to every <ThemedDecorDivider>
+     (13 mounts) so any React.memo on those dividers can short-
+     circuit when the edition/occasion/voice triple is unchanged. */
+  const activeEdition = useMemo(
+    () => resolveEdition({ edition, occasion, voice }),
+    [edition, occasion, voice],
+  );
   /* Motifs honor the Fine-tune toggle. When motifsEnabled is
      explicitly false, every section's MotifScatter receives
      'none' so no decorative shapes render. Default = true so
@@ -517,39 +543,64 @@ export function ThemedSiteRenderer({
   const eyebrowLs = recTheme.eyebrowSpacing ?? '0.22em';
   const cardShadow = recTheme.cardShadow ?? '0 4px 14px rgba(75,65,52,0.10)';
 
-  const shellStyle: React.CSSProperties = {
-    background: paper,
-    color: ink,
-    minHeight: '100vh',
-    position: 'relative',
-    fontFamily: bodyFamily,
-    /* Edition-driven CSS vars — every section reads these. */
-    ['--paper' as string]: paper,
-    ['--ink' as string]: ink,
-    ['--ink-soft' as string]: inkSoft,
-    ['--ink-muted' as string]: '#6F6557',
-    ['--peach-ink' as string]: accent,
-    ['--peach-bg' as string]: accentLight,
-    ['--card' as string]: cardBg,
-    ['--cream' as string]: paper,
-    ['--cream-2' as string]: cardBg,
-    ['--line' as string]: 'rgba(14,13,11,0.16)',
-    ['--line-soft' as string]: 'rgba(14,13,11,0.08)',
-    ['--gold' as string]: '#B8935A',
-    ['--font-display' as string]: `"${displayFamily}", Georgia, serif`,
-    ['--font-ui' as string]: `"${bodyFamily}", system-ui, sans-serif`,
-    /* Per-edition typography + chrome multipliers */
-    ['--pl-display-wght' as string]: String(displayWeight),
-    ['--pl-hero-scale' as string]: String(heroScale),
-    ['--pl-eyebrow-ls' as string]: eyebrowLs,
-    ['--pl-card-radius' as string]: cardRadiusPx,
-    ['--pl-card-shadow' as string]: cardShadow,
-    /* Density + texture multipliers */
-    ['--pl-texture-intensity' as string]: String(intensity),
-    ['--pl-density-scale' as string]: String(
-      density === 'cozy' ? 0.7 : density === 'spacious' ? 1.3 : 1,
-    ),
-  };
+  /* Memoized — shellStyle is the root <div> style prop. Without
+     this, every render produces a new object reference, which
+     forces React to diff every CSS var and breaks downstream
+     style-equality optimizations. The CSS values (paper / ink /
+     accent / etc.) only change when the host edits theme / edition
+     / texture / density — not on every keystroke in a chapter. */
+  const shellStyle: React.CSSProperties = useMemo(
+    () => ({
+      background: paper,
+      color: ink,
+      minHeight: '100vh',
+      position: 'relative',
+      fontFamily: bodyFamily,
+      /* Edition-driven CSS vars — every section reads these. */
+      ['--paper' as string]: paper,
+      ['--ink' as string]: ink,
+      ['--ink-soft' as string]: inkSoft,
+      ['--ink-muted' as string]: '#6F6557',
+      ['--peach-ink' as string]: accent,
+      ['--peach-bg' as string]: accentLight,
+      ['--card' as string]: cardBg,
+      ['--cream' as string]: paper,
+      ['--cream-2' as string]: cardBg,
+      ['--line' as string]: 'rgba(14,13,11,0.16)',
+      ['--line-soft' as string]: 'rgba(14,13,11,0.08)',
+      ['--gold' as string]: '#B8935A',
+      ['--font-display' as string]: `"${displayFamily}", Georgia, serif`,
+      ['--font-ui' as string]: `"${bodyFamily}", system-ui, sans-serif`,
+      /* Per-edition typography + chrome multipliers */
+      ['--pl-display-wght' as string]: String(displayWeight),
+      ['--pl-hero-scale' as string]: String(heroScale),
+      ['--pl-eyebrow-ls' as string]: eyebrowLs,
+      ['--pl-card-radius' as string]: cardRadiusPx,
+      ['--pl-card-shadow' as string]: cardShadow,
+      /* Density + texture multipliers */
+      ['--pl-texture-intensity' as string]: String(intensity),
+      ['--pl-density-scale' as string]: String(
+        density === 'cozy' ? 0.7 : density === 'spacious' ? 1.3 : 1,
+      ),
+    }),
+    [
+      paper,
+      ink,
+      inkSoft,
+      accent,
+      accentLight,
+      cardBg,
+      displayFamily,
+      bodyFamily,
+      displayWeight,
+      heroScale,
+      eyebrowLs,
+      cardRadiusPx,
+      cardShadow,
+      intensity,
+      density,
+    ],
+  );
 
   /* Editor canvas context — every <EditableText> / <EditableField>
      beneath this renderer reads `editMode` and `onEditField` from
@@ -616,7 +667,7 @@ export function ThemedSiteRenderer({
           GuestPearChat is floating chrome (bottom-right pill).
           Order in the tree doesn't affect layout — it self-
           positions fixed. */}
-      {!editMode && <GuestPearChat manifest={manifest} coupleNames={[n1, n2]} domain={siteSlug} />}
+      {!editMode && <GuestPearChat manifest={manifest} coupleNames={namesTuple} domain={siteSlug} />}
       {!editMode && <GuestRsvpModal siteSlug={siteSlug} manifest={manifest} />}
       {!editMode && <DayOfBanner manifest={manifest} />}
       {!editMode && !computeDayOfState(manifest).active && <BroadcastBar subdomain={siteSlug} />}
@@ -633,7 +684,7 @@ export function ThemedSiteRenderer({
           Sticky at top with brand left, section links center,
           RSVP pill right. Reads manifest to auto-hide links
           whose target section is empty. */}
-      <ThemedNav manifest={manifest} names={[n1, n2]} />
+      <ThemedNav manifest={manifest} names={namesTuple} />
 
       {/* Section stack — prototype's ThemedSite renders sections
           in event.sections order. For the scaffold pass we render
@@ -643,7 +694,7 @@ export function ThemedSiteRenderer({
           or multi-page home). Sub-page routes get a focused single-
           block view with no hero — matches ThemedSiteRenderer. */}
       {showHero && (
-        <ThemedHero manifest={manifest} names={[n1, n2]} motif={motif} onEditField={onEditField} onEditNames={onEditNames} />
+        <ThemedHero manifest={manifest} names={namesTuple} motif={motif} onEditField={onEditField} onEditNames={onEditNames} />
       )}
 
       {/* ── V8 Decor system — additive layer over MotifScatter ──
@@ -692,7 +743,7 @@ export function ThemedSiteRenderer({
         <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="details" index={2} />
       )}
       {shouldRenderBlock('details') && (
-        <ThemedDetails manifest={manifest} motif={motif} editMode={editMode} />
+        <ThemedDetails manifest={manifest} motif={motif} editMode={editMode} onEditField={onEditField} />
       )}
       {showDividerBefore('schedule') && (
         <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="schedule" index={3} />
@@ -708,13 +759,13 @@ export function ThemedSiteRenderer({
         <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="travel" index={5} />
       )}
       {shouldRenderBlock('travel') && (
-        <ThemedTravel manifest={manifest} motif={motif} editMode={editMode} />
+        <ThemedTravel manifest={manifest} motif={motif} editMode={editMode} onEditField={onEditField} />
       )}
       {showDividerBefore('registry') && (
         <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="registry" index={6} />
       )}
       {shouldRenderBlock('registry') && (
-        <ThemedRegistry manifest={manifest} editMode={editMode} />
+        <ThemedRegistry manifest={manifest} editMode={editMode} onEditField={onEditField} />
       )}
       {showDividerBefore('gallery') && (
         <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="gallery" index={7} />
@@ -745,7 +796,7 @@ export function ThemedSiteRenderer({
       {showDividerBefore('guestbook') && (
         <ThemedDecorDivider manifest={manifest} activeEdition={activeEdition} sectionKey="guestbook" index={12} />
       )}
-      {showHomeExtras && <ThemedGuestbook manifest={manifest} names={[n1, n2]} siteSlug={siteSlug} />}
+      {showHomeExtras && <ThemedGuestbook manifest={manifest} names={namesTuple} siteSlug={siteSlug} />}
 
       {/* Event-OS custom blocks — itinerary, costSplitter,
           activityVote, toastSignup, adviceWall/tributeWall,
@@ -759,7 +810,7 @@ export function ThemedSiteRenderer({
         <ThemedCustomBlocks manifest={manifest} siteSlug={siteSlug} editMode={canEdit} />
       )}
 
-      <ThemedFooter siteSlug={siteSlug} names={[n1, n2]} manifest={manifest} />
+      <ThemedFooter siteSlug={siteSlug} names={namesTuple} manifest={manifest} />
     </div>
     </EditorCanvasProvider>
   );
@@ -1423,7 +1474,11 @@ function ThemedMobileNavBody({ mobileStyle, coupleLabel, links, rsvpHref, brandH
   );
 }
 
-function ThemedNav({ manifest, names }: { manifest: StoryManifest; names: [string, string] }) {
+/* React.memo — nav owns its own scroll + ResizeObserver state and
+   only its rendered links/branding change when the manifest's
+   nav config or names change. Wrapping in memo lets it skip
+   re-render on every keystroke deep in a chapter/event edit. */
+const ThemedNav = memo(function ThemedNav({ manifest, names }: { manifest: StoryManifest; names: [string, string] }) {
   const [n1, n2] = names;
   const coupleLabel = n1 && n2 ? `${n1} & ${n2}` : (n1 || n2 || 'Our celebration');
   const baseLinks: ThemedNavLink[] = [
@@ -1532,7 +1587,7 @@ function ThemedNav({ manifest, names }: { manifest: StoryManifest; names: [strin
       )}
     </header>
   );
-}
+});
 
 /* ───── EmptyStateCallout ──────────────────────────────────
    Editorial-but-clearly-scaffolding placeholder rendered in
@@ -1665,7 +1720,11 @@ function EmptyStateCallout({
  * <EditionDivider> reveal animation already honours this too). */
 type ActiveEdition = ReturnType<typeof resolveEdition>;
 
-function ThemedDecorDivider({
+/* React.memo — divider is called 13 times in the main render. With
+   activeEdition memoized upstream, manifest stable across non-divider
+   edits, and sectionKey/index being primitives, this short-circuits
+   on any unrelated edit (e.g. a chapter title change). */
+const ThemedDecorDivider = memo(function ThemedDecorDivider({
   manifest,
   activeEdition,
   sectionKey,
@@ -1694,7 +1753,7 @@ function ThemedDecorDivider({
     return <DecorDivider url={dividerUrl} index={index} strength={dividerStrength} />;
   }
   return <EditionDivider style={activeEdition.divider} />;
-}
+});
 
 /* ─── ThemedHero — Edition + variant-aware hero.
  *
@@ -2780,7 +2839,12 @@ function StoryMinimal({ chapters, tones, onEditField }: { chapters: Chapter[]; t
 }
 
 /* ─── ThemedSectionHead — shared centered header (TSectionHead) ─── */
-function ThemedSectionHead({
+/* React.memo — section heads are called once per section (8-10
+   times) with mostly primitive props (eyebrow/title/italic strings
+   + sectionKey). manifest is a reference identity that stays stable
+   across renders unless the host actually edits something, so this
+   skips re-render on unrelated sibling-section edits. */
+const ThemedSectionHead = memo(function ThemedSectionHead({
   eyebrow,
   title,
   italic,
@@ -2796,7 +2860,10 @@ function ThemedSectionHead({
   manifest?: StoryManifest;
   sectionKey?: SiteBlockKey;
 }) {
-  const opener = (() => {
+  /* Memoize opener — resolveEdition() is otherwise called on
+     every render even though the inputs (manifest.edition,
+     manifest.occasion, sectionKey) rarely change. */
+  const opener = useMemo(() => {
     if (!manifest || !sectionKey) return null;
     const occasion = manifest.occasion ?? 'wedding';
     const eventType = getEventType(occasion);
@@ -2813,7 +2880,7 @@ function ThemedSectionHead({
         kicker={eyebrow}
       />
     );
-  })();
+  }, [manifest, sectionKey, eyebrow]);
   return (
     <div style={{ textAlign: 'center', marginBottom: 36, position: 'relative' }}>
       {opener}
@@ -2849,25 +2916,55 @@ function ThemedSectionHead({
       </h2>
     </div>
   );
-}
+});
 
 /* ─── ThemedDetails — larger feature cards. Each card centers a
    sage-tint icon disc, a small eyebrow label, and the value in
    display font. The icon disc gives each card identity at a
    glance; the grid is tighter (3 cols on wide) so the cards feel
-   like a magazine info-graphic, not a tight grid. ─── */
-type DetailItem = { icon: string; label: string; value: string; sub?: string };
+   like a magazine info-graphic, not a tight grid. ───
 
-function ThemedDetails({ manifest, motif, editMode }: { manifest: StoryManifest; motif: MotifKind; editMode?: boolean }) {
+   Inline edit: each item carries a `field` key (`dresscode` /
+   `kids` / `gifts` / `parking`) that maps back to its source
+   manifest path. The kit variants below pass this key to
+   makePatchDetail() so click-to-edit threads through the same
+   onEditField patcher as Story/Schedule/FAQ. The label stays
+   static (it's the schema field name, not user copy); only the
+   value reads as editable. */
+type DetailFieldKey = 'dresscode' | 'kids' | 'gifts' | 'parking';
+type DetailItem = { icon: string; label: string; value: string; sub?: string; field: DetailFieldKey };
+
+/* Helper: patch a single detail field. Routes the four detail
+   field keys back to their canonical manifest paths so the kit
+   variants below can stay layout-only. */
+function makePatchDetail(onEditField: FieldEditor | undefined, field: DetailFieldKey) {
+  return (value: string) => {
+    if (!onEditField) return;
+    onEditField((m) => {
+      if (field === 'gifts') {
+        const reg = (m as unknown as { registry?: { message?: string; entries?: unknown[] } }).registry ?? {};
+        return {
+          ...m,
+          registry: { ...reg, message: value },
+        } as unknown as StoryManifest;
+      }
+      const logistics = { ...(m.logistics ?? {}) } as Record<string, unknown>;
+      logistics[field] = value;
+      return { ...m, logistics } as StoryManifest;
+    });
+  };
+}
+
+function ThemedDetails({ manifest, motif, editMode, onEditField }: { manifest: StoryManifest; motif: MotifKind; editMode?: boolean; onEditField?: FieldEditor }) {
   const l = manifest.logistics ?? {};
   const dresscode = l.dresscode;
   const items: DetailItem[] = [];
-  if (dresscode) items.push({ icon: 'sparkles', label: 'Dress code', value: dresscode });
-  if ((l as { kids?: string }).kids) items.push({ icon: 'users', label: 'Kids', value: String((l as { kids?: string }).kids) });
+  if (dresscode) items.push({ icon: 'sparkles', label: 'Dress code', value: dresscode, field: 'dresscode' });
+  if ((l as { kids?: string }).kids) items.push({ icon: 'users', label: 'Kids', value: String((l as { kids?: string }).kids), field: 'kids' });
   if ((manifest as unknown as { registry?: { message?: string } }).registry?.message) {
-    items.push({ icon: 'gift', label: 'Gifts', value: (manifest as unknown as { registry?: { message?: string } }).registry?.message ?? '' });
+    items.push({ icon: 'gift', label: 'Gifts', value: (manifest as unknown as { registry?: { message?: string } }).registry?.message ?? '', field: 'gifts' });
   }
-  if ((l as { parking?: string }).parking) items.push({ icon: 'pin', label: 'Parking', value: String((l as { parking?: string }).parking) });
+  if ((l as { parking?: string }).parking) items.push({ icon: 'pin', label: 'Parking', value: String((l as { parking?: string }).parking), field: 'parking' });
   if (items.length === 0) {
     if (!editMode) return null;
     return (
@@ -2897,18 +2994,64 @@ function ThemedDetails({ manifest, motif, editMode }: { manifest: StoryManifest;
       <SectionBackground manifest={manifest} sectionId="details" />
       <MotifScatter motif={motif} density="sparse" />
       <ThemedSectionHead eyebrow="What you need to know" title="The day," italic="in details" manifest={manifest} sectionKey="details" />
-      {kit === 'ticket'    && <DetailsTicket items={items} />}
-      {kit === 'plate'     && <DetailsPlate items={items} />}
-      {kit === 'scrapbook' && <DetailsScrapbook items={items} />}
-      {kit === 'index'     && <DetailsIndex items={items} />}
-      {kit === 'minimal'   && <DetailsMinimal items={items} />}
-      {kit === 'classic'   && <DetailsClassic items={items} />}
+      {kit === 'ticket'    && <DetailsTicket items={items} onEditField={onEditField} />}
+      {kit === 'plate'     && <DetailsPlate items={items} onEditField={onEditField} />}
+      {kit === 'scrapbook' && <DetailsScrapbook items={items} onEditField={onEditField} />}
+      {kit === 'index'     && <DetailsIndex items={items} onEditField={onEditField} />}
+      {kit === 'minimal'   && <DetailsMinimal items={items} onEditField={onEditField} />}
+      {kit === 'classic'   && <DetailsClassic items={items} onEditField={onEditField} />}
     </section>
   );
 }
 
+/* Shared editable detail-value primitive. `gifts` is the only
+   prose-shaped value (registry message) — that one wears the
+   AI-rewrite chip via EditableField. The other three keys
+   (dresscode / kids / parking) are short labels; EditableText
+   keeps the affordance quiet so the cards still read as a tight
+   info-graphic, not a sea of rewrite chips. */
+function DetailValue({
+  item,
+  onEditField,
+  style,
+  as = 'div',
+}: {
+  item: DetailItem;
+  onEditField?: FieldEditor;
+  style?: React.CSSProperties;
+  as?: 'div' | 'span';
+}) {
+  const placeholder = `Add ${item.label.toLowerCase()}…`;
+  if (item.field === 'gifts') {
+    return (
+      <EditableField
+        as={as}
+        context={`Details · ${item.label}`}
+        value={item.value}
+        onSave={makePatchDetail(onEditField, item.field)}
+        multiline
+        maxLength={400}
+        placeholder={placeholder}
+        ariaLabel={`${item.label} value`}
+        style={style}
+      />
+    );
+  }
+  return (
+    <EditableText
+      as={as}
+      value={item.value}
+      onSave={makePatchDetail(onEditField, item.field)}
+      maxLength={160}
+      placeholder={placeholder}
+      ariaLabel={`${item.label} value`}
+      style={style}
+    />
+  );
+}
+
 /* DetailsClassic — tile grid. Port of KDetails default branch. */
-function DetailsClassic({ items }: { items: DetailItem[] }) {
+function DetailsClassic({ items, onEditField }: { items: DetailItem[]; onEditField?: FieldEditor }) {
   return (
     <div
       style={{
@@ -2954,16 +3097,16 @@ function DetailsClassic({ items }: { items: DetailItem[] }) {
           >
             {d.label}
           </div>
-          <div
+          <DetailValue
+            item={d}
+            onEditField={onEditField}
             style={{
               fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
               fontWeight: 'var(--pl-display-wght, 600)',
               fontSize: 20,
               color: 'var(--ink, #0E0D0B)',
             }}
-          >
-            {d.value}
-          </div>
+          />
           {d.sub && (
             <div style={{ fontSize: 12.5, color: 'var(--ink-muted, #6F6557)', marginTop: 3 }}>{d.sub}</div>
           )}
@@ -2976,7 +3119,7 @@ function DetailsClassic({ items }: { items: DetailItem[] }) {
 /* DetailsTicket — single dashed-bordered row spanning the page,
    each item a column separated by dashed verticals. Prototype's
    KDetails ticket branch. */
-function DetailsTicket({ items }: { items: DetailItem[] }) {
+function DetailsTicket({ items, onEditField }: { items: DetailItem[]; onEditField?: FieldEditor }) {
   return (
     <div
       style={{
@@ -3012,16 +3155,16 @@ function DetailsTicket({ items }: { items: DetailItem[] }) {
           >
             {d.label}
           </div>
-          <div
+          <DetailValue
+            item={d}
+            onEditField={onEditField}
             style={{
               fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
               fontWeight: 'var(--pl-display-wght, 600)',
               fontSize: 18,
               color: 'var(--ink, #0E0D0B)',
             }}
-          >
-            {d.value}
-          </div>
+          />
           {d.sub && (
             <div style={{ fontSize: 11.5, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>{d.sub}</div>
           )}
@@ -3035,7 +3178,7 @@ function DetailsTicket({ items }: { items: DetailItem[] }) {
    label LEFT (uppercase eyebrow) + dotted leader stretching to
    value RIGHT (display font right-aligned). Prototype's
    KDetails plate branch. */
-function DetailsPlate({ items }: { items: DetailItem[] }) {
+function DetailsPlate({ items, onEditField }: { items: DetailItem[]; onEditField?: FieldEditor }) {
   return (
     <div style={{ maxWidth: 560, margin: '0 auto' }}>
       {items.map((d, i) => (
@@ -3074,14 +3217,20 @@ function DetailsPlate({ items }: { items: DetailItem[] }) {
           />
           <span
             style={{
-              fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
-              fontWeight: 'var(--pl-display-wght, 600)',
-              fontSize: 18,
               textAlign: 'right',
-              color: 'var(--ink, #0E0D0B)',
             }}
           >
-            {d.value}
+            <DetailValue
+              item={d}
+              onEditField={onEditField}
+              as="span"
+              style={{
+                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
+                fontWeight: 'var(--pl-display-wght, 600)',
+                fontSize: 18,
+                color: 'var(--ink, #0E0D0B)',
+              }}
+            />
             {d.sub && (
               <span
                 style={{
@@ -3105,7 +3254,7 @@ function DetailsPlate({ items }: { items: DetailItem[] }) {
 /* DetailsScrapbook — tilted polaroid mini-cards arranged in a
    flex-wrap row. Tape strip above each, script-font label, then
    display-font value. Prototype's KDetails scrapbook branch. */
-function DetailsScrapbook({ items }: { items: DetailItem[] }) {
+function DetailsScrapbook({ items, onEditField }: { items: DetailItem[]; onEditField?: FieldEditor }) {
   const tilts = [-2.5, 1.8, -1.2, 2.4];
   return (
     <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 16, paddingTop: 8 }}>
@@ -3146,7 +3295,9 @@ function DetailsScrapbook({ items }: { items: DetailItem[] }) {
           >
             {d.label}
           </div>
-          <div
+          <DetailValue
+            item={d}
+            onEditField={onEditField}
             style={{
               fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
               fontWeight: 'var(--pl-display-wght, 600)',
@@ -3154,9 +3305,7 @@ function DetailsScrapbook({ items }: { items: DetailItem[] }) {
               marginTop: 2,
               color: 'var(--ink, #0E0D0B)',
             }}
-          >
-            {d.value}
-          </div>
+          />
           {d.sub && (
             <div style={{ fontSize: 11.5, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>{d.sub}</div>
           )}
@@ -3169,7 +3318,7 @@ function DetailsScrapbook({ items }: { items: DetailItem[] }) {
 /* DetailsIndex — ruled index cards with red-margin + blue rule
    lines. Icon left, mono-uppercase label, then value + subtitle
    inline. Prototype's KDetails index branch. */
-function DetailsIndex({ items }: { items: DetailItem[] }) {
+function DetailsIndex({ items, onEditField }: { items: DetailItem[]; onEditField?: FieldEditor }) {
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
       {items.map((d) => (
@@ -3201,16 +3350,17 @@ function DetailsIndex({ items }: { items: DetailItem[] }) {
             {d.label}
           </div>
           <div style={{ flex: 1 }}>
-            <span
+            <DetailValue
+              item={d}
+              onEditField={onEditField}
+              as="span"
               style={{
                 fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
                 fontWeight: 'var(--pl-display-wght, 600)',
                 fontSize: 18,
                 color: 'var(--ink, #0E0D0B)',
               }}
-            >
-              {d.value}
-            </span>
+            />
             {d.sub && (
               <span style={{ fontSize: 12.5, color: 'var(--ink-muted, #6F6557)', marginLeft: 8 }}>
                 {d.sub}
@@ -3226,7 +3376,7 @@ function DetailsIndex({ items }: { items: DetailItem[] }) {
 /* DetailsMinimal — borderless columns separated by hairline
    verticals. Big display-font values centered. Prototype's
    KDetails minimal branch. */
-function DetailsMinimal({ items }: { items: DetailItem[] }) {
+function DetailsMinimal({ items, onEditField }: { items: DetailItem[]; onEditField?: FieldEditor }) {
   return (
     <div
       style={{
@@ -3257,7 +3407,9 @@ function DetailsMinimal({ items }: { items: DetailItem[] }) {
           >
             {d.label}
           </div>
-          <div
+          <DetailValue
+            item={d}
+            onEditField={onEditField}
             style={{
               fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
               fontWeight: 'var(--pl-display-wght, 600)',
@@ -3265,9 +3417,7 @@ function DetailsMinimal({ items }: { items: DetailItem[] }) {
               lineHeight: 1.05,
               color: 'var(--ink, #0E0D0B)',
             }}
-          >
-            {d.value}
-          </div>
+          />
           {d.sub && (
             <div style={{ fontSize: 12, color: 'var(--ink-muted, #6F6557)', marginTop: 6 }}>{d.sub}</div>
           )}
@@ -3498,13 +3648,13 @@ function ScheduleTicket({ events, onEditField }: { events: ScheduleEvent[]; onEd
 
 const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 
-function SchedulePlate({ events, onEditField: _onEditField }: { events: ScheduleEvent[]; onEditField?: FieldEditor }) {
-  /* TODO: wire EditableText into the plate row layout (name +
-     description sit inline as siblings — Edit primitives need a
-     small refactor of the row to fit). */
+function SchedulePlate({ events, onEditField }: { events: ScheduleEvent[]; onEditField?: FieldEditor }) {
   /* Prototype's KSchedule plate — three-column row:
      italic Roman numeral · name + inline " — subtitle" · display
-     time + AM/PM. Single hairline border between rows. */
+     time + AM/PM. Single hairline border between rows.
+     Inline edits: name + description render as adjacent EditableText
+     spans separated by an em-dash so the plate's inline rhythm is
+     preserved. */
   return (
     <div style={{ maxWidth: 560, margin: '0 auto' }}>
       {events.map((e, i) => {
@@ -3537,14 +3687,29 @@ function SchedulePlate({ events, onEditField: _onEditField }: { events: Schedule
               {ROMAN_NUMERALS[i] ?? String(i + 1)}
             </span>
             <div>
-              <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>
-                {e.name}
-              </span>
-              {e.description && (
-                <span style={{ fontSize: 13, color: 'var(--ink-muted, #6F6557)' }}>
-                  {' — '}
-                  {e.description}
-                </span>
+              <EditableText
+                as="span"
+                value={e.name}
+                onSave={makePatchEvent(onEditField, e.id, i)('name')}
+                ariaLabel={`Schedule item ${i + 1} title`}
+                maxLength={120}
+                placeholder="Event name"
+                style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}
+              />
+              {(e.description || onEditField) && (
+                <>
+                  <span style={{ fontSize: 13, color: 'var(--ink-muted, #6F6557)' }}>{' — '}</span>
+                  <EditableField
+                    as="span"
+                    context={`Schedule item ${i + 1} description`}
+                    value={e.description ?? ''}
+                    onSave={makePatchEvent(onEditField, e.id, i)('description')}
+                    placeholder="Add a detail…"
+                    ariaLabel={`Schedule item ${i + 1} description`}
+                    maxLength={240}
+                    style={{ fontSize: 13, color: 'var(--ink-muted, #6F6557)' }}
+                  />
+                </>
               )}
             </div>
             <span
@@ -3572,7 +3737,7 @@ function SchedulePlate({ events, onEditField: _onEditField }: { events: Schedule
   );
 }
 
-function ScheduleScrapbook({ events, onEditField: _onEditField }: { events: ScheduleEvent[]; onEditField?: FieldEditor }) {
+function ScheduleScrapbook({ events, onEditField }: { events: ScheduleEvent[]; onEditField?: FieldEditor }) {
   /* Prototype's KSchedule scrapbook — `repeat(N, 1fr)` grid up to
      4 columns of tilted polaroids. Tape strip above each card
      (translateY beyond the top edge). Time in script font centered
@@ -3628,14 +3793,26 @@ function ScheduleScrapbook({ events, onEditField: _onEditField }: { events: Sche
             >
               {t}
             </div>
-            <div style={{ fontSize: 14, fontWeight: 600, marginTop: 8, color: 'var(--ink, #0E0D0B)' }}>
-              {e.name}
-            </div>
-            {e.description && (
-              <div style={{ fontSize: 11.5, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>
-                {e.description}
-              </div>
-            )}
+            <EditableText
+              as="div"
+              value={e.name}
+              onSave={makePatchEvent(onEditField, e.id, i)('name')}
+              ariaLabel={`Schedule item ${i + 1} title`}
+              maxLength={120}
+              placeholder="Event name"
+              style={{ fontSize: 14, fontWeight: 600, marginTop: 8, color: 'var(--ink, #0E0D0B)' }}
+            />
+            <EditableField
+              as="div"
+              context={`Schedule item ${i + 1} description`}
+              value={e.description ?? ''}
+              onSave={makePatchEvent(onEditField, e.id, i)('description')}
+              multiline
+              placeholder="What guests can expect…"
+              ariaLabel={`Schedule item ${i + 1} description`}
+              maxLength={240}
+              style={{ fontSize: 11.5, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}
+            />
           </div>
         );
       })}
@@ -3643,7 +3820,7 @@ function ScheduleScrapbook({ events, onEditField: _onEditField }: { events: Sche
   );
 }
 
-function ScheduleIndex({ events, onEditField: _onEditField }: { events: ScheduleEvent[]; onEditField?: FieldEditor }) {
+function ScheduleIndex({ events, onEditField }: { events: ScheduleEvent[]; onEditField?: FieldEditor }) {
   /* Prototype's KSchedule index — black mono time TAB on the
      left edge (positioned absolute, projects out of the card),
      red left border + blue rule lines as the card bg, content
@@ -3684,12 +3861,26 @@ function ScheduleIndex({ events, onEditField: _onEditField }: { events: Schedule
               {t}
               {m}
             </div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>{e.name}</div>
-            {e.description && (
-              <div style={{ fontSize: 12.5, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>
-                {e.description}
-              </div>
-            )}
+            <EditableText
+              as="div"
+              value={e.name}
+              onSave={makePatchEvent(onEditField, e.id, i)('name')}
+              ariaLabel={`Schedule item ${i + 1} title`}
+              maxLength={120}
+              placeholder="Event name"
+              style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}
+            />
+            <EditableField
+              as="div"
+              context={`Schedule item ${i + 1} description`}
+              value={e.description ?? ''}
+              onSave={makePatchEvent(onEditField, e.id, i)('description')}
+              multiline
+              placeholder="What guests can expect…"
+              ariaLabel={`Schedule item ${i + 1} description`}
+              maxLength={240}
+              style={{ fontSize: 12.5, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}
+            />
           </div>
         );
       })}
@@ -3697,7 +3888,7 @@ function ScheduleIndex({ events, onEditField: _onEditField }: { events: Schedule
   );
 }
 
-function ScheduleMinimal({ events, onEditField: _onEditField }: { events: ScheduleEvent[]; onEditField?: FieldEditor }) {
+function ScheduleMinimal({ events, onEditField }: { events: ScheduleEvent[]; onEditField?: FieldEditor }) {
   /* Prototype's KSchedule minimal — `auto 1fr` grid, 38px display
      time on the LEFT (line-height 0.9 so it sits tight), content
      RIGHT-ALIGNED on the right with the name + subtitle. Hairline
@@ -3741,12 +3932,26 @@ function ScheduleMinimal({ events, onEditField: _onEditField }: { events: Schedu
               )}
             </span>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}>{e.name}</div>
-              {e.description && (
-                <div style={{ fontSize: 13, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>
-                  {e.description}
-                </div>
-              )}
+              <EditableText
+                as="div"
+                value={e.name}
+                onSave={makePatchEvent(onEditField, e.id, i)('name')}
+                ariaLabel={`Schedule item ${i + 1} title`}
+                maxLength={120}
+                placeholder="Event name"
+                style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink, #0E0D0B)' }}
+              />
+              <EditableField
+                as="div"
+                context={`Schedule item ${i + 1} description`}
+                value={e.description ?? ''}
+                onSave={makePatchEvent(onEditField, e.id, i)('description')}
+                multiline
+                placeholder="What guests can expect…"
+                ariaLabel={`Schedule item ${i + 1} description`}
+                maxLength={240}
+                style={{ fontSize: 13, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}
+              />
             </div>
           </div>
         );
@@ -3781,7 +3986,34 @@ function kitCardStyle(kit: string, index = 0): React.CSSProperties {
    inherits from the active Kit via kitCardStyle so a "scrapbook"
    site has tilted polaroid hotels and a "ticket" site has
    perforated stubs — same as schedule. ─── */
-function ThemedTravel({ manifest, motif, editMode }: { manifest: StoryManifest; motif: MotifKind; editMode?: boolean }) {
+/* Helper: patch a single hotel field. Matches by id first so
+   reorders don't drift, then by index as fallback — mirrors the
+   makePatchEvent/makePatchChapter pattern used elsewhere. */
+function makePatchHotel(
+  onEditField: FieldEditor | undefined,
+  hotelId: string | undefined,
+  hotelIndex: number,
+) {
+  return (field: 'name' | 'description' | 'address') => (value: string) => {
+    if (!onEditField) return;
+    onEditField((m) => {
+      const travelInfo = (m.travelInfo ?? {}) as { hotels?: Array<Record<string, unknown>> };
+      const hotels = [...((travelInfo.hotels ?? []) as Array<Record<string, unknown>>)];
+      let idx = hotelId
+        ? hotels.findIndex((h) => (h as { id?: string }).id === hotelId)
+        : -1;
+      if (idx < 0) idx = hotelIndex;
+      if (idx < 0 || idx >= hotels.length) return m;
+      hotels[idx] = { ...hotels[idx], [field]: value };
+      return {
+        ...m,
+        travelInfo: { ...travelInfo, hotels },
+      } as unknown as StoryManifest;
+    });
+  };
+}
+
+function ThemedTravel({ manifest, motif, editMode, onEditField }: { manifest: StoryManifest; motif: MotifKind; editMode?: boolean; onEditField?: FieldEditor }) {
   const hotels = manifest.travelInfo?.hotels ?? [];
   if (hotels.length === 0) {
     if (!editMode) return null;
@@ -3924,7 +4156,13 @@ function ThemedTravel({ manifest, motif, editMode }: { manifest: StoryManifest; 
                   }}
                 />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
+                  <EditableText
+                    as="div"
+                    value={h.name ?? ''}
+                    onSave={makePatchHotel(onEditField, (h as { id?: string }).id, i)('name')}
+                    ariaLabel={`Hotel ${i + 1} name`}
+                    maxLength={140}
+                    placeholder="Hotel name"
                     style={{
                       fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
                       fontWeight: 'var(--pl-display-wght, 600)',
@@ -3932,9 +4170,7 @@ function ThemedTravel({ manifest, motif, editMode }: { manifest: StoryManifest; 
                       color: 'var(--ink, #0E0D0B)',
                       lineHeight: 1.15,
                     }}
-                  >
-                    {h.name}
-                  </div>
+                  />
                   {/* Rating + reviews + price tier — single
                       summary line under the name. Each fragment
                       is conditional so a host who skipped a row
@@ -4023,16 +4259,22 @@ function ThemedTravel({ manifest, motif, editMode }: { manifest: StoryManifest; 
                   )}
                 </div>
               </div>
-              {blurb && (
-                <div
+              {(blurb || onEditField) && (
+                <EditableField
+                  as="div"
+                  context={`Hotel ${i + 1} description`}
+                  value={blurb ?? ''}
+                  onSave={makePatchHotel(onEditField, (h as { id?: string }).id, i)('description')}
+                  multiline
+                  maxLength={500}
+                  placeholder="Add a short editorial line about this hotel…"
+                  ariaLabel={`Hotel ${i + 1} description`}
                   style={{
                     fontSize: 12.5,
                     color: 'var(--ink-soft, #3A332C)',
                     lineHeight: 1.5,
                   }}
-                >
-                  {blurb}
-                </div>
+                />
               )}
               {amenityChips.length > 0 && (
                 <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
@@ -4067,7 +4309,7 @@ function ThemedTravel({ manifest, motif, editMode }: { manifest: StoryManifest; 
    the registry name in display font, and an "Open ↗" pill. The
    message reads as the section's body copy in italic above the
    row. ─── */
-function ThemedRegistry({ manifest, editMode }: { manifest: StoryManifest; editMode?: boolean }) {
+function ThemedRegistry({ manifest, editMode, onEditField }: { manifest: StoryManifest; editMode?: boolean; onEditField?: FieldEditor }) {
   const reg = (manifest as unknown as { registry?: { entries?: Array<{ name?: string; label?: string; url: string }>; message?: string } }).registry;
   const entries = reg?.entries ?? [];
   if (entries.length === 0) {
@@ -4094,8 +4336,24 @@ function ThemedRegistry({ manifest, editMode }: { manifest: StoryManifest; editM
     >
       <SectionBackground manifest={manifest} sectionId="registry" />
       <ThemedSectionHead eyebrow="If you're asking" title="Registry," italic="gently" manifest={manifest} sectionKey="registry" />
-      {reg?.message && (
-        <div
+      {(reg?.message || onEditField) && (
+        <EditableField
+          as="div"
+          context="Registry note"
+          value={reg?.message ?? ''}
+          onSave={(v) =>
+            onEditField?.((m) => {
+              const r = (m as unknown as { registry?: Record<string, unknown> }).registry ?? {};
+              return {
+                ...m,
+                registry: { ...r, message: v },
+              } as unknown as StoryManifest;
+            })
+          }
+          multiline
+          maxLength={400}
+          placeholder="Add a gentle note about gifts…"
+          ariaLabel="Registry note"
           style={{
             fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
             fontStyle: 'italic',
@@ -4105,9 +4363,7 @@ function ThemedRegistry({ manifest, editMode }: { manifest: StoryManifest; editM
             margin: '0 auto 32px',
             lineHeight: 1.55,
           }}
-        >
-          {reg.message}
-        </div>
+        />
       )}
       {/* Registry chips — port of prototype's RegistryBlock (themed-
           site.jsx ~line 412). Each entry is a small KChip-shaped
@@ -5068,8 +5324,14 @@ function ThemedCountdown({ manifest, editMode }: { manifest: StoryManifest; edit
    execute when hydrated, so the cells stayed at em-dashes
    forever). useEffect + setInterval ticks the four cells.
    SSR-safe: server renders em-dashes, client takes over on
-   mount and fills in live values. */
-function CountdownTimer({ target, manifest }: { target: number; manifest: StoryManifest }) {
+   mount and fills in live values.
+
+   React.memo — the component ticks every second via internal
+   state, but its parent (ThemedCountdown) re-renders on every
+   manifest change. Without memo, every sibling-section edit
+   would re-mount the setInterval. Wrapping lets the timer stay
+   mounted and ticking independently. */
+const CountdownTimer = memo(function CountdownTimer({ target, manifest }: { target: number; manifest: StoryManifest }) {
   const computeRemaining = useMemo(() => {
     return (now: number) => {
       const d = Math.max(0, target - now);
@@ -5175,7 +5437,7 @@ function CountdownTimer({ target, manifest }: { target: number; manifest: StoryM
       </div>
     </section>
   );
-}
+});
 
 /* ─── ThemedPullQuote — full-width italic display quote in the
    middle of the page. Reads manifest.poetry.heroTagline (full
@@ -5340,7 +5602,10 @@ function ThemedWeddingParty({ manifest }: { manifest: StoryManifest }) {
    precise pin; falls back to a search by venue + address when no
    coords. Uses the OpenStreetMap embed (no API key); production
    can swap to Mapbox if desired. ─── */
-function ThemedMap({ manifest }: { manifest: StoryManifest }) {
+/* React.memo — map block is rare; props are a manifest reference
+   that only changes when a venue address is edited. Skipping its
+   re-render on chapter/event edits avoids re-mounting the iframe. */
+const ThemedMap = memo(function ThemedMap({ manifest }: { manifest: StoryManifest }) {
   const l = manifest.logistics ?? {};
   const lat = (l as { venueLat?: number }).venueLat;
   const lng = (l as { venueLng?: number }).venueLng;
@@ -5508,7 +5773,7 @@ function ThemedMap({ manifest }: { manifest: StoryManifest }) {
       </div>
     </section>
   );
-}
+});
 
 /* ─── ThemedSpotify — soundtrack strip. Reads manifest.spotifyUrl
    (playlist or track) + optional spotifyPlaylistName. Embeds the
@@ -5516,7 +5781,9 @@ function ThemedMap({ manifest }: { manifest: StoryManifest }) {
    playlist name in display font. Renders nothing if no URL set.
    The iframe URL transform: open.spotify.com/playlist/X →
    open.spotify.com/embed/playlist/X. ─── */
-function ThemedSpotify({ manifest }: { manifest: StoryManifest }) {
+/* React.memo — Spotify embed is heavy (iframe) and props rarely
+   change; protect it from sibling-edit re-renders. */
+const ThemedSpotify = memo(function ThemedSpotify({ manifest }: { manifest: StoryManifest }) {
   const url = manifest.spotifyUrl;
   const name = manifest.spotifyPlaylistName;
   if (!url) return null;
@@ -5591,13 +5858,15 @@ function ThemedSpotify({ manifest }: { manifest: StoryManifest }) {
       </div>
     </section>
   );
-}
+});
 
 /* ─── ThemedHashtag — single-line callout for wedding hashtag.
    Reads manifest.hashtags[0]. Renders as a centered band: peach
    "#" prefix + the hashtag in display italic + a small "tap to
-   copy" affordance. ─── */
-function ThemedHashtag({ manifest }: { manifest: StoryManifest }) {
+   copy" affordance.
+   React.memo — single-line callout with no state of its own; its
+   manifest.hashtags prop only changes on explicit hashtag edits. */
+const ThemedHashtag = memo(function ThemedHashtag({ manifest }: { manifest: StoryManifest }) {
   const tag = (manifest.hashtags ?? [])[0];
   if (!tag) return null;
   const clean = tag.replace(/^#/, '');
@@ -5660,7 +5929,7 @@ function ThemedHashtag({ manifest }: { manifest: StoryManifest }) {
       </div>
     </section>
   );
-}
+});
 
 /* ─── ThemedFooter — editorial close. Gold hairline → italic
    brand → small "woven on Pearloom" colophon → date in mono
@@ -6061,7 +6330,12 @@ const THEMED_FOOTER_PALETTE: Record<string, { bg: string; ink: string; line: str
   'coastal':      { bg: '#103B45', ink: '#F0EDE3', line: 'rgba(240,237,227,0.18)' },
 };
 
-function ThemedFooter({ siteSlug: _siteSlug, names, manifest }: { siteSlug: string; names: [string, string]; manifest: StoryManifest }) {
+/* React.memo — footer is the last block in the tree and rarely
+   changes mid-session. Most edits don't touch logistics/date/venue
+   or decorLibrary.footerBouquet, so this skips re-render on every
+   keystroke deep in a chapter/event. namesTuple is memoized
+   upstream so the prop identity is stable. */
+const ThemedFooter = memo(function ThemedFooter({ siteSlug: _siteSlug, names, manifest }: { siteSlug: string; names: [string, string]; manifest: StoryManifest }) {
   const [n1, n2] = names;
   const date = manifest.logistics?.date;
   const venue = manifest.logistics?.venue;
@@ -6183,4 +6457,4 @@ function ThemedFooter({ siteSlug: _siteSlug, names, manifest }: { siteSlug: stri
       </div>
     </footer>
   );
-}
+});

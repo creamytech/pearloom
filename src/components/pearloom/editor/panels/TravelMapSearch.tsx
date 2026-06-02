@@ -9,25 +9,27 @@
 // and rich dropdown result cards that drop into the hotel block
 // on click.
 //
-// Real Google Places lookup already lives in <HotelSearchRow />
-// (TravelPanel.tsx) — this component sits above it and gives the
-// host a *visual* affordance. The search filters a curated mock
-// dataset (Santorini / NYC / LA / Lake Como) so a host who hasn't
-// picked a venue yet can still demo the feature; once a venue is
-// set, the real Places search remains the canonical path.
+// Wires to the real Google Places API via two routes:
+//   • POST /api/places/search  — debounced text search (250ms)
+//   • POST /api/places/details — single-place enrichment on pick
+//
+// If GOOGLE_PLACES_API_KEY is missing or upstream fails, the
+// routes return { fallback: true } and we degrade to a curated
+// MOCK_PLACES dataset so the editor card still functions as a
+// visual demo for hosts who haven't picked a venue yet.
 //
 // Add-to-block flow:
 //   1. Host types into the search input.
-//   2. Filtered mock results render in a dropdown card stack —
-//      thumbnail + name + stars + distance + amenity strip + a
-//      [+] add button.
-//   3. Click any result → fires onAdd(hotel) with a fully-shaped
-//      Hotel record (rating, ratingCount, amenities, distance,
-//      blurb, priceLevel, tone-coloured icon block).
+//   2. Debounced fetch hits /api/places/search; results render
+//      in a dropdown card stack — thumbnail + name + stars +
+//      location + amenity strip + [+] add button.
+//   3. Click any result → POST /api/places/details to hydrate
+//      photo/phone/website, fires onAdd(hotel) with a fully-shaped
+//      Hotel record.
 //   4. Search clears + dropdown closes (matches prototype).
 // ─────────────────────────────────────────────────────────────
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../../motifs';
 
 // Match TravelPanel's local Hotel shape — keep imports loose so
@@ -59,10 +61,10 @@ interface MockPlace {
   blurb: string;
 }
 
-// Curated 12-entry mock dataset — same shape as prototype but
-// spread across the most-common Pearloom destinations so a host
-// searching from any region sees something relevant. Real Places
-// API takes over once the host picks a venue.
+// Curated 12-entry FALLBACK dataset — used only when the Places
+// API is unavailable (missing key or upstream error). Real Places
+// search is the canonical path; this keeps the editor card usable
+// in dev/offline.
 const MOCK_PLACES: MockPlace[] = [
   // Santorini (prototype-aligned)
   { name: 'Cosmos Suites', kind: 'Hotel', city: 'Santorini', rating: 4.8, reviews: 412, price: '$$$', distance: '8-min walk', tone: 'warm', amenities: ['Pool', 'Breakfast', 'Caldera view'], blurb: 'Whitewashed cliffside suites with private plunge pools and sunset terraces.' },
@@ -85,23 +87,101 @@ const MOCK_PLACES: MockPlace[] = [
   { name: 'Joshua Tree House', kind: 'Hotel', city: 'Joshua Tree', rating: 4.8, reviews: 320, price: '$$', distance: '15-min drive', tone: 'sage', amenities: ['Pool', 'Stargazing', 'Wi-Fi'], blurb: 'Three minimalist desert homesteads on five acres of cholla and starlight.' },
 ];
 
+// Shape returned by /api/places/search — matches the route's
+// SearchResult interface. Kept local to avoid cross-module
+// imports across the api/components boundary.
+interface PlacesSearchResult {
+  placeId: string;
+  name: string;
+  address: string;
+  rating?: number;
+  userRatingCount?: number;
+  priceLevel?: string;
+  types?: string[];
+  location?: { lat: number; lng: number };
+}
+
+interface PlacesDetails {
+  placeId: string;
+  name: string;
+  formattedAddress: string;
+  phone?: string;
+  website?: string;
+  openingHours?: string[];
+  photoUrls?: string[];
+  photoUrl?: string;
+  rating?: number;
+  userRatingCount?: number;
+  priceLevel?: string;
+  types?: string[];
+  location?: { lat: number; lng: number };
+  editorialSummary?: string;
+}
+
 interface Props {
   onAdd: (h: MapSearchHotel) => void;
   /** When set, the search bar header reads "near [city]" instead
    *  of the generic "near the wedding" — gives the host context
-   *  that results are demo data, not real Places. */
+   *  that results are real Places near their venue. */
   venueCity?: string;
+  /** Optional venue coords — biases search results geographically
+   *  via locationBias on the Places searchText call. */
+  venueLat?: number;
+  venueLng?: number;
 }
 
-export function TravelMapSearch({ onAdd, venueCity }: Props) {
+// Map Google priceLevel enum → $ ladder used by the prototype.
+function priceFromLevel(level?: string): string {
+  switch (level) {
+    case 'PRICE_LEVEL_FREE':
+    case 'PRICE_LEVEL_INEXPENSIVE':
+      return '$';
+    case 'PRICE_LEVEL_MODERATE':
+      return '$$';
+    case 'PRICE_LEVEL_EXPENSIVE':
+      return '$$$';
+    case 'PRICE_LEVEL_VERY_EXPENSIVE':
+      return '$$$$';
+    default:
+      return '';
+  }
+}
+
+// Tone for the result-card thumbnail — derived from place types
+// so a spa hotel reads lavender, a bed_and_breakfast reads sage,
+// etc. Keeps the visual variety the mock dataset had.
+function toneFromTypes(types?: string[]): 'peach' | 'sage' | 'lavender' | 'warm' {
+  if (!types || types.length === 0) return 'peach';
+  if (types.includes('resort_hotel') || types.includes('spa')) return 'lavender';
+  if (types.includes('bed_and_breakfast') || types.includes('inn')) return 'sage';
+  if (types.includes('lodging') || types.includes('hotel')) return 'peach';
+  return 'warm';
+}
+
+// Pretty short-name from a Google formatted_address — usually
+// "City, State, Country" — pull the city for the result row.
+function cityFromAddress(addr: string): string {
+  const parts = addr.split(',').map((s) => s.trim()).filter(Boolean);
+  if (parts.length >= 2) return parts[parts.length - 2] || parts[0];
+  return parts[0] ?? addr;
+}
+
+export function TravelMapSearch({ onAdd, venueCity, venueLat, venueLng }: Props) {
   const [q, setQ] = useState('');
   const [open, setOpen] = useState(false);
   const [justAdded, setJustAdded] = useState<string | null>(null);
+  const [apiResults, setApiResults] = useState<PlacesSearchResult[] | null>(null);
+  const [usingFallback, setUsingFallback] = useState(false);
+  const [searching, setSearching] = useState(false);
 
-  // Filter on name OR city OR amenities — generous match so a
-  // host typing "pool" or "santorini" or "marriott" all surface
-  // something useful.
-  const results = useMemo(() => {
+  // Track the active fetch so a stale response from a slow
+  // earlier query can't overwrite a newer one's results.
+  const fetchSeqRef = useRef(0);
+
+  // Mock-fallback filter — same generous match as before so a
+  // host typing "pool" / "santorini" / "marriott" still surfaces
+  // something useful in offline/dev mode.
+  const mockResults = useMemo(() => {
     if (!q) return MOCK_PLACES.slice(0, 5);
     const needle = q.toLowerCase();
     return MOCK_PLACES.filter(
@@ -112,10 +192,109 @@ export function TravelMapSearch({ onAdd, venueCity }: Props) {
     ).slice(0, 6);
   }, [q]);
 
-  // useCallback so the impure Date.now() reference sits in a
-  // stable callback body, not a render-time function literal —
-  // matches the pattern in AirportsField's addAirport.
-  const handleAdd = useCallback(
+  // Debounced Places search — 250ms after the last keystroke.
+  // Anything shorter than 2 chars is treated as empty.
+  // Note: the `< 2 chars` branch lives inside the timeout so we
+  // don't trip react-hooks/set-state-in-effect with a synchronous
+  // setState on every keystroke.
+  useEffect(() => {
+    const seq = ++fetchSeqRef.current;
+    const tooShort = !q || q.trim().length < 2;
+    const timer = window.setTimeout(async () => {
+      if (tooShort) {
+        if (seq !== fetchSeqRef.current) return;
+        setApiResults(null);
+        setUsingFallback(false);
+        setSearching(false);
+        return;
+      }
+      setSearching(true);
+      try {
+        const near = (typeof venueLat === 'number' && typeof venueLng === 'number')
+          ? { lat: venueLat, lng: venueLng }
+          : undefined;
+        const res = await fetch('/api/places/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: q.trim(), near }),
+        });
+        if (seq !== fetchSeqRef.current) return; // stale
+        if (!res.ok) {
+          setApiResults(null);
+          setUsingFallback(true);
+          setSearching(false);
+          return;
+        }
+        const data = await res.json() as { results?: PlacesSearchResult[]; fallback?: boolean };
+        if (seq !== fetchSeqRef.current) return;
+        if (data.fallback) {
+          setApiResults(null);
+          setUsingFallback(true);
+        } else {
+          setApiResults(data.results ?? []);
+          setUsingFallback(false);
+        }
+        setSearching(false);
+      } catch {
+        if (seq !== fetchSeqRef.current) return;
+        setApiResults(null);
+        setUsingFallback(true);
+        setSearching(false);
+      }
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [q, venueLat, venueLng]);
+
+  // Use real API results when present; otherwise fall back to
+  // the curated mock dataset (no key, network error, or empty
+  // query under 2 chars).
+  const realResults: PlacesSearchResult[] | null = apiResults && apiResults.length > 0 ? apiResults : null;
+  const showingMock = !realResults;
+
+  const handleAddReal = useCallback(
+    async (p: PlacesSearchResult) => {
+      // Fire-and-forget enrich call — pulls phone/website/photo
+      // before dispatching onAdd. If enrich fails we still add
+      // the hotel with whatever search returned.
+      let details: PlacesDetails | null = null;
+      try {
+        const res = await fetch('/api/places/details', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ placeId: p.placeId }),
+        });
+        if (res.ok) {
+          const data = await res.json() as { details?: PlacesDetails | null };
+          details = data.details ?? null;
+        }
+      } catch {
+        details = null;
+      }
+
+      const price = priceFromLevel(details?.priceLevel ?? p.priceLevel);
+      const hotel: MapSearchHotel = {
+        id: `htl-places-${p.placeId}`,
+        name: details?.name ?? p.name,
+        address: details?.formattedAddress ?? p.address,
+        distance: cityFromAddress(details?.formattedAddress ?? p.address),
+        price,
+        description: details?.editorialSummary ?? '',
+        bookingUrl: details?.website ?? '',
+        photoUrl: details?.photoUrl,
+        amenities: '',
+        rating: details?.rating ?? p.rating,
+        ratingCount: details?.userRatingCount ?? p.userRatingCount,
+      };
+      onAdd(hotel);
+      setJustAdded(hotel.name);
+      setQ('');
+      setOpen(false);
+      window.setTimeout(() => setJustAdded(null), 900);
+    },
+    [onAdd],
+  );
+
+  const handleAddMock = useCallback(
     (p: MockPlace) => {
       const hotel: MapSearchHotel = {
         id: `htl-map-${Date.now().toString(36)}`,
@@ -130,9 +309,6 @@ export function TravelMapSearch({ onAdd, venueCity }: Props) {
         ratingCount: p.reviews,
       };
       onAdd(hotel);
-      // Flash a confirmation in-place, then close + clear (prototype
-      // closes immediately; we hold the pill for 900ms so the host
-      // sees the add land).
       setJustAdded(p.name);
       setQ('');
       setOpen(false);
@@ -155,7 +331,7 @@ export function TravelMapSearch({ onAdd, venueCity }: Props) {
     >
       {/* ── Faux map strip — gradient base + grid hatching +
           three color-coded pins. Pure CSS, no map tile fetches.
-          Real Places API still drives the actual hotel pick. ── */}
+          Real Places API drives the actual hotel pick. ── */}
       <div
         style={{
           position: 'relative',
@@ -277,7 +453,7 @@ export function TravelMapSearch({ onAdd, venueCity }: Props) {
           />
         </div>
 
-        {open && results.length > 0 && (
+        {open && (showingMock ? mockResults.length > 0 : (realResults?.length ?? 0) > 0) && (
           <div
             role="listbox"
             style={{
@@ -295,14 +471,110 @@ export function TravelMapSearch({ onAdd, venueCity }: Props) {
               overflowY: 'auto',
             }}
           >
-            {results.map((p) => (
+            {!showingMock && realResults!.map((p) => {
+              const tone = toneFromTypes(p.types);
+              const isVenue = !(p.types ?? []).some((t) => /hotel|lodging|bed_and_breakfast|inn|resort/.test(t));
+              const price = priceFromLevel(p.priceLevel);
+              const city = cityFromAddress(p.address);
+              return (
+                <button
+                  key={p.placeId}
+                  type="button"
+                  role="option"
+                  aria-selected={false}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => handleAddReal(p)}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    gap: 10,
+                    alignItems: 'center',
+                    padding: '9px 11px',
+                    textAlign: 'left',
+                    borderBottom: '1px solid var(--line-soft, rgba(14,13,11,0.06))',
+                    background: 'transparent',
+                    border: 'none',
+                    borderTop: 'none',
+                    borderLeft: 'none',
+                    borderRight: 'none',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.background =
+                      'var(--cream-2, rgba(245,239,226,0.6))';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: 8,
+                      background: `var(--${tone}-2, rgba(198,112,61,0.22))`,
+                      display: 'grid',
+                      placeItems: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Icon name={isVenue ? 'heart-icon' : 'home'} size={14} color="#3D4A1F" />
+                  </span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span
+                      style={{
+                        display: 'block',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: 'var(--ink, #0E0D0B)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {p.name}
+                    </span>
+                    <span
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        fontSize: 11,
+                        color: 'var(--ink-muted, #6F6557)',
+                        marginTop: 1,
+                      }}
+                    >
+                      {typeof p.rating === 'number' && (
+                        <>
+                          <StarsInline rating={p.rating} />
+                          <span>{p.rating.toFixed(1)}</span>
+                          <span>·</span>
+                        </>
+                      )}
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {city}
+                      </span>
+                      {price && (
+                        <>
+                          <span>·</span>
+                          <span>{price}</span>
+                        </>
+                      )}
+                    </span>
+                  </span>
+                  <Icon name="plus" size={14} color="var(--sage-deep, #5C6B3F)" />
+                </button>
+              );
+            })}
+
+            {showingMock && mockResults.map((p) => (
               <button
                 key={p.name}
                 type="button"
                 role="option"
                 aria-selected={false}
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => handleAdd(p)}
+                onClick={() => handleAddMock(p)}
                 style={{
                   width: '100%',
                   display: 'flex',
@@ -383,7 +655,11 @@ export function TravelMapSearch({ onAdd, venueCity }: Props) {
           }}
         >
           <Icon name="sparkles" size={11} color="var(--gold, #B8935A)" />
-          Pear pulls ratings, photos &amp; amenities automatically.
+          {searching
+            ? 'Searching Google Places…'
+            : usingFallback
+              ? 'Showing demo results — set GOOGLE_PLACES_API_KEY for live search.'
+              : 'Pear pulls ratings, photos & amenities from Google Places.'}
         </div>
 
         {justAdded && (

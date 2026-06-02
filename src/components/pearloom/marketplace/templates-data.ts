@@ -3,8 +3,9 @@
 //
 // A curated template library that covers every occasion Pearloom
 // supports. Each template is a starting manifest: palette, motif,
-// layout, tone, vibes + seeded content hints. Used by /marketplace
-// and /templates to render tiles and seed the wizard.
+// layout, tone, vibes + seeded content hints. Consumed by WizardV8
+// to seed new sites — the legacy /marketplace + /templates routes
+// were retired when /store became the theme surface (2026-06-01).
 //
 // Template IDs are stable — the wizard consumes them via ?template=<id>.
 // ─────────────────────────────────────────────────────────────

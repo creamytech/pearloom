@@ -164,8 +164,9 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
   const rsvpPreset: RsvpPreset = (eventType?.rsvpPreset as RsvpPreset) ?? 'wedding';
 
   // Custom meal options surface from the host's catered-menu config when
-  // present. We re-use the same field name SiteV8Renderer/PresetRsvpForm
-  // surface so a host who has named their menu sees those names here.
+  // present. We re-use the same field name that ThemedSiteRenderer's
+  // PresetRsvpForm reads so a host who has named their menu sees those
+  // names here.
   const mealOptions = useMemo<string[]>(() => {
     const opts = (manifest as unknown as {
       rsvpConfig?: { mealOptions?: Array<{ name?: string }> };

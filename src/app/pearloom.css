@@ -6887,6 +6887,398 @@ html { scroll-behavior: smooth; }
   }
 }
 
+/* ═════════════════════════════════════════════════════════════
+   MOBILE REFLOW — variant coverage (2026-06-01)
+   ═════════════════════════════════════════════════════════════
+   The block above handles the canonical kits (classic/list/
+   3-arch chapter row / repeat-auto-fit grids). This block
+   covers the long tail of variants registered via the
+   block-style picker (details: tiles/iconrow/list/accordion/
+   bento; schedule: cards/stepper/numbered/run-of-show; travel:
+   carousel/table/rows/map; registry: cards/chips/progress/
+   logowall; gallery: polaroid/slideshow/masonry/strip/wall;
+   rsvp: split/banner/minimal/centered; faq: twocol/numbered/
+   cards/accordion; story: sidebyside/stacked/zigzag/letter/
+   bento; hero: photo-first/postcard/carousel/minimal/split).
+
+   Strategy (matches the audit recommendations):
+   - Multi-column grids collapse to 1fr.
+   - Horizontal scroll strips keep horizontal scroll but get
+     scroll-snap-align + scroll-padding + touch-action: pan-x
+     + min-width fallbacks so cards don't overflow.
+   - Card widths reduce, padding tightens.
+   - Heading font-size scales via clamp() so display sizes
+     don't bust at narrow widths.
+   - Photo aspect-ratio is preserved with max-height caps so
+     full-bleed hero variants don't dominate the fold.
+   ═════════════════════════════════════════════════════════════ */
+
+@media (max-width: 720px) {
+  /* ── HERO photo-first / split / fullbleed / typographic:
+        the renderer uses negative margin (e.g. -32px) + min-height
+        of min(820px, 92vh). On narrow screens cap min-height to a
+        readable 64vh so the names sit above the fold. */
+  .pl8-guest section#top > div[style*="min-height"],
+  .pl8-guest section#top > div[style*="minHeight"] {
+    min-height: min(560px, 64vh) !important;
+  }
+  /* HERO Split variant — explicit two-col grid via inline JSX. */
+  .pl8-guest section#top > div[style*="grid-template-columns: 1.05fr"],
+  .pl8-guest section#top > div[style*="grid-template-columns: 1fr 1fr"],
+  .pl8-guest section#top > div[style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+  /* HERO Carousel reel — the horizontal scroll strip uses
+     `width: min(360px, 70cqw)` per tile. Add scroll-padding so
+     centered snap doesn't slice the first/last card; clamp tile
+     width so very narrow phones get a swipeable single tile. */
+  .pl8-guest section#top > div[style*="scroll-snap-type"] {
+    scroll-padding-inline: 32px !important;
+    padding-inline: 24px !important;
+    margin-inline: -24px !important;
+    touch-action: pan-x !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .pl8-guest section#top > div[style*="scroll-snap-type"] > div {
+    width: min(280px, 80vw) !important;
+  }
+
+  /* ── STORY sidebyside / zigzag / stacked / letter / bento /
+        magazine variants. The chapter-row block above stacks the
+        canonical 3-col grid; here we catch the variant decks that
+        use other grid templates. */
+  .pl8-guest section#our-story [class*="chapter"],
+  .pl8-guest section#our-story > div > div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+  }
+  /* Zigzag direction reset — every other row flips via order=2 on
+     desktop; reset on phone so the photo is always first. */
+  .pl8-guest section#our-story .pl8-chapter-row > [style*="order: 2"],
+  .pl8-guest section#our-story .pl8-chapter-row > [style*="order:2"] {
+    order: 0 !important;
+  }
+  /* Story photo aspect cap — keep tall portraits readable. */
+  .pl8-guest section#our-story .pl8-chapter-row img,
+  .pl8-guest section#our-story .pl8-chapter-row [style*="aspect-ratio"] {
+    max-height: 56vh !important;
+  }
+  /* Story h3 / display copy scales down. */
+  .pl8-guest section#our-story h3,
+  .pl8-guest section#our-story h2 {
+    font-size: clamp(24px, 8vw, 34px) !important;
+    line-height: 1.05 !important;
+  }
+  /* Filmstrip / kenburns story variants — horizontal scrolling
+     strip of moments. Snap-x + touch. */
+  .pl8-guest section#our-story > div[style*="overflow-x"],
+  .pl8-guest section#our-story > div[style*="overflowX"] {
+    scroll-snap-type: x mandatory !important;
+    scroll-padding-inline: 24px !important;
+    padding-inline: 20px !important;
+    margin-inline: -20px !important;
+    touch-action: pan-x !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── DETAILS tiles / bento variants — multi-col card grids
+        collapse to a single column. The default repeat() catch
+        above already does this for repeat(); add coverage for
+        explicit 1fr 1fr and 2fr / 3fr custom splits. */
+  .pl8-guest section#details > div[style*="grid-template-columns: 1fr 1fr"],
+  .pl8-guest section#details > div[style*="grid-template-columns:1fr 1fr"],
+  .pl8-guest section#details > div[style*="grid-template-columns: 2fr"],
+  .pl8-guest section#details > div[style*="grid-template-columns: 3fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  /* DETAILS iconrow — circular icons + label stack. Reduce icon
+     size to 44px so 3-4 in a row don't blow out. The row itself
+     remains a horizontal flex; we let it wrap. */
+  .pl8-guest section#details [class*="iconrow"],
+  .pl8-guest section#details > div[style*="display: flex"][style*="justify-content"] {
+    flex-wrap: wrap !important;
+    gap: 14px !important;
+    justify-content: flex-start !important;
+  }
+  .pl8-guest section#details [class*="iconrow"] > * {
+    flex: 0 0 calc(50% - 7px) !important;
+    min-width: 0 !important;
+  }
+  /* DETAILS list (leader-line) — labels + leaders + values stack
+     into a compact 2-line pattern; the dotted leader still reads. */
+  .pl8-guest section#details > div > div[style*="grid-template-columns: auto 1fr auto"] {
+    grid-template-columns: 1fr auto !important;
+    gap: 6px 10px !important;
+  }
+  /* DETAILS card padding tightens. */
+  .pl8-guest section#details .pl8-card-lift {
+    padding: 14px !important;
+  }
+
+  /* ── SCHEDULE cards variant — auto-fit tile grid (often
+        repeat(auto-fit, minmax(260px, 1fr))). Already collapses
+        via the auto-fit catch; tighten gap + radius. */
+  .pl8-guest section#schedule > div[style*="grid-template-columns: repeat"] {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  /* SCHEDULE stepper — horizontal dot rail. Switch to a vertical
+     stack with the dot on the left. */
+  .pl8-guest section#schedule > div[style*="flex-direction: row"][style*="overflow"],
+  .pl8-guest section#schedule > div[class*="stepper"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    overflow: visible !important;
+  }
+  /* SCHEDULE numbered — oversized leading numerals. Cap to 56px
+     on phone so the numeral doesn't crowd the line. */
+  .pl8-guest section#schedule [style*="font-size: 84px"],
+  .pl8-guest section#schedule [style*="font-size: 96px"],
+  .pl8-guest section#schedule [style*="font-size: 120px"],
+  .pl8-guest section#schedule [style*="fontSize: 84"],
+  .pl8-guest section#schedule [style*="fontSize: 96"],
+  .pl8-guest section#schedule [style*="fontSize: 120"] {
+    font-size: 52px !important;
+    line-height: 1 !important;
+  }
+  /* SCHEDULE run-of-show — wide table with time | event | host
+     columns. Collapse to a 2-line card with time on the first
+     line and event detail on the second. */
+  .pl8-guest section#schedule > div > div[style*="grid-template-columns: 100px 1fr"],
+  .pl8-guest section#schedule > div > div[style*="grid-template-columns: 120px 1fr"] {
+    grid-template-columns: 80px 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* ── TRAVEL rows / map / table / carousel variants. Auto-fit
+        grid already collapses; cover the explicit splits + the
+        comparison-table layout. */
+  .pl8-guest section#travel > div[style*="grid-template-columns: 1fr 1fr"],
+  .pl8-guest section#travel > div[style*="grid-template-columns: 2fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  /* TRAVEL table variant — comparison table with multiple cols.
+     On phone, force the table to a single-column "card view" by
+     stacking each cell with its column label visible (the renderer
+     stamps data-pl-col-label as a CSS var on each <td>). */
+  .pl8-guest section#travel table {
+    display: block !important;
+    width: 100% !important;
+  }
+  .pl8-guest section#travel table thead {
+    display: none !important;
+  }
+  .pl8-guest section#travel table tbody,
+  .pl8-guest section#travel table tr,
+  .pl8-guest section#travel table td {
+    display: block !important;
+    width: 100% !important;
+  }
+  .pl8-guest section#travel table tr {
+    margin-bottom: 14px !important;
+    padding: 14px !important;
+    border: 1px solid var(--line-soft, rgba(14,13,11,0.08)) !important;
+    border-radius: 10px !important;
+    background: var(--card, #FBF7EE) !important;
+  }
+  .pl8-guest section#travel table td {
+    padding: 4px 0 !important;
+    border: 0 !important;
+  }
+  /* TRAVEL carousel variant — horizontal swipe cards. The
+     renderer hardcodes 300px tile width; clamp to viewport and
+     add scroll-padding so center-snap doesn't slice card edges. */
+  .pl8-guest section#travel > div[style*="overflow-x"],
+  .pl8-guest section#travel > div[style*="overflowX"],
+  .pl8-guest section#travel > div[style*="scroll-snap"] {
+    scroll-snap-type: x mandatory !important;
+    scroll-padding-inline: 20px !important;
+    padding-inline: 16px !important;
+    margin-inline: -16px !important;
+    touch-action: pan-x !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .pl8-guest section#travel > div[style*="overflow-x"] > div,
+  .pl8-guest section#travel > div[style*="overflowX"] > div,
+  .pl8-guest section#travel > div[style*="scroll-snap"] > div {
+    width: min(280px, 78vw) !important;
+    flex-shrink: 0 !important;
+    scroll-snap-align: center !important;
+  }
+
+  /* ── REGISTRY cards / chips / progress / logowall variants. */
+  .pl8-guest section#registry > div[style*="grid-template-columns: 1fr 1fr"],
+  .pl8-guest section#registry > div[style*="grid-template-columns: repeat(3"],
+  .pl8-guest section#registry > div[style*="grid-template-columns: repeat(4"] {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  /* Chips wrap to multi-line pill row. */
+  .pl8-registry-chips,
+  .pl8-guest section#registry .pl8-registry-chips {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    justify-content: center !important;
+  }
+  .pl8-guest section#registry .pl8-registry-chips > * {
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+  }
+  /* Progress bar registry — the goal bar stays full-width; cap
+     the surrounding label row to wrap cleanly. */
+  .pl8-guest section#registry [class*="progress"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  /* Logowall — repeat(auto-fit, minmax(120px, 1fr)) reads OK on
+     mobile already; just tighten gap + cap logo height. */
+  .pl8-guest section#registry > div[style*="grid-template-columns: repeat(auto-fit"] {
+    gap: 10px !important;
+  }
+  .pl8-guest section#registry [class*="logo"] img,
+  .pl8-guest section#registry [class*="logowall"] img {
+    max-height: 36px !important;
+  }
+
+  /* ── GALLERY mosaic / masonry / polaroid / slideshow / strip. */
+  /* Mosaic — the renderer ships 4-col on desktop, no explicit
+     mobile rule. Collapse to 2-col so the bento mix still reads. */
+  .pl8-gallery-grid,
+  .pl8-guest section#gallery .pl8-gallery-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    grid-auto-rows: 110px !important;
+    gap: 8px !important;
+  }
+  /* Wall — already auto-fit minmax(180px); shrink min to 140px so
+     a 320px screen still shows 2 columns. */
+  .pl8-gallery-wall,
+  .pl8-guest section#gallery .pl8-gallery-wall {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+    gap: 6px !important;
+  }
+  /* Strip — hide the chevron arrows on phone (touch swipe instead). */
+  .pl8-gallery-strip-arrow {
+    display: none !important;
+  }
+  .pl8-gallery-strip {
+    scroll-padding-inline: 20px !important;
+    padding-inline: 16px !important;
+    margin-inline: -16px !important;
+    touch-action: pan-x !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .pl8-gallery-strip > * {
+    scroll-snap-align: center !important;
+    width: min(280px, 78vw) !important;
+    flex-shrink: 0 !important;
+  }
+  /* Polaroid — the renderer scatters tilted polaroids. On phone,
+     null the rotation + arrange in a 2-col grid so tilted tiles
+     don't overlap the section edge. */
+  .pl8-guest section#gallery [class*="polaroid"],
+  .pl8-guest section#gallery > div[style*="rotate"] {
+    transform: none !important;
+  }
+  .pl8-guest section#gallery > div[style*="grid-template-columns"][style*="polaroid"],
+  .pl8-guest section#gallery > div[class*="polaroid"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+  }
+  /* Slideshow — main image + thumbnail strip. Stack the thumbs
+     under the main image and let them scroll horizontally. */
+  .pl8-guest section#gallery > div[style*="grid-template-columns: 1fr"][style*="auto"] {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .pl8-guest section#gallery [class*="slideshow"] [class*="thumb"],
+  .pl8-guest section#gallery [class*="thumbnails"] {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    gap: 6px !important;
+    touch-action: pan-x !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── RSVP centered / split / banner / minimal variants. */
+  /* Split — photo on the left, CTA on the right. Stack with
+     photo on top. */
+  .pl8-guest section#rsvp > div[style*="grid-template-columns: 1fr 1fr"],
+  .pl8-guest section#rsvp > div[style*="grid-template-columns: 1.1fr"],
+  .pl8-guest section#rsvp > div[style*="grid-template-columns: 0.9fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+  }
+  /* Banner — thin band with right-aligned CTA. Stack title above
+     CTA so the CTA is centered, not pushed off-screen. */
+  .pl8-guest section#rsvp > div[style*="flex"][style*="space-between"] {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 14px !important;
+  }
+  /* RSVP h2 display sizes scale via clamp() inline in the
+     renderer; reinforce a minimum so very large hero copy
+     ('Save your seat') doesn't bust narrow screens. */
+  .pl8-guest section#rsvp h2 {
+    font-size: clamp(32px, 9vw, 44px) !important;
+    line-height: 1.02 !important;
+  }
+
+  /* ── FAQ twocol / numbered / cards variants. */
+  /* TwoCol — two-column Q&A list. Collapse to single column. */
+  .pl8-guest section#faq > div[style*="grid-template-columns: 1fr 1fr"],
+  .pl8-guest section#faq > div[style*="columns: 2"],
+  .pl8-guest section#faq > div[style*="column-count"] {
+    grid-template-columns: 1fr !important;
+    columns: 1 !important;
+    column-count: 1 !important;
+    gap: 10px !important;
+  }
+  /* FAQ numbered — oversized leading numerals: cap to 36px. */
+  .pl8-guest section#faq [style*="font-size: 72px"],
+  .pl8-guest section#faq [style*="font-size: 96px"],
+  .pl8-guest section#faq [style*="fontSize: 72"],
+  .pl8-guest section#faq [style*="fontSize: 96"] {
+    font-size: 36px !important;
+    line-height: 1 !important;
+  }
+  /* FAQ inline CTAs row (category chips above the rows) wraps. */
+  .pl8-guest section#faq .pl8-faq-cta-chip,
+  .pl8-guest section#faq [class*="faq-cta"] {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  /* ── Cross-cutting: any inline grid with explicit 2-3-4 fixed
+        column count collapses to 1fr. Catches block-style picker
+        variants that ship inline `grid-template-columns: repeat(N
+        ...)` without an auto-fit shim. */
+  .pl8-guest section > div[style*="grid-template-columns: repeat(2,"],
+  .pl8-guest section > div[style*="grid-template-columns: repeat(3,"],
+  .pl8-guest section > div[style*="grid-template-columns: repeat(4,"],
+  .pl8-guest section > div[style*="grid-template-columns:repeat(2,"],
+  .pl8-guest section > div[style*="grid-template-columns:repeat(3,"],
+  .pl8-guest section > div[style*="grid-template-columns:repeat(4,"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Horizontal scrollers: shared touch + snap defaults. Any
+        section-level div with overflowX: 'auto' gets snap-x, touch
+        pan-x, and momentum scroll on iOS. */
+  .pl8-guest section [style*="overflow-x: auto"],
+  .pl8-guest section [style*="overflowX: auto"],
+  .pl8-guest section [style*="overflow-x:auto"],
+  .pl8-guest section [style*="overflowX:auto"] {
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+  }
+}
+
 /* ── Phone-device editor preview (CSS container) ── */
 @container pl-site (max-width: 420px) {
   .pl8-guest .pl8-themed-nav nav { display: none; }
@@ -6903,6 +7295,78 @@ html { scroll-behavior: smooth; }
     grid-template-columns: 1fr;
   }
   .pl8-guest section#map > div[style*="grid-template-columns: minmax"] {
+    grid-template-columns: 1fr;
+  }
+  /* Mirror the variant-aware @media block above so the editor's
+     phone-device preview reflects the same reflow. !important not
+     needed inside a container query because inline styles still win
+     by default; we rely on the same attribute selectors. */
+  .pl8-guest section#top > div[style*="min-height"],
+  .pl8-guest section#top > div[style*="minHeight"] {
+    min-height: min(520px, 60cqh);
+  }
+  .pl8-guest section#top > div[style*="grid-template-columns: 1.05fr"],
+  .pl8-guest section#top > div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .pl8-guest section#top > div[style*="scroll-snap-type"] > div {
+    width: min(220px, 70cqw);
+  }
+  .pl8-guest section#our-story > div > div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .pl8-guest section#our-story h3,
+  .pl8-guest section#our-story h2 {
+    font-size: clamp(22px, 9cqw, 30px);
+    line-height: 1.05;
+  }
+  .pl8-guest section#travel > div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr;
+  }
+  .pl8-guest section#travel table {
+    display: block;
+  }
+  .pl8-guest section#travel table thead { display: none; }
+  .pl8-guest section#travel table tr,
+  .pl8-guest section#travel table td { display: block; }
+  .pl8-guest section#registry > div[style*="grid-template-columns: 1fr 1fr"],
+  .pl8-guest section#registry > div[style*="grid-template-columns: repeat(3"],
+  .pl8-guest section#registry > div[style*="grid-template-columns: repeat(4"] {
+    grid-template-columns: 1fr;
+  }
+  .pl8-gallery-grid,
+  .pl8-guest section#gallery .pl8-gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 90px;
+  }
+  .pl8-gallery-wall,
+  .pl8-guest section#gallery .pl8-gallery-wall {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+  .pl8-gallery-strip-arrow { display: none; }
+  .pl8-guest section#gallery [class*="polaroid"],
+  .pl8-guest section#gallery > div[style*="rotate"] {
+    transform: none;
+  }
+  .pl8-guest section#rsvp > div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr;
+  }
+  .pl8-guest section#rsvp h2 {
+    font-size: clamp(28px, 10cqw, 40px);
+  }
+  .pl8-guest section#faq > div[style*="grid-template-columns: 1fr 1fr"],
+  .pl8-guest section#faq > div[style*="columns: 2"],
+  .pl8-guest section#faq > div[style*="column-count"] {
+    grid-template-columns: 1fr;
+    columns: 1;
+    column-count: 1;
+  }
+  /* Generic 2-3-4 column collapse inside the phone preview. */
+  .pl8-guest section > div[style*="grid-template-columns: repeat(2,"],
+  .pl8-guest section > div[style*="grid-template-columns: repeat(3,"],
+  .pl8-guest section > div[style*="grid-template-columns: repeat(4,"] {
     grid-template-columns: 1fr;
   }
 }

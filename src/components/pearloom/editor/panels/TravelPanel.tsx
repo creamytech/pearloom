@@ -637,6 +637,8 @@ export function TravelPanel({
             remains the canonical add path. */}
         <TravelMapSearch
           venueCity={logistics.venue}
+          venueLat={logistics.venueLat}
+          venueLng={logistics.venueLng}
           onAdd={(picked: MapSearchHotel) => {
             // MapSearchHotel maps 1-to-1 onto Hotel — the optional
             // fields the map picker doesn't populate (lat/lng,

@@ -107,6 +107,19 @@ import { PanelSearch, PearSuggestionsStrip } from './atoms';
 import { pearSuggestionsFor } from './panels/pear-suggestions';
 import { blockFillState, FILL_STATE_COLORS, siteProgressPct, type ScoredBlockKey } from '@/lib/site-progress';
 import { PearCommand } from './PearCommand';
+// ⌘K / Ctrl+K command palette — owns the global keystroke binding
+// and dispatches to flows. Mounts the same time as PearCommand
+// (the legacy AI palette); the two coordinate via the
+// `pearloom:open-pear-ai` event so ⌘K opens the new palette and
+// "Ask Pear (AI)" inside it falls through to PearCommand.
+import { CommandPalette, COMMAND_PALETTE_OPEN_EVENT } from './CommandPalette';
+// In-editor Theme Shop bottom sheet — lazy-loaded (~120KB) because
+// it's only opened on demand from the topbar "Browse themes"
+// button or the ⌘K "Open the theme shop" flow item.
+const EditorThemeShop = dynamic(
+  () => import('./EditorThemeShop').then((m) => ({ default: m.EditorThemeShop })),
+  { ssr: false },
+);
 // Lazy — DesignAdvisor is 48KB and returns null until the host
 // clicks the floating Pear pill, so the chunk loads only on
 // demand. Same Phase 3.4 lift as LibraryPanelV2.
@@ -450,6 +463,13 @@ export function EditorV8({
   // and reads back the resolved URL via publishedAt for the success
   // step's copy-link + share controls.
   const [publishModalOpen, setPublishModalOpen] = useState(false);
+
+  // EditorThemeShop bottom-sheet visibility. Opened from the
+  // topbar "Browse themes" ghost button + the ⌘K "Open the theme
+  // shop" flow item. Closes when the host picks/applies a pack
+  // or clicks the backdrop. The sheet owns its own preview-
+  // snapshot rollback so we just need a boolean here.
+  const [themeShopOpen, setThemeShopOpen] = useState(false);
 
   // If the site was already published before this session, hydrate
   // the live-URL pill from the manifest flag so the topbar shows
@@ -1076,6 +1096,11 @@ export function EditorV8({
           liveUrl={publishedAt?.url ?? null}
           onPublish={openPublishModal}
           onOpenAdvisor={() => setAdvisorOpen(true)}
+          onOpenThemeShop={() => setThemeShopOpen(true)}
+          onOpenCommandPalette={() => {
+            if (typeof window === 'undefined') return;
+            window.dispatchEvent(new CustomEvent(COMMAND_PALETTE_OPEN_EVENT));
+          }}
           canUndo={history.canUndo}
           canRedo={history.canRedo}
           onUndo={history.undo}
@@ -1252,6 +1277,51 @@ export function EditorV8({
         onOpenInvite={() => router.push(`/dashboard/invite?site=${encodeURIComponent(siteSlug)}`)}
         onOpenPreview={() => window.open(prettyPath, '_blank')}
         onPublish={openPublishModal}
+      />
+      {/* ⌘K / Ctrl+K command palette — owns the keyboard binding
+          (PearCommand defers to it on purpose). Sections list
+          mirrors the BLOCKS const above; flow callbacks bridge to
+          the editor's modal state (theme shop, settings modal,
+          decor library tab, publish modal, preview toggle). The
+          "Ask Pear (AI)" item dispatches `pearloom:open-pear-ai`
+          which PearCommand listens for. */}
+      <CommandPalette
+        manifest={manifest}
+        sections={BLOCKS.map((b) => ({ key: b.key, label: b.label, description: b.description }))}
+        onPatchManifest={onManifestChange}
+        onJumpSection={(k) => setBlock(k as BlockKey)}
+        onOpenThemeShop={() => setThemeShopOpen(true)}
+        onOpenDecorLibrary={() => {
+          // The decor library lives inside ThemePanel which mounts
+          // on the inspector's Theme tab. Flip the tab, then wait
+          // one render tick before scrolling its anchor into view
+          // — same pattern as the pearloom:design-jump handler.
+          setInspectorTab('theme');
+          setTimeout(() => {
+            const el = document.querySelector('[data-pl-design-anchor="decor-library"]');
+            el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 80);
+        }}
+        onOpenSettings={() => {
+          if (typeof window === 'undefined') return;
+          window.dispatchEvent(new CustomEvent('pearloom:open-settings', { detail: { tab: 'account' } }));
+        }}
+        onPublish={openPublishModal}
+        onTogglePreview={() => setPreviewMode((p) => !p)}
+        onOpenAskPear={() => {
+          if (typeof window === 'undefined') return;
+          window.dispatchEvent(new CustomEvent('pearloom:open-pear-ai'));
+        }}
+      />
+      {/* In-editor Theme Shop bottom sheet. Opens via the topbar
+          "Browse themes" button or the ⌘K "Open the theme shop"
+          flow. Sheet snapshots the manifest internally so previewing
+          a pack and closing without unlocking rolls back cleanly. */}
+      <EditorThemeShop
+        open={themeShopOpen}
+        onClose={() => setThemeShopOpen(false)}
+        manifest={manifest}
+        onChange={onManifestChange}
       />
       {/* PearCopilot + ThemeQuickBar are docked into the inspector
           rail's tabs now, so no floating instances live here. The
@@ -1639,6 +1709,8 @@ function EditorTopbar({
   liveUrl,
   onPublish,
   onOpenAdvisor,
+  onOpenThemeShop,
+  onOpenCommandPalette,
   canUndo,
   canRedo,
   onUndo,
@@ -1671,6 +1743,12 @@ function EditorTopbar({
   liveUrl: string | null;
   onPublish: () => void;
   onOpenAdvisor: () => void;
+  /** Opens the in-editor Theme Shop bottom sheet — wired to the
+   *  "Browse themes" ghost button in the topbar's right zone. */
+  onOpenThemeShop: () => void;
+  /** Pops the ⌘K command palette. Available as a topbar pill so
+   *  trackpad-only users + non-keyboard hosts can discover it. */
+  onOpenCommandPalette: () => void;
   canUndo: boolean;
   canRedo: boolean;
   onUndo: () => void;
@@ -1918,6 +1996,33 @@ function EditorTopbar({
         <PearNudges manifest={manifest} siteSlug={siteSlug} />
         <button type="button" onClick={onOpenAdvisor} className="pl8-ghost-btn" style={ghostBtn}>
           <Icon name="sparkles" size={12} /> Ask Pear
+        </button>
+        {/* Browse themes — opens the in-editor Theme Shop bottom
+            sheet. Sits between Pear and the command-palette pill
+            because it's a Design-flavoured action, not an AI one. */}
+        <button
+          type="button"
+          onClick={onOpenThemeShop}
+          className="pl8-ghost-btn"
+          style={ghostBtn}
+          title="Browse theme packs"
+          aria-label="Browse theme packs"
+        >
+          <Icon name="palette" size={12} /> Browse themes
+        </button>
+        {/* ⌘K command palette pill — keyboard hosts can hit ⌘K
+            directly; this button surfaces the same flow for
+            trackpad-only users + sells the shortcut. */}
+        <button
+          type="button"
+          onClick={onOpenCommandPalette}
+          className="pl8-icon-btn"
+          style={{ ...iconBtn, color: 'var(--ink-soft)' }}
+          title="Open the command palette (⌘K / Ctrl K)"
+          aria-label="Open the command palette"
+          aria-keyshortcuts="Meta+K Control+K"
+        >
+          <Icon name="search" size={13} />
         </button>
         <Link
           href={prettyPath}

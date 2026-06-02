@@ -231,9 +231,11 @@ export interface StoryManifest {
   travelInfo?: TravelInfo;
   // Real text samples from the couple — used to train the Ask the Couple AI chatbot
   voiceSamples?: string[];
-  // Public-site renderer version. 'v2' uses the editorial Alex-&-Jamie
-  // layout (SiteRendererV2); omitted or 'classic' uses the legacy
-  // block-driven renderer. Set on new wizard generations.
+  // Legacy renderer version flag — preserved for older DB rows + any
+  // downstream consumer that still keys off it. As of 2026-06-01,
+  // ThemedSiteRenderer is the only renderer; this field has no effect
+  // on rendering and is set to 'v2' on new wizard generations purely
+  // for backwards compatibility. See CLAUDE-PRODUCT.md §10.
   rendererVersion?: 'classic' | 'v2';
   // Free-canvas block order and visibility
   blocks?: PageBlock[];
