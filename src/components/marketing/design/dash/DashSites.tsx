@@ -38,7 +38,7 @@ const PATHS = [
   },
   {
     k: 'template',
-    href: '/marketplace?tab=templates',
+    href: '/store',
     icon: '❧',
     label: 'From a template',
     sub: 'Pick a hand-crafted mood, then swap the words for your own. Editorial, quiet, or loud.',
@@ -670,7 +670,7 @@ function EmptyInvitation() {
                 ✦ Start with Pear
               </Link>
               <Link
-                href="/marketplace?tab=templates"
+                href="/store"
                 style={{
                   background: 'transparent',
                   color: PD.ink,

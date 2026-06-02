@@ -176,7 +176,7 @@ export function UserNav({ user, onDashboard }: UserNavProps) {
               {[
                 { icon: LayoutDashboard, label: 'Dashboard', action: () => { setIsOpen(false); if (onDashboard) onDashboard(); else window.location.href = '/dashboard'; } },
                 { icon: LayoutGrid,      label: 'Gallery',   action: () => { setIsOpen(false); window.location.href = '/dashboard/gallery'; } },
-                { icon: ExternalLink,    label: 'Marketplace', action: () => { setIsOpen(false); window.location.href = '/marketplace'; } },
+                { icon: ExternalLink,    label: 'Theme Store', action: () => { setIsOpen(false); window.location.href = '/store'; } },
               ].map(({ icon: Icon, label, action }) => (
                 <button
                   key={label}

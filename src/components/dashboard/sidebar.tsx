@@ -65,7 +65,7 @@ const SECTIONS: NavSection[] = [
   {
     label: 'Grow',
     links: [
-      { href: '/marketplace',         label: 'Marketplace', icon: Store,      personality: 'morph' },
+      { href: '/store',               label: 'Theme Store', icon: Store,      personality: 'morph' },
       { href: '/dashboard/analytics', label: 'Analytics',   icon: BarChart3, personality: 'pulse' },
     ],
   },

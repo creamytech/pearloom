@@ -47,7 +47,7 @@ const NAV: NavGroup[] = [
   {
     group: 'THE HOUSE',
     items: [
-      { k: 'marketplace', l: 'Marketplace', i: '⛉', href: '/marketplace' },
+      { k: 'store',       l: 'Theme Store', i: '⛉', href: '/store' },
       { k: 'analytics',   l: 'Analytics',   i: '▲', href: '/dashboard/analytics', needsSite: true },
     ],
   },
@@ -78,7 +78,7 @@ export function DashShell({ children }: DashShellProps) {
   const pathname = useDashPathname() ?? '';
 
   // Auth redirect happens at the /dashboard/layout.tsx level now.
-  // Public dashboard surfaces (e.g. /marketplace) stay reachable.
+  // Public dashboard surfaces (e.g. /store) stay reachable.
   useEffect(() => {
     if (pathname.startsWith('/dashboard') && status === 'unauthenticated') {
       void signIn();

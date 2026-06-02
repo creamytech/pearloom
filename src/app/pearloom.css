@@ -7110,3 +7110,65 @@ html { scroll-behavior: smooth; }
 .pl8-pattern-layer:not([data-pl-pattern]) {
   background-image: none;
 }
+
+/* ──────────────────────────────────────────────────────────
+   Theme Store — pack-card hover lift + "Quick look" overlay.
+
+   .pl-store-card lifts on hover via translateY + shadow swap.
+   .pl-store-card-hover-veil is a black-tint pill that fades in
+   over the live preview when the card is hovered; clicking
+   anywhere on the card still opens QuickLook (the card itself
+   is the button).
+   ────────────────────────────────────────────────────────── */
+.pl-store-card {
+  transform: translateZ(0);
+}
+.pl-store-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(40, 28, 12, 0.10);
+}
+.pl-store-card:focus-visible {
+  outline: 2px solid var(--pl-olive, #5C6B3F);
+  outline-offset: 2px;
+}
+
+.pl-store-card-hover-veil {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(14, 13, 11, 0.32);
+  color: var(--pl-cream, #F5EFE2);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--pl-dur-base, 280ms) var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+.pl-store-card:hover .pl-store-card-hover-veil,
+.pl-store-card:focus-visible .pl-store-card-hover-veil {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-store-card,
+  .pl-store-card-hover-veil {
+    transition: none;
+  }
+  .pl-store-card:hover {
+    transform: none;
+  }
+}
+
+/* Featured-card hover lift (the editorial hero's preview tile). */
+.pl-store-featured-card {
+  transition: transform var(--pl-dur-base, 280ms) var(--pl-ease-out, ease);
+}
+.pl-store-featured-card:hover {
+  transform: translateY(-1px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-store-featured-card { transition: none; }
+  .pl-store-featured-card:hover { transform: none; }
+}

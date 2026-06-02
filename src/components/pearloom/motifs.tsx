@@ -1141,6 +1141,8 @@ function renderIconBody(
     case 'moon':          return <svg {...common}><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>;
     case 'lock':          return <svg {...common}><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>;
     case 'mic-wave':      return <svg {...common}><rect x="10" y="3" width="4" height="10" rx="2"/><path d="M6 11a6 6 0 0012 0M12 17v4"/></svg>;
+    case 'cart':          return <svg {...common}><circle cx="9" cy="20" r="1.4" fill={color}/><circle cx="18" cy="20" r="1.4" fill={color}/><path d="M3 4h2l2.5 12.5a2 2 0 002 1.5h8.5a2 2 0 002-1.6L21 8H6"/></svg>;
+    case 'trash':         return <svg {...common}><path d="M4 7h16M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13M10 11v6M14 11v6"/></svg>;
     default:              return <svg {...common}><circle cx="12" cy="12" r="9"/></svg>;
   }
 }

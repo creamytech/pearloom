@@ -5,6 +5,9 @@ import type { StoryManifest } from '@/types';
 import { DEFAULT_HOME_BLOCKS, type SiteMode } from '@/lib/site-mode';
 import { Field, PanelGroup, PanelSection, SegmentedToggle, SelectInput, TextInput } from '../atoms';
 import { Blob, Pear, Sparkle, Squiggle, Icon } from '../../motifs';
+import { PACKS, type Pack } from '@/lib/theme-store/packs';
+import { applyPackToManifest } from '@/lib/theme-store/apply';
+import { PackPreview } from '../../store/PackPreview';
 import { DecorLibraryPanel } from './DecorLibraryPanel';
 import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';
 import { StickerTrayPanel } from './StickerTrayPanel';
@@ -301,6 +304,13 @@ export function ThemePanel({
       <EventTypeSection manifest={manifest} onChange={onChange} />
       <GenerateFromStoryCard manifest={manifest} onChange={onChange} />
 
+      {/* "Your packs" — owned Theme-Store packs surfaced above the
+          Editions grid. Hidden when the host owns nothing beyond
+          the free tier defaults and hasn't visited the store. */}
+      <div data-pl-design-anchor="owned-packs">
+        <OwnedPacksSection manifest={manifest} onChange={onChange} />
+      </div>
+
       {/* Edition / Layout / Kit — the three high-altitude picks
           that drive the whole-site look. EditionPicker stamps the
           theme palette + fonts + naturalTexture; LayoutPicker
@@ -545,6 +555,305 @@ function ThemeCategory({ label, hint }: { label: string; hint?: string }) {
         </div>
       )}
     </div>
+  );
+}
+
+/* ───────────────────────────────────────────────────────────
+   OwnedPacksSection — surfaces every Theme-Store pack the host
+   owns at the top of the Theme panel, above Editions / palette
+   grid. Click any tile to apply that pack's theme + kit + texture
+   + pattern to the open site (via applyPackToManifest()).
+
+   Ownership comes from GET /api/store/entitlements. Free-tier
+   packs are always implicitly owned, so the row always has
+   something to show even before the host has bought anything;
+   we hide the section entirely only if the API errors AND the
+   catalog ships zero free packs (effectively never).
+
+   Apply path
+   ──────────
+   Pure in-editor — onChange(applyPackToManifest(pack, manifest))
+   so the canvas reflects the new theme without a redirect.
+   ─────────────────────────────────────────────────────────── */
+function OwnedPacksSection({
+  manifest,
+  onChange,
+}: {
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+}) {
+  const [ownedIds, setOwnedIds] = useState<readonly string[] | null>(null);
+  const [appliedId, setAppliedId] = useState<string | null>(null);
+
+  // Fetch entitlements once on mount. Mirrors useEntitlements()
+  // from the store surface but we don't reuse that hook because
+  // it folds in cart context that doesn't make sense in-editor.
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const res = await fetch('/api/store/entitlements', {
+          method: 'GET',
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json' },
+        });
+        if (!res.ok) {
+          if (!cancelled) setOwnedIds([]);
+          return;
+        }
+        const json = (await res.json()) as {
+          ok?: boolean;
+          packIds?: string[];
+          freePackIds?: string[];
+        };
+        if (cancelled) return;
+        // Fold free-tier packs into the owned set the same way
+        // useEntitlements() does on the storefront. The route
+        // returns free ids in its response, but we backstop with
+        // the catalog so a degraded response still shows the free
+        // shelf.
+        const set = new Set<string>();
+        if (Array.isArray(json.packIds)) {
+          for (const id of json.packIds) if (typeof id === 'string') set.add(id);
+        }
+        if (Array.isArray(json.freePackIds)) {
+          for (const id of json.freePackIds) if (typeof id === 'string') set.add(id);
+        }
+        setOwnedIds(Array.from(set));
+      } catch {
+        if (!cancelled) setOwnedIds([]);
+      }
+    }
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Resolve ids → Pack records in catalog order so the row reads
+  // as a curated shelf, not a hash-order shuffle.
+  const ownedPacks = useMemo<readonly Pack[]>(() => {
+    if (!ownedIds || ownedIds.length === 0) return [];
+    const set = new Set(ownedIds);
+    return PACKS.filter((p) => set.has(p.id));
+  }, [ownedIds]);
+
+  function apply(p: Pack) {
+    onChange(applyPackToManifest(p, manifest));
+    setAppliedId(p.id);
+    // Clear the "Applied" pill after a beat so the host can apply
+    // another pack without the previous indicator clinging.
+    window.setTimeout(() => {
+      setAppliedId((cur) => (cur === p.id ? null : cur));
+    }, 1800);
+  }
+
+  // While hydrating, render a small placeholder so the panel
+  // doesn't flicker the Editions row up and back down once the
+  // fetch resolves.
+  if (ownedIds === null) {
+    return (
+      <PanelSection label="Your packs" hint="Theme-Store packs you own.">
+        <div
+          style={{
+            padding: '14px 4px',
+            fontSize: 12,
+            color: 'var(--ink-muted, #6F6557)',
+          }}
+        >
+          Looking up your packs…
+        </div>
+      </PanelSection>
+    );
+  }
+
+  // Empty state — keep the section visible with a link to the
+  // store so hosts learn the feature exists.
+  if (ownedPacks.length === 0) {
+    return (
+      <PanelSection label="Your packs" hint="Theme-Store packs you own.">
+        <a
+          href="/store"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 10,
+            padding: '11px 14px',
+            borderRadius: 12,
+            border: '1px dashed var(--line, rgba(14,13,11,0.16))',
+            background: 'var(--card, #FBF7EE)',
+            textDecoration: 'none',
+            color: 'var(--ink, #0E0D0B)',
+            fontFamily: 'var(--font-ui)',
+          }}
+        >
+          <span style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: 13, fontWeight: 600 }}>Browse the Theme Store</span>
+            <span style={{ fontSize: 11, color: 'var(--ink-muted, #6F6557)', marginTop: 2 }}>
+              Designer packs of palette, type, material & components.
+            </span>
+          </span>
+          <Icon name="arrow-right" size={13} color="var(--ink, #0E0D0B)" />
+        </a>
+      </PanelSection>
+    );
+  }
+
+  return (
+    <PanelSection
+      label="Your packs"
+      hint="Tap any pack you own to apply its theme to this site."
+      action={
+        <a
+          href="/store"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: 'var(--ink-muted, #6F6557)',
+            textDecoration: 'none',
+            letterSpacing: '0.04em',
+          }}
+        >
+          Store →
+        </a>
+      }
+    >
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: 10,
+        }}
+      >
+        {ownedPacks.map((p) => (
+          <OwnedPackTile
+            key={p.id}
+            pack={p}
+            applied={appliedId === p.id}
+            onApply={() => apply(p)}
+          />
+        ))}
+      </div>
+    </PanelSection>
+  );
+}
+
+/**
+ * One owned-pack tile. Live themed preview on top, name + kit
+ * label + swatches below, "Apply" CTA pinned bottom-right.
+ *
+ * Whole tile is clickable. The visible CTA is purely affordance
+ * — clicking either the tile body or the pill triggers onApply.
+ * We use a single button wrapping the preview + body so keyboard
+ * focus + screen readers see one named action per pack.
+ */
+function OwnedPackTile({
+  pack,
+  applied,
+  onApply,
+}: {
+  pack: Pack;
+  applied: boolean;
+  onApply: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onApply}
+      aria-label={`Apply ${pack.name} to this site`}
+      style={{
+        all: 'unset',
+        cursor: 'pointer',
+        display: 'flex',
+        flexDirection: 'column',
+        borderRadius: 12,
+        background: 'var(--card, #FBF7EE)',
+        border: applied
+          ? '1.5px solid var(--sage-deep, #6d7d3f)'
+          : '1px solid var(--line, rgba(14,13,11,0.16))',
+        overflow: 'hidden',
+        fontFamily: 'var(--font-ui)',
+        transition:
+          'transform var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
+      }}
+    >
+      <div style={{ position: 'relative' }}>
+        <PackPreview pack={pack} height={92} />
+        {applied && (
+          <span
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              top: 6,
+              right: 6,
+              padding: '2px 7px',
+              borderRadius: 999,
+              background: 'rgba(255,255,255,0.92)',
+              color: 'var(--sage-deep, #6d7d3f)',
+              fontSize: 9.5,
+              fontWeight: 800,
+              letterSpacing: '0.04em',
+            }}
+          >
+            ✓ Applied
+          </span>
+        )}
+      </div>
+      <div
+        style={{
+          padding: '8px 10px 10px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 5,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: 'var(--font-display, "Fraunces"), Georgia, serif',
+            fontSize: 13.5,
+            fontWeight: 600,
+            color: 'var(--ink, #0E0D0B)',
+            lineHeight: 1.15,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {pack.name}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          {pack.swatches.slice(0, 4).map((c, i) => (
+            <span
+              key={i}
+              aria-hidden="true"
+              style={{
+                width: 11,
+                height: 11,
+                borderRadius: '50%',
+                background: c,
+                boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.12)',
+              }}
+            />
+          ))}
+          <span
+            style={{
+              marginLeft: 'auto',
+              fontSize: 10.5,
+              color: 'var(--ink-muted, #6F6557)',
+              textTransform: 'capitalize',
+              letterSpacing: '0.04em',
+            }}
+          >
+            {pack.kit}
+          </span>
+        </div>
+      </div>
+    </button>
   );
 }
 

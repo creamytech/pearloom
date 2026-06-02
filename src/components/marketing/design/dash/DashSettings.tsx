@@ -614,7 +614,7 @@ export function DashSettings() {
                 </p>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <a
-                    href="/marketplace"
+                    href="/store"
                     style={{ ...btnInk, background: PD.paper, color: PD.ink, textDecoration: 'none' }}
                   >
                     See plans

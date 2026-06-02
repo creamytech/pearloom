@@ -12,17 +12,12 @@ import type { StoryManifest } from '@/types';
 import { SITE_TEMPLATES, type SiteTemplate } from './wedding-templates';
 import { resolveTemplateDesign, hasTemplateDesign } from '@/components/pearloom/marketplace/template-themes';
 
-// Marketplace tile ids → SITE_TEMPLATES ids. Marketplace tiles and
-// SITE_TEMPLATES grew as separate registries with different naming
-// conventions; this table lets the user click a tile on /templates
-// and actually receive that template's motifs/poetry/theme at
-// generation time. Keep in sync with
-// src/components/pearloom/marketplace/template-matcher.ts.
-// Marketplace tile id → SITE_TEMPLATE id. Keep in sync with
-// src/components/pearloom/marketplace/template-matcher.ts. Every
-// occasion-specific tile must point to the SITE_TEMPLATE that ships
-// with the right blocks (itinerary, advice wall, etc) so the
-// generated site reflects the actual template promise.
+// Legacy marketplace tile ids → SITE_TEMPLATES ids. The marketplace
+// UI was retired in favour of the Theme Store at /store, but the
+// existing wizard + generation routes still pass through marketplace
+// tile ids that may have been stashed in URLs, drafts, or analytics.
+// This alias table keeps those ids resolving to the right
+// SITE_TEMPLATE (which carries the real motifs, poetry, blocks).
 const MARKETPLACE_ALIASES: Record<string, string> = {
   'wildflower-barn': 'ethereal-garden',
   'pearl-district': 'midnight-luxe',
