@@ -4190,9 +4190,9 @@ function PanelSwitch({
     case 'nav':
       return <NavPanel manifest={manifest} onChange={onChange} />;
     case 'hero':
-      return <HeroPanel manifest={manifest} names={names} onNamesChange={onNamesChange} onChange={onChange} />;
+      return <HeroPanel manifest={manifest} onChange={onChange} />;
     case 'story':
-      return <StoryPanel manifest={manifest} names={names} onChange={onChange} />;
+      return <StoryPanel manifest={manifest} onChange={onChange} />;
     case 'details':
       return <DetailsPanel manifest={manifest} onChange={onChange} />;
     case 'schedule':
@@ -4206,7 +4206,7 @@ function PanelSwitch({
     case 'rsvp':
       return <RsvpPanel manifest={manifest} onChange={onChange} />;
     case 'faq':
-      return <FaqPanel manifest={manifest} names={names} onChange={onChange} />;
+      return <FaqPanel manifest={manifest} onChange={onChange} />;
     case 'toasts':
       return <ToastsPanel manifest={manifest} names={names} onChange={onChange} />;
     case 'theme':
