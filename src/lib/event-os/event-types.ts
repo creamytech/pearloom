@@ -765,7 +765,16 @@ export function lookDefaultsFor(
 ): {
   density: 'cozy' | 'comfortable' | 'spacious';
   textureIntensity: number;
-  kitId: 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal';
+  kitId:
+    | 'classic'
+    | 'ticket'
+    | 'plate'
+    | 'scrapbook'
+    | 'index'
+    | 'minimal'
+    | 'arch'
+    | 'stamp'
+    | 'deco';
 } {
   const voice = getEventType(occasion)?.voice;
   switch (voice) {

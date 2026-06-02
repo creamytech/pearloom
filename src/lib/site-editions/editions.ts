@@ -54,6 +54,9 @@ export const EDITIONS: EditionDefinition[] = [
        mobile default for narrative-first sites. */
     recommendedNavStyle: 'centered-lockup',
     recommendedNavMobileStyle: 'drawer-hamburger',
+    /* Almanac → boxed — the bound-book / pressed-garden metaphor reads
+       best as a card on a mat; framing reinforces "made object". */
+    recommendedLayout: 'boxed',
     /* Almanac — warm cream paper, olive ink, Fraunces display +
        Inter body. Matches Pearloom's current v8 default so existing
        Almanac sites are byte-for-byte unchanged. Display weight
@@ -113,6 +116,9 @@ export const EDITIONS: EditionDefinition[] = [
        Hairline-collapsing keeps the hero dominant on mobile. */
     recommendedNavStyle: 'stacked-editorial',
     recommendedNavMobileStyle: 'hairline-collapsing',
+    /* Cinema → stacked — full-bleed letterboxed photos need an
+       unframed scroll to breathe; a card-on-mat would crop the drama. */
+    recommendedLayout: 'stacked',
     /* Cinema — dark theatre paper, cream ink, italic Cormorant
        Garamond display, gold accent. Sharp 2-3px radii. The
        prototype's Midnight Velvet sits here. Display weight 500
@@ -178,6 +184,9 @@ export const EDITIONS: EditionDefinition[] = [
        on mobile. */
     recommendedNavStyle: 'floating-pill',
     recommendedNavMobileStyle: 'sticky-bottom-pill',
+    /* Postcard Box → stacked — tilted polaroid stacks want full
+       width to scatter; the deep cream mat is already the chrome. */
+    recommendedLayout: 'stacked',
     /* Postcard Box — warm cream-deep paper, peach accent, italic
        Fraunces (display) + Caveat (script handwritten tags). Pillow
        24px radii to match the polaroid stack. The prototype's
@@ -245,6 +254,10 @@ export const EDITIONS: EditionDefinition[] = [
        uncluttered on mobile. */
     recommendedNavStyle: 'folio-page-number',
     recommendedNavMobileStyle: 'drawer-hamburger',
+    /* Linen Folder → split — hotel-stationery formal reads as the
+       sticky-sidebar lockup; left column carries names + program,
+       right column carries the schedule. */
+    recommendedLayout: 'split',
     /* Linen Folder — sun-bleached linen paper, deep navy ink,
        Cormorant Garamond upright (not italic) with gold accent.
        Sharp 5px radii. The prototype's Santorini Linen sits here.
@@ -302,6 +315,9 @@ export const EDITIONS: EditionDefinition[] = [
        crowded by chrome. */
     recommendedNavStyle: 'hairline-horizontal',
     recommendedNavMobileStyle: 'folded-expand',
+    /* Quiet → stacked — whitespace as the divider; framing chrome
+       would contradict the Edition's whole proposition. */
+    recommendedLayout: 'stacked',
     /* Modern Editorial — flat matte cream, near-black ink, single
        gold accent for high-contrast type. Prototype swatch reads
        black · gold · gray · cream so accent stops carry gold; no
@@ -358,6 +374,10 @@ export const EDITIONS: EditionDefinition[] = [
        horizon-line hero on mobile. */
     recommendedNavStyle: 'centered-lockup',
     recommendedNavMobileStyle: 'sticky-bottom-pill',
+    /* Coastal → boxed — deckled postcard framing carries through;
+       the card on a deeper-paper mat reads like a printed seaside
+       announcement. */
+    recommendedLayout: 'boxed',
     /* Coastal Ink — deckled cream paper, deep navy ink, sea-glass blue
        accent, gold hint. Cormorant Garamond display. Sharp 3px radii.
        Maps the prototype's Coastal Ink theme one-to-one. */

@@ -180,6 +180,17 @@ export interface EditionDefinition {
     | 'hairline-collapsing'
     | 'folded-expand';
 
+  /** Site Layout this Edition recommends. SiteLayoutPicker reads
+   *  this to badge the matching tile "★ Recommended" when the host
+   *  hasn't picked one explicitly. Maps to StoryManifest['siteLayout']:
+   *    Almanac      → boxed   (invitation card matches "bound book")
+   *    Cinema       → stacked (full-bleed letterbox needs the scroll)
+   *    Postcard Box → stacked (tilted cards scatter down the page)
+   *    Linen Folder → split   (sidebar matches hotel-stationery)
+   *    Quiet        → stacked (whitespace + restraint, no chrome)
+   *    Coastal Ink  → boxed   (postcard-card frame echoes the seaside) */
+  recommendedLayout?: 'stacked' | 'boxed' | 'split';
+
   /** Full visual identity each Edition recommends — palette, fonts,
    *  card-radius scale. Ported from the design prototype's THEMES
    *  registry where each theme replaced the WHOLE site look (paper

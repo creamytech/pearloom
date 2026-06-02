@@ -291,6 +291,22 @@ export interface StoryManifest {
      *  Surfaces on the editor's Decor tab as draggable tiles. */
     uploads?: Array<{ id: string; url: string; label: string; mime: 'image/svg+xml' | 'image/png'; addedAt: string }>;
   };
+  /** Hero monogram — couple/honoree initials in one of three frames.
+   *  Direct port of the prototype's MonogramTab crest generator
+   *  (ClaudeDesign/pages/decor-library.jsx). When set, the renderer
+   *  mounts a watermark in the hero's top-right corner. The editor's
+   *  Decor Library panel hosts the configurator.
+   *
+   *  - `initials`: free-text (e.g. 'E & J', 'EJ', 'Anna & Ben'). The
+   *    Monogram component normalises this to two initials at render
+   *    time. When omitted, falls back to manifest.names.
+   *  - `frame`: 'ring' (1.5px circle), 'diamond' (1.5px 45°-rotated
+   *    square), 'laurel' (curved branches with leaf ellipses), or
+   *    'none' (plain initials). */
+  monogram?: {
+    initials?: string;
+    frame?: 'ring' | 'diamond' | 'laurel' | 'none';
+  };
   /** Per-icon name override map. Drag any icon from the asset
    *  library onto a canvas glyph to write
    *  `iconOverrides[<originalName>] = <newName>`. The renderer
@@ -578,7 +594,7 @@ export interface StoryManifest {
    *  Driven by [data-pl-texture] on the site root + scoped CSS in
    *  pearloom.css. Independent of Edition so any Edition can wear
    *  any texture. */
-  texture?: 'none' | 'linen' | 'watercolor' | 'paper' | 'cotton' | 'velvet' | 'smooth' | 'letterpress' | 'vellum' | 'newsprint';
+  texture?: 'none' | 'linen' | 'watercolor' | 'paper' | 'cotton' | 'velvet' | 'smooth' | 'letterpress' | 'vellum' | 'newsprint' | 'kraft' | 'canvas' | 'marble' | 'gilded';
   /** Site Edition — pre-composed layout persona that picks a hero
    *  variant, section opener style, divider rhythm, block order,
    *  type scale, atmosphere intensity, and CTA shape in one click.
@@ -594,12 +610,59 @@ export interface StoryManifest {
    *    'invitation' — content sits on a card on a mat (framed)
    *    'split'      — sidebar lockup with fixed nav column
    *  Read by ThemedSiteRenderer as `data-pl-page-layout` on the
-   *  .pl8-guest root so CSS can scope the framing. */
+   *  .pl8-guest root so CSS can scope the framing.
+   *
+   *  Legacy alias of `siteLayout` below — production code shipped
+   *  this name before the prototype was reconciled. The renderer
+   *  resolves both fields with `siteLayout` winning when both are
+   *  set, then maps to the active enum. New code should write to
+   *  `siteLayout` (prototype-native naming); reads of `pageLayout`
+   *  remain supported indefinitely for existing manifests. */
   pageLayout?: 'classic' | 'invitation' | 'split';
+  /** Site Layout dial — direct port of the prototype's
+   *  `siteLayout` field on ThemedSite (themed-site.jsx, the LAYOUT
+   *  · WHOLE-PAGE FEEL dial). Three frames:
+   *    'stacked' — full scroll (default, unframed)
+   *    'boxed'   — the entire site sits as a single card on a mat;
+   *                root background mixes 14% ink into the section
+   *                color, inner column maxWidth 900 with rounded
+   *                corners and a 40px shadow
+   *    'split'   — sticky left sidebar lockup (35% column min 290px)
+   *                with the scrolling content on the right
+   *  Read by ThemedSiteRenderer as `data-pl-site-layout` on the
+   *  .pl8-guest root + as the class `pl8-layout-boxed` /
+   *  `pl8-layout-split` so CSS can scope both via attribute and
+   *  class. Independent of Edition (palette + fonts) and kitId
+   *  (row treatments). Collapses to 'stacked' on viewports <= 720px
+   *  (split + boxed both fold to the scroll layout on phones). */
+  siteLayout?: 'stacked' | 'boxed' | 'split';
   /** Motifs on/off — binary toggle the prototype's Fine-tune
    *  section exposes. When false, the renderer suppresses
    *  MotifScatter and per-Edition decor flourishes. */
   motifsEnabled?: boolean;
+  /** PatternLayer — bold decorative print BEHIND content
+   *  (zIndex 0). Tinted from the theme's accent / gold via
+   *  color-mix() so it reskins per Edition. Distinct from
+   *  TextureLayer (a material grain that sits on top). Direct
+   *  port of the prototype's PatternLayer (themes.jsx §3b).
+   *  Mounted as the first child of .pl8-guest in
+   *  ThemedSiteRenderer; CSS lives in pearloom.css under the
+   *  "── PatternLayer ──" section, scoped to
+   *  .pl8-pattern-layer[data-pl-pattern="<id>"]. */
+  pattern?:
+    | 'none'
+    | 'gingham'
+    | 'stripe'
+    | 'cabana'
+    | 'diagonal'
+    | 'dots'
+    | 'grid'
+    | 'deco'
+    | 'scallop'
+    | 'wave'
+    | 'confetti'
+    | 'terrazzo'
+    | 'celestial';
   /** Texture intensity — multiplier applied to the texture grain
    *  overlay opacity. 0 = no grain (smooth even when a material is
    *  picked), 1 = default, up to 1.5 = exaggerated. Lets hosts
@@ -644,8 +707,26 @@ export interface StoryManifest {
    *  KGallery — that change BOTH styling and ARRANGEMENT
    *  (e.g. ticket = perforated stub rows; plate = Roman-numeral
    *  count + dotted leader; scrapbook = tilted polaroids). See
-   *  CLAUDE-PRODUCT.md §10 (2026-05-30 entry, Phase 4). */
-  kitId?: 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal';
+   *  CLAUDE-PRODUCT.md §10 (2026-05-30 entry, Phase 4).
+   *
+   *  Three additional kits ported from the prototype (kits.jsx):
+   *    arch    — top-arched cards with soft domes; arched divider
+   *              halo; chip with arched top corners
+   *    stamp   — postage frame cards (border + dotted outline);
+   *              dotted-rule divider with circular postmark pin
+   *    deco    — gold triple-inset frames; three rotated gold
+   *              diamonds at the divider center; uppercase chip
+   */
+  kitId?:
+    | 'classic'
+    | 'ticket'
+    | 'plate'
+    | 'scrapbook'
+    | 'index'
+    | 'minimal'
+    | 'arch'
+    | 'stamp'
+    | 'deco';
   /** Toggles for the public RSVP form. Both default ON if absent
    *  (legacy behaviour). plusOnes hides the "+1?" field on the
    *  passport invite link; songRequests hides the SongCard on

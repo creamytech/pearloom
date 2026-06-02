@@ -68,6 +68,15 @@ const KIT_TO_MOTIF: Record<KitId, string> = {
   scrapbook: 'tape',
   index: 'none',
   minimal: 'none',
+  /* Arched cards live close to wax-seal monograms — soft domes
+     pair with the curved monogram cartouche. */
+  arch: 'monogram',
+  /* Stamp is literally a postage frame — the stamp motif is its
+     direct visual sibling. */
+  stamp: 'stamp',
+  /* Deco's gold geometric frames echo the monogram cartouche
+     more than tape or stamps; pair with monogram. */
+  deco: 'monogram',
 };
 
 /* ── Voice override → Studio CopyTone ──

@@ -59,3 +59,5 @@ next-env.d.ts
 /playwright-report/
 .tmp/
 e2e/.screenshots/
+# Local prototype reference — do not commit (15K+ lines of HTML/JSX prototype source)
+ClaudeDesign/

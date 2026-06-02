@@ -4104,7 +4104,11 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-texture="linen"],
 .pl8-guest[data-pl-texture="paper"],
 .pl8-guest[data-pl-texture="cotton"],
-.pl8-guest[data-pl-texture="velvet"] {
+.pl8-guest[data-pl-texture="velvet"],
+.pl8-guest[data-pl-texture="kraft"],
+.pl8-guest[data-pl-texture="canvas"],
+.pl8-guest[data-pl-texture="marble"],
+.pl8-guest[data-pl-texture="gilded"] {
   position: relative;
   isolation: isolate;
 }
@@ -4112,7 +4116,11 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-texture="linen"] > *,
 .pl8-guest[data-pl-texture="paper"] > *,
 .pl8-guest[data-pl-texture="cotton"] > *,
-.pl8-guest[data-pl-texture="velvet"] > * {
+.pl8-guest[data-pl-texture="velvet"] > *,
+.pl8-guest[data-pl-texture="kraft"] > *,
+.pl8-guest[data-pl-texture="canvas"] > *,
+.pl8-guest[data-pl-texture="marble"] > *,
+.pl8-guest[data-pl-texture="gilded"] > * {
   position: relative;
   z-index: 2;
 }
@@ -4120,7 +4128,11 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-texture="linen"]::before,
 .pl8-guest[data-pl-texture="paper"]::before,
 .pl8-guest[data-pl-texture="cotton"]::before,
-.pl8-guest[data-pl-texture="velvet"]::before {
+.pl8-guest[data-pl-texture="velvet"]::before,
+.pl8-guest[data-pl-texture="kraft"]::before,
+.pl8-guest[data-pl-texture="canvas"]::before,
+.pl8-guest[data-pl-texture="marble"]::before,
+.pl8-guest[data-pl-texture="gilded"]::before {
   content: '';
   /* Was position: fixed which leaked the grain onto the editor's
      sidebars (fixed ignores parent boundaries). Now scoped to
@@ -4278,6 +4290,129 @@ html { scroll-behavior: smooth; }
   filter: url(#t-mottle);
   background: var(--cream, transparent);
   opacity: calc(0.30 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: soft-light;
+}
+
+/* KRAFT — port of prototype TextureLayer 'kraft' (themes.jsx
+   ~309): t-mottle at multiply 0.28 + t-weave at soft-light 0.3
+   + t-grain at multiply 0.2. Reads as warm recycled paper —
+   coarser mottle than 'paper', lower-fi than 'cotton'. Three
+   stacked overlays: ::before mottle (multiply), ::after weave
+   (soft-light), and a third grain layer composed into ::before
+   via background blend. To stay within 2 pseudo-elements we
+   stack mottle + grain into ::before with mix-blend-mode
+   multiply and put the weave on ::after with soft-light. */
+.pl8-guest[data-pl-texture="kraft"]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  filter: url(#t-mottle);
+  background: var(--cream, transparent);
+  opacity: calc(0.28 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: multiply;
+}
+.pl8-guest[data-pl-texture="kraft"]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 101;
+  filter: url(#t-weave);
+  background: var(--cream, transparent);
+  opacity: calc(0.30 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: soft-light;
+}
+
+/* CANVAS — port of prototype TextureLayer 'canvas' (themes.jsx
+   ~319): overlay grid stripes (0.55 opacity, 3px × 3px crossed
+   1px lines) + t-weave at soft-light 0.35. Reads as primed
+   artist's canvas — visible warp/weft grid sized for the eye. */
+.pl8-guest[data-pl-texture="canvas"]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.10) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 1px, transparent 1px 3px);
+  background-size: 3px 3px, 3px 3px;
+  opacity: calc(0.55 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: overlay;
+}
+.pl8-guest[data-pl-texture="canvas"]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 101;
+  filter: url(#t-weave);
+  background: var(--cream, transparent);
+  opacity: calc(0.35 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: soft-light;
+}
+
+/* MARBLE — port of prototype TextureLayer 'marble' (themes.jsx
+   ~329): t-wash multiply 0.5 over a repeating 58deg ink-tint
+   gradient + radial pool, plus t-watercolor soft-light 0.4 over
+   a white-stripe gradient. Reads as a veined slab. Prototype
+   uses color-mix(--t-ink) tints; production stands in with
+   rgba versions of --pl-ink (#0E0D0B → 12% / 9%). The wider
+   inset:-20% in the prototype keeps the displaced strokes from
+   clipping at edges — we honour that with inset: -20%. */
+.pl8-guest[data-pl-texture="marble"]::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  z-index: 100;
+  background:
+    repeating-linear-gradient(58deg, transparent 0 26px, rgba(14,13,11,0.12) 26px 27px, transparent 27px 62px),
+    radial-gradient(42% 30% at 30% 24%, rgba(14,13,11,0.09), transparent 70%);
+  filter: url(#t-wash);
+  opacity: calc(0.5 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: multiply;
+}
+.pl8-guest[data-pl-texture="marble"]::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  z-index: 101;
+  background: repeating-linear-gradient(58deg, transparent 0 46px, rgba(255,255,255,0.55) 46px 48px, transparent 48px 94px);
+  filter: url(#t-watercolor);
+  opacity: calc(0.4 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: soft-light;
+}
+
+/* GILDED — port of prototype TextureLayer 'gilded' (themes.jsx
+   ~340): 120deg gold-accent linear gradient at overlay 0.5 (the
+   prototype uses color-mix(in oklab, --t-gold 62%, transparent)
+   on the middle stop — production hardcodes #B89244 at 0.62
+   alpha to match), plus t-mottle soft-light 0.18 + t-grain
+   multiply 0.12. Reads as warm metallic foil catching the
+   light from upper-left. */
+.pl8-guest[data-pl-texture="gilded"]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  background: linear-gradient(120deg, transparent 22%, rgba(184,146,68,0.62) 48%, transparent 64%);
+  opacity: calc(0.5 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: overlay;
+}
+.pl8-guest[data-pl-texture="gilded"]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 101;
+  filter: url(#t-mottle);
+  background: var(--cream, transparent);
+  opacity: calc(0.18 * var(--pl-texture-intensity, 1));
   mix-blend-mode: soft-light;
 }
 
@@ -4747,14 +4882,22 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-texture="linen"] *,
 .pl8-guest[data-pl-texture="letterpress"] *,
 .pl8-guest[data-pl-texture="vellum"] *,
-.pl8-guest[data-pl-texture="newsprint"] * {
+.pl8-guest[data-pl-texture="newsprint"] *,
+.pl8-guest[data-pl-texture="kraft"] *,
+.pl8-guest[data-pl-texture="canvas"] *,
+.pl8-guest[data-pl-texture="marble"] *,
+.pl8-guest[data-pl-texture="gilded"] * {
   animation-duration: 0s !important;
 }
 .pl8-guest[data-pl-texture="watercolor"] *,
 .pl8-guest[data-pl-texture="linen"] *,
 .pl8-guest[data-pl-texture="letterpress"] *,
 .pl8-guest[data-pl-texture="vellum"] *,
-.pl8-guest[data-pl-texture="newsprint"] * {
+.pl8-guest[data-pl-texture="newsprint"] *,
+.pl8-guest[data-pl-texture="kraft"] *,
+.pl8-guest[data-pl-texture="canvas"] *,
+.pl8-guest[data-pl-texture="marble"] *,
+.pl8-guest[data-pl-texture="gilded"] * {
   transition-duration: 80ms !important;
 }
 
@@ -4927,6 +5070,88 @@ html { scroll-behavior: smooth; }
   font-weight: 500 !important;
 }
 
+/* ── ARCH ──
+   Arched-top cards: 24px top corners, hairline outline, soft
+   shadow. Port of prototype kits.jsx line 90 — `border: 1px solid
+   var(--t-line), borderRadius: 24px 24px var(--t-radius)
+   var(--t-radius), boxShadow: var(--t-shadow)`. Soft dome feel. */
+.pl8-guest[data-pl-kit="arch"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="arch"] .pl8-chapter-row,
+.pl8-guest[data-pl-kit="arch"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="arch"] .pl8-faq-row {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: 1px solid var(--pl-divider, #D8CFB8) !important;
+  /* 24px arched top corners, smaller radius on bottom */
+  border-radius: 24px 24px var(--pl-radius-md, 0.5rem) var(--pl-radius-md, 0.5rem) !important;
+  box-shadow: 0 4px 16px rgba(40,28,12,0.06) !important;
+}
+/* Time pill picks up the arched shape — round top, modest bottom */
+.pl8-guest[data-pl-kit="arch"] .pl8-schedule-time,
+.pl8-guest[data-pl-kit="arch"] .pl8-time-pill {
+  border-radius: 999px 999px 6px 6px !important;
+}
+
+/* ── STAMP ──
+   Postage-stamp frame: 5px solid mat-color frame + 2px dotted
+   outline pulled in 9px (creates the classic stamp perforation
+   feel). Port of prototype kits.jsx line 91 — `border: 5px solid
+   var(--t-card), outline: 2px dotted ..., outlineOffset: -9px`. */
+.pl8-guest[data-pl-kit="stamp"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="stamp"] .pl8-chapter-row,
+.pl8-guest[data-pl-kit="stamp"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="stamp"] .pl8-faq-row {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  /* Solid 5px mat in the card color = the stamp's white border */
+  border: 5px solid var(--pl-cream-card, #FBF7EE) !important;
+  border-radius: 3px !important;
+  /* The inner dotted ring sits 9px inside the outer edge — gives
+     the perforated postage look. Outline doesn't take up layout
+     space, just paints. */
+  outline: 2px dotted color-mix(in oklab, var(--pl-ink, #0E0D0B) 34%, transparent) !important;
+  outline-offset: -9px !important;
+  box-shadow: 0 5px 16px rgba(0,0,0,0.10) !important;
+}
+/* Stamp chip / time pill: inherits the postage frame */
+.pl8-guest[data-pl-kit="stamp"] .pl8-time-pill {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: 3px solid var(--pl-cream-card, #FBF7EE) !important;
+  outline: 1.5px dotted color-mix(in oklab, var(--pl-ink, #0E0D0B) 34%, transparent) !important;
+  outline-offset: -6px !important;
+  border-radius: 2px !important;
+}
+
+/* ── DECO ──
+   Gold triple-inset frames + uppercase, geometric. Port of
+   prototype kits.jsx line 92 — `boxShadow: inset 0 0 0 1px
+   var(--t-gold), inset 0 0 0 4px var(--t-card), inset 0 0 0 5px
+   color-mix(in oklab, var(--t-gold) 55%, transparent)`. */
+.pl8-guest[data-pl-kit="deco"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="deco"] .pl8-chapter-row,
+.pl8-guest[data-pl-kit="deco"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="deco"] .pl8-faq-row {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: none !important;
+  border-radius: 1px !important;
+  /* Triple-inset gold frame — outer 1px gold, 3px card breathing
+     room, then a softer gold echo at 5px. */
+  box-shadow:
+    inset 0 0 0 1px var(--pl-gold, #B8935A),
+    inset 0 0 0 4px var(--pl-cream-card, #FBF7EE),
+    inset 0 0 0 5px color-mix(in oklab, var(--pl-gold, #B8935A) 55%, transparent) !important;
+}
+/* Deco time pills wear the same gold inset + uppercase tracking */
+.pl8-guest[data-pl-kit="deco"] .pl8-time-pill,
+.pl8-guest[data-pl-kit="deco"] .pl8-schedule-time {
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  font-size: 0.74rem !important;
+  font-weight: 600 !important;
+  box-shadow: inset 0 0 0 1px var(--pl-gold, #B8935A) !important;
+  border-radius: 0 !important;
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: none !important;
+}
+
 /* ── Per-kit visual cascade — DIVIDERS ──
    The EditionDivider components render with .pl8-divider so each
    kit can re-paint the rule between sections without forking the
@@ -4983,6 +5208,83 @@ html { scroll-behavior: smooth; }
   background-image: none !important;
   height: 0 !important;
   margin-block: clamp(48px, 8vw, 96px) !important;
+}
+
+/* ARCH divider — hairline rule with a small arched dome at the
+   center. The dome is painted via ::after as a top-rounded
+   border (no bottom edge), accent-colored. Mirrors prototype
+   line 64. */
+.pl8-guest[data-pl-kit="arch"] .pl8-divider {
+  background: var(--pl-divider, #D8CFB8) !important;
+  background-image: none !important;
+  height: 1px !important;
+  opacity: 1 !important;
+  position: relative;
+  overflow: visible !important;
+}
+.pl8-guest[data-pl-kit="arch"] .pl8-divider::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -100%);
+  width: 22px;
+  height: 11px;
+  border: 1.5px solid var(--pl-olive, #5C6B3F);
+  border-bottom: none;
+  border-radius: 11px 11px 0 0;
+  background: transparent;
+}
+
+/* STAMP divider — dotted rule, circular postmark pin centered.
+   Mirrors prototype line 66-67. */
+.pl8-guest[data-pl-kit="stamp"] .pl8-divider {
+  background: transparent !important;
+  background-image: none !important;
+  border-top: 2px dotted var(--pl-divider, #D8CFB8) !important;
+  height: 0 !important;
+  opacity: 1 !important;
+  position: relative;
+  overflow: visible !important;
+}
+.pl8-guest[data-pl-kit="stamp"] .pl8-divider::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -50%);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--pl-olive, #5C6B3F);
+  background: var(--pl-cream, #F5EFE2);
+}
+
+/* DECO divider — gold rule on either side of three small rotated
+   gold diamonds in the center. Mirrors prototype line 69-70.
+   Three diamonds rendered as ◇◇◇ Unicode glyphs in gold; the
+   gold rule sits behind them, so they read as a tiny crest in
+   the center of a hairline. */
+.pl8-guest[data-pl-kit="deco"] .pl8-divider {
+  background: transparent !important;
+  background-image: none !important;
+  height: 0 !important;
+  border-top: 1px solid var(--pl-gold, #B8935A) !important;
+  opacity: 1 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  overflow: visible !important;
+}
+.pl8-guest[data-pl-kit="deco"] .pl8-divider::before {
+  content: '◇ ◇ ◇';
+  color: var(--pl-gold, #B8935A);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  background: var(--pl-cream, #F5EFE2);
+  padding: 0 0.5em;
+  line-height: 1;
+  display: inline-block;
 }
 
 /* ── Edition divider scroll-reveal ──────────────────────────────
@@ -5122,6 +5424,35 @@ html { scroll-behavior: smooth; }
   letter-spacing: 0.36em !important;
   color: var(--pl-muted, #6F6557);
   opacity: 0.85;
+}
+/* ARCH eyebrow — accent-colored micro-arch underline echoing the
+   dome motif of the divider. */
+.pl8-guest[data-pl-kit="arch"] :where(.eyebrow, .pl-overline) {
+  display: inline-block;
+  padding: 2px 12px;
+  border: 1px solid var(--pl-divider, #D8CFB8);
+  border-radius: 999px 999px 4px 4px;
+  background: var(--pl-cream-card, #FBF7EE);
+  color: var(--pl-olive, #5C6B3F);
+}
+/* STAMP eyebrow — postage-frame mini, monospaced label feel. */
+.pl8-guest[data-pl-kit="stamp"] :where(.eyebrow, .pl-overline) {
+  display: inline-block;
+  padding: 3px 10px;
+  background: var(--pl-cream-card, #FBF7EE);
+  border: 2px solid var(--pl-cream-card, #FBF7EE);
+  outline: 1.5px dotted color-mix(in oklab, var(--pl-ink, #0E0D0B) 34%, transparent);
+  outline-offset: -4px;
+  font-family: var(--pl-font-mono, 'Courier New', monospace) !important;
+}
+/* DECO eyebrow — uppercase gold, wide tracking, gold underline. */
+.pl8-guest[data-pl-kit="deco"] :where(.eyebrow, .pl-overline) {
+  letter-spacing: 0.32em !important;
+  text-transform: uppercase !important;
+  color: var(--pl-gold, #B8935A);
+  border-bottom: 1px solid var(--pl-gold, #B8935A);
+  padding-bottom: 3px;
+  display: inline-block;
 }
 
 /* ── Per-kit visual cascade — TIME PILLS (light pass) ──
@@ -5689,6 +6020,38 @@ html { scroll-behavior: smooth; }
   border-bottom: none !important;
 }
 
+/* ARCH — top-arched FAQ card */
+.pl8-guest[data-pl-kit="arch"] .pl8-faq-row {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: 1px solid var(--pl-divider, #D8CFB8) !important;
+  border-radius: 24px 24px var(--pl-radius-md, 0.5rem) var(--pl-radius-md, 0.5rem) !important;
+  box-shadow: 0 4px 16px rgba(40,28,12,0.06) !important;
+  padding: 16px 22px !important;
+}
+
+/* STAMP — postage-frame FAQ card */
+.pl8-guest[data-pl-kit="stamp"] .pl8-faq-row {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: 5px solid var(--pl-cream-card, #FBF7EE) !important;
+  border-radius: 3px !important;
+  outline: 2px dotted color-mix(in oklab, var(--pl-ink, #0E0D0B) 34%, transparent) !important;
+  outline-offset: -9px !important;
+  box-shadow: 0 5px 16px rgba(0,0,0,0.10) !important;
+  padding: 18px 22px !important;
+}
+
+/* DECO — gold triple-inset frame FAQ card, uppercase question label */
+.pl8-guest[data-pl-kit="deco"] .pl8-faq-row {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: none !important;
+  border-radius: 1px !important;
+  box-shadow:
+    inset 0 0 0 1px var(--pl-gold, #B8935A),
+    inset 0 0 0 4px var(--pl-cream-card, #FBF7EE),
+    inset 0 0 0 5px color-mix(in oklab, var(--pl-gold, #B8935A) 55%, transparent) !important;
+  padding: 16px 24px !important;
+}
+
 /* ─────────────────────────────────────────────────────────
    Phase 4 — per-kit Hotel (Travel) row layouts.
    Same pattern as schedule + FAQ. Each kit restructures the
@@ -5762,6 +6125,35 @@ html { scroll-behavior: smooth; }
   box-shadow: none !important;
 }
 
+/* ARCH — top-arched hotel card */
+.pl8-guest[data-pl-kit="arch"] .pl8-hotel-row {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: 1px solid var(--pl-divider, #D8CFB8) !important;
+  border-radius: 24px 24px var(--pl-radius-md, 0.5rem) var(--pl-radius-md, 0.5rem) !important;
+  box-shadow: 0 4px 16px rgba(40,28,12,0.06) !important;
+}
+
+/* STAMP — postage-frame hotel card */
+.pl8-guest[data-pl-kit="stamp"] .pl8-hotel-row {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: 5px solid var(--pl-cream-card, #FBF7EE) !important;
+  border-radius: 3px !important;
+  outline: 2px dotted color-mix(in oklab, var(--pl-ink, #0E0D0B) 34%, transparent) !important;
+  outline-offset: -9px !important;
+  box-shadow: 0 5px 16px rgba(0,0,0,0.10) !important;
+}
+
+/* DECO — triple-inset gold frame hotel card */
+.pl8-guest[data-pl-kit="deco"] .pl8-hotel-row {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: none !important;
+  border-radius: 1px !important;
+  box-shadow:
+    inset 0 0 0 1px var(--pl-gold, #B8935A),
+    inset 0 0 0 4px var(--pl-cream-card, #FBF7EE),
+    inset 0 0 0 5px color-mix(in oklab, var(--pl-gold, #B8935A) 55%, transparent) !important;
+}
+
 /* ─────────────────────────────────────────────────────────
    Phase 4 — per-kit Story chapter cards + Gallery tile layouts.
    Final two pieces for full Phase 4 coverage. Same pattern as
@@ -5821,6 +6213,32 @@ html { scroll-behavior: smooth; }
   border-radius: 0 !important;
   box-shadow: none !important;
 }
+/* ARCH chapter — top-arched chapter card */
+.pl8-guest[data-pl-kit="arch"] .pl8-chapter-row {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: 1px solid var(--pl-divider, #D8CFB8) !important;
+  border-radius: 24px 24px var(--pl-radius-md, 0.5rem) var(--pl-radius-md, 0.5rem) !important;
+  box-shadow: 0 4px 16px rgba(40,28,12,0.06) !important;
+}
+/* STAMP chapter — postage-frame chapter card */
+.pl8-guest[data-pl-kit="stamp"] .pl8-chapter-row {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: 5px solid var(--pl-cream-card, #FBF7EE) !important;
+  border-radius: 3px !important;
+  outline: 2px dotted color-mix(in oklab, var(--pl-ink, #0E0D0B) 34%, transparent) !important;
+  outline-offset: -9px !important;
+  box-shadow: 0 5px 16px rgba(0,0,0,0.10) !important;
+}
+/* DECO chapter — triple-inset gold frame */
+.pl8-guest[data-pl-kit="deco"] .pl8-chapter-row {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: none !important;
+  border-radius: 1px !important;
+  box-shadow:
+    inset 0 0 0 1px var(--pl-gold, #B8935A),
+    inset 0 0 0 4px var(--pl-cream-card, #FBF7EE),
+    inset 0 0 0 5px color-mix(in oklab, var(--pl-gold, #B8935A) 55%, transparent) !important;
+}
 
 /* ── GALLERY TILE per-kit ──
    Each kit gives gallery photos a distinct edge treatment. */
@@ -5859,6 +6277,31 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="minimal"] .pl8-gallery-tile {
   border-radius: 0 !important;
   box-shadow: none !important;
+}
+
+/* ARCH gallery — top-arched photo tiles, soft shadow */
+.pl8-guest[data-pl-kit="arch"] .pl8-gallery-tile {
+  border-radius: 24px 24px var(--pl-radius-md, 0.5rem) var(--pl-radius-md, 0.5rem) !important;
+  box-shadow: 0 4px 16px rgba(40,28,12,0.06) !important;
+  overflow: hidden;
+}
+
+/* STAMP gallery — postage-frame tiles with dotted inner outline */
+.pl8-guest[data-pl-kit="stamp"] .pl8-gallery-tile {
+  border: 5px solid var(--pl-cream-card, #FBF7EE) !important;
+  border-radius: 3px !important;
+  outline: 2px dotted color-mix(in oklab, var(--pl-ink, #0E0D0B) 34%, transparent) !important;
+  outline-offset: -9px !important;
+  box-shadow: 0 5px 16px rgba(0,0,0,0.10) !important;
+}
+
+/* DECO gallery — gold triple-inset frames */
+.pl8-guest[data-pl-kit="deco"] .pl8-gallery-tile {
+  border-radius: 1px !important;
+  box-shadow:
+    inset 0 0 0 1px var(--pl-gold, #B8935A),
+    inset 0 0 0 4px var(--pl-cream-card, #FBF7EE),
+    inset 0 0 0 5px color-mix(in oklab, var(--pl-gold, #B8935A) 55%, transparent) !important;
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -5943,6 +6386,38 @@ html { scroll-behavior: smooth; }
   border-bottom: 1px solid var(--pl-divider, #D8CFB8) !important;
   border-radius: 0 !important;
   box-shadow: none !important;
+}
+
+/* ARCH details/registry — top-arched lift cards */
+.pl8-guest[data-pl-kit="arch"] section#registry .pl8-card-lift,
+.pl8-guest[data-pl-kit="arch"] section#details .pl8-card-lift {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: 1px solid var(--pl-divider, #D8CFB8) !important;
+  border-radius: 24px 24px var(--pl-radius-md, 0.5rem) var(--pl-radius-md, 0.5rem) !important;
+  box-shadow: 0 4px 16px rgba(40,28,12,0.06) !important;
+}
+
+/* STAMP details/registry — postage-frame lift cards */
+.pl8-guest[data-pl-kit="stamp"] section#registry .pl8-card-lift,
+.pl8-guest[data-pl-kit="stamp"] section#details .pl8-card-lift {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: 5px solid var(--pl-cream-card, #FBF7EE) !important;
+  border-radius: 3px !important;
+  outline: 2px dotted color-mix(in oklab, var(--pl-ink, #0E0D0B) 34%, transparent) !important;
+  outline-offset: -9px !important;
+  box-shadow: 0 5px 16px rgba(0,0,0,0.10) !important;
+}
+
+/* DECO details/registry — triple-inset gold frame lift cards */
+.pl8-guest[data-pl-kit="deco"] section#registry .pl8-card-lift,
+.pl8-guest[data-pl-kit="deco"] section#details .pl8-card-lift {
+  background: var(--pl-cream-card, #FBF7EE) !important;
+  border: none !important;
+  border-radius: 1px !important;
+  box-shadow:
+    inset 0 0 0 1px var(--pl-gold, #B8935A),
+    inset 0 0 0 4px var(--pl-cream-card, #FBF7EE),
+    inset 0 0 0 5px color-mix(in oklab, var(--pl-gold, #B8935A) 55%, transparent) !important;
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -6108,6 +6583,193 @@ html { scroll-behavior: smooth; }
   }
 }
 
+/* ─────────────────────────────────────────────────────────
+   ── Site Layout ──
+   Direct port of the prototype's `siteLayout` dial on
+   ThemedSite (themed-site.jsx, the LAYOUT · WHOLE-PAGE FEEL
+   block). Three frames:
+     stacked  — full scroll (default, unframed). No rules
+                needed; the .pl8-guest base styles already
+                paint the stacked frame.
+     boxed    — the entire site sits as a single card on a
+                mat. Root background mixes 14% ink into the
+                section color; inner content sits in a
+                maxWidth 900px column with 4px radius +
+                40px shadow + 1px hairline border. Faithful
+                port of themed-site.jsx lines 195-204.
+     split    — sticky-left sidebar lockup (35% column min
+                290px), scrolling content on the right with
+                a 1px line border between. Faithful port of
+                themed-site.jsx lines 177-191.
+   Two selector axes: data-pl-site-layout attribute (the
+   prototype-native naming) AND .pl8-layout-{boxed,split}
+   classes (matches the prototype's class-based scope). Both
+   target the same rules — components can use whichever reads
+   cleaner.
+
+   Mobile collapse — both boxed and split fold to stacked on
+   <= 720px viewports per the prototype's responsive guidance.
+   The CSS rules below are wrapped in @media (min-width: 721px)
+   so they only fire on tablet + desktop.
+   ───────────────────────────────────────────────────────── */
+
+/* ── Boxed: the whole site as a card on a mat ──
+   The prototype wraps EVERYTHING (including the nav) in one
+   maxWidth 900 card, with the outer page taking on a deeper
+   "mat" background. Production's existing data-pl-page-layout=
+   "invitation" already does this per-section; this new rule
+   wraps the whole site in a single column to match the
+   prototype's actual structure more faithfully.
+
+   Background formula matches prototype:
+     `color-mix(in oklab, var(--t-ink) 14%, var(--t-section))`
+   Pearloom token mapping: --ink (was --t-ink), --paper (was
+   --t-section). */
+@media (min-width: 721px) {
+  .pl8-guest[data-pl-site-layout="boxed"],
+  .pl8-guest.pl8-layout-boxed {
+    background: color-mix(in oklab, var(--ink, #0E0D0B) 14%, var(--paper, #F5EFE2));
+    padding: 40px 26px;
+  }
+  /* Inner card — sits centered, maxWidth 900, with the
+     paper color + lifted shadow + 1px line border. The
+     overflow:hidden clips the texture/pattern layers to
+     the card's rounded edge. Direct port of themed-site.jsx
+     line 199. */
+  .pl8-guest[data-pl-site-layout="boxed"] > .pl8-pattern-layer,
+  .pl8-guest.pl8-layout-boxed > .pl8-pattern-layer {
+    /* Pattern stays full-bleed under the mat for depth — the
+       prototype renders patEl OUTSIDE the card too, so the mat
+       carries the pattern wash. */
+  }
+  /* Wrap every direct child (nav + sections + footer) inside the
+     mat with a shared visual column. We can't introduce a new
+     wrapping DOM node without touching the React tree, so we use
+     CSS to create the card effect via a pseudo-element backdrop
+     on the .pl8-guest itself + constrain every direct child to
+     the card column. */
+  .pl8-guest[data-pl-site-layout="boxed"] > header.pl8-themed-nav,
+  .pl8-guest[data-pl-site-layout="boxed"] > section,
+  .pl8-guest[data-pl-site-layout="boxed"] > footer,
+  .pl8-guest.pl8-layout-boxed > header.pl8-themed-nav,
+  .pl8-guest.pl8-layout-boxed > section,
+  .pl8-guest.pl8-layout-boxed > footer {
+    max-width: 900px;
+    margin-inline: auto;
+    background: var(--paper, #F5EFE2);
+    border-left: 1px solid var(--line, rgba(14,13,11,0.16));
+    border-right: 1px solid var(--line, rgba(14,13,11,0.16));
+  }
+  .pl8-guest[data-pl-site-layout="boxed"] > header.pl8-themed-nav,
+  .pl8-guest.pl8-layout-boxed > header.pl8-themed-nav {
+    border-top: 1px solid var(--line, rgba(14,13,11,0.16));
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    box-shadow: 0 -2px 0 transparent, 0 40px 90px rgba(0,0,0,0.22);
+  }
+  .pl8-guest[data-pl-site-layout="boxed"] > footer,
+  .pl8-guest.pl8-layout-boxed > footer {
+    border-bottom: 1px solid var(--line, rgba(14,13,11,0.16));
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  }
+}
+
+/* ── Split: sticky-left sidebar + scrolling content ──
+   Direct port of themed-site.jsx lines 177-191. The prototype
+   uses an inner div with `gridTemplateColumns: 'minmax(290px, 35%) 1fr'`
+   and a sticky-top:0 left column. We can't change the production
+   nav from horizontal to sidebar without a deeper refactor (that
+   would couple ThemedNav to layout), so the split rules below
+   convert the .pl8-themed-nav into a sticky-left sidebar that
+   columnizes nav + (everything else) into a 2-col grid. Already
+   shipped under [data-pl-page-layout="split"] earlier — this
+   rule mirrors it under the prototype-native attribute name +
+   class so both selectors work. */
+@media (min-width: 900px) {
+  .pl8-guest[data-pl-site-layout="split"],
+  .pl8-guest.pl8-layout-split {
+    display: grid;
+    grid-template-columns: minmax(290px, 35%) 1fr;
+    align-items: start;
+    min-height: 100vh;
+  }
+  .pl8-guest[data-pl-site-layout="split"] > header.pl8-themed-nav,
+  .pl8-guest.pl8-layout-split > header.pl8-themed-nav {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    grid-column: 1;
+    grid-row: 1 / -1;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--ink, #0E0D0B);
+    color: var(--cream, #F5EFE2);
+    padding: 32px 24px;
+    border-bottom: 0;
+    border-right: 1px solid rgba(245,239,226,0.10);
+    align-items: flex-start;
+    gap: 24px;
+  }
+  .pl8-guest[data-pl-site-layout="split"] > header.pl8-themed-nav nav,
+  .pl8-guest.pl8-layout-split > header.pl8-themed-nav nav {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    justify-content: flex-start;
+  }
+  .pl8-guest[data-pl-site-layout="split"] > header.pl8-themed-nav nav a,
+  .pl8-guest.pl8-layout-split > header.pl8-themed-nav nav a {
+    color: rgba(245,239,226,0.78);
+  }
+  .pl8-guest[data-pl-site-layout="split"] > section,
+  .pl8-guest[data-pl-site-layout="split"] > footer,
+  .pl8-guest.pl8-layout-split > section,
+  .pl8-guest.pl8-layout-split > footer {
+    grid-column: 2;
+    border-left: 1px solid var(--line-soft, rgba(14,13,11,0.08));
+  }
+}
+
+/* ── Mobile collapse: both boxed and split fold to stacked ──
+   Prototype guidance: under 720px the framing reads as friction;
+   give the content the full width. The padding + grid + sticky
+   sidebar all undo. */
+@media (max-width: 720px) {
+  .pl8-guest[data-pl-site-layout="boxed"],
+  .pl8-guest[data-pl-site-layout="split"],
+  .pl8-guest.pl8-layout-boxed,
+  .pl8-guest.pl8-layout-split {
+    display: block !important;
+    background: var(--paper, #F5EFE2) !important;
+    padding: 0 !important;
+    grid-template-columns: none !important;
+  }
+  .pl8-guest[data-pl-site-layout="boxed"] > header.pl8-themed-nav,
+  .pl8-guest[data-pl-site-layout="boxed"] > section,
+  .pl8-guest[data-pl-site-layout="boxed"] > footer,
+  .pl8-guest[data-pl-site-layout="split"] > header.pl8-themed-nav,
+  .pl8-guest[data-pl-site-layout="split"] > section,
+  .pl8-guest[data-pl-site-layout="split"] > footer,
+  .pl8-guest.pl8-layout-boxed > header.pl8-themed-nav,
+  .pl8-guest.pl8-layout-boxed > section,
+  .pl8-guest.pl8-layout-boxed > footer,
+  .pl8-guest.pl8-layout-split > header.pl8-themed-nav,
+  .pl8-guest.pl8-layout-split > section,
+  .pl8-guest.pl8-layout-split > footer {
+    max-width: none !important;
+    margin-inline: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    grid-column: auto !important;
+    position: static !important;
+    height: auto !important;
+    flex-direction: row !important;
+    align-self: auto !important;
+  }
+}
+
 /* ═════════════════════════════════════════════════════════════
    MOBILE BREAKPOINTS — ThemedSiteRenderer
    ═════════════════════════════════════════════════════════════
@@ -6245,3 +6907,206 @@ html { scroll-behavior: smooth; }
   }
 }
 
+
+/* ═══════════════════════════════════════════════════════════════
+   ── PatternLayer ──
+   ═══════════════════════════════════════════════════════════════
+   Direct port of the prototype's PatternLayer (themes.jsx §3b
+   lines 360–385). Tinted decorative print that sits BEHIND all
+   content (zIndex 0). Distinct from TextureLayer (a material
+   grain layered on TOP via .pl8-guest::before).
+
+   Mount point: <div class="pl8-pattern-layer" data-pl-pattern="<id>" />
+   is the FIRST child of .pl8-guest in ThemedSiteRenderer.
+
+   Colour resolution: the prototype's --t-accent / --t-accent-2 /
+   --t-gold / --t-ink / --t-line tokens map to production as:
+     --t-accent    → var(--sage-deep, var(--pl-olive))
+     --t-accent-2  → var(--peach-ink)
+     --t-gold      → var(--gold)
+     --t-ink       → var(--ink)
+     --t-line      → var(--line)
+   so every Edition's palette swap re-tints the pattern.
+
+   Intensity: prototype takes intensity={1} and the alpha caps
+   live in the gradient stops (10–22% peak per spec). We bind to
+   --pl-pattern-intensity (default 1) and multiply via opacity on
+   the layer so future panels can dial it back without re-writing
+   every gradient.
+   ═══════════════════════════════════════════════════════════════ */
+
+.pl8-pattern-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: var(--pl-pattern-intensity, 1);
+}
+
+/* Guarantee content sits ABOVE the pattern layer. */
+.pl8-guest:has(> .pl8-pattern-layer) {
+  position: relative;
+  isolation: isolate;
+}
+.pl8-guest:has(> .pl8-pattern-layer) > *:not(.pl8-pattern-layer) {
+  position: relative;
+  z-index: 1;
+}
+
+/* GINGHAM — repeating 14px bands on both axes, 13% accent
+   (prototype line 370). */
+.pl8-pattern-layer[data-pl-pattern="gingham"] {
+  background-image:
+    repeating-linear-gradient(0deg,
+      color-mix(in oklab, var(--sage-deep, var(--pl-olive)) 13%, transparent) 0 14px,
+      transparent 14px 28px),
+    repeating-linear-gradient(90deg,
+      color-mix(in oklab, var(--sage-deep, var(--pl-olive)) 13%, transparent) 0 14px,
+      transparent 14px 28px);
+}
+
+/* STRIPE — 90deg 10px bands, 12% accent (prototype line 371). */
+.pl8-pattern-layer[data-pl-pattern="stripe"] {
+  background-image:
+    repeating-linear-gradient(90deg,
+      color-mix(in oklab, var(--sage-deep, var(--pl-olive)) 12%, transparent) 0 10px,
+      transparent 10px 22px);
+}
+
+/* CABANA — wider 28px bands, 15% accent (prototype line 372). */
+.pl8-pattern-layer[data-pl-pattern="cabana"] {
+  background-image:
+    repeating-linear-gradient(90deg,
+      color-mix(in oklab, var(--sage-deep, var(--pl-olive)) 15%, transparent) 0 28px,
+      transparent 28px 56px);
+}
+
+/* DIAGONAL — 45deg 12px bands, 11% accent (prototype line 373). */
+.pl8-pattern-layer[data-pl-pattern="diagonal"] {
+  background-image:
+    repeating-linear-gradient(45deg,
+      color-mix(in oklab, var(--sage-deep, var(--pl-olive)) 11%, transparent) 0 12px,
+      transparent 12px 26px);
+}
+
+/* DOTS — 20×20 radial-gradient dots, 22% accent
+   (prototype line 374). */
+.pl8-pattern-layer[data-pl-pattern="dots"] {
+  background-image:
+    radial-gradient(
+      color-mix(in oklab, var(--sage-deep, var(--pl-olive)) 22%, transparent) 22%,
+      transparent 24%);
+  background-size: 20px 20px;
+}
+
+/* GRID — 1px crosshatch using --t-line (prototype line 375). */
+.pl8-pattern-layer[data-pl-pattern="grid"] {
+  background-image:
+    repeating-linear-gradient(0deg, var(--line) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px 26px);
+}
+
+/* DECO — 135deg alternating accent + gold bands at 13% each
+   (prototype line 376). */
+.pl8-pattern-layer[data-pl-pattern="deco"] {
+  background-image:
+    repeating-linear-gradient(135deg,
+      color-mix(in oklab, var(--sage-deep, var(--pl-olive)) 13%, transparent) 0 14px,
+      transparent 14px 28px,
+      color-mix(in oklab, var(--gold) 13%, transparent) 28px 42px,
+      transparent 42px 56px);
+}
+
+/* SCALLOP — 30×30 radial half-arcs at the top, hairline
+   accent ring (prototype line 377). */
+.pl8-pattern-layer[data-pl-pattern="scallop"] {
+  background-image:
+    radial-gradient(circle at 50% 0,
+      transparent 11px,
+      color-mix(in oklab, var(--sage-deep, var(--pl-olive)) 13%, transparent) 12px 13px,
+      transparent 14px);
+  background-size: 30px 30px;
+}
+
+/* WAVE — 34×17 radial half-arcs at the bottom, hairline
+   accent ring (prototype line 378). */
+.pl8-pattern-layer[data-pl-pattern="wave"] {
+  background-image:
+    radial-gradient(circle at 50% 100%,
+      transparent 13px,
+      color-mix(in oklab, var(--sage-deep, var(--pl-olive)) 12%, transparent) 14px 15px,
+      transparent 16px);
+  background-size: 34px 17px;
+}
+
+/* CONFETTI — three offset radial-gradient dots in accent /
+   accent-2 / gold at 42% (prototype line 379). */
+.pl8-pattern-layer[data-pl-pattern="confetti"] {
+  background-image:
+    radial-gradient(
+      color-mix(in oklab, var(--sage-deep, var(--pl-olive)) 42%, transparent) 30%,
+      transparent 32%),
+    radial-gradient(
+      color-mix(in oklab, var(--peach-ink) 42%, transparent) 30%,
+      transparent 32%),
+    radial-gradient(
+      color-mix(in oklab, var(--gold) 42%, transparent) 30%,
+      transparent 32%);
+  background-size: 46px 46px, 62px 62px, 38px 38px;
+  background-position: 0 0, 18px 24px, 32px 8px;
+}
+
+/* TERRAZZO — four offset radial spots in accent / accent-2 /
+   gold / ink at decreasing alpha (prototype line 380). */
+.pl8-pattern-layer[data-pl-pattern="terrazzo"] {
+  background-image:
+    radial-gradient(
+      color-mix(in oklab, var(--sage-deep, var(--pl-olive)) 34%, transparent) 18%,
+      transparent 20%),
+    radial-gradient(
+      color-mix(in oklab, var(--peach-ink) 30%, transparent) 16%,
+      transparent 18%),
+    radial-gradient(
+      color-mix(in oklab, var(--gold) 30%, transparent) 14%,
+      transparent 16%),
+    radial-gradient(
+      color-mix(in oklab, var(--ink) 12%, transparent) 12%,
+      transparent 14%);
+  background-size: 52px 52px, 72px 72px, 44px 44px, 90px 90px;
+  background-position: 0 0, 26px 30px, 40px 12px, 60px 50px;
+}
+
+/* CELESTIAL — three offset radial stars: bright gold + two
+   white twinkles (prototype line 381). The white rgba values
+   are kept as raw rgba (not color-mix) because the prototype
+   uses them as bright highlights independent of theme accent. */
+.pl8-pattern-layer[data-pl-pattern="celestial"] {
+  background-image:
+    radial-gradient(
+      color-mix(in oklab, var(--gold) 75%, transparent) 6%,
+      transparent 8%),
+    radial-gradient(rgba(255, 255, 255, 0.65) 5%, transparent 7%),
+    radial-gradient(rgba(255, 255, 255, 0.4) 4%, transparent 6%);
+  background-size: 88px 88px, 118px 118px, 152px 152px;
+  background-position: 0 0, 34px 48px, 86px 24px;
+}
+
+/* Reduced-motion: the prototype's PatternLayer doesn't itself
+   animate any pattern, but if any future variant adds drift to
+   confetti / wave / celestial, this block keeps them static. */
+@media (prefers-reduced-motion: reduce) {
+  .pl8-pattern-layer[data-pl-pattern="confetti"],
+  .pl8-pattern-layer[data-pl-pattern="wave"],
+  .pl8-pattern-layer[data-pl-pattern="celestial"] {
+    animation: none !important;
+  }
+}
+
+/* data-pl-pattern="none" or any unknown value renders an empty
+   transparent layer — explicitly no background-image. Keeps the
+   .pl8-pattern-layer node mountable unconditionally without
+   re-checking in JSX. */
+.pl8-pattern-layer[data-pl-pattern="none"],
+.pl8-pattern-layer:not([data-pl-pattern]) {
+  background-image: none;
+}

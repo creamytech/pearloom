@@ -51,6 +51,23 @@ describe('Site Editions', () => {
     it('DEFAULT_EDITION_ID maps to a real edition', () => {
       expect(EDITIONS_BY_ID[DEFAULT_EDITION_ID]).toBeTruthy();
     });
+
+    /* SiteLayoutPicker badges the matching tile "★ Recommended"
+       based on recommendedLayout, so every Edition needs a value.
+       Locks in the mapping defined in src/lib/site-editions/editions.ts. */
+    it('every edition declares a recommendedLayout matching the prototype', () => {
+      const expected: Record<string, 'stacked' | 'boxed' | 'split'> = {
+        almanac: 'boxed',          // bound book → card on a mat
+        cinema: 'stacked',         // letterboxed photo → full scroll
+        'postcard-box': 'stacked', // tilted polaroids → scatter down
+        'linen-folder': 'split',   // hotel-stationery → sidebar lockup
+        quiet: 'stacked',          // whitespace + restraint → no frame
+        coastal: 'boxed',          // deckled postcard → card on a mat
+      };
+      for (const ed of EDITIONS) {
+        expect(ed.recommendedLayout).toBe(expected[ed.id]);
+      }
+    });
   });
 
   describe('recommendEdition()', () => {

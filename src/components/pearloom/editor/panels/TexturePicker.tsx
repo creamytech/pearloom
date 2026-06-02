@@ -151,16 +151,82 @@ function VelvetPreview() {
     </svg>
   );
 }
+function KraftPreview() {
+  return (
+    <svg viewBox="0 0 240 72" width="100%" height="100%" preserveAspectRatio="none">
+      <defs>
+        <pattern id="kraft-fibre" width="6" height="6" patternUnits="userSpaceOnUse">
+          <rect width="6" height="6" fill="#C6A77A" />
+          <circle cx="1.5" cy="2" r="0.6" fill="#5A3E20" opacity="0.30" />
+          <circle cx="4.5" cy="4.5" r="0.5" fill="#3E2A12" opacity="0.22" />
+        </pattern>
+      </defs>
+      <rect width="240" height="72" fill="url(#kraft-fibre)" />
+      <rect width="240" height="72" fill="rgba(90,62,32,0.10)" />
+    </svg>
+  );
+}
+function CanvasPreview() {
+  return (
+    <svg viewBox="0 0 240 72" width="100%" height="100%" preserveAspectRatio="none">
+      <defs>
+        <pattern id="canvas-grid" width="3" height="3" patternUnits="userSpaceOnUse">
+          <rect width="3" height="3" fill="#EFE7D3" />
+          <line x1="0" y1="0" x2="3" y2="0" stroke="#2B2418" strokeWidth="0.4" opacity="0.42" />
+          <line x1="0" y1="0" x2="0" y2="3" stroke="#2B2418" strokeWidth="0.4" opacity="0.42" />
+        </pattern>
+      </defs>
+      <rect width="240" height="72" fill="url(#canvas-grid)" />
+    </svg>
+  );
+}
+function MarblePreview() {
+  return (
+    <svg viewBox="0 0 240 72" width="100%" height="100%" preserveAspectRatio="none">
+      <defs>
+        <filter id="marble-wobble">
+          <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves={2} seed={3} result="n" />
+          <feDisplacementMap in="SourceGraphic" in2="n" scale={6} />
+        </filter>
+      </defs>
+      <rect width="240" height="72" fill="#F4F0E6" />
+      <g filter="url(#marble-wobble)">
+        <line x1="0" y1="20" x2="240" y2="50" stroke="#5A4F38" strokeWidth="0.7" opacity="0.35" />
+        <line x1="-10" y1="44" x2="250" y2="14" stroke="#5A4F38" strokeWidth="0.5" opacity="0.28" />
+        <line x1="0" y1="60" x2="240" y2="30" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.55" />
+      </g>
+    </svg>
+  );
+}
+function GildedPreview() {
+  return (
+    <svg viewBox="0 0 240 72" width="100%" height="100%" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="gilded-foil" x1="0" y1="0" x2="1" y2="0.5">
+          <stop offset="22%" stopColor="rgba(184,146,68,0)" />
+          <stop offset="48%" stopColor="rgba(212,179,115,0.85)" />
+          <stop offset="64%" stopColor="rgba(184,146,68,0)" />
+        </linearGradient>
+      </defs>
+      <rect width="240" height="72" fill="#1F1A12" />
+      <rect width="240" height="72" fill="url(#gilded-foil)" />
+    </svg>
+  );
+}
 
-/* Texture set — six options matching the design prototype
-   exactly (themes.jsx TextureLayer). Each id is backed by real
+/* Texture set — direct port of the design prototype
+   (themes.jsx TextureLayer). Each id is backed by real
    .pl8-guest[data-pl-texture=…] CSS in pearloom.css.
      none       — Modern Editorial. No overlay.
      linen      — Santorini. Visible woven warp+weft threads.
      watercolor — Tuscan. Multiple pigment washes pooling.
      paper      — Pressed Garden. Cotton paper tooth + speck.
      cotton     — Coastal. Coarse cold-press watercolour paper.
-     velvet     — Midnight. Inky pile + raking sheen for dark. */
+     velvet     — Midnight. Inky pile + raking sheen for dark.
+     kraft      — Recycled. Mottled brown fibre + tooth + grain.
+     canvas     — Primed. Crossed 3px artist-canvas grid + weave.
+     marble     — Veined slab. Displaced 58deg ink + white veins.
+     gilded     — Foiled. Diagonal gold sweep + soft mottle.  */
 
 const TEXTURES: TextureSpec[] = [
   { id: 'none',        label: 'None',        tagline: 'Flat matte — no overlay, just the underlying paper.', Preview: SmoothPreview },
@@ -169,6 +235,10 @@ const TEXTURES: TextureSpec[] = [
   { id: 'paper',       label: 'Paper',       tagline: 'Handmade cotton paper, fine fibre + light specks.',     Preview: PaperPreview },
   { id: 'cotton',      label: 'Cotton',      tagline: 'Cold-press watercolour paper, coarser tooth.',          Preview: CottonPreview },
   { id: 'velvet',      label: 'Velvet',      tagline: 'Inky pile + raking sheen. Made for dark evenings.',     Preview: VelvetPreview },
+  { id: 'kraft',       label: 'Kraft',       tagline: 'Recycled brown fibre — mottled, warm, hand-made.',      Preview: KraftPreview },
+  { id: 'canvas',      label: 'Canvas',      tagline: 'Primed artist canvas. Visible warp/weft grid.',          Preview: CanvasPreview },
+  { id: 'marble',      label: 'Marble',      tagline: 'Veined stone slab. Ink + chalk veins running diagonal.', Preview: MarblePreview },
+  { id: 'gilded',      label: 'Gilded',      tagline: 'Gold-foiled surface caught in a single beam of light.',  Preview: GildedPreview },
 ];
 
 interface Props {

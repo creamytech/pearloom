@@ -140,6 +140,16 @@ export function TextureFilters() {
           <feTurbulence type="fractalNoise" baseFrequency="0.013 0.016" numOctaves={3} seed={8} result="n" />
           <feDisplacementMap in="SourceGraphic" in2="n" scale={34} xChannelSelector="R" yChannelSelector="G" />
         </filter>
+
+        {/* t-wash — lighter, longer-wavelength displacement for
+            large background fills. Used by the MARBLE texture to
+            displace its 58deg vein gradient into organic stone
+            striations. Direct port of prototype ThemeDefs t-wash
+            (themes.jsx ~line 216). */}
+        <filter id="t-wash" x="-20%" y="-20%" width="140%" height="140%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.008 0.011" numOctaves={2} seed={3} result="n" />
+          <feDisplacementMap in="SourceGraphic" in2="n" scale={48} xChannelSelector="R" yChannelSelector="G" />
+        </filter>
       </defs>
     </svg>
   );

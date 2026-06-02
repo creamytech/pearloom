@@ -2,15 +2,19 @@
 
 // ─────────────────────────────────────────────────────────────
 // KitPicker — component design-language axis, independent of
-// Edition. Port of the prototype's KitPick (themes.jsx ~line 690).
+// Edition. Port of the prototype's KitPick (themes.jsx ~line 690)
+// + the full 9-kit registry from shared/kits.jsx (lines 20-30).
 //
-// Six kits, each restyles repeating components:
+// Nine kits, each restyles repeating components:
 //   classic    theme-native cards & rules (default)
 //   ticket     perforated stubs, dashed tear-lines, mono times
 //   plate      engraved frames, double rules, Roman counter
 //   scrapbook  taped, tilted cards & handwritten tags
 //   index      ruled index cards, red margin & tab times
 //   minimal    borderless rows, hairlines, oversized numerals
+//   arch       arched-top cards, soft domes, arched divider halo
+//   stamp      postage-frame cards, dotted outlines, postmark dots
+//   deco       gold triple-inset frames, rotated gold diamonds
 //
 // Phase-4 follow-up: per-kit SECTION renderers in ThemedSiteRenderer
 // (KSchedule/KDetails/KFaq/KGallery) that change BOTH style and
@@ -125,6 +129,93 @@ function MinimalPreview() {
   );
 }
 
+/* ── Arch preview ── (prototype lines 64, 90, 105)
+   Top-arched card (24px 24px on top corners); hairline rule + a
+   small arched dome at the center of the divider strip. */
+function ArchPreview() {
+  return (
+    <svg viewBox="0 0 80 48" width="100%" height="100%" preserveAspectRatio="none">
+      <rect width="80" height="48" fill="#FBF7EE" />
+      {/* Arched-top card: path with rounded top + softer bottom */}
+      <path
+        d="M 12 36 L 12 22 Q 12 12 28 12 L 52 12 Q 68 12 68 22 L 68 36 Q 68 38 66 38 L 14 38 Q 12 38 12 36 Z"
+        fill="#FFFFFF"
+        stroke="#D8CFB8"
+        strokeWidth="0.6"
+      />
+      {/* Divider line with arched dome */}
+      <line x1="12" y1="42" x2="34" y2="42" stroke="#D8CFB8" strokeWidth="0.5" />
+      <path d="M 34 42 Q 40 36 46 42" fill="none" stroke="#5C6B3F" strokeWidth="0.6" />
+      <line x1="46" y1="42" x2="68" y2="42" stroke="#D8CFB8" strokeWidth="0.5" />
+      {/* Stub title */}
+      <text x="16" y="22" fontSize="6" fontFamily="serif" fontWeight="600" fill="#5C6B3F">4:30</text>
+      <text x="16" y="29" fontSize="4.5" fontFamily="ui-sans-serif" fill="#0E0D0B">Ceremony</text>
+    </svg>
+  );
+}
+
+/* ── Stamp preview ── (prototype lines 66-67, 91, 106)
+   Postage-stamp framed card: 5px border + 2px dotted outline
+   offset -9px, plus a dotted divider with a circular postmark. */
+function StampPreview() {
+  return (
+    <svg viewBox="0 0 80 48" width="100%" height="100%" preserveAspectRatio="none">
+      <rect width="80" height="48" fill="#FBF7EE" />
+      {/* Outer mat (the 5px solid frame) */}
+      <rect x="10" y="10" width="60" height="28" fill="#FBF7EE" />
+      {/* Inner card */}
+      <rect x="13" y="13" width="54" height="22" fill="#FFFFFF" />
+      {/* Dotted outline at outlineOffset:-9 ≈ inset 3 from inner */}
+      <rect
+        x="14.5"
+        y="14.5"
+        width="51"
+        height="19"
+        fill="none"
+        stroke="#3A332C"
+        strokeWidth="0.45"
+        strokeDasharray="0.9 0.9"
+        opacity="0.65"
+      />
+      {/* Postmark pin on divider */}
+      <line x1="10" y1="44" x2="36" y2="44" stroke="#D8CFB8" strokeWidth="0.6" strokeDasharray="1.4 1.4" />
+      <circle cx="40" cy="44" r="2" fill="none" stroke="#5C6B3F" strokeWidth="0.6" />
+      <line x1="44" y1="44" x2="70" y2="44" stroke="#D8CFB8" strokeWidth="0.6" strokeDasharray="1.4 1.4" />
+      <text x="18" y="22" fontSize="5" fontFamily="ui-sans-serif" fontWeight="600" fill="#0E0D0B">Ceremony</text>
+      <text x="18" y="29" fontSize="4" fontFamily="ui-sans-serif" fill="#6F6557">Olive grove</text>
+    </svg>
+  );
+}
+
+/* ── Deco preview ── (prototype lines 69-70, 92, 107)
+   Gold triple-inset frame card + 3 rotated gold diamonds at the
+   divider center, with gold rule on either side. */
+function DecoPreview() {
+  return (
+    <svg viewBox="0 0 80 48" width="100%" height="100%" preserveAspectRatio="none">
+      <rect width="80" height="48" fill="#FBF7EE" />
+      {/* Triple-inset gold frame card (square corners) */}
+      <rect x="12" y="10" width="56" height="22" fill="#FFFFFF" />
+      <rect x="12" y="10" width="56" height="22" fill="none" stroke="#B8935A" strokeWidth="0.45" />
+      <rect x="14.5" y="12.5" width="51" height="17" fill="none" stroke="#D8B475" strokeWidth="0.35" opacity="0.7" />
+      {/* Gold rule + 3 rotated diamonds at center */}
+      <line x1="10" y1="40" x2="32" y2="40" stroke="#B8935A" strokeWidth="0.55" />
+      <g transform="translate(36 40) rotate(45)">
+        <rect x="-1.2" y="-1.2" width="2.4" height="2.4" fill="none" stroke="#B8935A" strokeWidth="0.45" />
+      </g>
+      <g transform="translate(40 40) rotate(45)">
+        <rect x="-1.2" y="-1.2" width="2.4" height="2.4" fill="none" stroke="#B8935A" strokeWidth="0.45" />
+      </g>
+      <g transform="translate(44 40) rotate(45)">
+        <rect x="-1.2" y="-1.2" width="2.4" height="2.4" fill="none" stroke="#B8935A" strokeWidth="0.45" />
+      </g>
+      <line x1="48" y1="40" x2="70" y2="40" stroke="#B8935A" strokeWidth="0.55" />
+      <text x="16" y="20" fontSize="4" fontFamily="ui-sans-serif" fontWeight="700" letterSpacing="0.18em" fill="#0E0D0B">CEREMONY</text>
+      <text x="16" y="27" fontSize="4" fontFamily="serif" fill="#6F6557">Half past four</text>
+    </svg>
+  );
+}
+
 const KITS: KitSpec[] = [
   { id: 'classic',   label: 'Classic',   blurb: 'Theme-native cards & rules',  Preview: ClassicPreview },
   { id: 'ticket',    label: 'Ticket',    blurb: 'Perforated stubs · monospace', Preview: TicketPreview },
@@ -132,6 +223,9 @@ const KITS: KitSpec[] = [
   { id: 'scrapbook', label: 'Scrapbook', blurb: 'Taped, tilted, handwritten',   Preview: ScrapbookPreview },
   { id: 'index',     label: 'Index',     blurb: 'Ruled cards · red margin',     Preview: IndexPreview },
   { id: 'minimal',   label: 'Minimal',   blurb: 'Hairlines · big numerals',     Preview: MinimalPreview },
+  { id: 'arch',      label: 'Arch',      blurb: 'Arched cards · soft domes',    Preview: ArchPreview },
+  { id: 'stamp',     label: 'Stamp',     blurb: 'Postage frames · postmarks',   Preview: StampPreview },
+  { id: 'deco',      label: 'Deco',      blurb: 'Gold frames · geometric',      Preview: DecoPreview },
 ];
 
 interface Props {

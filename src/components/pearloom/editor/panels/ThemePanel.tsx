@@ -15,7 +15,7 @@ import { V8ColorPicker } from '../v8-color-picker';
 import { SpacingPanel } from './SpacingPanel';
 import { SnapshotsPanel } from './SnapshotsPanel';
 import { EditionPicker } from './EditionPicker';
-import { LayoutPicker } from './LayoutPicker';
+import { SiteLayoutPicker } from './SiteLayoutPicker';
 import { KitPicker } from './KitPicker';
 import { PearThinking } from '../../pear-thinking';
 import { EDITIONS } from '@/lib/site-editions/editions';
@@ -308,8 +308,14 @@ export function ThemePanel({
       <div data-pl-design-anchor="edition">
         <EditionPicker manifest={manifest} onChange={onChange} />
       </div>
+      {/* Site Layout — prototype-native stacked/boxed/split dial.
+          Mounted in place of the legacy LayoutPicker so new picks
+          go through the prototype-native manifest.siteLayout
+          field. The legacy LayoutPicker is kept exported for any
+          code path that still imports it during the transition,
+          but ThemePanel now ships the new picker. */}
       <div data-pl-design-anchor="layout">
-        <LayoutPicker manifest={manifest} onChange={onChange} />
+        <SiteLayoutPicker manifest={manifest} onChange={onChange} />
       </div>
       <div data-pl-design-anchor="kit">
         <KitPicker manifest={manifest} onChange={onChange} />

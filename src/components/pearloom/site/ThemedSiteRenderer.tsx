@@ -107,6 +107,7 @@ import { FooterBouquet } from './FooterBouquet';
 import { OccasionDecor } from './OccasionDecor';
 import { DecorDivider } from './DecorDivider';
 import { TemplateSignatureDecor, type SignatureDecorKind } from './TemplateSignatureDecor';
+import { Monogram, deriveInitials, type MonogramFrame } from './Monogram';
 /* Side-effect import — registers strip / wall / mosaic gallery
    variants with the block-styles registry. The variant dispatch
    in ThemedGallery reads manifest.blockVariants?.gallery?.style
@@ -435,6 +436,26 @@ export function ThemedSiteRenderer({
   const density = manifest.density ?? 'comfortable';
   const intensity = manifest.textureIntensity ?? 1;
 
+  /* Site Layout — port of the prototype's `siteLayout` field on
+     ThemedSite (themed-site.jsx). Three frames: 'stacked' (default,
+     full scroll), 'boxed' (whole site as a card on a mat), 'split'
+     (sticky-sidebar lockup). Resolution order:
+       1. Explicit manifest.siteLayout (prototype-native naming) WINS
+       2. Legacy manifest.pageLayout — mapped via LEGACY_PAGE_LAYOUT
+          (classic→stacked, invitation→boxed, split→split). Existing
+          published sites keep their look.
+       3. activeEdition.recommendedLayout — Edition default
+       4. 'stacked' — universal fallback */
+  const siteLayout: 'stacked' | 'boxed' | 'split' = (() => {
+    if (manifest.siteLayout) return manifest.siteLayout;
+    const legacy = manifest.pageLayout;
+    if (legacy === 'invitation') return 'boxed';
+    if (legacy === 'split') return 'split';
+    if (legacy === 'classic') return 'stacked';
+    if (activeEdition.recommendedLayout) return activeEdition.recommendedLayout;
+    return 'stacked';
+  })();
+
   /* Themed shell — emits the same data attributes ThemedSiteRenderer
      does so all the per-Edition / per-texture / per-kit CSS
      already shipped applies here too.
@@ -526,15 +547,38 @@ export function ThemedSiteRenderer({
   return (
     <EditorCanvasProvider value={canvasCtxValue}>
     <div
-      className="pl8-guest"
+      className={`pl8-guest${siteLayout !== 'stacked' ? ` pl8-layout-${siteLayout}` : ''}`}
       data-pl-edition={activeEdition.id}
       data-pl-texture={texture}
       data-pl-density={density}
       data-pl-kit={manifest.kitId ?? 'classic'}
-      data-pl-page-layout={manifest.pageLayout ?? 'classic'}
+      /* Both attributes live on the root — data-pl-site-layout is the
+         prototype-native naming (stacked / boxed / split) that all
+         new CSS reads; data-pl-page-layout preserves the legacy
+         classic / invitation / split CSS already in pearloom.css so
+         existing surfaces keep working. The class hooks
+         (pl8-layout-boxed / pl8-layout-split) give CSS a second
+         selector axis matching the prototype's class-based scope. */
+      data-pl-site-layout={siteLayout}
+      data-pl-page-layout={
+        manifest.pageLayout ??
+        (siteLayout === 'boxed' ? 'invitation' : siteLayout === 'split' ? 'split' : 'classic')
+      }
+      data-pl-pattern={manifest.pattern ?? 'none'}
       data-pl-edit-mode={canEdit ? 'true' : undefined}
       style={shellStyle}
     >
+      {/* PatternLayer — direct port of prototype themes.jsx §3b.
+          MUST be the first child so it sits BEHIND everything
+          (zIndex 0, pointer-events: none). CSS lives in
+          pearloom.css under the "── PatternLayer ──" section.
+          Renders an empty transparent layer when pattern is
+          'none' / undefined so the DOM node is stable. */}
+      <div
+        className="pl8-pattern-layer"
+        data-pl-pattern={manifest.pattern ?? 'none'}
+        aria-hidden="true"
+      />
       <TextureFilters />
 
       {/* Day-of broadcast chrome — ports the ThemedSiteRenderer mount
@@ -1843,6 +1887,47 @@ function ThemedHero({ manifest, names, motif, onEditField, onEditNames }: { mani
             />
           </div>
         )}
+        {/* Monogram watermark — direct port of the prototype's
+            MonogramTab crest, mounted as a hero top-right watermark
+            when manifest.monogram is set. Falls back to manifest.names
+            when initials are absent. Sits above OccasionDecor (z 2)
+            but well below the variant's name lockup (z 5+). Hidden
+            on mobile so it never competes with the H1. The crest
+            itself is static — `prefers-reduced-motion` is moot. */}
+        {(() => {
+          const mono = (manifest as unknown as { monogram?: { initials?: string; frame?: MonogramFrame } }).monogram;
+          if (!mono) return null;
+          const frame: MonogramFrame = mono.frame ?? 'laurel';
+          const subject = mono.initials?.trim() || `${n1} & ${n2}`;
+          const { initA, initB } = deriveInitials(subject);
+          const initialsForMono = subject.includes('&') || /\s/.test(subject)
+            ? `${initA} & ${initB}`
+            : subject;
+          return (
+            <div
+              className="pl8-hide-mobile"
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                top: 24,
+                right: 'max(16px, calc((100cqw - 1160px) / 2 + 16px))',
+                width: 120,
+                height: 120,
+                pointerEvents: 'none',
+                zIndex: 2,
+                opacity: 0.88,
+              }}
+            >
+              <Monogram
+                initials={initialsForMono}
+                frame={frame}
+                size={120}
+                withCard={false}
+                ariaHidden
+              />
+            </div>
+          );
+        })()}
         {styleId === 'photo-first' ? (
           <Variant {...sharedProps} />
         ) : (
@@ -2219,7 +2304,8 @@ function ThemedStory({ manifest, motif, editMode, onEditField }: { manifest: Sto
     );
   }
   const kit = (manifest.kitId ?? 'classic') as
-    | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal';
+    | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal'
+    | 'arch' | 'stamp' | 'deco';
   return (
     <section
       id="our-story"
@@ -2754,7 +2840,8 @@ function ThemedDetails({ manifest, motif, editMode }: { manifest: StoryManifest;
     );
   }
   const kit = (manifest.kitId ?? 'classic') as
-    | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal';
+    | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal'
+    | 'arch' | 'stamp' | 'deco';
   return (
     <section
       id="details"
@@ -3175,7 +3262,8 @@ function ThemedSchedule({ manifest, editMode, onEditField }: { manifest: StoryMa
     );
   }
   const kit = (manifest.kitId ?? 'classic') as
-    | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal';
+    | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal'
+    | 'arch' | 'stamp' | 'deco';
   return (
     <section
       id="schedule"
@@ -4569,7 +4657,8 @@ function ThemedFaq({ manifest, editMode, onEditField }: { manifest: StoryManifes
     );
   }
   const kit = (manifest.kitId ?? 'classic') as
-    | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal';
+    | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal'
+    | 'arch' | 'stamp' | 'deco';
   return (
     <section
       id="faq"
