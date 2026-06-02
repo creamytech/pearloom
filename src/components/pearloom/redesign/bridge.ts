@@ -35,6 +35,10 @@ export interface EditorBridge {
   openSettings: () => void;
   openThemeShop: () => void;
   openDecor: () => void;
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 /* Autosave debounce window — same value the old EditorClient used so
@@ -60,9 +64,25 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
   const [savedAt, setSavedAt] = useState<string>('just now');
   const [saveState, setSaveState] = useState<SaveState>('saved');
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  /* Keep the latest payload in a ref so beforeunload can sendBeacon
-     the in-flight changes without re-reading React state. */
   const latestPayload = useRef<{ manifest: StoryManifest; names: [string, string] }>({ manifest: initialManifest, names: initialNames });
+
+  /* Undo/redo — a simple manifest history. Each setManifest call
+     pushes a snapshot; undo rewinds the cursor. Capped at 50 to keep
+     memory in check. */
+  const history = useRef<{ stack: StoryManifest[]; cursor: number }>({ stack: [initialManifest], cursor: 0 });
+  const [historyTick, setHistoryTick] = useState(0);
+  const pushHistory = useCallback((m: StoryManifest) => {
+    const { stack, cursor } = history.current;
+    /* Slice off forward history once the user edits after an undo. */
+    const head = stack.slice(0, cursor + 1);
+    head.push(m);
+    const next = head.length > 50 ? head.slice(head.length - 50) : head;
+    history.current = { stack: next, cursor: next.length - 1 };
+    setHistoryTick((t) => t + 1);
+  }, []);
+  const canUndo = history.current.cursor > 0;
+  const canRedo = history.current.cursor < history.current.stack.length - 1;
+  void historyTick;
 
   const occasion = normalizeOccasion((manifest as unknown as { occasion?: string }).occasion);
   const prettyPath = buildSitePath(siteSlug, '', occasion);
@@ -150,9 +170,6 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
   }, [siteSlug, saveState]);
 
   const setManifest = useCallback((next: StoryManifest) => {
-    /* Auto-sync manifest.names → the bridge's separate names tuple.
-       HeroPanel writes manifest.names directly; without this sync,
-       the renderer prop drifts and the canvas hero stays stale. */
     const incomingNames = (next as unknown as { names?: [string, string] }).names;
     const nextNames = Array.isArray(incomingNames) && incomingNames.length === 2
       ? sanitiseNames(incomingNames as [string, string])
@@ -161,8 +178,40 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
     if (nextNames[0] !== names[0] || nextNames[1] !== names[1]) {
       setNamesState(nextNames);
     }
+    pushHistory(next);
     persist(next, nextNames);
+  }, [persist, names, pushHistory]);
+
+  const undo = useCallback(() => {
+    if (history.current.cursor <= 0) return;
+    history.current.cursor -= 1;
+    const prev = history.current.stack[history.current.cursor];
+    setManifestState(prev);
+    persist(prev, names);
+    setHistoryTick((t) => t + 1);
   }, [persist, names]);
+
+  const redo = useCallback(() => {
+    if (history.current.cursor >= history.current.stack.length - 1) return;
+    history.current.cursor += 1;
+    const next = history.current.stack[history.current.cursor];
+    setManifestState(next);
+    persist(next, names);
+    setHistoryTick((t) => t + 1);
+  }, [persist, names]);
+
+  /* Keyboard shortcuts — Cmd/Ctrl+Z + Shift to redo. */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onKey = (e: KeyboardEvent) => {
+      const meta = e.metaKey || e.ctrlKey;
+      if (!meta) return;
+      if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+      else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') { e.preventDefault(); redo(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [undo, redo]);
 
   const setNames = useCallback((next: [string, string]) => {
     const clean = sanitiseNames(next);
@@ -216,5 +265,9 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
     openSettings,
     openThemeShop,
     openDecor,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
   };
 }

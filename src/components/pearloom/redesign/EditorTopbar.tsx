@@ -125,7 +125,25 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
           <Pear size={14} tone="sage" shadow={false} />
           Ask Pear
         </button>
-        <button type="button" className="btn btn-outline btn-sm">
+        <button
+          type="button"
+          className="btn btn-outline btn-sm"
+          onClick={async () => {
+            if (typeof window === 'undefined') return;
+            const url = window.location.href;
+            try {
+              if (navigator.share) {
+                await navigator.share({ title: displayNames, url });
+              } else {
+                await navigator.clipboard.writeText(url);
+                window.dispatchEvent(new CustomEvent('pearloom:toast', { detail: { message: 'Link copied' } }));
+              }
+            } catch {
+              /* user dismissed share sheet — no-op */
+            }
+          }}
+          aria-label="Share this site"
+        >
           <Icon name="share" size={12} /> Share
         </button>
         <button type="button" className="btn btn-primary btn-sm pl-pearl-accent" onClick={onPublish}>

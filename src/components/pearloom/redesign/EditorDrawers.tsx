@@ -23,6 +23,14 @@ const CommandPalette = dynamic(
   () => import('../editor/CommandPalette').then((m) => ({ default: m.CommandPalette })),
   { ssr: false },
 );
+const PublishModal = dynamic(
+  () => import('@/components/shared/PublishModal').then((m) => ({ default: m.PublishModal })),
+  { ssr: false },
+);
+const UserSettingsModal = dynamic(
+  () => import('../dash/UserSettingsModal').then((m) => ({ default: m.UserSettingsModal })),
+  { ssr: false },
+);
 
 interface Props {
   manifest: StoryManifest;
@@ -43,9 +51,10 @@ const SECTION_PALETTE: { key: string; label: string; description?: string }[] = 
 ];
 
 export function EditorDrawers({ manifest, onChange, siteSlug }: Props) {
-  void siteSlug;
   const [decorOpen, setDecorOpen] = useState(false);
   const [themeShopOpen, setThemeShopOpen] = useState(false);
+  const [publishOpen, setPublishOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   /* Window-event listeners — every deep surface fires the same event
      names the legacy EditorV8 already dispatches, so the existing
@@ -56,11 +65,17 @@ export function EditorDrawers({ manifest, onChange, siteSlug }: Props) {
     if (typeof window === 'undefined') return;
     const openDecor = () => setDecorOpen(true);
     const openShop = () => setThemeShopOpen(true);
+    const openPublish = () => setPublishOpen(true);
+    const openSettings = () => setSettingsOpen(true);
     window.addEventListener('pearloom:open-decor-library', openDecor);
     window.addEventListener('pearloom:open-theme-shop', openShop);
+    window.addEventListener('pearloom:open-publish', openPublish);
+    window.addEventListener('pearloom:open-settings', openSettings);
     return () => {
       window.removeEventListener('pearloom:open-decor-library', openDecor);
       window.removeEventListener('pearloom:open-theme-shop', openShop);
+      window.removeEventListener('pearloom:open-publish', openPublish);
+      window.removeEventListener('pearloom:open-settings', openSettings);
     };
   }, []);
 
@@ -106,6 +121,14 @@ export function EditorDrawers({ manifest, onChange, siteSlug }: Props) {
           window.dispatchEvent(new CustomEvent('pearloom:open-ask-pear'));
         }}
       />
+      <PublishModal
+        open={publishOpen}
+        onClose={() => setPublishOpen(false)}
+        manifest={manifest}
+        onChange={onChange}
+        siteSlug={siteSlug}
+      />
+      <UserSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </>
   );
 }
