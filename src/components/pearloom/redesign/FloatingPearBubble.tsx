@@ -6,9 +6,16 @@
 import { useState } from 'react';
 import { Icon, Pear } from '../motifs';
 import type { SectionId } from './EditorRedesign';
+import type { StoryManifest } from '@/types';
 
 interface Props {
   active: SectionId;
+  /** Optional — when set, "Yes, try it" calls into /api/pear-critique
+   *  with the current section + manifest context and applies the
+   *  returned patch. */
+  manifest?: StoryManifest;
+  onApplyPatch?: (m: StoryManifest) => void;
+  onAskMore?: (text: string) => void;
 }
 
 const NUDGES: Record<string, string> = {
@@ -18,13 +25,46 @@ const NUDGES: Record<string, string> = {
   default: 'I noticed your schedule has gaps — want me to rebalance the timeline?',
 };
 
-export function FloatingPearBubble({ active }: Props) {
+export function FloatingPearBubble({ active, manifest, onApplyPatch, onAskMore }: Props) {
   const [open, setOpen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [draft, setDraft] = useState('');
 
   if (dismissed) return null;
 
   const nudge = active ? NUDGES[active] ?? NUDGES.default : NUDGES.default;
+
+  async function tryIt() {
+    if (!manifest || !onApplyPatch) return;
+    setBusy(true); setErr(null);
+    try {
+      const res = await fetch('/api/pear-critique', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ manifest, intent: active ? `polish-${active}` : 'review' }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+      }
+      const data = await res.json() as { manifest?: StoryManifest };
+      if (data.manifest) onApplyPatch(data.manifest);
+      setDismissed(true);
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function send() {
+    if (!draft.trim() || !onAskMore) return;
+    onAskMore(draft.trim());
+    setDraft('');
+    setDismissed(true);
+  }
 
   if (!open) {
     return (
@@ -127,17 +167,32 @@ export function FloatingPearBubble({ active }: Props) {
         <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
           <button
             type="button"
+            onClick={tryIt}
+            disabled={busy || !onApplyPatch}
             className="btn btn-primary btn-sm"
-            style={{ flex: 1, justifyContent: 'center', fontSize: 12 }}
+            style={{ flex: 1, justifyContent: 'center', fontSize: 12, opacity: busy ? 0.7 : 1 }}
           >
-            Yes, try it
+            {busy ? 'Pear is thinking…' : 'Yes, try it'}
           </button>
-          <button type="button" className="btn btn-outline btn-sm" style={{ fontSize: 12 }}>
+          <button
+            type="button"
+            onClick={() => setDismissed(true)}
+            className="btn btn-outline btn-sm"
+            style={{ fontSize: 12 }}
+          >
             Not now
           </button>
         </div>
+        {err && (
+          <div style={{ padding: '6px 10px', borderRadius: 7, background: 'rgba(122,45,45,0.08)', fontSize: 11, color: '#7A2D2D', marginBottom: 8 }}>
+            {err}
+          </div>
+        )}
         <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 10 }}>
           <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') send(); }}
             placeholder="Or ask something else…"
             style={{
               width: '100%',

@@ -22,7 +22,7 @@
    on the visual shell.
 */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { ThemedSiteRenderer } from '../site/ThemedSiteRenderer';
@@ -58,6 +58,25 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
   const [active, setActive] = useState<SectionId>('hero');
   const [hover, setHover] = useState<SectionId>(null);
   const [pearOpen, setPearOpen] = useState(false);
+  const [pearPrefill, setPearPrefill] = useState<string>('');
+
+  /* FloatingPearBubble + DesignAdvisor entry points fire window
+     events; the shell mounts one listener that owns the state. */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    (window as any).__plPearApply = (next: StoryManifest) => bridge.setManifest(next);
+    const onOpenPear = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { prefill?: string } | undefined;
+      if (detail?.prefill) setPearPrefill(detail.prefill);
+      setPearOpen(true);
+    };
+    window.addEventListener('pearloom:open-pear', onOpenPear);
+    return () => {
+      window.removeEventListener('pearloom:open-pear', onOpenPear);
+      (window as any).__plPearApply = undefined;
+    };
+  }, [bridge]);
 
   // Prototype L1148-1160 — four-pane grid shell.
   const gridColumns = pearOpen ? '256px 1fr 360px 320px' : '256px 1fr 360px';
@@ -135,7 +154,14 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
       )}
 
       {pearOpen && (
-        <PearAside onClose={() => setPearOpen(false)} />
+        <PearAside
+          onClose={() => setPearOpen(false)}
+          manifest={bridge.manifest}
+          names={bridge.names}
+          siteSlug={siteSlug}
+          prefill={pearPrefill}
+          onApplyPatch={(next) => bridge.setManifest(next)}
+        />
       )}
 
       {/* Floating chrome — Decor Library drawer, Theme Shop bottom
@@ -245,7 +271,24 @@ function EditorCanvas({
         )}
       </div>
 
-      {!isPreview && <FloatingPearBubble active={active} />}
+      {!isPreview && (
+        <FloatingPearBubble
+          active={active}
+          manifest={manifest}
+          onApplyPatch={(next) => {
+            /* Forward to the bridge via setManifest — flowing through
+               the same persistence + saveState wiring. */
+            (window as unknown as { __plPearApply?: (m: StoryManifest) => void }).__plPearApply?.(next);
+          }}
+          onAskMore={(text) => {
+            /* Open the 4th-column Pear pane prefilled with the host's
+               question. The shell listens for this event. */
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('pearloom:open-pear', { detail: { prefill: text } }));
+            }
+          }}
+        />
+      )}
 
       {isPreview && (
         <div
@@ -268,50 +311,40 @@ function EditorCanvas({
 
 /* ─── Pear aside (4th column) ──────────────────────────────────────── */
 
-function PearAside({ onClose }: { onClose: () => void }) {
+function PearAside({
+  onClose, manifest, names, siteSlug, prefill, onApplyPatch,
+}: {
+  onClose: () => void;
+  manifest: StoryManifest;
+  names: [string, string];
+  siteSlug: string;
+  prefill?: string;
+  onApplyPatch: (next: StoryManifest) => void;
+}) {
+  /* Lazy-load DesignAdvisor — 48 KB module. Renders as an inline
+     <aside> in the 4th grid column via inline={true}. */
+  const DesignAdvisor = require('../editor/DesignAdvisor').DesignAdvisor as React.ComponentType<{
+    manifest: StoryManifest;
+    names: [string, string];
+    siteSlug: string;
+    open: boolean;
+    onClose: () => void;
+    onApplyPatch?: (next: StoryManifest) => void;
+    intent?: { pass: string; key: number } | null;
+    inline?: boolean;
+  }>;
   return (
-    <aside
-      style={{
-        gridArea: 'pear',
-        background: 'var(--card)',
-        borderLeft: '1px solid var(--line-soft)',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        style={{
-          padding: '16px 20px 12px',
-          borderBottom: '1px solid var(--line-soft)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <Pear size={26} tone="sage" sparkle shadow={false} />
-          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, margin: 0 }}>
-            Pear
-          </h3>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close Pear pane"
-          style={{
-            width: 28, height: 28, borderRadius: 8,
-            display: 'grid', placeItems: 'center',
-            background: 'var(--cream-2)', border: 'none', cursor: 'pointer',
-          }}
-        >
-          <Icon name="close" size={13} color="var(--ink-soft)" />
-        </button>
-      </div>
-      <div style={{ flex: 1, overflow: 'auto', padding: 18, fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
-        Ask anything about your site — copy, palette, sections, the day-of.
-        I&apos;ll suggest a change and apply it when you say go.
-      </div>
-    </aside>
+    <div style={{ gridArea: 'pear', minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+      <DesignAdvisor
+        manifest={manifest}
+        names={names}
+        siteSlug={siteSlug}
+        open
+        onClose={onClose}
+        onApplyPatch={onApplyPatch}
+        intent={prefill ? { pass: prefill, key: Date.now() } : null}
+        inline
+      />
+    </div>
   );
 }
