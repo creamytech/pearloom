@@ -475,7 +475,25 @@ export function ThemedSiteRenderer({
      'none' so no decorative shapes render. Default = true so
      existing sites are unchanged. */
   const motifsOn = manifest.motifsEnabled ?? true;
-  const motif: MotifKind = motifsOn ? (EDITION_MOTIF[edition] ?? 'pressed') : 'none';
+  /* Motif resolution priority (matches integration guide §3 — Decor
+     Library lives-applies motifs):
+       1. host explicitly picked one via Decor Library → manifest.motifKind
+       2. active prototype theme defines a motif → theme.motif (resolved
+          inline by calling getTheme on the host's themeId; same call we
+          already make below for the theme overlay)
+       3. active Edition default → EDITION_MOTIF[edition]
+       4. fallback → 'pressed'
+     'none' kills decoration entirely. */
+  const _themeForMotif = getTheme(
+    ((manifest as unknown as { themeId?: string }).themeId)
+    ?? ((manifest as unknown as { theme?: { id?: string; themeId?: string } }).theme?.id)
+    ?? ((manifest as unknown as { theme?: { id?: string; themeId?: string } }).theme?.themeId),
+  );
+  const motifFromHost = ((manifest as unknown as { motifKind?: MotifKind }).motifKind);
+  const motifFromTheme = (_themeForMotif?.motif === 'none' ? null : _themeForMotif?.motif) as MotifKind | null | undefined;
+  const motif: MotifKind = !motifsOn
+    ? 'none'
+    : motifFromHost ?? motifFromTheme ?? EDITION_MOTIF[edition] ?? 'pressed';
   const texture = manifest.texture ?? 'smooth';
   const density = manifest.density ?? 'comfortable';
   const intensity = manifest.textureIntensity ?? 1;
