@@ -1827,10 +1827,18 @@ function ThemedHero({ manifest, names, motif, onEditField, onEditNames }: { mani
   /* Name resolution — fall back through (provided → coupleId
      split → 'Your' / 'Celebration') so a freshly-generated site
      without explicit names doesn't render with empty placeholders
-     in the middle of the H1. */
+     in the middle of the H1.
+
+     IMPORTANT: a coupleId of the form `couple-1716234567890` or
+     `f7d9a3b2-1c4e-...` (UUID) MUST NOT be used as a name source —
+     splitting it on `-` gives hex segments that render as
+     "F7d9a3b2 and 1c4e" in the hero (real bug, surfaced 2026-06).
+     Skip segments that look numeric, hex-only, or 'couple'. */
+  const isUuidLike = (s: string): boolean => /^[0-9a-f]+$/i.test(s) || /^\d+$/.test(s) || s.toLowerCase() === 'couple';
   const coupleSplit = ((manifest as unknown as { coupleId?: string }).coupleId ?? '')
     .split(/[-_]/)
     .filter(Boolean)
+    .filter((s) => !isUuidLike(s))
     .map((s) => s.charAt(0).toUpperCase() + s.slice(1));
   const n1 = (names[0] && names[0] !== 'Your' ? names[0] : (coupleSplit[0] ?? names[0] ?? 'Your'));
   const n2 = (names[1] && names[1] !== 'Partner' ? names[1] : (coupleSplit[1] ?? names[1] ?? 'Celebration'));
