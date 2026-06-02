@@ -128,20 +128,163 @@ export function ThemedSite({ active, hover, setActive, setHover, editable, manif
     </TSection>
   );
 
+  const kitId = ((manifest as unknown as { kitId?: string }).kitId) ?? 'classic';
+
+  /* siteLayout — Classic stacked (default) / Invitation boxed
+     (a card on a tinted mat) / Split sticky-sidebar lockup.
+     Handoff themed-site.jsx L181-217 verbatim. */
+  if (siteLayout === 'split') {
+    return (
+      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={theme.texture} data-pl-kit={kitId} className="pl8-guest">
+        <TextureFilters />
+        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
+        <TextureLayer texture={textureIntensity > 0 ? theme.texture : 'none'} intensity={textureIntensity} />
+        <div style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: 'minmax(290px, 35%) 1fr', alignItems: 'start' }}>
+          <div style={{ position: 'sticky', top: 0, alignSelf: 'start' }}>
+            <SidebarHero
+              ctx={ctx}
+              headline={headline}
+              navLinks={navLinks}
+              active={active}
+              hover={hover}
+              setActive={setActive}
+              setHover={setHover}
+              editable={editable}
+            />
+          </div>
+          <div style={{ borderLeft: '1px solid var(--t-line-soft)' }}>
+            {sections.filter((s) => s !== 'hero').map(sectionEl)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (siteLayout === 'boxed') {
+    return (
+      <div
+        onMouseLeave={() => setHover(null)}
+        style={{ ...rootStyle, background: 'color-mix(in oklab, var(--t-ink) 14%, var(--t-section))', padding: '40px 26px' }}
+        data-pl-texture={theme.texture}
+        data-pl-kit={kitId}
+        className="pl8-guest"
+      >
+        <TextureFilters />
+        <div
+          style={{
+            maxWidth: 900,
+            margin: '0 auto',
+            position: 'relative',
+            background: 'var(--t-paper)',
+            borderRadius: 'var(--t-radius-lg)',
+            boxShadow: '0 40px 90px rgba(0,0,0,0.22), 0 6px 16px rgba(0,0,0,0.12)',
+            border: '1px solid var(--t-line)',
+            overflow: 'hidden',
+          }}
+        >
+          {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
+          <TextureLayer texture={textureIntensity > 0 ? theme.texture : 'none'} intensity={textureIntensity} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            {navEl}
+            {sections.map(sectionEl)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* Classic stacked — default scroll. */
   return (
-    <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={theme.texture}>
+    <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={theme.texture} data-pl-kit={kitId} className="pl8-guest">
       <TextureFilters />
-      {/* PatternLayer behind content (zIndex 0) — handoff L178. */}
       {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
-      {/* TextureLayer above content (zIndex 6) — handoff L177.
-          Material grain (linen / watercolor / paper / cotton / velvet
-          / kraft / canvas / marble / gilded). */}
       <TextureLayer texture={textureIntensity > 0 ? theme.texture : 'none'} intensity={textureIntensity} />
       <div style={{ position: 'relative', zIndex: 1 }}>
         {navEl}
         {sections.map(sectionEl)}
       </div>
     </div>
+  );
+}
+
+/* SidebarHero — handoff L221-253 verbatim. The left lockup panel for
+   the SPLIT layout. Hosts the eyebrow, names, divider, date/location,
+   nav links, and RSVP CTA in a vertical column. */
+
+function SidebarHero({
+  ctx, headline, navLinks, active, hover, setActive, setHover, editable,
+}: {
+  ctx: SectionCtx;
+  headline: string;
+  navLinks: string[];
+  active: SectionId;
+  hover: SectionId;
+  setActive: (id: SectionId) => void;
+  setHover: (id: SectionId) => void;
+  editable: boolean;
+}) {
+  void headline;
+  const { theme, C, motif, motifsOn } = ctx;
+  const isCouple = C.subject.type === 'couple';
+  const isEditorial = theme.id === 'editorial';
+  return (
+    <TSection id="hero" label="Hero" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable}>
+      <div style={{ position: 'relative', minHeight: 520, background: 'var(--t-section)', padding: '44px 36px', display: 'flex', flexDirection: 'column', gap: 18, overflow: 'hidden' }}>
+        {motifsOn && <MotifScatter motif={motif} density="generous" />}
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 9 }}>
+          <Pear size={24} tone="sage" shadow={false} />
+          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--t-ink-soft)' }}>
+            Pearloom
+          </span>
+        </div>
+        <div style={{ position: 'relative', marginTop: 'auto' }}>
+          {C.lead && (
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 10 }}>
+              {C.lead}
+            </div>
+          )}
+          <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 46, lineHeight: 1.0, margin: 0, letterSpacing: '-0.02em', color: 'var(--t-ink)' }}>
+            {isCouple ? (
+              <>
+                {C.subject.a}
+                <span style={{ display: 'block', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.7em', fontWeight: 400, color: 'var(--t-ink-soft)' }}>
+                  {isEditorial ? '×' : 'and'}
+                </span>
+                {C.subject.b}
+              </>
+            ) : null}
+          </h1>
+          {C.tagline && (
+            <div style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 17, color: 'var(--t-ink-soft)', marginTop: 12 }}>
+              {C.tagline}
+            </div>
+          )}
+        </div>
+        <div style={{ position: 'relative', marginTop: 4 }}>
+          <KDivider look={ctx.dividerLook} width={150} style={{ marginLeft: 0 }} />
+        </div>
+        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 7, fontSize: 13, color: 'var(--t-ink-soft)' }}>
+          {C.meta.date && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="calendar" size={14} color="var(--t-accent)" /> {C.meta.date}
+            </span>
+          )}
+          {C.meta.place && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}
+            </span>
+          )}
+        </div>
+        <nav style={{ position: 'relative', display: 'flex', flexWrap: 'wrap', gap: '6px 16px', fontSize: 12.5, fontWeight: 500, color: 'var(--t-ink-soft)' }}>
+          {navLinks.map((l) => <span key={l}>{l}</span>)}
+        </nav>
+        <div style={{ position: 'relative' }}>
+          <TButton variant="primary">
+            {C.cta} <Icon name="arrow-right" size={13} color="var(--t-paper)" />
+          </TButton>
+        </div>
+      </div>
+    </TSection>
   );
 }
 
@@ -306,7 +449,7 @@ function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
       <TSectionHead eyebrow={C.schedule.eyebrow} title={C.schedule.title} italic={C.schedule.italic} />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, maxWidth: 880, marginInline: 'auto' }}>
         {C.schedule.rows.map((r, i) => (
-          <div key={i} style={{ padding: 16, background: 'var(--t-card)', borderRadius: 'var(--t-radius)', border: '1px solid var(--t-line-soft)', textAlign: 'center' }}>
+          <div key={i} className="pl8-schedule-row" style={{ padding: 16, background: 'var(--t-card)', borderRadius: 'var(--t-radius)', border: '1px solid var(--t-line-soft)', textAlign: 'center' }}>
             <div style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 20, color: 'var(--t-ink)' }}>
               {r.t}
             </div>
@@ -330,7 +473,7 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
       <div style={{ position: 'relative', maxWidth: 820, marginInline: 'auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
           {C.travel.hotels.map((h, i) => (
-            <div key={i} style={{ background: 'var(--t-card)', borderRadius: 'var(--t-radius-lg)', overflow: 'hidden', border: '1px solid var(--t-line-soft)', boxShadow: 'var(--t-shadow)' }}>
+            <div key={i} className="pl8-hotel-row" style={{ background: 'var(--t-card)', borderRadius: 'var(--t-radius-lg)', overflow: 'hidden', border: '1px solid var(--t-line-soft)', boxShadow: 'var(--t-shadow)' }}>
               <div style={{ aspectRatio: '16/9' }}>
                 <PhotoPlaceholder tone={h.tone} aspect="16/9" />
               </div>
@@ -436,7 +579,7 @@ function FaqBlock({ ctx }: { ctx: SectionCtx }) {
       <TSectionHead eyebrow={C.faq.eyebrow} title={C.faq.title} italic={C.faq.italic} />
       <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {C.faq.questions.map((q, i) => (
-          <div key={i} style={{ padding: '12px 16px', background: 'var(--t-card)', border: '1px solid var(--t-line-soft)', borderRadius: 'var(--t-radius)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div key={i} className="pl8-faq-row" style={{ padding: '12px 16px', background: 'var(--t-card)', border: '1px solid var(--t-line-soft)', borderRadius: 'var(--t-radius)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 13.5, color: 'var(--t-ink)' }}>{q}</span>
             <Icon name="chev-down" size={13} color="var(--t-ink-muted)" />
           </div>
@@ -837,6 +980,36 @@ function PatternLayer({ pattern, intensity = 1 }: { pattern: string; intensity?:
   return <div aria-hidden style={{ ...base, backgroundImage: bg, backgroundSize: size, ...extra }} />;
 }
 
+/* Voice copy registry — each voice picks the eyebrow/tagline/story
+   tone. Matches handoff site-config.jsx COPY map at the field level
+   (we focus on hero + story + rsvp where voice is most visible). */
+const VOICE_COPY = {
+  classic: {
+    lead: 'Save the date',
+    tagline: 'together, at last',
+    storyEyebrow: 'Our story',
+    storyTitle: 'How we',
+    storyItalic: 'met',
+    rsvpTitle: 'Save your seat',
+  },
+  playful: {
+    lead: "It's happening",
+    tagline: 'finally putting a ring on it',
+    storyEyebrow: 'How we got here',
+    storyTitle: 'The (long)',
+    storyItalic: 'short of it',
+    rsvpTitle: 'Get in here',
+  },
+  poetic: {
+    lead: 'A small forever',
+    tagline: 'of all the days, this one',
+    storyEyebrow: 'Two threads, one weave',
+    storyTitle: 'Where we',
+    storyItalic: 'began',
+    rsvpTitle: 'Hold this day with us',
+  },
+} as const;
+
 function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string; nameB: string; date: string; place: string }): Copy {
   void theme;
   /* Loose-typed reads — the right-rail panels write to a wider
@@ -854,20 +1027,22 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
   const rsvpDeadline = (loose.rsvpDeadline as string | undefined);
   const tagline = (loose.tagline as string | undefined);
   const occasion = (loose.occasion as string | undefined) ?? 'wedding';
+  const voiceKey = ((loose.voiceOverride as string | undefined) ?? 'classic') as keyof typeof VOICE_COPY;
+  const V = VOICE_COPY[voiceKey] ?? VOICE_COPY.classic;
 
   const occasionDate = formatHeroDate(rsvpDeadline) || args.date;
   const isWedding = occasion === 'wedding';
 
   return {
     subject: { type: 'couple', a: args.nameA, b: args.nameB },
-    lead: 'Save the date',
-    tagline: tagline || 'together, at last',
+    lead: V.lead,
+    tagline: tagline || V.tagline,
     cta: 'RSVP',
     meta: { date: args.date, place: args.place },
     story: {
-      eyebrow: 'Our story',
-      title: storySection.headline ? splitHeading(storySection.headline).head : 'How we',
-      italic: storySection.headline ? splitHeading(storySection.headline).italic : 'met',
+      eyebrow: V.storyEyebrow,
+      title: storySection.headline ? splitHeading(storySection.headline).head : V.storyTitle,
+      italic: storySection.headline ? splitHeading(storySection.headline).italic : V.storyItalic,
       body: storySection.body || 'We met on an ordinary Tuesday and spent the evening arguing, fondly, about whether olives belong on pizza. Ten years later, we would be honoured to have you with us as we marry — there is no story we would rather tell, and no one we would rather tell it to.',
       chips: Array.isArray(storySection.chips) ? storySection.chips : undefined,
     },
@@ -932,7 +1107,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
     },
     rsvp: {
       eyebrow: rsvpDeadline ? `RSVP by ${formatHeroDate(rsvpDeadline) || rsvpDeadline}` : 'RSVP by April 28',
-      title: isWedding ? 'Save your seat' : 'Reply by the date',
+      title: isWedding ? V.rsvpTitle : 'Reply by the date',
       body: 'It takes about 90 seconds. Pear will follow up if anyone forgets.',
     },
     faq: {
