@@ -415,7 +415,7 @@ export function PalmMotif({ size = 22, color = MOTIF_COLOR, flip = false, style 
   );
 }
 
-function Motif({ kind, size, style }: { kind: MotifKind; size?: number; style?: CSSProperties }) {
+export function Motif({ kind, size, style }: { kind: MotifKind; size?: number; style?: CSSProperties }) {
   switch (kind) {
     case 'olive':
       return <OliveSprig size={size} style={style} />;

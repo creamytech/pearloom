@@ -501,6 +501,11 @@ export function EditorV8({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [advisorOpen, setAdvisorOpen] = useState(false);
+  // pearPaneOpen = the prototype's 4th-column Pear pane (Ask Pear
+  // pill in the topbar toggles it). Independent of advisorOpen,
+  // which is the modal that fires from PearWelcome / design-jump
+  // intents and stays a centered overlay.
+  const [pearPaneOpen, setPearPaneOpen] = useState(false);
   // Per-field pear glyph + the PearSuggestionsStrip dispatch
   // pearloom:open-pear-for with { block, pass?, intent? }. We open
   // the advisor, jump to the right block, and forward the pass as
@@ -1109,7 +1114,8 @@ export function EditorV8({
           lastSavedAt={lastSavedAt}
           liveUrl={publishedAt?.url ?? null}
           onPublish={openPublishModal}
-          onOpenAdvisor={() => setAdvisorOpen(true)}
+          onOpenAdvisor={() => setPearPaneOpen((v) => !v)}
+          pearPaneOpen={pearPaneOpen}
           onOpenThemeShop={() => setThemeShopOpen(true)}
           onOpenCommandPalette={() => {
             if (typeof window === 'undefined') return;
@@ -1195,6 +1201,7 @@ export function EditorV8({
             onChange={onManifestChange}
             tab={outlineTab}
             setTab={setOutlineTab}
+            onOpenTheme={() => setInspectorTab('theme')}
             displayUrl={prettyUrl}
             width={outlineWidth}
             onResize={setOutlineWidth}
@@ -1233,6 +1240,23 @@ export function EditorV8({
             prettyUrl={prettyUrl}
           />
         )}
+        {/* Prototype's 4th column — Pear pane sits flush right of
+            the inspector when the topbar's "Ask Pear" pill is on.
+            Hidden in mobile + preview modes so the canvas stays
+            full-bleed there. */}
+        {!isNarrow && !previewMode && pearPaneOpen && (
+          <DesignAdvisor
+            inline
+            manifest={manifest}
+            names={names}
+            siteSlug={siteSlug}
+            currentBlock={block}
+            open
+            onClose={() => setPearPaneOpen(false)}
+            onApplyPatch={(next) => setManifest(() => next)}
+            intent={advisorIntent}
+          />
+        )}
         {isNarrow && mobileDrawer && (
           <MobileDrawer onClose={() => setMobileDrawer(null)}>
             {mobileDrawer === 'outline' ? (
@@ -1251,6 +1275,7 @@ export function EditorV8({
                 onChange={onManifestChange}
                 tab={outlineTab}
                 setTab={setOutlineTab}
+                onOpenTheme={() => setInspectorTab('theme')}
                 displayUrl={prettyUrl}
                 fluid
               />
@@ -1760,6 +1785,7 @@ function EditorTopbar({
   lastSavedAt,
   liveUrl,
   onPublish,
+  pearPaneOpen = false,
   onOpenAdvisor,
   onOpenThemeShop,
   onOpenCommandPalette,
@@ -1795,6 +1821,9 @@ function EditorTopbar({
   liveUrl: string | null;
   onPublish: () => void;
   onOpenAdvisor: () => void;
+  /** Whether the Pear pane is currently open. Drives the
+   *  "Ask Pear" pill's active state. */
+  pearPaneOpen?: boolean;
   /** Opens the in-editor Theme Shop bottom sheet — wired to the
    *  "Browse themes" ghost button in the topbar's right zone. */
   onOpenThemeShop: () => void;
@@ -1847,7 +1876,7 @@ function EditorTopbar({
   const savedAt = saveStatus === 'saving' ? 'just now'
     : lastSavedAt ? new Date(lastSavedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
     : 'just now';
-  const pearOpen = false;
+  const pearOpen = pearPaneOpen;
   const setPearOpen = (_v: boolean) => onOpenAdvisor();
   const onPublishClick = onPublish;
   return (
@@ -2561,6 +2590,7 @@ function Outline({
   onChange,
   tab = 'sections',
   setTab,
+  onOpenTheme,
   fluid = false,
   displayUrl,
   width,
@@ -2581,6 +2611,10 @@ function Outline({
   /** Which tab is active. Sections (default) / Pages / Theme. */
   tab?: OutlineTab;
   setTab?: (t: OutlineTab) => void;
+  /** Click handler for the Theme tab — flips the inspector to its
+   *  theme panel, matching the prototype's behavior where the third
+   *  outline tab opens the theme editor in the right rail. */
+  onOpenTheme?: () => void;
   /** When true, the rail fills its container instead of being
    *  fixed-width. Used in the mobile drawer. */
   fluid?: boolean;
@@ -2756,29 +2790,30 @@ function Outline({
           }}
         />
       )}
-      {/* Tab strip — Sections / Pages / Theme. Theme moved here from
-          the inspector in the V2 redesign so the right rail can stay
-          focused on the active section + Pear. Pages now hosts the
-          real layout-mode picker (was a stale placeholder). */}
+      {/* Tab strip — Sections / Pages / Theme. Literal port of
+          prototype L172-183: three tabs in a flex strip, 3px padding,
+          gap 2, border-radius 8, ink-on-cream active state. Clicking
+          Theme also flips the inspector to its theme panel so the
+          right rail picks up the conversation. */}
       {setTab && (
         <div
           role="tablist"
           aria-label="Outline tabs"
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
+            display: 'flex',
             gap: 2,
-            padding: 4,
-            background: 'var(--cream-2)',
-            borderRadius: 10,
+            padding: 3,
+            background: 'var(--card)',
+            borderRadius: 8,
             border: '1px solid var(--line-soft)',
           }}
         >
           {(() => {
-            const keys = ['sections', 'pages'] as const;
+            const keys = ['sections', 'pages', 'theme'] as const;
             return keys.map((k, i) => {
             const on = tab === k;
-            const label = k === 'sections' ? 'Sections' : 'Pages';
+            const label = k === 'sections' ? 'Sections' : k === 'pages' ? 'Pages' : 'Theme';
+            const isTheme = k === 'theme';
             return (
               <button
                 key={k}
@@ -2789,15 +2824,22 @@ function Outline({
                 aria-controls={`pl8-outline-panel-${k}`}
                 aria-keyshortcuts={k === 'sections' ? 'Meta+1 Control+1' : undefined}
                 tabIndex={on ? 0 : -1}
-                onClick={() => setTab(k)}
-                onKeyDown={(e) => tablistKeydown(e, i, keys, (item) => setTab(item))}
+                onClick={() => {
+                  setTab(k);
+                  if (isTheme) onOpenTheme?.();
+                }}
+                onKeyDown={(e) => tablistKeydown(e, i, keys, (item) => {
+                  setTab(item);
+                  if (item === 'theme') onOpenTheme?.();
+                })}
                 style={{
-                  padding: '6px 8px',
-                  borderRadius: 7,
+                  flex: 1,
+                  padding: '6px',
+                  borderRadius: 6,
                   border: 0,
                   background: on ? 'var(--ink)' : 'transparent',
                   color: on ? 'var(--cream)' : 'var(--ink-soft)',
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: 600,
                   cursor: 'pointer',
                   fontFamily: 'var(--font-ui)',
@@ -2810,13 +2852,24 @@ function Outline({
                 }}
               >
                 {label}
+                {isTheme && showThemeNewBadge && (
+                  <span
+                    aria-hidden
+                    style={{
+                      position: 'absolute',
+                      top: 3,
+                      right: 6,
+                      width: 5,
+                      height: 5,
+                      borderRadius: 999,
+                      background: on ? 'var(--cream)' : 'var(--peach-ink, #C6703D)',
+                    }}
+                  />
+                )}
               </button>
             );
             });
           })()}
-          {/* Suppress unused-badge warning — Theme badge moved to the
-              inspector's Theme tab. */}
-          {void showThemeNewBadge}
         </div>
       )}
 
@@ -2841,8 +2894,11 @@ function Outline({
           pane shell puts ALL configuration on the right; the left
           rail stays focused on navigation. */}
 
-      {/* Sections tab — the original outline body. */}
-      {tab === 'sections' && (
+      {/* Sections tab — the original outline body. Also renders when
+          the Theme tab is active: matches prototype L172-183 where
+          clicking Theme deselects but keeps the section list visible
+          and shifts only the right rail to Theme. */}
+      {(tab === 'sections' || tab === 'theme') && (
         <div
           id="pl8-outline-panel-sections"
           role="tabpanel"
@@ -3408,7 +3464,7 @@ type InspectorTab = 'section' | 'theme' | 'library' | 'pear' | 'decor';
 // Theme dropped from the left outline tab strip — now lives on
 // the right inspector. Outline stays focused on what it does
 // well: pick a section, pick a page.
-type OutlineTab = 'sections' | 'pages';
+type OutlineTab = 'sections' | 'pages' | 'theme';
 
 function Inspector({
   block,

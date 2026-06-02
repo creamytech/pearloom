@@ -37,7 +37,7 @@ import { ProgramBlock } from '@/components/site/ProgramBlock';
 import { ToastSignupBlock } from '@/components/site/ToastSignupBlock';
 import { Icon } from '../motifs';
 import { NavBrandIcon } from './NavBrandIcon';
-import { MotifScatter, type MotifKind } from './MotifScatter';
+import { Motif, MotifScatter, WatercolorBloom, type MotifKind } from './MotifScatter';
 import { TextureFilters } from './TextureFilters';
 import { resolveEdition } from '@/lib/site-editions/resolve';
 import { getEventType } from '@/lib/event-os/event-types';
@@ -1921,7 +1921,7 @@ function ThemedHero({ manifest, names, motif, onEditField, onEditNames }: { mani
         style={{
           position: 'relative',
           padding: 'calc(56px * var(--pl-density-scale, 1)) 32px calc(48px * var(--pl-density-scale, 1))',
-          background: 'var(--section, var(--paper))',
+          background: 'var(--t-section)',
           overflow: 'hidden',
         }}
       >
@@ -2065,8 +2065,8 @@ function ThemedHero({ manifest, names, motif, onEditField, onEditNames }: { mani
       style={{
         position: 'relative',
         textAlign: 'center',
-        padding: 'calc(56px * var(--pl-density-scale, 1)) 32px calc(48px * var(--pl-density-scale, 1))',
-        background: 'var(--section, var(--paper))',
+        padding: 'calc(64px * var(--pl-density-scale, 1)) 40px calc(52px * var(--pl-density-scale, 1))',
+        background: 'var(--t-section)',
         overflow: 'hidden',
       }}
     >
@@ -2079,6 +2079,15 @@ function ThemedHero({ manifest, names, motif, onEditField, onEditNames }: { mani
         />
       </div>
       <MotifScatter motif={motif} density="generous" />
+      {/* Prototype L353: a WatercolorBloom wash centered above the hero
+          glyphs adds soft painterly depth without competing with the
+          atmosphere shader. Sits on the section layer below the names. */}
+      <WatercolorBloom
+        size={520}
+        tone="var(--t-accent-bg)"
+        tone2="rgba(138,154,107,0.3)"
+        style={{ position: 'absolute', top: '8%', left: '50%', transform: 'translateX(-50%)', opacity: 0.7, pointerEvents: 'none' }}
+      />
       {/* V8 OccasionDecor / aiAccentUrl / TemplateSignatureDecor —
           mirror the variant-branch mounts so the legacy 3-arch
           fallback gets the same atmospheric layer when reached. */}
@@ -2413,8 +2422,8 @@ function ThemedStory({ manifest, motif, editMode, onEditField }: { manifest: Sto
     <section
       id="our-story"
       style={{
-        padding: 'calc(48px * var(--pl-density-scale, 1)) 32px',
-        background: 'var(--section, var(--cream-2, #EBE3D2))',
+        padding: 'calc(48px * var(--pl-density-scale, 1)) 72px',
+        background: 'var(--t-section)',
         position: 'relative',
       }}
     >
@@ -2426,7 +2435,7 @@ function ThemedStory({ manifest, motif, editMode, onEditField }: { manifest: Sto
       {kit === 'scrapbook' && <StoryScrapbook chapters={chapters} tones={tones} onEditField={onEditField} />}
       {kit === 'index'     && <StoryIndex chapters={chapters} tones={tones} onEditField={onEditField} />}
       {kit === 'minimal'   && <StoryMinimal chapters={chapters} tones={tones} onEditField={onEditField} />}
-      {kit === 'classic'   && <StoryClassic chapters={chapters} tones={tones} onEditField={onEditField} />}
+      {kit === 'classic'   && <StoryClassic chapters={chapters} tones={tones} motif={motif} onEditField={onEditField} />}
     </section>
   );
 }
@@ -2434,7 +2443,7 @@ function ThemedStory({ manifest, motif, editMode, onEditField }: { manifest: Sto
 type Chapter = NonNullable<StoryManifest['chapters']>[number];
 
 /* Classic — alternating photo-left / photo-right book spread. */
-function StoryClassic({ chapters, tones, onEditField }: { chapters: Chapter[]; tones?: Array<string | null>; onEditField?: FieldEditor }) {
+function StoryClassic({ chapters, tones, motif, onEditField }: { chapters: Chapter[]; tones?: Array<string | null>; motif?: MotifKind; onEditField?: FieldEditor }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 72, maxWidth: 1080, margin: '0 auto' }}>
       {chapters.map((c, i) => {
@@ -2454,7 +2463,7 @@ function StoryClassic({ chapters, tones, onEditField }: { chapters: Chapter[]; t
             // resolved, so default chapters look unchanged.
             ...(photoTone ? { borderLeft: `2px solid ${photoTone}`, paddingLeft: 16 } : {}),
           }}>
-            <div style={{ order: left ? 0 : 2 }}>
+            <div style={{ order: left ? 0 : 2, position: 'relative' }}>
               {photo ? (
                 <div style={{
                   width: '100%', aspectRatio: '4/5',
@@ -2472,6 +2481,14 @@ function StoryClassic({ chapters, tones, onEditField }: { chapters: Chapter[]; t
                   fontFamily: 'var(--font-display, Fraunces, Georgia, serif)',
                   fontSize: 64, fontStyle: 'italic', opacity: 0.25,
                 }}>{numeral}</div>
+              )}
+              {/* Prototype L451: small motif glyph anchored to the
+                  photo's bottom-right corner — decorative tie-in
+                  between section and theme. */}
+              {motif && motif !== 'none' && photo && (
+                <div style={{ position: 'absolute', bottom: -18, right: -14, zIndex: 2 }} aria-hidden>
+                  <Motif kind={motif} size={70} />
+                </div>
               )}
             </div>
             <div style={{ order: 1 }} />
@@ -2994,8 +3011,8 @@ function ThemedDetails({ manifest, motif, editMode, onEditField }: { manifest: S
     <section
       id="details"
       style={{
-        padding: 'calc(40px * var(--pl-density-scale, 1)) 32px',
-        background: 'var(--section, var(--cream-2, #EBE3D2))',
+        padding: 'calc(44px * var(--pl-density-scale, 1)) 40px',
+        background: 'var(--t-section)',
         position: 'relative',
       }}
     >
@@ -4504,7 +4521,7 @@ function ThemedTravel({ manifest, motif, editMode, onEditField }: { manifest: St
       id="travel"
       style={{
         padding: 'calc(40px * var(--pl-density-scale, 1)) 32px',
-        background: 'var(--section, var(--cream-2, #EBE3D2))',
+        background: 'var(--t-section)',
         position: 'relative',
       }}
     >
@@ -5202,7 +5219,7 @@ function ThemedGallery({ manifest, editMode, onEditField }: { manifest: StoryMan
       id="gallery"
       style={{
         padding: 'calc(40px * var(--pl-density-scale, 1)) 32px',
-        background: 'var(--section, var(--cream-2, #EBE3D2))',
+        background: 'var(--t-section)',
         position: 'relative',
       }}
     >
@@ -6623,7 +6640,7 @@ function ThemedWeddingParty({ manifest }: { manifest: StoryManifest }) {
     <section
       style={{
         padding: 'calc(40px * var(--pl-density-scale, 1)) 32px',
-        background: 'var(--section, var(--paper))',
+        background: 'var(--t-section)',
         position: 'relative',
       }}
     >
@@ -6905,7 +6922,7 @@ const ThemedSpotify = memo(function ThemedSpotify({ manifest }: { manifest: Stor
       style={{
         padding: 'calc(40px * var(--pl-density-scale, 1)) 32px',
         textAlign: 'center',
-        background: 'var(--section, var(--cream-2, #EBE3D2))',
+        background: 'var(--t-section)',
         position: 'relative',
       }}
     >
@@ -7069,7 +7086,7 @@ function ThemedGuestbook({
       id="guestbook"
       style={{
         padding: 'calc(40px * var(--pl-density-scale, 1)) 32px 0',
-        background: 'var(--section, var(--paper))',
+        background: 'var(--t-section)',
         position: 'relative',
       }}
     >

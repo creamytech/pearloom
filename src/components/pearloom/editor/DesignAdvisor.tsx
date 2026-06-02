@@ -184,6 +184,7 @@ export function DesignAdvisor({
   currentBlock,
   selectedBlockIds,
   intent,
+  inline = false,
 }: {
   manifest: StoryManifest;
   names: [string, string];
@@ -205,6 +206,10 @@ export function DesignAdvisor({
    *  Each new click should increment intent.key so the effect
    *  re-runs even if the same pass id arrives twice in a row. */
   intent?: AdvisorIntent | null;
+  /** Mount as an inline pane (4th editor column) instead of a
+   *  fixed-position modal with backdrop. Matches the prototype's
+   *  Pear pane that sits flush with the inspector rail. */
+  inline?: boolean;
 }) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [activeAction, setActiveAction] = useState<QuickActionKey>('review');
@@ -515,40 +520,29 @@ export function DesignAdvisor({
   }
 
   if (!open) return null;
-  return (
-    <div
-      // Backdrop. role="presentation" makes it a non-semantic
-      // click-to-close target — the dialog role belongs on the
-      // inner <aside> where the actual content lives.
-      role="presentation"
-      onClick={onClose}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(14,13,11,0.32)',
-        backdropFilter: 'blur(6px)',
-        WebkitBackdropFilter: 'blur(6px)',
-        zIndex: 9998,
-        display: 'flex',
-        justifyContent: 'flex-end',
-        animation: 'pl-pear-fade 200ms ease-out',
-      }}
-    >
+
+  // Inline mode = the prototype's 4th-column Pear pane. Mounts as a
+  // flexbox sibling of the inspector (no backdrop), 320px wide, with
+  // a hairline left border. Modal mode (default) keeps the original
+  // backdrop + 460px right-anchored dialog for entry points outside
+  // the editor shell (PearWelcome, design-advisor intent, etc).
+  const advisorAside = (
       <aside
-        role="dialog"
-        aria-modal="true"
+        role={inline ? 'complementary' : 'dialog'}
+        aria-modal={inline ? undefined : 'true'}
         aria-label="Pear, your design advisor"
-        onClick={(e) => e.stopPropagation()}
+        onClick={inline ? undefined : (e) => e.stopPropagation()}
         style={{
-          width: 'min(460px, 100vw)',
+          width: inline ? 320 : 'min(460px, 100vw)',
           height: '100%',
-          background: 'var(--cream)',
+          flexShrink: 0,
+          background: 'var(--card)',
           borderLeft: '1px solid var(--line-soft)',
-          boxShadow: '-24px 0 60px rgba(14,13,11,0.18)',
+          boxShadow: inline ? 'none' : '-24px 0 60px rgba(14,13,11,0.18)',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          animation: 'pl-pear-slide 300ms cubic-bezier(0.22, 1, 0.36, 1)',
+          animation: inline ? undefined : 'pl-pear-slide 300ms cubic-bezier(0.22, 1, 0.36, 1)',
         }}
       >
         {/* Header — breathing Pear avatar + Fraunces italic greeting. */}
@@ -1109,6 +1103,30 @@ export function DesignAdvisor({
           }
         `}</style>
       </aside>
+  );
+
+  if (inline) return advisorAside;
+
+  return (
+    <div
+      // Backdrop. role="presentation" makes it a non-semantic
+      // click-to-close target — the dialog role belongs on the
+      // inner <aside> where the actual content lives.
+      role="presentation"
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(14,13,11,0.32)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
+        zIndex: 9998,
+        display: 'flex',
+        justifyContent: 'flex-end',
+        animation: 'pl-pear-fade 200ms ease-out',
+      }}
+    >
+      {advisorAside}
     </div>
   );
 }
