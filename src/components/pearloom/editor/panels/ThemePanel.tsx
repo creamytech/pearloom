@@ -22,6 +22,7 @@ import { KitPicker } from './KitPicker';
 import { PearThinking } from '../../pear-thinking';
 import { EDITIONS } from '@/lib/site-editions/editions';
 import { resolveEdition } from '@/lib/site-editions/resolve';
+import { ThemePackPicker } from './ThemePackPicker';
 import { getEventType } from '@/lib/event-os/event-types';
 import {
   SiteLookHeader,
@@ -302,6 +303,13 @@ export function ThemePanel({
       <SiteLookHeader manifest={manifest} onChange={onChange} />
       <EventTypeSection manifest={manifest} onChange={onChange} />
       <GenerateFromStoryCard manifest={manifest} onChange={onChange} />
+
+      {/* Prototype theme catalog — Santorini / Tuscan / Garden /
+          Editorial / Midnight / Coastal. Each tile re-skins the
+          published site via themeRootStyle's full --t-* token set
+          (integration guide §0). The primary "site look" picker
+          users will reach for. */}
+      <ThemePackPicker manifest={manifest} onChange={onChange} />
 
       {/* "Your packs" — owned Theme-Store packs surfaced above the
           Editions grid. Hidden when the host owns nothing beyond

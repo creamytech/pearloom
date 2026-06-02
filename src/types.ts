@@ -124,6 +124,11 @@ export interface StoryManifest {
   // Seeded by occasion voice at generation time; host can override
   // in the editor. See src/lib/event-os/theme-family.ts.
   themeFamily?: 'editorial' | 'groove';
+  /** Prototype theme catalog id — santorini / tuscan / garden /
+   *  editorial / midnight / coastal. When set, the renderer emits
+   *  the FULL --t-* token set from that theme via themeRootStyle()
+   *  per the integration guide §0 (the primary visual contract). */
+  themeId?: string;
   // Timeline macro layout format chosen by user
   layoutFormat?: 'cascade' | 'filmstrip' | 'scrapbook' | 'magazine' | 'chapters' | 'starmap';
   // Story chapter layout — controls how individual chapters render in the story section.

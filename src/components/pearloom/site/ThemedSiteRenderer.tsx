@@ -38,6 +38,7 @@ import { ToastSignupBlock } from '@/components/site/ToastSignupBlock';
 import { Icon } from '../motifs';
 import { NavBrandIcon } from './NavBrandIcon';
 import { Motif, MotifScatter, WatercolorBloom, type MotifKind } from './MotifScatter';
+import { getTheme, themeRootStyle, type Density as ThemeDensity } from './themes';
 import { TextureFilters } from './TextureFilters';
 import { resolveEdition } from '@/lib/site-editions/resolve';
 import { getEventType } from '@/lib/event-os/event-types';
@@ -544,6 +545,24 @@ export function ThemedSiteRenderer({
   const eyebrowLs = recTheme.eyebrowSpacing ?? '0.22em';
   const cardShadow = recTheme.cardShadow ?? '0 4px 14px rgba(75,65,52,0.10)';
 
+  /* Prototype theme overlay (integration guide §0 + handoff/shared/themes.jsx).
+     When the manifest carries a themeId from the prototype catalog
+     (santorini / tuscan / garden / editorial / midnight / coastal),
+     the renderer emits the FULL --t-* token set via themeRootStyle()
+     so every var(--t-paper), var(--t-section), var(--t-accent),
+     var(--t-display) etc. throughout the site re-skins per theme.
+     This is THE primary visual fix the guide calls out as "the one
+     rule for visually spot-on." */
+  const protoThemeId =
+    ((manifest as unknown as { themeId?: string }).themeId)
+    ?? ((manifest as unknown as { theme?: { id?: string; themeId?: string } }).theme?.id)
+    ?? ((manifest as unknown as { theme?: { id?: string; themeId?: string } }).theme?.themeId);
+  const protoTheme = getTheme(protoThemeId);
+  const protoThemeStyle = useMemo(
+    () => themeRootStyle(protoTheme, density as ThemeDensity),
+    [protoTheme, density],
+  );
+
   /* Memoized — shellStyle is the root <div> style prop. Without
      this, every render produces a new object reference, which
      forces React to diff every CSS var and breaks downstream
@@ -583,6 +602,11 @@ export function ThemedSiteRenderer({
       ['--pl-density-scale' as string]: String(
         density === 'cozy' ? 0.7 : density === 'spacious' ? 1.3 : 1,
       ),
+      /* Prototype theme overlay: when the host has selected a theme
+         from the prototype catalog, its --t-* + shadowed base vars
+         take precedence over the Edition defaults above. Spread LAST
+         so the theme wins. */
+      ...protoThemeStyle,
     }),
     [
       paper,
@@ -600,6 +624,7 @@ export function ThemedSiteRenderer({
       cardShadow,
       intensity,
       density,
+      protoThemeStyle,
     ],
   );
 
