@@ -50,10 +50,37 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
   const padScale = { cozy: 0.7, comfortable: 1, spacious: 1.3 }[density];
   /* Theme display font wins over the chrome default. */
   const headFont = (theme.vars['--t-display'] as string | undefined) || 'var(--font-display)';
-  const themeInk = (theme.vars['--t-ink'] as string | undefined) || 'var(--ink)';
-  const themeInkSoft = (theme.vars['--t-ink-soft'] as string | undefined) || 'var(--ink-soft)';
-  const themeAccent = (theme.vars['--t-accent'] as string | undefined) || 'var(--peach-ink)';
-  const themePaper = (theme.vars['--t-paper'] as string | undefined) || 'var(--paper)';
+  /* Color override priority: manifest.theme.colors (production
+     ColorTokenInspector palette) → manifest.themeVars (applied
+     pack's full --t-* bag) → 6-base-theme catalog vars. */
+  const hostColors = ((manifest as unknown as { theme?: { colors?: Record<string, string> } }).theme?.colors) ?? {};
+  const packVars = ((manifest as unknown as { themeVars?: Record<string, string> }).themeVars) ?? {};
+  const pick = (...candidates: Array<string | undefined>) =>
+    candidates.find((c): c is string => Boolean(c));
+  const themeInk = pick(hostColors.foreground, packVars['--t-ink'], theme.vars['--t-ink']) || 'var(--ink)';
+  const themeInkSoft = pick(packVars['--t-ink-soft'], theme.vars['--t-ink-soft']) || 'var(--ink-soft)';
+  const themeInkMuted = pick(hostColors.muted, packVars['--t-ink-muted'], theme.vars['--t-ink-muted']) || 'var(--ink-muted)';
+  const themeAccent = pick(hostColors.accent, packVars['--t-accent'], theme.vars['--t-accent']) || 'var(--peach-ink)';
+  const themePaper = pick(hostColors.background, packVars['--t-paper'], theme.vars['--t-paper']) || 'var(--paper)';
+  const themeSection = pick(packVars['--t-section'], theme.vars['--t-section']) || 'var(--cream-2)';
+  const themeCard = pick(hostColors.cardBg, packVars['--t-card'], theme.vars['--t-card']) || 'var(--card)';
+  const themeGold = pick(packVars['--t-gold'], theme.vars['--t-gold']) || 'var(--gold)';
+  const themeLineSoft = pick(packVars['--t-line-soft'], theme.vars['--t-line-soft']) || 'var(--line-soft)';
+  const themeRsvp = pick(packVars['--t-rsvp'], theme.vars['--t-rsvp']) || themeInk;
+  const themeRsvpInk = pick(packVars['--t-rsvp-ink'], theme.vars['--t-rsvp-ink']) || themePaper;
+
+  /* Host-visible toggles that the prototype's tweaks panel exposes.
+     Texture intensity 0 → off; motifsOn=false suppresses every
+     decorative shape (Blob, Squiggle, photo strip rotation glyphs). */
+  const textureIntensity = (manifest as unknown as { textureIntensity?: number }).textureIntensity ?? 1;
+  const motifsOn = (manifest as unknown as { motifsEnabled?: boolean }).motifsEnabled ?? true;
+  /* Texture overlay style — a quiet noise filter painted on top of
+     the canvas root when intensity > 0. The handoff TextureLayer in
+     shared/themes.jsx does the same with feTurbulence. We use a
+     cheap SVG-data-url version for the canvas preview. */
+  const texturePaint = textureIntensity > 0
+    ? `url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.95 0 0 0 0 0.90 0 0 0 0 0.78 0 0 0 ${0.06 * textureIntensity} 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")`
+    : 'none';
 
   /* Filter UUID-like strings out of names — the slug "F7d9a3b2"
      was leaking into the H1 as a couple name. Hex-only / pure-
@@ -69,19 +96,28 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
   const place = (manifest as unknown as { logistics?: { place?: string } }).logistics?.place || 'Santorini, Greece';
 
   return (
-    <div onMouseLeave={() => setHover(null)} style={{ ...themeStyle, background: themePaper }}>
+    <div
+      onMouseLeave={() => setHover(null)}
+      style={{
+        ...themeStyle,
+        background: themePaper,
+        backgroundImage: texturePaint,
+        position: 'relative',
+      }}
+    >
       {/* Sub-nav — prototype L332-347. */}
       <SectionFrame id="nav" label="Site nav" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable} hideHandle>
         <div
           style={{
             display: 'flex', alignItems: 'center', gap: 18, padding: '14px 32px',
-            fontSize: 12.5, color: 'var(--ink-soft)',
-            borderBottom: '1px solid var(--line-soft)',
+            fontSize: 12.5, color: themeInkSoft,
+            borderBottom: `1px solid ${themeLineSoft}`,
+            background: themePaper,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <Pear size={22} tone="sage" shadow={false} />
-            <span className="display-italic" style={{ fontSize: 16, color: 'var(--ink)' }}>
+            <span style={{ fontFamily: headFont, fontStyle: 'italic', fontSize: 16, color: themeInk }}>
               {nameA} &amp; {nameB}
             </span>
           </div>
@@ -90,7 +126,7 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
               <span key={l}>{l}</span>
             ))}
           </div>
-          <span style={{ padding: '6px 14px', borderRadius: 999, background: 'var(--ink)', color: 'var(--cream)', fontSize: 11.5, fontWeight: 600 }}>
+          <span style={{ padding: '6px 14px', borderRadius: 999, background: themeInk, color: themePaper, fontSize: 11.5, fontWeight: 600 }}>
             RSVP
           </span>
         </div>
@@ -107,10 +143,15 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
             overflow: 'hidden',
           }}
         >
-          {/* Decorative blobs + squiggle. The arches users see. */}
-          <Blob tone={accent} size={360} opacity={0.5} style={{ position: 'absolute', top: -80, left: -80 }} />
-          <Blob tone="peach" size={280} opacity={0.5} style={{ position: 'absolute', bottom: -60, right: -40 }} />
-          <Squiggle variant={1} width={180} stroke="var(--gold-line)" style={{ position: 'absolute', top: 60, right: 80, opacity: 0.6, transform: 'rotate(-8deg)' }} />
+          {/* Decorative blobs + squiggle — suppressed when motifsOn=false
+              per the prototype's tweaks panel Motifs toggle. */}
+          {motifsOn && (
+            <>
+              <Blob tone={accent} size={360} opacity={0.5} style={{ position: 'absolute', top: -80, left: -80 }} />
+              <Blob tone="peach" size={280} opacity={0.5} style={{ position: 'absolute', bottom: -60, right: -40 }} />
+              <Squiggle variant={1} width={180} stroke={themeGold} style={{ position: 'absolute', top: 60, right: 80, opacity: 0.6, transform: 'rotate(-8deg)' }} />
+            </>
+          )}
 
           <div style={{ position: 'relative' }}>
             <div className="display-italic" style={{ fontSize: 18, color: themeInkSoft }}>
@@ -165,17 +206,17 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
 
       {/* Details — prototype L395-411. */}
       <SectionFrame id="details" label="Details" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable}>
-        <div style={{ padding: `${36 * padScale}px 32px`, background: 'var(--cream-2)' }}>
+        <div style={{ padding: `${36 * padScale}px 32px`, background: themeSection }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 18, maxWidth: 760, marginInline: 'auto' }}>
             {[
               { icon: 'sparkles', l: 'Dress code', v: 'Garden formal' },
               { icon: 'users', l: 'Kids welcome', v: 'Ages 10 +' },
               { icon: 'gift', l: 'Gifts', v: 'Your presence is enough' },
             ].map((d) => (
-              <div key={d.l} style={{ background: 'var(--card)', borderRadius: 12, padding: 18, border: '1px solid var(--line-soft)' }}>
-                <Icon name={d.icon} size={18} color="var(--gold)" />
-                <div className="eyebrow" style={{ marginTop: 10, marginBottom: 4 }}>{d.l}</div>
-                <div style={{ fontFamily: headFont, fontSize: 18, fontWeight: 600 }}>{d.v}</div>
+              <div key={d.l} style={{ background: themeCard, borderRadius: 12, padding: 18, border: `1px solid ${themeLineSoft}` }}>
+                <Icon name={d.icon} size={18} color={themeGold} />
+                <div className="eyebrow" style={{ marginTop: 10, marginBottom: 4, color: themeInkMuted }}>{d.l}</div>
+                <div style={{ fontFamily: headFont, fontSize: 18, fontWeight: 600, color: themeInk }}>{d.v}</div>
               </div>
             ))}
           </div>
@@ -184,10 +225,10 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
 
       {/* Schedule — prototype L414-435. */}
       <SectionFrame id="schedule" label="Schedule" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable}>
-        <div style={{ padding: `${44 * padScale}px 32px` }}>
+        <div style={{ padding: `${44 * padScale}px 32px`, background: themePaper }}>
           <div style={{ textAlign: 'center', marginBottom: 28 }}>
-            <div className="eyebrow">THE DAY · APRIL 26</div>
-            <h2 style={{ fontFamily: headFont, fontSize: 36, margin: '6px 0 0', lineHeight: 1, fontWeight: 600 }}>
+            <div className="eyebrow" style={{ color: themeAccent }}>THE DAY · APRIL 26</div>
+            <h2 style={{ fontFamily: headFont, fontSize: 36, margin: '6px 0 0', lineHeight: 1, fontWeight: 600, color: themeInk }}>
               The day, in moments
             </h2>
           </div>
@@ -198,10 +239,10 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
               { t: '7:00 pm', l: 'Dinner', s: 'Long table' },
               { t: '9:00 pm', l: 'Dancing', s: 'Until late' },
             ].map((s) => (
-              <div key={s.t} style={{ padding: 16, background: 'var(--card)', borderRadius: 12, border: '1px solid var(--line-soft)', textAlign: 'center' }}>
-                <div style={{ fontFamily: headFont, fontSize: 20, fontWeight: 600 }}>{s.t}</div>
-                <div style={{ fontSize: 13, color: 'var(--ink)', marginTop: 4, fontWeight: 600 }}>{s.l}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 2 }}>{s.s}</div>
+              <div key={s.t} style={{ padding: 16, background: themeCard, borderRadius: 12, border: `1px solid ${themeLineSoft}`, textAlign: 'center' }}>
+                <div style={{ fontFamily: headFont, fontSize: 20, fontWeight: 600, color: themeInk }}>{s.t}</div>
+                <div style={{ fontSize: 13, color: themeInk, marginTop: 4, fontWeight: 600 }}>{s.l}</div>
+                <div style={{ fontSize: 11.5, color: themeInkMuted, marginTop: 2 }}>{s.s}</div>
               </div>
             ))}
           </div>
@@ -212,8 +253,8 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
       <SectionFrame id="travel" label="Travel" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable}>
         <div style={{ padding: `${44 * padScale}px 32px`, background: accentBg }}>
           <div style={{ textAlign: 'center', marginBottom: 22 }}>
-            <div className="eyebrow" style={{ color: 'var(--peach-ink)' }}>GETTING THERE</div>
-            <h2 style={{ fontFamily: headFont, fontSize: 36, margin: '6px 0 0', fontWeight: 600 }}>
+            <div className="eyebrow" style={{ color: themeAccent }}>GETTING THERE</div>
+            <h2 style={{ fontFamily: headFont, fontSize: 36, margin: '6px 0 0', fontWeight: 600, color: themeInk }}>
               Where to stay
             </h2>
           </div>
@@ -222,14 +263,14 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
               { name: 'Cosmos Suites', sub: '8-min walk · room block code SS27', tone: 'warm' },
               { name: 'Andronis Boutique', sub: '12-min walk · cliffside', tone: 'lavender' },
             ].map((h) => (
-              <div key={h.name} style={{ background: 'var(--card)', borderRadius: 12, padding: 14, display: 'flex', gap: 14, border: '1px solid var(--line-soft)' }}>
+              <div key={h.name} style={{ background: themeCard, borderRadius: 12, padding: 14, display: 'flex', gap: 14, border: `1px solid ${themeLineSoft}` }}>
                 <div style={{ width: 88, height: 88, borderRadius: 10, overflow: 'hidden', flexShrink: 0 }}>
                   <PhotoPlaceholder tone={h.tone as PhotoTone} aspect="1/1" />
                 </div>
                 <div>
-                  <div style={{ fontFamily: headFont, fontSize: 18, fontWeight: 600 }}>{h.name}</div>
-                  <div style={{ fontSize: 12.5, color: 'var(--ink-muted)', marginTop: 4 }}>{h.sub}</div>
-                  <span style={{ display: 'inline-block', marginTop: 8, padding: '4px 10px', borderRadius: 999, background: 'var(--cream-2)', fontSize: 11.5, fontWeight: 600, color: 'var(--ink-soft)' }}>
+                  <div style={{ fontFamily: headFont, fontSize: 18, fontWeight: 600, color: themeInk }}>{h.name}</div>
+                  <div style={{ fontSize: 12.5, color: themeInkMuted, marginTop: 4 }}>{h.sub}</div>
+                  <span style={{ display: 'inline-block', marginTop: 8, padding: '4px 10px', borderRadius: 999, background: themeSection, fontSize: 11.5, fontWeight: 600, color: themeInkSoft }}>
                     Book →
                   </span>
                 </div>
@@ -241,17 +282,17 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
 
       {/* Registry — prototype L465-477. */}
       <SectionFrame id="registry" label="Registry" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable}>
-        <div style={{ padding: `${44 * padScale}px 32px`, textAlign: 'center' }}>
-          <div className="eyebrow">REGISTRY</div>
-          <h2 style={{ fontFamily: headFont, fontSize: 32, margin: '6px 0 14px', fontWeight: 600 }}>
+        <div style={{ padding: `${44 * padScale}px 32px`, textAlign: 'center', background: themePaper }}>
+          <div className="eyebrow" style={{ color: themeAccent }}>REGISTRY</div>
+          <h2 style={{ fontFamily: headFont, fontSize: 32, margin: '6px 0 14px', fontWeight: 600, color: themeInk }}>
             Your presence is the gift
           </h2>
-          <div style={{ fontSize: 14, color: 'var(--ink-soft)', maxWidth: 460, margin: '0 auto 22px' }}>
+          <div style={{ fontSize: 14, color: themeInkSoft, maxWidth: 460, margin: '0 auto 22px' }}>
             If you&apos;d like to celebrate further, we&apos;ve put a few things together.
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
             {['Honeyfund', 'Crate & Barrel', 'Zola'].map((s) => (
-              <span key={s} style={{ padding: '12px 22px', borderRadius: 12, background: 'var(--card)', border: '1px solid var(--line)', fontSize: 13, fontWeight: 600 }}>
+              <span key={s} style={{ padding: '12px 22px', borderRadius: 12, background: themeCard, border: `1px solid ${themeLineSoft}`, fontSize: 13, fontWeight: 600, color: themeInk }}>
                 {s} ↗
               </span>
             ))}
@@ -261,10 +302,10 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
 
       {/* Gallery — prototype L481-493. */}
       <SectionFrame id="gallery" label="Gallery" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable}>
-        <div style={{ padding: `${36 * padScale}px 32px`, background: 'var(--cream-2)' }}>
+        <div style={{ padding: `${36 * padScale}px 32px`, background: themeSection }}>
           <div style={{ textAlign: 'center', marginBottom: 22 }}>
-            <div className="eyebrow">GALLERY</div>
-            <h2 style={{ fontFamily: headFont, fontSize: 32, margin: '6px 0 0', fontWeight: 600 }}>
+            <div className="eyebrow" style={{ color: themeAccent }}>GALLERY</div>
+            <h2 style={{ fontFamily: headFont, fontSize: 32, margin: '6px 0 0', fontWeight: 600, color: themeInk }}>
               A few favorites
             </h2>
           </div>
@@ -276,17 +317,19 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
         </div>
       </SectionFrame>
 
-      {/* RSVP — prototype L496-502. */}
+      {/* RSVP — prototype L496-502. Theme defines --t-rsvp + --t-rsvp-ink
+          so dark themes (Midnight Velvet) get gold on inky velvet,
+          editorial gets pure black on bone, etc. */}
       <SectionFrame id="rsvp" label="RSVP" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable}>
-        <div style={{ padding: `${56 * padScale}px 32px`, textAlign: 'center', background: 'var(--ink)', color: 'var(--cream)' }}>
-          <div className="eyebrow" style={{ color: 'rgba(248,241,228,0.6)' }}>RSVP BY APRIL 28</div>
-          <h2 style={{ fontFamily: headFont, fontSize: 44, margin: '8px 0 6px', color: 'var(--cream)', fontWeight: 600 }}>
+        <div style={{ padding: `${56 * padScale}px 32px`, textAlign: 'center', background: themeRsvp, color: themeRsvpInk }}>
+          <div className="eyebrow" style={{ color: themeRsvpInk, opacity: 0.6 }}>RSVP BY APRIL 28</div>
+          <h2 style={{ fontFamily: headFont, fontSize: 44, margin: '8px 0 6px', color: themeRsvpInk, fontWeight: 600 }}>
             Save your seat
           </h2>
           <div style={{ fontSize: 13.5, opacity: 0.7, marginBottom: 18 }}>
             It takes about 90 seconds. Pear will follow up if anyone forgets.
           </div>
-          <span style={{ display: 'inline-block', padding: '12px 28px', borderRadius: 999, background: 'var(--cream)', color: 'var(--ink)', fontSize: 14, fontWeight: 700 }}>
+          <span style={{ display: 'inline-block', padding: '12px 28px', borderRadius: 999, background: themeRsvpInk, color: themeRsvp, fontSize: 14, fontWeight: 700 }}>
             Reply now →
           </span>
         </div>
@@ -294,10 +337,10 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
 
       {/* FAQ — prototype L506-525. */}
       <SectionFrame id="faq" label="FAQ" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable}>
-        <div style={{ padding: `${44 * padScale}px 32px` }}>
+        <div style={{ padding: `${44 * padScale}px 32px`, background: themePaper }}>
           <div style={{ textAlign: 'center', marginBottom: 22 }}>
-            <div className="eyebrow">QUESTIONS &amp; ANSWERS</div>
-            <h2 style={{ fontFamily: headFont, fontSize: 32, margin: '6px 0 0', fontWeight: 600 }}>
+            <div className="eyebrow" style={{ color: themeAccent }}>QUESTIONS &amp; ANSWERS</div>
+            <h2 style={{ fontFamily: headFont, fontSize: 32, margin: '6px 0 0', fontWeight: 600, color: themeInk }}>
               The little things
             </h2>
           </div>
@@ -308,9 +351,9 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
               'Are kids welcome at the ceremony?',
               'Where should I stay in Santorini?',
             ].map((q, i) => (
-              <div key={i} style={{ padding: '12px 16px', background: 'var(--card)', border: '1px solid var(--line-soft)', borderRadius: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 13.5 }}>{q}</span>
-                <Icon name="chev-down" size={13} color="var(--ink-muted)" />
+              <div key={i} style={{ padding: '12px 16px', background: themeCard, border: `1px solid ${themeLineSoft}`, borderRadius: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 13.5, color: themeInk }}>{q}</span>
+                <Icon name="chev-down" size={13} color={themeInkMuted} />
               </div>
             ))}
           </div>
