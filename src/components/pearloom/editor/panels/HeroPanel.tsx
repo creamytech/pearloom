@@ -1,7 +1,7 @@
 'use client';
 
 import type { StoryManifest } from '@/types';
-import { AddRowButton, Field, ListRow, PanelGroup, PanelHeaderTag, PanelSection, PanelSmartActions, PanelTabs, PhotoSlot, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
+import { AddRowButton, Field, ListRow, PanelGroup, PanelHeaderTag, PanelSection, PanelSmartActions, PanelTabs, PearChip, PhotoSlot, SelectInput, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { PlaceAutocomplete } from './PlaceAutocomplete';
 import { FocalPointPicker } from './FocalPointPicker';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
@@ -198,6 +198,23 @@ export function HeroPanel({
           label="Hero tagline"
           htmlFor="pl8-hero-tagline"
           pearAction={{ block: 'hero', pass: 'rewrite-tagline', label: 'Rewrite tagline with Pear' }}
+          right={
+            // Prototype-port: "3 styles" PearChip in the field action
+            // slot — fires the same rewrite-tagline pass as the inline
+            // glyph but reads as an inviting affordance, not a tool.
+            <PearChip
+              label="3 styles"
+              title="Pear drafts three tagline candidates in different voices"
+              onClick={() => {
+                if (typeof window === 'undefined') return;
+                window.dispatchEvent(
+                  new CustomEvent('pearloom:open-pear-for', {
+                    detail: { block: 'hero', pass: 'rewrite-tagline', intent: 'multi-variant' },
+                  }),
+                );
+              }}
+            />
+          }
         >
           <TextArea
             id="pl8-hero-tagline"

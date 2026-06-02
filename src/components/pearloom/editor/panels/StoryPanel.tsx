@@ -2,7 +2,7 @@
 
 import { useRef, type ChangeEvent } from 'react';
 import type { StoryManifest, Chapter } from '@/types';
-import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelHeaderTag, PanelSection, PanelSmartActions, PanelTabs, PhotoSlot, TextArea, TextInput, type PanelSmartAction } from '../atoms';
+import { AddRowButton, EmptyBlockState, Field, PanelGroup, PanelHeaderTag, PanelSection, PanelSmartActions, PanelTabs, PearChip, PhotoSlot, TextArea, TextInput, type PanelSmartAction } from '../atoms';
 import { SortableList, SortableRowCard } from '../sortable';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { Icon } from '../../motifs';
@@ -103,6 +103,44 @@ function PhotoChaptersAI({
       </div>
     </div>
   );
+}
+
+// Prototype-port: 4 tone chips that drive /api/rewrite-chapter with a
+// specific tone instead of the generic 'polish'. Matches the
+// ClaudeDesign StoryEditor's "Shorten / Warmer / Funnier / More
+// poetic" row.
+const REWRITE_TONES: Array<{ label: string; tone: string }> = [
+  { label: 'Shorten', tone: 'shorten' },
+  { label: 'Warmer', tone: 'warmer' },
+  { label: 'Funnier', tone: 'funnier' },
+  { label: 'More poetic', tone: 'poetic' },
+];
+
+function rewriteChapterTone(chapter: Chapter, tone: string, onResult: (text: string) => void) {
+  // Fire-and-forget — caller handles the streaming/state UI via
+  // ChapterRewriteAI's button. This helper exists for the tone
+  // chips that dispatch a one-shot rewrite without occupying the
+  // primary "Polish" affordance.
+  return fetch('/api/rewrite-chapter', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chapter, tone }),
+  })
+    .then(async (res) => {
+      if (!res.ok) throw new Error(String(res.status));
+      const raw = (await res.json().catch(() => null)) as unknown;
+      let text = '';
+      if (raw && typeof raw === 'object') {
+        const obj = raw as Record<string, unknown>;
+        if (typeof obj.description === 'string') text = obj.description.trim();
+        else if (obj.chapter && typeof obj.chapter === 'object') {
+          const ch = obj.chapter as Record<string, unknown>;
+          if (typeof ch.description === 'string') text = ch.description.trim();
+        }
+      }
+      if (text) onResult(text);
+    })
+    .catch(() => undefined);
 }
 
 function ChapterRewriteAI({ chapter, onResult }: { chapter: Chapter; onResult: (text: string) => void }) {
@@ -311,6 +349,23 @@ export function StoryPanel({
                 <Field
                   label="What happened"
                   pearAction={{ block: 'story', pass: 'tighten-prose', label: 'Tighten this with Pear' }}
+                  right={
+                    // Prototype-port: "Draft for me" PearChip in the
+                    // field action slot — fires the rewrite-chapter
+                    // pass scoped to this chapter via the advisor.
+                    <PearChip
+                      label="Draft for me"
+                      title="Pear writes a first draft from the title + date + place"
+                      onClick={() => {
+                        if (typeof window === 'undefined') return;
+                        window.dispatchEvent(
+                          new CustomEvent('pearloom:open-pear-for', {
+                            detail: { block: 'story', pass: 'tighten-prose', intent: 'draft', chapterId: c.id },
+                          }),
+                        );
+                      }}
+                    />
+                  }
                 >
                   <TextArea
                     value={c.description}
@@ -319,6 +374,31 @@ export function StoryPanel({
                     placeholder="A friend's birthday, a crowded kitchen, and the worst dad joke that somehow worked."
                   />
                 </Field>
+                {/* Prototype-port: 4 tone chips below the textarea —
+                    Shorten / Warmer / Funnier / More poetic — each
+                    one fires the rewrite endpoint with that tone. */}
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+                  {REWRITE_TONES.map((t) => (
+                    <button
+                      key={t.tone}
+                      type="button"
+                      onClick={() => void rewriteChapterTone(c, t.tone, (text) => updateChapter(i, { description: text }))}
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        padding: '5px 10px',
+                        borderRadius: 999,
+                        background: 'var(--pl-chrome-surface-2)',
+                        border: '1px solid var(--pl-chrome-border)',
+                        color: 'var(--pl-chrome-text-soft)',
+                        cursor: 'pointer',
+                        fontFamily: 'var(--font-ui)',
+                      }}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
                 <ChapterRewriteAI chapter={c} onResult={(text) => updateChapter(i, { description: text })} />
               </SortableRowCard>
             );

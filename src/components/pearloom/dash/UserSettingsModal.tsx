@@ -3,16 +3,17 @@
 /* =========================================================================
    PEARLOOM — USER SETTINGS MODAL
    Claude-style account modal: Account / Usage & credits / Subscription /
-   Preferences. Visual fidelity port of ClaudeDesign/pages/user-settings.jsx.
+   Preferences. LITERAL port of ClaudeDesign/pages/user-settings.jsx — the
+   JSX tree, atoms, layouts and styling mirror the prototype verbatim.
 
    Mounts on top of the dashboard shell. Opens from:
      1. the bottom-of-sidebar UserMenu in DashShell
      2. the global ⌘K command palette ("Open settings")
      3. programmatically via window.dispatchEvent(new Event('pearloom:open-settings'))
 
-   The visual layer is a 1:1 port of the prototype. The auth + plan +
-   preferences wiring (next-auth session, /api/ai-usage,
-   /api/user/preferences) is preserved from the previous build.
+   Data wiring: next-auth session powers name/email/initials, /api/ai-usage
+   powers the credit ring + plan resolution, /api/sites powers the sites
+   bar, /api/user/preferences PATCH cycle persists toggle state.
    ========================================================================= */
 
 import Link from 'next/link';
@@ -735,11 +736,14 @@ function AccountTab({
         <MiniButton href="/dashboard/profile">Edit</MiniButton>
       </UsRow>
       <UsRow>
-        <UsField label="Password" value="Managed by your sign-in provider" />
+        <UsField label="Password" value="••••••••••" />
         <MiniButton href="/dashboard/profile">Change</MiniButton>
       </UsRow>
 
-      {/* Partner access — mirrors the prototype's bottom-of-Account row */}
+      {/* Partner access — mirrors the prototype's bottom-of-Account row.
+          The prototype shows a small lavender avatar with the partner's
+          initial. We don't have partner data on session yet — render the
+          same shape with a "+" placeholder so the visual rhythm matches. */}
       <UsRow last>
         <div
           style={{
@@ -757,7 +761,10 @@ function AccountTab({
         >
           +
         </div>
-        <UsField label="Partner access" value="Invite a collaborator to edit your site" />
+        <UsField
+          label="Partner access"
+          value="Invite a collaborator to edit your site"
+        />
         <MiniButton href="/dashboard/connections">Manage</MiniButton>
       </UsRow>
     </div>
@@ -1265,26 +1272,20 @@ function SubscriptionTab({ planId }: { planId: PlanTier['id'] }) {
 
 /* =========================================================================
    TAB: PREFERENCES
+   Literal port of the prototype: four toggles + delete row. No theme
+   selector and no Pear-voice select — those are deferred to /profile.
+   Toggle state is persisted to localStorage (notif / digest / autosave
+   / reduced-motion); the email-notifications toggle additionally PATCHes
+   /api/user/preferences to coerce server-side quiet hours on when off.
    ========================================================================= */
 
 function PreferencesTab() {
   const [prefs, setPrefs] = useState<PreferencesData | null>(null);
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    if (typeof window === 'undefined') return 'light';
-    return (window.localStorage.getItem('pl-site-theme') as
-      | 'light'
-      | 'dark'
-      | null) ?? 'light';
-  });
-  const [reducedMotion, setReducedMotion] = useState(false);
-  // Locally-stored preference toggles. These mirror the prototype's
-  // "Email notifications / Weekly digest / Autosave" set. Notifications
-  // + autosave are persisted as booleans in localStorage; the digest
-  // ride-along is just visual today (no email-cron infra yet) and
-  // will pick up a backend in a follow-up.
+  // Local toggle state — mirrors the prototype's four switches.
   const [emailNotifs, setEmailNotifs] = useState(true);
   const [weeklyDigest, setWeeklyDigest] = useState(true);
   const [autosave, setAutosave] = useState(true);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Pull existing prefs.
@@ -1303,21 +1304,20 @@ function PreferencesTab() {
     };
   }, []);
 
-  // Initial reduced-motion check honours OS pref so the toggle
-  // reflects what the user already sees.
+  // Initial state reads: localStorage wins; reduced-motion falls
+  // through to the OS media query.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const stored = window.localStorage.getItem('pl-reduced-motion');
-    if (stored === '1') setReducedMotion(true);
-    else if (stored === '0') setReducedMotion(false);
+    setEmailNotifs(window.localStorage.getItem('pl-email-notifs') !== '0');
+    setWeeklyDigest(window.localStorage.getItem('pl-weekly-digest') !== '0');
+    setAutosave(window.localStorage.getItem('pl-autosave') !== '0');
+    const storedMotion = window.localStorage.getItem('pl-reduced-motion');
+    if (storedMotion === '1') setReducedMotion(true);
+    else if (storedMotion === '0') setReducedMotion(false);
     else {
       const m = window.matchMedia('(prefers-reduced-motion: reduce)');
       setReducedMotion(m.matches);
     }
-
-    setEmailNotifs(window.localStorage.getItem('pl-email-notifs') !== '0');
-    setWeeklyDigest(window.localStorage.getItem('pl-weekly-digest') !== '0');
-    setAutosave(window.localStorage.getItem('pl-autosave') !== '0');
   }, []);
 
   const savePref = useCallback((patch: Partial<PreferencesData>) => {
@@ -1332,28 +1332,6 @@ function PreferencesTab() {
     }, 350);
   }, []);
 
-  const flipTheme = useCallback((next: 'light' | 'dark') => {
-    setTheme(next);
-    if (typeof window !== 'undefined') {
-      try {
-        window.localStorage.setItem('pl-site-theme', next);
-      } catch {}
-      // The site renderer reads [data-pl-site-root][data-theme=...];
-      // we set it on documentElement as a fallback so any consumer
-      // can react.
-      document.documentElement.setAttribute('data-theme', next);
-    }
-  }, []);
-
-  const flipMotion = useCallback((next: boolean) => {
-    setReducedMotion(next);
-    if (typeof window !== 'undefined') {
-      try {
-        window.localStorage.setItem('pl-reduced-motion', next ? '1' : '0');
-      } catch {}
-    }
-  }, []);
-
   const flipLocal = useCallback(
     (key: string, set: (v: boolean) => void) => (next: boolean) => {
       set(next);
@@ -1366,71 +1344,20 @@ function PreferencesTab() {
     [],
   );
 
-  // Used to surface quiet-hours-style behavior implicitly with the
-  // "Email notifications" toggle — when emails are off, server-side
-  // quiet hours are coerced on. The /api/user/preferences PATCH
-  // carries the actual boolean.
   const onEmailNotifs = useCallback(
     (next: boolean) => {
       flipLocal('pl-email-notifs', setEmailNotifs)(next);
       // If the user turns notifications off entirely, also flip
       // quiet_hours on at the server. (It's idempotent.)
       if (!next) savePref({ quiet_hours: true });
+      else if (prefs?.quiet_hours) savePref({ quiet_hours: false });
     },
-    [flipLocal, savePref],
+    [flipLocal, savePref, prefs?.quiet_hours],
   );
 
   return (
     <div>
       <SettingsHead title="Preferences" sub="How Pearloom behaves for you." />
-
-      {/* Theme selector — light / dark segment */}
-      <UsRow>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)' }}>
-            Theme
-          </div>
-          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
-            Light cream paper or editorial midnight.
-          </div>
-        </div>
-        <div
-          role="radiogroup"
-          aria-label="Theme"
-          style={{
-            display: 'inline-flex',
-            background: 'var(--cream-2)',
-            borderRadius: 999,
-            padding: 3,
-          }}
-        >
-          {(['light', 'dark'] as const).map((mode) => (
-            <button
-              key={mode}
-              type="button"
-              role="radio"
-              aria-checked={theme === mode}
-              onClick={() => flipTheme(mode)}
-              style={{
-                padding: '5px 14px',
-                borderRadius: 999,
-                fontSize: 12,
-                fontWeight: 600,
-                fontFamily: 'inherit',
-                cursor: 'pointer',
-                border: 'none',
-                background: theme === mode ? 'var(--card)' : 'transparent',
-                color: theme === mode ? 'var(--ink)' : 'var(--ink-muted)',
-                boxShadow:
-                  theme === mode ? '0 1px 3px rgba(14,13,11,0.10)' : 'none',
-                transition: 'background 160ms ease, color 160ms ease',
-              }}
-            >
-              {mode === 'light' ? 'Light' : 'Dark'}
-            </button>
-          ))}
-        </div>
-      </UsRow>
 
       <UsRow>
         <div style={{ flex: 1 }}>
@@ -1489,39 +1416,11 @@ function PreferencesTab() {
             Calm the scroll-reveal animations.
           </div>
         </div>
-        <UsToggle on={reducedMotion} set={flipMotion} ariaLabel="Reduced motion" />
-      </UsRow>
-
-      <UsRow>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)' }}>
-            Pear voice
-          </div>
-          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
-            How Pear writes back to you.
-          </div>
-        </div>
-        <select
-          value={prefs?.voice ?? 'gentle'}
-          onChange={(e) =>
-            savePref({ voice: e.target.value as PreferencesData['voice'] })
-          }
-          style={{
-            padding: '6px 10px',
-            borderRadius: 999,
-            border: '1px solid var(--line, rgba(14,13,11,0.12))',
-            background: 'var(--card)',
-            color: 'var(--ink)',
-            fontSize: 13,
-            fontFamily: 'inherit',
-            cursor: 'pointer',
-          }}
-        >
-          <option value="gentle">Gentle</option>
-          <option value="candid">Candid</option>
-          <option value="witty">Witty</option>
-          <option value="minimal">Minimal</option>
-        </select>
+        <UsToggle
+          on={reducedMotion}
+          set={flipLocal('pl-reduced-motion', setReducedMotion)}
+          ariaLabel="Reduced motion"
+        />
       </UsRow>
 
       <UsRow last>

@@ -503,7 +503,7 @@ export function CommandPalette({
             ref={inputRef}
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search sections, editions, kits, events…"
+            placeholder="Search sections, themes, actions…"
             aria-label="Command palette search"
             type="search"
             style={{
@@ -685,9 +685,6 @@ export function CommandPalette({
           </span>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
             <b style={{ color: 'var(--ink-soft, #3A332C)' }}>↵</b> select
-          </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-            <b style={{ color: 'var(--ink-soft, #3A332C)' }}>⌘K</b> toggle
           </span>
           <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <Pear size={14} tone="sage" shadow={false} /> Pearloom

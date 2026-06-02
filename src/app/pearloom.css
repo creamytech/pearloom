@@ -79,6 +79,154 @@
   --sidebar-w: 260px;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   ── PROTOTYPE FOUNDATION TOKENS & BASE CLASSES ──
+   Literal port of ClaudeDesign/shared/pearloom.css base layer.
+   Lets prototype JSX paste in verbatim without a .pl8 ancestor
+   and have classes (.lift, .float, .drift, .rot-*, .script, etc.)
+   resolve. Tokens above already alias to --pl-* per spec; this
+   section adds the *class* surface that was previously scoped to
+   .pl8 only. Additive — does not modify the scoped versions.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Typography helpers — unscoped */
+.display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  color: var(--ink);
+}
+.display-italic {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--lavender-ink);
+  letter-spacing: -0.01em;
+}
+.script {
+  font-family: var(--font-script);
+  font-weight: 500;
+  color: var(--ink);
+}
+.eyebrow {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.muted { color: var(--ink-muted); }
+.ink-soft { color: var(--ink-soft); }
+.peach-ink { color: var(--peach-ink); }
+.lav-ink { color: var(--lavender-ink); }
+
+/* Atmosphere wrappers — unscoped positioning helpers */
+.atmosphere {
+  position: absolute; inset: 0;
+  pointer-events: none; overflow: hidden; z-index: 0;
+}
+.atmosphere > * { position: absolute; }
+
+/* Polaroids + tape — unscoped */
+.polaroid {
+  background: #fff;
+  padding: 10px 10px 42px;
+  box-shadow: 0 6px 22px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.06);
+  position: relative;
+}
+.polaroid img { width: 100%; display: block; background: #e8e4d5; }
+.polaroid-caption {
+  position: absolute; bottom: 8px; left: 0; right: 0;
+  text-align: center; font-family: var(--font-script);
+  font-size: 20px; color: var(--ink-soft);
+}
+.tape {
+  position: absolute;
+  width: 70px; height: 22px;
+  background: rgba(234, 178, 134, 0.55);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  top: -10px; left: 50%; transform: translateX(-50%) rotate(-3deg);
+}
+
+/* Stamps — unscoped */
+.stamp {
+  width: 96px; height: 96px; border-radius: 50%;
+  display: inline-grid; place-items: center;
+  position: relative;
+  background: var(--lavender);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  box-shadow: var(--shadow);
+}
+.stamp-peach { background: var(--peach); }
+.stamp-sage { background: var(--sage-bg); }
+.stamp-cream { background: var(--cream-2); }
+
+/* Hover lift — unscoped */
+.lift {
+  transition:
+    transform 360ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 360ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+.lift:hover {
+  transform: translate3d(0, -3px, 0);
+  box-shadow: var(--shadow-md);
+}
+
+/* Animations — unscoped (keyframes already declared below) */
+.float      { animation: pearloom-float 6s ease-in-out infinite; }
+.drift      { animation: pearloom-drift 18s ease-in-out infinite; }
+.pulse-dot  { animation: pearloom-pulse-dot 1.6s ease-in-out infinite; }
+.bob        { animation: pearloom-bob 4s ease-in-out infinite; }
+
+/* Rotation utilities — unscoped */
+.rot-n3 { transform: rotate(-3deg); }
+.rot-n2 { transform: rotate(-2deg); }
+.rot-2  { transform: rotate(2deg); }
+.rot-3  { transform: rotate(3deg); }
+.rot-5  { transform: rotate(5deg); }
+.rot-8  { transform: rotate(-8deg); }
+.rot-12 { transform: rotate(12deg); }
+
+/* Misc — unscoped */
+.heart { color: var(--heart); }
+.spark { color: var(--gold); }
+hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 0; }
+.prose { max-width: 64ch; }
+.prose p { margin: 0 0 14px; }
+
+/* Pearl rotate helper — slow infinite spin used by inline indicator
+   dots (the pulse-while-thinking microdot). Distinct from
+   pearloom-spin (which is a generic 360° utility). */
+@keyframes pl-pearl-rotate {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.pl-pearl-rotate {
+  animation: pl-pearl-rotate 2.4s linear infinite;
+  transform-origin: center;
+}
+
+/* Honour reduced motion for the unscoped animation helpers. The
+   scoped .pl8 + .pl8-guest blocks below already cover their own
+   reduced-motion fallbacks; this catches anything pasted bare. */
+@media (prefers-reduced-motion: reduce) {
+  .float, .drift, .pulse-dot, .bob, .pl-pearl-rotate {
+    animation: none !important;
+  }
+  .lift:hover { transform: none; box-shadow: var(--shadow-sm); }
+}
+
+/* ── /PROTOTYPE FOUNDATION TOKENS & BASE CLASSES ── */
+
 /* ── Pearloom v8 page shell ── */
 .pl8 {
   font-family: var(--font-ui);

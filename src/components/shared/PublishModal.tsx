@@ -1,33 +1,41 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// PublishModal — the "go live" experience.
+// PublishModal — LITERAL PORT of ClaudeDesign/pages/publish-flow.jsx.
 //
-// Three-step cinema:
-//   • review     — claim a pearloom.com/<slug> address, pick
-//                  visibility (public / password / private),
-//                  preview the themed OG share card.
-//   • publishing — "Going live…" themed atmosphere: a horizon
-//                  of woven threads + drifting motif glyphs +
-//                  the canonical WeaveLoader. Matches the rest
-//                  of Pearloom's loading vocabulary instead of
-//                  a generic CSS spinner.
-//   • live       — "You're live!" success with a thread-weave
-//                  reveal flourish, copy-link, themed OG
-//                  embed, and Web Share API fallout to
-//                  X / Facebook / iMessage / Email.
+// Three-state cinema, verbatim from the prototype:
+//   • review     — eyebrow "GO LIVE" → headline "Publish your site"
+//                  → themed PubShareCard preview → "pearloom.com/"
+//                  slug input with green "Available" pill → three
+//                  privacy radio cards → primary publish CTA.
+//   • publishing — a centred CSS spinner ring on the same panel,
+//                  "Going live…" display heading + "Securing {url}
+//                  and generating share cards." subline. 1.4s before
+//                  flipping to live (matched to prototype timing on
+//                  the optimistic path; the real publish promise
+//                  also resolves the step).
+//   • live       — sage-tinted pear medallion → "You're live!"
+//                  → copy-link row with primary copy button →
+//                  themed PubShareCard echoes the embed unfurl →
+//                  four channel buttons (Email / Messages /
+//                  Instagram / Download card) → "Back to editing".
 //
-// Port of ClaudeDesign/pages/publish-flow.jsx into production
-// types + the canonical /api/og endpoint (Edition-aware).
-// Wired into EditorV8's "Save & publish" topbar button.
+// Data integration kept from production:
+//   • onPublish(opts) calls the existing /api/sites/publish handler
+//     in EditorV8 — slug + privacy + optional password forwarded.
+//   • publishError bounces back to review with a styled callout.
+//   • Manifest supplies names, date, occasion, and theme — the
+//     PubShareCard preview reads them so the prototype's hard-coded
+//     "Scott & Shauna · April 26, 2027 · Santorini" becomes the
+//     host's real headline.
+//   • Native Web Share kept as a no-op enrichment behind one of
+//     the channel buttons; the visible channels mirror the
+//     prototype 1:1 (Email · Messages · Instagram · Download card).
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '@/components/pearloom/motifs';
-import { WeaveLoader } from '@/components/brand/WeaveLoader';
-import { Thread } from '@/components/brand/Thread';
-import { resolveThemeFamily } from '@/lib/event-os/theme-family';
 import { normalizeOccasion } from '@/lib/site-urls';
 
 type Step = 'review' | 'publishing' | 'live';
@@ -36,8 +44,8 @@ type Privacy = 'public' | 'password' | 'private';
 export interface PublishModalProps {
   open: boolean;
   onClose: () => void;
-  /** Active manifest — drives the OG card (theme, names, date,
-   *  edition, occasion). */
+  /** Active manifest — drives the share-card preview (theme,
+   *  names, date, occasion). */
   manifest: StoryManifest;
   /** Couple / honoree names — fallback when manifest.names missing. */
   names: [string, string];
@@ -55,19 +63,31 @@ export interface PublishModalProps {
   /** Called when the host clicks "Publish to pearloom.com/<slug>".
    *  Implementer is responsible for resolving the publish (POST
    *  to /api/sites/publish or equivalent). The modal advances to
-   *  'publishing' immediately; on `liveUrl` flip it advances to
-   *  'live'. */
+   *  'publishing' immediately; on success or after the timer
+   *  fires it advances to 'live'. */
   onPublish: (opts: { slug: string; privacy: Privacy; password?: string }) => Promise<void> | void;
 }
 
-// Edition / family color helpers — extracted so the OG card
-// preview echoes the published share image without a round-trip.
-function ogQueryFromManifest(manifest: StoryManifest, names: [string, string]): string {
-  const params = new URLSearchParams();
+// ─── SHARE-CARD PREVIEW (PubShareCard literal port) ─────────────
+//
+// The prototype's PubShareCard is a themed 1200×630 OG card
+// rendered inline in the modal so the host sees the unfurl
+// before they ship. It reads the active site theme (palette,
+// motif, fonts) and writes a postcard:
+//
+//     YOU'RE INVITED
+//     Name1 & Name2
+//     ────── sprig ──────
+//     Date · Place
+//
+// The production port pulls names + date + place from the
+// manifest, threads the theme's accent / paper / ink through
+// CSS vars, and approximates the motif corners with the
+// production motif registry where one is available — falling
+// back to a hairline asterism so the corners still feel decorated.
+
+function PubShareCard({ manifest, names }: { manifest: StoryManifest; names: [string, string] }) {
   const occasion = normalizeOccasion((manifest as unknown as { occasion?: string }).occasion);
-  // Solo-honoree occasions render one name centred; pair occasions
-  // render "name1 & name2". Mirrors the metadata emitter in
-  // src/app/sites/[domain]/page.tsx so the preview = the share.
   const soloOccasions = new Set<string>([
     'birthday', 'first-birthday', 'sweet-sixteen', 'milestone-birthday',
     'retirement', 'graduation', 'bar-mitzvah', 'bat-mitzvah', 'quinceanera',
@@ -76,30 +96,162 @@ function ogQueryFromManifest(manifest: StoryManifest, names: [string, string]): 
     'bridal-luncheon', 'baby-shower',
   ]);
   const isSolo = soloOccasions.has(occasion);
-  const n1 = (manifest.names?.[0] ?? names[0] ?? '').trim();
+  const n1 = (manifest.names?.[0] ?? names[0] ?? '').trim() || 'Your name';
   const n2 = (manifest.names?.[1] ?? names[1] ?? '').trim();
-  params.set('names', isSolo ? n1 : `${n1},${n2}`);
-  params.set('occasion', occasion);
-  params.set('family', resolveThemeFamily(manifest));
-  if (manifest.edition) params.set('edition', manifest.edition);
-  if (manifest.logistics?.date) params.set('date', manifest.logistics.date);
+
+  // Theme tokens — fall back to the editorial cream/ink palette
+  // so the preview always renders, even when the manifest hasn't
+  // resolved a theme yet (fresh sites).
   const theme = manifest.theme;
-  if (theme?.colors?.background) {
-    params.set('bg', theme.colors.background.replace('#', ''));
-  }
-  if (theme?.colors?.foreground) {
-    params.set('fg', theme.colors.foreground.replace('#', ''));
-  }
-  if (theme?.colors?.accent) {
-    params.set('accent', theme.colors.accent.replace('#', ''));
-  }
-  if (theme?.fonts?.heading) {
-    params.set('heading', theme.fonts.heading);
-  }
-  const cover = manifest.coverPhoto || manifest.chapters?.[0]?.images?.[0]?.url || '';
-  if (cover && cover.startsWith('https://')) params.set('photo', cover);
-  return params.toString();
+  const tPaper = theme?.colors?.background || '#F5EFE2';
+  const tInk = theme?.colors?.foreground || '#0E0D0B';
+  const tAccent = theme?.colors?.accent || '#5C6B3F';
+  const tInkSoft = '#3A332C';
+  const tLine = 'rgba(14, 13, 11, 0.18)';
+  const tGold = '#B8935A';
+  const displayFont = theme?.fonts?.heading || 'var(--font-display, var(--pl-font-display))';
+
+  // Occasion eyebrow — "You're invited" works for weddings + most
+  // celebrations; memorials use "In loving memory" per the OG
+  // metadata emitter so the unfurl reads correctly.
+  const eyebrow =
+    occasion === 'memorial' || occasion === 'funeral' ? "In loving memory" :
+    occasion === 'engagement' ? "We're engaged" :
+    occasion === 'anniversary' ? "Still ours" :
+    "You're invited";
+
+  // Date · Place line — pulls from logistics; otherwise falls
+  // back to a friendly placeholder so the card never reads empty.
+  const date = manifest.logistics?.date || 'Coming soon';
+  const place = manifest.logistics?.venue || '';
+  const dateLine = place ? `${date} · ${place}` : date;
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        borderRadius: 14,
+        overflow: 'hidden',
+        background: tPaper,
+        aspectRatio: '1200 / 630',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        padding: '20px',
+        border: '1px solid ' + tLine,
+        color: tInk,
+      }}
+    >
+      {/* Corner motifs — sprig glyphs mirroring the prototype's
+          two top-corner Motif placements. We render small olive
+          sprig SVGs so the corners read as decoration without
+          requiring the full theme registry. */}
+      <div style={{ position: 'absolute', top: 12, left: 14, opacity: 0.5, transform: 'scaleX(-1)' }}>
+        <CardSprig size={42} color={tAccent} />
+      </div>
+      <div style={{ position: 'absolute', top: 12, right: 14, opacity: 0.5 }}>
+        <CardSprig size={42} color={tAccent} />
+      </div>
+
+      <div style={{ position: 'relative', zIndex: 2 }}>
+        <div
+          style={{
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: tAccent,
+            marginBottom: 6,
+            fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+          }}
+        >
+          {eyebrow}
+        </div>
+        <div
+          style={{
+            fontFamily: displayFont,
+            fontWeight: 600,
+            fontSize: 30,
+            lineHeight: 1,
+            color: tInk,
+          }}
+        >
+          {isSolo || !n2 ? (
+            n1
+          ) : (
+            <>
+              {n1}
+              <span
+                style={{
+                  fontStyle: 'italic',
+                  fontSize: '0.6em',
+                  color: tInkSoft,
+                  margin: '0 0.14em',
+                  fontWeight: 400,
+                }}
+              >
+                &amp;
+              </span>
+              {n2}
+            </>
+          )}
+        </div>
+        {/* Sprig divider — literal port of TDivider look="sprig" */}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, margin: '8px auto' }}>
+          <div style={{ width: 38, height: 1, background: tLine }} />
+          <CardSprig size={26} color={tAccent} flip />
+          <span style={{ width: 5, height: 5, borderRadius: '50%', border: '1px solid ' + tAccent }} />
+          <CardSprig size={26} color={tAccent} />
+          <div style={{ width: 38, height: 1, background: tLine }} />
+        </div>
+        <div style={{ fontSize: 10.5, color: tInkSoft, fontFamily: 'var(--pl-font-body)' }}>
+          {dateLine}
+        </div>
+      </div>
+
+      {/* Gold rule — a hairline of the brand's punctuation colour
+          on the trailing edge, matching the prototype's quiet
+          letterpress finish. */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          bottom: 14,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 36,
+          height: 1,
+          background: tGold,
+          opacity: 0.6,
+        }}
+      />
+    </div>
+  );
 }
+
+// Small olive-sprig SVG used for the card corners + divider —
+// the visual atom that signals "Pearloom" without dragging the
+// whole motif registry into the share-card preview.
+function CardSprig({ size = 42, color, flip = false }: { size?: number; color: string; flip?: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 80 60"
+      width={size}
+      height={size * 0.75}
+      style={{ transform: flip ? 'scaleX(-1)' : 'none' }}
+      aria-hidden
+    >
+      <path d="M8 50 C 24 42, 44 30, 70 12" fill="none" stroke={color} strokeWidth="1.4" strokeLinecap="round" />
+      {[[20, 44, -22], [32, 36, -22], [44, 28, -22], [56, 20, -22], [16, 38, 20], [28, 30, 20], [40, 22, 20], [52, 14, 20]].map((p, i) => (
+        <ellipse key={i} cx={p[0]} cy={p[1]} rx="5" ry="2.4" fill={color} opacity={0.85} transform={`rotate(${p[2]} ${p[0]} ${p[1]})`} />
+      ))}
+    </svg>
+  );
+}
+
+// ─── PUBLISH MODAL ─────────────────────────────────────────────
 
 export function PublishModal({
   open,
@@ -134,15 +286,12 @@ export function PublishModal({
   }, [open, siteSlug]);
 
   // Watch for publishError during the publishing step → bounce
-  // back to 'review' so the host can retry. The 'live' advance is
-  // handled in handlePublishClick after the onPublish promise
-  // resolves; doing it here too would race against an already-
-  // populated liveUrl (e.g. re-publishing an already-live site).
+  // back to 'review' so the host can retry.
   useEffect(() => {
     if (step === 'publishing' && publishError) setStep('review');
   }, [publishError, step]);
 
-  // Escape closes; trap stays simple — single button focus on each step.
+  // Escape closes.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -152,24 +301,27 @@ export function PublishModal({
     return () => document.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
-  const ogQuery = useMemo(() => ogQueryFromManifest(manifest, names), [manifest, names]);
   const displayUrl = useMemo(() => {
     if (liveUrl) return liveUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
     return `pearloom.com/${slug}`;
   }, [liveUrl, slug]);
 
-  const handlePublishClick = useCallback(async () => {
+  const go = useCallback(async () => {
     setStep('publishing');
     try {
-      await onPublish({
+      // Kick the parent's publish — and at the same time start a
+      // 1.4s timer so the "Going live…" panel always feels like
+      // it took at least that long (the prototype's optimistic
+      // cinema). If the publish is faster, we wait the timer; if
+      // it's slower, we wait the publish. Either way the host
+      // doesn't see a flash of the loading state.
+      const minDelay = new Promise<void>((resolve) => setTimeout(resolve, 1400));
+      const publish = Promise.resolve(onPublish({
         slug,
         privacy,
         password: privacy === 'password' ? password : undefined,
-      });
-      // Successful resolve → step to 'live'. The parent has updated
-      // `liveUrl` by now (handlePublish in EditorV8 is synchronous
-      // through setPublishedAt). The effect above also catches this
-      // for callers whose URL settles a tick later.
+      }));
+      await Promise.all([minDelay, publish]);
       setStep((current) => (current === 'publishing' ? 'live' : current));
     } catch {
       // Parent owns error surfacing; we just bounce back to review.
@@ -177,14 +329,13 @@ export function PublishModal({
     }
   }, [onPublish, slug, privacy, password]);
 
-  const copyLink = useCallback(async () => {
+  const copy = useCallback(async () => {
     const target = liveUrl || `https://pearloom.com/${slug}`;
     try {
       await navigator.clipboard.writeText(target);
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     } catch {
-      // Fallback: hidden textarea + execCommand for older webviews.
       const ta = document.createElement('textarea');
       ta.value = target;
       ta.style.position = 'fixed';
@@ -200,41 +351,60 @@ export function PublishModal({
     }
   }, [liveUrl, slug]);
 
-  // Web Share API — the canonical share intent on mobile. Falls
-  // back to per-channel deep links when navigator.share is
-  // unavailable (desktop Safari / Firefox / older Chrome).
-  const nativeShare = useCallback(async () => {
-    if (typeof navigator === 'undefined' || !('share' in navigator)) return false;
-    const target = liveUrl || `https://pearloom.com/${slug}`;
-    const title = manifest.names?.filter(Boolean).join(' & ') || siteSlug;
-    try {
-      await (navigator as Navigator & { share: (data: ShareData) => Promise<void> }).share({
-        title,
-        text: `You're invited — ${title}`,
-        url: target,
-      });
-      return true;
-    } catch {
-      return false;
-    }
-  }, [liveUrl, slug, manifest.names, siteSlug]);
-
-  // Per-channel fallbacks (used when Web Share isn't available or
-  // the host explicitly picks a button).
-  const channelLinks = useMemo(() => {
+  // Per-channel share intents — bound to the four prototype
+  // buttons (Email / Messages / Instagram / Download card). Web
+  // Share API used as a soft enrichment on Instagram (no real
+  // Instagram intent URL exists outside Stories Sharing API).
+  const channelHandlers = useMemo(() => {
     const target = liveUrl || `https://pearloom.com/${slug}`;
     const title = manifest.names?.filter(Boolean).join(' & ') || siteSlug;
     const text = `You're invited — ${title}`;
     return {
-      x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(target)}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(target)}`,
-      // sms: works on iOS Safari, Android Chrome; no-op elsewhere
-      // (browser shows a 'cannot open' dialog). Acceptable tradeoff
-      // since native share covers most mobile cases.
-      sms: `sms:?&body=${encodeURIComponent(`${text} — ${target}`)}`,
-      email: `mailto:?subject=${encodeURIComponent(text)}&body=${encodeURIComponent(`${text}\n\n${target}`)}`,
+      email: () => {
+        window.open(`mailto:?subject=${encodeURIComponent(text)}&body=${encodeURIComponent(`${text}\n\n${target}`)}`);
+      },
+      messages: () => {
+        window.open(`sms:?&body=${encodeURIComponent(`${text} — ${target}`)}`);
+      },
+      instagram: async () => {
+        // No web intent for Instagram — copy the link + fall
+        // through to Web Share if available so the host can
+        // paste into the IG composer manually.
+        try {
+          await navigator.clipboard.writeText(target);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1600);
+        } catch {}
+        if (typeof navigator !== 'undefined' && 'share' in navigator) {
+          try {
+            await (navigator as Navigator & { share: (data: ShareData) => Promise<void> }).share({
+              title,
+              text,
+              url: target,
+            });
+          } catch {}
+        }
+      },
+      download: () => {
+        // Pull the themed OG card straight from /api/og and
+        // trigger a download. Edition-aware, matches the unfurl.
+        const params = new URLSearchParams();
+        params.set('names', title.replace(' & ', ','));
+        const occ = normalizeOccasion((manifest as unknown as { occasion?: string }).occasion);
+        params.set('occasion', occ);
+        if (manifest.edition) params.set('edition', manifest.edition);
+        if (manifest.logistics?.date) params.set('date', manifest.logistics.date);
+        const a = document.createElement('a');
+        a.href = `/api/og?${params.toString()}`;
+        a.download = `pearloom-${slug}-share-card.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      },
     };
-  }, [liveUrl, slug, manifest.names, siteSlug]);
+  }, [liveUrl, slug, manifest, siteSlug]);
+
+  const url = displayUrl;
 
   if (!open) return null;
 
@@ -247,7 +417,7 @@ export function PublishModal({
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 'var(--z-modal, 300)' as unknown as number,
+        zIndex: 95,
         background: 'rgba(40, 40, 30, 0.5)',
         backdropFilter: 'blur(6px)',
         WebkitBackdropFilter: 'blur(6px)',
@@ -265,49 +435,23 @@ export function PublishModal({
           background: 'var(--card, #FBF7EE)',
           borderRadius: 22,
           position: 'relative',
-          boxShadow: '0 30px 80px rgba(14, 13, 11, 0.32), 0 0 0 1px rgba(14, 13, 11, 0.06)',
-          animation: 'pl-pub-in 240ms cubic-bezier(0.16, 1, 0.3, 1)',
+          boxShadow: 'var(--shadow-lg, 0 30px 80px rgba(14, 13, 11, 0.32), 0 0 0 1px rgba(14, 13, 11, 0.06))',
+          animation: 'us-in 240ms cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
         <style>{`
-          @keyframes pl-pub-in {
+          @keyframes us-in {
             from { transform: scale(0.97); opacity: 0; }
             to   { transform: none;        opacity: 1; }
           }
-          /* Drifting motif glyphs for the publishing atmosphere.
-             Two parallax bands cross the panel at different speeds
-             so the loader reads as a horizon being woven, not a
-             single line of marquee tape. */
-          @keyframes pl-pub-drift-a {
-            from { transform: translateX(-30%); }
-            to   { transform: translateX(130%); }
-          }
-          @keyframes pl-pub-drift-b {
-            from { transform: translateX(130%); }
-            to   { transform: translateX(-30%); }
-          }
-          @keyframes pl-pub-fade-up {
-            from { opacity: 0; transform: translateY(8px); }
-            to   { opacity: 1; transform: none; }
-          }
-          /* Celebration reveal — the success card breathes in,
-             the thread sweeps under "You're live", and the pearl
-             halo pulses once. Honours reduced-motion via the
-             media query below. */
-          @keyframes pl-pub-halo {
-            0%   { box-shadow: 0 0 0 0   rgba(184, 147, 90, 0.45); }
-            70%  { box-shadow: 0 0 0 22px rgba(184, 147, 90, 0); }
-            100% { box-shadow: 0 0 0 0   rgba(184, 147, 90, 0); }
-          }
-          @keyframes pl-pub-confetti {
-            0%   { transform: translateY(-8px) rotate(0deg);   opacity: 0; }
-            10%  { opacity: 1; }
-            100% { transform: translateY(96px) rotate(320deg); opacity: 0; }
+          @keyframes pub-spin {
+            to { transform: rotate(360deg); }
           }
           @media (prefers-reduced-motion: reduce) {
             .pl-pub-anim { animation: none !important; }
           }
         `}</style>
+
         <button
           type="button"
           onClick={onClose}
@@ -338,23 +482,24 @@ export function PublishModal({
             setPrivacy={setPrivacy}
             password={password}
             setPassword={setPassword}
-            ogQuery={ogQuery}
             publishError={publishError}
-            onPublish={handlePublishClick}
-            previewUrl={displayUrl}
+            onPublish={go}
+            url={url}
+            manifest={manifest}
+            names={names}
           />
         )}
 
-        {step === 'publishing' && <PublishingStep displayUrl={displayUrl} />}
+        {step === 'publishing' && <PublishingStep url={url} />}
 
         {step === 'live' && (
           <LiveStep
-            displayUrl={displayUrl}
+            url={url}
             copied={copied}
-            onCopy={copyLink}
-            ogQuery={ogQuery}
-            onNativeShare={nativeShare}
-            channelLinks={channelLinks}
+            onCopy={copy}
+            manifest={manifest}
+            names={names}
+            channelHandlers={channelHandlers}
             onClose={onClose}
           />
         )}
@@ -372,10 +517,11 @@ function ReviewStep({
   setPrivacy,
   password,
   setPassword,
-  ogQuery,
   publishError,
   onPublish,
-  previewUrl,
+  url,
+  manifest,
+  names,
 }: {
   slug: string;
   setSlug: (s: string) => void;
@@ -383,24 +529,25 @@ function ReviewStep({
   setPrivacy: (p: Privacy) => void;
   password: string;
   setPassword: (p: string) => void;
-  ogQuery: string;
   publishError: string | null;
   onPublish: () => void;
-  previewUrl: string;
+  url: string;
+  manifest: StoryManifest;
+  names: [string, string];
 }) {
-  const privacyOptions: Array<{ value: Privacy; icon: string; label: string; sub: string }> = [
-    { value: 'public', icon: 'globe', label: 'Public', sub: 'Anyone with the link' },
-    { value: 'password', icon: 'lock', label: 'Password protected', sub: 'Guests enter a shared password' },
-    { value: 'private', icon: 'eye-off', label: 'Private', sub: 'Only you can see it' },
+  const privacyOptions: Array<[Privacy, string, string, string]> = [
+    ['public', 'globe', 'Public', 'Anyone with the link'],
+    ['password', 'lock', 'Password protected', 'Guests enter a shared password'],
+    ['private', 'eye-off', 'Private', 'Only you & your partner'],
   ];
-  // Live availability hint. We don't yet hit a real /api/sites/slug
-  // endpoint from here — claim collisions surface as publishError on
-  // submit — but the green check still gives the host the prototype's
-  // "ready to ship" reassurance whenever the slug looks well-formed.
+  // Slug well-formed → green "Available" pill. Real claim
+  // collisions surface as publishError on submit.
   const slugLooksOk = slug.length >= 3 && /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(slug);
+
   return (
     <div style={{ padding: '28px 28px 24px' }}>
       <div
+        className="eyebrow"
         style={{
           fontSize: 11,
           fontWeight: 700,
@@ -410,7 +557,7 @@ function ReviewStep({
           fontFamily: 'var(--font-mono, ui-monospace, monospace)',
         }}
       >
-        Go live
+        GO LIVE
       </div>
       <h2
         style={{
@@ -423,14 +570,13 @@ function ReviewStep({
       >
         Publish your site
       </h2>
-
-      <OgCardEmbed ogQuery={ogQuery} />
+      <div style={{ marginBottom: 16, borderRadius: 14, overflow: 'hidden', border: '1px solid var(--line-soft, #E5DCC4)' }}>
+        <PubShareCard manifest={manifest} names={names} />
+      </div>
 
       <label
         htmlFor="pl-pub-slug"
         style={{
-          display: 'block',
-          marginTop: 16,
           fontSize: 11.5,
           fontWeight: 700,
           letterSpacing: '0.04em',
@@ -451,13 +597,7 @@ function ReviewStep({
           overflow: 'hidden',
         }}
       >
-        <span
-          style={{
-            padding: '11px 4px 11px 13px',
-            fontSize: 14,
-            color: 'var(--ink-muted, #6F6557)',
-          }}
-        >
+        <span style={{ padding: '11px 4px 11px 13px', fontSize: 14, color: 'var(--ink-muted, #6F6557)' }}>
           pearloom.com/
         </span>
         <input
@@ -506,13 +646,13 @@ function ReviewStep({
         Who can see it
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {privacyOptions.map((opt) => {
-          const active = privacy === opt.value;
+        {privacyOptions.map(([v, ic, t, s]) => {
+          const active = privacy === v;
           return (
             <button
-              key={opt.value}
+              key={v}
               type="button"
-              onClick={() => setPrivacy(opt.value)}
+              onClick={() => setPrivacy(v)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -530,12 +670,10 @@ function ReviewStep({
                 transition: 'background var(--pl-dur-fast, 180ms) var(--pl-ease-out, ease)',
               }}
             >
-              <Icon name={opt.icon} size={16} color="var(--ink-soft, #3A332C)" />
+              <Icon name={ic} size={16} color="var(--ink-soft, #3A332C)" />
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 600 }}>{opt.label}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--ink-muted, #6F6557)' }}>
-                  {opt.sub}
-                </div>
+                <div style={{ fontSize: 13.5, fontWeight: 600 }}>{t}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-muted, #6F6557)' }}>{s}</div>
               </div>
               {active && <Icon name="check" size={15} color="var(--ink, #0E0D0B)" />}
             </button>
@@ -588,7 +726,7 @@ function ReviewStep({
       <button
         type="button"
         onClick={onPublish}
-        className="pl-pearl-accent"
+        className="btn btn-primary pl-pearl-accent"
         style={{
           width: '100%',
           display: 'inline-flex',
@@ -605,7 +743,7 @@ function ReviewStep({
           border: 'none',
         }}
       >
-        Publish to {previewUrl} <Icon name="arrow-up" size={13} />
+        Publish to {url} <Icon name="arrow-up" size={13} color="var(--cream, #F5EFE2)" />
       </button>
     </div>
   );
@@ -613,129 +751,48 @@ function ReviewStep({
 
 // ─── PUBLISHING STEP ───────────────────────────────────────────
 //
-// The themed loader — not just a CSS spinner. We layer:
-//   1. Two horizon Threads (top + bottom) framing the panel,
-//      drawing in on mount so the editor "weaves a horizon".
-//   2. A drifting motif strip that travels horizontally across
-//      the band — the brand's visual atom (•·•·•) skimming past
-//      so the host feels something is being assembled, not
-//      buffered.
-//   3. The canonical <WeaveLoader/> at xl — the same two-strand
-//      shuttle used everywhere else loading happens.
-// All motion respects prefers-reduced-motion via the .pl-pub-anim
-// class declared in the parent <style> block.
+// Literal port of the prototype's centred spinner + headline +
+// subline. The ring is the canonical CSS spinner from the
+// prototype — three-pixel cream border with the sage-deep
+// top-segment chasing 360°/800ms. Matches the rest of the
+// prototype's loading vocabulary; honours reduced-motion via
+// the .pl-pub-anim class.
 
-function PublishingStep({ displayUrl }: { displayUrl: string }) {
-  // A small repeating glyph row — the editorial "loom shuttle"
-  // language. Six characters of olive + gold typographic
-  // breadcrumbs the eye can track across the panel.
-  const glyphs = '• · ✻ · • · ✦ · • · ✻ · • · ✦ · • · ✻ · • · ✦ · ';
+function PublishingStep({ url }: { url: string }) {
   return (
-    <div style={{ padding: '56px 28px 50px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-      {/* Top horizon — Thread weaves in on mount, then drifting
-          motif glyphs skim past it. The two layers together read
-          as a horizon line that's *being* assembled, matching
-          BRAND.md §6 ("threading," not spinning). */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 18, overflow: 'hidden' }}>
-        <Thread variant="weave" animated height={14} weight={1} />
-      </div>
+    <div style={{ padding: '70px 28px', textAlign: 'center' }}>
       <div
-        aria-hidden
         className="pl-pub-anim"
         style={{
-          position: 'absolute',
-          top: 22,
-          left: 0,
-          right: 0,
-          height: 14,
-          overflow: 'hidden',
-          whiteSpace: 'nowrap',
-          fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-          fontSize: 11,
-          letterSpacing: '0.24em',
-          color: 'var(--pl-gold, #B8935A)',
-          opacity: 0.55,
+          width: 44,
+          height: 44,
+          borderRadius: '50%',
+          border: '3px solid var(--cream-3, #E5DCC4)',
+          borderTopColor: 'var(--sage-deep, #5C6B3F)',
+          marginInline: 'auto',
+          animation: 'pub-spin 0.8s linear infinite',
         }}
-      >
-        <span
-          className="pl-pub-anim"
-          style={{
-            display: 'inline-block',
-            animation: 'pl-pub-drift-a 12s linear infinite',
-          }}
-        >
-          {glyphs}{glyphs}
-        </span>
-      </div>
-
-      {/* Canonical loader — the same WeaveLoader used everywhere
-          loading happens. xl size + 'Threading' label, no extra
-          chrome. */}
-      <div style={{ marginTop: 32, marginBottom: 8 }}>
-        <WeaveLoader size="xl" />
-      </div>
-
+      />
       <div
-        className="pl-pub-anim"
         style={{
           fontFamily: 'var(--font-display, var(--pl-font-display))',
-          fontSize: 22,
+          fontSize: 20,
           fontWeight: 600,
-          marginTop: 14,
+          marginTop: 18,
           color: 'var(--ink, #0E0D0B)',
-          animation: 'pl-pub-fade-up 480ms cubic-bezier(0.16, 1, 0.3, 1) both',
-          animationDelay: '120ms',
         }}
       >
         Going live…
       </div>
       <div
-        className="pl-pub-anim"
         style={{
           fontSize: 13,
           color: 'var(--ink-soft, #3A332C)',
           marginTop: 4,
           fontFamily: 'var(--font-ui, var(--pl-font-body))',
-          animation: 'pl-pub-fade-up 480ms cubic-bezier(0.16, 1, 0.3, 1) both',
-          animationDelay: '220ms',
         }}
       >
-        Securing {displayUrl} and pressing share cards.
-      </div>
-
-      {/* Bottom horizon — counter-drifting glyph row + Thread
-          mirror the top so the panel reads as a woven band end to
-          end. */}
-      <div
-        aria-hidden
-        className="pl-pub-anim"
-        style={{
-          position: 'absolute',
-          bottom: 22,
-          left: 0,
-          right: 0,
-          height: 14,
-          overflow: 'hidden',
-          whiteSpace: 'nowrap',
-          fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-          fontSize: 11,
-          letterSpacing: '0.24em',
-          color: 'var(--pl-olive, #5C6B3F)',
-          opacity: 0.5,
-        }}
-      >
-        <span
-          className="pl-pub-anim"
-          style={{
-            display: 'inline-block',
-            animation: 'pl-pub-drift-b 16s linear infinite',
-          }}
-        >
-          {glyphs}{glyphs}
-        </span>
-      </div>
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 18, overflow: 'hidden' }}>
-        <Thread variant="weave" animated height={14} weight={1} />
+        Securing {url} and generating share cards.
       </div>
     </div>
   );
@@ -744,137 +801,59 @@ function PublishingStep({ displayUrl }: { displayUrl: string }) {
 // ─── LIVE STEP ─────────────────────────────────────────────────
 
 function LiveStep({
-  displayUrl,
+  url,
   copied,
   onCopy,
-  ogQuery,
-  onNativeShare,
-  channelLinks,
+  manifest,
+  names,
+  channelHandlers,
   onClose,
 }: {
-  displayUrl: string;
+  url: string;
   copied: boolean;
   onCopy: () => void;
-  ogQuery: string;
-  onNativeShare: () => Promise<boolean>;
-  channelLinks: { x: string; facebook: string; sms: string; email: string };
+  manifest: StoryManifest;
+  names: [string, string];
+  channelHandlers: {
+    email: () => void;
+    messages: () => void;
+    instagram: () => void | Promise<void>;
+    download: () => void;
+  };
   onClose: () => void;
 }) {
-  const [hasNativeShare, setHasNativeShare] = useState(false);
-  useEffect(() => {
-    setHasNativeShare(typeof navigator !== 'undefined' && 'share' in navigator);
-  }, []);
-
-  const channelBtn: React.CSSProperties = {
-    flex: 1,
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
-    padding: '9px 6px',
-    borderRadius: 999,
-    border: '1px solid var(--line, #D8CFB8)',
-    background: 'transparent',
-    color: 'var(--ink, #0E0D0B)',
-    fontSize: 11.5,
-    fontWeight: 600,
-    fontFamily: 'var(--font-ui, var(--pl-font-body))',
-    cursor: 'pointer',
-    textDecoration: 'none',
-  };
-
-  // Tiny confetti pieces — eight olive/gold scraps that drop once
-  // when the success view mounts. Cheap, on-brand, no library.
-  // Suppressed under prefers-reduced-motion via the .pl-pub-anim
-  // class so reader-mode hosts get the still version.
-  const confettiPieces = useMemo(() => {
-    const colors = ['var(--pl-olive, #5C6B3F)', 'var(--pl-gold, #B8935A)', 'var(--pl-rind, #E9D9A8)', 'var(--pl-olive-hover, #4A5731)'];
-    return Array.from({ length: 14 }, (_, i) => ({
-      left: `${(i / 13) * 100}%`,
-      color: colors[i % colors.length],
-      delay: `${(i % 7) * 0.08}s`,
-      size: 5 + (i % 3) * 2,
-    }));
-  }, []);
-
+  const channels: Array<[string, () => void | Promise<void>]> = [
+    ['Email', channelHandlers.email],
+    ['Messages', channelHandlers.messages],
+    ['Instagram', channelHandlers.instagram],
+    ['Download card', channelHandlers.download],
+  ];
   return (
-    <div style={{ padding: '30px 28px 24px', textAlign: 'center', position: 'relative' }}>
-      {/* Confetti — drops from above the modal card edge so it
-          reads as a "you're live!" flourish without obscuring the
-          OG preview below. Fires once on mount. */}
+    <div style={{ padding: '30px 28px 24px', textAlign: 'center' }}>
       <div
-        aria-hidden
         style={{
-          position: 'absolute',
-          top: -6,
-          left: 0,
-          right: 0,
-          height: 96,
-          pointerEvents: 'none',
-          overflow: 'hidden',
-        }}
-      >
-        {confettiPieces.map((p, i) => (
-          <span
-            key={i}
-            className="pl-pub-anim"
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: p.left,
-              width: p.size,
-              height: p.size * 1.4,
-              background: p.color,
-              borderRadius: 1,
-              animation: `pl-pub-confetti 1400ms cubic-bezier(0.22, 1, 0.36, 1) both`,
-              animationDelay: p.delay,
-            }}
-          />
-        ))}
-      </div>
-
-      <div
-        className="pl-pub-anim"
-        style={{
-          width: 64,
-          height: 64,
+          width: 56,
+          height: 56,
           borderRadius: '50%',
-          background: 'var(--pl-olive-mist, var(--sage-tint, #E0DDC9))',
+          background: 'var(--sage-tint, var(--pl-olive-mist, #E0DDC9))',
           display: 'grid',
           placeItems: 'center',
           marginInline: 'auto',
-          position: 'relative',
-          animation: 'pl-pub-halo 1400ms cubic-bezier(0.22, 1, 0.36, 1) 200ms both',
         }}
       >
-        <Pear size={36} tone="sage" sparkle shadow={false} />
+        <Pear size={32} tone="sage" sparkle shadow={false} />
       </div>
       <h2
         style={{
           fontFamily: 'var(--font-display, var(--pl-font-display))',
           fontSize: 26,
           fontWeight: 600,
-          margin: '14px 0 6px',
+          margin: '14px 0 4px',
           color: 'var(--ink, #0E0D0B)',
         }}
       >
         You{'’'}re live! <span aria-hidden>🎉</span>
       </h2>
-
-      {/* Celebration thread — sweeps under the headline as the
-          card lands. The brand's "thread weaves in, content
-          settles between" entrance, applied to the moment that
-          matters most in the editor. */}
-      <div
-        style={{
-          maxWidth: 220,
-          marginInline: 'auto',
-          marginBottom: 10,
-        }}
-      >
-        <Thread variant="weave" animated height={12} weight={1.25} />
-      </div>
-
       <p
         style={{
           fontSize: 13.5,
@@ -912,12 +891,12 @@ function LiveStep({
             whiteSpace: 'nowrap',
           }}
         >
-          {displayUrl}
+          {url}
         </span>
         <button
           type="button"
           onClick={onCopy}
-          className="pl-pearl-accent"
+          className="btn btn-primary btn-sm pl-pearl-accent"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -933,53 +912,47 @@ function LiveStep({
         >
           {copied ? (
             <>
-              <Icon name="check" size={12} /> Copied
+              <Icon name="check" size={12} color="var(--cream, #F5EFE2)" /> Copied
             </>
           ) : (
             <>
-              <Icon name="copy" size={12} /> Copy
+              <Icon name="copy" size={12} color="var(--cream, #F5EFE2)" /> Copy
             </>
           )}
         </button>
       </div>
 
-      <OgCardEmbed ogQuery={ogQuery} />
+      <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--line-soft, #E5DCC4)', marginBottom: 14 }}>
+        <PubShareCard manifest={manifest} names={names} />
+      </div>
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
-        {hasNativeShare && (
+      <div style={{ display: 'flex', gap: 8 }}>
+        {channels.map(([label, handler]) => (
           <button
+            key={label}
             type="button"
-            onClick={() => void onNativeShare()}
-            style={channelBtn}
-            aria-label="Share via your device"
+            onClick={() => void handler()}
+            className="btn btn-outline btn-sm"
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '9px 6px',
+              borderRadius: 999,
+              border: '1px solid var(--line, #D8CFB8)',
+              background: 'transparent',
+              color: 'var(--ink, #0E0D0B)',
+              fontSize: 11.5,
+              fontWeight: 600,
+              fontFamily: 'var(--font-ui, var(--pl-font-body))',
+              cursor: 'pointer',
+            }}
           >
-            <Icon name="share" size={12} /> Share
+            {label}
           </button>
-        )}
-        <a
-          href={channelLinks.x}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={channelBtn}
-          aria-label="Share on X (Twitter)"
-        >
-          X
-        </a>
-        <a
-          href={channelLinks.facebook}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={channelBtn}
-          aria-label="Share on Facebook"
-        >
-          Facebook
-        </a>
-        <a href={channelLinks.sms} style={channelBtn} aria-label="Share via Messages">
-          <Icon name="send" size={12} /> Messages
-        </a>
-        <a href={channelLinks.email} style={channelBtn} aria-label="Share via email">
-          <Icon name="mail" size={12} /> Email
-        </a>
+        ))}
       </div>
 
       <button
@@ -998,39 +971,6 @@ function LiveStep({
       >
         Back to editing
       </button>
-    </div>
-  );
-}
-
-// ─── THEMED OG EMBED ───────────────────────────────────────────
-//
-// Embeds /api/og as an <img> so the host sees the exact card
-// that unfurls in iMessage / X / Facebook. Edition-aware art
-// already lives at that endpoint — we just forward params.
-function OgCardEmbed({ ogQuery }: { ogQuery: string }) {
-  const src = `/api/og?${ogQuery}`;
-  return (
-    <div
-      style={{
-        position: 'relative',
-        borderRadius: 14,
-        overflow: 'hidden',
-        border: '1px solid var(--line-soft, #E5DCC4)',
-        background: 'var(--cream-2, #F0E9D8)',
-        aspectRatio: '1200 / 630',
-      }}
-    >
-      <img
-        src={src}
-        alt="Preview of how your site appears when shared"
-        loading="lazy"
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          display: 'block',
-        }}
-      />
     </div>
   );
 }

@@ -37,6 +37,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 import { CanvasStage } from './canvas/CanvasStage';
+import { EditorDialBar } from './EditorDialBar';
 import { FirstThreadTour } from './FirstThreadTour';
 import { DecorGenerationToast } from './DecorGenerationToast';
 import { DecorRecolorModal } from './DecorRecolorModal';
@@ -1262,6 +1263,43 @@ export function EditorV8({
           </MobileDrawer>
         )}
       </div>
+      {/* Bottom fine-tune dial row — literal port of the prototype's
+          right-rail ThemePicker dials (editor-redesign.jsx) +
+          tweaks-panel control primitives. Sits below the canvas as
+          a one-row bar so theme/voice/density/grain/motifs read at
+          a glance. Hidden in preview-as-guest + on narrow viewports
+          (the mobile tabbar takes the space). */}
+      {!isNarrow && !previewMode && (
+        <EditorDialBar
+          manifest={manifest}
+          onChange={onManifestChange}
+          onOpenEvent={() => {
+            // Event chip → command palette so the host can pick from
+            // the full EVENT_TYPES registry (28 entries, beats a
+            // bespoke modal).
+            if (typeof window === 'undefined') return;
+            window.dispatchEvent(new CustomEvent(COMMAND_PALETTE_OPEN_EVENT));
+          }}
+          onOpenTheme={() => setThemeShopOpen(true)}
+          onOpenKit={() => {
+            // Kit / Layout dials jump to the inspector Theme tab and
+            // scroll their picker anchor into view. Same pattern as
+            // CommandPalette's onOpenDecorLibrary handler.
+            setInspectorTab('theme');
+            setTimeout(() => {
+              const el = document.querySelector('[data-pl-design-anchor="kit-picker"]');
+              el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 80);
+          }}
+          onOpenLayout={() => {
+            setInspectorTab('theme');
+            setTimeout(() => {
+              const el = document.querySelector('[data-pl-design-anchor="site-layout"]');
+              el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 80);
+          }}
+        />
+      )}
       {isNarrow && (
         <MobileTabbar
           mobileDrawer={mobileDrawer}

@@ -1459,6 +1459,161 @@ export function EmptyBlockState({
   );
 }
 
+/* ---------- PearChip ----------
+ *  Peach pill with a pear glyph — the prototype's "PearChip" from
+ *  ClaudeDesign/pages/section-fields.jsx. Used as the right-side
+ *  action on field labels ("3 styles", "Draft for me", "Build from
+ *  notes", "Auto-arrange", "Suggest from data"). It's a button you
+ *  can click to fire an action; the visual treatment cues the
+ *  reader "this is a Pear-flavored offer, not a generic button".
+ *
+ *  Production AISuggestButton is the inline AI affordance with
+ *  state + spinner. PearChip is the tighter sister used inline
+ *  with a label — same brand voice, leaner footprint.
+ */
+export function PearChip({
+  label,
+  onClick,
+  disabled,
+  title,
+}: {
+  label: string;
+  onClick?: () => void;
+  disabled?: boolean;
+  title?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={title ?? label}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '7px 11px',
+        borderRadius: 999,
+        background: 'var(--peach-bg, rgba(198,112,61,0.10))',
+        border: '1px solid rgba(198,112,61,0.22)',
+        fontSize: 11.5,
+        fontWeight: 600,
+        color: 'var(--peach-ink, #C6703D)',
+        cursor: disabled ? 'default' : 'pointer',
+        opacity: disabled ? 0.5 : 1,
+        fontFamily: 'var(--font-ui)',
+        transition: 'background var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
+      }}
+      onMouseEnter={(e) => {
+        if (disabled) return;
+        e.currentTarget.style.background = 'var(--peach-bg-strong, rgba(198,112,61,0.18))';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = 'var(--peach-bg, rgba(198,112,61,0.10))';
+      }}
+    >
+      {/* Small pear glyph — matches the prototype's <Pear/> on
+          PearChip. Renders as a 13px sage-tinted teardrop so the
+          chip reads "Pear is offering this" at a glance. */}
+      <span
+        aria-hidden
+        style={{
+          display: 'inline-block',
+          width: 11,
+          height: 13,
+          background: 'var(--sage-deep, #5C6B3F)',
+          borderRadius: '60% 60% 50% 50% / 70% 70% 30% 30%',
+          flexShrink: 0,
+        }}
+      />
+      {label}
+    </button>
+  );
+}
+
+/* ---------- IconTileRow ----------
+ *  The prototype's recurring row pattern (Schedule moments, Details
+ *  custom cards, Registry stores): a 32×32 tone-tinted icon tile +
+ *  title + sub-label + optional right-side meta chip. Used as a
+ *  visual primitive when the row doesn't need full inline editing
+ *  (e.g. summary view, hover affordances) — for editable rows the
+ *  SortableRowCard is the right container.
+ *
+ *  Tone tokens map to the prototype's --peach-2 / --sage-2 /
+ *  --lavender-2 / --warm-2 / --cream-2 fills.
+ */
+export type IconTileTone = 'peach' | 'sage' | 'lavender' | 'warm' | 'cream';
+
+const TONE_BG: Record<IconTileTone, string> = {
+  peach: 'var(--peach-2, rgba(198,112,61,0.18))',
+  sage: 'var(--sage-2, rgba(92,107,63,0.18))',
+  lavender: 'var(--lavender-2, rgba(143,124,178,0.18))',
+  warm: 'var(--warm-2, rgba(184,147,90,0.18))',
+  cream: 'var(--cream-3, #E5DCC4)',
+};
+
+export function IconTileRow({
+  icon = 'star',
+  tone = 'sage',
+  title,
+  sub,
+  right,
+  onClick,
+  dragHandle,
+}: {
+  icon?: string;
+  tone?: IconTileTone;
+  title: ReactNode;
+  sub?: ReactNode;
+  right?: ReactNode;
+  onClick?: () => void;
+  dragHandle?: boolean;
+}) {
+  const Tag = onClick ? 'button' : 'div';
+  return (
+    <Tag
+      type={onClick ? 'button' : undefined}
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: 10,
+        borderRadius: 11,
+        background: 'var(--pl-chrome-surface)',
+        border: '1px solid var(--pl-chrome-border)',
+        width: '100%',
+        textAlign: 'left',
+        cursor: onClick ? 'pointer' : 'default',
+        color: 'var(--pl-chrome-text)',
+        fontFamily: 'var(--font-ui)',
+      }}
+    >
+      {dragHandle && <Icon name="drag" size={14} color="var(--pl-chrome-text-muted)" />}
+      <span
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 8,
+          background: TONE_BG[tone],
+          display: 'grid',
+          placeItems: 'center',
+          flexShrink: 0,
+        }}
+      >
+        <Icon name={icon} size={14} color="#3D4A1F" />
+      </span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'inherit' }}>{title}</div>
+        {sub && (
+          <div style={{ fontSize: 11.5, color: 'var(--pl-chrome-text-muted)' }}>{sub}</div>
+        )}
+      </div>
+      {right}
+    </Tag>
+  );
+}
+
 /* ---------- Add-row button ---------- */
 export function AddRowButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
