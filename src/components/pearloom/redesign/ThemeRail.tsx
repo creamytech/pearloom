@@ -14,7 +14,7 @@
 import type { StoryManifest } from '@/types';
 import { Icon } from '../motifs';
 import { ThemePackPicker } from '../editor/panels/ThemePackPicker';
-import { ThemePanel } from '../editor/panels/ThemePanel';
+import { ThemePickerBody } from './ThemePickerBody';
 
 interface Props {
   manifest: StoryManifest;
@@ -71,91 +71,17 @@ export function ThemeRail({ manifest, onChange, onOpenShop, onOpenDecor }: Props
         </div>
       </div>
 
-      {/* Body — the existing ThemePanel already houses the right cluster
-          (Event-type → Generate → Theme grid → Edition → Layout → Kit →
-          Fine-tune → Theme Shop CTA → Decor Library CTA → Palette-from-
-          photos → Saved looks → Matching STD). Mount it here instead
-          of in the legacy inspector tab. */}
-      <div style={{ flex: 1, overflow: 'auto', padding: 0 }}>
-        <ThemePanel manifest={manifest} onChange={onChange} />
-      </div>
-
-      {/* Quick-access dock — Theme Shop + Decor Library. Mirrors
-          themes.jsx L886-912 even when ThemePanel scrolls the
-          embedded versions out of view. */}
-      <div style={{ padding: 14, borderTop: '1px solid var(--line-soft)', display: 'flex', flexDirection: 'column', gap: 9 }}>
-        <button
-          type="button"
-          onClick={onOpenShop}
-          className="lift pl8"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 11,
-            padding: '11px 14px',
-            borderRadius: 12,
-            width: '100%',
-            cursor: 'pointer',
-            background: 'var(--ink)',
-            color: 'var(--cream)',
-            border: 'none',
-            textAlign: 'left',
-          }}
-        >
-          <span
-            style={{
-              width: 32, height: 32, borderRadius: 9,
-              background: 'rgba(255,255,255,0.12)',
-              display: 'grid', placeItems: 'center', flexShrink: 0,
-            }}
-          >
-            <Icon name="sparkles" size={15} color="var(--gold)" />
-          </span>
-          <span style={{ flex: 1 }}>
-            <span style={{ display: 'block', fontSize: 12.5, fontWeight: 700 }}>Theme Shop</span>
-            <span style={{ display: 'block', fontSize: 10.5, opacity: 0.7 }}>60+ premium packs · try live</span>
-          </span>
-          <Icon name="arrow-up" size={13} color="var(--cream)" />
-        </button>
-
-        <button
-          type="button"
-          onClick={onOpenDecor}
-          className="lift"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 11,
-            padding: '11px 14px',
-            borderRadius: 12,
-            width: '100%',
-            cursor: 'pointer',
-            background: 'linear-gradient(120deg, var(--lavender-bg), var(--peach-bg))',
-            border: '1px solid var(--line-soft)',
-            textAlign: 'left',
-          }}
-        >
-          <span
-            style={{
-              width: 34, height: 34, borderRadius: 9,
-              background: 'var(--card)',
-              display: 'grid', placeItems: 'center', flexShrink: 0,
-              boxShadow: '0 2px 6px rgba(61,74,31,0.08)',
-            }}
-          >
-            <Icon name="sparkles" size={16} color="var(--lavender-ink)" />
-          </span>
-          <span style={{ flex: 1 }}>
-            <span style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>
-              Decor Library
-            </span>
-            <span style={{ display: 'block', fontSize: 10.5, color: 'var(--ink-soft)' }}>
-              Motifs, dividers, patterns &amp; monograms
-            </span>
-          </span>
-          <Icon name="arrow-right" size={13} color="var(--ink-soft)" />
-        </button>
-      </div>
+      {/* Body — literal port of handoff/shared/themes.jsx
+          ThemePicker (L820-933). Production ThemePanel had a lot of
+          chrome (SiteLookHeader, OwnedPacksSection, EditionPicker,
+          Advanced disclosure) the prototype doesn't show. Swap it
+          for the prototype-faithful body. */}
+      <ThemePickerBody
+        manifest={manifest}
+        onChange={onChange}
+        onOpenShop={onOpenShop}
+        onOpenDecor={onOpenDecor}
+      />
     </aside>
   );
 }
