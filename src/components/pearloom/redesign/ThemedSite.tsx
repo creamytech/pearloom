@@ -26,6 +26,7 @@ import { Icon, Pear } from '../motifs';
 import { getTheme, themeRootStyle, type Density, type Theme } from '../site/themes';
 import { Motif, MotifScatter, WatercolorBloom, type MotifKind } from '../site/MotifScatter';
 import { TextureFilters } from '../site/TextureFilters';
+import { readVariant } from './layouts';
 import type { SectionId } from './EditorRedesign';
 
 interface Props {
@@ -82,7 +83,20 @@ export function ThemedSite({ active, hover, setActive, setHover, editable, manif
   /* Section copy + content — pulls from manifest with prototype
      fallbacks. Keeps the renderer data-driven per handoff L141-153. */
   const C = buildCopy(theme, manifest, { nameA, nameB, date, place: `${venue} · ${place}` });
-  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, textureIntensity, showWashHero, dividerLook, C };
+  /* Per-section layout variants — manifest.layouts[section] overrides
+     the per-section default. PropertyRail's Layout tab writes here. */
+  const variants = {
+    hero: readVariant(manifest, 'hero'),
+    story: readVariant(manifest, 'story'),
+    details: readVariant(manifest, 'details'),
+    schedule: readVariant(manifest, 'schedule'),
+    travel: readVariant(manifest, 'travel'),
+    registry: readVariant(manifest, 'registry'),
+    gallery: readVariant(manifest, 'gallery'),
+    faq: readVariant(manifest, 'faq'),
+    rsvp: readVariant(manifest, 'rsvp'),
+  };
+  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, textureIntensity, showWashHero, dividerLook, variants, C };
 
   const sections: SectionKind[] = ['hero', 'story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
   const navLinks = sections.filter((s) => s !== 'hero' && s !== 'rsvp').map((s) => SECTION_LABEL[s]);
@@ -307,6 +321,18 @@ function renderKind(kind: SectionKind, ctx: SectionCtx): ReactNode {
 /* ─── HeroBlock — handoff L256-363 centered variant verbatim. ── */
 
 function HeroBlock({ ctx }: { ctx: SectionCtx }) {
+  switch (ctx.variants.hero) {
+    case 'split':       return <HeroSplit ctx={ctx} />;
+    case 'minimal':     return <HeroMinimal ctx={ctx} />;
+    case 'fullbleed':   return <HeroFullbleed ctx={ctx} />;
+    case 'typographic': return <HeroTypographic ctx={ctx} />;
+    case 'postcard':    return <HeroPostcard ctx={ctx} />;
+    default:            return <HeroCentered ctx={ctx} />;
+  }
+}
+
+/* Default: centered (original). */
+function HeroCentered({ ctx }: { ctx: SectionCtx }) {
   const { theme, pad, editable, C, motif, motifsOn, showWashHero } = ctx;
   void editable;
   const isEditorial = theme.id === 'editorial';
@@ -373,9 +399,156 @@ function HeroPhotos() {
   );
 }
 
+/* HeroSplit — handoff L286-298. Type left / photo right grid. */
+function HeroSplit({ ctx }: { ctx: SectionCtx }) {
+  const { theme, pad, C, motif, motifsOn } = ctx;
+  const isEditorial = theme.id === 'editorial';
+  return (
+    <div style={{ position: 'relative', padding: `${56 * pad}px 56px`, background: 'var(--t-section)', overflow: 'hidden', display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 44, alignItems: 'center' }}>
+      {motifsOn && <MotifScatter motif={motif} density="sparse" />}
+      <div style={{ position: 'relative', textAlign: 'left' }}>
+        <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 8 }}>{C.lead}</div>
+        {C.tagline && <div style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', marginTop: 8 }}>{C.tagline}</div>}
+        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(60px * var(--t-hero-scale))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)' }}>
+          {C.subject.a}<span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>{isEditorial ? '×' : 'and'}</span>{C.subject.b}
+        </h1>
+        <div style={{ marginTop: 18, display: 'flex', gap: 22, flexWrap: 'wrap', fontSize: 14, color: 'var(--t-ink-soft)' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="calendar" size={14} color="var(--t-accent)" /> {C.meta.date}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}</span>
+        </div>
+        <div style={{ marginTop: 16 }}><KDivider look={ctx.dividerLook} width={180} style={{ marginLeft: 0 }} /></div>
+        <div style={{ marginTop: 20, display: 'flex', gap: 10 }}>
+          <TButton variant="primary">{C.cta} <Icon name="arrow-right" size={13} color="var(--t-paper)" /></TButton>
+          <TButton variant="outline">Learn more</TButton>
+        </div>
+      </div>
+      <div style={{ position: 'relative' }}>
+        <PhotoPlaceholder tone="warm" aspect="3/4" style={{ borderRadius: 'var(--t-radius)' }} />
+      </div>
+    </div>
+  );
+}
+
+/* HeroMinimal — handoff L299-308. Left-aligned, no photos. */
+function HeroMinimal({ ctx }: { ctx: SectionCtx }) {
+  const { theme, pad, C } = ctx;
+  const isEditorial = theme.id === 'editorial';
+  return (
+    <div style={{ position: 'relative', padding: `${72 * pad}px 56px ${56 * pad}px`, background: 'var(--t-section)', overflow: 'hidden', textAlign: 'left' }}>
+      <div style={{ maxWidth: 840 }}>
+        <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 8 }}>{C.lead}</div>
+        {C.tagline && <div style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', marginTop: 8 }}>{C.tagline}</div>}
+        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(78px * var(--t-hero-scale))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)' }}>
+          {C.subject.a}<span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>{isEditorial ? '×' : 'and'}</span>{C.subject.b}
+        </h1>
+        <div style={{ marginTop: 18, display: 'flex', gap: 22, flexWrap: 'wrap', fontSize: 14, color: 'var(--t-ink-soft)' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="calendar" size={14} color="var(--t-accent)" /> {C.meta.date}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}</span>
+        </div>
+        <div style={{ marginTop: 18 }}><KDivider look={ctx.dividerLook} width={200} style={{ marginLeft: 0 }} /></div>
+        <div style={{ marginTop: 20, display: 'flex', gap: 10 }}>
+          <TButton variant="primary">{C.cta} <Icon name="arrow-right" size={13} color="var(--t-paper)" /></TButton>
+          <TButton variant="outline">Learn more</TButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* HeroFullbleed — handoff L310-324. Photo behind dark scrim. */
+function HeroFullbleed({ ctx }: { ctx: SectionCtx }) {
+  const { theme, C } = ctx;
+  const isEditorial = theme.id === 'editorial';
+  return (
+    <div style={{ position: 'relative', minHeight: 460, display: 'grid', placeItems: 'center', textAlign: 'center', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', inset: 0 }}>
+        <PhotoPlaceholder tone="dusk" aspect="auto" style={{ height: '100%' }} />
+      </div>
+      <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.5))' }} />
+      <div style={{ position: 'relative', color: '#fff', padding: '40px 24px' }}>
+        <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase', opacity: 0.9, marginBottom: 8 }}>{C.lead}</div>
+        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(76px * var(--t-hero-scale))', lineHeight: 0.96, margin: 0, color: '#fff' }}>
+          {C.subject.a}<span style={{ fontStyle: 'italic', fontSize: '0.7em', margin: '0 0.16em', opacity: 0.85 }}>{isEditorial ? '×' : 'and'}</span>{C.subject.b}
+        </h1>
+        <div style={{ marginTop: 14, fontSize: 14.5, opacity: 0.92 }}>{C.meta.date} · {C.meta.place}</div>
+        <div style={{ marginTop: 22 }}>
+          <TButton variant="primary">{C.cta} <Icon name="arrow-right" size={13} color="var(--t-paper)" /></TButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* HeroTypographic — handoff L326-338. Names stacked, huge type. */
+function HeroTypographic({ ctx }: { ctx: SectionCtx }) {
+  const { theme, pad, C, motif, motifsOn } = ctx;
+  const isEditorial = theme.id === 'editorial';
+  return (
+    <div style={{ position: 'relative', padding: `${78 * pad}px 48px ${60 * pad}px`, background: 'var(--t-section)', overflow: 'hidden', textAlign: 'center' }}>
+      {motifsOn && <MotifScatter motif={motif} density="sparse" />}
+      <div style={{ position: 'relative' }}>
+        <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 8 }}>{C.lead}</div>
+        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(108px * var(--t-hero-scale))', lineHeight: 0.86, margin: '6px 0', letterSpacing: '-0.03em', color: 'var(--t-ink)' }}>
+          {C.subject.a}<br />
+          <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}>{isEditorial ? '×' : '&'}</span>
+          <br />
+          {C.subject.b}
+        </h1>
+        <div style={{ marginTop: 18, display: 'flex', gap: 22, justifyContent: 'center', flexWrap: 'wrap', fontSize: 14, color: 'var(--t-ink-soft)' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="calendar" size={14} color="var(--t-accent)" /> {C.meta.date}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}</span>
+        </div>
+        <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center' }}>
+          <TButton variant="primary">{C.cta} <Icon name="arrow-right" size={13} color="var(--t-paper)" /></TButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* HeroPostcard — handoff L340-349. Card on a tinted mat. */
+function HeroPostcard({ ctx }: { ctx: SectionCtx }) {
+  const { theme, pad, C, motif, motifsOn } = ctx;
+  const isEditorial = theme.id === 'editorial';
+  return (
+    <div style={{ position: 'relative', padding: `${48 * pad}px 40px`, background: 'color-mix(in oklab, var(--t-ink) 8%, var(--t-section))', overflow: 'hidden' }}>
+      <div style={{ maxWidth: 720, marginInline: 'auto', background: 'var(--t-paper)', borderRadius: 'var(--t-radius-lg)', boxShadow: 'var(--t-shadow)', border: '1px solid var(--t-line)', padding: `${40 * pad}px 40px`, textAlign: 'center', position: 'relative' }}>
+        <div aria-hidden style={{ position: 'absolute', inset: 10, border: '1px solid var(--t-line)', borderRadius: 'var(--t-radius)', pointerEvents: 'none' }} />
+        {motifsOn && <MotifScatter motif={motif} density="sparse" />}
+        <div style={{ position: 'relative' }}>
+          <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 8 }}>{C.lead}</div>
+          {C.tagline && <div style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', marginTop: 8 }}>{C.tagline}</div>}
+          <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(58px * var(--t-hero-scale))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)' }}>
+            {C.subject.a}<span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>{isEditorial ? '×' : 'and'}</span>{C.subject.b}
+          </h1>
+          <div style={{ marginTop: 18, display: 'flex', gap: 22, justifyContent: 'center', flexWrap: 'wrap', fontSize: 14, color: 'var(--t-ink-soft)' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="calendar" size={14} color="var(--t-accent)" /> {C.meta.date}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}</span>
+          </div>
+          <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}><KDivider look={ctx.dividerLook} width={180} /></div>
+          <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center' }}>
+            <TButton variant="primary">{C.cta} <Icon name="arrow-right" size={13} color="var(--t-paper)" /></TButton>
+            <TButton variant="outline">Learn more</TButton>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── StoryBlock — handoff L366-456 sidebyside default. ──────── */
 
 function StoryBlock({ ctx }: { ctx: SectionCtx }) {
+  switch (ctx.variants.story) {
+    case 'stacked':  return <StoryStacked ctx={ctx} />;
+    case 'quote':    return <StoryQuote ctx={ctx} />;
+    case 'timeline': return <StoryTimeline ctx={ctx} />;
+    case 'letter':   return <StoryLetter ctx={ctx} />;
+    default:         return <StorySideBySide ctx={ctx} />;
+  }
+}
+
+function StorySideBySide({ ctx }: { ctx: SectionCtx }) {
   const { theme, pad, C, motif } = ctx;
   void theme;
   return (
@@ -410,6 +583,83 @@ function StoryBlock({ ctx }: { ctx: SectionCtx }) {
             ))}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/* Story variants — handoff L388-446. */
+
+function StoryStacked({ ctx }: { ctx: SectionCtx }) {
+  const { pad, C } = ctx;
+  return (
+    <div style={{ padding: `${48 * pad}px 72px`, textAlign: 'center', maxWidth: 760, marginInline: 'auto', background: 'var(--t-paper)' }}>
+      <div style={{ marginInline: 'auto', maxWidth: 520, marginBottom: 26 }}>
+        <PhotoPlaceholder tone="warm" aspect="16/9" style={{ borderRadius: 'var(--t-radius)' }} />
+      </div>
+      <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 10 }}>{C.story.eyebrow}</div>
+      <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 38, margin: 0, lineHeight: 1.02, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}>
+        {C.story.title}
+        {C.story.italic && <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}> {C.story.italic}</span>}
+      </h2>
+      <p style={{ marginTop: 16, fontSize: 15, color: 'var(--t-ink-soft)', lineHeight: 1.65 }}>{C.story.body}</p>
+    </div>
+  );
+}
+
+function StoryQuote({ ctx }: { ctx: SectionCtx }) {
+  const { theme, pad, C, motif, motifsOn } = ctx;
+  const isEditorial = theme.id === 'editorial';
+  return (
+    <div style={{ position: 'relative', padding: `${56 * pad}px 72px`, textAlign: 'center', maxWidth: 880, marginInline: 'auto', background: 'var(--t-paper)' }}>
+      {motifsOn && <MotifScatter motif={motif} density="sparse" />}
+      <div style={{ position: 'relative' }}>
+        <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 16 }}>{C.story.eyebrow}</div>
+        <blockquote style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontWeight: 'var(--t-display-wght)', fontSize: 28, lineHeight: 1.32, margin: 0, color: 'var(--t-ink)', letterSpacing: '-0.01em' }}>{C.story.body}</blockquote>
+        <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}><KDivider look={ctx.dividerLook} width={160} /></div>
+      </div>
+    </div>
+  );
+}
+
+function StoryTimeline({ ctx }: { ctx: SectionCtx }) {
+  const { pad, C } = ctx;
+  const items = C.story.chips && C.story.chips.length > 0 ? C.story.chips : ['We met', 'We fell', 'We knew'];
+  return (
+    <div style={{ padding: `${52 * pad}px 56px`, maxWidth: 760, marginInline: 'auto', background: 'var(--t-paper)' }}>
+      <div style={{ textAlign: 'center', marginBottom: 28 }}>
+        <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 10 }}>{C.story.eyebrow}</div>
+        <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 38, margin: 0, lineHeight: 1.02, color: 'var(--t-ink)' }}>
+          {C.story.title}
+          {C.story.italic && <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}> {C.story.italic}</span>}
+        </h2>
+      </div>
+      <div style={{ position: 'relative', paddingLeft: 30 }}>
+        <div style={{ position: 'absolute', left: 7, top: 4, bottom: 4, width: 2, background: 'var(--t-line)' }} />
+        {items.map((it, i) => (
+          <div key={i} style={{ position: 'relative', paddingBottom: i < items.length - 1 ? 22 : 0 }}>
+            <span style={{ position: 'absolute', left: -30, top: 2, width: 16, height: 16, borderRadius: '50%', background: 'var(--t-accent)', border: '3px solid var(--t-paper)' }} />
+            <div style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 19, color: 'var(--t-accent-ink)' }}>{it}</div>
+            <div style={{ fontSize: 13.5, color: 'var(--t-ink-soft)', lineHeight: 1.55, marginTop: 3 }}>{C.story.body}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StoryLetter({ ctx }: { ctx: SectionCtx }) {
+  const { theme, pad, C, motif, motifsOn } = ctx;
+  const isEditorial = theme.id === 'editorial';
+  return (
+    <div style={{ position: 'relative', padding: `${52 * pad}px 40px`, background: 'var(--t-section)' }}>
+      {motifsOn && <MotifScatter motif={motif} density="sparse" />}
+      <div style={{ position: 'relative', maxWidth: 640, marginInline: 'auto', background: 'var(--t-paper)', borderRadius: 'var(--t-radius-lg)', boxShadow: 'var(--t-shadow)', border: '1px solid var(--t-line)', padding: '40px 46px', textAlign: 'center' }}>
+        <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 14 }}>{C.story.eyebrow}</div>
+        <p style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink)', lineHeight: 1.6, textAlign: 'left' }}>{C.story.body}</p>
+        <div style={{ fontFamily: 'var(--t-script)', fontSize: 30, color: 'var(--t-accent-ink)', marginTop: 14, textAlign: 'right' }}>
+          {C.subject.a} &amp; {C.subject.b}
+        </div>
       </div>
     </div>
   );
@@ -800,6 +1050,19 @@ interface SectionCtx {
   showWashHero: boolean;
   /** Decor Library divider override OR theme.look.divider fallback. */
   dividerLook: string;
+  /** Per-section layout variant resolved from manifest.layouts[section]
+   *  with default fallback. Used by the section blocks to dispatch. */
+  variants: {
+    hero: string;
+    story: string;
+    details: string;
+    schedule: string;
+    travel: string;
+    registry: string;
+    gallery: string;
+    faq: string;
+    rsvp: string;
+  };
   C: Copy;
 }
 

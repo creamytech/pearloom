@@ -11,6 +11,7 @@ import { useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import type { SectionId } from './EditorRedesign';
+import { LAYOUTS, readVariant, type LayoutVariant } from './layouts';
 
 /* Maps a Pear suggestion + active section to the manifest field
    that should get rewritten + the context tag the inline-rewrite
@@ -228,17 +229,48 @@ export function PropertyRail({ active, setActive, manifest, onChange }: Props) {
       >
         {tab === 'content' && renderSectionEditor(active, manifest, onChange)}
 
-        {tab === 'layout' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>
-              {section.label} layout
+        {tab === 'layout' && (() => {
+          const variants = LAYOUTS[active];
+          const current = readVariant(manifest, active);
+          if (!variants) {
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>
+                  {section.label} layout
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
+                  This section has one refined layout in every theme. Try a different theme
+                  pack for a fresh treatment.
+                </div>
+              </div>
+            );
+          }
+          const pick = (id: string) => onChange({
+            ...(manifest as unknown as Record<string, unknown>),
+            layouts: {
+              ...((manifest as unknown as { layouts?: Record<string, string> }).layouts ?? {}),
+              [active]: id,
+            },
+          } as unknown as StoryManifest);
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>
+                {section.label} layout
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {variants.map((v) => (
+                  <VariantTile
+                    key={v.id}
+                    variant={v}
+                    section={active}
+                    on={v.id === current}
+                    onPick={() => pick(v.id)}
+                  />
+                ))}
+              </div>
             </div>
-            <div style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
-              This section has one refined layout in every theme. Try a different theme pack
-              for a fresh treatment.
-            </div>
-          </div>
-        )}
+          );
+        })()}
 
         {tab === 'style' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
@@ -325,6 +357,161 @@ function pearSuggestions(active: Exclude<SectionId, null>): string[] {
     default:
       return ['Rewrite this section', 'Suggest a layout variant', 'Pick a complementary photo'];
   }
+}
+
+/* ─── VariantTile + LayoutGlyph — handoff editor-redesign.jsx L725-739.
+   A row-per-variant with a mini-diagram preview + label + check
+   indicator when active. */
+
+function VariantTile({ variant, section, on, onPick }: { variant: LayoutVariant; section: Exclude<SectionId, null>; on: boolean; onPick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onPick}
+      className="lift"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '10px 12px',
+        borderRadius: 10,
+        textAlign: 'left',
+        background: on ? 'var(--cream-2)' : 'var(--card)',
+        border: on ? '2px solid var(--ink)' : '1px solid var(--line)',
+        cursor: 'pointer',
+        width: '100%',
+        fontFamily: 'inherit',
+      }}
+    >
+      <LayoutGlyph section={section} variant={variant.id} on={on} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>{variant.label}</div>
+        {variant.sub && <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 1 }}>{variant.sub}</div>}
+      </div>
+      {on && <Icon name="check" size={14} color="var(--ink)" />}
+    </button>
+  );
+}
+
+function LayoutGlyph({ section, variant, on }: { section: Exclude<SectionId, null>; variant: string; on: boolean }) {
+  const c = on ? 'var(--ink)' : 'var(--ink-muted)';
+  const bg = on ? 'rgba(14,13,11,0.04)' : 'var(--cream-2)';
+  const W = 44, H = 32;
+  const wrap = { width: W, height: H, borderRadius: 4, background: bg, display: 'grid', placeItems: 'center', flexShrink: 0, padding: 3 } as const;
+  /* Each section + variant gets a tiny SVG glyph that hints at the
+     layout's structure. Falls through to a 3-bar block for any
+     variant not specifically diagrammed. */
+  if (section === 'hero') {
+    if (variant === 'split') {
+      return (
+        <div style={wrap}>
+          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
+            <rect x="1" y="6" width="18" height="2" fill={c} />
+            <rect x="1" y="10" width="14" height="2" fill={c} opacity={0.6} />
+            <rect x="1" y="14" width="16" height="2" fill={c} opacity={0.6} />
+            <rect x={W - 6 - 14} y="2" width="13" height={H - 10} rx="1" fill={c} opacity={0.4} />
+          </svg>
+        </div>
+      );
+    }
+    if (variant === 'fullbleed') {
+      return (
+        <div style={wrap}>
+          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
+            <rect x="0" y="0" width={W - 6} height={H - 6} fill={c} opacity={0.4} />
+            <rect x={(W - 6) / 2 - 8} y={(H - 6) / 2 - 1} width="16" height="2" fill="white" />
+          </svg>
+        </div>
+      );
+    }
+    if (variant === 'typographic') {
+      return (
+        <div style={wrap}>
+          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
+            <rect x="2" y="4" width={W - 10} height="6" fill={c} />
+            <rect x={(W - 6) / 2 - 1} y="12" width="2" height="2" fill={c} opacity={0.6} />
+            <rect x="2" y="16" width={W - 10} height="6" fill={c} />
+          </svg>
+        </div>
+      );
+    }
+    if (variant === 'minimal') {
+      return (
+        <div style={wrap}>
+          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
+            <rect x="2" y="6" width={(W - 10) * 0.65} height="4" fill={c} />
+            <rect x="2" y="13" width={(W - 10) * 0.45} height="2" fill={c} opacity={0.6} />
+            <rect x="2" y="17" width={(W - 10) * 0.5} height="2" fill={c} opacity={0.6} />
+          </svg>
+        </div>
+      );
+    }
+    if (variant === 'postcard') {
+      return (
+        <div style={wrap}>
+          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
+            <rect x="3" y="3" width={W - 12} height={H - 12} rx="1.5" fill={c} opacity={0.3} stroke={c} strokeWidth="0.5" />
+          </svg>
+        </div>
+      );
+    }
+    /* centered (default) */
+    return (
+      <div style={wrap}>
+        <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
+          <rect x="6" y="6" width={W - 18} height="3" fill={c} />
+          <rect x="9" y="12" width={W - 24} height="2" fill={c} opacity={0.6} />
+          <rect x="11" y="17" width={W - 28} height="2" fill={c} opacity={0.4} />
+        </svg>
+      </div>
+    );
+  }
+  if (section === 'story') {
+    if (variant === 'stacked') {
+      return (
+        <div style={wrap}>
+          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
+            <rect x="2" y="2" width={W - 10} height="10" fill={c} opacity={0.4} />
+            <rect x="2" y="15" width={W - 10} height="2" fill={c} />
+            <rect x="2" y="19" width={(W - 10) * 0.7} height="2" fill={c} opacity={0.6} />
+          </svg>
+        </div>
+      );
+    }
+    if (variant === 'timeline') {
+      return (
+        <div style={wrap}>
+          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
+            <line x1="5" y1="3" x2="5" y2={H - 9} stroke={c} strokeWidth="0.8" />
+            <circle cx="5" cy="6" r="2" fill={c} />
+            <circle cx="5" cy="14" r="2" fill={c} />
+            <circle cx="5" cy="22" r="2" fill={c} opacity={0.5} />
+          </svg>
+        </div>
+      );
+    }
+    /* sidebyside (default) */
+    return (
+      <div style={wrap}>
+        <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
+          <rect x="2" y="2" width="14" height={H - 10} fill={c} opacity={0.4} />
+          <rect x="20" y="6" width={W - 28} height="2" fill={c} />
+          <rect x="20" y="11" width={W - 28} height="2" fill={c} opacity={0.6} />
+          <rect x="20" y="15" width={(W - 28) * 0.7} height="2" fill={c} opacity={0.6} />
+        </svg>
+      </div>
+    );
+  }
+  /* Generic fallback — 3 stacked rows. */
+  return (
+    <div style={wrap}>
+      <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
+        <rect x="2" y="3" width={W - 10} height="4" fill={c} />
+        <rect x="2" y="10" width={W - 10} height="4" fill={c} opacity={0.6} />
+        <rect x="2" y="17" width={(W - 10) * 0.7} height="4" fill={c} opacity={0.6} />
+      </svg>
+    </div>
+  );
 }
 
 function renderSectionEditor(
