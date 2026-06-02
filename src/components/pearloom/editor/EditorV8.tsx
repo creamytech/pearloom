@@ -121,6 +121,11 @@ const EditorThemeShop = dynamic(
   () => import('./EditorThemeShop').then((m) => ({ default: m.EditorThemeShop })),
   { ssr: false },
 );
+// DecorLibraryPanel as a drawer — same lazy pattern.
+const DecorLibraryDrawer = dynamic(
+  () => import('./panels/DecorLibraryPanel').then((m) => ({ default: m.DecorLibraryPanel })),
+  { ssr: false },
+);
 // Lazy — DesignAdvisor is 48KB and returns null until the host
 // clicks the floating Pear pill, so the chunk loads only on
 // demand. Same Phase 3.4 lift as LibraryPanelV2.
@@ -471,6 +476,17 @@ export function EditorV8({
   // or clicks the backdrop. The sheet owns its own preview-
   // snapshot rollback so we just need a boolean here.
   const [themeShopOpen, setThemeShopOpen] = useState(false);
+  // DecorLibrary drawer visibility — opened from the topbar
+  // "Decor Library" trigger + the command palette + the
+  // pearloom:open-decor-library window event. Same drawer pattern
+  // as the prototype's slide-in DecorLibrary aside.
+  const [decorLibraryOpen, setDecorLibraryOpen] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const open = () => setDecorLibraryOpen(true);
+    window.addEventListener('pearloom:open-decor-library', open);
+    return () => window.removeEventListener('pearloom:open-decor-library', open);
+  }, []);
 
   // If the site was already published before this session, hydrate
   // the live-URL pill from the manifest flag so the topbar shows
@@ -1329,17 +1345,7 @@ export function EditorV8({
         onPatchManifest={onManifestChange}
         onJumpSection={(k) => setBlock(k as BlockKey)}
         onOpenThemeShop={() => setThemeShopOpen(true)}
-        onOpenDecorLibrary={() => {
-          // The decor library lives inside ThemePanel which mounts
-          // on the inspector's Theme tab. Flip the tab, then wait
-          // one render tick before scrolling its anchor into view
-          // — same pattern as the pearloom:design-jump handler.
-          setInspectorTab('theme');
-          setTimeout(() => {
-            const el = document.querySelector('[data-pl-design-anchor="decor-library"]');
-            el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 80);
-        }}
+        onOpenDecorLibrary={() => setDecorLibraryOpen(true)}
         onOpenSettings={() => {
           if (typeof window === 'undefined') return;
           window.dispatchEvent(new CustomEvent('pearloom:open-settings', { detail: { tab: 'account' } }));
@@ -1358,6 +1364,17 @@ export function EditorV8({
       <EditorThemeShop
         open={themeShopOpen}
         onClose={() => setThemeShopOpen(false)}
+        manifest={manifest}
+        onChange={onManifestChange}
+      />
+      {/* DecorLibrary drawer — slide-in from the right with a
+          backdrop. Opens from the topbar trigger, ⌘K command
+          palette, OR a pearloom:open-decor-library window event
+          (so any deeper surface can dispatch it). */}
+      <DecorLibraryDrawer
+        asDrawer
+        open={decorLibraryOpen}
+        onClose={() => setDecorLibraryOpen(false)}
         manifest={manifest}
         onChange={onManifestChange}
       />

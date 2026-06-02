@@ -428,9 +428,21 @@ type LooseManifest = StoryManifest & {
 export function DecorLibraryPanel({
   manifest,
   onChange,
+  asDrawer = false,
+  open = true,
+  onClose,
 }: {
   manifest: StoryManifest;
   onChange: (m: StoryManifest) => void;
+  /** When true, renders as the prototype's slide-in drawer (fixed
+   *  overlay with backdrop, right-anchored 460px aside). When
+   *  false (default), renders as the legacy embedded card so the
+   *  ThemePanel disclosure mount still works. */
+  asDrawer?: boolean;
+  /** Drawer open state (only when asDrawer). */
+  open?: boolean;
+  /** Drawer close handler (only when asDrawer). */
+  onClose?: () => void;
 }) {
   const [tab, setTab] = useState<DLTab>('motifs');
   const [text, setText] = useState('');
@@ -650,10 +662,25 @@ export function DecorLibraryPanel({
   const [n1, n2] = manifest.names ?? ['', ''];
   const subject = (n1 && n2 ? `${n1} & ${n2}` : (n1 || n2 || 'A & B')).trim();
 
-  return (
-    <div data-pl-decor-library style={{ marginBottom: 14 }}>
+  // Drawer mode: wrap the existing card in the prototype's fixed
+  // overlay + slide-in aside. Embedded mode: render the card inline.
+  // Returns null when asDrawer && !open so the drawer disappears
+  // entirely (allows callers to keep it mounted without paying
+  // pointer-events cost).
+  if (asDrawer && !open) return null;
+
+  const innerCard = (
+    <div data-pl-decor-library style={asDrawer ? { width: '100%', height: '100%', display: 'flex', flexDirection: 'column' } : { marginBottom: 14 }}>
       <div
-        style={{
+        style={asDrawer ? {
+          flex: 1,
+          minHeight: 0,
+          background: 'var(--card, var(--pl-cream-card, #FBF7EE))',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          pointerEvents: 'auto',
+        } : {
           borderRadius: 16,
           background: 'var(--card, var(--pl-cream-card, #FBF7EE))',
           border: '1px solid var(--line-soft, rgba(14,13,11,0.10))',
@@ -675,6 +702,16 @@ export function DecorLibraryPanel({
                 Decor Library
               </h3>
             </div>
+            {asDrawer && (
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close Decor Library"
+                style={{ width: 30, height: 30, borderRadius: 8, display: 'grid', placeItems: 'center', background: 'var(--cream-2, #FBF7EE)', border: 'none', cursor: 'pointer' }}
+              >
+                <Icon name="close" size={15} color="var(--ink-soft, #3A332C)" />
+              </button>
+            )}
           </div>
           <div style={{ display: 'flex', gap: 6, marginTop: 12, padding: 4, background: 'var(--cream-2, #FBF7EE)', borderRadius: 12 }}>
             <TabBtn on={tab === 'motifs'} onClick={() => setTab('motifs')} icon="leaf" label="Motifs" />
@@ -896,11 +933,65 @@ export function DecorLibraryPanel({
           >
             <Icon name="close" size={13} color="var(--ink-soft, #3A332C)" /> Reset decor
           </button>
-          <span style={{ fontSize: 10.5, color: 'var(--ink-muted, #6F6557)', fontWeight: 600, letterSpacing: '0.04em' }}>
-            Live-applied — your site updates as you tap.
-          </span>
+          {asDrawer && onClose ? (
+            <button
+              type="button"
+              onClick={onClose}
+              style={{ fontSize: 12.5, fontWeight: 600, padding: '7px 14px', borderRadius: 999, background: 'var(--ink, #0E0D0B)', color: 'var(--cream, #F5EFE2)', border: 'none', cursor: 'pointer' }}
+            >
+              Done
+            </button>
+          ) : (
+            <span style={{ fontSize: 10.5, color: 'var(--ink-muted, #6F6557)', fontWeight: 600, letterSpacing: '0.04em' }}>
+              Live-applied — your site updates as you tap.
+            </span>
+          )}
         </div>
       </div>
+    </div>
+  );
+
+  if (!asDrawer) return innerCard;
+
+  // Drawer mode — fixed overlay + slide-in aside on the right.
+  // Mirrors ClaudeDesign/pages/decor-library.jsx lines 105-247.
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 80,
+        display: 'flex',
+        justifyContent: 'flex-end',
+        pointerEvents: 'none',
+      }}
+    >
+      <style>{`@keyframes dl-in{from{transform:translateX(28px);opacity:0}to{transform:none;opacity:1}}`}</style>
+      <div
+        onClick={onClose}
+        aria-hidden
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'rgba(40,40,30,0.18)',
+          pointerEvents: 'auto',
+        }}
+      />
+      <aside
+        style={{
+          position: 'relative',
+          width: 'min(460px, 94vw)',
+          height: '100%',
+          background: 'var(--card, var(--pl-cream-card, #FBF7EE))',
+          boxShadow: '-16px 0 46px rgba(0,0,0,0.18)',
+          display: 'flex',
+          flexDirection: 'column',
+          pointerEvents: 'auto',
+          animation: 'dl-in 300ms cubic-bezier(0.16,1,0.3,1)',
+        }}
+      >
+        {innerCard}
+      </aside>
     </div>
   );
 }

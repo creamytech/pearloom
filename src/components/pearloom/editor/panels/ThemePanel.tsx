@@ -8,7 +8,6 @@ import { Blob, Pear, Sparkle, Squiggle, Icon } from '../../motifs';
 import { PACKS, type Pack } from '@/lib/theme-store/packs';
 import { applyPackToManifest } from '@/lib/theme-store/apply';
 import { PackPreview } from '../../store/PackPreview';
-import { DecorLibraryPanel } from './DecorLibraryPanel';
 import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';
 import { StickerTrayPanel } from './StickerTrayPanel';
 import { AtmospherePanel } from './AtmospherePanel';
@@ -466,6 +465,38 @@ export function ThemePanel({
             </div>
           </details>
           <div data-pl-design-anchor="decor">
+            {/* Decor Library is now a slide-in drawer mounted at
+                the EditorV8 root. Dispatch a window event so
+                EditorV8's pearloom:open-decor-library listener
+                opens the drawer — same pattern as ⌘K + topbar. */}
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window === 'undefined') return;
+                window.dispatchEvent(new CustomEvent('pearloom:open-decor-library'));
+              }}
+              style={{
+                width: '100%',
+                cursor: 'pointer',
+                padding: '12px 14px',
+                borderRadius: 10,
+                background: 'var(--cream-2)',
+                border: '1px dashed var(--line)',
+                fontSize: 13,
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                color: 'var(--ink-soft)',
+                margin: '6px 0',
+                textAlign: 'left',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 8,
+              }}
+            >
+              <span>✦ Decor Library — motifs, dividers, patterns, monogram, generate</span>
+              <span style={{ fontSize: 11, color: 'var(--ink-muted)', fontWeight: 600 }}>Open →</span>
+            </button>
             <details>
               <summary
                 style={{
@@ -482,10 +513,9 @@ export function ThemePanel({
                   margin: '6px 0',
                 }}
               >
-                ✦ Decor extras — AI-drafted dividers, stamps, stickers
+                ✦ Stickers
               </summary>
               <div style={{ paddingTop: 6 }}>
-                <DecorLibraryPanel manifest={manifest} onChange={onChange} />
                 <div data-pl-design-anchor="stickers">
                   <StickerTrayPanel manifest={manifest} onChange={onChange} />
                 </div>
