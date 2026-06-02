@@ -18,6 +18,7 @@
 import { useSearchParams } from 'next/navigation';
 import { EditorV8 } from '@/components/pearloom/editor/EditorV8';
 import { BuilderV8 } from '@/components/pearloom/pages/BuilderV8';
+import EditorRedesign from '@/components/pearloom/redesign/EditorRedesign';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import type { StoryManifest } from '@/types';
 
@@ -80,9 +81,15 @@ export default function EditorClient({ manifest, siteSlug, names }: EditorClient
 
   return (
     <ErrorBoundary fallback={<EditorCrashFallback siteSlug={siteSlug} />}>
-      {view === 'studio'
-        ? <BuilderV8 manifest={manifest} siteSlug={siteSlug} names={names} />
-        : <EditorV8 manifest={manifest} siteSlug={siteSlug} names={names} />}
+      {view === 'studio' ? (
+        <BuilderV8 manifest={manifest} siteSlug={siteSlug} names={names} />
+      ) : view === 'legacy' ? (
+        <EditorV8 manifest={manifest} siteSlug={siteSlug} names={names} />
+      ) : (
+        // Default: the prototype-faithful redesign editor.
+        // EditorV8 still reachable at ?view=legacy during cutover.
+        <EditorRedesign manifest={manifest} siteSlug={siteSlug} names={names} />
+      )}
     </ErrorBoundary>
   );
 }

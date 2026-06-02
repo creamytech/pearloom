@@ -1,0 +1,280 @@
+'use client';
+
+/* eslint-disable no-restricted-syntax */
+/* =========================================================================
+   PEARLOOM EDITOR — REDESIGN
+   Literal port of handoff/pages/editor-redesign.jsx into production TSX.
+
+   The accumulated EditorV8 shell (4,360 lines) bent the prototype around
+   production state machinery. This file does the opposite: the prototype
+   shell IS the layout, and production manifest state flows in through a
+   thin bridge.
+
+   Shape (prototype L1148-1257):
+     gridTemplateColumns: pearOpen ? '256px 1fr 360px 320px' : '256px 1fr 360px'
+     gridTemplateRows: '56px 1fr'
+     gridTemplateAreas:
+       pearOpen → '"top top top top" "left canvas right pear"'
+       else     → '"top top top" "left canvas right"'
+
+   Mounted by /editor/[siteSlug]. Production state hooks (autosave, undo
+   stack, publish flow) live in a bridge module — this file stays focused
+   on the visual shell.
+*/
+
+import { useState } from 'react';
+import type { StoryManifest } from '@/types';
+import { Icon, Pear } from '../motifs';
+import { ThemedSiteRenderer } from '../site/ThemedSiteRenderer';
+import { useEditorRedesignBridge } from './bridge';
+import { EditorRailLeft } from './SectionRail';
+import { PropertyRail } from './PropertyRail';
+import { ThemeRail } from './ThemeRail';
+import { FloatingPearBubble } from './FloatingPearBubble';
+import { EditorTopbar } from './EditorTopbar';
+
+interface Props {
+  manifest: StoryManifest;
+  siteSlug: string;
+  names: [string, string];
+}
+
+export type EditorMode = 'edit' | 'preview' | 'mobile';
+export type SectionId =
+  | 'hero' | 'story' | 'details' | 'schedule' | 'travel'
+  | 'registry' | 'gallery' | 'rsvp' | 'faq' | 'nav' | null;
+
+export default function EditorRedesign({ manifest: initialManifest, siteSlug, names: initialNames }: Props) {
+  // Bridge — autosave, manifest state, undo/redo, publish. Hides the
+  // production machinery behind a small interface that mirrors the
+  // prototype's tweaks-panel locals (setActive, setLayout, etc.).
+  const bridge = useEditorRedesignBridge({ initialManifest, initialNames, siteSlug });
+
+  const [mode, setMode] = useState<EditorMode>('edit');
+  const [active, setActive] = useState<SectionId>('hero');
+  const [hover, setHover] = useState<SectionId>(null);
+  const [pearOpen, setPearOpen] = useState(false);
+
+  // Prototype L1148-1160 — four-pane grid shell.
+  const gridColumns = pearOpen ? '256px 1fr 360px 320px' : '256px 1fr 360px';
+  const gridAreas = pearOpen
+    ? '"top top top top" "left canvas right pear"'
+    : '"top top top" "left canvas right"';
+
+  return (
+    <div
+      className="pl8"
+      style={{
+        minHeight: '100vh',
+        display: 'grid',
+        gridTemplateColumns: gridColumns,
+        gridTemplateRows: '56px 1fr',
+        gridTemplateAreas: gridAreas,
+        background: 'var(--cream)',
+        fontFamily: 'var(--font-ui)',
+        color: 'var(--ink)',
+      }}
+    >
+      <EditorTopbar
+        mode={mode}
+        setMode={setMode}
+        savedAt={bridge.savedAt}
+        onPublish={bridge.openPublish}
+        pearOpen={pearOpen}
+        setPearOpen={setPearOpen}
+        onOpenSettings={bridge.openSettings}
+        displayNames={bridge.displayNames}
+      />
+
+      {mode !== 'preview' && (
+        <EditorRailLeft
+          active={active}
+          setActive={setActive}
+          completion={bridge.completion}
+          title={bridge.displayNames}
+          slug={bridge.prettyUrl}
+          manifest={bridge.manifest}
+        />
+      )}
+
+      <EditorCanvas
+        active={active}
+        setActive={setActive}
+        hover={hover}
+        setHover={setHover}
+        mode={mode}
+        manifest={bridge.manifest}
+        names={bridge.names}
+        siteSlug={siteSlug}
+        onEditField={bridge.editField}
+        onEditNames={bridge.setNames}
+        pearOpen={pearOpen}
+      />
+
+      {mode !== 'preview' && (
+        active
+          ? <PropertyRail
+              active={active}
+              setActive={setActive}
+              manifest={bridge.manifest}
+              onChange={bridge.setManifest}
+            />
+          : <ThemeRail
+              manifest={bridge.manifest}
+              onChange={bridge.setManifest}
+              onOpenShop={bridge.openThemeShop}
+              onOpenDecor={bridge.openDecor}
+            />
+      )}
+
+      {pearOpen && (
+        <PearAside onClose={() => setPearOpen(false)} />
+      )}
+    </div>
+  );
+}
+
+/* ─── Canvas ─── literal port of editor-redesign.jsx L236-312 ──────────
+   The prototype wraps a 1100px (390px mobile) device frame on a cream-3
+   paper backdrop with a radial-grid dot pattern + FloatingPearBubble. */
+
+function EditorCanvas({
+  active, setActive, hover: _hover, setHover: _setHover,
+  mode, manifest, names, siteSlug, onEditField, onEditNames, pearOpen: _pearOpen,
+}: {
+  active: SectionId;
+  setActive: (id: SectionId) => void;
+  hover: SectionId;
+  setHover: (id: SectionId) => void;
+  mode: EditorMode;
+  manifest: StoryManifest;
+  names: [string, string];
+  siteSlug: string;
+  onEditField: (patch: (m: StoryManifest) => StoryManifest) => void;
+  onEditNames: (next: [string, string]) => void;
+  pearOpen: boolean;
+}) {
+  void _hover; void _setHover; void _pearOpen;
+  const isMobile = mode === 'mobile';
+  const isPreview = mode === 'preview';
+
+  return (
+    <div
+      style={{
+        gridArea: 'canvas',
+        background: 'var(--cream-3)',
+        overflow: 'auto',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        padding: isMobile ? '24px 0' : '28px 24px',
+        position: 'relative',
+      }}
+    >
+      {/* Paper-grid backdrop — prototype L252-257. */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          backgroundImage: 'radial-gradient(circle, rgba(61,74,31,0.08) 1px, transparent 1px)',
+          backgroundSize: '22px 22px',
+          opacity: 0.5,
+        }}
+      />
+
+      {/* Device frame (prototype L259-291). */}
+      <div
+        onClick={() => setActive(null)}
+        style={{
+          width: isMobile ? 390 : 1100,
+          maxWidth: '100%',
+          background: 'var(--paper)',
+          borderRadius: isMobile ? 36 : 14,
+          boxShadow: 'var(--shadow-md)',
+          border: '1px solid var(--card-ring)',
+          overflow: 'hidden',
+          position: 'relative',
+          zIndex: 1,
+          transition: 'width 360ms cubic-bezier(0.16, 1, 0.3, 1)',
+          containerType: 'inline-size',
+          containerName: 'pl-site',
+        }}
+      >
+        <ThemedSiteRenderer
+          manifest={manifest}
+          names={names}
+          siteSlug={siteSlug}
+          editMode={!isPreview}
+          onEditField={isPreview ? undefined : onEditField}
+          onEditNames={isPreview ? undefined : onEditNames}
+        />
+      </div>
+
+      {!isPreview && <FloatingPearBubble active={active} />}
+
+      {isPreview && (
+        <div
+          style={{
+            position: 'absolute', top: 16, right: 24,
+            padding: '6px 12px', borderRadius: 999,
+            background: 'var(--ink)', color: 'var(--cream)',
+            fontSize: 11.5, fontWeight: 600,
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            boxShadow: 'var(--shadow)',
+          }}
+        >
+          <Icon name="eye" size={11} color="var(--cream)" />
+          Preview — chrome hidden
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Pear aside (4th column) ──────────────────────────────────────── */
+
+function PearAside({ onClose }: { onClose: () => void }) {
+  return (
+    <aside
+      style={{
+        gridArea: 'pear',
+        background: 'var(--card)',
+        borderLeft: '1px solid var(--line-soft)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          padding: '16px 20px 12px',
+          borderBottom: '1px solid var(--line-soft)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          <Pear size={26} tone="sage" sparkle shadow={false} />
+          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, margin: 0 }}>
+            Pear
+          </h3>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close Pear pane"
+          style={{
+            width: 28, height: 28, borderRadius: 8,
+            display: 'grid', placeItems: 'center',
+            background: 'var(--cream-2)', border: 'none', cursor: 'pointer',
+          }}
+        >
+          <Icon name="close" size={13} color="var(--ink-soft)" />
+        </button>
+      </div>
+      <div style={{ flex: 1, overflow: 'auto', padding: 18, fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
+        Ask anything about your site — copy, palette, sections, the day-of.
+        I&apos;ll suggest a change and apply it when you say go.
+      </div>
+    </aside>
+  );
+}
