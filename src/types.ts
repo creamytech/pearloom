@@ -127,8 +127,16 @@ export interface StoryManifest {
   /** Prototype theme catalog id — santorini / tuscan / garden /
    *  editorial / midnight / coastal. When set, the renderer emits
    *  the FULL --t-* token set from that theme via themeRootStyle()
-   *  per the integration guide §0 (the primary visual contract). */
+   *  per the integration guide §0 (the primary visual contract).
+   *  Theme-Store packs also write this (with the pack id) so the
+   *  renderer recognizes a pack-applied site. */
   themeId?: string;
+  /** Raw --t-* var bag from an applied Theme-Store pack. Overrides
+   *  the 6-base-theme catalog when present — lets premium packs
+   *  paint their exact shadow / radius / accent-2 / gold / rsvp /
+   *  script / eyebrow-ls etc. (the 67-pack catalog carries 30+
+   *  --t-* values each; theme.colors only carries 6). */
+  themeVars?: Record<string, string>;
   // Timeline macro layout format chosen by user
   layoutFormat?: 'cascade' | 'filmstrip' | 'scrapbook' | 'magazine' | 'chapters' | 'starmap';
   // Story chapter layout — controls how individual chapters render in the story section.

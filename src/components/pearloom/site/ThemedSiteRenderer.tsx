@@ -576,9 +576,17 @@ export function ThemedSiteRenderer({
     ?? ((manifest as unknown as { theme?: { id?: string; themeId?: string } }).theme?.id)
     ?? ((manifest as unknown as { theme?: { id?: string; themeId?: string } }).theme?.themeId);
   const protoTheme = getTheme(protoThemeId);
+
+  /* Theme-Store packs apply their full --t-* token bag to
+     manifest.themeVars (see src/lib/theme-store/apply.ts).
+     When present, that bag wins over the 6-base-theme catalog so
+     premium packs paint their exact look (shadow, radius, gold,
+     rsvp, script, accent-2 etc.) — not just the 6-colour subset
+     theme.colors carries. */
+  const packThemeVars = (manifest as unknown as { themeVars?: Record<string, string> }).themeVars;
   const protoThemeStyle = useMemo(
-    () => themeRootStyle(protoTheme, density as ThemeDensity),
-    [protoTheme, density],
+    () => themeRootStyle(protoTheme, density as ThemeDensity, packThemeVars ?? null),
+    [protoTheme, density, packThemeVars],
   );
 
   /* Memoized — shellStyle is the root <div> style prop. Without

@@ -143,6 +143,16 @@ export function applyPackToManifest(pack: Pack, manifest: StoryManifest): StoryM
   const next: Record<string, unknown> = {
     ...(manifest as unknown as Record<string, unknown>),
     theme: nextTheme,
+    /* Store the pack's full --t-* var bag so ThemedSiteRenderer can
+       emit the prototype's complete theme namespace on the published
+       site root (integration guide §0). Without this only the 6
+       theme.colors fields propagate; every var(--t-accent-2),
+       var(--t-display-wght), var(--t-eyebrow-ls), var(--t-shadow),
+       var(--t-radius), var(--t-gold), var(--t-rsvp), var(--t-script)
+       etc. would fall back to the editor defaults instead of the
+       pack's intended values. */
+    themeVars: { ...pack.themeRef },
+    themeId: pack.id,
   };
 
   if (pack.kit) {
