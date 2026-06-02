@@ -33,6 +33,7 @@ import { ThemeRail } from './ThemeRail';
 import { FloatingPearBubble } from './FloatingPearBubble';
 import { EditorTopbar } from './EditorTopbar';
 import { FullSite } from './FullSite';
+import { ThemedSite } from './ThemedSite';
 import { EditorDrawers } from './EditorDrawers';
 import './animations.css';
 
@@ -224,25 +225,22 @@ function EditorCanvas({
           containerName: 'pl-site',
         }}
       >
-        {showFullSite ? (
-          <FullSite
-            active={active}
-            hover={hover}
-            setActive={setActive}
-            setHover={setHover}
-            editable={!isPreview}
-            manifest={manifest}
-            names={names}
-          />
-        ) : (
-          <ThemedSiteRenderer
-            manifest={manifest}
-            names={names}
-            siteSlug={siteSlug}
-            editMode={!isPreview}
-            onEditField={isPreview ? undefined : onEditField}
-            onEditNames={isPreview ? undefined : onEditNames}
-          />
+        <ThemedSite
+          active={active}
+          hover={hover}
+          setActive={setActive}
+          setHover={setHover}
+          editable={!isPreview}
+          manifest={manifest}
+          names={names}
+        />
+        {/* FullSite + ThemedSiteRenderer kept as imports for one-line
+            rollback during cutover — not rendered. */}
+        {false && (
+          <>
+            <FullSite active={active} hover={hover} setActive={setActive} setHover={setHover} editable={!isPreview} manifest={manifest} names={names} />
+            <ThemedSiteRenderer manifest={manifest} names={names} siteSlug={siteSlug} editMode={!isPreview} onEditField={isPreview ? undefined : onEditField} onEditNames={isPreview ? undefined : onEditNames} />
+          </>
         )}
       </div>
 
