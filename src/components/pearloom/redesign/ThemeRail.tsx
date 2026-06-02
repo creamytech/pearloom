@@ -26,6 +26,7 @@ interface Props {
 export function ThemeRail({ manifest, onChange, onOpenShop, onOpenDecor }: Props) {
   return (
     <aside
+      className="pl-rd-rail-right"
       style={{
         gridArea: 'right',
         background: 'var(--card)',

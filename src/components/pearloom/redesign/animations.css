@@ -1,0 +1,147 @@
+/* ─────────────────────────────────────────────────────────────────
+   PEARLOOM REDESIGN — ANIMATIONS
+   Smooth transitions for the new editor shell. Scoped to the
+   .pl-redesign class so they only fire inside the new module.
+
+   Easing: cubic-bezier(0.16, 1, 0.3, 1) — the "expo-out" curve the
+   prototype uses across rails, panels, and floating chrome. Matches
+   handoff/pages/editor-redesign.jsx L268 device-frame transition.
+   ───────────────────────────────────────────────────────────────── */
+
+.pl-redesign,
+.pl-redesign * {
+  --pl-redesign-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --pl-redesign-dur-fast: 180ms;
+  --pl-redesign-dur-base: 280ms;
+  --pl-redesign-dur-slow: 420ms;
+}
+
+/* Section row — background + color + transform fade. */
+.pl-redesign .pl-rd-section-row {
+  transition:
+    background var(--pl-redesign-dur-fast) var(--pl-redesign-ease),
+    color var(--pl-redesign-dur-fast) var(--pl-redesign-ease),
+    box-shadow var(--pl-redesign-dur-fast) var(--pl-redesign-ease);
+  will-change: background, transform;
+}
+.pl-redesign .pl-rd-section-row:hover:not([data-active="true"]) {
+  background: rgba(14, 13, 11, 0.04) !important;
+  transform: translateX(1px);
+}
+.pl-redesign .pl-rd-section-row[data-active="true"] {
+  box-shadow: 0 1px 4px rgba(14, 13, 11, 0.10);
+}
+
+/* Tab buttons — text + bg crossfade. */
+.pl-redesign .pl-rd-tab {
+  transition:
+    background var(--pl-redesign-dur-fast) var(--pl-redesign-ease),
+    color var(--pl-redesign-dur-fast) var(--pl-redesign-ease);
+}
+
+/* Topbar mode pills — same crossfade. */
+.pl-redesign .pl-rd-mode-pill {
+  transition:
+    background var(--pl-redesign-dur-fast) var(--pl-redesign-ease),
+    color var(--pl-redesign-dur-fast) var(--pl-redesign-ease),
+    transform var(--pl-redesign-dur-fast) var(--pl-redesign-ease);
+}
+.pl-redesign .pl-rd-mode-pill:hover {
+  transform: scale(1.02);
+}
+
+/* Aside content — slide-in entrance when the rail mounts. */
+@keyframes pl-rd-rail-in {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes pl-rd-rail-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.pl-redesign .pl-rd-rail-right {
+  animation: pl-rd-rail-in var(--pl-redesign-dur-base) var(--pl-redesign-ease) both;
+}
+.pl-redesign .pl-rd-rail-left {
+  animation: pl-rd-rail-in-left var(--pl-redesign-dur-base) var(--pl-redesign-ease) both;
+}
+
+/* Tab body cross-fade — when the host flips Content/Layout/Style or
+   when the active section changes, fade the body content in. */
+@keyframes pl-rd-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.pl-redesign .pl-rd-tab-body {
+  animation: pl-rd-fade-up var(--pl-redesign-dur-base) var(--pl-redesign-ease) both;
+}
+
+/* Pear bubble — bouncy spring entrance. */
+@keyframes pl-rd-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(8px);
+  }
+  60% {
+    transform: scale(1.02);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.pl-redesign .pl-rd-pop-in {
+  animation: pl-rd-pop-in var(--pl-redesign-dur-slow) var(--pl-redesign-ease) both;
+}
+
+/* Add-section button — dashed pulse on hover. */
+.pl-redesign .pl-rd-add-section {
+  transition:
+    background var(--pl-redesign-dur-fast) var(--pl-redesign-ease),
+    border-color var(--pl-redesign-dur-fast) var(--pl-redesign-ease),
+    color var(--pl-redesign-dur-fast) var(--pl-redesign-ease);
+}
+.pl-redesign .pl-rd-add-section:hover {
+  background: var(--cream-2) !important;
+  border-color: var(--ink-muted) !important;
+  color: var(--ink) !important;
+}
+
+/* Drag-state — row drops to 50% with a soft shadow lift. */
+.pl-redesign .pl-rd-section-row[data-dragging="true"] {
+  opacity: 0.55;
+  transform: scale(0.98);
+  box-shadow: 0 8px 18px rgba(14, 13, 11, 0.12);
+}
+
+/* Topbar mode pill — animated highlight (sliding indicator). */
+.pl-redesign .pl-rd-mode-strip {
+  position: relative;
+}
+
+/* Reduce motion — kill all the above for accessibility. */
+@media (prefers-reduced-motion: reduce) {
+  .pl-redesign,
+  .pl-redesign * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

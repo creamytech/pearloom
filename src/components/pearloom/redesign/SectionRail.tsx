@@ -43,6 +43,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug }: P
 
   return (
     <aside
+      className="pl-rd-rail-left"
       style={{
         gridArea: 'left',
         background: 'var(--cream-2)',
@@ -171,7 +172,9 @@ export function EditorRailLeft({ active, setActive, completion, title, slug }: P
               onDragStart={() => setReorderingIdx(i)}
               onDragEnd={() => setReorderingIdx(null)}
               onClick={() => setActive(s.id)}
-              className="lift"
+              className="pl-rd-section-row"
+              data-active={on}
+              data-dragging={reorderingIdx === i}
               style={{
                 display: 'grid',
                 gridTemplateColumns: '12px 22px 1fr 14px',
@@ -182,8 +185,6 @@ export function EditorRailLeft({ active, setActive, completion, title, slug }: P
                 background: on ? 'var(--ink)' : 'transparent',
                 color: on ? 'var(--cream)' : 'var(--ink)',
                 cursor: 'pointer',
-                opacity: reorderingIdx === i ? 0.5 : 1,
-                transition: 'background 140ms ease',
               }}
             >
               <span aria-hidden style={{ opacity: on ? 0.5 : 0.3, display: 'inline-flex' }}>
@@ -215,6 +216,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug }: P
         {/* "Add section" — prototype L223-230. */}
         <button
           type="button"
+          className="pl-rd-add-section"
           style={{
             marginTop: 4,
             padding: '8px 10px',

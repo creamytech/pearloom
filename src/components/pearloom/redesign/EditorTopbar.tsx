@@ -66,6 +66,7 @@ export function EditorTopbar({ mode, setMode, savedAt, onPublish, pearOpen, setP
                 key={m.id}
                 type="button"
                 onClick={() => setMode(m.id)}
+                className="pl-rd-mode-pill"
                 style={{
                   padding: '6px 14px', borderRadius: 999,
                   fontSize: 12.5, fontWeight: 600,
@@ -73,7 +74,6 @@ export function EditorTopbar({ mode, setMode, savedAt, onPublish, pearOpen, setP
                   color: on ? 'var(--cream)' : 'var(--ink-soft)',
                   display: 'inline-flex', alignItems: 'center', gap: 6,
                   border: 0, cursor: 'pointer',
-                  transition: 'background 140ms ease',
                 }}
               >
                 <Icon name={m.icon} size={12} color={on ? 'var(--cream)' : 'var(--ink-soft)'} />

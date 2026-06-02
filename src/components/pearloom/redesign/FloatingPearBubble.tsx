@@ -31,6 +31,7 @@ export function FloatingPearBubble({ active }: Props) {
       <button
         type="button"
         onClick={() => setOpen(true)}
+        className="pl-rd-pop-in"
         style={{
           position: 'absolute',
           bottom: 24, right: 24,
@@ -62,6 +63,7 @@ export function FloatingPearBubble({ active }: Props) {
 
   return (
     <div
+      className="pl-rd-pop-in"
       style={{
         position: 'absolute',
         bottom: 24, right: 24,

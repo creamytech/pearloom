@@ -32,6 +32,9 @@ import { PropertyRail } from './PropertyRail';
 import { ThemeRail } from './ThemeRail';
 import { FloatingPearBubble } from './FloatingPearBubble';
 import { EditorTopbar } from './EditorTopbar';
+import { FullSite } from './FullSite';
+import { EditorDrawers } from './EditorDrawers';
+import './animations.css';
 
 interface Props {
   manifest: StoryManifest;
@@ -63,7 +66,7 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
 
   return (
     <div
-      className="pl8"
+      className="pl8 pl-redesign"
       style={{
         minHeight: '100vh',
         display: 'grid',
@@ -73,6 +76,7 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
         background: 'var(--cream)',
         fontFamily: 'var(--font-ui)',
         color: 'var(--ink)',
+        transition: 'grid-template-columns 360ms cubic-bezier(0.16,1,0.3,1)',
       }}
     >
       <EditorTopbar
@@ -109,6 +113,7 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
         onEditField={bridge.editField}
         onEditNames={bridge.setNames}
         pearOpen={pearOpen}
+        usePrototypeCanvas
       />
 
       {mode !== 'preview' && (
@@ -130,6 +135,16 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
       {pearOpen && (
         <PearAside onClose={() => setPearOpen(false)} />
       )}
+
+      {/* Floating chrome — Decor Library drawer, Theme Shop bottom
+          sheet, Command Palette modal, Publish Flow. All listen on
+          window events so any deep surface (sidebar buttons, ⌘K,
+          fine-tune dials) can pop them. */}
+      <EditorDrawers
+        manifest={bridge.manifest}
+        onChange={bridge.setManifest}
+        siteSlug={siteSlug}
+      />
     </div>
   );
 }
@@ -139,8 +154,9 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
    paper backdrop with a radial-grid dot pattern + FloatingPearBubble. */
 
 function EditorCanvas({
-  active, setActive, hover: _hover, setHover: _setHover,
+  active, setActive, hover, setHover,
   mode, manifest, names, siteSlug, onEditField, onEditNames, pearOpen: _pearOpen,
+  usePrototypeCanvas = false,
 }: {
   active: SectionId;
   setActive: (id: SectionId) => void;
@@ -153,10 +169,19 @@ function EditorCanvas({
   onEditField: (patch: (m: StoryManifest) => StoryManifest) => void;
   onEditNames: (next: [string, string]) => void;
   pearOpen: boolean;
+  /** When true, the canvas renders the prototype-faithful FullSite
+   *  (decorative arches, gradient blobs, photo strips) instead of the
+   *  full ThemedSiteRenderer. Preview pill flips to ThemedSiteRenderer. */
+  usePrototypeCanvas?: boolean;
 }) {
-  void _hover; void _setHover; void _pearOpen;
+  void _pearOpen;
   const isMobile = mode === 'mobile';
   const isPreview = mode === 'preview';
+  /* In Edit mode + when prototype canvas is requested, render FullSite
+     (cheap, prototype-style stand-in with the arch decorations the
+     host sees in the handoff). Preview mode swaps to the real
+     ThemedSiteRenderer so the host can see the published page. */
+  const showFullSite = usePrototypeCanvas && !isPreview;
 
   return (
     <div
@@ -198,14 +223,26 @@ function EditorCanvas({
           containerName: 'pl-site',
         }}
       >
-        <ThemedSiteRenderer
-          manifest={manifest}
-          names={names}
-          siteSlug={siteSlug}
-          editMode={!isPreview}
-          onEditField={isPreview ? undefined : onEditField}
-          onEditNames={isPreview ? undefined : onEditNames}
-        />
+        {showFullSite ? (
+          <FullSite
+            active={active}
+            hover={hover}
+            setActive={setActive}
+            setHover={setHover}
+            editable={!isPreview}
+            manifest={manifest}
+            names={names}
+          />
+        ) : (
+          <ThemedSiteRenderer
+            manifest={manifest}
+            names={names}
+            siteSlug={siteSlug}
+            editMode={!isPreview}
+            onEditField={isPreview ? undefined : onEditField}
+            onEditNames={isPreview ? undefined : onEditNames}
+          />
+        )}
       </div>
 
       {!isPreview && <FloatingPearBubble active={active} />}

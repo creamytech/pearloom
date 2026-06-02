@@ -53,6 +53,8 @@ export function PropertyRail({ active, setActive, manifest, onChange }: Props) {
 
   return (
     <aside
+      key={active}
+      className="pl-rd-rail-right"
       style={{
         gridArea: 'right',
         background: 'var(--card)',
@@ -112,6 +114,7 @@ export function PropertyRail({ active, setActive, manifest, onChange }: Props) {
                 key={t.id}
                 type="button"
                 onClick={() => setTab(t.id)}
+                className="pl-rd-tab"
                 style={{
                   flex: 1,
                   padding: '7px',
@@ -137,7 +140,11 @@ export function PropertyRail({ active, setActive, manifest, onChange }: Props) {
       </div>
 
       {/* Body — prototype L718-790. */}
-      <div style={{ flex: 1, overflow: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <div
+        key={tab}
+        className="pl-rd-tab-body"
+        style={{ flex: 1, overflow: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 18 }}
+      >
         {tab === 'content' && renderSectionEditor(active, manifest, onChange)}
 
         {tab === 'layout' && (
