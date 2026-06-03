@@ -4,6 +4,7 @@
 /* LITERAL PORT of handoff/pages/editor-redesign.jsx L56-135 EditorTopbar. */
 
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { Icon, Pear } from '../motifs';
 import type { EditorMode } from './EditorRedesign';
 import type { SaveState } from './bridge';
@@ -21,6 +22,18 @@ interface Props {
 }
 
 export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPublish, pearOpen, setPearOpen, onOpenSettings, displayNames }: Props) {
+  const { data: session } = useSession();
+  /* Profile pic was rendering initials from `displayNames` (the
+     COUPLE'S names), so the avatar text changed on every keystroke
+     while editing names. Switched to the authenticated USER's
+     image / name / email — the modal already shows the correct
+     user info, so the pill should match. Falls back to the
+     prototype gradient pill with email-derived initials when
+     user.image isn't set. */
+  const sessionUser = session?.user;
+  const userImage = sessionUser?.image ?? null;
+  const userLabel = sessionUser?.name || sessionUser?.email || 'Account';
+  const userInitials = avatarInitials(sessionUser?.name, sessionUser?.email);
   const saveLabel = saveState === 'saving' ? 'Saving…'
     : saveState === 'unsaved' ? 'Saving…'
     : saveState === 'error' ? 'Save failed'
@@ -154,24 +167,36 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         <button
           type="button"
           onClick={onOpenSettings}
-          aria-label="Settings"
-          title={displayNames}
+          aria-label="Account settings"
+          title={userLabel}
           style={{
             width: 30, height: 30, borderRadius: 999,
-            background: 'linear-gradient(135deg, var(--lavender-2), var(--peach-2))',
-            border: 'none', cursor: 'pointer',
+            background: userImage
+              ? `var(--cream-2) center / cover no-repeat url("${userImage.replace(/"/g, '%22')}")`
+              : 'linear-gradient(135deg, var(--lavender-2), var(--peach-2))',
+            border: '1px solid var(--line)',
+            cursor: 'pointer',
             color: 'var(--ink)', fontSize: 11, fontWeight: 700,
             display: 'grid', placeItems: 'center',
+            overflow: 'hidden',
           }}
         >
-          {initials(displayNames)}
+          {/* Only show initials when there's no image. Image renders
+              via background. */}
+          {!userImage && <span>{userInitials}</span>}
         </button>
       </div>
     </header>
   );
 }
 
-function initials(s: string): string {
-  const parts = s.replace('&', ' ').split(/\s+/).filter(Boolean);
-  return (parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '');
+/* Pull initials from name (preferred) or email. Email-based initial
+   is single-letter, name-based is up to two. */
+function avatarInitials(name?: string | null, email?: string | null): string {
+  if (name) {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase();
+  }
+  if (email) return (email.trim()[0] ?? '?').toUpperCase();
+  return '?';
 }

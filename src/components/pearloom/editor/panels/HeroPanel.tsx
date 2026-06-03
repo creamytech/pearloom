@@ -10,6 +10,7 @@
 import { useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { FGroup, FInput, PearChip, SectionPanelShell } from './_section-atoms';
+import { PearInlineRewrite } from '../../redesign/PearAssist';
 
 interface CoverPhotoFieldProps {
   /** Current cover photo URL (absolute, served from R2/CDN). */
@@ -190,6 +191,15 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <FGroup label="Tagline" action={<PearChip>3 styles</PearChip>}>
           <FInput value={tagline} onChange={setTagline} placeholder="A short line above the fold" />
+          {tagline.trim().length >= 2 && (
+            <div style={{ marginTop: 7 }}>
+              <PearInlineRewrite
+                value={tagline}
+                onCommit={setTagline}
+                context="hero tagline"
+              />
+            </div>
+          )}
         </FGroup>
         <FGroup label="Names">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px 1fr', gap: 6, alignItems: 'center' }}>

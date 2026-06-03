@@ -14,6 +14,7 @@ import {
   dressCodeSuggestions,
   detailsCardLabelSuggestions,
 } from './_suggestions';
+import { PearInlineRewrite } from '../../redesign/PearAssist';
 
 type Card = [string, string];
 
@@ -75,6 +76,15 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
             options={dressSet.options}
             hint={dressSet.hint}
           />
+          {(cards[0]?.[1] ?? '').trim().length >= 2 && (
+            <div style={{ marginTop: 7 }}>
+              <PearInlineRewrite
+                value={cards[0]?.[1] ?? ''}
+                onCommit={(v) => setCardValue(0, v)}
+                context="details card value — dress code"
+              />
+            </div>
+          )}
         </FGroup>
         <FToggleStandalone label="Kids welcome" sub="Shown on the details card" def={kidsWelcome} onChange={setKidsWelcome} />
         <FToggleStandalone label="Adults-only evening" def={adultsOnly} onChange={setAdultsOnly} />

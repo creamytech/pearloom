@@ -10,6 +10,7 @@ import type { FaqItem, StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
 import { AddCard, FGroup, FInput, FSuggest, PearChip, SectionPanelShell } from './_section-atoms';
 import { faqQuestionSuggestions } from './_suggestions';
+import { PearAiChip, PearInlineRewrite } from '../../redesign/PearAssist';
 
 const DEFAULT_FAQS: FaqItem[] = [
   { id: 'f-dress', question: 'What is the dress code?', answer: '', order: 0 },
@@ -23,6 +24,38 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
   const questionSet = faqQuestionSuggestions(occasion);
   const faqs: FaqItem[] = manifest.faqs && manifest.faqs.length > 0 ? manifest.faqs : DEFAULT_FAQS;
   const [openId, setOpenId] = useState<string | null>(null);
+  /* Tracks per-row "Draft answer from Pear" busy state. Keyed by
+     faq id so multiple rows can stage independently. */
+  const [draftingId, setDraftingId] = useState<string | null>(null);
+  const [draftErr, setDraftErr] = useState<string | null>(null);
+
+  async function draftAnswer(f: FaqItem, idx: number) {
+    if (!f.question.trim()) {
+      setDraftErr('Add a question first so Pear knows what to answer.');
+      return;
+    }
+    setDraftingId(f.id); setDraftErr(null);
+    try {
+      const res = await fetch('/api/inline-rewrite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: f.question,
+          context: `FAQ answer — the question is "${f.question}". Draft a warm, factual 1-2 sentence answer for a celebration-website FAQ. Don't restate the question — answer it directly.`,
+        }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+      }
+      const { rewritten } = await res.json() as { rewritten: string };
+      if (rewritten && rewritten !== f.question) patch(idx, { answer: rewritten });
+    } catch (e) {
+      setDraftErr((e as Error).message);
+    } finally {
+      setDraftingId(null);
+    }
+  }
 
   const write = (next: FaqItem[]) => onChange({ ...manifest, faqs: next.map((f, i) => ({ ...f, order: i })) } as StoryManifest);
   const patch = (i: number, p: Partial<FaqItem>) => write(faqs.map((f, idx) => idx === i ? { ...f, ...p } : f));
@@ -66,7 +99,26 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
                         options={questionSet.options}
                       />
                       <FInput value={f.answer} onChange={(v) => patch(i, { answer: v })} placeholder="Answer (shown on the FAQ page)" />
-                      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                          <PearAiChip
+                            onClick={() => draftAnswer(f, i)}
+                            busy={draftingId === f.id}
+                            disabled={!!draftingId && draftingId !== f.id}
+                          >
+                            {draftingId === f.id ? 'Pear is drafting…' : f.answer ? 'Rewrite answer' : 'Draft answer'}
+                          </PearAiChip>
+                          {f.answer.trim().length >= 2 && (
+                            /* Rewrite-tone chips for the existing
+                               answer — Shorten / Warmer / etc. */
+                            <PearInlineRewrite
+                              value={f.answer}
+                              onCommit={(v) => patch(i, { answer: v })}
+                              context={`FAQ answer to "${f.question}"`}
+                              tones={['shorten', 'warmer', 'poetic']}
+                            />
+                          )}
+                        </div>
                         <button
                           type="button"
                           onClick={() => remove(i)}
@@ -75,6 +127,11 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
                           Remove
                         </button>
                       </div>
+                      {draftErr && draftingId === null && (
+                        <div style={{ padding: '6px 10px', borderRadius: 7, background: 'rgba(122,45,45,0.08)', fontSize: 11, color: '#7A2D2D' }}>
+                          {draftErr}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

@@ -9,6 +9,7 @@ import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
 import { AddCard, FGroup, FInput, FSuggest, SectionPanelShell } from './_section-atoms';
 import { registryStoreSuggestions } from './_suggestions';
+import { PearInlineRewrite } from '../../redesign/PearAssist';
 
 const TONES: Array<'peach' | 'sage' | 'lavender'> = ['peach', 'sage', 'lavender'];
 
@@ -37,6 +38,15 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <FGroup label="Intro line">
           <FInput value={intro} onChange={setIntro} />
+          {intro.trim().length >= 2 && (
+            <div style={{ marginTop: 7 }}>
+              <PearInlineRewrite
+                value={intro}
+                onCommit={setIntro}
+                context="registry intro line"
+              />
+            </div>
+          )}
         </FGroup>
         <FGroup label={`Linked registries · ${stores.length}`}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
