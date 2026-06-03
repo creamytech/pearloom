@@ -924,7 +924,13 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
           {C.travel.hotels.map((h, i) => (
             <div key={i} className="pl8-hotel-row" style={{ background: 'var(--t-card)', borderRadius: 'var(--t-radius-lg)', overflow: 'hidden', border: '1px solid var(--t-line-soft)', boxShadow: 'var(--t-shadow)' }}>
               <div style={{ aspectRatio: '16/9' }}>
-                <PhotoPlaceholder tone={h.tone} aspect="16/9" />
+                {h.photoUrl ? (
+                  /* Real Google Places photo from manifest.travelInfo.hotels[].photoUrl
+                     wins over the gradient placeholder when present. */
+                  <div style={{ height: '100%', width: '100%', background: `var(--t-section) center / cover no-repeat url("${h.photoUrl.replace(/"/g, '%22')}")` }} />
+                ) : (
+                  <PhotoPlaceholder tone={h.tone} aspect="16/9" />
+                )}
               </div>
               <div style={{ padding: 15 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
@@ -1295,7 +1301,7 @@ interface Copy {
   story: { eyebrow: string; title: string; italic?: string; body: string; chips?: string[] };
   details: { eyebrow: string; title: string; italic?: string; items: { l: string; v: string; icon: string }[] };
   schedule: { eyebrow: string; title: string; italic?: string; rows: { t: string; l: string; s: string }[] };
-  travel: { eyebrow: string; title: string; italic?: string; intro?: string; hotels: { name: string; price: string; rating: number; reviews: number; dist: string; tone: PhotoTone; blurb: string; amenities: string[] }[] };
+  travel: { eyebrow: string; title: string; italic?: string; intro?: string; hotels: { name: string; price: string; rating: number; reviews: number; dist: string; tone: PhotoTone; blurb: string; amenities: string[]; photoUrl?: string; bookingUrl?: string }[] };
   registry: { eyebrow: string; title: string; italic?: string; body: string; stores: string[] };
   gallery: { eyebrow: string; title: string; italic?: string; tones: PhotoTone[] };
   rsvp: { eyebrow: string; title: string; body: string };
@@ -1577,20 +1583,47 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
             { t: '9:00 pm', l: 'Dancing', s: 'Until late' },
           ],
     },
-    travel: {
-      eyebrow: 'Getting there',
-      title: 'Where to',
-      italic: 'stay',
-      /* Host-authored arrival blurb from TravelPanel — populated
-         when the host has typed into the "Getting there" field;
-         otherwise undefined so the default travel section stays
-         visually unchanged. */
-      intro: manifest.travelInfo?.directions || undefined,
-      hotels: [
-        { name: 'Cosmos Suites', price: '$$$', rating: 4.8, reviews: 412, dist: '8-min walk', tone: 'warm', blurb: 'Whitewashed cliffside suites with private plunge pools and sunset terraces.', amenities: ['Caldera view', 'Pool', 'Breakfast'] },
-        { name: 'Andronis Boutique', price: '$$$$', rating: 4.9, reviews: 286, dist: '12-min walk', tone: 'lavender', blurb: 'A romantic cliff retreat carved into the caldera — a guest favourite.', amenities: ['Spa', 'Infinity pool', 'Fine dining'] },
-      ],
-    },
+    travel: (() => {
+      /* Read host-authored hotels from manifest.travelInfo.hotels[]
+         (the canonical HotelBlock schema, populated by TravelPanel's
+         Google Places search). Map each HotelBlock onto the renderer's
+         compact shape with sensible fallbacks so old manifests or
+         partial Places hits still display cleanly. Only fall through
+         to the canned Santorini sample pair when the host has zero
+         hotels saved. */
+      const hostHotels = manifest.travelInfo?.hotels ?? [];
+      const TONES: PhotoTone[] = ['warm', 'lavender', 'sage', 'peach', 'dusk', 'cream'];
+      const mapped = hostHotels.map((h, i) => ({
+        name: h.name || 'Hotel',
+        price: h.priceLevel || (h.priceRange?.start && h.priceRange?.end
+          ? `${h.priceRange.currency ?? '$'}${h.priceRange.start}–${h.priceRange.end}`
+          : '—'),
+        rating: typeof h.rating === 'number' ? h.rating : 0,
+        reviews: typeof h.ratingCount === 'number' ? h.ratingCount : 0,
+        dist: h.distance || '',
+        tone: TONES[i % TONES.length],
+        blurb: h.description || h.notes || h.address || '',
+        amenities: h.amenities
+          ? h.amenities.split(/[·,]/).map((s) => s.trim()).filter(Boolean)
+          : [],
+        photoUrl: h.photoUrl || h.photoUrls?.[0],
+        bookingUrl: h.bookingUrl,
+      }));
+      return {
+        eyebrow: 'Getting there',
+        title: 'Where to',
+        italic: 'stay',
+        /* Host-authored arrival blurb from TravelPanel — populated
+           when the host has typed into the "Getting there" field;
+           otherwise undefined so the default travel section stays
+           visually unchanged. */
+        intro: manifest.travelInfo?.directions || undefined,
+        hotels: mapped.length > 0 ? mapped : [
+          { name: 'Cosmos Suites', price: '$$$', rating: 4.8, reviews: 412, dist: '8-min walk', tone: 'warm' as PhotoTone, blurb: 'Whitewashed cliffside suites with private plunge pools and sunset terraces.', amenities: ['Caldera view', 'Pool', 'Breakfast'] },
+          { name: 'Andronis Boutique', price: '$$$$', rating: 4.9, reviews: 286, dist: '12-min walk', tone: 'lavender' as PhotoTone, blurb: 'A romantic cliff retreat carved into the caldera — a guest favourite.', amenities: ['Spa', 'Infinity pool', 'Fine dining'] },
+        ],
+      };
+    })(),
     registry: {
       eyebrow: 'Registry',
       title: 'Your presence is',
