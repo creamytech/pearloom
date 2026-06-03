@@ -656,7 +656,7 @@ function HeroCentered({ ctx }: { ctx: SectionCtx }) {
             {C.milestone}
           </div>
         )}
-        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(74px * var(--t-hero-scale))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: isEditorial ? '-0.045em' : '-0.02em', color: 'var(--t-ink)' }}>
+        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(38px, 11vw, calc(74px * var(--t-hero-scale)))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: isEditorial ? '-0.045em' : '-0.02em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
           <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
           {C.subject.type === 'couple' && <>
             <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>
@@ -676,7 +676,7 @@ function HeroCentered({ ctx }: { ctx: SectionCtx }) {
         <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
           <KDivider look={ctx.dividerLook} width={200} />
         </div>
-        <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center' }}>
+        <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
           <TButton variant="primary" href={C.ctaHref}>
             <InlineEdit
               as="span"
@@ -706,7 +706,7 @@ function HeroCentered({ ctx }: { ctx: SectionCtx }) {
 /* HeroPhotos — handoff L601-616 style: 4 large 3:4 cards. */
 function HeroPhotos() {
   return (
-    <div style={{ marginTop: 40, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, maxWidth: 940, marginInline: 'auto' }}>
+    <div style={{ marginTop: 40, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 14, maxWidth: 940, marginInline: 'auto' }}>
       {(['warm', 'lavender', 'peach', 'sage'] as PhotoTone[]).map((t, i) => (
         <div key={i} style={{ aspectRatio: '3 / 4', borderRadius: 4, overflow: 'hidden', boxShadow: '0 8px 22px rgba(0,0,0,0.18)' }}>
           <PhotoPlaceholder tone={t} aspect="3/4" />
@@ -721,14 +721,14 @@ function HeroSplit({ ctx }: { ctx: SectionCtx }) {
   const { theme, pad, C, motif, motifsOn, editable, edit } = ctx;
   const isEditorial = theme.id === 'editorial';
   return (
-    <div style={{ position: 'relative', padding: `${56 * pad}px 56px`, background: 'var(--t-section)', overflow: 'hidden', display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 44, alignItems: 'center' }}>
+    <div className="pl8-hero-split" style={{ position: 'relative', padding: `clamp(28px, 6vw, ${56 * pad}px) clamp(20px, 5vw, 56px)`, background: 'var(--t-section)', overflow: 'hidden', display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 'clamp(24px, 4vw, 44px)', alignItems: 'center' }}>
       {motifsOn && <MotifScatter motif={motif} density="sparse" />}
       <div style={{ position: 'relative', textAlign: 'left' }}>
         <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 8 }} />
         {(C.tagline || editable) && (
           <InlineEdit as="div" value={C.tagline ?? ''} onChange={edit?.tagline} editable={editable && !!edit?.tagline} placeholder="Click to add a tagline" style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', marginTop: 8 }} />
         )}
-        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(60px * var(--t-hero-scale))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)' }}>
+        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(32px, 9vw, calc(60px * var(--t-hero-scale)))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
           <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
           {C.subject.type === 'couple' && <>
             <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>{isEditorial ? '×' : 'and'}</span>
@@ -740,7 +740,7 @@ function HeroSplit({ ctx }: { ctx: SectionCtx }) {
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}</span>
         </div>
         <div style={{ marginTop: 16 }}><KDivider look={ctx.dividerLook} width={180} style={{ marginLeft: 0 }} /></div>
-        <div style={{ marginTop: 20, display: 'flex', gap: 10 }}>
+        <div style={{ marginTop: 20, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <TButton variant="primary" href={C.ctaHref}>
             <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
             <Icon name="arrow-right" size={13} color="var(--t-paper)" />
@@ -780,7 +780,7 @@ function HeroMinimal({ ctx }: { ctx: SectionCtx }) {
         {(C.tagline || editable) && (
           <InlineEdit as="div" value={C.tagline ?? ''} onChange={edit?.tagline} editable={editable && !!edit?.tagline} placeholder="Click to add a tagline" style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', marginTop: 8 }} />
         )}
-        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(78px * var(--t-hero-scale))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)' }}>
+        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(38px, 11vw, calc(78px * var(--t-hero-scale)))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
           <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
           {C.subject.type === 'couple' && <>
             <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>{isEditorial ? '×' : 'and'}</span>
@@ -792,7 +792,7 @@ function HeroMinimal({ ctx }: { ctx: SectionCtx }) {
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}</span>
         </div>
         <div style={{ marginTop: 18 }}><KDivider look={ctx.dividerLook} width={200} style={{ marginLeft: 0 }} /></div>
-        <div style={{ marginTop: 20, display: 'flex', gap: 10 }}>
+        <div style={{ marginTop: 20, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <TButton variant="primary" href={C.ctaHref}>
             <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
             <Icon name="arrow-right" size={13} color="var(--t-paper)" />
@@ -822,7 +822,7 @@ function HeroFullbleed({ ctx }: { ctx: SectionCtx }) {
       <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.5))' }} />
       <div style={{ position: 'relative', color: '#fff', padding: '40px 24px' }}>
         <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase', opacity: 0.9, marginBottom: 8 }} />
-        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(76px * var(--t-hero-scale))', lineHeight: 0.96, margin: 0, color: '#fff' }}>
+        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(38px, 11vw, calc(76px * var(--t-hero-scale)))', lineHeight: 0.96, margin: 0, color: '#fff', overflowWrap: 'break-word' }}>
           <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
           {C.subject.type === 'couple' && <>
             <span style={{ fontStyle: 'italic', fontSize: '0.7em', margin: '0 0.16em', opacity: 0.85 }}>{isEditorial ? '×' : 'and'}</span>
@@ -850,7 +850,7 @@ function HeroTypographic({ ctx }: { ctx: SectionCtx }) {
       {motifsOn && <MotifScatter motif={motif} density="sparse" />}
       <div style={{ position: 'relative' }}>
         <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 8 }} />
-        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(108px * var(--t-hero-scale))', lineHeight: 0.86, margin: '6px 0', letterSpacing: '-0.03em', color: 'var(--t-ink)' }}>
+        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(48px, 16vw, calc(108px * var(--t-hero-scale)))', lineHeight: 0.86, margin: '6px 0', letterSpacing: '-0.03em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
           <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
           {C.subject.type === 'couple' && <>
             <br />
@@ -863,7 +863,7 @@ function HeroTypographic({ ctx }: { ctx: SectionCtx }) {
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="calendar" size={14} color="var(--t-accent)" /> {C.meta.date}</span>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}</span>
         </div>
-        <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center' }}>
+        <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
           <TButton variant="primary" href={C.ctaHref}>
             <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
             <Icon name="arrow-right" size={13} color="var(--t-paper)" />
@@ -879,8 +879,8 @@ function HeroPostcard({ ctx }: { ctx: SectionCtx }) {
   const { theme, pad, C, motif, motifsOn, editable, edit } = ctx;
   const isEditorial = theme.id === 'editorial';
   return (
-    <div style={{ position: 'relative', padding: `${48 * pad}px 40px`, background: 'color-mix(in oklab, var(--t-ink) 8%, var(--t-section))', overflow: 'hidden' }}>
-      <div style={{ maxWidth: 720, marginInline: 'auto', background: 'var(--t-paper)', borderRadius: 'var(--t-radius-lg)', boxShadow: 'var(--t-shadow)', border: '1px solid var(--t-line)', padding: `${40 * pad}px 40px`, textAlign: 'center', position: 'relative' }}>
+    <div style={{ position: 'relative', padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'color-mix(in oklab, var(--t-ink) 8%, var(--t-section))', overflow: 'hidden' }}>
+      <div style={{ maxWidth: 720, marginInline: 'auto', background: 'var(--t-paper)', borderRadius: 'var(--t-radius-lg)', boxShadow: 'var(--t-shadow)', border: '1px solid var(--t-line)', padding: `${40 * pad}px clamp(16px, 5vw, 40px)`, textAlign: 'center', position: 'relative' }}>
         <div aria-hidden style={{ position: 'absolute', inset: 10, border: '1px solid var(--t-line)', borderRadius: 'var(--t-radius)', pointerEvents: 'none' }} />
         {motifsOn && <MotifScatter motif={motif} density="sparse" />}
         <div style={{ position: 'relative' }}>
@@ -888,7 +888,7 @@ function HeroPostcard({ ctx }: { ctx: SectionCtx }) {
           {(C.tagline || editable) && (
             <InlineEdit as="div" value={C.tagline ?? ''} onChange={edit?.tagline} editable={editable && !!edit?.tagline} placeholder="Click to add a tagline" style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', marginTop: 8 }} />
           )}
-          <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(58px * var(--t-hero-scale))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)' }}>
+          <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(32px, 9vw, calc(58px * var(--t-hero-scale)))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
             <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
             <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>{isEditorial ? '×' : 'and'}</span>
             <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
@@ -898,7 +898,7 @@ function HeroPostcard({ ctx }: { ctx: SectionCtx }) {
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}</span>
           </div>
           <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}><KDivider look={ctx.dividerLook} width={180} /></div>
-          <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center' }}>
+          <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
             <TButton variant="primary" href={C.ctaHref}>
               <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
               <Icon name="arrow-right" size={13} color="var(--t-paper)" />
@@ -918,7 +918,7 @@ function HeroPostcard({ ctx }: { ctx: SectionCtx }) {
 function StoryBlock({ ctx }: { ctx: SectionCtx }) {
   if (ctx.variants.story === 'zigzag') {
     const { pad, C, editable } = ctx;
-    return <div style={{ padding: `${44 * pad}px 32px`, background: 'var(--t-paper)' }}><StoryZigzag ctx={{
+    return <div style={{ padding: `${44 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}><StoryZigzag ctx={{
       C: C.story, pad, editable, cta: C.cta,
       onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('storyEyebrow', v) : undefined,
       onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('storyTitle', v) : undefined,
@@ -1112,7 +1112,7 @@ function StoryLetter({ ctx }: { ctx: SectionCtx }) {
   const isEditorial = theme.id === 'editorial';
   const heroPhoto = C.story.chapterImages?.[0];
   return (
-    <div style={{ position: 'relative', padding: `${52 * pad}px 40px`, background: 'var(--t-section)' }}>
+    <div style={{ position: 'relative', padding: `${52 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}>
       {motifsOn && <MotifScatter motif={motif} density="sparse" />}
       <div style={{ position: 'relative', maxWidth: 640, marginInline: 'auto', background: 'var(--t-paper)', borderRadius: 'var(--t-radius-lg)', boxShadow: 'var(--t-shadow)', border: '1px solid var(--t-line)', padding: '40px 46px', textAlign: 'center' }}>
         <InlineEdit
@@ -1150,11 +1150,11 @@ function DetailsBlock({ ctx }: { ctx: SectionCtx }) {
     eyebrowPlaceholder: 'The fine print',
     titlePlaceholder: 'Good to know',
   };
-  if (variants.details === 'iconrow')   return <div style={{ position: 'relative', padding: `${44 * pad}px 40px`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><DetailsIconRow ctx={sub} /></div>;
-  if (variants.details === 'accordion') return <div style={{ position: 'relative', padding: `${44 * pad}px 40px`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><DetailsAccordion ctx={sub} /></div>;
-  if (variants.details === 'bento')     return <div style={{ position: 'relative', padding: `${44 * pad}px 40px`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><DetailsBento ctx={sub} /></div>;
+  if (variants.details === 'iconrow')   return <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><DetailsIconRow ctx={sub} /></div>;
+  if (variants.details === 'accordion') return <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><DetailsAccordion ctx={sub} /></div>;
+  if (variants.details === 'bento')     return <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><DetailsBento ctx={sub} /></div>;
   return (
-    <div style={{ position: 'relative', padding: `${44 * pad}px 40px`, background: 'var(--t-section)' }}>
+    <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}>
       <MotifScatter motif={motif} density="sparse" />
       <TSectionHead
         eyebrow={C.details.eyebrow}
@@ -1204,11 +1204,11 @@ function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
     eyebrowPlaceholder: 'The day',
     titlePlaceholder: 'In moments',
   };
-  if (variants.schedule === 'timeline') return <div style={{ padding: `${48 * pad}px 40px`, background: 'var(--t-paper)' }}><ScheduleTimeline ctx={sub} /></div>;
-  if (variants.schedule === 'stepper')  return <div style={{ padding: `${48 * pad}px 40px`, background: 'var(--t-paper)' }}><ScheduleStepper ctx={sub} /></div>;
-  if (variants.schedule === 'numbered') return <div style={{ padding: `${48 * pad}px 40px`, background: 'var(--t-paper)' }}><ScheduleNumbered ctx={sub} /></div>;
+  if (variants.schedule === 'timeline') return <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-paper)' }}><ScheduleTimeline ctx={sub} /></div>;
+  if (variants.schedule === 'stepper')  return <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-paper)' }}><ScheduleStepper ctx={sub} /></div>;
+  if (variants.schedule === 'numbered') return <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-paper)' }}><ScheduleNumbered ctx={sub} /></div>;
   return (
-    <div style={{ padding: `${48 * pad}px 40px`, background: 'var(--t-paper)' }}>
+    <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-paper)' }}>
       <TSectionHead
         eyebrow={C.schedule.eyebrow}
         title={C.schedule.title}
@@ -1324,11 +1324,11 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
     eyebrowPlaceholder: 'Travel',
     titlePlaceholder: 'Where to stay',
   };
-  if (variants.travel === 'map')      return <div style={{ position: 'relative', padding: `${48 * pad}px 40px`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><TravelMap ctx={sub} /></div>;
-  if (variants.travel === 'table')    return <div style={{ position: 'relative', padding: `${48 * pad}px 40px`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><TravelTable ctx={sub} /></div>;
-  if (variants.travel === 'carousel') return <div style={{ position: 'relative', padding: `${48 * pad}px 40px`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><TravelCarousel ctx={sub} /></div>;
+  if (variants.travel === 'map')      return <div style={{ position: 'relative', padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><TravelMap ctx={sub} /></div>;
+  if (variants.travel === 'table')    return <div style={{ position: 'relative', padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><TravelTable ctx={sub} /></div>;
+  if (variants.travel === 'carousel') return <div style={{ position: 'relative', padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><TravelCarousel ctx={sub} /></div>;
   return (
-    <div style={{ position: 'relative', padding: `${48 * pad}px 40px`, background: 'var(--t-section)' }}>
+    <div style={{ position: 'relative', padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}>
       <MotifScatter motif={motif} density="sparse" />
       <TSectionHead
         eyebrow={C.travel.eyebrow}
@@ -1430,11 +1430,11 @@ function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
     eyebrowPlaceholder: 'Registry',
     titlePlaceholder: 'Your presence is the gift',
   };
-  if (variants.registry === 'chips')    return <div style={{ padding: `${48 * pad}px 40px`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryChips ctx={sub} /></div>;
-  if (variants.registry === 'progress') return <div style={{ padding: `${48 * pad}px 40px`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryProgress ctx={sub} /></div>;
-  if (variants.registry === 'logowall') return <div style={{ padding: `${48 * pad}px 40px`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryLogoWall ctx={sub} /></div>;
+  if (variants.registry === 'chips')    return <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryChips ctx={sub} /></div>;
+  if (variants.registry === 'progress') return <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryProgress ctx={sub} /></div>;
+  if (variants.registry === 'logowall') return <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryLogoWall ctx={sub} /></div>;
   return (
-    <div style={{ padding: `${48 * pad}px 40px`, textAlign: 'center', background: 'var(--t-paper)' }}>
+    <div style={{ padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, textAlign: 'center', background: 'var(--t-paper)' }}>
       <TSectionHead
         eyebrow={C.registry.eyebrow}
         title={C.registry.title}
@@ -1487,11 +1487,11 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
     eyebrowPlaceholder: 'Gallery',
     titlePlaceholder: 'A few favorites',
   };
-  if (variants.gallery === 'masonry')   return <div style={{ padding: `${36 * pad}px 32px`, background: 'var(--t-section)' }}><GalleryMasonry ctx={sub} /></div>;
-  if (variants.gallery === 'slideshow') return <div style={{ padding: `${36 * pad}px 32px`, background: 'var(--t-section)' }}><GallerySlideshow ctx={sub} /></div>;
-  if (variants.gallery === 'polaroid')  return <div style={{ padding: `${36 * pad}px 32px`, background: 'var(--t-section)' }}><GalleryPolaroid ctx={sub} /></div>;
+  if (variants.gallery === 'masonry')   return <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}><GalleryMasonry ctx={sub} /></div>;
+  if (variants.gallery === 'slideshow') return <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}><GallerySlideshow ctx={sub} /></div>;
+  if (variants.gallery === 'polaroid')  return <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}><GalleryPolaroid ctx={sub} /></div>;
   return (
-    <div style={{ padding: `${36 * pad}px 32px`, background: 'var(--t-section)' }}>
+    <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}>
       <TSectionHead
         eyebrow={C.gallery.eyebrow}
         title={C.gallery.title}
@@ -1540,7 +1540,7 @@ function RsvpBlock({ ctx }: { ctx: SectionCtx }) {
   if (variants.rsvp === 'banner')  return <RsvpBanner ctx={sub} />;
   if (variants.rsvp === 'minimal') return <RsvpMinimal ctx={sub} />;
   return (
-    <div style={{ padding: `${56 * pad}px 32px`, textAlign: 'center', background: 'var(--t-rsvp)', color: 'var(--t-rsvp-ink)' }}>
+    <div style={{ padding: `${56 * pad}px clamp(16px, 4vw, 32px)`, textAlign: 'center', background: 'var(--t-rsvp)', color: 'var(--t-rsvp-ink)' }}>
       <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', opacity: 0.6, marginBottom: 8, color: 'var(--t-rsvp-ink)' }}>
         {C.rsvp.eyebrow}
       </div>
@@ -1568,11 +1568,11 @@ function FaqBlock({ ctx }: { ctx: SectionCtx }) {
     eyebrowPlaceholder: 'FAQ',
     titlePlaceholder: 'Anything else?',
   };
-  if (variants.faq === 'twocol')   return <div style={{ padding: `${48 * pad}px 32px`, background: 'var(--t-paper)' }}><FaqTwocol ctx={sub} /></div>;
-  if (variants.faq === 'numbered') return <div style={{ padding: `${48 * pad}px 32px`, background: 'var(--t-paper)' }}><FaqNumbered ctx={sub} /></div>;
-  if (variants.faq === 'cards')    return <div style={{ padding: `${48 * pad}px 32px`, background: 'var(--t-paper)' }}><FaqCards ctx={sub} /></div>;
+  if (variants.faq === 'twocol')   return <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}><FaqTwocol ctx={sub} /></div>;
+  if (variants.faq === 'numbered') return <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}><FaqNumbered ctx={sub} /></div>;
+  if (variants.faq === 'cards')    return <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}><FaqCards ctx={sub} /></div>;
   return (
-    <div style={{ padding: `${48 * pad}px 32px`, background: 'var(--t-paper)' }}>
+    <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}>
       <TSectionHead
         eyebrow={C.faq.eyebrow}
         title={C.faq.title}
@@ -1634,10 +1634,10 @@ function TSectionHead({ eyebrow, title, italic, editable, onEditEyebrow, onEditT
           onChange={onEditTitle}
           editable={true}
           placeholder={titlePlaceholder ?? 'Section title'}
-          style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 40, margin: 0, lineHeight: 1.0, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}
+          style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(26px, 7vw, 40px)', margin: 0, lineHeight: 1.0, letterSpacing: '-0.01em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}
         />
       ) : (
-        <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 40, margin: 0, lineHeight: 1.0, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}>
+        <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(26px, 7vw, 40px)', margin: 0, lineHeight: 1.0, letterSpacing: '-0.01em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
           {title}
           {italic && <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}> {italic}</span>}
         </h2>
@@ -1727,6 +1727,10 @@ function TButton({
     fontSize: 13, fontWeight: 700, cursor: 'pointer',
     border: 0, transition: 'all 180ms cubic-bezier(0.16,1,0.3,1)',
     fontFamily: 'inherit', textDecoration: 'none',
+    /* Don't let narrow viewports break button labels character-by-
+       character ("R/S/V/P" / "Le/ar/n"). Force the label to stay on
+       one line — flex-wrap on the parent handles overflow. */
+    whiteSpace: 'nowrap',
   };
   const visual: CSSProperties =
     variant === 'primary'

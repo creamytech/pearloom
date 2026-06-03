@@ -7826,3 +7826,49 @@ html { scroll-behavior: smooth; }
   .pl-store-featured-card { transition: none; }
   .pl-store-featured-card:hover { transform: none; }
 }
+
+/* ──────────────────────────────────────────────────────────
+   Published-site mobile overrides.
+   Override INLINE styles (grid-template-columns, gap), so each
+   rule needs !important. Scoped under .pl8-guest so editor
+   chrome is unaffected.
+   ────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  /* Hero split — single-column stack (was inline '1.1fr 0.9fr'). */
+  .pl8-guest .pl8-hero-split {
+    grid-template-columns: 1fr !important;
+    gap: clamp(20px, 4vw, 32px) !important;
+  }
+  /* Trim the hero scale CSS var so callsites using
+     calc(Npx * var(--t-hero-scale)) shrink on phones. Hero h1s
+     also use clamp() — this gives an extra squeeze for the
+     smallest viewports. */
+  .pl8-guest {
+    --t-hero-scale: 0.62;
+  }
+  /* Travel-table row — tighter gap on mobile. */
+  .pl8-guest .pl8-hotel-row {
+    gap: 10px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Phone — squeeze hero scale further. */
+  .pl8-guest {
+    --t-hero-scale: 0.5;
+  }
+  /* Travel-table 3-col grid collapses to 2-col + the rating
+     pills wrap below the text on the smallest viewports. */
+  .pl8-guest .pl8-hotel-row {
+    grid-template-columns: 64px 1fr !important;
+  }
+  .pl8-guest .pl8-hotel-row > :nth-child(3) {
+    grid-column: 1 / -1;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    padding-top: 4px;
+  }
+}

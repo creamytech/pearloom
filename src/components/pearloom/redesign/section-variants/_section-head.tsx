@@ -41,14 +41,18 @@ export function VariantSectionHead({
   marginBottom = 26, titleSize = 40,
 }: Props) {
   const fullTitle = [title, italic].filter(Boolean).join(' ');
+  /* Mobile-first font sizing — clamp from a comfortable mobile
+     min (26px) up to the desktop titleSize. Without this, 40px
+     headlines wrap mid-word on narrow viewports. */
   const h2Style: CSSProperties = {
     fontFamily: 'var(--t-display)',
     fontWeight: 'var(--t-display-wght)' as CSSProperties['fontWeight'],
-    fontSize: titleSize,
+    fontSize: `clamp(${Math.max(24, Math.round(titleSize * 0.66))}px, 7vw, ${titleSize}px)`,
     margin: 0,
     lineHeight: 1.0,
     letterSpacing: '-0.01em',
     color: 'var(--t-ink)',
+    overflowWrap: 'break-word',
   };
   return (
     <div style={{ textAlign: 'center', marginBottom }}>
