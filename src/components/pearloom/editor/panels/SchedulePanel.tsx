@@ -8,7 +8,8 @@
 
 import type { StoryManifest, WeddingEvent } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, PearChip, SectionPanelShell } from './_section-atoms';
+import { AddCard, FGroup, FInput, FSuggest, PearChip, SectionPanelShell } from './_section-atoms';
+import { scheduleEventSuggestions } from './_suggestions';
 
 const TONE_BY_INDEX: Array<'peach' | 'lavender' | 'sage'> = ['peach', 'lavender', 'sage', 'peach', 'lavender', 'sage'];
 
@@ -20,6 +21,8 @@ const DEFAULT_EVENTS: WeddingEvent[] = [
 ];
 
 export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const occasion = (manifest as unknown as { occasion?: string }).occasion;
+  const eventNameSet = scheduleEventSuggestions(occasion);
   const events = manifest.events && manifest.events.length > 0 ? manifest.events : DEFAULT_EVENTS;
 
   const writeEvents = (next: WeddingEvent[]) => onChange({ ...manifest, events: next } as StoryManifest);
@@ -54,7 +57,12 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
                     <Icon name="clock" size={14} color="#3D4A1F" />
                   </span>
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <FInput value={e.name ?? ''} onChange={(v) => patchEvent(i, { name: v })} placeholder="Ceremony" />
+                    <FSuggest
+                      value={e.name ?? ''}
+                      onChange={(v) => patchEvent(i, { name: v })}
+                      placeholder="Ceremony"
+                      options={eventNameSet.options}
+                    />
                     <div style={{ display: 'grid', gridTemplateColumns: '88px 1fr', gap: 6 }}>
                       <FInput value={e.time ?? ''} onChange={(v) => patchEvent(i, { time: v })} placeholder="4:30 pm" />
                       <FInput value={e.venue ?? ''} onChange={(v) => patchEvent(i, { venue: v })} placeholder="Olive grove" />

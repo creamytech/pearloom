@@ -9,11 +9,18 @@
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, FToggleStandalone, SectionPanelShell } from './_section-atoms';
+import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, SectionPanelShell } from './_section-atoms';
+import {
+  dressCodeSuggestions,
+  detailsCardLabelSuggestions,
+} from './_suggestions';
 
 type Card = [string, string];
 
 export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const occasion = (manifest as unknown as { occasion?: string }).occasion;
+  const dressSet = dressCodeSuggestions(occasion);
+  const labelSet = detailsCardLabelSuggestions(occasion);
   const cards: Card[] = ((manifest as unknown as { detailsCards?: Card[] }).detailsCards) ?? [
     ['Dress code', 'Aegean formal'],
     ['Parking', 'Valet on-site'],
@@ -55,11 +62,13 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <FGroup label="Dress code">
-          <FInput
+          <FSuggest
             value={cards[0]?.[1] ?? ''}
             onChange={(v) => setCardValue(0, v)}
             icon="sparkles"
             placeholder="Aegean formal — linen & light colors"
+            options={dressSet.options}
+            hint={dressSet.hint}
           />
         </FGroup>
         <FToggleStandalone label="Kids welcome" sub="Shown on the details card" def={kidsWelcome} onChange={setKidsWelcome} />
@@ -72,7 +81,19 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
                   <Icon name="sparkles" size={13} color="var(--ink-soft)" />
                 </span>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <FInput value={l} onChange={(next) => setCardLabel(i, next)} placeholder="Label (e.g. Parking)" />
+                  {/* Show curated label suggestions only on cards 2 + 3
+                      (i >= 1) — card 0 is the dedicated "Dress code" card
+                      whose label shouldn't be re-pickable. */}
+                  {i === 0 ? (
+                    <FInput value={l} onChange={(next) => setCardLabel(i, next)} placeholder="Label (e.g. Parking)" />
+                  ) : (
+                    <FSuggest
+                      value={l}
+                      onChange={(next) => setCardLabel(i, next)}
+                      placeholder="Label (e.g. Parking)"
+                      options={labelSet.options}
+                    />
+                  )}
                   <FInput value={v} onChange={(next) => setCardValue(i, next)} placeholder="Value (e.g. Valet on-site)" />
                 </div>
               </div>

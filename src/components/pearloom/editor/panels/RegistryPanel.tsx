@@ -7,13 +7,16 @@
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, SectionPanelShell } from './_section-atoms';
+import { AddCard, FGroup, FInput, FSuggest, SectionPanelShell } from './_section-atoms';
+import { registryStoreSuggestions } from './_suggestions';
 
 const TONES: Array<'peach' | 'sage' | 'lavender'> = ['peach', 'sage', 'lavender'];
 
 const DEFAULT_STORES: string[] = ['Honeymoon fund', 'Crate & Barrel', 'Zola'];
 
 export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const occasion = (manifest as unknown as { occasion?: string }).occasion;
+  const storeSet = registryStoreSuggestions(occasion);
   const intro = ((manifest as unknown as { registryIntro?: string }).registryIntro) ?? 'Your presence is the gift — but if you insist…';
   const stores: string[] = ((manifest as unknown as { registryStores?: string[] }).registryStores) ?? DEFAULT_STORES;
 
@@ -43,7 +46,12 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
                   <Icon name="gift" size={14} color="#3D4A1F" />
                 </span>
                 <div style={{ flex: 1 }}>
-                  <FInput value={s} onChange={(v) => patchStore(i, v)} placeholder="Registry name" />
+                  <FSuggest
+                    value={s}
+                    onChange={(v) => patchStore(i, v)}
+                    placeholder="Registry name"
+                    options={storeSet.options.filter((o) => !stores.some((existing, idx) => idx !== i && existing.trim().toLowerCase() === o.toLowerCase()))}
+                  />
                 </div>
                 <button
                   type="button"

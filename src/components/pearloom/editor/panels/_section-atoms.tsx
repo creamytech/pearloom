@@ -123,3 +123,87 @@ export function SectionPanelShell({ children }: { children: ReactNode }) {
     </div>
   );
 }
+
+/* FSuggest — free-text input + chip row of curated options below.
+   Tapping a chip writes that string to the input (one-tap fill);
+   typing still works for anything the chips don't cover. The chip
+   that matches the current value gets a "selected" treatment so the
+   host can see which canned answer they picked.
+
+   Used across DetailsPanel / SchedulePanel / RegistryPanel / FaqPanel
+   / RsvpPanel for fields that have a small set of obvious common
+   values (dress code, schedule event names, store names, FAQ
+   prompts, meal options). Occasion-aware option sets live in
+   _suggestions.ts. */
+export function FSuggest({
+  value,
+  onChange,
+  placeholder,
+  icon,
+  options,
+  hint,
+  /** When true, chip click APPENDS the option to the input as a
+   *  new comma-separated entry instead of replacing the whole
+   *  input — useful for fields where the host is building a list
+   *  in one text box (e.g. amenities). Default false. */
+  append = false,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  icon?: string;
+  options: readonly string[];
+  hint?: string;
+  append?: boolean;
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+      <FInput value={value} onChange={onChange} placeholder={placeholder} icon={icon} />
+      {options.length > 0 && (
+        <>
+          {hint && (
+            <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', lineHeight: 1.4 }}>{hint}</div>
+          )}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {options.map((opt) => {
+              const selected = !append && value.trim().toLowerCase() === opt.toLowerCase();
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => {
+                    if (append) {
+                      const trimmed = value.trim();
+                      if (!trimmed) { onChange(opt); return; }
+                      /* Don't double-add if the option is already there */
+                      const already = trimmed
+                        .split(/[,·]/)
+                        .map((s) => s.trim().toLowerCase())
+                        .includes(opt.toLowerCase());
+                      if (already) return;
+                      onChange(`${trimmed}, ${opt}`);
+                    } else {
+                      onChange(opt);
+                    }
+                  }}
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    padding: '4px 10px',
+                    borderRadius: 999,
+                    background: selected ? 'var(--peach-bg)' : 'var(--cream-2)',
+                    color: selected ? 'var(--peach-ink)' : 'var(--ink-soft)',
+                    border: `1px solid ${selected ? 'var(--peach-ink)' : 'var(--line)'}`,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {opt}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
