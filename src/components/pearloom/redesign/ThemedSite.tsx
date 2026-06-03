@@ -108,6 +108,20 @@ export function ThemedSite({
   const patchTagline = onEditField
     ? (next: string) => onEditField((m) => ({ ...(m as unknown as Record<string, unknown>), tagline: next } as unknown as StoryManifest))
     : undefined;
+  /* Generic manifest.copy.<key> writer — used by every editable
+     eyebrow / lead / CTA / button label on the canvas. Empty
+     strings clear the override (so the default voice copy
+     re-takes the slot). */
+  const patchCopy = onEditField
+    ? (key: string, next: string) => onEditField((m) => {
+        const loose = m as unknown as Record<string, unknown>;
+        const cur = (loose.copy as Record<string, string> | undefined) ?? {};
+        const nextCopy: Record<string, string> = { ...cur };
+        if (next.trim()) nextCopy[key] = next;
+        else delete nextCopy[key];
+        return { ...loose, copy: nextCopy } as unknown as StoryManifest;
+      })
+    : undefined;
   const patchStoryField = onEditField
     ? (field: 'headline' | 'body', next: string) => onEditField((m) => {
         const loose = m as unknown as Record<string, unknown>;
@@ -219,6 +233,7 @@ export function ThemedSite({
     eventVenue: patchEvent ? (i, v) => patchEvent(i, 'venue', v) : undefined,
     nameA: patchA,
     nameB: patchB,
+    copy: patchCopy,
   } : undefined;
   const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, textureIntensity, showWashHero, dividerLook, variants, C, coverPhoto, edit };
 
@@ -565,9 +580,14 @@ function HeroCentered({ ctx }: { ctx: SectionCtx }) {
       )}
       {motifsOn && <MotifScatter motif={motif} density="generous" />}
       <div style={{ position: 'relative', marginInline: 'auto' }}>
-        <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 8 }}>
-          {C.lead}
-        </div>
+        <InlineEdit
+          as="div"
+          value={C.lead}
+          onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined}
+          editable={editable && !!edit?.copy}
+          placeholder="A small forever"
+          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 8 }}
+        />
         {(C.tagline || editable) && (
           <InlineEdit
             as="div"
@@ -598,9 +618,24 @@ function HeroCentered({ ctx }: { ctx: SectionCtx }) {
         </div>
         <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center' }}>
           <TButton variant="primary">
-            {C.cta} <Icon name="arrow-right" size={13} color="var(--t-paper)" />
+            <InlineEdit
+              as="span"
+              value={C.cta}
+              onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined}
+              editable={editable && !!edit?.copy}
+              placeholder="RSVP"
+            />
+            <Icon name="arrow-right" size={13} color="var(--t-paper)" />
           </TButton>
-          <TButton variant="outline">Learn more</TButton>
+          <TButton variant="outline">
+            <InlineEdit
+              as="span"
+              value={C.ctaSecondary ?? 'Learn more'}
+              onChange={edit?.copy ? (v) => edit.copy?.('heroCtaSecondary', v) : undefined}
+              editable={editable && !!edit?.copy}
+              placeholder="Learn more"
+            />
+          </TButton>
         </div>
         <HeroPhotos />
       </div>
@@ -1413,6 +1448,9 @@ interface SectionCtx {
     eventVenue?: (idx: number, v: string) => void;
     nameA?: (v: string) => void;
     nameB?: (v: string) => void;
+    /** Generic manifest.copy.<key> writer. Used for every editable
+     *  eyebrow / lead / CTA / button-label slot on the canvas. */
+    copy?: (key: string, v: string) => void;
   };
 }
 
@@ -1421,6 +1459,9 @@ interface Copy {
   lead: string;
   tagline: string;
   cta: string;
+  /** Secondary CTA label ("Learn more" default). Host-overridable
+   *  via manifest.copy.heroCtaSecondary. */
+  ctaSecondary?: string;
   meta: { date: string; place: string };
   story: { eyebrow: string; title: string; italic?: string; body: string; chips?: string[] };
   details: { eyebrow: string; title: string; italic?: string; items: { l: string; v: string; icon: string }[] };
@@ -1653,22 +1694,33 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
 
   const occasionDate = formatHeroDate(rsvpDeadline) || args.date;
   const isWedding = occasion === 'wedding';
+  /* Host-authored copy overrides for every visible label on the
+     canvas — eyebrows, CTAs, section titles. Each falls through
+     to the voice-defaulted V.* or hardcoded value when unset so
+     existing manifests render unchanged. Round T wires HeroPanel
+     + section panels to write here. */
+  const copyOverrides = (loose.copy as Record<string, string> | undefined) ?? {};
+  const co = (key: string, fallback: string): string => {
+    const v = copyOverrides[key];
+    return typeof v === 'string' && v.trim() ? v : fallback;
+  };
 
   return {
     subject: { type: 'couple', a: args.nameA, b: args.nameB },
-    lead: V.lead,
+    lead: co('heroLead', V.lead),
     tagline: tagline || V.tagline,
-    cta: 'RSVP',
+    cta: co('heroCta', 'RSVP'),
+    ctaSecondary: co('heroCtaSecondary', 'Learn more'),
     meta: { date: args.date, place: args.place },
     story: {
-      eyebrow: V.storyEyebrow,
+      eyebrow: co('storyEyebrow', V.storyEyebrow),
       title: storySection.headline ? splitHeading(storySection.headline).head : V.storyTitle,
       italic: storySection.headline ? splitHeading(storySection.headline).italic : V.storyItalic,
       body: storySection.body || 'We met on an ordinary Tuesday and spent the evening arguing, fondly, about whether olives belong on pizza. Ten years later, we would be honoured to have you with us as we marry — there is no story we would rather tell, and no one we would rather tell it to.',
       chips: Array.isArray(storySection.chips) ? storySection.chips : undefined,
     },
     details: {
-      eyebrow: 'The fine print',
+      eyebrow: co('detailsEyebrow', 'The fine print'),
       title: 'Everything you',
       italic: 'should know',
       items: detailsCards.length > 0
@@ -1697,7 +1749,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
           ],
     },
     schedule: {
-      eyebrow: 'The day',
+      eyebrow: co('scheduleEyebrow', 'The day'),
       title: 'In',
       italic: 'moments',
       rows: eventsRaw.length > 0
@@ -1740,7 +1792,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
         bookingUrl: h.bookingUrl,
       }));
       return {
-        eyebrow: 'Getting there',
+        eyebrow: co('travelEyebrow', 'Getting there'),
         title: 'Where to',
         italic: 'stay',
         /* Host-authored arrival blurb from TravelPanel — populated
@@ -1755,7 +1807,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       };
     })(),
     registry: {
-      eyebrow: 'Registry',
+      eyebrow: co('registryEyebrow', 'Registry'),
       title: 'Your presence is',
       italic: 'the gift',
       body: registryIntro || "If you'd like to celebrate further, we've put a few things together.",
@@ -1764,7 +1816,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
         : ['Honeymoon fund', 'Crate & Barrel', 'Zola'],
     },
     gallery: {
-      eyebrow: 'Gallery',
+      eyebrow: co('galleryEyebrow', 'Gallery'),
       title: 'A few',
       italic: 'favorites',
       tones: galleryTones && galleryTones.length > 0
@@ -1777,7 +1829,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       body: 'It takes about 90 seconds. Pear will follow up if anyone forgets.',
     },
     faq: {
-      eyebrow: 'Questions & answers',
+      eyebrow: co('faqEyebrow', 'Questions & answers'),
       title: 'The',
       italic: 'little things',
       questions: faqsRaw.length > 0

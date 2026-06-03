@@ -18,7 +18,7 @@
 import { useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { FGroup, FInput, PearChip, SectionPanelShell } from './_section-atoms';
+import { FGroup, FInput, PearChip, SectionPanelShell, useCopyOverride } from './_section-atoms';
 
 type Tone = 'Shorten' | 'Warmer' | 'Funnier' | 'More poetic';
 
@@ -98,6 +98,7 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
   const [draft, setDraft] = useState('');
   const [aiBusy, setAiBusy] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [storyEyebrow, setStoryEyebrow] = useCopyOverride(manifest, onChange, 'storyEyebrow');
 
   const patch = (next: Partial<{ headline: string; body: string; chips: string[] }>) =>
     onChange({ ...manifest, storySection: { ...story, ...next } } as StoryManifest);
@@ -201,6 +202,9 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
+          <FInput value={storyEyebrow} onChange={setStoryEyebrow} placeholder="Two threads, one weave" />
+        </FGroup>
         <FGroup label="Headline">
           <FInput value={headline} onChange={(v) => patch({ headline: v })} placeholder="How we got here" />
         </FGroup>
@@ -239,7 +243,7 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
 
         <FGroup
           label="Highlight chips"
-          hint="Little facts shown as pills under the story heading."
+          hint="The first 3 chips show as chapter-card eyebrows on the canvas (one per card). Extras stay on the manifest for variants that render them as a pill row."
           action={
             <button
               type="button"
@@ -261,56 +265,163 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
             </button>
           }
         >
-          {/* Current chips with remove × */}
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {chips.map((c, i) => (
-              <span key={`${c}-${i}`} style={{ fontSize: 11.5, fontWeight: 600, padding: '5px 10px', borderRadius: 999, background: 'var(--lavender-bg)', color: 'var(--lavender-ink)', display: 'inline-flex', gap: 5, alignItems: 'center' }}>
-                {c}
-                <button
-                  type="button"
-                  onClick={() => patch({ chips: chips.filter((_, idx) => idx !== i) })}
-                  aria-label={`Remove ${c}`}
-                  style={{ background: 'transparent', border: 'none', color: 'var(--lavender-ink)', cursor: 'pointer', padding: 0, display: 'inline-flex' }}
+          {/* Three numbered slots — each one maps to a chapter card
+              on the timeline variant. The host can see at a glance
+              which chip is "Card 1", "Card 2", "Card 3". Empty
+              slots show an inline input; filled slots show a pill
+              with × to clear. */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {[0, 1, 2].map((slot) => {
+              const filled = chips[slot];
+              return (
+                <div
+                  key={slot}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '8px 11px',
+                    borderRadius: 10,
+                    background: 'var(--cream-2)',
+                    border: '1px solid var(--line)',
+                  }}
                 >
-                  <Icon name="close" size={9} color="var(--lavender-ink)" />
-                </button>
-              </span>
-            ))}
-            {chips.length === 0 && (
-              <span style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>No chips yet. Add one below, or let Pear suggest some.</span>
-            )}
+                  <span
+                    aria-hidden
+                    style={{
+                      width: 22, height: 22, borderRadius: 999,
+                      background: filled ? 'var(--lavender-bg)' : 'var(--cream)',
+                      color: 'var(--lavender-ink)',
+                      display: 'grid', placeItems: 'center',
+                      fontSize: 10.5, fontWeight: 700,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {slot + 1}
+                  </span>
+                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-muted)', flexShrink: 0, minWidth: 60 }}>
+                    Card {slot + 1}
+                  </span>
+                  {filled ? (
+                    <>
+                      <span style={{ flex: 1, fontSize: 12.5, color: 'var(--ink)', fontWeight: 600, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {filled}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => patch({ chips: chips.filter((_, idx) => idx !== slot) })}
+                        aria-label={`Clear card ${slot + 1}`}
+                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4, display: 'inline-flex', alignItems: 'center', color: 'var(--ink-muted)', flexShrink: 0 }}
+                      >
+                        <Icon name="close" size={11} color="var(--ink-muted)" />
+                      </button>
+                    </>
+                  ) : (
+                    <input
+                      value={slot === chips.length ? draft : ''}
+                      onChange={(e) => slot === chips.length && setDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (slot !== chips.length) return;
+                        if (e.key === 'Enter' && draft.trim()) {
+                          e.preventDefault();
+                          addChip(draft);
+                          setDraft('');
+                        }
+                      }}
+                      onFocus={() => { /* slot must be next-up; if not, no-op */ }}
+                      placeholder={slot === chips.length ? `Fill card ${slot + 1}…` : `Fill card ${chips.length + 1} first`}
+                      disabled={slot !== chips.length}
+                      style={{
+                        flex: 1, minWidth: 0,
+                        padding: '4px 0', border: 'none', background: 'transparent',
+                        fontSize: 12.5, color: 'var(--ink)',
+                        outline: 'none',
+                        opacity: slot === chips.length ? 1 : 0.5,
+                      }}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
 
-          {/* Inline add — replaces window.prompt */}
-          <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-            <input
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && draft.trim()) {
-                  e.preventDefault();
-                  addChip(draft);
-                  setDraft('');
-                }
-              }}
-              placeholder="Add a chip — press Enter to confirm"
-              style={{ flex: 1, padding: '8px 11px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--cream-2)', fontSize: 12.5, outline: 'none' }}
-            />
-            <button
-              type="button"
-              onClick={() => { addChip(draft); setDraft(''); }}
-              disabled={!draft.trim()}
-              style={{
-                padding: '8px 14px', borderRadius: 10,
-                background: draft.trim() ? 'var(--peach-bg)' : 'var(--cream-2)',
-                color: draft.trim() ? 'var(--peach-ink)' : 'var(--ink-muted)',
-                border: '1px solid var(--line)', fontSize: 12, fontWeight: 700,
-                cursor: draft.trim() ? 'pointer' : 'not-allowed',
-              }}
-            >
-              Add
-            </button>
-          </div>
+          {/* Overflow chips beyond the 3 chapter slots — these stay
+              on the manifest (other variants may render them as a
+              pill row below the title) but won't show on the
+              chapter-eyebrow timeline / zigzag / sidebyside chip
+              rendering. Surface them with an explicit warning so
+              the host knows what they do. */}
+          {chips.length > 3 && (
+            <div style={{ marginTop: 12 }}>
+              <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--peach-ink)', marginBottom: 6 }}>
+                Extra chips · won't appear as chapter eyebrows
+              </div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {chips.slice(3).map((c, idx) => {
+                  const i = idx + 3;
+                  return (
+                    <span
+                      key={`${c}-${i}`}
+                      style={{
+                        fontSize: 11.5, fontWeight: 600,
+                        padding: '5px 10px', borderRadius: 999,
+                        background: 'var(--cream-2)', color: 'var(--ink-soft)',
+                        border: '1px dashed var(--line)',
+                        display: 'inline-flex', gap: 5, alignItems: 'center',
+                      }}
+                    >
+                      {c}
+                      <button
+                        type="button"
+                        onClick={() => patch({ chips: chips.filter((_, idx2) => idx2 !== i) })}
+                        aria-label={`Remove ${c}`}
+                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'inline-flex', color: 'var(--ink-muted)' }}
+                      >
+                        <Icon name="close" size={9} color="var(--ink-muted)" />
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Free-text add row at the bottom — only enabled when
+              there are < 3 slots filled (otherwise the inline
+              slot input is the entry point). For overflow chips
+              (chip[3+]) hosts can type here even when slots are
+              full. */}
+          {chips.length >= 3 && (
+            <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+              <input
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && draft.trim()) {
+                    e.preventDefault();
+                    addChip(draft);
+                    setDraft('');
+                  }
+                }}
+                placeholder="Add another chip (extra)…"
+                style={{ flex: 1, padding: '8px 11px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--cream-2)', fontSize: 12.5, outline: 'none' }}
+              />
+              <button
+                type="button"
+                onClick={() => { addChip(draft); setDraft(''); }}
+                disabled={!draft.trim()}
+                style={{
+                  padding: '8px 14px', borderRadius: 10,
+                  background: draft.trim() ? 'var(--peach-bg)' : 'var(--cream-2)',
+                  color: draft.trim() ? 'var(--peach-ink)' : 'var(--ink-muted)',
+                  border: '1px solid var(--line)', fontSize: 12, fontWeight: 700,
+                  cursor: draft.trim() ? 'pointer' : 'not-allowed',
+                }}
+              >
+                Add
+              </button>
+            </div>
+          )}
 
           {/* Derived chips — tap to add. Hidden when none. */}
           {localSuggestions.length > 0 && (

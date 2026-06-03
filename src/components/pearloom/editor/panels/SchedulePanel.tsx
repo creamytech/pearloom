@@ -8,7 +8,7 @@
 
 import type { StoryManifest, WeddingEvent } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, FSuggest, PearChip, SectionPanelShell } from './_section-atoms';
+import { AddCard, FGroup, FInput, FSuggest, PearChip, SectionPanelShell, useCopyOverride } from './_section-atoms';
 import { scheduleEventSuggestions } from './_suggestions';
 
 const TONE_BY_INDEX: Array<'peach' | 'lavender' | 'sage'> = ['peach', 'lavender', 'sage', 'peach', 'lavender', 'sage'];
@@ -24,6 +24,7 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const eventNameSet = scheduleEventSuggestions(occasion);
   const events = manifest.events && manifest.events.length > 0 ? manifest.events : DEFAULT_EVENTS;
+  const [scheduleEyebrow, setScheduleEyebrow] = useCopyOverride(manifest, onChange, 'scheduleEyebrow');
 
   const writeEvents = (next: WeddingEvent[]) => onChange({ ...manifest, events: next } as StoryManifest);
   const patchEvent = (i: number, patch: Partial<WeddingEvent>) => {
@@ -47,6 +48,9 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
+          <FInput value={scheduleEyebrow} onChange={setScheduleEyebrow} placeholder="The day" />
+        </FGroup>
         <FGroup label={`Timeline · ${events.length} moments`} action={<PearChip>Build from notes</PearChip>}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {events.map((e, i) => {

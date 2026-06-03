@@ -186,9 +186,29 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
     coverPhoto: v || undefined,
   } as unknown as StoryManifest);
 
+  /* manifest.copy.<key> overrides — visible labels the host can
+     customize. Each falls through to the voice-defaulted value in
+     ThemedSite's buildCopy when blank. */
+  const copy: Record<string, string> = ((manifest as unknown as { copy?: Record<string, string> }).copy) ?? {};
+  const setCopy = (key: string, value: string) => {
+    const next = { ...copy };
+    if (value.trim()) next[key] = value;
+    else delete next[key];
+    onChange({
+      ...(manifest as unknown as Record<string, unknown>),
+      copy: next,
+    } as unknown as StoryManifest);
+  };
+  const heroLead = copy.heroLead ?? '';
+  const heroCta = copy.heroCta ?? '';
+  const heroCtaSecondary = copy.heroCtaSecondary ?? '';
+
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <FGroup label="Lead / eyebrow" hint="The tiny ALL-CAPS line above the names (e.g. “A SMALL FOREVER”).">
+          <FInput value={heroLead} onChange={(v) => setCopy('heroLead', v)} placeholder="A small forever" />
+        </FGroup>
         <FGroup label="Tagline" action={<PearChip>3 styles</PearChip>}>
           <FInput value={tagline} onChange={setTagline} placeholder="A short line above the fold" />
           {tagline.trim().length >= 2 && (
@@ -214,6 +234,12 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
           <FInput value={venue} onChange={setVenue} icon="pin" placeholder="Casa Chorro · Santorini" />
         </FGroup>
         <CoverPhotoField url={coverPhoto} onChange={setCoverPhoto} />
+        <FGroup label="Buttons" hint="Customize the call-to-action labels.">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+            <FInput value={heroCta} onChange={(v) => setCopy('heroCta', v)} placeholder="RSVP" />
+            <FInput value={heroCtaSecondary} onChange={(v) => setCopy('heroCtaSecondary', v)} placeholder="Learn more" />
+          </div>
+        </FGroup>
       </div>
     </SectionPanelShell>
   );

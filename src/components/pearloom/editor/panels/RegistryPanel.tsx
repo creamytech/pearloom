@@ -7,7 +7,7 @@
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, FSuggest, SectionPanelShell } from './_section-atoms';
+import { AddCard, FGroup, FInput, FSuggest, SectionPanelShell, useCopyOverride } from './_section-atoms';
 import { registryStoreSuggestions } from './_suggestions';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
 
@@ -20,6 +20,7 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
   const storeSet = registryStoreSuggestions(occasion);
   const intro = ((manifest as unknown as { registryIntro?: string }).registryIntro) ?? 'Your presence is the gift — but if you insist…';
   const stores: string[] = ((manifest as unknown as { registryStores?: string[] }).registryStores) ?? DEFAULT_STORES;
+  const [registryEyebrow, setRegistryEyebrow] = useCopyOverride(manifest, onChange, 'registryEyebrow');
 
   const setIntro = (v: string) => onChange({
     ...(manifest as unknown as Record<string, unknown>),
@@ -36,6 +37,9 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
+          <FInput value={registryEyebrow} onChange={setRegistryEyebrow} placeholder="Registry" />
+        </FGroup>
         <FGroup label="Intro line">
           <FInput value={intro} onChange={setIntro} />
           {intro.trim().length >= 2 && (

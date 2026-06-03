@@ -9,7 +9,7 @@
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, SectionPanelShell } from './_section-atoms';
+import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, SectionPanelShell, useCopyOverride } from './_section-atoms';
 import {
   dressCodeSuggestions,
   detailsCardLabelSuggestions,
@@ -22,6 +22,7 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const dressSet = dressCodeSuggestions(occasion);
   const labelSet = detailsCardLabelSuggestions(occasion);
+  const [detailsEyebrow, setDetailsEyebrow] = useCopyOverride(manifest, onChange, 'detailsEyebrow');
   /* Slice to 3 on read so legacy manifests that accumulated 4+
      cards from earlier sessions (before the cap was enforced)
      don't bleed extra rows into the rail. The canvas already
@@ -67,6 +68,9 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
+          <FInput value={detailsEyebrow} onChange={setDetailsEyebrow} placeholder="The fine print" />
+        </FGroup>
         <FGroup label="Dress code">
           <FSuggest
             value={cards[0]?.[1] ?? ''}

@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import type { FaqItem, StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, FSuggest, PearChip, SectionPanelShell } from './_section-atoms';
+import { AddCard, FGroup, FInput, FSuggest, PearChip, SectionPanelShell, useCopyOverride } from './_section-atoms';
 import { faqQuestionSuggestions } from './_suggestions';
 import { PearAiChip, PearInlineRewrite } from '../../redesign/PearAssist';
 
@@ -23,6 +23,7 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const questionSet = faqQuestionSuggestions(occasion);
   const faqs: FaqItem[] = manifest.faqs && manifest.faqs.length > 0 ? manifest.faqs : DEFAULT_FAQS;
+  const [faqEyebrow, setFaqEyebrow] = useCopyOverride(manifest, onChange, 'faqEyebrow');
   const [openId, setOpenId] = useState<string | null>(null);
   /* Tracks per-row "Draft answer from Pear" busy state. Keyed by
      faq id so multiple rows can stage independently. */
@@ -75,6 +76,9 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
+          <FInput value={faqEyebrow} onChange={setFaqEyebrow} placeholder="Questions & answers" />
+        </FGroup>
         <FGroup label={`Questions · ${faqs.length}`} action={<PearChip>Suggest from data</PearChip>}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {faqs.map((f, i) => {

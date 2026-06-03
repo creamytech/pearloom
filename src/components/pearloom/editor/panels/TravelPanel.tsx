@@ -23,6 +23,7 @@ import {
   PearChip,
   SectionPanelShell,
   Stars,
+  useCopyOverride,
 } from './_section-atoms';
 
 /* Place-search result shape from /api/places/search/route.ts. */
@@ -118,6 +119,7 @@ function hotelKey(h: HotelBlock, fallbackIndex: number): string {
 export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const hotels: HotelBlock[] = manifest.travelInfo?.hotels ?? [];
   const directions = manifest.travelInfo?.directions ?? '';
+  const [travelEyebrow, setTravelEyebrow] = useCopyOverride(manifest, onChange, 'travelEyebrow');
   const venueAddress = manifest.logistics?.venue ?? '';
 
   const [q, setQ] = useState('');
@@ -249,6 +251,9 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Real Places search */}
+        <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
+          <FInput value={travelEyebrow} onChange={setTravelEyebrow} placeholder="Getting there" />
+        </FGroup>
         <FGroup label="Find hotels & venues" action={<PearChip>Powered by Google</PearChip>}>
           <div style={{ position: 'relative' }}>
             <FInput

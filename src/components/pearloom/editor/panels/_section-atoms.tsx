@@ -124,6 +124,33 @@ export function SectionPanelShell({ children }: { children: ReactNode }) {
   );
 }
 
+/* useCopyOverride — small helper so every section panel can wire
+   an eyebrow / label override field in two lines:
+
+     const [eyebrow, setEyebrow] = useCopyOverride(manifest, onChange, 'storyEyebrow');
+
+   Writes through manifest.copy.<key>; empty string clears the key
+   so the default voice copy re-takes the slot on the canvas. */
+export function useCopyOverride<M>(
+  manifest: M,
+  onChange: (next: M) => void,
+  key: string,
+): [string, (v: string) => void] {
+  /* manifest doesn't declare `copy` in its typed shape — it's a
+     loose overrides bag we add at the renderer's read site. The
+     cast preserves all existing fields while exposing copy[]. */
+  const loose = manifest as unknown as Record<string, unknown>;
+  const copy = (loose.copy as Record<string, string> | undefined) ?? {};
+  const value = copy[key] ?? '';
+  const setValue = (v: string) => {
+    const next = { ...copy };
+    if (v.trim()) next[key] = v;
+    else delete next[key];
+    onChange({ ...loose, copy: next } as unknown as M);
+  };
+  return [value, setValue];
+}
+
 /* FSuggest — free-text input + chip row of curated options below.
    Tapping a chip writes that string to the input (one-tap fill);
    typing still works for anything the chips don't cover. The chip
