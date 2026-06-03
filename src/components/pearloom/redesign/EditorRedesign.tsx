@@ -241,14 +241,15 @@ function EditorCanvas({
         }}
       />
 
-      {/* Device frame (prototype L259-291). transform: translateZ(0)
-          creates a containing block for position:fixed children so
-          the mobile nav drawers (overlay/slide-in/bottom-sheet/pill)
-          attach to the 390px device frame instead of the browser
-          viewport — they'd otherwise slide in from the right edge of
-          the entire window, way outside the phone mock. The transform
-          is invisible (zero translation) but the CSS containment
-          contract is what we need. */}
+      {/* Device frame (prototype L259-291). NOTE: previously had
+          transform: translateZ(0) to make the frame a containing
+          block for position:fixed mobile-drawer children, but that
+          interacted badly with the fixed-height grid + flex column
+          layout and broke canvas vertical scroll. Removed in Round L.
+          In editor mobile preview, the nav drawers now attach to
+          the browser viewport — which is fine for a preview; real
+          mobile users on the published site see the drawer at the
+          actual viewport (there's no device frame in production). */}
       <div
         onClick={() => setActive(null)}
         style={{
@@ -264,7 +265,6 @@ function EditorCanvas({
           transition: 'width 360ms cubic-bezier(0.16, 1, 0.3, 1)',
           containerType: 'inline-size',
           containerName: 'pl-site',
-          transform: 'translateZ(0)',
         }}
       >
         <ThemedSite
