@@ -13,6 +13,7 @@
    is built once at the panel level via `collectPhotoPool(manifest)`. */
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { StoryManifest } from '@/types';
 
 interface Props {
@@ -239,11 +240,26 @@ function GalleryPickerModal({ photos, onPick, onClose }: GalleryPickerModalProps
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  return (
+  /* SSR guard — react-dom's createPortal requires a live document
+     element. During the server render pass there is none, so we
+     skip the portal and return null (the parent component re-runs
+     on hydration and the modal mounts then). */
+  if (typeof document === 'undefined') return null;
+
+  /* Portal to document.body — escapes any ancestor with
+     transform/filter/contain/will-change that would otherwise
+     trap `position: fixed` into a local containing block. Without
+     this the modal renders inside the right rail (where the
+     editor's panel chrome lives) instead of overlaying the viewport.
+     See: https://developer.mozilla.org/en-US/docs/Web/CSS/position#fixed_positioning
+     ("If any ancestor has a transform, perspective, or filter
+     property set to other than none, that ancestor behaves as the
+     containing block.") */
+  return createPortal((
     <div
       onClick={onClose}
       style={{
-        position: 'fixed', inset: 0, zIndex: 200,
+        position: 'fixed', inset: 0, zIndex: 9999,
         background: 'rgba(14,13,11,0.42)',
         display: 'grid', placeItems: 'center',
         padding: 24,
@@ -355,7 +371,7 @@ function GalleryPickerModal({ photos, onPick, onClose }: GalleryPickerModalProps
         </div>
       </div>
     </div>
-  );
+  ), document.body);
 }
 
 /* ─── collectPhotoPool ─────────────────────────────────────── */
