@@ -59,7 +59,7 @@ export function StoryZigzag({ ctx }: { ctx: StoryVariantCtx }) {
   const { C, pad } = ctx;
   const tones: PhotoTone[] = ['warm', 'sage', 'dusk'];
   const fallbackChips = ['01', '02', '03'];
-  const bodyText = C.body || 'A short, friendly answer goes here.';
+  const fallbackBody = C.body || 'A short, friendly answer goes here.';
 
   return (
     <div style={{ maxWidth: 920, margin: '0 auto', padding: `${48 * pad}px 72px` }}>
@@ -67,6 +67,12 @@ export function StoryZigzag({ ctx }: { ctx: StoryVariantCtx }) {
       {[0, 1, 2].map((i) => {
         const reverse = i % 2 === 1;
         const eyebrow = C.chips?.[i] ?? fallbackChips[i];
+        /* Per-chapter content from manifest.chapters[i] when set;
+           falls back to the shared C.title / C.body otherwise so
+           empty chapters render exactly like the pre-Round-Y
+           layout. */
+        const chapterTitle = C.chapterTitles?.[i] || C.title;
+        const chapterBody = C.chapterBodies?.[i] || fallbackBody;
         return (
           <div
             key={i}
@@ -103,7 +109,7 @@ export function StoryZigzag({ ctx }: { ctx: StoryVariantCtx }) {
                   color: 'var(--t-ink)',
                 }}
               >
-                {C.title}
+                {chapterTitle}
               </h3>
               <p
                 style={{
@@ -114,7 +120,7 @@ export function StoryZigzag({ ctx }: { ctx: StoryVariantCtx }) {
                   margin: 0,
                 }}
               >
-                {bodyText}
+                {chapterBody}
               </p>
             </div>
             <div style={{ direction: 'ltr' }}>

@@ -84,6 +84,10 @@ export interface StoryCopy {
    *  per-chapter cards read these instead of the gradient
    *  placeholder when set. Source: manifest.chapters[i].images[0]. */
   chapterImages?: (string | undefined)[];
+  /** Per-chapter titles + bodies. When set, multi-chapter variants
+   *  use them instead of the shared title / body across each card. */
+  chapterTitles?: (string | undefined)[];
+  chapterBodies?: (string | undefined)[];
 }
 
 export interface BaseCtx {

@@ -1001,18 +1001,30 @@ function StoryTimeline({ ctx }: { ctx: SectionCtx }) {
       <div style={{ position: 'relative', paddingLeft: 30 }}>
         <div style={{ position: 'absolute', left: 7, top: 4, bottom: 4, width: 2, background: 'var(--t-line)' }} />
         {items.map((it, i) => {
-          /* Per-row chapter photo — appears between the chip eyebrow
-             and the body when the host has uploaded a photo to the
-             matching chapter slot (chapter[i].images[0]). */
+          /* Per-row content from manifest.chapters[i] when set:
+             photo, title (overrides chip eyebrow), body. Falls back
+             to the chip eyebrow + shared body for chapters with
+             nothing authored — keeps existing manifests rendering
+             unchanged. */
           const photo = C.story.chapterImages?.[i];
+          const chapterTitle = C.story.chapterTitles?.[i];
+          const chapterBody = C.story.chapterBodies?.[i];
+          /* Eyebrow stays the chip text; title rendered below as a
+             separate display-font line when the host wrote a
+             chapter-specific title. */
+          const eyebrowText = it;
+          const bodyText = chapterBody || C.story.body;
           return (
             <div key={i} style={{ position: 'relative', paddingBottom: i < items.length - 1 ? 22 : 0 }}>
               <span style={{ position: 'absolute', left: -30, top: 2, width: 16, height: 16, borderRadius: '50%', background: 'var(--t-accent)', border: '3px solid var(--t-paper)' }} />
-              <div style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 19, color: 'var(--t-accent-ink)' }}>{it}</div>
-              {photo && (
-                <div style={{ marginTop: 8, aspectRatio: '16/9', maxWidth: 480, background: `var(--t-section) center / cover no-repeat url("${photo.replace(/"/g, '%22')}")`, borderRadius: 'var(--t-radius)' }} />
+              <div style={{ fontFamily: 'var(--t-mono)', fontSize: 11, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)' }}>{eyebrowText}</div>
+              {chapterTitle && (
+                <div style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 22, color: 'var(--t-ink)', marginTop: 3, lineHeight: 1.15 }}>{chapterTitle}</div>
               )}
-              <div style={{ fontSize: 13.5, color: 'var(--t-ink-soft)', lineHeight: 1.55, marginTop: photo ? 6 : 3 }}>{C.story.body}</div>
+              {photo && (
+                <div style={{ marginTop: chapterTitle ? 10 : 8, aspectRatio: '16/9', maxWidth: 480, background: `var(--t-section) center / cover no-repeat url("${photo.replace(/"/g, '%22')}")`, borderRadius: 'var(--t-radius)' }} />
+              )}
+              <div style={{ fontSize: 13.5, color: 'var(--t-ink-soft)', lineHeight: 1.55, marginTop: photo ? 6 : 3 }}>{bodyText}</div>
             </div>
           );
         })}
@@ -1669,9 +1681,15 @@ interface Copy {
     body: string;
     chips?: string[];
     /** Up to 3 host-uploaded chapter photos. Variants that render
-     *  per-chapter cards (timeline / zigzag / sidebyside-x-3) read
-     *  these instead of the gradient PhotoPlaceholder when set. */
+     *  per-chapter cards (timeline / zigzag) read these instead of
+     *  the gradient PhotoPlaceholder when set. */
     chapterImages?: (string | undefined)[];
+    /** Per-chapter titles. When set, multi-chapter variants use
+     *  these instead of the shared C.story.title for each card. */
+    chapterTitles?: (string | undefined)[];
+    /** Per-chapter body text. When set, multi-chapter variants
+     *  use these instead of the shared C.story.body. */
+    chapterBodies?: (string | undefined)[];
   };
   details: { eyebrow: string; title: string; italic?: string; items: { l: string; v: string; icon: string }[] };
   schedule: { eyebrow: string; title: string; italic?: string; rows: { t: string; l: string; s: string }[] };
@@ -1941,11 +1959,13 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
     ctaSecondary: co('heroCtaSecondary', 'Learn more'),
     meta: { date: args.date, place: args.place },
     story: (() => {
-      /* Pull up to 3 chapter photos from the canonical
-         manifest.chapters[].images[0].url path. StoryPanel writes
-         here when the host drops a photo on a chapter slot. */
-      const chapters = (loose.chapters as Array<{ images?: Array<{ url?: string }> }> | undefined) ?? [];
+      /* Pull up to 3 chapter photos + titles + bodies from the
+         canonical manifest.chapters[] path. StoryPanel writes here
+         when the host fills in a chapter slot. */
+      const chapters = (loose.chapters as Array<{ title?: string; description?: string; images?: Array<{ url?: string }> }> | undefined) ?? [];
       const chapterImages = [0, 1, 2].map((i) => chapters[i]?.images?.[0]?.url || undefined);
+      const chapterTitles = [0, 1, 2].map((i) => (chapters[i]?.title || '').trim() || undefined);
+      const chapterBodies = [0, 1, 2].map((i) => (chapters[i]?.description || '').trim() || undefined);
       return {
         eyebrow: co('storyEyebrow', V.storyEyebrow),
         title: storySection.headline ? splitHeading(storySection.headline).head : V.storyTitle,
@@ -1953,6 +1973,8 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
         body: storySection.body || 'We met on an ordinary Tuesday and spent the evening arguing, fondly, about whether olives belong on pizza. Ten years later, we would be honoured to have you with us as we marry — there is no story we would rather tell, and no one we would rather tell it to.',
         chips: Array.isArray(storySection.chips) ? storySection.chips : undefined,
         chapterImages: chapterImages.some(Boolean) ? chapterImages : undefined,
+        chapterTitles: chapterTitles.some(Boolean) ? chapterTitles : undefined,
+        chapterBodies: chapterBodies.some(Boolean) ? chapterBodies : undefined,
       };
     })(),
     details: (() => {
