@@ -18,7 +18,7 @@
 import { useMemo, useState } from 'react';
 import type { StoryManifest, Chapter, ChapterImage } from '@/types';
 import { Icon } from '../../motifs';
-import { FGroup, FInput, SectionPanelShell, useCopyOverride } from './_section-atoms';
+import { FGroup, FInput, SectionPanelShell, useCopyOverride, useSectionHidden, SectionVisibilityFooter } from './_section-atoms';
 import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
 
 type Tone = 'Shorten' | 'Warmer' | 'Funnier' | 'More poetic';
@@ -90,6 +90,7 @@ function deriveLocalChips(manifest: StoryManifest, existing: string[]): string[]
 }
 
 export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'story');
   const story = (manifest as unknown as { storySection?: { headline?: string; body?: string; chips?: string[] } }).storySection ?? {};
   const headline = story.headline ?? '';
   const body = story.body ?? '';
@@ -637,6 +638,11 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
             </div>
           )}
         </FGroup>
+        <SectionVisibilityFooter
+          isHidden={isHidden}
+          setHidden={setHidden}
+          sectionLabel="Our story"
+        />
       </div>
     </SectionPanelShell>
   );

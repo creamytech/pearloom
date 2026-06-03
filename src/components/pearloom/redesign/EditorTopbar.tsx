@@ -40,7 +40,8 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
     : `Saved ${savedAt}`;
   const saveDot = saveState === 'error' ? 'var(--peach-ink)'
     : saveState === 'saved' ? 'var(--sage)'
-    : 'var(--gold)';
+    : 'var(--peach-ink)';
+  const saveActive = saveState === 'saving' || saveState === 'unsaved';
   return (
     <header
       style={{
@@ -112,14 +113,25 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         <div
           aria-live="polite"
           title={saveState === 'error' ? 'Last save attempt failed — next edit will retry.' : `Last saved at ${savedAt}`}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: 'var(--ink-muted)' }}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: saveActive ? '3px 9px' : '3px 0',
+            borderRadius: 999,
+            background: saveActive ? 'var(--peach-bg)' : 'transparent',
+            border: saveActive ? '1px solid rgba(198,112,61,0.18)' : '1px solid transparent',
+            fontSize: 11.5,
+            color: saveActive ? 'var(--peach-ink)' : 'var(--ink-muted)',
+            fontWeight: saveActive ? 600 : 500,
+            transition: 'background 240ms cubic-bezier(0.16,1,0.3,1), padding 240ms, color 240ms',
+          }}
         >
           <span
             aria-hidden
             style={{
               width: 6, height: 6, borderRadius: '50%',
               background: saveDot,
-              animation: saveState === 'saving' || saveState === 'unsaved' ? 'pl-dot-pulse 1.4s ease-in-out infinite' : 'none',
+              animation: saveActive ? 'pl-dot-pulse 1.4s ease-in-out infinite' : 'none',
+              boxShadow: saveActive ? '0 0 0 3px rgba(198,112,61,0.16)' : 'none',
             }}
           />
           {saveLabel}

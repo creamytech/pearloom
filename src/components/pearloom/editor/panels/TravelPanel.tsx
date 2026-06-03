@@ -22,8 +22,10 @@ import {
   FToggleStandalone,
   PearChip,
   SectionPanelShell,
+  SectionVisibilityFooter,
   Stars,
   useCopyOverride,
+  useSectionHidden,
 } from './_section-atoms';
 
 /* Place-search result shape from /api/places/search/route.ts. */
@@ -117,6 +119,7 @@ function hotelKey(h: HotelBlock, fallbackIndex: number): string {
 }
 
 export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'travel');
   const hotels: HotelBlock[] = manifest.travelInfo?.hotels ?? [];
   const directions = manifest.travelInfo?.directions ?? '';
   const [travelEyebrow, setTravelEyebrow] = useCopyOverride(manifest, onChange, 'travelEyebrow');
@@ -400,6 +403,7 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
           <div style={{ height: 8 }} />
           <FToggleStandalone label="Show a shuttle schedule" sub="Pear can build it from your timeline" def={false} />
         </FGroup>
+        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Travel" />
       </div>
     </SectionPanelShell>
   );

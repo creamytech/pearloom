@@ -9,7 +9,7 @@
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, SectionPanelShell, useCopyOverride } from './_section-atoms';
+import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import {
   dressCodeSuggestions,
   detailsCardLabelSuggestions,
@@ -19,6 +19,7 @@ import { PearInlineRewrite } from '../../redesign/PearAssist';
 type Card = [string, string];
 
 export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'details');
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const dressSet = dressCodeSuggestions(occasion);
   const labelSet = detailsCardLabelSuggestions(occasion);
@@ -120,6 +121,7 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
             {cards.length < 3 && <AddCard label="Add a detail" onClick={addCard} />}
           </div>
         </FGroup>
+        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Details" />
       </div>
     </SectionPanelShell>
   );

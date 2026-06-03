@@ -237,13 +237,19 @@ export function ThemedSite({
   } : undefined;
   const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, textureIntensity, showWashHero, dividerLook, variants, C, coverPhoto, edit };
 
-  const sections: SectionKind[] = ['hero', 'story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
+  /* Hidden sections — host can hide any non-essential section via
+     the "Hide on the site" toggle at the bottom of each panel.
+     Stored as manifest.hiddenSections: SectionKind[]. The hero is
+     never hidden (a site without a hero is broken). */
+  const hidden = (((manifest as unknown as { hiddenSections?: string[] }).hiddenSections) ?? []) as SectionKind[];
+  const sections: SectionKind[] = (['hero', 'story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'] as SectionKind[])
+    .filter((s) => s === 'hero' || !hidden.includes(s));
   /* navItems carry section id + label so the nav can render real
      anchors that scroll to the right block. Excludes 'hero' and
      'rsvp' from the link list (hero is the top of the page, rsvp
      gets its own dedicated CTA button). */
   const navItems = sections.filter((s) => s !== 'hero' && s !== 'rsvp').map((s) => ({ id: s, label: SECTION_LABEL[s] }));
-  const headline = `${C.subject.a} & ${C.subject.b}`;
+  const headline = C.subject.type === 'solo' ? C.subject.a : `${C.subject.a} & ${C.subject.b}`;
 
   /* Smooth-scroll handler — every nav link + the RSVP CTA call this
      with a section id. Uses document.getElementById because the
@@ -476,7 +482,9 @@ function SidebarHero({
                 </span>
                 {C.subject.b}
               </>
-            ) : null}
+            ) : (
+              C.subject.a
+            )}
           </h1>
           {C.tagline && (
             <div style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 17, color: 'var(--t-ink-soft)', marginTop: 12 }}>
@@ -600,10 +608,12 @@ function HeroCentered({ ctx }: { ctx: SectionCtx }) {
         )}
         <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(74px * var(--t-hero-scale))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: isEditorial ? '-0.045em' : '-0.02em', color: 'var(--t-ink)' }}>
           <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
-          <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>
-            {isEditorial ? '×' : 'and'}
-          </span>
-          <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+          {C.subject.type === 'couple' && <>
+            <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>
+              {isEditorial ? '×' : 'and'}
+            </span>
+            <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+          </>}
         </h1>
         <div style={{ marginTop: 18, display: 'flex', gap: 22, justifyContent: 'center', flexWrap: 'wrap', fontSize: 14, color: 'var(--t-ink-soft)' }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
@@ -670,8 +680,10 @@ function HeroSplit({ ctx }: { ctx: SectionCtx }) {
         )}
         <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(60px * var(--t-hero-scale))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)' }}>
           <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
-          <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>{isEditorial ? '×' : 'and'}</span>
-          <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+          {C.subject.type === 'couple' && <>
+            <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>{isEditorial ? '×' : 'and'}</span>
+            <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+          </>}
         </h1>
         <div style={{ marginTop: 18, display: 'flex', gap: 22, flexWrap: 'wrap', fontSize: 14, color: 'var(--t-ink-soft)' }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="calendar" size={14} color="var(--t-accent)" /> {C.meta.date}</span>
@@ -720,8 +732,10 @@ function HeroMinimal({ ctx }: { ctx: SectionCtx }) {
         )}
         <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(78px * var(--t-hero-scale))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)' }}>
           <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
-          <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>{isEditorial ? '×' : 'and'}</span>
-          <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+          {C.subject.type === 'couple' && <>
+            <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>{isEditorial ? '×' : 'and'}</span>
+            <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+          </>}
         </h1>
         <div style={{ marginTop: 18, display: 'flex', gap: 22, flexWrap: 'wrap', fontSize: 14, color: 'var(--t-ink-soft)' }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="calendar" size={14} color="var(--t-accent)" /> {C.meta.date}</span>
@@ -760,8 +774,10 @@ function HeroFullbleed({ ctx }: { ctx: SectionCtx }) {
         <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase', opacity: 0.9, marginBottom: 8 }} />
         <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(76px * var(--t-hero-scale))', lineHeight: 0.96, margin: 0, color: '#fff' }}>
           <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
-          <span style={{ fontStyle: 'italic', fontSize: '0.7em', margin: '0 0.16em', opacity: 0.85 }}>{isEditorial ? '×' : 'and'}</span>
-          <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+          {C.subject.type === 'couple' && <>
+            <span style={{ fontStyle: 'italic', fontSize: '0.7em', margin: '0 0.16em', opacity: 0.85 }}>{isEditorial ? '×' : 'and'}</span>
+            <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+          </>}
         </h1>
         <div style={{ marginTop: 14, fontSize: 14.5, opacity: 0.92 }}>{C.meta.date} · {C.meta.place}</div>
         <div style={{ marginTop: 22 }}>
@@ -786,10 +802,12 @@ function HeroTypographic({ ctx }: { ctx: SectionCtx }) {
         <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 8 }} />
         <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(108px * var(--t-hero-scale))', lineHeight: 0.86, margin: '6px 0', letterSpacing: '-0.03em', color: 'var(--t-ink)' }}>
           <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
-          <br />
-          <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}>{isEditorial ? '×' : '&'}</span>
-          <br />
-          <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+          {C.subject.type === 'couple' && <>
+            <br />
+            <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}>{isEditorial ? '×' : '&'}</span>
+            <br />
+            <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
+          </>}
         </h1>
         <div style={{ marginTop: 18, display: 'flex', gap: 22, justifyContent: 'center', flexWrap: 'wrap', fontSize: 14, color: 'var(--t-ink-soft)' }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="calendar" size={14} color="var(--t-accent)" /> {C.meta.date}</span>
@@ -1057,7 +1075,7 @@ function StoryLetter({ ctx }: { ctx: SectionCtx }) {
         )}
         <p style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink)', lineHeight: 1.6, textAlign: 'left' }}>{C.story.body}</p>
         <div style={{ fontFamily: 'var(--t-script)', fontSize: 30, color: 'var(--t-accent-ink)', marginTop: 14, textAlign: 'right' }}>
-          {C.subject.a} &amp; {C.subject.b}
+          {C.subject.type === 'solo' ? C.subject.a : <>{C.subject.a} &amp; {C.subject.b}</>}
         </div>
       </div>
     </div>
@@ -1706,7 +1724,7 @@ interface SectionCtx {
 }
 
 interface Copy {
-  subject: { type: 'couple'; a: string; b: string };
+  subject: { type: 'couple' | 'solo'; a: string; b: string };
   lead: string;
   tagline: string;
   cta: string;
@@ -2016,7 +2034,14 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
   };
 
   return {
-    subject: { type: 'couple', a: args.nameA, b: args.nameB },
+    subject: (() => {
+      /* Solo-honoree mode — set in the editor's Hero panel and
+         stored under manifest.subject.kind. When 'solo', the
+         renderer suppresses the second name + '&' glyph. */
+      const sub = (loose.subject as { kind?: 'couple' | 'solo' } | undefined);
+      const kind = sub?.kind === 'solo' ? 'solo' as const : 'couple' as const;
+      return { type: kind, a: args.nameA, b: kind === 'solo' ? '' : args.nameB };
+    })(),
     lead: co('heroLead', V.lead),
     tagline: tagline || V.tagline,
     cta: co('heroCta', 'RSVP'),

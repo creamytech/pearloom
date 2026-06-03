@@ -264,3 +264,77 @@ export function FSuggest({
     </div>
   );
 }
+
+/* useSectionHidden — read/write the manifest.hiddenSections array
+   for a single section. Renderer reads the same array to skip the
+   section on the canvas. Returns [isHidden, setHidden]. */
+export function useSectionHidden<M>(
+  manifest: M,
+  onChange: (next: M) => void,
+  section: string,
+): [boolean, (next: boolean) => void] {
+  const loose = manifest as unknown as Record<string, unknown>;
+  const hidden = (Array.isArray(loose.hiddenSections) ? loose.hiddenSections : []) as string[];
+  const isHidden = hidden.includes(section);
+  const setHidden = (next: boolean) => {
+    const list = next
+      ? Array.from(new Set([...hidden, section]))
+      : hidden.filter((s) => s !== section);
+    onChange({ ...loose, hiddenSections: list } as unknown as M);
+  };
+  return [isHidden, setHidden];
+}
+
+/* SectionVisibilityFooter — drop this at the bottom of any section
+   panel for a "Hide this on the published site" affordance. Tucks
+   into a soft footer below the FGroups so it's findable but never
+   competes with the content fields. */
+export function SectionVisibilityFooter({
+  isHidden, setHidden, sectionLabel,
+}: {
+  isHidden: boolean;
+  setHidden: (next: boolean) => void;
+  sectionLabel: string;
+}) {
+  return (
+    <div
+      style={{
+        marginTop: 4,
+        paddingTop: 12,
+        borderTop: '1px dashed var(--line-soft)',
+        display: 'flex', alignItems: 'center', gap: 10,
+      }}
+    >
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ fontSize: 12.5, fontWeight: 600, color: isHidden ? 'var(--ink-muted)' : 'var(--ink)' }}>
+          {isHidden ? `${sectionLabel} is hidden` : 'Show on the published site'}
+        </div>
+        <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 1, lineHeight: 1.4 }}>
+          {isHidden
+            ? 'Guests won’t see this section. Toggle on to bring it back.'
+            : 'Turn off to remove this section from the live site. You can always toggle it back.'}
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={() => setHidden(!isHidden)}
+        aria-pressed={!isHidden}
+        style={{
+          width: 38, height: 22, borderRadius: 999,
+          background: !isHidden ? 'var(--sage-deep)' : 'var(--cream-3)',
+          position: 'relative', flexShrink: 0,
+          transition: 'background 160ms ease', cursor: 'pointer', border: 'none',
+        }}
+      >
+        <span style={{
+          position: 'absolute', top: 2.5,
+          left: !isHidden ? 18.5 : 2.5,
+          width: 17, height: 17, borderRadius: '50%',
+          background: '#fff',
+          transition: 'left 160ms cubic-bezier(0.16,1,0.3,1)',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+        }} />
+      </button>
+    </div>
+  );
+}

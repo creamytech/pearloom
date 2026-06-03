@@ -8,7 +8,7 @@
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, PearChip, SectionPanelShell, useCopyOverride } from './_section-atoms';
+import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, PearChip, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { FDate } from './_form-atoms';
 import { mealOptionSuggestions } from './_suggestions';
 
@@ -26,6 +26,7 @@ interface RsvpConfig {
 }
 
 export function RsvpPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'rsvp');
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const mealSet = mealOptionSuggestions(occasion);
   const [rsvpEyebrow, setRsvpEyebrow] = useCopyOverride(manifest, onChange, 'rsvpEyebrow');
@@ -129,6 +130,7 @@ export function RsvpPanel({ manifest, onChange }: { manifest: StoryManifest; onC
         <FGroup label="After they reply" hint="Pear can chase non-responders for you.">
           <PearChip>Set up reminder cadence</PearChip>
         </FGroup>
+        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="RSVP" />
       </div>
     </SectionPanelShell>
   );

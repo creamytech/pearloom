@@ -10,10 +10,11 @@
    of the gradient placeholders. */
 
 import type { StoryManifest } from '@/types';
-import { FGroup, FInput, FToggleStandalone, SectionPanelShell, useCopyOverride } from './_section-atoms';
+import { FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
 
 export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'gallery');
   const photos: string[] = ((manifest as unknown as { galleryImages?: string[] }).galleryImages) ?? [];
   const guestUploads = ((manifest as unknown as { guestUploads?: boolean }).guestUploads) ?? true;
   const [galleryEyebrow, setGalleryEyebrow] = useCopyOverride(manifest, onChange, 'galleryEyebrow');
@@ -91,6 +92,7 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
           def={guestUploads}
           onChange={setGuestUploads}
         />
+        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Gallery" />
       </div>
     </SectionPanelShell>
   );

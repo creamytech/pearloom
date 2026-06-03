@@ -9,7 +9,7 @@
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, SectionPanelShell, useCopyOverride } from './_section-atoms';
+import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { FSelect } from './_form-atoms';
 import { REGISTRY_STORE_TARGETS, REGISTRY_STORE_URLS } from './_link-targets';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
@@ -34,6 +34,7 @@ function presetIdForName(name: string): string {
 }
 
 export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'registry');
   const intro = ((manifest as unknown as { registryIntro?: string }).registryIntro) ?? 'Your presence is the gift — but if you insist…';
   /* Normalize legacy string[] manifests into { name, url } on read
      so the panel only ever deals with the rich shape. */
@@ -144,6 +145,7 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
             <AddCard label="Link a registry" onClick={addStore} />
           </div>
         </FGroup>
+        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Registry" />
       </div>
     </SectionPanelShell>
   );

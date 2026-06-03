@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import type { FaqItem, StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, FSuggest, PearChip, SectionPanelShell, useCopyOverride } from './_section-atoms';
+import { AddCard, FGroup, FInput, FSuggest, PearChip, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { faqQuestionSuggestions } from './_suggestions';
 import { PearAiChip, PearInlineRewrite } from '../../redesign/PearAssist';
 
@@ -20,6 +20,7 @@ const DEFAULT_FAQS: FaqItem[] = [
 ];
 
 export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'faq');
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const questionSet = faqQuestionSuggestions(occasion);
   const faqs: FaqItem[] = manifest.faqs && manifest.faqs.length > 0 ? manifest.faqs : DEFAULT_FAQS;
@@ -166,6 +167,7 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
             </div>
           </FGroup>
         )}
+        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="FAQ" />
       </div>
     </SectionPanelShell>
   );

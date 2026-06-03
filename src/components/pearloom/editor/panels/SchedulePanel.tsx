@@ -8,7 +8,7 @@
 
 import type { StoryManifest, WeddingEvent } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, FSuggest, PearChip, SectionPanelShell, useCopyOverride } from './_section-atoms';
+import { AddCard, FGroup, FInput, FSuggest, PearChip, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { scheduleEventSuggestions } from './_suggestions';
 
 const TONE_BY_INDEX: Array<'peach' | 'lavender' | 'sage'> = ['peach', 'lavender', 'sage', 'peach', 'lavender', 'sage'];
@@ -21,6 +21,7 @@ const DEFAULT_EVENTS: WeddingEvent[] = [
 ];
 
 export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'schedule');
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const eventNameSet = scheduleEventSuggestions(occasion);
   const events = manifest.events && manifest.events.length > 0 ? manifest.events : DEFAULT_EVENTS;
@@ -86,6 +87,7 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
             <AddCard label="Add a moment" onClick={addEvent} />
           </div>
         </FGroup>
+        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Schedule" />
       </div>
     </SectionPanelShell>
   );

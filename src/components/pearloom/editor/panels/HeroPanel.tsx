@@ -8,21 +8,23 @@
    manifest.coverPhoto + manifest.coverPhotoAlt. */
 
 import type { StoryManifest } from '@/types';
-import { FGroup, FInput, PearChip, SectionPanelShell } from './_section-atoms';
+import { FGroup, FInput, FToggleStandalone, PearChip, SectionPanelShell } from './_section-atoms';
 import { FDate, FSelect } from './_form-atoms';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
 import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
 import { SECTION_LINK_TARGETS, SPECIAL_LINK_TARGETS, resolveLinkLabel } from './_link-targets';
+import { useVoicePack } from './_voice-pack';
 
 interface CoverPhotoFieldProps {
   url: string;
   onChange: (next: string) => void;
   pool: string[];
+  hint: string;
 }
 
-function CoverPhotoField({ url, onChange, pool }: CoverPhotoFieldProps) {
+function CoverPhotoField({ url, onChange, pool, hint }: CoverPhotoFieldProps) {
   return (
-    <FGroup label="Cover photo" hint="Drag an image here, click to pick from your device, or reuse one already on the site.">
+    <FGroup label="Cover photo" hint={hint}>
       <PhotoUploadSlot url={url} onChange={onChange} aspectRatio="16/9" size="md" pool={pool} />
     </FGroup>
   );
@@ -104,6 +106,17 @@ function CtaLinkEditor({ href, label, defaultHref, onHrefChange, onLabelChange }
 
 
 export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const v = useVoicePack(manifest);
+  /* Solo-honoree mode — when on, the second name slot hides and
+     the canvas suppresses the '&' glyph. Stored under
+     manifest.subject.kind ('couple' | 'solo'). */
+  const subject = ((manifest as unknown as { subject?: { kind?: 'couple' | 'solo' } }).subject) ?? { kind: 'couple' as const };
+  const isSolo = subject.kind === 'solo';
+  const setSolo = (next: boolean) => onChange({
+    ...(manifest as unknown as Record<string, unknown>),
+    subject: { ...subject, kind: next ? 'solo' : 'couple' },
+  } as unknown as StoryManifest);
+
   const [n1, n2] = manifest.names ?? ['', ''];
   /* Read tagline from manifest.tagline (canonical) with fallback to
      the legacy poetry.heroTagline path so existing sites don't lose
@@ -154,11 +167,11 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <FGroup label="Lead / eyebrow" hint="The tiny ALL-CAPS line above the names (e.g. “A SMALL FOREVER”).">
-          <FInput value={heroLead} onChange={(v) => setCopy('heroLead', v)} placeholder="A small forever" />
+        <FGroup label="Lead / eyebrow" hint="The tiny ALL-CAPS line above the names.">
+          <FInput value={heroLead} onChange={(v) => setCopy('heroLead', v)} placeholder={v.hero.leadPlaceholder} />
         </FGroup>
         <FGroup label="Tagline" action={<PearChip>3 styles</PearChip>}>
-          <FInput value={tagline} onChange={setTagline} placeholder="A short line above the fold" />
+          <FInput value={tagline} onChange={setTagline} placeholder={v.hero.taglinePlaceholder} />
           {tagline.trim().length >= 2 && (
             <div style={{ marginTop: 7 }}>
               <PearInlineRewrite
@@ -169,19 +182,31 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
             </div>
           )}
         </FGroup>
-        <FGroup label="Names">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px 1fr', gap: 6, alignItems: 'center' }}>
-            <FInput value={n1} onChange={setA} />
-            <div style={{ textAlign: 'center', fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--ink-soft)' }}>&amp;</div>
-            <FInput value={n2} onChange={setB} />
+        <FGroup label={v.hero.subjectGroupLabel} hint={v.hero.subjectHint}>
+          {isSolo ? (
+            <FInput value={n1} onChange={setA} placeholder={v.hero.nameAPlaceholder} />
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px 1fr', gap: 6, alignItems: 'center' }}>
+              <FInput value={n1} onChange={setA} placeholder={v.hero.nameAPlaceholder} />
+              <div style={{ textAlign: 'center', fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--ink-soft)' }}>&amp;</div>
+              <FInput value={n2} onChange={setB} placeholder={v.hero.nameBPlaceholder} />
+            </div>
+          )}
+          <div style={{ marginTop: 8 }}>
+            <FToggleStandalone
+              label="Single honoree"
+              sub={isSolo ? 'One name shown above the date' : 'Two names with a “&” between them'}
+              def={isSolo}
+              onChange={setSolo}
+            />
           </div>
         </FGroup>
         <FGroup label="Date & venue">
           <FDate value={date} onChange={setDate} placeholder="Pick the day" />
           <div style={{ height: 8 }} />
-          <FInput value={venue} onChange={setVenue} icon="pin" placeholder="Casa Chorro · Santorini" />
+          <FInput value={venue} onChange={setVenue} icon="pin" placeholder="Where the gathering happens" />
         </FGroup>
-        <CoverPhotoField url={coverPhoto} onChange={setCoverPhoto} pool={photoPool} />
+        <CoverPhotoField url={coverPhoto} onChange={setCoverPhoto} pool={photoPool} hint={v.hero.coverGroupHint} />
         <FGroup label="Primary button" hint="The first CTA — pick where it goes, then optionally rename it.">
           <CtaLinkEditor
             href={heroCtaHref}
