@@ -28,6 +28,7 @@ import { Motif, MotifScatter, WatercolorBloom, type MotifKind } from '../site/Mo
 import { TextureFilters } from '../site/TextureFilters';
 import { readVariant } from './layouts';
 import type { SectionId } from './EditorRedesign';
+import { InlineEdit } from './InlineEdit';
 /* Per-section layout variants — each section block dispatches via
    ctx.variants.<section> to one of these. Default ('tiles', 'cards',
    'centered', 'accordion', 'grid', 'rows', 'sidebyside') stays
@@ -76,6 +77,12 @@ interface Props {
      frame. Published guests don't pass this — useIsMobile() decides
      based on their real viewport. */
   forceMobile?: boolean;
+  /* Round R inline-edit wiring — when set, click-to-edit text on
+     the canvas (tagline / story / details values / etc) routes
+     writes through the bridge's editField. PublishedSiteShell
+     omits both so guests never see edit chrome. */
+  onEditField?: (patch: (m: StoryManifest) => StoryManifest) => void;
+  onEditNames?: (next: [string, string]) => void;
 }
 
 /* ─── Top-level shell — handoff themed-site.jsx L106-218. ────── */
@@ -91,7 +98,45 @@ export function ThemedSite({
   manifest,
   names,
   forceMobile = false,
+  onEditField,
+  onEditNames,
 }: Props) {
+  /* Edit-write helpers for InlineEdit components. patchManifest
+     writes a top-level (or nested via dot path) field; patchNames
+     writes the names tuple. Both no-op when the editor hasn't
+     supplied a write path (i.e. PublishedSiteShell mode). */
+  const patchTagline = onEditField
+    ? (next: string) => onEditField((m) => ({ ...(m as unknown as Record<string, unknown>), tagline: next } as unknown as StoryManifest))
+    : undefined;
+  const patchStoryField = onEditField
+    ? (field: 'headline' | 'body', next: string) => onEditField((m) => {
+        const loose = m as unknown as Record<string, unknown>;
+        const story = (loose.storySection as Record<string, unknown> | undefined) ?? {};
+        return { ...loose, storySection: { ...story, [field]: next } } as unknown as StoryManifest;
+      })
+    : undefined;
+  const patchDetailsCard = onEditField
+    ? (idx: number, half: 'l' | 'v', next: string) => onEditField((m) => {
+        const loose = m as unknown as Record<string, unknown>;
+        const cards = Array.isArray(loose.detailsCards)
+          ? [...(loose.detailsCards as Array<[string, string]>)]
+          : [];
+        const cur = cards[idx] ?? ['', ''];
+        cards[idx] = half === 'l' ? [next, cur[1] ?? ''] : [cur[0] ?? '', next];
+        return { ...loose, detailsCards: cards } as unknown as StoryManifest;
+      })
+    : undefined;
+  const patchEvent = onEditField
+    ? (idx: number, field: 'name' | 'time' | 'venue', next: string) => onEditField((m) => {
+        const loose = m as unknown as Record<string, unknown>;
+        const events = Array.isArray(loose.events) ? [...(loose.events as Array<Record<string, unknown>>)] : [];
+        const cur = events[idx] ?? {};
+        events[idx] = { ...cur, [field]: next };
+        return { ...loose, events } as unknown as StoryManifest;
+      })
+    : undefined;
+  const patchA = onEditNames ? (a: string) => onEditNames([a, names[1] ?? '']) : undefined;
+  const patchB = onEditNames ? (b: string) => onEditNames([names[0] ?? '', b]) : undefined;
   const themeId = ((manifest as unknown as { themeId?: string }).themeId)
     ?? ((manifest as unknown as { theme?: { id?: string } }).theme?.id);
   const theme = getTheme(themeId);
@@ -163,7 +208,19 @@ export function ThemedSite({
     rsvp: readVariant(manifest, 'rsvp'),
   };
   const coverPhoto = ((manifest as unknown as { coverPhoto?: string }).coverPhoto) || undefined;
-  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, textureIntensity, showWashHero, dividerLook, variants, C, coverPhoto };
+  const edit: SectionCtx['edit'] = onEditField || onEditNames ? {
+    tagline: patchTagline,
+    storyHeadline: patchStoryField ? (v) => patchStoryField('headline', v) : undefined,
+    storyBody: patchStoryField ? (v) => patchStoryField('body', v) : undefined,
+    detailsValue: patchDetailsCard ? (i, v) => patchDetailsCard(i, 'v', v) : undefined,
+    detailsLabel: patchDetailsCard ? (i, v) => patchDetailsCard(i, 'l', v) : undefined,
+    eventName: patchEvent ? (i, v) => patchEvent(i, 'name', v) : undefined,
+    eventTime: patchEvent ? (i, v) => patchEvent(i, 'time', v) : undefined,
+    eventVenue: patchEvent ? (i, v) => patchEvent(i, 'venue', v) : undefined,
+    nameA: patchA,
+    nameB: patchB,
+  } : undefined;
+  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, textureIntensity, showWashHero, dividerLook, variants, C, coverPhoto, edit };
 
   const sections: SectionKind[] = ['hero', 'story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
   /* navItems carry section id + label so the nav can render real
@@ -494,8 +551,7 @@ function HeroBlock({ ctx }: { ctx: SectionCtx }) {
 
 /* Default: centered (original). */
 function HeroCentered({ ctx }: { ctx: SectionCtx }) {
-  const { theme, pad, editable, C, motif, motifsOn, showWashHero } = ctx;
-  void editable;
+  const { theme, pad, editable, C, motif, motifsOn, showWashHero, edit } = ctx;
   const isEditorial = theme.id === 'editorial';
   return (
     <div style={{ position: 'relative', textAlign: 'center', padding: `${64 * pad}px 40px ${52 * pad}px`, background: 'var(--t-section)', overflow: 'hidden' }}>
@@ -512,17 +568,22 @@ function HeroCentered({ ctx }: { ctx: SectionCtx }) {
         <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 8 }}>
           {C.lead}
         </div>
-        {C.tagline && (
-          <div style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', fontWeight: isEditorial ? 600 : 400, marginTop: 8 }}>
-            {C.tagline}
-          </div>
+        {(C.tagline || editable) && (
+          <InlineEdit
+            as="div"
+            value={C.tagline ?? ''}
+            onChange={edit?.tagline}
+            editable={editable && !!edit?.tagline}
+            placeholder="Click to add a tagline"
+            style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', fontWeight: isEditorial ? 600 : 400, marginTop: 8 }}
+          />
         )}
         <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(74px * var(--t-hero-scale))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: isEditorial ? '-0.045em' : '-0.02em', color: 'var(--t-ink)' }}>
-          {C.subject.a}
+          <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
           <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>
             {isEditorial ? '×' : 'and'}
           </span>
-          {C.subject.b}
+          <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
         </h1>
         <div style={{ marginTop: 18, display: 'flex', gap: 22, justifyContent: 'center', flexWrap: 'wrap', fontSize: 14, color: 'var(--t-ink-soft)' }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
@@ -735,7 +796,7 @@ function StoryBlock({ ctx }: { ctx: SectionCtx }) {
 }
 
 function StorySideBySide({ ctx }: { ctx: SectionCtx }) {
-  const { theme, pad, C, motif } = ctx;
+  const { theme, pad, C, motif, editable, edit } = ctx;
   void theme;
   return (
     <div style={{ position: 'relative', padding: `${48 * pad}px 72px`, display: 'grid', gridTemplateColumns: '0.85fr 1fr', gap: 44, alignItems: 'center', background: 'var(--t-paper)' }}>
@@ -752,14 +813,23 @@ function StorySideBySide({ ctx }: { ctx: SectionCtx }) {
           {C.story.eyebrow}
         </div>
         <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 38, margin: 0, lineHeight: 1.02, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}>
-          {C.story.title}
-          {C.story.italic && (
-            <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}> {C.story.italic}</span>
-          )}
+          <InlineEdit
+            as="span"
+            value={[C.story.title, C.story.italic].filter(Boolean).join(' ').trim()}
+            onChange={edit?.storyHeadline}
+            editable={editable && !!edit?.storyHeadline}
+            placeholder="How we got here"
+          />
         </h2>
-        <p style={{ marginTop: 16, fontSize: 15, color: 'var(--t-ink-soft)', lineHeight: 1.65 }}>
-          {C.story.body}
-        </p>
+        <InlineEdit
+          as="div"
+          value={C.story.body}
+          onChange={edit?.storyBody}
+          editable={editable && !!edit?.storyBody}
+          multiline
+          placeholder="Click to write your story…"
+          style={{ marginTop: 16, fontSize: 15, color: 'var(--t-ink-soft)', lineHeight: 1.65 }}
+        />
         {C.story.chips && C.story.chips.length > 0 && (
           <div style={{ marginTop: 18, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {C.story.chips.map((c, i) => (
@@ -865,15 +935,25 @@ function DetailsBlock({ ctx }: { ctx: SectionCtx }) {
       <MotifScatter motif={motif} density="sparse" />
       <TSectionHead eyebrow={C.details.eyebrow} title={C.details.title} italic={C.details.italic} />
       <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 18, maxWidth: 760, marginInline: 'auto' }}>
-        {C.details.items.map((d) => (
-          <div key={d.l} style={{ background: 'var(--t-card)', borderRadius: 'var(--t-radius)', padding: 18, border: '1px solid var(--t-line-soft)' }}>
+        {C.details.items.map((d, i) => (
+          <div key={`${i}-${d.l}`} style={{ background: 'var(--t-card)', borderRadius: 'var(--t-radius)', padding: 18, border: '1px solid var(--t-line-soft)' }}>
             <Icon name={d.icon} size={18} color="var(--t-gold)" />
-            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--t-ink-muted)', marginTop: 10, marginBottom: 4 }}>
-              {d.l}
-            </div>
-            <div style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 18, color: 'var(--t-ink)' }}>
-              {d.v}
-            </div>
+            <InlineEdit
+              as="div"
+              value={d.l}
+              onChange={ctx.edit?.detailsLabel ? (v) => ctx.edit?.detailsLabel?.(i, v) : undefined}
+              editable={editable && !!ctx.edit?.detailsLabel}
+              placeholder="Label"
+              style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--t-ink-muted)', marginTop: 10, marginBottom: 4 }}
+            />
+            <InlineEdit
+              as="div"
+              value={d.v}
+              onChange={ctx.edit?.detailsValue ? (v) => ctx.edit?.detailsValue?.(i, v) : undefined}
+              editable={editable && !!ctx.edit?.detailsValue}
+              placeholder="Value"
+              style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 18, color: 'var(--t-ink)' }}
+            />
           </div>
         ))}
       </div>
@@ -899,11 +979,30 @@ function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, maxWidth: 880, marginInline: 'auto' }}>
         {C.schedule.rows.map((r, i) => (
           <div key={i} className="pl8-schedule-row" style={{ padding: 16, background: 'var(--t-card)', borderRadius: 'var(--t-radius)', border: '1px solid var(--t-line-soft)', textAlign: 'center' }}>
-            <div style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 20, color: 'var(--t-ink)' }}>
-              {r.t}
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--t-ink)', marginTop: 4, fontWeight: 600 }}>{r.l}</div>
-            <div style={{ fontSize: 11.5, color: 'var(--t-ink-muted)', marginTop: 2 }}>{r.s}</div>
+            <InlineEdit
+              as="div"
+              value={r.t}
+              onChange={ctx.edit?.eventTime ? (v) => ctx.edit?.eventTime?.(i, v) : undefined}
+              editable={editable && !!ctx.edit?.eventTime}
+              placeholder="Time"
+              style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 20, color: 'var(--t-ink)' }}
+            />
+            <InlineEdit
+              as="div"
+              value={r.l}
+              onChange={ctx.edit?.eventName ? (v) => ctx.edit?.eventName?.(i, v) : undefined}
+              editable={editable && !!ctx.edit?.eventName}
+              placeholder="What's happening"
+              style={{ fontSize: 13, color: 'var(--t-ink)', marginTop: 4, fontWeight: 600 }}
+            />
+            <InlineEdit
+              as="div"
+              value={r.s}
+              onChange={ctx.edit?.eventVenue ? (v) => ctx.edit?.eventVenue?.(i, v) : undefined}
+              editable={editable && !!ctx.edit?.eventVenue}
+              placeholder="Where"
+              style={{ fontSize: 11.5, color: 'var(--t-ink-muted)', marginTop: 2 }}
+            />
           </div>
         ))}
       </div>
@@ -1299,6 +1398,22 @@ interface SectionCtx {
   /** Host-uploaded cover photo URL (manifest.coverPhoto). When set,
    *  hero variants render it instead of the gradient placeholder. */
   coverPhoto?: string;
+  /** Round R inline-edit handlers — when set on the canvas (editor
+   *  mode only), section blocks render InlineEdit-wrapped text that
+   *  writes through these callbacks. Each is undefined in published
+   *  mode so guests see plain text with no edit chrome. */
+  edit?: {
+    tagline?: (v: string) => void;
+    storyHeadline?: (v: string) => void;
+    storyBody?: (v: string) => void;
+    detailsValue?: (idx: number, v: string) => void;
+    detailsLabel?: (idx: number, v: string) => void;
+    eventName?: (idx: number, v: string) => void;
+    eventTime?: (idx: number, v: string) => void;
+    eventVenue?: (idx: number, v: string) => void;
+    nameA?: (v: string) => void;
+    nameB?: (v: string) => void;
+  };
 }
 
 interface Copy {

@@ -301,6 +301,12 @@ function EditorCanvas({
              useIsMobile() reads the browser viewport (desktop) and
              the canvas paints the desktop nav inside the 390px frame. */
           forceMobile={isMobile}
+          /* Round R — pipe the bridge's editField + setNames through
+             so InlineEdit components inside the canvas write directly
+             back to the manifest. PropertyRail's panel inputs and the
+             canvas now share the same write path. */
+          onEditField={isPreview ? undefined : onEditField}
+          onEditNames={isPreview ? undefined : onEditNames}
         />
         {/* FullSite + ThemedSiteRenderer kept as imports for one-line
             rollback during cutover — not rendered. */}
