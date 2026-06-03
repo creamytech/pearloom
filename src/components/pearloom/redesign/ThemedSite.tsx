@@ -374,12 +374,17 @@ export function ThemedSite({
      Handoff themed-site.jsx L181-217 verbatim. */
   if (siteLayout === 'split') {
     return (
-      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest">
+      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-split">
         <TextureFilters />
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
-        <div style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: 'minmax(290px, 35%) 1fr', alignItems: 'start' }}>
-          <div style={{ position: 'sticky', top: 0, alignSelf: 'start' }}>
+        {C.isPostEvent && <PostEventBanner />}
+        {/* Tighter, fixed-width sidebar — 290-340px instead of
+            35% — so the content column always has room to breathe
+            on narrow editor previews. Stacks to single-column on
+            mobile via pearloom.css `.pl8-guest-split` media query. */}
+        <div className="pl8-split-grid" style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: 'minmax(280px, 340px) 1fr', alignItems: 'start' }}>
+          <div className="pl8-split-sidebar" style={{ position: 'sticky', top: 0, alignSelf: 'start' }}>
             <SidebarHero
               ctx={ctx}
               headline={headline}
@@ -392,7 +397,7 @@ export function ThemedSite({
               editable={editable}
             />
           </div>
-          <div style={{ borderLeft: '1px solid var(--t-line-soft)' }}>
+          <div className="pl8-split-body" style={{ borderLeft: '1px solid var(--t-line-soft)', minWidth: 0 }}>
             {sections.filter((s) => s !== 'hero').map(sectionEl)}
           </div>
         </div>
@@ -404,10 +409,10 @@ export function ThemedSite({
     return (
       <div
         onMouseLeave={() => setHover(null)}
-        style={{ ...rootStyle, background: 'color-mix(in oklab, var(--t-ink) 14%, var(--t-section))', padding: '40px 26px' }}
+        style={{ ...rootStyle, background: 'color-mix(in oklab, var(--t-ink) 14%, var(--t-section))', padding: 'clamp(16px, 4vw, 40px) clamp(12px, 3vw, 26px)' }}
         data-pl-texture={effectiveTexture}
         data-pl-kit={kitId}
-        className="pl8-guest"
+        className="pl8-guest pl8-guest-boxed"
       >
         <TextureFilters />
         <div
@@ -425,6 +430,7 @@ export function ThemedSite({
           {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
           <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
           <div style={{ position: 'relative', zIndex: 1 }}>
+            {C.isPostEvent && <PostEventBanner />}
             {navEl}
             {sections.map(sectionEl)}
           </div>

@@ -7872,3 +7872,42 @@ html { scroll-behavior: smooth; }
     padding-top: 4px;
   }
 }
+
+/* ──────────────────────────────────────────────────────────
+   Whole-page site layouts — Stacked / Boxed / Split.
+   Stacked is the default and inherits the universal section
+   responsiveness. Boxed + Split need explicit mobile rules so
+   their sidebar/mat treatments degrade gracefully on phones.
+   ────────────────────────────────────────────────────────── */
+
+@media (max-width: 720px) {
+  /* Split layout — collapse to single-column on mobile/narrow
+     viewports. The sidebar lockup makes no sense when each
+     column gets less than ~280px to work with. The sidebar
+     becomes a normal hero at the top + content stacks below. */
+  .pl8-guest-split .pl8-split-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .pl8-guest-split .pl8-split-sidebar {
+    position: static !important;
+  }
+  .pl8-guest-split .pl8-split-body {
+    border-left: 0 !important;
+    border-top: 1px solid var(--t-line-soft) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Boxed layout — drop the mat padding on phones so the card
+     uses the full viewport width. Otherwise hosts lose 24-32px
+     to mat backdrop they can't see anyway. */
+  .pl8-guest-boxed {
+    padding: 12px 0 !important;
+  }
+  .pl8-guest-boxed > div {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+  }
+}

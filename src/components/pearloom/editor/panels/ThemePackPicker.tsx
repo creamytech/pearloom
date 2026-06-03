@@ -50,9 +50,28 @@ export function ThemePackPicker({ manifest, onChange }: Props) {
   const occasionLabel = occasion.charAt(0).toUpperCase() + occasion.slice(1);
 
   function pick(id: string) {
+    /* Clear any Theme-Store pack overrides — picking a "tile"
+       theme should fully take over the look, not be partially
+       overridden by a previously-applied shop pack (which writes
+       its own kit/texture/pattern/motifs/fonts). Without this,
+       the host clicks a theme and sees little change because
+       pack values dominate. */
+    const loose = manifest as unknown as Record<string, unknown>;
+    const existingTheme = (loose.theme as Record<string, unknown> | undefined) ?? {};
+    const nextTheme = { ...existingTheme };
+    /* Strip pack-applied fonts so the theme's own typography
+       takes effect. The new theme's vars carry display + body. */
+    delete (nextTheme as { fonts?: unknown }).fonts;
     onChange({
-      ...(manifest as unknown as Record<string, unknown>),
+      ...loose,
       themeId: id,
+      theme: nextTheme,
+      /* Pack identity fields — null them out (renderer reads
+         falsy as "use theme defaults"). */
+      kitId: undefined,
+      texture: undefined,
+      pattern: undefined,
+      motifs: undefined,
     } as unknown as StoryManifest);
   }
 
