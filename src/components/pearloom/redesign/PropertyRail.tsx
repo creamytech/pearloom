@@ -93,6 +93,12 @@ import { RegistryPanel } from '../editor/panels/RegistryPanel';
 import { GalleryPanel } from '../editor/panels/GalleryPanel';
 import { RsvpPanel } from '../editor/panels/RsvpPanel';
 import { FaqPanel } from '../editor/panels/FaqPanel';
+import { GuestsPanel } from '../editor/panels/GuestsPanel';
+import { SaveTheDatePanel } from '../editor/panels/SaveTheDatePanel';
+import { SharePanel } from '../editor/panels/SharePanel';
+import { DayOfPanel } from '../editor/panels/DayOfPanel';
+import { MemorialPanel } from '../editor/panels/MemorialPanel';
+import { BachelorPanel } from '../editor/panels/BachelorPanel';
 
 interface SectionInfo {
   id: Exclude<SectionId, null>;
@@ -112,6 +118,14 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
   faq:      { id: 'faq',      label: 'FAQ',       desc: '6 questions answered' },
   nav:      { id: 'nav',      label: 'Site nav',  desc: 'Brand + links' },
   navMobile:{ id: 'navMobile',label: 'Mobile nav',desc: 'Drawer for phones' },
+  /* Tool panels — same lookup so the rail header shows the
+     right label + tagline when the host picks a tool. */
+  guests:      { id: 'guests',      label: 'Guests',          desc: 'Your guest list' },
+  savetheDate: { id: 'savetheDate', label: 'Save the date',   desc: 'Pre-invite teaser' },
+  share:       { id: 'share',       label: 'Share',           desc: 'Link, QR, preview' },
+  dayof:       { id: 'dayof',       label: 'Day-of',          desc: 'Live broadcasts' },
+  memorial:    { id: 'memorial',    label: 'Memorial',        desc: 'Obituary + program' },
+  bachelor:    { id: 'bachelor',    label: 'Weekend planner', desc: 'Costs + polls + rooms' },
 };
 
 interface Props {
@@ -119,11 +133,21 @@ interface Props {
   setActive: (id: SectionId) => void;
   manifest: StoryManifest;
   onChange: (next: StoryManifest) => void;
+  /** Threaded through for tool panels (Guests, Save-the-date,
+   *  Share, Day-of) that fetch live data via the public API. */
+  siteSlug?: string;
 }
 
-export function PropertyRail({ active, setActive, manifest, onChange }: Props) {
+export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }: Props) {
   const section = SECTIONS[active];
   const [tab, setTab] = useState<'content' | 'layout' | 'style'>('content');
+  /* Tool panels (Guests / Share / Day-of / etc.) are host-only
+     workspaces — they don't render a canvas section, so Layout +
+     Style tabs would be meaningless there. Hide the tab strip
+     and force content-mode on tools. */
+  const TOOL_PANEL_KEYS = ['guests', 'savetheDate', 'share', 'dayof', 'memorial', 'bachelor'] as const;
+  const isToolPanel = (TOOL_PANEL_KEYS as readonly string[]).includes(active);
+  const effectiveTab = isToolPanel ? 'content' : tab;
   const [pearBusy, setPearBusy] = useState<string | null>(null);
   const [pearErr, setPearErr] = useState<string | null>(null);
   /* Hero is the one section that can never be hidden — a site
@@ -305,7 +329,10 @@ export function PropertyRail({ active, setActive, manifest, onChange }: Props) {
         </div>
         <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 4 }}>{section.desc}</div>
 
-        {/* Tabs — Content / Layout / Style. Prototype L696-715. */}
+        {/* Tabs — Content / Layout / Style. Hidden on tool panels
+            (Guests / Share / Day-of / etc.) since they aren't
+            canvas sections with layout + style overrides. */}
+        {!isToolPanel && (
         <div
           style={{
             display: 'flex',
@@ -350,6 +377,7 @@ export function PropertyRail({ active, setActive, manifest, onChange }: Props) {
             );
           })}
         </div>
+        )}
       </div>
 
       {/* Body — prototype L718-790. minHeight: 0 is critical for the
@@ -362,9 +390,9 @@ export function PropertyRail({ active, setActive, manifest, onChange }: Props) {
         className="pl-rd-tab-body"
         style={{ flex: 1, overflow: 'auto', minHeight: 0, padding: 20, display: 'flex', flexDirection: 'column', gap: 18 }}
       >
-        {tab === 'content' && renderSectionEditor(active, manifest, onChange)}
+        {effectiveTab === 'content' && renderSectionEditor(active, manifest, onChange, siteSlug)}
 
-        {tab === 'layout' && (() => {
+        {effectiveTab === 'layout' && (() => {
           /* Site nav has two independent variant axes — the desktop
              bar (manifest.layouts.nav) and the mobile drawer
              (manifest.layouts.navMobile). Render both pickers stacked
@@ -413,7 +441,7 @@ export function PropertyRail({ active, setActive, manifest, onChange }: Props) {
           );
         })()}
 
-        {tab === 'style' && (
+        {effectiveTab === 'style' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>Styling is theme-wide</div>
             <p style={{ margin: 0 }}>
@@ -432,7 +460,7 @@ export function PropertyRail({ active, setActive, manifest, onChange }: Props) {
         )}
 
         {/* Pear assist — prototype L758-789. */}
-        {tab === 'content' && (
+        {effectiveTab === 'content' && !isToolPanel && (
           <div style={{ padding: 14, background: 'var(--peach-bg)', borderRadius: 12, marginTop: 6 }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
               <Pear size={22} tone="sage" sparkle shadow={false} />
@@ -712,6 +740,7 @@ function renderSectionEditor(
   active: Exclude<SectionId, null>,
   manifest: StoryManifest,
   onChange: (m: StoryManifest) => void,
+  siteSlug?: string,
 ) {
   const props = { manifest, onChange };
   switch (active) {
@@ -722,8 +751,18 @@ function renderSectionEditor(
     case 'travel':   return <TravelPanel {...props} />;
     case 'registry': return <RegistryPanel {...props} />;
     case 'gallery':  return <GalleryPanel {...props} />;
-    case 'rsvp':     return <RsvpPanel {...props} />;
+    case 'rsvp':     return <RsvpPanel {...props} siteSlug={siteSlug} />;
     case 'faq':      return <FaqPanel {...props} />;
+    /* Tool panels — host-only workspaces. Most need siteSlug to
+       fetch live data (guest counts, broadcasts, OG card). */
+    case 'guests':      return siteSlug ? <GuestsPanel siteSlug={siteSlug} /> : null;
+    case 'savetheDate': return siteSlug ? <SaveTheDatePanel manifest={manifest} onChange={onChange} siteSlug={siteSlug} /> : null;
+    case 'share':       return siteSlug ? <SharePanel manifest={manifest} siteSlug={siteSlug} /> : null;
+    case 'dayof':       return siteSlug ? <DayOfPanel siteSlug={siteSlug} /> : null;
+    case 'memorial':    return <MemorialPanel {...props} />;
+    case 'bachelor':    return <BachelorPanel {...props} />;
+    /* nav / navMobile fall through — handled by PropertyRail's
+       own dispatch via Pear quick actions; no panel mounts. */
     default:         return null;
   }
 }

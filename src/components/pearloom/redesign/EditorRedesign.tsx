@@ -46,7 +46,27 @@ interface Props {
 export type EditorMode = 'edit' | 'preview' | 'mobile';
 export type SectionId =
   | 'hero' | 'story' | 'details' | 'schedule' | 'travel'
-  | 'registry' | 'gallery' | 'rsvp' | 'faq' | 'nav' | 'navMobile' | null;
+  | 'registry' | 'gallery' | 'rsvp' | 'faq' | 'nav' | 'navMobile'
+  /* Tool panels — not canvas sections, but host-facing tools that
+     mount through the same PropertyRail dispatch so the editor's
+     state machine stays simple. */
+  | 'guests' | 'savetheDate' | 'share' | 'dayof' | 'memorial' | 'bachelor'
+  | null;
+
+/* Occasion → which tool panels are applicable. Memorial only on
+   memorial/funeral, Bachelor weekend planner on bachelor/ette /
+   bridal-shower / reunion / sip-and-see, Save-the-date never on
+   memorial/funeral (you don't pre-announce a funeral). */
+export function isToolPanelApplicable(panel: Exclude<SectionId, null>, occasion?: string): boolean {
+  if (panel === 'memorial') return occasion === 'memorial' || occasion === 'funeral';
+  if (panel === 'bachelor') {
+    return occasion === 'bachelor-party' || occasion === 'bachelorette-party'
+        || occasion === 'bridal-shower' || occasion === 'reunion'
+        || occasion === 'sip-and-see';
+  }
+  if (panel === 'savetheDate') return occasion !== 'memorial' && occasion !== 'funeral';
+  return true;
+}
 
 export default function EditorRedesign({ manifest: initialManifest, siteSlug, names: initialNames }: Props) {
   // Bridge — autosave, manifest state, undo/redo, publish. Hides the
@@ -71,9 +91,20 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
       if (detail?.prefill) setPearPrefill(detail.prefill);
       setPearOpen(true);
     };
+    /* design-jump — dispatched by PublishChecklist + GoLiveBadge +
+       Pear advisor when something needs to flip the active panel
+       (e.g. "Cover photo · jump to Hero"). detail.block carries a
+       SectionId (canvas section OR tool panel key). */
+    const onJump = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { block?: string } | undefined;
+      if (!detail?.block) return;
+      setActive(detail.block as SectionId);
+    };
     window.addEventListener('pearloom:open-pear', onOpenPear);
+    window.addEventListener('pearloom:design-jump', onJump);
     return () => {
       window.removeEventListener('pearloom:open-pear', onOpenPear);
+      window.removeEventListener('pearloom:design-jump', onJump);
       (window as any).__plPearApply = undefined;
     };
   }, [bridge]);
@@ -126,6 +157,7 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
           title={bridge.displayNames}
           slug={bridge.prettyUrl}
           manifest={bridge.manifest}
+          onChange={bridge.setManifest}
         />
       )}
 
@@ -151,6 +183,7 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
               setActive={setActive}
               manifest={bridge.manifest}
               onChange={bridge.setManifest}
+              siteSlug={siteSlug}
             />
           : <ThemeRail
               manifest={bridge.manifest}

@@ -301,6 +301,68 @@ FAQS (${faqs.length}):
 ${faqLines}`;
 }
 
+/* Rule-based suggestions derived from the completeness map. Used
+   as fallback when (a) GEMINI_API_KEY is missing, (b) the model
+   returns an empty array, or (c) the model errors. The host
+   should ALWAYS see at least the obvious gaps — "Pear has nothing
+   to suggest" was misleading hosts whose sites were clearly
+   incomplete. */
+function fallbackSuggestionsFromStatuses(
+  statuses: SectionStatus[],
+  intent?: CritiqueRequest['intent'],
+): Suggestion[] {
+  const out: Suggestion[] = [];
+  for (const s of statuses) {
+    if (s.complete) continue;
+    /* polish-hero intent → only hero / story / chapters. */
+    if (intent === 'polish-hero' && !['hero', 'story', 'chapters'].includes(s.name)) continue;
+    const level: SuggestionLevel =
+      s.name === 'hero' || s.name === 'rsvp' || s.name === 'details'
+        ? 'warning'
+        : 'suggestion';
+    const tab: EditorTab = s.name === 'story' ? 'chapters' : s.name;
+    /* Per-section copy. Each title is a clear ask; the description
+       leans on the actual note ("MISSING DATE", "Only 2 chapters")
+       so the host knows WHY this matters. */
+    const titles: Partial<Record<EditorTab, string>> = {
+      hero:      'Polish your hero section',
+      details:   "Fill in the day's details",
+      events:    'Add at least 2 schedule moments',
+      story:     'Add a couple of chapters',
+      chapters:  'Add a couple of chapters',
+      registry:  'Link your registry',
+      travel:    'Add a hotel suggestion',
+      gallery:   'Upload some photos',
+      rsvp:      'Set an RSVP deadline',
+      faq:       'Add a few FAQs',
+    };
+    const descriptions: Partial<Record<EditorTab, string>> = {
+      hero:      'Names, date, and venue should all be set — plus a tagline that isn’t the default placeholder.',
+      details:   'Dress code, RSVP deadline, and a parking note help guests show up confident.',
+      events:    'Even 2-3 short moments (Ceremony, Cocktails, Dinner) give guests the day’s shape.',
+      story:     'A short story with chapter titles + a photo or two warms the whole site up.',
+      chapters:  'A short story with chapter titles + a photo or two warms the whole site up.',
+      registry:  'A registry link or a fund URL — even just one — covers the most common guest question.',
+      travel:    'One nearby hotel with a quick note saves guests the search.',
+      gallery:   'Add a few favorite photos so guests have something to scroll through.',
+      rsvp:      'A deadline matters most — without it, Pear can’t auto-nudge non-responders.',
+      faq:       'Four short Q&A covers most of what guests will message you to ask.',
+    };
+    out.push({
+      id: `fallback-${s.name}`,
+      level,
+      title: titles[tab] ?? `Fill in ${s.name}`,
+      description: descriptions[tab] ?? s.note,
+      tab,
+    });
+  }
+  /* "missing" intent biases toward warnings only. */
+  if (intent === 'missing') {
+    return out.filter((s) => s.level === 'warning').slice(0, 8);
+  }
+  return out.slice(0, 8);
+}
+
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
   const rl = checkRateLimit(`pear-critique:${ip}`, { max: 10, windowMs: 60 * 1000 });
@@ -309,9 +371,6 @@ export async function POST(req: NextRequest) {
   }
 
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ suggestions: [], source: 'no-key' });
-  }
 
   let body: CritiqueRequest;
   try {
@@ -326,6 +385,16 @@ export async function POST(req: NextRequest) {
 
   const summary = summariseManifest(body.manifest, body.coupleNames);
   const intentHint = body.intent && INTENT_HINTS[body.intent] ? INTENT_HINTS[body.intent] : '';
+  /* Compute the same completeness map the system prompt uses so
+     the fallback path has identical data to lean on. */
+  const statuses = computeSectionStatuses(body.manifest);
+  const fallback = fallbackSuggestionsFromStatuses(statuses, body.intent);
+
+  if (!apiKey) {
+    /* No model available — return rule-based suggestions so the
+       host still gets actionable cards instead of an empty panel. */
+    return NextResponse.json({ suggestions: fallback, source: 'fallback-no-key' });
+  }
 
   try {
     const res = await fetch(`${GEMINI_FLASH}?key=${apiKey}`, {
@@ -343,7 +412,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!res.ok) {
-      return NextResponse.json({ suggestions: [], source: 'model-error' });
+      return NextResponse.json({ suggestions: fallback, source: 'fallback-model-error' });
     }
 
     const data = await res.json();
@@ -390,8 +459,16 @@ export async function POST(req: NextRequest) {
       console.warn(`[pear-critique] dropped ${droppedCount} suggestion(s) with invalid tab — keep VALID_TABS in sync with editor BLOCKS`);
     }
 
+    /* If the model returned empty (it thinks the site is complete)
+       OR the JSON parse failed entirely, fall back to rule-based
+       suggestions. The host should always see SOMETHING actionable
+       when there are real gaps in completeness — "Pear has nothing
+       to suggest yet" was misleading. */
+    if (suggestions.length === 0 && fallback.length > 0) {
+      return NextResponse.json({ suggestions: fallback, source: 'fallback-empty-ai' });
+    }
     return NextResponse.json({ suggestions, source: 'ai' });
   } catch {
-    return NextResponse.json({ suggestions: [], source: 'exception' });
+    return NextResponse.json({ suggestions: fallback, source: 'fallback-exception' });
   }
 }

@@ -3,20 +3,17 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / app/editor/[siteSlug]/EditorClient.tsx
 //
-// Editor mode router. Two modes:
-//   1. ?view=studio   → BuilderV8 (the 3-pane design studio — shell
-//                        only, reads theme/palette/motif). Good for
-//                        quick re-skinning.
-//   2. (default)      → EditorV8 — the v8 block editor: left outline,
-//                        live preview in the middle, per-block field
-//                        panel on the right.
+// Single editor mode: EditorRedesign — the prototype-faithful
+// editor with the SectionRail + PropertyRail + Pear copilot
+// layout. EditorV8 was the legacy 4,500-line shell and is now
+// retired; ?view=legacy used to reach it, but parity with the
+// redesign is complete and the legacy code is gone.
 //
-// The legacy `?view=legacy` FullscreenEditor mode was sunset
-// 2026-04-26 along with its supporting v2 components.
+// `?view=studio` still routes to BuilderV8 (the 3-pane design
+// studio for quick theme re-skins).
 // ─────────────────────────────────────────────────────────────
 
 import { useSearchParams } from 'next/navigation';
-import { EditorV8 } from '@/components/pearloom/editor/EditorV8';
 import { BuilderV8 } from '@/components/pearloom/pages/BuilderV8';
 import EditorRedesign from '@/components/pearloom/redesign/EditorRedesign';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -83,11 +80,7 @@ export default function EditorClient({ manifest, siteSlug, names }: EditorClient
     <ErrorBoundary fallback={<EditorCrashFallback siteSlug={siteSlug} />}>
       {view === 'studio' ? (
         <BuilderV8 manifest={manifest} siteSlug={siteSlug} names={names} />
-      ) : view === 'legacy' ? (
-        <EditorV8 manifest={manifest} siteSlug={siteSlug} names={names} />
       ) : (
-        // Default: the prototype-faithful redesign editor.
-        // EditorV8 still reachable at ?view=legacy during cutover.
         <EditorRedesign manifest={manifest} siteSlug={siteSlug} names={names} />
       )}
     </ErrorBoundary>

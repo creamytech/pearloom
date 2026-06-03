@@ -177,6 +177,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         >
           <Icon name="share" size={12} /> Share
         </button>
+        {manifest && <GoLiveBadge manifest={manifest} />}
         {manifest && <PublishChecklist manifest={manifest} />}
         <button type="button" className="btn btn-primary btn-sm pl-pearl-accent" onClick={onPublish}>
           Publish
@@ -218,4 +219,62 @@ function avatarInitials(name?: string | null, email?: string | null): string {
   }
   if (email) return (email.trim()[0] ?? '?').toUpperCase();
   return '?';
+}
+
+/* ─── GoLiveBadge ─────────────────────────────────────────────
+   Surfaces the Day-of broadcast feature in the topbar so hosts
+   actually find it. Three states based on manifest.logistics.date:
+     - Event day (±1): red pulsing dot + "Go live"
+     - 1-7 days out:   peach pill "Day-of · 3d"
+     - >7 days out / >1 day after: hidden entirely
+   Clicking jumps to the dayof tool panel via the existing
+   pearloom:design-jump event. */
+
+function GoLiveBadge({ manifest }: { manifest: StoryManifest }) {
+  const dateStr = manifest.logistics?.date ?? '';
+  if (!dateStr.trim()) return null;
+  const ms = Date.parse(dateStr);
+  if (Number.isNaN(ms)) return null;
+  const eventDay = new Date(ms);
+  eventDay.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysOut = Math.round((eventDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysOut > 7 || daysOut < -1) return null;
+  const isLive = daysOut <= 0 && daysOut >= -1;
+  const label = isLive ? 'Go live' : `Day-of · ${daysOut}d`;
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        if (typeof window === 'undefined') return;
+        window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { block: 'dayof' } }));
+      }}
+      title={isLive
+        ? 'Compose live broadcasts for guests on the day of your event'
+        : `${daysOut} day${daysOut === 1 ? '' : 's'} out — draft your day-of broadcasts now`}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        padding: '4px 10px',
+        borderRadius: 999,
+        background: isLive ? '#A14A2C' : 'var(--peach-bg)',
+        color: isLive ? '#fff' : 'var(--peach-ink)',
+        border: isLive ? 'none' : '1px solid rgba(198,112,61,0.18)',
+        fontSize: 11.5, fontWeight: 700,
+        cursor: 'pointer',
+        transition: 'transform 140ms',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+    >
+      <span style={{
+        width: 7, height: 7, borderRadius: '50%',
+        background: isLive ? '#fff' : 'var(--peach-ink)',
+        animation: isLive ? 'pl-dot-pulse 1.4s ease-in-out infinite' : 'none',
+        boxShadow: isLive ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none',
+      }} />
+      {label}
+    </button>
+  );
 }

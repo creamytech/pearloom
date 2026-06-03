@@ -6,7 +6,8 @@
 import { useState } from 'react';
 import { Icon } from '../motifs';
 import type { StoryManifest } from '@/types';
-import type { SectionId } from './EditorRedesign';
+import { type SectionId, isToolPanelApplicable } from './EditorRedesign';
+import { SiteModeSection } from '../editor/panels/ThemePanel';
 
 interface SectionDef {
   id: Exclude<SectionId, null>;
@@ -28,6 +29,19 @@ const SECTIONS: SectionDef[] = [
   { id: 'faq',      label: 'FAQ',       icon: 'sparkles',   desc: '6 questions answered' },
 ];
 
+/* Tool panels — surface in the rail below the canvas sections.
+   These aren't sections on the published site; they're host-only
+   tools that mount via PropertyRail's dispatch. Each one is
+   gated by isToolPanelApplicable(occasion). */
+const TOOLS: SectionDef[] = [
+  { id: 'guests',      label: 'Guests',           icon: 'user',       desc: 'Your guest list' },
+  { id: 'savetheDate', label: 'Save the date',    icon: 'calendar',   desc: 'Pre-invite teaser' },
+  { id: 'share',       label: 'Share',            icon: 'link',       desc: 'Link, QR, preview' },
+  { id: 'dayof',       label: 'Day-of',           icon: 'sparkles',   desc: 'Live broadcasts' },
+  { id: 'memorial',    label: 'Memorial',         icon: 'heart-icon', desc: 'Obituary + program' },
+  { id: 'bachelor',    label: 'Weekend planner',  icon: 'sparkles',   desc: 'Costs + polls + rooms' },
+];
+
 interface Props {
   active: SectionId;
   setActive: (id: SectionId) => void;
@@ -35,11 +49,17 @@ interface Props {
   title: string;
   slug: string;
   manifest: StoryManifest;
+  /** Optional onChange so the Pages tab can write manifest.siteMode
+   *  + homePageBlocks. When omitted, the Pages tab still renders
+   *  but its controls become read-only. */
+  onChange?: (next: StoryManifest) => void;
 }
 
-export function EditorRailLeft({ active, setActive, completion, title, slug }: Props) {
+export function EditorRailLeft({ active, setActive, completion, title, slug, manifest, onChange }: Props) {
   const [tab, setTab] = useState<'sections' | 'pages' | 'theme'>('sections');
   const [reorderingIdx, setReorderingIdx] = useState<number | null>(null);
+  const occasion = (manifest as unknown as { occasion?: string }).occasion;
+  const applicableTools = TOOLS.filter((t) => isToolPanelApplicable(t.id, occasion));
 
   return (
     <aside
@@ -148,7 +168,17 @@ export function EditorRailLeft({ active, setActive, completion, title, slug }: P
         })}
       </div>
 
+      {/* Pages tab body — site mode (scroll / multi-page) + home-
+          page block picker. Mounted from the section-panels module
+          since the same control lives in ThemePanel's Pages section. */}
+      {tab === 'pages' && onChange && (
+        <div style={{ padding: 2 }}>
+          <SiteModeSection manifest={manifest} onChange={onChange} />
+        </div>
+      )}
+
       {/* "Page sections / drag to reorder" header — prototype L185-188. */}
+      {tab === 'sections' && (
       <div
         style={{
           fontSize: 10,
@@ -166,8 +196,10 @@ export function EditorRailLeft({ active, setActive, completion, title, slug }: P
           drag to reorder
         </span>
       </div>
+      )}
 
       {/* Section list — prototype L190-222. */}
+      {tab === 'sections' && (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {SECTIONS.map((s, i) => {
           const on = s.id === active;
@@ -241,6 +273,63 @@ export function EditorRailLeft({ active, setActive, completion, title, slug }: P
           <Icon name="plus" size={11} color="var(--ink-muted)" /> Add section
         </button>
       </div>
+      )}
+
+      {/* Tools — only visible on the Sections tab so it lives
+          alongside the canvas sections. Each row mounts a host-only
+          panel (Guests / Save the date / Share / Day-of / etc.).
+          Filtered by isToolPanelApplicable so memorial sites don't
+          see Bachelor, etc. */}
+      {tab === 'sections' && applicableTools.length > 0 && (
+        <>
+          <div style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
+            textTransform: 'uppercase', color: 'var(--ink-muted)',
+            marginTop: 6, paddingTop: 10, borderTop: '1px solid var(--line-soft)',
+          }}>
+            Tools
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {applicableTools.map((s) => {
+              const on = s.id === active;
+              return (
+                <div
+                  key={s.id}
+                  onClick={() => setActive(s.id)}
+                  className="pl-rd-section-row"
+                  data-active={on}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '22px 1fr',
+                    gap: 8,
+                    alignItems: 'center',
+                    padding: '8px 10px',
+                    borderRadius: 8,
+                    background: on ? 'var(--ink)' : 'transparent',
+                    color: on ? 'var(--cream)' : 'var(--ink)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Icon name={s.icon} size={13} color={on ? 'var(--cream)' : 'var(--ink-soft)'} />
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 600 }}>{s.label}</div>
+                    <div style={{
+                      fontSize: 10.5,
+                      opacity: on ? 0.7 : 0.55,
+                      marginTop: 1,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}>
+                      {s.desc}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
     </aside>
   );
 }

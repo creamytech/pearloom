@@ -91,7 +91,7 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
   ],
 };
 
-export const DEFAULT_VARIANT: Record<Exclude<SectionId, null>, string> = {
+export const DEFAULT_VARIANT: Partial<Record<Exclude<SectionId, null>, string>> = {
   hero: 'centered',
   story: 'sidebyside',
   details: 'tiles',
@@ -103,6 +103,10 @@ export const DEFAULT_VARIANT: Record<Exclude<SectionId, null>, string> = {
   rsvp: 'centered',
   nav: 'split',
   navMobile: 'slide-in',
+  /* Tool panels (guests, savetheDate, share, dayof, memorial,
+     bachelor) have no layout variants — they're host workspaces.
+     Partial<> lets the type compile without forcing stub entries
+     for every tool. readVariant returns '' on miss. */
 };
 
 export function readVariant(
@@ -116,7 +120,7 @@ export function readVariant(
   if (layouts[section]) return layouts[section];
   const editionFallback = EDITION_LAYOUT_DEFAULTS[m?.edition ?? ''];
   if (editionFallback && editionFallback[section]) return editionFallback[section] ?? '';
-  return DEFAULT_VARIANT[section];
+  return DEFAULT_VARIANT[section] ?? '';
 }
 
 /* Read-time mirror of EditionDefinition.layoutDefaults from

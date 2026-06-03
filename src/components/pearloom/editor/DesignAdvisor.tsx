@@ -482,7 +482,7 @@ export function DesignAdvisor({
     if (!res.ok) throw new Error(`Pear couldn't read the site (${res.status})`);
     const data = (await res.json()) as { suggestions?: Array<ApiCritique | Suggestion> };
     const raw = data.suggestions ?? [];
-    if (!raw.length) throw new Error('Pear has nothing to suggest yet');
+    if (!raw.length) throw new Error('Your site looks complete to Pear — try asking it something specific in the chat.');
     const list: Suggestion[] = raw.map((item) => {
       if ('severity' in item && 'body' in item) return item as Suggestion;
       return adaptApiToLocal(item as ApiCritique);
