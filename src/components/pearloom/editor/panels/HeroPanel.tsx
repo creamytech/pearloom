@@ -8,6 +8,7 @@
    manifest.coverPhoto + manifest.coverPhotoAlt. */
 
 import type { StoryManifest } from '@/types';
+import { Icon } from '../../motifs';
 import { FGroup, FInput, FToggleStandalone, SectionPanelShell } from './_section-atoms';
 import { FDate, FSelect } from './_form-atoms';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
@@ -214,36 +215,7 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
           <div style={{ height: 8 }} />
           <FInput value={venue} onChange={setVenue} icon="pin" placeholder="Where the gathering happens" />
         </FGroup>
-        <FGroup label="Milestone (optional)" hint="A small marker above the name(s) — pick a kind and fill in.">
-          <FSelect
-            value={milestone.kind ?? 'none'}
-            onChange={(v) => setMilestone({ kind: v === 'none' ? '' : v, value: v === 'none' ? '' : milestone.value })}
-            options={[
-              { value: 'none',       label: 'No milestone',          hint: 'Hides the marker' },
-              { value: 'turning',    label: 'Turning N',             hint: 'e.g. Turning 40' },
-              { value: 'years',      label: 'N years',               hint: 'e.g. 10 years together' },
-              { value: 'class-of',   label: "Class of '95",          hint: 'Graduation / reunion' },
-              { value: 'in-memory',  label: 'In loving memory',      hint: 'Memorial dates' },
-              { value: 'custom',     label: 'Custom phrase…',        hint: 'Your own wording' },
-            ]}
-            icon="sparkles"
-          />
-          {milestone.kind && milestone.kind !== 'none' && (
-            <div style={{ marginTop: 6 }}>
-              <FInput
-                value={milestone.value ?? ''}
-                onChange={(v) => setMilestone({ value: v })}
-                placeholder={
-                  milestone.kind === 'turning'   ? '40'
-                  : milestone.kind === 'years'   ? '10'
-                  : milestone.kind === 'class-of'? '1995'
-                  : milestone.kind === 'in-memory' ? '1942 — 2026'
-                  : 'Your milestone phrase'
-                }
-              />
-            </div>
-          )}
-        </FGroup>
+        <MilestoneDisclosure milestone={milestone} setMilestone={setMilestone} />
         <CoverPhotoField url={coverPhoto} onChange={setCoverPhoto} pool={photoPool} hint={v.hero.coverGroupHint} />
         <FGroup label="Primary button" hint="The first CTA — pick where it goes, then optionally rename it.">
           <CtaLinkEditor
@@ -269,3 +241,88 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
 }
 
 export default HeroPanel;
+
+/* ─── MilestoneDisclosure ─────────────────────────────────────
+   Collapsed by default — appears as a single "Add a milestone"
+   button. Tapping reveals the FSelect + value input. The host
+   never sees the full milestone UI unless they want it.
+   "Remove" returns the panel to the compact state. */
+
+function MilestoneDisclosure({
+  milestone, setMilestone,
+}: {
+  milestone: { kind?: string; value?: string };
+  setMilestone: (next: { kind?: string; value?: string }) => void;
+}) {
+  const hasMilestone = !!(milestone.kind && milestone.kind !== 'none');
+  if (!hasMilestone) {
+    return (
+      <FGroup label="Milestone" hint="Optional — a small marker above the name(s) like “Turning 40” or “Class of '95”.">
+        <button
+          type="button"
+          onClick={() => setMilestone({ kind: 'turning', value: '' })}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7,
+            padding: '8px 14px', borderRadius: 999,
+            background: 'transparent',
+            border: '1.5px dashed var(--line)',
+            fontSize: 12.5, fontWeight: 600, color: 'var(--ink-soft)',
+            cursor: 'pointer',
+            alignSelf: 'flex-start',
+            transition: 'border-color 140ms, color 140ms',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--peach-ink)'; e.currentTarget.style.color = 'var(--peach-ink)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.color = 'var(--ink-soft)'; }}
+        >
+          <Icon name="plus" size={12} />
+          Add a milestone
+        </button>
+      </FGroup>
+    );
+  }
+  return (
+    <FGroup
+      label="Milestone"
+      hint="Pick the kind, then fill in the value. Appears as a pill above the names on the canvas."
+      action={
+        <button
+          type="button"
+          onClick={() => setMilestone({ kind: '', value: '' })}
+          style={{
+            fontSize: 11, fontWeight: 600, color: 'var(--ink-muted)',
+            background: 'transparent', border: 'none', cursor: 'pointer',
+            padding: '2px 6px',
+          }}
+        >
+          Remove
+        </button>
+      }
+    >
+      <FSelect
+        value={milestone.kind ?? 'turning'}
+        onChange={(v) => setMilestone({ kind: v, value: milestone.value })}
+        options={[
+          { value: 'turning',    label: 'Turning N',             hint: 'e.g. Turning 40' },
+          { value: 'years',      label: 'N years',               hint: 'e.g. 10 years together' },
+          { value: 'class-of',   label: "Class of '95",          hint: 'Graduation / reunion' },
+          { value: 'in-memory',  label: 'In loving memory',      hint: 'Memorial dates' },
+          { value: 'custom',     label: 'Custom phrase…',        hint: 'Your own wording' },
+        ]}
+        icon="sparkles"
+      />
+      <div style={{ marginTop: 6 }}>
+        <FInput
+          value={milestone.value ?? ''}
+          onChange={(v) => setMilestone({ value: v })}
+          placeholder={
+            milestone.kind === 'turning'   ? '40'
+            : milestone.kind === 'years'   ? '10'
+            : milestone.kind === 'class-of'? '1995'
+            : milestone.kind === 'in-memory' ? '1942 — 2026'
+            : 'Your milestone phrase'
+          }
+        />
+      </div>
+    </FGroup>
+  );
+}

@@ -209,6 +209,36 @@ const BLOCKS_BY_KEY: Record<BlockKey, BlockDef> = BLOCKS.reduce((acc, b) => ({ .
 
 const REORDERABLE_KEYS: BlockKey[] = BLOCKS.filter((b) => b.reorderable).map((b) => b.key);
 
+/* Event-type-aware tool-panel filter — which blocks appear in
+   the section rail per occasion. The 4 universal tool panels
+   (Guests, Share, Day-of) + every canvas section always show.
+   The 3 occasion-specific panels filter in/out:
+
+   - Memorial:    only for memorial / funeral occasions
+   - Bachelor:    for bachelor/ette + bridal-shower + reunion +
+                  sip-and-see (the "weekend with friends" cluster)
+   - Save-the-date: hides for memorial/funeral (you don't pre-
+                  announce a death) — every other event uses it.
+
+   Canvas sections (story, details, schedule, travel, registry,
+   gallery, rsvp, faq, toasts) are universally available and
+   re-skin per voice — see _voice-pack.ts. The host can still
+   hide individual sections via the eye-off button. */
+
+const OCCASION_PANEL_RULES: Partial<Record<BlockKey, (occasion?: string) => boolean>> = {
+  memorial: (occ) => occ === 'memorial' || occ === 'funeral',
+  bachelor: (occ) => occ === 'bachelor-party' || occ === 'bachelorette-party'
+                  || occ === 'bridal-shower'  || occ === 'reunion'
+                  || occ === 'sip-and-see',
+  savetheDate: (occ) => occ !== 'memorial' && occ !== 'funeral',
+};
+
+function isBlockApplicable(key: BlockKey, occasion?: string): boolean {
+  const rule = OCCASION_PANEL_RULES[key];
+  if (!rule) return true; // universal blocks pass through
+  return rule(occasion);
+}
+
 /* Tool-only block keys — these aren't canvas sections so they
    bypass the content/layout/style tab split and render their
    panel directly (same treatment as Theme + Toasts). */
@@ -1376,7 +1406,7 @@ export function EditorV8({
           which PearCommand listens for. */}
       <CommandPalette
         manifest={manifest}
-        sections={BLOCKS.map((b) => ({ key: b.key, label: b.label, description: b.description }))}
+        sections={BLOCKS.filter((b) => isBlockApplicable(b.key, occasion)).map((b) => ({ key: b.key, label: b.label, description: b.description }))}
         onPatchManifest={onManifestChange}
         onJumpSection={(k) => setBlock(k as BlockKey)}
         onOpenThemeShop={() => setThemeShopOpen(true)}
@@ -1974,6 +2004,7 @@ function EditorTopbar({
         <button className="btn btn-outline btn-sm" onClick={onOpenThemeShop} title="Browse theme packs">
           <Icon name="share" size={12}/> Share
         </button>
+        <GoLiveBadge manifest={manifest} onJump={onJumpBlock} />
         <PublishChecklist manifest={manifest} />
         <button className="btn btn-primary btn-sm pl-pearl-accent" onClick={onPublishClick} data-tour-anchor="publish">
           Publish
@@ -1981,7 +2012,11 @@ function EditorTopbar({
         </button>
         <div style={{ width: 1, height: 18, background: 'var(--line-soft)' }}/>
         {/* Section breadcrumb retained for quick-jump (production-only addition). */}
-        <SectionBreadcrumb currentBlock={currentBlock} onJump={onJumpBlock} />
+        <SectionBreadcrumb
+          currentBlock={currentBlock}
+          onJump={onJumpBlock}
+          occasion={(manifest as unknown as { occasion?: string }).occasion}
+        />
         <PearNudges manifest={manifest} siteSlug={siteSlug} />
         <button
           type="button"
@@ -2093,9 +2128,14 @@ function EditorTopbar({
 function SectionBreadcrumb({
   currentBlock,
   onJump,
+  occasion,
 }: {
   currentBlock: BlockKey;
   onJump: (k: BlockKey) => void;
+  /** Active occasion drives which tool panels are visible in the
+   *  Jump-to-section dropdown. Memorial sites don't see Save-the-
+   *  date or Bachelor; bachelor parties don't see Memorial; etc. */
+  occasion?: string;
 }) {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -2248,7 +2288,7 @@ function SectionBreadcrumb({
             Jump to section
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {BLOCKS.map((b) => {
+            {BLOCKS.filter((b) => isBlockApplicable(b.key, occasion)).map((b) => {
               const isCurrent = b.key === currentBlock;
               return (
                 <button
@@ -4260,7 +4300,7 @@ function PanelSwitch({
     case 'gallery':
       return <GalleryPanel manifest={manifest} onChange={onChange} />;
     case 'rsvp':
-      return <RsvpPanel manifest={manifest} onChange={onChange} />;
+      return <RsvpPanel manifest={manifest} onChange={onChange} siteSlug={siteSlug} />;
     case 'faq':
       return <FaqPanel manifest={manifest} onChange={onChange} />;
     case 'toasts':
@@ -4453,5 +4493,73 @@ function MobileTabbar({
         <span>{blockLabel.length > 8 ? 'Edit' : blockLabel}</span>
       </button>
     </div>
+  );
+}
+
+/* ─── GoLiveBadge ─────────────────────────────────────────────
+   Surfaces the Day-of broadcast feature in the topbar so hosts
+   actually find it. Three states:
+
+   - **Day of**: red live-dot pulse, "Go live" label. Clicking
+     jumps to the dayof panel. Active when today's date matches
+     manifest.logistics.date (forgiving within ±1 day).
+   - **3 days out / next 7 days**: peach badge, "Day-of broadcasts"
+     hint — encourages the host to draft messages in advance.
+   - **Otherwise**: button hidden entirely. Don't clutter the
+     topbar for hosts whose event is months away. */
+
+function GoLiveBadge({ manifest, onJump }: {
+  manifest: StoryManifest;
+  onJump: (k: BlockKey) => void;
+}) {
+  const dateStr = manifest.logistics?.date ?? '';
+  if (!dateStr.trim()) return null;
+  const ms = Date.parse(dateStr);
+  if (Number.isNaN(ms)) return null;
+  const eventDay = new Date(ms);
+  eventDay.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysOut = Math.round((eventDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+  /* Show only within the 7-day window before the event, or on
+     the event day itself, or up to 1 day after (post-event
+     broadcasts are still useful). */
+  if (daysOut > 7 || daysOut < -1) return null;
+
+  const isLive = daysOut <= 0 && daysOut >= -1;
+  const label = isLive ? 'Go live' : `Day-of · ${daysOut}d`;
+  const bg = isLive ? '#A14A2C' : 'var(--peach-bg)';
+  const fg = isLive ? '#fff' : 'var(--peach-ink)';
+
+  return (
+    <button
+      type="button"
+      onClick={() => onJump('dayof')}
+      title={isLive
+        ? 'Compose live broadcasts for guests on the day of your event'
+        : `${daysOut} day${daysOut === 1 ? '' : 's'} out — draft your day-of broadcasts now`}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        padding: '4px 10px',
+        borderRadius: 999,
+        background: bg,
+        color: fg,
+        border: isLive ? 'none' : '1px solid rgba(198,112,61,0.18)',
+        fontSize: 11.5, fontWeight: 700,
+        cursor: 'pointer',
+        transition: 'transform 140ms',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+    >
+      <span style={{
+        width: 7, height: 7, borderRadius: '50%',
+        background: isLive ? '#fff' : 'var(--peach-ink)',
+        animation: isLive ? 'pl-dot-pulse 1.4s ease-in-out infinite' : 'none',
+        boxShadow: isLive ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none',
+      }} />
+      {label}
+    </button>
   );
 }

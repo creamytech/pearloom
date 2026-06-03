@@ -62,30 +62,52 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
         <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
           <FInput value={galleryEyebrow} onChange={setGalleryEyebrow} placeholder="Gallery" />
         </FGroup>
-        <FGroup label={`Photos · ${photos.length}`} hint="Drag photos in, or click any slot to pick from your device.">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
-            {Array.from({ length: renderCount }).map((_, i) => (
-              <PhotoUploadSlot
-                key={i}
-                url={photos[i] ?? ''}
-                onChange={(url) => setPhoto(i, url)}
-                aspectRatio="1/1"
-                size="sm"
-                pool={photoPool}
-              />
-            ))}
-            {photos.length >= renderCount && (
-              <PhotoUploadSlot
-                key="add-more"
-                url=""
-                onChange={addPhoto}
-                aspectRatio="1/1"
-                size="sm"
-                pool={photoPool}
-              />
+        {photos.length === 0 ? (
+          /* Empty state — instead of 6 visually-broken empty slots,
+             one big inviting drop zone. Same drag-drop / click
+             affordance, but communicates that the section starts
+             EMPTY by design. */
+          <FGroup label="Photos" hint="A favorite shot of the two of you, a venue, your dog — anything you want guests to see.">
+            <PhotoUploadSlot
+              url=""
+              onChange={addPhoto}
+              aspectRatio="3/2"
+              size="md"
+              pool={photoPool}
+              hint="Drop a photo here, or click to pick from your device. We'll line them up nicely on the canvas."
+            />
+            {photoPool.length > 0 && (
+              <div style={{ marginTop: 6, fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
+                Tip: tap the “Pick from gallery” chip above to reuse a photo you've already uploaded elsewhere.
+              </div>
             )}
-          </div>
-        </FGroup>
+          </FGroup>
+        ) : (
+          <FGroup label={`Photos · ${photos.length}`} hint="Drag photos in, or click any slot to pick from your device.">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+              {Array.from({ length: renderCount }).map((_, i) => (
+                <PhotoUploadSlot
+                  key={i}
+                  url={photos[i] ?? ''}
+                  onChange={(url) => setPhoto(i, url)}
+                  aspectRatio="1/1"
+                  size="sm"
+                  pool={photoPool}
+                />
+              ))}
+              {photos.length >= renderCount && (
+                <PhotoUploadSlot
+                  key="add-more"
+                  url=""
+                  onChange={addPhoto}
+                  aspectRatio="1/1"
+                  size="sm"
+                  pool={photoPool}
+                />
+              )}
+            </div>
+          </FGroup>
+        )}
         <FToggleStandalone
           label="Guest photo uploads"
           sub="Let guests add to a shared album"

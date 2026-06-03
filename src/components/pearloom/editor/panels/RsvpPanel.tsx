@@ -6,6 +6,7 @@
    dietary, songRequest, plusOne} — the canonical shape the RSVP
    form + canvas read. */
 
+import { useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
 import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
@@ -26,7 +27,7 @@ interface RsvpConfig {
   mealOptions?: MealOption[];
 }
 
-export function RsvpPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+export function RsvpPanel({ manifest, onChange, siteSlug }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; siteSlug?: string }) {
   const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'rsvp');
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const mealSet = mealOptionSuggestions(occasion);
@@ -84,6 +85,7 @@ export function RsvpPanel({ manifest, onChange }: { manifest: StoryManifest; onC
         </FGroup>
         {config.mealChoice && (
           <FGroup label={`Meal options · ${mealOptions.length}`} hint="These show up as pills on the guest RSVP form.">
+            <MealCounts siteSlug={siteSlug} mealOptions={mealOptions.map((o) => o.name)} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {mealOptions.map((o, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -180,6 +182,75 @@ function ReminderCadencePicker({
       />
       <div style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
         {HINTS[value]}
+      </div>
+    </div>
+  );
+}
+
+/* ─── MealCounts ──────────────────────────────────────────────
+   Live count of how many guests have picked each meal option.
+   Fetches /api/guests once on mount; renders nothing when there
+   are no responses yet (no point showing "Chicken: 0 · Fish: 0")
+   or when siteSlug is missing. */
+
+function MealCounts({ siteSlug, mealOptions }: { siteSlug?: string; mealOptions: string[] }) {
+  const [counts, setCounts] = useState<Record<string, number> | null>(null);
+
+  useEffect(() => {
+    if (!siteSlug) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/guests?siteSlug=${encodeURIComponent(siteSlug)}`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json() as { guests?: Array<{ status?: string; mealPreference?: string | null }> };
+        const guests = data.guests ?? [];
+        const tally: Record<string, number> = {};
+        for (const g of guests) {
+          if (g.status !== 'attending' || !g.mealPreference) continue;
+          const key = g.mealPreference.trim();
+          if (!key) continue;
+          tally[key] = (tally[key] ?? 0) + 1;
+        }
+        if (!cancelled) setCounts(tally);
+      } catch { /* ignore — counts stay null */ }
+    })();
+    return () => { cancelled = true; };
+  }, [siteSlug]);
+
+  if (!counts) return null;
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  if (total === 0) return null;
+
+  return (
+    <div style={{
+      marginBottom: 10, padding: '8px 10px',
+      borderRadius: 9,
+      background: 'var(--sage-bg)',
+      border: '1px solid rgba(92,107,63,0.18)',
+    }}>
+      <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--sage-deep)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
+        Picks so far · {total} guest{total === 1 ? '' : 's'}
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {mealOptions.map((m) => {
+          const n = counts[m] ?? 0;
+          return (
+            <span
+              key={m}
+              style={{
+                fontSize: 11, fontWeight: 600,
+                color: n > 0 ? 'var(--sage-deep)' : 'var(--ink-muted)',
+                padding: '3px 8px', borderRadius: 999,
+                background: n > 0 ? '#fff' : 'transparent',
+                border: n > 0 ? '1px solid rgba(92,107,63,0.18)' : '1px dashed var(--line)',
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {m} · {n}
+            </span>
+          );
+        })}
       </div>
     </div>
   );

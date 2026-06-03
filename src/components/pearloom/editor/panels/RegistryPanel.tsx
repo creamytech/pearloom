@@ -250,6 +250,31 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
           </FGroup>
         )}
 
+        {!isProgress && (mode === 'fund' || mode === 'tip-jar') && (
+          /* Discoverability hint for the Progress layout. Hosts on
+             cards/chips/logo-wall layouts don't realize the fund
+             modes have a dedicated visual with a real progress bar.
+             Only surfaced for fund/tip-jar modes since the bar
+             makes no sense for gifts/wishlist. */
+          <div
+            style={{
+              display: 'flex', gap: 10, alignItems: 'flex-start',
+              padding: 10, borderRadius: 10,
+              background: 'var(--peach-bg)',
+              border: '1px solid rgba(198,112,61,0.18)',
+            }}
+          >
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--peach-ink)', marginBottom: 2 }}>
+                Show a progress bar?
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
+                The <strong>Progress</strong> layout adds a fund-funded percentage and a peach bar to this section. Switch in the Layout tab to enable it.
+              </div>
+            </div>
+          </div>
+        )}
+
         <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Registry" />
       </div>
     </SectionPanelShell>

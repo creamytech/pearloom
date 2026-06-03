@@ -55,15 +55,25 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
     setCards([...cards, ['New detail', '']]);
   };
 
-  const kidsWelcome = ((manifest as unknown as { kidsWelcome?: boolean }).kidsWelcome) ?? false;
-  const adultsOnly = ((manifest as unknown as { adultsOnly?: boolean }).adultsOnly) ?? true;
+  /* Audience toggles — "kids welcome" and "plus-ones welcome" run
+     as parallel inclusion toggles. We dropped the old "adults-only
+     evening" toggle that was logically inconsistent with "kids
+     welcome" (they fought each other) — back-compat: legacy
+     adultsOnly: true is normalized to kidsWelcome: false on first
+     read so existing manifests still behave correctly. */
+  const looseAud = manifest as unknown as { kidsWelcome?: boolean; adultsOnly?: boolean; plusOnesWelcome?: boolean };
+  const kidsWelcome = looseAud.kidsWelcome ?? !looseAud.adultsOnly;
+  const plusOnesWelcome = looseAud.plusOnesWelcome ?? true;
   const setKidsWelcome = (v: boolean) => onChange({
     ...(manifest as unknown as Record<string, unknown>),
     kidsWelcome: v,
+    /* Keep legacy adultsOnly in sync so any other surface still
+       reading it gets the right answer. */
+    adultsOnly: !v,
   } as unknown as StoryManifest);
-  const setAdultsOnly = (v: boolean) => onChange({
+  const setPlusOnesWelcome = (v: boolean) => onChange({
     ...(manifest as unknown as Record<string, unknown>),
-    adultsOnly: v,
+    plusOnesWelcome: v,
   } as unknown as StoryManifest);
 
   return (
@@ -91,8 +101,21 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
             </div>
           )}
         </FGroup>
-        <FToggleStandalone label="Kids welcome" sub="Shown on the details card" def={kidsWelcome} onChange={setKidsWelcome} />
-        <FToggleStandalone label="Adults-only evening" def={adultsOnly} onChange={setAdultsOnly} />
+        <FGroup label="Who's welcome" hint="Two simple toggles guests scan in seconds.">
+          <FToggleStandalone
+            label="Kids welcome"
+            sub={kidsWelcome ? 'Family-friendly — bring the little ones.' : 'No kids — grown-ups only.'}
+            def={kidsWelcome}
+            onChange={setKidsWelcome}
+          />
+          <div style={{ height: 6 }} />
+          <FToggleStandalone
+            label="Plus-ones welcome"
+            sub={plusOnesWelcome ? 'Guests can bring a partner.' : 'Single invites only.'}
+            def={plusOnesWelcome}
+            onChange={setPlusOnesWelcome}
+          />
+        </FGroup>
         <FGroup label="Good-to-know cards" hint="Up to three quick facts.">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {cards.map(([l, v], i) => (

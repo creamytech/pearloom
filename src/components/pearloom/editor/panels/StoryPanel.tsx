@@ -415,8 +415,8 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
         </FGroup>
 
         <FGroup
-          label="Highlight chips"
-          hint="The first 3 chips show as chapter-card eyebrows on the canvas (one per card). Extras stay on the manifest for variants that render them as a pill row."
+          label={`Highlight chips · ${chips.length}`}
+          hint="Short labels above each chapter. The first 3 show as chapter eyebrows on the canvas; extras render as a pill row in some layouts."
           action={
             <button
               type="button"
@@ -438,134 +438,65 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
             </button>
           }
         >
-          {/* Three numbered slots — each one maps to a chapter card
-              on the timeline variant. The host can see at a glance
-              which chip is "Card 1", "Card 2", "Card 3". Empty
-              slots show an inline input; filled slots show a pill
-              with × to clear. */}
+          {/* Unified chip list — one flat list of all chips, in
+              order. Chips 1-3 get a small "Card N" tag because
+              those show as chapter eyebrows on the canvas; 4+
+              get a dashed "Extra" tag (visible on some variants
+              as a pill row). One Add input below the list. */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {[0, 1, 2].map((slot) => {
-              const filled = chips[slot];
+            {chips.map((c, i) => {
+              const isCard = i < 3;
               return (
                 <div
-                  key={slot}
+                  key={`${c}-${i}`}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '8px 11px',
-                    borderRadius: 10,
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '7px 11px', borderRadius: 10,
                     background: 'var(--cream-2)',
-                    border: '1px solid var(--line)',
+                    border: isCard ? '1px solid var(--line)' : '1px dashed var(--line)',
                   }}
                 >
                   <span
                     aria-hidden
                     style={{
                       width: 22, height: 22, borderRadius: 999,
-                      background: filled ? 'var(--lavender-bg)' : 'var(--cream)',
-                      color: 'var(--lavender-ink)',
+                      background: isCard ? 'var(--lavender-bg)' : 'var(--cream-3)',
+                      color: isCard ? 'var(--lavender-ink)' : 'var(--ink-muted)',
                       display: 'grid', placeItems: 'center',
                       fontSize: 10.5, fontWeight: 700,
                       flexShrink: 0,
                     }}
                   >
-                    {slot + 1}
+                    {i + 1}
                   </span>
-                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-muted)', flexShrink: 0, minWidth: 60 }}>
-                    Card {slot + 1}
+                  <span style={{
+                    fontSize: 9.5, fontWeight: 700,
+                    letterSpacing: '0.18em', textTransform: 'uppercase',
+                    color: isCard ? 'var(--ink-muted)' : 'var(--peach-ink)',
+                    flexShrink: 0, minWidth: 44,
+                  }}>
+                    {isCard ? `Card ${i + 1}` : 'Extra'}
                   </span>
-                  {filled ? (
-                    <>
-                      <span style={{ flex: 1, fontSize: 12.5, color: 'var(--ink)', fontWeight: 600, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {filled}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => patch({ chips: chips.filter((_, idx) => idx !== slot) })}
-                        aria-label={`Clear card ${slot + 1}`}
-                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4, display: 'inline-flex', alignItems: 'center', color: 'var(--ink-muted)', flexShrink: 0 }}
-                      >
-                        <Icon name="close" size={11} color="var(--ink-muted)" />
-                      </button>
-                    </>
-                  ) : (
-                    <input
-                      value={slot === chips.length ? draft : ''}
-                      onChange={(e) => slot === chips.length && setDraft(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (slot !== chips.length) return;
-                        if (e.key === 'Enter' && draft.trim()) {
-                          e.preventDefault();
-                          addChip(draft);
-                          setDraft('');
-                        }
-                      }}
-                      onFocus={() => { /* slot must be next-up; if not, no-op */ }}
-                      placeholder={slot === chips.length ? `Fill card ${slot + 1}…` : `Fill card ${chips.length + 1} first`}
-                      disabled={slot !== chips.length}
-                      style={{
-                        flex: 1, minWidth: 0,
-                        padding: '4px 0', border: 'none', background: 'transparent',
-                        fontSize: 12.5, color: 'var(--ink)',
-                        outline: 'none',
-                        opacity: slot === chips.length ? 1 : 0.5,
-                      }}
-                    />
-                  )}
+                  <span style={{ flex: 1, fontSize: 12.5, color: 'var(--ink)', fontWeight: 600, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {c}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => patch({ chips: chips.filter((_, idx) => idx !== i) })}
+                    aria-label={`Remove ${c}`}
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4, display: 'inline-flex', alignItems: 'center', color: 'var(--ink-muted)', flexShrink: 0 }}
+                  >
+                    <Icon name="close" size={11} color="var(--ink-muted)" />
+                  </button>
                 </div>
               );
             })}
-          </div>
 
-          {/* Overflow chips beyond the 3 chapter slots — these stay
-              on the manifest (other variants may render them as a
-              pill row below the title) but won't show on the
-              chapter-eyebrow timeline / zigzag / sidebyside chip
-              rendering. Surface them with an explicit warning so
-              the host knows what they do. */}
-          {chips.length > 3 && (
-            <div style={{ marginTop: 12 }}>
-              <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--peach-ink)', marginBottom: 6 }}>
-                Extra chips · won't appear as chapter eyebrows
-              </div>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                {chips.slice(3).map((c, idx) => {
-                  const i = idx + 3;
-                  return (
-                    <span
-                      key={`${c}-${i}`}
-                      style={{
-                        fontSize: 11.5, fontWeight: 600,
-                        padding: '5px 10px', borderRadius: 999,
-                        background: 'var(--cream-2)', color: 'var(--ink-soft)',
-                        border: '1px dashed var(--line)',
-                        display: 'inline-flex', gap: 5, alignItems: 'center',
-                      }}
-                    >
-                      {c}
-                      <button
-                        type="button"
-                        onClick={() => patch({ chips: chips.filter((_, idx2) => idx2 !== i) })}
-                        aria-label={`Remove ${c}`}
-                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'inline-flex', color: 'var(--ink-muted)' }}
-                      >
-                        <Icon name="close" size={9} color="var(--ink-muted)" />
-                      </button>
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Free-text add row at the bottom — only enabled when
-              there are < 3 slots filled (otherwise the inline
-              slot input is the entry point). For overflow chips
-              (chip[3+]) hosts can type here even when slots are
-              full. */}
-          {chips.length >= 3 && (
-            <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+            {/* Single Add input — always at the bottom of the list.
+                No 3-slot gating, no overflow gymnastics, no
+                disabled states. Type → Enter (or Add button) →
+                appended. */}
+            <div style={{ display: 'flex', gap: 6, marginTop: chips.length > 0 ? 2 : 0 }}>
               <input
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
@@ -576,7 +507,7 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
                     setDraft('');
                   }
                 }}
-                placeholder="Add another chip (extra)…"
+                placeholder={chips.length === 0 ? 'Type a chip and press Enter…' : `Add another chip…`}
                 style={{ flex: 1, padding: '8px 11px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--cream-2)', fontSize: 12.5, outline: 'none' }}
               />
               <button
@@ -585,50 +516,44 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
                 disabled={!draft.trim()}
                 style={{
                   padding: '8px 14px', borderRadius: 10,
-                  background: draft.trim() ? 'var(--peach-bg)' : 'var(--cream-2)',
-                  color: draft.trim() ? 'var(--peach-ink)' : 'var(--ink-muted)',
-                  border: '1px solid var(--line)', fontSize: 12, fontWeight: 700,
+                  background: draft.trim() ? 'var(--peach-ink)' : 'var(--cream-2)',
+                  color: draft.trim() ? '#fff' : 'var(--ink-muted)',
+                  border: 'none', fontSize: 12, fontWeight: 700,
                   cursor: draft.trim() ? 'pointer' : 'not-allowed',
                 }}
               >
                 Add
               </button>
             </div>
-          )}
+          </div>
 
-          {/* Derived chips — tap to add. Hidden when none. */}
-          {localSuggestions.length > 0 && (
-            <div style={{ marginTop: 10 }}>
-              <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', marginBottom: 6 }}>
-                From your story
+          {/* Suggested chips — local + Pear, merged into one row
+              of tap-to-add pills. Local chips read in muted ink;
+              Pear chips read in peach. */}
+          {(localSuggestions.length > 0 || aiVisible.length > 0) && (
+            <div style={{ marginTop: 12 }}>
+              <div style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--ink-muted)', marginBottom: 6, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                {aiVisible.length > 0 && <Icon name="sparkles" size={10} color="var(--gold)" />}
+                Suggested
               </div>
               <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                 {localSuggestions.map((c) => (
                   <button
-                    key={c}
+                    key={`local-${c}`}
                     type="button"
                     onClick={() => addChip(c)}
+                    title="From your story"
                     style={{ fontSize: 11.5, fontWeight: 600, padding: '4px 10px', borderRadius: 999, background: 'var(--cream-2)', color: 'var(--ink-soft)', border: '1px solid var(--line)', cursor: 'pointer' }}
                   >
                     + {c}
                   </button>
                 ))}
-              </div>
-            </div>
-          )}
-
-          {/* Pear-suggested chips — tap to add. */}
-          {aiVisible.length > 0 && (
-            <div style={{ marginTop: 10 }}>
-              <div style={{ fontSize: 10.5, color: 'var(--peach-ink)', marginBottom: 6, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                <Icon name="sparkles" size={10} color="var(--gold)" /> Pear suggested
-              </div>
-              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                 {aiVisible.map((c) => (
                   <button
-                    key={c}
+                    key={`ai-${c}`}
                     type="button"
                     onClick={() => addChip(c)}
+                    title="Suggested by Pear"
                     style={{ fontSize: 11.5, fontWeight: 600, padding: '4px 10px', borderRadius: 999, background: 'var(--peach-bg)', color: 'var(--peach-ink)', border: '1px solid var(--peach-ink)', cursor: 'pointer' }}
                   >
                     + {c}

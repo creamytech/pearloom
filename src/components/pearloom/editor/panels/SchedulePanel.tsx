@@ -150,6 +150,7 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
 
         {!multiDay && (
           <FGroup label={`Timeline · ${events.length} moments`} action={<BuildFromNotesButton onAppend={(drafted) => writeEvents([...events, ...drafted])} />}>
+            <MiniTimeline events={events} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {events.map((e, i) => <ScheduleRow
                 key={e.id ?? i}
@@ -400,4 +401,98 @@ function BuildFromNotesButton({ onAppend }: { onAppend: (events: WeddingEvent[])
       )}
     </span>
   );
+}
+
+/* ─── MiniTimeline ────────────────────────────────────────────
+   Horizontal preview strip above the event list. Each event is
+   a small lavender dot positioned by parsed time, with the
+   event name above. Visualizes the day-shape before the host
+   even saves. Falls back to evenly-spaced dots when times can't
+   be parsed.
+
+   Parses "4:30 pm", "16:30", "4 pm" — anything Date.parse can
+   make sense of when prefixed with a dummy date. */
+
+function parseTimeOfDay(time: string): number | null {
+  if (!time?.trim()) return null;
+  /* Match hh[:mm] [am|pm] with optional minutes. */
+  const m = /^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/i.exec(time.trim());
+  if (!m) return null;
+  let h = parseInt(m[1], 10);
+  const min = m[2] ? parseInt(m[2], 10) : 0;
+  const meridiem = m[3]?.toLowerCase();
+  if (meridiem === 'pm' && h < 12) h += 12;
+  if (meridiem === 'am' && h === 12) h = 0;
+  if (h < 0 || h > 23 || min < 0 || min > 59) return null;
+  return h + min / 60;
+}
+
+function MiniTimeline({ events }: { events: WeddingEvent[] }) {
+  if (events.length < 2) return null;
+  const parsed = events.map((e) => ({ event: e, hours: parseTimeOfDay(e.time ?? '') }));
+  const withTimes = parsed.filter((p) => p.hours !== null);
+  /* Need at least 2 events with valid times to plot a meaningful
+     timeline; otherwise the visualization adds no information. */
+  if (withTimes.length < 2) return null;
+  const minH = Math.min(...withTimes.map((p) => p.hours!));
+  const maxH = Math.max(...withTimes.map((p) => p.hours!));
+  const span = Math.max(1, maxH - minH);
+  return (
+    <div style={{
+      marginBottom: 12, padding: '12px 10px 6px',
+      borderRadius: 10,
+      background: 'var(--cream-2)',
+      border: '1px solid var(--line-soft)',
+    }}>
+      <div style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--ink-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 8 }}>
+        Day shape
+      </div>
+      <div style={{ position: 'relative', height: 28 }}>
+        {/* baseline */}
+        <div style={{
+          position: 'absolute',
+          left: 8, right: 8, top: 14,
+          height: 2, borderRadius: 1,
+          background: 'var(--line)',
+        }} />
+        {/* event dots */}
+        {parsed.map((p, i) => {
+          if (p.hours === null) return null;
+          const pct = ((p.hours - minH) / span) * 100;
+          return (
+            <div
+              key={p.event.id ?? i}
+              title={`${p.event.time} · ${p.event.name}`}
+              style={{
+                position: 'absolute',
+                left: `calc(${pct}% - 4px + 8px * (1 - ${pct / 100}) - 4px * ${pct / 100})`,
+                top: 10,
+                width: 10, height: 10, borderRadius: '50%',
+                background: 'var(--lavender-ink)',
+                border: '2px solid var(--cream-2)',
+                boxShadow: '0 0 0 1px var(--lavender-ink)',
+              }}
+            />
+          );
+        })}
+      </div>
+      {/* Range labels */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between',
+        fontSize: 10, color: 'var(--ink-muted)',
+        marginTop: 4, fontVariantNumeric: 'tabular-nums',
+      }}>
+        <span>{formatHour(minH)}</span>
+        <span>{formatHour(maxH)}</span>
+      </div>
+    </div>
+  );
+}
+
+function formatHour(h: number): string {
+  const hours = Math.floor(h);
+  const mins = Math.round((h - hours) * 60);
+  const display = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+  const meridiem = hours >= 12 ? 'pm' : 'am';
+  return mins === 0 ? `${display} ${meridiem}` : `${display}:${String(mins).padStart(2, '0')} ${meridiem}`;
 }
