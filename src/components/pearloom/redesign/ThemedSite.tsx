@@ -2337,11 +2337,29 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
          hotels saved. */
       const hostHotels = manifest.travelInfo?.hotels ?? [];
       const TONES: PhotoTone[] = ['warm', 'lavender', 'sage', 'peach', 'dusk', 'cream'];
+      /* Normalize Google Places priceLevel enum strings into the
+         $/$$/$$$/$$$$ format hosts (and guests) actually read. */
+      const formatPrice = (raw?: string, range?: { start?: number; end?: number; currency?: string }): string => {
+        if (raw) {
+          switch (raw) {
+            case 'PRICE_LEVEL_FREE':           return '';
+            case 'PRICE_LEVEL_INEXPENSIVE':    return '$';
+            case 'PRICE_LEVEL_MODERATE':       return '$$';
+            case 'PRICE_LEVEL_EXPENSIVE':      return '$$$';
+            case 'PRICE_LEVEL_VERY_EXPENSIVE': return '$$$$';
+            default:
+              /* Already formatted as $$$ or similar — pass through. */
+              if (/^\$+$/.test(raw)) return raw;
+          }
+        }
+        if (range?.start && range?.end) {
+          return `${range.currency ?? '$'}${range.start}–${range.end}`;
+        }
+        return '—';
+      };
       const mapped = hostHotels.map((h, i) => ({
         name: h.name || 'Hotel',
-        price: h.priceLevel || (h.priceRange?.start && h.priceRange?.end
-          ? `${h.priceRange.currency ?? '$'}${h.priceRange.start}–${h.priceRange.end}`
-          : '—'),
+        price: formatPrice(h.priceLevel, h.priceRange),
         rating: typeof h.rating === 'number' ? h.rating : 0,
         reviews: typeof h.ratingCount === 'number' ? h.ratingCount : 0,
         dist: h.distance || '',

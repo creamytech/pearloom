@@ -46,6 +46,13 @@ export interface ScheduleCopy {
 export interface Hotel {
   name: string; price: string; rating: number; reviews: number;
   dist: string; tone: PhotoTone; blurb: string; amenities: string[];
+  /** Real Google Places photo URL (or any host-supplied image).
+   *  When present, variants render this instead of the tone
+   *  gradient placeholder. */
+  photoUrl?: string;
+  /** Click-through booking link. When set, variants wrap the
+   *  card in <a href>. */
+  bookingUrl?: string;
 }
 export interface TravelCopy {
   eyebrow: string; title: string; italic?: string;

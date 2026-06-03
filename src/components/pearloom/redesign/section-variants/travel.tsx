@@ -1,13 +1,24 @@
 'use client';
 /* eslint-disable no-restricted-syntax */
 /* Travel section variants — map / table / carousel.
-   The 'rows' default is implemented inline in ThemedSite. */
+   The 'rows' default is implemented inline in ThemedSite.
+
+   Round CC follow-up fixes:
+   - Hotel cards now use h.photoUrl when set (Google Places photos)
+     and fall back to the tone gradient when missing.
+   - HotelCard / TravelTable rows wrap in <a href> when h.bookingUrl
+     is set, so guests can tap through.
+   - TravelTable rebuilt as proper card rows (thumbnail + content)
+     instead of an invisible-borders list — the previous version
+     painted text in --t-ink on a section that bled through with
+     no row surface, which read as gold-on-dark on certain themes. */
 
 import type { CSSProperties } from 'react';
 import type { Hotel, TravelVariantCtx } from './types';
 import { VariantSectionHead } from './_section-head';
 
-/* Tone → photo-placeholder background, same shape as gallery. */
+/* Tone → photo-placeholder background. Only used when a hotel has
+   no real photoUrl. */
 const TONE_BG: Record<string, string> = {
   warm: 'linear-gradient(135deg, #e8d4b8 0%, #d4b08a 100%)',
   cream: 'linear-gradient(135deg, #f5ecd8 0%, #e3d4b2 100%)',
@@ -20,7 +31,6 @@ const TONE_BG: Record<string, string> = {
   rose: 'linear-gradient(135deg, #f0c8c4 0%, #d49a96 100%)',
 };
 
-/* Tiny prop-spread helper for the editable head. */
 function headProps(ctx: TravelVariantCtx) {
   return {
     eyebrow: ctx.C.eyebrow, title: ctx.C.title, italic: ctx.C.italic,
@@ -30,37 +40,78 @@ function headProps(ctx: TravelVariantCtx) {
   };
 }
 
+/** Photo box that prefers a real URL, falls back to the tone
+ *  gradient. Used by HotelCard + TravelTable. */
+function HotelPhoto({ h, style }: { h: Hotel; style?: CSSProperties }) {
+  const background = h.photoUrl
+    ? `var(--t-card) center / cover no-repeat url("${h.photoUrl.replace(/"/g, '%22')}")`
+    : TONE_BG[h.tone];
+  return <div style={{ background, ...style }} />;
+}
+
+/** Wrap a card in <a href> when bookingUrl is present, plain
+ *  <div> otherwise. Keeps styling consistent across modes. */
+function HotelWrap({ h, children, style }: { h: Hotel; children: React.ReactNode; style: CSSProperties }) {
+  const merged: CSSProperties = {
+    ...style,
+    textDecoration: 'none',
+    color: 'inherit',
+    transition: 'transform 200ms cubic-bezier(0.16,1,0.3,1), border-color 200ms, box-shadow 200ms',
+    display: 'block',
+  };
+  if (h.bookingUrl) {
+    return (
+      <a href={h.bookingUrl} target="_blank" rel="noopener noreferrer" style={merged}>
+        {children}
+      </a>
+    );
+  }
+  return <div style={merged}>{children}</div>;
+}
+
 /* ─── shared hotel card (used by map + carousel) ─── */
 function HotelCard({ h, style }: { h: Hotel; style?: CSSProperties }) {
   return (
-    <div className="pl8-hotel-row" style={{ background: 'var(--t-card)', border: '1px solid var(--t-line)', borderRadius: 'var(--t-radius)', padding: 14, ...style }}>
-      <div style={{ aspectRatio: '16/10', background: TONE_BG[h.tone], borderRadius: 8, marginBottom: 10 }} />
+    <HotelWrap
+      h={h}
+      style={{
+        background: 'var(--t-card)',
+        border: '1px solid var(--t-line)',
+        borderRadius: 'var(--t-radius)',
+        padding: 14,
+        ...style,
+      }}
+    >
+      <HotelPhoto h={h} style={{ aspectRatio: '16/10', borderRadius: 8, marginBottom: 10 }} />
       <div style={{ fontFamily: 'var(--t-display)', fontWeight: 600, fontSize: 15, color: 'var(--t-ink)', lineHeight: 1.15 }}>
         {h.name}
       </div>
-      <div style={{ fontSize: 11.5, color: 'var(--t-ink-muted)', marginTop: 4 }}>
-        {h.price} · {h.dist}
+      <div style={{ fontSize: 11.5, color: 'var(--t-ink-muted)', marginTop: 4, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        {h.rating > 0 && <span>★ {h.rating.toFixed(1)}</span>}
+        {h.price && <span>{h.price}</span>}
+        {h.dist && <span>{h.dist}</span>}
       </div>
-      <div style={{ fontSize: 12.5, color: 'var(--t-ink-soft)', lineHeight: 1.5, margin: '8px 0 10px' }}>
-        {h.blurb || 'A short, friendly answer goes here.'}
-      </div>
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        {h.amenities.map((a) => (
-          <span key={a} style={{ fontSize: 11, fontWeight: 600, color: 'var(--t-ink-soft)', background: 'var(--t-section)', padding: '3px 8px', borderRadius: 999 }}>
-            {a}
-          </span>
-        ))}
-      </div>
-    </div>
+      {h.blurb && (
+        <div style={{ fontSize: 12.5, color: 'var(--t-ink-soft)', lineHeight: 1.5, margin: '8px 0 10px' }}>
+          {h.blurb}
+        </div>
+      )}
+      {h.amenities.length > 0 && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {h.amenities.map((a) => (
+            <span key={a} style={{ fontSize: 11, fontWeight: 600, color: 'var(--t-ink-soft)', background: 'var(--t-section)', padding: '3px 8px', borderRadius: 999 }}>
+              {a}
+            </span>
+          ))}
+        </div>
+      )}
+    </HotelWrap>
   );
 }
 
 /* ─── TravelMap ─── */
 export function TravelMap({ ctx }: { ctx: TravelVariantCtx }) {
   const { C } = ctx;
-  /* Wrapper padding is applied by the dispatch in ThemedSite — no
-     local padding/background here, otherwise content sits in
-     double padding (audit 2026-06-04). */
   return (
     <>
       <VariantSectionHead {...headProps(ctx)} />
@@ -83,9 +134,20 @@ export function TravelMap({ ctx }: { ctx: TravelVariantCtx }) {
               'repeating-linear-gradient(0deg, rgba(0,0,0,0.06) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(0,0,0,0.06) 0 1px, transparent 1px 22px)',
           }}
         />
-        <span style={{ position: 'absolute', left: '18%', top: '32%', width: 16, height: 16, borderRadius: '50%', background: 'var(--t-accent)', transform: 'translate(-50%, -50%)' }} />
-        <span style={{ position: 'absolute', left: '52%', top: '64%', width: 16, height: 16, borderRadius: '50%', background: 'var(--t-accent)', transform: 'translate(-50%, -50%)' }} />
-        <span style={{ position: 'absolute', left: '74%', top: '28%', width: 16, height: 16, borderRadius: '50%', background: 'var(--t-accent)', transform: 'translate(-50%, -50%)' }} />
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            style={{
+              position: 'absolute',
+              left: `${[18, 52, 74][i]}%`,
+              top: `${[32, 64, 28][i]}%`,
+              width: 16, height: 16, borderRadius: '50%',
+              background: 'var(--t-accent)',
+              transform: 'translate(-50%, -50%)',
+              border: '2px solid var(--t-paper)',
+            }}
+          />
+        ))}
       </div>
       <div style={{ maxWidth: 820, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
         {C.hotels.map((h, i) => <HotelCard key={i} h={h} />)}
@@ -94,36 +156,67 @@ export function TravelMap({ ctx }: { ctx: TravelVariantCtx }) {
   );
 }
 
-/* ─── TravelTable ─── */
+/* ─── TravelTable — proper card rows with thumbnails ─── */
 export function TravelTable({ ctx }: { ctx: TravelVariantCtx }) {
   const { C } = ctx;
   return (
     <>
       <VariantSectionHead {...headProps(ctx)} />
-      <div style={{ maxWidth: 680, margin: '0 auto' }}>
+      <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {C.hotels.map((h, i) => (
-          <div
+          <HotelWrap
             key={i}
-            className="pl8-hotel-row"
+            h={h}
             style={{
-              display: 'grid',
-              gridTemplateColumns: '1.4fr auto auto auto',
-              gap: '12px 18px',
-              padding: '14px 0',
-              borderBottom: '1px solid var(--t-line-soft)',
-              alignItems: 'baseline',
+              background: 'var(--t-card)',
+              border: '1px solid var(--t-line)',
+              borderRadius: 'var(--t-radius)',
+              padding: 12,
             }}
           >
-            <div>
-              <div style={{ fontFamily: 'var(--t-display)', fontWeight: 600, fontSize: 15, color: 'var(--t-ink)' }}>{h.name}</div>
-              {h.amenities.length > 0 && (
-                <div style={{ fontSize: 11.5, color: 'var(--t-ink-muted)', marginTop: 3 }}>{h.amenities.join(' · ')}</div>
-              )}
+            <div
+              className="pl8-hotel-row"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '88px 1fr auto',
+                gap: 14,
+                alignItems: 'center',
+              }}
+            >
+              <HotelPhoto h={h} style={{ width: 88, height: 88, borderRadius: 8 }} />
+              <div style={{ minWidth: 0 }}>
+                <div style={{
+                  fontFamily: 'var(--t-display)', fontWeight: 600, fontSize: 15,
+                  color: 'var(--t-ink)', lineHeight: 1.2,
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>
+                  {h.name}
+                </div>
+                {h.amenities.length > 0 && (
+                  <div style={{ fontSize: 11.5, color: 'var(--t-ink-muted)', marginTop: 4 }}>
+                    {h.amenities.slice(0, 3).join(' · ')}
+                  </div>
+                )}
+                {h.dist && (
+                  <div style={{ fontSize: 11, color: 'var(--t-ink-soft)', marginTop: 4 }}>
+                    {h.dist}
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, minWidth: 70 }}>
+                {h.rating > 0 && (
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t-accent-ink)', fontFamily: 'var(--t-display)' }}>
+                    ★ {h.rating.toFixed(1)}
+                  </div>
+                )}
+                {h.price && (
+                  <div style={{ fontSize: 12, color: 'var(--t-ink-soft)', fontWeight: 600 }}>
+                    {h.price}
+                  </div>
+                )}
+              </div>
             </div>
-            <div style={{ fontSize: 12, color: 'var(--t-ink-soft)', textAlign: 'right' }}>★ {h.rating}</div>
-            <div style={{ fontSize: 12, color: 'var(--t-ink-soft)', textAlign: 'right' }}>{h.price}</div>
-            <div style={{ fontSize: 12, color: 'var(--t-ink-soft)', textAlign: 'right' }}>{h.dist}</div>
-          </div>
+          </HotelWrap>
         ))}
       </div>
     </>
@@ -133,9 +226,6 @@ export function TravelTable({ ctx }: { ctx: TravelVariantCtx }) {
 /* ─── TravelCarousel ─── */
 export function TravelCarousel({ ctx }: { ctx: TravelVariantCtx }) {
   const { C } = ctx;
-  /* Dispatch wraps in section padding; carousel needs to break out
-     of the 40px horizontal pad to bleed to the edge — done by
-     negative margin instead of nested wrapping. */
   return (
     <>
       <VariantSectionHead {...headProps(ctx)} />
