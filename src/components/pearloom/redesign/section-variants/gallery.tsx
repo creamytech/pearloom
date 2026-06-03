@@ -82,7 +82,7 @@ export function GallerySlideshow({ ctx }: { ctx: GalleryVariantCtx }) {
           background: TONE_BG[hero],
         }}
       />
-      <div style={{ maxWidth: 760, margin: '14px auto 0', display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8 }}>
+      <div style={{ maxWidth: 760, margin: '14px auto 0', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: 8 }}>
         {thumbs.map((tone, i) => (
           <div
             key={i}

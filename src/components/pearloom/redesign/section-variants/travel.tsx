@@ -88,7 +88,7 @@ export function TravelMap({ ctx }: { ctx: TravelVariantCtx }) {
         <span style={{ position: 'absolute', left: '52%', top: '64%', width: 16, height: 16, borderRadius: '50%', background: 'var(--t-accent)', transform: 'translate(-50%, -50%)' }} />
         <span style={{ position: 'absolute', left: '74%', top: '28%', width: 16, height: 16, borderRadius: '50%', background: 'var(--t-accent)', transform: 'translate(-50%, -50%)' }} />
       </div>
-      <div style={{ maxWidth: 820, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+      <div style={{ maxWidth: 820, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
         {C.hotels.map((h, i) => <HotelCard key={i} h={h} />)}
       </div>
     </div>

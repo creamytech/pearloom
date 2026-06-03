@@ -153,7 +153,8 @@ export function ThemedSite({
     faq: readVariant(manifest, 'faq'),
     rsvp: readVariant(manifest, 'rsvp'),
   };
-  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, textureIntensity, showWashHero, dividerLook, variants, C };
+  const coverPhoto = ((manifest as unknown as { coverPhoto?: string }).coverPhoto) || undefined;
+  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, textureIntensity, showWashHero, dividerLook, variants, C, coverPhoto };
 
   const sections: SectionKind[] = ['hero', 'story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
   /* navItems carry section id + label so the nav can render real
@@ -574,7 +575,19 @@ function HeroSplit({ ctx }: { ctx: SectionCtx }) {
         </div>
       </div>
       <div style={{ position: 'relative' }}>
-        <PhotoPlaceholder tone="warm" aspect="3/4" style={{ borderRadius: 'var(--t-radius)' }} />
+        {ctx.coverPhoto ? (
+          /* Real cover photo from manifest.coverPhoto wins over the
+             tone placeholder when the host has uploaded one. */
+          <div
+            style={{
+              aspectRatio: '3/4',
+              borderRadius: 'var(--t-radius)',
+              background: `var(--t-section) center / cover no-repeat url("${ctx.coverPhoto.replace(/"/g, '%22')}")`,
+            }}
+          />
+        ) : (
+          <PhotoPlaceholder tone="warm" aspect="3/4" style={{ borderRadius: 'var(--t-radius)' }} />
+        )}
       </div>
     </div>
   );
@@ -608,12 +621,21 @@ function HeroMinimal({ ctx }: { ctx: SectionCtx }) {
 
 /* HeroFullbleed — handoff L310-324. Photo behind dark scrim. */
 function HeroFullbleed({ ctx }: { ctx: SectionCtx }) {
-  const { theme, C } = ctx;
+  const { theme, C, coverPhoto } = ctx;
   const isEditorial = theme.id === 'editorial';
   return (
     <div style={{ position: 'relative', minHeight: 460, display: 'grid', placeItems: 'center', textAlign: 'center', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', inset: 0 }}>
-        <PhotoPlaceholder tone="dusk" aspect="auto" style={{ height: '100%' }} />
+        {coverPhoto ? (
+          <div
+            style={{
+              height: '100%', width: '100%',
+              background: `center / cover no-repeat url("${coverPhoto.replace(/"/g, '%22')}")`,
+            }}
+          />
+        ) : (
+          <PhotoPlaceholder tone="dusk" aspect="auto" style={{ height: '100%' }} />
+        )}
       </div>
       <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.5))' }} />
       <div style={{ position: 'relative', color: '#fff', padding: '40px 24px' }}>
@@ -833,7 +855,7 @@ function DetailsBlock({ ctx }: { ctx: SectionCtx }) {
     <div style={{ position: 'relative', padding: `${44 * pad}px 40px`, background: 'var(--t-section)' }}>
       <MotifScatter motif={motif} density="sparse" />
       <TSectionHead eyebrow={C.details.eyebrow} title={C.details.title} italic={C.details.italic} />
-      <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18, maxWidth: 760, marginInline: 'auto' }}>
+      <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 18, maxWidth: 760, marginInline: 'auto' }}>
         {C.details.items.map((d) => (
           <div key={d.l} style={{ background: 'var(--t-card)', borderRadius: 'var(--t-radius)', padding: 18, border: '1px solid var(--t-line-soft)' }}>
             <Icon name={d.icon} size={18} color="var(--t-gold)" />
@@ -861,7 +883,11 @@ function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
   return (
     <div style={{ padding: `${48 * pad}px 40px`, background: 'var(--t-paper)' }}>
       <TSectionHead eyebrow={C.schedule.eyebrow} title={C.schedule.title} italic={C.schedule.italic} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, maxWidth: 880, marginInline: 'auto' }}>
+      {/* Auto-fit grid — 4 columns when there's room, fewer when
+          there's a 5th row (the column reflows instead of being
+          clipped off the right edge). minmax(180px, 1fr) is the
+          single-card minimum width before the grid wraps. */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, maxWidth: 880, marginInline: 'auto' }}>
         {C.schedule.rows.map((r, i) => (
           <div key={i} className="pl8-schedule-row" style={{ padding: 16, background: 'var(--t-card)', borderRadius: 'var(--t-radius)', border: '1px solid var(--t-line-soft)', textAlign: 'center' }}>
             <div style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 20, color: 'var(--t-ink)' }}>
@@ -894,7 +920,7 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
         </div>
       )}
       <div style={{ position: 'relative', maxWidth: 820, marginInline: 'auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
           {C.travel.hotels.map((h, i) => (
             <div key={i} className="pl8-hotel-row" style={{ background: 'var(--t-card)', borderRadius: 'var(--t-radius-lg)', overflow: 'hidden', border: '1px solid var(--t-line-soft)', boxShadow: 'var(--t-shadow)' }}>
               <div style={{ aspectRatio: '16/9' }}>
@@ -970,7 +996,7 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
   return (
     <div style={{ padding: `${36 * pad}px 32px`, background: 'var(--t-section)' }}>
       <TSectionHead eyebrow={C.gallery.eyebrow} title={C.gallery.title} italic={C.gallery.italic} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8, maxWidth: 920, marginInline: 'auto' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8, maxWidth: 920, marginInline: 'auto' }}>
         {C.gallery.tones.map((t, i) => (
           <PhotoPlaceholder key={i} tone={t} aspect="1/1" style={{ borderRadius: 8 }} />
         ))}
@@ -1255,6 +1281,9 @@ interface SectionCtx {
     rsvp: string;
   };
   C: Copy;
+  /** Host-uploaded cover photo URL (manifest.coverPhoto). When set,
+   *  hero variants render it instead of the gradient placeholder. */
+  coverPhoto?: string;
 }
 
 interface Copy {

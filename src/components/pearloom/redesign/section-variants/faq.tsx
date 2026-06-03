@@ -63,7 +63,7 @@ export function FaqTwocol({ ctx }: { ctx: FaqVariantCtx }) {
           maxWidth: 820,
           margin: '0 auto',
           display: 'grid',
-          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: '16px 28px',
         }}
       >
@@ -149,7 +149,7 @@ export function FaqCards({ ctx }: { ctx: FaqVariantCtx }) {
           maxWidth: 820,
           margin: '0 auto',
           display: 'grid',
-          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: 14,
         }}
       >
