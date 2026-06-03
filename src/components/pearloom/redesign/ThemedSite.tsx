@@ -875,6 +875,11 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
     <div style={{ position: 'relative', padding: `${48 * pad}px 40px`, background: 'var(--t-section)' }}>
       <MotifScatter motif={motif} density="sparse" />
       <TSectionHead eyebrow={C.travel.eyebrow} title={C.travel.title} italic={C.travel.italic} />
+      {C.travel.intro && (
+        <div style={{ maxWidth: 560, marginInline: 'auto', textAlign: 'center', fontSize: 14.5, color: 'var(--t-ink-soft)', lineHeight: 1.6, marginBottom: 24 }}>
+          {C.travel.intro}
+        </div>
+      )}
       <div style={{ position: 'relative', maxWidth: 820, marginInline: 'auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
           {C.travel.hotels.map((h, i) => (
@@ -1248,11 +1253,11 @@ interface Copy {
   story: { eyebrow: string; title: string; italic?: string; body: string; chips?: string[] };
   details: { eyebrow: string; title: string; italic?: string; items: { l: string; v: string; icon: string }[] };
   schedule: { eyebrow: string; title: string; italic?: string; rows: { t: string; l: string; s: string }[] };
-  travel: { eyebrow: string; title: string; italic?: string; hotels: { name: string; price: string; rating: number; reviews: number; dist: string; tone: PhotoTone; blurb: string; amenities: string[] }[] };
+  travel: { eyebrow: string; title: string; italic?: string; intro?: string; hotels: { name: string; price: string; rating: number; reviews: number; dist: string; tone: PhotoTone; blurb: string; amenities: string[] }[] };
   registry: { eyebrow: string; title: string; italic?: string; body: string; stores: string[] };
   gallery: { eyebrow: string; title: string; italic?: string; tones: PhotoTone[] };
   rsvp: { eyebrow: string; title: string; body: string };
-  faq: { eyebrow: string; title: string; italic?: string; questions: string[] };
+  faq: { eyebrow: string; title: string; italic?: string; questions: string[]; qa?: { q: string; a?: string }[] };
 }
 
 /* ─── TextureLayer — handoff/shared/themes.jsx L239-351 verbatim.
@@ -1457,11 +1462,19 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
   const galleryTones = (loose.galleryTones as PhotoTone[] | undefined);
   const detailsCards = (loose.detailsCards as Array<[string, string]> | undefined) ?? [];
   const eventsRaw = (loose.events as Array<{ time?: string; name?: string; venue?: string; description?: string }> | undefined) ?? [];
-  const faqsRaw = (loose.faqs as Array<{ question?: string }> | undefined) ?? [];
+  const faqsRaw = (loose.faqs as Array<{ question?: string; answer?: string }> | undefined) ?? [];
   const registryStoresRaw = (loose.registryStores as string[] | undefined);
   const registryIntro = (loose.registryIntro as string | undefined);
   const rsvpDeadline = (loose.rsvpDeadline as string | undefined);
   const tagline = (loose.tagline as string | undefined);
+  /* DetailsPanel writes manifest.kidsWelcome / adultsOnly booleans.
+     The host's intent is binary — either kids are welcome or it's an
+     adults-only evening. We surface the active one as a synthesized
+     "Kids" card when the host hasn't authored their own detailsCards.
+     `kidsWelcomeRaw === undefined` means the panel was never opened
+     (preserve the cream default "Kids welcome · Ages 10 +"). */
+  const kidsWelcomeRaw = loose.kidsWelcome as boolean | undefined;
+  const adultsOnlyRaw = loose.adultsOnly as boolean | undefined;
   const occasion = (loose.occasion as string | undefined) ?? 'wedding';
   const voiceKey = ((loose.voiceOverride as string | undefined) ?? 'classic') as keyof typeof VOICE_COPY;
   const V = VOICE_COPY[voiceKey] ?? VOICE_COPY.classic;
@@ -1494,7 +1507,14 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
           }))
         : [
             { l: 'Dress code', v: 'Garden formal', icon: 'sparkles' },
-            { l: 'Kids welcome', v: 'Ages 10 +', icon: 'users' },
+            /* Kids card responds to DetailsPanel's binary toggles.
+               kidsWelcome=true wins; adultsOnly=true forces an
+               adults-only label; neither set leaves the cream default. */
+            kidsWelcomeRaw === true
+              ? { l: 'Kids welcome', v: 'All ages — bring the little ones', icon: 'users' }
+              : adultsOnlyRaw === true
+                ? { l: 'Adults-only evening', v: 'Reception is 18+', icon: 'users' }
+                : { l: 'Kids welcome', v: 'Ages 10 +', icon: 'users' },
             { l: 'Gifts', v: 'Your presence is enough', icon: 'gift' },
           ],
     },
@@ -1519,6 +1539,11 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       eyebrow: 'Getting there',
       title: 'Where to',
       italic: 'stay',
+      /* Host-authored arrival blurb from TravelPanel — populated
+         when the host has typed into the "Getting there" field;
+         otherwise undefined so the default travel section stays
+         visually unchanged. */
+      intro: manifest.travelInfo?.directions || undefined,
       hotels: [
         { name: 'Cosmos Suites', price: '$$$', rating: 4.8, reviews: 412, dist: '8-min walk', tone: 'warm', blurb: 'Whitewashed cliffside suites with private plunge pools and sunset terraces.', amenities: ['Caldera view', 'Pool', 'Breakfast'] },
         { name: 'Andronis Boutique', price: '$$$$', rating: 4.9, reviews: 286, dist: '12-min walk', tone: 'lavender', blurb: 'A romantic cliff retreat carved into the caldera — a guest favourite.', amenities: ['Spa', 'Infinity pool', 'Fine dining'] },
@@ -1558,6 +1583,13 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
             'Are kids welcome at the ceremony?',
             'Where should I stay in Santorini?',
           ],
+      /* qa[] carries the host-authored answers (FaqPanel writes
+         manifest.faqs[].answer). Variants twocol/numbered/cards
+         read ctx.C.qa[i].a and fall through to placeholder when
+         empty. Without this, answers were silently dropped. */
+      qa: faqsRaw.length > 0
+        ? faqsRaw.slice(0, 6).map((q) => ({ q: q.question ?? '', a: q.answer ?? '' }))
+        : undefined,
     },
   };
 }

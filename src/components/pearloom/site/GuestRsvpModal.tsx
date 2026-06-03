@@ -178,6 +178,25 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
     return DEFAULT_MEAL_OPTIONS;
   }, [manifest]);
 
+  /* Question toggles from RsvpPanel — manifest.rsvpConfig.{mealChoice,
+     dietary, songRequest, plusOne}. When the host turns one off in the
+     editor, the guest modal hides that field. Each defaults to true
+     when the rsvpConfig object is absent (legacy sites) so we don't
+     regress already-published flows. plusOne is the only field that
+     defaults to false — matching the editor panel's default. */
+  const questionGates = useMemo(() => {
+    const cfg = (manifest as unknown as {
+      rsvpConfig?: { mealChoice?: boolean; dietary?: boolean; songRequest?: boolean; plusOne?: boolean };
+    }).rsvpConfig;
+    return {
+      mealChoice: cfg?.mealChoice ?? true,
+      dietary: cfg?.dietary ?? true,
+      songRequest: cfg?.songRequest ?? true,
+      plusOne: cfg?.plusOne ?? false,
+    };
+  }, [manifest]);
+  void questionGates.plusOne; /* plusOne handled via existing guest-list passport flow upstream. */
+
   const resetState = useCallback(() => {
     setStep('find');
     setQuery('');
@@ -633,8 +652,9 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                         })}
                       </div>
                     </div>
-                    {r.attending === 'yes' && (
+                    {r.attending === 'yes' && (questionGates.mealChoice || questionGates.dietary) && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+                        {questionGates.mealChoice && (
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                           {mealOptions.map((m) => {
                             const active = r.meal === m;
@@ -666,6 +686,8 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                             );
                           })}
                         </div>
+                        )}
+                        {questionGates.dietary && (
                         <input
                           type="text"
                           value={r.dietary}
@@ -673,6 +695,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                           placeholder="Allergies or dietary notes (optional)"
                           style={{ ...inputStyle(), padding: '9px 11px', fontSize: 13 }}
                         />
+                        )}
                       </div>
                     )}
                   </div>
@@ -682,6 +705,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
 
             {anyYes && (
               <div style={{ marginTop: 14 }}>
+                {questionGates.songRequest && (
                 <div style={fieldStyle()}>
                   <label style={labelStyle()}>A song to get you dancing</label>
                   <input
@@ -692,6 +716,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                     style={inputStyle()}
                   />
                 </div>
+                )}
                 <div style={fieldStyle()}>
                   <label style={labelStyle()}>A note to the {anyYes ? 'hosts' : 'couple'}</label>
                   <textarea

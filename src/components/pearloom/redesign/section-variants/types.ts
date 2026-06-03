@@ -49,6 +49,10 @@ export interface Hotel {
 }
 export interface TravelCopy {
   eyebrow: string; title: string; italic?: string;
+  /** Host-authored intro line (TravelPanel "Getting there" field
+   *  → manifest.travelInfo.directions). Rendered above the hotel
+   *  list. Variants that don't display it ignore the field. */
+  intro?: string;
   hotels: Hotel[];
 }
 

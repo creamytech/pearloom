@@ -12,8 +12,10 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
+    "test:visual": "playwright test tests/e2e/theme-packs.spec.ts --project=theme-packs-visual",
     "db:migrate": "tsx scripts/db-migrate.ts",
-    "assets:extract": "tsx scripts/extract-assets.ts"
+    "assets:extract": "tsx scripts/extract-assets.ts",
+    "backfill-theme-vars": "tsx scripts/backfill-theme-vars.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",

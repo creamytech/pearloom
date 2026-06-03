@@ -29,9 +29,14 @@ function rewriteTarget(section: Exclude<SectionId, null>, label: string): Rewrit
     : 'rewrite';
   if (section === 'hero') return { fieldPath: ['tagline'], context: 'hero tagline', tone };
   if (section === 'story') return { fieldPath: ['storySection', 'body'], context: 'story body', tone };
-  if (section === 'rsvp') return { fieldPath: ['rsvpIntro'], context: 'rsvp intro line', tone };
   if (section === 'registry') return { fieldPath: ['registryIntro'], context: 'registry intro line', tone };
-  if (section === 'details') return { fieldPath: ['detailsIntro'], context: 'details intro line', tone };
+  /* Sections without a single canonical text target (rsvp, details,
+     schedule, travel, gallery, faq, nav). The rewrite chip is hidden
+     by pearSuggestions() returning the generic fallback list, but if
+     a host clicks one we want a graceful no-op rather than a write
+     to a phantom field nothing reads. Previously this returned
+     {detailsIntro} / {rsvpIntro} — both fields no panel or canvas
+     ever touched, so the rewrite silently dropped on save. */
   return null;
 }
 function readPath(obj: unknown, path: string[]): string {

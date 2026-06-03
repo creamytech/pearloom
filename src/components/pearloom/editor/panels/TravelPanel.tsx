@@ -36,8 +36,22 @@ const SF_PLACES: Place[] = [
 ];
 
 export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
-  void manifest;
-  void onChange;
+  /* "Getting there" — wires to manifest.travelInfo.directions, the
+     canonical field downstream renderers + emails read. The hotel
+     block + map below remain local-state stubs (no manifest write)
+     because the live hotels schema is HotelBlock[] (id + address +
+     bookingUrl + photoUrls), not the demo Place shape. Wiring that
+     would invalidate existing manifests — punted to a follow-up. */
+  const directionsValue = manifest.travelInfo?.directions ?? '';
+  const setDirections = (v: string) => onChange({
+    ...manifest,
+    travelInfo: {
+      airports: manifest.travelInfo?.airports ?? [],
+      hotels: manifest.travelInfo?.hotels ?? [],
+      ...(manifest.travelInfo ?? {}),
+      directions: v,
+    },
+  } as StoryManifest);
   const [q, setQ] = useState('');
   const [block, setBlock] = useState<Place[]>([SF_PLACES[0], SF_PLACES[2]]);
   const [open, setOpen] = useState(false);
@@ -144,7 +158,11 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
         </FGroup>
 
         <FGroup label="Getting there">
-          <FInput value="Fly into Santorini (JTR), 20 min by taxi" placeholder="Airport & transit notes" />
+          <FInput
+            value={directionsValue}
+            onChange={setDirections}
+            placeholder="Fly into Santorini (JTR), 20 min by taxi"
+          />
           <div style={{ height: 8 }} />
           <FToggleStandalone label="Show a shuttle schedule" sub="Pear can build it from your timeline" def={false} />
         </FGroup>
