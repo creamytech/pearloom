@@ -57,9 +57,54 @@ interface Props {
 
 export function EditorRailLeft({ active, setActive, completion, title, slug, manifest, onChange }: Props) {
   const [tab, setTab] = useState<'sections' | 'pages' | 'theme'>('sections');
-  const [reorderingIdx, setReorderingIdx] = useState<number | null>(null);
+  const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const applicableTools = TOOLS.filter((t) => isToolPanelApplicable(t.id, occasion));
+
+  /* Build the ORDERED list: read manifest.blockOrder when present,
+     otherwise fall through to the SECTIONS default order. Hero is
+     always pinned first (required, never reorderable). */
+  const reorderableKeys = SECTIONS.filter((s) => !s.required).map((s) => s.id as string);
+  const heroSection = SECTIONS.find((s) => s.required);
+  const savedOrder = ((manifest as unknown as { blockOrder?: string[] }).blockOrder) ?? [];
+  const restOrder: string[] = (() => {
+    const valid = savedOrder.filter((k) => reorderableKeys.includes(k));
+    /* Ensure every reorderable section is in the list — append
+       newly-added ones in their default order at the end. */
+    for (const k of reorderableKeys) if (!valid.includes(k)) valid.push(k);
+    return valid;
+  })();
+  const orderedSections: SectionDef[] = [
+    ...(heroSection ? [heroSection] : []),
+    ...restOrder.map((k) => SECTIONS.find((s) => s.id === k)!).filter(Boolean),
+  ];
+
+  /* Drop handler — moves the dragged section to the target index
+     in the reorderable list. Writes manifest.blockOrder. Hero
+     stays pinned (drop-on-hero is rejected silently). */
+  function handleDrop(targetIdx: number) {
+    if (draggingIdx === null || !onChange) return;
+    /* Convert visual indices to reorderable-list indices. Hero is
+       at idx 0 visually but excluded from restOrder. */
+    const heroOffset = heroSection ? 1 : 0;
+    const from = draggingIdx - heroOffset;
+    const to = targetIdx - heroOffset;
+    if (from < 0 || to < 0 || from === to) {
+      setDraggingIdx(null);
+      setHoverIdx(null);
+      return;
+    }
+    const next = restOrder.slice();
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onChange({
+      ...(manifest as unknown as Record<string, unknown>),
+      blockOrder: next,
+    } as unknown as StoryManifest);
+    setDraggingIdx(null);
+    setHoverIdx(null);
+  }
 
   return (
     <aside
@@ -198,21 +243,39 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
       </div>
       )}
 
-      {/* Section list — prototype L190-222. */}
+      {/* Section list — drag-to-reorder writes manifest.blockOrder.
+          Hero stays pinned first; every other section is draggable. */}
       {tab === 'sections' && (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {SECTIONS.map((s, i) => {
+        {orderedSections.map((s, i) => {
           const on = s.id === active;
+          const isHero = !!s.required;
+          const isDragging = draggingIdx === i;
+          const isHovered = hoverIdx === i && draggingIdx !== null && draggingIdx !== i;
           return (
             <div
               key={s.id}
-              draggable
-              onDragStart={() => setReorderingIdx(i)}
-              onDragEnd={() => setReorderingIdx(null)}
+              draggable={!isHero}
+              onDragStart={(e) => {
+                if (isHero) { e.preventDefault(); return; }
+                setDraggingIdx(i);
+                /* Required for Firefox; the data isn't used. */
+                e.dataTransfer.effectAllowed = 'move';
+                try { e.dataTransfer.setData('text/plain', s.id); } catch { /* ignore */ }
+              }}
+              onDragEnd={() => { setDraggingIdx(null); setHoverIdx(null); }}
+              onDragOver={(e) => {
+                if (draggingIdx === null || isHero) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                if (hoverIdx !== i) setHoverIdx(i);
+              }}
+              onDragLeave={() => { if (hoverIdx === i) setHoverIdx(null); }}
+              onDrop={(e) => { e.preventDefault(); handleDrop(i); }}
               onClick={() => setActive(s.id)}
               className="pl-rd-section-row"
               data-active={on}
-              data-dragging={reorderingIdx === i}
+              data-dragging={isDragging}
               style={{
                 display: 'grid',
                 gridTemplateColumns: '12px 22px 1fr 14px',
@@ -220,9 +283,14 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                 alignItems: 'center',
                 padding: '8px 10px',
                 borderRadius: 8,
-                background: on ? 'var(--ink)' : 'transparent',
+                background: on ? 'var(--ink)' : isHovered ? 'var(--peach-bg)' : 'transparent',
                 color: on ? 'var(--cream)' : 'var(--ink)',
-                cursor: 'pointer',
+                cursor: isHero ? 'pointer' : (isDragging ? 'grabbing' : 'grab'),
+                opacity: isDragging ? 0.35 : 1,
+                /* Top-edge indicator showing where the drop will
+                   land — peach hairline above the hovered row. */
+                boxShadow: isHovered ? 'inset 0 2px 0 0 var(--peach-ink)' : 'none',
+                transition: 'background 100ms, opacity 100ms, box-shadow 100ms',
               }}
             >
               <span aria-hidden style={{ opacity: on ? 0.5 : 0.3, display: 'inline-flex' }}>

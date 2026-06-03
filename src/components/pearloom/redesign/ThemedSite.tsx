@@ -242,7 +242,18 @@ export function ThemedSite({
      Stored as manifest.hiddenSections: SectionKind[]. The hero is
      never hidden (a site without a hero is broken). */
   const hidden = (((manifest as unknown as { hiddenSections?: string[] }).hiddenSections) ?? []) as SectionKind[];
-  const sections: SectionKind[] = (['hero', 'story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'] as SectionKind[])
+  /* Section ORDER — read manifest.blockOrder (set by the rail's
+     drag-to-reorder). Hero stays pinned first. Sections missing
+     from blockOrder (e.g. newly added) get appended in default
+     order; sections in blockOrder that aren't valid SectionKinds
+     get filtered out. */
+  const allKinds: SectionKind[] = ['hero', 'story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
+  const savedOrder = ((manifest as unknown as { blockOrder?: string[] }).blockOrder) ?? [];
+  const reorderedRest: SectionKind[] = [
+    ...savedOrder.filter((k): k is SectionKind => k !== 'hero' && (allKinds as readonly string[]).includes(k)) as SectionKind[],
+    ...allKinds.filter((k) => k !== 'hero' && !savedOrder.includes(k)),
+  ];
+  const sections: SectionKind[] = ['hero' as SectionKind, ...reorderedRest]
     .filter((s) => s === 'hero' || !hidden.includes(s));
   /* navItems carry section id + label so the nav can render real
      anchors that scroll to the right block. Excludes 'hero' and
