@@ -39,20 +39,47 @@ export function FInput({
   onChange,
   placeholder,
   icon,
+  type = 'text',
 }: {
   value: string;
   onChange?: (v: string) => void;
   placeholder?: string;
   icon?: string;
+  type?: 'text' | 'email' | 'url' | 'tel' | 'number';
 }) {
+  const [focused, setFocused] = useState(false);
   return (
     <div style={{ position: 'relative' }}>
-      {icon && <Icon name={icon} size={13} color="var(--ink-muted)" style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)' }} />}
+      {icon && (
+        <Icon
+          name={icon}
+          size={13}
+          color={focused ? 'var(--peach-ink)' : 'var(--ink-muted)'}
+          style={{
+            position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)',
+            transition: 'color 140ms',
+          }}
+        />
+      )}
       <input
+        type={type}
         value={value}
         onChange={(e) => onChange && onChange(e.target.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         placeholder={placeholder}
-        style={{ width: '100%', padding: icon ? '10px 12px 10px 32px' : '10px 12px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--cream-2)', fontSize: 13, color: 'var(--ink)', outline: 'none' }}
+        style={{
+          width: '100%',
+          padding: icon ? '10px 12px 10px 32px' : '10px 12px',
+          borderRadius: 10,
+          border: focused ? '1px solid var(--peach-ink)' : '1px solid var(--line)',
+          background: 'var(--cream-2)',
+          fontSize: 13,
+          color: 'var(--ink)',
+          outline: 'none',
+          transition: 'border-color 140ms, box-shadow 140ms',
+          boxShadow: focused ? '0 0 0 3px rgba(198,112,61,0.12)' : 'none',
+        }}
       />
     </div>
   );

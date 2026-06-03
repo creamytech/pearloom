@@ -9,6 +9,7 @@
 
 import type { StoryManifest } from '@/types';
 import { FGroup, FInput, PearChip, SectionPanelShell } from './_section-atoms';
+import { FDate } from './_form-atoms';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
 import { PhotoUploadSlot } from './_photo-upload';
 
@@ -100,7 +101,7 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
           </div>
         </FGroup>
         <FGroup label="Date & venue">
-          <FInput value={date} onChange={setDate} icon="calendar" placeholder="Monday, April 26, 2027" />
+          <FDate value={date} onChange={setDate} placeholder="Pick the day" />
           <div style={{ height: 8 }} />
           <FInput value={venue} onChange={setVenue} icon="pin" placeholder="Casa Chorro · Santorini" />
         </FGroup>

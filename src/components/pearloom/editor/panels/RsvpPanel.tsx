@@ -9,6 +9,7 @@
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
 import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, PearChip, SectionPanelShell, useCopyOverride } from './_section-atoms';
+import { FDate } from './_form-atoms';
 import { mealOptionSuggestions } from './_suggestions';
 
 interface MealOption { name: string }
@@ -65,7 +66,7 @@ export function RsvpPanel({ manifest, onChange }: { manifest: StoryManifest; onC
           <FInput value={rsvpEyebrow} onChange={setRsvpEyebrow} placeholder="RSVP by April 28" />
         </FGroup>
         <FGroup label="Reply by">
-          <FInput value={replyBy} onChange={setReplyBy} icon="calendar" />
+          <FDate value={replyBy} onChange={setReplyBy} placeholder="Pick a deadline" />
         </FGroup>
         <FGroup label="Button label" hint="Shown on the RSVP CTA.">
           <FInput value={rsvpCta} onChange={setRsvpCta} placeholder="RSVP" />
