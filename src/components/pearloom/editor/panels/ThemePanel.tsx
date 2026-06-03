@@ -23,6 +23,7 @@ import { PearThinking } from '../../pear-thinking';
 import { EDITIONS } from '@/lib/site-editions/editions';
 import { resolveEdition } from '@/lib/site-editions/resolve';
 import { ThemePackPicker } from './ThemePackPicker';
+import { Disclosure } from './Disclosure';
 import { getEventType } from '@/lib/event-os/event-types';
 import {
   SiteLookHeader,
@@ -368,27 +369,12 @@ export function ThemePanel({
           the main scroll stays focused on the prototype's exact
           surface. Power features stay accessible without bloating
           the default view. */}
-      <details
-        style={{
-          marginTop: 14,
-          padding: '4px 0',
-          borderTop: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
-        }}
-      >
-        <summary
-          style={{
-            cursor: 'pointer',
-            padding: '12px 14px',
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-            color: 'var(--ink-muted, #6F6557)',
-            userSelect: 'none',
-          }}
-        >
-          ⌄ Advanced
-        </summary>
+      <div style={{
+        marginTop: 14,
+        padding: '4px 0',
+        borderTop: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+      }}>
+        <Disclosure label="Advanced — palette, fonts, motifs, atmosphere, layout">
         <PanelGroup>
           <div data-pl-design-anchor="palette">
             <PaletteSection manifest={manifest} active={active} palette={active.id} applyPalette={applyPalette} onChange={onChange} />
@@ -462,28 +448,13 @@ export function ThemePanel({
           <div data-pl-design-anchor="footer">
             <FooterCustomizationSection manifest={manifest} onChange={onChange} />
           </div>
-          <details>
-            <summary
-              style={{
-                cursor: 'pointer',
-                padding: '10px 14px',
-                borderRadius: 10,
-                background: 'var(--cream-2)',
-                border: '1px dashed var(--line)',
-                fontSize: 12.5,
-                fontWeight: 700,
-                letterSpacing: '0.04em',
-                color: 'var(--ink-soft)',
-                userSelect: 'none',
-                margin: '6px 0',
-              }}
-            >
-              ↺ Version history (snapshots)
-            </summary>
-            <div style={{ paddingTop: 6 }}>
-              <SnapshotsPanel manifest={manifest} onChange={onChange} />
-            </div>
-          </details>
+          <div style={{ margin: '6px 0' }}>
+            <Disclosure label="Version history (snapshots)">
+              <div style={{ paddingTop: 6 }}>
+                <SnapshotsPanel manifest={manifest} onChange={onChange} />
+              </div>
+            </Disclosure>
+          </div>
           <div data-pl-design-anchor="decor" className="pl8">
             {/* Decor Library CTA — literal port of themes.jsx L896-912.
                 Gradient lavender-bg→peach-bg with a cream icon plate.
@@ -528,33 +499,19 @@ export function ThemePanel({
               </span>
               <Icon name="arrow-right" size={15} color="var(--ink-soft)" />
             </button>
-            <details>
-              <summary
-                style={{
-                  cursor: 'pointer',
-                  padding: '10px 14px',
-                  borderRadius: 10,
-                  background: 'var(--cream-2)',
-                  border: '1px dashed var(--line)',
-                  fontSize: 12.5,
-                  fontWeight: 700,
-                  letterSpacing: '0.04em',
-                  color: 'var(--ink-soft)',
-                  userSelect: 'none',
-                  margin: '6px 0',
-                }}
-              >
-                ✦ Stickers
-              </summary>
-              <div style={{ paddingTop: 6 }}>
-                <div data-pl-design-anchor="stickers">
-                  <StickerTrayPanel manifest={manifest} onChange={onChange} />
+            <div style={{ margin: '6px 0' }}>
+              <Disclosure label="Stickers">
+                <div style={{ paddingTop: 6 }}>
+                  <div data-pl-design-anchor="stickers">
+                    <StickerTrayPanel manifest={manifest} onChange={onChange} />
+                  </div>
                 </div>
-              </div>
-            </details>
+              </Disclosure>
+            </div>
           </div>
         </PanelGroup>
-      </details>
+        </Disclosure>
+      </div>
     </div>
   );
 }

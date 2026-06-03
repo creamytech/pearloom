@@ -24,6 +24,7 @@ import { getEventType, EVENT_TYPES } from '@/lib/event-os/event-types';
 import { paletteFromFile } from '@/lib/look-engine/palette-from-photo';
 import { generateLookFromStory, type SuggestedLook } from '@/lib/look-engine/generate-from-story';
 import { Pear, Sparkle, Icon } from '../../motifs';
+import { V8Slider } from '../v8-forms';
 
 // Shared color tokens for all sections in this file.
 const PEACH_INK = 'var(--peach-ink, #C6703D)';
@@ -384,14 +385,13 @@ export function FineTuneSection({
             <span style={{ fontSize: 12, fontWeight: 600, color: INK }}>{textureLabel}</span>
             <span style={{ fontSize: 11, color: INK_MUTED }}>{intensityName}</span>
           </div>
-          <input
-            type="range"
+          <V8Slider
             min={0}
             max={1.5}
             step={0.05}
             value={intensity}
-            onChange={(e) => onChange({ ...manifest, textureIntensity: Number(e.target.value) } as unknown as StoryManifest)}
-            style={{ width: '100%', accentColor: SAGE_DEEP }}
+            onChange={(n) => onChange({ ...manifest, textureIntensity: n } as unknown as StoryManifest)}
+            ariaLabel="Texture intensity"
           />
         </div>
       )}

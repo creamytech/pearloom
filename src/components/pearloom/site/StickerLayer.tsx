@@ -16,6 +16,7 @@
 import { useCallback, useRef, useState, useEffect, type CSSProperties } from 'react';
 import type { StoryManifest, StickerItem } from '@/types';
 import { useIsEditMode } from '../editor/canvas/EditorCanvasContext';
+import { useDialog } from '@/components/ui/confirm-dialog';
 
 type FieldEditor = (patch: (m: StoryManifest) => StoryManifest) => void;
 
@@ -184,6 +185,7 @@ function StickerPiece({
   containerRef: React.RefObject<HTMLDivElement | null>;
   onEditField?: FieldEditor;
 }) {
+  const dialog = useDialog();
   const baseSize = 160; // Natural sticker size before scale.
   const patchSticker = useCallback(
     (patch: Partial<StickerItem>) => {
@@ -253,13 +255,19 @@ function StickerPiece({
     window.addEventListener('pointerup', up, { once: true });
   };
 
-  const onDoubleClick = () => {
+  const onDoubleClick = async () => {
     if (!isEditing) return;
     if (sticker.type === 'text') {
-      // For text stickers, double-click opens an inline prompt to
-      // change the text instead of deleting (use × on chip or
-      // Backspace key to delete).
-      const next = window.prompt('Sticker text', sticker.text ?? '');
+      // For text stickers, double-click opens the custom prompt
+      // modal to change the text instead of deleting (use × on
+      // chip or Backspace key to delete).
+      const next = await dialog.prompt({
+        title: 'Edit sticker text',
+        message: 'What should the sticker say?',
+        defaultValue: sticker.text ?? '',
+        placeholder: 'e.g. Hello!',
+        confirmLabel: 'Save',
+      });
       if (next !== null && next !== sticker.text) {
         patchSticker({ text: next });
       }

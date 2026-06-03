@@ -18,6 +18,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
+import { CustomSelect } from '../v8-forms';
 
 export interface BadgeOverrides<AutoKey extends string = string> {
   /** Auto-detected badge keys the host wants to hide. */
@@ -232,27 +233,14 @@ export function BadgesEditor<AutoKey extends string>({
             outline: 'none',
           }}
         />
-        <select
-          value={draftTone}
-          onChange={(e) => setDraftTone(e.target.value as BadgeTone)}
-          aria-label="Badge tone"
-          style={{
-            padding: '6px 8px',
-            borderRadius: 8,
-            border: '1px solid var(--line)',
-            background: 'var(--card)',
-            fontSize: 11.5,
-            fontFamily: 'var(--font-ui)',
-            color: 'var(--ink)',
-            cursor: 'pointer',
-          }}
-        >
-          {BADGE_TONES.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
-            </option>
-          ))}
-        </select>
+        <div style={{ width: 110, flexShrink: 0 }}>
+          <CustomSelect<BadgeTone>
+            value={draftTone}
+            onChange={(v) => setDraftTone(v)}
+            ariaLabel="Badge tone"
+            options={BADGE_TONES.map((t) => ({ value: t.value, label: t.label }))}
+          />
+        </div>
         <button
           type="button"
           onClick={addCustom}

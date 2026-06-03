@@ -10,7 +10,7 @@ import type { StoryManifest } from '@/types';
 import { FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { FSelect } from './_form-atoms';
 
-type CountdownVariant = 'stripe' | 'cards' | 'minimal' | 'hero';
+type CountdownVariant = 'stripe' | 'cards' | 'minimal' | 'hero' | 'ribbon' | 'flip';
 
 interface CountdownData {
   variant?: CountdownVariant;
@@ -65,6 +65,8 @@ export function CountdownPanel({ manifest, onChange }: { manifest: StoryManifest
               { value: 'stripe',  label: 'Stripe',   hint: 'Compact horizontal bar with inline counters' },
               { value: 'minimal', label: 'Minimal',  hint: 'Just "47 days to go" in display type' },
               { value: 'hero',    label: 'Hero',     hint: 'Big editorial countdown — anchors the whole section' },
+              { value: 'ribbon',  label: 'Ribbon',   hint: 'Diagonal sash across the canvas — playful, kitschy' },
+              { value: 'flip',    label: 'Flip clock',hint: 'Vintage split-flap display with paired digit cards' },
             ]}
             icon="clock"
           />

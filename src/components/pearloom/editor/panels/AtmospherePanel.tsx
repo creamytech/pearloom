@@ -22,6 +22,7 @@ import {
 import { AMBIENT_PRESETS, type AmbientPresetId } from '../../site/AmbientAudio';
 import { CustomSelect, Switch } from '../v8-forms';
 import { V8ColorPicker } from '../v8-color-picker';
+import { Disclosure } from './Disclosure';
 
 const KINDS: Array<{ id: AtmosphereKind; label: string; hint: string }> = [
   { id: 'motes',       label: 'Motes',         hint: 'Slow gold particles drifting up.' },
@@ -338,23 +339,7 @@ export function AtmospherePanel({
             so power users can still reach it; the main flow
             stays focused on the hero atmosphere. */}
       <PanelSection label="Section backgrounds" hint="Per-section override. Most hosts leave this alone — the hero atmosphere fills naturally.">
-       <details>
-        <summary
-          style={{
-            cursor: 'pointer',
-            padding: '6px 10px',
-            borderRadius: 8,
-            background: 'var(--cream-2)',
-            border: '1px dashed var(--line)',
-            fontSize: 11.5,
-            fontWeight: 600,
-            color: 'var(--ink-soft)',
-            userSelect: 'none',
-            marginBottom: 8,
-          }}
-        >
-          Override the paper for individual sections
-        </summary>
+       <Disclosure label="Override the paper for individual sections">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 6 }}>
           {SECTIONS.map((s) => {
             const value = sectionBackgrounds[s.id] ?? 'paper';
@@ -437,7 +422,7 @@ export function AtmospherePanel({
             );
           })}
         </div>
-       </details>
+       </Disclosure>
       </PanelSection>
 
       {/* ── Decor visibility — collapsed by default ────────────
@@ -447,22 +432,7 @@ export function AtmospherePanel({
             them. Tucked behind a native <details> disclosure so
             the main Atmosphere screen stays uncluttered. */}
       <PanelSection label="Advanced">
-        <details style={{ fontFamily: 'inherit' }}>
-          <summary
-            style={{
-              cursor: 'pointer',
-              padding: '8px 10px',
-              borderRadius: 8,
-              background: 'var(--cream-2)',
-              border: '1px dashed var(--line)',
-              fontSize: 12,
-              fontWeight: 600,
-              color: 'var(--ink-soft)',
-              userSelect: 'none',
-            }}
-          >
-            Decor visibility — show / hide individual elements
-          </summary>
+        <Disclosure label="Decor visibility — show / hide individual elements">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '10px 4px 4px' }}>
             <p style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.5, margin: '0 0 4px' }}>
               Hide specific decor elements without touching their styling.
@@ -480,7 +450,7 @@ export function AtmospherePanel({
               );
             })}
           </div>
-        </details>
+        </Disclosure>
       </PanelSection>
     </>
   );

@@ -12,7 +12,7 @@ import type { StoryManifest } from '@/types';
 import { FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { FSelect } from './_form-atoms';
 
-type MapVariant = 'embed' | 'static' | 'pin';
+type MapVariant = 'embed' | 'static' | 'pin' | 'split' | 'postcard';
 
 interface MapData {
   variant?: MapVariant;
@@ -79,9 +79,11 @@ export function MapPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
             value={variant}
             onChange={(v) => patch({ variant: v as MapVariant })}
             options={[
-              { value: 'embed',  label: 'Live embed',  hint: 'Real Google Maps iframe — guests can pan + zoom' },
-              { value: 'static', label: 'Static image', hint: 'Pin + simplified map graphic (faster, no JS)' },
-              { value: 'pin',    label: 'Pin only',    hint: 'Just a pin + name + "Open in Maps" button' },
+              { value: 'embed',    label: 'Live embed',   hint: 'Real Google Maps iframe — guests can pan + zoom' },
+              { value: 'static',   label: 'Static image', hint: 'Map + non-interactive overlay (faster, no JS)' },
+              { value: 'pin',      label: 'Pin only',     hint: 'Just a pin + name + "Open in Maps" button' },
+              { value: 'split',    label: 'Split',        hint: 'Map left · venue address + directions right' },
+              { value: 'postcard', label: 'Postcard',     hint: 'Map clipped into a postcard frame with stamp + caption' },
             ]}
             icon="map"
           />

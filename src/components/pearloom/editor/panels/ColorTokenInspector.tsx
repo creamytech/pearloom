@@ -15,6 +15,7 @@ import type { StoryManifest } from '@/types';
 import { Field, PanelSection, TextInput } from '../atoms';
 import { Icon } from '../../motifs';
 import { V8ColorPicker } from '../v8-color-picker';
+import { Disclosure } from './Disclosure';
 
 type TokenKey = 'background' | 'foreground' | 'accent' | 'accentLight' | 'muted' | 'cardBg';
 
@@ -86,23 +87,7 @@ export function ColorTokenInspector({
 
       {/* Other five tokens behind a disclosure. Each is still
           edit-on-click via the same activeToken pattern. */}
-      <details>
-        <summary
-          style={{
-            cursor: 'pointer',
-            padding: '6px 10px',
-            borderRadius: 8,
-            background: 'var(--cream-2)',
-            border: '1px dashed var(--line)',
-            fontSize: 11.5,
-            fontWeight: 600,
-            color: 'var(--ink-soft)',
-            userSelect: 'none',
-            marginBottom: 8,
-          }}
-        >
-          Other colors — paper, ink, soft, muted, card
-        </summary>
+      <Disclosure label="Other colors — paper, ink, soft, muted, card">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, paddingTop: 6 }}>
           {otherTokens.map((t) => {
             const value = themeColors?.[t.key] ?? '#FFFFFF';
@@ -145,7 +130,7 @@ export function ColorTokenInspector({
             );
           })}
         </div>
-      </details>
+      </Disclosure>
 
       {activeToken && activeToken !== ACCENT_KEY && (
         <div

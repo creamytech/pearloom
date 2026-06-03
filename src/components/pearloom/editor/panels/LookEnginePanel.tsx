@@ -40,6 +40,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { PanelSection } from '../atoms';
+import { V8Slider } from '../v8-forms';
 import { paletteFromFile, type ExtractedPalette } from '@/lib/look-engine/palette-from-photo';
 import { generateLookFromStory, type SuggestedLook } from '@/lib/look-engine/generate-from-story';
 import { lookDefaultsFor } from '@/lib/event-os/event-types';
@@ -740,25 +741,13 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
                 {intensityLabel(intensity)}
               </span>
             </div>
-            <input
-              type="range"
+            <V8Slider
               min={0}
               max={1.5}
               step={0.05}
               value={intensity}
-              onChange={(e) => setIntensity(parseFloat(e.target.value))}
-              style={{
-                width: '100%',
-                height: 6,
-                borderRadius: 999,
-                appearance: 'none',
-                WebkitAppearance: 'none',
-                background: `linear-gradient(90deg, var(--ink, #0E0D0B) 0 ${
-                  (intensity / 1.5) * 100
-                }%, var(--cream-3, #D8CFB8) ${(intensity / 1.5) * 100}% 100%)`,
-                cursor: 'pointer',
-                outline: 'none',
-              }}
+              onChange={(n) => setIntensity(n)}
+              ariaLabel="Texture intensity"
             />
           </div>
         )}

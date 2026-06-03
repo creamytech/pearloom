@@ -1818,6 +1818,122 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
     );
   }
 
+  if (variant === 'ribbon') {
+    /* Diagonal sash across the section — feels like a banner
+       stretched between two posts. */
+    return (
+      <div style={{ position: 'relative', padding: `${56 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', overflow: 'hidden' }}>
+        <div
+          style={{
+            position: 'relative',
+            maxWidth: 760, margin: '0 auto',
+            background: 'var(--t-accent-bg, var(--t-section))',
+            color: 'var(--t-accent-ink, var(--t-ink))',
+            padding: '22px clamp(20px, 4vw, 48px)',
+            transform: 'rotate(-1.5deg)',
+            boxShadow: '0 12px 28px rgba(40,28,12,0.10)',
+            borderRadius: 8,
+          }}
+        >
+          {/* Notched edges — the V-cut on either side that reads
+              as "ribbon" rather than rectangle. */}
+          <span aria-hidden style={{
+            position: 'absolute', top: '50%', left: -10, transform: 'translateY(-50%)',
+            width: 0, height: 0,
+            borderRight: '10px solid var(--t-accent-bg, var(--t-section))',
+            borderTop: '24px solid transparent',
+            borderBottom: '24px solid transparent',
+            filter: 'brightness(0.85)',
+          }} />
+          <span aria-hidden style={{
+            position: 'absolute', top: '50%', right: -10, transform: 'translateY(-50%)',
+            width: 0, height: 0,
+            borderLeft: '10px solid var(--t-accent-bg, var(--t-section))',
+            borderTop: '24px solid transparent',
+            borderBottom: '24px solid transparent',
+            filter: 'brightness(0.85)',
+          }} />
+          <div style={{ fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', opacity: 0.7, textAlign: 'center', marginBottom: 8 }}>
+            {eyebrow}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline', gap: 22, fontFamily: 'var(--t-font-display)', flexWrap: 'wrap' }}>
+            <CountdownInlineRow pieces={pieces} />
+          </div>
+          <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.65, textAlign: 'center', marginTop: 8 }}>
+            {label}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'flip') {
+    /* Split-flap "flip clock" look — paired digit cards with a
+       hairline across the middle, like a vintage train station
+       display. */
+    const FlipDigit = ({ n }: { n: number }) => {
+      const s = String(n).padStart(2, '0');
+      return (
+        <span style={{ display: 'inline-flex', gap: 2 }}>
+          {s.split('').map((d, i) => (
+            <span
+              key={i}
+              style={{
+                position: 'relative',
+                width: 'clamp(38px, 6vw, 58px)',
+                fontFamily: 'var(--t-font-display)',
+                fontSize: 'clamp(34px, 6vw, 54px)',
+                color: 'var(--t-cream, #fff)',
+                background: 'var(--t-ink)',
+                borderRadius: 6,
+                padding: '8px 0',
+                textAlign: 'center',
+                boxShadow: 'inset 0 -8px 18px rgba(0,0,0,0.35), 0 4px 10px rgba(40,28,12,0.18)',
+                lineHeight: 1,
+              }}
+            >
+              {d}
+              <span aria-hidden style={{
+                position: 'absolute', left: 0, right: 0, top: '50%',
+                height: 1, background: 'rgba(0,0,0,0.35)',
+              }} />
+            </span>
+          ))}
+        </span>
+      );
+    };
+    return (
+      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)', textAlign: 'center' }}>
+        <div style={{ fontSize: 12, color: 'var(--t-ink-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>
+          {eyebrow}
+        </div>
+        <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(22px, 3vw, 30px)', color: 'var(--t-ink)', marginBottom: 22 }}>
+          {label}
+        </div>
+        <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+          {[
+            { n: pieces.d, l: 'Days' },
+            { n: pieces.h, l: 'Hours' },
+            { n: pieces.m, l: 'Min' },
+            { n: pieces.s, l: 'Sec' },
+          ].map((cell, i) => (
+            <span key={cell.l} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+              <FlipDigit n={cell.n} />
+              <span style={{ fontSize: 9.5, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--t-ink-muted)' }}>
+                {cell.l}
+              </span>
+              {i < 3 && (
+                <span aria-hidden style={{
+                  position: 'absolute', display: 'none',
+                }} />
+              )}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   /* cards (default) — 4 tiles. */
   return (
     <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', textAlign: 'center' }}>
@@ -1923,6 +2039,128 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
     );
   }
 
+  if (variant === 'split') {
+    /* Two-column split: map on the left, venue info + directions
+       on the right. Stacks on mobile (container query handles it
+       via the canvas's containerType). */
+    return (
+      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}>
+        <div style={{ maxWidth: 1040, margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(220px, 320px)', gap: 'clamp(16px, 3vw, 32px)', alignItems: 'stretch' }}>
+          <div style={{ position: 'relative', borderRadius: 'var(--t-radius)', overflow: 'hidden', border: '1px solid var(--t-line-soft)', boxShadow: 'var(--t-shadow-sm)' }}>
+            <iframe
+              src={`https://maps.google.com/maps?q=${encodedAddress}&z=14&output=embed`}
+              title={`Map of ${venue || 'the venue'}`}
+              style={{ width: '100%', height: '100%', minHeight: 320, border: 0, display: 'block' }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 14 }}>
+            <div style={{ fontSize: 11, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
+              {eyebrow}
+            </div>
+            <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(22px, 3vw, 30px)', color: 'var(--t-ink)', lineHeight: 1.15 }}>
+              {venue || 'The venue'}
+            </div>
+            {place && (
+              <div style={{ fontSize: 14, color: 'var(--t-ink-soft)', lineHeight: 1.5 }}>
+                {place}
+              </div>
+            )}
+            {showDirections && (
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+                <a
+                  href={directionsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 999, background: 'var(--t-ink)', color: 'var(--t-cream, #fff)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
+                >
+                  <Icon name="arrow-up" size={12} color="var(--t-cream, #fff)" /> Directions
+                </a>
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 999, background: 'transparent', border: '1px solid var(--t-line)', color: 'var(--t-ink)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
+                >
+                  Open in Maps
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'postcard') {
+    /* Postcard frame — the map sits inside a tilted, cream-bordered
+       card with a faux stamp in the corner + a caption strip below.
+       Reads as keepsake rather than utility. */
+    return (
+      <div style={{ padding: `${56 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}>
+        <div style={{
+          maxWidth: 700, margin: '0 auto',
+          background: 'var(--t-cream, #FBF7EE)',
+          border: '1px solid var(--t-line-soft)',
+          borderRadius: 4,
+          padding: 14,
+          boxShadow: '0 14px 30px rgba(40,28,12,0.14), 0 4px 10px rgba(40,28,12,0.08)',
+          transform: 'rotate(-0.8deg)',
+          position: 'relative',
+        }}>
+          {/* Faux stamp — top-right corner. */}
+          <div aria-hidden style={{
+            position: 'absolute', top: 14, right: 14,
+            width: 52, height: 62,
+            background: 'var(--t-accent-bg, var(--t-section))',
+            border: '2px dashed var(--t-ink-muted)',
+            display: 'grid', placeItems: 'center',
+            transform: 'rotate(6deg)',
+            zIndex: 2,
+          }}>
+            <Icon name="heart" size={18} color="var(--t-accent-ink, var(--t-ink))" />
+          </div>
+          <div style={{ position: 'relative', borderRadius: 2, overflow: 'hidden', border: '1px solid var(--t-line-soft)' }}>
+            <iframe
+              src={`https://maps.google.com/maps?q=${encodedAddress}&z=14&output=embed`}
+              title={`Map of ${venue || 'the venue'}`}
+              style={{ width: '100%', height, border: 0, pointerEvents: 'none', display: 'block', filter: 'sepia(0.18) saturate(0.85)' }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+          {/* Caption strip — paper grain, like a postcard back. */}
+          <div style={{ paddingTop: 12, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+            <div>
+              <div style={{ fontSize: 10.5, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
+                {eyebrow}
+              </div>
+              <div style={{ fontFamily: 'var(--t-font-display)', fontStyle: 'italic', fontSize: 'clamp(18px, 2.6vw, 24px)', color: 'var(--t-ink)', marginTop: 2 }}>
+                {venue || 'The venue'}
+              </div>
+              {place && (
+                <div style={{ fontSize: 12, color: 'var(--t-ink-soft)', marginTop: 2 }}>
+                  {place}
+                </div>
+              )}
+            </div>
+            {showDirections && (
+              <a
+                href={directionsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11.5, color: 'var(--t-ink)', textDecoration: 'underline', textUnderlineOffset: 3, whiteSpace: 'nowrap' }}
+              >
+                directions →
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (variant === 'static') {
     /* Static map — uses the public maps.googleapis.com staticmap
        endpoint pattern via the dynamic iframe wrapped in a frame
@@ -2007,9 +2245,10 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
 
 function MusicBlock({ ctx }: { ctx: SectionCtx }) {
   const { pad, manifest, editable } = ctx;
-  const cfg = (manifest as unknown as { music?: { provider?: string; url?: string; title?: string; description?: string } }).music ?? {};
+  const cfg = (manifest as unknown as { music?: { provider?: string; url?: string; title?: string; description?: string; variant?: string } }).music ?? {};
   const provider = cfg.provider ?? 'spotify';
   const url = cfg.url?.trim() ?? '';
+  const variant = cfg.variant ?? 'card';
   const eyebrow = ((manifest as unknown as { copy?: Record<string, string> }).copy?.musicEyebrow) || 'The soundtrack';
   const title = cfg.title?.trim() || 'Songs for the dance floor';
   const description = cfg.description?.trim();
@@ -2029,8 +2268,127 @@ function MusicBlock({ ctx }: { ctx: SectionCtx }) {
   }
 
   const isSpotify = provider === 'spotify';
-  const height = isSpotify ? 380 : provider === 'apple' ? 450 : 380;
+  const baseHeight = isSpotify ? 380 : provider === 'apple' ? 450 : 380;
 
+  const playerIframe = (height: number, dark = false) => (
+    <iframe
+      src={embedUrl}
+      title={`${title} — playlist`}
+      style={{ width: '100%', height, border: 0, display: 'block', background: isSpotify || dark ? '#181818' : 'transparent' }}
+      loading="lazy"
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      referrerPolicy="no-referrer-when-downgrade"
+    />
+  );
+
+  if (variant === 'minimal') {
+    return (
+      <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}>
+        <div style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center', marginBottom: 12 }}>
+          <div style={{ fontSize: 11, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 4 }}>
+            {eyebrow}
+          </div>
+          <div style={{ fontFamily: 'var(--t-font-display)', fontStyle: 'italic', fontSize: 'clamp(20px, 2.6vw, 26px)', color: 'var(--t-ink)' }}>
+            {title}
+          </div>
+        </div>
+        <div style={{ maxWidth: 720, margin: '0 auto', borderRadius: 6, overflow: 'hidden' }}>
+          {playerIframe(baseHeight)}
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'fullbleed') {
+    return (
+      <div style={{ padding: `${24 * pad}px 0`, background: 'var(--t-paper)' }}>
+        <div style={{ textAlign: 'center', padding: '0 clamp(16px, 4vw, 32px)', marginBottom: 18 }}>
+          <div style={{ fontSize: 11, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
+            {eyebrow}
+          </div>
+          <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(28px, 5vw, 44px)', color: 'var(--t-ink)', marginTop: 4 }}>
+            {title}
+          </div>
+        </div>
+        <div style={{ width: '100%' }}>
+          {playerIframe(Math.max(baseHeight, 460))}
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'sidebar') {
+    return (
+      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}>
+        <div style={{ maxWidth: 1040, margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(220px, 320px)', gap: 'clamp(16px, 3vw, 32px)', alignItems: 'stretch' }}>
+          <div style={{ borderRadius: 'var(--t-radius)', overflow: 'hidden', boxShadow: 'var(--t-shadow-sm)' }}>
+            {playerIframe(Math.max(baseHeight, 420))}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 12 }}>
+            <div style={{ fontSize: 11, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase' }}>
+              {eyebrow}
+            </div>
+            <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(24px, 3vw, 34px)', color: 'var(--t-ink)', lineHeight: 1.1 }}>
+              {title}
+            </div>
+            {description && (
+              <div style={{ fontSize: 14, color: 'var(--t-ink-soft)', lineHeight: 1.6 }}>
+                {description}
+              </div>
+            )}
+            {url && (
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 6, padding: '9px 14px', borderRadius: 999, background: 'transparent', border: '1px solid var(--t-line)', color: 'var(--t-ink)', fontSize: 12.5, fontWeight: 600, textDecoration: 'none', alignSelf: 'flex-start' }}
+              >
+                <Icon name="music" size={12} color="var(--t-ink)" /> Open in {provider === 'spotify' ? 'Spotify' : provider === 'apple' ? 'Apple Music' : provider === 'youtube' ? 'YouTube' : 'player'}
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'jukebox') {
+    /* Dark plate + neon accent. For party / bachelor-party / sweet-
+       sixteen sites — looks like a club marquee. */
+    return (
+      <div style={{ padding: `${56 * pad}px clamp(16px, 4vw, 32px)`, background: '#0c0a0a', color: '#FBF1D8' }}>
+        <div style={{ maxWidth: 880, margin: '0 auto', textAlign: 'center', marginBottom: 22 }}>
+          <div style={{ fontSize: 11, color: '#C49A6F', letterSpacing: '0.32em', textTransform: 'uppercase' }}>
+            ◆ {eyebrow} ◆
+          </div>
+          <div style={{
+            fontFamily: 'var(--t-font-display)',
+            fontSize: 'clamp(30px, 5.5vw, 52px)',
+            color: '#FBF1D8',
+            marginTop: 6,
+            textShadow: '0 0 12px rgba(196,154,111,0.4), 0 0 32px rgba(196,154,111,0.2)',
+          }}>
+            {title}
+          </div>
+          {description && (
+            <div style={{ fontSize: 13, color: 'rgba(251,241,216,0.7)', marginTop: 8, maxWidth: 520, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.55 }}>
+              {description}
+            </div>
+          )}
+        </div>
+        <div style={{
+          maxWidth: 720, margin: '0 auto',
+          borderRadius: 10, overflow: 'hidden',
+          border: '1px solid rgba(196,154,111,0.4)',
+          boxShadow: '0 0 0 1px rgba(196,154,111,0.18), 0 18px 40px rgba(0,0,0,0.45), 0 0 48px rgba(196,154,111,0.18)',
+        }}>
+          {playerIframe(baseHeight, true)}
+        </div>
+      </div>
+    );
+  }
+
+  /* card (default) — title + player in a card. */
   return (
     <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}>
       <TSectionHead
@@ -2044,14 +2402,7 @@ function MusicBlock({ ctx }: { ctx: SectionCtx }) {
         </div>
       )}
       <div style={{ maxWidth: 760, margin: '0 auto', borderRadius: 'var(--t-radius)', overflow: 'hidden', boxShadow: 'var(--t-shadow-sm)' }}>
-        <iframe
-          src={embedUrl}
-          title={`${title} — playlist`}
-          style={{ width: '100%', height, border: 0, display: 'block', background: provider === 'spotify' ? '#181818' : 'transparent' }}
-          loading="lazy"
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          referrerPolicy="no-referrer-when-downgrade"
-        />
+        {playerIframe(baseHeight)}
       </div>
     </div>
   );

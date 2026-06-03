@@ -33,6 +33,7 @@ import {
   type ManifestCookBody,
 } from '../wizard/useBackgroundManifest';
 import { BackgroundCookPill } from '../wizard/BackgroundCookPill';
+import { useDialog } from '@/components/ui/confirm-dialog';
 
 // Layout step removed 2026-05-30 — Editions (picked later in the
 // editor) stamp manifest.storyLayout per Edition, so making the
@@ -1179,6 +1180,7 @@ export function WizardV8() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const templateId = searchParams.get('template');
+  const dialog = useDialog();
   const [stepIndex, setStepIndex] = useState(0);
   // Persist wizard state across refreshes so users don't lose their
   // work if they accidentally reload mid-flow. Photos stay out of
@@ -1869,10 +1871,14 @@ export function WizardV8() {
               </Link>
               <button
                 type="button"
-                onClick={() => {
-                  if (window.confirm('Start from scratch — this keeps everything you\'ve typed but drops the template’s palette + layout.')) {
-                    setSt((s) => ({ ...s, templateId: undefined }));
-                  }
+                onClick={async () => {
+                  const ok = await dialog.confirm({
+                    title: 'Start from scratch?',
+                    message: "Keeps everything you've typed but drops the template’s palette + layout.",
+                    confirmLabel: 'Drop the template',
+                    cancelLabel: 'Keep the template',
+                  });
+                  if (ok) setSt((s) => ({ ...s, templateId: undefined }));
                 }}
                 style={{
                   fontSize: 12,
