@@ -2643,6 +2643,90 @@ function KDivider({ look, width = 170, style = {} }: { look: string; width?: num
       </div>
     );
   }
+  if (look === 'wave') {
+    const cycles = Math.max(3, Math.round(width / 36));
+    const len = width / cycles;
+    let d = `M 0 7 `;
+    for (let i = 0; i < cycles; i++) {
+      const x = i * len;
+      d += `C ${x + len * 0.25} 1, ${x + len * 0.75} 13, ${x + len} 7 `;
+    }
+    return (
+      <div style={wrap}>
+        <svg width={width} height="14" viewBox={`0 0 ${width} 14`} aria-hidden>
+          <path d={d} stroke="var(--t-accent)" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.7" />
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'arrow') {
+    return (
+      <div style={wrap}>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+        <svg width="14" height="10" viewBox="0 0 14 10" aria-hidden>
+          <path d="M 0 1 L 12 5 L 0 9 Z" fill="var(--t-gold, var(--gold))" />
+        </svg>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+      </div>
+    );
+  }
+  if (look === 'seal') {
+    return (
+      <div style={wrap}>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+        <span style={{
+          width: 12, height: 12, borderRadius: '50%',
+          background: 'var(--t-accent)',
+          boxShadow: 'inset 0 0 0 1.5px var(--t-cream, #FBF7EE)',
+        }} />
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+      </div>
+    );
+  }
+  if (look === 'bow') {
+    return (
+      <div style={wrap}>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+        <svg width="22" height="12" viewBox="0 0 22 12" aria-hidden>
+          <path d="M 2 1 L 10 6 L 2 11 Z" fill="var(--t-accent)" opacity="0.78" />
+          <path d="M 20 1 L 12 6 L 20 11 Z" fill="var(--t-accent)" opacity="0.78" />
+          <circle cx="11" cy="6" r="1.6" fill="var(--t-gold, var(--gold))" />
+        </svg>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+      </div>
+    );
+  }
+  if (look === 'diamond') {
+    return (
+      <div style={wrap}>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+        <svg width="46" height="10" viewBox="0 0 46 10" aria-hidden>
+          <path d="M 4 5 L 8 1 L 12 5 L 8 9 Z" fill="var(--t-gold, var(--gold))" opacity="0.7" />
+          <path d="M 23 5 L 18 0 L 28 0 L 23 10 L 18 0 Z" fill="var(--t-accent)" opacity="0.85" />
+          <path d="M 42 5 L 38 1 L 34 5 L 38 9 Z" fill="var(--t-gold, var(--gold))" opacity="0.7" />
+        </svg>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+      </div>
+    );
+  }
+  if (look === 'morse') {
+    const segs = Math.max(4, Math.round(width / 22));
+    return (
+      <div style={wrap}>
+        <svg width={width} height="6" viewBox={`0 0 ${width} 6`} aria-hidden>
+          {Array.from({ length: segs }).map((_, i) => {
+            const isDash = i % 2 === 1;
+            const x = (i / segs) * width + 4;
+            return isDash ? (
+              <rect key={i} x={x} y="2" width="11" height="2" rx="1" fill="var(--t-accent)" opacity="0.75" />
+            ) : (
+              <circle key={i} cx={x + 1} cy="3" r="1.4" fill="var(--t-accent)" opacity="0.75" />
+            );
+          })}
+        </svg>
+      </div>
+    );
+  }
   /* rule (default) */
   return (
     <div style={wrap}>
@@ -3049,6 +3133,64 @@ function PatternLayer({ pattern, intensity = 1 }: { pattern: string; intensity?:
     case 'confetti': bg = `radial-gradient(${a(42)} 30%, transparent 32%), radial-gradient(${a2(42)} 30%, transparent 32%), radial-gradient(${g(42)} 30%, transparent 32%)`; size = '46px 46px, 62px 62px, 38px 38px'; extra = { backgroundPosition: '0 0, 18px 24px, 32px 8px' }; break;
     case 'terrazzo': bg = `radial-gradient(${a(34)} 18%, transparent 20%), radial-gradient(${a2(30)} 16%, transparent 18%), radial-gradient(${g(30)} 14%, transparent 16%), radial-gradient(${ink(12)} 12%, transparent 14%)`; size = '52px 52px, 72px 72px, 44px 44px, 90px 90px'; extra = { backgroundPosition: '0 0, 26px 30px, 40px 12px, 60px 50px' }; break;
     case 'celestial':bg = `radial-gradient(${g(75)} 6%, transparent 8%), radial-gradient(rgba(255,255,255,0.65) 5%, transparent 7%), radial-gradient(rgba(255,255,255,0.4) 4%, transparent 6%)`; size = '88px 88px, 118px 118px, 152px 152px'; extra = { backgroundPosition: '0 0, 34px 48px, 86px 24px' }; break;
+    /* ─── New custom patterns ──────────────────────────────────── */
+    case 'herringbone': {
+      /* Alternating diagonal short bars — woven-cloth read. */
+      const tile = `data:image/svg+xml;utf8,${encodeURIComponent(
+        `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'>` +
+        `<line x1='0' y1='12' x2='12' y2='0' stroke='currentColor' stroke-width='1.5'/>` +
+        `<line x1='12' y1='24' x2='24' y2='12' stroke='currentColor' stroke-width='1.5'/>` +
+        `<line x1='12' y1='0' x2='24' y2='12' stroke='currentColor' stroke-width='1.5'/>` +
+        `<line x1='0' y1='12' x2='12' y2='24' stroke='currentColor' stroke-width='1.5'/>` +
+        `</svg>`,
+      )}`;
+      bg = `url("${tile}")`;
+      size = '24px 24px';
+      extra = { color: a(38) };
+      break;
+    }
+    case 'chevron': {
+      /* Zigzag bands — alternating accent + gold for variety. */
+      bg = `repeating-linear-gradient(135deg, ${a(14)} 0 12px, transparent 12px 24px), repeating-linear-gradient(45deg, ${g(10)} 0 12px, transparent 12px 24px)`;
+      size = '34px 34px';
+      break;
+    }
+    case 'hexagons': {
+      /* Honeycomb hexagonal mesh — formed by three offset
+         repeating gradients. */
+      bg = `radial-gradient(${a(20)} 14%, transparent 16%) 0 0/40px 40px, radial-gradient(${a(20)} 14%, transparent 16%) 20px 20px/40px 40px, linear-gradient(120deg, transparent 18%, ${a(8)} 18% 22%, transparent 22%), linear-gradient(60deg, transparent 18%, ${a(8)} 18% 22%, transparent 22%)`;
+      size = '40px 40px, 40px 40px, 40px 70px, 40px 70px';
+      break;
+    }
+    case 'argyle': {
+      /* Diamond grid with hairline crosshatch — preppy
+         knitwear feel. */
+      bg = `linear-gradient(135deg, ${a(16)} 25%, transparent 25%, transparent 75%, ${a(16)} 75%), linear-gradient(135deg, ${a(16)} 25%, transparent 25%, transparent 75%, ${a(16)} 75%), repeating-linear-gradient(45deg, ${ink(10)} 0 1px, transparent 1px 18px), repeating-linear-gradient(-45deg, ${ink(10)} 0 1px, transparent 1px 18px)`;
+      size = '40px 40px, 40px 40px, auto, auto';
+      extra = { backgroundPosition: '0 0, 20px 20px, 0 0, 0 0' };
+      break;
+    }
+    case 'crosshatch': {
+      /* Cross-hatched pen-and-ink lines at +/- 30°. */
+      bg = `repeating-linear-gradient(30deg, ${ink(14)} 0 1px, transparent 1px 8px), repeating-linear-gradient(-30deg, ${ink(14)} 0 1px, transparent 1px 8px)`;
+      break;
+    }
+    case 'lattice': {
+      /* Wide diagonal lattice — garden gate / trellis look. */
+      bg = `repeating-linear-gradient(45deg, ${a(18)} 0 2px, transparent 2px 28px), repeating-linear-gradient(-45deg, ${a(18)} 0 2px, transparent 2px 28px)`;
+      break;
+    }
+    case 'starfield': {
+      /* Sparse 4-pointed stars + tiny dots — night-sky / celebration. */
+      const star = `data:image/svg+xml;utf8,${encodeURIComponent(
+        `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' width='20' height='20'>` +
+        `<path d='M10 4 L11 9 L16 10 L11 11 L10 16 L9 11 L4 10 L9 9 Z' fill='currentColor'/></svg>`,
+      )}`;
+      bg = `url("${star}"), radial-gradient(${g(60)} 1.4px, transparent 2px)`;
+      size = '90px 90px, 32px 32px';
+      extra = { color: g(80), backgroundPosition: '12px 18px, 0 0' };
+      break;
+    }
     default: return null;
   }
   return <div aria-hidden style={{ ...base, backgroundImage: bg, backgroundSize: size, ...extra }} />;

@@ -22,7 +22,18 @@
 
 import type { CSSProperties } from 'react';
 
-export type MonogramFrame = 'ring' | 'diamond' | 'laurel' | 'none';
+export type MonogramFrame =
+  | 'ring'
+  | 'diamond'
+  | 'laurel'
+  | 'none'
+  /* New custom frames. */
+  | 'shield'    // heraldic shield outline — formal, ceremonial
+  | 'oval'      // tall vertical oval — vintage, romantic
+  | 'arch'      // top arch + hairline base — postcard / chapel
+  | 'sprig'     // two olive sprigs flanking the letters
+  | 'seal'      // wax-seal pillow with dotted inner border
+  | 'banner';   // ribbon banner draped behind the initials
 
 interface MonogramProps {
   /** 1–3 characters. Typically two initials joined by '&' or space. */
@@ -217,6 +228,147 @@ export function Monogram({
         >
           <LaurelMotif size={80} color={accent} />
         </div>
+      )}
+      {frame === 'shield' && (
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 100 110"
+          width={ringSize}
+          height={ringSize * 1.1}
+          style={{ position: 'absolute', pointerEvents: 'none' }}
+        >
+          {/* Heraldic shield — flat top with curved bottom flank.
+              Two-stroke construction so the inner hairline reads as
+              a formal seal. */}
+          <path
+            d="M 8 8 L 92 8 L 92 60 Q 92 88, 50 104 Q 8 88, 8 60 Z"
+            fill="none"
+            stroke={accent}
+            strokeWidth="1.5"
+          />
+          <path
+            d="M 14 14 L 86 14 L 86 60 Q 86 84, 50 98 Q 14 84, 14 60 Z"
+            fill="none"
+            stroke={accent}
+            strokeWidth="0.6"
+            opacity="0.6"
+          />
+        </svg>
+      )}
+      {frame === 'oval' && (
+        <span
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            width: ringSize * 0.78,
+            height: ringSize * 1.18,
+            borderRadius: '50%',
+            border: `1.5px solid ${accent}`,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+      {frame === 'arch' && (
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 100 100"
+          width={ringSize}
+          height={ringSize}
+          style={{ position: 'absolute', pointerEvents: 'none' }}
+        >
+          {/* Arch — top semicircle + straight base. Reads as
+              chapel doorway / postcard window. */}
+          <path
+            d="M 10 92 L 10 50 A 40 40 0 0 1 90 50 L 90 92"
+            fill="none"
+            stroke={accent}
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+          <line x1="6" y1="92" x2="94" y2="92" stroke={accent} strokeWidth="0.8" />
+        </svg>
+      )}
+      {frame === 'sprig' && (
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 200 80"
+          width={ringSize * 1.2}
+          height={ringSize * 0.5}
+          style={{ position: 'absolute', pointerEvents: 'none' }}
+        >
+          {/* Two horizontal olive sprigs flanking the initials. */}
+          <g stroke={accent} strokeWidth="1.4" strokeLinecap="round" fill="none">
+            <path d="M 60 40 Q 30 28, 10 36" />
+            <path d="M 60 40 Q 30 52, 10 44" />
+            <path d="M 140 40 Q 170 28, 190 36" />
+            <path d="M 140 40 Q 170 52, 190 44" />
+          </g>
+          <g fill={accent} opacity="0.85">
+            {/* Left leaves. */}
+            <ellipse cx="48" cy="32" rx="5" ry="2.4" transform="rotate(-20 48 32)" />
+            <ellipse cx="34" cy="30" rx="5" ry="2.4" transform="rotate(-30 34 30)" />
+            <ellipse cx="20" cy="34" rx="4" ry="2" transform="rotate(-38 20 34)" />
+            <ellipse cx="48" cy="48" rx="5" ry="2.4" transform="rotate(20 48 48)" />
+            <ellipse cx="34" cy="50" rx="5" ry="2.4" transform="rotate(30 34 50)" />
+            <ellipse cx="20" cy="46" rx="4" ry="2" transform="rotate(38 20 46)" />
+            {/* Right leaves — mirror. */}
+            <ellipse cx="152" cy="32" rx="5" ry="2.4" transform="rotate(20 152 32)" />
+            <ellipse cx="166" cy="30" rx="5" ry="2.4" transform="rotate(30 166 30)" />
+            <ellipse cx="180" cy="34" rx="4" ry="2" transform="rotate(38 180 34)" />
+            <ellipse cx="152" cy="48" rx="5" ry="2.4" transform="rotate(-20 152 48)" />
+            <ellipse cx="166" cy="50" rx="5" ry="2.4" transform="rotate(-30 166 50)" />
+            <ellipse cx="180" cy="46" rx="4" ry="2" transform="rotate(-38 180 46)" />
+          </g>
+        </svg>
+      )}
+      {frame === 'seal' && (
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 100 100"
+          width={ringSize}
+          height={ringSize}
+          style={{ position: 'absolute', pointerEvents: 'none' }}
+        >
+          {/* Wax-seal pillow — filled circle with dashed inner ring,
+              radial spokes around the rim for the "stamped" feel. */}
+          <circle cx="50" cy="50" r="46" fill={accent} opacity="0.14" />
+          <circle cx="50" cy="50" r="46" fill="none" stroke={accent} strokeWidth="1.2" />
+          <circle cx="50" cy="50" r="38" fill="none" stroke={accent} strokeWidth="0.6" strokeDasharray="2 3" opacity="0.7" />
+          {/* Twelve spokes around the rim. */}
+          {Array.from({ length: 12 }).map((_, i) => {
+            const a = (i / 12) * Math.PI * 2;
+            const x1 = 50 + Math.cos(a) * 42;
+            const y1 = 50 + Math.sin(a) * 42;
+            const x2 = 50 + Math.cos(a) * 46;
+            const y2 = 50 + Math.sin(a) * 46;
+            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={accent} strokeWidth="0.8" />;
+          })}
+        </svg>
+      )}
+      {frame === 'banner' && (
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 200 100"
+          width={ringSize * 1.25}
+          height={ringSize * 0.62}
+          style={{ position: 'absolute', pointerEvents: 'none' }}
+        >
+          {/* Ribbon banner — straight strip with notched ends + slight
+              droop. Sits BEHIND the initials. */}
+          <path
+            d="M 20 50 L 8 60 L 20 70 L 180 70 L 192 60 L 180 50 Z"
+            fill={accent}
+            opacity="0.18"
+          />
+          <path
+            d="M 20 50 L 8 60 L 20 70 L 180 70 L 192 60 L 180 50 Z"
+            fill="none"
+            stroke={accent}
+            strokeWidth="1.2"
+          />
+          {/* Notches highlight — gives the ribbon depth. */}
+          <path d="M 20 50 L 20 70 M 180 50 L 180 70" stroke={accent} strokeWidth="0.8" opacity="0.7" />
+        </svg>
       )}
 
       {/* Initials */}

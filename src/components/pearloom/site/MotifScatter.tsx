@@ -52,6 +52,16 @@ export type MotifKind =
   | 'laurel'
   | 'deco-fan'
   | 'palm'
+  /* Custom additions — designed for occasions the original 12
+     didn't have a strong fit for. */
+  | 'mountain'   // triple-peak silhouette — destination, retreat
+  | 'wave-curl'  // single sinuous brush wave — coastal, summer
+  | 'rose'       // rose head + stem — anniversary, vow renewal
+  | 'crescent'   // crescent moon + star — memorial, intimate
+  | 'dove'       // abstract dove — wedding, baptism, memorial
+  | 'arrows'     // crossed arrows — bachelor/ette, reunion
+  | 'pinecone'   // pinecone — fall / winter / forest events
+  | 'butterfly'  // butterfly — sweet sixteen, bridal shower
   | 'none';
 export type MotifDensity = 'none' | 'sparse' | 'generous';
 
@@ -415,6 +425,166 @@ export function PalmMotif({ size = 22, color = MOTIF_COLOR, flip = false, style 
   );
 }
 
+/* ─── Custom motifs (new) ─────────────────────────────────────────
+   Each follows the established signature: { size, color, style? }
+   and binds via MOTIF_COLOR by default so theme accent flows in.
+   Targets occasions the original 12 didn't fit well — mountain
+   retreats, coastal summers, anniversaries, memorials, bachelor/
+   ette parties, fall/winter events. */
+
+export function MountainMotif({ size = 28, color = MOTIF_COLOR, style }: { size?: number; color?: string; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 60 40" width={size} height={size * (40 / 60)} style={style} aria-hidden>
+      {/* Three overlapping peaks — back-far-light, middle-mid, front-dark. */}
+      <path d="M0 36 L18 10 L30 26 L42 6 L60 36 Z" fill={color} opacity="0.16" />
+      <path d="M6 36 L22 14 L34 28 L60 36 Z" fill={color} opacity="0.34" />
+      <path d="M0 36 L14 18 L24 30 L36 16 L48 30 L60 36 Z" fill="none" stroke={color} strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Tiny sun behind the back peak. */}
+      <circle cx="44" cy="10" r="3" fill={color} opacity="0.45" />
+    </svg>
+  );
+}
+
+export function WaveCurl({ size = 38, color = MOTIF_COLOR, style }: { size?: number; color?: string; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 80 28" width={size} height={size * (28 / 80)} style={style} aria-hidden>
+      {/* Single brush-flick wave — fades on entry and exit to read
+          as ink-on-paper rather than line. */}
+      <defs>
+        <linearGradient id="wc-grad" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0%" stopColor={color} stopOpacity="0" />
+          <stop offset="15%" stopColor={color} stopOpacity="1" />
+          <stop offset="85%" stopColor={color} stopOpacity="1" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d="M2 14 C 14 4, 22 24, 34 14 S 56 4, 66 14 S 76 18, 78 14"
+        stroke="url(#wc-grad)" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+    </svg>
+  );
+}
+
+export function RoseMotif({ size = 28, color = MOTIF_COLOR, style }: { size?: number; color?: string; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 36 60" width={size * (36 / 60)} height={size} style={style} aria-hidden>
+      {/* Rose head — concentric spiral. */}
+      <circle cx="18" cy="14" r="11" fill={color} opacity="0.18" />
+      <path d="M18 6 C 22 6, 26 10, 24 14 C 22 18, 14 18, 12 14 C 10 10, 14 6, 18 6"
+        fill="none" stroke={color} strokeWidth="1.2" />
+      <path d="M18 9 C 21 9, 23 12, 21 15 C 19 17, 15 16, 14 14"
+        fill="none" stroke={color} strokeWidth="1.2" />
+      <circle cx="18" cy="13" r="2" fill={color} />
+      {/* Stem + thorn. */}
+      <path d="M18 24 L18 56" stroke={color} strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M18 38 L13 35" stroke={color} strokeWidth="1.2" strokeLinecap="round" />
+      {/* Single leaf. */}
+      <path d="M18 32 Q 26 28, 28 36 Q 22 38, 18 36 Z" fill={color} opacity="0.4" />
+    </svg>
+  );
+}
+
+export function CrescentMotif({ size = 24, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 40 40" width={size} height={size} style={style} aria-hidden>
+      {/* Crescent — large circle with a slightly-offset cutout. */}
+      <defs>
+        <mask id="cres-mask">
+          <rect width="40" height="40" fill="white" />
+          <circle cx="22" cy="18" r="13" fill="black" />
+        </mask>
+      </defs>
+      <circle cx="18" cy="20" r="14" fill={color} mask="url(#cres-mask)" />
+      {/* Twinkle star. */}
+      <g transform="translate(31 30)" fill={gold}>
+        <path d="M0 -4 L1 -1 L4 0 L1 1 L0 4 L-1 1 L-4 0 L-1 -1 Z" />
+      </g>
+    </svg>
+  );
+}
+
+export function DoveMotif({ size = 30, color = MOTIF_COLOR, style }: { size?: number; color?: string; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 60 40" width={size} height={size * (40 / 60)} style={style} aria-hidden>
+      {/* Abstract dove — body + wing arc + tail. */}
+      <path d="M8 22 Q 18 12, 30 16 Q 40 18, 50 14 Q 44 22, 36 24 Q 24 28, 14 28 Z" fill={color} opacity="0.2" />
+      <path d="M8 22 Q 18 12, 30 16 Q 40 18, 50 14" fill="none" stroke={color} strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M30 16 Q 28 26, 22 30" fill="none" stroke={color} strokeWidth="1.2" strokeLinecap="round" />
+      {/* Beak + eye. */}
+      <path d="M50 14 L54 12 L52 16 Z" fill={color} opacity="0.5" />
+      <circle cx="48" cy="16" r="0.8" fill={color} />
+      {/* Olive branch in beak — single tiny leaf. */}
+      <path d="M54 12 Q 58 10, 60 14" fill="none" stroke="var(--t-gold, var(--gold, #B8935A))" strokeWidth="0.8" />
+    </svg>
+  );
+}
+
+export function ArrowsMotif({ size = 28, color = MOTIF_COLOR, style }: { size?: number; color?: string; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 50 50" width={size} height={size} style={style} aria-hidden>
+      {/* Crossed arrows — heritage / camp aesthetic. */}
+      <g stroke={color} strokeWidth="1.6" strokeLinecap="round" fill="none">
+        <line x1="6" y1="6" x2="44" y2="44" />
+        <line x1="44" y1="6" x2="6" y2="44" />
+        {/* Fletching on each shaft end. */}
+        <path d="M6 6 L10 4 M6 6 L4 10" />
+        <path d="M44 6 L48 8 M44 6 L42 10" />
+        {/* Arrowheads. */}
+        <path d="M44 44 L40 42 L42 38" fill={color} />
+        <path d="M6 44 L8 38 L10 42" fill={color} />
+      </g>
+    </svg>
+  );
+}
+
+export function PineconeMotif({ size = 30, color = MOTIF_COLOR, style }: { size?: number; color?: string; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 30 50" width={size * (30 / 50)} height={size} style={style} aria-hidden>
+      {/* Pinecone — overlapping scales arranged in two zigzag rows. */}
+      <g fill={color} opacity="0.65">
+        {[0, 1, 2, 3, 4].map((row) => (
+          <g key={row} transform={`translate(0 ${10 + row * 6})`}>
+            {[6, 14, 22].map((cx, i) => (
+              <ellipse key={i} cx={cx + (row % 2 === 0 ? 0 : 4)} cy={0} rx={5} ry={3.5} />
+            ))}
+          </g>
+        ))}
+      </g>
+      {/* Top sprig — three needles. */}
+      <g stroke={color} strokeWidth="1.2" strokeLinecap="round">
+        <line x1="15" y1="10" x2="9" y2="2" />
+        <line x1="15" y1="10" x2="15" y2="0" />
+        <line x1="15" y1="10" x2="21" y2="2" />
+      </g>
+    </svg>
+  );
+}
+
+export function ButterflyMotif({ size = 28, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 60 50" width={size} height={size * (50 / 60)} style={style} aria-hidden>
+      {/* Two pairs of wings — upper teardrops, lower scallops.
+          Body is a thin oval down the middle. */}
+      <g fill={color} opacity="0.4">
+        <path d="M30 24 Q 8 6, 4 18 Q 10 28, 30 26 Z" />
+        <path d="M30 24 Q 52 6, 56 18 Q 50 28, 30 26 Z" />
+      </g>
+      <g fill={color} opacity="0.6">
+        <path d="M30 26 Q 14 36, 16 44 Q 24 42, 30 30 Z" />
+        <path d="M30 26 Q 46 36, 44 44 Q 36 42, 30 30 Z" />
+      </g>
+      {/* Body. */}
+      <ellipse cx="30" cy="26" rx="1.6" ry="13" fill={color} />
+      <circle cx="30" cy="14" r="2" fill={color} />
+      {/* Antennae. */}
+      <path d="M30 12 Q 26 6, 24 4" fill="none" stroke={color} strokeWidth="0.9" strokeLinecap="round" />
+      <path d="M30 12 Q 34 6, 36 4" fill="none" stroke={color} strokeWidth="0.9" strokeLinecap="round" />
+      {/* Spots on upper wings. */}
+      <circle cx="16" cy="18" r="1.4" fill={gold} />
+      <circle cx="44" cy="18" r="1.4" fill={gold} />
+    </svg>
+  );
+}
+
 export function Motif({ kind, size, style }: { kind: MotifKind; size?: number; style?: CSSProperties }) {
   switch (kind) {
     case 'olive':
@@ -441,6 +611,22 @@ export function Motif({ kind, size, style }: { kind: MotifKind; size?: number; s
       return <DecoFan size={size} style={style} />;
     case 'palm':
       return <PalmMotif size={size} style={style} />;
+    case 'mountain':
+      return <MountainMotif size={size} style={style} />;
+    case 'wave-curl':
+      return <WaveCurl size={size} style={style} />;
+    case 'rose':
+      return <RoseMotif size={size} style={style} />;
+    case 'crescent':
+      return <CrescentMotif size={size} style={style} />;
+    case 'dove':
+      return <DoveMotif size={size} style={style} />;
+    case 'arrows':
+      return <ArrowsMotif size={size} style={style} />;
+    case 'pinecone':
+      return <PineconeMotif size={size} style={style} />;
+    case 'butterfly':
+      return <ButterflyMotif size={size} style={style} />;
     case 'none':
     default:
       return null;

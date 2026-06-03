@@ -39,6 +39,14 @@ import {
   LaurelMotif,
   DecoFan,
   PalmMotif,
+  MountainMotif,
+  WaveCurl,
+  RoseMotif,
+  CrescentMotif,
+  DoveMotif,
+  ArrowsMotif,
+  PineconeMotif,
+  ButterflyMotif,
 } from '../../site/MotifScatter';
 import { Monogram, deriveInitials, type MonogramFrame } from '../../site/Monogram';
 
@@ -49,11 +57,17 @@ const DL_MOTIFS = [
   { id: 'lemon', label: 'Lemon' }, { id: 'sun', label: 'Sun' }, { id: 'wheat', label: 'Wheat' },
   { id: 'fern', label: 'Fern' }, { id: 'shell', label: 'Shell' }, { id: 'citrus', label: 'Citrus' },
   { id: 'laurel', label: 'Laurel' }, { id: 'deco', label: 'Deco Fan' }, { id: 'palm', label: 'Palm' },
+  { id: 'mountain', label: 'Mountain' }, { id: 'wave-curl', label: 'Wave Curl' }, { id: 'rose', label: 'Rose' },
+  { id: 'crescent', label: 'Crescent' }, { id: 'dove', label: 'Dove' }, { id: 'arrows', label: 'Crossed Arrows' },
+  { id: 'pinecone', label: 'Pinecone' }, { id: 'butterfly', label: 'Butterfly' },
 ] as const;
 
 const DL_DIVIDERS = [
   { id: 'rule', label: 'Hairline' }, { id: 'sprig', label: 'Sprig' }, { id: 'brush', label: 'Brushstroke' },
   { id: 'dot', label: 'Dotted' }, { id: 'deckle', label: 'Deckle' },
+  /* New custom dividers. */
+  { id: 'wave', label: 'Wave' }, { id: 'arrow', label: 'Arrow' }, { id: 'seal', label: 'Wax seal' },
+  { id: 'bow', label: 'Ribbon bow' }, { id: 'diamond', label: 'Diamonds' }, { id: 'morse', label: 'Morse' },
 ] as const;
 
 const DL_PATTERNS = [
@@ -61,6 +75,10 @@ const DL_PATTERNS = [
   { id: 'diagonal', label: 'Diagonal' }, { id: 'dots', label: 'Polka' }, { id: 'grid', label: 'Grid' },
   { id: 'deco', label: 'Deco' }, { id: 'scallop', label: 'Scallop' }, { id: 'wave', label: 'Wave' },
   { id: 'confetti', label: 'Confetti' }, { id: 'terrazzo', label: 'Terrazzo' }, { id: 'celestial', label: 'Celestial' },
+  /* New custom patterns. */
+  { id: 'herringbone', label: 'Herringbone' }, { id: 'chevron', label: 'Chevron' }, { id: 'hexagons', label: 'Hexagons' },
+  { id: 'argyle', label: 'Argyle' }, { id: 'crosshatch', label: 'Crosshatch' }, { id: 'lattice', label: 'Lattice' },
+  { id: 'starfield', label: 'Starfield' },
 ] as const;
 
 const DL_COLORS = [
@@ -103,6 +121,14 @@ function Motif({ kind, size }: { kind: string; size?: number }) {
     case 'laurel':  return <LaurelMotif size={size} />;
     case 'deco':    return <DecoFan size={size} />;
     case 'palm':    return <PalmMotif size={size} />;
+    case 'mountain':return <MountainMotif size={size} />;
+    case 'wave-curl':return <WaveCurl size={size} />;
+    case 'rose':    return <RoseMotif size={size} />;
+    case 'crescent':return <CrescentMotif size={size} />;
+    case 'dove':    return <DoveMotif size={size} />;
+    case 'arrows':  return <ArrowsMotif size={size} />;
+    case 'pinecone':return <PineconeMotif size={size} />;
+    case 'butterfly':return <ButterflyMotif size={size} />;
     default:        return null;
   }
 }
@@ -161,6 +187,86 @@ function TDivider({ look, width = 150 }: { look: string; width?: number }) {
     return (
       <svg width={width} height="10" viewBox={`0 0 ${width} 10`} aria-hidden="true">
         <path d={d} stroke={gold} strokeWidth="0.9" fill="none" opacity="0.7" />
+      </svg>
+    );
+  }
+  if (look === 'wave') {
+    /* Continuous sinusoid — soft summer / coastal feel. */
+    const cycles = 5;
+    const len = width / cycles;
+    let d = `M 0 7 `;
+    for (let i = 0; i < cycles; i++) {
+      const x = i * len;
+      d += `C ${x + len * 0.25} 1, ${x + len * 0.75} 13, ${x + len} 7 `;
+    }
+    return (
+      <svg width={width} height="14" viewBox={`0 0 ${width} 14`} aria-hidden="true">
+        <path d={d} stroke={accent} strokeWidth="1.2" fill="none" opacity="0.7" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (look === 'arrow') {
+    /* Line → arrowhead → line. Formal ceremonial accent. */
+    const mid = width / 2;
+    return (
+      <svg width={width} height="12" viewBox={`0 0 ${width} 12`} aria-hidden="true">
+        <line x1="0" y1="6" x2={mid - 8} y2="6" stroke={ink} strokeOpacity="0.45" strokeWidth="0.8" />
+        <path d={`M ${mid - 8} 2 L ${mid + 4} 6 L ${mid - 8} 10 Z`} fill={gold} opacity="0.85" />
+        <line x1={mid + 6} y1="6" x2={width} y2="6" stroke={ink} strokeOpacity="0.45" strokeWidth="0.8" />
+      </svg>
+    );
+  }
+  if (look === 'seal') {
+    /* Filled wax-seal medallion centered on a hairline. */
+    const mid = width / 2;
+    return (
+      <svg width={width} height="14" viewBox={`0 0 ${width} 14`} aria-hidden="true">
+        <line x1="0" y1="7" x2={mid - 8} y2="7" stroke={ink} strokeOpacity="0.45" strokeWidth="0.8" />
+        <circle cx={mid} cy="7" r="5" fill={accent} opacity="0.85" />
+        <circle cx={mid} cy="7" r="3" fill="none" stroke="var(--t-cream, #FBF7EE)" strokeWidth="0.8" />
+        <line x1={mid + 8} y1="7" x2={width} y2="7" stroke={ink} strokeOpacity="0.45" strokeWidth="0.8" />
+      </svg>
+    );
+  }
+  if (look === 'bow') {
+    /* Small bowtie / ribbon centered. */
+    const mid = width / 2;
+    return (
+      <svg width={width} height="14" viewBox={`0 0 ${width} 14`} aria-hidden="true">
+        <line x1="0" y1="7" x2={mid - 10} y2="7" stroke={ink} strokeOpacity="0.45" strokeWidth="0.8" />
+        <path d={`M ${mid - 8} 3 L ${mid - 2} 7 L ${mid - 8} 11 Z`} fill={accent} opacity="0.75" />
+        <path d={`M ${mid + 8} 3 L ${mid + 2} 7 L ${mid + 8} 11 Z`} fill={accent} opacity="0.75" />
+        <circle cx={mid} cy="7" r="1.4" fill={gold} />
+        <line x1={mid + 10} y1="7" x2={width} y2="7" stroke={ink} strokeOpacity="0.45" strokeWidth="0.8" />
+      </svg>
+    );
+  }
+  if (look === 'diamond') {
+    /* Hairline with 3 diamonds — central larger, two flanking small. */
+    const mid = width / 2;
+    return (
+      <svg width={width} height="12" viewBox={`0 0 ${width} 12`} aria-hidden="true">
+        <line x1="0" y1="6" x2={mid - 18} y2="6" stroke={ink} strokeOpacity="0.45" strokeWidth="0.8" />
+        <path d={`M ${mid - 14} 6 L ${mid - 10} 3 L ${mid - 6} 6 L ${mid - 10} 9 Z`} fill={gold} opacity="0.7" />
+        <path d={`M ${mid} 6 L ${mid - 5} 1 L ${mid + 5} 1 L ${mid} 11 L ${mid - 5} 1 Z`} fill={accent} opacity="0.85" />
+        <path d={`M ${mid + 14} 6 L ${mid + 10} 3 L ${mid + 6} 6 L ${mid + 10} 9 Z`} fill={gold} opacity="0.7" />
+        <line x1={mid + 18} y1="6" x2={width} y2="6" stroke={ink} strokeOpacity="0.45" strokeWidth="0.8" />
+      </svg>
+    );
+  }
+  if (look === 'morse') {
+    /* Dot-dash-dot-dash-dot — telegraph / nautical chic. */
+    return (
+      <svg width={width} height="6" viewBox={`0 0 ${width} 6`} aria-hidden="true">
+        {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
+          const isDash = i % 2 === 1;
+          const x = (i / 8) * width + 4;
+          return isDash ? (
+            <rect key={i} x={x} y="2" width="11" height="2" rx="1" fill={accent} opacity="0.75" />
+          ) : (
+            <circle key={i} cx={x + 1} cy="3" r="1.4" fill={accent} opacity="0.75" />
+          );
+        })}
       </svg>
     );
   }
@@ -318,6 +424,126 @@ function PatternLayer({ pattern, intensity = 1 }: { pattern: string; intensity?:
         <circle cx="36" cy="42" r="1.8" fill="#fff" opacity={0.85 * opacityMul} />
         <circle cx="70" cy="54" r="1.4" fill="#fff" opacity={0.7 * opacityMul} />
         <circle cx="22" cy="64" r="1.2" fill="#fff" opacity={0.55 * opacityMul} />
+      </svg>
+    );
+  }
+  if (pattern === 'herringbone') {
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true" style={{ position: 'absolute', inset: 0 }}>
+        {[0, 1, 2, 3].map((row) =>
+          [0, 1, 2, 3].map((col) => {
+            const x = col * 20;
+            const y = row * 20;
+            const flip = (row + col) % 2 === 0;
+            return (
+              <g key={`${row}-${col}`} stroke={accent} strokeWidth="1.6" strokeOpacity={0.45 * opacityMul} fill="none">
+                <line x1={x} y1={y + (flip ? 10 : 0)} x2={x + 10} y2={y + (flip ? 0 : 10)} />
+                <line x1={x + 10} y1={y + (flip ? 0 : 10)} x2={x + 20} y2={y + (flip ? 10 : 20)} />
+              </g>
+            );
+          }),
+        )}
+      </svg>
+    );
+  }
+  if (pattern === 'chevron') {
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true" style={{ position: 'absolute', inset: 0 }}>
+        {[0, 1, 2, 3, 4].map((row) => {
+          const y = row * 16 + 2;
+          return (
+            <path
+              key={row}
+              d={`M 0 ${y + 6} L 16 ${y} L 32 ${y + 6} L 48 ${y} L 64 ${y + 6} L 80 ${y}`}
+              stroke={row % 2 === 0 ? accent : gold}
+              strokeWidth="2"
+              fill="none"
+              opacity={0.55 * opacityMul}
+            />
+          );
+        })}
+      </svg>
+    );
+  }
+  if (pattern === 'hexagons') {
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true" style={{ position: 'absolute', inset: 0 }}>
+        {[0, 1, 2, 3].map((row) =>
+          [0, 1, 2, 3, 4].map((col) => {
+            const offset = row % 2 === 0 ? 0 : 12;
+            const cx = col * 24 + offset;
+            const cy = row * 22 + 14;
+            const pts = [0, 60, 120, 180, 240, 300].map((deg) => {
+              const r = 11;
+              const rad = (deg * Math.PI) / 180;
+              return `${cx + Math.cos(rad) * r},${cy + Math.sin(rad) * r}`;
+            }).join(' ');
+            return <polygon key={`${row}-${col}`} points={pts} fill="none" stroke={accent} strokeWidth="0.8" opacity={0.55 * opacityMul} />;
+          }),
+        )}
+      </svg>
+    );
+  }
+  if (pattern === 'argyle') {
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true" style={{ position: 'absolute', inset: 0 }}>
+        {[0, 1, 2, 3].map((row) =>
+          [0, 1, 2, 3].map((col) => {
+            const cx = col * 20 + 10;
+            const cy = row * 20 + 10;
+            const fill = (row + col) % 2 === 0 ? accent : accent2;
+            return <polygon key={`${row}-${col}`} points={`${cx},${cy - 9} ${cx + 9},${cy} ${cx},${cy + 9} ${cx - 9},${cy}`} fill={fill} opacity={0.32 * opacityMul} />;
+          }),
+        )}
+        <line x1="0" y1="0" x2={W} y2={H} stroke={ink} strokeOpacity={0.12 * opacityMul} strokeWidth="0.5" />
+        <line x1={W} y1="0" x2="0" y2={H} stroke={ink} strokeOpacity={0.12 * opacityMul} strokeWidth="0.5" />
+      </svg>
+    );
+  }
+  if (pattern === 'crosshatch') {
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true" style={{ position: 'absolute', inset: 0 }}>
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((i) => (
+          <line key={`a${i}`} x1={-20 + i * 12} y1="0" x2={20 + i * 12} y2={H} stroke={ink} strokeWidth="0.4" opacity={0.22 * opacityMul} />
+        ))}
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((i) => (
+          <line key={`b${i}`} x1={-20 + i * 12} y1={H} x2={20 + i * 12} y2="0" stroke={ink} strokeWidth="0.4" opacity={0.22 * opacityMul} />
+        ))}
+      </svg>
+    );
+  }
+  if (pattern === 'lattice') {
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true" style={{ position: 'absolute', inset: 0 }}>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <line key={`a${i}`} x1={-20 + i * 28} y1="0" x2={28 + i * 28} y2={H} stroke={accent} strokeWidth="1.6" opacity={0.38 * opacityMul} />
+        ))}
+        {[0, 1, 2, 3, 4].map((i) => (
+          <line key={`b${i}`} x1={-20 + i * 28} y1={H} x2={28 + i * 28} y2="0" stroke={accent} strokeWidth="1.6" opacity={0.38 * opacityMul} />
+        ))}
+      </svg>
+    );
+  }
+  if (pattern === 'starfield') {
+    /* Sparse 4-pointed star + tiny dots. Hand-positioned so the
+       62×78 preview reads like the canvas at-large. */
+    const stars: [number, number, number][] = [
+      [12, 18, 4], [54, 12, 3], [38, 36, 4.5], [68, 48, 3], [22, 62, 3.5], [60, 70, 3],
+    ];
+    const dots: [number, number][] = [[8, 48], [28, 10], [48, 56], [74, 28]];
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true" style={{ position: 'absolute', inset: 0 }}>
+        {stars.map(([cx, cy, s], i) => (
+          <path
+            key={`s${i}`}
+            d={`M ${cx} ${cy - s} L ${cx + s * 0.3} ${cy - s * 0.3} L ${cx + s} ${cy} L ${cx + s * 0.3} ${cy + s * 0.3} L ${cx} ${cy + s} L ${cx - s * 0.3} ${cy + s * 0.3} L ${cx - s} ${cy} L ${cx - s * 0.3} ${cy - s * 0.3} Z`}
+            fill={gold}
+            opacity={0.78 * opacityMul}
+          />
+        ))}
+        {dots.map(([cx, cy], i) => (
+          <circle key={`d${i}`} cx={cx} cy={cy} r="0.9" fill={gold} opacity={0.55 * opacityMul} />
+        ))}
       </svg>
     );
   }
@@ -1052,6 +1278,14 @@ function MonogramTab({
     { id: 'ring', l: 'Ring' },
     { id: 'diamond', l: 'Diamond' },
     { id: 'laurel', l: 'Laurel' },
+    /* New custom frames — same dispatch path; the live <Monogram>
+       preview at the top of the tab already renders them. */
+    { id: 'shield', l: 'Shield' },
+    { id: 'oval',   l: 'Oval' },
+    { id: 'arch',   l: 'Arch' },
+    { id: 'sprig',  l: 'Sprig' },
+    { id: 'seal',   l: 'Wax seal' },
+    { id: 'banner', l: 'Banner' },
   ];
 
   const Crest = ({ big }: { big: boolean }) => {
