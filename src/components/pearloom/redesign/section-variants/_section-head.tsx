@@ -65,7 +65,14 @@ export function VariantSectionHead({
         style={{
           fontSize: 11.5, fontWeight: 700,
           letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase',
-          color: 'var(--t-accent-ink)', marginBottom: 10,
+          /* Contrast-safe eyebrow color: 35% of the theme's guaranteed-
+             contrast ink mixed into 65% accent-ink. Pure accent-ink
+             reads as gold/midtone on dark themes (illegible against
+             --t-section). The blend keeps the accent flavor on light
+             themes (where --t-ink is dark) and brightens against dark
+             sections (where --t-ink is light cream). */
+          color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)',
+          marginBottom: 10,
         }}
       />
       {editable && onEditTitle ? (

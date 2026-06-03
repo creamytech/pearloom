@@ -130,6 +130,9 @@ export function RsvpPanel({ manifest, onChange, siteSlug }: { manifest: StoryMan
             </div>
           </FGroup>
         )}
+        <FGroup label="Show who's going" hint="A small avatar pile + count of attending guests under the RSVP button. Defaults on for casual events (birthdays, reunions, bachelor parties), off for weddings + memorials.">
+          <ShowGoingToggle manifest={manifest} onChange={onChange} />
+        </FGroup>
         <FGroup label="After they reply" hint="Pear nudges non-responders on the schedule you pick.">
           <ReminderCadencePicker manifest={manifest} onChange={onChange} />
         </FGroup>
@@ -253,5 +256,37 @@ function MealCounts({ siteSlug, mealOptions }: { siteSlug?: string; mealOptions:
         })}
       </div>
     </div>
+  );
+}
+
+/* ─── ShowGoingToggle ─────────────────────────────────────────
+   Boolean toggle for manifest.rsvpShowGoing. Tristate-aware:
+   undefined falls through to event-type defaults (on for casual,
+   off for weddings/memorials). Explicit pick wins. */
+
+function ShowGoingToggle({
+  manifest, onChange,
+}: {
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+}) {
+  const loose = manifest as unknown as { rsvpShowGoing?: boolean; occasion?: string };
+  const occ = loose.occasion ?? 'wedding';
+  const PUBLIC = new Set(['bachelor-party', 'bachelorette-party', 'bridal-shower', 'baby-shower', 'reunion', 'milestone-birthday', 'birthday', 'sweet-sixteen', 'engagement', 'housewarming', 'gender-reveal', 'sip-and-see']);
+  const defaultEnabled = PUBLIC.has(occ);
+  const current = loose.rsvpShowGoing ?? defaultEnabled;
+  const setVal = (v: boolean) => onChange({
+    ...(manifest as unknown as Record<string, unknown>),
+    rsvpShowGoing: v,
+  } as unknown as StoryManifest);
+  return (
+    <FToggleStandalone
+      label={current ? 'Showing attendee pile' : 'Hidden — private guest list'}
+      sub={current
+        ? `Guests see a small "${defaultEnabled ? 'X going' : 'X going'}" pile under the RSVP button.`
+        : 'Standard for weddings + memorials. Your guest list stays private.'}
+      def={current}
+      onChange={setVal}
+    />
   );
 }

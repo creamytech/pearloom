@@ -526,7 +526,7 @@ function SidebarHero({
         </div>
         <div style={{ position: 'relative', marginTop: 'auto' }}>
           {C.lead && (
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 10 }}>
               {C.lead}
             </div>
           )}
@@ -651,7 +651,7 @@ function HeroCentered({ ctx }: { ctx: SectionCtx }) {
           onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined}
           editable={editable && !!edit?.copy}
           placeholder="A small forever"
-          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 8 }}
+          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 8 }}
         />
         {(C.tagline || editable) && (
           <InlineEdit
@@ -746,7 +746,7 @@ function HeroSplit({ ctx }: { ctx: SectionCtx }) {
     <div className="pl8-hero-split" style={{ position: 'relative', padding: `clamp(28px, 6vw, ${56 * pad}px) clamp(20px, 5vw, 56px)`, background: 'var(--t-section)', overflow: 'hidden', display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 'clamp(24px, 4vw, 44px)', alignItems: 'center' }}>
       {motifsOn && <MotifScatter motif={motif} density="sparse" />}
       <div style={{ position: 'relative', textAlign: 'left' }}>
-        <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 8 }} />
+        <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 8 }} />
         {(C.tagline || editable) && (
           <InlineEdit as="div" value={C.tagline ?? ''} onChange={edit?.tagline} editable={editable && !!edit?.tagline} placeholder="Click to add a tagline" style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', marginTop: 8 }} />
         )}
@@ -798,7 +798,7 @@ function HeroMinimal({ ctx }: { ctx: SectionCtx }) {
   return (
     <div style={{ position: 'relative', padding: `${72 * pad}px 56px ${56 * pad}px`, background: 'var(--t-section)', overflow: 'hidden', textAlign: 'left' }}>
       <div style={{ maxWidth: 840 }}>
-        <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 8 }} />
+        <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 8 }} />
         {(C.tagline || editable) && (
           <InlineEdit as="div" value={C.tagline ?? ''} onChange={edit?.tagline} editable={editable && !!edit?.tagline} placeholder="Click to add a tagline" style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', marginTop: 8 }} />
         )}
@@ -871,7 +871,7 @@ function HeroTypographic({ ctx }: { ctx: SectionCtx }) {
     <div style={{ position: 'relative', padding: `${78 * pad}px 48px ${60 * pad}px`, background: 'var(--t-section)', overflow: 'hidden', textAlign: 'center' }}>
       {motifsOn && <MotifScatter motif={motif} density="sparse" />}
       <div style={{ position: 'relative' }}>
-        <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 8 }} />
+        <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 8 }} />
         <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(48px, 16vw, calc(108px * var(--t-hero-scale)))', lineHeight: 0.86, margin: '6px 0', letterSpacing: '-0.03em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
           <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
           {C.subject.type === 'couple' && <>
@@ -906,7 +906,7 @@ function HeroPostcard({ ctx }: { ctx: SectionCtx }) {
         <div aria-hidden style={{ position: 'absolute', inset: 10, border: '1px solid var(--t-line)', borderRadius: 'var(--t-radius)', pointerEvents: 'none' }} />
         {motifsOn && <MotifScatter motif={motif} density="sparse" />}
         <div style={{ position: 'relative' }}>
-          <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 8 }} />
+          <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 8 }} />
           {(C.tagline || editable) && (
             <InlineEdit as="div" value={C.tagline ?? ''} onChange={edit?.tagline} editable={editable && !!edit?.tagline} placeholder="Click to add a tagline" style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', marginTop: 8 }} />
           )}
@@ -982,7 +982,7 @@ function StorySideBySide({ ctx }: { ctx: SectionCtx }) {
           onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
           editable={editable && !!edit?.copy}
           placeholder="Two threads, one weave"
-          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 10 }}
+          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 10 }}
         />
         <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 38, margin: 0, lineHeight: 1.02, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}>
           <InlineEdit
@@ -1036,7 +1036,7 @@ function StoryStacked({ ctx }: { ctx: SectionCtx }) {
         onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
         editable={editable && !!edit?.copy}
         placeholder="Two threads, one weave"
-        style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 10 }}
+        style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 10 }}
       />
       <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 38, margin: 0, lineHeight: 1.02, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}>
         {C.story.title}
@@ -1066,7 +1066,7 @@ function StoryQuote({ ctx }: { ctx: SectionCtx }) {
           onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
           editable={editable && !!edit?.copy}
           placeholder="Two threads, one weave"
-          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 16 }}
+          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 16 }}
         />
         <blockquote style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontWeight: 'var(--t-display-wght)', fontSize: 28, lineHeight: 1.32, margin: 0, color: 'var(--t-ink)', letterSpacing: '-0.01em' }}>{C.story.body}</blockquote>
         <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}><KDivider look={ctx.dividerLook} width={160} /></div>
@@ -1087,7 +1087,7 @@ function StoryTimeline({ ctx }: { ctx: SectionCtx }) {
           onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
           editable={editable && !!edit?.copy}
           placeholder="Two threads, one weave"
-          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 10 }}
+          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 10 }}
         />
         <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 38, margin: 0, lineHeight: 1.02, color: 'var(--t-ink)' }}>
           {C.story.title}
@@ -1113,7 +1113,7 @@ function StoryTimeline({ ctx }: { ctx: SectionCtx }) {
           return (
             <div key={i} style={{ position: 'relative', paddingBottom: i < items.length - 1 ? 22 : 0 }}>
               <span style={{ position: 'absolute', left: -30, top: 2, width: 16, height: 16, borderRadius: '50%', background: 'var(--t-accent)', border: '3px solid var(--t-paper)' }} />
-              <div style={{ fontFamily: 'var(--t-mono)', fontSize: 11, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)' }}>{eyebrowText}</div>
+              <div style={{ fontFamily: 'var(--t-mono)', fontSize: 11, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)' }}>{eyebrowText}</div>
               {chapterTitle && (
                 <div style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 22, color: 'var(--t-ink)', marginTop: 3, lineHeight: 1.15 }}>{chapterTitle}</div>
               )}
@@ -1143,7 +1143,7 @@ function StoryLetter({ ctx }: { ctx: SectionCtx }) {
           onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
           editable={editable && !!edit?.copy}
           placeholder="Two threads, one weave"
-          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 14 }}
+          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 14 }}
         />
         {heroPhoto && (
           /* Small framed photo as a "stamp" at the top of the letter
@@ -1422,7 +1422,7 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
             <div style={{ flex: 1 }}>
               <div style={{
                 fontSize: 10.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)',
-                textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 2,
+                textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 2,
               }}>
                 Shuttle
               </div>
@@ -1575,6 +1575,98 @@ function RsvpBlock({ ctx }: { ctx: SectionCtx }) {
       <span style={{ display: 'inline-block', padding: '12px 28px', borderRadius: 999, background: 'var(--t-rsvp-ink)', color: 'var(--t-rsvp)', fontSize: 14, fontWeight: 700 }}>
         {C.cta} →
       </span>
+      <GoingSocialProof ctx={ctx} />
+    </div>
+  );
+}
+
+/* ─── GoingSocialProof ────────────────────────────────────────
+   Optional "X going" + avatar pile shown under the RSVP CTA.
+   Default on for public-RSVP events (bachelor/birthday/reunion),
+   off for weddings + memorials. Host overrides via
+   manifest.rsvpShowGoing. */
+function GoingSocialProof({ ctx }: { ctx: SectionCtx }) {
+  const sp = ctx.C.rsvp.socialProof;
+  if (!sp?.enabled) return null;
+  const liveNames = sp.names;
+  const count = liveNames.length;
+  const editable = ctx.editable;
+  /* First-name initials for the pile. */
+  const initials = liveNames.slice(0, 5).map((n) => (n.trim()[0] ?? '?').toUpperCase());
+  const TONES = [
+    { bg: '#F4CDB4', fg: '#A4502A' }, // peach
+    { bg: '#C8D4B4', fg: '#3D4A1F' }, // sage
+    { bg: '#D4C4E8', fg: '#5A4A7C' }, // lavender
+    { bg: '#E8D4B8', fg: '#5C4A2C' }, // warm
+    { bg: '#F0C8C4', fg: '#7A4A4A' }, // rose
+  ];
+
+  return (
+    <div style={{
+      marginTop: 24,
+      display: 'inline-flex',
+      flexDirection: 'column', alignItems: 'center', gap: 8,
+    }}>
+      {/* Avatar pile — 5 overlapping circles with initials. */}
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        {initials.map((init, i) => {
+          const tone = TONES[i % TONES.length];
+          return (
+            <span
+              key={i}
+              style={{
+                width: 36, height: 36, borderRadius: '50%',
+                background: tone.bg,
+                color: tone.fg,
+                fontWeight: 700, fontSize: 13,
+                display: 'grid', placeItems: 'center',
+                border: '2px solid var(--t-rsvp)',
+                marginLeft: i === 0 ? 0 : -10,
+                zIndex: 5 - i,
+                position: 'relative',
+                fontFamily: 'var(--t-body)',
+              }}
+              aria-hidden
+            >
+              {init}
+            </span>
+          );
+        })}
+        {count > 5 && (
+          <span style={{
+            marginLeft: -10,
+            width: 36, height: 36, borderRadius: '50%',
+            background: 'var(--t-rsvp-ink)',
+            color: 'var(--t-rsvp)',
+            fontWeight: 700, fontSize: 12,
+            display: 'grid', placeItems: 'center',
+            border: '2px solid var(--t-rsvp)',
+            position: 'relative',
+            fontFamily: 'var(--t-body)',
+          }} aria-hidden>
+            +{count - 5}
+          </span>
+        )}
+      </div>
+      <div style={{
+        fontSize: 12, fontWeight: 600,
+        color: 'var(--t-rsvp-ink)',
+        opacity: 0.85,
+        letterSpacing: '0.04em',
+      }}>
+        {count} {count === 1 ? 'person is' : 'people are'} going
+        {editable && (
+          <span style={{
+            display: 'inline-block', marginLeft: 8, padding: '2px 8px',
+            borderRadius: 999, fontSize: 10, fontWeight: 700,
+            background: 'rgba(255,255,255,0.18)',
+            opacity: 0.7,
+            letterSpacing: '0.06em', textTransform: 'uppercase',
+          }}>
+            Preview
+          </span>
+        )}
+      </div>
     </div>
   );
 }
@@ -1644,7 +1736,7 @@ function TSectionHead({ eyebrow, title, italic, editable, onEditEyebrow, onEditT
         onChange={onEditEyebrow}
         editable={!!editable && !!onEditEyebrow}
         placeholder={eyebrowPlaceholder ?? 'Section eyebrow'}
-        style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 10 }}
+        style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 10 }}
       />
       {editable && onEditTitle ? (
         /* Edit mode — single composite string; canvas re-splits on
@@ -1998,7 +2090,13 @@ interface Copy {
      *  tone placeholders. */
     photos?: string[];
   };
-  rsvp: { eyebrow: string; title: string; body: string };
+  rsvp: {
+    eyebrow: string; title: string; body: string;
+    /** Optional "X going" social proof — shown under the CTA
+     *  when manifest.rsvpShowGoing is true (or undefined +
+     *  event type defaults to public). */
+    socialProof?: { enabled: boolean; names: string[] };
+  };
   faq: { eyebrow: string; title: string; italic?: string; questions: string[]; qa?: { q: string; a?: string }[] };
 }
 
@@ -2474,10 +2572,25 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
     })(),
     rsvp: (() => {
       const t = coTitle('rsvpTitle', isWedding ? V.rsvpTitle : 'Reply by the date', '');
+      /* Social-proof "X going" pile — default ON for public-RSVP
+         events (bachelor, birthday, reunion, etc.), default OFF
+         for weddings + memorials (private guest list expectation).
+         Host can override via manifest.rsvpShowGoing. */
+      const PUBLIC_RSVP_OCCASIONS = new Set([
+        'bachelor-party', 'bachelorette-party', 'bridal-shower', 'baby-shower',
+        'reunion', 'milestone-birthday', 'birthday', 'sweet-sixteen',
+        'engagement', 'housewarming', 'gender-reveal', 'sip-and-see',
+      ]);
+      const occ = (loose.occasion as string | undefined) ?? 'wedding';
+      const defaultEnabled = PUBLIC_RSVP_OCCASIONS.has(occ);
+      const enabled = (loose.rsvpShowGoing as boolean | undefined) ?? defaultEnabled;
+      const previewNames = (loose.goingPreview as string[] | undefined)
+        ?? ['Maya', 'Jordan', 'Sam', 'Priya', 'Alex', 'Casey', 'Lin', 'Theo'];
       return {
       eyebrow: co('rsvpEyebrow', rsvpDeadline ? `RSVP by ${formatHeroDate(rsvpDeadline) || rsvpDeadline}` : 'RSVP by April 28'),
       title: t.head,
       body: co('rsvpBody', 'It takes about 90 seconds. Pear will follow up if anyone forgets.'),
+      socialProof: { enabled, names: previewNames },
       };
     })(),
     faq: (() => {

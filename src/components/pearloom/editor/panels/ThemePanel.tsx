@@ -261,11 +261,9 @@ export function ThemePanel({
    *  every flip was silently bloating the manifest. theme.colors
    *  is the single source of truth. */
   function applyPalette(preset: ThemePreset) {
-    /* Clear Theme-Store pack overrides so the palette swap
-       actually shows on the canvas. A previously-applied pack
-       writes its own kit/texture/pattern/motifs; without this,
-       the host picks a new palette and only colors swap — the
-       rest of the pack identity persists. */
+    /* Clear every Theme-Store pack override so the new palette
+       actually shows. See ThemePackPicker.pick() for the full
+       list. */
     const loose = manifest as unknown as Record<string, unknown>;
     const existingTheme = (loose.theme as Record<string, unknown> | undefined) ?? {};
     const nextTheme = { ...existingTheme, colors: preset.theme };
@@ -273,10 +271,15 @@ export function ThemePanel({
     onChange({
       ...loose,
       theme: nextTheme,
+      themeVars: undefined,
       kitId: undefined,
       texture: undefined,
       pattern: undefined,
       motifs: undefined,
+      motifKind: undefined,
+      dividerLook: undefined,
+      foil: undefined,
+      darkMode: undefined,
     } as unknown as StoryManifest);
   }
 

@@ -50,28 +50,36 @@ export function ThemePackPicker({ manifest, onChange }: Props) {
   const occasionLabel = occasion.charAt(0).toUpperCase() + occasion.slice(1);
 
   function pick(id: string) {
-    /* Clear any Theme-Store pack overrides — picking a "tile"
-       theme should fully take over the look, not be partially
-       overridden by a previously-applied shop pack (which writes
-       its own kit/texture/pattern/motifs/fonts). Without this,
-       the host clicks a theme and sees little change because
-       pack values dominate. */
+    /* Clear EVERY Theme-Store pack override so the theme tile
+       fully takes over. Pack writes (per lib/theme-store/apply.ts):
+         themeVars (CSS var bag), themeId, kitId, texture, pattern,
+         motifKind, dividerLook, foil, darkMode
+       Plus applyPalette writes manifest.theme.colors/fonts. ALL of
+       these must be cleared — otherwise a previously-applied pack
+       silently overrides the new theme's motifs/textures/patterns
+       and only some surfaces change. (This was the root cause of
+       "the theme doesn't actually change anything.") */
     const loose = manifest as unknown as Record<string, unknown>;
     const existingTheme = (loose.theme as Record<string, unknown> | undefined) ?? {};
     const nextTheme = { ...existingTheme };
-    /* Strip pack-applied fonts so the theme's own typography
-       takes effect. The new theme's vars carry display + body. */
     delete (nextTheme as { fonts?: unknown }).fonts;
+    delete (nextTheme as { colors?: unknown }).colors;
     onChange({
       ...loose,
       themeId: id,
       theme: nextTheme,
-      /* Pack identity fields — null them out (renderer reads
-         falsy as "use theme defaults"). */
+      /* Pack-write fields — null them out so the renderer falls
+         through to theme.vars / theme.motif / theme.texture /
+         theme.look.divider. */
+      themeVars: undefined,
       kitId: undefined,
       texture: undefined,
       pattern: undefined,
       motifs: undefined,
+      motifKind: undefined,
+      dividerLook: undefined,
+      foil: undefined,
+      darkMode: undefined,
     } as unknown as StoryManifest);
   }
 
