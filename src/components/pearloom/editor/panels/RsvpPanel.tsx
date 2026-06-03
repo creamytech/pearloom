@@ -8,7 +8,7 @@
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, PearChip, SectionPanelShell } from './_section-atoms';
+import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, PearChip, SectionPanelShell, useCopyOverride } from './_section-atoms';
 import { mealOptionSuggestions } from './_suggestions';
 
 interface MealOption { name: string }
@@ -27,6 +27,8 @@ interface RsvpConfig {
 export function RsvpPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const mealSet = mealOptionSuggestions(occasion);
+  const [rsvpEyebrow, setRsvpEyebrow] = useCopyOverride(manifest, onChange, 'rsvpEyebrow');
+  const [rsvpCta, setRsvpCta] = useCopyOverride(manifest, onChange, 'rsvpCta');
   const loose = manifest as unknown as { rsvpDeadline?: string; rsvpConfig?: RsvpConfig };
   const replyBy = loose.rsvpDeadline ?? 'April 28, 2027';
   const config: RsvpConfig = loose.rsvpConfig ?? { mealChoice: true, dietary: true, songRequest: true, plusOne: false };
@@ -59,8 +61,14 @@ export function RsvpPanel({ manifest, onChange }: { manifest: StoryManifest; onC
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
+          <FInput value={rsvpEyebrow} onChange={setRsvpEyebrow} placeholder="RSVP by April 28" />
+        </FGroup>
         <FGroup label="Reply by">
           <FInput value={replyBy} onChange={setReplyBy} icon="calendar" />
+        </FGroup>
+        <FGroup label="Button label" hint="Shown on the RSVP CTA.">
+          <FInput value={rsvpCta} onChange={setRsvpCta} placeholder="RSVP" />
         </FGroup>
         <FGroup label="Questions to ask">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

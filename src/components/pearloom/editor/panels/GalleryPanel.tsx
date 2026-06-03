@@ -7,7 +7,7 @@
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { FGroup, FToggleStandalone, PearChip, SectionPanelShell } from './_section-atoms';
+import { FGroup, FInput, FToggleStandalone, PearChip, SectionPanelShell, useCopyOverride } from './_section-atoms';
 
 const PALETTE_TONES = ['warm', 'sage', 'dusk', 'peach', 'lavender', 'cream'] as const;
 type GalleryTone = (typeof PALETTE_TONES)[number];
@@ -15,6 +15,7 @@ type GalleryTone = (typeof PALETTE_TONES)[number];
 export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const tones: GalleryTone[] = ((manifest as unknown as { galleryTones?: GalleryTone[] }).galleryTones) ?? [...PALETTE_TONES];
   const guestUploads = ((manifest as unknown as { guestUploads?: boolean }).guestUploads) ?? true;
+  const [galleryEyebrow, setGalleryEyebrow] = useCopyOverride(manifest, onChange, 'galleryEyebrow');
 
   const setTones = (next: GalleryTone[]) => onChange({
     ...(manifest as unknown as Record<string, unknown>),
@@ -36,6 +37,9 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
+          <FInput value={galleryEyebrow} onChange={setGalleryEyebrow} placeholder="Gallery" />
+        </FGroup>
         <FGroup label={`Photos · ${tones.length}`} action={<PearChip>Auto-arrange</PearChip>}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
             {tones.map((t, i) => (
