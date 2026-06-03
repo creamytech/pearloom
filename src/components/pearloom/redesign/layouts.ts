@@ -76,6 +76,19 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
     { id: 'banner',   label: 'Banner',   sub: 'Thin top-of-page bar' },
     { id: 'minimal',  label: 'Minimal',  sub: 'Tiny pill' },
   ],
+  nav: [
+    { id: 'centered',     label: 'Centered',     sub: 'Logo center · links flank' },
+    { id: 'split',        label: 'Split',        sub: 'Logo left · links right · CTA right' },
+    { id: 'serif-block',  label: 'Serif block',  sub: 'Display headline · subdued links' },
+    { id: 'minimal-text', label: 'Minimal text', sub: 'Links only · no logo · no CTA' },
+    { id: 'iconic',       label: 'Iconic',       sub: 'Pear glyph + thin link rail' },
+  ],
+  navMobile: [
+    { id: 'overlay',      label: 'Full-screen overlay', sub: 'Fade in over canvas' },
+    { id: 'slide-in',     label: 'Slide-in',            sub: 'Right-edge drawer' },
+    { id: 'bottom-sheet', label: 'Bottom sheet',        sub: 'Drag-up modal' },
+    { id: 'pill',         label: 'Compact pill',        sub: 'Floating pill with collapsed menu' },
+  ],
 };
 
 export const DEFAULT_VARIANT: Record<Exclude<SectionId, null>, string> = {
@@ -88,7 +101,8 @@ export const DEFAULT_VARIANT: Record<Exclude<SectionId, null>, string> = {
   gallery: 'grid',
   faq: 'accordion',
   rsvp: 'centered',
-  nav: 'default',
+  nav: 'split',
+  navMobile: 'slide-in',
 };
 
 export function readVariant(

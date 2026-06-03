@@ -85,6 +85,7 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
   rsvp:     { id: 'rsvp',     label: 'RSVP',      desc: '47 yes · 63 pending' },
   faq:      { id: 'faq',      label: 'FAQ',       desc: '6 questions answered' },
   nav:      { id: 'nav',      label: 'Site nav',  desc: 'Brand + links' },
+  navMobile:{ id: 'navMobile',label: 'Mobile nav',desc: 'Drawer for phones' },
 };
 
 interface Props {
@@ -230,8 +231,31 @@ export function PropertyRail({ active, setActive, manifest, onChange }: Props) {
         {tab === 'content' && renderSectionEditor(active, manifest, onChange)}
 
         {tab === 'layout' && (() => {
+          /* Site nav has two independent variant axes — the desktop
+             bar (manifest.layouts.nav) and the mobile drawer
+             (manifest.layouts.navMobile). Render both pickers stacked
+             so a host can pick one of each in one place. */
+          if (active === 'nav') {
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                <LayoutPickerGroup
+                  manifest={manifest}
+                  onChange={onChange}
+                  section="nav"
+                  heading="Desktop nav"
+                  sub="Shown at tablet width and up."
+                />
+                <LayoutPickerGroup
+                  manifest={manifest}
+                  onChange={onChange}
+                  section="navMobile"
+                  heading="Mobile drawer"
+                  sub="Shown on phones — pick the open/close motion."
+                />
+              </div>
+            );
+          }
           const variants = LAYOUTS[active];
-          const current = readVariant(manifest, active);
           if (!variants) {
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -245,30 +269,13 @@ export function PropertyRail({ active, setActive, manifest, onChange }: Props) {
               </div>
             );
           }
-          const pick = (id: string) => onChange({
-            ...(manifest as unknown as Record<string, unknown>),
-            layouts: {
-              ...((manifest as unknown as { layouts?: Record<string, string> }).layouts ?? {}),
-              [active]: id,
-            },
-          } as unknown as StoryManifest);
           return (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>
-                {section.label} layout
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {variants.map((v) => (
-                  <VariantTile
-                    key={v.id}
-                    variant={v}
-                    section={active}
-                    on={v.id === current}
-                    onPick={() => pick(v.id)}
-                  />
-                ))}
-              </div>
-            </div>
+            <LayoutPickerGroup
+              manifest={manifest}
+              onChange={onChange}
+              section={active}
+              heading={`${section.label} layout`}
+            />
           );
         })()}
 
@@ -357,6 +364,59 @@ function pearSuggestions(active: Exclude<SectionId, null>): string[] {
     default:
       return ['Rewrite this section', 'Suggest a layout variant', 'Pick a complementary photo'];
   }
+}
+
+/* ─── LayoutPickerGroup — one labelled stack of VariantTiles.
+   Renders the section's heading + (optional) sub copy + a column of
+   tiles. Click on a tile writes manifest.layouts[section] = tile.id
+   via onChange. Used twice on the nav section (desktop + mobile);
+   once everywhere else. */
+function LayoutPickerGroup({
+  manifest,
+  onChange,
+  section,
+  heading,
+  sub,
+}: {
+  manifest: StoryManifest;
+  onChange: (next: StoryManifest) => void;
+  section: Exclude<SectionId, null>;
+  heading: string;
+  sub?: string;
+}) {
+  const variants = LAYOUTS[section];
+  const current = readVariant(manifest, section);
+  const pick = (id: string) => onChange({
+    ...(manifest as unknown as Record<string, unknown>),
+    layouts: {
+      ...((manifest as unknown as { layouts?: Record<string, string> }).layouts ?? {}),
+      [section]: id,
+    },
+  } as unknown as StoryManifest);
+  if (!variants) return null;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{heading}</div>
+        {sub && (
+          <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 2, lineHeight: 1.5 }}>
+            {sub}
+          </div>
+        )}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {variants.map((v) => (
+          <VariantTile
+            key={v.id}
+            variant={v}
+            section={section}
+            on={v.id === current}
+            onPick={() => pick(v.id)}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 /* ─── VariantTile + LayoutGlyph — handoff editor-redesign.jsx L725-739.

@@ -40,6 +40,20 @@ import { FaqTwocol, FaqNumbered, FaqCards } from './section-variants/faq';
 import { TravelMap, TravelTable, TravelCarousel } from './section-variants/travel';
 import { RegistryChips, RegistryProgress, RegistryLogoWall } from './section-variants/registry';
 import { StoryZigzag } from './section-variants/story';
+import {
+  NavCentered,
+  NavSplit,
+  NavSerifBlock,
+  NavMinimalText,
+  NavIconic,
+} from './section-variants/nav';
+import {
+  NavMobileOverlay,
+  NavMobileSlideIn,
+  NavMobileBottomSheet,
+  NavMobilePill,
+} from './section-variants/nav-mobile';
+import { useIsMobile, useActiveSection } from './use-nav-hooks';
 
 interface Props {
   /* Editor-only props — optional so PublishedSiteShell can mount
@@ -157,68 +171,72 @@ export function ThemedSite({
     ...(decor.color ? { ['--t-motif' as string]: `var(${decor.color})` } : {}),
   };
 
+  /* Viewport detection + active-section tracking for the nav variant
+     dispatch. useIsMobile is SSR-safe (false on first render, hydrates
+     after mount); useActiveSection observes each section's id and
+     returns the one most-in-view so nav links can highlight the
+     current section. */
+  const isMobile = useIsMobile();
+  const activeId = useActiveSection(sections.map(String));
+
+  /* Variant ids — manifest.layouts.nav / manifest.layouts.navMobile
+     override the per-section defaults registered in layouts.ts. */
+  const navVariant = readVariant(manifest, 'nav');
+  const navMobileVariant = readVariant(manifest, 'navMobile');
+
+  const onNavClick = (id: string) => scrollToSection(id);
+  const onCtaClick = () => {
+    scrollToSection('rsvp');
+    /* Dispatch 'pl-open-rsvp' so PublishedSiteShell's GuestRsvpModal
+       opens too. */
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('pl-open-rsvp'));
+    }
+  };
+
+  /* Mobile nav variants type activeId as `string | undefined`; the
+     hook returns `string | null`. Pre-normalize so both prop shapes
+     are satisfied without `as` casts at the call site. */
+  const sharedDesktopNavProps = {
+    headline,
+    navItems,
+    cta: C.cta,
+    onNavClick,
+    onCtaClick,
+    activeId,
+  };
+  const sharedMobileNavProps = {
+    headline,
+    navItems,
+    cta: C.cta,
+    onNavClick,
+    onCtaClick,
+    activeId: activeId ?? undefined,
+  };
+
+  const renderNavVariant = () => {
+    if (isMobile) {
+      switch (navMobileVariant) {
+        case 'overlay':      return <NavMobileOverlay {...sharedMobileNavProps} />;
+        case 'bottom-sheet': return <NavMobileBottomSheet {...sharedMobileNavProps} />;
+        case 'pill':         return <NavMobilePill {...sharedMobileNavProps} />;
+        case 'slide-in':
+        default:             return <NavMobileSlideIn {...sharedMobileNavProps} />;
+      }
+    }
+    switch (navVariant) {
+      case 'centered':     return <NavCentered {...sharedDesktopNavProps} sticky />;
+      case 'serif-block':  return <NavSerifBlock {...sharedDesktopNavProps} sticky />;
+      case 'minimal-text': return <NavMinimalText {...sharedDesktopNavProps} sticky />;
+      case 'iconic':       return <NavIconic {...sharedDesktopNavProps} sticky />;
+      case 'split':
+      default:             return <NavSplit {...sharedDesktopNavProps} sticky />;
+    }
+  };
+
   const navEl = (
     <TSection id="nav" label="Site nav" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable} hideHandle>
-      <div
-        style={{
-          display: 'flex', alignItems: 'center', gap: 18, padding: '15px 36px',
-          fontSize: 12.5, color: 'var(--t-ink-soft)',
-          borderBottom: '1px solid var(--t-line-soft)',
-          /* Sticky so guests can always reach the nav while
-             scrolling. zIndex above TextureLayer + PatternLayer. */
-          position: 'sticky', top: 0, zIndex: 50,
-          background: 'var(--t-paper)',
-          backdropFilter: 'saturate(140%) blur(6px)',
-        }}
-      >
-        <a
-          href="#hero"
-          onClick={(e) => { e.preventDefault(); scrollToSection('hero'); }}
-          style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: 'inherit' }}
-        >
-          <Pear size={22} tone="sage" shadow={false} />
-          <span style={{ fontFamily: 'var(--t-display)', fontStyle: theme.id === 'editorial' ? 'normal' : 'italic', fontWeight: 600, fontSize: 18, color: 'var(--t-ink)' }}>
-            {headline}
-          </span>
-        </a>
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: 20, opacity: 0.9, fontWeight: 500 }}>
-          {navItems.map((item) => (
-            <a
-              key={item.id}
-              href={`#${item.id}`}
-              onClick={(e) => { e.preventDefault(); scrollToSection(item.id); }}
-              style={{
-                color: 'inherit', textDecoration: 'none', cursor: 'pointer',
-                padding: '4px 2px', borderRadius: 4,
-                transition: 'color 140ms, opacity 140ms',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--t-accent-ink, var(--t-accent))'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'inherit'; }}
-            >
-              {item.label}
-            </a>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            scrollToSection('rsvp');
-            /* Dispatch 'pl-open-rsvp' so PublishedSiteShell's
-               GuestRsvpModal opens too. */
-            if (typeof window !== 'undefined') {
-              window.dispatchEvent(new CustomEvent('pl-open-rsvp'));
-            }
-          }}
-          style={{
-            padding: '7px 16px', fontSize: 12, fontWeight: 700,
-            background: 'var(--t-accent)', color: 'var(--t-accent-ink, var(--t-paper))',
-            border: 'none', borderRadius: 999, cursor: 'pointer',
-            letterSpacing: '0.04em',
-          }}
-        >
-          {C.cta}
-        </button>
-      </div>
+      {renderNavVariant()}
     </TSection>
   );
 

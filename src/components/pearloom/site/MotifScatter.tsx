@@ -68,7 +68,7 @@ interface OliveSprigProps {
   style?: CSSProperties;
 }
 
-export function OliveSprig({ size = 90, color = 'var(--pl-olive, #5C6B3F)', berry = 'var(--gold, #B8935A)', flip = false, style }: OliveSprigProps) {
+export function OliveSprig({ size = 90, color = 'var(--t-motif, var(--t-accent, var(--pl-olive, #5C6B3F)))', berry = 'var(--t-gold, var(--gold, #B8935A))', flip = false, style }: OliveSprigProps) {
   return (
     <svg
       viewBox="0 0 120 60"
@@ -121,7 +121,7 @@ interface LemonProps {
   style?: CSSProperties;
 }
 
-export function Lemon({ size = 44, color = 'var(--gold, #B8935A)', leaf = 'var(--pl-olive, #5C6B3F)', style }: LemonProps) {
+export function Lemon({ size = 44, color = 'var(--t-gold, var(--gold, #B8935A))', leaf = 'var(--t-accent, var(--pl-olive, #5C6B3F))', style }: LemonProps) {
   return (
     <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
       <ellipse cx={30} cy={36} rx={17} ry={13} fill={color} transform="rotate(-24 30 36)" />
@@ -139,7 +139,7 @@ interface PressedFlowerProps {
   style?: CSSProperties;
 }
 
-export function PressedFlower({ size = 56, petal = 'var(--peach-ink, #C6703D)', center = 'var(--gold, #B8935A)', style }: PressedFlowerProps) {
+export function PressedFlower({ size = 56, petal = 'var(--t-motif, var(--t-accent, var(--peach-ink, #C6703D)))', center = 'var(--t-gold, var(--gold, #B8935A))', style }: PressedFlowerProps) {
   const petals = [0, 60, 120, 180, 240, 300];
   return (
     <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
@@ -170,7 +170,7 @@ interface WatercolorBloomProps {
   style?: CSSProperties;
 }
 
-export function WatercolorBloom({ size = 120, tone = 'var(--pl-olive, #5C6B3F)', tone2 = 'var(--peach-ink, #C6703D)', style }: WatercolorBloomProps) {
+export function WatercolorBloom({ size = 120, tone = 'var(--t-accent, var(--pl-olive, #5C6B3F))', tone2 = 'var(--t-accent-ink, var(--peach-ink, #C6703D))', style }: WatercolorBloomProps) {
   return (
     <div
       aria-hidden="true"

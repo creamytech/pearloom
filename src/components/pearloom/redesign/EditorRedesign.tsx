@@ -46,7 +46,7 @@ interface Props {
 export type EditorMode = 'edit' | 'preview' | 'mobile';
 export type SectionId =
   | 'hero' | 'story' | 'details' | 'schedule' | 'travel'
-  | 'registry' | 'gallery' | 'rsvp' | 'faq' | 'nav' | null;
+  | 'registry' | 'gallery' | 'rsvp' | 'faq' | 'nav' | 'navMobile' | null;
 
 export default function EditorRedesign({ manifest: initialManifest, siteSlug, names: initialNames }: Props) {
   // Bridge — autosave, manifest state, undo/redo, publish. Hides the
