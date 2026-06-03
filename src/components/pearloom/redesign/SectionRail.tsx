@@ -6,7 +6,7 @@
 import { useRef, useState } from 'react';
 import { Icon } from '../motifs';
 import type { StoryManifest } from '@/types';
-import { type SectionId, isToolPanelApplicable } from './EditorRedesign';
+import { type SectionId, isToolPanelApplicable, isOptionalSectionApplicable } from './EditorRedesign';
 import { SiteModeSection } from '../editor/panels/ThemePanel';
 
 interface SectionDef {
@@ -27,6 +27,17 @@ const SECTIONS: SectionDef[] = [
   { id: 'gallery',  label: 'Gallery',   icon: 'image',      desc: '38 photos' },
   { id: 'rsvp',     label: 'RSVP',      icon: 'mail',       required: true, desc: '47 yes · 63 pending' },
   { id: 'faq',      label: 'FAQ',       icon: 'sparkles',   desc: '6 questions answered' },
+];
+
+/* Optional sections — not in the default site, added via the
+   Add section button. Each is occasion-gated by
+   isOptionalSectionApplicable. Once a host adds one, the section
+   id lives in manifest.blockOrder and the rail renders it
+   alongside the core sections. */
+const OPTIONAL_SECTIONS: SectionDef[] = [
+  { id: 'countdown', label: 'Countdown', icon: 'clock',    desc: 'Stat tiles · stripe · minimal · hero' },
+  { id: 'map',       label: 'Map',       icon: 'map',      desc: 'Live embed · pin · static' },
+  { id: 'music',     label: 'Music',     icon: 'music',    desc: 'Spotify · Apple · YouTube' },
 ];
 
 /* Tool panels — surface in the rail below the canvas sections.
@@ -59,6 +70,10 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
   const [tab, setTab] = useState<'sections' | 'pages' | 'theme'>('sections');
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  /* Add Section picker open state — toggled by the dashed "+ Add
+     section" button. Shows the OPTIONAL_SECTIONS that aren't yet in
+     manifest.blockOrder + are applicable to this occasion. */
+  const [pickerOpen, setPickerOpen] = useState(false);
   /** Custom drag-image element ref. Created once and reused across
    *  drags to keep the GC quiet. Removed from the DOM at drag-end. */
   const dragImageRef = useRef<HTMLDivElement | null>(null);
@@ -106,21 +121,47 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
 
   /* Build the ORDERED list: read manifest.blockOrder when present,
      otherwise fall through to the SECTIONS default order. Hero is
-     always pinned first (required, never reorderable). */
-  const reorderableKeys = SECTIONS.filter((s) => !s.required).map((s) => s.id as string);
+     always pinned first (required, never reorderable). Optional
+     sections (countdown / map / music) are honored only when
+     present in blockOrder — they're never auto-appended. */
+  const optionalKeys = OPTIONAL_SECTIONS.map((s) => s.id as string);
+  const allReorderableKeys = [...SECTIONS.filter((s) => !s.required).map((s) => s.id as string), ...optionalKeys];
+  const reorderableCoreKeys = SECTIONS.filter((s) => !s.required).map((s) => s.id as string);
   const heroSection = SECTIONS.find((s) => s.required);
   const savedOrder = ((manifest as unknown as { blockOrder?: string[] }).blockOrder) ?? [];
   const restOrder: string[] = (() => {
-    const valid = savedOrder.filter((k) => reorderableKeys.includes(k));
-    /* Ensure every reorderable section is in the list — append
-       newly-added ones in their default order at the end. */
-    for (const k of reorderableKeys) if (!valid.includes(k)) valid.push(k);
+    const valid = savedOrder.filter((k) => allReorderableKeys.includes(k));
+    /* Auto-append missing CORE sections only — optional sections
+       stay opt-in via the Add Section picker. */
+    for (const k of reorderableCoreKeys) if (!valid.includes(k)) valid.push(k);
     return valid;
   })();
+  const sectionLookup = new Map<string, SectionDef>([
+    ...SECTIONS.map((s) => [s.id as string, s] as const),
+    ...OPTIONAL_SECTIONS.map((s) => [s.id as string, s] as const),
+  ]);
   const orderedSections: SectionDef[] = [
     ...(heroSection ? [heroSection] : []),
-    ...restOrder.map((k) => SECTIONS.find((s) => s.id === k)!).filter(Boolean),
+    ...restOrder.map((k) => sectionLookup.get(k)!).filter(Boolean),
   ];
+  /* Available picker options — anything optional + applicable +
+     not yet in the order. */
+  const availableOptional = OPTIONAL_SECTIONS
+    .filter((s) => isOptionalSectionApplicable(s.id as 'countdown' | 'map' | 'music', occasion))
+    .filter((s) => !restOrder.includes(s.id as string));
+
+  /* Add an optional section to the manifest order + flip active
+     to it so the host immediately lands in its config panel. */
+  function addOptionalSection(id: Exclude<SectionId, null>) {
+    if (!onChange) return;
+    const next = [...restOrder.filter((k) => k !== id), id as string];
+    onChange({
+      ...(manifest as unknown as Record<string, unknown>),
+      blockOrder: next,
+    } as unknown as StoryManifest);
+    setActive(id);
+    setPickerOpen(false);
+  }
 
   /* Drop handler — moves the dragged section to the target index
      in the reorderable list. Writes manifest.blockOrder. Hero
@@ -383,27 +424,99 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
           );
         })}
 
-        {/* "Add section" — prototype L223-230. */}
-        <button
-          type="button"
-          className="pl-rd-add-section"
-          style={{
-            marginTop: 4,
-            padding: '8px 10px',
-            borderRadius: 8,
-            fontSize: 11.5,
-            color: 'var(--ink-muted)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            border: '1px dashed var(--line)',
-            background: 'transparent',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-ui)',
-          }}
-        >
-          <Icon name="plus" size={11} color="var(--ink-muted)" /> Add section
-        </button>
+        {/* "Add section" — wired to a picker showing the
+            occasion-applicable OPTIONAL_SECTIONS that aren't
+            already in manifest.blockOrder. When all options are
+            consumed, render a small "All sections added" note
+            instead of a dead button. */}
+        {availableOptional.length === 0 ? (
+          <div
+            style={{
+              marginTop: 4, padding: '8px 10px', borderRadius: 8,
+              fontSize: 11, color: 'var(--ink-muted)',
+              border: '1px dashed var(--line)', background: 'transparent',
+              textAlign: 'center', fontStyle: 'italic',
+            }}
+          >
+            All sections added
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="pl-rd-add-section"
+            onClick={() => setPickerOpen((v) => !v)}
+            aria-expanded={pickerOpen}
+            style={{
+              marginTop: 4,
+              padding: '8px 10px',
+              borderRadius: 8,
+              fontSize: 11.5,
+              color: pickerOpen ? 'var(--peach-ink)' : 'var(--ink-muted)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              border: pickerOpen ? '1px dashed var(--peach-ink)' : '1px dashed var(--line)',
+              background: pickerOpen ? 'var(--peach-bg)' : 'transparent',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-ui)',
+            }}
+          >
+            <Icon name="plus" size={11} color={pickerOpen ? 'var(--peach-ink)' : 'var(--ink-muted)'} />
+            {pickerOpen ? 'Pick one…' : 'Add section'}
+          </button>
+        )}
+
+        {pickerOpen && availableOptional.length > 0 && (
+          <div
+            role="menu"
+            style={{
+              marginTop: 4,
+              display: 'flex', flexDirection: 'column', gap: 2,
+              padding: 4,
+              background: 'var(--card)',
+              border: '1px solid var(--line-soft)',
+              borderRadius: 10,
+              boxShadow: '0 8px 20px rgba(40,28,12,0.10)',
+              animation: 'pl-drop-line-pop 160ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+            }}
+          >
+            {availableOptional.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                role="menuitem"
+                onClick={() => addOptionalSection(s.id)}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '22px 1fr',
+                  gap: 8,
+                  alignItems: 'center',
+                  padding: '8px 10px',
+                  borderRadius: 6,
+                  background: 'transparent',
+                  border: 0,
+                  cursor: 'pointer',
+                  color: 'var(--ink)',
+                  textAlign: 'left',
+                  fontFamily: 'var(--font-ui)',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--cream-3)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                <Icon name={s.icon} size={13} color="var(--ink-soft)" />
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 600 }}>{s.label}</div>
+                  <div style={{
+                    fontSize: 10.5, opacity: 0.55, marginTop: 1,
+                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  }}>
+                    {s.desc}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       )}
 

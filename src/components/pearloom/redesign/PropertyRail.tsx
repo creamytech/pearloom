@@ -99,6 +99,9 @@ import { SharePanel } from '../editor/panels/SharePanel';
 import { DayOfPanel } from '../editor/panels/DayOfPanel';
 import { MemorialPanel } from '../editor/panels/MemorialPanel';
 import { BachelorPanel } from '../editor/panels/BachelorPanel';
+import { CountdownPanel } from '../editor/panels/CountdownPanel';
+import { MapPanel } from '../editor/panels/MapPanel';
+import { MusicPanel } from '../editor/panels/MusicPanel';
 
 interface SectionInfo {
   id: Exclude<SectionId, null>;
@@ -118,6 +121,12 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
   faq:      { id: 'faq',      label: 'FAQ',       desc: '6 questions answered' },
   nav:      { id: 'nav',      label: 'Site nav',  desc: 'Brand + links' },
   navMobile:{ id: 'navMobile',label: 'Mobile nav',desc: 'Drawer for phones' },
+  /* Optional sections — added via the Add Section picker.
+     Once present, render through the same dispatch as core
+     sections. */
+  countdown: { id: 'countdown', label: 'Countdown', desc: 'Cards · stripe · minimal · hero' },
+  map:       { id: 'map',       label: 'Map',       desc: 'Live Google Maps embed' },
+  music:     { id: 'music',     label: 'Music',     desc: 'Spotify · Apple · YouTube playlist' },
   /* Tool panels — same lookup so the rail header shows the
      right label + tagline when the host picks a tool. */
   guests:      { id: 'guests',      label: 'Guests',          desc: 'Your guest list' },
@@ -176,8 +185,10 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
      "Move up" / "Move down" using these. */
   function moveSection(direction: -1 | 1) {
     const loose = manifest as unknown as Record<string, unknown>;
-    const allReorderable = ['story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
-    const current = (loose.blockOrder as string[] | undefined) ?? allReorderable;
+    const coreReorderable = ['story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
+    const optionalReorderable = ['countdown', 'map', 'music'];
+    const allReorderable = [...coreReorderable, ...optionalReorderable];
+    const current = (loose.blockOrder as string[] | undefined) ?? coreReorderable;
     const filtered = current.filter((k) => allReorderable.includes(k));
     const idx = filtered.indexOf(active);
     if (idx < 0) return;
@@ -753,6 +764,10 @@ function renderSectionEditor(
     case 'gallery':  return <GalleryPanel {...props} />;
     case 'rsvp':     return <RsvpPanel {...props} siteSlug={siteSlug} />;
     case 'faq':      return <FaqPanel {...props} />;
+    /* Optional sections (Add Section picker). */
+    case 'countdown':return <CountdownPanel {...props} />;
+    case 'map':      return <MapPanel {...props} />;
+    case 'music':    return <MusicPanel {...props} />;
     /* Tool panels — host-only workspaces. Most need siteSlug to
        fetch live data (guest counts, broadcasts, OG card). */
     case 'guests':      return siteSlug ? <GuestsPanel siteSlug={siteSlug} /> : null;

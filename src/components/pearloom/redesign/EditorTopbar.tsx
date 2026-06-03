@@ -177,6 +177,34 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         >
           <Icon name="share" size={12} /> Share
         </button>
+        {/* Theme + Decor quick-access shortcuts — surfacing
+            the two most-touched look surfaces near the top so
+            hosts don't have to dig through the rail. Theme
+            dispatches design-jump with block:'theme' (custom —
+            EditorRedesign listens by treating active=null +
+            tab='theme'); Decor opens the global drawer. */}
+        <button
+          type="button"
+          className="btn btn-outline btn-sm"
+          onClick={() => {
+            if (typeof window === 'undefined') return;
+            window.dispatchEvent(new CustomEvent('pearloom:open-theme-rail'));
+          }}
+          title="Open theme panel"
+        >
+          <Icon name="palette" size={12} /> Theme
+        </button>
+        <button
+          type="button"
+          className="btn btn-outline btn-sm"
+          onClick={() => {
+            if (typeof window === 'undefined') return;
+            window.dispatchEvent(new CustomEvent('pearloom:open-decor-library'));
+          }}
+          title="Open decor library — motifs, dividers, patterns, monogram"
+        >
+          <Icon name="sparkles" size={12} /> Decor
+        </button>
         {manifest && <GoLiveBadge manifest={manifest} />}
         {manifest && <PublishChecklist manifest={manifest} />}
         <button type="button" className="btn btn-primary btn-sm pl-pearl-accent" onClick={onPublish}>

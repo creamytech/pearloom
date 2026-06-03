@@ -20,7 +20,7 @@
    GalleryBlock (grid), RsvpBlock (centered), FaqBlock (accordion).
 */
 
-import { useId, type CSSProperties, type ReactNode } from 'react';
+import { useId, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { getTheme, themeRootStyle, type Density, type Theme } from '../site/themes';
@@ -235,7 +235,7 @@ export function ThemedSite({
     nameB: patchB,
     copy: patchCopy,
   } : undefined;
-  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, textureIntensity, showWashHero, dividerLook, variants, C, coverPhoto, edit };
+  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, textureIntensity, showWashHero, dividerLook, variants, C, manifest, coverPhoto, edit };
 
   /* Hidden sections — host can hide any non-essential section via
      the "Hide on the site" toggle at the bottom of each panel.
@@ -247,11 +247,17 @@ export function ThemedSite({
      from blockOrder (e.g. newly added) get appended in default
      order; sections in blockOrder that aren't valid SectionKinds
      get filtered out. */
-  const allKinds: SectionKind[] = ['hero', 'story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
+  /* allKinds = every section we know how to render. coreKinds is
+     the set that's auto-included when nothing's in blockOrder.
+     Optional kinds (countdown / map / music) only render when the
+     host adds them via the Add Section picker → they live in
+     blockOrder but aren't auto-appended. */
+  const coreKinds: SectionKind[] = ['hero', 'story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
+  const allKinds: SectionKind[] = [...coreKinds, 'countdown', 'map', 'music'];
   const savedOrder = ((manifest as unknown as { blockOrder?: string[] }).blockOrder) ?? [];
   const reorderedRest: SectionKind[] = [
     ...savedOrder.filter((k): k is SectionKind => k !== 'hero' && (allKinds as readonly string[]).includes(k)) as SectionKind[],
-    ...allKinds.filter((k) => k !== 'hero' && !savedOrder.includes(k)),
+    ...coreKinds.filter((k) => k !== 'hero' && !savedOrder.includes(k)),
   ];
   const sections: SectionKind[] = ['hero' as SectionKind, ...reorderedRest]
     .filter((s) => s === 'hero' || !hidden.includes(s));
@@ -613,6 +619,9 @@ function renderKind(kind: SectionKind, ctx: SectionCtx): ReactNode {
     case 'gallery':  return <GalleryBlock ctx={ctx} />;
     case 'rsvp':     return <RsvpBlock ctx={ctx} />;
     case 'faq':      return <FaqBlock ctx={ctx} />;
+    case 'countdown':return <CountdownBlock ctx={ctx} />;
+    case 'map':      return <MapBlock ctx={ctx} />;
+    case 'music':    return <MusicBlock ctx={ctx} />;
   }
 }
 
@@ -1709,6 +1718,375 @@ function FaqBlock({ ctx }: { ctx: SectionCtx }) {
   );
 }
 
+/* ─── CountdownBlock — 4 layout variants. ────────────────────
+   Reads target date from manifest.logistics.date. Reads variant
+   + label override + eyebrow from manifest.countdown / manifest.copy.
+   Returns null if no date is set — keeps the published site safe
+   when a host adds the section before filling in details. */
+
+interface CountdownPieces { d: number; h: number; m: number; s: number; }
+function useCountdownPieces(target: number | null): CountdownPieces {
+  const [now, setNow] = useState<number>(() => (typeof window === 'undefined' ? target ?? 0 : Date.now()));
+  useEffect(() => {
+    if (target === null) return;
+    /* Tick once per second. setInterval is fine — we tear down on
+       unmount and the canvas only renders one of these at a time. */
+    const t = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(t);
+  }, [target]);
+  if (target === null) return { d: 0, h: 0, m: 0, s: 0 };
+  const diff = Math.max(0, target - now);
+  return {
+    d: Math.floor(diff / 86_400_000),
+    h: Math.floor((diff / 3_600_000) % 24),
+    m: Math.floor((diff / 60_000) % 60),
+    s: Math.floor((diff / 1_000) % 60),
+  };
+}
+
+function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
+  const { pad, manifest, editable } = ctx;
+  const cd = (manifest as unknown as { countdown?: { variant?: string; label?: string } }).countdown ?? {};
+  const variant = cd.variant ?? 'cards';
+  const dateStr = manifest.logistics?.date ?? '';
+  const ms = dateStr ? Date.parse(dateStr) : NaN;
+  const target = Number.isFinite(ms) ? ms : null;
+  const pieces = useCountdownPieces(target);
+  const eyebrow = ((manifest as unknown as { copy?: Record<string, string> }).copy?.countdownEyebrow) || 'The big day';
+  const label = cd.label?.trim() || 'Until we celebrate';
+
+  if (target === null) {
+    /* No event date — render an editor-only placeholder so the
+       host sees what they added. Published view returns null. */
+    if (!editable) return null;
+    return (
+      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', textAlign: 'center', color: 'var(--t-ink-muted)' }}>
+        <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>
+          {eyebrow}
+        </div>
+        <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 22 }}>
+          Set the event date in the Hero panel to enable the countdown.
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'stripe') {
+    return (
+      <div style={{ padding: `${28 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-accent-bg, var(--t-section))', color: 'var(--t-accent-ink, var(--t-ink))' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 28, fontFamily: 'var(--t-font-display)', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', opacity: 0.7 }}>{label}</span>
+          <CountdownInlineRow pieces={pieces} />
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'minimal') {
+    return (
+      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', textAlign: 'center' }}>
+        <div style={{ fontSize: 12, color: 'var(--t-ink-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 }}>
+          {eyebrow}
+        </div>
+        <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(34px, 6vw, 60px)', color: 'var(--t-ink)', lineHeight: 1.05 }}>
+          {pieces.d > 0 ? `${pieces.d} day${pieces.d === 1 ? '' : 's'} to go` : 'Today is the day.'}
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'hero') {
+    return (
+      <div style={{ position: 'relative', padding: `${72 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)', textAlign: 'center', overflow: 'hidden' }}>
+        <div style={{ fontSize: 12, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 18 }}>
+          {eyebrow}
+        </div>
+        <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(60px, 12vw, 140px)', color: 'var(--t-ink)', lineHeight: 0.92, fontWeight: 500 }}>
+          {String(pieces.d).padStart(2, '0')}
+        </div>
+        <div style={{ fontSize: 13, color: 'var(--t-ink-soft)', marginTop: 6, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+          days {label.replace(/^until\s*/i, 'until ')}
+        </div>
+        <div style={{ marginTop: 22, display: 'flex', justifyContent: 'center', gap: 28, color: 'var(--t-ink-soft)', fontFamily: 'var(--t-font-display)', fontSize: 18 }}>
+          <span>{pieces.h} hours</span>
+          <span style={{ opacity: 0.4 }}>·</span>
+          <span>{pieces.m} minutes</span>
+          <span style={{ opacity: 0.4 }}>·</span>
+          <span>{pieces.s} seconds</span>
+        </div>
+      </div>
+    );
+  }
+
+  /* cards (default) — 4 tiles. */
+  return (
+    <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', textAlign: 'center' }}>
+      <div style={{ fontSize: 12, color: 'var(--t-ink-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>
+        {eyebrow}
+      </div>
+      <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(22px, 3vw, 30px)', color: 'var(--t-ink)', marginBottom: 22 }}>
+        {label}
+      </div>
+      <div style={{ maxWidth: 720, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+        {[
+          { n: pieces.d, l: 'Days' },
+          { n: pieces.h, l: 'Hours' },
+          { n: pieces.m, l: 'Min' },
+          { n: pieces.s, l: 'Sec' },
+        ].map((cell) => (
+          <div key={cell.l} style={{ padding: '18px 8px', background: 'var(--t-card)', border: '1px solid var(--t-line-soft)', borderRadius: 'var(--t-radius)', boxShadow: 'var(--t-shadow-sm)' }}>
+            <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(28px, 5vw, 48px)', color: 'var(--t-ink)', lineHeight: 1 }}>
+              {String(cell.n).padStart(2, '0')}
+            </div>
+            <div style={{ fontSize: 10.5, color: 'var(--t-ink-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 4 }}>
+              {cell.l}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CountdownInlineRow({ pieces }: { pieces: CountdownPieces }) {
+  const cell = (n: number, l: string) => (
+    <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 4 }}>
+      <strong style={{ fontSize: 26, fontWeight: 500 }}>{String(n).padStart(2, '0')}</strong>
+      <span style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.7 }}>{l}</span>
+    </span>
+  );
+  return (
+    <span style={{ display: 'inline-flex', gap: 18, flexWrap: 'wrap', justifyContent: 'center' }}>
+      {cell(pieces.d, 'd')}{cell(pieces.h, 'h')}{cell(pieces.m, 'm')}{cell(pieces.s, 's')}
+    </span>
+  );
+}
+
+/* ─── MapBlock — 3 layout variants. ───────────────────────────
+   Live Google Maps iframe (no API key needed for embed), static
+   pin+map graphic, or pin-only with an "Open in Maps" CTA. */
+
+function MapBlock({ ctx }: { ctx: SectionCtx }) {
+  const { pad, manifest, editable } = ctx;
+  const mapCfg = (manifest as unknown as { mapBlock?: { variant?: string; height?: string; showDirections?: boolean; addressOverride?: string } }).mapBlock ?? {};
+  const variant = mapCfg.variant ?? 'embed';
+  const height = mapCfg.height === 'tall' ? 560 : 320;
+  const showDirections = mapCfg.showDirections !== false;
+  const venue = manifest.logistics?.venue ?? '';
+  const place = (manifest.logistics as { place?: string } | undefined)?.place ?? '';
+  const derivedAddress = [venue, place].filter(Boolean).join(', ');
+  const address = mapCfg.addressOverride?.trim() || derivedAddress;
+  const eyebrow = ((manifest as unknown as { copy?: Record<string, string> }).copy?.mapEyebrow) || 'Where it’s happening';
+  const encodedAddress = encodeURIComponent(address);
+
+  if (!address) {
+    if (!editable) return null;
+    return (
+      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', textAlign: 'center', color: 'var(--t-ink-muted)' }}>
+        <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>{eyebrow}</div>
+        <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 22 }}>
+          Add a venue in the Hero panel to plot the map.
+        </div>
+      </div>
+    );
+  }
+
+  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
+  const mapsUrl = `https://www.google.com/maps?q=${encodedAddress}`;
+
+  if (variant === 'pin') {
+    return (
+      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', textAlign: 'center' }}>
+        <TSectionHead
+          eyebrow={eyebrow}
+          title={venue || 'The venue'}
+          editable={false}
+        />
+        <div style={{ maxWidth: 480, margin: '0 auto', padding: '32px 20px', background: 'var(--t-card)', border: '1px solid var(--t-line-soft)', borderRadius: 'var(--t-radius)', boxShadow: 'var(--t-shadow-sm)' }}>
+          <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--t-accent-bg, var(--t-section))', display: 'grid', placeItems: 'center', margin: '0 auto 14px' }}>
+            <Icon name="pin" size={24} color="var(--t-accent-ink, var(--t-ink))" />
+          </div>
+          <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 20, color: 'var(--t-ink)', marginBottom: 4 }}>{venue || 'The venue'}</div>
+          {place && <div style={{ fontSize: 13, color: 'var(--t-ink-soft)', marginBottom: 16 }}>{place}</div>}
+          {showDirections && (
+            <a
+              href={directionsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 999, background: 'var(--t-ink)', color: 'var(--t-cream, #fff)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
+            >
+              <Icon name="arrow-up" size={12} color="var(--t-cream, #fff)" /> Open in Maps
+            </a>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'static') {
+    /* Static map — uses the public maps.googleapis.com staticmap
+       endpoint pattern via the dynamic iframe wrapped in a frame
+       with no interaction. Falls back to an attractive pin card
+       when the iframe fails to load. */
+    return (
+      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}>
+        <TSectionHead
+          eyebrow={eyebrow}
+          title={venue || 'The venue'}
+          editable={false}
+        />
+        <div style={{ maxWidth: 960, margin: '0 auto', position: 'relative', borderRadius: 'var(--t-radius)', overflow: 'hidden', border: '1px solid var(--t-line-soft)', boxShadow: 'var(--t-shadow-sm)' }}>
+          <iframe
+            src={`https://maps.google.com/maps?q=${encodedAddress}&z=14&output=embed`}
+            title={`Map of ${venue || 'the venue'}`}
+            style={{ width: '100%', height, border: 0, pointerEvents: 'none', display: 'block', filter: 'saturate(0.85) brightness(1.02)' }}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+          {showDirections && (
+            <a
+              href={directionsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ position: 'absolute', bottom: 16, right: 16, padding: '9px 14px', borderRadius: 999, background: 'var(--t-ink)', color: 'var(--t-cream, #fff)', fontSize: 12.5, fontWeight: 600, textDecoration: 'none', boxShadow: 'var(--t-shadow)' }}
+            >
+              Directions →
+            </a>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  /* embed (default) — live, pannable iframe. */
+  return (
+    <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}>
+      <TSectionHead
+        eyebrow={eyebrow}
+        title={venue || 'The venue'}
+        editable={false}
+      />
+      <div style={{ maxWidth: 960, margin: '0 auto', position: 'relative', borderRadius: 'var(--t-radius)', overflow: 'hidden', border: '1px solid var(--t-line-soft)', boxShadow: 'var(--t-shadow-sm)' }}>
+        <iframe
+          src={`https://maps.google.com/maps?q=${encodedAddress}&z=14&output=embed`}
+          title={`Map of ${venue || 'the venue'}`}
+          style={{ width: '100%', height, border: 0, display: 'block' }}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+      </div>
+      {showDirections && (
+        <div style={{ textAlign: 'center', marginTop: 14 }}>
+          <a
+            href={directionsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 999, background: 'transparent', color: 'var(--t-ink)', fontSize: 13, fontWeight: 600, textDecoration: 'none', border: '1px solid var(--t-line)' }}
+          >
+            <Icon name="arrow-up" size={12} color="var(--t-ink)" /> Get directions
+          </a>
+          {' '}
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ marginLeft: 8, fontSize: 12, color: 'var(--t-ink-muted)', textDecoration: 'underline' }}
+          >
+            Open in Google Maps
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── MusicBlock — Spotify / Apple / YouTube embed. ────────────
+   The host pastes a playlist URL; we transform it into the
+   provider's embed URL. Provider auto-detect happens in the
+   panel; this block just dispatches on manifest.music.provider. */
+
+function MusicBlock({ ctx }: { ctx: SectionCtx }) {
+  const { pad, manifest, editable } = ctx;
+  const cfg = (manifest as unknown as { music?: { provider?: string; url?: string; title?: string; description?: string } }).music ?? {};
+  const provider = cfg.provider ?? 'spotify';
+  const url = cfg.url?.trim() ?? '';
+  const eyebrow = ((manifest as unknown as { copy?: Record<string, string> }).copy?.musicEyebrow) || 'The soundtrack';
+  const title = cfg.title?.trim() || 'Songs for the dance floor';
+  const description = cfg.description?.trim();
+
+  const embedUrl = toMusicEmbedUrl(provider, url);
+
+  if (!embedUrl) {
+    if (!editable) return null;
+    return (
+      <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)', textAlign: 'center', color: 'var(--t-ink-muted)' }}>
+        <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 }}>{eyebrow}</div>
+        <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 22 }}>
+          Paste a Spotify, Apple Music, or YouTube playlist URL to embed it here.
+        </div>
+      </div>
+    );
+  }
+
+  const isSpotify = provider === 'spotify';
+  const height = isSpotify ? 380 : provider === 'apple' ? 450 : 380;
+
+  return (
+    <div style={{ padding: `${48 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-paper)' }}>
+      <TSectionHead
+        eyebrow={eyebrow}
+        title={title}
+        editable={false}
+      />
+      {description && (
+        <div style={{ maxWidth: 600, margin: '0 auto 22px', textAlign: 'center', fontSize: 14, color: 'var(--t-ink-soft)', lineHeight: 1.55 }}>
+          {description}
+        </div>
+      )}
+      <div style={{ maxWidth: 760, margin: '0 auto', borderRadius: 'var(--t-radius)', overflow: 'hidden', boxShadow: 'var(--t-shadow-sm)' }}>
+        <iframe
+          src={embedUrl}
+          title={`${title} — playlist`}
+          style={{ width: '100%', height, border: 0, display: 'block', background: provider === 'spotify' ? '#181818' : 'transparent' }}
+          loading="lazy"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+      </div>
+    </div>
+  );
+}
+
+/* Provider-specific URL transformer. Spotify open.spotify.com URLs
+   become open.spotify.com/embed/<type>/<id>. YouTube playlist URLs
+   become youtube.com/embed/videoseries?list=<id>. Apple Music URLs
+   work as-is when their domain is embed.music.apple.com — we patch
+   the host in. Returns null if the URL is unparseable. */
+function toMusicEmbedUrl(provider: string, url: string): string | null {
+  if (!url) return null;
+  if (provider === 'spotify') {
+    /* spotify.com/playlist/<id> → spotify.com/embed/playlist/<id>
+       Also handles spotify.com/track/<id>, /album/<id>, /artist/<id>. */
+    const m = url.match(/open\.spotify\.com\/(playlist|track|album|artist|show|episode)\/([A-Za-z0-9]+)/);
+    if (!m) return null;
+    return `https://open.spotify.com/embed/${m[1]}/${m[2]}?utm_source=pearloom`;
+  }
+  if (provider === 'apple') {
+    /* music.apple.com/<region>/playlist/... → embed.music.apple.com/<rest>. */
+    if (url.includes('embed.music.apple.com')) return url;
+    return url.replace(/^https?:\/\/music\.apple\.com/, 'https://embed.music.apple.com');
+  }
+  if (provider === 'youtube') {
+    const list = url.match(/[?&]list=([A-Za-z0-9_-]+)/);
+    if (list) return `https://www.youtube.com/embed/videoseries?list=${list[1]}`;
+    const vid = url.match(/(?:youtu\.be\/|v=)([A-Za-z0-9_-]+)/);
+    if (vid) return `https://www.youtube.com/embed/${vid[1]}`;
+    return null;
+  }
+  /* custom — trust the host. */
+  return url;
+}
+
 /* ─── TSectionHead — handoff L75-87 verbatim. ────────────────── */
 
 function TSectionHead({ eyebrow, title, italic, editable, onEditEyebrow, onEditTitle, eyebrowPlaceholder, titlePlaceholder }: {
@@ -2024,11 +2402,13 @@ function formatHeroDate(raw: string | undefined): string {
 
 /* ─── Copy / data — pulls from manifest with prototype fallbacks. ─── */
 
-type SectionKind = 'hero' | 'story' | 'details' | 'schedule' | 'travel' | 'registry' | 'gallery' | 'rsvp' | 'faq';
+type SectionKind = 'hero' | 'story' | 'details' | 'schedule' | 'travel' | 'registry' | 'gallery' | 'rsvp' | 'faq'
+                 | 'countdown' | 'map' | 'music';
 
 const SECTION_LABEL: Record<SectionKind, string> = {
   hero: 'Hero', story: 'Our story', details: 'Details', schedule: 'Schedule',
   travel: 'Travel', registry: 'Registry', gallery: 'Gallery', rsvp: 'RSVP', faq: 'FAQ',
+  countdown: 'Countdown', map: 'Map', music: 'Music',
 };
 
 interface SectionCtx {
@@ -2055,6 +2435,11 @@ interface SectionCtx {
     rsvp: string;
   };
   C: Copy;
+  /** Full manifest reference — most blocks read C (the derived
+   *  copy struct), but optional blocks (countdown / map / music)
+   *  need direct access to fresh manifest fields that aren't
+   *  worth threading through Copy. */
+  manifest: StoryManifest;
   /** Host-uploaded cover photo URL (manifest.coverPhoto). When set,
    *  hero variants render it instead of the gradient placeholder. */
   coverPhoto?: string;

@@ -47,11 +47,25 @@ export type EditorMode = 'edit' | 'preview' | 'mobile';
 export type SectionId =
   | 'hero' | 'story' | 'details' | 'schedule' | 'travel'
   | 'registry' | 'gallery' | 'rsvp' | 'faq' | 'nav' | 'navMobile'
+  /* Optional sections added via Add Section — applicability gated
+     by occasion (see isSectionApplicable below). */
+  | 'countdown' | 'map' | 'music'
   /* Tool panels — not canvas sections, but host-facing tools that
      mount through the same PropertyRail dispatch so the editor's
      state machine stays simple. */
   | 'guests' | 'savetheDate' | 'share' | 'dayof' | 'memorial' | 'bachelor'
   | null;
+
+/* Occasion → which optional canvas sections fit. Countdown reads
+   the event date so it works for any forward-looking occasion;
+   memorials use it in "X years since" mode but the read path is
+   identical. Map needs a venue. Music is celebratory by default —
+   suppress on memorial/funeral unless the host opts in via the
+   Add Section picker. */
+export function isOptionalSectionApplicable(section: 'countdown' | 'map' | 'music', occasion?: string): boolean {
+  if (section === 'music') return occasion !== 'memorial' && occasion !== 'funeral';
+  return true;
+}
 
 /* Occasion → which tool panels are applicable. Memorial only on
    memorial/funeral, Bachelor weekend planner on bachelor/ette /
@@ -100,11 +114,18 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
       if (!detail?.block) return;
       setActive(detail.block as SectionId);
     };
+    /* Theme-rail shortcut — fired from the topbar Theme button.
+       Switches the property rail to ThemeRail by clearing the
+       active section (the conditional in the grid below renders
+       ThemeRail when active is null). */
+    const onOpenTheme = () => setActive(null);
     window.addEventListener('pearloom:open-pear', onOpenPear);
     window.addEventListener('pearloom:design-jump', onJump);
+    window.addEventListener('pearloom:open-theme-rail', onOpenTheme);
     return () => {
       window.removeEventListener('pearloom:open-pear', onOpenPear);
       window.removeEventListener('pearloom:design-jump', onJump);
+      window.removeEventListener('pearloom:open-theme-rail', onOpenTheme);
       (window as any).__plPearApply = undefined;
     };
   }, [bridge]);

@@ -456,11 +456,15 @@ export function DecorLibraryPanel({
   /* Read the current decor state from the manifest as a flat object
      matching the prototype's `decor` shape. */
   const densityProto: 'sparse' | 'generous' = manifest.density === 'spacious' ? 'generous' : 'sparse';
+  /* decor.color reads from manifest.decorColor (the renderer's
+     source of truth for --t-motif). Falls through to '--t-accent'
+     when unset so the UI shows the default. */
+  const savedDecorColor = (loose as unknown as { decorColor?: string }).decorColor;
   const decor: DecorState = {
     motif: loose.motifKind ?? 'none',
     divider: loose.dividerLook ?? null,
     pattern: manifest.pattern ?? 'none',
-    color: '--t-accent', // accent always reflects the live theme accent
+    color: savedDecorColor ?? '--t-accent',
     density: densityProto,
   };
 
@@ -504,15 +508,14 @@ export function DecorLibraryPanel({
       }
     }
     if ('color' in patch && patch.color) {
-      const hex = colorVarToHex(patch.color, themeColors);
-      if (hex) {
-        const existingTheme = (next as unknown as { theme?: Record<string, unknown> }).theme ?? {};
-        const existingColors = (existingTheme.colors as Record<string, string> | undefined) ?? {};
-        (next as unknown as { theme: Record<string, unknown> }).theme = {
-          ...existingTheme,
-          colors: { ...existingColors, accent: hex },
-        };
-      }
+      /* Write the CSS-var IDENTIFIER (e.g. '--t-accent' / '--t-gold')
+         to manifest.decorColor — the renderer reads this and sets
+         `--t-motif: var(<decorColor>)` on the canvas root, which
+         every motif glyph picks up via its `var(--t-motif, …)`
+         fallback chain. Previously this wrote
+         manifest.theme.colors.accent (a hex) which nothing in the
+         render path reads, so picking a color did nothing visible. */
+      (next as unknown as { decorColor?: string }).decorColor = patch.color;
     }
     if ('density' in patch && patch.density) {
       next.density = patch.density === 'generous' ? 'spacious' : 'cozy';
