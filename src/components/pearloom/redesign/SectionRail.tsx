@@ -52,7 +52,13 @@ export function EditorRailLeft({ active, setActive, completion, title, slug }: P
         display: 'flex',
         flexDirection: 'column',
         gap: 12,
+        /* The outer wrapper at EditorRedesign.tsx is height:100dvh +
+           overflow:hidden, so this grid cell is a fixed-height
+           viewport. overflow:auto on the rail itself lets its content
+           scroll inside without the page ever scrolling. minHeight: 0
+           defends against intrinsic-size flex defaults. */
         overflow: 'auto',
+        minHeight: 0,
       }}
     >
       {/* Site card — prototype L152-169. */}

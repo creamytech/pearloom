@@ -72,16 +72,18 @@ export function ThemeRail({ manifest, onChange, onOpenShop, onOpenDecor }: Props
       </div>
 
       {/* Body — literal port of handoff/shared/themes.jsx
-          ThemePicker (L820-933). Production ThemePanel had a lot of
-          chrome (SiteLookHeader, OwnedPacksSection, EditionPicker,
-          Advanced disclosure) the prototype doesn't show. Swap it
-          for the prototype-faithful body. */}
-      <ThemePickerBody
-        manifest={manifest}
-        onChange={onChange}
-        onOpenShop={onOpenShop}
-        onOpenDecor={onOpenDecor}
-      />
+          ThemePicker (L820-933). Wrapped in a flex:1 + overflow:auto
+          region so the rail content scrolls INSIDE the rail when it
+          exceeds the viewport height (the outer aside has overflow:
+          hidden so the page itself never scrolls). */}
+      <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
+        <ThemePickerBody
+          manifest={manifest}
+          onChange={onChange}
+          onOpenShop={onOpenShop}
+          onOpenDecor={onOpenDecor}
+        />
+      </div>
     </aside>
   );
 }

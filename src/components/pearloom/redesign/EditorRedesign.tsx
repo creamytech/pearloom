@@ -88,7 +88,14 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
     <div
       className="pl8 pl-redesign"
       style={{
-        minHeight: '100vh',
+        /* Fixed-height grid so the page itself never scrolls — each
+           cell becomes its own scroll viewport. Was minHeight: 100vh,
+           which made the grid grow with its tallest child (the canvas
+           rendering a tall site), pushing the rails out of view as
+           the user scrolled. dvh (dynamic viewport) accommodates
+           mobile browser chrome that resizes the visual viewport. */
+        height: '100dvh',
+        overflow: 'hidden',
         display: 'grid',
         gridTemplateColumns: gridColumns,
         gridTemplateRows: '56px 1fr',

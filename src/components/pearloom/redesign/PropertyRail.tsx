@@ -222,11 +222,15 @@ export function PropertyRail({ active, setActive, manifest, onChange }: Props) {
         </div>
       </div>
 
-      {/* Body — prototype L718-790. */}
+      {/* Body — prototype L718-790. minHeight: 0 is critical for the
+          flex:1 + overflow:auto pattern to actually scroll inside a
+          fixed-height grid cell; without it the flex item refuses to
+          shrink below its content's intrinsic size and the rail
+          pushes past the viewport. */}
       <div
         key={tab}
         className="pl-rd-tab-body"
-        style={{ flex: 1, overflow: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 18 }}
+        style={{ flex: 1, overflow: 'auto', minHeight: 0, padding: 20, display: 'flex', flexDirection: 'column', gap: 18 }}
       >
         {tab === 'content' && renderSectionEditor(active, manifest, onChange)}
 
