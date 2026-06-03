@@ -277,6 +277,15 @@ function EditorCanvas({
           transition: 'width 360ms cubic-bezier(0.16, 1, 0.3, 1)',
           containerType: 'inline-size',
           containerName: 'pl-site',
+          /* CRITICAL: flexShrink: 0 stops the canvas flex-column from
+             squishing the device frame down to the canvas's height
+             and then having the device frame's overflow:hidden clip
+             ThemedSite's content at ~700px. Without flexShrink: 0,
+             the canvas saw a "child that fits" and never engaged its
+             own overflow:auto. With it, the device frame stays at its
+             content's natural height (~5000px), the canvas sees the
+             overflow, and mouse-wheel + scrollbar finally work. */
+          flexShrink: 0,
         }}
       >
         <ThemedSite
