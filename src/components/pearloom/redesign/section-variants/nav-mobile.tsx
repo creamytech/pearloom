@@ -17,7 +17,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Pear } from '../../motifs';
-import { Monogram } from '../../site/Monogram';
+import { Monogram, deriveInitials } from '../../site/Monogram';
 
 export interface NavItem {
   id: string;
@@ -115,17 +115,27 @@ function TopBar({
         gap: 12,
       }}
     >
-      {monogram?.initials?.trim() ? (
-        <Monogram
-          initials={monogram.initials}
-          frame={(monogram.frame ?? 'none')}
-          size={30}
-          withCard={false}
-          ariaHidden
-        />
-      ) : (
-        <Pear size={24} tone="sage" shadow={false} />
-      )}
+      {(() => {
+        const typed = monogram?.initials?.trim();
+        const hasFrame = monogram?.frame && monogram.frame !== 'none';
+        if (typed || hasFrame) {
+          let initials = typed;
+          if (!initials) {
+            const { initA, initB } = deriveInitials(headline ?? '');
+            initials = `${initA || 'A'} & ${initB || 'B'}`;
+          }
+          return (
+            <Monogram
+              initials={initials}
+              frame={(monogram?.frame ?? 'none')}
+              size={30}
+              withCard={false}
+              ariaHidden
+            />
+          );
+        }
+        return <Pear size={24} tone="sage" shadow={false} />;
+      })()}
       <div
         style={{
           flex: 1,

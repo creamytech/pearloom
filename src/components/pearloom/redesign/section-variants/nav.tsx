@@ -12,7 +12,7 @@
 
 import type { CSSProperties, MouseEvent } from 'react';
 import { Pear } from '../../motifs';
-import { Monogram, type MonogramFrame } from '../../site/Monogram';
+import { Monogram, deriveInitials, type MonogramFrame } from '../../site/Monogram';
 
 export interface NavProps {
   headline: string;
@@ -29,13 +29,30 @@ export interface NavProps {
 }
 
 /* NavLogo — renders the host's monogram when configured, the Pear
-   glyph otherwise. Sized to fit inside the nav strip's height. */
-function NavLogo({ monogram, size = 26 }: { monogram?: NavProps['monogram']; size?: number }) {
-  if (monogram?.initials?.trim()) {
+   glyph otherwise. Sized to fit inside the nav strip's height.
+
+   Activation logic: if the host has touched monogram at all
+   (typed initials OR picked a frame other than `none`/undefined),
+   we render the monogram. Initials fall through to a derivation
+   from the headline ("Scott & Shauna" → "S&S") so the host doesn't
+   have to fill in two fields just to see their monogram in the
+   nav. Pear remains the fallback when nothing's configured. */
+function NavLogo({ monogram, headline, size = 26 }: { monogram?: NavProps['monogram']; headline?: string; size?: number }) {
+  const typed = monogram?.initials?.trim();
+  const hasFrame = monogram?.frame && monogram.frame !== 'none';
+  const wantsMonogram = !!typed || !!hasFrame;
+  if (wantsMonogram) {
+    let initials = typed;
+    if (!initials) {
+      /* Derive from headline. Falls back to "S&S" defaults when
+         the headline is the canvas placeholder too. */
+      const { initA, initB } = deriveInitials(headline ?? '');
+      initials = `${initA || 'A'} & ${initB || 'B'}`;
+    }
     return (
       <Monogram
-        initials={monogram.initials}
-        frame={(monogram.frame ?? 'none') as MonogramFrame}
+        initials={initials}
+        frame={(monogram?.frame ?? 'none') as MonogramFrame}
         size={size + 6}
         withCard={false}
         ariaHidden
@@ -106,7 +123,7 @@ export function NavCentered(props: NavProps) {
           justifyContent: 'center',
         }}
       >
-        <NavLogo monogram={monogram} size={26} />
+        <NavLogo monogram={monogram} headline={headline} size={26} />
         <span
           style={{
             fontFamily: 'var(--t-display)',
@@ -188,7 +205,7 @@ export function NavSplit(props: NavProps) {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-        <NavLogo monogram={monogram} size={24} />
+        <NavLogo monogram={monogram} headline={headline} size={24} />
         <span
           style={{
             fontFamily: 'var(--t-display)',
@@ -273,7 +290,7 @@ export function NavSerifBlock(props: NavProps) {
           marginBottom: 14,
         }}
       >
-        <NavLogo monogram={monogram} size={30} />
+        <NavLogo monogram={monogram} headline={headline} size={30} />
         <span
           style={{
             fontFamily: 'var(--t-display)',
@@ -414,7 +431,7 @@ export function NavMinimalText(props: NavProps) {
    inside the hero and the nav stays purely navigational. */
 
 export function NavIconic(props: NavProps) {
-  const { navItems, cta, onNavClick, onCtaClick, activeId, sticky, monogram } = props;
+  const { headline, navItems, cta, onNavClick, onCtaClick, activeId, sticky, monogram } = props;
   return (
     <nav
       style={{
@@ -429,7 +446,7 @@ export function NavIconic(props: NavProps) {
       }}
     >
       <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-        <NavLogo monogram={monogram} size={22} />
+        <NavLogo monogram={monogram} headline={headline} size={22} />
       </div>
       <div
         style={{
