@@ -129,9 +129,41 @@ export async function POST(req: NextRequest) {
       editorialSummary?: { text?: string };
     };
 
-    const photoUrls = (data.photos ?? [])
-      .slice(0, 5)
-      .map((ph) => `https://places.googleapis.com/v1/${ph.name}/media?maxWidthPx=800&key=${apiKey}`);
+    /* Resolve each photo to a stable Google CDN URL. Previous
+       implementation embedded the API key directly in the photo
+       URL we returned to the browser — that leaked the key
+       publicly AND failed under any referrer-restricted key
+       config because the browser-side fetch's Referer header
+       wouldn't match the server's allowlist.
+
+       skipHttpRedirect=true makes the Places media endpoint
+       return JSON ({ name, photoUri }) instead of a 302 redirect.
+       The photoUri is a public lh3.googleusercontent.com URL
+       that doesn't require auth and is stable for months — safe
+       to embed in a published site. We resolve in parallel so
+       all 5 photos land in ~1 RTT instead of 5. */
+    const rawPhotos = (data.photos ?? []).slice(0, 5);
+    const photoUrls = (
+      await Promise.all(
+        rawPhotos.map(async (ph) => {
+          try {
+            const r = await fetch(
+              `https://places.googleapis.com/v1/${ph.name}/media?maxWidthPx=1200&skipHttpRedirect=true`,
+              {
+                method: 'GET',
+                headers: { 'X-Goog-Api-Key': apiKey },
+                cache: 'no-store',
+              },
+            );
+            if (!r.ok) return null;
+            const j = (await r.json()) as { photoUri?: string };
+            return typeof j.photoUri === 'string' ? j.photoUri : null;
+          } catch {
+            return null;
+          }
+        }),
+      )
+    ).filter((u): u is string => typeof u === 'string');
 
     const details: PlaceDetails = {
       placeId: data.id ?? placeId,
