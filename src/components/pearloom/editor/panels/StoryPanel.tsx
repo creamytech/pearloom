@@ -16,9 +16,10 @@
    unchanged. */
 
 import { useMemo, useState } from 'react';
-import type { StoryManifest } from '@/types';
+import type { StoryManifest, Chapter, ChapterImage } from '@/types';
 import { Icon } from '../../motifs';
-import { FGroup, FInput, PearChip, SectionPanelShell, useCopyOverride } from './_section-atoms';
+import { FGroup, FInput, SectionPanelShell, useCopyOverride } from './_section-atoms';
+import { PhotoUploadSlot } from './_photo-upload';
 
 type Tone = 'Shorten' | 'Warmer' | 'Funnier' | 'More poetic';
 
@@ -97,11 +98,89 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
   const [err, setErr] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [aiBusy, setAiBusy] = useState(false);
+  const [draftBusy, setDraftBusy] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [storyEyebrow, setStoryEyebrow] = useCopyOverride(manifest, onChange, 'storyEyebrow');
 
+  /* Chapter photos — 3 slots that mirror the 3 chip slots. Each
+     writes to manifest.chapters[i].images[0]. The canvas reads
+     these in the story variants (timeline / sidebyside / etc) to
+     render real photos instead of gradient placeholders. */
+  const chapters: Chapter[] = Array.isArray(manifest.chapters) ? manifest.chapters : [];
+  const chapterImage = (i: number): string => {
+    const ch = chapters[i];
+    if (!ch || !Array.isArray(ch.images) || ch.images.length === 0) return '';
+    return ch.images[0]?.url ?? '';
+  };
+  const setChapterImage = (i: number, url: string) => {
+    const next: Chapter[] = chapters.slice();
+    /* Pad to at least i+1 chapters so writing slot 3 when only 1
+       chapter exists doesn't sparse-create the array. */
+    while (next.length <= i) {
+      next.push({
+        id: `ch-${Date.now().toString(36)}-${next.length}`,
+        date: '',
+        title: '',
+        subtitle: '',
+        description: '',
+        images: [],
+        location: null,
+        mood: '',
+        order: next.length,
+      });
+    }
+    const ch = next[i];
+    if (url) {
+      const img: ChapterImage = {
+        id: `img-${Date.now().toString(36)}`,
+        url,
+        alt: '',
+        width: 0,
+        height: 0,
+      };
+      next[i] = { ...ch, images: [img, ...(ch.images?.slice(1) ?? [])] };
+    } else {
+      next[i] = { ...ch, images: (ch.images ?? []).slice(1) };
+    }
+    onChange({ ...manifest, chapters: next });
+  };
+
   const patch = (next: Partial<{ headline: string; body: string; chips: string[] }>) =>
     onChange({ ...manifest, storySection: { ...story, ...next } } as StoryManifest);
+
+  /* "Draft for me" — POST /api/story-draft with couple + chip
+     context. Result lands in storySection.body. */
+  async function draftForMe() {
+    setDraftBusy(true); setErr(null);
+    try {
+      const loose = manifest as unknown as Record<string, unknown>;
+      const logistics = (loose.logistics as Record<string, unknown> | undefined) ?? {};
+      const res = await fetch('/api/story-draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          names: (loose.names as [string, string] | undefined),
+          occasion: loose.occasion,
+          venue: logistics.venue,
+          place: logistics.place,
+          date: logistics.date,
+          chips,
+          existing: body,
+        }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+      }
+      const data = await res.json() as { draft?: string };
+      if (data.draft && data.draft.trim()) patch({ body: data.draft.trim() });
+      else setErr('Pear didn’t return anything to draft from.');
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setDraftBusy(false);
+    }
+  }
 
   /* Local suggestions derived from the manifest — recomputed when
      manifest changes. Skips chips the host has already added. */
@@ -208,7 +287,29 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
         <FGroup label="Headline">
           <FInput value={headline} onChange={(v) => patch({ headline: v })} placeholder="How we got here" />
         </FGroup>
-        <FGroup label="Your story" action={<PearChip>Draft for me</PearChip>}>
+        <FGroup
+          label="Your story"
+          action={
+            <button
+              type="button"
+              onClick={draftForMe}
+              disabled={draftBusy}
+              style={{
+                fontSize: 11, fontWeight: 600,
+                padding: '5px 10px', borderRadius: 999,
+                background: draftBusy ? 'var(--peach-bg)' : 'var(--cream-2)',
+                border: '1px solid var(--line)',
+                color: draftBusy ? 'var(--peach-ink)' : 'var(--ink-soft)',
+                cursor: draftBusy ? 'wait' : 'pointer',
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+              }}
+            >
+              {draftBusy && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--peach-ink)', animation: 'pl-dot-pulse 1.4s ease-in-out infinite' }} />}
+              <Icon name="sparkles" size={10} color={draftBusy ? 'var(--peach-ink)' : 'var(--gold)'} />
+              {draftBusy ? 'Pear is drafting…' : (body.trim() ? 'Refine for me' : 'Draft for me')}
+            </button>
+          }
+        >
           <textarea
             value={body}
             onChange={(e) => patch({ body: e.target.value })}
@@ -239,6 +340,33 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
               {err}
             </div>
           )}
+        </FGroup>
+
+        <FGroup
+          label="Chapter photos"
+          hint="One photo per chapter card. Drag an image in, or click to pick from your device."
+        >
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+            {[0, 1, 2].map((i) => (
+              <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-muted)', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{
+                    width: 16, height: 16, borderRadius: 999,
+                    background: chapterImage(i) ? 'var(--lavender-bg)' : 'var(--cream-2)',
+                    color: 'var(--lavender-ink)',
+                    display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700,
+                  }}>{i + 1}</span>
+                  Card {i + 1}
+                </div>
+                <PhotoUploadSlot
+                  url={chapterImage(i)}
+                  onChange={(url) => setChapterImage(i, url)}
+                  aspectRatio="4/5"
+                  size="sm"
+                />
+              </div>
+            ))}
+          </div>
         </FGroup>
 
         <FGroup

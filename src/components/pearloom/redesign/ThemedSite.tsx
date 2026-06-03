@@ -864,10 +864,15 @@ function StoryBlock({ ctx }: { ctx: SectionCtx }) {
 function StorySideBySide({ ctx }: { ctx: SectionCtx }) {
   const { theme, pad, C, motif, editable, edit } = ctx;
   void theme;
+  const heroPhoto = C.story.chapterImages?.[0];
   return (
     <div style={{ position: 'relative', padding: `${48 * pad}px 72px`, display: 'grid', gridTemplateColumns: '0.85fr 1fr', gap: 44, alignItems: 'center', background: 'var(--t-paper)' }}>
       <div style={{ position: 'relative' }}>
-        <PhotoPlaceholder tone="warm" aspect="4/5" />
+        {heroPhoto ? (
+          <div style={{ aspectRatio: '4/5', background: `var(--t-section) center / cover no-repeat url("${heroPhoto.replace(/"/g, '%22')}")`, borderRadius: 'var(--t-radius)' }} />
+        ) : (
+          <PhotoPlaceholder tone="warm" aspect="4/5" />
+        )}
         {motif !== 'none' && (
           <div style={{ position: 'absolute', bottom: -18, right: -14, zIndex: 2 }} aria-hidden>
             <Motif kind={motif} size={70} />
@@ -919,10 +924,15 @@ function StorySideBySide({ ctx }: { ctx: SectionCtx }) {
 
 function StoryStacked({ ctx }: { ctx: SectionCtx }) {
   const { pad, C, editable, edit } = ctx;
+  const heroPhoto = C.story.chapterImages?.[0];
   return (
     <div style={{ padding: `${48 * pad}px 72px`, textAlign: 'center', maxWidth: 760, marginInline: 'auto', background: 'var(--t-paper)' }}>
       <div style={{ marginInline: 'auto', maxWidth: 520, marginBottom: 26 }}>
-        <PhotoPlaceholder tone="warm" aspect="16/9" style={{ borderRadius: 'var(--t-radius)' }} />
+        {heroPhoto ? (
+          <div style={{ aspectRatio: '16/9', background: `var(--t-section) center / cover no-repeat url("${heroPhoto.replace(/"/g, '%22')}")`, borderRadius: 'var(--t-radius)' }} />
+        ) : (
+          <PhotoPlaceholder tone="warm" aspect="16/9" style={{ borderRadius: 'var(--t-radius)' }} />
+        )}
       </div>
       <InlineEdit
         as="div"
@@ -1616,7 +1626,17 @@ interface Copy {
    *  via manifest.copy.heroCtaSecondary. */
   ctaSecondary?: string;
   meta: { date: string; place: string };
-  story: { eyebrow: string; title: string; italic?: string; body: string; chips?: string[] };
+  story: {
+    eyebrow: string;
+    title: string;
+    italic?: string;
+    body: string;
+    chips?: string[];
+    /** Up to 3 host-uploaded chapter photos. Variants that render
+     *  per-chapter cards (timeline / zigzag / sidebyside-x-3) read
+     *  these instead of the gradient PhotoPlaceholder when set. */
+    chapterImages?: (string | undefined)[];
+  };
   details: { eyebrow: string; title: string; italic?: string; items: { l: string; v: string; icon: string }[] };
   schedule: { eyebrow: string; title: string; italic?: string; rows: { t: string; l: string; s: string }[] };
   travel: { eyebrow: string; title: string; italic?: string; intro?: string; hotels: { name: string; price: string; rating: number; reviews: number; dist: string; tone: PhotoTone; blurb: string; amenities: string[]; photoUrl?: string; bookingUrl?: string }[] };
@@ -1875,13 +1895,21 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
     cta: co('heroCta', 'RSVP'),
     ctaSecondary: co('heroCtaSecondary', 'Learn more'),
     meta: { date: args.date, place: args.place },
-    story: {
-      eyebrow: co('storyEyebrow', V.storyEyebrow),
-      title: storySection.headline ? splitHeading(storySection.headline).head : V.storyTitle,
-      italic: storySection.headline ? splitHeading(storySection.headline).italic : V.storyItalic,
-      body: storySection.body || 'We met on an ordinary Tuesday and spent the evening arguing, fondly, about whether olives belong on pizza. Ten years later, we would be honoured to have you with us as we marry — there is no story we would rather tell, and no one we would rather tell it to.',
-      chips: Array.isArray(storySection.chips) ? storySection.chips : undefined,
-    },
+    story: (() => {
+      /* Pull up to 3 chapter photos from the canonical
+         manifest.chapters[].images[0].url path. StoryPanel writes
+         here when the host drops a photo on a chapter slot. */
+      const chapters = (loose.chapters as Array<{ images?: Array<{ url?: string }> }> | undefined) ?? [];
+      const chapterImages = [0, 1, 2].map((i) => chapters[i]?.images?.[0]?.url || undefined);
+      return {
+        eyebrow: co('storyEyebrow', V.storyEyebrow),
+        title: storySection.headline ? splitHeading(storySection.headline).head : V.storyTitle,
+        italic: storySection.headline ? splitHeading(storySection.headline).italic : V.storyItalic,
+        body: storySection.body || 'We met on an ordinary Tuesday and spent the evening arguing, fondly, about whether olives belong on pizza. Ten years later, we would be honoured to have you with us as we marry — there is no story we would rather tell, and no one we would rather tell it to.',
+        chips: Array.isArray(storySection.chips) ? storySection.chips : undefined,
+        chapterImages: chapterImages.some(Boolean) ? chapterImages : undefined,
+      };
+    })(),
     details: (() => {
       const t = coTitle('detailsTitle', 'Everything you', 'should know');
       return {

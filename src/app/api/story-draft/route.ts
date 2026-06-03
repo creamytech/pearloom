@@ -1,0 +1,121 @@
+// ─────────────────────────────────────────────────────────────
+// Pearloom / api/story-draft/route.ts
+//
+// POST /api/story-draft
+//   body: {
+//     names?: [string, string];
+//     occasion?: string;
+//     venue?: string;
+//     place?: string;
+//     date?: string;
+//     chips?: string[];          // host's highlight chips for hints
+//     existing?: string;          // current body — if set, the route REwrites
+//                                  it instead of starting from scratch
+//   }
+//   returns: { draft: string }
+//
+// Drafts the "Your story" body from couple context. Used by the
+// StoryPanel "Draft for me" button — wakes up an empty body
+// (or rewrites a stub) into a warm 2-3 sentence story for the
+// site's story section.
+// ─────────────────────────────────────────────────────────────
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { checkRateLimit, getClientIp, checkPearGate } from '@/lib/rate-limit';
+
+export const dynamic = 'force-dynamic';
+export const maxDuration = 25;
+
+interface Body {
+  names?: [string, string];
+  occasion?: string;
+  venue?: string;
+  place?: string;
+  date?: string;
+  chips?: string[];
+  existing?: string;
+}
+
+export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: 'Sign in required.' }, { status: 401 });
+  }
+
+  const { blocked } = await checkPearGate(session.user.email);
+  if (blocked) return blocked;
+
+  const rate = checkRateLimit(`story-draft:${session.user.email}:${getClientIp(req)}`, {
+    max: 10,
+    windowMs: 5 * 60_000,
+  });
+  if (!rate.allowed) {
+    return NextResponse.json({ error: 'Too many drafts — wait a moment.' }, { status: 429 });
+  }
+
+  let body: Body;
+  try {
+    body = (await req.json()) as Body;
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    /* Graceful degrade — return empty so the UI can fall through. */
+    return NextResponse.json({ draft: '' });
+  }
+
+  const names = Array.isArray(body.names) ? body.names.filter(Boolean).join(' & ') : '';
+  const chips = Array.isArray(body.chips) ? body.chips.filter(Boolean).slice(0, 6) : [];
+
+  const ctxLines: string[] = [];
+  if (names) ctxLines.push(`Subject: ${names}`);
+  if (body.occasion) ctxLines.push(`Occasion: ${body.occasion}`);
+  if (body.venue || body.place) ctxLines.push(`Where: ${[body.venue, body.place].filter(Boolean).join(', ')}`);
+  if (body.date) ctxLines.push(`When: ${body.date}`);
+  if (chips.length > 0) ctxLines.push(`Hints from the host: ${chips.join(' · ')}`);
+  if (body.existing && body.existing.trim()) ctxLines.push(`Existing draft (refine, don't restart):\n${body.existing.trim().slice(0, 600)}`);
+
+  const isRefining = !!(body.existing && body.existing.trim().length >= 20);
+
+  try {
+    const { generate, textFrom } = await import('@/lib/claude/client');
+    const msg = await generate({
+      tier: 'haiku',
+      system: [
+        'You draft the "Our story" body for a celebration website.',
+        '',
+        'Rules:',
+        '- 2 to 3 sentences, 35-90 words total.',
+        '- Warm, specific, present-tense or simple past.',
+        '- Anchor in one concrete detail (a place, a year, an object, a moment) — invent if the host gave none.',
+        '- Use the host\'s hints (chips) as the source of detail when present.',
+        '- Never use clichés ("love at first sight", "two halves", "soulmates", "happily ever after", "tying the knot", "two souls").',
+        '- Voice: editorial. Quiet, confident. Not breathless.',
+        '- No greeting, no header, no quotes around the output — return ONLY the body text.',
+        '- For non-wedding occasions (memorial / birthday / bachelor / etc), match the tone (somber / playful / etc).',
+        isRefining
+          ? '- Refine the host\'s existing draft. Preserve their voice + specific names/places. Tighten + warm — do not rewrite from scratch.'
+          : '- Draft from scratch using whatever context is given. Invent gentle defaults for unknown fields.',
+      ].join('\n'),
+      messages: [
+        {
+          role: 'user',
+          content: ctxLines.length > 0
+            ? `Draft the story body using this context:\n\n${ctxLines.join('\n')}`
+            : 'Draft a gentle, generic 2-sentence story body for a celebration website with no specifics.',
+        },
+      ],
+      maxTokens: 320,
+      temperature: 0.78,
+    });
+    const draft = textFrom(msg).trim().replace(/^["“]|["”]$/g, '');
+    return NextResponse.json({ draft });
+  } catch (err) {
+    console.warn('[story-draft] claude error:', err instanceof Error ? err.message : err);
+    return NextResponse.json({ draft: '' });
+  }
+}
