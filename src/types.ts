@@ -1114,6 +1114,12 @@ export interface WeddingEvent {
   mapUrl?: string;
   notes?: string;
   order?: number;
+  /** Multi-day events (bachelor/ette weekends, reunions,
+   *  destination weddings) group rows under day headers.
+   *  1-indexed; undefined or 1 means "Day 1". The editor +
+   *  renderer use this to split a flat events[] into per-day
+   *  sub-lists with a "Day N" divider above each. */
+  day?: number;
 
   // ── Ceremony-specific ──────────────────────
   ceremony?: {

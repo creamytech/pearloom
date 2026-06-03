@@ -37,7 +37,7 @@ export interface DetailsCopy {
   items: DetailsItem[];
 }
 
-export interface ScheduleRow { t: string; l: string; s: string; m?: string }
+export interface ScheduleRow { t: string; l: string; s: string; m?: string; day?: number }
 export interface ScheduleCopy {
   eyebrow: string; title: string; italic?: string;
   rows: ScheduleRow[];

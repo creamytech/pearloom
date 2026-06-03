@@ -606,6 +606,21 @@ function HeroCentered({ ctx }: { ctx: SectionCtx }) {
             style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', fontWeight: isEditorial ? 600 : 400, marginTop: 8 }}
           />
         )}
+        {C.milestone && (
+          <div style={{
+            display: 'inline-block',
+            padding: '4px 12px',
+            borderRadius: 999,
+            background: 'var(--t-card)',
+            border: '1px solid var(--t-line)',
+            fontSize: 11.5, fontWeight: 700,
+            letterSpacing: '0.12em', textTransform: 'uppercase',
+            color: 'var(--t-accent-ink)',
+            marginTop: 14,
+          }}>
+            {C.milestone}
+          </div>
+        )}
         <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'calc(74px * var(--t-hero-scale))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: isEditorial ? '-0.045em' : '-0.02em', color: 'var(--t-ink)' }}>
           <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
           {C.subject.type === 'couple' && <>
@@ -1151,11 +1166,67 @@ function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
         eyebrowPlaceholder="The day"
         titlePlaceholder="In moments"
       />
-      {/* Auto-fit grid — 4 columns when there's room, fewer when
-          there's a 5th row (the column reflows instead of being
-          clipped off the right edge). minmax(180px, 1fr) is the
-          single-card minimum width before the grid wraps. */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, maxWidth: 880, marginInline: 'auto' }}>
+      {(() => {
+        /* Multi-day rendering — when any row has a day>1, group
+           the rows under "Day N" headers. Single-day events
+           render exactly like before (one flat grid). */
+        const rows = C.schedule.rows;
+        const hasMultiDay = rows.some((r) => r.day && r.day > 1);
+        if (!hasMultiDay) return null;
+        const byDay = new Map<number, typeof rows>();
+        rows.forEach((r, i) => {
+          const d = r.day ?? 1;
+          const arr = byDay.get(d) ?? [];
+          arr.push({ ...r, /* preserve original i for inline-edit handlers */ } as typeof rows[number]);
+          byDay.set(d, arr);
+          void i;
+        });
+        const days = Array.from(byDay.keys()).sort((a, b) => a - b);
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 26, maxWidth: 880, marginInline: 'auto' }}>
+            {days.map((d) => {
+              const dayRows = byDay.get(d) ?? [];
+              return (
+                <div key={d}>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    marginBottom: 12,
+                  }}>
+                    <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+                    <div style={{
+                      fontFamily: 'var(--t-mono)',
+                      fontSize: 11, fontWeight: 700,
+                      letterSpacing: 'var(--t-eyebrow-ls)',
+                      textTransform: 'uppercase',
+                      color: 'var(--t-accent-ink)',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      Day {d}
+                    </div>
+                    <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+                    {dayRows.map((r, i) => (
+                      <div key={`${d}-${i}`} className="pl8-schedule-row" style={{ padding: 16, background: 'var(--t-card)', borderRadius: 'var(--t-radius)', border: '1px solid var(--t-line-soft)', textAlign: 'center' }}>
+                        <div style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)' as React.CSSProperties['fontWeight'], fontSize: 20, color: 'var(--t-ink)' }}>{r.t}</div>
+                        <div style={{ fontSize: 13, color: 'var(--t-ink)', marginTop: 4, fontWeight: 600 }}>{r.l}</div>
+                        <div style={{ fontSize: 12, color: 'var(--t-ink-soft)', marginTop: 4 }}>{r.s}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
+      {/* Single-day grid — only renders when there are NO multi-day
+          rows. minmax(180px, 1fr) is the single-card minimum
+          width before the grid wraps. */}
+      <div style={{
+        display: C.schedule.rows.some((r) => r.day && r.day > 1) ? 'none' : 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, maxWidth: 880, marginInline: 'auto',
+      }}>
         {C.schedule.rows.map((r, i) => (
           <div key={i} className="pl8-schedule-row" style={{ padding: 16, background: 'var(--t-card)', borderRadius: 'var(--t-radius)', border: '1px solid var(--t-line-soft)', textAlign: 'center' }}>
             <InlineEdit
@@ -1738,6 +1809,10 @@ interface Copy {
   /** Where the secondary CTA navigates. From manifest.copy.heroCtaSecondaryHref
    *  (default '#story' when blank). */
   ctaSecondaryHref?: string;
+  /** Optional milestone marker (Turning 40 / 10 years / Class of '95).
+   *  Renders as a small badge above the names. Empty / missing → not
+   *  rendered. */
+  milestone?: string;
   meta: { date: string; place: string };
   story: {
     eyebrow: string;
@@ -1757,7 +1832,7 @@ interface Copy {
     chapterBodies?: (string | undefined)[];
   };
   details: { eyebrow: string; title: string; italic?: string; items: { l: string; v: string; icon: string }[] };
-  schedule: { eyebrow: string; title: string; italic?: string; rows: { t: string; l: string; s: string }[] };
+  schedule: { eyebrow: string; title: string; italic?: string; rows: { t: string; l: string; s: string; day?: number }[] };
   travel: { eyebrow: string; title: string; italic?: string; intro?: string; hotels: { name: string; price: string; rating: number; reviews: number; dist: string; tone: PhotoTone; blurb: string; amenities: string[]; photoUrl?: string; bookingUrl?: string }[] };
   registry: {
     eyebrow: string; title: string; italic?: string; body: string;
@@ -2048,6 +2123,21 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
     ctaHref: co('heroCtaHref', '#rsvp'),
     ctaSecondary: co('heroCtaSecondary', 'Learn more'),
     ctaSecondaryHref: co('heroCtaSecondaryHref', '#story'),
+    milestone: (() => {
+      /* Read manifest.milestone and format per kind. */
+      const ms = loose.milestone as { kind?: string; value?: string } | undefined;
+      if (!ms || !ms.value || !ms.kind) return '';
+      const v = ms.value.trim();
+      if (!v) return '';
+      switch (ms.kind) {
+        case 'turning':   return `Turning ${v}`;
+        case 'years':     return `${v} years`;
+        case 'class-of':  return `Class of ${v}`;
+        case 'in-memory': return v;
+        case 'custom':    return v;
+        default:          return v;
+      }
+    })(),
     meta: { date: args.date, place: args.place },
     story: (() => {
       /* Pull up to 3 chapter photos + titles + bodies from the
@@ -2106,12 +2196,20 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       eyebrow: co('scheduleEyebrow', 'The day'),
       title: t.head,
       italic: t.italic,
+      /* Multi-day events: when any event has day>1, render ALL
+         rows (not just first 4) so guests see the full weekend.
+         Otherwise keep the legacy 4-row cap. */
       rows: eventsRaw.length > 0
-        ? eventsRaw.slice(0, 4).map((e) => ({
-            t: e.time ?? '',
-            l: e.name ?? '',
-            s: e.venue ?? e.description ?? '',
-          }))
+        ? (() => {
+            const hasMultiDay = eventsRaw.some((e) => (e as { day?: number }).day && (e as { day?: number }).day! > 1);
+            const list = hasMultiDay ? eventsRaw : eventsRaw.slice(0, 4);
+            return list.map((e) => ({
+              t: e.time ?? '',
+              l: e.name ?? '',
+              s: e.venue ?? e.description ?? '',
+              day: (e as { day?: number }).day,
+            }));
+          })()
         : [
             { t: '4:30 pm', l: 'Ceremony', s: 'Olive grove' },
             { t: '5:30 pm', l: 'Cocktails', s: 'Terrace bar' },

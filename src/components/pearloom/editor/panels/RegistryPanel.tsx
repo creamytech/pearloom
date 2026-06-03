@@ -13,6 +13,20 @@ import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, us
 import { FSelect } from './_form-atoms';
 import { REGISTRY_STORE_TARGETS, REGISTRY_STORE_URLS } from './_link-targets';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
+import { useVoicePack } from './_voice-pack';
+
+/** Registry MODE — re-skins the entire section for non-wedding
+ *  events. Drives the section label, intro placeholder, AddCard
+ *  text, and the curated store dropdown's relevance. */
+type RegistryMode = 'gifts' | 'fund' | 'donation' | 'wishlist' | 'tip-jar';
+
+const MODE_LABELS: Record<RegistryMode, { section: string; intro: string; add: string; placeholder: string }> = {
+  gifts:    { section: 'Registry',          intro: 'Your presence is the gift — but if you insist…',           add: 'Link a registry',     placeholder: 'Pick a store' },
+  fund:     { section: 'Honeymoon fund',    intro: 'Pitching in toward the trip means the world.',             add: 'Add a fund link',     placeholder: 'Link to Honeyfund / Venmo / Zelle' },
+  donation: { section: 'In lieu of flowers', intro: 'In lieu of flowers, donations may be made to the causes below.', add: 'Add a charity',       placeholder: 'Pick a cause' },
+  wishlist: { section: 'Wishlist',          intro: 'No gifts needed, but if you want to spoil us…',            add: 'Add a wish',          placeholder: 'Link to your wishlist' },
+  'tip-jar':{ section: 'Tip the host',      intro: 'A coffee, a cocktail, a bag of chips — whatever you fancy.', add: 'Add a tip link',     placeholder: 'Venmo, Zelle, Cash App…' },
+};
 
 const TONES: Array<'peach' | 'sage' | 'lavender'> = ['peach', 'sage', 'lavender'];
 
@@ -35,7 +49,25 @@ function presetIdForName(name: string): string {
 
 export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'registry');
-  const intro = ((manifest as unknown as { registryIntro?: string }).registryIntro) ?? 'Your presence is the gift — but if you insist…';
+  /* Voice pack — currently consumed only for future re-skins;
+     mode picker above is the primary driver. */
+  void useVoicePack(manifest);
+  /* Mode lives at manifest.registryMode. Default: 'gifts' for
+     weddings + showers (preserves legacy behaviour), 'donation'
+     for memorials, 'fund' otherwise. */
+  const occasion = (manifest as unknown as { occasion?: string }).occasion;
+  const defaultMode: RegistryMode = occasion === 'memorial' || occasion === 'funeral'
+    ? 'donation'
+    : (occasion === 'wedding' || occasion === 'engagement' || occasion === 'bridal-shower' || occasion === 'baby-shower' || occasion === 'housewarming')
+      ? 'gifts'
+      : 'fund';
+  const mode: RegistryMode = ((manifest as unknown as { registryMode?: RegistryMode }).registryMode) ?? defaultMode;
+  const setMode = (next: RegistryMode) => onChange({
+    ...(manifest as unknown as Record<string, unknown>),
+    registryMode: next,
+  } as unknown as StoryManifest);
+  const modeCopy = MODE_LABELS[mode];
+  const intro = ((manifest as unknown as { registryIntro?: string }).registryIntro) ?? modeCopy.intro;
   /* Normalize legacy string[] manifests into { name, url } on read
      so the panel only ever deals with the rich shape. */
   const storesRaw = ((manifest as unknown as { registryStores?: Array<string | StoreEntry> }).registryStores);
@@ -73,8 +105,22 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <FGroup label="What kind of registry" hint="Re-skins the whole section for your event's tone.">
+          <FSelect
+            value={mode}
+            onChange={(v) => setMode(v as RegistryMode)}
+            options={[
+              { value: 'gifts',    label: 'Gift registry',     hint: 'Store-linked physical gifts' },
+              { value: 'fund',     label: 'Honeymoon / event fund', hint: 'Pool money toward something' },
+              { value: 'donation', label: 'In lieu of flowers / donations', hint: 'Charitable causes' },
+              { value: 'wishlist', label: 'Wishlist',          hint: 'Personal-wishlist links' },
+              { value: 'tip-jar',  label: 'Tip jar',           hint: 'Venmo / Zelle / Cash App' },
+            ]}
+            icon="gift"
+          />
+        </FGroup>
         <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
-          <FInput value={registryEyebrow} onChange={setRegistryEyebrow} placeholder="Registry" />
+          <FInput value={registryEyebrow} onChange={setRegistryEyebrow} placeholder={modeCopy.section} />
         </FGroup>
         <FGroup label="Intro line">
           <FInput value={intro} onChange={setIntro} />
@@ -88,7 +134,7 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
             </div>
           )}
         </FGroup>
-        <FGroup label={`Linked registries · ${stores.length}`} hint="Each registry below becomes a clickable pill on the canvas. Pick a store to autofill its link.">
+        <FGroup label={`${modeCopy.section} · ${stores.length}`} hint="Each link below becomes a clickable pill on the canvas.">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {stores.map((s, i) => {
               const presetId = presetIdForName(s.name);
@@ -142,7 +188,7 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
                 </div>
               );
             })}
-            <AddCard label="Link a registry" onClick={addStore} />
+            <AddCard label={modeCopy.add} onClick={addStore} />
           </div>
         </FGroup>
         <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Registry" />

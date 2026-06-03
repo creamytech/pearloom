@@ -108,6 +108,7 @@ import { GuestsPanel } from './panels/GuestsPanel';
 import { SaveTheDatePanel } from './panels/SaveTheDatePanel';
 import { SharePanel } from './panels/SharePanel';
 import { DayOfPanel } from './panels/DayOfPanel';
+import { MemorialPanel } from './panels/MemorialPanel';
 import { PanelSearch, PearSuggestionsStrip } from './atoms';
 import { pearSuggestionsFor } from './panels/pear-suggestions';
 import { blockFillState, FILL_STATE_COLORS, siteProgressPct, type ScoredBlockKey } from '@/lib/site-progress';
@@ -159,7 +160,8 @@ type BlockKey =
   | 'guests'
   | 'savetheDate'
   | 'share'
-  | 'dayof';
+  | 'dayof'
+  | 'memorial';
 
 type DeviceKey = 'desktop' | 'tablet' | 'phone';
 
@@ -194,6 +196,7 @@ const BLOCKS: BlockDef[] = [
   { key: 'savetheDate', label: 'Save the date',  icon: 'calendar', anchor: 'top', description: 'A lighter pre-invite to lock in the date.',    subtitle: 'Pre-invite teaser',    reorderable: false, togglable: false },
   { key: 'share',       label: 'Share',          icon: 'link',     anchor: 'top', description: 'Preview the share card + copy the link + QR.', subtitle: 'Link, QR, preview',    reorderable: false, togglable: false },
   { key: 'dayof',       label: 'Day-of',         icon: 'sparkles', anchor: 'top', description: 'Live broadcasts on the day of the event.',     subtitle: 'Live broadcasts',      reorderable: false, togglable: false },
+  { key: 'memorial',    label: 'Memorial',       icon: 'heart-icon', anchor: 'top', description: 'Obituary, service program, and tribute wall.', subtitle: 'Obituary + program',    reorderable: false, togglable: false },
   // 'theme' intentionally NOT in BLOCKS — it lives as the
   // dedicated Theme outline tab (Sections / Pages / Theme).
 ];
@@ -205,7 +208,7 @@ const REORDERABLE_KEYS: BlockKey[] = BLOCKS.filter((b) => b.reorderable).map((b)
 /* Tool-only block keys — these aren't canvas sections so they
    bypass the content/layout/style tab split and render their
    panel directly (same treatment as Theme + Toasts). */
-const TOOL_BLOCK_KEYS: BlockKey[] = ['guests', 'savetheDate', 'share', 'dayof'];
+const TOOL_BLOCK_KEYS: BlockKey[] = ['guests', 'savetheDate', 'share', 'dayof', 'memorial'];
 function isToolBlock(b: BlockKey): boolean {
   return b === 'theme' || b === 'toasts' || TOOL_BLOCK_KEYS.includes(b);
 }
@@ -4267,6 +4270,8 @@ function PanelSwitch({
       return <SharePanel manifest={manifest} siteSlug={siteSlug} />;
     case 'dayof':
       return <DayOfPanel siteSlug={siteSlug} />;
+    case 'memorial':
+      return <MemorialPanel manifest={manifest} onChange={onChange} />;
     default:
       return null;
   }

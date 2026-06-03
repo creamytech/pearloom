@@ -155,6 +155,14 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
     } as unknown as StoryManifest);
   };
   const heroLead = copy.heroLead ?? '';
+  /* Milestone counter — surfaces above the names when set. Stored
+     as { kind, value } so the renderer can format it differently
+     per kind ("Turning 40" vs "10 years" vs "Class of 1995"). */
+  const milestone = ((manifest as unknown as { milestone?: { kind?: string; value?: string } }).milestone) ?? {};
+  const setMilestone = (next: { kind?: string; value?: string }) => onChange({
+    ...(manifest as unknown as Record<string, unknown>),
+    milestone: { ...milestone, ...next },
+  } as unknown as StoryManifest);
   const heroCta = copy.heroCta ?? '';
   const heroCtaHref = copy.heroCtaHref ?? '';
   const heroCtaSecondary = copy.heroCtaSecondary ?? '';
@@ -205,6 +213,36 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
           <FDate value={date} onChange={setDate} placeholder="Pick the day" />
           <div style={{ height: 8 }} />
           <FInput value={venue} onChange={setVenue} icon="pin" placeholder="Where the gathering happens" />
+        </FGroup>
+        <FGroup label="Milestone (optional)" hint="A small marker above the name(s) — pick a kind and fill in.">
+          <FSelect
+            value={milestone.kind ?? 'none'}
+            onChange={(v) => setMilestone({ kind: v === 'none' ? '' : v, value: v === 'none' ? '' : milestone.value })}
+            options={[
+              { value: 'none',       label: 'No milestone',          hint: 'Hides the marker' },
+              { value: 'turning',    label: 'Turning N',             hint: 'e.g. Turning 40' },
+              { value: 'years',      label: 'N years',               hint: 'e.g. 10 years together' },
+              { value: 'class-of',   label: "Class of '95",          hint: 'Graduation / reunion' },
+              { value: 'in-memory',  label: 'In loving memory',      hint: 'Memorial dates' },
+              { value: 'custom',     label: 'Custom phrase…',        hint: 'Your own wording' },
+            ]}
+            icon="sparkles"
+          />
+          {milestone.kind && milestone.kind !== 'none' && (
+            <div style={{ marginTop: 6 }}>
+              <FInput
+                value={milestone.value ?? ''}
+                onChange={(v) => setMilestone({ value: v })}
+                placeholder={
+                  milestone.kind === 'turning'   ? '40'
+                  : milestone.kind === 'years'   ? '10'
+                  : milestone.kind === 'class-of'? '1995'
+                  : milestone.kind === 'in-memory' ? '1942 — 2026'
+                  : 'Your milestone phrase'
+                }
+              />
+            </div>
+          )}
         </FGroup>
         <CoverPhotoField url={coverPhoto} onChange={setCoverPhoto} pool={photoPool} hint={v.hero.coverGroupHint} />
         <FGroup label="Primary button" hint="The first CTA — pick where it goes, then optionally rename it.">
