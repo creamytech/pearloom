@@ -8,6 +8,8 @@ import { useSession } from 'next-auth/react';
 import { Icon, Pear } from '../motifs';
 import type { EditorMode } from './EditorRedesign';
 import type { SaveState } from './bridge';
+import type { StoryManifest } from '@/types';
+import { PublishChecklist } from './PublishChecklist';
 
 interface Props {
   mode: EditorMode;
@@ -19,9 +21,13 @@ interface Props {
   setPearOpen: (next: boolean) => void;
   onOpenSettings: () => void;
   displayNames: string;
+  /** Manifest passed through to PublishChecklist so the pill can
+   *  audit missing fields. Optional — if omitted the checklist
+   *  pill is hidden. */
+  manifest?: StoryManifest;
 }
 
-export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPublish, pearOpen, setPearOpen, onOpenSettings, displayNames }: Props) {
+export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPublish, pearOpen, setPearOpen, onOpenSettings, displayNames, manifest }: Props) {
   const { data: session } = useSession();
   /* Profile pic was rendering initials from `displayNames` (the
      COUPLE'S names), so the avatar text changed on every keystroke
@@ -171,6 +177,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         >
           <Icon name="share" size={12} /> Share
         </button>
+        {manifest && <PublishChecklist manifest={manifest} />}
         <button type="button" className="btn btn-primary btn-sm pl-pearl-accent" onClick={onPublish}>
           Publish
           <Icon name="arrow-up" size={12} color="var(--cream)" />

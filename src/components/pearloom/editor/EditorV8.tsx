@@ -109,6 +109,8 @@ import { SaveTheDatePanel } from './panels/SaveTheDatePanel';
 import { SharePanel } from './panels/SharePanel';
 import { DayOfPanel } from './panels/DayOfPanel';
 import { MemorialPanel } from './panels/MemorialPanel';
+import { BachelorPanel } from './panels/BachelorPanel';
+import { PublishChecklist } from '../redesign/PublishChecklist';
 import { PanelSearch, PearSuggestionsStrip } from './atoms';
 import { pearSuggestionsFor } from './panels/pear-suggestions';
 import { blockFillState, FILL_STATE_COLORS, siteProgressPct, type ScoredBlockKey } from '@/lib/site-progress';
@@ -161,7 +163,8 @@ type BlockKey =
   | 'savetheDate'
   | 'share'
   | 'dayof'
-  | 'memorial';
+  | 'memorial'
+  | 'bachelor';
 
 type DeviceKey = 'desktop' | 'tablet' | 'phone';
 
@@ -197,6 +200,7 @@ const BLOCKS: BlockDef[] = [
   { key: 'share',       label: 'Share',          icon: 'link',     anchor: 'top', description: 'Preview the share card + copy the link + QR.', subtitle: 'Link, QR, preview',    reorderable: false, togglable: false },
   { key: 'dayof',       label: 'Day-of',         icon: 'sparkles', anchor: 'top', description: 'Live broadcasts on the day of the event.',     subtitle: 'Live broadcasts',      reorderable: false, togglable: false },
   { key: 'memorial',    label: 'Memorial',       icon: 'heart-icon', anchor: 'top', description: 'Obituary, service program, and tribute wall.', subtitle: 'Obituary + program',    reorderable: false, togglable: false },
+  { key: 'bachelor',    label: 'Weekend planner',icon: 'sparkles', anchor: 'top', description: 'Cost splitter, polls, packing, rooms, group chat.', subtitle: 'Costs + polls + rooms', reorderable: false, togglable: false },
   // 'theme' intentionally NOT in BLOCKS — it lives as the
   // dedicated Theme outline tab (Sections / Pages / Theme).
 ];
@@ -208,7 +212,7 @@ const REORDERABLE_KEYS: BlockKey[] = BLOCKS.filter((b) => b.reorderable).map((b)
 /* Tool-only block keys — these aren't canvas sections so they
    bypass the content/layout/style tab split and render their
    panel directly (same treatment as Theme + Toasts). */
-const TOOL_BLOCK_KEYS: BlockKey[] = ['guests', 'savetheDate', 'share', 'dayof', 'memorial'];
+const TOOL_BLOCK_KEYS: BlockKey[] = ['guests', 'savetheDate', 'share', 'dayof', 'memorial', 'bachelor'];
 function isToolBlock(b: BlockKey): boolean {
   return b === 'theme' || b === 'toasts' || TOOL_BLOCK_KEYS.includes(b);
 }
@@ -1970,6 +1974,7 @@ function EditorTopbar({
         <button className="btn btn-outline btn-sm" onClick={onOpenThemeShop} title="Browse theme packs">
           <Icon name="share" size={12}/> Share
         </button>
+        <PublishChecklist manifest={manifest} />
         <button className="btn btn-primary btn-sm pl-pearl-accent" onClick={onPublishClick} data-tour-anchor="publish">
           Publish
           <Icon name="arrow-up" size={12} color="var(--cream)"/>
@@ -4272,6 +4277,8 @@ function PanelSwitch({
       return <DayOfPanel siteSlug={siteSlug} />;
     case 'memorial':
       return <MemorialPanel manifest={manifest} onChange={onChange} />;
+    case 'bachelor':
+      return <BachelorPanel manifest={manifest} onChange={onChange} />;
     default:
       return null;
   }

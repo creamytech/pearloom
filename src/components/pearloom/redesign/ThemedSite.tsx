@@ -429,8 +429,43 @@ export function ThemedSite({
       {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
       <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
       <div style={{ position: 'relative', zIndex: 1 }}>
+        {C.isPostEvent && <PostEventBanner />}
         {navEl}
         {sections.map(sectionEl)}
+      </div>
+    </div>
+  );
+}
+
+/* Post-event banner — paints across the top of the site when the
+   event date is in the past. Soft cream-deep band with peach
+   accent type. Hosts can hide the whole RSVP / countdown surface
+   from the panel sidebar; this gives them automatic copy
+   acknowledgement without action. */
+function PostEventBanner() {
+  return (
+    <div
+      role="status"
+      style={{
+        background: 'var(--t-section)',
+        borderBottom: '1px solid var(--t-line)',
+        padding: '16px 28px',
+        textAlign: 'center',
+      }}
+    >
+      <div style={{
+        fontSize: 10, fontWeight: 700,
+        letterSpacing: '0.22em', textTransform: 'uppercase',
+        color: 'var(--t-accent-ink)', marginBottom: 4,
+      }}>
+        After the day
+      </div>
+      <div style={{
+        fontFamily: 'var(--t-display)', fontStyle: 'italic',
+        fontSize: 18, color: 'var(--t-ink)',
+        lineHeight: 1.3,
+      }}>
+        Thank you for joining us — every part of the day felt like family because of you.
       </div>
     </div>
   );
@@ -1813,6 +1848,10 @@ interface Copy {
    *  Renders as a small badge above the names. Empty / missing → not
    *  rendered. */
   milestone?: string;
+  /** Set to true when buildCopy detects today's date is past the
+   *  event date. Drives the post-event banner + "Thank you for
+   *  joining us" reskin. */
+  isPostEvent?: boolean;
   meta: { date: string; place: string };
   story: {
     eyebrow: string;
@@ -2123,6 +2162,18 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
     ctaHref: co('heroCtaHref', '#rsvp'),
     ctaSecondary: co('heroCtaSecondary', 'Learn more'),
     ctaSecondaryHref: co('heroCtaSecondaryHref', '#story'),
+    isPostEvent: (() => {
+      /* Parse the manifest date and compare to today. Accepts ISO
+         or any string Date.parse handles. Returns false on invalid
+         input so legacy manifests don't accidentally show the
+         post-event banner. */
+      if (!args.date) return false;
+      const ms = Date.parse(args.date);
+      if (Number.isNaN(ms)) return false;
+      const eventDay = new Date(ms);
+      eventDay.setHours(23, 59, 59, 999); // forgiving — banner kicks in the day after
+      return Date.now() > eventDay.getTime();
+    })(),
     milestone: (() => {
       /* Read manifest.milestone and format per kind. */
       const ms = loose.milestone as { kind?: string; value?: string } | undefined;

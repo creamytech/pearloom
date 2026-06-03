@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { FGroup, SectionPanelShell } from './_section-atoms';
+import { FGroup, FInput, SectionPanelShell } from './_section-atoms';
 import { buildSiteUrl, formatSiteDisplayUrl, type SiteOccasion } from '@/lib/site-urls';
 
 export function SharePanel({
@@ -22,6 +22,34 @@ export function SharePanel({
   const siteUrl = buildSiteUrl(siteSlug, '', occasion);
   const prettyUrl = formatSiteDisplayUrl(siteSlug, '', occasion);
   const [copiedKind, setCopiedKind] = useState<'url' | 'pretty' | null>(null);
+  const [coHostEmail, setCoHostEmail] = useState('');
+  const [coHostBusy, setCoHostBusy] = useState(false);
+  const [coHostMsg, setCoHostMsg] = useState<string | null>(null);
+
+  async function inviteCoHost() {
+    if (!coHostEmail.trim() || coHostBusy) return;
+    setCoHostBusy(true); setCoHostMsg(null);
+    try {
+      /* Existing /api/co-host endpoint mints a token + sends an
+         email. Soft-failures don't block — the host always sees a
+         success/failure message inline. */
+      const res = await fetch('/api/co-host/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteSlug, email: coHostEmail.trim() }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+      }
+      setCoHostMsg(`Invite sent to ${coHostEmail.trim()}.`);
+      setCoHostEmail('');
+    } catch (e) {
+      setCoHostMsg((e as Error).message || 'Couldn’t send the invite.');
+    } finally {
+      setCoHostBusy(false);
+    }
+  }
 
   /* OG card preview URL — points at the existing /api/og endpoint
      which returns an image. Add a cache-buster keyed to the cover
@@ -179,6 +207,43 @@ export function SharePanel({
           >
             Open invite composer <Icon name="arrow-right" size={13} color="var(--peach-ink)" />
           </a>
+        </FGroup>
+
+        {/* Co-host invite — extends edit access to a partner / MOH / parent. */}
+        <FGroup label="Invite a co-host" hint="Send someone else access to edit this site. They’ll get an email with a magic link.">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <FInput
+              value={coHostEmail}
+              onChange={setCoHostEmail}
+              icon="mail"
+              type="email"
+              placeholder="partner@example.com"
+            />
+            <button
+              type="button"
+              onClick={inviteCoHost}
+              disabled={!coHostEmail.trim() || coHostBusy}
+              style={{
+                padding: '8px 14px', borderRadius: 999,
+                background: 'var(--cream-2)', border: '1px solid var(--line)',
+                fontSize: 12, fontWeight: 600, color: 'var(--ink-soft)',
+                cursor: coHostEmail.trim() && !coHostBusy ? 'pointer' : 'not-allowed',
+                opacity: coHostEmail.trim() && !coHostBusy ? 1 : 0.55,
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              }}
+            >
+              {coHostBusy ? 'Threading…' : 'Send invite'}
+            </button>
+            {coHostMsg && (
+              <div style={{
+                fontSize: 11, color: 'var(--sage-deep)',
+                background: 'var(--sage-bg)',
+                padding: '6px 10px', borderRadius: 8,
+              }}>
+                {coHostMsg}
+              </div>
+            )}
+          </div>
         </FGroup>
       </div>
     </SectionPanelShell>
