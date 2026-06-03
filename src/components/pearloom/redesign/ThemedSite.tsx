@@ -135,7 +135,16 @@ export function ThemedSite({
     : baseMotif;
   const dividerLook = decor.divider || theme.look.divider;
   const pad = { cozy: 0.74, comfortable: 1, spacious: 1.32 }[density] || 1;
-  const showWashHero = textureIntensity > 0 && theme.texture === 'watercolor';
+  /* Theme Store packs write manifest.texture to override the base
+     theme's static texture. Reading here so every TextureLayer
+     mount AND the watercolor-wash hero check pick up the pack
+     override instead of staying stuck on the base theme's
+     default. */
+  const textureOverride = ((manifest as unknown as { texture?: string }).texture);
+  const effectiveTexture = (typeof textureOverride === 'string' && textureOverride !== 'none' && textureOverride !== '')
+    ? textureOverride
+    : theme.texture;
+  const showWashHero = textureIntensity > 0 && effectiveTexture === 'watercolor';
 
   /* Section copy + content — pulls from manifest with prototype
      fallbacks. Keeps the renderer data-driven per handoff L141-153. */
@@ -276,10 +285,10 @@ export function ThemedSite({
      Handoff themed-site.jsx L181-217 verbatim. */
   if (siteLayout === 'split') {
     return (
-      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={theme.texture} data-pl-kit={kitId} className="pl8-guest">
+      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest">
         <TextureFilters />
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
-        <TextureLayer texture={textureIntensity > 0 ? theme.texture : 'none'} intensity={textureIntensity} />
+        <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
         <div style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: 'minmax(290px, 35%) 1fr', alignItems: 'start' }}>
           <div style={{ position: 'sticky', top: 0, alignSelf: 'start' }}>
             <SidebarHero
@@ -307,7 +316,7 @@ export function ThemedSite({
       <div
         onMouseLeave={() => setHover(null)}
         style={{ ...rootStyle, background: 'color-mix(in oklab, var(--t-ink) 14%, var(--t-section))', padding: '40px 26px' }}
-        data-pl-texture={theme.texture}
+        data-pl-texture={effectiveTexture}
         data-pl-kit={kitId}
         className="pl8-guest"
       >
@@ -325,7 +334,7 @@ export function ThemedSite({
           }}
         >
           {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
-          <TextureLayer texture={textureIntensity > 0 ? theme.texture : 'none'} intensity={textureIntensity} />
+          <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
           <div style={{ position: 'relative', zIndex: 1 }}>
             {navEl}
             {sections.map(sectionEl)}
@@ -337,10 +346,10 @@ export function ThemedSite({
 
   /* Classic stacked — default scroll. */
   return (
-    <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={theme.texture} data-pl-kit={kitId} className="pl8-guest">
+    <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest">
       <TextureFilters />
       {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
-      <TextureLayer texture={textureIntensity > 0 ? theme.texture : 'none'} intensity={textureIntensity} />
+      <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
       <div style={{ position: 'relative', zIndex: 1 }}>
         {navEl}
         {sections.map(sectionEl)}
@@ -1548,11 +1557,17 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       title: 'Everything you',
       italic: 'should know',
       items: detailsCards.length > 0
-        ? detailsCards.slice(0, 3).map(([l, v], i) => ({
-            l: l ?? '',
-            v: v ?? '',
-            icon: ['sparkles', 'users', 'gift'][i] ?? 'sparkles',
-          }))
+        ? detailsCards
+            /* Drop entries where both halves are empty — old manifests
+               accumulated stray empty rows during testing and they
+               rendered as ghost cards on the canvas. */
+            .filter(([l, v]) => (l ?? '').trim() !== '' || (v ?? '').trim() !== '')
+            .slice(0, 3)
+            .map(([l, v], i) => ({
+              l: l ?? '',
+              v: v ?? '',
+              icon: ['sparkles', 'users', 'gift'][i] ?? 'sparkles',
+            }))
         : [
             { l: 'Dress code', v: 'Garden formal', icon: 'sparkles' },
             /* Kids card responds to DetailsPanel's binary toggles.

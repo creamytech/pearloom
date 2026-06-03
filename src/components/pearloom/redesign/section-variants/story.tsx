@@ -70,6 +70,7 @@ export function StoryZigzag({ ctx }: { ctx: StoryVariantCtx }) {
         return (
           <div
             key={i}
+            className="pl8-chapter-row"
             style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',

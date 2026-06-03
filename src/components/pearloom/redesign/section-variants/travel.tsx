@@ -37,7 +37,7 @@ function SectionHead({ eyebrow, title, italic }: { eyebrow: string; title: strin
 /* ─── shared hotel card (used by map + carousel) ─── */
 function HotelCard({ h, style }: { h: Hotel; style?: CSSProperties }) {
   return (
-    <div style={{ background: 'var(--t-card)', border: '1px solid var(--t-line)', borderRadius: 'var(--t-radius)', padding: 14, ...style }}>
+    <div className="pl8-hotel-row" style={{ background: 'var(--t-card)', border: '1px solid var(--t-line)', borderRadius: 'var(--t-radius)', padding: 14, ...style }}>
       <div style={{ aspectRatio: '16/10', background: TONE_BG[h.tone], borderRadius: 8, marginBottom: 10 }} />
       <div style={{ fontFamily: 'var(--t-display)', fontWeight: 600, fontSize: 15, color: 'var(--t-ink)', lineHeight: 1.15 }}>
         {h.name}
@@ -105,6 +105,7 @@ export function TravelTable({ ctx }: { ctx: TravelVariantCtx }) {
         {C.hotels.map((h, i) => (
           <div
             key={i}
+            className="pl8-hotel-row"
             style={{
               display: 'grid',
               gridTemplateColumns: '1.4fr auto auto auto',

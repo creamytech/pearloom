@@ -68,7 +68,7 @@ export function FaqTwocol({ ctx }: { ctx: FaqVariantCtx }) {
         }}
       >
         {C.questions.map((q, i) => (
-          <div key={i}>
+          <div key={i} className="pl8-faq-row">
             <div
               style={{
                 fontFamily: 'var(--t-display)',
@@ -99,6 +99,7 @@ export function FaqNumbered({ ctx }: { ctx: FaqVariantCtx }) {
         {C.questions.map((q, i) => (
           <div
             key={i}
+            className="pl8-faq-row"
             style={{
               display: 'grid',
               gridTemplateColumns: 'auto 1fr',
@@ -156,6 +157,7 @@ export function FaqCards({ ctx }: { ctx: FaqVariantCtx }) {
         {C.questions.map((q, i) => (
           <div
             key={i}
+            className="pl8-faq-row"
             style={{
               background: 'var(--t-card)',
               padding: 16,

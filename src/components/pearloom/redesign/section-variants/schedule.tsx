@@ -34,7 +34,7 @@ export function ScheduleTimeline({ ctx }: { ctx: ScheduleVariantCtx }) {
       <div style={{ maxWidth: 600, margin: '0 auto', paddingLeft: 30, position: 'relative' }}>
         <div style={{ position: 'absolute', left: 7, top: 0, bottom: 0, width: 2, background: 'var(--t-line)' }} />
         {C.rows.map((row, i) => (
-          <div key={i} style={{ position: 'relative', marginBottom: Math.round(24 * pad) }}>
+          <div key={i} className="pl8-schedule-row" style={{ position: "relative", marginBottom: Math.round(24 * pad) }}>
             <div style={{ position: 'absolute', left: -30, top: 4, width: 16, height: 16, background: 'var(--t-accent)', borderRadius: 999 }} />
             <div style={{ fontFamily: 'var(--t-mono)', fontSize: 13, textTransform: 'uppercase', color: 'var(--t-ink-muted)', marginBottom: 4 }}>
               {row.t}{row.m ? ' ' + row.m : ''}
@@ -58,7 +58,7 @@ export function ScheduleStepper({ ctx }: { ctx: ScheduleVariantCtx }) {
       <div style={{ overflowX: 'auto', paddingBottom: 8 }}>
         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-start', gap: 0, minWidth: 'min-content', padding: `0 ${Math.round(16 * pad)}px` }}>
           {C.rows.map((row, i) => (
-            <div key={i} style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
+            <div key={i} className="pl8-schedule-row" style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 120 }}>
                 <div style={{ width: 44, height: 44, background: 'var(--t-accent)', color: 'var(--t-accent-ink)', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 15, borderRadius: 999 }}>
                   {i + 1}
@@ -89,7 +89,7 @@ export function ScheduleNumbered({ ctx }: { ctx: ScheduleVariantCtx }) {
       <SectionHead eyebrow={C.eyebrow} title={C.title} italic={C.italic} />
       <div style={{ maxWidth: 620, margin: '0 auto' }}>
         {C.rows.map((row, i) => (
-          <div key={i} style={{ display: 'grid', gridTemplateColumns: '52px 1fr auto', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--t-line-soft)', alignItems: 'baseline' }}>
+          <div key={i} className="pl8-schedule-row" style={{ display: 'grid', gridTemplateColumns: '52px 1fr auto', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--t-line-soft)', alignItems: 'baseline' }}>
             <div style={{ fontFamily: 'var(--t-display)', fontSize: 36, color: 'var(--t-ink-muted)', lineHeight: 1 }}>
               {String(i + 1).padStart(2, '0')}
             </div>

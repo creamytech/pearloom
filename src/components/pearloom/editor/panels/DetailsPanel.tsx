@@ -21,11 +21,16 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const dressSet = dressCodeSuggestions(occasion);
   const labelSet = detailsCardLabelSuggestions(occasion);
-  const cards: Card[] = ((manifest as unknown as { detailsCards?: Card[] }).detailsCards) ?? [
+  /* Slice to 3 on read so legacy manifests that accumulated 4+
+     cards from earlier sessions (before the cap was enforced)
+     don't bleed extra rows into the rail. The canvas already
+     slices to 3 too — both sides agree on the max. */
+  const rawCards: Card[] = ((manifest as unknown as { detailsCards?: Card[] }).detailsCards) ?? [
     ['Dress code', 'Aegean formal'],
     ['Parking', 'Valet on-site'],
     ['Weather', 'Warm evenings, ~22°C'],
   ];
+  const cards: Card[] = rawCards.slice(0, 3);
 
   const setCards = (next: Card[]) => onChange({
     ...(manifest as unknown as Record<string, unknown>),

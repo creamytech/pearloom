@@ -156,51 +156,54 @@ export function FSuggest({
   hint?: string;
   append?: boolean;
 }) {
+  /* Show the suggestion chips ONLY when the input is empty (or
+     when the field is in append-mode, where every chip adds a new
+     entry instead of replacing). Once the host has typed or picked
+     a value, hide the chips so the panel reads quieter. */
+  const isEmpty = value.trim().length === 0;
+  const showChips = options.length > 0 && (append || isEmpty);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
       <FInput value={value} onChange={onChange} placeholder={placeholder} icon={icon} />
-      {options.length > 0 && (
+      {showChips && (
         <>
           {hint && (
             <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', lineHeight: 1.4 }}>{hint}</div>
           )}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-            {options.map((opt) => {
-              const selected = !append && value.trim().toLowerCase() === opt.toLowerCase();
-              return (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => {
-                    if (append) {
-                      const trimmed = value.trim();
-                      if (!trimmed) { onChange(opt); return; }
-                      /* Don't double-add if the option is already there */
-                      const already = trimmed
-                        .split(/[,·]/)
-                        .map((s) => s.trim().toLowerCase())
-                        .includes(opt.toLowerCase());
-                      if (already) return;
-                      onChange(`${trimmed}, ${opt}`);
-                    } else {
-                      onChange(opt);
-                    }
-                  }}
-                  style={{
-                    fontSize: 11.5,
-                    fontWeight: 600,
-                    padding: '4px 10px',
-                    borderRadius: 999,
-                    background: selected ? 'var(--peach-bg)' : 'var(--cream-2)',
-                    color: selected ? 'var(--peach-ink)' : 'var(--ink-soft)',
-                    border: `1px solid ${selected ? 'var(--peach-ink)' : 'var(--line)'}`,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {opt}
-                </button>
-              );
-            })}
+            {options.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => {
+                  if (append) {
+                    const trimmed = value.trim();
+                    if (!trimmed) { onChange(opt); return; }
+                    /* Don't double-add if the option is already there */
+                    const already = trimmed
+                      .split(/[,·]/)
+                      .map((s) => s.trim().toLowerCase())
+                      .includes(opt.toLowerCase());
+                    if (already) return;
+                    onChange(`${trimmed}, ${opt}`);
+                  } else {
+                    onChange(opt);
+                  }
+                }}
+                style={{
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  padding: '4px 10px',
+                  borderRadius: 999,
+                  background: 'var(--cream-2)',
+                  color: 'var(--ink-soft)',
+                  border: '1px solid var(--line)',
+                  cursor: 'pointer',
+                }}
+              >
+                {opt}
+              </button>
+            ))}
           </div>
         </>
       )}
