@@ -309,6 +309,9 @@ export function ThemedSite({
   /* Mobile nav variants type activeId as `string | undefined`; the
      hook returns `string | null`. Pre-normalize so both prop shapes
      are satisfied without `as` casts at the call site. */
+  /* Monogram — when the host has built one in the Decor Library,
+     it replaces the Pear glyph in the nav logo slot. */
+  const monogram = (manifest as unknown as { monogram?: { initials?: string; frame?: string } }).monogram;
   const sharedDesktopNavProps = {
     headline,
     navItems,
@@ -316,6 +319,7 @@ export function ThemedSite({
     onNavClick,
     onCtaClick,
     activeId,
+    monogram: monogram as { initials?: string; frame?: import('../site/Monogram').MonogramFrame } | undefined,
   };
   const sharedMobileNavProps = {
     headline,
@@ -324,6 +328,7 @@ export function ThemedSite({
     onNavClick,
     onCtaClick,
     activeId: activeId ?? undefined,
+    monogram: monogram as { initials?: string; frame?: import('../site/Monogram').MonogramFrame } | undefined,
   };
 
   const renderNavVariant = () => {

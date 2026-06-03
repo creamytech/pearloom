@@ -17,6 +17,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Pear } from '../../motifs';
+import { Monogram } from '../../site/Monogram';
 
 export interface NavItem {
   id: string;
@@ -30,6 +31,9 @@ export interface NavProps {
   onNavClick: (id: string) => void;
   onCtaClick: () => void;
   activeId?: string;
+  /** Host's Decor-Library monogram, when set. Replaces the Pear
+   *  glyph in the mobile nav header. */
+  monogram?: { initials?: string; frame?: import('../../site/Monogram').MonogramFrame };
 }
 
 /* ---------- shared bits ---------- */
@@ -90,10 +94,12 @@ function TopBar({
   headline,
   open,
   setOpen,
+  monogram,
 }: {
   headline: string;
   open: boolean;
   setOpen: (v: boolean) => void;
+  monogram?: NavProps['monogram'];
 }) {
   return (
     <div
@@ -109,7 +115,17 @@ function TopBar({
         gap: 12,
       }}
     >
-      <Pear size={24} tone="sage" shadow={false} />
+      {monogram?.initials?.trim() ? (
+        <Monogram
+          initials={monogram.initials}
+          frame={(monogram.frame ?? 'none')}
+          size={30}
+          withCard={false}
+          ariaHidden
+        />
+      ) : (
+        <Pear size={24} tone="sage" shadow={false} />
+      )}
       <div
         style={{
           flex: 1,
@@ -155,7 +171,7 @@ const POP_KEYFRAMES = `@keyframes pl-navmob-pop { from { opacity: 0; transform: 
    ============================================================ */
 
 export function NavMobileOverlay(props: NavProps) {
-  const { headline, navItems, cta, onNavClick, onCtaClick, activeId } = props;
+  const { headline, navItems, cta, onNavClick, onCtaClick, activeId, monogram } = props;
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
   useEscClose(open, close);
@@ -163,7 +179,7 @@ export function NavMobileOverlay(props: NavProps) {
   return (
     <>
       <style>{FADE_KEYFRAMES}</style>
-      <TopBar headline={headline} open={open} setOpen={setOpen} />
+      <TopBar headline={headline} open={open} setOpen={setOpen} monogram={monogram} />
       {open && (
         <div
           onClick={close}
@@ -257,7 +273,7 @@ export function NavMobileOverlay(props: NavProps) {
    ============================================================ */
 
 export function NavMobileSlideIn(props: NavProps) {
-  const { headline, navItems, cta, onNavClick, onCtaClick, activeId } = props;
+  const { headline, navItems, cta, onNavClick, onCtaClick, activeId, monogram } = props;
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
   useEscClose(open, close);
@@ -265,7 +281,7 @@ export function NavMobileSlideIn(props: NavProps) {
   return (
     <>
       <style>{SLIDE_KEYFRAMES}</style>
-      <TopBar headline={headline} open={open} setOpen={setOpen} />
+      <TopBar headline={headline} open={open} setOpen={setOpen} monogram={monogram} />
       {open && (
         <>
           <div
@@ -381,7 +397,7 @@ export function NavMobileSlideIn(props: NavProps) {
    ============================================================ */
 
 export function NavMobileBottomSheet(props: NavProps) {
-  const { headline, navItems, cta, onNavClick, onCtaClick, activeId } = props;
+  const { headline, navItems, cta, onNavClick, onCtaClick, activeId, monogram } = props;
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
   useEscClose(open, close);
@@ -389,7 +405,7 @@ export function NavMobileBottomSheet(props: NavProps) {
   return (
     <>
       <style>{RISE_KEYFRAMES}</style>
-      <TopBar headline={headline} open={open} setOpen={setOpen} />
+      <TopBar headline={headline} open={open} setOpen={setOpen} monogram={monogram} />
       {open && (
         <>
           <div
@@ -509,7 +525,7 @@ export function NavMobileBottomSheet(props: NavProps) {
    ============================================================ */
 
 export function NavMobilePill(props: NavProps) {
-  const { headline, navItems, cta, onNavClick, onCtaClick, activeId } = props;
+  const { headline, navItems, cta, onNavClick, onCtaClick, activeId, monogram } = props;
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
   useEscClose(open, close);
@@ -518,7 +534,7 @@ export function NavMobilePill(props: NavProps) {
     <>
       <style>{POP_KEYFRAMES}</style>
       <style>{FADE_KEYFRAMES}</style>
-      <TopBar headline={headline} open={open} setOpen={setOpen} />
+      <TopBar headline={headline} open={open} setOpen={setOpen} monogram={monogram} />
       {open && (
         <div
           onClick={close}

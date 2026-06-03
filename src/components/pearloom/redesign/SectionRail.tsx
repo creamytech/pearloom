@@ -3,7 +3,7 @@
 /* eslint-disable no-restricted-syntax */
 /* LITERAL PORT of handoff/pages/editor-redesign.jsx L137-234 SectionRail. */
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Icon } from '../motifs';
 import type { StoryManifest } from '@/types';
 import { type SectionId, isToolPanelApplicable } from './EditorRedesign';
@@ -59,6 +59,48 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
   const [tab, setTab] = useState<'sections' | 'pages' | 'theme'>('sections');
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  /** Custom drag-image element ref. Created once and reused across
+   *  drags to keep the GC quiet. Removed from the DOM at drag-end. */
+  const dragImageRef = useRef<HTMLDivElement | null>(null);
+
+  /* Build (or reuse) a floating drag chip showing just the section
+     label + icon. The native browser ghost is a washed-out copy of
+     the full row — heavy, off-brand, and overlaps surrounding rows.
+     Our custom chip is a small peach-bordered pill that reads as
+     intentional. */
+  function makeDragImage(label: string): HTMLElement {
+    if (!dragImageRef.current) {
+      dragImageRef.current = document.createElement('div');
+    }
+    const el = dragImageRef.current;
+    el.style.cssText = [
+      'position: absolute',
+      'top: -1000px',
+      'left: -1000px',
+      'padding: 8px 14px',
+      'border-radius: 999px',
+      'background: var(--peach-bg, #F8E4D5)',
+      'border: 1px solid var(--peach-ink, #C6703D)',
+      'color: var(--peach-ink, #C6703D)',
+      'font-size: 12px',
+      'font-weight: 700',
+      'font-family: var(--font-ui, system-ui, sans-serif)',
+      'letter-spacing: 0.02em',
+      'pointer-events: none',
+      'box-shadow: 0 8px 20px rgba(40,28,12,0.18)',
+      'white-space: nowrap',
+      'z-index: 9999',
+    ].join(';');
+    el.textContent = `↕  ${label}`;
+    document.body.appendChild(el);
+    /* Schedule removal AFTER setDragImage has captured the snapshot.
+       Chrome needs the element in the DOM at the moment setDragImage
+       fires; cleanup happens on the next tick. */
+    setTimeout(() => {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    }, 0);
+    return el;
+  }
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const applicableTools = TOOLS.filter((t) => isToolPanelApplicable(t.id, occasion));
 
@@ -252,16 +294,34 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
           const isHero = !!s.required;
           const isDragging = draggingIdx === i;
           const isHovered = hoverIdx === i && draggingIdx !== null && draggingIdx !== i;
+          /* Direction of the drop indicator — if dragging FROM
+             above, the chip lands AT this row's top edge; if
+             dragging FROM below, the chip lands at this row's
+             bottom edge. Drawing the indicator on the correct
+             edge so the visual model matches "this is where it
+             goes." */
+          const dropBefore = isHovered && draggingIdx !== null && draggingIdx > i;
+          const dropAfter  = isHovered && draggingIdx !== null && draggingIdx < i;
           return (
+            <div key={s.id} style={{ position: 'relative' }}>
+              {/* Drop-line indicator — a peach bar above or below
+                  the row. Sits OUTSIDE the row's flow so the row
+                  doesn't jitter during drag. */}
+              {dropBefore && <DropLine position="top" />}
+              {dropAfter  && <DropLine position="bottom" />}
             <div
-              key={s.id}
               draggable={!isHero}
               onDragStart={(e) => {
                 if (isHero) { e.preventDefault(); return; }
                 setDraggingIdx(i);
-                /* Required for Firefox; the data isn't used. */
                 e.dataTransfer.effectAllowed = 'move';
                 try { e.dataTransfer.setData('text/plain', s.id); } catch { /* ignore */ }
+                /* Custom drag image — small peach pill with the
+                   section name instead of the default ghost. */
+                try {
+                  const img = makeDragImage(s.label);
+                  e.dataTransfer.setDragImage(img, 24, 18);
+                } catch { /* old browsers — fall through to default ghost */ }
               }}
               onDragEnd={() => { setDraggingIdx(null); setHoverIdx(null); }}
               onDragOver={(e) => {
@@ -283,14 +343,17 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                 alignItems: 'center',
                 padding: '8px 10px',
                 borderRadius: 8,
-                background: on ? 'var(--ink)' : isHovered ? 'var(--peach-bg)' : 'transparent',
+                background: on ? 'var(--ink)' : 'transparent',
                 color: on ? 'var(--cream)' : 'var(--ink)',
                 cursor: isHero ? 'pointer' : (isDragging ? 'grabbing' : 'grab'),
-                opacity: isDragging ? 0.35 : 1,
-                /* Top-edge indicator showing where the drop will
-                   land — peach hairline above the hovered row. */
-                boxShadow: isHovered ? 'inset 0 2px 0 0 var(--peach-ink)' : 'none',
-                transition: 'background 100ms, opacity 100ms, box-shadow 100ms',
+                /* Dragging row: dimmed and slightly shrunk so the
+                   floating drag chip clearly reads as the "moving"
+                   element. Other rows stay normal. */
+                opacity: isDragging ? 0.32 : 1,
+                transform: isDragging ? 'scale(0.98)' : 'scale(1)',
+                transformOrigin: 'left center',
+                transition: 'background 100ms, opacity 140ms, transform 140ms',
+                userSelect: 'none',
               }}
             >
               <span aria-hidden style={{ opacity: on ? 0.5 : 0.3, display: 'inline-flex' }}>
@@ -315,6 +378,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
               {s.required && (
                 <Icon name="lock" size={10} color={on ? 'var(--cream)' : 'var(--ink-muted)'} />
               )}
+            </div>
             </div>
           );
         })}
@@ -409,5 +473,45 @@ function GripDots({ color = 'var(--ink-muted)' }: { color?: string }) {
         <circle key={i} cx={(i % 2) * 6 + 2} cy={Math.floor(i / 2) * 5 + 3} r="1.2" fill={color} />
       ))}
     </svg>
+  );
+}
+
+/* DropLine — peach hairline + accent dot that paints across a
+   section row's top or bottom edge during drag-over. Replaces
+   the old background-tint hover treatment which read as "this
+   row is selected" instead of "drop happens here." */
+function DropLine({ position }: { position: 'top' | 'bottom' }) {
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        height: 2,
+        background: 'var(--peach-ink, #C6703D)',
+        borderRadius: 1,
+        zIndex: 2,
+        pointerEvents: 'none',
+        boxShadow: '0 0 0 1px rgba(255,255,255,0.6)',
+        ...(position === 'top'
+          ? { top: -2 }
+          : { bottom: -2 }
+        ),
+        animation: 'pl-drop-line-pop 160ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+      }}
+    >
+      {/* Leading dot — anchors the line so it reads as a clear
+          "insertion point" rather than a divider. */}
+      <span style={{
+        position: 'absolute',
+        left: -3,
+        top: -3,
+        width: 8, height: 8, borderRadius: '50%',
+        background: 'var(--peach-ink, #C6703D)',
+        border: '2px solid var(--cream-2, #FBF7EE)',
+        boxSizing: 'border-box',
+      }} />
+    </div>
   );
 }

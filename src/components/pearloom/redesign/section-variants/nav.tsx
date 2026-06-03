@@ -12,6 +12,7 @@
 
 import type { CSSProperties, MouseEvent } from 'react';
 import { Pear } from '../../motifs';
+import { Monogram, type MonogramFrame } from '../../site/Monogram';
 
 export interface NavProps {
   headline: string;
@@ -21,6 +22,27 @@ export interface NavProps {
   onCtaClick: () => void;
   activeId: string | null;
   sticky?: boolean;
+  /** When set, renders the host's Decor-Library monogram in
+   *  place of the Pear glyph. Falls through to Pear when undefined.
+   *  Source: manifest.monogram. */
+  monogram?: { initials?: string; frame?: MonogramFrame };
+}
+
+/* NavLogo — renders the host's monogram when configured, the Pear
+   glyph otherwise. Sized to fit inside the nav strip's height. */
+function NavLogo({ monogram, size = 26 }: { monogram?: NavProps['monogram']; size?: number }) {
+  if (monogram?.initials?.trim()) {
+    return (
+      <Monogram
+        initials={monogram.initials}
+        frame={(monogram.frame ?? 'none') as MonogramFrame}
+        size={size + 6}
+        withCard={false}
+        ariaHidden
+      />
+    );
+  }
+  return <Pear size={size} tone="sage" shadow={false} />;
 }
 
 /* ─── Shared style helpers ─────────────────────────────────────── */
@@ -64,7 +86,7 @@ function handleNav(
    centered row. Compact pill CTA anchored to the right edge. */
 
 export function NavCentered(props: NavProps) {
-  const { headline, navItems, cta, onNavClick, onCtaClick, activeId, sticky } = props;
+  const { headline, navItems, cta, onNavClick, onCtaClick, activeId, sticky, monogram } = props;
   return (
     <nav
       style={{
@@ -84,7 +106,7 @@ export function NavCentered(props: NavProps) {
           justifyContent: 'center',
         }}
       >
-        <Pear size={26} tone="sage" shadow={false} />
+        <NavLogo monogram={monogram} size={26} />
         <span
           style={{
             fontFamily: 'var(--t-display)',
@@ -151,7 +173,7 @@ export function NavCentered(props: NavProps) {
    navEl uses, kept here as the fallback variant. */
 
 export function NavSplit(props: NavProps) {
-  const { headline, navItems, cta, onNavClick, onCtaClick, activeId, sticky } = props;
+  const { headline, navItems, cta, onNavClick, onCtaClick, activeId, sticky, monogram } = props;
   return (
     <nav
       style={{
@@ -166,7 +188,7 @@ export function NavSplit(props: NavProps) {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-        <Pear size={24} tone="sage" shadow={false} />
+        <NavLogo monogram={monogram} size={24} />
         <span
           style={{
             fontFamily: 'var(--t-display)',
@@ -231,7 +253,7 @@ export function NavSplit(props: NavProps) {
    the right. Heavier accent underline declares the section. */
 
 export function NavSerifBlock(props: NavProps) {
-  const { headline, navItems, cta, onNavClick, onCtaClick, activeId, sticky } = props;
+  const { headline, navItems, cta, onNavClick, onCtaClick, activeId, sticky, monogram } = props;
   return (
     <nav
       style={{
@@ -251,7 +273,7 @@ export function NavSerifBlock(props: NavProps) {
           marginBottom: 14,
         }}
       >
-        <Pear size={30} tone="sage" shadow={false} />
+        <NavLogo monogram={monogram} size={30} />
         <span
           style={{
             fontFamily: 'var(--t-display)',
@@ -392,7 +414,7 @@ export function NavMinimalText(props: NavProps) {
    inside the hero and the nav stays purely navigational. */
 
 export function NavIconic(props: NavProps) {
-  const { navItems, cta, onNavClick, onCtaClick, activeId, sticky } = props;
+  const { navItems, cta, onNavClick, onCtaClick, activeId, sticky, monogram } = props;
   return (
     <nav
       style={{
@@ -407,7 +429,7 @@ export function NavIconic(props: NavProps) {
       }}
     >
       <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-        <Pear size={22} tone="sage" shadow={false} />
+        <NavLogo monogram={monogram} size={22} />
       </div>
       <div
         style={{

@@ -7827,6 +7827,14 @@ html { scroll-behavior: smooth; }
   .pl-store-featured-card:hover { transform: none; }
 }
 
+/* DropLine pop — when a drag-over hits a new target, the
+   indicator line scales in from 0 width so the host's eye
+   tracks the new drop point. */
+@keyframes pl-drop-line-pop {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
+}
+
 /* ──────────────────────────────────────────────────────────
    Published-site mobile overrides.
    Override INLINE styles (grid-template-columns, gap), so each
