@@ -71,6 +71,13 @@ export function ThemedSite({
   const themeId = ((manifest as unknown as { themeId?: string }).themeId)
     ?? ((manifest as unknown as { theme?: { id?: string } }).theme?.id);
   const theme = getTheme(themeId);
+  /* When a Theme Store pack has been applied, manifest.themeVars
+     carries the pack's full --t-* bag. We override theme.vars with
+     it so the pack's palette / fonts / radii / shadows actually
+     paint — without this override, getTheme() falls back to the
+     default 'garden' theme whenever themeId is a pack id (e.g.
+     'santorini-linen') instead of one of the 6 base theme ids. */
+  const themeVarsOverride = (manifest as unknown as { themeVars?: Record<string, string> }).themeVars;
   const density = (manifest.density ?? 'comfortable') as Density;
   const motifsOn = (manifest as unknown as { motifsEnabled?: boolean }).motifsEnabled ?? true;
   const textureIntensity = (manifest as unknown as { textureIntensity?: number }).textureIntensity ?? 1;
@@ -125,11 +132,25 @@ export function ThemedSite({
   const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, textureIntensity, showWashHero, dividerLook, variants, C };
 
   const sections: SectionKind[] = ['hero', 'story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
-  const navLinks = sections.filter((s) => s !== 'hero' && s !== 'rsvp').map((s) => SECTION_LABEL[s]);
+  /* navItems carry section id + label so the nav can render real
+     anchors that scroll to the right block. Excludes 'hero' and
+     'rsvp' from the link list (hero is the top of the page, rsvp
+     gets its own dedicated CTA button). */
+  const navItems = sections.filter((s) => s !== 'hero' && s !== 'rsvp').map((s) => ({ id: s, label: SECTION_LABEL[s] }));
   const headline = `${C.subject.a} & ${C.subject.b}`;
 
+  /* Smooth-scroll handler — every nav link + the RSVP CTA call this
+     with a section id. Uses document.getElementById because the
+     id={id} attribute now lives on every TSection's outer div. */
+  const scrollToSection = (sectionId: string) => {
+    if (typeof window === 'undefined') return;
+    const el = document.getElementById(sectionId);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const rootStyle: CSSProperties = {
-    ...themeRootStyle(theme, density),
+    ...themeRootStyle(theme, density, themeVarsOverride ?? null),
     position: 'relative',
     /* Decor color override → --t-motif scope var that the motif
        SVGs read for their fill (handoff L176). */
@@ -138,17 +159,65 @@ export function ThemedSite({
 
   const navEl = (
     <TSection id="nav" label="Site nav" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable} hideHandle>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '15px 36px', fontSize: 12.5, color: 'var(--t-ink-soft)', borderBottom: '1px solid var(--t-line-soft)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div
+        style={{
+          display: 'flex', alignItems: 'center', gap: 18, padding: '15px 36px',
+          fontSize: 12.5, color: 'var(--t-ink-soft)',
+          borderBottom: '1px solid var(--t-line-soft)',
+          /* Sticky so guests can always reach the nav while
+             scrolling. zIndex above TextureLayer + PatternLayer. */
+          position: 'sticky', top: 0, zIndex: 50,
+          background: 'var(--t-paper)',
+          backdropFilter: 'saturate(140%) blur(6px)',
+        }}
+      >
+        <a
+          href="#hero"
+          onClick={(e) => { e.preventDefault(); scrollToSection('hero'); }}
+          style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: 'inherit' }}
+        >
           <Pear size={22} tone="sage" shadow={false} />
           <span style={{ fontFamily: 'var(--t-display)', fontStyle: theme.id === 'editorial' ? 'normal' : 'italic', fontWeight: 600, fontSize: 18, color: 'var(--t-ink)' }}>
             {headline}
           </span>
+        </a>
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: 20, opacity: 0.9, fontWeight: 500 }}>
+          {navItems.map((item) => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              onClick={(e) => { e.preventDefault(); scrollToSection(item.id); }}
+              style={{
+                color: 'inherit', textDecoration: 'none', cursor: 'pointer',
+                padding: '4px 2px', borderRadius: 4,
+                transition: 'color 140ms, opacity 140ms',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--t-accent-ink, var(--t-accent))'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'inherit'; }}
+            >
+              {item.label}
+            </a>
+          ))}
         </div>
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: 20, opacity: 0.85, fontWeight: 500 }}>
-          {navLinks.map((l) => <span key={l}>{l}</span>)}
-        </div>
-        <TButton variant="primary" style={{ padding: '7px 16px', fontSize: 12 }}>{C.cta}</TButton>
+        <button
+          type="button"
+          onClick={() => {
+            scrollToSection('rsvp');
+            /* Dispatch 'pl-open-rsvp' so PublishedSiteShell's
+               GuestRsvpModal opens too. */
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('pl-open-rsvp'));
+            }
+          }}
+          style={{
+            padding: '7px 16px', fontSize: 12, fontWeight: 700,
+            background: 'var(--t-accent)', color: 'var(--t-accent-ink, var(--t-paper))',
+            border: 'none', borderRadius: 999, cursor: 'pointer',
+            letterSpacing: '0.04em',
+          }}
+        >
+          {C.cta}
+        </button>
       </div>
     </TSection>
   );
@@ -184,7 +253,8 @@ export function ThemedSite({
             <SidebarHero
               ctx={ctx}
               headline={headline}
-              navLinks={navLinks}
+              navItems={navItems}
+              scrollToSection={scrollToSection}
               active={active}
               hover={hover}
               setActive={setActive}
@@ -252,11 +322,12 @@ export function ThemedSite({
    nav links, and RSVP CTA in a vertical column. */
 
 function SidebarHero({
-  ctx, headline, navLinks, active, hover, setActive, setHover, editable,
+  ctx, headline, navItems, scrollToSection, active, hover, setActive, setHover, editable,
 }: {
   ctx: SectionCtx;
   headline: string;
-  navLinks: string[];
+  navItems: { id: string; label: string }[];
+  scrollToSection: (id: string) => void;
   active: SectionId;
   hover: SectionId;
   setActive: (id: SectionId) => void;
@@ -316,12 +387,35 @@ function SidebarHero({
           )}
         </div>
         <nav style={{ position: 'relative', display: 'flex', flexWrap: 'wrap', gap: '6px 16px', fontSize: 12.5, fontWeight: 500, color: 'var(--t-ink-soft)' }}>
-          {navLinks.map((l) => <span key={l}>{l}</span>)}
+          {navItems.map((item) => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              onClick={(e) => { e.preventDefault(); scrollToSection(item.id); }}
+              style={{ color: 'inherit', textDecoration: 'none', cursor: 'pointer' }}
+            >
+              {item.label}
+            </a>
+          ))}
         </nav>
         <div style={{ position: 'relative' }}>
-          <TButton variant="primary">
+          <button
+            type="button"
+            onClick={() => {
+              scrollToSection('rsvp');
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('pl-open-rsvp'));
+              }
+            }}
+            style={{
+              padding: '11px 20px', fontSize: 13, fontWeight: 700,
+              background: 'var(--t-accent)', color: 'var(--t-accent-ink, var(--t-paper))',
+              border: 'none', borderRadius: 999, cursor: 'pointer',
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+            }}
+          >
             {C.cta} <Icon name="arrow-right" size={13} color="var(--t-paper)" />
-          </TButton>
+          </button>
         </div>
       </div>
     </TSection>
@@ -931,13 +1025,15 @@ function TSection({ id, label, children, active, hover, setActive, setHover, edi
   const isHover = hover === id && !isActive;
   return (
     <div
+      id={id}
+      data-section-id={id}
       onMouseEnter={() => setHover(id)}
       onClick={(e) => {
         if (!editable) return;
         e.stopPropagation();
         setActive(id);
       }}
-      style={{ position: 'relative', cursor: editable ? 'pointer' : 'default' }}
+      style={{ position: 'relative', cursor: editable ? 'pointer' : 'default', scrollMarginTop: 80 }}
     >
       {children}
       {editable && (

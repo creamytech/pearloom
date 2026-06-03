@@ -44,7 +44,30 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { StoryManifest } from '@/types';
-import type { Pack } from './packs';
+import type { Pack, Motif, Kit } from './packs';
+import { dividerForMotif } from './packs';
+
+/* Pack `Motif` ↔ canvas `MotifKind` mapping. The two enums are
+   mostly aligned (olive/bloom/pressed/laurel/fern/wheat/citrus/
+   palm/shell/sun/none) but the pack catalog uses 'deco' where
+   the canvas calls it 'deco-fan'. Everything not listed here
+   passes through verbatim. */
+const MOTIF_CANVAS_MAP: Partial<Record<Motif, string>> = {
+  deco: 'deco-fan',
+};
+
+/* Pack `Kit` ↔ canvas data-pl-kit mapping. The canonical kits
+   the canvas has CSS rules for are {classic, ticket, plate,
+   scrapbook, index, minimal} (see src/app/pearloom.css). The
+   pack catalog declares three extras ('arch', 'stamp', 'deco')
+   that have no CSS — we map them to the closest canonical kit
+   so applied packs always land on a real visual treatment
+   instead of silently falling through to 'classic'. */
+const KIT_CANVAS_MAP: Partial<Record<Kit, string>> = {
+  arch: 'classic',
+  stamp: 'scrapbook',
+  deco: 'plate',
+};
 
 /**
  * Translate one of the pack's `--t-*` CSS var values into a value
@@ -156,13 +179,36 @@ export function applyPackToManifest(pack: Pack, manifest: StoryManifest): StoryM
   };
 
   if (pack.kit) {
-    next.kitId = pack.kit;
+    /* Map pack-only kits (arch / stamp / deco) to canonical
+       canvas kits so the CSS rules at pearloom.css:5136+ actually
+       fire instead of falling through to 'classic'. */
+    next.kitId = KIT_CANVAS_MAP[pack.kit] ?? pack.kit;
   }
   if (pack.texture && pack.texture !== 'none') {
     next.texture = pack.texture;
   }
   if (pack.pattern && pack.pattern !== 'none') {
     next.pattern = pack.pattern;
+  }
+
+  /* PREVIOUSLY UNWRITTEN — these three fields are what the canvas
+     reads to pick the per-section motif glyph, the divider visual,
+     and the ::after foil treatment. Without them, every applied
+     pack reverted to the default theme's motif + divider and
+     foil-flagged packs (Midnight Velvet, Art Deco Gatsby) lost
+     their gold-leaf treatment. */
+  if (pack.motif && pack.motif !== 'none') {
+    next.motifKind = MOTIF_CANVAS_MAP[pack.motif] ?? pack.motif;
+    /* Divider is derived from motif via the same helper the
+       prototype's QuickLook uses, so the section dividers stay
+       in lockstep with the motif glyphs. */
+    next.dividerLook = dividerForMotif(pack.motif);
+  }
+  if (pack.foil) {
+    next.foil = true;
+  }
+  if (pack.dark) {
+    next.darkMode = true;
   }
 
   return next as unknown as StoryManifest;
