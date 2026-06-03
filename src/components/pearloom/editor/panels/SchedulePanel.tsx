@@ -11,9 +11,10 @@
    day: number (1-indexed). The canvas renders the same grouping
    when 2+ days are present. */
 
+import { useState } from 'react';
 import type { StoryManifest, WeddingEvent } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, FSuggest, PearChip, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
+import { AddCard, FGroup, FInput, FSuggest, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { scheduleEventSuggestions } from './_suggestions';
 
 const TONE_BY_INDEX: Array<'peach' | 'lavender' | 'sage'> = ['peach', 'lavender', 'sage', 'peach', 'lavender', 'sage'];
@@ -148,7 +149,7 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
         </div>
 
         {!multiDay && (
-          <FGroup label={`Timeline · ${events.length} moments`} action={<PearChip>Build from notes</PearChip>}>
+          <FGroup label={`Timeline · ${events.length} moments`} action={<BuildFromNotesButton onAppend={(drafted) => writeEvents([...events, ...drafted])} />}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {events.map((e, i) => <ScheduleRow
                 key={e.id ?? i}
@@ -268,3 +269,135 @@ function ScheduleRow({
 }
 
 export default SchedulePanel;
+
+/* ─── BuildFromNotesButton ────────────────────────────────────
+   "Build from notes" chip that opens a small textarea inline.
+   Host pastes a paragraph; Pear extracts a chronological
+   timeline via /api/schedule/from-notes. */
+
+function BuildFromNotesButton({ onAppend }: { onAppend: (events: WeddingEvent[]) => void }) {
+  const [open, setOpen] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function draft() {
+    if (!notes.trim() || busy) return;
+    setBusy(true); setErr(null);
+    try {
+      const res = await fetch('/api/schedule/from-notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+      }
+      const data = await res.json() as { events?: Array<{ name: string; time: string; venue?: string }> };
+      const drafted: WeddingEvent[] = (data.events ?? []).map((e, i) => ({
+        id: `e-ai-${Date.now().toString(36)}-${i}`,
+        name: e.name,
+        type: 'other',
+        date: '',
+        time: e.time,
+        venue: e.venue ?? '',
+        address: '',
+      }));
+      if (drafted.length === 0) {
+        setErr('Pear couldn’t pull moments out of that. Try a bit more detail.');
+      } else {
+        onAppend(drafted);
+        setNotes('');
+        setOpen(false);
+      }
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <span style={{ position: 'relative', display: 'inline-block' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          padding: '5px 10px', borderRadius: 999,
+          background: open ? 'var(--peach-ink)' : 'var(--peach-bg)',
+          color: open ? '#fff' : 'var(--peach-ink)',
+          border: open ? '1px solid var(--peach-ink)' : '1px solid rgba(198,112,61,0.22)',
+          fontSize: 11, fontWeight: 600,
+          cursor: 'pointer',
+        }}
+      >
+        <Icon name="sparkles" size={11} color={open ? '#fff' : 'var(--peach-ink)'} />
+        Build from notes
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+          width: 320, padding: 12, zIndex: 30,
+          background: 'var(--card)',
+          border: '1px solid var(--line)',
+          borderRadius: 12,
+          boxShadow: '0 14px 38px rgba(40,28,12,0.16)',
+        }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--peach-ink)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+        Build from notes
+      </div>
+      <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginBottom: 8, lineHeight: 1.4 }}>
+        Paste your run-of-show, an email from your planner, or your own notes. Pear will pull out the moments.
+      </div>
+      <textarea
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        rows={5}
+        placeholder="Ceremony at 4:30 in the olive grove. Cocktails after on the terrace, then long-table dinner around 7, dancing until late…"
+        style={{
+          width: '100%', padding: 8, borderRadius: 8,
+          border: '1px solid var(--line)', background: 'var(--cream-2)',
+          fontSize: 12, color: 'var(--ink)', fontFamily: 'var(--font-ui)',
+          outline: 'none', resize: 'vertical', lineHeight: 1.5,
+        }}
+      />
+      {err && (
+        <div style={{ marginTop: 6, padding: '5px 9px', borderRadius: 6, background: 'rgba(122,45,45,0.08)', fontSize: 11, color: '#7A2D2D' }}>
+          {err}
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+        <button
+          type="button"
+          onClick={draft}
+          disabled={!notes.trim() || busy}
+          style={{
+            flex: 1, padding: '7px 12px', borderRadius: 999,
+            background: 'var(--peach-ink)', color: '#fff',
+            border: 'none', fontSize: 11.5, fontWeight: 700,
+            cursor: notes.trim() && !busy ? 'pointer' : 'not-allowed',
+            opacity: notes.trim() && !busy ? 1 : 0.55,
+          }}
+        >
+          {busy ? 'Threading…' : 'Draft moments'}
+        </button>
+        <button
+          type="button"
+          onClick={() => { setOpen(false); setNotes(''); setErr(null); }}
+          style={{
+            padding: '7px 12px', borderRadius: 999,
+            background: 'transparent', border: '1px solid var(--line)',
+            fontSize: 11.5, fontWeight: 600, color: 'var(--ink-soft)',
+            cursor: 'pointer',
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+        </div>
+      )}
+    </span>
+  );
+}

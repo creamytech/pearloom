@@ -401,7 +401,7 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
             placeholder="Fly into Santorini (JTR), 20 min by taxi"
           />
           <div style={{ height: 8 }} />
-          <FToggleStandalone label="Show a shuttle schedule" sub="Pear can build it from your timeline" def={false} />
+          <ShuttleToggle manifest={manifest} onChange={onChange} />
         </FGroup>
         <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Travel" />
       </div>
@@ -410,3 +410,48 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
 }
 
 export default TravelPanel;
+
+/* ─── ShuttleToggle ───────────────────────────────────────────
+   Persists manifest.travelInfo.shuttle = { enabled, note } so the
+   canvas can render a shuttle callout. When enabled, reveals a
+   small free-text input for the host to add a custom shuttle
+   note (e.g. "Pickup from the hotel lobby at 5:15 PM"). */
+
+function ShuttleToggle({
+  manifest, onChange,
+}: {
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+}) {
+  const loose = manifest as unknown as { travelInfo?: { shuttle?: { enabled?: boolean; note?: string } } };
+  const shuttle = loose.travelInfo?.shuttle ?? {};
+  const enabled = !!shuttle.enabled;
+  const note = shuttle.note ?? '';
+  const patch = (next: { enabled?: boolean; note?: string }) => onChange({
+    ...(manifest as unknown as Record<string, unknown>),
+    travelInfo: {
+      ...(manifest.travelInfo ?? {}),
+      shuttle: { ...shuttle, ...next },
+    },
+  } as unknown as StoryManifest);
+  return (
+    <>
+      <FToggleStandalone
+        label="Show a shuttle schedule"
+        sub={enabled ? 'A shuttle callout appears under the hotel list.' : 'Pear can build it from your timeline'}
+        def={enabled}
+        onChange={(v) => patch({ enabled: v })}
+      />
+      {enabled && (
+        <div style={{ marginTop: 6 }}>
+          <FInput
+            value={note}
+            onChange={(v) => patch({ note: v })}
+            icon="clock"
+            placeholder="Pickup from the hotel lobby at 5:15 PM"
+          />
+        </div>
+      )}
+    </>
+  );
+}

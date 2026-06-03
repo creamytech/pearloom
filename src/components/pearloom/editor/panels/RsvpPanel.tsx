@@ -8,7 +8,8 @@
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, PearChip, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
+import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
+import { FSelect } from './_form-atoms';
 import { FDate } from './_form-atoms';
 import { mealOptionSuggestions } from './_suggestions';
 
@@ -127,8 +128,8 @@ export function RsvpPanel({ manifest, onChange }: { manifest: StoryManifest; onC
             </div>
           </FGroup>
         )}
-        <FGroup label="After they reply" hint="Pear can chase non-responders for you.">
-          <PearChip>Set up reminder cadence</PearChip>
+        <FGroup label="After they reply" hint="Pear nudges non-responders on the schedule you pick.">
+          <ReminderCadencePicker manifest={manifest} onChange={onChange} />
         </FGroup>
         <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="RSVP" />
       </div>
@@ -137,3 +138,49 @@ export function RsvpPanel({ manifest, onChange }: { manifest: StoryManifest; onC
 }
 
 export default RsvpPanel;
+
+/* ─── ReminderCadencePicker ───────────────────────────────────
+   Persists manifest.reminderCadence — 'off', 'gentle' (1wk
+   before deadline), 'standard' (2wk + 1wk + 72h), or 'firm'
+   (weekly until they reply). Pear's cron worker reads this when
+   running the chase-non-responders job. */
+
+function ReminderCadencePicker({
+  manifest, onChange,
+}: {
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+}) {
+  const loose = manifest as unknown as { reminderCadence?: string };
+  const value = loose.reminderCadence ?? 'off';
+  const setValue = (next: string) => onChange({
+    ...(manifest as unknown as Record<string, unknown>),
+    reminderCadence: next,
+  } as unknown as StoryManifest);
+
+  const HINTS: Record<string, string> = {
+    'off':      'No automatic nudges. You can still send manual ones from the Guests panel.',
+    'gentle':   'One reminder, one week before your reply-by date.',
+    'standard': 'Two weeks before · One week before · 72 hours before.',
+    'firm':     'Weekly nudges until each guest replies.',
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <FSelect
+        value={value}
+        onChange={setValue}
+        options={[
+          { value: 'off',      label: 'Off — no nudges',          hint: 'Manual sends only' },
+          { value: 'gentle',   label: 'Gentle — 1 reminder',      hint: '1 week before deadline' },
+          { value: 'standard', label: 'Standard — 3 reminders',   hint: '2wk · 1wk · 72h' },
+          { value: 'firm',     label: 'Firm — weekly',            hint: 'Until they reply' },
+        ]}
+        icon="clock"
+      />
+      <div style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
+        {HINTS[value]}
+      </div>
+    </div>
+  );
+}

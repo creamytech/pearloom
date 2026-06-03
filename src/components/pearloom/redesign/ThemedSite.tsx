@@ -1387,6 +1387,29 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
             </div>
           ))}
         </div>
+        {C.travel.shuttle && (
+          <div style={{
+            maxWidth: 820, margin: '22px auto 0',
+            padding: '14px 18px',
+            borderRadius: 'var(--t-radius)',
+            background: 'var(--t-card)',
+            border: '1px solid var(--t-line)',
+            display: 'flex', alignItems: 'center', gap: 12,
+          }}>
+            <Icon name="clock" size={16} color="var(--t-accent-ink)" />
+            <div style={{ flex: 1 }}>
+              <div style={{
+                fontSize: 10.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)',
+                textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 2,
+              }}>
+                Shuttle
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--t-ink-soft)', lineHeight: 1.5 }}>
+                {C.travel.shuttle}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1924,7 +1947,7 @@ interface Copy {
   };
   details: { eyebrow: string; title: string; italic?: string; items: { l: string; v: string; icon: string }[] };
   schedule: { eyebrow: string; title: string; italic?: string; rows: { t: string; l: string; s: string; day?: number }[] };
-  travel: { eyebrow: string; title: string; italic?: string; intro?: string; hotels: { name: string; price: string; rating: number; reviews: number; dist: string; tone: PhotoTone; blurb: string; amenities: string[]; photoUrl?: string; bookingUrl?: string }[] };
+  travel: { eyebrow: string; title: string; italic?: string; intro?: string; hotels: { name: string; price: string; rating: number; reviews: number; dist: string; tone: PhotoTone; blurb: string; amenities: string[]; photoUrl?: string; bookingUrl?: string }[]; shuttle?: string };
   registry: {
     eyebrow: string; title: string; italic?: string; body: string;
     /** Rich registry stores — name + optional URL. The renderer
@@ -2381,6 +2404,11 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
            otherwise undefined so the default travel section stays
            visually unchanged. */
         intro: manifest.travelInfo?.directions || undefined,
+        shuttle: (() => {
+          const s = (manifest.travelInfo as { shuttle?: { enabled?: boolean; note?: string } } | undefined)?.shuttle;
+          if (!s?.enabled) return undefined;
+          return s.note?.trim() || 'Shuttle service from the host hotel to the venue. Details to follow.';
+        })(),
         hotels: mapped.length > 0 ? mapped : [
           { name: 'Cosmos Suites', price: '$$$', rating: 4.8, reviews: 412, dist: '8-min walk', tone: 'warm' as PhotoTone, blurb: 'Whitewashed cliffside suites with private plunge pools and sunset terraces.', amenities: ['Caldera view', 'Pool', 'Breakfast'] },
           { name: 'Andronis Boutique', price: '$$$$', rating: 4.9, reviews: 286, dist: '12-min walk', tone: 'lavender' as PhotoTone, blurb: 'A romantic cliff retreat carved into the caldera — a guest favourite.', amenities: ['Spa', 'Infinity pool', 'Fine dining'] },

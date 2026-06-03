@@ -17,6 +17,10 @@ interface Check {
   ok: boolean;
   /** Optional hint shown under the label when failed. */
   hint?: string;
+  /** BlockKey to jump to when the host clicks a failing item.
+   *  Dispatches a `pearloom:design-jump` event that EditorV8
+   *  listens for. */
+  jumpTo?: string;
 }
 
 function buildChecks(manifest: StoryManifest): Check[] {
@@ -37,13 +41,14 @@ function buildChecks(manifest: StoryManifest): Check[] {
       label: isSolo ? 'Honoree name' : 'Both names',
       ok: isSolo ? !!a.trim() : !!a.trim() && !!b.trim(),
       hint: 'Add to the Hero panel.',
+      jumpTo: 'hero',
     },
-    { id: 'date',  label: 'Event date',   ok: !!date.trim(),  hint: 'Hero panel · Date & venue.' },
-    { id: 'venue', label: 'Venue',        ok: !!venue.trim(), hint: 'Hero panel · Date & venue.' },
-    { id: 'cover', label: 'Cover photo',  ok: !!coverPhoto.trim(), hint: 'Hero panel · Cover photo.' },
-    { id: 'schedule', label: 'At least one schedule moment', ok: events.length > 0, hint: 'Schedule panel · Add a moment.' },
-    { id: 'details',  label: 'At least one detail card',     ok: detailsCards.length > 0, hint: 'Details panel · Add a detail.' },
-    { id: 'faq',      label: 'At least one FAQ',             ok: faqs.length > 0, hint: 'FAQ panel.' },
+    { id: 'date',  label: 'Event date',   ok: !!date.trim(),  hint: 'Hero panel · Date & venue.', jumpTo: 'hero' },
+    { id: 'venue', label: 'Venue',        ok: !!venue.trim(), hint: 'Hero panel · Date & venue.', jumpTo: 'hero' },
+    { id: 'cover', label: 'Cover photo',  ok: !!coverPhoto.trim(), hint: 'Hero panel · Cover photo.', jumpTo: 'hero' },
+    { id: 'schedule', label: 'At least one schedule moment', ok: events.length > 0, hint: 'Schedule panel · Add a moment.', jumpTo: 'schedule' },
+    { id: 'details',  label: 'At least one detail card',     ok: detailsCards.length > 0, hint: 'Details panel · Add a detail.', jumpTo: 'details' },
+    { id: 'faq',      label: 'At least one FAQ',             ok: faqs.length > 0, hint: 'FAQ panel.', jumpTo: 'faq' },
   ];
 }
 
@@ -122,36 +127,68 @@ export function PublishChecklist({ manifest }: { manifest: StoryManifest }) {
               : 'These aren’t blocking — but they help guests have a complete experience.'}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {checks.map((c) => (
-              <div
-                key={c.id}
-                style={{
-                  display: 'flex', alignItems: 'flex-start', gap: 8,
-                  padding: '6px 8px', borderRadius: 8,
-                  background: c.ok ? 'var(--sage-bg)' : 'var(--cream-2)',
-                }}
-              >
-                <span style={{
-                  width: 16, height: 16, borderRadius: '50%',
-                  background: c.ok ? 'var(--sage-deep)' : 'transparent',
-                  border: c.ok ? 'none' : '1.5px solid var(--ink-muted)',
-                  display: 'grid', placeItems: 'center',
-                  flexShrink: 0, marginTop: 1,
-                }}>
-                  {c.ok && <Icon name="check" size={9} color="#fff" />}
-                </span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: c.ok ? 'var(--sage-deep)' : 'var(--ink)' }}>
-                    {c.label}
-                  </div>
-                  {!c.ok && c.hint && (
-                    <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', marginTop: 1 }}>
-                      {c.hint}
+            {checks.map((c) => {
+              const clickable = !c.ok && !!c.jumpTo;
+              const handleClick = () => {
+                if (!clickable || typeof window === 'undefined') return;
+                window.dispatchEvent(new CustomEvent('pearloom:design-jump', {
+                  detail: { block: c.jumpTo },
+                }));
+                setOpen(false);
+              };
+              const sharedStyle = {
+                display: 'flex', alignItems: 'flex-start', gap: 8,
+                padding: '6px 8px', borderRadius: 8,
+                background: c.ok ? 'var(--sage-bg)' : 'var(--cream-2)',
+                transition: 'background 120ms, transform 120ms',
+              } as const;
+              const inner = (
+                <>
+                  <span style={{
+                    width: 16, height: 16, borderRadius: '50%',
+                    background: c.ok ? 'var(--sage-deep)' : 'transparent',
+                    border: c.ok ? 'none' : '1.5px solid var(--ink-muted)',
+                    display: 'grid', placeItems: 'center',
+                    flexShrink: 0, marginTop: 1,
+                  }}>
+                    {c.ok && <Icon name="check" size={9} color="#fff" />}
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: c.ok ? 'var(--sage-deep)' : 'var(--ink)' }}>
+                      {c.label}
                     </div>
+                    {!c.ok && c.hint && (
+                      <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', marginTop: 1 }}>
+                        {c.hint}
+                      </div>
+                    )}
+                  </div>
+                  {clickable && (
+                    <span style={{ alignSelf: 'center', color: 'var(--ink-muted)' }}>
+                      <Icon name="arrow-right" size={11} color="var(--ink-muted)" />
+                    </span>
                   )}
-                </div>
-              </div>
-            ))}
+                </>
+              );
+              return clickable ? (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={handleClick}
+                  style={{
+                    ...sharedStyle,
+                    border: 'none', cursor: 'pointer', width: '100%',
+                    textAlign: 'left',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--cream-3)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--cream-2)'; }}
+                >
+                  {inner}
+                </button>
+              ) : (
+                <div key={c.id} style={sharedStyle}>{inner}</div>
+              );
+            })}
           </div>
         </div>
       )}

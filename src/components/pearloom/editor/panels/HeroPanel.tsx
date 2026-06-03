@@ -8,7 +8,7 @@
    manifest.coverPhoto + manifest.coverPhotoAlt. */
 
 import type { StoryManifest } from '@/types';
-import { FGroup, FInput, FToggleStandalone, PearChip, SectionPanelShell } from './_section-atoms';
+import { FGroup, FInput, FToggleStandalone, SectionPanelShell } from './_section-atoms';
 import { FDate, FSelect } from './_form-atoms';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
 import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
@@ -178,7 +178,7 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
         <FGroup label="Lead / eyebrow" hint="The tiny ALL-CAPS line above the names.">
           <FInput value={heroLead} onChange={(v) => setCopy('heroLead', v)} placeholder={v.hero.leadPlaceholder} />
         </FGroup>
-        <FGroup label="Tagline" action={<PearChip>3 styles</PearChip>}>
+        <FGroup label="Tagline" hint={tagline.trim().length >= 2 ? undefined : 'Type a line, then Pear can rewrite it in different tones.'}>
           <FInput value={tagline} onChange={setTagline} placeholder={v.hero.taglinePlaceholder} />
           {tagline.trim().length >= 2 && (
             <div style={{ marginTop: 7 }}>

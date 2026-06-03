@@ -7,11 +7,32 @@
    Eyebrow + title + hide/more icons + Content/Layout/Style sub-tabs +
    body (SectionEditor + Pear assist card). */
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import type { SectionId } from './EditorRedesign';
 import { LAYOUTS, readVariant, type LayoutVariant } from './layouts';
+
+/* useSectionHidden — read/write manifest.hiddenSections from
+   inside the rail. Mirrors the same hook in _section-atoms.tsx
+   so the canvas + rail + panel footer all agree on a single
+   source of truth. */
+function useSectionHidden(
+  manifest: StoryManifest,
+  onChange: (m: StoryManifest) => void,
+  section: string,
+): [boolean, (next: boolean) => void] {
+  const loose = manifest as unknown as Record<string, unknown>;
+  const hidden = (Array.isArray(loose.hiddenSections) ? loose.hiddenSections : []) as string[];
+  const isHidden = hidden.includes(section);
+  const setHidden = (next: boolean) => {
+    const list = next
+      ? Array.from(new Set([...hidden, section]))
+      : hidden.filter((s) => s !== section);
+    onChange({ ...loose, hiddenSections: list } as unknown as StoryManifest);
+  };
+  return [isHidden, setHidden];
+}
 
 /* Maps a Pear suggestion + active section to the manifest field
    that should get rewritten + the context tag the inline-rewrite
@@ -105,6 +126,44 @@ export function PropertyRail({ active, setActive, manifest, onChange }: Props) {
   const [tab, setTab] = useState<'content' | 'layout' | 'style'>('content');
   const [pearBusy, setPearBusy] = useState<string | null>(null);
   const [pearErr, setPearErr] = useState<string | null>(null);
+  /* Hero is the one section that can never be hidden — a site
+     without a hero is broken. Disable the eye-off button there. */
+  const canHide = active !== 'hero';
+  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, active);
+  /* Options popover state — opens from the three-dot button. */
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const optionsWrapRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!optionsOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (!optionsWrapRef.current?.contains(e.target as Node)) setOptionsOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOptionsOpen(false); };
+    window.addEventListener('mousedown', onDown);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('mousedown', onDown);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [optionsOpen]);
+
+  /* Section reorder helpers — operate on manifest.blockOrder which
+     the editor + canvas both read. The options popover surfaces
+     "Move up" / "Move down" using these. */
+  function moveSection(direction: -1 | 1) {
+    const loose = manifest as unknown as Record<string, unknown>;
+    const allReorderable = ['story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
+    const current = (loose.blockOrder as string[] | undefined) ?? allReorderable;
+    const filtered = current.filter((k) => allReorderable.includes(k));
+    const idx = filtered.indexOf(active);
+    if (idx < 0) return;
+    const next = [...filtered];
+    const target = idx + direction;
+    if (target < 0 || target >= next.length) return;
+    [next[idx], next[target]] = [next[target], next[idx]];
+    onChange({ ...loose, blockOrder: next } as unknown as StoryManifest);
+    setOptionsOpen(false);
+  }
 
   /* runSuggestion — POST /api/inline-rewrite with the source field
      value + tone context, then patch the manifest with the rewrite. */
@@ -161,21 +220,87 @@ export function PropertyRail({ active, setActive, manifest, onChange }: Props) {
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 22, margin: 0, fontWeight: 600 }}>
             {section.label}
           </h3>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 6, position: 'relative' }} ref={optionsWrapRef}>
             <button
               type="button"
-              title="Hide section"
-              style={{ width: 26, height: 26, borderRadius: 6, background: 'var(--cream-2)', display: 'grid', placeItems: 'center', border: 'none', cursor: 'pointer' }}
+              title={
+                !canHide ? 'Hero can’t be hidden'
+                  : isHidden ? `Show ${section.label} on the live site`
+                  : `Hide ${section.label} from the live site`
+              }
+              onClick={() => canHide && setHidden(!isHidden)}
+              disabled={!canHide}
+              aria-pressed={isHidden}
+              style={{
+                width: 26, height: 26, borderRadius: 6,
+                background: isHidden ? 'var(--peach-bg)' : 'var(--cream-2)',
+                border: isHidden ? '1px solid var(--peach-ink)' : 'none',
+                display: 'grid', placeItems: 'center',
+                cursor: canHide ? 'pointer' : 'not-allowed',
+                opacity: canHide ? 1 : 0.4,
+                transition: 'background 140ms, border-color 140ms',
+              }}
             >
-              <Icon name="eye-off" size={13} color="var(--ink-soft)" />
+              <Icon
+                name={isHidden ? 'eye-off' : 'eye'}
+                size={13}
+                color={isHidden ? 'var(--peach-ink)' : 'var(--ink-soft)'}
+              />
             </button>
             <button
               type="button"
               title="Section options"
-              style={{ width: 26, height: 26, borderRadius: 6, background: 'var(--cream-2)', display: 'grid', placeItems: 'center', border: 'none', cursor: 'pointer' }}
+              onClick={() => setOptionsOpen(!optionsOpen)}
+              aria-haspopup="menu"
+              aria-expanded={optionsOpen}
+              style={{
+                width: 26, height: 26, borderRadius: 6,
+                background: optionsOpen ? 'var(--cream-3)' : 'var(--cream-2)',
+                display: 'grid', placeItems: 'center', border: 'none', cursor: 'pointer',
+                transition: 'background 140ms',
+              }}
             >
               <Icon name="more" size={13} color="var(--ink-soft)" />
             </button>
+            {optionsOpen && (
+              <div
+                role="menu"
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  right: 0,
+                  zIndex: 50,
+                  minWidth: 180,
+                  padding: 4,
+                  background: 'var(--card)',
+                  border: '1px solid var(--line)',
+                  borderRadius: 10,
+                  boxShadow: '0 14px 38px rgba(40,28,12,0.16), 0 4px 12px rgba(40,28,12,0.08)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <OptionRow
+                  icon="arrow-up"
+                  label="Move up"
+                  onClick={() => moveSection(-1)}
+                  disabled={!canHide}
+                />
+                <OptionRow
+                  icon="arrow-down"
+                  label="Move down"
+                  onClick={() => moveSection(+1)}
+                  disabled={!canHide}
+                />
+                <div style={{ height: 1, background: 'var(--line-soft)', margin: '4px 6px' }} />
+                <OptionRow
+                  icon={isHidden ? 'eye' : 'eye-off'}
+                  label={isHidden ? `Show on the live site` : `Hide from the live site`}
+                  onClick={() => { setHidden(!isHidden); setOptionsOpen(false); }}
+                  disabled={!canHide}
+                />
+              </div>
+            )}
           </div>
         </div>
         <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 4 }}>{section.desc}</div>
@@ -601,4 +726,41 @@ function renderSectionEditor(
     case 'faq':      return <FaqPanel {...props} />;
     default:         return null;
   }
+}
+
+/* OptionRow — one row in the section-options popover. Mirrors the
+   shape of dropdown items elsewhere in the editor. */
+function OptionRow({
+  icon, label, onClick, disabled,
+}: {
+  icon: string;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 9,
+        padding: '8px 10px',
+        background: 'transparent', border: 'none',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        fontSize: 12.5,
+        color: disabled ? 'var(--ink-muted)' : 'var(--ink)',
+        opacity: disabled ? 0.55 : 1,
+        textAlign: 'left',
+        borderRadius: 6,
+        transition: 'background 100ms',
+      }}
+      onMouseEnter={(e) => { if (!disabled) e.currentTarget.style.background = 'var(--cream-2)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+    >
+      <Icon name={icon} size={12} color={disabled ? 'var(--ink-muted)' : 'var(--ink-soft)'} />
+      <span>{label}</span>
+    </button>
+  );
 }
