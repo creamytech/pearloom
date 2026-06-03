@@ -12,10 +12,10 @@ import type { StoryManifest } from '@/types';
 import { FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { FSelect } from './_form-atoms';
 
-type MapVariant = 'embed' | 'static' | 'pin' | 'split' | 'postcard';
-
+/* MapPanel — Content tab fields only. The layout variant
+   (embed / static / pin / split / postcard) is picked in the
+   Layout tab via the LAYOUTS registry. */
 interface MapData {
-  variant?: MapVariant;
   height?: 'short' | 'tall';
   showDirections?: boolean;
   /** Override the auto-derived venue address used for the embed.
@@ -28,7 +28,6 @@ export function MapPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
   const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'map');
   const loose = manifest as unknown as { mapBlock?: MapData };
   const data: MapData = loose.mapBlock ?? {};
-  const variant = data.variant ?? 'embed';
   const height = data.height ?? 'short';
   const showDirections = data.showDirections ?? true;
   const venue = manifest.logistics?.venue ?? '';
@@ -74,33 +73,16 @@ export function MapPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
           )}
         </FGroup>
 
-        <FGroup label="Layout">
+        <FGroup label="Height" hint="Only applies to embed / static layouts — pin variant uses a card.">
           <FSelect
-            value={variant}
-            onChange={(v) => patch({ variant: v as MapVariant })}
+            value={height}
+            onChange={(v) => patch({ height: v as 'short' | 'tall' })}
             options={[
-              { value: 'embed',    label: 'Live embed',   hint: 'Real Google Maps iframe — guests can pan + zoom' },
-              { value: 'static',   label: 'Static image', hint: 'Map + non-interactive overlay (faster, no JS)' },
-              { value: 'pin',      label: 'Pin only',     hint: 'Just a pin + name + "Open in Maps" button' },
-              { value: 'split',    label: 'Split',        hint: 'Map left · venue address + directions right' },
-              { value: 'postcard', label: 'Postcard',     hint: 'Map clipped into a postcard frame with stamp + caption' },
+              { value: 'short', label: 'Short',  hint: '~320 px tall' },
+              { value: 'tall',  label: 'Tall',   hint: '~560 px tall — feels like a full map page' },
             ]}
-            icon="map"
           />
         </FGroup>
-
-        {variant !== 'pin' && (
-          <FGroup label="Height">
-            <FSelect
-              value={height}
-              onChange={(v) => patch({ height: v as 'short' | 'tall' })}
-              options={[
-                { value: 'short', label: 'Short',  hint: '~320 px tall' },
-                { value: 'tall',  label: 'Tall',   hint: '~560 px tall — feels like a full map page' },
-              ]}
-            />
-          </FGroup>
-        )}
 
         <FToggleStandalone
           label="Show directions button"

@@ -7919,3 +7919,88 @@ html { scroll-behavior: smooth; }
     border-right: 0 !important;
   }
 }
+
+/* ─── Magazine layout — two-column scroll spread.
+       Fold to a single column at ≤900px so each column doesn't
+       starve for horizontal room. We pick 900 rather than 720
+       because two columns at ~360px each are noticeably cramped
+       before that — the section blocks inside still expect at
+       least 320-340px of usable width. ──────────────────────── */
+@media (max-width: 900px) {
+  .pl8-guest-magazine .pl8-magazine-spread {
+    grid-template-columns: 1fr !important;
+  }
+  .pl8-guest-magazine .pl8-magazine-col-left {
+    border-right: 0 !important;
+  }
+  .pl8-guest-magazine .pl8-magazine-col-right {
+    border-top: 1px solid var(--t-line-soft) !important;
+  }
+}
+
+/* ─── Zine layout — drop the per-page rotation + shrink margins
+       on phones. Rotated cards on a 320px viewport are unreadable
+       because each section's content was authored at full canvas
+       width. Hero already had transform:none — this normalises
+       the rest. ────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .pl8-guest-zine .pl8-zine-page {
+    transform: none !important;
+    width: 100% !important;
+    margin: 6px 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+}
+
+/* ─── Storybook layout — tighten the folio number's offset on
+       mobile so it doesn't overlap section heads. Hide the inset
+       border-top on the very-narrow break so the page reads as
+       one continuous scroll. ─────────────────────────────────── */
+@media (max-width: 600px) {
+  .pl8-guest-storybook .pl8-storybook-folio {
+    top: 6px !important;
+    left: 10px !important;
+    font-size: 9.5px !important;
+    letter-spacing: 0.14em !important;
+  }
+}
+
+/* ─── Gallery layout — hide the sticky right-edge progress dots
+       on mobile (the float:right + sticky combo collides with
+       narrow content), and remove the side gutter so sections
+       use the full viewport width. ───────────────────────────── */
+@media (max-width: 720px) {
+  .pl8-guest-gallery .pl8-gallery-progress {
+    display: none !important;
+  }
+  .pl8-guest-gallery .pl8-gallery-col {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+}
+
+/* ─── Postcard layout — drop the mat padding + stamp on phones
+       so the frame uses the viewport. The keepsake-card feel is
+       preserved at desktop sizes; on a 320px viewport the stamp
+       took up disproportionate corner real estate. ─────────── */
+@media (max-width: 600px) {
+  .pl8-guest-postcard {
+    padding: 8px 0 !important;
+  }
+  .pl8-guest-postcard .pl8-postcard-frame {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    padding: 8px !important;
+  }
+  .pl8-guest-postcard .pl8-postcard-stamp {
+    display: none !important;
+  }
+  .pl8-guest-postcard .pl8-postcard-caption {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+  }
+}

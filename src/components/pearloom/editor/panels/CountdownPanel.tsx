@@ -8,12 +8,12 @@
 
 import type { StoryManifest } from '@/types';
 import { FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
-import { FSelect } from './_form-atoms';
 
-type CountdownVariant = 'stripe' | 'cards' | 'minimal' | 'hero' | 'ribbon' | 'flip';
-
+/* CountdownPanel — Content tab fields only. The layout variant
+   (cards / stripe / minimal / hero / ribbon / flip) is picked
+   in the Layout tab via the same LAYOUTS registry every other
+   section uses. */
 interface CountdownData {
-  variant?: CountdownVariant;
   label?: string;
   showOnHero?: boolean;
 }
@@ -22,7 +22,6 @@ export function CountdownPanel({ manifest, onChange }: { manifest: StoryManifest
   const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'countdown');
   const loose = manifest as unknown as { countdown?: CountdownData };
   const data: CountdownData = loose.countdown ?? {};
-  const variant = data.variant ?? 'cards';
   const label = data.label ?? '';
   const showOnHero = data.showOnHero ?? false;
   const [eyebrow, setEyebrow] = useCopyOverride(manifest, onChange, 'countdownEyebrow');
@@ -54,22 +53,6 @@ export function CountdownPanel({ manifest, onChange }: { manifest: StoryManifest
 
         <FGroup label="Custom label" hint='Optional — e.g. "Until we say I do" or "Until we celebrate."'>
           <FInput value={label} onChange={(v) => patch({ label: v })} placeholder="Until we say I do" />
-        </FGroup>
-
-        <FGroup label="Layout" hint="Pick how the countdown reads on the canvas.">
-          <FSelect
-            value={variant}
-            onChange={(v) => patch({ variant: v as CountdownVariant })}
-            options={[
-              { value: 'cards',   label: 'Cards',    hint: 'Four big stat tiles — days · hours · min · sec' },
-              { value: 'stripe',  label: 'Stripe',   hint: 'Compact horizontal bar with inline counters' },
-              { value: 'minimal', label: 'Minimal',  hint: 'Just "47 days to go" in display type' },
-              { value: 'hero',    label: 'Hero',     hint: 'Big editorial countdown — anchors the whole section' },
-              { value: 'ribbon',  label: 'Ribbon',   hint: 'Diagonal sash across the canvas — playful, kitschy' },
-              { value: 'flip',    label: 'Flip clock',hint: 'Vintage split-flap display with paired digit cards' },
-            ]}
-            icon="clock"
-          />
         </FGroup>
 
         <FToggleStandalone

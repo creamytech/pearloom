@@ -89,6 +89,31 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
     { id: 'bottom-sheet', label: 'Bottom sheet',        sub: 'Drag-up modal' },
     { id: 'pill',         label: 'Compact pill',        sub: 'Floating pill with collapsed menu' },
   ],
+  /* Optional sections (added via the Add Section picker). Each
+     has a Layout tab in the PropertyRail; ThemedSite reads
+     manifest.layouts.<section> via readVariant and dispatches. */
+  countdown: [
+    { id: 'cards',   label: 'Cards',     sub: 'Four big stat tiles' },
+    { id: 'stripe',  label: 'Stripe',    sub: 'Compact inline bar' },
+    { id: 'minimal', label: 'Minimal',   sub: '"N days to go" in display' },
+    { id: 'hero',    label: 'Hero',      sub: 'Editorial wall-of-numbers' },
+    { id: 'ribbon',  label: 'Ribbon',    sub: 'Diagonal sash banner' },
+    { id: 'flip',    label: 'Flip clock', sub: 'Split-flap digit cards' },
+  ],
+  map: [
+    { id: 'embed',    label: 'Live embed',   sub: 'Pannable Google Maps iframe' },
+    { id: 'static',   label: 'Static',       sub: 'Non-interactive map graphic' },
+    { id: 'pin',      label: 'Pin only',     sub: 'Card with pin + Open in Maps' },
+    { id: 'split',    label: 'Split',        sub: 'Map left · venue info right' },
+    { id: 'postcard', label: 'Postcard',     sub: 'Tilted frame + faux stamp' },
+  ],
+  music: [
+    { id: 'card',      label: 'Card',       sub: 'Title + player in a card' },
+    { id: 'minimal',   label: 'Minimal',    sub: 'No card frame' },
+    { id: 'fullbleed', label: 'Full-bleed', sub: 'Edge-to-edge embed' },
+    { id: 'sidebar',   label: 'Sidebar',    sub: 'Player + description column' },
+    { id: 'jukebox',   label: 'Jukebox',    sub: 'Dark plate + gold neon' },
+  ],
 };
 
 export const DEFAULT_VARIANT: Partial<Record<Exclude<SectionId, null>, string>> = {
@@ -103,6 +128,9 @@ export const DEFAULT_VARIANT: Partial<Record<Exclude<SectionId, null>, string>> 
   rsvp: 'centered',
   nav: 'split',
   navMobile: 'slide-in',
+  countdown: 'cards',
+  map: 'embed',
+  music: 'card',
   /* Tool panels (guests, savetheDate, share, dayof, memorial,
      bachelor) have no layout variants — they're host workspaces.
      Partial<> lets the type compile without forcing stub entries

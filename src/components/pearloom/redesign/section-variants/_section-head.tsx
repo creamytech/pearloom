@@ -14,6 +14,7 @@
 
 import type { CSSProperties } from 'react';
 import { InlineEdit } from '../InlineEdit';
+import { OliveSprig } from '../../site/MotifScatter';
 
 interface Props {
   eyebrow: string;
@@ -32,6 +33,12 @@ interface Props {
   marginBottom?: number;
   /** Override the title fontSize. Default 40. */
   titleSize?: number;
+  /** Divider painted under the title — matches TSectionHead.
+   *  Pass `'none'` to suppress, e.g. when the variant has its
+   *  own ornament. Defaults to `'sprig'` so existing variant
+   *  callers automatically get the brand divider that the
+   *  prototype hand-off carried under every section header. */
+  divider?: string;
 }
 
 export function VariantSectionHead({
@@ -39,6 +46,7 @@ export function VariantSectionHead({
   editable, onEditEyebrow, onEditTitle,
   eyebrowPlaceholder, titlePlaceholder,
   marginBottom = 26, titleSize = 40,
+  divider = 'sprig',
 }: Props) {
   const fullTitle = [title, italic].filter(Boolean).join(' ');
   /* Mobile-first font sizing — clamp from a comfortable mobile
@@ -98,6 +106,44 @@ export function VariantSectionHead({
           )}
         </h2>
       )}
+      {divider && divider !== 'none' && <SectionDivider look={divider} />}
     </div>
   );
+}
+
+/* SectionDivider — inline sprig+dot+sprig ornament that mirrors
+   ThemedSite's KDivider for the section-head context. Kept local
+   to this file so the variants module doesn't pull in the canvas's
+   full KDivider dispatch. The default 'sprig' branch matches the
+   prototype hand-off; any other value renders the minimal
+   hairline. */
+function SectionDivider({ look }: { look: string }) {
+  if (look === 'sprig') {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, margin: '14px auto 0', width: 170 }}>
+        <span style={{ display: 'inline-flex', transform: 'scaleX(-1)' }}>
+          <OliveSprig size={42} />
+        </span>
+        <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--t-accent)', flexShrink: 0 }} />
+        <OliveSprig size={42} />
+      </div>
+    );
+  }
+  if (look === 'rule' || !look) {
+    return <div style={{ width: 170, height: 1, background: 'var(--t-line)', margin: '14px auto 0' }} />;
+  }
+  if (look === 'dot') {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, margin: '14px auto 0', width: 170 }}>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+        <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--t-accent)' }} />
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+      </div>
+    );
+  }
+  /* Other look ids (wave, arrow, seal, etc.) fall back to a
+     simple hairline here — variants that need a richer divider
+     can opt-in via their own composition. Keeping this minimal
+     so the module stays small. */
+  return <div style={{ width: 170, height: 1, background: 'var(--t-line)', margin: '14px auto 0' }} />;
 }

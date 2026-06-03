@@ -48,6 +48,8 @@ const KIT_LABEL: Record<KitId, string> = {
 };
 const LAYOUT_LABEL: Record<SiteLayoutId, string> = {
   stacked: 'Stacked', boxed: 'Boxed', split: 'Split',
+  magazine: 'Magazine', zine: 'Zine', storybook: 'Storybook',
+  gallery: 'Gallery', postcard: 'Postcard',
 };
 
 /* ── Inline .twk-* stylesheet — LITERAL from tweaks-panel.jsx L43–134.

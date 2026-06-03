@@ -24,7 +24,7 @@ import { useId, useEffect, useState, type CSSProperties, type ReactNode } from '
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { getTheme, themeRootStyle, type Density, type Theme } from '../site/themes';
-import { Motif, MotifScatter, WatercolorBloom, type MotifKind } from '../site/MotifScatter';
+import { Motif, MotifScatter, WatercolorBloom, OliveSprig, type MotifKind } from '../site/MotifScatter';
 import { TextureFilters } from '../site/TextureFilters';
 import { readVariant } from './layouts';
 import type { SectionId } from './EditorRedesign';
@@ -220,6 +220,9 @@ export function ThemedSite({
     gallery: readVariant(manifest, 'gallery'),
     faq: readVariant(manifest, 'faq'),
     rsvp: readVariant(manifest, 'rsvp'),
+    countdown: readVariant(manifest, 'countdown'),
+    map: readVariant(manifest, 'map'),
+    music: readVariant(manifest, 'music'),
   };
   const coverPhoto = ((manifest as unknown as { coverPhoto?: string }).coverPhoto) || undefined;
   const edit: SectionCtx['edit'] = onEditField || onEditNames ? {
@@ -444,6 +447,270 @@ export function ThemedSite({
             {C.isPostEvent && <PostEventBanner />}
             {navEl}
             {sections.map(sectionEl)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ─── Magazine — hero spans full width, then sections split into
+         a two-column scrolling spread (left col: odd-index, right
+         col: even-index). Folds to a single-column stack on mobile
+         via the @media block in pearloom.css. ───────────────────── */
+  if (siteLayout === 'magazine') {
+    const rest = sections.filter((s) => s !== 'hero');
+    const heroEl = sections.includes('hero') ? sectionEl('hero') : null;
+    const leftCol = rest.filter((_, i) => i % 2 === 0);
+    const rightCol = rest.filter((_, i) => i % 2 === 1);
+    return (
+      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-magazine">
+        <TextureFilters />
+        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
+        <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {C.isPostEvent && <PostEventBanner />}
+          {navEl}
+          {heroEl}
+          <div className="pl8-magazine-spread" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, borderTop: '1px solid var(--t-line-soft)' }}>
+            <div className="pl8-magazine-col pl8-magazine-col-left" style={{ borderRight: '1px solid var(--t-line-soft)', minWidth: 0 }}>
+              {leftCol.map(sectionEl)}
+            </div>
+            <div className="pl8-magazine-col pl8-magazine-col-right" style={{ minWidth: 0 }}>
+              {rightCol.map(sectionEl)}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ─── Zine — asymmetric pages with subtle per-section rotation +
+         alternating cream/cream-deep backgrounds. Feels like a hand-
+         assembled mini-magazine. Rotations drop on mobile so reading
+         doesn't suffer in narrow viewports. ───────────────────────── */
+  if (siteLayout === 'zine') {
+    return (
+      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-zine">
+        <TextureFilters />
+        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
+        <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {C.isPostEvent && <PostEventBanner />}
+          {navEl}
+          {sections.map((kind, i) => (
+            <div
+              key={kind}
+              className="pl8-zine-page"
+              style={{
+                /* nth-child alternation via inline style — even pages
+                   tilt -0.6deg with cream-2 background, odd pages
+                   tilt +0.6deg with cream-deep. Hero stays upright. */
+                transform: kind === 'hero' ? 'none' : `rotate(${i % 2 === 0 ? '-0.6deg' : '0.6deg'})`,
+                background: kind === 'hero' ? undefined : (i % 2 === 0 ? 'var(--t-section)' : 'var(--t-paper)'),
+                margin: kind === 'hero' ? 0 : '12px auto',
+                padding: kind === 'hero' ? 0 : '6px',
+                width: kind === 'hero' ? 'auto' : '96%',
+                maxWidth: kind === 'hero' ? 'none' : 1080,
+                boxShadow: kind === 'hero' ? 'none' : '0 8px 22px rgba(40,28,12,0.10)',
+                borderRadius: kind === 'hero' ? 0 : 6,
+              }}
+            >
+              {sectionEl(kind)}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  /* ─── Storybook — each section feels like a page of a bound book.
+         Folio number top-left, marginalia rule top + bottom, slight
+         inset feel. Mobile keeps the folio + tightens margins. ──── */
+  if (siteLayout === 'storybook') {
+    return (
+      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-storybook">
+        <TextureFilters />
+        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
+        <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {C.isPostEvent && <PostEventBanner />}
+          {navEl}
+          {sections.map((kind, i) => (
+            <div
+              key={kind}
+              className="pl8-storybook-page"
+              style={{
+                position: 'relative',
+                borderTop: i === 0 ? 'none' : '1px solid var(--t-line-soft)',
+                borderBottom: '1px solid var(--t-line-soft)',
+              }}
+            >
+              {kind !== 'hero' && (
+                <span
+                  aria-hidden
+                  className="pl8-storybook-folio"
+                  style={{
+                    position: 'absolute',
+                    top: 12, left: 18,
+                    fontFamily: 'var(--t-font-display)',
+                    fontStyle: 'italic',
+                    fontSize: 11,
+                    color: 'var(--t-ink-muted)',
+                    letterSpacing: '0.18em',
+                    textTransform: 'uppercase',
+                    zIndex: 2,
+                  }}
+                >
+                  · {String(i).padStart(2, '0')} ·
+                </span>
+              )}
+              {sectionEl(kind)}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  /* ─── Gallery — hero full-bleed; every subsequent section sits
+         in a narrow centered column with generous whitespace.
+         A sticky right-edge progress strip dots out which section
+         the viewer is on (desktop only — hidden on mobile so it
+         doesn't crowd the canvas). ──────────────────────────────── */
+  if (siteLayout === 'gallery') {
+    const rest = sections.filter((s) => s !== 'hero');
+    const heroEl = sections.includes('hero') ? sectionEl('hero') : null;
+    return (
+      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-gallery">
+        <TextureFilters />
+        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
+        <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {C.isPostEvent && <PostEventBanner />}
+          {navEl}
+          {heroEl}
+          <div className="pl8-gallery-rail" style={{ position: 'relative' }}>
+            {/* Progress strip — right-edge dot column. One dot per
+                non-hero section. Desktop only via the CSS media
+                query below. Currently decorative — turning these
+                into anchored links would need a useState/scroll
+                listener; that's nicer as a follow-up. */}
+            <div className="pl8-gallery-progress" aria-hidden style={{
+              position: 'sticky', top: '40vh', float: 'right',
+              display: 'flex', flexDirection: 'column', gap: 8,
+              padding: '6px 8px', marginRight: 16, zIndex: 2,
+            }}>
+              {rest.map((s) => (
+                <span
+                  key={s}
+                  style={{
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: s === activeId ? 'var(--t-accent)' : 'var(--t-line)',
+                    transition: 'background 240ms cubic-bezier(0.22,1,0.36,1)',
+                  }}
+                />
+              ))}
+            </div>
+            <div className="pl8-gallery-col" style={{ maxWidth: 720, margin: '0 auto' }}>
+              {rest.map(sectionEl)}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ─── Postcard — entire site sits on a postcard card with a stamp
+         corner + caption-strip bottom edge. Like Boxed but with a
+         keepsake frame. Mobile drops to a borderless full-bleed
+         column so the stamp doesn't crowd the viewport. ─────────── */
+  if (siteLayout === 'postcard') {
+    return (
+      <div
+        onMouseLeave={() => setHover(null)}
+        style={{ ...rootStyle, background: 'color-mix(in oklab, var(--t-ink) 20%, var(--t-section))', padding: 'clamp(16px, 4vw, 56px) clamp(12px, 4vw, 40px)' }}
+        data-pl-texture={effectiveTexture}
+        data-pl-kit={kitId}
+        className="pl8-guest pl8-guest-postcard"
+      >
+        <TextureFilters />
+        <div
+          className="pl8-postcard-frame"
+          style={{
+            maxWidth: 940,
+            margin: '0 auto',
+            position: 'relative',
+            background: 'var(--t-paper)',
+            borderRadius: 4,
+            boxShadow: '0 30px 70px rgba(0,0,0,0.22), 0 6px 16px rgba(0,0,0,0.12)',
+            border: '1px solid var(--t-line)',
+            overflow: 'hidden',
+            padding: 14,
+          }}
+        >
+          {/* Faux postage stamp — top-right. */}
+          <div
+            aria-hidden
+            className="pl8-postcard-stamp"
+            style={{
+              position: 'absolute',
+              top: 22, right: 22,
+              width: 56, height: 68,
+              background: 'var(--t-accent-bg, var(--t-section))',
+              border: '2px dashed var(--t-ink-muted)',
+              display: 'grid', placeItems: 'center',
+              transform: 'rotate(4deg)',
+              zIndex: 3,
+              fontFamily: 'var(--t-font-display)',
+              fontStyle: 'italic',
+              fontSize: 10,
+              color: 'var(--t-ink-soft)',
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+            }}
+          >
+            <span style={{ textAlign: 'center', lineHeight: 1.2 }}>
+              with<br/>love
+            </span>
+          </div>
+          <div
+            style={{
+              position: 'relative',
+              background: 'var(--t-paper)',
+              border: '1px solid var(--t-line-soft)',
+              borderRadius: 2,
+              overflow: 'hidden',
+            }}
+          >
+            {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
+            <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              {C.isPostEvent && <PostEventBanner />}
+              {navEl}
+              {sections.map(sectionEl)}
+            </div>
+          </div>
+          {/* Caption strip — bottom edge of the postcard, holds
+              the names + date so the keepsake reads as one
+              artifact even when the canvas is screenshot. */}
+          <div
+            className="pl8-postcard-caption"
+            aria-hidden
+            style={{
+              display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+              padding: '12px 6px 4px',
+              fontFamily: 'var(--t-font-display)',
+              fontStyle: 'italic',
+              fontSize: 13,
+              color: 'var(--t-ink-soft)',
+            }}
+          >
+            <span style={{ letterSpacing: '0.08em' }}>{headline}</span>
+            {manifest.logistics?.date && (
+              <span style={{ fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--t-ink-muted)' }}>
+                {manifest.logistics.date}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -1196,6 +1463,7 @@ function DetailsBlock({ ctx }: { ctx: SectionCtx }) {
         onEditTitle={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('detailsTitle', v) : undefined}
         eyebrowPlaceholder="The fine print"
         titlePlaceholder="Everything you should know"
+        divider={ctx.dividerLook}
       />
       <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 18, maxWidth: 760, marginInline: 'auto' }}>
         {C.details.items.map((d, i) => (
@@ -1249,6 +1517,7 @@ function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
         onEditTitle={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('scheduleTitle', v) : undefined}
         eyebrowPlaceholder="The day"
         titlePlaceholder="In moments"
+        divider={ctx.dividerLook}
       />
       {(() => {
         /* Multi-day rendering — when any row has a day>1, group
@@ -1370,6 +1639,7 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
         onEditTitle={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('travelTitle', v) : undefined}
         eyebrowPlaceholder="Getting there"
         titlePlaceholder="Where to stay"
+        divider={ctx.dividerLook}
       />
       {C.travel.intro && (
         <div style={{ maxWidth: 560, marginInline: 'auto', textAlign: 'center', fontSize: 14.5, color: 'var(--t-ink-soft)', lineHeight: 1.6, marginBottom: 24 }}>
@@ -1475,6 +1745,7 @@ function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
         onEditTitle={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('registryTitle', v) : undefined}
         eyebrowPlaceholder="Registry"
         titlePlaceholder="Your presence is the gift"
+        divider={ctx.dividerLook}
       />
       <div style={{ fontSize: 14.5, color: 'var(--t-ink-soft)', maxWidth: 480, margin: '0 auto 22px', lineHeight: 1.6 }}>
         {C.registry.body}
@@ -1532,6 +1803,7 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
         onEditTitle={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('galleryTitle', v) : undefined}
         eyebrowPlaceholder="Gallery"
         titlePlaceholder="A few favorites"
+        divider={ctx.dividerLook}
       />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8, maxWidth: 920, marginInline: 'auto' }}>
         {C.gallery.photos && C.gallery.photos.length > 0
@@ -1705,6 +1977,7 @@ function FaqBlock({ ctx }: { ctx: SectionCtx }) {
         onEditTitle={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('faqTitle', v) : undefined}
         eyebrowPlaceholder="Questions & answers"
         titlePlaceholder="The little things"
+        divider={ctx.dividerLook}
       />
       <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {C.faq.questions.map((q, i) => (
@@ -1745,9 +2018,13 @@ function useCountdownPieces(target: number | null): CountdownPieces {
 }
 
 function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
-  const { pad, manifest, editable } = ctx;
-  const cd = (manifest as unknown as { countdown?: { variant?: string; label?: string } }).countdown ?? {};
-  const variant = cd.variant ?? 'cards';
+  const { pad, manifest, editable, variants } = ctx;
+  const cd = (manifest as unknown as { countdown?: { label?: string } }).countdown ?? {};
+  /* Variant comes from manifest.layouts.countdown via the LAYOUTS
+     registry (PropertyRail's Layout tab), NOT from manifest.countdown.
+     This way the picker lives in the same Layout dispatch every
+     other section uses. */
+  const variant = variants.countdown || 'cards';
   const dateStr = manifest.logistics?.date ?? '';
   const ms = dateStr ? Date.parse(dateStr) : NaN;
   const target = Number.isFinite(ms) ? ms : null;
@@ -1983,9 +2260,9 @@ function CountdownInlineRow({ pieces }: { pieces: CountdownPieces }) {
    pin+map graphic, or pin-only with an "Open in Maps" CTA. */
 
 function MapBlock({ ctx }: { ctx: SectionCtx }) {
-  const { pad, manifest, editable } = ctx;
-  const mapCfg = (manifest as unknown as { mapBlock?: { variant?: string; height?: string; showDirections?: boolean; addressOverride?: string } }).mapBlock ?? {};
-  const variant = mapCfg.variant ?? 'embed';
+  const { pad, manifest, editable, variants } = ctx;
+  const mapCfg = (manifest as unknown as { mapBlock?: { height?: string; showDirections?: boolean; addressOverride?: string } }).mapBlock ?? {};
+  const variant = variants.map || 'embed';
   const height = mapCfg.height === 'tall' ? 560 : 320;
   const showDirections = mapCfg.showDirections !== false;
   const venue = manifest.logistics?.venue ?? '';
@@ -2017,6 +2294,7 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
           eyebrow={eyebrow}
           title={venue || 'The venue'}
           editable={false}
+          divider={ctx.dividerLook}
         />
         <div style={{ maxWidth: 480, margin: '0 auto', padding: '32px 20px', background: 'var(--t-card)', border: '1px solid var(--t-line-soft)', borderRadius: 'var(--t-radius)', boxShadow: 'var(--t-shadow-sm)' }}>
           <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--t-accent-bg, var(--t-section))', display: 'grid', placeItems: 'center', margin: '0 auto 14px' }}>
@@ -2172,6 +2450,7 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
           eyebrow={eyebrow}
           title={venue || 'The venue'}
           editable={false}
+          divider={ctx.dividerLook}
         />
         <div style={{ maxWidth: 960, margin: '0 auto', position: 'relative', borderRadius: 'var(--t-radius)', overflow: 'hidden', border: '1px solid var(--t-line-soft)', boxShadow: 'var(--t-shadow-sm)' }}>
           <iframe
@@ -2203,6 +2482,7 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
         eyebrow={eyebrow}
         title={venue || 'The venue'}
         editable={false}
+        divider={ctx.dividerLook}
       />
       <div style={{ maxWidth: 960, margin: '0 auto', position: 'relative', borderRadius: 'var(--t-radius)', overflow: 'hidden', border: '1px solid var(--t-line-soft)', boxShadow: 'var(--t-shadow-sm)' }}>
         <iframe
@@ -2244,11 +2524,11 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
    panel; this block just dispatches on manifest.music.provider. */
 
 function MusicBlock({ ctx }: { ctx: SectionCtx }) {
-  const { pad, manifest, editable } = ctx;
-  const cfg = (manifest as unknown as { music?: { provider?: string; url?: string; title?: string; description?: string; variant?: string } }).music ?? {};
+  const { pad, manifest, editable, variants } = ctx;
+  const cfg = (manifest as unknown as { music?: { provider?: string; url?: string; title?: string; description?: string } }).music ?? {};
   const provider = cfg.provider ?? 'spotify';
   const url = cfg.url?.trim() ?? '';
-  const variant = cfg.variant ?? 'card';
+  const variant = variants.music || 'card';
   const eyebrow = ((manifest as unknown as { copy?: Record<string, string> }).copy?.musicEyebrow) || 'The soundtrack';
   const title = cfg.title?.trim() || 'Songs for the dance floor';
   const description = cfg.description?.trim();
@@ -2395,6 +2675,7 @@ function MusicBlock({ ctx }: { ctx: SectionCtx }) {
         eyebrow={eyebrow}
         title={title}
         editable={false}
+        divider={ctx.dividerLook}
       />
       {description && (
         <div style={{ maxWidth: 600, margin: '0 auto 22px', textAlign: 'center', fontSize: 14, color: 'var(--t-ink-soft)', lineHeight: 1.55 }}>
@@ -2440,7 +2721,7 @@ function toMusicEmbedUrl(provider: string, url: string): string | null {
 
 /* ─── TSectionHead — handoff L75-87 verbatim. ────────────────── */
 
-function TSectionHead({ eyebrow, title, italic, editable, onEditEyebrow, onEditTitle, eyebrowPlaceholder, titlePlaceholder }: {
+function TSectionHead({ eyebrow, title, italic, editable, onEditEyebrow, onEditTitle, eyebrowPlaceholder, titlePlaceholder, divider = 'sprig' }: {
   eyebrow: string;
   title: string;
   italic?: string;
@@ -2455,6 +2736,12 @@ function TSectionHead({ eyebrow, title, italic, editable, onEditEyebrow, onEditT
   onEditTitle?: (v: string) => void;
   eyebrowPlaceholder?: string;
   titlePlaceholder?: string;
+  /** Divider painted right under the title — matches the prototype
+   *  hand-off where every section header carried a sprig ornament.
+   *  Pass `'none'` to suppress (e.g. on tight sections that already
+   *  carry their own ornament). Defaults to `'sprig'` so adopting
+   *  this requires zero changes at existing call sites. */
+  divider?: string;
 }) {
   const fullTitle = [title, italic].filter(Boolean).join(' ');
   return (
@@ -2484,6 +2771,11 @@ function TSectionHead({ eyebrow, title, italic, editable, onEditEyebrow, onEditT
           {title}
           {italic && <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}> {italic}</span>}
         </h2>
+      )}
+      {divider && divider !== 'none' && (
+        <div style={{ marginTop: 14, display: 'flex', justifyContent: 'center' }}>
+          <KDivider look={divider} width={170} />
+        </div>
       )}
     </div>
   );
@@ -2610,11 +2902,21 @@ function TButton({
 function KDivider({ look, width = 170, style = {} }: { look: string; width?: number; style?: CSSProperties }) {
   const wrap: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, margin: '0 auto', width, ...style };
   if (look === 'sprig') {
+    /* Handoff/prototype design — two olive sprigs facing inward
+       with a small accent dot between them. The previous version
+       only painted one sprig flanked by hairlines, which read as
+       a single ornament rather than the symmetric divider the
+       brand uses across every section header. */
     return (
       <div style={wrap}>
-        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
-        <Motif kind="olive" size={16} />
-        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+        <span style={{ display: 'inline-flex', transform: 'scaleX(-1)' }}>
+          <OliveSprig size={42} />
+        </span>
+        <span aria-hidden style={{
+          width: 5, height: 5, borderRadius: '50%',
+          background: 'var(--t-accent)', flexShrink: 0,
+        }} />
+        <OliveSprig size={42} />
       </div>
     );
   }
@@ -2868,6 +3170,9 @@ interface SectionCtx {
     gallery: string;
     faq: string;
     rsvp: string;
+    countdown: string;
+    map: string;
+    music: string;
   };
   C: Copy;
   /** Full manifest reference — most blocks read C (the derived

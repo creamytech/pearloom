@@ -650,7 +650,7 @@ export interface StoryManifest {
    *  class. Independent of Edition (palette + fonts) and kitId
    *  (row treatments). Collapses to 'stacked' on viewports <= 720px
    *  (split + boxed both fold to the scroll layout on phones). */
-  siteLayout?: 'stacked' | 'boxed' | 'split';
+  siteLayout?: 'stacked' | 'boxed' | 'split' | 'magazine' | 'zine' | 'storybook' | 'gallery' | 'postcard';
   /** Motifs on/off — binary toggle the prototype's Fine-tune
    *  section exposes. When false, the renderer suppresses
    *  MotifScatter and per-Edition decor flourishes. */

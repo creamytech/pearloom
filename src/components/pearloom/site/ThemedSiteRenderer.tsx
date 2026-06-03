@@ -508,7 +508,7 @@ export function ThemedSiteRenderer({
           published sites keep their look.
        3. activeEdition.recommendedLayout — Edition default
        4. 'stacked' — universal fallback */
-  const siteLayout: 'stacked' | 'boxed' | 'split' = (() => {
+  const siteLayout: NonNullable<typeof manifest.siteLayout> = (() => {
     if (manifest.siteLayout) return manifest.siteLayout;
     const legacy = manifest.pageLayout;
     if (legacy === 'invitation') return 'boxed';

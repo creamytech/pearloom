@@ -10,15 +10,16 @@ import { FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibility
 import { FSelect } from './_form-atoms';
 
 type MusicProvider = 'spotify' | 'apple' | 'youtube' | 'custom';
-type MusicVariant = 'card' | 'minimal' | 'fullbleed' | 'sidebar' | 'jukebox';
 
+/* MusicPanel — Content tab fields only. The layout variant
+   (card / minimal / fullbleed / sidebar / jukebox) is picked in
+   the Layout tab via the LAYOUTS registry. */
 interface MusicData {
   provider?: MusicProvider;
   url?: string;
   title?: string;
   description?: string;
   acceptSubmissions?: boolean;
-  variant?: MusicVariant;
 }
 
 export function MusicPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
@@ -30,7 +31,6 @@ export function MusicPanel({ manifest, onChange }: { manifest: StoryManifest; on
   const title = data.title ?? '';
   const description = data.description ?? '';
   const acceptSubmissions = data.acceptSubmissions ?? false;
-  const variant = data.variant ?? 'card';
   const [eyebrow, setEyebrow] = useCopyOverride(manifest, onChange, 'musicEyebrow');
 
   const patch = (next: Partial<MusicData>) => onChange({
@@ -57,21 +57,6 @@ export function MusicPanel({ manifest, onChange }: { manifest: StoryManifest; on
 
         <FGroup label="Title" hint="Headline above the player.">
           <FInput value={title} onChange={(v) => patch({ title: v })} placeholder="Songs for the dance floor" />
-        </FGroup>
-
-        <FGroup label="Layout" hint="How the section reads on the canvas.">
-          <FSelect
-            value={variant}
-            onChange={(v) => patch({ variant: v as MusicVariant })}
-            options={[
-              { value: 'card',      label: 'Card',           hint: 'Title + player in a card with subtle shadow' },
-              { value: 'minimal',   label: 'Minimal',        hint: 'No card frame — embed sits directly on the paper' },
-              { value: 'fullbleed', label: 'Full-bleed',     hint: 'Embed runs to the edges of the canvas — feels cinematic' },
-              { value: 'sidebar',   label: 'Sidebar',        hint: 'Embed on one side, eyebrow + description + CTA on the other' },
-              { value: 'jukebox',   label: 'Jukebox',        hint: 'Dark plate + neon CTA — built for parties' },
-            ]}
-            icon="music"
-          />
         </FGroup>
 
         <FGroup label="Provider">

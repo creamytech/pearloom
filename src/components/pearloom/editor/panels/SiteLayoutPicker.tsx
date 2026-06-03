@@ -86,10 +86,112 @@ function SplitPreview() {
   );
 }
 
+function MagazinePreview() {
+  return (
+    <svg viewBox="0 0 100 56" width="100%" height="100%" aria-hidden>
+      {/* Hero spans full width. */}
+      <rect x="6" y="4" width="88" height="14" rx="1" fill="#EBE3D2" />
+      <rect x="34" y="8" width="32" height="2" rx="1" fill="#0E0D0B" />
+      {/* Two-column spread below. */}
+      <rect x="6" y="22" width="42" height="28" rx="1" fill="#E5DCC4" />
+      <rect x="52" y="22" width="42" height="28" rx="1" fill="#E5DCC4" />
+      <line x1="49.5" y1="22" x2="49.5" y2="50" stroke="#D8CFB8" strokeWidth="0.5" />
+      <rect x="10" y="26" width="34" height="1.6" rx="0.5" fill="#0E0D0B" />
+      <rect x="10" y="30" width="28" height="1.2" rx="0.5" fill="#6F6557" />
+      <rect x="56" y="26" width="34" height="1.6" rx="0.5" fill="#0E0D0B" />
+      <rect x="56" y="30" width="32" height="1.2" rx="0.5" fill="#6F6557" />
+    </svg>
+  );
+}
+
+function ZinePreview() {
+  return (
+    <svg viewBox="0 0 100 56" width="100%" height="100%" aria-hidden>
+      {/* Three rotated pages — alternating cream and cream-deep. */}
+      <rect x="8" y="4" width="84" height="14" rx="1" fill="#FBF7EE" />
+      <g transform="rotate(-1 50 28)">
+        <rect x="10" y="22" width="80" height="12" rx="1" fill="#EBE3D2" />
+        <rect x="14" y="26" width="34" height="1.5" rx="0.5" fill="#0E0D0B" />
+        <rect x="14" y="30" width="50" height="1" rx="0.5" fill="#6F6557" />
+      </g>
+      <g transform="rotate(1 50 46)">
+        <rect x="10" y="40" width="80" height="12" rx="1" fill="#F5EFE2" />
+        <rect x="14" y="44" width="40" height="1.5" rx="0.5" fill="#0E0D0B" />
+      </g>
+    </svg>
+  );
+}
+
+function StorybookPreview() {
+  return (
+    <svg viewBox="0 0 100 56" width="100%" height="100%" aria-hidden>
+      {/* Hero. */}
+      <rect x="0" y="0" width="100" height="14" fill="#EBE3D2" />
+      <rect x="34" y="6" width="32" height="3" rx="1" fill="#0E0D0B" />
+      {/* Pages — each with a folio number. */}
+      <line x1="0" y1="14" x2="100" y2="14" stroke="#D8CFB8" strokeWidth="0.5" />
+      <text x="6" y="22" fontFamily="serif" fontStyle="italic" fontSize="3.5" fill="#6F6557">· 01 ·</text>
+      <rect x="22" y="20" width="46" height="2" rx="0.5" fill="#0E0D0B" />
+      <rect x="22" y="24" width="52" height="1.2" rx="0.5" fill="#6F6557" />
+      <line x1="0" y1="32" x2="100" y2="32" stroke="#D8CFB8" strokeWidth="0.5" />
+      <text x="6" y="40" fontFamily="serif" fontStyle="italic" fontSize="3.5" fill="#6F6557">· 02 ·</text>
+      <rect x="22" y="38" width="42" height="2" rx="0.5" fill="#0E0D0B" />
+      <rect x="22" y="42" width="48" height="1.2" rx="0.5" fill="#6F6557" />
+      <line x1="0" y1="50" x2="100" y2="50" stroke="#D8CFB8" strokeWidth="0.5" />
+    </svg>
+  );
+}
+
+function GalleryPreview() {
+  return (
+    <svg viewBox="0 0 100 56" width="100%" height="100%" aria-hidden>
+      {/* Hero full-bleed. */}
+      <rect x="0" y="0" width="100" height="20" fill="#EBE3D2" />
+      <rect x="32" y="9" width="36" height="2.5" rx="1" fill="#0E0D0B" />
+      {/* Narrow centered column. */}
+      <rect x="28" y="26" width="44" height="2" rx="0.5" fill="#0E0D0B" />
+      <rect x="28" y="30" width="44" height="1.2" rx="0.5" fill="#6F6557" />
+      <rect x="28" y="38" width="44" height="6" rx="1" fill="#E5DCC4" />
+      <rect x="28" y="48" width="44" height="2" rx="0.5" fill="#0E0D0B" />
+      {/* Right-edge sticky progress dots. */}
+      <circle cx="94" cy="28" r="1.2" fill="#5C6B3F" />
+      <circle cx="94" cy="34" r="1.2" fill="#D8CFB8" />
+      <circle cx="94" cy="40" r="1.2" fill="#D8CFB8" />
+      <circle cx="94" cy="46" r="1.2" fill="#D8CFB8" />
+    </svg>
+  );
+}
+
+function PostcardPreview() {
+  return (
+    <svg viewBox="0 0 100 56" width="100%" height="100%" aria-hidden>
+      {/* Darker mat. */}
+      <rect x="0" y="0" width="100" height="56" fill="#3A332C" />
+      {/* Postcard card. */}
+      <rect x="8" y="4" width="84" height="48" rx="1" fill="#FBF7EE" stroke="#D8CFB8" strokeWidth="0.5" />
+      {/* Faux stamp top-right. */}
+      <rect x="78" y="9" width="9" height="11" fill="#EBE3D2" stroke="#6F6557" strokeWidth="0.4" strokeDasharray="0.6 0.6" transform="rotate(4 82.5 14.5)" />
+      {/* Inner content card. */}
+      <rect x="14" y="12" width="58" height="28" rx="0.5" fill="#F5EFE2" stroke="#E5DCC4" strokeWidth="0.4" />
+      <rect x="20" y="17" width="46" height="2" rx="0.5" fill="#0E0D0B" />
+      <rect x="20" y="22" width="36" height="1.2" rx="0.5" fill="#6F6557" />
+      <rect x="20" y="28" width="46" height="6" rx="0.5" fill="#EBE3D2" />
+      {/* Caption strip. */}
+      <text x="14" y="48" fontFamily="serif" fontStyle="italic" fontSize="3" fill="#6F6557">E &amp; J</text>
+      <text x="80" y="48" fontFamily="serif" fontSize="2.4" fill="#6F6557" letterSpacing="0.2">2026</text>
+    </svg>
+  );
+}
+
 const LAYOUTS: LayoutOption[] = [
-  { id: 'stacked', label: 'Stacked', sub: 'Full scroll', preview: StackedPreview },
-  { id: 'boxed',   label: 'Boxed',   sub: 'Card on a mat', preview: BoxedPreview },
-  { id: 'split',   label: 'Split',   sub: 'Sidebar lockup', preview: SplitPreview },
+  { id: 'stacked',   label: 'Stacked',   sub: 'Full scroll',         preview: StackedPreview },
+  { id: 'boxed',     label: 'Boxed',     sub: 'Card on a mat',       preview: BoxedPreview },
+  { id: 'split',     label: 'Split',     sub: 'Sidebar lockup',      preview: SplitPreview },
+  { id: 'magazine',  label: 'Magazine',  sub: 'Two-column spread',   preview: MagazinePreview },
+  { id: 'zine',      label: 'Zine',      sub: 'Tilted hand-cut pages', preview: ZinePreview },
+  { id: 'storybook', label: 'Storybook', sub: 'Paged with folios',   preview: StorybookPreview },
+  { id: 'gallery',   label: 'Gallery',   sub: 'Narrow column, big air', preview: GalleryPreview },
+  { id: 'postcard',  label: 'Postcard',  sub: 'Keepsake card frame', preview: PostcardPreview },
 ];
 
 interface Props {
