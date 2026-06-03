@@ -875,9 +875,14 @@ function StorySideBySide({ ctx }: { ctx: SectionCtx }) {
         )}
       </div>
       <div>
-        <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 10 }}>
-          {C.story.eyebrow}
-        </div>
+        <InlineEdit
+          as="div"
+          value={C.story.eyebrow}
+          onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
+          editable={editable && !!edit?.copy}
+          placeholder="Two threads, one weave"
+          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 10 }}
+        />
         <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 38, margin: 0, lineHeight: 1.02, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}>
           <InlineEdit
             as="span"
@@ -913,13 +918,20 @@ function StorySideBySide({ ctx }: { ctx: SectionCtx }) {
 /* Story variants — handoff L388-446. */
 
 function StoryStacked({ ctx }: { ctx: SectionCtx }) {
-  const { pad, C } = ctx;
+  const { pad, C, editable, edit } = ctx;
   return (
     <div style={{ padding: `${48 * pad}px 72px`, textAlign: 'center', maxWidth: 760, marginInline: 'auto', background: 'var(--t-paper)' }}>
       <div style={{ marginInline: 'auto', maxWidth: 520, marginBottom: 26 }}>
         <PhotoPlaceholder tone="warm" aspect="16/9" style={{ borderRadius: 'var(--t-radius)' }} />
       </div>
-      <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 10 }}>{C.story.eyebrow}</div>
+      <InlineEdit
+        as="div"
+        value={C.story.eyebrow}
+        onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
+        editable={editable && !!edit?.copy}
+        placeholder="Two threads, one weave"
+        style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 10 }}
+      />
       <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 38, margin: 0, lineHeight: 1.02, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}>
         {C.story.title}
         {C.story.italic && <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}> {C.story.italic}</span>}
@@ -930,13 +942,20 @@ function StoryStacked({ ctx }: { ctx: SectionCtx }) {
 }
 
 function StoryQuote({ ctx }: { ctx: SectionCtx }) {
-  const { theme, pad, C, motif, motifsOn } = ctx;
+  const { theme, pad, C, motif, motifsOn, editable, edit } = ctx;
   const isEditorial = theme.id === 'editorial';
   return (
     <div style={{ position: 'relative', padding: `${56 * pad}px 72px`, textAlign: 'center', maxWidth: 880, marginInline: 'auto', background: 'var(--t-paper)' }}>
       {motifsOn && <MotifScatter motif={motif} density="sparse" />}
       <div style={{ position: 'relative' }}>
-        <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 16 }}>{C.story.eyebrow}</div>
+        <InlineEdit
+          as="div"
+          value={C.story.eyebrow}
+          onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
+          editable={editable && !!edit?.copy}
+          placeholder="Two threads, one weave"
+          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 16 }}
+        />
         <blockquote style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontWeight: 'var(--t-display-wght)', fontSize: 28, lineHeight: 1.32, margin: 0, color: 'var(--t-ink)', letterSpacing: '-0.01em' }}>{C.story.body}</blockquote>
         <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}><KDivider look={ctx.dividerLook} width={160} /></div>
       </div>
@@ -945,12 +964,19 @@ function StoryQuote({ ctx }: { ctx: SectionCtx }) {
 }
 
 function StoryTimeline({ ctx }: { ctx: SectionCtx }) {
-  const { pad, C } = ctx;
+  const { pad, C, editable, edit } = ctx;
   const items = C.story.chips && C.story.chips.length > 0 ? C.story.chips : ['We met', 'We fell', 'We knew'];
   return (
     <div style={{ padding: `${52 * pad}px 56px`, maxWidth: 760, marginInline: 'auto', background: 'var(--t-paper)' }}>
       <div style={{ textAlign: 'center', marginBottom: 28 }}>
-        <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 10 }}>{C.story.eyebrow}</div>
+        <InlineEdit
+          as="div"
+          value={C.story.eyebrow}
+          onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
+          editable={editable && !!edit?.copy}
+          placeholder="Two threads, one weave"
+          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 10 }}
+        />
         <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 38, margin: 0, lineHeight: 1.02, color: 'var(--t-ink)' }}>
           {C.story.title}
           {C.story.italic && <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}> {C.story.italic}</span>}
@@ -971,13 +997,20 @@ function StoryTimeline({ ctx }: { ctx: SectionCtx }) {
 }
 
 function StoryLetter({ ctx }: { ctx: SectionCtx }) {
-  const { theme, pad, C, motif, motifsOn } = ctx;
+  const { theme, pad, C, motif, motifsOn, editable, edit } = ctx;
   const isEditorial = theme.id === 'editorial';
   return (
     <div style={{ position: 'relative', padding: `${52 * pad}px 40px`, background: 'var(--t-section)' }}>
       {motifsOn && <MotifScatter motif={motif} density="sparse" />}
       <div style={{ position: 'relative', maxWidth: 640, marginInline: 'auto', background: 'var(--t-paper)', borderRadius: 'var(--t-radius-lg)', boxShadow: 'var(--t-shadow)', border: '1px solid var(--t-line)', padding: '40px 46px', textAlign: 'center' }}>
-        <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 14 }}>{C.story.eyebrow}</div>
+        <InlineEdit
+          as="div"
+          value={C.story.eyebrow}
+          onChange={edit?.copy ? (v) => edit.copy?.('storyEyebrow', v) : undefined}
+          editable={editable && !!edit?.copy}
+          placeholder="Two threads, one weave"
+          style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 14 }}
+        />
         <p style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink)', lineHeight: 1.6, textAlign: 'left' }}>{C.story.body}</p>
         <div style={{ fontFamily: 'var(--t-script)', fontSize: 30, color: 'var(--t-accent-ink)', marginTop: 14, textAlign: 'right' }}>
           {C.subject.a} &amp; {C.subject.b}
@@ -1005,7 +1038,9 @@ function DetailsBlock({ ctx }: { ctx: SectionCtx }) {
         italic={C.details.italic}
         editable={editable}
         onEditEyebrow={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('detailsEyebrow', v) : undefined}
+        onEditTitle={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('detailsTitle', v) : undefined}
         eyebrowPlaceholder="The fine print"
+        titlePlaceholder="Everything you should know"
       />
       <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 18, maxWidth: 760, marginInline: 'auto' }}>
         {C.details.items.map((d, i) => (
@@ -1050,7 +1085,9 @@ function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
         italic={C.schedule.italic}
         editable={editable}
         onEditEyebrow={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('scheduleEyebrow', v) : undefined}
+        onEditTitle={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('scheduleTitle', v) : undefined}
         eyebrowPlaceholder="The day"
+        titlePlaceholder="In moments"
       />
       {/* Auto-fit grid — 4 columns when there's room, fewer when
           there's a 5th row (the column reflows instead of being
@@ -1107,7 +1144,9 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
         italic={C.travel.italic}
         editable={editable}
         onEditEyebrow={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('travelEyebrow', v) : undefined}
+        onEditTitle={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('travelTitle', v) : undefined}
         eyebrowPlaceholder="Getting there"
+        titlePlaceholder="Where to stay"
       />
       {C.travel.intro && (
         <div style={{ maxWidth: 560, marginInline: 'auto', textAlign: 'center', fontSize: 14.5, color: 'var(--t-ink-soft)', lineHeight: 1.6, marginBottom: 24 }}>
@@ -1177,7 +1216,9 @@ function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
         italic={C.registry.italic}
         editable={editable}
         onEditEyebrow={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('registryEyebrow', v) : undefined}
+        onEditTitle={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('registryTitle', v) : undefined}
         eyebrowPlaceholder="Registry"
+        titlePlaceholder="Your presence is the gift"
       />
       <div style={{ fontSize: 14.5, color: 'var(--t-ink-soft)', maxWidth: 480, margin: '0 auto 22px', lineHeight: 1.6 }}>
         {C.registry.body}
@@ -1209,7 +1250,9 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
         italic={C.gallery.italic}
         editable={editable}
         onEditEyebrow={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('galleryEyebrow', v) : undefined}
+        onEditTitle={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('galleryTitle', v) : undefined}
         eyebrowPlaceholder="Gallery"
+        titlePlaceholder="A few favorites"
       />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8, maxWidth: 920, marginInline: 'auto' }}>
         {C.gallery.tones.map((t, i) => (
@@ -1262,7 +1305,9 @@ function FaqBlock({ ctx }: { ctx: SectionCtx }) {
         italic={C.faq.italic}
         editable={editable}
         onEditEyebrow={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('faqEyebrow', v) : undefined}
+        onEditTitle={ctx.edit?.copy ? (v) => ctx.edit?.copy?.('faqTitle', v) : undefined}
         eyebrowPlaceholder="Questions & answers"
+        titlePlaceholder="The little things"
       />
       <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {C.faq.questions.map((q, i) => (
@@ -1278,18 +1323,23 @@ function FaqBlock({ ctx }: { ctx: SectionCtx }) {
 
 /* ─── TSectionHead — handoff L75-87 verbatim. ────────────────── */
 
-function TSectionHead({ eyebrow, title, italic, editable, onEditEyebrow, eyebrowPlaceholder }: {
+function TSectionHead({ eyebrow, title, italic, editable, onEditEyebrow, onEditTitle, eyebrowPlaceholder, titlePlaceholder }: {
   eyebrow: string;
   title: string;
   italic?: string;
   /** When set, the eyebrow becomes click-to-edit and writes through
-   *  onEditEyebrow. Title + italic remain static — they're styled
-   *  composite splits and overriding them is queued for a later
-   *  pass. */
+   *  onEditEyebrow. Same for title — see onEditTitle. */
   editable?: boolean;
   onEditEyebrow?: (v: string) => void;
+  /** Title + italic edit together as one composite string. On commit
+   *  the canvas runs splitHeading() server-side so the italic accent
+   *  word still renders italicized. Passing "Where to stay" → renders
+   *  "Where to <em>stay</em>". */
+  onEditTitle?: (v: string) => void;
   eyebrowPlaceholder?: string;
+  titlePlaceholder?: string;
 }) {
+  const fullTitle = [title, italic].filter(Boolean).join(' ');
   return (
     <div style={{ textAlign: 'center', marginBottom: 26 }}>
       <InlineEdit
@@ -1300,10 +1350,24 @@ function TSectionHead({ eyebrow, title, italic, editable, onEditEyebrow, eyebrow
         placeholder={eyebrowPlaceholder ?? 'Section eyebrow'}
         style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 10 }}
       />
-      <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 40, margin: 0, lineHeight: 1.0, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}>
-        {title}
-        {italic && <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}> {italic}</span>}
-      </h2>
+      {editable && onEditTitle ? (
+        /* Edit mode — single composite string; canvas re-splits on
+           commit. Loses the live italic styling while typing, but
+           the styling re-applies as soon as the host commits. */
+        <InlineEdit
+          as="h2"
+          value={fullTitle}
+          onChange={onEditTitle}
+          editable={true}
+          placeholder={titlePlaceholder ?? 'Section title'}
+          style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 40, margin: 0, lineHeight: 1.0, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}
+        />
+      ) : (
+        <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 40, margin: 0, lineHeight: 1.0, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}>
+          {title}
+          {italic && <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}> {italic}</span>}
+        </h2>
+      )}
     </div>
   );
 }
@@ -1793,6 +1857,16 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
     const v = copyOverrides[key];
     return typeof v === 'string' && v.trim() ? v : fallback;
   };
+  /* Section titles ship as a (head, italic) tuple — see splitHeading
+     below. Hosts override the whole string via manifest.copy.<section>Title;
+     we splitHeading() the override at read time so the italic part
+     still renders italicized. Pass the original fallback head/italic
+     so unset overrides preserve the existing default exactly. */
+  const coTitle = (key: string, fallbackHead: string, fallbackItalic?: string): { head: string; italic: string } => {
+    const v = copyOverrides[key];
+    if (typeof v === 'string' && v.trim()) return splitHeading(v);
+    return { head: fallbackHead, italic: fallbackItalic ?? '' };
+  };
 
   return {
     subject: { type: 'couple', a: args.nameA, b: args.nameB },
@@ -1808,10 +1882,12 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       body: storySection.body || 'We met on an ordinary Tuesday and spent the evening arguing, fondly, about whether olives belong on pizza. Ten years later, we would be honoured to have you with us as we marry — there is no story we would rather tell, and no one we would rather tell it to.',
       chips: Array.isArray(storySection.chips) ? storySection.chips : undefined,
     },
-    details: {
+    details: (() => {
+      const t = coTitle('detailsTitle', 'Everything you', 'should know');
+      return {
       eyebrow: co('detailsEyebrow', 'The fine print'),
-      title: 'Everything you',
-      italic: 'should know',
+      title: t.head,
+      italic: t.italic,
       items: detailsCards.length > 0
         ? detailsCards
             /* Drop entries where both halves are empty — old manifests
@@ -1836,11 +1912,14 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
                 : { l: 'Kids welcome', v: 'Ages 10 +', icon: 'users' },
             { l: 'Gifts', v: 'Your presence is enough', icon: 'gift' },
           ],
-    },
-    schedule: {
+      };
+    })(),
+    schedule: (() => {
+      const t = coTitle('scheduleTitle', 'In', 'moments');
+      return {
       eyebrow: co('scheduleEyebrow', 'The day'),
-      title: 'In',
-      italic: 'moments',
+      title: t.head,
+      italic: t.italic,
       rows: eventsRaw.length > 0
         ? eventsRaw.slice(0, 4).map((e) => ({
             t: e.time ?? '',
@@ -1853,7 +1932,8 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
             { t: '7:00 pm', l: 'Dinner', s: 'Long table' },
             { t: '9:00 pm', l: 'Dancing', s: 'Until late' },
           ],
-    },
+      };
+    })(),
     travel: (() => {
       /* Read host-authored hotels from manifest.travelInfo.hotels[]
          (the canonical HotelBlock schema, populated by TravelPanel's
@@ -1880,10 +1960,11 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
         photoUrl: h.photoUrl || h.photoUrls?.[0],
         bookingUrl: h.bookingUrl,
       }));
+      const t = coTitle('travelTitle', 'Where to', 'stay');
       return {
         eyebrow: co('travelEyebrow', 'Getting there'),
-        title: 'Where to',
-        italic: 'stay',
+        title: t.head,
+        italic: t.italic,
         /* Host-authored arrival blurb from TravelPanel — populated
            when the host has typed into the "Getting there" field;
            otherwise undefined so the default travel section stays
@@ -1895,32 +1976,43 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
         ],
       };
     })(),
-    registry: {
+    registry: (() => {
+      const t = coTitle('registryTitle', 'Your presence is', 'the gift');
+      return {
       eyebrow: co('registryEyebrow', 'Registry'),
-      title: 'Your presence is',
-      italic: 'the gift',
+      title: t.head,
+      italic: t.italic,
       body: registryIntro || "If you'd like to celebrate further, we've put a few things together.",
       stores: registryStoresRaw && registryStoresRaw.length > 0
         ? registryStoresRaw.slice(0, 6)
         : ['Honeymoon fund', 'Crate & Barrel', 'Zola'],
-    },
-    gallery: {
+      };
+    })(),
+    gallery: (() => {
+      const t = coTitle('galleryTitle', 'A few', 'favorites');
+      return {
       eyebrow: co('galleryEyebrow', 'Gallery'),
-      title: 'A few',
-      italic: 'favorites',
+      title: t.head,
+      italic: t.italic,
       tones: galleryTones && galleryTones.length > 0
         ? galleryTones
         : (['warm', 'sage', 'dusk', 'peach', 'lavender', 'cream', 'warm', 'sage', 'dusk', 'peach', 'lavender', 'cream'] as PhotoTone[]),
-    },
-    rsvp: {
+      };
+    })(),
+    rsvp: (() => {
+      const t = coTitle('rsvpTitle', isWedding ? V.rsvpTitle : 'Reply by the date', '');
+      return {
       eyebrow: co('rsvpEyebrow', rsvpDeadline ? `RSVP by ${formatHeroDate(rsvpDeadline) || rsvpDeadline}` : 'RSVP by April 28'),
-      title: isWedding ? V.rsvpTitle : 'Reply by the date',
+      title: t.head,
       body: co('rsvpBody', 'It takes about 90 seconds. Pear will follow up if anyone forgets.'),
-    },
-    faq: {
+      };
+    })(),
+    faq: (() => {
+      const t = coTitle('faqTitle', 'The', 'little things');
+      return {
       eyebrow: co('faqEyebrow', 'Questions & answers'),
-      title: 'The',
-      italic: 'little things',
+      title: t.head,
+      italic: t.italic,
       questions: faqsRaw.length > 0
         ? faqsRaw.slice(0, 6).map((q) => q.question ?? '').filter(Boolean)
         : [
@@ -1936,7 +2028,8 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       qa: faqsRaw.length > 0
         ? faqsRaw.slice(0, 6).map((q) => ({ q: q.question ?? '', a: q.answer ?? '' }))
         : undefined,
-    },
+      };
+    })(),
   };
 }
 
