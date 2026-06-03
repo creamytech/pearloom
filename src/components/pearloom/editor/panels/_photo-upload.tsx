@@ -6,10 +6,14 @@
    story photos (StoryPanel). Posts to /api/photos/upload and
    returns the resolved baseUrl via onChange.
 
-   Renders identical visual + UX everywhere — the only difference
-   between mount sites is the aspectRatio prop. */
+   Round AA: optional `pool` prop opens a "Pick from gallery"
+   modal showing every photo the host's already uploaded
+   elsewhere on the site, so re-using a hero cover as a chapter
+   photo (or vice versa) doesn't require re-uploading. The pool
+   is built once at the panel level via `collectPhotoPool(manifest)`. */
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { StoryManifest } from '@/types';
 
 interface Props {
   /** Current photo URL (absolute, served from R2/CDN). Empty string
@@ -23,13 +27,17 @@ interface Props {
   hint?: string;
   /** Small (used in chapter slots) vs default (used for hero cover). */
   size?: 'sm' | 'md';
+  /** When present + non-empty, renders a "Pick from gallery" link
+   *  under the slot. Click → opens the gallery picker modal. */
+  pool?: string[];
 }
 
-export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, size = 'md' }: Props) {
+export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, size = 'md', pool }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   async function uploadFile(file: File) {
     if (!file.type.startsWith('image/')) {
@@ -86,6 +94,10 @@ export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, siz
   }
 
   const isSmall = size === 'sm';
+  /* Pool the host can re-pick from — dedupe + drop the current
+     slot's URL so the picker only ever shows OTHER photos. */
+  const otherPhotos = (pool ?? []).filter((u) => u && u !== url);
+  const hasPool = otherPhotos.length > 0;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -157,6 +169,41 @@ export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, siz
           >×</button>
         )}
       </div>
+
+      {/* "Pick from gallery" link — only when there's actually
+          another uploaded photo to choose from, and either the
+          slot is empty (so the host needs SOMETHING in it) or
+          they want to swap it for one already on the site. */}
+      {hasPool && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setPickerOpen(true); }}
+          style={{
+            alignSelf: 'flex-start',
+            marginTop: 2,
+            padding: '4px 8px',
+            borderRadius: 7,
+            border: '1px solid var(--line)',
+            background: 'transparent',
+            color: 'var(--ink-soft)',
+            fontSize: 11,
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 5,
+          }}
+        >
+          {/* Tiny stacked-photos glyph */}
+          <span aria-hidden style={{ display: 'inline-block', position: 'relative', width: 13, height: 11 }}>
+            <span style={{ position: 'absolute', left: 0, top: 2, width: 9, height: 9, borderRadius: 2, background: 'var(--cream-3)', border: '1px solid var(--line)' }} />
+            <span style={{ position: 'absolute', left: 3, top: 0, width: 9, height: 9, borderRadius: 2, background: 'var(--peach-bg)', border: '1px solid var(--peach-ink)' }} />
+          </span>
+          {url ? 'Swap from gallery' : 'Pick from gallery'}
+          <span style={{ fontSize: 10, color: 'var(--ink-muted)', fontWeight: 500 }}>· {otherPhotos.length}</span>
+        </button>
+      )}
+
       {hint && !url && !err && (
         <div style={{ fontSize: 10.5, color: 'var(--ink-muted)' }}>{hint}</div>
       )}
@@ -165,6 +212,184 @@ export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, siz
           {err}
         </div>
       )}
+
+      {pickerOpen && (
+        <GalleryPickerModal
+          photos={otherPhotos}
+          onPick={(picked) => { onChange(picked); setPickerOpen(false); }}
+          onClose={() => setPickerOpen(false)}
+        />
+      )}
     </div>
   );
+}
+
+/* ─── GalleryPickerModal ───────────────────────────────────── */
+
+interface GalleryPickerModalProps {
+  photos: string[];
+  onPick: (url: string) => void;
+  onClose: () => void;
+}
+
+function GalleryPickerModal({ photos, onPick, onClose }: GalleryPickerModalProps) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 200,
+        background: 'rgba(14,13,11,0.42)',
+        display: 'grid', placeItems: 'center',
+        padding: 24,
+        animation: 'pl-fade-in 140ms ease',
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-label="Pick a photo"
+        style={{
+          width: '100%',
+          maxWidth: 640,
+          maxHeight: '78vh',
+          display: 'flex', flexDirection: 'column',
+          background: 'var(--card)',
+          border: '1px solid var(--line)',
+          borderRadius: 14,
+          boxShadow: '0 24px 60px rgba(40,28,12,0.24), 0 8px 18px rgba(40,28,12,0.10)',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', padding: '14px 18px', borderBottom: '1px solid var(--line-soft)' }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>
+              Pick a photo
+            </div>
+            <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 1 }}>
+              {photos.length} {photos.length === 1 ? 'photo' : 'photos'} already uploaded to your site
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              width: 28, height: 28, borderRadius: 8,
+              background: 'var(--cream-2)', border: 'none',
+              cursor: 'pointer',
+              display: 'grid', placeItems: 'center',
+              fontSize: 14, fontWeight: 700, color: 'var(--ink-soft)',
+              lineHeight: 1,
+            }}
+          >×</button>
+        </div>
+
+        {/* Grid */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: 14,
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 8,
+          }}
+        >
+          {photos.length === 0 ? (
+            <div style={{ gridColumn: '1 / -1', padding: 40, textAlign: 'center', color: 'var(--ink-muted)', fontSize: 13 }}>
+              Nothing else uploaded yet.<br />
+              Drop a photo into any slot to start your library.
+            </div>
+          ) : photos.map((src, i) => (
+            <button
+              key={`${src}-${i}`}
+              type="button"
+              onClick={() => onPick(src)}
+              style={{
+                position: 'relative',
+                aspectRatio: '1 / 1',
+                borderRadius: 8,
+                border: '1px solid var(--line)',
+                background: `var(--cream-2) center / cover no-repeat url("${src.replace(/"/g, '%22')}")`,
+                cursor: 'pointer',
+                padding: 0,
+                transition: 'transform 140ms, box-shadow 140ms, border-color 140ms',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.02)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(40,28,12,0.18)';
+                e.currentTarget.style.borderColor = 'var(--peach-ink)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.borderColor = 'var(--line)';
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: '10px 18px', borderTop: '1px solid var(--line-soft)', background: 'var(--cream-2)', display: 'flex', justifyContent: 'flex-end' }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              padding: '6px 14px',
+              borderRadius: 8,
+              border: '1px solid var(--line)',
+              background: 'transparent',
+              fontSize: 12,
+              fontWeight: 600,
+              color: 'var(--ink-soft)',
+              cursor: 'pointer',
+            }}
+          >Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── collectPhotoPool ─────────────────────────────────────── */
+
+/** Walk the manifest and gather every photo URL the host's already
+ *  uploaded — cover photo + gallery images + each chapter's
+ *  photos. Deduped, blanks stripped. Used by panels to feed
+ *  PhotoUploadSlot's `pool` prop so the host can re-pick photos
+ *  across slots without re-uploading. */
+export function collectPhotoPool(manifest: StoryManifest): string[] {
+  const loose = manifest as unknown as Record<string, unknown>;
+  const seen = new Set<string>();
+  const out: string[] = [];
+  const push = (u: unknown) => {
+    if (typeof u !== 'string') return;
+    const t = u.trim();
+    if (!t) return;
+    if (seen.has(t)) return;
+    seen.add(t);
+    out.push(t);
+  };
+  push(loose.coverPhoto);
+  /* Gallery section host uploads. */
+  const gal = loose.galleryImages as unknown;
+  if (Array.isArray(gal)) gal.forEach(push);
+  /* Per-chapter photos. images[] is shaped as { url, ... }. */
+  const chapters = loose.chapters as Array<Record<string, unknown>> | undefined;
+  if (Array.isArray(chapters)) {
+    for (const c of chapters) {
+      const imgs = c.images as Array<Record<string, unknown>> | undefined;
+      if (Array.isArray(imgs)) {
+        for (const img of imgs) push(img.url);
+      }
+    }
+  }
+  return out;
 }

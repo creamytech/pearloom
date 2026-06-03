@@ -9,26 +9,96 @@
 
 import type { StoryManifest } from '@/types';
 import { FGroup, FInput, PearChip, SectionPanelShell } from './_section-atoms';
-import { FDate } from './_form-atoms';
+import { FDate, FSelect } from './_form-atoms';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
-import { PhotoUploadSlot } from './_photo-upload';
+import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
+import { SECTION_LINK_TARGETS, SPECIAL_LINK_TARGETS, resolveLinkLabel } from './_link-targets';
 
 interface CoverPhotoFieldProps {
-  /** Current cover photo URL (absolute, served from R2/CDN). */
   url: string;
-  /** Setter for the manifest write. */
   onChange: (next: string) => void;
+  pool: string[];
 }
 
-/* Thin wrapper around the shared PhotoUploadSlot — kept here so
-   the existing HeroPanel call site doesn't change. The body that
-   used to live inline (drag-drop / busy state / remove ×) is now
-   in src/components/pearloom/editor/panels/_photo-upload.tsx. */
-function CoverPhotoField({ url, onChange }: CoverPhotoFieldProps) {
+function CoverPhotoField({ url, onChange, pool }: CoverPhotoFieldProps) {
   return (
-    <FGroup label="Cover photo" hint="Drag an image here, or click to pick from your device.">
-      <PhotoUploadSlot url={url} onChange={onChange} aspectRatio="16/9" size="md" />
+    <FGroup label="Cover photo" hint="Drag an image here, click to pick from your device, or reuse one already on the site.">
+      <PhotoUploadSlot url={url} onChange={onChange} aspectRatio="16/9" size="md" pool={pool} />
     </FGroup>
+  );
+}
+
+/* ─── CtaLinkEditor — destination + label + optional custom URL ─ */
+
+interface CtaLinkEditorProps {
+  /** Destination value — '#story', 'https://...', '' (no link),
+   *  or '' meaning "use the default". */
+  href: string;
+  /** Label override — empty falls back to the destination's
+   *  default human name ("RSVP", "Our story"). */
+  label: string;
+  /** Default destination when href is blank — varies per CTA. */
+  defaultHref: string;
+  /** Setter for href. Pass '' to clear. */
+  onHrefChange: (next: string) => void;
+  /** Setter for label override. */
+  onLabelChange: (next: string) => void;
+}
+
+function CtaLinkEditor({ href, label, defaultHref, onHrefChange, onLabelChange }: CtaLinkEditorProps) {
+  /* Resolve the selector's "value" from the raw href. External
+     URLs collapse to 'custom'; an empty saved href means we're on
+     the default destination. */
+  const resolvedHref = href || defaultHref;
+  const isExternal = /^https?:\/\//.test(resolvedHref);
+  const selectorValue = isExternal
+    ? 'custom'
+    : resolvedHref === '' ? 'none' : resolvedHref;
+
+  /* Default label = resolved destination's name. Falls through
+     to the resolveLinkLabel catalog when the user hasn't typed
+     an override yet. */
+  const defaultLabel = resolveLinkLabel(resolvedHref);
+  const placeholder = defaultLabel || 'Button label';
+
+  const handleSelectorChange = (next: string) => {
+    if (next === 'custom') {
+      /* Switching INTO custom — keep any existing URL the host
+         had, otherwise seed with empty so the URL input shows up
+         clearly empty. */
+      onHrefChange(isExternal ? resolvedHref : '');
+      return;
+    }
+    if (next === 'none') {
+      onHrefChange('none-link');
+      return;
+    }
+    onHrefChange(next);
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <FSelect
+        value={selectorValue}
+        onChange={handleSelectorChange}
+        options={[...SECTION_LINK_TARGETS, ...SPECIAL_LINK_TARGETS]}
+        icon="arrow-right"
+      />
+      {selectorValue === 'custom' && (
+        <FInput
+          value={isExternal ? resolvedHref : ''}
+          onChange={onHrefChange}
+          type="url"
+          icon="link"
+          placeholder="https://your-link.com"
+        />
+      )}
+      <FInput
+        value={label}
+        onChange={onLabelChange}
+        placeholder={placeholder}
+      />
+    </div>
   );
 }
 
@@ -73,7 +143,13 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
   };
   const heroLead = copy.heroLead ?? '';
   const heroCta = copy.heroCta ?? '';
+  const heroCtaHref = copy.heroCtaHref ?? '';
   const heroCtaSecondary = copy.heroCtaSecondary ?? '';
+  const heroCtaSecondaryHref = copy.heroCtaSecondaryHref ?? '';
+  /* Pool every photo already uploaded across the site (cover +
+     gallery + per-chapter) so the cover-photo slot can offer a
+     "swap from gallery" pick. */
+  const photoPool = collectPhotoPool(manifest);
 
   return (
     <SectionPanelShell>
@@ -105,12 +181,24 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
           <div style={{ height: 8 }} />
           <FInput value={venue} onChange={setVenue} icon="pin" placeholder="Casa Chorro · Santorini" />
         </FGroup>
-        <CoverPhotoField url={coverPhoto} onChange={setCoverPhoto} />
-        <FGroup label="Buttons" hint="Customize the call-to-action labels.">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-            <FInput value={heroCta} onChange={(v) => setCopy('heroCta', v)} placeholder="RSVP" />
-            <FInput value={heroCtaSecondary} onChange={(v) => setCopy('heroCtaSecondary', v)} placeholder="Learn more" />
-          </div>
+        <CoverPhotoField url={coverPhoto} onChange={setCoverPhoto} pool={photoPool} />
+        <FGroup label="Primary button" hint="The first CTA — pick where it goes, then optionally rename it.">
+          <CtaLinkEditor
+            href={heroCtaHref}
+            label={heroCta}
+            defaultHref="#rsvp"
+            onHrefChange={(v) => setCopy('heroCtaHref', v)}
+            onLabelChange={(v) => setCopy('heroCta', v)}
+          />
+        </FGroup>
+        <FGroup label="Secondary button" hint="Optional — the smaller outline button next to the primary.">
+          <CtaLinkEditor
+            href={heroCtaSecondaryHref}
+            label={heroCtaSecondary}
+            defaultHref="#story"
+            onHrefChange={(v) => setCopy('heroCtaSecondaryHref', v)}
+            onLabelChange={(v) => setCopy('heroCtaSecondary', v)}
+          />
         </FGroup>
       </div>
     </SectionPanelShell>

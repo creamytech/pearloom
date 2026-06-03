@@ -56,9 +56,10 @@ export interface TravelCopy {
   hotels: Hotel[];
 }
 
+export interface RegistryStore { name: string; url?: string }
 export interface RegistryCopy {
   eyebrow: string; title: string; italic?: string;
-  body: string; stores: string[];
+  body: string; stores: RegistryStore[];
   fundPct?: number; fundSub?: string;
 }
 

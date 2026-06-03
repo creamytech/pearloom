@@ -19,7 +19,7 @@ import { useMemo, useState } from 'react';
 import type { StoryManifest, Chapter, ChapterImage } from '@/types';
 import { Icon } from '../../motifs';
 import { FGroup, FInput, SectionPanelShell, useCopyOverride } from './_section-atoms';
-import { PhotoUploadSlot } from './_photo-upload';
+import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
 
 type Tone = 'Shorten' | 'Warmer' | 'Funnier' | 'More poetic';
 
@@ -107,6 +107,10 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
      these in the story variants (timeline / sidebyside / etc) to
      render real photos instead of gradient placeholders. */
   const chapters: Chapter[] = Array.isArray(manifest.chapters) ? manifest.chapters : [];
+  /* Pool of every photo uploaded across the site (cover + gallery
+     + per-chapter). Feeds each chapter slot's "Swap from gallery"
+     picker so the host can re-use shots without re-uploading. */
+  const photoPool = collectPhotoPool(manifest);
   const chapterImage = (i: number): string => {
     const ch = chapters[i];
     if (!ch || !Array.isArray(ch.images) || ch.images.length === 0) return '';
@@ -381,6 +385,7 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
                     onChange={(url) => setChapterImage(i, url)}
                     aspectRatio="4/5"
                     size="sm"
+                    pool={photoPool}
                   />
                 </div>
                 {/* Right column — title + body. */}

@@ -11,7 +11,7 @@
 
 import type { StoryManifest } from '@/types';
 import { FGroup, FInput, FToggleStandalone, SectionPanelShell, useCopyOverride } from './_section-atoms';
-import { PhotoUploadSlot } from './_photo-upload';
+import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
 
 export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const photos: string[] = ((manifest as unknown as { galleryImages?: string[] }).galleryImages) ?? [];
@@ -50,6 +50,10 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
      all of them + one "Add another" slot at the end. */
   const minSlots = 6;
   const renderCount = Math.max(minSlots, photos.length);
+  /* Pool of photos already uploaded elsewhere on the site (cover +
+     chapter images) — lets each empty gallery slot pull a photo
+     in from the rest of the site without re-uploading. */
+  const photoPool = collectPhotoPool(manifest);
 
   return (
     <SectionPanelShell>
@@ -66,12 +70,9 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
                 onChange={(url) => setPhoto(i, url)}
                 aspectRatio="1/1"
                 size="sm"
+                pool={photoPool}
               />
             ))}
-            {/* Extra "Add another" slot so the host can always push
-                a new photo past the grid floor. Only shown when the
-                current array is fully filled — otherwise the empty
-                slots from the floor handle additions. */}
             {photos.length >= renderCount && (
               <PhotoUploadSlot
                 key="add-more"
@@ -79,6 +80,7 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
                 onChange={addPhoto}
                 aspectRatio="1/1"
                 size="sm"
+                pool={photoPool}
               />
             )}
           </div>

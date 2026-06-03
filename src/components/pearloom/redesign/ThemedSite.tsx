@@ -617,7 +617,7 @@ function HeroCentered({ ctx }: { ctx: SectionCtx }) {
           <KDivider look={ctx.dividerLook} width={200} />
         </div>
         <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center' }}>
-          <TButton variant="primary">
+          <TButton variant="primary" href={C.ctaHref}>
             <InlineEdit
               as="span"
               value={C.cta}
@@ -627,7 +627,7 @@ function HeroCentered({ ctx }: { ctx: SectionCtx }) {
             />
             <Icon name="arrow-right" size={13} color="var(--t-paper)" />
           </TButton>
-          <TButton variant="outline">
+          <TButton variant="outline" href={C.ctaSecondaryHref}>
             <InlineEdit
               as="span"
               value={C.ctaSecondary ?? 'Learn more'}
@@ -679,11 +679,11 @@ function HeroSplit({ ctx }: { ctx: SectionCtx }) {
         </div>
         <div style={{ marginTop: 16 }}><KDivider look={ctx.dividerLook} width={180} style={{ marginLeft: 0 }} /></div>
         <div style={{ marginTop: 20, display: 'flex', gap: 10 }}>
-          <TButton variant="primary">
+          <TButton variant="primary" href={C.ctaHref}>
             <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
             <Icon name="arrow-right" size={13} color="var(--t-paper)" />
           </TButton>
-          <TButton variant="outline">
+          <TButton variant="outline" href={C.ctaSecondaryHref}>
             <InlineEdit as="span" value={C.ctaSecondary ?? 'Learn more'} onChange={edit?.copy ? (v) => edit.copy?.('heroCtaSecondary', v) : undefined} editable={editable && !!edit?.copy} placeholder="Learn more" />
           </TButton>
         </div>
@@ -729,11 +729,11 @@ function HeroMinimal({ ctx }: { ctx: SectionCtx }) {
         </div>
         <div style={{ marginTop: 18 }}><KDivider look={ctx.dividerLook} width={200} style={{ marginLeft: 0 }} /></div>
         <div style={{ marginTop: 20, display: 'flex', gap: 10 }}>
-          <TButton variant="primary">
+          <TButton variant="primary" href={C.ctaHref}>
             <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
             <Icon name="arrow-right" size={13} color="var(--t-paper)" />
           </TButton>
-          <TButton variant="outline">
+          <TButton variant="outline" href={C.ctaSecondaryHref}>
             <InlineEdit as="span" value={C.ctaSecondary ?? 'Learn more'} onChange={edit?.copy ? (v) => edit.copy?.('heroCtaSecondary', v) : undefined} editable={editable && !!edit?.copy} placeholder="Learn more" />
           </TButton>
         </div>
@@ -765,7 +765,7 @@ function HeroFullbleed({ ctx }: { ctx: SectionCtx }) {
         </h1>
         <div style={{ marginTop: 14, fontSize: 14.5, opacity: 0.92 }}>{C.meta.date} · {C.meta.place}</div>
         <div style={{ marginTop: 22 }}>
-          <TButton variant="primary">
+          <TButton variant="primary" href={C.ctaHref}>
             <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
             <Icon name="arrow-right" size={13} color="var(--t-paper)" />
           </TButton>
@@ -796,7 +796,7 @@ function HeroTypographic({ ctx }: { ctx: SectionCtx }) {
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="pin" size={14} color="var(--t-accent)" /> {C.meta.place}</span>
         </div>
         <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center' }}>
-          <TButton variant="primary">
+          <TButton variant="primary" href={C.ctaHref}>
             <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
             <Icon name="arrow-right" size={13} color="var(--t-paper)" />
           </TButton>
@@ -831,11 +831,11 @@ function HeroPostcard({ ctx }: { ctx: SectionCtx }) {
           </div>
           <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}><KDivider look={ctx.dividerLook} width={180} /></div>
           <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center' }}>
-            <TButton variant="primary">
+            <TButton variant="primary" href={C.ctaHref}>
               <InlineEdit as="span" value={C.cta} onChange={edit?.copy ? (v) => edit.copy?.('heroCta', v) : undefined} editable={editable && !!edit?.copy} placeholder="RSVP" />
               <Icon name="arrow-right" size={13} color="var(--t-paper)" />
             </TButton>
-            <TButton variant="outline">
+            <TButton variant="outline" href={C.ctaSecondaryHref}>
               <InlineEdit as="span" value={C.ctaSecondary ?? 'Learn more'} onChange={edit?.copy ? (v) => edit.copy?.('heroCtaSecondary', v) : undefined} editable={editable && !!edit?.copy} placeholder="Learn more" />
             </TButton>
           </div>
@@ -1268,11 +1268,28 @@ function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
         {C.registry.body}
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
-        {C.registry.stores.map((s) => (
-          <span key={s} style={{ padding: '12px 22px', borderRadius: 'var(--t-radius)', background: 'var(--t-card)', border: '1px solid var(--t-line)', fontSize: 13, fontWeight: 600, color: 'var(--t-ink)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            {s} <Icon name="arrow-ur" size={12} color="var(--t-accent-ink)" />
-          </span>
-        ))}
+        {C.registry.stores.map((s, i) => {
+          const pillStyle: CSSProperties = {
+            padding: '12px 22px', borderRadius: 'var(--t-radius)',
+            background: 'var(--t-card)', border: '1px solid var(--t-line)',
+            fontSize: 13, fontWeight: 600, color: 'var(--t-ink)',
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            textDecoration: 'none',
+            transition: 'transform 180ms cubic-bezier(0.16,1,0.3,1), border-color 180ms',
+          };
+          if (s.url) {
+            return (
+              <a key={`${s.name}-${i}`} href={s.url} target="_blank" rel="noopener noreferrer" style={pillStyle}>
+                {s.name} <Icon name="arrow-ur" size={12} color="var(--t-accent-ink)" />
+              </a>
+            );
+          }
+          return (
+            <span key={`${s.name}-${i}`} style={pillStyle}>
+              {s.name} <Icon name="arrow-ur" size={12} color="var(--t-accent-ink)" />
+            </span>
+          );
+        })}
       </div>
     </div>
   );
@@ -1490,32 +1507,55 @@ function TSection({ id, label, children, active, hover, setActive, setHover, edi
 
 /* ─── TButton — handoff/shared/themes.jsx variants. ─────────── */
 
-function TButton({ variant = 'primary', children, style }: { variant?: 'primary' | 'outline' | 'link'; children: ReactNode; style?: CSSProperties }) {
+function TButton({
+  variant = 'primary',
+  children,
+  style,
+  href,
+}: {
+  variant?: 'primary' | 'outline' | 'link';
+  children: ReactNode;
+  style?: CSSProperties;
+  /** Where the button navigates. '#section' scrolls to a section,
+   *  'https://...' is an external link, '' renders a plain <span>
+   *  (decorative). 'rsvp-modal' is a sentinel handled by the
+   *  parent — we render an <a href="#rsvp"> fallback. */
+  href?: string;
+}) {
   const base: CSSProperties = {
     display: 'inline-flex', alignItems: 'center', gap: 6,
     padding: '10px 22px', borderRadius: 999,
     fontSize: 13, fontWeight: 700, cursor: 'pointer',
     border: 0, transition: 'all 180ms cubic-bezier(0.16,1,0.3,1)',
-    fontFamily: 'inherit',
+    fontFamily: 'inherit', textDecoration: 'none',
   };
-  if (variant === 'primary') {
-    return (
-      <span style={{ ...base, background: 'var(--t-ink)', color: 'var(--t-paper)', ...style }}>
-        {children}
-      </span>
-    );
+  const visual: CSSProperties =
+    variant === 'primary'
+      ? { background: 'var(--t-ink)', color: 'var(--t-paper)' }
+      : variant === 'outline'
+        ? { background: 'transparent', color: 'var(--t-ink)', border: '1px solid var(--t-line)' }
+        : { background: 'transparent', color: 'var(--t-accent-ink)', padding: '10px 0' };
+  const combined = { ...base, ...visual, ...style };
+
+  /* No link OR explicit "none-link" sentinel (host picked "No
+     link" in the panel) → render as <span>. */
+  if (!href || href === 'none-link') {
+    return <span style={combined}>{children}</span>;
   }
-  if (variant === 'outline') {
-    return (
-      <span style={{ ...base, background: 'transparent', color: 'var(--t-ink)', border: '1px solid var(--t-line)', ...style }}>
-        {children}
-      </span>
-    );
-  }
+  /* In-site anchor — let the browser handle the hash scroll. The
+     rsvp-modal sentinel falls through to #rsvp in case the modal
+     isn't mounted on the current page variant. */
+  const resolvedHref = href === 'rsvp-modal' ? '#rsvp' : href;
+  const isExternal = /^https?:\/\//.test(resolvedHref);
   return (
-    <span style={{ ...base, background: 'transparent', color: 'var(--t-accent-ink)', padding: '10px 0', ...style }}>
+    <a
+      href={resolvedHref}
+      target={isExternal ? '_blank' : undefined}
+      rel={isExternal ? 'noopener noreferrer' : undefined}
+      style={combined}
+    >
       {children}
-    </span>
+    </a>
   );
 }
 
@@ -1670,9 +1710,16 @@ interface Copy {
   lead: string;
   tagline: string;
   cta: string;
+  /** Where the primary CTA navigates. '#section' anchor, full URL,
+   *  or '' for no link. From manifest.copy.heroCtaHref (default
+   *  '#rsvp' when blank — matches the legacy hardcoded behaviour). */
+  ctaHref?: string;
   /** Secondary CTA label ("Learn more" default). Host-overridable
    *  via manifest.copy.heroCtaSecondary. */
   ctaSecondary?: string;
+  /** Where the secondary CTA navigates. From manifest.copy.heroCtaSecondaryHref
+   *  (default '#story' when blank). */
+  ctaSecondaryHref?: string;
   meta: { date: string; place: string };
   story: {
     eyebrow: string;
@@ -1694,7 +1741,14 @@ interface Copy {
   details: { eyebrow: string; title: string; italic?: string; items: { l: string; v: string; icon: string }[] };
   schedule: { eyebrow: string; title: string; italic?: string; rows: { t: string; l: string; s: string }[] };
   travel: { eyebrow: string; title: string; italic?: string; intro?: string; hotels: { name: string; price: string; rating: number; reviews: number; dist: string; tone: PhotoTone; blurb: string; amenities: string[]; photoUrl?: string; bookingUrl?: string }[] };
-  registry: { eyebrow: string; title: string; italic?: string; body: string; stores: string[] };
+  registry: {
+    eyebrow: string; title: string; italic?: string; body: string;
+    /** Rich registry stores — name + optional URL. The renderer
+     *  wraps each in <a href> when a URL is present, otherwise
+     *  shows a plain pill. Legacy string[] entries from old
+     *  manifests are normalized to { name } in buildCopy. */
+    stores: { name: string; url?: string }[];
+  };
   gallery: {
     eyebrow: string;
     title: string;
@@ -1912,7 +1966,17 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
   const detailsCards = (loose.detailsCards as Array<[string, string]> | undefined) ?? [];
   const eventsRaw = (loose.events as Array<{ time?: string; name?: string; venue?: string; description?: string }> | undefined) ?? [];
   const faqsRaw = (loose.faqs as Array<{ question?: string; answer?: string }> | undefined) ?? [];
-  const registryStoresRaw = (loose.registryStores as string[] | undefined);
+  /* manifest.registryStores may be legacy string[] OR new
+     { name, url? }[]. Normalize to the rich shape for buildCopy. */
+  const registryStoresRaw = (() => {
+    const raw = loose.registryStores as Array<string | { name?: string; url?: string }> | undefined;
+    if (!raw) return undefined;
+    return raw
+      .map((entry) => typeof entry === 'string'
+        ? { name: entry }
+        : { name: entry.name ?? '', url: entry.url })
+      .filter((entry) => entry.name.trim().length > 0);
+  })();
   const registryIntro = (loose.registryIntro as string | undefined);
   const rsvpDeadline = (loose.rsvpDeadline as string | undefined);
   const tagline = (loose.tagline as string | undefined);
@@ -1956,7 +2020,9 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
     lead: co('heroLead', V.lead),
     tagline: tagline || V.tagline,
     cta: co('heroCta', 'RSVP'),
+    ctaHref: co('heroCtaHref', '#rsvp'),
     ctaSecondary: co('heroCtaSecondary', 'Learn more'),
+    ctaSecondaryHref: co('heroCtaSecondaryHref', '#story'),
     meta: { date: args.date, place: args.place },
     story: (() => {
       /* Pull up to 3 chapter photos + titles + bodies from the
@@ -2080,7 +2146,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       body: registryIntro || "If you'd like to celebrate further, we've put a few things together.",
       stores: registryStoresRaw && registryStoresRaw.length > 0
         ? registryStoresRaw.slice(0, 6)
-        : ['Honeymoon fund', 'Crate & Barrel', 'Zola'],
+        : [{ name: 'Honeymoon fund' }, { name: 'Crate & Barrel' }, { name: 'Zola' }],
       };
     })(),
     gallery: (() => {
