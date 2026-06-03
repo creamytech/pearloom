@@ -1,0 +1,91 @@
+/* eslint-disable no-restricted-syntax */
+/* Shared types for the per-section layout variant components in
+   src/components/pearloom/redesign/section-variants/*.tsx.
+
+   Each variant component takes one prop, `ctx`, with the minimal
+   slice of ThemedSite's internal Ctx + Copy that the variant
+   needs. Kept tight so a new variant can't accidentally reach
+   into editor-only state. */
+
+export type Density = 'cozy' | 'comfortable' | 'spacious';
+
+export type PhotoTone =
+  | 'warm' | 'cream' | 'sage' | 'dusk' | 'peach' | 'lavender'
+  | 'gold' | 'ink' | 'rose';
+
+export interface VariantTheme {
+  /** Used by RSVP banner / details-bento / registry-progress
+   *  variants to detect "is this a foil-finish theme" and switch
+   *  on a gradient accent. */
+  foil?: boolean;
+}
+
+/* The variants share a small slice of Copy. Each section's
+   variant only consumes its own slice. */
+
+export interface RsvpCopy {
+  eyebrow: string;
+  title: string;
+  body: string;
+}
+
+export interface DetailsItem { l: string; v: string; icon: string; s?: string }
+export interface DetailsCopy {
+  eyebrow: string; title: string; italic?: string;
+  items: DetailsItem[];
+}
+
+export interface ScheduleRow { t: string; l: string; s: string; m?: string }
+export interface ScheduleCopy {
+  eyebrow: string; title: string; italic?: string;
+  rows: ScheduleRow[];
+}
+
+export interface Hotel {
+  name: string; price: string; rating: number; reviews: number;
+  dist: string; tone: PhotoTone; blurb: string; amenities: string[];
+}
+export interface TravelCopy {
+  eyebrow: string; title: string; italic?: string;
+  hotels: Hotel[];
+}
+
+export interface RegistryCopy {
+  eyebrow: string; title: string; italic?: string;
+  body: string; stores: string[];
+  fundPct?: number; fundSub?: string;
+}
+
+export interface GalleryCopy {
+  eyebrow: string; title: string; italic?: string;
+  tones: PhotoTone[];
+}
+
+export interface FaqQA { q: string; a?: string }
+export interface FaqCopy {
+  eyebrow: string; title: string; italic?: string;
+  questions: string[];
+  qa?: FaqQA[];
+}
+
+export interface StoryCopy {
+  eyebrow: string; title: string; italic?: string;
+  body: string; chips?: string[];
+}
+
+export interface BaseCtx {
+  density: Density;
+  pad: number;
+  editable: boolean;
+  cta: string;
+  theme?: VariantTheme;
+}
+
+export interface RsvpVariantCtx extends BaseCtx { C: RsvpCopy }
+export interface DetailsVariantCtx extends BaseCtx { C: DetailsCopy }
+export interface ScheduleVariantCtx extends BaseCtx { C: ScheduleCopy }
+export interface TravelVariantCtx extends BaseCtx { C: TravelCopy }
+export interface RegistryVariantCtx extends BaseCtx { C: RegistryCopy }
+export interface GalleryVariantCtx extends BaseCtx { C: GalleryCopy }
+export interface FaqVariantCtx extends BaseCtx { C: FaqCopy }
+export interface StoryVariantCtx extends BaseCtx { C: StoryCopy }

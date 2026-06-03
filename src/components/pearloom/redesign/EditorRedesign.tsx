@@ -275,6 +275,7 @@ function EditorCanvas({
         <FloatingPearBubble
           active={active}
           manifest={manifest}
+          names={names}
           onApplyPatch={(next) => {
             /* Forward to the bridge via setManifest — flowing through
                the same persistence + saveState wiring. */

@@ -30,18 +30,32 @@ import { readVariant } from './layouts';
 import type { SectionId } from './EditorRedesign';
 
 interface Props {
-  active: SectionId;
-  hover: SectionId;
-  setActive: (id: SectionId) => void;
-  setHover: (id: SectionId) => void;
-  editable: boolean;
+  /* Editor-only props — optional so PublishedSiteShell can mount
+     this exact component in published mode without supplying any
+     editor wiring. Defaults map to "nothing selected, nothing
+     hovered, nothing editable". */
+  active?: SectionId;
+  hover?: SectionId;
+  setActive?: (id: SectionId) => void;
+  setHover?: (id: SectionId) => void;
+  editable?: boolean;
   manifest: StoryManifest;
   names: [string, string];
 }
 
 /* ─── Top-level shell — handoff themed-site.jsx L106-218. ────── */
 
-export function ThemedSite({ active, hover, setActive, setHover, editable, manifest, names }: Props) {
+const noop = () => {};
+
+export function ThemedSite({
+  active = null,
+  hover = null,
+  setActive = noop,
+  setHover = noop,
+  editable = false,
+  manifest,
+  names,
+}: Props) {
   const themeId = ((manifest as unknown as { themeId?: string }).themeId)
     ?? ((manifest as unknown as { theme?: { id?: string } }).theme?.id);
   const theme = getTheme(themeId);

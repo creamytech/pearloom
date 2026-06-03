@@ -10,6 +10,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
    wiring stays obvious to future readers. */
 import type { StoryManifest } from '@/types';
 import { buildSitePath, formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
+import { stripArtForStorage } from '@/lib/editor-state';
 
 interface BridgeInput {
   initialManifest: StoryManifest;
@@ -65,6 +66,16 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
   const [saveState, setSaveState] = useState<SaveState>('saved');
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestPayload = useRef<{ manifest: StoryManifest; names: [string, string] }>({ manifest: initialManifest, names: initialNames });
+  /* In-flight guard: prevents two POSTs racing against the same
+     Supabase row. If a save is mid-flight when a new edit lands,
+     we stash the latest payload + queue a follow-up that fires
+     once the in-flight POST resolves. */
+  const saveInFlight = useRef<boolean>(false);
+  const pendingFollowup = useRef<boolean>(false);
+  /* Retry counter for transient failures (5xx, network errors).
+     Resets on each successful save. Capped so we don't spin
+     forever on a permanent outage. */
+  const retryAttempt = useRef<number>(0);
 
   /* Undo/redo — a simple manifest history. Each setManifest call
      pushes a snapshot; undo rewinds the cursor. Capped at 50 to keep
@@ -111,34 +122,86 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
     return Math.round((filled / checks.length) * 100);
   }, [manifest, names]);
 
+  /* fireSave — the actual POST, factored out so the in-flight
+     guard + retry timer can re-enter without re-arming the
+     debounce. Returns nothing; updates saveState as it progresses. */
+  const fireSave = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    if (saveInFlight.current) {
+      /* Another save is mid-flight; mark a follow-up pending so we
+         re-fire once the in-flight one resolves with whatever the
+         newest payload happens to be at that moment. */
+      pendingFollowup.current = true;
+      return;
+    }
+    saveInFlight.current = true;
+    setSaveState('saving');
+    /* Strip base64 DataURLs from chapter images + vibeSkin so the
+       JSON payload stays small. NOTE: deliberately NOT using
+       keepalive on the regular autosave — keepalive imposes a
+       64 KB body cap, which silently rejects any manifest with
+       photos still embedded as base64. beforeunload uses
+       sendBeacon (which has the same 64 KB cap) but at that
+       point we've already stripped art too. */
+    const { manifest: m, names: n } = latestPayload.current;
+    const m2 = stripArtForStorage(m);
+    const body = JSON.stringify({ subdomain: siteSlug, manifest: m2, names: n });
+    fetch('/api/sites', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+    }).then(async (res) => {
+      saveInFlight.current = false;
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        console.error(`[redesign/bridge] save failed ${res.status}:`, text);
+        /* 4xx is permanent (bad payload, auth, conflict). 5xx +
+           network errors are transient — back off and retry up
+           to 3 times. */
+        if (res.status >= 500 || res.status === 0) {
+          if (retryAttempt.current < 3) {
+            retryAttempt.current += 1;
+            const wait = [2000, 6000, 18000][retryAttempt.current - 1] ?? 18000;
+            setTimeout(fireSave, wait);
+            setSaveState('unsaved');
+            return;
+          }
+        }
+        setSaveState('error');
+        return;
+      }
+      retryAttempt.current = 0;
+      setSavedAt(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
+      setSaveState('saved');
+      /* A follow-up edit may have landed while this POST was in
+         flight; fire one more save with the newest payload. */
+      if (pendingFollowup.current) {
+        pendingFollowup.current = false;
+        fireSave();
+      }
+    }).catch((err) => {
+      saveInFlight.current = false;
+      console.error('[redesign/bridge] save network error:', err);
+      if (retryAttempt.current < 3) {
+        retryAttempt.current += 1;
+        const wait = [2000, 6000, 18000][retryAttempt.current - 1] ?? 18000;
+        setTimeout(fireSave, wait);
+        setSaveState('unsaved');
+        return;
+      }
+      setSaveState('error');
+    });
+  }, [siteSlug]);
+
   const persist = useCallback(
     (m: StoryManifest, n: [string, string]) => {
       if (typeof window === 'undefined') return;
       latestPayload.current = { manifest: m, names: n };
       setSaveState('unsaved');
       if (saveTimer.current) clearTimeout(saveTimer.current);
-      saveTimer.current = setTimeout(() => {
-        setSaveState('saving');
-        const body = JSON.stringify({ siteSlug, manifest: m, names: n });
-        fetch('/api/sites', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body,
-          /* keepalive lets the request complete even if the user
-             navigates away mid-flight. Same body the beforeunload
-             handler sendBeacon's on unload. */
-          keepalive: true,
-        }).then((res) => {
-          if (!res.ok) throw new Error(`save failed: ${res.status}`);
-          setSavedAt(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
-          setSaveState('saved');
-        }).catch(() => {
-          setSaveState('error');
-          /* Next change will retry via the debounce timer. */
-        });
-      }, AUTOSAVE_DEBOUNCE_MS);
+      saveTimer.current = setTimeout(fireSave, AUTOSAVE_DEBOUNCE_MS);
     },
-    [siteSlug],
+    [fireSave],
   );
 
   /* beforeunload — flush in-flight changes via sendBeacon so the
@@ -148,7 +211,8 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
     if (typeof window === 'undefined') return;
     const flush = () => {
       const { manifest: m, names: n } = latestPayload.current;
-      const body = JSON.stringify({ siteSlug, manifest: m, names: n });
+      const m2 = stripArtForStorage(m);
+      const body = JSON.stringify({ subdomain: siteSlug, manifest: m2, names: n });
       try {
         navigator.sendBeacon('/api/sites', new Blob([body], { type: 'application/json' }));
       } catch {
@@ -221,14 +285,15 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
 
   /* editField — patch-function variant matching the renderer's
      FieldEditor signature. The renderer hands us a manifest
-     transformer; we apply it, persist, and store the next manifest. */
+     transformer; we apply it, push history, persist, and store
+     the next manifest. Runs OUTSIDE the setState updater so
+     StrictMode's double-invocation doesn't fire persist twice. */
   const editField = useCallback((patch: (m: StoryManifest) => StoryManifest) => {
-    setManifestState((prev) => {
-      const next = patch(prev);
-      persist(next, names);
-      return next;
-    });
-  }, [persist, names]);
+    const next = patch(manifest);
+    setManifestState(next);
+    pushHistory(next);
+    persist(next, names);
+  }, [manifest, persist, names, pushHistory]);
 
   useEffect(() => () => { if (saveTimer.current) clearTimeout(saveTimer.current); }, []);
 

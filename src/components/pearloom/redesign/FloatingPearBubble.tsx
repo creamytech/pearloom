@@ -11,11 +11,24 @@ import type { StoryManifest } from '@/types';
 interface Props {
   active: SectionId;
   /** Optional — when set, "Yes, try it" calls into /api/pear-critique
-   *  with the current section + manifest context and applies the
-   *  returned patch. */
+   *  with the current section + manifest context. The route returns
+   *  navigation suggestions (not a manifest patch); the first
+   *  suggestion is surfaced as a "Jump to <tab>" CTA via onJumpTab. */
   manifest?: StoryManifest;
+  /** Required by /api/pear-critique's schema. Used to summarise the
+   *  manifest in the critique prompt. */
+  names?: [string, string];
   onApplyPatch?: (m: StoryManifest) => void;
+  onJumpTab?: (tab: string, hint: string) => void;
   onAskMore?: (text: string) => void;
+}
+
+interface Suggestion {
+  id: string;
+  level: 'critical' | 'warning' | 'tip';
+  title: string;
+  description: string;
+  tab: string;
 }
 
 const NUDGES: Record<string, string> = {
@@ -25,38 +38,66 @@ const NUDGES: Record<string, string> = {
   default: 'I noticed your schedule has gaps — want me to rebalance the timeline?',
 };
 
-export function FloatingPearBubble({ active, manifest, onApplyPatch, onAskMore }: Props) {
+export function FloatingPearBubble({ active, manifest, names, onJumpTab, onAskMore }: Props) {
   const [open, setOpen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
+  /* When tryIt returns a suggestion, surface it as a follow-up
+     card with a "Jump to <tab>" CTA instead of silently applying
+     a non-existent patch. */
+  const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
 
   if (dismissed) return null;
 
   const nudge = active ? NUDGES[active] ?? NUDGES.default : NUDGES.default;
 
   async function tryIt() {
-    if (!manifest || !onApplyPatch) return;
+    if (!manifest) return;
     setBusy(true); setErr(null);
     try {
+      /* /api/pear-critique requires { manifest, coupleNames } per
+         the route's request schema (route.ts:323). Without
+         coupleNames the call 400's. */
       const res = await fetch('/api/pear-critique', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ manifest, intent: active ? `polish-${active}` : 'review' }),
+        body: JSON.stringify({
+          manifest,
+          coupleNames: names ?? ['Couple', ''],
+          intent: active ? `polish-${active}` : 'review',
+        }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
       }
-      const data = await res.json() as { manifest?: StoryManifest };
-      if (data.manifest) onApplyPatch(data.manifest);
-      setDismissed(true);
+      const data = await res.json() as { suggestions?: Suggestion[] };
+      const first = data.suggestions?.[0];
+      if (first) {
+        setSuggestion(first);
+      } else {
+        setErr('Pear had nothing to add right now.');
+      }
     } catch (e) {
       setErr((e as Error).message);
     } finally {
       setBusy(false);
     }
+  }
+
+  function jumpToSuggestion() {
+    if (!suggestion) return;
+    if (onJumpTab) onJumpTab(suggestion.tab, suggestion.description);
+    /* Also emit a window event the editor shell listens for, so
+       consumers without the prop wired still react. */
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('pearloom:jump-to-tab', {
+        detail: { tab: suggestion.tab, hint: suggestion.description },
+      }));
+    }
+    setDismissed(true);
   }
 
   function send() {
@@ -161,28 +202,59 @@ export function FloatingPearBubble({ active, manifest, onApplyPatch, onAskMore }
       </div>
 
       <div style={{ padding: '12px 14px' }}>
-        <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.45, marginBottom: 10 }}>
-          {nudge}
-        </div>
-        <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-          <button
-            type="button"
-            onClick={tryIt}
-            disabled={busy || !onApplyPatch}
-            className="btn btn-primary btn-sm"
-            style={{ flex: 1, justifyContent: 'center', fontSize: 12, opacity: busy ? 0.7 : 1 }}
-          >
-            {busy ? 'Pear is thinking…' : 'Yes, try it'}
-          </button>
-          <button
-            type="button"
-            onClick={() => setDismissed(true)}
-            className="btn btn-outline btn-sm"
-            style={{ fontSize: 12 }}
-          >
-            Not now
-          </button>
-        </div>
+        {suggestion ? (
+          <>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>
+              {suggestion.title}
+            </div>
+            <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.45, marginBottom: 10 }}>
+              {suggestion.description}
+            </div>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+              <button
+                type="button"
+                onClick={jumpToSuggestion}
+                className="btn btn-primary btn-sm"
+                style={{ flex: 1, justifyContent: 'center', fontSize: 12 }}
+              >
+                Jump to {suggestion.tab}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDismissed(true)}
+                className="btn btn-outline btn-sm"
+                style={{ fontSize: 12 }}
+              >
+                Dismiss
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.45, marginBottom: 10 }}>
+              {nudge}
+            </div>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+              <button
+                type="button"
+                onClick={tryIt}
+                disabled={busy || !manifest}
+                className="btn btn-primary btn-sm"
+                style={{ flex: 1, justifyContent: 'center', fontSize: 12, opacity: busy ? 0.7 : 1 }}
+              >
+                {busy ? 'Pear is thinking…' : 'Yes, try it'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDismissed(true)}
+                className="btn btn-outline btn-sm"
+                style={{ fontSize: 12 }}
+              >
+                Not now
+              </button>
+            </div>
+          </>
+        )}
         {err && (
           <div style={{ padding: '6px 10px', borderRadius: 7, background: 'rgba(122,45,45,0.08)', fontSize: 11, color: '#7A2D2D', marginBottom: 8 }}>
             {err}

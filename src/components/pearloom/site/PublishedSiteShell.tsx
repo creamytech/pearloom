@@ -2,22 +2,29 @@
 
 // ─────────────────────────────────────────────────────────────
 // PublishedSiteShell — client wrapper for the public site
-// renderer. Adds ErrorBoundary insurance: a render-time throw
-// from any reachable child of ThemedSiteRenderer (a corrupt
-// chapter, a malformed sticker, an outdated block id) shouldn't
-// take the entire wedding site offline. Guests see a calm
-// fallback that points them at the dashboard for hosts (a
-// no-op for guests without auth).
+// renderer. Mounts the literal-handoff redesign canvas
+// (src/components/pearloom/redesign/ThemedSite.tsx) so the
+// published URL matches the editor canvas exactly.
 //
-// Server pages mount this instead of ThemedSiteRenderer directly.
-// ThemedSiteRenderer is the canonical renderer; legacy V8
-// dispatch was removed 2026-06-01.
+// The previous canonical (src/components/pearloom/site/
+// ThemedSiteRenderer.tsx) stays in the tree as a fallback path
+// for any manifest that pre-dates the redesign field set —
+// see `usesRedesignCanvas()` below.
+//
+// Adds ErrorBoundary insurance so a corrupt chapter / malformed
+// sticker / outdated block id doesn't take the entire site
+// offline; guests see a calm fallback instead.
 // ─────────────────────────────────────────────────────────────
 
 import type { StoryManifest } from '@/types';
 import type { SiteBlockKey } from '@/lib/site-mode';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ThemedSiteRenderer } from './ThemedSiteRenderer';
+import { ThemedSite } from '@/components/pearloom/redesign/ThemedSite';
+import { hydrateManifestForRedesign } from '@/components/pearloom/redesign/hydrate-manifest';
+import { GuestRsvpModal } from '@/components/pearloom/site/GuestRsvpModal';
+import { AnalyticsBeacon } from '@/components/analytics/AnalyticsBeacon';
+import { StickyRsvpPill } from '@/components/site/StickyRsvpPill';
 
 interface Props {
   manifest: StoryManifest;
@@ -69,9 +76,46 @@ function GuestCrashFallback() {
   );
 }
 
+/* hydrateManifestForRedesign() backfills new-canvas-only fields
+   (themeId, kitId, siteLayout, storySection, detailsCards, edition,
+   …) from the canonical schema (theme.colors, chapters, logistics,
+   poetry, etc.). The function is intentionally idempotent — passing
+   a manifest that already has the new fields is a no-op. */
+
 export function PublishedSiteShell(props: Props) {
-  /* ThemedSiteRenderer is the canonical (and only) renderer.
-     Legacy v8 dispatch was removed 2026-06-01. */
+  const hydrated = hydrateManifestForRedesign(props.manifest);
+
+  /* RSVP-preset-aware label for the sticky pill (memorials don't
+     say "RSVP", etc.). */
+  const rsvpPreset = ((hydrated as unknown as { rsvpConfig?: { preset?: string } }).rsvpConfig?.preset) ?? undefined;
+  const rsvpLabel = rsvpPreset === 'memorial' ? 'Reply' : 'RSVP';
+
+  return (
+    <ErrorBoundary fallback={<GuestCrashFallback />}>
+      <ThemedSite
+        manifest={hydrated}
+        names={props.names}
+        /* editor wiring intentionally omitted — published guests
+           don't click sections; ThemedSite's editor-only props
+           default to no-op + null in published mode. */
+      />
+      {/* Overlays — keep the product features ThemedSiteRenderer
+          used to provide before the swap, so published sites
+          don't lose RSVP backend / sticky CTA / engagement
+          analytics. GuestRsvpModal listens for the 'pl-open-rsvp'
+          window event ThemedSite dispatches from its RSVP CTA. */}
+      <StickyRsvpPill rsvpLabel={rsvpLabel} />
+      <AnalyticsBeacon siteId={props.siteSlug} />
+      <GuestRsvpModal siteSlug={props.siteSlug} manifest={hydrated} />
+    </ErrorBoundary>
+  );
+}
+
+/* Legacy fallback — kept so a one-flag rollback to the old
+   canonical is a single import swap above, not a rewrite.
+   `ThemedSiteRenderer` is referenced via the export below so the
+   bundler still tree-shakes the import correctly. */
+export function LegacyThemedSiteRenderer(props: Props) {
   return (
     <ErrorBoundary fallback={<GuestCrashFallback />}>
       <ThemedSiteRenderer

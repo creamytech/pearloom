@@ -536,20 +536,63 @@ export const LAYOUT_LABELS: Record<string, string> = {
 };
 
 // ── Preview helpers ─────────────────────────────────────────────
+// Strips base64 DataURLs from every photo-bearing field in the
+// manifest so the JSON payload stays small enough for both
+// sessionStorage AND the autosave POST (the autosave used to set
+// keepalive: true which capped bodies at 64 KB; even without
+// keepalive, a manifest with 30+ inlined photos can balloon to
+// several MB and trip Vercel's 4.5 MB request limit). Permanent
+// URLs (R2/CDN) are kept verbatim — they're tiny strings.
+const isBase64Url = (url?: unknown): boolean =>
+  typeof url === 'string' && url.startsWith('data:');
+
 export function stripArtForStorage(manifest: StoryManifest): StoryManifest {
-  if (!manifest.vibeSkin) return manifest;
-  // Only strip base64 DataURLs (too large for sessionStorage).
-  // Permanent URLs (R2/CDN) are small strings and should be preserved.
-  const isBase64 = (url?: string) => url?.startsWith('data:');
-  return {
-    ...manifest,
-    vibeSkin: {
+  const loose = manifest as unknown as Record<string, unknown>;
+  const out: Record<string, unknown> = { ...loose };
+
+  // 1. vibeSkin (heroArtDataUrl / ambientArtDataUrl / artStripDataUrl)
+  if (manifest.vibeSkin) {
+    out.vibeSkin = {
       ...manifest.vibeSkin,
-      heroArtDataUrl: isBase64(manifest.vibeSkin.heroArtDataUrl) ? undefined : manifest.vibeSkin.heroArtDataUrl,
-      ambientArtDataUrl: isBase64(manifest.vibeSkin.ambientArtDataUrl) ? undefined : manifest.vibeSkin.ambientArtDataUrl,
-      artStripDataUrl: isBase64(manifest.vibeSkin.artStripDataUrl) ? undefined : manifest.vibeSkin.artStripDataUrl,
-    },
-  };
+      heroArtDataUrl: isBase64Url(manifest.vibeSkin.heroArtDataUrl) ? undefined : manifest.vibeSkin.heroArtDataUrl,
+      ambientArtDataUrl: isBase64Url(manifest.vibeSkin.ambientArtDataUrl) ? undefined : manifest.vibeSkin.ambientArtDataUrl,
+      artStripDataUrl: isBase64Url(manifest.vibeSkin.artStripDataUrl) ? undefined : manifest.vibeSkin.artStripDataUrl,
+    };
+  }
+
+  // 2. Chapter images — strip base64 from each image url + thumb.
+  if (Array.isArray(manifest.chapters)) {
+    out.chapters = manifest.chapters.map((c) => {
+      if (!Array.isArray(c.images)) return c;
+      return {
+        ...c,
+        images: c.images.map((img) => {
+          const next = { ...img } as Record<string, unknown>;
+          if (isBase64Url(next.url)) next.url = '';
+          if (isBase64Url(next.thumb)) next.thumb = undefined;
+          return next;
+        }),
+      };
+    });
+  }
+
+  // 3. coverPhoto + heroSlideshow.
+  if (isBase64Url(loose.coverPhoto)) out.coverPhoto = undefined;
+  if (Array.isArray(loose.heroSlideshow)) {
+    out.heroSlideshow = (loose.heroSlideshow as Array<unknown>).map((u) => isBase64Url(u) ? '' : u);
+  }
+
+  // 4. Stickers — each carries a src/url that's often a DataURL.
+  if (Array.isArray(loose.stickers)) {
+    out.stickers = (loose.stickers as Array<Record<string, unknown>>).map((s) => {
+      const next = { ...s };
+      if (isBase64Url(next.src)) next.src = '';
+      if (isBase64Url(next.url)) next.url = '';
+      return next;
+    });
+  }
+
+  return out as unknown as StoryManifest;
 }
 
 export function storePreview(key: string, manifest: StoryManifest, names: [string, string]) {
