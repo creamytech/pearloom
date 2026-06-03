@@ -67,6 +67,15 @@ interface Props {
   editable?: boolean;
   manifest: StoryManifest;
   names: [string, string];
+  /* Editor "mobile preview" pill renders the canvas inside a
+     390px-wide device frame on a desktop-width window. Without
+     this signal, useIsMobile() reads the browser viewport (~1920px)
+     and the canvas falls back to the desktop nav. Pass
+     forceMobile={true} from EditorCanvas when mode === 'mobile' so
+     the mobile drawer variants actually paint inside the device
+     frame. Published guests don't pass this — useIsMobile() decides
+     based on their real viewport. */
+  forceMobile?: boolean;
 }
 
 /* ─── Top-level shell — handoff themed-site.jsx L106-218. ────── */
@@ -81,6 +90,7 @@ export function ThemedSite({
   editable = false,
   manifest,
   names,
+  forceMobile = false,
 }: Props) {
   const themeId = ((manifest as unknown as { themeId?: string }).themeId)
     ?? ((manifest as unknown as { theme?: { id?: string } }).theme?.id);
@@ -175,8 +185,11 @@ export function ThemedSite({
      dispatch. useIsMobile is SSR-safe (false on first render, hydrates
      after mount); useActiveSection observes each section's id and
      returns the one most-in-view so nav links can highlight the
-     current section. */
-  const isMobile = useIsMobile();
+     current section. forceMobile (set by the editor's mobile preview
+     pill) wins so the mobile drawer variants paint in the 390px
+     device frame even when the browser viewport is desktop-width. */
+  const realIsMobile = useIsMobile();
+  const isMobile = forceMobile || realIsMobile;
   const activeId = useActiveSection(sections.map(String));
 
   /* Variant ids — manifest.layouts.nav / manifest.layouts.navMobile

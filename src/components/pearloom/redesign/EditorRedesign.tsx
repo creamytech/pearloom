@@ -241,7 +241,14 @@ function EditorCanvas({
         }}
       />
 
-      {/* Device frame (prototype L259-291). */}
+      {/* Device frame (prototype L259-291). transform: translateZ(0)
+          creates a containing block for position:fixed children so
+          the mobile nav drawers (overlay/slide-in/bottom-sheet/pill)
+          attach to the 390px device frame instead of the browser
+          viewport — they'd otherwise slide in from the right edge of
+          the entire window, way outside the phone mock. The transform
+          is invisible (zero translation) but the CSS containment
+          contract is what we need. */}
       <div
         onClick={() => setActive(null)}
         style={{
@@ -257,6 +264,7 @@ function EditorCanvas({
           transition: 'width 360ms cubic-bezier(0.16, 1, 0.3, 1)',
           containerType: 'inline-size',
           containerName: 'pl-site',
+          transform: 'translateZ(0)',
         }}
       >
         <ThemedSite
@@ -267,6 +275,11 @@ function EditorCanvas({
           editable={!isPreview}
           manifest={manifest}
           names={names}
+          /* When the editor's mode pill is "Mobile", force the canvas
+             to use the mobile nav drawer variants — otherwise
+             useIsMobile() reads the browser viewport (desktop) and
+             the canvas paints the desktop nav inside the 390px frame. */
+          forceMobile={isMobile}
         />
         {/* FullSite + ThemedSiteRenderer kept as imports for one-line
             rollback during cutover — not rendered. */}
