@@ -5130,6 +5130,39 @@ html { scroll-behavior: smooth; }
    data-pl-kit="classic" is the default no-op (no rules emitted).
    ───────────────────────────────────────────────────────── */
 
+/* ── KIT CONTRAST SAFETY NET ──
+   Audited 2026-06-03: kits hardcoded against the platform light
+   tokens silently failed WCAG AA on dark themes (e.g. Midnight
+   Velvet's --t-ink-muted #8B86A0 vs --t-card #262842 ≈ 3.2:1).
+   This safety net runs BEFORE each kit's per-kit overrides and
+   guarantees that ANY card surface inside ANY kit has:
+     - text color = the theme's --t-ink, which the theme defines
+       as the high-contrast counterpart to --t-card.
+     - --t-ink-soft / --t-ink-muted RE-DERIVED from --t-ink via
+       `color-mix(in oklab, var(--t-ink) N%, transparent)` so
+       "soft" / "muted" descendants paint as alpha-faded versions
+       of the SAME high-contrast ink. This way a span using
+       var(--t-ink-muted) stays readable on either polarity
+       (white-on-dark or dark-on-white) without depending on the
+       theme's separately-defined muted tokens, which may
+       under-contrast on dark themes.
+   Per-kit overrides below can still re-scope these vars (paper
+   kits like Scrapbook reseat --t-ink to a dark cream-contrast
+   ink, and the soft/muted derive from THAT). */
+.pl8-guest[data-pl-kit]:not([data-pl-kit="classic"]) .pl8-schedule-row,
+.pl8-guest[data-pl-kit]:not([data-pl-kit="classic"]) .pl8-chapter-row,
+.pl8-guest[data-pl-kit]:not([data-pl-kit="classic"]) .pl8-hotel-row,
+.pl8-guest[data-pl-kit]:not([data-pl-kit="classic"]) .pl8-faq-row,
+.pl8-guest[data-pl-kit]:not([data-pl-kit="classic"]) .pl8-detail-card,
+.pl8-guest[data-pl-kit]:not([data-pl-kit="classic"]) .pl8-countdown-cell,
+.pl8-guest[data-pl-kit]:not([data-pl-kit="classic"]) .pl8-map-card,
+.pl8-guest[data-pl-kit]:not([data-pl-kit="classic"]) .pl8-music-card,
+.pl8-guest[data-pl-kit]:not([data-pl-kit="classic"]) .pl8-card {
+  color: var(--t-ink);
+  --t-ink-soft: color-mix(in oklab, var(--t-ink) 78%, transparent);
+  --t-ink-muted: color-mix(in oklab, var(--t-ink) 56%, transparent);
+}
+
 /* ── TICKET ──
    Perforated stub feel: dashed borders, monospace times, pinhole
    dots at row corners. Subtle inset shadow suggests a torn edge.
@@ -7934,17 +7967,36 @@ html { scroll-behavior: smooth; }
     --t-hero-scale: 0.5;
   }
   /* Travel-table 3-col grid collapses to 2-col + the rating
-     pills wrap below the text on the smallest viewports. */
-  .pl8-guest .pl8-hotel-row {
+     pills wrap below the text on the smallest viewports.
+     The :is() filter restricts this to GRID-laid rows (the
+     TravelTable variant) so the default Rows variant — which
+     stacks image-over-content without a grid — is untouched
+     and keeps painting its rating/blurb/amenities below the
+     photo on mobile. Earlier audit caught hosts seeing only
+     the photo on mobile because this rule was force-gridding
+     non-grid rows. */
+  .pl8-guest .pl8-hotel-row[style*="display: grid"],
+  .pl8-guest .pl8-hotel-row[style*="display:grid"] {
     grid-template-columns: 64px 1fr !important;
   }
-  .pl8-guest .pl8-hotel-row > :nth-child(3) {
+  .pl8-guest .pl8-hotel-row[style*="display: grid"] > :nth-child(3),
+  .pl8-guest .pl8-hotel-row[style*="display:grid"] > :nth-child(3) {
     grid-column: 1 / -1;
     flex-direction: row !important;
     align-items: center !important;
     justify-content: flex-start !important;
     gap: 10px !important;
     padding-top: 4px;
+  }
+  /* Default Travel rows — explicit width:100% on the image
+     wrapper so aspectRatio computes consistently on iOS
+     Safari and the image doesn't accidentally expand to
+     fill the whole card when aspectRatio falls back. */
+  .pl8-guest .pl8-hotel-row > div:first-child[style*="aspectRatio"],
+  .pl8-guest .pl8-hotel-row > div:first-child[style*="aspect-ratio"] {
+    width: 100% !important;
+    max-height: 60vw !important;
+    overflow: hidden;
   }
 }
 

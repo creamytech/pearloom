@@ -648,25 +648,32 @@ export function ThemedSite({
             padding: 14,
           }}
         >
-          {/* Faux postage stamp — top-right. */}
+          {/* Faux postage stamp — pinned just below the nav row.
+              Previously sat at top: 22 which collided with the nav's
+              RSVP button on the right (the nav lives inside the
+              postcard inner-card frame). Dropping it to top: 80 +
+              pointer-events:none keeps the postcard's classic
+              top-right stamp convention without intercepting nav
+              clicks. */}
           <div
             aria-hidden
             className="pl8-postcard-stamp"
             style={{
               position: 'absolute',
-              top: 22, right: 22,
+              top: 80, right: 22,
               width: 56, height: 68,
               background: 'var(--t-accent-bg, var(--t-section))',
               border: '2px dashed var(--t-ink-muted)',
               display: 'grid', placeItems: 'center',
               transform: 'rotate(4deg)',
-              zIndex: 3,
+              zIndex: 1,
               fontFamily: 'var(--t-font-display)',
               fontStyle: 'italic',
               fontSize: 10,
               color: 'var(--t-ink-soft)',
               letterSpacing: '0.16em',
               textTransform: 'uppercase',
+              pointerEvents: 'none',
             }}
           >
             <span style={{ textAlign: 'center', lineHeight: 1.2 }}>
