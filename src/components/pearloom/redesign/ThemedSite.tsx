@@ -20,7 +20,7 @@
    GalleryBlock (grid), RsvpBlock (centered), FaqBlock (accordion).
 */
 
-import { type CSSProperties, type ReactNode } from 'react';
+import { useId, type CSSProperties, type ReactNode } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { getTheme, themeRootStyle, type Density, type Theme } from '../site/themes';
@@ -1924,13 +1924,70 @@ function KDivider({ look, width = 170, style = {} }: { look: string; width?: num
 
 /* ─── Stars (Travel ratings). ───────────────────────────────── */
 
-function Stars({ r }: { r: number }) {
-  const full = Math.round(r);
+/* Stars — 5-star rating bar with proper gold FILL (not stroke
+   outline like the icon library's star). Handles fractional
+   ratings via clip-path on the partial star so 4.7 reads as
+   "4 full + 1 ~70% filled" instead of rounding to 5.
+
+   Was previously rendering via <Icon name="star">, but the icon
+   library uses fill:none + stroke:color which made filled and
+   empty stars look nearly identical (both gold outlines). */
+function Stars({ r, size = 12 }: { r: number; size?: number }) {
+  /* Clamp 0-5; treat anything below 0.05 as no rating (don't
+     paint a totally-empty 5-star strip for hotels with no
+     rating data). */
+  const rating = Math.max(0, Math.min(5, r ?? 0));
   return (
-    <span style={{ display: 'inline-flex', gap: 1 }}>
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Icon key={i} name="star" size={12} color={i <= full ? 'var(--t-gold)' : 'var(--t-line)'} />
-      ))}
+    <span style={{ display: 'inline-flex', gap: 1.5 }} aria-label={`${rating.toFixed(1)} out of 5`}>
+      {[0, 1, 2, 3, 4].map((i) => {
+        /* Per-star fill fraction: 1.0 for stars fully under
+           rating, 0.0 above, fractional for the boundary one. */
+        const frac = Math.max(0, Math.min(1, rating - i));
+        return <Star key={i} size={size} fill={frac} />;
+      })}
+    </span>
+  );
+}
+
+function Star({ size, fill }: { size: number; fill: number }) {
+  /* Two stacked SVGs — the bottom is the muted outline (always
+     visible), the top is the gold fill clipped to `fill` of its
+     width. Pixel-aligned so half-stars don't shimmer. */
+  const path = "M12 3l2.7 5.6 6.3.9-4.5 4.4 1 6.1L12 17.3 6.5 20l1-6.1L3 9.5l6.3-.9z";
+  /* useId — stable across SSR/hydration. Math.random() here
+     caused server/client mismatches when the same fill landed
+     on different IDs. */
+  const reactId = useId();
+  const clipId = `star-clip-${reactId.replace(/[^a-z0-9]/gi, '')}-${Math.round(fill * 100)}`;
+  return (
+    <span style={{ position: 'relative', display: 'inline-block', width: size, height: size, lineHeight: 0 }}>
+      {/* Empty/outline star — always painted as the bottom layer. */}
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        style={{ position: 'absolute', inset: 0 }}
+        aria-hidden
+      >
+        <path d={path} fill="var(--t-line)" />
+      </svg>
+      {/* Gold-fill star — clipped to `fill` of the width. */}
+      {fill > 0 && (
+        <svg
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          style={{ position: 'absolute', inset: 0 }}
+          aria-hidden
+        >
+          <defs>
+            <clipPath id={clipId}>
+              <rect x={0} y={0} width={24 * fill} height={24} />
+            </clipPath>
+          </defs>
+          <path d={path} fill="var(--t-gold)" clipPath={`url(#${clipId})`} />
+        </svg>
+      )}
     </span>
   );
 }
