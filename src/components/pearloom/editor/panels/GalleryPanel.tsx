@@ -1,32 +1,43 @@
 'use client';
 
 /* eslint-disable no-restricted-syntax */
-/* GalleryPanel — host-editable photo tones + Guest uploads toggle.
-   Writes manifest.galleryTones[] (6-tone array) + manifest.guestUploads
-   which ThemedSite's GalleryBlock reads. */
+/* GalleryPanel — host-editable photo gallery + Guest uploads toggle.
+
+   Round X: replaced the tone-cycling palette UI with a real photo
+   upload grid. Each slot is a PhotoUploadSlot (drag-drop +
+   click-to-pick + remove) writing to manifest.galleryImages[].
+   When the host has any photos, the canvas renders THEM instead
+   of the gradient placeholders. */
 
 import type { StoryManifest } from '@/types';
-import { Icon } from '../../motifs';
-import { FGroup, FInput, FToggleStandalone, PearChip, SectionPanelShell, useCopyOverride } from './_section-atoms';
-
-const PALETTE_TONES = ['warm', 'sage', 'dusk', 'peach', 'lavender', 'cream'] as const;
-type GalleryTone = (typeof PALETTE_TONES)[number];
+import { FGroup, FInput, FToggleStandalone, SectionPanelShell, useCopyOverride } from './_section-atoms';
+import { PhotoUploadSlot } from './_photo-upload';
 
 export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
-  const tones: GalleryTone[] = ((manifest as unknown as { galleryTones?: GalleryTone[] }).galleryTones) ?? [...PALETTE_TONES];
+  const photos: string[] = ((manifest as unknown as { galleryImages?: string[] }).galleryImages) ?? [];
   const guestUploads = ((manifest as unknown as { guestUploads?: boolean }).guestUploads) ?? true;
   const [galleryEyebrow, setGalleryEyebrow] = useCopyOverride(manifest, onChange, 'galleryEyebrow');
 
-  const setTones = (next: GalleryTone[]) => onChange({
+  const setPhotos = (next: string[]) => onChange({
     ...(manifest as unknown as Record<string, unknown>),
-    galleryTones: next,
+    galleryImages: next,
   } as unknown as StoryManifest);
 
-  const cycleTone = (i: number) => {
-    const cur = tones[i];
-    const idx = PALETTE_TONES.indexOf(cur);
-    const nextTone = PALETTE_TONES[(idx + 1) % PALETTE_TONES.length];
-    setTones(tones.map((t, j) => j === i ? nextTone : t));
+  const setPhoto = (i: number, url: string) => {
+    const next = photos.slice();
+    if (url) {
+      next[i] = url;
+    } else {
+      next.splice(i, 1);
+    }
+    /* Drop trailing empties so the array stays compact. */
+    while (next.length > 0 && !next[next.length - 1]) next.pop();
+    setPhotos(next);
+  };
+
+  const addPhoto = (url: string) => {
+    if (!url) return;
+    setPhotos([...photos, url]);
   };
 
   const setGuestUploads = (v: boolean) => onChange({
@@ -34,36 +45,42 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
     guestUploads: v,
   } as unknown as StoryManifest);
 
+  /* Render at least 6 slots (a 2×3 grid) so empty galleries still
+     show the drop targets. When the host has more than 6, render
+     all of them + one "Add another" slot at the end. */
+  const minSlots = 6;
+  const renderCount = Math.max(minSlots, photos.length);
+
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
           <FInput value={galleryEyebrow} onChange={setGalleryEyebrow} placeholder="Gallery" />
         </FGroup>
-        <FGroup label={`Photos · ${tones.length}`} action={<PearChip>Auto-arrange</PearChip>}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
-            {tones.map((t, i) => (
-              <button
+        <FGroup label={`Photos · ${photos.length}`} hint="Drag photos in, or click any slot to pick from your device.">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+            {Array.from({ length: renderCount }).map((_, i) => (
+              <PhotoUploadSlot
                 key={i}
-                type="button"
-                onClick={() => cycleTone(i)}
-                title={`Cycle tone (${t})`}
-                style={{
-                  aspectRatio: '1/1',
-                  borderRadius: 8,
-                  background: `linear-gradient(140deg, var(--${t}-2, var(--cream-3)), var(--cream-2))`,
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
+                url={photos[i] ?? ''}
+                onChange={(url) => setPhoto(i, url)}
+                aspectRatio="1/1"
+                size="sm"
               />
             ))}
-            <button
-              type="button"
-              onClick={() => setTones([...tones, 'warm'])}
-              style={{ aspectRatio: '1/1', borderRadius: 8, border: '1.5px dashed var(--line)', display: 'grid', placeItems: 'center', background: 'transparent', cursor: 'pointer' }}
-            >
-              <Icon name="plus" size={16} color="var(--ink-soft)" />
-            </button>
+            {/* Extra "Add another" slot so the host can always push
+                a new photo past the grid floor. Only shown when the
+                current array is fully filled — otherwise the empty
+                slots from the floor handle additions. */}
+            {photos.length >= renderCount && (
+              <PhotoUploadSlot
+                key="add-more"
+                url=""
+                onChange={addPhoto}
+                aspectRatio="1/1"
+                size="sm"
+              />
+            )}
           </div>
         </FGroup>
         <FToggleStandalone

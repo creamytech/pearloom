@@ -65,6 +65,9 @@ export interface RegistryCopy {
 export interface GalleryCopy {
   eyebrow: string; title: string; italic?: string;
   tones: PhotoTone[];
+  /** Host-uploaded photo URLs. When non-empty, variants render
+   *  these instead of the tone gradients. Source: manifest.galleryImages. */
+  photos?: string[];
 }
 
 export interface FaqQA { q: string; a?: string }
@@ -77,6 +80,10 @@ export interface FaqCopy {
 export interface StoryCopy {
   eyebrow: string; title: string; italic?: string;
   body: string; chips?: string[];
+  /** Up to 3 host-uploaded chapter photos. Variants that render
+   *  per-chapter cards read these instead of the gradient
+   *  placeholder when set. Source: manifest.chapters[i].images[0]. */
+  chapterImages?: (string | undefined)[];
 }
 
 export interface BaseCtx {

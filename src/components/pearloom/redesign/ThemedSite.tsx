@@ -954,9 +954,15 @@ function StoryStacked({ ctx }: { ctx: SectionCtx }) {
 function StoryQuote({ ctx }: { ctx: SectionCtx }) {
   const { theme, pad, C, motif, motifsOn, editable, edit } = ctx;
   const isEditorial = theme.id === 'editorial';
+  const heroPhoto = C.story.chapterImages?.[0];
   return (
     <div style={{ position: 'relative', padding: `${56 * pad}px 72px`, textAlign: 'center', maxWidth: 880, marginInline: 'auto', background: 'var(--t-paper)' }}>
       {motifsOn && <MotifScatter motif={motif} density="sparse" />}
+      {heroPhoto && (
+        /* Decorative cover above the quote — small + centered so it
+           sits as a deckle motif rather than dominating the pull. */
+        <div style={{ position: 'relative', marginInline: 'auto', marginBottom: 24, maxWidth: 320, aspectRatio: '4/3', background: `var(--t-section) center / cover no-repeat url("${heroPhoto.replace(/"/g, '%22')}")`, borderRadius: 'var(--t-radius)' }} />
+      )}
       <div style={{ position: 'relative' }}>
         <InlineEdit
           as="div"
@@ -994,13 +1000,22 @@ function StoryTimeline({ ctx }: { ctx: SectionCtx }) {
       </div>
       <div style={{ position: 'relative', paddingLeft: 30 }}>
         <div style={{ position: 'absolute', left: 7, top: 4, bottom: 4, width: 2, background: 'var(--t-line)' }} />
-        {items.map((it, i) => (
-          <div key={i} style={{ position: 'relative', paddingBottom: i < items.length - 1 ? 22 : 0 }}>
-            <span style={{ position: 'absolute', left: -30, top: 2, width: 16, height: 16, borderRadius: '50%', background: 'var(--t-accent)', border: '3px solid var(--t-paper)' }} />
-            <div style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 19, color: 'var(--t-accent-ink)' }}>{it}</div>
-            <div style={{ fontSize: 13.5, color: 'var(--t-ink-soft)', lineHeight: 1.55, marginTop: 3 }}>{C.story.body}</div>
-          </div>
-        ))}
+        {items.map((it, i) => {
+          /* Per-row chapter photo — appears between the chip eyebrow
+             and the body when the host has uploaded a photo to the
+             matching chapter slot (chapter[i].images[0]). */
+          const photo = C.story.chapterImages?.[i];
+          return (
+            <div key={i} style={{ position: 'relative', paddingBottom: i < items.length - 1 ? 22 : 0 }}>
+              <span style={{ position: 'absolute', left: -30, top: 2, width: 16, height: 16, borderRadius: '50%', background: 'var(--t-accent)', border: '3px solid var(--t-paper)' }} />
+              <div style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 19, color: 'var(--t-accent-ink)' }}>{it}</div>
+              {photo && (
+                <div style={{ marginTop: 8, aspectRatio: '16/9', maxWidth: 480, background: `var(--t-section) center / cover no-repeat url("${photo.replace(/"/g, '%22')}")`, borderRadius: 'var(--t-radius)' }} />
+              )}
+              <div style={{ fontSize: 13.5, color: 'var(--t-ink-soft)', lineHeight: 1.55, marginTop: photo ? 6 : 3 }}>{C.story.body}</div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -1009,6 +1024,7 @@ function StoryTimeline({ ctx }: { ctx: SectionCtx }) {
 function StoryLetter({ ctx }: { ctx: SectionCtx }) {
   const { theme, pad, C, motif, motifsOn, editable, edit } = ctx;
   const isEditorial = theme.id === 'editorial';
+  const heroPhoto = C.story.chapterImages?.[0];
   return (
     <div style={{ position: 'relative', padding: `${52 * pad}px 40px`, background: 'var(--t-section)' }}>
       {motifsOn && <MotifScatter motif={motif} density="sparse" />}
@@ -1021,6 +1037,12 @@ function StoryLetter({ ctx }: { ctx: SectionCtx }) {
           placeholder="Two threads, one weave"
           style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 14 }}
         />
+        {heroPhoto && (
+          /* Small framed photo as a "stamp" at the top of the letter
+             card — keeps the editorial-letter feel while warming the
+             card with a real image. */
+          <div style={{ marginInline: 'auto', marginBottom: 16, width: 96, height: 96, borderRadius: '50%', background: `var(--t-section) center / cover no-repeat url("${heroPhoto.replace(/"/g, '%22')}")`, border: '3px solid var(--t-paper)', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} />
+        )}
         <p style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink)', lineHeight: 1.6, textAlign: 'left' }}>{C.story.body}</p>
         <div style={{ fontFamily: 'var(--t-script)', fontSize: 30, color: 'var(--t-accent-ink)', marginTop: 14, textAlign: 'right' }}>
           {C.subject.a} &amp; {C.subject.b}
@@ -1265,9 +1287,23 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
         titlePlaceholder="A few favorites"
       />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8, maxWidth: 920, marginInline: 'auto' }}>
-        {C.gallery.tones.map((t, i) => (
-          <PhotoPlaceholder key={i} tone={t} aspect="1/1" style={{ borderRadius: 8 }} />
-        ))}
+        {C.gallery.photos && C.gallery.photos.length > 0
+          /* Render the host's uploaded photos as cover-image
+             squares; the gradient placeholders fall away entirely
+             once any photo is set. */
+          ? C.gallery.photos.map((url, i) => (
+              <div
+                key={i}
+                style={{
+                  aspectRatio: '1/1',
+                  background: `var(--t-section) center / cover no-repeat url("${url.replace(/"/g, '%22')}")`,
+                  borderRadius: 8,
+                }}
+              />
+            ))
+          : C.gallery.tones.map((t, i) => (
+              <PhotoPlaceholder key={i} tone={t} aspect="1/1" style={{ borderRadius: 8 }} />
+            ))}
       </div>
     </div>
   );
@@ -1641,7 +1677,16 @@ interface Copy {
   schedule: { eyebrow: string; title: string; italic?: string; rows: { t: string; l: string; s: string }[] };
   travel: { eyebrow: string; title: string; italic?: string; intro?: string; hotels: { name: string; price: string; rating: number; reviews: number; dist: string; tone: PhotoTone; blurb: string; amenities: string[]; photoUrl?: string; bookingUrl?: string }[] };
   registry: { eyebrow: string; title: string; italic?: string; body: string; stores: string[] };
-  gallery: { eyebrow: string; title: string; italic?: string; tones: PhotoTone[] };
+  gallery: {
+    eyebrow: string;
+    title: string;
+    italic?: string;
+    tones: PhotoTone[];
+    /** Host-uploaded photo URLs (manifest.galleryImages[]). When
+     *  non-empty, the canvas renders these instead of the gradient
+     *  tone placeholders. */
+    photos?: string[];
+  };
   rsvp: { eyebrow: string; title: string; body: string };
   faq: { eyebrow: string; title: string; italic?: string; questions: string[]; qa?: { q: string; a?: string }[] };
 }
@@ -2018,13 +2063,17 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
     })(),
     gallery: (() => {
       const t = coTitle('galleryTitle', 'A few', 'favorites');
+      /* Host-uploaded gallery photos from manifest.galleryImages[].
+         When set, canvas renders these instead of tone gradients. */
+      const galleryPhotos = (loose.galleryImages as string[] | undefined) ?? [];
       return {
-      eyebrow: co('galleryEyebrow', 'Gallery'),
-      title: t.head,
-      italic: t.italic,
-      tones: galleryTones && galleryTones.length > 0
-        ? galleryTones
-        : (['warm', 'sage', 'dusk', 'peach', 'lavender', 'cream', 'warm', 'sage', 'dusk', 'peach', 'lavender', 'cream'] as PhotoTone[]),
+        eyebrow: co('galleryEyebrow', 'Gallery'),
+        title: t.head,
+        italic: t.italic,
+        tones: galleryTones && galleryTones.length > 0
+          ? galleryTones
+          : (['warm', 'sage', 'dusk', 'peach', 'lavender', 'cream', 'warm', 'sage', 'dusk', 'peach', 'lavender', 'cream'] as PhotoTone[]),
+        photos: galleryPhotos.length > 0 ? galleryPhotos : undefined,
       };
     })(),
     rsvp: (() => {

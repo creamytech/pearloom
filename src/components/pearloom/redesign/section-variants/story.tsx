@@ -122,7 +122,11 @@ export function StoryZigzag({ ctx }: { ctx: StoryVariantCtx }) {
                 style={{
                   width: '100%',
                   aspectRatio: '4 / 5',
-                  background: TONE_BG[tones[i]],
+                  /* Real chapter photo from manifest.chapters[i].images[0]
+                     when set; gradient placeholder otherwise. */
+                  background: C.chapterImages?.[i]
+                    ? `var(--t-section) center / cover no-repeat url("${C.chapterImages[i]!.replace(/"/g, '%22')}")`
+                    : TONE_BG[tones[i]],
                   borderRadius: 'var(--t-radius)',
                 }}
               />
