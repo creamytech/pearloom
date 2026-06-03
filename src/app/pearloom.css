@@ -5132,17 +5132,25 @@ html { scroll-behavior: smooth; }
 
 /* ── TICKET ──
    Perforated stub feel: dashed borders, monospace times, pinhole
-   dots at row corners. Subtle inset shadow suggests a torn edge. */
+   dots at row corners. Subtle inset shadow suggests a torn edge.
+   Theme-aware: uses --t-card + --t-ink-soft + --t-line so dark
+   themes paint a dark stub with light dashed border, not an
+   unreadable light cream stub. */
 .pl8-guest[data-pl-kit="ticket"] .pl8-schedule-row,
 .pl8-guest[data-pl-kit="ticket"] .pl8-chapter-row,
 .pl8-guest[data-pl-kit="ticket"] .pl8-hotel-row,
-.pl8-guest[data-pl-kit="ticket"] .pl8-faq-row {
-  border: 1.5px dashed var(--pl-ink-soft, #3A332C) !important;
+.pl8-guest[data-pl-kit="ticket"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="ticket"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="ticket"] .pl8-countdown-cell,
+.pl8-guest[data-pl-kit="ticket"] .pl8-map-card,
+.pl8-guest[data-pl-kit="ticket"] .pl8-music-card {
+  border: 1.5px dashed var(--t-ink-soft, var(--pl-ink-soft, #3A332C)) !important;
   border-radius: 7px !important;
-  background: var(--pl-cream-card, #FBF7EE) !important;
+  background: var(--t-card, var(--pl-cream-card, #FBF7EE)) !important;
+  color: var(--t-ink, var(--pl-ink, #0E0D0B)) !important;
   box-shadow:
-    inset 1px 0 0 rgba(14,13,11,0.06),
-    inset -1px 0 0 rgba(14,13,11,0.06) !important;
+    inset 1px 0 0 color-mix(in oklab, var(--t-ink, #0E0D0B) 6%, transparent),
+    inset -1px 0 0 color-mix(in oklab, var(--t-ink, #0E0D0B) 6%, transparent) !important;
   position: relative;
 }
 .pl8-guest[data-pl-kit="ticket"] .pl8-schedule-time,
@@ -5154,17 +5162,23 @@ html { scroll-behavior: smooth; }
 /* ── PLATE ──
    Engraved-frame feel: double 1px stroke around cards, no border-
    radius, italic accent type. Inset rings suggest an engraved
-   plate. */
+   plate. Theme-aware so the engraved frame uses the theme's ink
+   on the theme's card, not the platform light cream. */
 .pl8-guest[data-pl-kit="plate"] .pl8-schedule-row,
 .pl8-guest[data-pl-kit="plate"] .pl8-chapter-row,
 .pl8-guest[data-pl-kit="plate"] .pl8-hotel-row,
-.pl8-guest[data-pl-kit="plate"] .pl8-faq-row {
+.pl8-guest[data-pl-kit="plate"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="plate"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="plate"] .pl8-countdown-cell,
+.pl8-guest[data-pl-kit="plate"] .pl8-map-card,
+.pl8-guest[data-pl-kit="plate"] .pl8-music-card {
   border-radius: 1px !important;
-  background: var(--pl-cream-card, #FBF7EE) !important;
+  background: var(--t-card, var(--pl-cream-card, #FBF7EE)) !important;
+  color: var(--t-ink, var(--pl-ink, #0E0D0B)) !important;
   box-shadow:
-    inset 0 0 0 1px color-mix(in oklab, var(--pl-ink, #0E0D0B) 45%, transparent),
-    inset 0 0 0 4px var(--pl-cream-card, #FBF7EE),
-    inset 0 0 0 5px color-mix(in oklab, var(--pl-ink, #0E0D0B) 22%, transparent) !important;
+    inset 0 0 0 1px color-mix(in oklab, var(--t-ink, var(--pl-ink, #0E0D0B)) 45%, transparent),
+    inset 0 0 0 4px var(--t-card, var(--pl-cream-card, #FBF7EE)),
+    inset 0 0 0 5px color-mix(in oklab, var(--t-ink, var(--pl-ink, #0E0D0B)) 22%, transparent) !important;
   border: none !important;
 }
 .pl8-guest[data-pl-kit="plate"] .pl8-schedule-time {
@@ -5176,17 +5190,32 @@ html { scroll-behavior: smooth; }
 /* ── SCRAPBOOK ──
    Taped polaroid feel: slight rotation per row (nth-child alternates
    direction), drop shadow, soft cream background, tape strip at top
-   via ::before pseudo. */
+   via ::before pseudo. The polaroid look REQUIRES a light paper,
+   so on dark themes (Midnight Velvet etc.) we re-scope --t-ink to
+   a dark cream-contrast ink inside the row so guest text stays
+   readable on the white paper. Without this, light theme ink was
+   inheriting onto the light card and the rows read white-on-white. */
 .pl8-guest[data-pl-kit="scrapbook"] .pl8-schedule-row,
 .pl8-guest[data-pl-kit="scrapbook"] .pl8-chapter-row,
 .pl8-guest[data-pl-kit="scrapbook"] .pl8-hotel-row,
-.pl8-guest[data-pl-kit="scrapbook"] .pl8-faq-row {
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-countdown-cell,
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-map-card,
+.pl8-guest[data-pl-kit="scrapbook"] .pl8-music-card {
   background: #FFFDF7 !important;
   border: none !important;
   border-radius: 2px !important;
   box-shadow: 0 10px 22px rgba(0,0,0,0.12) !important;
   position: relative;
   padding-top: 24px !important;
+  /* Re-scope ink tokens for everything inside the polaroid so
+     child elements styled with `color: var(--t-ink)` etc. paint
+     dark on the white paper. */
+  color: #2B2620 !important;
+  --t-ink: #2B2620;
+  --t-ink-soft: #5C544A;
+  --t-ink-muted: #7A7167;
 }
 .pl8-guest[data-pl-kit="scrapbook"] .pl8-schedule-row:nth-child(odd),
 .pl8-guest[data-pl-kit="scrapbook"] .pl8-chapter-row:nth-child(odd),
@@ -5215,12 +5244,18 @@ html { scroll-behavior: smooth; }
 
 /* ── INDEX ──
    Ruled index-card feel: red 2px left margin line, faint blue rule
-   lines repeating background, square corners. */
+   lines repeating background, square corners. The ruled-paper look
+   only makes sense on a literal index card, so we force the light
+   paper + re-scope ink tokens like Scrapbook does. */
 .pl8-guest[data-pl-kit="index"] .pl8-schedule-row,
 .pl8-guest[data-pl-kit="index"] .pl8-chapter-row,
 .pl8-guest[data-pl-kit="index"] .pl8-hotel-row,
-.pl8-guest[data-pl-kit="index"] .pl8-faq-row {
-  background: var(--pl-cream-card, #FBF7EE) !important;
+.pl8-guest[data-pl-kit="index"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="index"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="index"] .pl8-countdown-cell,
+.pl8-guest[data-pl-kit="index"] .pl8-map-card,
+.pl8-guest[data-pl-kit="index"] .pl8-music-card {
+  background: #FBF7EE !important;
   border: none !important;
   border-left: 2px solid rgba(199,80,80,0.5) !important;
   border-radius: 2px !important;
@@ -5230,6 +5265,10 @@ html { scroll-behavior: smooth; }
     rgba(74,118,196,0.10) 21px 22px
   ) !important;
   box-shadow: 0 1px 2px rgba(75,65,52,0.06) !important;
+  color: #2B2620 !important;
+  --t-ink: #2B2620;
+  --t-ink-soft: #5C544A;
+  --t-ink-muted: #7A7167;
 }
 
 /* ── MINIMAL ──
@@ -5238,7 +5277,11 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="minimal"] .pl8-schedule-row,
 .pl8-guest[data-pl-kit="minimal"] .pl8-chapter-row,
 .pl8-guest[data-pl-kit="minimal"] .pl8-hotel-row,
-.pl8-guest[data-pl-kit="minimal"] .pl8-faq-row {
+.pl8-guest[data-pl-kit="minimal"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="minimal"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="minimal"] .pl8-countdown-cell,
+.pl8-guest[data-pl-kit="minimal"] .pl8-map-card,
+.pl8-guest[data-pl-kit="minimal"] .pl8-music-card {
   background: transparent !important;
   border: none !important;
   border-bottom: 1px solid var(--pl-divider, #D8CFB8) !important;
@@ -5248,7 +5291,11 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="minimal"] .pl8-schedule-row:last-child,
 .pl8-guest[data-pl-kit="minimal"] .pl8-chapter-row:last-child,
 .pl8-guest[data-pl-kit="minimal"] .pl8-hotel-row:last-child,
-.pl8-guest[data-pl-kit="minimal"] .pl8-faq-row:last-child {
+.pl8-guest[data-pl-kit="minimal"] .pl8-faq-row:last-child,
+.pl8-guest[data-pl-kit="minimal"] .pl8-detail-card:last-child,
+.pl8-guest[data-pl-kit="minimal"] .pl8-countdown-cell:last-child,
+.pl8-guest[data-pl-kit="minimal"] .pl8-map-card:last-child,
+.pl8-guest[data-pl-kit="minimal"] .pl8-music-card:last-child {
   border-bottom: none !important;
 }
 /* Oversized numerals on schedule time pills */
@@ -5268,9 +5315,14 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="arch"] .pl8-schedule-row,
 .pl8-guest[data-pl-kit="arch"] .pl8-chapter-row,
 .pl8-guest[data-pl-kit="arch"] .pl8-hotel-row,
-.pl8-guest[data-pl-kit="arch"] .pl8-faq-row {
-  background: var(--pl-cream-card, #FBF7EE) !important;
-  border: 1px solid var(--pl-divider, #D8CFB8) !important;
+.pl8-guest[data-pl-kit="arch"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="arch"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="arch"] .pl8-countdown-cell,
+.pl8-guest[data-pl-kit="arch"] .pl8-map-card,
+.pl8-guest[data-pl-kit="arch"] .pl8-music-card {
+  background: var(--t-card, var(--pl-cream-card, #FBF7EE)) !important;
+  color: var(--t-ink, var(--pl-ink, #0E0D0B)) !important;
+  border: 1px solid var(--t-line, var(--pl-divider, #D8CFB8)) !important;
   /* 24px arched top corners, smaller radius on bottom */
   border-radius: 24px 24px var(--pl-radius-md, 0.5rem) var(--pl-radius-md, 0.5rem) !important;
   box-shadow: 0 4px 16px rgba(40,28,12,0.06) !important;
@@ -5289,25 +5341,33 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="stamp"] .pl8-schedule-row,
 .pl8-guest[data-pl-kit="stamp"] .pl8-chapter-row,
 .pl8-guest[data-pl-kit="stamp"] .pl8-hotel-row,
-.pl8-guest[data-pl-kit="stamp"] .pl8-faq-row {
-  background: var(--pl-cream-card, #FBF7EE) !important;
-  /* Solid 5px mat in the card color = the stamp's white border */
-  border: 5px solid var(--pl-cream-card, #FBF7EE) !important;
+.pl8-guest[data-pl-kit="stamp"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="stamp"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="stamp"] .pl8-countdown-cell,
+.pl8-guest[data-pl-kit="stamp"] .pl8-map-card,
+.pl8-guest[data-pl-kit="stamp"] .pl8-music-card {
+  /* Postage stamp is a literal white-bordered artifact — keep the
+     cream paper but re-scope ink tokens so dark themes still read
+     dark text on the stamp face. */
+  background: #FBF7EE !important;
+  border: 5px solid #FBF7EE !important;
   border-radius: 3px !important;
-  /* The inner dotted ring sits 9px inside the outer edge — gives
-     the perforated postage look. Outline doesn't take up layout
-     space, just paints. */
-  outline: 2px dotted color-mix(in oklab, var(--pl-ink, #0E0D0B) 34%, transparent) !important;
+  outline: 2px dotted color-mix(in oklab, #0E0D0B 34%, transparent) !important;
   outline-offset: -9px !important;
   box-shadow: 0 5px 16px rgba(0,0,0,0.10) !important;
+  color: #2B2620 !important;
+  --t-ink: #2B2620;
+  --t-ink-soft: #5C544A;
+  --t-ink-muted: #7A7167;
 }
 /* Stamp chip / time pill: inherits the postage frame */
 .pl8-guest[data-pl-kit="stamp"] .pl8-time-pill {
-  background: var(--pl-cream-card, #FBF7EE) !important;
-  border: 3px solid var(--pl-cream-card, #FBF7EE) !important;
-  outline: 1.5px dotted color-mix(in oklab, var(--pl-ink, #0E0D0B) 34%, transparent) !important;
+  background: #FBF7EE !important;
+  border: 3px solid #FBF7EE !important;
+  outline: 1.5px dotted color-mix(in oklab, #0E0D0B 34%, transparent) !important;
   outline-offset: -6px !important;
   border-radius: 2px !important;
+  color: #2B2620 !important;
 }
 
 /* ── DECO ──
@@ -5318,16 +5378,22 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="deco"] .pl8-schedule-row,
 .pl8-guest[data-pl-kit="deco"] .pl8-chapter-row,
 .pl8-guest[data-pl-kit="deco"] .pl8-hotel-row,
-.pl8-guest[data-pl-kit="deco"] .pl8-faq-row {
-  background: var(--pl-cream-card, #FBF7EE) !important;
+.pl8-guest[data-pl-kit="deco"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="deco"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="deco"] .pl8-countdown-cell,
+.pl8-guest[data-pl-kit="deco"] .pl8-map-card,
+.pl8-guest[data-pl-kit="deco"] .pl8-music-card {
+  background: var(--t-card, var(--pl-cream-card, #FBF7EE)) !important;
+  color: var(--t-ink, var(--pl-ink, #0E0D0B)) !important;
   border: none !important;
   border-radius: 1px !important;
   /* Triple-inset gold frame — outer 1px gold, 3px card breathing
-     room, then a softer gold echo at 5px. */
+     room, then a softer gold echo at 5px. Uses --t-gold so the
+     gold tracks the theme's accent treatment. */
   box-shadow:
-    inset 0 0 0 1px var(--pl-gold, #B8935A),
-    inset 0 0 0 4px var(--pl-cream-card, #FBF7EE),
-    inset 0 0 0 5px color-mix(in oklab, var(--pl-gold, #B8935A) 55%, transparent) !important;
+    inset 0 0 0 1px var(--t-gold, var(--pl-gold, #B8935A)),
+    inset 0 0 0 4px var(--t-card, var(--pl-cream-card, #FBF7EE)),
+    inset 0 0 0 5px color-mix(in oklab, var(--t-gold, var(--pl-gold, #B8935A)) 55%, transparent) !important;
 }
 /* Deco time pills wear the same gold inset + uppercase tracking */
 .pl8-guest[data-pl-kit="deco"] .pl8-time-pill,
@@ -5336,9 +5402,10 @@ html { scroll-behavior: smooth; }
   text-transform: uppercase !important;
   font-size: 0.74rem !important;
   font-weight: 600 !important;
-  box-shadow: inset 0 0 0 1px var(--pl-gold, #B8935A) !important;
+  box-shadow: inset 0 0 0 1px var(--t-gold, var(--pl-gold, #B8935A)) !important;
   border-radius: 0 !important;
-  background: var(--pl-cream-card, #FBF7EE) !important;
+  background: var(--t-card, var(--pl-cream-card, #FBF7EE)) !important;
+  color: var(--t-ink, var(--pl-ink, #0E0D0B)) !important;
   border: none !important;
 }
 

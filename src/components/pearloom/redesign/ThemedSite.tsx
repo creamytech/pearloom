@@ -1467,7 +1467,7 @@ function DetailsBlock({ ctx }: { ctx: SectionCtx }) {
       />
       <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 18, maxWidth: 760, marginInline: 'auto' }}>
         {C.details.items.map((d, i) => (
-          <div key={`${i}-${d.l}`} style={{ background: 'var(--t-card)', borderRadius: 'var(--t-radius)', padding: 18, border: '1px solid var(--t-line-soft)' }}>
+          <div key={`${i}-${d.l}`} className="pl8-detail-card pl8-card" style={{ background: 'var(--t-card)', borderRadius: 'var(--t-radius)', padding: 18, border: '1px solid var(--t-line-soft)' }}>
             <Icon name={d.icon} size={18} color="var(--t-gold)" />
             <InlineEdit
               as="div"
@@ -2227,7 +2227,7 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
           { n: pieces.m, l: 'Min' },
           { n: pieces.s, l: 'Sec' },
         ].map((cell) => (
-          <div key={cell.l} style={{ padding: '18px 8px', background: 'var(--t-card)', border: '1px solid var(--t-line-soft)', borderRadius: 'var(--t-radius)', boxShadow: 'var(--t-shadow-sm)' }}>
+          <div key={cell.l} className="pl8-countdown-cell pl8-card" style={{ padding: '18px 8px', background: 'var(--t-card)', border: '1px solid var(--t-line-soft)', borderRadius: 'var(--t-radius)', boxShadow: 'var(--t-shadow-sm)' }}>
             <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(28px, 5vw, 48px)', color: 'var(--t-ink)', lineHeight: 1 }}>
               {String(cell.n).padStart(2, '0')}
             </div>
@@ -2296,7 +2296,7 @@ function MapBlock({ ctx }: { ctx: SectionCtx }) {
           editable={false}
           divider={ctx.dividerLook}
         />
-        <div style={{ maxWidth: 480, margin: '0 auto', padding: '32px 20px', background: 'var(--t-card)', border: '1px solid var(--t-line-soft)', borderRadius: 'var(--t-radius)', boxShadow: 'var(--t-shadow-sm)' }}>
+        <div className="pl8-map-card pl8-card" style={{ maxWidth: 480, margin: '0 auto', padding: '32px 20px', background: 'var(--t-card)', border: '1px solid var(--t-line-soft)', borderRadius: 'var(--t-radius)', boxShadow: 'var(--t-shadow-sm)' }}>
           <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--t-accent-bg, var(--t-section))', display: 'grid', placeItems: 'center', margin: '0 auto 14px' }}>
             <Icon name="pin" size={24} color="var(--t-accent-ink, var(--t-ink))" />
           </div>

@@ -319,17 +319,28 @@ function GenerateCard({ manifest, onChange }: { manifest: StoryManifest; onChang
 function SiteLayoutPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const value = (manifest as unknown as { siteLayout?: string }).siteLayout ?? 'stacked';
   const set = (id: string) => onChange({ ...(manifest as unknown as Record<string, unknown>), siteLayout: id } as unknown as StoryManifest);
+  /* 3 originals + 5 new full-page layouts. Same id / label / sub
+     copy as the canonical SiteLayoutPicker so both pickers stay
+     in sync; ThemedSite handles the canvas dispatch for all of
+     these, and pearloom.css carries the mobile breakpoints. */
   const opts = [
-    { id: 'stacked', label: 'Classic', sub: 'Full scroll' },
-    { id: 'boxed', label: 'Invitation', sub: 'Card on a mat' },
-    { id: 'split', label: 'Split', sub: 'Sidebar lockup' },
+    { id: 'stacked',   label: 'Classic',   sub: 'Full scroll' },
+    { id: 'boxed',     label: 'Invitation',sub: 'Card on a mat' },
+    { id: 'split',     label: 'Split',     sub: 'Sidebar lockup' },
+    { id: 'magazine',  label: 'Magazine',  sub: 'Two-column spread' },
+    { id: 'zine',      label: 'Zine',      sub: 'Tilted hand-cut pages' },
+    { id: 'storybook', label: 'Storybook', sub: 'Paged with folios' },
+    { id: 'gallery',   label: 'Gallery',   sub: 'Narrow column, big air' },
+    { id: 'postcard',  label: 'Postcard',  sub: 'Keepsake card frame' },
   ];
   const Diagram = ({ id, on }: { id: string; on: boolean }) => {
     const c = on ? 'var(--cream)' : 'var(--ink-muted)';
+    const cSoft = on ? 'rgba(248,241,228,0.6)' : 'rgba(14,13,11,0.45)';
     const bg = on ? 'rgba(248,241,228,0.22)' : 'var(--cream-2)';
+    const tile: React.CSSProperties = { height: 38, borderRadius: 5, background: bg, position: 'relative', overflow: 'hidden' };
     if (id === 'boxed') {
       return (
-        <div style={{ height: 38, borderRadius: 5, background: bg, display: 'grid', placeItems: 'center' }}>
+        <div style={{ ...tile, display: 'grid', placeItems: 'center' }}>
           <div style={{ width: '60%', height: '64%', borderRadius: 3, border: `1.5px solid ${c}`, display: 'flex', flexDirection: 'column', gap: 2, padding: 3 }}>
             <div style={{ height: 3, background: c, borderRadius: 1 }} />
             <div style={{ height: 3, width: '70%', background: c, borderRadius: 1, opacity: 0.6 }} />
@@ -339,7 +350,7 @@ function SiteLayoutPick({ manifest, onChange }: { manifest: StoryManifest; onCha
     }
     if (id === 'split') {
       return (
-        <div style={{ height: 38, borderRadius: 5, background: bg, display: 'flex', gap: 3, padding: 5 }}>
+        <div style={{ ...tile, display: 'flex', gap: 3, padding: 5 }}>
           <div style={{ width: '38%', background: c, borderRadius: 2 }} />
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
             <div style={{ height: 4, background: c, borderRadius: 1, opacity: 0.6 }} />
@@ -349,8 +360,77 @@ function SiteLayoutPick({ manifest, onChange }: { manifest: StoryManifest; onCha
         </div>
       );
     }
+    if (id === 'magazine') {
+      /* Hero band on top, then 2-col spread below. */
+      return (
+        <div style={{ ...tile, display: 'flex', flexDirection: 'column', gap: 2, padding: 4 }}>
+          <div style={{ height: 8, background: c, borderRadius: 1, opacity: 0.6 }} />
+          <div style={{ flex: 1, display: 'flex', gap: 3 }}>
+            <div style={{ flex: 1, background: c, borderRadius: 1, opacity: 0.55 }} />
+            <div style={{ flex: 1, background: c, borderRadius: 1, opacity: 0.55 }} />
+          </div>
+        </div>
+      );
+    }
+    if (id === 'zine') {
+      /* Three tilted pages stacked, alternating depth. */
+      return (
+        <div style={tile}>
+          <div style={{ position: 'absolute', inset: '4px 8px', background: c, borderRadius: 2, opacity: 0.4, transform: 'rotate(-2deg)' }} />
+          <div style={{ position: 'absolute', inset: '8px 5px', background: c, borderRadius: 2, opacity: 0.6, transform: 'rotate(1.5deg)' }} />
+          <div style={{ position: 'absolute', inset: '12px 9px', background: c, borderRadius: 2, opacity: 0.85, transform: 'rotate(-0.8deg)' }} />
+        </div>
+      );
+    }
+    if (id === 'storybook') {
+      /* Hero strip + 2 paged rows with tiny folio dots. */
+      return (
+        <div style={{ ...tile, display: 'flex', flexDirection: 'column', padding: 4, gap: 2 }}>
+          <div style={{ height: 8, background: c, borderRadius: 1, opacity: 0.7 }} />
+          <div style={{ height: 1, background: cSoft, margin: '1px 0' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <span style={{ width: 3, height: 3, borderRadius: '50%', background: cSoft }} />
+            <div style={{ flex: 1, height: 3, background: c, borderRadius: 1, opacity: 0.55 }} />
+          </div>
+          <div style={{ height: 1, background: cSoft, margin: '1px 0' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <span style={{ width: 3, height: 3, borderRadius: '50%', background: cSoft }} />
+            <div style={{ flex: 1, height: 3, background: c, borderRadius: 1, opacity: 0.55 }} />
+          </div>
+        </div>
+      );
+    }
+    if (id === 'gallery') {
+      /* Hero full-bleed + narrow centered content + right-edge dots. */
+      return (
+        <div style={tile}>
+          <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 11, background: c, opacity: 0.6 }} />
+          <div style={{ position: 'absolute', left: '32%', right: '20%', top: 16, height: 2, background: c, borderRadius: 1 }} />
+          <div style={{ position: 'absolute', left: '34%', right: '22%', top: 21, height: 2, background: c, borderRadius: 1, opacity: 0.55 }} />
+          <div style={{ position: 'absolute', left: '32%', right: '20%', top: 26, height: 8, background: c, borderRadius: 1, opacity: 0.5 }} />
+          {/* Sticky right-edge dots. */}
+          <span style={{ position: 'absolute', right: 5, top: 18, width: 2, height: 2, borderRadius: '50%', background: c }} />
+          <span style={{ position: 'absolute', right: 5, top: 23, width: 2, height: 2, borderRadius: '50%', background: cSoft }} />
+          <span style={{ position: 'absolute', right: 5, top: 28, width: 2, height: 2, borderRadius: '50%', background: cSoft }} />
+        </div>
+      );
+    }
+    if (id === 'postcard') {
+      /* Outer dark mat + inner postcard card + tilted stamp. */
+      return (
+        <div style={{ ...tile, background: on ? 'rgba(248,241,228,0.22)' : 'rgba(14,13,11,0.55)', display: 'grid', placeItems: 'center' }}>
+          <div style={{ position: 'relative', width: '76%', height: '74%', background: on ? 'rgba(248,241,228,0.95)' : 'var(--cream)', borderRadius: 2, padding: 3 }}>
+            {/* Stamp top-right. */}
+            <div style={{ position: 'absolute', top: 2, right: 2, width: 6, height: 7, background: on ? 'var(--ink)' : 'var(--peach-bg)', border: `0.5px dashed ${on ? 'var(--cream)' : 'var(--peach-ink)'}`, transform: 'rotate(6deg)' }} />
+            <div style={{ height: 2, background: on ? 'var(--ink)' : 'var(--ink-muted)', borderRadius: 1, marginBottom: 2 }} />
+            <div style={{ height: 2, width: '60%', background: on ? 'var(--ink)' : 'var(--ink-muted)', borderRadius: 1, opacity: 0.55 }} />
+          </div>
+        </div>
+      );
+    }
+    /* stacked (default) */
     return (
-      <div style={{ height: 38, borderRadius: 5, background: bg, display: 'flex', flexDirection: 'column', gap: 3, padding: 6 }}>
+      <div style={{ ...tile, display: 'flex', flexDirection: 'column', gap: 3, padding: 6 }}>
         <div style={{ height: 6, background: c, borderRadius: 1 }} />
         <div style={{ height: 5, background: c, borderRadius: 1, opacity: 0.6 }} />
         <div style={{ height: 5, width: '80%', background: c, borderRadius: 1, opacity: 0.6 }} />
@@ -362,7 +442,11 @@ function SiteLayoutPick({ manifest, onChange }: { manifest: StoryManifest; onCha
       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 9 }}>
         Layout · whole-page feel
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+      {/* 8 layouts in a 3-col grid → 2 rows of 3 + a third row of 2.
+          Flexes down to 2 cols on narrow rails via the auto-fit
+          fallback below; the inline editor rail is always wide
+          enough for 3, but the LookEngine rail can run tighter. */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
         {opts.map((o) => {
           const on = value === o.id;
           return (
