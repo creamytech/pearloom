@@ -362,6 +362,14 @@ function EditorCanvas({
           onEditField={isPreview ? undefined : onEditField}
           onEditNames={isPreview ? undefined : onEditNames}
         />
+        {/* GuestRsvpModal mount — same modal PublishedSiteShell
+            shows guests, mounted in the editor too so the RSVP
+            CTA in the nav actually opens the form in the editor
+            preview (it dispatches pl-open-rsvp on click; without
+            this mount, the click resolved to a no-op). Mounting
+            in both edit + preview so the host can test the flow
+            without switching contexts. */}
+        <EditorCanvasRsvpModal siteSlug={siteSlug} manifest={manifest} />
         {/* FullSite + ThemedSiteRenderer kept as imports for one-line
             rollback during cutover — not rendered. */}
         {false && (
@@ -449,4 +457,17 @@ function PearAside({
       />
     </div>
   );
+}
+
+/* EditorCanvasRsvpModal — lazy-loaded wrapper for the published-
+   site GuestRsvpModal so the editor preview can open the same
+   RSVP form a guest would see. The actual modal is ~30KB; the
+   require() call keeps it out of the initial editor bundle until
+   the canvas mounts. */
+function EditorCanvasRsvpModal({ siteSlug, manifest }: { siteSlug: string; manifest: StoryManifest }) {
+  const GuestRsvpModal = require('../site/GuestRsvpModal').GuestRsvpModal as React.ComponentType<{
+    siteSlug: string;
+    manifest: StoryManifest;
+  }>;
+  return <GuestRsvpModal siteSlug={siteSlug} manifest={manifest} />;
 }

@@ -7961,6 +7961,27 @@ html { scroll-behavior: smooth; }
   }
 }
 
+/* ── Mobile texture parity ──
+   Audit 2026-06-03 against user feedback: textures rendered via
+   `filter: url(#t-mottle)` etc. look weaker on real mobile devices
+   than they do in the editor's desktop canvas preview. Two causes:
+   (1) iOS Safari rasterizes SVG filters at lower quality unless the
+   element is GPU-composited, and (2) smaller physical screen pixels
+   reduce the perceived contrast of subtle grain. The fix below
+   forces GPU compositing on every texture overlay so Safari renders
+   the filter at full quality, and adds a `will-change` hint so the
+   GPU pre-allocates a buffer instead of falling back to a downsized
+   raster. Applies to every device < 900px so it covers tablets too. */
+@media (max-width: 900px) {
+  .pl8-guest[data-pl-texture]:not([data-pl-texture="none"])::before,
+  .pl8-guest[data-pl-texture]:not([data-pl-texture="none"])::after {
+    transform: translateZ(0);
+    will-change: filter, opacity;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+}
+
 @media (max-width: 480px) {
   /* Phone — squeeze hero scale further. */
   .pl8-guest {
