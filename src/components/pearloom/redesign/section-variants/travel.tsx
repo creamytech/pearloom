@@ -4,7 +4,8 @@
    The 'rows' default is implemented inline in ThemedSite. */
 
 import type { CSSProperties } from 'react';
-import type { Hotel, PhotoTone, TravelVariantCtx } from './types';
+import type { Hotel, TravelVariantCtx } from './types';
+import { VariantSectionHead } from './_section-head';
 
 /* Tone → photo-placeholder background, same shape as gallery. */
 const TONE_BG: Record<string, string> = {
@@ -19,19 +20,14 @@ const TONE_BG: Record<string, string> = {
   rose: 'linear-gradient(135deg, #f0c8c4 0%, #d49a96 100%)',
 };
 
-/* ─── shared head ─── */
-function SectionHead({ eyebrow, title, italic }: { eyebrow: string; title: string; italic?: string }) {
-  return (
-    <div style={{ textAlign: 'center', marginBottom: 26 }}>
-      <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--t-accent-ink, var(--t-accent))', marginBottom: 10 }}>
-        {eyebrow}
-      </div>
-      <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 600, fontSize: 40, margin: 0, lineHeight: 1, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}>
-        {title}
-        {italic && <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink, var(--t-accent))' }}> {italic}</span>}
-      </h2>
-    </div>
-  );
+/* Tiny prop-spread helper for the editable head. */
+function headProps(ctx: TravelVariantCtx) {
+  return {
+    eyebrow: ctx.C.eyebrow, title: ctx.C.title, italic: ctx.C.italic,
+    editable: ctx.editable,
+    onEditEyebrow: ctx.onEditEyebrow, onEditTitle: ctx.onEditTitle,
+    eyebrowPlaceholder: ctx.eyebrowPlaceholder, titlePlaceholder: ctx.titlePlaceholder,
+  };
 }
 
 /* ─── shared hotel card (used by map + carousel) ─── */
@@ -61,10 +57,13 @@ function HotelCard({ h, style }: { h: Hotel; style?: CSSProperties }) {
 
 /* ─── TravelMap ─── */
 export function TravelMap({ ctx }: { ctx: TravelVariantCtx }) {
-  const { pad, C } = ctx;
+  const { C } = ctx;
+  /* Wrapper padding is applied by the dispatch in ThemedSite — no
+     local padding/background here, otherwise content sits in
+     double padding (audit 2026-06-04). */
   return (
-    <div style={{ padding: `${48 * pad}px 40px`, background: 'var(--t-section)' }}>
-      <SectionHead eyebrow={C.eyebrow} title={C.title} italic={C.italic} />
+    <>
+      <VariantSectionHead {...headProps(ctx)} />
       <div
         aria-hidden
         style={{
@@ -91,16 +90,16 @@ export function TravelMap({ ctx }: { ctx: TravelVariantCtx }) {
       <div style={{ maxWidth: 820, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
         {C.hotels.map((h, i) => <HotelCard key={i} h={h} />)}
       </div>
-    </div>
+    </>
   );
 }
 
 /* ─── TravelTable ─── */
 export function TravelTable({ ctx }: { ctx: TravelVariantCtx }) {
-  const { pad, C } = ctx;
+  const { C } = ctx;
   return (
-    <div style={{ padding: `${48 * pad}px 40px`, background: 'var(--t-section)' }}>
-      <SectionHead eyebrow={C.eyebrow} title={C.title} italic={C.italic} />
+    <>
+      <VariantSectionHead {...headProps(ctx)} />
       <div style={{ maxWidth: 680, margin: '0 auto' }}>
         {C.hotels.map((h, i) => (
           <div
@@ -127,24 +126,26 @@ export function TravelTable({ ctx }: { ctx: TravelVariantCtx }) {
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 }
 
 /* ─── TravelCarousel ─── */
 export function TravelCarousel({ ctx }: { ctx: TravelVariantCtx }) {
-  const { pad, C } = ctx;
+  const { C } = ctx;
+  /* Dispatch wraps in section padding; carousel needs to break out
+     of the 40px horizontal pad to bleed to the edge — done by
+     negative margin instead of nested wrapping. */
   return (
-    <div style={{ padding: `${48 * pad}px 0`, background: 'var(--t-section)' }}>
-      <div style={{ padding: '0 40px' }}>
-        <SectionHead eyebrow={C.eyebrow} title={C.title} italic={C.italic} />
-      </div>
+    <>
+      <VariantSectionHead {...headProps(ctx)} />
       <div
         style={{
           display: 'flex',
           overflowX: 'auto',
           gap: 16,
           padding: '12px 40px',
+          margin: '0 -40px',
           scrollSnapType: 'x mandatory',
         }}
       >
@@ -152,6 +153,6 @@ export function TravelCarousel({ ctx }: { ctx: TravelVariantCtx }) {
           <HotelCard key={i} h={h} style={{ flex: '0 0 300px', scrollSnapAlign: 'start' }} />
         ))}
       </div>
-    </div>
+    </>
   );
 }

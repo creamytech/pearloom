@@ -5,6 +5,7 @@
    LAYOUTS registry can dispatch into. */
 
 import type { GalleryVariantCtx, PhotoTone } from './types';
+import { VariantSectionHead } from './_section-head';
 
 /* ── Shared tone → gradient placeholder map ─────────────────────── */
 
@@ -20,20 +21,17 @@ const TONE_BG: Record<string, string> = {
   rose: 'linear-gradient(135deg,#e8b8b8,#c48888)',
 };
 
-/* ── Inline section head (mirrors TSectionHead in ThemedSite) ──── */
-
-function SectionHead({ eyebrow, title, italic }: { eyebrow: string; title: string; italic?: string }) {
-  return (
-    <div style={{ textAlign: 'center', marginBottom: 26 }}>
-      <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 10 }}>
-        {eyebrow}
-      </div>
-      <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 40, margin: 0, lineHeight: 1.0, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}>
-        {title}
-        {italic && <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}> {italic}</span>}
-      </h2>
-    </div>
-  );
+/** Small helper — destructure the editable head props out of any
+ *  variant ctx in one go, keeping JSX terse. */
+function headProps(ctx: GalleryVariantCtx) {
+  return {
+    eyebrow: ctx.C.eyebrow, title: ctx.C.title, italic: ctx.C.italic,
+    editable: ctx.editable,
+    onEditEyebrow: ctx.onEditEyebrow,
+    onEditTitle: ctx.onEditTitle,
+    eyebrowPlaceholder: ctx.eyebrowPlaceholder,
+    titlePlaceholder: ctx.titlePlaceholder,
+  };
 }
 
 /* ── (a) Masonry — CSS columns, varying aspect ratios ──────────── */
@@ -50,7 +48,7 @@ export function GalleryMasonry({ ctx }: { ctx: GalleryVariantCtx }) {
     : tones.map((tone) => ({ kind: 'tone' as const, tone }));
   return (
     <>
-      <SectionHead eyebrow={C.eyebrow} title={C.title} italic={C.italic} />
+      <VariantSectionHead {...headProps(ctx)} />
       <div style={{ maxWidth: 940, margin: '0 auto', columnCount: 4, columnGap: 9 }}>
         {items.map((it, i) => (
           <div
@@ -83,7 +81,7 @@ export function GallerySlideshow({ ctx }: { ctx: GalleryVariantCtx }) {
   const thumbs = hasPhotos ? C.photos!.slice(1, 7) : tones.slice(1, 7);
   return (
     <>
-      <SectionHead eyebrow={C.eyebrow} title={C.title} italic={C.italic} />
+      <VariantSectionHead {...headProps(ctx)} />
       <div
         style={{
           aspectRatio: '16/9',
@@ -123,7 +121,7 @@ export function GalleryPolaroid({ ctx }: { ctx: GalleryVariantCtx }) {
     : tones.map((tone) => ({ bg: TONE_BG[tone] }));
   return (
     <>
-      <SectionHead eyebrow={C.eyebrow} title={C.title} italic={C.italic} />
+      <VariantSectionHead {...headProps(ctx)} />
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 16, maxWidth: 920, margin: '0 auto' }}>
         {items.map((it, i) => (
           <div

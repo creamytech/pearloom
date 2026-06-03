@@ -9,57 +9,25 @@
 import type { CSSProperties } from 'react';
 import type { DetailsVariantCtx } from './types';
 import { Icon } from '../../motifs';
+import { VariantSectionHead } from './_section-head';
 
-/* ─── SectionHead — local helper mirroring TSectionHead's shape so
-   every variant in this file shares the same eyebrow + display
-   title treatment. Kept inline so the file stands alone. ──── */
-
-function SectionHead({ C }: { C: DetailsVariantCtx['C']; pad: number }) {
-  return (
-    <div style={{ textAlign: 'center', marginBottom: 26 }}>
-      <div
-        style={{
-          fontSize: 11.5,
-          fontWeight: 700,
-          letterSpacing: 'var(--t-eyebrow-ls)',
-          textTransform: 'uppercase',
-          color: 'var(--t-accent-ink)',
-          marginBottom: 10,
-        }}
-      >
-        {C.eyebrow}
-      </div>
-      <h2
-        style={{
-          fontFamily: 'var(--t-display)',
-          fontWeight: 'var(--t-display-wght)' as CSSProperties['fontWeight'],
-          fontSize: 40,
-          margin: 0,
-          lineHeight: 1.0,
-          letterSpacing: '-0.01em',
-          color: 'var(--t-ink)',
-        }}
-      >
-        {C.title}
-        {C.italic && (
-          <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}>
-            {' '}
-            {C.italic}
-          </span>
-        )}
-      </h2>
-    </div>
-  );
+function headProps(ctx: DetailsVariantCtx) {
+  return {
+    eyebrow: ctx.C.eyebrow, title: ctx.C.title, italic: ctx.C.italic,
+    editable: ctx.editable,
+    onEditEyebrow: ctx.onEditEyebrow, onEditTitle: ctx.onEditTitle,
+    eyebrowPlaceholder: ctx.eyebrowPlaceholder, titlePlaceholder: ctx.titlePlaceholder,
+  };
 }
 
 /* ─── DetailsIconRow — flex row of circular icon medallions, each
    stacked above a mono label + display value + optional subline. ─ */
 
 export function DetailsIconRow({ ctx }: { ctx: DetailsVariantCtx }) {
-  const { C, pad } = ctx;
+  const { C } = ctx;
   return (
-    <div style={{ padding: `${44 * pad}px 40px`, background: 'var(--t-section)' }}>
-      <SectionHead C={C} pad={pad} />
+    <>
+      <VariantSectionHead {...headProps(ctx)} />
       <div
         style={{
           maxWidth: 760,
@@ -114,7 +82,7 @@ export function DetailsIconRow({ ctx }: { ctx: DetailsVariantCtx }) {
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 }
 
@@ -122,10 +90,10 @@ export function DetailsIconRow({ ctx }: { ctx: DetailsVariantCtx }) {
    on the left, chevron glyph on the right. ──────────────── */
 
 export function DetailsAccordion({ ctx }: { ctx: DetailsVariantCtx }) {
-  const { C, pad } = ctx;
+  const { C } = ctx;
   return (
-    <div style={{ padding: `${44 * pad}px 40px`, background: 'var(--t-section)' }}>
-      <SectionHead C={C} pad={pad} />
+    <>
+      <VariantSectionHead {...headProps(ctx)} />
       <div style={{ maxWidth: 620, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {C.items.map((d) => (
           <div
@@ -194,7 +162,7 @@ export function DetailsAccordion({ ctx }: { ctx: DetailsVariantCtx }) {
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 }
 
@@ -202,10 +170,10 @@ export function DetailsAccordion({ ctx }: { ctx: DetailsVariantCtx }) {
    the accent surface; remaining items live on card surfaces. ── */
 
 export function DetailsBento({ ctx }: { ctx: DetailsVariantCtx }) {
-  const { C, pad } = ctx;
+  const { C } = ctx;
   return (
-    <div style={{ padding: `${44 * pad}px 40px`, background: 'var(--t-section)' }}>
-      <SectionHead C={C} pad={pad} />
+    <>
+      <VariantSectionHead {...headProps(ctx)} />
       <div
         style={{
           maxWidth: 640,
@@ -256,6 +224,6 @@ export function DetailsBento({ ctx }: { ctx: DetailsVariantCtx }) {
           );
         })}
       </div>
-    </div>
+    </>
   );
 }

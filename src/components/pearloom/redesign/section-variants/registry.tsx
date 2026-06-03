@@ -1,34 +1,27 @@
 'use client';
 /* eslint-disable no-restricted-syntax */
 /* Registry section variants — alternatives to the default 'cards'
-   layout that ships inline inside ThemedSite. Dispatched via
-   readVariant(manifest, 'registry') against the LAYOUTS registry. */
+   layout. Dispatched via readVariant(manifest, 'registry') against
+   the LAYOUTS registry.
+
+   Variants return *content-only* JSX — the dispatch's outer <div>
+   in ThemedSite is the single source of section padding /
+   background. */
 
 import { Icon } from '../../motifs';
 import type { RegistryVariantCtx } from './types';
-
-/* Shared section head — mirrors TSectionHead in ThemedSite so the
-   variants line up visually with the default. */
-function SectionHead({ eyebrow, title, italic }: { eyebrow: string; title: string; italic?: string }) {
-  return (
-    <div style={{ textAlign: 'center', marginBottom: 26 }}>
-      <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 10 }}>
-        {eyebrow}
-      </div>
-      <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 40, margin: 0, lineHeight: 1.0, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}>
-        {title}
-        {italic && <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}> {italic}</span>}
-      </h2>
-    </div>
-  );
-}
+import { VariantSectionHead } from './_section-head';
 
 /* (a) Chips — denser version of the default cards layout. */
 export function RegistryChips({ ctx }: { ctx: RegistryVariantCtx }) {
-  const { pad, C } = ctx;
+  const { C, editable, onEditEyebrow, onEditTitle, eyebrowPlaceholder, titlePlaceholder } = ctx;
   return (
-    <div style={{ padding: `${48 * pad}px 40px`, textAlign: 'center', background: 'var(--t-paper)' }}>
-      <SectionHead eyebrow={C.eyebrow} title={C.title} italic={C.italic} />
+    <>
+      <VariantSectionHead
+        eyebrow={C.eyebrow} title={C.title} italic={C.italic}
+        editable={editable} onEditEyebrow={onEditEyebrow} onEditTitle={onEditTitle}
+        eyebrowPlaceholder={eyebrowPlaceholder} titlePlaceholder={titlePlaceholder}
+      />
       <div style={{ fontSize: 14.5, color: 'var(--t-ink-soft)', maxWidth: 480, margin: '0 auto 22px', lineHeight: 1.6 }}>
         {C.body}
       </div>
@@ -50,13 +43,13 @@ export function RegistryChips({ ctx }: { ctx: RegistryVariantCtx }) {
             : <span key={`${s.name}-${i}`} style={style}>{s.name}</span>;
         })}
       </div>
-    </div>
+    </>
   );
 }
 
-/* (b) Progress — hero card with a honeymoon-fund progress bar. */
+/* (b) Progress — hero card with a fund progress bar. */
 export function RegistryProgress({ ctx }: { ctx: RegistryVariantCtx }) {
-  const { pad, C } = ctx;
+  const { C, editable, onEditEyebrow, onEditTitle, eyebrowPlaceholder, titlePlaceholder } = ctx;
   const fundName =
     (C.stores.find((s) => /fund|honeymoon/i.test(s.name))?.name)
       ?? C.stores[0]?.name
@@ -64,8 +57,12 @@ export function RegistryProgress({ ctx }: { ctx: RegistryVariantCtx }) {
   const pct = Math.max(0, Math.min(100, C.fundPct ?? 0));
   const sub = C.fundSub ?? `${pct}% funded`;
   return (
-    <div style={{ padding: `${48 * pad}px 40px`, textAlign: 'center', background: 'var(--t-paper)' }}>
-      <SectionHead eyebrow={C.eyebrow} title={C.title} italic={C.italic} />
+    <>
+      <VariantSectionHead
+        eyebrow={C.eyebrow} title={C.title} italic={C.italic}
+        editable={editable} onEditEyebrow={onEditEyebrow} onEditTitle={onEditTitle}
+        eyebrowPlaceholder={eyebrowPlaceholder} titlePlaceholder={titlePlaceholder}
+      />
       <div style={{ fontSize: 14.5, color: 'var(--t-ink-soft)', maxWidth: 480, margin: '0 auto 22px', lineHeight: 1.6 }}>
         {C.body}
       </div>
@@ -98,16 +95,20 @@ export function RegistryProgress({ ctx }: { ctx: RegistryVariantCtx }) {
           />
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
 /* (c) Logo wall — grid of square-ish gift cards, one per store. */
 export function RegistryLogoWall({ ctx }: { ctx: RegistryVariantCtx }) {
-  const { pad, C } = ctx;
+  const { C, editable, onEditEyebrow, onEditTitle, eyebrowPlaceholder, titlePlaceholder } = ctx;
   return (
-    <div style={{ padding: `${48 * pad}px 40px`, textAlign: 'center', background: 'var(--t-paper)' }}>
-      <SectionHead eyebrow={C.eyebrow} title={C.title} italic={C.italic} />
+    <>
+      <VariantSectionHead
+        eyebrow={C.eyebrow} title={C.title} italic={C.italic}
+        editable={editable} onEditEyebrow={onEditEyebrow} onEditTitle={onEditTitle}
+        eyebrowPlaceholder={eyebrowPlaceholder} titlePlaceholder={titlePlaceholder}
+      />
       <div style={{ fontSize: 14.5, color: 'var(--t-ink-soft)', maxWidth: 480, margin: '0 auto 22px', lineHeight: 1.6 }}>
         {C.body}
       </div>
@@ -147,6 +148,6 @@ export function RegistryLogoWall({ ctx }: { ctx: RegistryVariantCtx }) {
             : <div key={`${s.name}-${i}`} style={cardStyle}>{body}</div>;
         })}
       </div>
-    </div>
+    </>
   );
 }

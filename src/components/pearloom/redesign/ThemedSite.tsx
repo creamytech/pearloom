@@ -918,7 +918,13 @@ function HeroPostcard({ ctx }: { ctx: SectionCtx }) {
 function StoryBlock({ ctx }: { ctx: SectionCtx }) {
   if (ctx.variants.story === 'zigzag') {
     const { pad, C, editable } = ctx;
-    return <div style={{ padding: `${44 * pad}px 32px`, background: 'var(--t-paper)' }}><StoryZigzag ctx={{ C: C.story, pad, editable, cta: C.cta }} /></div>;
+    return <div style={{ padding: `${44 * pad}px 32px`, background: 'var(--t-paper)' }}><StoryZigzag ctx={{
+      C: C.story, pad, editable, cta: C.cta,
+      onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('storyEyebrow', v) : undefined,
+      onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('storyTitle', v) : undefined,
+      eyebrowPlaceholder: 'Our story',
+      titlePlaceholder: 'How we got here',
+    }} /></div>;
   }
   switch (ctx.variants.story) {
     case 'stacked':  return <StoryStacked ctx={ctx} />;
@@ -1137,7 +1143,13 @@ function StoryLetter({ ctx }: { ctx: SectionCtx }) {
 function DetailsBlock({ ctx }: { ctx: SectionCtx }) {
   const { pad, C, motif, editable, variants } = ctx;
   /* Variant dispatch — fall through to default 'tiles' block. */
-  const sub = { C: C.details, pad, editable, cta: C.cta };
+  const sub = {
+    C: C.details, pad, editable, cta: C.cta,
+    onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('detailsEyebrow', v) : undefined,
+    onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('detailsTitle', v) : undefined,
+    eyebrowPlaceholder: 'The fine print',
+    titlePlaceholder: 'Good to know',
+  };
   if (variants.details === 'iconrow')   return <div style={{ position: 'relative', padding: `${44 * pad}px 40px`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><DetailsIconRow ctx={sub} /></div>;
   if (variants.details === 'accordion') return <div style={{ position: 'relative', padding: `${44 * pad}px 40px`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><DetailsAccordion ctx={sub} /></div>;
   if (variants.details === 'bento')     return <div style={{ position: 'relative', padding: `${44 * pad}px 40px`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><DetailsBento ctx={sub} /></div>;
@@ -1185,7 +1197,13 @@ function DetailsBlock({ ctx }: { ctx: SectionCtx }) {
 
 function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
   const { pad, C, editable, variants } = ctx;
-  const sub = { C: C.schedule, pad, editable, cta: C.cta };
+  const sub = {
+    C: C.schedule, pad, editable, cta: C.cta,
+    onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('scheduleEyebrow', v) : undefined,
+    onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('scheduleTitle', v) : undefined,
+    eyebrowPlaceholder: 'The day',
+    titlePlaceholder: 'In moments',
+  };
   if (variants.schedule === 'timeline') return <div style={{ padding: `${48 * pad}px 40px`, background: 'var(--t-paper)' }}><ScheduleTimeline ctx={sub} /></div>;
   if (variants.schedule === 'stepper')  return <div style={{ padding: `${48 * pad}px 40px`, background: 'var(--t-paper)' }}><ScheduleStepper ctx={sub} /></div>;
   if (variants.schedule === 'numbered') return <div style={{ padding: `${48 * pad}px 40px`, background: 'var(--t-paper)' }}><ScheduleNumbered ctx={sub} /></div>;
@@ -1299,7 +1317,13 @@ function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
 
 function TravelBlock({ ctx }: { ctx: SectionCtx }) {
   const { pad, C, motif, editable, variants } = ctx;
-  const sub = { C: C.travel, pad, editable, cta: C.cta };
+  const sub = {
+    C: C.travel, pad, editable, cta: C.cta,
+    onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('travelEyebrow', v) : undefined,
+    onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('travelTitle', v) : undefined,
+    eyebrowPlaceholder: 'Travel',
+    titlePlaceholder: 'Where to stay',
+  };
   if (variants.travel === 'map')      return <div style={{ position: 'relative', padding: `${48 * pad}px 40px`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><TravelMap ctx={sub} /></div>;
   if (variants.travel === 'table')    return <div style={{ position: 'relative', padding: `${48 * pad}px 40px`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><TravelTable ctx={sub} /></div>;
   if (variants.travel === 'carousel') return <div style={{ position: 'relative', padding: `${48 * pad}px 40px`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><TravelCarousel ctx={sub} /></div>;
@@ -1372,7 +1396,17 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
 
 function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
   const { pad, C, editable, variants } = ctx;
-  const sub = { C: C.registry, pad, editable, cta: C.cta };
+  /* sub carries the editable callbacks + placeholders so the
+     variant's VariantSectionHead has parity with the default
+     TSectionHead path below (click-to-edit eyebrow + composite
+     title/italic). */
+  const sub = {
+    C: C.registry, pad, editable, cta: C.cta,
+    onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('registryEyebrow', v) : undefined,
+    onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('registryTitle', v) : undefined,
+    eyebrowPlaceholder: 'Registry',
+    titlePlaceholder: 'Your presence is the gift',
+  };
   if (variants.registry === 'chips')    return <div style={{ padding: `${48 * pad}px 40px`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryChips ctx={sub} /></div>;
   if (variants.registry === 'progress') return <div style={{ padding: `${48 * pad}px 40px`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryProgress ctx={sub} /></div>;
   if (variants.registry === 'logowall') return <div style={{ padding: `${48 * pad}px 40px`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryLogoWall ctx={sub} /></div>;
@@ -1423,7 +1457,13 @@ function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
 
 function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
   const { pad, C, editable, variants } = ctx;
-  const sub = { C: C.gallery, pad, editable, cta: C.cta };
+  const sub = {
+    C: C.gallery, pad, editable, cta: C.cta,
+    onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('galleryEyebrow', v) : undefined,
+    onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('galleryTitle', v) : undefined,
+    eyebrowPlaceholder: 'Gallery',
+    titlePlaceholder: 'A few favorites',
+  };
   if (variants.gallery === 'masonry')   return <div style={{ padding: `${36 * pad}px 32px`, background: 'var(--t-section)' }}><GalleryMasonry ctx={sub} /></div>;
   if (variants.gallery === 'slideshow') return <div style={{ padding: `${36 * pad}px 32px`, background: 'var(--t-section)' }}><GallerySlideshow ctx={sub} /></div>;
   if (variants.gallery === 'polaroid')  return <div style={{ padding: `${36 * pad}px 32px`, background: 'var(--t-section)' }}><GalleryPolaroid ctx={sub} /></div>;
@@ -1466,7 +1506,13 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
 
 function RsvpBlock({ ctx }: { ctx: SectionCtx }) {
   const { pad, C, editable, variants } = ctx;
-  const sub = { C: C.rsvp, pad, editable, cta: C.cta };
+  const sub = {
+    C: C.rsvp, pad, editable, cta: C.cta,
+    onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('rsvpEyebrow', v) : undefined,
+    onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('rsvpTitle', v) : undefined,
+    eyebrowPlaceholder: 'RSVP',
+    titlePlaceholder: 'Will you join us?',
+  };
   if (variants.rsvp === 'split')   return <RsvpSplit ctx={sub} />;
   if (variants.rsvp === 'banner')  return <RsvpBanner ctx={sub} />;
   if (variants.rsvp === 'minimal') return <RsvpMinimal ctx={sub} />;
@@ -1492,7 +1538,13 @@ function RsvpBlock({ ctx }: { ctx: SectionCtx }) {
 
 function FaqBlock({ ctx }: { ctx: SectionCtx }) {
   const { pad, C, editable, variants } = ctx;
-  const sub = { C: C.faq, pad, editable, cta: C.cta };
+  const sub = {
+    C: C.faq, pad, editable, cta: C.cta,
+    onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('faqEyebrow', v) : undefined,
+    onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('faqTitle', v) : undefined,
+    eyebrowPlaceholder: 'FAQ',
+    titlePlaceholder: 'Anything else?',
+  };
   if (variants.faq === 'twocol')   return <div style={{ padding: `${48 * pad}px 32px`, background: 'var(--t-paper)' }}><FaqTwocol ctx={sub} /></div>;
   if (variants.faq === 'numbered') return <div style={{ padding: `${48 * pad}px 32px`, background: 'var(--t-paper)' }}><FaqNumbered ctx={sub} /></div>;
   if (variants.faq === 'cards')    return <div style={{ padding: `${48 * pad}px 32px`, background: 'var(--t-paper)' }}><FaqCards ctx={sub} /></div>;
@@ -1880,6 +1932,12 @@ interface Copy {
      *  shows a plain pill. Legacy string[] entries from old
      *  manifests are normalized to { name } in buildCopy. */
     stores: { name: string; url?: string }[];
+    /** Honeymoon-fund progress (0–100). Only consumed by the
+     *  RegistryProgress variant. */
+    fundPct?: number;
+    /** Subtitle below the fund name in RegistryProgress. Falls
+     *  back to "{fundPct}% funded" when blank. */
+    fundSub?: string;
   };
   gallery: {
     eyebrow: string;
@@ -2313,6 +2371,8 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
     })(),
     registry: (() => {
       const t = coTitle('registryTitle', 'Your presence is', 'the gift');
+      const fundPct = (loose.fundPct as number | undefined);
+      const fundSub = (loose.fundSub as string | undefined);
       return {
       eyebrow: co('registryEyebrow', 'Registry'),
       title: t.head,
@@ -2321,6 +2381,8 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       stores: registryStoresRaw && registryStoresRaw.length > 0
         ? registryStoresRaw.slice(0, 6)
         : [{ name: 'Honeymoon fund' }, { name: 'Crate & Barrel' }, { name: 'Zola' }],
+      fundPct: typeof fundPct === 'number' ? fundPct : undefined,
+      fundSub: fundSub && fundSub.trim() ? fundSub : undefined,
       };
     })(),
     gallery: (() => {

@@ -6,6 +6,7 @@
 
 import type { CSSProperties } from 'react';
 import type { StoryVariantCtx, PhotoTone } from './types';
+import { VariantSectionHead } from './_section-head';
 
 const TONE_BG: Record<string, string> = {
   lavender: 'linear-gradient(135deg, #D7CCE5, #B7A4D0)',
@@ -19,40 +20,13 @@ const TONE_BG: Record<string, string> = {
   rose: 'linear-gradient(135deg, #F2C9CE, #C97A8A)',
 };
 
-function SectionHead({ eyebrow, title, italic }: { eyebrow: string; title: string; italic?: string }) {
-  return (
-    <div style={{ textAlign: 'center', marginBottom: 26 }}>
-      <div
-        style={{
-          fontSize: 11.5,
-          fontWeight: 700,
-          letterSpacing: 'var(--t-eyebrow-ls)',
-          textTransform: 'uppercase',
-          color: 'var(--t-accent-ink)',
-          marginBottom: 10,
-          fontFamily: 'var(--t-mono)',
-        }}
-      >
-        {eyebrow}
-      </div>
-      <h2
-        style={{
-          fontFamily: 'var(--t-display)',
-          fontWeight: 'var(--t-display-wght)' as CSSProperties['fontWeight'],
-          fontSize: 40,
-          margin: 0,
-          lineHeight: 1.0,
-          letterSpacing: '-0.01em',
-          color: 'var(--t-ink)',
-        }}
-      >
-        {title}
-        {italic && (
-          <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}> {italic}</span>
-        )}
-      </h2>
-    </div>
-  );
+function headProps(ctx: StoryVariantCtx) {
+  return {
+    eyebrow: ctx.C.eyebrow, title: ctx.C.title, italic: ctx.C.italic,
+    editable: ctx.editable,
+    onEditEyebrow: ctx.onEditEyebrow, onEditTitle: ctx.onEditTitle,
+    eyebrowPlaceholder: ctx.eyebrowPlaceholder, titlePlaceholder: ctx.titlePlaceholder,
+  };
 }
 
 export function StoryZigzag({ ctx }: { ctx: StoryVariantCtx }) {
@@ -63,7 +37,7 @@ export function StoryZigzag({ ctx }: { ctx: StoryVariantCtx }) {
 
   return (
     <div style={{ maxWidth: 920, margin: '0 auto', padding: `${48 * pad}px 72px` }}>
-      <SectionHead eyebrow={C.eyebrow} title={C.title} italic={C.italic} />
+      <VariantSectionHead {...headProps(ctx)} />
       {[0, 1, 2].map((i) => {
         const reverse = i % 2 === 1;
         const eyebrow = C.chips?.[i] ?? fallbackChips[i];

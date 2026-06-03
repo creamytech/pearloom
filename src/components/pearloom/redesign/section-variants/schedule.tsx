@@ -7,21 +7,15 @@
    (the TSection wrapper + RSVP CTA stay in ThemedSite). */
 
 import type { ScheduleVariantCtx } from './types';
+import { VariantSectionHead } from './_section-head';
 
-/* ─── Shared section head (mirrors ThemedSite's TSectionHead) ── */
-
-function SectionHead({ eyebrow, title, italic }: { eyebrow: string; title: string; italic?: string }) {
-  return (
-    <div style={{ textAlign: 'center', marginBottom: 26 }}>
-      <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-accent-ink)', marginBottom: 10 }}>
-        {eyebrow}
-      </div>
-      <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 40, margin: 0, lineHeight: 1.0, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}>
-        {title}
-        {italic && <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}> {italic}</span>}
-      </h2>
-    </div>
-  );
+function headProps(ctx: ScheduleVariantCtx) {
+  return {
+    eyebrow: ctx.C.eyebrow, title: ctx.C.title, italic: ctx.C.italic,
+    editable: ctx.editable,
+    onEditEyebrow: ctx.onEditEyebrow, onEditTitle: ctx.onEditTitle,
+    eyebrowPlaceholder: ctx.eyebrowPlaceholder, titlePlaceholder: ctx.titlePlaceholder,
+  };
 }
 
 /* ─── ScheduleTimeline — vertical rail with dotted milestones. ── */
@@ -30,7 +24,7 @@ export function ScheduleTimeline({ ctx }: { ctx: ScheduleVariantCtx }) {
   const { C, pad } = ctx;
   return (
     <>
-      <SectionHead eyebrow={C.eyebrow} title={C.title} italic={C.italic} />
+      <VariantSectionHead {...headProps(ctx)} />
       <div style={{ maxWidth: 600, margin: '0 auto', paddingLeft: 30, position: 'relative' }}>
         <div style={{ position: 'absolute', left: 7, top: 0, bottom: 0, width: 2, background: 'var(--t-line)' }} />
         {C.rows.map((row, i) => (
@@ -54,7 +48,7 @@ export function ScheduleStepper({ ctx }: { ctx: ScheduleVariantCtx }) {
   const { C, pad } = ctx;
   return (
     <>
-      <SectionHead eyebrow={C.eyebrow} title={C.title} italic={C.italic} />
+      <VariantSectionHead {...headProps(ctx)} />
       <div style={{ overflowX: 'auto', paddingBottom: 8 }}>
         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-start', gap: 0, minWidth: 'min-content', padding: `0 ${Math.round(16 * pad)}px` }}>
           {C.rows.map((row, i) => (
@@ -86,7 +80,7 @@ export function ScheduleNumbered({ ctx }: { ctx: ScheduleVariantCtx }) {
   const { C } = ctx;
   return (
     <>
-      <SectionHead eyebrow={C.eyebrow} title={C.title} italic={C.italic} />
+      <VariantSectionHead {...headProps(ctx)} />
       <div style={{ maxWidth: 620, margin: '0 auto' }}>
         {C.rows.map((row, i) => (
           <div key={i} className="pl8-schedule-row" style={{ display: 'grid', gridTemplateColumns: '52px 1fr auto', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--t-line-soft)', alignItems: 'baseline' }}>

@@ -100,6 +100,14 @@ export interface BaseCtx {
   editable: boolean;
   cta: string;
   theme?: VariantTheme;
+  /** Optional edit callbacks — when present, the variant's
+   *  VariantSectionHead becomes click-to-edit. Mirrors what the
+   *  default section paths feed TSectionHead. */
+  onEditEyebrow?: (v: string) => void;
+  onEditTitle?: (v: string) => void;
+  /** Placeholder strings for empty eyebrow / title slots. */
+  eyebrowPlaceholder?: string;
+  titlePlaceholder?: string;
 }
 
 export interface RsvpVariantCtx extends BaseCtx { C: RsvpCopy }

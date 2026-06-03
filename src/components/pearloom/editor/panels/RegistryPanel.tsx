@@ -14,6 +14,7 @@ import { FSelect } from './_form-atoms';
 import { REGISTRY_STORE_TARGETS, REGISTRY_STORE_URLS } from './_link-targets';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
 import { useVoicePack } from './_voice-pack';
+import { readVariant } from '../../redesign/layouts';
 
 /** Registry MODE — re-skins the entire section for non-wedding
  *  events. Drives the section label, intro placeholder, AddCard
@@ -67,6 +68,22 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
     registryMode: next,
   } as unknown as StoryManifest);
   const modeCopy = MODE_LABELS[mode];
+
+  /* Layout-aware extras — only the Progress variant uses fundPct
+     and fundSub. When the host's on Progress, expose the slider
+     and the subtitle field; otherwise hide them. */
+  const activeVariant = readVariant(manifest, 'registry');
+  const isProgress = activeVariant === 'progress';
+  const fundPct = ((manifest as unknown as { fundPct?: number }).fundPct) ?? 0;
+  const fundSub = ((manifest as unknown as { fundSub?: string }).fundSub) ?? '';
+  const setFundPct = (n: number) => onChange({
+    ...(manifest as unknown as Record<string, unknown>),
+    fundPct: Math.max(0, Math.min(100, Math.round(n))),
+  } as unknown as StoryManifest);
+  const setFundSub = (v: string) => onChange({
+    ...(manifest as unknown as Record<string, unknown>),
+    fundSub: v,
+  } as unknown as StoryManifest);
   const intro = ((manifest as unknown as { registryIntro?: string }).registryIntro) ?? modeCopy.intro;
   /* Normalize legacy string[] manifests into { name, url } on read
      so the panel only ever deals with the rich shape. */
@@ -191,6 +208,48 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
             <AddCard label={modeCopy.add} onClick={addStore} />
           </div>
         </FGroup>
+
+        {/* Layout-aware: the Progress variant renders a fund
+            progress bar. Surface its inputs ONLY when that
+            variant is active — keeps the panel uncluttered for
+            the other 3 layouts. */}
+        {isProgress && (
+          <FGroup label="Progress bar" hint="Shown on the Progress layout only.">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
+              <div style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 26, fontWeight: 700,
+                color: 'var(--peach-ink)',
+                lineHeight: 1, minWidth: 50,
+                fontVariantNumeric: 'tabular-nums',
+              }}>
+                {fundPct}%
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={fundPct}
+                onChange={(e) => setFundPct(Number(e.target.value))}
+                style={{
+                  flex: 1,
+                  accentColor: 'var(--peach-ink)',
+                  height: 4,
+                }}
+              />
+            </div>
+            <div style={{ height: 6 }} />
+            <FInput
+              value={fundSub}
+              onChange={setFundSub}
+              placeholder={`${fundPct}% funded`}
+            />
+            <div style={{ marginTop: 5, fontSize: 10.5, color: 'var(--ink-muted)' }}>
+              Subtitle below the fund name. Defaults to “{fundPct}% funded” if blank.
+            </div>
+          </FGroup>
+        )}
+
         <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Registry" />
       </div>
     </SectionPanelShell>

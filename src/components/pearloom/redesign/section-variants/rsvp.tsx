@@ -1,15 +1,43 @@
 'use client';
 /* eslint-disable no-restricted-syntax */
 
+import type { CSSProperties } from 'react';
 import type { RsvpVariantCtx } from './types';
+import { InlineEdit } from '../InlineEdit';
 
 function openRsvp() {
   if (typeof window === 'undefined') return;
   window.dispatchEvent(new CustomEvent('pl-open-rsvp'));
 }
 
+/* Editable eyebrow/title with the variant's custom styling. */
+function EditableEyebrow({ value, onEdit, editable, style }: { value: string; onEdit?: (v: string) => void; editable: boolean; style: CSSProperties }) {
+  return (
+    <InlineEdit
+      as="div"
+      value={value}
+      onChange={onEdit}
+      editable={editable && !!onEdit}
+      placeholder="RSVP"
+      style={style}
+    />
+  );
+}
+function EditableTitle({ value, onEdit, editable, style }: { value: string; onEdit?: (v: string) => void; editable: boolean; style: CSSProperties }) {
+  return (
+    <InlineEdit
+      as="h2"
+      value={value}
+      onChange={onEdit}
+      editable={editable && !!onEdit}
+      placeholder="Will you join us?"
+      style={style}
+    />
+  );
+}
+
 export function RsvpSplit({ ctx }: { ctx: RsvpVariantCtx }) {
-  const { pad, C, cta } = ctx;
+  const { pad, C, cta, editable, onEditEyebrow, onEditTitle } = ctx;
   return (
     <div
       style={{
@@ -36,7 +64,10 @@ export function RsvpSplit({ ctx }: { ctx: RsvpVariantCtx }) {
           gap: 14,
         }}
       >
-        <div
+        <EditableEyebrow
+          value={C.eyebrow}
+          onEdit={onEditEyebrow}
+          editable={editable}
           style={{
             fontFamily: 'var(--t-mono)',
             fontSize: 11,
@@ -44,10 +75,11 @@ export function RsvpSplit({ ctx }: { ctx: RsvpVariantCtx }) {
             textTransform: 'uppercase',
             color: 'var(--t-ink-muted)',
           }}
-        >
-          {C.eyebrow}
-        </div>
-        <h2
+        />
+        <EditableTitle
+          value={C.title}
+          onEdit={onEditTitle}
+          editable={editable}
           style={{
             fontFamily: 'var(--t-display)',
             fontStyle: 'italic',
@@ -56,9 +88,7 @@ export function RsvpSplit({ ctx }: { ctx: RsvpVariantCtx }) {
             margin: 0,
             color: 'var(--t-accent-ink, var(--t-ink))',
           }}
-        >
-          {C.title}
-        </h2>
+        />
         <p style={{ margin: 0, color: 'var(--t-ink-soft)', fontFamily: 'var(--t-body)' }}>
           {C.body}
         </p>
@@ -86,7 +116,7 @@ export function RsvpSplit({ ctx }: { ctx: RsvpVariantCtx }) {
 }
 
 export function RsvpBanner({ ctx }: { ctx: RsvpVariantCtx }) {
-  const { pad, C, cta, theme } = ctx;
+  const { pad, C, cta, theme, editable, onEditEyebrow, onEditTitle } = ctx;
   const foil = !!theme?.foil;
   const bg = foil ? 'var(--t-foil)' : 'var(--t-section-deep)';
   const ink = foil ? '#1a1410' : 'var(--t-ink)';
@@ -105,8 +135,11 @@ export function RsvpBanner({ ctx }: { ctx: RsvpVariantCtx }) {
         border: foil ? 'none' : '1px solid var(--t-line)',
       }}
     >
-      <div style={{ display: 'grid', gap: 6 }}>
-        <div
+      <div style={{ display: 'grid', gap: 6, flex: 1, minWidth: 280 }}>
+        <EditableEyebrow
+          value={C.eyebrow}
+          onEdit={onEditEyebrow}
+          editable={editable}
           style={{
             fontFamily: 'var(--t-mono)',
             fontSize: 11,
@@ -114,19 +147,24 @@ export function RsvpBanner({ ctx }: { ctx: RsvpVariantCtx }) {
             textTransform: 'uppercase',
             color: softInk,
           }}
-        >
-          {C.eyebrow}
-        </div>
-        <div
+        />
+        <EditableTitle
+          value={C.title}
+          onEdit={onEditTitle}
+          editable={editable}
           style={{
             fontFamily: 'var(--t-display)',
             fontSize: 26,
             lineHeight: 1.1,
+            margin: 0,
             color: ink,
           }}
-        >
-          {C.title}
-        </div>
+        />
+        {C.body && (
+          <p style={{ margin: 0, fontSize: 13, color: softInk, fontFamily: 'var(--t-body)', maxWidth: 480 }}>
+            {C.body}
+          </p>
+        )}
       </div>
       <button
         type="button"
@@ -149,7 +187,7 @@ export function RsvpBanner({ ctx }: { ctx: RsvpVariantCtx }) {
 }
 
 export function RsvpMinimal({ ctx }: { ctx: RsvpVariantCtx }) {
-  const { pad, C, cta } = ctx;
+  const { pad, C, cta, editable, onEditEyebrow, onEditTitle } = ctx;
   return (
     <div
       style={{
@@ -161,7 +199,10 @@ export function RsvpMinimal({ ctx }: { ctx: RsvpVariantCtx }) {
         justifyItems: 'center',
       }}
     >
-      <div
+      <EditableEyebrow
+        value={C.eyebrow}
+        onEdit={onEditEyebrow}
+        editable={editable}
         style={{
           fontFamily: 'var(--t-mono)',
           fontSize: 11,
@@ -169,10 +210,11 @@ export function RsvpMinimal({ ctx }: { ctx: RsvpVariantCtx }) {
           textTransform: 'uppercase',
           color: 'var(--t-ink-muted)',
         }}
-      >
-        {C.eyebrow}
-      </div>
-      <h2
+      />
+      <EditableTitle
+        value={C.title}
+        onEdit={onEditTitle}
+        editable={editable}
         style={{
           fontFamily: 'var(--t-display)',
           fontSize: 28,
@@ -180,9 +222,7 @@ export function RsvpMinimal({ ctx }: { ctx: RsvpVariantCtx }) {
           margin: 0,
           color: 'var(--t-ink)',
         }}
-      >
-        {C.title}
-      </h2>
+      />
       {C.body ? (
         <p style={{ margin: 0, color: 'var(--t-ink-soft)', fontFamily: 'var(--t-body)', maxWidth: 460 }}>
           {C.body}
