@@ -115,13 +115,30 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { siteId, name, email, plusOne } = body;
+    const { siteId: siteIdParam, siteSlug, name, email, plusOne } = body;
 
-    if (!siteId || !name) {
-      return NextResponse.json({ error: 'siteId and name required' }, { status: 400 });
+    if ((!siteIdParam && !siteSlug) || !name) {
+      return NextResponse.json({ error: 'siteId (or siteSlug) and name required' }, { status: 400 });
     }
 
     const supabase = getSupabase();
+    /* Resolve siteSlug to siteId + verify ownership. Same shape as
+       the GET handler so the editor can post with siteSlug only. */
+    let siteId = siteIdParam as string | undefined;
+    if (!siteId) {
+      type SiteRow = { id: string; site_config?: { creator_email?: string } | null; creator_email?: string };
+      const { data: siteRow } = await supabase
+        .from('sites')
+        .select('id, site_config, creator_email')
+        .eq('subdomain', siteSlug)
+        .maybeSingle() as { data: SiteRow | null };
+      if (!siteRow) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+      const ownerEmail = (siteRow.creator_email ?? siteRow.site_config?.creator_email ?? '').toLowerCase();
+      if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase()) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+      siteId = siteRow.id;
+    }
     const { data, error } = await supabase
       .from('guests')
       .insert({

@@ -104,6 +104,10 @@ import { RsvpPanel } from './panels/RsvpPanel';
 import { FaqPanel } from './panels/FaqPanel';
 import { ToastsPanel } from './panels/ToastsPanel';
 import { ThemePanel, SiteModeSection } from './panels/ThemePanel';
+import { GuestsPanel } from './panels/GuestsPanel';
+import { SaveTheDatePanel } from './panels/SaveTheDatePanel';
+import { SharePanel } from './panels/SharePanel';
+import { DayOfPanel } from './panels/DayOfPanel';
 import { PanelSearch, PearSuggestionsStrip } from './atoms';
 import { pearSuggestionsFor } from './panels/pear-suggestions';
 import { blockFillState, FILL_STATE_COLORS, siteProgressPct, type ScoredBlockKey } from '@/lib/site-progress';
@@ -148,7 +152,14 @@ type BlockKey =
   | 'rsvp'
   | 'faq'
   | 'toasts'
-  | 'theme';
+  | 'theme'
+  /* Host-tool panels (not sections on the canvas). Mounted in
+     the Manage strip in the left rail rather than as canvas
+     blocks. */
+  | 'guests'
+  | 'savetheDate'
+  | 'share'
+  | 'dayof';
 
 type DeviceKey = 'desktop' | 'tablet' | 'phone';
 
@@ -178,17 +189,26 @@ const BLOCKS: BlockDef[] = [
   { key: 'rsvp', label: 'RSVP', icon: 'mail', anchor: 'rsvp', description: 'Meal options, deadline, plus-ones.', subtitle: 'Meals + plus-ones', reorderable: true, togglable: true },
   { key: 'faq', label: 'FAQ', icon: 'heart-icon', anchor: 'faq', description: 'Questions Pear anticipates from guests.', subtitle: 'Common questions', reorderable: true, togglable: true },
   { key: 'toasts', label: 'Vows & toasts', icon: 'mic', anchor: 'top', description: 'Drafts you can read from your phone.', subtitle: 'Vows + speeches', reorderable: false, togglable: false },
+  // ── Host-tool panels (not canvas sections) ──
+  { key: 'guests',      label: 'Guests',         icon: 'user',     anchor: 'top', description: 'Add, edit, and track who’s coming.',           subtitle: 'Your guest list',     reorderable: false, togglable: false },
+  { key: 'savetheDate', label: 'Save the date',  icon: 'calendar', anchor: 'top', description: 'A lighter pre-invite to lock in the date.',    subtitle: 'Pre-invite teaser',    reorderable: false, togglable: false },
+  { key: 'share',       label: 'Share',          icon: 'link',     anchor: 'top', description: 'Preview the share card + copy the link + QR.', subtitle: 'Link, QR, preview',    reorderable: false, togglable: false },
+  { key: 'dayof',       label: 'Day-of',         icon: 'sparkles', anchor: 'top', description: 'Live broadcasts on the day of the event.',     subtitle: 'Live broadcasts',      reorderable: false, togglable: false },
   // 'theme' intentionally NOT in BLOCKS — it lives as the
   // dedicated Theme outline tab (Sections / Pages / Theme).
-  // Having it in both places was the repetitive duplicate the
-  // user flagged: clicking "Theme" in Sections AND the Theme
-  // outline tab both opened ThemePanel from different surfaces.
-  // Single source of truth: the outline tab.
 ];
 
 const BLOCKS_BY_KEY: Record<BlockKey, BlockDef> = BLOCKS.reduce((acc, b) => ({ ...acc, [b.key]: b }), {} as Record<BlockKey, BlockDef>);
 
 const REORDERABLE_KEYS: BlockKey[] = BLOCKS.filter((b) => b.reorderable).map((b) => b.key);
+
+/* Tool-only block keys — these aren't canvas sections so they
+   bypass the content/layout/style tab split and render their
+   panel directly (same treatment as Theme + Toasts). */
+const TOOL_BLOCK_KEYS: BlockKey[] = ['guests', 'savetheDate', 'share', 'dayof'];
+function isToolBlock(b: BlockKey): boolean {
+  return b === 'theme' || b === 'toasts' || TOOL_BLOCK_KEYS.includes(b);
+}
 
 // Canvas needs at least this much room to render a phone-width
 // preview without horizontal scroll. Both rail resize handlers
@@ -3798,7 +3818,7 @@ function Inspector({
                 of prototype L695-715: flex with gap 4, padding 3,
                 cream-2 background, border-radius 8, marginTop 12.
                 Includes an icon glyph before each label per L710. */}
-            {block !== 'theme' && block !== 'toasts' && (
+            {!isToolBlock(block) && (
               <div
                 role="tablist"
                 aria-label="Section editing tabs"
@@ -3852,22 +3872,24 @@ function Inspector({
             {/* Theme + Toasts bypass the tab system and render
                 their full panel directly (no Layout / Style split
                 applies). */}
-            {(block === 'theme' || block === 'toasts') && (
+            {isToolBlock(block) && (
               <PanelSwitch
                 block={block}
                 manifest={manifest}
                 names={names}
+                siteSlug={siteSlug}
                 onChange={onChange}
                 onNamesChange={onNamesChange}
               />
             )}
             {/* CONTENT — per-block fields panel. */}
-            {block !== 'theme' && block !== 'toasts' && propertyTab === 'content' && (
+            {!isToolBlock(block) && propertyTab === 'content' && (
               <>
                 <PanelSwitch
                   block={block}
                   manifest={manifest}
                   names={names}
+                  siteSlug={siteSlug}
                   onChange={onChange}
                   onNamesChange={onNamesChange}
                 />
@@ -3875,7 +3897,7 @@ function Inspector({
               </>
             )}
             {/* LAYOUT — section card / spacing / radius / shadow overrides. */}
-            {block !== 'theme' && block !== 'toasts' && propertyTab === 'layout' && (
+            {!isToolBlock(block) && propertyTab === 'layout' && (
               <BlockStylePanel
                 manifest={manifest}
                 blockId={blockToSectionId(block)}
@@ -3888,7 +3910,7 @@ function Inspector({
                 Matches the prototype's intent (editor-redesign.jsx
                 ~line 870): colours / type / texture / kit come from
                 the Theme pack so every section stays consistent. */}
-            {block !== 'theme' && block !== 'toasts' && propertyTab === 'style' && (
+            {!isToolBlock(block) && propertyTab === 'style' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>
                   Styling is theme-wide
@@ -4201,12 +4223,14 @@ function PanelSwitch({
   block,
   manifest,
   names,
+  siteSlug,
   onChange,
   onNamesChange,
 }: {
   block: BlockKey;
   manifest: StoryManifest;
   names: [string, string];
+  siteSlug: string;
   onChange: (m: StoryManifest) => void;
   onNamesChange: (n: [string, string]) => void;
 }) {
@@ -4235,9 +4259,19 @@ function PanelSwitch({
       return <ToastsPanel manifest={manifest} names={names} onChange={onChange} />;
     case 'theme':
       return <ThemePanel manifest={manifest} onChange={onChange} />;
+    case 'guests':
+      return <GuestsPanel siteSlug={siteSlug} />;
+    case 'savetheDate':
+      return <SaveTheDatePanel manifest={manifest} onChange={onChange} siteSlug={siteSlug} />;
+    case 'share':
+      return <SharePanel manifest={manifest} siteSlug={siteSlug} />;
+    case 'dayof':
+      return <DayOfPanel siteSlug={siteSlug} />;
     default:
       return null;
   }
+  /* Touch the unused param so TS doesn't complain. */
+  void onNamesChange;
 }
 
 /* ---------- Mobile drawer + tabbar ---------- */
