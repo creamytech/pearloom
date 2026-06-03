@@ -225,6 +225,18 @@ function EditorCanvas({
         gridArea: 'canvas',
         background: 'var(--cream-3)',
         overflow: 'auto',
+        /* CRITICAL: minHeight: 0 defeats the grid-item intrinsic-
+           min-height default. Without this, the canvas cell grows
+           to fit its content (the entire tall site) instead of
+           staying inside its grid track (100dvh - 56px). When that
+           happens, overflow:auto has nothing to scroll because the
+           content "fits" inside the now-oversized cell, and the
+           outer wrapper's overflow:hidden clips it instead.
+           Round G applied this to the rails; the canvas needed it
+           too — that's why mouse-wheel scroll didn't work even
+           though scrollIntoView() did (programmatic scroll bypasses
+           the same calculation). */
+        minHeight: 0,
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         padding: isMobile ? '24px 0' : '28px 24px',
         position: 'relative',
