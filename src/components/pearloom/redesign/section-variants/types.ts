@@ -9,9 +9,11 @@
 
 export type Density = 'cozy' | 'comfortable' | 'spacious';
 
+/* Must stay in sync with the PhotoTone alias in ThemedSite.tsx
+   (line ~1065). Adding tones here without adding them there will
+   break the variant dispatch typecheck. */
 export type PhotoTone =
-  | 'warm' | 'cream' | 'sage' | 'dusk' | 'peach' | 'lavender'
-  | 'gold' | 'ink' | 'rose';
+  | 'lavender' | 'peach' | 'sage' | 'cream' | 'warm' | 'field' | 'dusk';
 
 export interface VariantTheme {
   /** Used by RSVP banner / details-bento / registry-progress
@@ -74,7 +76,10 @@ export interface StoryCopy {
 }
 
 export interface BaseCtx {
-  density: Density;
+  /** Density is derivable from pad (cozy 0.74 / comfortable 1 /
+   *  spacious 1.32) — kept optional so dispatch sites can omit it
+   *  when only pad matters. */
+  density?: Density;
   pad: number;
   editable: boolean;
   cta: string;

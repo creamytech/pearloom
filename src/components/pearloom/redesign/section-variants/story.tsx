@@ -7,7 +7,7 @@
 import type { CSSProperties } from 'react';
 import type { StoryVariantCtx, PhotoTone } from './types';
 
-const TONE_BG: Record<PhotoTone, string> = {
+const TONE_BG: Record<string, string> = {
   lavender: 'linear-gradient(135deg, #D7CCE5, #B7A4D0)',
   peach: 'linear-gradient(135deg, #F7DDC2, #EAB286)',
   sage: 'linear-gradient(135deg, #E3E6C8, #8B9C5A)',

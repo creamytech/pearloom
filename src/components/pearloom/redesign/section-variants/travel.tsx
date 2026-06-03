@@ -7,7 +7,7 @@ import type { CSSProperties } from 'react';
 import type { Hotel, PhotoTone, TravelVariantCtx } from './types';
 
 /* Tone → photo-placeholder background, same shape as gallery. */
-const TONE_BG: Record<PhotoTone, string> = {
+const TONE_BG: Record<string, string> = {
   warm: 'linear-gradient(135deg, #e8d4b8 0%, #d4b08a 100%)',
   cream: 'linear-gradient(135deg, #f5ecd8 0%, #e3d4b2 100%)',
   sage: 'linear-gradient(135deg, #c8d4b4 0%, #9aab84 100%)',

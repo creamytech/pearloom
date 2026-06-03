@@ -8,7 +8,7 @@ import type { GalleryVariantCtx, PhotoTone } from './types';
 
 /* ── Shared tone → gradient placeholder map ─────────────────────── */
 
-const TONE_BG: Record<PhotoTone, string> = {
+const TONE_BG: Record<string, string> = {
   warm: 'linear-gradient(135deg,#d4a574,#b8884f)',
   cream: 'linear-gradient(135deg,#f5efe2,#e8e0d0)',
   sage: 'linear-gradient(135deg,#a4b57a,#7a8a5c)',
@@ -67,7 +67,7 @@ export function GalleryMasonry({ ctx }: { ctx: GalleryVariantCtx }) {
 
 export function GallerySlideshow({ ctx }: { ctx: GalleryVariantCtx }) {
   const { C } = ctx;
-  const tones: PhotoTone[] = C.tones?.length ? C.tones : ['warm', 'cream', 'sage', 'dusk', 'peach', 'lavender', 'gold'];
+  const tones: PhotoTone[] = C.tones?.length ? C.tones : ['warm', 'cream', 'sage', 'dusk', 'peach', 'lavender', 'warm'];
   const hero = tones[0];
   const thumbs = tones.slice(1, 7);
   return (
@@ -102,7 +102,7 @@ export function GallerySlideshow({ ctx }: { ctx: GalleryVariantCtx }) {
 
 export function GalleryPolaroid({ ctx }: { ctx: GalleryVariantCtx }) {
   const { C } = ctx;
-  const tones: PhotoTone[] = C.tones?.length ? C.tones : ['warm', 'cream', 'sage', 'dusk', 'peach', 'lavender', 'gold', 'rose'];
+  const tones: PhotoTone[] = C.tones?.length ? C.tones : ['warm', 'cream', 'sage', 'dusk', 'peach', 'lavender', 'warm', 'cream'];
   const rotations = [-3, 2, -1.5, 3, -2, 1.5, -2.5, 2];
   return (
     <>

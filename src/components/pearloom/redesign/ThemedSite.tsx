@@ -28,6 +28,18 @@ import { Motif, MotifScatter, WatercolorBloom, type MotifKind } from '../site/Mo
 import { TextureFilters } from '../site/TextureFilters';
 import { readVariant } from './layouts';
 import type { SectionId } from './EditorRedesign';
+/* Per-section layout variants — each section block dispatches via
+   ctx.variants.<section> to one of these. Default ('tiles', 'cards',
+   'centered', 'accordion', 'grid', 'rows', 'sidebyside') stays
+   baked into the block below. */
+import { RsvpSplit, RsvpBanner, RsvpMinimal } from './section-variants/rsvp';
+import { DetailsIconRow, DetailsAccordion, DetailsBento } from './section-variants/details';
+import { ScheduleTimeline, ScheduleStepper, ScheduleNumbered } from './section-variants/schedule';
+import { GalleryMasonry, GallerySlideshow, GalleryPolaroid } from './section-variants/gallery';
+import { FaqTwocol, FaqNumbered, FaqCards } from './section-variants/faq';
+import { TravelMap, TravelTable, TravelCarousel } from './section-variants/travel';
+import { RegistryChips, RegistryProgress, RegistryLogoWall } from './section-variants/registry';
+import { StoryZigzag } from './section-variants/story';
 
 interface Props {
   /* Editor-only props — optional so PublishedSiteShell can mount
@@ -553,6 +565,10 @@ function HeroPostcard({ ctx }: { ctx: SectionCtx }) {
 /* ─── StoryBlock — handoff L366-456 sidebyside default. ──────── */
 
 function StoryBlock({ ctx }: { ctx: SectionCtx }) {
+  if (ctx.variants.story === 'zigzag') {
+    const { pad, C, editable } = ctx;
+    return <div style={{ padding: `${44 * pad}px 32px`, background: 'var(--t-paper)' }}><StoryZigzag ctx={{ C: C.story, pad, editable, cta: C.cta }} /></div>;
+  }
   switch (ctx.variants.story) {
     case 'stacked':  return <StoryStacked ctx={ctx} />;
     case 'quote':    return <StoryQuote ctx={ctx} />;
@@ -682,7 +698,12 @@ function StoryLetter({ ctx }: { ctx: SectionCtx }) {
 /* ─── DetailsBlock — handoff L459-508 tiles default. ─────────── */
 
 function DetailsBlock({ ctx }: { ctx: SectionCtx }) {
-  const { pad, C, motif } = ctx;
+  const { pad, C, motif, editable, variants } = ctx;
+  /* Variant dispatch — fall through to default 'tiles' block. */
+  const sub = { C: C.details, pad, editable, cta: C.cta };
+  if (variants.details === 'iconrow')   return <div style={{ position: 'relative', padding: `${44 * pad}px 40px`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><DetailsIconRow ctx={sub} /></div>;
+  if (variants.details === 'accordion') return <div style={{ position: 'relative', padding: `${44 * pad}px 40px`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><DetailsAccordion ctx={sub} /></div>;
+  if (variants.details === 'bento')     return <div style={{ position: 'relative', padding: `${44 * pad}px 40px`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><DetailsBento ctx={sub} /></div>;
   return (
     <div style={{ position: 'relative', padding: `${44 * pad}px 40px`, background: 'var(--t-section)' }}>
       <MotifScatter motif={motif} density="sparse" />
@@ -707,7 +728,11 @@ function DetailsBlock({ ctx }: { ctx: SectionCtx }) {
 /* ─── ScheduleBlock — handoff L511-565 cards default. ────────── */
 
 function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
-  const { pad, C } = ctx;
+  const { pad, C, editable, variants } = ctx;
+  const sub = { C: C.schedule, pad, editable, cta: C.cta };
+  if (variants.schedule === 'timeline') return <div style={{ padding: `${48 * pad}px 40px`, background: 'var(--t-paper)' }}><ScheduleTimeline ctx={sub} /></div>;
+  if (variants.schedule === 'stepper')  return <div style={{ padding: `${48 * pad}px 40px`, background: 'var(--t-paper)' }}><ScheduleStepper ctx={sub} /></div>;
+  if (variants.schedule === 'numbered') return <div style={{ padding: `${48 * pad}px 40px`, background: 'var(--t-paper)' }}><ScheduleNumbered ctx={sub} /></div>;
   return (
     <div style={{ padding: `${48 * pad}px 40px`, background: 'var(--t-paper)' }}>
       <TSectionHead eyebrow={C.schedule.eyebrow} title={C.schedule.title} italic={C.schedule.italic} />
@@ -729,7 +754,11 @@ function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
 /* ─── TravelBlock — handoff L572-647 rows default. ───────────── */
 
 function TravelBlock({ ctx }: { ctx: SectionCtx }) {
-  const { pad, C, motif } = ctx;
+  const { pad, C, motif, editable, variants } = ctx;
+  const sub = { C: C.travel, pad, editable, cta: C.cta };
+  if (variants.travel === 'map')      return <div style={{ position: 'relative', padding: `${48 * pad}px 40px`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><TravelMap ctx={sub} /></div>;
+  if (variants.travel === 'table')    return <div style={{ position: 'relative', padding: `${48 * pad}px 40px`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><TravelTable ctx={sub} /></div>;
+  if (variants.travel === 'carousel') return <div style={{ position: 'relative', padding: `${48 * pad}px 40px`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><TravelCarousel ctx={sub} /></div>;
   return (
     <div style={{ position: 'relative', padding: `${48 * pad}px 40px`, background: 'var(--t-section)' }}>
       <MotifScatter motif={motif} density="sparse" />
@@ -778,7 +807,11 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
 /* ─── RegistryBlock — handoff L651-712 cards default. ────────── */
 
 function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
-  const { pad, C } = ctx;
+  const { pad, C, editable, variants } = ctx;
+  const sub = { C: C.registry, pad, editable, cta: C.cta };
+  if (variants.registry === 'chips')    return <div style={{ padding: `${48 * pad}px 40px`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryChips ctx={sub} /></div>;
+  if (variants.registry === 'progress') return <div style={{ padding: `${48 * pad}px 40px`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryProgress ctx={sub} /></div>;
+  if (variants.registry === 'logowall') return <div style={{ padding: `${48 * pad}px 40px`, textAlign: 'center', background: 'var(--t-paper)' }}><RegistryLogoWall ctx={sub} /></div>;
   return (
     <div style={{ padding: `${48 * pad}px 40px`, textAlign: 'center', background: 'var(--t-paper)' }}>
       <TSectionHead eyebrow={C.registry.eyebrow} title={C.registry.title} italic={C.registry.italic} />
@@ -799,7 +832,11 @@ function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
 /* ─── GalleryBlock — handoff grid variant. ───────────────────── */
 
 function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
-  const { pad, C } = ctx;
+  const { pad, C, editable, variants } = ctx;
+  const sub = { C: C.gallery, pad, editable, cta: C.cta };
+  if (variants.gallery === 'masonry')   return <div style={{ padding: `${36 * pad}px 32px`, background: 'var(--t-section)' }}><GalleryMasonry ctx={sub} /></div>;
+  if (variants.gallery === 'slideshow') return <div style={{ padding: `${36 * pad}px 32px`, background: 'var(--t-section)' }}><GallerySlideshow ctx={sub} /></div>;
+  if (variants.gallery === 'polaroid')  return <div style={{ padding: `${36 * pad}px 32px`, background: 'var(--t-section)' }}><GalleryPolaroid ctx={sub} /></div>;
   return (
     <div style={{ padding: `${36 * pad}px 32px`, background: 'var(--t-section)' }}>
       <TSectionHead eyebrow={C.gallery.eyebrow} title={C.gallery.title} italic={C.gallery.italic} />
@@ -815,7 +852,11 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
 /* ─── RsvpBlock — handoff centered (dark inverse). ───────────── */
 
 function RsvpBlock({ ctx }: { ctx: SectionCtx }) {
-  const { pad, C } = ctx;
+  const { pad, C, editable, variants } = ctx;
+  const sub = { C: C.rsvp, pad, editable, cta: C.cta };
+  if (variants.rsvp === 'split')   return <RsvpSplit ctx={sub} />;
+  if (variants.rsvp === 'banner')  return <RsvpBanner ctx={sub} />;
+  if (variants.rsvp === 'minimal') return <RsvpMinimal ctx={sub} />;
   return (
     <div style={{ padding: `${56 * pad}px 32px`, textAlign: 'center', background: 'var(--t-rsvp)', color: 'var(--t-rsvp-ink)' }}>
       <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', opacity: 0.6, marginBottom: 8, color: 'var(--t-rsvp-ink)' }}>
@@ -837,7 +878,11 @@ function RsvpBlock({ ctx }: { ctx: SectionCtx }) {
 /* ─── FaqBlock — handoff accordion default. ──────────────────── */
 
 function FaqBlock({ ctx }: { ctx: SectionCtx }) {
-  const { pad, C } = ctx;
+  const { pad, C, editable, variants } = ctx;
+  const sub = { C: C.faq, pad, editable, cta: C.cta };
+  if (variants.faq === 'twocol')   return <div style={{ padding: `${48 * pad}px 32px`, background: 'var(--t-paper)' }}><FaqTwocol ctx={sub} /></div>;
+  if (variants.faq === 'numbered') return <div style={{ padding: `${48 * pad}px 32px`, background: 'var(--t-paper)' }}><FaqNumbered ctx={sub} /></div>;
+  if (variants.faq === 'cards')    return <div style={{ padding: `${48 * pad}px 32px`, background: 'var(--t-paper)' }}><FaqCards ctx={sub} /></div>;
   return (
     <div style={{ padding: `${48 * pad}px 32px`, background: 'var(--t-paper)' }}>
       <TSectionHead eyebrow={C.faq.eyebrow} title={C.faq.title} italic={C.faq.italic} />
