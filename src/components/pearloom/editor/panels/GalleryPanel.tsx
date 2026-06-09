@@ -19,21 +19,47 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
   const guestUploads = ((manifest as unknown as { guestUploads?: boolean }).guestUploads) ?? true;
   const [galleryEyebrow, setGalleryEyebrow] = useCopyOverride(manifest, onChange, 'galleryEyebrow');
 
-  const setPhotos = (next: string[]) => onChange({
+  /* Captions live in manifest.galleryCaptions — an index-keyed
+     sidecar record (see the StoryManifest field doc for why index
+     keying). Removal below reindexes it so captions stay attached
+     to the right photo. */
+  const captions: Record<string, string> = ((manifest as unknown as { galleryCaptions?: Record<string, string> }).galleryCaptions) ?? {};
+
+  const setPhotos = (next: string[], nextCaptions?: Record<string, string>) => onChange({
     ...(manifest as unknown as Record<string, unknown>),
     galleryImages: next,
+    ...(nextCaptions ? { galleryCaptions: nextCaptions } : {}),
   } as unknown as StoryManifest);
+
+  const setCaption = (i: number, v: string) => {
+    const next = { ...captions };
+    if (v) next[String(i)] = v;
+    else delete next[String(i)];
+    onChange({
+      ...(manifest as unknown as Record<string, unknown>),
+      galleryCaptions: next,
+    } as unknown as StoryManifest);
+  };
 
   const setPhoto = (i: number, url: string) => {
     const next = photos.slice();
+    let nextCaptions: Record<string, string> | undefined;
     if (url) {
       next[i] = url;
     } else {
       next.splice(i, 1);
+      /* Shift caption keys above the removed index down by one so
+         each caption stays with its photo. */
+      nextCaptions = {};
+      for (const [k, v] of Object.entries(captions)) {
+        const ki = Number(k);
+        if (!Number.isInteger(ki) || ki === i) continue;
+        nextCaptions[String(ki > i ? ki - 1 : ki)] = v;
+      }
     }
     /* Drop trailing empties so the array stays compact. */
     while (next.length > 0 && !next[next.length - 1]) next.pop();
-    setPhotos(next);
+    setPhotos(next, nextCaptions);
   };
 
   const addPhoto = (url: string) => {
@@ -83,17 +109,26 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
             )}
           </FGroup>
         ) : (
-          <FGroup label={`Photos · ${photos.length}`} hint="Drag photos in, or click any slot to pick from your device.">
+          <FGroup label={`Photos · ${photos.length}`} hint="Drag photos in, or click any slot to pick from your device. Captions show under each photo on the site.">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
               {Array.from({ length: renderCount }).map((_, i) => (
-                <PhotoUploadSlot
-                  key={i}
-                  url={photos[i] ?? ''}
-                  onChange={(url) => setPhoto(i, url)}
-                  aspectRatio="1/1"
-                  size="sm"
-                  pool={photoPool}
-                />
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <PhotoUploadSlot
+                    url={photos[i] ?? ''}
+                    onChange={(url) => setPhoto(i, url)}
+                    aspectRatio="1/1"
+                    size="sm"
+                    pool={photoPool}
+                  />
+                  {/* Caption input — only for filled slots. */}
+                  {photos[i] && (
+                    <FInput
+                      value={captions[String(i)] ?? ''}
+                      onChange={(v) => setCaption(i, v)}
+                      placeholder="Caption"
+                    />
+                  )}
+                </div>
               ))}
               {photos.length >= renderCount && (
                 <PhotoUploadSlot

@@ -90,6 +90,15 @@ interface Props {
 
 const noop = () => {};
 
+/* Ghost placeholder for InlineEdit slots whose value is commonly
+   EMPTY (FAQ answers, schedule notes, gallery captions, chapter
+   titles). InlineEdit shows nothing for an empty contentEditable;
+   this CSS paints the aria-label (= the placeholder prop) as a
+   faded italic ghost so the click target is visible. Injected by
+   ThemedSite in edit mode only — published sites never carry it. */
+const INLINE_GHOST_CSS =
+  '[contenteditable].pl8-inline-ghost:empty::before{content:attr(aria-label);opacity:0.38;font-style:italic;pointer-events:none;}';
+
 export function ThemedSite({
   active = null,
   hover = null,
@@ -142,12 +151,69 @@ export function ThemedSite({
       })
     : undefined;
   const patchEvent = onEditField
-    ? (idx: number, field: 'name' | 'time' | 'venue', next: string) => onEditField((m) => {
+    ? (idx: number, field: 'name' | 'time' | 'venue' | 'description', next: string) => onEditField((m) => {
         const loose = m as unknown as Record<string, unknown>;
         const events = Array.isArray(loose.events) ? [...(loose.events as Array<Record<string, unknown>>)] : [];
         const cur = events[idx] ?? {};
         events[idx] = { ...cur, [field]: next };
         return { ...loose, events } as unknown as StoryManifest;
+      })
+    : undefined;
+  /* FAQ question + answer writer. Seeds manifest.faqs with the demo
+     questions on first touch — without the seed, editing demo row 3
+     would write a sparse one-entry faqs[] and collapse the section
+     to a single question. */
+  const patchFaq = onEditField
+    ? (idx: number, field: 'question' | 'answer', next: string) => onEditField((m) => {
+        const loose = m as unknown as Record<string, unknown>;
+        const cur = Array.isArray(loose.faqs) ? [...(loose.faqs as Array<Record<string, unknown>>)] : [];
+        const faqs = cur.length > 0
+          ? cur
+          : DEFAULT_FAQ_QUESTIONS.map((q, i) => ({ id: `faq-${i + 1}`, question: q, answer: '', order: i }));
+        while (faqs.length <= idx) faqs.push({ id: `faq-${faqs.length + 1}`, question: '', answer: '', order: faqs.length });
+        faqs[idx] = { ...(faqs[idx] ?? {}), [field]: next };
+        return { ...loose, faqs } as unknown as StoryManifest;
+      })
+    : undefined;
+  /* Story chapter title / body writer — same manifest.chapters[] path
+     StoryPanel writes + buildCopy reads (chapters[i].title /
+     chapters[i].description). Fills missing slots so editing chapter
+     3 before chapters 1-2 exist doesn't create a sparse array. */
+  const patchChapter = onEditField
+    ? (idx: number, field: 'title' | 'description', next: string) => onEditField((m) => {
+        const loose = m as unknown as Record<string, unknown>;
+        const chapters = Array.isArray(loose.chapters) ? [...(loose.chapters as Array<Record<string, unknown>>)] : [];
+        while (chapters.length <= idx) chapters.push({ id: `chapter-${chapters.length + 1}` });
+        chapters[idx] = { ...(chapters[idx] ?? {}), [field]: next };
+        return { ...loose, chapters } as unknown as StoryManifest;
+      })
+    : undefined;
+  /* Gallery caption writer — sidecar record keyed by photo index
+     (see StoryManifest.galleryCaptions in types.ts for why index
+     keying). Empty commits clear the key so the record stays tidy. */
+  const patchGalleryCaption = onEditField
+    ? (idx: number, next: string) => onEditField((m) => {
+        const loose = m as unknown as Record<string, unknown>;
+        const cur = (loose.galleryCaptions as Record<string, string> | undefined) ?? {};
+        const nextMap: Record<string, string> = { ...cur };
+        if (next.trim()) nextMap[String(idx)] = next;
+        else delete nextMap[String(idx)];
+        return { ...loose, galleryCaptions: nextMap } as unknown as StoryManifest;
+      })
+    : undefined;
+  /* Hotel blurb writer — only minted when the host has real hotels
+     saved (manifest.travelInfo.hotels). The canned demo pair stays
+     read-only: editing it would create a half-empty hotel record
+     and replace BOTH demo cards with one nameless entry. Hosts add
+     hotels via the Travel panel first. */
+  const hostHotelCount = manifest.travelInfo?.hotels?.length ?? 0;
+  const patchHotelBlurb = onEditField && hostHotelCount > 0
+    ? (idx: number, next: string) => onEditField((m) => {
+        const ti = m.travelInfo ?? { airports: [], hotels: [] };
+        const hotels = [...(ti.hotels ?? [])];
+        if (!hotels[idx]) return m;
+        hotels[idx] = { ...hotels[idx], description: next };
+        return { ...m, travelInfo: { ...ti, hotels } };
       })
     : undefined;
   const patchA = onEditNames ? (a: string) => onEditNames([a, names[1] ?? '']) : undefined;
@@ -246,11 +312,21 @@ export function ThemedSite({
     eventName: patchEvent ? (i, v) => patchEvent(i, 'name', v) : undefined,
     eventTime: patchEvent ? (i, v) => patchEvent(i, 'time', v) : undefined,
     eventVenue: patchEvent ? (i, v) => patchEvent(i, 'venue', v) : undefined,
+    eventDescription: patchEvent ? (i, v) => patchEvent(i, 'description', v) : undefined,
+    faqQuestion: patchFaq ? (i, v) => patchFaq(i, 'question', v) : undefined,
+    faqAnswer: patchFaq ? (i, v) => patchFaq(i, 'answer', v) : undefined,
+    chapterTitle: patchChapter ? (i, v) => patchChapter(i, 'title', v) : undefined,
+    chapterBody: patchChapter ? (i, v) => patchChapter(i, 'description', v) : undefined,
+    galleryCaption: patchGalleryCaption,
+    hotelBlurb: patchHotelBlurb,
     nameA: patchA,
     nameB: patchB,
     copy: patchCopy,
   } : undefined;
   const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, textureIntensity, showWashHero, dividerLook, variants, C, manifest, coverPhoto, edit };
+  /* Edit-mode-only <style> for empty-value InlineEdit ghosts —
+     mounted next to <TextureFilters /> in every layout branch. */
+  const ghostStyleEl = editable ? <style>{INLINE_GHOST_CSS}</style> : null;
 
   /* Hidden sections — host can hide any non-essential section via
      the "Hide on the site" toggle at the bottom of each panel.
@@ -402,6 +478,7 @@ export function ThemedSite({
     return (
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-split">
         <TextureFilters />
+        {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
         {C.isPostEvent && <PostEventBanner />}
@@ -441,6 +518,7 @@ export function ThemedSite({
         className="pl8-guest pl8-guest-boxed"
       >
         <TextureFilters />
+        {ghostStyleEl}
         <div
           style={{
             maxWidth: 900,
@@ -477,6 +555,7 @@ export function ThemedSite({
     return (
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-magazine">
         <TextureFilters />
+        {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
         <div style={{ position: 'relative', zIndex: 1 }}>
@@ -504,6 +583,7 @@ export function ThemedSite({
     return (
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-zine">
         <TextureFilters />
+        {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
         <div style={{ position: 'relative', zIndex: 1 }}>
@@ -542,6 +622,7 @@ export function ThemedSite({
     return (
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-storybook">
         <TextureFilters />
+        {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
         <div style={{ position: 'relative', zIndex: 1 }}>
@@ -595,6 +676,7 @@ export function ThemedSite({
     return (
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-gallery">
         <TextureFilters />
+        {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
         <div style={{ position: 'relative', zIndex: 1 }}>
@@ -646,6 +728,7 @@ export function ThemedSite({
         className="pl8-guest pl8-guest-postcard"
       >
         <TextureFilters />
+        {ghostStyleEl}
         <div
           className="pl8-postcard-frame"
           style={{
@@ -740,6 +823,7 @@ export function ThemedSite({
   return (
     <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest">
       <TextureFilters />
+        {ghostStyleEl}
       {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
       <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
       <div style={{ position: 'relative', zIndex: 1 }}>
@@ -1233,6 +1317,8 @@ function StoryBlock({ ctx }: { ctx: SectionCtx }) {
       C: C.story, pad, editable, cta: C.cta,
       onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('storyEyebrow', v) : undefined,
       onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('storyTitle', v) : undefined,
+      onEditChapterTitle: ctx.edit?.chapterTitle,
+      onEditChapterBody:  ctx.edit?.chapterBody,
       eyebrowPlaceholder: 'Our story',
       titlePlaceholder: 'How we got here',
     }} /></div>;
@@ -1328,10 +1414,37 @@ function StoryStacked({ ctx }: { ctx: SectionCtx }) {
         style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 10 }}
       />
       <h2 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 38, margin: 0, lineHeight: 1.02, letterSpacing: '-0.01em', color: 'var(--t-ink)' }}>
-        {C.story.title}
-        {C.story.italic && <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}> {C.story.italic}</span>}
+        {editable && edit?.storyHeadline ? (
+          /* Composite edit — title + italic as one string; the canvas
+             re-splits via splitHeading on commit (same UX as the
+             sidebyside default + TSectionHead). */
+          <InlineEdit
+            as="span"
+            value={[C.story.title, C.story.italic].filter(Boolean).join(' ').trim()}
+            onChange={edit.storyHeadline}
+            editable
+            placeholder="How we got here"
+          />
+        ) : (
+          <>
+            {C.story.title}
+            {C.story.italic && <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--t-accent-ink)' }}> {C.story.italic}</span>}
+          </>
+        )}
       </h2>
-      <p style={{ marginTop: 16, fontSize: 15, color: 'var(--t-ink-soft)', lineHeight: 1.65 }}>{C.story.body}</p>
+      {editable && edit?.storyBody ? (
+        <InlineEdit
+          as="div"
+          value={C.story.body}
+          onChange={edit.storyBody}
+          editable
+          multiline
+          placeholder="Click to write your story…"
+          style={{ marginTop: 16, fontSize: 15, color: 'var(--t-ink-soft)', lineHeight: 1.65 }}
+        />
+      ) : (
+        <p style={{ marginTop: 16, fontSize: 15, color: 'var(--t-ink-soft)', lineHeight: 1.65 }}>{C.story.body}</p>
+      )}
     </div>
   );
 }
@@ -1357,7 +1470,16 @@ function StoryQuote({ ctx }: { ctx: SectionCtx }) {
           placeholder="Two threads, one weave"
           style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 16 }}
         />
-        <blockquote style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontWeight: 'var(--t-display-wght)', fontSize: 28, lineHeight: 1.32, margin: 0, color: 'var(--t-ink)', letterSpacing: '-0.01em' }}>{C.story.body}</blockquote>
+        <blockquote style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontWeight: 'var(--t-display-wght)', fontSize: 28, lineHeight: 1.32, margin: 0, color: 'var(--t-ink)', letterSpacing: '-0.01em' }}>
+          <InlineEdit
+            as="span"
+            value={C.story.body}
+            onChange={edit?.storyBody}
+            editable={editable && !!edit?.storyBody}
+            multiline
+            placeholder="Click to write your story…"
+          />
+        </blockquote>
         <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}><KDivider look={ctx.dividerLook} width={160} /></div>
       </div>
     </div>
@@ -1399,17 +1521,49 @@ function StoryTimeline({ ctx }: { ctx: SectionCtx }) {
              chapter-specific title. */
           const eyebrowText = it;
           const bodyText = chapterBody || C.story.body;
+          /* Per-chapter inline edit — only the first 3 rows map onto
+             manifest.chapters[0..2] (buildCopy reads exactly three),
+             so rows beyond that render read-only. */
+          const canEditChapter = editable && i < 3;
+          const titleStyle: CSSProperties = { fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)' as CSSProperties['fontWeight'], fontSize: 22, color: 'var(--t-ink)', marginTop: 3, lineHeight: 1.15 };
+          const bodyStyle: CSSProperties = { fontSize: 13.5, color: 'var(--t-ink-soft)', lineHeight: 1.55, marginTop: photo ? 6 : 3 };
           return (
             <div key={i} style={{ position: 'relative', paddingBottom: i < items.length - 1 ? 22 : 0 }}>
               <span style={{ position: 'absolute', left: -30, top: 2, width: 16, height: 16, borderRadius: '50%', background: 'var(--t-accent)', border: '3px solid var(--t-paper)' }} />
               <div style={{ fontFamily: 'var(--t-mono)', fontSize: 11, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)' }}>{eyebrowText}</div>
-              {chapterTitle && (
-                <div style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 22, color: 'var(--t-ink)', marginTop: 3, lineHeight: 1.15 }}>{chapterTitle}</div>
-              )}
+              {canEditChapter && edit?.chapterTitle ? (
+                <InlineEdit
+                  as="div"
+                  value={chapterTitle ?? ''}
+                  onChange={(v) => edit.chapterTitle?.(i, v)}
+                  editable
+                  placeholder="Add a chapter title…"
+                  className="pl8-inline-ghost"
+                  style={titleStyle}
+                />
+              ) : chapterTitle ? (
+                <div style={titleStyle}>{chapterTitle}</div>
+              ) : null}
               {photo && (
                 <FadeInImage src={photo} style={{ marginTop: chapterTitle ? 10 : 8, aspectRatio: '16/9', maxWidth: 480, borderRadius: 'var(--t-radius)' }} />
               )}
-              <div style={{ fontSize: 13.5, color: 'var(--t-ink-soft)', lineHeight: 1.55, marginTop: photo ? 6 : 3 }}>{bodyText}</div>
+              {canEditChapter && edit?.chapterBody ? (
+                /* Value falls back to the shared story body; an edit
+                   commit writes chapters[i].description so the row
+                   diverges from the shared copy from then on. */
+                <InlineEdit
+                  as="div"
+                  value={bodyText}
+                  onChange={(v) => edit.chapterBody?.(i, v)}
+                  editable
+                  multiline
+                  placeholder="Write this chapter…"
+                  className="pl8-inline-ghost"
+                  style={bodyStyle}
+                />
+              ) : (
+                <div style={bodyStyle}>{bodyText}</div>
+              )}
             </div>
           );
         })}
@@ -1440,7 +1594,19 @@ function StoryLetter({ ctx }: { ctx: SectionCtx }) {
              card with a real image. */
           <FadeInImage src={heroPhoto} style={{ marginInline: 'auto', marginBottom: 16, width: 96, height: 96, borderRadius: '50%', border: '3px solid var(--t-paper)', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} />
         )}
-        <p style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink)', lineHeight: 1.6, textAlign: 'left' }}>{C.story.body}</p>
+        {editable && edit?.storyBody ? (
+          <InlineEdit
+            as="div"
+            value={C.story.body}
+            onChange={edit.storyBody}
+            editable
+            multiline
+            placeholder="Click to write your story…"
+            style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink)', lineHeight: 1.6, textAlign: 'left', margin: '16px 0' }}
+          />
+        ) : (
+          <p style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink)', lineHeight: 1.6, textAlign: 'left' }}>{C.story.body}</p>
+        )}
         <div style={{ fontFamily: 'var(--t-script)', fontSize: 30, color: 'var(--t-accent-ink)', marginTop: 14, textAlign: 'right' }}>
           {C.subject.type === 'solo' ? C.subject.a : <>{C.subject.a} &amp; {C.subject.b}</>}
         </div>
@@ -1513,6 +1679,7 @@ function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
     C: C.schedule, pad, editable, cta: C.cta,
     onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('scheduleEyebrow', v) : undefined,
     onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('scheduleTitle', v) : undefined,
+    onEditEventDescription: ctx.edit?.eventDescription,
     eyebrowPlaceholder: 'The day',
     titlePlaceholder: 'In moments',
   };
@@ -1577,6 +1744,12 @@ function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
                         <div style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)' as React.CSSProperties['fontWeight'], fontSize: 20, color: 'var(--t-ink)' }}>{r.t}</div>
                         <div style={{ fontSize: 13, color: 'var(--t-ink)', marginTop: 4, fontWeight: 600 }}>{r.l}</div>
                         <div style={{ fontSize: 12, color: 'var(--t-ink-soft)', marginTop: 4 }}>{r.s}</div>
+                        {/* Multi-day grouping loses the original events[]
+                            index, so the note renders read-only here —
+                            inline editing lives in the single-day grid +
+                            the variant layouts. SchedulePanel covers
+                            multi-day edits. */}
+                        {r.d && <div style={SCHEDULE_NOTE_STYLE}>{r.d}</div>}
                       </div>
                     ))}
                   </div>
@@ -1619,12 +1792,36 @@ function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
               placeholder="Where"
               style={{ fontSize: 11.5, color: 'var(--t-ink-muted)', marginTop: 2 }}
             />
+            {/* Quiet one-line note — edit-mode ghost when empty;
+                published renders it only when authored. */}
+            {editable && ctx.edit?.eventDescription ? (
+              <InlineEdit
+                as="div"
+                value={r.d ?? ''}
+                onChange={(v) => ctx.edit?.eventDescription?.(i, v)}
+                editable
+                placeholder="Add a note…"
+                className="pl8-inline-ghost"
+                style={SCHEDULE_NOTE_STYLE}
+              />
+            ) : r.d ? (
+              <div style={SCHEDULE_NOTE_STYLE}>{r.d}</div>
+            ) : null}
           </div>
         ))}
       </div>
     </div>
   );
 }
+
+/* Shared quiet-note style for the schedule description line. */
+const SCHEDULE_NOTE_STYLE: CSSProperties = {
+  fontSize: 11.5,
+  fontStyle: 'italic',
+  color: 'var(--t-ink-soft)',
+  marginTop: 4,
+  lineHeight: 1.45,
+};
 
 /* ─── TravelBlock — handoff L572-647 rows default. ───────────── */
 
@@ -1634,6 +1831,7 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
     C: C.travel, pad, editable, cta: C.cta,
     onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('travelEyebrow', v) : undefined,
     onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('travelTitle', v) : undefined,
+    onEditHotelBlurb: ctx.edit?.hotelBlurb,
     eyebrowPlaceholder: 'Travel',
     titlePlaceholder: 'Where to stay',
   };
@@ -1687,9 +1885,25 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
                     <Icon name="pin" size={11} color="var(--t-accent)" /> {h.dist}
                   </span>
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--t-ink-soft)', lineHeight: 1.5, margin: '9px 0 11px' }}>
-                  {h.blurb}
-                </div>
+                {/* Blurb — inline-editable only when the host has real
+                    hotels saved (edit.hotelBlurb is gated on that); the
+                    demo Santorini pair stays read-only. */}
+                {editable && ctx.edit?.hotelBlurb ? (
+                  <InlineEdit
+                    as="div"
+                    value={h.blurb}
+                    onChange={(v) => ctx.edit?.hotelBlurb?.(i, v)}
+                    editable
+                    multiline
+                    placeholder="Add a note about this stay…"
+                    className="pl8-inline-ghost"
+                    style={{ fontSize: 13, color: 'var(--t-ink-soft)', lineHeight: 1.5, margin: '9px 0 11px' }}
+                  />
+                ) : (
+                  <div style={{ fontSize: 13, color: 'var(--t-ink-soft)', lineHeight: 1.5, margin: '9px 0 11px' }}>
+                    {h.blurb}
+                  </div>
+                )}
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {h.amenities.map((a) => (
                     <span key={a} style={{ fontSize: 11, fontWeight: 600, color: 'var(--t-accent-ink)', background: 'var(--t-accent-bg)', padding: '4px 9px', borderRadius: 999 }}>
@@ -1799,6 +2013,7 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
     C: C.gallery, pad, editable, cta: C.cta,
     onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('galleryEyebrow', v) : undefined,
     onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('galleryTitle', v) : undefined,
+    onEditCaption: ctx.edit?.galleryCaption,
     eyebrowPlaceholder: 'Gallery',
     titlePlaceholder: 'A few favorites',
   };
@@ -1822,10 +2037,30 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
         {C.gallery.photos && C.gallery.photos.length > 0
           /* Render the host's uploaded photos as cover-image
              squares; the gradient placeholders fall away entirely
-             once any photo is set. */
-          ? C.gallery.photos.map((url, i) => (
-              <FadeInImage key={i} src={url} style={{ aspectRatio: '1/1', borderRadius: 8 }} />
-            ))
+             once any photo is set. Each tile carries an optional
+             caption line below — inline-editable in edit mode,
+             rendered only when authored on the published site. */
+          ? C.gallery.photos.map((url, i) => {
+              const caption = C.gallery.captions?.[i];
+              return (
+                <div key={i}>
+                  <FadeInImage src={url} style={{ aspectRatio: '1/1', borderRadius: 8 }} />
+                  {editable && ctx.edit?.galleryCaption ? (
+                    <InlineEdit
+                      as="div"
+                      value={caption ?? ''}
+                      onChange={(v) => ctx.edit?.galleryCaption?.(i, v)}
+                      editable
+                      placeholder="Add a caption…"
+                      className="pl8-inline-ghost"
+                      style={GALLERY_CAPTION_STYLE}
+                    />
+                  ) : caption ? (
+                    <div style={GALLERY_CAPTION_STYLE}>{caption}</div>
+                  ) : null}
+                </div>
+              );
+            })
           : C.gallery.tones.map((t, i) => (
               <PhotoPlaceholder key={i} tone={t} aspect="1/1" style={{ borderRadius: 8 }} />
             ))}
@@ -1833,6 +2068,18 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
     </div>
   );
 }
+
+/* Quiet caption line under gallery tiles — shared by the default
+   grid here + mirrored (per-variant voice) in gallery variants. */
+const GALLERY_CAPTION_STYLE: CSSProperties = {
+  fontFamily: 'var(--t-display)',
+  fontStyle: 'italic',
+  fontSize: 12.5,
+  color: 'var(--t-ink-soft)',
+  textAlign: 'center',
+  marginTop: 6,
+  lineHeight: 1.4,
+};
 
 /* ─── RsvpBlock — handoff centered (dark inverse). ───────────── */
 
@@ -1967,10 +2214,17 @@ function GoingSocialProof({ ctx }: { ctx: SectionCtx }) {
 
 function FaqBlock({ ctx }: { ctx: SectionCtx }) {
   const { pad, C, editable, variants } = ctx;
+  /* Accordion open state — one row open at a time. Rows with an
+     authored answer toggle for guests too (the chevron finally
+     does something); answer-less rows only expand in edit mode,
+     where the host gets the "Add an answer…" ghost. */
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
   const sub = {
     C: C.faq, pad, editable, cta: C.cta,
     onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('faqEyebrow', v) : undefined,
     onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('faqTitle', v) : undefined,
+    onEditQuestion: ctx.edit?.faqQuestion,
+    onEditAnswer:   ctx.edit?.faqAnswer,
     eyebrowPlaceholder: 'FAQ',
     titlePlaceholder: 'Anything else?',
   };
@@ -1991,12 +2245,59 @@ function FaqBlock({ ctx }: { ctx: SectionCtx }) {
         divider={ctx.dividerLook}
       />
       <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {C.faq.questions.map((q, i) => (
-          <div key={i} className="pl8-faq-row" style={{ padding: '12px 16px', background: 'var(--t-card)', border: '1px solid var(--t-line-soft)', borderRadius: 'var(--t-radius)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 13.5, color: 'var(--t-ink)' }}>{q}</span>
-            <Icon name="chev-down" size={13} color="var(--t-ink-muted)" />
-          </div>
-        ))}
+        {/* qa[] (when the host has authored FAQs) keeps row indices
+            aligned with manifest.faqs so inline edits patch the right
+            entry; the bare demo questions fall through with no
+            answers. patchFaq seeds the demo set on first touch. */}
+        {(C.faq.qa ?? C.faq.questions.map((q) => ({ q, a: undefined as string | undefined }))).map((item, i) => {
+          const hasAnswer = !!(item.a && item.a.trim());
+          const canEdit = editable && !!ctx.edit?.faqAnswer;
+          const expandable = hasAnswer || canEdit;
+          const open = openIdx === i;
+          /* Published view skips question-less rows (matches the old
+             filter(Boolean) behaviour); edit mode keeps them so the
+             host can fill the question back in. */
+          if (!editable && !(item.q ?? '').trim()) return null;
+          return (
+            <div key={i} className="pl8-faq-row" style={{ background: 'var(--t-card)', border: '1px solid var(--t-line-soft)', borderRadius: 'var(--t-radius)' }}>
+              <div
+                role={expandable ? 'button' : undefined}
+                aria-expanded={expandable ? open : undefined}
+                onClick={expandable ? () => setOpenIdx(open ? null : i) : undefined}
+                style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, cursor: expandable ? 'pointer' : 'default' }}
+              >
+                {/* InlineEdit stops click propagation, so editing the
+                    question never toggles the row open/closed. */}
+                <InlineEdit
+                  as="span"
+                  value={item.q ?? ''}
+                  onChange={ctx.edit?.faqQuestion ? (v) => ctx.edit?.faqQuestion?.(i, v) : undefined}
+                  editable={editable && !!ctx.edit?.faqQuestion}
+                  placeholder="Write a question…"
+                  className="pl8-inline-ghost"
+                  style={{ fontSize: 13.5, color: 'var(--t-ink)', flex: 1 }}
+                />
+                <span style={{ display: 'inline-flex', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform var(--pl-dur-fast) var(--pl-ease-emphasis)', flexShrink: 0 }}>
+                  <Icon name="chev-down" size={13} color="var(--t-ink-muted)" />
+                </span>
+              </div>
+              {open && expandable && (
+                <div style={{ padding: '0 16px 12px' }}>
+                  <InlineEdit
+                    as="div"
+                    value={item.a ?? ''}
+                    onChange={ctx.edit?.faqAnswer ? (v) => ctx.edit?.faqAnswer?.(i, v) : undefined}
+                    editable={canEdit}
+                    multiline
+                    placeholder="Add an answer…"
+                    className="pl8-inline-ghost"
+                    style={{ fontSize: 12.5, color: 'var(--t-ink-soft)', lineHeight: 1.55 }}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -3371,6 +3672,23 @@ interface SectionCtx {
     eventName?: (idx: number, v: string) => void;
     eventTime?: (idx: number, v: string) => void;
     eventVenue?: (idx: number, v: string) => void;
+    /** Quiet one-line note under the time/venue row — writes
+     *  manifest.events[idx].description. */
+    eventDescription?: (idx: number, v: string) => void;
+    /** FAQ in-place editing — writes manifest.faqs[idx].question /
+     *  .answer (seeding the demo questions on first touch). */
+    faqQuestion?: (idx: number, v: string) => void;
+    faqAnswer?: (idx: number, v: string) => void;
+    /** Per-chapter story editing (timeline / zigzag variants) —
+     *  writes manifest.chapters[idx].title / .description. */
+    chapterTitle?: (idx: number, v: string) => void;
+    chapterBody?: (idx: number, v: string) => void;
+    /** Gallery photo caption — writes manifest.galleryCaptions[idx]. */
+    galleryCaption?: (idx: number, v: string) => void;
+    /** Hotel blurb — writes manifest.travelInfo.hotels[idx].description.
+     *  Undefined when the host has no real hotels saved (demo cards
+     *  stay read-only). */
+    hotelBlurb?: (idx: number, v: string) => void;
     nameA?: (v: string) => void;
     nameB?: (v: string) => void;
     /** Generic manifest.copy.<key> writer. Used for every editable
@@ -3421,7 +3739,9 @@ interface Copy {
     chapterBodies?: (string | undefined)[];
   };
   details: { eyebrow: string; title: string; italic?: string; items: { l: string; v: string; icon: string }[] };
-  schedule: { eyebrow: string; title: string; italic?: string; rows: { t: string; l: string; s: string; day?: number }[] };
+  /** Schedule rows — t(ime) / l(abel) / s(ubtitle = venue) / d(escription,
+   *  the optional quiet note under the venue line) / day. */
+  schedule: { eyebrow: string; title: string; italic?: string; rows: { t: string; l: string; s: string; d?: string; day?: number }[] };
   travel: { eyebrow: string; title: string; italic?: string; intro?: string; hotels: { name: string; price: string; rating: number; reviews: number; dist: string; tone: PhotoTone; blurb: string; amenities: string[]; photoUrl?: string; bookingUrl?: string }[]; shuttle?: string };
   registry: {
     eyebrow: string; title: string; italic?: string; body: string;
@@ -3446,6 +3766,10 @@ interface Copy {
      *  non-empty, the canvas renders these instead of the gradient
      *  tone placeholders. */
     photos?: string[];
+    /** Per-photo captions aligned to `photos` by index — derived
+     *  from manifest.galleryCaptions (index-keyed sidecar record).
+     *  Undefined entries mean "no caption". */
+    captions?: (string | undefined)[];
   };
   rsvp: {
     eyebrow: string; title: string; body: string;
@@ -3884,7 +4208,13 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
             return list.map((e) => ({
               t: e.time ?? '',
               l: e.name ?? '',
-              s: e.venue ?? e.description ?? '',
+              /* s carries the venue line; d carries the optional quiet
+                 description note. Pre-description-support manifests
+                 sometimes have venue: undefined with description set —
+                 keep showing that description (now on its own quieter
+                 line) so no content disappears. */
+              s: e.venue ?? '',
+              d: (e.description ?? '').trim() || undefined,
               day: (e as { day?: number }).day,
             }));
           })()
@@ -3982,6 +4312,10 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       /* Host-uploaded gallery photos from manifest.galleryImages[].
          When set, canvas renders these instead of tone gradients. */
       const galleryPhotos = (loose.galleryImages as string[] | undefined) ?? [];
+      /* Captions live in manifest.galleryCaptions — an index-keyed
+         sidecar record (see types.ts). Flatten to an array aligned
+         with photos so renderers can zip them by index. */
+      const captionsRec = (loose.galleryCaptions as Record<string, string> | undefined) ?? {};
       return {
         eyebrow: co('galleryEyebrow', 'Gallery'),
         title: t.head,
@@ -3990,6 +4324,12 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
           ? galleryTones
           : (['warm', 'sage', 'dusk', 'peach', 'lavender', 'cream', 'warm', 'sage', 'dusk', 'peach', 'lavender', 'cream'] as PhotoTone[]),
         photos: galleryPhotos.length > 0 ? galleryPhotos : undefined,
+        captions: galleryPhotos.length > 0
+          ? galleryPhotos.map((_, i) => {
+              const c = captionsRec[String(i)];
+              return typeof c === 'string' && c.trim() ? c : undefined;
+            })
+          : undefined,
       };
     })(),
     rsvp: (() => {
@@ -4025,12 +4365,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       italic: t.italic,
       questions: faqsRaw.length > 0
         ? faqsRaw.slice(0, 6).map((q) => q.question ?? '').filter(Boolean)
-        : [
-            "What's the dress code, really?",
-            'Can I bring a plus-one?',
-            'Are kids welcome at the ceremony?',
-            'Where should I stay in Santorini?',
-          ],
+        : DEFAULT_FAQ_QUESTIONS,
       /* qa[] carries the host-authored answers (FaqPanel writes
          manifest.faqs[].answer). Variants twocol/numbered/cards
          read ctx.C.qa[i].a and fall through to placeholder when
@@ -4042,6 +4377,16 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
     })(),
   };
 }
+
+/* Demo FAQ questions — shown when the host hasn't authored any.
+   Shared by buildCopy (display fallback) AND patchFaq (first-touch
+   seed) so editing a demo row keeps every other demo row alive. */
+const DEFAULT_FAQ_QUESTIONS = [
+  "What's the dress code, really?",
+  'Can I bring a plus-one?',
+  'Are kids welcome at the ceremony?',
+  'Where should I stay in Santorini?',
+];
 
 /* Story headline ("How we met") into ["How we", "met"] so the
    italic accent word reads like the handoff. Falls through to the

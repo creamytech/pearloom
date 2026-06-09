@@ -242,6 +242,15 @@ export interface StoryManifest {
   faqs?: FaqItem[];
   // Travel & lodging info
   travelInfo?: TravelInfo;
+  /** Per-photo gallery captions, keyed by the photo's index in
+   *  `galleryImages` (stringified number, e.g. `{ "0": "First dance" }`).
+   *  Index keying is deliberate: `galleryImages` is a plain string[] of
+   *  URLs with no per-photo id to key on, and migrating that array to
+   *  an object shape would break every existing reader — so a sidecar
+   *  record keyed by index is the simplest additive, non-breaking shape.
+   *  GalleryPanel reindexes this map when a photo is removed so captions
+   *  stay attached to the right photo. */
+  galleryCaptions?: Record<string, string>;
   // Real text samples from the couple — used to train the Ask the Couple AI chatbot
   voiceSamples?: string[];
   // Legacy renderer version flag — preserved for older DB rows + any

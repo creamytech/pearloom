@@ -6,10 +6,23 @@
    takes a ScheduleVariantCtx and renders the section body
    (the TSection wrapper + RSVP CTA stay in ThemedSite). */
 
-import type { ScheduleVariantCtx } from './types';
+import type { CSSProperties } from 'react';
+import type { ScheduleVariantCtx, ScheduleRow as ScheduleRowBase } from './types';
 import { VariantSectionHead } from './_section-head';
+import { InlineEdit } from '../InlineEdit';
 
-function headProps(ctx: ScheduleVariantCtx) {
+/* Edit-context extension — the canvas quick-wins tier adds an
+   optional per-row description (`d`, the quiet note under the
+   time/venue line) plus its writer. Local extension so the shared
+   types module stays untouched. Row indices align with
+   manifest.events[] (ThemedSite maps them 1:1). */
+type ScheduleRow = ScheduleRowBase & { d?: string };
+export interface ScheduleVariantCtxEditable extends Omit<ScheduleVariantCtx, 'C'> {
+  C: Omit<ScheduleVariantCtx['C'], 'rows'> & { rows: ScheduleRow[] };
+  onEditEventDescription?: (idx: number, v: string) => void;
+}
+
+function headProps(ctx: ScheduleVariantCtxEditable) {
   return {
     eyebrow: ctx.C.eyebrow, title: ctx.C.title, italic: ctx.C.italic,
     editable: ctx.editable,
@@ -18,9 +31,37 @@ function headProps(ctx: ScheduleVariantCtx) {
   };
 }
 
+/** Quiet one-line note under the time/venue row. InlineEdit with an
+ *  "Add a note…" ghost in edit mode; published renders it only when
+ *  the host authored one (zero DOM otherwise). */
+function RowNote({ ctx, i, row, style }: { ctx: ScheduleVariantCtxEditable; i: number; row: ScheduleRow; style?: CSSProperties }) {
+  const noteStyle: CSSProperties = {
+    fontSize: 11.5,
+    fontStyle: 'italic',
+    color: 'var(--t-ink-soft)',
+    lineHeight: 1.45,
+    marginTop: 3,
+    ...style,
+  };
+  if (ctx.editable && ctx.onEditEventDescription) {
+    return (
+      <InlineEdit
+        as="div"
+        value={row.d ?? ''}
+        onChange={(v) => ctx.onEditEventDescription?.(i, v)}
+        editable
+        placeholder="Add a note…"
+        className="pl8-inline-ghost"
+        style={noteStyle}
+      />
+    );
+  }
+  return row.d ? <div style={noteStyle}>{row.d}</div> : null;
+}
+
 /* ─── ScheduleTimeline — vertical rail with dotted milestones. ── */
 
-export function ScheduleTimeline({ ctx }: { ctx: ScheduleVariantCtx }) {
+export function ScheduleTimeline({ ctx }: { ctx: ScheduleVariantCtxEditable }) {
   const { C, pad } = ctx;
   return (
     <>
@@ -35,6 +76,7 @@ export function ScheduleTimeline({ ctx }: { ctx: ScheduleVariantCtx }) {
             </div>
             <div style={{ fontFamily: 'var(--t-display)', fontSize: 16, color: 'var(--t-ink)', marginBottom: 2 }}>{row.l}</div>
             <div style={{ fontSize: 12.5, color: 'var(--t-ink-soft)' }}>{row.s}</div>
+            <RowNote ctx={ctx} i={i} row={row} />
           </div>
         ))}
       </div>
@@ -44,7 +86,7 @@ export function ScheduleTimeline({ ctx }: { ctx: ScheduleVariantCtx }) {
 
 /* ─── ScheduleStepper — horizontal numbered circles + connectors ── */
 
-export function ScheduleStepper({ ctx }: { ctx: ScheduleVariantCtx }) {
+export function ScheduleStepper({ ctx }: { ctx: ScheduleVariantCtxEditable }) {
   const { C, pad } = ctx;
   return (
     <>
@@ -62,6 +104,7 @@ export function ScheduleStepper({ ctx }: { ctx: ScheduleVariantCtx }) {
                 </div>
                 <div style={{ fontFamily: 'var(--t-display)', fontSize: 16, color: 'var(--t-ink)', marginTop: 4, textAlign: 'center' }}>{row.l}</div>
                 <div style={{ fontSize: 12.5, color: 'var(--t-ink-soft)', marginTop: 2, textAlign: 'center' }}>{row.s}</div>
+                <RowNote ctx={ctx} i={i} row={row} style={{ textAlign: 'center', maxWidth: 150 }} />
               </div>
               {i < C.rows.length - 1 && (
                 <div style={{ width: 50, height: 2, background: 'var(--t-line)', marginTop: 21 }} />
@@ -76,7 +119,7 @@ export function ScheduleStepper({ ctx }: { ctx: ScheduleVariantCtx }) {
 
 /* ─── ScheduleNumbered — zero-padded numeral list. ───────────── */
 
-export function ScheduleNumbered({ ctx }: { ctx: ScheduleVariantCtx }) {
+export function ScheduleNumbered({ ctx }: { ctx: ScheduleVariantCtxEditable }) {
   const { C } = ctx;
   return (
     <>
@@ -90,6 +133,7 @@ export function ScheduleNumbered({ ctx }: { ctx: ScheduleVariantCtx }) {
             <div>
               <div style={{ fontFamily: 'var(--t-display)', fontSize: 14.5, color: 'var(--t-ink)' }}>{row.l}</div>
               <div style={{ fontSize: 11.5, color: 'var(--t-ink-soft)', marginTop: 2 }}>{row.s}</div>
+              <RowNote ctx={ctx} i={i} row={row} style={{ fontSize: 11 }} />
             </div>
             <div style={{ fontFamily: 'var(--t-mono)', fontSize: 13, textTransform: 'uppercase', color: 'var(--t-ink-muted)' }}>
               {row.t}{row.m ? ' ' + row.m : ''}

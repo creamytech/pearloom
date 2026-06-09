@@ -2,12 +2,24 @@
 /* eslint-disable no-restricted-syntax */
 
 import React from 'react';
+import type { CSSProperties } from 'react';
 import type { FaqVariantCtx } from './types';
 import { VariantSectionHead } from './_section-head';
+import { InlineEdit } from '../InlineEdit';
 
 const PLACEHOLDER = 'A short, friendly answer goes here.';
 
-function SectionHead({ ctx }: { ctx: FaqVariantCtx }) {
+/* Edit-context extension — the canvas quick-wins tier threads
+   per-row question/answer writers through the variant ctx. Kept
+   as a local extension of FaqVariantCtx so the shared types module
+   stays untouched. Indices align with manifest.faqs[] (ThemedSite's
+   patchFaq seeds the demo questions on first touch). */
+export interface FaqVariantCtxEditable extends FaqVariantCtx {
+  onEditQuestion?: (idx: number, v: string) => void;
+  onEditAnswer?: (idx: number, v: string) => void;
+}
+
+function SectionHead({ ctx }: { ctx: FaqVariantCtxEditable }) {
   return (
     <VariantSectionHead
       eyebrow={ctx.C.eyebrow}
@@ -23,13 +35,56 @@ function SectionHead({ ctx }: { ctx: FaqVariantCtx }) {
   );
 }
 
-function answerFor(ctx: FaqVariantCtx, i: number): string {
-  const qa = ctx.C.qa?.[i];
-  return qa?.a && qa.a.trim().length > 0 ? qa.a : PLACEHOLDER;
+/* Each row renders from the qa[] list when the host has authored
+   FAQs (indices stay aligned with manifest.faqs so inline edits
+   patch the right entry) and falls back to the bare demo questions
+   otherwise. Published view skips question-less rows — matching
+   the old questions.filter(Boolean) behaviour — while edit mode
+   keeps them so the host can fill the question back in. */
+function rowsFor(ctx: FaqVariantCtxEditable): Array<{ q: string; a?: string }> {
+  return ctx.C.qa ?? ctx.C.questions.map((q) => ({ q, a: undefined }));
 }
 
-export function FaqTwocol({ ctx }: { ctx: FaqVariantCtx }) {
-  const { C } = ctx;
+/** Question slot — InlineEdit in edit mode (stops click propagation
+ *  itself, per the InlineEdit contract), plain text otherwise. */
+function QuestionText({ ctx, i, value, style }: { ctx: FaqVariantCtxEditable; i: number; value: string; style: CSSProperties }) {
+  if (ctx.editable && ctx.onEditQuestion) {
+    return (
+      <InlineEdit
+        as="div"
+        value={value}
+        onChange={(v) => ctx.onEditQuestion?.(i, v)}
+        editable
+        placeholder="Write a question…"
+        className="pl8-inline-ghost"
+        style={style}
+      />
+    );
+  }
+  return <div style={style}>{value}</div>;
+}
+
+/** Answer slot — multiline InlineEdit in edit mode; published view
+ *  keeps the legacy placeholder copy for unanswered rows. */
+function AnswerText({ ctx, i, value, style }: { ctx: FaqVariantCtxEditable; i: number; value?: string; style: CSSProperties }) {
+  if (ctx.editable && ctx.onEditAnswer) {
+    return (
+      <InlineEdit
+        as="div"
+        value={value && value.trim() ? value : ''}
+        onChange={(v) => ctx.onEditAnswer?.(i, v)}
+        editable
+        multiline
+        placeholder="Add an answer…"
+        className="pl8-inline-ghost"
+        style={style}
+      />
+    );
+  }
+  return <div style={style}>{value && value.trim() ? value : PLACEHOLDER}</div>;
+}
+
+export function FaqTwocol({ ctx }: { ctx: FaqVariantCtxEditable }) {
   return (
     <div>
       <SectionHead ctx={ctx} />
@@ -42,81 +97,93 @@ export function FaqTwocol({ ctx }: { ctx: FaqVariantCtx }) {
           gap: '16px 28px',
         }}
       >
-        {C.questions.map((q, i) => (
-          <div key={i} className="pl8-faq-row">
-            <div
-              style={{
-                fontFamily: 'var(--t-display)',
-                fontStyle: 'italic',
-                fontSize: 14,
-                color: 'var(--t-accent-ink, var(--t-ink))',
-                marginBottom: 4,
-              }}
-            >
-              {q}
+        {rowsFor(ctx).map((item, i) => {
+          if (!ctx.editable && !(item.q ?? '').trim()) return null;
+          return (
+            <div key={i} className="pl8-faq-row">
+              <QuestionText
+                ctx={ctx}
+                i={i}
+                value={item.q}
+                style={{
+                  fontFamily: 'var(--t-display)',
+                  fontStyle: 'italic',
+                  fontSize: 14,
+                  color: 'var(--t-accent-ink, var(--t-ink))',
+                  marginBottom: 4,
+                }}
+              />
+              <AnswerText
+                ctx={ctx}
+                i={i}
+                value={item.a}
+                style={{ fontSize: 12.5, color: 'var(--t-ink-soft)', lineHeight: 1.5 }}
+              />
             </div>
-            <div style={{ fontSize: 12.5, color: 'var(--t-ink-soft)', lineHeight: 1.5 }}>
-              {answerFor(ctx, i)}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 }
 
-export function FaqNumbered({ ctx }: { ctx: FaqVariantCtx }) {
-  const { C } = ctx;
+export function FaqNumbered({ ctx }: { ctx: FaqVariantCtxEditable }) {
   return (
     <div>
       <SectionHead ctx={ctx} />
       <div style={{ maxWidth: 640, margin: '0 auto' }}>
-        {C.questions.map((q, i) => (
-          <div
-            key={i}
-            className="pl8-faq-row"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'auto 1fr',
-              gap: 18,
-              padding: '16px 0',
-              borderBottom: '1px solid var(--t-line-soft)',
-            }}
-          >
+        {rowsFor(ctx).map((item, i) => {
+          if (!ctx.editable && !(item.q ?? '').trim()) return null;
+          return (
             <div
+              key={i}
+              className="pl8-faq-row"
               style={{
-                fontFamily: 'var(--t-display)',
-                fontSize: 22,
-                color: 'var(--t-ink-muted)',
-                lineHeight: 1,
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr',
+                gap: 18,
+                padding: '16px 0',
+                borderBottom: '1px solid var(--t-line-soft)',
               }}
             >
-              {String(i + 1).padStart(2, '0')}
-            </div>
-            <div>
               <div
                 style={{
                   fontFamily: 'var(--t-display)',
-                  fontSize: 13.5,
-                  color: 'var(--t-ink)',
-                  marginBottom: 4,
+                  fontSize: 22,
+                  color: 'var(--t-ink-muted)',
+                  lineHeight: 1,
                 }}
               >
-                {q}
+                {String(i + 1).padStart(2, '0')}
               </div>
-              <div style={{ fontSize: 12, color: 'var(--t-ink-soft)', lineHeight: 1.5 }}>
-                {answerFor(ctx, i)}
+              <div>
+                <QuestionText
+                  ctx={ctx}
+                  i={i}
+                  value={item.q}
+                  style={{
+                    fontFamily: 'var(--t-display)',
+                    fontSize: 13.5,
+                    color: 'var(--t-ink)',
+                    marginBottom: 4,
+                  }}
+                />
+                <AnswerText
+                  ctx={ctx}
+                  i={i}
+                  value={item.a}
+                  style={{ fontSize: 12, color: 'var(--t-ink-soft)', lineHeight: 1.5 }}
+                />
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 }
 
-export function FaqCards({ ctx }: { ctx: FaqVariantCtx }) {
-  const { C } = ctx;
+export function FaqCards({ ctx }: { ctx: FaqVariantCtxEditable }) {
   return (
     <div>
       <SectionHead ctx={ctx} />
@@ -129,32 +196,39 @@ export function FaqCards({ ctx }: { ctx: FaqVariantCtx }) {
           gap: 14,
         }}
       >
-        {C.questions.map((q, i) => (
-          <div
-            key={i}
-            className="pl8-faq-row"
-            style={{
-              background: 'var(--t-card)',
-              padding: 16,
-              borderRadius: 'var(--t-radius)',
-              border: '1px solid var(--t-line)',
-            }}
-          >
+        {rowsFor(ctx).map((item, i) => {
+          if (!ctx.editable && !(item.q ?? '').trim()) return null;
+          return (
             <div
+              key={i}
+              className="pl8-faq-row"
               style={{
-                fontSize: 13.5,
-                fontWeight: 700,
-                color: 'var(--t-ink)',
-                marginBottom: 6,
+                background: 'var(--t-card)',
+                padding: 16,
+                borderRadius: 'var(--t-radius)',
+                border: '1px solid var(--t-line)',
               }}
             >
-              {q}
+              <QuestionText
+                ctx={ctx}
+                i={i}
+                value={item.q}
+                style={{
+                  fontSize: 13.5,
+                  fontWeight: 700,
+                  color: 'var(--t-ink)',
+                  marginBottom: 6,
+                }}
+              />
+              <AnswerText
+                ctx={ctx}
+                i={i}
+                value={item.a}
+                style={{ fontSize: 12.5, color: 'var(--t-ink-soft)', lineHeight: 1.5 }}
+              />
             </div>
-            <div style={{ fontSize: 12.5, color: 'var(--t-ink-soft)', lineHeight: 1.5 }}>
-              {answerFor(ctx, i)}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
