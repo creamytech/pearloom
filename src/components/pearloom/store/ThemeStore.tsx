@@ -135,9 +135,20 @@ function FeaturedHero({ pack, onOpen }: FeaturedHeroProps) {
             ))}
           </div>
         </div>
-        <button
-          type="button"
+        {/* Not a <button>: PackPreview's `rich` mode renders decorative
+            inner <button>s (RSVP / Our story), and nesting buttons is
+            invalid HTML — it triggered a hydration error. div+role keeps
+            the click + keyboard affordance without the nesting. */}
+        <div
+          role="button"
+          tabIndex={0}
           onClick={() => onOpen(pack)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onOpen(pack);
+            }
+          }}
           className="pl-store-featured-card"
           style={{
             cursor: 'pointer',
@@ -205,7 +216,7 @@ function FeaturedHero({ pack, onOpen }: FeaturedHeroProps) {
               {priceLabel(pack.priceCents)}
             </span>
           </div>
-        </button>
+        </div>
       </div>
     </section>
   );

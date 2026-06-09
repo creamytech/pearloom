@@ -340,7 +340,7 @@ export const COLLECTIONS: readonly Collection[] = [
   { id: 'seasonal', name: 'Seasonal & Fête', blurb: 'Holidays & celebration.' },
 ] as const;
 
-// ─── Packs (67) — full port of STORE_PACKS ────────────────────
+// ─── Packs (58) — full port of STORE_PACKS ────────────────────
 
 export const PACKS: readonly Pack[] = [
   // ===== Editorial Cream & Quiet =====

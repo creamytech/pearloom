@@ -4,7 +4,7 @@
 // Per-pack visual regression for the 58 Theme-Store packs.
 //
 // For every Pack id in src/lib/theme-store/packs.ts, this suite:
-//   1. Navigates to /_test/theme-pack/<id> (dev-only route).
+//   1. Navigates to /dev/theme-pack/<id> (dev-only route).
 //   2. Waits for fonts to settle so type metrics are stable
 //      across runs.
 //   3. Screenshots the hero / story / details / rsvp sections at
@@ -66,7 +66,7 @@ async function freezeAnimations(page: Page): Promise<void> {
    regression in the divider doesn't blow up the hero baseline. */
 async function snapshotSection(page: Page, packId: string, section: SectionId): Promise<void> {
   const locator = page.locator(`#${section}`);
-  await expect(locator, `section #${section} missing on /_test/theme-pack/${packId}`).toBeVisible({ timeout: 10_000 });
+  await expect(locator, `section #${section} missing on /dev/theme-pack/${packId}`).toBeVisible({ timeout: 10_000 });
   await locator.scrollIntoViewIfNeeded();
   // Settle layout shifts (lazy images, decor svgs, etc.) before
   // the actual snapshot. 250ms is the prototype's typical
@@ -83,7 +83,7 @@ async function snapshotSection(page: Page, packId: string, section: SectionId): 
    so `--shard` can split the 58 packs across CI runners. */
 for (const pack of PACKS) {
   test(`theme pack: ${pack.id}`, async ({ page }) => {
-    const response = await page.goto(`/_test/theme-pack/${pack.id}`, {
+    const response = await page.goto(`/dev/theme-pack/${pack.id}`, {
       waitUntil: 'networkidle',
       timeout: 30_000,
     });
