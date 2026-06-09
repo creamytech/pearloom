@@ -82,7 +82,49 @@ the shelf should read as deliberate, not haggled.
 | In-editor shop | `src/components/pearloom/editor/EditorThemeShop.tsx` |
 | Catalog webfonts | `src/lib/theme-store/fonts.tsx` (`<StoreFonts />`) |
 
-## 6 · Open follow-ups
+## 6 · Pearloom Print (Suite Phase 6 — shipped 2026-06-09)
+
+Physical mail, payment-gated. The host pays RETAIL per card;
+Lob invoices us wholesale; the spread is the print margin.
+**Payment is always collected before any Lob submission** — the
+old free-submission path (`POST /api/print/orders`) is retired
+(410).
+
+### Retail per-card prices (founder-approved)
+
+| Product | Retail | Wholesale (Lob est.) | Margin |
+|---|---|---|---|
+| Postcard 4×6 | **$1.79** | $0.74 | $1.05 |
+| Postcard 6×9 | **$2.79** | $1.44 | $1.35 |
+| Postcard 6×11 | **$3.29** | $1.84 | $1.45 |
+| Letter (enveloped invitation) | **$2.99** | $1.20 | $1.79 |
+
+Source of truth: `src/lib/print-engine/pricing.ts`
+(`RETAIL_PRINT_PRICES`), pinned by `pricing.test.ts`. Wholesale
+estimates live in `lob-client.ts`.
+
+### Legacy print credit
+
+Legacy-plan holders (`user_plans.plan` = `premium` / `legacy`)
+carry a **$50.00 lifetime print credit**, applied automatically at
+checkout and capped at the order total. The ledger is the
+`print_order_intents` table — remaining credit = $50.00 minus the
+sum of `credit_applied_cents` over the user's paid/fulfilled
+intents (`legacyCreditRemainingCents`, fail-closed on any lookup
+error). Orders fully covered by credit skip Stripe and fulfill
+inline.
+
+### The flow
+
+`/api/print/checkout` (auth + ownership) → render SVG → 300dpi PNG
+→ R2 → resolve recipients with complete mailing addresses → compute
+retail total + credit **server-side** (client numbers are never
+trusted) → Stripe Checkout session (`metadata.printIntentId`) →
+`/api/stripe/webhook` flips the intent `awaiting_payment → paid`
+(idempotent conditional transition) → `fulfillPrintIntent` submits
+per-recipient `print_jobs` + Lob postcards → intent `fulfilled`.
+
+## 7 · Open follow-ups
 
 - Stripe products for Atelier/Legacy exist (`STRIPE_PRO_PRICE_ID`);
   signature-pack à-la-carte checkout reuses the pack purchase flow.

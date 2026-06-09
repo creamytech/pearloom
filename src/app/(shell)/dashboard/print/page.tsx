@@ -14,10 +14,11 @@ export const metadata: Metadata = {
 export default async function PrintOrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ site?: string }>;
+  searchParams: Promise<{ site?: string; order?: string }>;
 }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) redirect('/login?next=/dashboard/print');
   const sp = await searchParams;
-  return <PrintOrdersClient siteFilter={sp.site || null} />;
+  const orderBanner = sp.order === 'success' ? 'success' : sp.order === 'cancelled' ? 'cancelled' : null;
+  return <PrintOrdersClient siteFilter={sp.site || null} orderBanner={orderBanner} />;
 }

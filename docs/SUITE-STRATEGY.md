@@ -38,7 +38,7 @@ card — all visibly the same made object.
 | OG cards (`/api/og`) | Edition-aware, 28 occasion labels, dynamic Google-font loading. |
 | Email theming (`lib/email-sequences.ts`) | Heading/body font + email-safe palette derivation. |
 | Branded QR (SharePanel) | Monogram-overlaid QR, tone/shape options. |
-| Print (`/api/print/orders`, Lob) | Physical mail rail exists. |
+| Print (`/api/print/checkout`, Lob) | Physical mail rail, payment-gated as of 2026-06-09: retail pricing + legacy credit + Stripe Checkout before any Lob submission. |
 | Guest passport (`/g/[token]`) | Per-guest identity, personalized greeting, contributions. |
 | Catalog | 70 packs · 10 kits · 36 motifs · 20 monogram frames · 19 faces. |
 
@@ -167,7 +167,7 @@ emits print PDFs from the same contract):
 | 3 | Pear's proof sheet: stylize-style expansion (pack-keyed prompts) + composition pass + Studio "six proofs" entry | 2–3 sessions |
 | 4 | RSVP confirmation flourish + passport theming | 1 session |
 | 5 | Share kit (pre-sized themed images) + QR poster sizes | 1 session |
-| 6 | Print SKUs: PDF suite renderer + Lob checkout + pricing | 2–3 sessions |
+| 6 | Print SKUs: Lob checkout + retail pricing + legacy credit — **✅ shipped 2026-06-09** (`/api/print/checkout` + `print_order_intents` + Stripe webhook fulfillment; prices in MONETIZATION.md §6). PDF suite renderer still pending. | 2–3 sessions |
 
 ## 9 · Why this wins
 
