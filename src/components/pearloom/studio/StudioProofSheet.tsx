@@ -53,42 +53,55 @@ type SheetState =
   | { phase: 'error'; message: string }
   | { phase: 'ready'; proofs: SuiteProof[] };
 
+/** Pure fetch → next sheet state. No setState inside — the effect
+ *  below applies the result in a promise callback so the press can
+ *  re-run on retry without tripping react-hooks/set-state-in-effect. */
+async function fetchProofSheet(siteSlug: string, type: StationeryType): Promise<SheetState> {
+  try {
+    const r = await fetch('/api/suite/proofs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ siteSlug, type }),
+    });
+    if (!r.ok) {
+      let message = 'Pear lost the thread mid-press. Give it a beat and try again.';
+      if (r.status === 429) message = 'Pear is taking a breath — try the press again in a minute.';
+      try {
+        const data = (await r.json()) as { error?: string };
+        if (typeof data.error === 'string' && data.error && r.status !== 401 && r.status !== 403) {
+          message = data.error;
+        }
+      } catch { /* keep the default warm copy */ }
+      return { phase: 'error', message };
+    }
+    const data = (await r.json()) as { ok?: boolean; proofs?: SuiteProof[] };
+    if (!data.ok || !Array.isArray(data.proofs) || data.proofs.length === 0) {
+      return { phase: 'error', message: 'The sheet came off the press blank. Try again in a moment.' };
+    }
+    return { phase: 'ready', proofs: data.proofs };
+  } catch {
+    return { phase: 'error', message: 'Pear lost the thread mid-press. Check your connection and try again.' };
+  }
+}
+
 export function StudioProofSheet(props: Props) {
   const { siteSlug, type, onClose } = props;
   const [state, setState] = useState<SheetState>({ phase: 'pressing' });
+  /** Bumping this re-runs the press effect (the retry path). */
+  const [attempt, setAttempt] = useState(0);
 
-  const press = useCallback(async () => {
+  useEffect(() => {
+    let cancelled = false;
+    void fetchProofSheet(siteSlug, type).then((next) => {
+      if (!cancelled) setState(next);
+    });
+    return () => { cancelled = true; };
+  }, [siteSlug, type, attempt]);
+
+  const retry = useCallback(() => {
     setState({ phase: 'pressing' });
-    try {
-      const r = await fetch('/api/suite/proofs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteSlug, type }),
-      });
-      if (!r.ok) {
-        let message = 'Pear lost the thread mid-press. Give it a beat and try again.';
-        if (r.status === 429) message = 'Pear is taking a breath — try the press again in a minute.';
-        try {
-          const data = (await r.json()) as { error?: string };
-          if (typeof data.error === 'string' && data.error && r.status !== 401 && r.status !== 403) {
-            message = data.error;
-          }
-        } catch { /* keep the default warm copy */ }
-        setState({ phase: 'error', message });
-        return;
-      }
-      const data = (await r.json()) as { ok?: boolean; proofs?: SuiteProof[] };
-      if (!data.ok || !Array.isArray(data.proofs) || data.proofs.length === 0) {
-        setState({ phase: 'error', message: 'The sheet came off the press blank. Try again in a moment.' });
-        return;
-      }
-      setState({ phase: 'ready', proofs: data.proofs });
-    } catch {
-      setState({ phase: 'error', message: 'Pear lost the thread mid-press. Check your connection and try again.' });
-    }
-  }, [siteSlug, type]);
-
-  useEffect(() => { void press(); }, [press]);
+    setAttempt((a) => a + 1);
+  }, []);
 
   // Esc closes — standard overlay affordance.
   useEffect(() => {
@@ -173,7 +186,7 @@ export function StudioProofSheet(props: Props) {
               </div>
               <button
                 type="button"
-                onClick={() => void press()}
+                onClick={retry}
                 style={{
                   padding: '9px 18px', borderRadius: 999,
                   background: 'var(--ink)', color: 'var(--cream)',

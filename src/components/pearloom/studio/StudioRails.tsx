@@ -28,6 +28,9 @@ interface RailProps {
   onPickDraft: (draft: StudioDraft) => void;
   onAskPearForDraft?: () => Promise<void>;
   onAskPearForAsset?: (kind: AssetEntry['kind']) => Promise<void>;
+  /** Opens the Suite Phase 3 proof sheet overlay ("Pear pressed
+   *  six proofs"). Sync — the overlay owns its own fetch. */
+  onOpenProofSheet?: () => void;
   onRewriteField?: (fieldId: string, hint: string) => Promise<void>;
   onMatchSiteTheme?: () => Promise<void>;
   /** Pear suggests a complementary motif + palette pair. Sync,
@@ -284,7 +287,7 @@ function formatRelative(ts: number): string {
   return 'Saved earlier';
 }
 
-export function DraftsRail({ state, setField, content, nameA, nameB, onPickDraft, onAskPearForDraft, onAskPearForAsset, sendStats, aiBusy }: RailProps) {
+export function DraftsRail({ state, setField, content, nameA, nameB, onPickDraft, onAskPearForDraft, onAskPearForAsset, onOpenProofSheet, sendStats, aiBusy }: RailProps) {
   const drafts = content.drafts;
   return (
     <aside aria-label="Pear's drafts" style={{
@@ -295,6 +298,26 @@ export function DraftsRail({ state, setField, content, nameA, nameB, onPickDraft
       display: 'flex', flexDirection: 'column', gap: 14,
       overflow: 'auto',
     }}>
+      {onOpenProofSheet && (
+        <button
+          type="button"
+          onClick={onOpenProofSheet}
+          style={{
+            padding: '10px 12px', borderRadius: 12,
+            background: 'linear-gradient(135deg, var(--peach-bg, #FBE8D6), var(--lavender-bg, #E8E0F0))',
+            border: '1px solid var(--line-soft)',
+            display: 'flex', alignItems: 'center', gap: 10,
+            textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit',
+          }}
+        >
+          <Pear size={22} tone="peach" shadow={false} sparkle />
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>See the proof sheet</div>
+            <div style={{ fontSize: 10.5, color: 'var(--ink-soft)' }}>Pear presses whole designs in your site&apos;s look</div>
+          </div>
+          <Icon name="arrow-right" size={12} color="var(--ink-muted)" />
+        </button>
+      )}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
           <Pear size={20} tone="sage" shadow={false} sparkle />
