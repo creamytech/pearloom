@@ -21,7 +21,7 @@ import { authOptions } from '@/lib/auth';
 import { openaiGenerateImage, getLastOpenAIError } from '@/lib/memory-engine/openai-image';
 import { uploadToR2, getR2Url } from '@/lib/r2';
 import { persistUserMedia } from '@/lib/user-media';
-import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { checkRateLimit, getClientIp, checkPearGate } from '@/lib/rate-limit';
 import { heroAccentPrompt } from '@/lib/decor/prompts';
 import { removeWhiteBackground } from '@/lib/decor/remove-background';
 
@@ -33,6 +33,13 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  // Plan-tier Pear gate (same as /api/inline-rewrite) — image
+  // generation is the most expensive AI call; free users draw from
+  // the shared monthly Pear budget, paid plans are unlimited. The
+  // per-user rate limit below still applies on top.
+  const { blocked } = await checkPearGate(session.user.email);
+  if (blocked) return blocked;
 
   const ip = getClientIp(req);
   const rl = checkRateLimit(`ai-accent:${session.user.email}:${ip}`, { max: 6, windowMs: 60 * 60 * 1000 });

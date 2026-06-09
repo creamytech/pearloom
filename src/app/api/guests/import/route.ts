@@ -31,6 +31,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { parseGuestCsv, dedupeAgainst } from '@/lib/csv/parse-guests';
+import { getPlanWithLimitsForEmail, planLimitResponseBody } from '@/lib/plan-gate';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -116,6 +117,20 @@ export async function POST(req: NextRequest) {
     const deduped = dedupeAgainst(parsed.guests, { existingEmails, existingNames });
     const toInsert = skipDuplicates ? deduped.filter((g) => !g.duplicateOf) : deduped;
     const skipped = deduped.length - toInsert.length;
+
+    // Plan gate — maxGuests from PLAN_LIMITS (@/lib/plan-gate). Reuses
+    // the `existing` rows fetched above as the current count (a failed
+    // fetch counts as 0 — fail open). Rejects the whole batch rather
+    // than partially importing silently; `allowed` tells the UI how
+    // many more rows would fit so it can offer a partial import.
+    const { plan, limits } = await getPlanWithLimitsForEmail(session.user.email);
+    const currentGuests = (existing ?? []).length;
+    if (Number.isFinite(limits.maxGuests) && currentGuests + toInsert.length > limits.maxGuests) {
+      return NextResponse.json({
+        ...planLimitResponseBody('guests', limits.maxGuests, plan),
+        allowed: Math.max(0, limits.maxGuests - currentGuests),
+      }, { status: 402 });
+    }
 
     const batchId = crypto.randomUUID();
     const importedAt = new Date().toISOString();

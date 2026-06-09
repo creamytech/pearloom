@@ -20,6 +20,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getPlanWithLimitsForEmail, planLimitResponseBody } from '@/lib/plan-gate';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -107,6 +108,32 @@ export async function POST(req: NextRequest) {
       { error: 'Photo storage is not configured on this server.' },
       { status: 500 },
     );
+  }
+
+  // Plan gate — maxPhotos from PLAN_LIMITS (@/lib/plan-gate). The
+  // countable store is `user_media` — the library row written for
+  // every successful upload below — since R2 objects themselves
+  // aren't cheaply countable. Fails OPEN on R2-only deployments
+  // (no Supabase client to count with) and on any count error, so
+  // a gate hiccup never blocks an upload.
+  if (supabase) {
+    try {
+      const { plan, limits } = await getPlanWithLimitsForEmail(session.user.email);
+      if (Number.isFinite(limits.maxPhotos)) {
+        const { count, error: countError } = await supabase
+          .from('user_media')
+          .select('id', { count: 'exact', head: true })
+          .eq('owner_email', session.user.email.toLowerCase().trim());
+        if (!countError && typeof count === 'number' && count + photos.length > limits.maxPhotos) {
+          return NextResponse.json(
+            planLimitResponseBody('photos', limits.maxPhotos, plan),
+            { status: 402 },
+          );
+        }
+      }
+    } catch (gateErr) {
+      console.warn('[upload] plan gate check failed (failing open):', gateErr);
+    }
   }
 
   // Each upload gets a stable subfolder per user + session so

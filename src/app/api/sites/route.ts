@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import { saveSiteDraft } from '@/lib/db';
+import { getPlanWithLimitsForEmail, planLimitResponseBody } from '@/lib/plan-gate';
 import { mirrorManifestPhotos, stripProxyUrls } from '@/lib/mirror-photos';
 
 // Force this route to always be server-rendered (never statically collected)
@@ -168,6 +169,42 @@ export async function POST(req: NextRequest) {
     const { subdomain, manifest, names } = await req.json();
     if (!subdomain || !manifest) {
       return NextResponse.json({ error: 'Missing subdomain or manifest' }, { status: 400 });
+    }
+
+    // Plan gate — maxSites from PLAN_LIMITS (@/lib/plan-gate). Only
+    // CREATES (no existing row for this subdomain) are gated: this
+    // route is also the editor autosave + unload sendBeacon target,
+    // so updates must NEVER be blocked. Fails OPEN whenever Supabase
+    // is unconfigured or any gate query errors — a save is never
+    // lost to the gate itself.
+    try {
+      const gateDb = getSupabase();
+      if (gateDb) {
+        const sessionEmail = session.user.email.toLowerCase().trim();
+        const { data: existingRow, error: existsError } = await gateDb
+          .from('sites')
+          .select('id')
+          .eq('subdomain', subdomain)
+          .maybeSingle();
+        if (!existsError && !existingRow) {
+          // CREATE path — count this user's sites with the same
+          // ownership filter the GET handler lists by.
+          const { plan, limits } = await getPlanWithLimitsForEmail(sessionEmail);
+          const { count, error: countError } = await gateDb
+            .from('sites')
+            .select('id', { count: 'exact', head: true })
+            .eq('site_config->>creator_email', sessionEmail);
+          if (!countError && typeof count === 'number'
+            && Number.isFinite(limits.maxSites) && count >= limits.maxSites) {
+            return NextResponse.json(
+              planLimitResponseBody('sites', limits.maxSites, plan),
+              { status: 402 },
+            );
+          }
+        }
+      }
+    } catch (gateErr) {
+      console.warn('[api/sites] plan gate check failed (failing open):', gateErr);
     }
 
     // If the manifest carries a templateId, layer the rich template
