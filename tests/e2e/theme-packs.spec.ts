@@ -103,12 +103,12 @@ for (const pack of PACKS) {
   });
 }
 
-/* Sanity check — if the PACKS export ever drifts away from 62 we
-   want to know at suite start, not page-by-page. The literal 62
+/* Sanity check — if the PACKS export ever drifts away from 70 we
+   want to know at suite start, not page-by-page. The literal 70
    is intentional: PR'ing a new pack should require updating this
    number so the addition is deliberate and the diff list explicit.
    (58 → 62 on 2026-06-09: First Thread, Magnolia Porch, Gilded
-   Coupe, Paper Lanterns.) */
+   Coupe, Paper Lanterns; 62 → 70 same day: Opera House, The Gallery, Tasting Menu, Sakura Drift, Mirrorball, Conservatory, Noël Press, Safe Harbor.) *
 test('pack catalog count is stable', () => {
-  expect(PACKS.length).toBe(62);
+  expect(PACKS.length).toBe(70);
 });

@@ -40,7 +40,12 @@ export type MonogramFrame =
   | 'fan'       // deco sunburst crown above + double baseline below
   | 'garland'   // floral arc draped over the initials
   | 'lozenge'   // elongated octagon plate with inner hairline
-  | 'corners';  // four engraved corner flourishes
+  | 'corners'   // four engraved corner flourishes
+  /* 2026-06-09 collection II. */
+  | 'wreath'    // full circular laurel ring, gold berry pair at the foot
+  | 'gate'      // art-deco stepped frame with inner hairline echo
+  | 'halo'      // double-exposure offset circles + gold pearl
+  | 'tag';      // luggage tag with gold eyelet + trailing string
 
 interface MonogramProps {
   /** 1–3 characters. Typically two initials joined by '&' or space. */
@@ -537,6 +542,112 @@ export function Monogram({
               <circle cx="12" cy="12" r="1.3" fill={accent} stroke="none" opacity="0.8" />
             </g>
           ))}
+        </svg>
+      )}
+
+      {frame === 'wreath' && (
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 100 100"
+          width={ringSize * 1.1}
+          height={ringSize * 1.1}
+          style={{ position: 'absolute', pointerEvents: 'none' }}
+        >
+          {/* Full laurel wreath — two mirrored stem arcs closing the
+              circle at top and bottom, leaves marching tangentially,
+              a gold berry pair where the branches cross at the foot. */}
+          <path d="M50 94 A 44 44 0 0 1 50 6" fill="none" stroke={accent} strokeWidth="1.3" strokeLinecap="round" />
+          <path d="M50 94 A 44 44 0 0 0 50 6" fill="none" stroke={accent} strokeWidth="1.3" strokeLinecap="round" />
+          {Array.from({ length: 14 }).map((_, i) => {
+            const side = i < 7 ? 1 : -1; // 1 = left branch, -1 = mirrored right
+            const step = i % 7;
+            const aDeg = side === 1 ? 112.5 + step * 22.5 : 180 - (112.5 + step * 22.5);
+            const a = (aDeg * Math.PI) / 180;
+            const x = 50 + Math.cos(a) * 44;
+            const y = 50 + Math.sin(a) * 44;
+            /* Pitch each leaf ~28° off the tangent so the branches read
+               as climbing, mirrored across the vertical axis. */
+            const rot = aDeg + 90 - side * 28;
+            return (
+              <ellipse
+                key={i}
+                cx={x}
+                cy={y}
+                rx="4.8"
+                ry="2.1"
+                fill={accent}
+                opacity="0.85"
+                transform={`rotate(${rot} ${x} ${y})`}
+              />
+            );
+          })}
+          <circle cx="46.8" cy="92" r="2" fill="var(--t-gold, var(--pl-gold, #B8935A))" />
+          <circle cx="53.2" cy="92" r="2" fill="var(--t-gold, var(--pl-gold, #B8935A))" />
+        </svg>
+      )}
+      {frame === 'gate' && (
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 120 120"
+          width={ringSize * 1.08}
+          height={ringSize * 1.08}
+          style={{ position: 'absolute', pointerEvents: 'none' }}
+        >
+          {/* Art-deco gate — every corner steps in twice (Tiffany-frame
+              setback), inner hairline locks into the step corners, and
+              a single gold dot crowns the top edge. */}
+          <path
+            d="M 32 16 L 88 16 L 88 20 L 96 20 L 96 24 L 104 24 L 104 96 L 96 96 L 96 100 L 88 100 L 88 104 L 32 104 L 32 100 L 24 100 L 24 96 L 16 96 L 16 24 L 24 24 L 24 20 L 32 20 Z"
+            fill="none"
+            stroke={accent}
+            strokeWidth="1.5"
+          />
+          <rect x="24" y="24" width="72" height="72" fill="none" stroke={accent} strokeWidth="0.6" opacity="0.6" />
+          <circle cx="60" cy="9" r="2.2" fill="var(--t-gold, var(--pl-gold, #B8935A))" />
+        </svg>
+      )}
+      {frame === 'halo' && (
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 100 100"
+          width={ringSize * 1.1}
+          height={ringSize * 1.1}
+          style={{ position: 'absolute', pointerEvents: 'none' }}
+        >
+          {/* Double-exposure halo — two thin circles offset ~6px on the
+              diagonal; the ghost ring sits behind at half strength, and
+              one gold pearl rests on the front ring's upper-right arc. */}
+          <circle cx="48" cy="48" r="42" fill="none" stroke={accent} strokeWidth="1.2" opacity="0.5" />
+          <circle cx="52" cy="52" r="42" fill="none" stroke={accent} strokeWidth="1.3" />
+          <circle cx="81.7" cy="22.3" r="2.6" fill="var(--t-gold, var(--pl-gold, #B8935A))" />
+        </svg>
+      )}
+      {frame === 'tag' && (
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 160 90"
+          width={ringSize * 1.34}
+          height={ringSize * 0.75}
+          style={{ position: 'absolute', pointerEvents: 'none' }}
+        >
+          {/* Luggage tag — rounded plate with a clipped top-left corner,
+              gold-ringed eyelet, and a string trailing off the edge. */}
+          <path
+            d="M 46 22 L 144 22 Q 150 22, 150 28 L 150 62 Q 150 68, 144 68 L 34 68 Q 28 68, 28 62 L 28 38 Z"
+            fill={accent}
+            opacity="0.08"
+          />
+          <path
+            d="M 46 22 L 144 22 Q 150 22, 150 28 L 150 62 Q 150 68, 144 68 L 34 68 Q 28 68, 28 62 L 28 38 Z"
+            fill="none"
+            stroke={accent}
+            strokeWidth="1.5"
+            strokeLinejoin="round"
+          />
+          {/* Reinforcing eyelet — the gold note. */}
+          <circle cx="42" cy="45" r="5" fill="none" stroke="var(--t-gold, var(--pl-gold, #B8935A))" strokeWidth="1.6" />
+          {/* String. */}
+          <path d="M 37.5 47.5 C 27 54, 20 50, 12 58 C 8 62, 6 65, 4 68" fill="none" stroke={accent} strokeWidth="1.1" strokeLinecap="round" opacity="0.8" />
         </svg>
       )}
 

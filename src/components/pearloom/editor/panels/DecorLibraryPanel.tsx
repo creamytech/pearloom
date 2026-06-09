@@ -57,6 +57,12 @@ import {
   StarburstMotif,
   RibbonMotif,
   HummingbirdMotif,
+  OrchidMotif,
+  MonsteraMotif,
+  HollyMotif,
+  CherryBlossomMotif,
+  AnchorMotif,
+  DiscoMotif,
 } from '../../site/MotifScatter';
 import { Monogram, deriveInitials, type MonogramFrame } from '../../site/Monogram';
 
@@ -75,6 +81,9 @@ const DL_MOTIFS = [
   { id: 'lantern', label: 'Lantern' }, { id: 'compass', label: 'Compass' }, { id: 'peony', label: 'Peony' },
   { id: 'vine', label: 'Ivy Vine' }, { id: 'starburst', label: 'Starburst' }, { id: 'ribbon', label: 'Ribbon Bow' },
   { id: 'hummingbird', label: 'Hummingbird' },
+  /* 2026-06-09 collection II. */
+  { id: 'orchid', label: 'Orchid' }, { id: 'monstera', label: 'Monstera' }, { id: 'holly', label: 'Holly' },
+  { id: 'cherry-blossom', label: 'Cherry Blossom' }, { id: 'anchor', label: 'Anchor' }, { id: 'disco', label: 'Disco Ball' },
 ] as const;
 
 const DL_DIVIDERS = [
@@ -162,6 +171,12 @@ function Motif({ kind, size }: { kind: string; size?: number }) {
     case 'starburst':return <StarburstMotif size={size} />;
     case 'ribbon':  return <RibbonMotif size={size} />;
     case 'hummingbird':return <HummingbirdMotif size={size} />;
+    case 'orchid':  return <OrchidMotif size={size} />;
+    case 'monstera':return <MonsteraMotif size={size} />;
+    case 'holly':   return <HollyMotif size={size} />;
+    case 'cherry-blossom':return <CherryBlossomMotif size={size} />;
+    case 'anchor':  return <AnchorMotif size={size} />;
+    case 'disco':   return <DiscoMotif size={size} />;
     default:        return null;
   }
 }
@@ -1326,6 +1341,11 @@ function MonogramTab({
     { id: 'garland', l: 'Garland' },
     { id: 'lozenge', l: 'Lozenge' },
     { id: 'corners', l: 'Corners' },
+    /* 2026-06-09 collection II. */
+    { id: 'wreath',  l: 'Wreath' },
+    { id: 'gate',    l: 'Deco Gate' },
+    { id: 'halo',    l: 'Halo' },
+    { id: 'tag',     l: 'Gift Tag' },
   ];
 
   const Crest = ({ big }: { big: boolean }) => {

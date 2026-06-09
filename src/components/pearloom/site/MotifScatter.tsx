@@ -75,6 +75,15 @@ export type MotifKind =
   | 'starburst'   // retro atomic spray — whimsy, milestone birthdays
   | 'ribbon'      // tied bow — showers, gifts, sweet sixteen
   | 'hummingbird' // sipping hummingbird — intimate, garden morning
+  /* 2026-06-09 collection II — hand-drawn for the gaps the gallery
+     still showed: luxe florals, modern tropical, winter, spring,
+     nautical, and the party wall. Same contract throughout. */
+  | 'orchid'         // phalaenopsis in profile — luxe, formal
+  | 'monstera'       // split monstera leaf — modern tropical
+  | 'holly'          // crossed holly leaves + gold berries — winter, Noël
+  | 'cherry-blossom' // sakura branch fragment — spring
+  | 'anchor'         // classic anchor + rope — nautical, coastal
+  | 'disco'          // faceted disco ball — party, NYE, bachelorette
   | 'none';
 export type MotifDensity = 'none' | 'sparse' | 'generous';
 
@@ -849,6 +858,178 @@ export function HummingbirdMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(-
   );
 }
 
+/* ── 2026-06-09 collection II ──────────────────────────────────────── */
+
+/** Phalaenopsis orchid in profile — two broad wing petals, smaller
+ *  upright top petal, the signature gold lip, arched stem + one bud. */
+export function OrchidMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
+      {/* Arched stem rising from lower-left to the bloom. */}
+      <path d="M10 56 C 13 46, 17 36, 27 29" fill="none" stroke={color} strokeWidth="1.4" strokeLinecap="round" />
+      {/* Waiting bud on the stem, with a sepal tick. */}
+      <ellipse cx="15" cy="43" rx="2.2" ry="3.4" fill={color} opacity="0.5" transform="rotate(24 15 43)" />
+      <path d="M15.6 46 L 13.6 48.4" stroke={color} strokeWidth="1.1" strokeLinecap="round" fill="none" />
+      {/* Broad wing petals — washed fill under a hairline. */}
+      <path d="M30 24 C 18 13, 7 19, 12 28 C 15 33, 25 31, 30 24 Z" fill={color} opacity="0.34" />
+      <path d="M30 24 C 42 13, 53 19, 48 28 C 45 33, 35 31, 30 24 Z" fill={color} opacity="0.34" />
+      <path d="M30 24 C 18 13, 7 19, 12 28 C 15 33, 25 31, 30 24" fill="none" stroke={color} strokeWidth="1.2" strokeLinejoin="round" />
+      <path d="M30 24 C 42 13, 53 19, 48 28 C 45 33, 35 31, 30 24" fill="none" stroke={color} strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Smaller upright top petal. */}
+      <path d="M30 23 C 26.5 16, 27 9, 30 5 C 33 9, 33.5 16, 30 23 Z" fill={color} opacity="0.5" />
+      <path d="M30 23 C 26.5 16, 27 9, 30 5 C 33 9, 33.5 16, 30 23" fill="none" stroke={color} strokeWidth="1.1" strokeLinejoin="round" />
+      {/* Gold lip — the orchid's landing platform, with two whiskers. */}
+      <path d="M30 24.5 C 26.8 25.5, 26.4 29.5, 30 31 C 33.6 29.5, 33.2 25.5, 30 24.5 Z" fill={gold} />
+      <path d="M30 31 L 28.4 33.6 M30 31 L 31.6 33.6" stroke={gold} strokeWidth="0.9" strokeLinecap="round" fill="none" />
+    </svg>
+  );
+}
+
+/** Monstera deliciosa leaf — heart outline with four edge splits, two
+ *  fenestration windows along the midrib, hairline veins, short stem. */
+export function MonsteraMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+  /* Heart-shaped blade, tip at bottom; two split cuts per side run
+     from the edge toward the midrib. */
+  const blade =
+    'M30 48 C 24 46, 19 43, 16 39 L 25 35 L 12 32 C 10 27, 10 21, 13 16 L 24 20 L 17 11 ' +
+    'C 20 8, 25 8, 29 11 L 30 13 L 31 11 C 35 8, 40 8, 43 11 L 36 20 L 47 16 ' +
+    'C 50 21, 50 27, 48 32 L 35 35 L 44 39 C 41 43, 36 46, 30 48 Z';
+  return (
+    <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
+      {/* Short stem. */}
+      <path d="M30 48 L 30 57" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+      <path d={blade} fill={color} opacity="0.3" />
+      <path d={blade} fill="none" stroke={color} strokeWidth="1.3" strokeLinejoin="round" />
+      {/* Midrib + paired side veins. */}
+      <path d="M30 14 L 30 46" stroke={color} strokeWidth="1" opacity="0.75" fill="none" />
+      <g stroke={color} strokeWidth="0.7" opacity="0.55" fill="none" strokeLinecap="round">
+        <path d="M30 22 L 20 17" /><path d="M30 22 L 40 17" />
+        <path d="M30 30 L 19 27" /><path d="M30 30 L 41 27" />
+        <path d="M30 38 L 21 36" /><path d="M30 38 L 39 36" />
+      </g>
+      {/* Fenestration windows — punched back to the paper. */}
+      <ellipse cx="24.5" cy="25" rx="1.9" ry="3.2" fill="var(--t-paper, var(--paper, #FBF7EE))" stroke={color} strokeWidth="0.8" transform="rotate(18 24.5 25)" />
+      <ellipse cx="36" cy="31" rx="1.7" ry="2.8" fill="var(--t-paper, var(--paper, #FBF7EE))" stroke={color} strokeWidth="0.8" transform="rotate(-16 36 31)" />
+      {/* Gold dew drop resting on the right lobe. */}
+      <circle cx="41" cy="23" r="1.6" fill={gold} />
+    </svg>
+  );
+}
+
+/** Two spiky holly leaves crossed at a stem point, three gold berries. */
+export function HollyMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+  /* One spiked leaf pointing up from the local origin; concave waves
+     between the spike tips give the classic holly edge. */
+  const leaf =
+    'M0 0 Q -5 -2, -7 -6 L -4 -8 Q -9 -11, -8 -16 L -4 -17 Q -8 -21, -6 -25 L 0 -30 ' +
+    'L 6 -25 Q 8 -21, 4 -17 L 8 -16 Q 9 -11, 4 -8 L 7 -6 Q 5 -2, 0 0 Z';
+  return (
+    <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
+      {[-32, 32].map((deg) => (
+        <g key={deg} transform={`translate(30 41) rotate(${deg})`}>
+          <path d={leaf} fill={color} opacity="0.32" />
+          <path d={leaf} fill="none" stroke={color} strokeWidth="1.2" strokeLinejoin="round" />
+          <path d="M0 -3 L 0 -26" stroke={color} strokeWidth="0.8" opacity="0.6" fill="none" />
+        </g>
+      ))}
+      {/* Stem point. */}
+      <path d="M30 41 L 30 46" fill="none" stroke={color} strokeWidth="1.3" strokeLinecap="round" />
+      {/* Gold berry cluster at the crossing. */}
+      <circle cx="26.6" cy="46" r="2.6" fill={gold} />
+      <circle cx="33.4" cy="46" r="2.6" fill={gold} opacity="0.9" />
+      <circle cx="30" cy="50.4" r="2.6" fill={gold} opacity="0.8" />
+    </svg>
+  );
+}
+
+/** Sakura branch fragment — angular twig, two five-petal blossoms with
+ *  the notched petal tip, one bud; gold stamen dots at the hearts. */
+export function CherryBlossomMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+  /* Petal with the characteristic notch — tip dips at (0,-7) between
+     two points at (±3.8,-8.6). */
+  const petal = 'M0 0 C 3 -1.5, 4.6 -5, 3.8 -8.6 L 0 -7 L -3.8 -8.6 C -4.6 -5, -3 -1.5, 0 0 Z';
+  const bloom = (cx: number, cy: number, s: number, key: string) => (
+    <g key={key} transform={`translate(${cx} ${cy}) scale(${s})`}>
+      {[0, 72, 144, 216, 288].map((a) => (
+        <g key={a} transform={`rotate(${a})`}>
+          <path d={petal} fill={color} opacity="0.4" />
+          <path d={petal} fill="none" stroke={color} strokeWidth="1" strokeLinejoin="round" />
+        </g>
+      ))}
+      {/* Gold stamen heart. */}
+      <circle r="1.5" fill={gold} />
+      {[30, 150, 270].map((a) => (
+        <circle key={a} cx={Math.cos((a * Math.PI) / 180) * 3.4} cy={Math.sin((a * Math.PI) / 180) * 3.4} r="0.7" fill={gold} opacity="0.85" />
+      ))}
+    </g>
+  );
+  return (
+    <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
+      {/* Angular twig with short spurs to each bloom and the bud. */}
+      <path d="M6 53 L 16 44 L 28 38 L 38 28 L 48 17" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M16 44 L 17 37 M38 28 L 41 22 M28 38 L 35 42" fill="none" stroke={color} strokeWidth="1.1" strokeLinecap="round" />
+      {bloom(18, 30, 1.15, 'a')}
+      {bloom(42, 15, 0.9, 'b')}
+      {/* Bud — still folded, with two sepal ticks. */}
+      <ellipse cx="37" cy="43" rx="2.4" ry="3.1" fill={color} opacity="0.45" transform="rotate(-30 37 43)" />
+      <ellipse cx="37" cy="43" rx="2.4" ry="3.1" fill="none" stroke={color} strokeWidth="0.9" transform="rotate(-30 37 43)" />
+      <path d="M35.8 45.4 L 34.4 47.4 M38 45.6 L 38.4 48" fill="none" stroke={color} strokeWidth="0.9" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Classic anchor — gold ring, stock crossbar, shank, two curved arms
+ *  with pointed flukes, and a rope curve threading the ring. */
+export function AnchorMotif({ size = 30, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
+      {/* Rope threading behind the ring. */}
+      <path d="M8 4 C 18 2, 23 12, 33 9 C 41 6.5, 47 12, 52 18" fill="none" stroke={color} strokeWidth="1.1" strokeLinecap="round" opacity="0.6" />
+      {/* Gold ring. */}
+      <circle cx="30" cy="11" r="4" fill="none" stroke={gold} strokeWidth="1.5" />
+      {/* Shank + stock crossbar. */}
+      <path d="M30 15 L 30 49" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M20 21 L 40 21" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+      {/* Arms sweeping up from the crown. */}
+      <path d="M30 49 C 21 49, 13 43, 11 33" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M30 49 C 39 49, 47 43, 49 33" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+      {/* Pointed flukes. */}
+      <path d="M11 33 L 6.5 38.5 L 14.5 37.5 Z" fill={color} opacity="0.55" stroke={color} strokeWidth="1" strokeLinejoin="round" />
+      <path d="M49 33 L 53.5 38.5 L 45.5 37.5 Z" fill={color} opacity="0.55" stroke={color} strokeWidth="1" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** Disco ball — faceted sphere (3 latitude + 4 longitude arcs), hanger
+ *  link, and three sparks thrown off to the right (one gold). */
+export function DiscoMotif({ size = 30, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
+      {/* Hanger link. */}
+      <path d="M30 16 L 30 11" fill="none" stroke={color} strokeWidth="1.2" strokeLinecap="round" />
+      <circle cx="30" cy="8" r="2.4" fill="none" stroke={color} strokeWidth="1.1" />
+      {/* Ball. */}
+      <circle cx="30" cy="32" r="16" fill={color} opacity="0.12" />
+      <circle cx="30" cy="32" r="16" fill="none" stroke={color} strokeWidth="1.4" />
+      {/* Facet grid — latitudes bow with the sphere… */}
+      <g fill="none" stroke={color} strokeWidth="0.9" opacity="0.65">
+        <path d="M16.1 24 A 13.9 4.4 0 0 0 43.9 24" />
+        <path d="M14 32 A 16 5 0 0 0 46 32" />
+        <path d="M16.1 40 A 13.9 4.4 0 0 0 43.9 40" />
+        {/* …longitudes wrap pole to pole. */}
+        <path d="M30 16 A 5 16 0 0 0 30 48" />
+        <path d="M30 16 A 11 16 0 0 0 30 48" />
+        <path d="M30 16 A 5 16 0 0 1 30 48" />
+        <path d="M30 16 A 11 16 0 0 1 30 48" />
+      </g>
+      {/* Sparks thrown off to the right. */}
+      <circle cx="50" cy="20" r="1.3" fill={color} opacity="0.7" />
+      <circle cx="55" cy="28" r="1.1" fill={color} opacity="0.6" />
+      <circle cx="52" cy="13" r="1.7" fill={gold} />
+    </svg>
+  );
+}
+
 export function Motif({ kind, size, style }: { kind: MotifKind; size?: number; style?: CSSProperties }) {
   switch (kind) {
     case 'olive':
@@ -911,6 +1092,18 @@ export function Motif({ kind, size, style }: { kind: MotifKind; size?: number; s
       return <RibbonMotif size={size} style={style} />;
     case 'hummingbird':
       return <HummingbirdMotif size={size} style={style} />;
+    case 'orchid':
+      return <OrchidMotif size={size} style={style} />;
+    case 'monstera':
+      return <MonsteraMotif size={size} style={style} />;
+    case 'holly':
+      return <HollyMotif size={size} style={style} />;
+    case 'cherry-blossom':
+      return <CherryBlossomMotif size={size} style={style} />;
+    case 'anchor':
+      return <AnchorMotif size={size} style={style} />;
+    case 'disco':
+      return <DiscoMotif size={size} style={style} />;
     case 'none':
     default:
       return null;

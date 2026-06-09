@@ -5,7 +5,7 @@
 // Edition. Port of the prototype's KitPick (themes.jsx ~line 690)
 // + the full 9-kit registry from shared/kits.jsx (lines 20-30).
 //
-// Nine kits, each restyles repeating components:
+// Eleven kits, each restyles repeating components:
 //   classic    theme-native cards & rules (default)
 //   ticket     perforated stubs, dashed tear-lines, mono times
 //   plate      engraved frames, double rules, Roman counter
@@ -15,6 +15,8 @@
 //   arch       arched-top cards, soft domes, arched divider halo
 //   stamp      postage-frame cards, dotted outlines, postmark dots
 //   deco       gold triple-inset frames, rotated gold diamonds
+//   gallery    museum mats, ink frames, exhibit-number times
+//   menu       tasting-menu rules, dotted-leader uppercase times
 //
 // Phase-4 follow-up: per-kit SECTION renderers in ThemedSiteRenderer
 // (KSchedule/KDetails/KFaq/KGallery) that change BOTH style and
@@ -216,6 +218,46 @@ function DecoPreview() {
   );
 }
 
+/* ── Gallery preview ── (pearloom.css kit added 2026-06-09)
+   Framed print on a mat board: ink hairline at the card edge, wide
+   mat, the same ink frame again ~8px inside; the time reads as a
+   tiny uppercase "exhibit number" with a short gold underline. */
+function GalleryPreview() {
+  return (
+    <svg viewBox="0 0 80 48" width="100%" height="100%" preserveAspectRatio="none">
+      <rect width="80" height="48" fill="#FBF7EE" />
+      {/* Outer hairline at the edge */}
+      <rect x="10" y="8" width="60" height="32" fill="#FFFFFF" stroke="#0E0D0B" strokeWidth="0.5" />
+      {/* The frame again, inset across a wide mat */}
+      <rect x="15" y="13" width="50" height="22" fill="none" stroke="#0E0D0B" strokeWidth="0.5" />
+      {/* Exhibit number with short gold underline */}
+      <text x="19" y="22" fontSize="3.8" fontFamily="ui-sans-serif" fontWeight="700" letterSpacing="0.16em" fill="#3A332C">NO. 04</text>
+      <line x1="19" y1="23.6" x2="30" y2="23.6" stroke="#B8935A" strokeWidth="0.6" />
+      <text x="19" y="30" fontSize="5" fontFamily="ui-sans-serif" fill="#0E0D0B">Ceremony</text>
+    </svg>
+  );
+}
+
+/* ── Tasting Menu preview ── (pearloom.css kit added 2026-06-09)
+   Course-card rules: a top and bottom gold rule only, with a
+   dotted leader running from the course name to the time. */
+function MenuPreview() {
+  return (
+    <svg viewBox="0 0 80 48" width="100%" height="100%" preserveAspectRatio="none">
+      <rect width="80" height="48" fill="#FBF7EE" />
+      <rect x="10" y="10" width="60" height="28" fill="#FFFFFF" />
+      {/* Top + bottom gold rules only */}
+      <line x1="10" y1="10" x2="70" y2="10" stroke="#B8935A" strokeWidth="0.7" opacity="0.75" />
+      <line x1="10" y1="38" x2="70" y2="38" stroke="#B8935A" strokeWidth="0.7" opacity="0.75" />
+      {/* Course line with dotted leader to the time */}
+      <text x="15" y="22" fontSize="5" fontFamily="serif" fill="#0E0D0B">First course</text>
+      <line x1="43" y1="20.6" x2="55" y2="20.6" stroke="#3A332C" strokeWidth="0.4" strokeDasharray="0.8 1.4" opacity="0.6" />
+      <text x="57" y="22" fontSize="3.8" fontFamily="ui-sans-serif" fontWeight="600" letterSpacing="0.14em" fill="#3A332C">7 PM</text>
+      <text x="15" y="30" fontSize="4" fontFamily="ui-sans-serif" fill="#6F6557">Olive grove terrace</text>
+    </svg>
+  );
+}
+
 const KITS: KitSpec[] = [
   { id: 'classic',   label: 'Classic',   blurb: 'Theme-native cards & rules',  Preview: ClassicPreview },
   { id: 'ticket',    label: 'Ticket',    blurb: 'Perforated stubs · monospace', Preview: TicketPreview },
@@ -226,6 +268,8 @@ const KITS: KitSpec[] = [
   { id: 'arch',      label: 'Arch',      blurb: 'Arched cards · soft domes',    Preview: ArchPreview },
   { id: 'stamp',     label: 'Stamp',     blurb: 'Postage frames · postmarks',   Preview: StampPreview },
   { id: 'deco',      label: 'Deco',      blurb: 'Gold frames · geometric',      Preview: DecoPreview },
+  { id: 'gallery',   label: 'Gallery',   blurb: 'Museum mats · exhibit numbers', Preview: GalleryPreview },
+  { id: 'menu',      label: 'Tasting Menu', blurb: 'Gold rules · dotted leaders', Preview: MenuPreview },
 ];
 
 interface Props {

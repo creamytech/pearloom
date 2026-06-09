@@ -13,11 +13,13 @@ const MOTIFS: MotifKind[] = [
   'crescent', 'dove', 'arrows', 'pinecone', 'butterfly',
   'magnolia', 'gingko', 'champagne', 'lantern', 'compass', 'peony', 'vine',
   'starburst', 'ribbon', 'hummingbird',
+  'orchid', 'monstera', 'holly', 'cherry-blossom', 'anchor', 'disco',
 ];
 
 const FRAMES: MonogramFrame[] = [
   'none', 'ring', 'diamond', 'laurel', 'shield', 'oval', 'arch', 'sprig',
   'seal', 'banner', 'stitch', 'pearls', 'fan', 'garland', 'lozenge', 'corners',
+  'wreath', 'gate', 'halo', 'tag',
 ];
 
 const DIVIDERS = [

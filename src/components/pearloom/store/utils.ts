@@ -77,6 +77,10 @@ export function kitLabel(kit: Pack['kit']): string {
       return 'Stamp';
     case 'deco':
       return 'Deco';
+    case 'gallery':
+      return 'Gallery';
+    case 'menu':
+      return 'Tasting Menu';
     default:
       return kit;
   }

@@ -488,6 +488,8 @@ const KITS = [
   { id: 'arch',      label: 'Arch',      blurb: 'Arched cards · soft domes' },
   { id: 'stamp',     label: 'Stamp',     blurb: 'Postage frames · postmarks' },
   { id: 'deco',      label: 'Deco',      blurb: 'Gold frames · geometric' },
+  { id: 'gallery',   label: 'Gallery',   blurb: 'Museum mats · exhibit numbers' },
+  { id: 'menu',      label: 'Tasting Menu', blurb: 'Gold rules · dotted leaders' },
 ];
 
 function KitPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
