@@ -63,6 +63,30 @@ const STYLES_COUPLE = {
     label: 'Botanical etching',
     prompt: `Transform this photograph into a fine botanical copper-plate etching in the style of a 19th-century natural-history illustration. Preserve the exact faces, expressions, pose, and clothing silhouettes — they must remain unmistakably the same individuals. Render with crisp inked crosshatching, stippling for tones, and delicate line detail. Surround and interweave the subjects with abundant hand-drawn botanicals — leaves, ferns, blossoms, vines — in the same etched line style. Ink on ivory paper. Monochrome sepia ink, no colour. No text, no watermarks, no decorative frame.`,
   },
+  // ── Suite Phase 3 pack-keyed styles (SUITE-STRATEGY.md §3) ──
+  // Five additions keyed to theme-pack character via
+  // stylizeStyleForSuite() in src/lib/suite/proofs.ts. Keep the
+  // ids stable — proofs.ts mirrors them in SUITE_STYLIZE_STYLE_IDS.
+  'gilded-deco': {
+    label: 'Gilded deco',
+    prompt: `Transform this photograph into an opulent gold-leaf art-deco illustration on a deep near-black ground. Preserve the exact faces, expressions, pose, and clothing silhouettes of the people — they must remain unmistakably the same individuals. Render the subjects in elegant simplified deco line work with burnished gold-leaf accents: metallic gold contour lines, geometric sunburst and fan motifs radiating behind them, stepped deco framing elements woven into the composition. Skin and fabric rendered in muted warm tones against the dark ground; highlights picked out in shimmering gold. The mood of a 1920s grand-hotel mural. No text, no watermarks, no full border frame. Square framing, centred composition.`,
+  },
+  letterpress: {
+    label: 'Letterpress',
+    prompt: `Transform this photograph into a debossed letterpress print on thick warm cream cotton paper. Preserve the exact faces, expressions, pose, and clothing silhouettes — they must remain unmistakably the same individuals. Render the entire image in exactly two ink tones: a deep warm charcoal-olive ink and the bare cream of the paper, with halftone-like texture carrying the mid-tones. Every inked area shows the subtle pressed-into-the-paper deboss with soft impression shadows at the edges of the ink. Visible cotton-paper fibre texture throughout. Quiet, heritage print-shop character. No text, no watermarks, no border.`,
+  },
+  'oil-portrait': {
+    label: 'Oil portrait',
+    prompt: `Transform this photograph into a classical oil-on-canvas portrait in the manner of a warm old-master painting. Preserve the exact faces, expressions, pose, and clothing silhouettes — they must remain unmistakably the same individuals. Render with visible confident brushwork, soft sfumato edges, rich impasto highlights on skin and fabric, and a glowing candlelit warmth. Deep umber and bronze shadows, honeyed amber light falling from one side, a dark atmospheric background that lets the subjects emerge. Subtle canvas weave texture under the paint. Dignified, romantic, evening mood. No text, no watermarks, no painted frame.`,
+  },
+  linocut: {
+    label: 'Linocut',
+    prompt: `Transform this photograph into a bold hand-carved linocut print. Preserve the exact faces, expressions, pose, and clothing silhouettes — they must remain unmistakably the same individuals. Render in exactly two colours: one saturated print ink (a warm terracotta or deep olive) plus the cream of the paper. Strong confident carved lines, chunky gouge marks for texture and shading, slightly imperfect hand-pressed registration, flat graphic shapes with playful energy. Visible relief-print ink texture where the colour sits on the paper. The charm of a small-press art print. No text, no watermarks, no border.`,
+  },
+  'dusk-pastel': {
+    label: 'Dusk pastel',
+    prompt: `Transform this photograph into a soft chalk-pastel drawing at dusk. Preserve the exact faces, expressions, pose, and clothing silhouettes — they must remain unmistakably the same individuals. Render with velvety blended pastel strokes, visible chalky grain on toned paper, and gentle finger-smudged transitions. Evening palette: dusty mauve, slate blue, faded rose, soft apricot afterglow on the horizon side, with warm lamplight tones on the skin. Loose hatched pastel marks at the edges fading into the toned paper. Tender, end-of-day quiet. No text, no watermarks, no border.`,
+  },
 } as const satisfies Record<string, { label: string; prompt: string }>;
 
 // Venue stylization. Strict no-people rule because gpt-image-2

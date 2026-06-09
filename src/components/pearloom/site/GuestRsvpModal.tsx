@@ -9,8 +9,9 @@
                          OR a token-based pre-fill from URL ?g=<token>.
      Step 2 (respond)  — per-guest attending toggle + meal + dietary +
                          optional song + note.
-     Step 3 (done)     — confirmation with a confetti burst.
-                         Honors prefers-reduced-motion.
+     Step 3 (done)     — the themed confirmation ceremony (RsvpCeremony:
+                         motif + monogram + preset-aware copy + themed
+                         add-to-calendar). Honors prefers-reduced-motion.
 
    Triggered by `window.dispatchEvent(new CustomEvent('pl-open-rsvp'))`.
    Broadcasts `window.dispatchEvent(new CustomEvent('pl-rsvp-saved'))`
@@ -29,9 +30,10 @@
    ========================================================================= */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ConfettiBurst } from './ConfettiBurst';
 import type { StoryManifest } from '@/types';
 import { getEventType, type RsvpPreset } from '@/lib/event-os/event-types';
+import { RsvpCeremony } from './RsvpCeremony';
+import { getTheme, themeRootStyle } from './themes';
 
 const DEFAULT_MEAL_OPTIONS = ['Chicken', 'Fish', 'Vegetarian', 'Kids meal'];
 
@@ -156,7 +158,6 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [confettiActive, setConfettiActive] = useState(false);
 
   const parties = useMemo(() => groupIntoParties(readManifestGuests(manifest)), [manifest]);
   const occasion = manifest.occasion ?? 'wedding';
@@ -196,6 +197,25 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
     };
   }, [manifest]);
   void questionGates.plusOne; /* plusOne handled via existing guest-list passport flow upstream. */
+
+  /* Theme stamp — on the published path (PublishedSiteShell) this
+     modal mounts as a SIBLING of the themed site root, so the
+     --t-* vars are NOT inherited from `.pl8-guest`. Re-derive the
+     same theme-var bag the renderer uses (themeId catalog pick +
+     Theme-Store pack vars) and stamp it on the modal root so the
+     form chrome + confirmation ceremony wear the couple's look in
+     both mount contexts. Identical derivation to ThemedSiteRenderer
+     → idempotent when the modal happens to mount inside the themed
+     root. Presentation only. */
+  const modalThemeStyle = useMemo(() => {
+    const loose = manifest as unknown as {
+      themeId?: string;
+      theme?: { id?: string };
+      themeVars?: Record<string, string>;
+    };
+    const theme = getTheme(loose.themeId ?? loose.theme?.id);
+    return themeRootStyle(theme, 'comfortable', loose.themeVars ?? null);
+  }, [manifest]);
 
   const resetState = useCallback(() => {
     setStep('find');
@@ -347,7 +367,6 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
       } catch {
         /* noop */
       }
-      setConfettiActive(true);
       setStep('done');
       setSubmitting(false);
     } catch {
@@ -365,6 +384,9 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
       aria-label="RSVP"
       onClick={close}
       style={{
+        /* Theme-var bag first — the fixed-overlay chrome below wins
+           where they collide (background). */
+        ...modalThemeStyle,
         position: 'fixed',
         inset: 0,
         zIndex: 1000,
@@ -800,71 +822,20 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
         {step === 'done' && (
           <div
             style={{
-              padding: '40px 28px',
-              textAlign: 'center',
+              padding: '36px 28px 32px',
               position: 'relative',
               overflow: 'hidden',
             }}
           >
-            <ConfettiBurst active={confettiActive} fallback />
-            <div style={{ position: 'relative' }}>
-              <div
-                style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: '50%',
-                  background: 'var(--sage-tint, color-mix(in oklab, var(--pl-olive, #5C6B3F) 14%, transparent))',
-                  display: 'grid',
-                  placeItems: 'center',
-                  marginInline: 'auto',
-                  color: 'var(--sage-deep, var(--pl-olive-deep, #363F22))',
-                  fontSize: 26,
-                }}
-              >
-                ✓
-              </div>
-              <h2
-                style={{
-                  fontFamily: 'var(--pl-font-display, var(--font-display, Fraunces, Georgia, serif))',
-                  fontStyle: 'italic',
-                  fontSize: 28,
-                  fontWeight: 600,
-                  margin: '16px 0 6px',
-                }}
-              >
-                {anyYes ? 'You’re on the list!' : 'Thank you for letting us know'}
-              </h2>
-              <p
-                style={{
-                  fontSize: 14,
-                  color: 'var(--ink-soft, var(--pl-ink-soft, #3A332C))',
-                  maxWidth: 320,
-                  marginInline: 'auto',
-                  lineHeight: 1.55,
-                }}
-              >
-                {anyYes
-                  ? 'We can’t wait to celebrate with you. We’ll follow up with any updates.'
-                  : 'You’ll be missed — thank you for the kind reply. The door stays open if plans change.'}
-              </p>
-              <button
-                onClick={close}
-                style={{
-                  marginTop: 20,
-                  padding: '11px 22px',
-                  borderRadius: 999,
-                  background: 'var(--ink, var(--pl-ink, #0E0D0B))',
-                  color: 'var(--cream, var(--pl-cream, #F5EFE2))',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  border: 'none',
-                  cursor: 'pointer',
-                  letterSpacing: '0.04em',
-                }}
-              >
-                Back to the site
-              </button>
-            </div>
+            {/* The confirmation ceremony — motif threads in, monogram
+                settles, preset-aware copy + themed add-to-calendar.
+                Replaces the old check-disc + confetti success state. */}
+            <RsvpCeremony
+              manifest={manifest}
+              attending={anyYes}
+              preset={rsvpPreset}
+              onClose={close}
+            />
           </div>
         )}
       </div>

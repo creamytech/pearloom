@@ -5758,6 +5758,7 @@ function ThemedRsvp({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug:
               preset={rsvpPreset}
               title=""
               customMealOptions={customMealOptions.length > 0 ? customMealOptions : undefined}
+              manifest={manifest}
             />
           </div>
         </div>
@@ -5936,6 +5937,7 @@ function ThemedRsvp({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug:
             preset={rsvpPreset}
             title=""
             customMealOptions={customMealOptions.length > 0 ? customMealOptions : undefined}
+            manifest={manifest}
           />
         </div>
       </section>
@@ -6023,6 +6025,7 @@ function ThemedRsvp({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug:
           preset={rsvpPreset}
           title=""
           customMealOptions={customMealOptions.length > 0 ? customMealOptions : undefined}
+          manifest={manifest}
         />
       </div>
     </section>

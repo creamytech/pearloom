@@ -33,6 +33,8 @@ import { CardFront, CardBack, CardEnvelope } from './StudioCard';
 import { StudioTopbar, DraftsRail, RemixRail } from './StudioRails';
 import { StudioSendOverlay } from './StudioSendOverlay';
 import { StudioPrintPreview } from './StudioPrintPreview';
+import { StudioProofSheet } from './StudioProofSheet';
+import type { SuiteProof } from '@/lib/suite/proofs';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { parseLocalDate } from '@/lib/date-utils';
 
@@ -118,6 +120,9 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
   // production keeps the full editor as the home base and opens
   // this overlay on demand.
   const [showPrintPair, setShowPrintPair] = useState(false);
+  // Suite Phase 3 — "Pear pressed six proofs" overlay. Opened
+  // from the left rail; fetches /api/suite/proofs on mount.
+  const [showProofSheet, setShowProofSheet] = useState(false);
   // Last AI flow error, shown as a short-lived toast at the
   // bottom of the canvas. Auto-clears after 6s — the toast itself
   // owns the timer so the catch sites stay simple.

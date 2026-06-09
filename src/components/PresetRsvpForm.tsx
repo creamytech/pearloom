@@ -20,7 +20,9 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, CloudOff } from 'lucide-react';
+import type { StoryManifest } from '@/types';
 import { WeaveLoader } from '@/components/brand/WeaveLoader';
+import { RsvpCeremony } from '@/components/pearloom/site/RsvpCeremony';
 import {
   getRsvpFields,
   type RsvpFieldDef,
@@ -41,6 +43,11 @@ interface PresetRsvpFormProps {
    *  single-page form. Audit #9 phase 1 — feature-parity bridge
    *  toward making PresetRsvpForm the canonical RSVP form. */
   customMealOptions?: Array<{ id: string; name: string; dietaryTags?: string[] }>;
+  /** Optional site manifest — when provided, the success state
+   *  renders the themed RsvpCeremony (motif + monogram + preset
+   *  copy + add-to-calendar) instead of the plain check line.
+   *  Suite Phase 4 — presentation only; submit logic untouched. */
+  manifest?: StoryManifest;
 }
 
 type AttendingValue = 'attending' | 'declined' | null;
@@ -51,6 +58,7 @@ export function PresetRsvpForm({
   title = 'RSVP',
   subtitle,
   customMealOptions,
+  manifest,
 }: PresetRsvpFormProps) {
   const rawFields = getRsvpFields(preset);
   // If the host supplied customMealOptions, splice them into the
@@ -157,6 +165,21 @@ export function PresetRsvpForm({
   };
 
   if (submitted) {
+    /* Themed confirmation ceremony when the caller passed the site
+       manifest (ThemedSiteRenderer's RSVP sections do). The ceremony
+       carries its own transform/opacity entrance with a
+       prefers-reduced-motion guard, so the wrapper stays static. */
+    if (manifest) {
+      return (
+        <div style={{ ...cardStyle, padding: 'clamp(28px, 4vw, 44px) clamp(20px, 4vw, 36px)' }}>
+          <RsvpCeremony
+            manifest={manifest}
+            attending={attending === 'attending'}
+            preset={preset}
+          />
+        </div>
+      );
+    }
     return (
       <motion.div
         initial={{ opacity: 0, y: 8 }}

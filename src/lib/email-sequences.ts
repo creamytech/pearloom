@@ -9,6 +9,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import type { SuiteTheme } from '@/lib/suite/theme';
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -76,6 +77,26 @@ function emailSafeTheme(theme: EmailThemeColors): EmailThemeColors {
   return theme;
 }
 
+/**
+ * Bridge the SuiteTheme contract (src/lib/suite/theme.ts) into the
+ * email theme shape. The suite's emailPalette is already email-safe
+ * (dark packs flip to a light paper), so this is a straight mapping —
+ * every themed email derives from the same contract as the site, OG
+ * cards and Studio. Use this instead of hand-rolling EmailThemeColors.
+ */
+export function emailThemeFromSuite(suite: SuiteTheme): EmailThemeColors {
+  return {
+    background: suite.emailPalette.paper,
+    foreground: suite.emailPalette.ink,
+    accent: suite.emailPalette.accent,
+    accentLight: suite.emailPalette.section,
+    card: suite.emailPalette.card,
+    muted: suite.emailPalette.inkSoft,
+    headingFont: suite.fonts.displayFamily,
+    bodyFont: suite.fonts.bodyFamily,
+  };
+}
+
 export interface EmailContext {
   guestName?: string;
   coupleNames?: string;
@@ -126,7 +147,7 @@ function esc(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
-function emailLayout(content: string, themeColors?: EmailThemeColors): string {
+export function emailLayout(content: string, themeColors?: EmailThemeColors): string {
   const t = emailSafeTheme(themeColors || DEFAULT_THEME);
   const headingStack = `'${t.headingFont}',Georgia,serif`;
   const bodyStack = `'${t.bodyFont}',Georgia,'Times New Roman',serif`;
@@ -174,10 +195,17 @@ function emailLayout(content: string, themeColors?: EmailThemeColors): string {
 </html>`;
 }
 
-function button(text: string, href: string, themeColors?: EmailThemeColors): string {
+/** CTA fill — accent only when it's dark enough to carry white text;
+ *  pale pack accents fall back to the ink so the button stays legible. */
+function ctaBg(t: EmailThemeColors): string {
+  if (hexLuminance(t.accent) <= 0.45) return t.accent;
+  return hexLuminance(t.foreground) <= 0.45 ? t.foreground : '#1A1816';
+}
+
+export function button(text: string, href: string, themeColors?: EmailThemeColors): string {
   const t = themeColors || DEFAULT_THEME;
   const bodyStack = `'${t.bodyFont}',Georgia,serif`;
-  return `<a href="${esc(href)}" style="display:inline-block;padding:14px 36px;background-color:${t.accent};color:#FFFFFF;border-radius:100px;text-decoration:none;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:${bodyStack};mso-padding-alt:14px 36px">${esc(text)}</a>`;
+  return `<a href="${esc(href)}" style="display:inline-block;padding:14px 36px;background-color:${ctaBg(t)};color:#FFFFFF;border-radius:100px;text-decoration:none;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:${bodyStack};mso-padding-alt:14px 36px">${esc(text)}</a>`;
 }
 
 function divider(themeColors?: EmailThemeColors): string {
@@ -393,6 +421,78 @@ function postWeddingThankYouTemplate(ctx: EmailContext): { subject: string; html
       <p style="font-size:14px;color:${t.foreground};font-style:italic;margin:28px 0 0;line-height:1.6;font-family:${headingStack}">
         With all our love,<br><strong>${esc(coupleNames)}</strong>
       </p>
+    </td></tr>
+  `, t);
+
+  return { subject, html };
+}
+
+// ── Suite-themed one-off sends ──────────────────────────────
+
+/** Typographic monogram crest — the couple's initials in the display
+ *  face inside a hairline ring. Text only (no image), table-based so
+ *  it survives Outlook. */
+function monogramCrest(initA: string, initB: string, t: EmailThemeColors): string {
+  const headingStack = `'${t.headingFont}',Georgia,serif`;
+  const text = initB ? `${esc(initA)}&amp;${esc(initB)}` : esc(initA);
+  return `<table cellpadding="0" cellspacing="0" role="presentation" align="center" style="margin:0 auto">
+    <tr>
+      <td style="width:64px;height:64px;border:1px solid ${t.accentLight};border-radius:50%;text-align:center;vertical-align:middle;font-family:${headingStack};font-size:${initB ? '19px' : '24px'};font-style:italic;color:${t.accent};letter-spacing:1px">${text}</td>
+    </tr>
+  </table>`;
+}
+
+export interface SaveTheDateEmailOpts {
+  coupleDisplay: string;
+  guestName?: string;
+  message: string;
+  dateDisplay?: string;
+  venueName?: string;
+  photoUrl?: string;
+  ctaUrl: string;
+  monogram?: { initA: string; initB: string };
+  themeColors?: EmailThemeColors;
+}
+
+/**
+ * Save-the-date email — themed through the SuiteTheme contract
+ * (pass `emailThemeFromSuite(suite)` as themeColors). Paper header,
+ * display-face names with system-serif fallback, monogram crest,
+ * accent hairline, date/venue block, contrast-guarded CTA.
+ */
+export function buildSaveTheDateEmail(opts: SaveTheDateEmailOpts): { subject: string; html: string } {
+  const t = emailSafeTheme(opts.themeColors || DEFAULT_THEME);
+  const headingStack = `'${t.headingFont}',Georgia,serif`;
+  const bodyStack = `'${t.bodyFont}',Georgia,serif`;
+  const subject = `Save the date — ${opts.coupleDisplay}`;
+  const greeting = opts.guestName ? `${esc(opts.guestName)}, ` : '';
+
+  const dateVenueBlock = (opts.dateDisplay || opts.venueName)
+    ? `<tr><td style="padding:0 36px 8px">
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:${t.accentLight};border-radius:12px">
+          <tr><td style="padding:20px 24px;text-align:center">
+            ${opts.dateDisplay ? `<p style="font-size:17px;color:${t.foreground};margin:0 0 4px;font-weight:600;font-family:${headingStack};font-style:italic">${esc(opts.dateDisplay)}</p>` : ''}
+            ${opts.venueName ? `<p style="font-size:13px;color:${t.muted};margin:0;font-family:${bodyStack}">${esc(opts.venueName)}</p>` : ''}
+          </td></tr>
+        </table>
+      </td></tr>`
+    : '';
+
+  const html = emailLayout(`
+    ${opts.photoUrl ? `<tr><td style="padding:0"><img src="${esc(opts.photoUrl)}" alt="" width="560" style="display:block;width:100%;height:auto" /></td></tr>` : ''}
+    <tr><td style="padding:44px 36px 0;text-align:center">
+      ${opts.monogram ? monogramCrest(opts.monogram.initA, opts.monogram.initB, t) : ''}
+      <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:${t.accent};margin:${opts.monogram ? '20px' : '0'} 0 16px;font-family:${bodyStack}">Save the date</p>
+      <h1 style="font-family:${headingStack};font-size:32px;font-weight:400;font-style:italic;color:${t.foreground};margin:0 0 8px;line-height:1.2">${esc(opts.coupleDisplay)}</h1>
+      <div style="width:48px;height:1px;background-color:${t.accent};opacity:0.6;margin:20px auto"></div>
+    </td></tr>
+    <tr><td style="padding:4px 36px 16px;text-align:center">
+      <p style="font-size:14px;color:${t.foreground};line-height:1.7;margin:0">${greeting}${esc(opts.message)}</p>
+    </td></tr>
+    ${dateVenueBlock}
+    <tr><td style="padding:16px 36px 40px;text-align:center">
+      ${button('See the site', opts.ctaUrl, t)}
+      <p style="font-size:12px;color:${t.muted};margin:20px 0 0;font-family:${bodyStack}">A formal invitation will follow.</p>
     </td></tr>
   `, t);
 

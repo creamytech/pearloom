@@ -52,6 +52,7 @@ import { AnalyticsBeacon } from '@/components/analytics/AnalyticsBeacon';
 import { buildContext, resolveBlockConfig } from '@/lib/block-engine';
 import { getPostEventConfig, getPostEventBanner } from '@/lib/post-event';
 import { generateJsonLd, getTwitterMeta } from '@/lib/guest-services';
+import { suiteThemeFromManifest } from '@/lib/suite/theme';
 import { WeddingPartySection } from '@/components/site/WeddingPartySection';
 
 export const dynamic = 'force-dynamic';
@@ -150,6 +151,37 @@ export async function generateMetadata(
   const ogPhotoCandidate = manifest?.coverPhoto || manifest?.chapters?.[0]?.images?.[0]?.url || '';
   if (ogPhotoCandidate.startsWith('https://')) {
     ogUrl.searchParams.set('photo', ogPhotoCandidate);
+  }
+
+  // ── Suite contract (docs/SUITE-STRATEGY.md §6) ──────────────────
+  // When the manifest carries real theme data (a Theme-Store pack's
+  // --t-* var bag or wizard/editor theme.colors / theme.fonts), the
+  // share card wears the couple's exact look: paper / ink / accent /
+  // gold + display face. Sites without that data keep the legacy
+  // vibeSkin params untouched — zero regression on existing cards.
+  if (manifest) {
+    const suite = suiteThemeFromManifest(manifest, [names[0] ?? '', names[1] ?? '']);
+    const manifestTheme = (manifest as unknown as Record<string, unknown>).theme as
+      | { colors?: unknown; fonts?: unknown }
+      | undefined;
+    const hasSuiteTheme = Boolean(
+      (manifest.themeVars && Object.keys(manifest.themeVars).length > 0) ||
+        manifestTheme?.colors ||
+        manifestTheme?.fonts,
+    );
+    if (hasSuiteTheme) {
+      const hx = (h: string) => h.replace('#', '');
+      ogUrl.searchParams.set('paper', hx(suite.palette.paper));
+      ogUrl.searchParams.set('ink', hx(suite.palette.ink));
+      ogUrl.searchParams.set('accent', hx(suite.palette.accent));
+      ogUrl.searchParams.set('gold', hx(suite.palette.gold));
+      ogUrl.searchParams.set('font', suite.fonts.displayFamily.slice(0, 60));
+    }
+    // Motif glyph forwards independently — it only renders when the
+    // OG route recognizes the id, so it's safe on legacy cards too.
+    if (suite.motif && suite.motif !== 'none') {
+      ogUrl.searchParams.set('motif', suite.motif);
+    }
   }
 
   return {
