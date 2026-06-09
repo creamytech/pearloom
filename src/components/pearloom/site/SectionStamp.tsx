@@ -144,8 +144,10 @@ export function SectionStamp({ url, size = 20, style, alt = '', fallbackIcon, sl
         alignItems: 'center',
         gap: 4,
         marginRight: 10,
-        padding: '2px 8px',
-        height: 22,
+        /* Tap target: was 2px 8px / 22px tall — too small to hit on
+           touch. Type size unchanged; only the hit area grew. */
+        padding: '6px 12px',
+        minHeight: 30,
         fontSize: 10,
         fontWeight: 700,
         letterSpacing: '0.12em',

@@ -354,7 +354,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background: CREAM,
         display: 'flex',
         alignItems: 'center',

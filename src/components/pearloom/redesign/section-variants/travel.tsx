@@ -162,6 +162,24 @@ export function TravelTable({ ctx }: { ctx: TravelVariantCtx }) {
   return (
     <>
       <VariantSectionHead {...headProps(ctx)} />
+      {/* Mobile stack: below 500px the 88px-photo / text / rating
+          three-column row collapses to a 64px inline photo + text,
+          with the rating/price meta wrapping onto its own full-width
+          row. !important beats the inline grid styles. */}
+      <style>{`
+        @media (max-width: 500px) {
+          .pl8-hotel-row { grid-template-columns: 64px minmax(0, 1fr) !important; gap: 10px !important; }
+          .pl8-hotel-row > div:first-child { width: 64px !important; height: 64px !important; }
+          .pl8-hotel-row .pl8-hotel-meta {
+            grid-column: 1 / -1;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            gap: 10px !important;
+            min-width: 0 !important;
+          }
+        }
+      `}</style>
       <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {C.hotels.map((h, i) => (
           <HotelWrap
@@ -181,6 +199,8 @@ export function TravelTable({ ctx }: { ctx: TravelVariantCtx }) {
                 gridTemplateColumns: '88px 1fr auto',
                 gap: 14,
                 alignItems: 'center',
+                maxWidth: '100%',
+                minWidth: 0,
               }}
             >
               <HotelPhoto h={h} style={{ width: 88, height: 88, borderRadius: 8 }} />
@@ -193,7 +213,7 @@ export function TravelTable({ ctx }: { ctx: TravelVariantCtx }) {
                   {h.name}
                 </div>
                 {h.amenities.length > 0 && (
-                  <div style={{ fontSize: 11.5, color: 'var(--t-ink-muted)', marginTop: 4 }}>
+                  <div style={{ fontSize: 11.5, color: 'var(--t-ink-muted)', marginTop: 4, overflow: 'hidden' }}>
                     {h.amenities.slice(0, 3).join(' · ')}
                   </div>
                 )}
@@ -203,7 +223,7 @@ export function TravelTable({ ctx }: { ctx: TravelVariantCtx }) {
                   </div>
                 )}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, minWidth: 70 }}>
+              <div className="pl8-hotel-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, minWidth: 70 }}>
                 {h.rating > 0 && (
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t-accent-ink)', fontFamily: 'var(--t-display)' }}>
                     ★ {h.rating.toFixed(1)}

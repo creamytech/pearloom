@@ -121,6 +121,106 @@ export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt
         ? formatRelative(savedAt)
         : null;
   const savedLabelColor = saveError ? 'var(--plum-ink, #7A2D2D)' : 'var(--ink-muted)';
+
+  // ── Phone topbar — two rows. Row 1 keeps the affordances that
+  // matter (back · who/when/saved · Send); row 2 is the
+  // stationery-type switch, horizontally scrollable so all three
+  // full labels survive a 320px viewport.
+  if (compact) {
+    return (
+      <header aria-label="Studio toolbar" style={{
+        gridArea: 'top',
+        display: 'flex', flexDirection: 'column',
+        borderBottom: '1px solid var(--line-soft)',
+        background: 'var(--cream)',
+        position: 'relative', zIndex: 5,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 12px', height: 54, flexShrink: 0 }}>
+          <Link href="/dashboard/event" aria-label="Back to dashboard" style={{ display: 'inline-flex', alignItems: 'center', color: 'var(--ink-soft)', textDecoration: 'none', flexShrink: 0 }}>
+            <Icon name="chev-left" size={14} />
+          </Link>
+          <Pear size={24} tone="sage" shadow={false} />
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              Studio · {nameA} & {nameB}
+            </div>
+            <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {dateShort}
+              {savedLabel && (
+                <>
+                  {' · '}
+                  <span style={{ color: savedLabelColor, fontWeight: saveError ? 600 : 400 }}>{savedLabel}</span>
+                  {saveError && onRetrySave && (
+                    <>
+                      {' · '}
+                      <button
+                        type="button"
+                        onClick={() => void onRetrySave()}
+                        style={{
+                          background: 'none', border: 'none', padding: 0,
+                          color: 'var(--peach-ink, #C6703D)', fontWeight: 600,
+                          cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit',
+                          textDecoration: 'underline',
+                        }}
+                      >
+                        Try again
+                      </button>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setField('showSend', true)}
+            style={{
+              padding: '8px 14px', fontSize: 12, fontWeight: 700,
+              color: 'var(--cream)', background: 'var(--ink)',
+              border: 'none', borderRadius: 999, cursor: 'pointer',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontFamily: 'inherit', flexShrink: 0,
+            }}
+          >
+            <Icon name="send" size={12} color="var(--cream)" />
+            Send
+          </button>
+        </div>
+        <div className="pl-studio-scroll" style={{ display: 'flex', alignItems: 'center', padding: '0 12px 10px', overflowX: 'auto' }}>
+          <div style={{
+            display: 'flex', gap: 4, padding: 4, margin: '0 auto',
+            background: 'var(--card)', borderRadius: 999,
+            border: '1px solid var(--line-soft)',
+            boxShadow: 'var(--shadow-sm)',
+          }}>
+            {TYPE_TABS.map(tp => {
+              const on = state.type === tp.id;
+              return (
+                <button key={tp.id}
+                  type="button"
+                  onClick={() => setField('type', tp.id)}
+                  aria-pressed={on}
+                  title={tp.sub}
+                  style={{
+                    padding: '6px 12px', borderRadius: 999,
+                    fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
+                    background: on ? 'var(--ink)' : 'transparent',
+                    color: on ? 'var(--cream)' : 'var(--ink)',
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    cursor: 'pointer', border: 'none',
+                    fontFamily: 'inherit',
+                  }}>
+                  <Icon name={tp.icon} size={12} color={on ? 'var(--cream)' : 'currentColor'} />
+                  {tp.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </header>
+    );
+  }
+
   return (
     <header aria-label="Studio toolbar" style={{
       gridArea: 'top',
@@ -592,8 +692,8 @@ function AssetPalette({ state, setField, onAskPearForAsset, aiBusy }: { state: S
   );
 }
 
-export function RemixRail({ state, setField, content, nameA, nameB, onRewriteField, onMatchSiteTheme, onSuggestPair }: RailProps) {
-  const [tab, setTab] = useState<'design' | 'copy' | 'pear'>('design');
+export function RemixRail({ state, setField, content, nameA, nameB, onRewriteField, onMatchSiteTheme, onSuggestPair, initialTab }: RailProps) {
+  const [tab, setTab] = useState<'design' | 'copy' | 'pear'>(initialTab ?? 'design');
   return (
     <aside aria-label="Inspector" style={{
       gridArea: 'right',

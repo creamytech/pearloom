@@ -32,7 +32,7 @@ export function PageShell({
   footerVariant?: 'marketing' | 'quiet';
 }) {
   return (
-    <div className="pl8" style={{ minHeight: '100vh', background, display: 'flex', flexDirection: 'column' }}>
+    <div className="pl8" style={{ minHeight: '100dvh', background, display: 'flex', flexDirection: 'column' }}>
       <TopNav ctaText={ctaText} ctaHref={ctaHref} />
       <main style={{ flex: 1, minWidth: 0 }}>{children}</main>
       {!hideFooter && <Footbar variant={footerVariant} />}

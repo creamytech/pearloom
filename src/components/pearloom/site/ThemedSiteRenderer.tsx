@@ -599,7 +599,7 @@ export function ThemedSiteRenderer({
     () => ({
       background: paper,
       color: ink,
-      minHeight: '100vh',
+      minHeight: '100dvh',
       position: 'relative',
       fontFamily: bodyFamily,
       /* Edition-driven CSS vars — every section reads these. */

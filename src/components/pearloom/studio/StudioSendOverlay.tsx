@@ -22,6 +22,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { StationeryType } from './studio-constants';
 import { StudioMailFlow } from './StudioMailFlow';
+import { ScaledCardBox } from './StudioMobileChrome';
+import { useMobileViewport } from '../redesign/use-mobile-viewport';
 import { Pear, Icon } from '../motifs';
 
 interface SendStats {
@@ -59,6 +61,10 @@ export function StudioSendOverlay({
   siteSlug, type, cardPreview, onClose, onSent,
   buildPrintSvg, defaultReturnName, initialMail,
 }: Props) {
+  /* Phone-sized viewport — the 320px-preview + 1fr two-pane grid
+     stacks; the preview becomes a small strip so the form keeps
+     the room. Desktop output is untouched. */
+  const mobile = useMobileViewport();
   const [stats, setStats] = useState<SendStats | null>(null);
   const [statsError, setStatsError] = useState(false);
   const [busy, setBusy] = useState(false);
