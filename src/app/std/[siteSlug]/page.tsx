@@ -49,7 +49,15 @@ interface SiteData {
 
 /** Site lookup, deduped between generateMetadata and the page. */
 const loadSite = cache(async (siteSlug: string): Promise<SiteData | null> => {
-  const supabase = getSupabase();
+  /* Fail soft on any infrastructure error — guests opening a
+     save-the-date link should see the branded dead-link state,
+     never a 500 (e.g. Supabase unconfigured in dev). */
+  let supabase: ReturnType<typeof getSupabase>;
+  try {
+    supabase = getSupabase();
+  } catch {
+    return null;
+  }
   const { data: siteRow } = await supabase
     .from('sites')
     .select('id, subdomain, site_config, ai_manifest')
