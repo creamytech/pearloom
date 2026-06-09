@@ -20,7 +20,7 @@
    GalleryBlock (grid), RsvpBlock (centered), FaqBlock (accordion).
 */
 
-import { useId, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import { useId, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { getTheme, themeRootStyle, type Density, type Theme } from '../site/themes';
@@ -1071,13 +1071,7 @@ function HeroSplit({ ctx }: { ctx: SectionCtx }) {
         {ctx.coverPhoto ? (
           /* Real cover photo from manifest.coverPhoto wins over the
              tone placeholder when the host has uploaded one. */
-          <div
-            style={{
-              aspectRatio: '3/4',
-              borderRadius: 'var(--t-radius)',
-              background: `var(--t-section) center / cover no-repeat url("${ctx.coverPhoto.replace(/"/g, '%22')}")`,
-            }}
-          />
+          <FadeInImage src={ctx.coverPhoto} eager style={{ aspectRatio: '3/4', borderRadius: 'var(--t-radius)' }} />
         ) : (
           <PhotoPlaceholder tone="warm" aspect="3/4" style={{ borderRadius: 'var(--t-radius)' }} />
         )}
@@ -1131,7 +1125,7 @@ function HeroFullbleed({ ctx }: { ctx: SectionCtx }) {
     <div style={{ position: 'relative', minHeight: 460, display: 'grid', placeItems: 'center', textAlign: 'center', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', inset: 0 }}>
         {coverPhoto ? (
-          <div style={{ height: '100%', width: '100%', background: `center / cover no-repeat url("${coverPhoto.replace(/"/g, '%22')}")` }} />
+          <FadeInImage src={coverPhoto} eager style={{ height: '100%', width: '100%' }} />
         ) : (
           <PhotoPlaceholder tone="dusk" aspect="auto" style={{ height: '100%' }} />
         )}
@@ -1260,7 +1254,7 @@ function StorySideBySide({ ctx }: { ctx: SectionCtx }) {
     <div style={{ position: 'relative', padding: `${48 * pad}px 72px`, display: 'grid', gridTemplateColumns: '0.85fr 1fr', gap: 44, alignItems: 'center', background: 'var(--t-paper)' }}>
       <div style={{ position: 'relative' }}>
         {heroPhoto ? (
-          <div style={{ aspectRatio: '4/5', background: `var(--t-section) center / cover no-repeat url("${heroPhoto.replace(/"/g, '%22')}")`, borderRadius: 'var(--t-radius)' }} />
+          <FadeInImage src={heroPhoto} style={{ aspectRatio: '4/5', borderRadius: 'var(--t-radius)' }} />
         ) : (
           <PhotoPlaceholder tone="warm" aspect="4/5" />
         )}
@@ -1320,7 +1314,7 @@ function StoryStacked({ ctx }: { ctx: SectionCtx }) {
     <div style={{ padding: `${48 * pad}px 72px`, textAlign: 'center', maxWidth: 760, marginInline: 'auto', background: 'var(--t-paper)' }}>
       <div style={{ marginInline: 'auto', maxWidth: 520, marginBottom: 26 }}>
         {heroPhoto ? (
-          <div style={{ aspectRatio: '16/9', background: `var(--t-section) center / cover no-repeat url("${heroPhoto.replace(/"/g, '%22')}")`, borderRadius: 'var(--t-radius)' }} />
+          <FadeInImage src={heroPhoto} style={{ aspectRatio: '16/9', borderRadius: 'var(--t-radius)' }} />
         ) : (
           <PhotoPlaceholder tone="warm" aspect="16/9" style={{ borderRadius: 'var(--t-radius)' }} />
         )}
@@ -1352,7 +1346,7 @@ function StoryQuote({ ctx }: { ctx: SectionCtx }) {
       {heroPhoto && (
         /* Decorative cover above the quote — small + centered so it
            sits as a deckle motif rather than dominating the pull. */
-        <div style={{ position: 'relative', marginInline: 'auto', marginBottom: 24, maxWidth: 320, aspectRatio: '4/3', background: `var(--t-section) center / cover no-repeat url("${heroPhoto.replace(/"/g, '%22')}")`, borderRadius: 'var(--t-radius)' }} />
+        <FadeInImage src={heroPhoto} style={{ marginInline: 'auto', marginBottom: 24, maxWidth: 320, aspectRatio: '4/3', borderRadius: 'var(--t-radius)' }} />
       )}
       <div style={{ position: 'relative' }}>
         <InlineEdit
@@ -1413,7 +1407,7 @@ function StoryTimeline({ ctx }: { ctx: SectionCtx }) {
                 <div style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 22, color: 'var(--t-ink)', marginTop: 3, lineHeight: 1.15 }}>{chapterTitle}</div>
               )}
               {photo && (
-                <div style={{ marginTop: chapterTitle ? 10 : 8, aspectRatio: '16/9', maxWidth: 480, background: `var(--t-section) center / cover no-repeat url("${photo.replace(/"/g, '%22')}")`, borderRadius: 'var(--t-radius)' }} />
+                <FadeInImage src={photo} style={{ marginTop: chapterTitle ? 10 : 8, aspectRatio: '16/9', maxWidth: 480, borderRadius: 'var(--t-radius)' }} />
               )}
               <div style={{ fontSize: 13.5, color: 'var(--t-ink-soft)', lineHeight: 1.55, marginTop: photo ? 6 : 3 }}>{bodyText}</div>
             </div>
@@ -1444,7 +1438,7 @@ function StoryLetter({ ctx }: { ctx: SectionCtx }) {
           /* Small framed photo as a "stamp" at the top of the letter
              card — keeps the editorial-letter feel while warming the
              card with a real image. */
-          <div style={{ marginInline: 'auto', marginBottom: 16, width: 96, height: 96, borderRadius: '50%', background: `var(--t-section) center / cover no-repeat url("${heroPhoto.replace(/"/g, '%22')}")`, border: '3px solid var(--t-paper)', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} />
+          <FadeInImage src={heroPhoto} style={{ marginInline: 'auto', marginBottom: 16, width: 96, height: 96, borderRadius: '50%', border: '3px solid var(--t-paper)', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} />
         )}
         <p style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink)', lineHeight: 1.6, textAlign: 'left' }}>{C.story.body}</p>
         <div style={{ fontFamily: 'var(--t-script)', fontSize: 30, color: 'var(--t-accent-ink)', marginTop: 14, textAlign: 'right' }}>
@@ -1673,7 +1667,7 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
                 {h.photoUrl ? (
                   /* Real Google Places photo from manifest.travelInfo.hotels[].photoUrl
                      wins over the gradient placeholder when present. */
-                  <div style={{ height: '100%', width: '100%', background: `var(--t-section) center / cover no-repeat url("${h.photoUrl.replace(/"/g, '%22')}")` }} />
+                  <FadeInImage src={h.photoUrl} style={{ height: '100%', width: '100%' }} />
                 ) : (
                   <PhotoPlaceholder tone={h.tone} aspect="16/9" />
                 )}
@@ -1830,14 +1824,7 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
              squares; the gradient placeholders fall away entirely
              once any photo is set. */
           ? C.gallery.photos.map((url, i) => (
-              <div
-                key={i}
-                style={{
-                  aspectRatio: '1/1',
-                  background: `var(--t-section) center / cover no-repeat url("${url.replace(/"/g, '%22')}")`,
-                  borderRadius: 8,
-                }}
-              />
+              <FadeInImage key={i} src={url} style={{ aspectRatio: '1/1', borderRadius: 8 }} />
             ))
           : C.gallery.tones.map((t, i) => (
               <PhotoPlaceholder key={i} tone={t} aspect="1/1" style={{ borderRadius: 8 }} />
@@ -3234,6 +3221,85 @@ const PHOTO_BGS: Record<PhotoTone, string> = {
 function PhotoPlaceholder({ tone = 'lavender', aspect = '1 / 1', style = {} }: { tone?: PhotoTone; aspect?: string; style?: CSSProperties }) {
   return (
     <div style={{ width: '100%', aspectRatio: aspect, background: PHOTO_BGS[tone] ?? PHOTO_BGS.lavender, ...style }} />
+  );
+}
+
+/* ─── FadeInImage — blur-up loading for host photos. ──────────
+   The wrapper paints the section's tonal paper (var(--t-section))
+   immediately; the real <img> sits on top at opacity 0 and fades
+   to 1 over 400ms once decoded. Cheapest credible blur-up: no
+   dominant-color extraction, no LQIP — the paper IS the
+   placeholder. Lazy + async-decode by default; pass `eager` for
+   above-the-fold heroes. Reduced-motion guests get an instant
+   swap (no fade). */
+
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReduced(mq.matches);
+    const onChange = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  return reduced;
+}
+
+function FadeInImage({
+  src,
+  alt = '',
+  eager = false,
+  style = {},
+  imgStyle = {},
+}: {
+  src: string;
+  alt?: string;
+  /** Above-the-fold heroes skip lazy loading. */
+  eager?: boolean;
+  /** Layout styles for the wrapper (aspectRatio, borderRadius, margins…). */
+  style?: CSSProperties;
+  /** Extra styles on the <img> itself (rarely needed). */
+  imgStyle?: CSSProperties;
+}) {
+  const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  const reduced = usePrefersReducedMotion();
+  /* SSR / cache guard — if the browser finished the image before
+     React hydrated, onLoad never fires; check .complete once. */
+  useEffect(() => {
+    if (imgRef.current?.complete) setLoaded(true);
+  }, []);
+  return (
+    <div
+      style={{
+        position: 'relative',
+        overflow: 'hidden',
+        /* Tonal paper base — the wait shows paper, not white. */
+        backgroundColor: 'var(--t-section)',
+        ...style,
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        ref={imgRef}
+        src={src}
+        alt={alt}
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
+        onLoad={() => setLoaded(true)}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          opacity: loaded ? 1 : 0,
+          transition: reduced ? 'none' : 'opacity 400ms var(--pl-ease-out, cubic-bezier(0.22, 1, 0.36, 1))',
+          ...imgStyle,
+        }}
+      />
+    </div>
   );
 }
 

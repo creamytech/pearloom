@@ -6,13 +6,14 @@
    Literal port of ClaudeDesign/pages/theme-shop.jsx.
    ========================================================================= */
 
-import { useState, useEffect, useMemo, type CSSProperties } from 'react';
+import { useState, useEffect, useMemo, useRef, type CSSProperties } from 'react';
 import type { StoryManifest } from '@/types';
 import { PACKS as STORE_PACKS, COLLECTIONS as STORE_COLLECTIONS, type Pack } from '@/lib/theme-store/packs';
 import { applyPackToManifest } from '@/lib/theme-store/apply';
 import { StoreFonts } from '@/lib/theme-store/fonts';
 import { PackPreview } from '../store/PackPreview';
 import { Icon, Pear } from '../motifs';
+import { UndoToast, fireUndoable } from '../redesign/UndoToast';
 
 const SHOP_OWNED_KEY = 'pl-store-owned';
 function shopLoadOwned(): Set<string> { try { return new Set(JSON.parse(localStorage.getItem(SHOP_OWNED_KEY) || '[]')); } catch (e) { return new Set(); } }
@@ -82,6 +83,23 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
   const [tryingId, setTryingId] = useState<string | null>(null);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 2200); return () => clearTimeout(t); }, [toast]);
 
+  /* TRY-ANYTHING-SAFELY — snapshot the manifest the moment the
+     sheet opens. "Try" previews paint over the live canvas, so:
+       - closing without applying restores this snapshot, and
+       - a real Apply fires `pearloom:undoable` whose undo restores
+         it (the host's old look survives the whole shop visit,
+         even try-A-then-apply-B). */
+  const manifestRef = useRef(manifest);
+  manifestRef.current = manifest;
+  const openSnapshotRef = useRef<StoryManifest | null>(null);
+  const appliedRef = useRef(false);
+  useEffect(() => {
+    if (!open) return;
+    openSnapshotRef.current = manifestRef.current;
+    appliedRef.current = false;
+    setTryingId(null);
+  }, [open]);
+
   const packs = STORE_PACKS;
   const cols = STORE_COLLECTIONS;
   const filtered = useMemo(() => {
@@ -95,7 +113,26 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
   }, [col, q, owned, packs]);
 
   const onTry = (pack: Pack) => { setTryingId(pack.id); onChange(applyPackToManifest(pack, manifest)); };
-  const onApply = (pack: Pack) => { onChange(applyPackToManifest(pack, manifest)); setToast(`${pack.name} applied`); };
+  const onApply = (pack: Pack) => {
+    const prior = openSnapshotRef.current ?? manifest;
+    onChange(applyPackToManifest(pack, manifest));
+    appliedRef.current = true;
+    setTryingId(null);
+    /* No "are you sure?" — apply immediately, offer the way back.
+       The undo toast doubles as the "applied" confirmation, so the
+       sheet's own mini-toast stays quiet here. */
+    fireUndoable(`${pack.name} applied — your old look is one tap away`, () => onChange(prior));
+  };
+
+  /* Close = discard any un-applied preview, restoring the
+     open-time snapshot. Real applies survive. */
+  const handleClose = () => {
+    if (tryingId && !appliedRef.current && openSnapshotRef.current) {
+      onChange(openSnapshotRef.current);
+    }
+    setTryingId(null);
+    onClose();
+  };
 
   const unlock = async (pack: Pack) => {
     setBusyId(pack.id);
@@ -120,7 +157,7 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 85, pointerEvents: open ? 'auto' : 'none' }}>
       <StoreFonts />
-      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(40,40,30,0.32)', opacity: open ? 1 : 0, transition: 'opacity 280ms ease' }}/>
+      <div onClick={handleClose} style={{ position: 'absolute', inset: 0, background: 'rgba(40,40,30,0.32)', opacity: open ? 1 : 0, transition: 'opacity 280ms ease' }}/>
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '72vh', background: 'var(--card)', borderRadius: '22px 22px 0 0', boxShadow: '0 -20px 60px rgba(40,40,30,0.22)', transform: open ? 'translateY(0)' : 'translateY(100%)', transition: 'transform 380ms cubic-bezier(0.16,1,0.3,1)', display: 'flex', flexDirection: 'column', overflow: 'hidden' } as CSSProperties}>
         <style>{`
           .shopbtn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:7px 13px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:none;min-height:30px;transition:filter .14s}
@@ -144,7 +181,7 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
               <Icon name="search" size={13} color="var(--ink-muted)" style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)' }}/>
               <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search packs…" style={{ width: '100%', padding: '8px 12px 8px 32px', borderRadius: 999, border: '1px solid var(--line)', background: 'var(--cream-2)', fontSize: 12.5, outline: 'none' }}/>
             </div>
-            <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 9, display: 'grid', placeItems: 'center', background: 'var(--cream-2)' }}><Icon name="close" size={16} color="var(--ink-soft)"/></button>
+            <button onClick={handleClose} style={{ width: 32, height: 32, borderRadius: 9, display: 'grid', placeItems: 'center', background: 'var(--cream-2)' }}><Icon name="close" size={16} color="var(--ink-soft)"/></button>
           </div>
           {/* collection chips */}
           <div style={{ display: 'flex', gap: 7, overflowX: 'auto', paddingBottom: 12 }}>
@@ -185,6 +222,13 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
         })()}
       </div>
       {toast && <div style={{ position: 'fixed', bottom: 'calc(72vh + 14px)', left: '50%', transform: 'translateX(-50%)', zIndex: 90, background: 'var(--ink)', color: 'var(--cream)', padding: '10px 18px', borderRadius: 999, fontSize: 13, fontWeight: 600, boxShadow: '0 10px 26px rgba(0,0,0,0.24)', display: 'inline-flex', alignItems: 'center', gap: 8 }}><Pear size={18} tone="cream" shadow={false}/> {toast}</div>}
+      {/* TRY-ANYTHING-SAFELY toast lives here because EditorThemeShop
+          is the one owned component EditorDrawers keeps mounted on
+          BOTH desktop and mobile, in every editor mode — so undo
+          toasts survive rails and bottom sheets unmounting. It is a
+          window-event listener (pearloom:undoable), not shop chrome;
+          it renders even while the sheet itself is closed. */}
+      <UndoToast />
     </div>
   );
 }

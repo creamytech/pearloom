@@ -13,6 +13,7 @@ import { Icon, Pear } from '../motifs';
 import type { SectionId } from './EditorRedesign';
 import { LAYOUTS, readVariant, type LayoutVariant } from './layouts';
 import { pearErrorMessage } from './PearAssist';
+import { fireUndoable } from './UndoToast';
 
 /* useSectionHidden — read/write manifest.hiddenSections from
    inside the rail. Mirrors the same hook in _section-atoms.tsx

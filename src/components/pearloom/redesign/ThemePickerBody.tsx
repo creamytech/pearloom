@@ -29,6 +29,7 @@ import { Icon, Pear } from '../motifs';
 import { getTheme, type Theme } from '../site/themes';
 import { ThemePackPicker } from '../editor/panels/ThemePackPicker';
 import { pearErrorMessage } from './PearAssist';
+import { fireUndoable } from './UndoToast';
 
 interface Props {
   manifest: StoryManifest;
@@ -58,6 +59,18 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor }:
     ?? ((manifest as unknown as { theme?: { id?: string } }).theme?.id);
   const theme = getTheme(themeId);
 
+  /* TRY-ANYTHING-SAFELY — ThemePackPicker calls onChange exactly
+     once per pack apply (it rewrites themeId + clears every
+     pack-write field). Wrap that call: snapshot the manifest as it
+     was before the apply, then fire `pearloom:undoable` so the
+     host's old look is one tap away. Undo-after, never
+     confirm-before. */
+  const applyPackWithUndo = (next: StoryManifest) => {
+    const prior = manifest;
+    onChange(next);
+    fireUndoable('Pack applied — your old look is one tap away', () => onChange(prior));
+  };
+
   return (
     <div style={{ flex: 1, overflow: 'auto', padding: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <EventTypeChip manifest={manifest} onChange={onChange} />
@@ -65,7 +78,7 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor }:
       {/* Recommended themes — already lives at the right shape after
           earlier ThemePackPicker rewrite (Aa/and tiles + ★ Pick badge
           + ✓ active checkmark + corner motif + footer). */}
-      <ThemePackPicker manifest={manifest} onChange={onChange} />
+      <ThemePackPicker manifest={manifest} onChange={applyPackWithUndo} />
 
       <SiteLayoutPick manifest={manifest} onChange={onChange} />
       <KitPick manifest={manifest} onChange={onChange} />
@@ -233,7 +246,12 @@ function GenerateCard({ manifest, onChange }: { manifest: StoryManifest; onChang
       if (typeof data.textureIntensity === 'number') {
         next.textureIntensity = Math.max(0, Math.min(1.5, data.textureIntensity));
       }
+      /* Generate-from-story rewrites theme + voice + density in one
+         go — as transformative as a pack apply, so it gets the same
+         undo-after treatment. */
+      const prior = manifest;
       onChange(next as unknown as StoryManifest);
+      fireUndoable('Pear restyled your site — your old look is one tap away', () => onChange(prior));
       setRationale(data.rationale ?? 'Pear styled your site.');
     } catch (e) {
       console.error('[theme-picker] look-from-story error:', e);

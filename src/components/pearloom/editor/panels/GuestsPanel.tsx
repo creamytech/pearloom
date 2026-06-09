@@ -11,6 +11,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Icon } from '../../motifs';
 import { FGroup, FInput, SectionPanelShell } from './_section-atoms';
 import { pearErrorMessage } from '../../redesign/PearAssist';
+import { getAppOrigin } from '@/lib/site-urls';
 
 type GuestStatus = 'pending' | 'attending' | 'declined';
 interface Guest {
@@ -19,6 +20,9 @@ interface Guest {
   email?: string | null;
   status: GuestStatus;
   plusOne?: boolean;
+  /** Present when the guest has a mailing address on file
+   *  (GET /api/guests returns the full object or null). */
+  mailingAddress?: { line1?: string | null } | null;
 }
 
 type FilterTab = 'all' | GuestStatus;
@@ -42,6 +46,14 @@ export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
   const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState('');
   const [importPreview, setImportPreview] = useState<{ name: string; email?: string }[]>([]);
+  /* Address-collection link — resolved after mount so the origin
+     always matches the browser (dev / preview / prod). */
+  const [addressUrl, setAddressUrl] = useState('');
+  const [addressCopied, setAddressCopied] = useState(false);
+
+  useEffect(() => {
+    if (siteSlug) setAddressUrl(`${getAppOrigin()}/a/${siteSlug}`);
+  }, [siteSlug]);
 
   useEffect(() => {
     if (!siteSlug) return;
@@ -71,6 +83,24 @@ export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
     for (const g of guests) out[g.status] = (out[g.status] ?? 0) + 1;
     return out;
   }, [guests]);
+
+  /* How many guests already have a mailing address on file —
+     feeds the address-collection card + the print-mail funnel. */
+  const withAddress = useMemo(
+    () => guests.filter((g) => !!g.mailingAddress?.line1).length,
+    [guests],
+  );
+
+  async function copyAddressLink() {
+    if (!addressUrl) return;
+    try {
+      await navigator.clipboard.writeText(addressUrl);
+      setAddressCopied(true);
+      setTimeout(() => setAddressCopied(false), 2000);
+    } catch {
+      /* Clipboard can be denied — the link stays selectable. */
+    }
+  }
 
   const filtered = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -182,6 +212,61 @@ export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
           </div>
           <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
             {counts.all === 1 ? 'guest' : 'guests'} on the list
+          </div>
+        </div>
+
+        {/* Collect mailing addresses — the /a/ link feeds the
+            print-mail funnel (save-the-dates, invitations). */}
+        <div
+          style={{
+            display: 'flex', flexDirection: 'column', gap: 8,
+            padding: '12px 13px', borderRadius: 12,
+            background: 'var(--card)', border: '1px solid var(--line)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>
+              Collect mailing addresses
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--ink-muted)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+              {withAddress} of {counts.all} {counts.all === 1 ? 'guest has' : 'guests have'} a mailing address
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <input
+              readOnly
+              value={addressUrl}
+              onFocus={(e) => e.currentTarget.select()}
+              aria-label="Address collection link"
+              style={{
+                flex: 1, minWidth: 0,
+                padding: '8px 10px', borderRadius: 8,
+                border: '1px solid var(--line)', background: 'var(--cream-2)',
+                fontSize: 11.5, color: 'var(--ink-soft)',
+                fontFamily: 'var(--font-ui)', outline: 'none',
+              }}
+            />
+            <button
+              type="button"
+              onClick={copyAddressLink}
+              disabled={!addressUrl}
+              style={{
+                padding: '8px 13px', borderRadius: 8,
+                background: addressCopied ? 'var(--sage-bg)' : 'var(--cream-2)',
+                color: addressCopied ? 'var(--sage-deep)' : 'var(--ink-soft)',
+                border: '1px solid var(--line)',
+                fontSize: 11.5, fontWeight: 700, cursor: addressUrl ? 'pointer' : 'default',
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                whiteSpace: 'nowrap',
+                transition: 'background 120ms, color 120ms',
+              }}
+            >
+              <Icon name="copy" size={11} color="currentColor" />
+              {addressCopied ? 'Copied' : 'Copy'}
+            </button>
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.4 }}>
+            Guests fill in their own — they land right here.
           </div>
         </div>
 

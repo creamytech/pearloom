@@ -35,6 +35,25 @@ export function usePhotoLightbox(images: LightboxImage[]) {
   return { index, open, close, next, prev };
 }
 
+/** Lightbox-local reduced-motion read — when true the image never
+ *  follows the finger and photo switches are instant cuts. */
+function useLightboxReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReduced(mq.matches);
+    const onChange = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  return reduced;
+}
+
+/* Swipe thresholds — horizontal paging vs. downward dismissal. */
+const SWIPE_NAV_PX = 48;
+const SWIPE_DISMISS_PX = 80;
+
 export function PhotoLightbox({
   images,
   index,
@@ -90,21 +109,73 @@ export function PhotoLightbox({
     };
   }, [index, onClose, onNext, onPrev]);
 
-  // Touch swipe — left = next, right = prev. 60px threshold so
-  // small fidgets don't accidentally page through.
-  const startXRef = useRef<number | null>(null);
-  const onTouchStart = (e: React.TouchEvent) => {
-    startXRef.current = e.touches[0]?.clientX ?? null;
+  // Preload the two neighbours so arrow / swipe navigation never
+  // lands on a blank frame mid-gallery.
+  useEffect(() => {
+    if (index === null || images.length < 2) return;
+    const neighbours = [(index + 1) % images.length, (index - 1 + images.length) % images.length];
+    for (const i of neighbours) {
+      const url = images[i]?.url;
+      if (url) {
+        const im = new window.Image();
+        im.decoding = 'async';
+        im.src = url;
+      }
+    }
+  }, [index, images]);
+
+  // Pointer-driven swipe — covers touch + pen + mouse with one
+  // code path. Horizontal drag follows the finger and pages at
+  // ±48px; a downward drag past 80px dismisses (with the backdrop
+  // fading as it travels); anything under threshold springs back.
+  // Reduced-motion guests get the same gestures with no
+  // drag-follow and instant switches.
+  const reducedMotion = useLightboxReducedMotion();
+  const [drag, setDrag] = useState<{ dx: number; dy: number } | null>(null);
+  const gestureRef = useRef<{ id: number; startX: number; startY: number; axis: 'x' | 'y' | null } | null>(null);
+  const movedRef = useRef(false);
+
+  const isChrome = (target: EventTarget | null) =>
+    target instanceof Element && Boolean(target.closest('button, a, audio, input'));
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (isChrome(e.target)) return;
+    gestureRef.current = { id: e.pointerId, startX: e.clientX, startY: e.clientY, axis: null };
+    movedRef.current = false;
   };
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (startXRef.current === null) return;
-    const endX = e.changedTouches[0]?.clientX ?? startXRef.current;
-    const dx = endX - startXRef.current;
-    if (Math.abs(dx) > 60) {
+  const onPointerMove = (e: React.PointerEvent) => {
+    const g = gestureRef.current;
+    if (!g || e.pointerId !== g.id) return;
+    const dx = e.clientX - g.startX;
+    const dy = e.clientY - g.startY;
+    if (!g.axis) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      g.axis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
+      movedRef.current = true;
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+    }
+    if (reducedMotion) return; // gesture still lands; image stays put
+    // Lock to the chosen axis; downward only for the dismiss drag.
+    setDrag(g.axis === 'x' ? { dx, dy: 0 } : { dx: 0, dy: Math.max(0, dy) });
+  };
+  const endGesture = (e: React.PointerEvent) => {
+    const g = gestureRef.current;
+    if (!g || e.pointerId !== g.id) return;
+    gestureRef.current = null;
+    const dx = e.clientX - g.startX;
+    const dy = e.clientY - g.startY;
+    setDrag(null); // spring back / hand off to the entrance keyframe
+    if (g.axis === 'y' && dy > SWIPE_DISMISS_PX) {
+      onClose();
+    } else if (g.axis === 'x' && Math.abs(dx) > SWIPE_NAV_PX) {
       if (dx < 0) onNext();
       else onPrev();
     }
-    startXRef.current = null;
+  };
+  const onPointerCancel = () => {
+    gestureRef.current = null;
+    setDrag(null);
   };
 
   if (index === null || !portalNode) return null;
@@ -124,12 +195,23 @@ export function PhotoLightbox({
   const overlay = (
     <div
       ref={dialogRef}
+      className="pl8-lb-overlay"
       role="dialog"
       aria-modal="true"
       aria-labelledby={counterId}
-      onClick={onClose}
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
+      onClick={() => {
+        // A swipe ends with a synthetic click — don't treat it as
+        // a backdrop tap-to-close.
+        if (movedRef.current) {
+          movedRef.current = false;
+          return;
+        }
+        onClose();
+      }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={endGesture}
+      onPointerCancel={onPointerCancel}
       style={{
         position: 'fixed',
         inset: 0,
@@ -143,11 +225,19 @@ export function PhotoLightbox({
         justifyContent: 'center',
         padding: 'clamp(24px, 4vw, 56px) clamp(16px, 4vw, 56px) clamp(80px, 8vw, 120px)',
         animation: 'pl8-lb-in 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+        // Swipe-down dismiss reads as the room fading out under
+        // the travelling photo.
+        opacity: drag && drag.dy > 0 ? Math.max(0.35, 1 - drag.dy / 360) : 1,
+        transition: drag ? 'none' : 'opacity var(--pl-dur-fast, 180ms) var(--pl-ease-out, ease-out)',
       }}
     >
       {/* Top rail — counter on the left, Close on the right. Stays
-          out of the image's way and matches the editorial nav vibe. */}
+          out of the image's way and matches the editorial nav vibe.
+          On phones the .pl8-lb-toprail media query relocates this
+          rail to just above the bottom chrome so counter + close
+          are thumb-reachable. */}
       <div
+        className="pl8-lb-toprail"
         onClick={(e) => e.stopPropagation()}
         style={{
           position: 'absolute',
@@ -219,6 +309,7 @@ export function PhotoLightbox({
       {/* Image — actual centred element. The picture is pinned in
           the middle of the flex column; the chrome floats around it. */}
       <figure
+        className="pl8-lb-figure"
         onClick={(e) => e.stopPropagation()}
         style={{
           margin: 0,
@@ -229,6 +320,13 @@ export function PhotoLightbox({
           justifyContent: 'center',
           flex: 1,
           minHeight: 0,
+          // Drag-follow lives on the figure (transform only) so the
+          // image's own entrance keyframe never fights it. Below
+          // threshold the spring easing snaps it back home.
+          touchAction: 'none',
+          transform: drag ? `translate(${drag.dx}px, ${drag.dy}px)` : undefined,
+          transition: drag ? 'none' : 'transform 280ms var(--pl-ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1))',
+          willChange: drag ? 'transform' : undefined,
         }}
       >
         <img
@@ -384,12 +482,20 @@ export function PhotoLightbox({
           from { opacity: 0; transform: scale(0.965); }
           to   { opacity: 1; transform: scale(1); }
         }
-        @media (prefers-reduced-motion: reduce) {
-          [aria-label="Photo viewer"] {
-            animation: none !important;
+        /* Thumb reach — on phones the counter + close rail moves
+           from the top edge to just above the bottom chrome rail. */
+        @media (max-width: 640px) {
+          .pl8-lb-toprail {
+            top: auto !important;
+            bottom: 88px !important;
           }
-          [aria-label="Photo viewer"] img {
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .pl8-lb-overlay,
+          .pl8-lb-overlay img,
+          .pl8-lb-figure {
             animation: none !important;
+            transition: none !important;
           }
         }
       `}</style>
