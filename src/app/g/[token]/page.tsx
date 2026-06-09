@@ -31,6 +31,8 @@ import { DayOfBanner } from '@/components/pearloom/site/DayOfBanner';
 import { PassportSections } from '@/components/pearloom/passport/PassportSections';
 import { GuestPhaseStrip } from '@/components/pearloom/passport/GuestPhaseStrip';
 import { TextureFilters } from '@/components/pearloom/site/TextureFilters';
+import { getTheme, themeRootStyle, type Density } from '@/components/pearloom/site/themes';
+import { familyFromStack, googleFontsHrefFor } from '@/lib/suite/theme';
 import { resolveEdition } from '@/lib/site-editions/resolve';
 import { getEventType } from '@/lib/event-os/event-types';
 
@@ -224,19 +226,56 @@ export default async function PersonalGuestPage({
   const hostColors = manifest.theme?.colors ?? {};
   const hostFonts = manifest.theme?.fonts ?? {};
 
-  const paper = hostColors.background ?? recColors.background ?? '#F5EFE2';
-  const ink = hostColors.foreground ?? recColors.foreground ?? '#0E0D0B';
-  const accent = hostColors.accent ?? recColors.accent ?? '#C6703D';
-  const accentLight =
+  let paper = hostColors.background ?? recColors.background ?? '#F5EFE2';
+  let ink = hostColors.foreground ?? recColors.foreground ?? '#0E0D0B';
+  let accent = hostColors.accent ?? recColors.accent ?? '#C6703D';
+  let accentLight =
     (hostColors as { accentLight?: string }).accentLight ??
     recColors.accentLight ??
     'rgba(198,112,61,0.10)';
-  const inkSoft =
+  let inkSoft =
     (hostColors as { muted?: string }).muted ?? recColors.muted ?? '#3A332C';
-  const cardBg =
+  let cardBg =
     (hostColors as { cardBg?: string }).cardBg ?? recColors.cardBg ?? '#FBF7EE';
-  const headingFont = hostFonts.heading ?? recFonts.heading ?? 'Fraunces';
-  const bodyFont = hostFonts.body ?? recFonts.body ?? 'Inter';
+  let headingFont = hostFonts.heading ?? recFonts.heading ?? 'Fraunces';
+  let bodyFont = hostFonts.body ?? recFonts.body ?? 'Inter';
+
+  /* Suite theming (Phase 4) — when the host picked a prototype-catalog
+     theme (manifest.themeId) or a Theme-Store pack (manifest.themeVars),
+     the published canvas paints with the full --t-* token bag. Mirror
+     it here so the guest's personal page wears the exact same look —
+     "a place setting at the couple's table", not generic chrome.
+     Hosts WITHOUT an explicit pick keep the host/edition resolution
+     above, so legacy passports don't shift. */
+  const looseTheme = manifest as unknown as {
+    themeId?: string;
+    theme?: { id?: string };
+    themeVars?: Record<string, string>;
+  };
+  const packVars = looseTheme.themeVars;
+  const explicitThemeId = looseTheme.themeId ?? looseTheme.theme?.id;
+  const hasSuitePick =
+    Boolean(explicitThemeId) || Boolean(packVars && Object.keys(packVars).length > 0);
+  const suiteTheme = getTheme(explicitThemeId);
+  const suiteVars: Record<string, string | undefined> = hasSuitePick
+    ? { ...suiteTheme.vars, ...(packVars ?? {}) }
+    : {};
+  if (hasSuitePick) {
+    paper = suiteVars['--t-paper'] ?? paper;
+    ink = suiteVars['--t-ink'] ?? ink;
+    accent = suiteVars['--t-accent'] ?? accent;
+    accentLight = suiteVars['--t-accent-bg'] ?? accentLight;
+    inkSoft = suiteVars['--t-ink-soft'] ?? inkSoft;
+    cardBg = suiteVars['--t-card'] ?? cardBg;
+    headingFont = familyFromStack(suiteVars['--t-display'], headingFont);
+    bodyFont = familyFromStack(suiteVars['--t-body'], bodyFont);
+  }
+
+  /* Load the couple's webfonts — without this, a host who picked a
+     non-default display face (Cormorant, Playfair, …) got Georgia on
+     the passport while the public site wore the real face. React
+     hoists + dedupes the precedence-tagged stylesheet link. */
+  const guestFontsHref = googleFontsHrefFor(headingFont, bodyFont);
   const cardRadiusPx = (() => {
     switch (recTheme.cardRadius) {
       case 'sharp': return '3px';
@@ -256,7 +295,7 @@ export default async function PersonalGuestPage({
   const intensity = manifest.textureIntensity ?? 1;
   const kitId = manifest.kitId ?? 'classic';
   const peachInk = accent;
-  const inkMuted = '#6F6557';
+  const inkMuted = (hasSuitePick ? suiteVars['--t-ink-muted'] : undefined) ?? '#6F6557';
 
   /* Root CSS-var stamp — every editorial atom on the guest page
      (eyebrows, cards, italics, hairlines) reads from this shell.
@@ -291,6 +330,33 @@ export default async function PersonalGuestPage({
     ['--pl-density-scale' as string]: String(
       density === 'cozy' ? 0.7 : density === 'spacious' ? 1.3 : 1,
     ),
+    /* --t-* aliases — the shared Suite components (Monogram, Motif,
+       RsvpCeremony, theme-bound atoms) all bind to var(--t-accent)
+       etc. with brand fallbacks. Alias the resolved palette here so
+       those components recolor on the passport exactly like they do
+       inside the published site root. */
+    ['--t-paper' as string]: paper,
+    ['--t-section' as string]: cardBg,
+    ['--t-card' as string]: cardBg,
+    ['--t-ink' as string]: ink,
+    ['--t-ink-soft' as string]: inkSoft,
+    ['--t-ink-muted' as string]: inkMuted,
+    ['--t-accent' as string]: accent,
+    ['--t-accent-bg' as string]: accentLight,
+    ['--t-accent-ink' as string]: accent,
+    ['--t-gold' as string]: '#B8935A',
+    ['--t-line' as string]: 'rgba(14,13,11,0.16)',
+    ['--t-line-soft' as string]: 'rgba(14,13,11,0.08)',
+    ['--t-rsvp' as string]: accent,
+    ['--t-rsvp-ink' as string]: cardBg,
+    ['--t-display' as string]: `"${headingFont}", Georgia, serif`,
+    ['--t-body' as string]: `"${bodyFont}", system-ui, sans-serif`,
+    /* When the host has an explicit theme/pack pick, the FULL bag
+       (radius, shadow, gold, script, …) wins — spread last, exactly
+       like ThemedSiteRenderer's shellStyle does. */
+    ...(hasSuitePick
+      ? themeRootStyle(suiteTheme, density as Density, packVars ?? null)
+      : {}),
   };
 
   return (
@@ -303,6 +369,10 @@ export default async function PersonalGuestPage({
       data-pl-pattern={manifest.pattern ?? 'none'}
       style={shellStyle}
     >
+      {/* The couple's webfonts — hoisted + deduped by React via the
+          precedence tag. display=swap inside the href keeps text
+          readable while the faces thread in. */}
+      <link rel="stylesheet" href={guestFontsHref} precedence="default" />
       {/* PatternLayer — sits BEHIND everything (zIndex 0, pointer-
           events: none). Same contract ThemedSiteRenderer uses; CSS
           lives in pearloom.css. Without it, motif treatments on
@@ -355,6 +425,12 @@ export default async function PersonalGuestPage({
         headingFont={headingFont}
         eventDate={manifest.logistics?.date ?? ''}
         venue={manifest.logistics?.venue ?? ''}
+        monogram={{
+          initials:
+            (manifest.monogram?.initials && manifest.monogram.initials.trim()) ||
+            coupleNames.filter(Boolean).join(' & '),
+          frame: manifest.monogram?.frame ?? 'ring',
+        }}
       />
 
       {/* "Your RSVP" card + "What you've added" hub. Surfacing
@@ -647,7 +723,7 @@ export default async function PersonalGuestPage({
                   width: 60,
                   height: 1,
                   marginBottom: 12,
-                  background: 'linear-gradient(90deg, #B8935A 0%, transparent 100%)',
+                  background: 'linear-gradient(90deg, var(--t-gold, #B8935A) 0%, transparent 100%)',
                   opacity: 0.6,
                 }}
               />
@@ -769,7 +845,7 @@ export default async function PersonalGuestPage({
             width: 180,
             height: 1,
             margin: '0 auto 24px',
-            background: 'linear-gradient(90deg, transparent, #B8935A 50%, transparent)',
+            background: 'linear-gradient(90deg, transparent, var(--t-gold, #B8935A) 50%, transparent)',
             opacity: 0.6,
           }}
         />

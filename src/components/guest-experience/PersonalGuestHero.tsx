@@ -10,6 +10,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
+import { Monogram, type MonogramFrame } from '@/components/pearloom/site/Monogram';
 
 interface PersonalGuestHeroProps {
   guestFirstName: string;
@@ -19,6 +20,10 @@ interface PersonalGuestHeroProps {
   headingFont: string;
   eventDate: string;
   venue: string;
+  /** Couple's crest — manifest.monogram or names-derived. Rendered
+   *  as a watermark above the greeting so the passport opens the
+   *  way the couple's stationery does. */
+  monogram?: { initials: string; frame: MonogramFrame };
 }
 
 function formatDate(iso: string): string {
@@ -41,6 +46,7 @@ export function PersonalGuestHero({
   headingFont,
   eventDate,
   venue,
+  monogram,
 }: PersonalGuestHeroProps) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -51,7 +57,9 @@ export function PersonalGuestHero({
   const coupleLine = coupleNames.filter(Boolean).join(' & ');
   const prettyDate = formatDate(eventDate);
 
-  const peachInk = '#C6703D';
+  /* Accent ink — the host's live accent, not the prototype peach.
+     Falls back to peach only when the page passes nothing. */
+  const peachInk = accent || '#C6703D';
   return (
     <header
       style={{
@@ -82,6 +90,25 @@ export function PersonalGuestHero({
           transition: 'opacity 900ms ease, transform 900ms ease',
         }}
       >
+        {/* Couple's monogram — watermark variant, settled above the
+            greeting like a letterhead crest. Binds to --t-accent via
+            the shared Monogram component, so it recolors with the
+            site's pack. */}
+        {monogram && (
+          <div
+            aria-hidden="true"
+            style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}
+          >
+            <Monogram
+              initials={monogram.initials}
+              frame={monogram.frame}
+              size={84}
+              withCard={false}
+              ariaHidden
+            />
+          </div>
+        )}
+
         {/* Eyebrow — peach editorial kicker matching the themed
             renderer's section heads. */}
         <div
@@ -143,7 +170,7 @@ export function PersonalGuestHero({
             width: 160,
             height: 1,
             margin: '0 auto 22px',
-            background: 'linear-gradient(90deg, transparent, #B8935A 50%, transparent)',
+            background: 'linear-gradient(90deg, transparent, var(--t-gold, #B8935A) 50%, transparent)',
             opacity: 0.55,
           }}
         />
