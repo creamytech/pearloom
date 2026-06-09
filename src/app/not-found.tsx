@@ -16,7 +16,7 @@ export default function NotFound() {
         color: 'var(--pl-ink, #0E0D0B)',
       }}
     >
-      {/* Eyebrow — peach kicker matching ThemedSectionHead */}
+      {/* Eyebrow — gold kicker (BRAND.md §5: gold as punctuation) */}
       <div
         className="eyebrow"
         style={{
@@ -24,13 +24,14 @@ export default function NotFound() {
           fontWeight: 700,
           letterSpacing: '0.22em',
           textTransform: 'uppercase',
-          color: '#C6703D',
+          color: 'var(--pl-gold, #B8935A)',
           marginBottom: 18,
         }}
       >
         404 · Page not found
       </div>
       <h1
+        className="pl-letterpress"
         style={{
           fontFamily: 'var(--pl-font-heading, "Fraunces", Georgia, serif)',
           fontWeight: 600,
@@ -42,7 +43,7 @@ export default function NotFound() {
         }}
       >
         This page isn&rsquo;t{' '}
-        <span style={{ fontStyle: 'italic', fontWeight: 400, color: '#C6703D' }}>here</span>.
+        <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--pl-olive, #5C6B3F)' }}>here</span>.
       </h1>
       <p
         style={{
@@ -64,7 +65,7 @@ export default function NotFound() {
           width: 120,
           height: 1,
           margin: '0 auto 28px',
-          background: 'linear-gradient(90deg, transparent, #B8935A 50%, transparent)',
+          background: 'linear-gradient(90deg, transparent, var(--pl-gold, #B8935A) 50%, transparent)',
           opacity: 0.55,
         }}
       />
@@ -74,8 +75,8 @@ export default function NotFound() {
           display: 'inline-block',
           padding: '13px 28px',
           borderRadius: 999,
-          background: '#C6703D',
-          color: '#FBF7EE',
+          background: 'var(--pl-ink, #0E0D0B)',
+          color: 'var(--pl-cream, #F5EFE2)',
           fontWeight: 700,
           fontSize: 13.5,
           textDecoration: 'none',

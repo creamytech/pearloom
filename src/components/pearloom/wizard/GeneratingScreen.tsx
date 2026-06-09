@@ -108,7 +108,7 @@ export function GeneratingScreen({ genStep, photoCount }: Props) {
       }}
     >
       {/* Drifting tone blobs behind everything */}
-      <Blob tone="lavender" size={420} opacity={0.45} seed={0} style={{ position: 'absolute', top: -120, left: -140 }} />
+      <Blob tone="cream" size={420} opacity={0.45} seed={0} style={{ position: 'absolute', top: -120, left: -140 }} />
       <Blob tone="peach" size={360} opacity={0.42} seed={1} style={{ position: 'absolute', bottom: -100, right: -120 }} />
       <Blob tone="sage" size={300} opacity={0.36} seed={2} style={{ position: 'absolute', top: '40%', left: '55%' }} />
       <Squiggle variant={1} width={260} stroke="#D4A95D" style={{ position: 'absolute', top: 80, right: 80, opacity: 0.5 }} />
@@ -140,7 +140,7 @@ export function GeneratingScreen({ genStep, photoCount }: Props) {
                 fontSize: 11,
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
-                color: 'var(--peach-ink)',
+                color: 'var(--pl-olive, #5C6B3F)',
                 marginBottom: 14,
               }}
             >
@@ -166,7 +166,7 @@ export function GeneratingScreen({ genStep, photoCount }: Props) {
                   }}
                 >
                   {STAGES[stageIdx].label}
-                  <span className="display-italic">…</span>
+                  <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>…</span>
                 </div>
                 <div
                   style={{
@@ -356,7 +356,7 @@ function StageMarker({ status }: { status: 'done' | 'active' | 'pending' }) {
             width: 10,
             height: 10,
             borderRadius: '50%',
-            background: 'var(--peach-ink, #C6563D)',
+            background: 'var(--pl-gold, #B8935A)',
             animation: 'pear-stage-pulse 1.4s ease-in-out infinite',
           }}
         />

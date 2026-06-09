@@ -100,6 +100,23 @@ const OCCASIONS: OccasionCard[] = EVENT_TYPES
   .filter((e) => e.status === 'shipping' || e.status === 'beta')
   .map((e) => ({ id: e.id, label: e.label, icon: iconFor(e.id), tone: toneFor(e.id), category: e.category }));
 
+// Brand-family tints per card tone (BRAND.md §5). The prototype's
+// pastel peach/lavender chips are retired — every tone resolves to
+// a cream-deep / olive-mist surface with an olive or ink glyph.
+type CardTone = OccasionCard['tone'];
+const TONE_BG: Record<CardTone, string> = {
+  peach: 'var(--pl-cream-deep, #EBE3D2)',
+  lavender: 'var(--pl-olive-mist, #E0DDC9)',
+  sage: 'var(--sage-tint, #E3E6C8)',
+  cream: 'var(--cream-2, #FBF7EE)',
+};
+const TONE_INK: Record<CardTone, string> = {
+  peach: 'var(--pl-olive, #5C6B3F)',
+  lavender: 'var(--pl-ink, #0E0D0B)',
+  sage: 'var(--sage-deep, #5C6B3F)',
+  cream: 'var(--pl-ink, #0E0D0B)',
+};
+
 const VIBES = [
   { id: 'romantic', label: 'Romantic', icon: '♥', tone: 'peach' as const },
   { id: 'joyful', label: 'Joyful', icon: '✦', tone: 'peach' as const },
@@ -638,14 +655,7 @@ function OccasionPicker({
 
   const tile = (o: OccasionCard) => {
     const on = selected === o.id;
-    const glyphColor =
-      o.tone === 'peach'
-        ? 'var(--peach-ink, #C6703D)'
-        : o.tone === 'lavender'
-          ? 'var(--lavender-ink, #4F4072)'
-          : o.tone === 'sage'
-            ? 'var(--sage-deep, #5C6B3F)'
-            : 'var(--ink, #0E0D0B)';
+    const glyphColor = TONE_INK[o.tone];
     return (
       <button
         key={o.id}
@@ -657,10 +667,10 @@ function OccasionPicker({
           padding: 14,
           borderRadius: 14,
           border: on
-            ? '2px solid var(--peach-ink, #C6703D)'
+            ? '2px solid var(--pl-olive, #5C6B3F)'
             : '1px solid var(--line)',
-          background: on ? 'var(--peach-bg, #FCE6D7)' : 'var(--card)',
-          boxShadow: on ? '0 0 0 4px rgba(198,112,61,0.12)' : 'none',
+          background: on ? 'var(--pl-olive-mist, #E0DDC9)' : 'var(--card)',
+          boxShadow: on ? '0 0 0 4px var(--pl-olive-12, rgba(92,107,63,0.12))' : 'none',
           display: 'flex',
           alignItems: 'center',
           gap: 12,
@@ -682,14 +692,7 @@ function OccasionPicker({
             height: 38,
             borderRadius: 12,
             flexShrink: 0,
-            background:
-              o.tone === 'peach'
-                ? 'var(--peach-bg)'
-                : o.tone === 'lavender'
-                  ? 'var(--lavender-bg)'
-                  : o.tone === 'sage'
-                    ? 'var(--sage-tint)'
-                    : 'var(--cream-2)',
+            background: TONE_BG[o.tone],
             display: 'grid',
             placeItems: 'center',
             color: glyphColor,
@@ -710,7 +713,7 @@ function OccasionPicker({
         className="display"
         style={{ fontSize: 'clamp(36px, 5vw, 52px)', margin: '0 0 10px', lineHeight: 1.05 }}
       >
-        What are we <span className="display-italic">celebrating?</span>
+        What are we <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>celebrating?</span>
       </h2>
       <p
         style={{
@@ -755,7 +758,7 @@ function OccasionPicker({
             setQuery(e.target.value);
             if (e.target.value && !showAll) setShowAll(true);
           }}
-          placeholder="Search 31 events…"
+          placeholder={`Search ${OCCASIONS.length} events…`}
           style={{
             width: '100%',
             padding: '12px 14px 12px 38px',
@@ -796,7 +799,7 @@ function OccasionPicker({
             style={{
               background: 'transparent',
               border: 'none',
-              color: 'var(--peach-ink, #C6703D)',
+              color: 'var(--pl-olive, #5C6B3F)',
               fontFamily: 'inherit',
               fontSize: 13,
               fontWeight: 600,
@@ -822,7 +825,7 @@ function OccasionPicker({
                     fontWeight: 700,
                     letterSpacing: '0.14em',
                     textTransform: 'uppercase',
-                    color: 'var(--peach-ink)',
+                    color: 'var(--pl-olive, #5C6B3F)',
                     marginBottom: 10,
                   }}
                 >
@@ -858,7 +861,7 @@ function OccasionPicker({
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: 'var(--peach-ink, #C6703D)',
+                  color: 'var(--pl-olive, #5C6B3F)',
                   fontFamily: 'inherit',
                   fontSize: 13,
                   fontWeight: 600,
@@ -952,7 +955,7 @@ function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: St
             height: '100%',
             width: `${Math.round(fraction * 100)}%`,
             background:
-              'linear-gradient(90deg, var(--ink-soft) 0%, var(--peach-ink, #C6703D) 70%, var(--gold, #B89244) 100%)',
+              'linear-gradient(90deg, var(--ink-soft) 0%, var(--pl-olive, #5C6B3F) 70%, var(--gold, #B89244) 100%)',
             borderRadius: 999,
             transition: 'width 360ms cubic-bezier(0.22, 1, 0.36, 1)',
           }}
@@ -978,7 +981,7 @@ function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: St
                 background: phaseDone
                   ? 'var(--ink-soft)'
                   : phaseCur
-                    ? 'var(--peach-ink, #C6703D)'
+                    ? 'var(--pl-olive, #5C6B3F)'
                     : 'var(--line-soft)',
                 transition: 'background-color 280ms ease',
               }}
@@ -1020,12 +1023,7 @@ function ContextChips({ st }: { st: WizardState }) {
               width: 32,
               height: 32,
               borderRadius: '50%',
-              background:
-                c.tone === 'peach'
-                  ? 'var(--peach-bg)'
-                  : c.tone === 'lavender'
-                    ? 'var(--lavender-bg)'
-                    : 'var(--sage-tint)',
+              background: TONE_BG[c.tone],
               display: 'grid',
               placeItems: 'center',
               fontSize: 13,
@@ -1921,8 +1919,8 @@ export function WizardV8() {
                   marginBottom: 18,
                   padding: '6px 12px',
                   borderRadius: 999,
-                  background: 'var(--lavender-bg, #ECE4F5)',
-                  color: 'var(--lavender-ink, #4F4072)',
+                  background: 'var(--pl-olive-mist, #E0DDC9)',
+                  color: 'var(--pl-ink-soft, #3A332C)',
                   fontSize: 12,
                 }}
               >
@@ -1945,7 +1943,7 @@ export function WizardV8() {
                 return (
                 <>
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                    Who, when, and <span className="display-italic">where.</span>
+                    Who, when, and <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>where.</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
                     Just the bones — you can make anything optional later.
@@ -2070,7 +2068,7 @@ export function WizardV8() {
                 return (
                   <>
                     <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                      A little more <span className="display-italic">about it.</span>
+                      A little more <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>about it.</span>
                     </h2>
                     <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
                       Every answer here sharpens the story Pear writes. Skip anything you want to leave to the editor.
@@ -2180,7 +2178,7 @@ export function WizardV8() {
               {step === 'Photos' && (
                 <>
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                    Give Pear <span className="display-italic">something to see.</span>
+                    Give Pear <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>something to see.</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
                     Add 6–20 favourite photos. Pear looks at them — scenes, people, light — and writes each chapter
@@ -2196,7 +2194,7 @@ export function WizardV8() {
               {step === 'Vibe' && (
                 <>
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                    Set the <span className="display-italic">vibe.</span>
+                    Set the <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>vibe.</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 18px' }}>
                     Pick 2–4. Your vibes shape tone, language, and flow.
@@ -2234,22 +2232,8 @@ export function WizardV8() {
                           onClick={() => toggleVibe(v.id)}
                           className="chip"
                           style={{
-                            background: on
-                              ? 'var(--sage-deep)'
-                              : v.tone === 'peach'
-                                ? 'var(--peach-bg)'
-                                : v.tone === 'lavender'
-                                  ? 'var(--lavender-bg)'
-                                  : v.tone === 'sage'
-                                    ? 'var(--sage-tint)'
-                                    : 'var(--cream-2)',
-                            color: on
-                              ? 'var(--cream)'
-                              : v.tone === 'peach'
-                                ? 'var(--peach-ink)'
-                                : v.tone === 'lavender'
-                                  ? 'var(--lavender-ink)'
-                                  : 'var(--ink)',
+                            background: on ? 'var(--sage-deep)' : TONE_BG[v.tone],
+                            color: on ? 'var(--cream)' : TONE_INK[v.tone],
                             border: 'none',
                             padding: '12px 20px',
                             fontSize: 14,
@@ -2267,7 +2251,7 @@ export function WizardV8() {
               {step === 'Palette' && (
                 <>
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                    Choose a <span className="display-italic">palette.</span>
+                    Choose a <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>palette.</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 18px' }}>
                     Pear read your venue and vibes and mixed three palettes just for you — or pick a classic below.
@@ -2297,7 +2281,7 @@ export function WizardV8() {
                         fontSize: 11,
                         letterSpacing: '0.14em',
                         textTransform: 'uppercase',
-                        color: 'var(--peach-ink)',
+                        color: 'var(--pl-olive, #5C6B3F)',
                       }}
                     >
                       <Sparkle size={11} color="var(--gold)" /> Pear's picks for you
@@ -2319,7 +2303,7 @@ export function WizardV8() {
                   </div>
 
                   {st.smartPalettesError && (
-                    <div style={{ fontSize: 12, color: 'var(--peach-ink)', marginBottom: 10 }}>
+                    <div style={{ fontSize: 12, color: 'var(--pl-warning, #A14A2C)', marginBottom: 10 }}>
                       {st.smartPalettesError}
                     </div>
                   )}
@@ -2579,7 +2563,7 @@ export function WizardV8() {
               {(step as string) === 'Layout' && (
                 <>
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                    How should it <span className="display-italic">read?</span>
+                    How should it <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>read?</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
                     Every layout is a full site — they just handle pacing differently.
@@ -2598,8 +2582,8 @@ export function WizardV8() {
                           style={{
                             padding: 18,
                             borderRadius: 14,
-                            background: on ? 'var(--lavender-bg)' : 'var(--card)',
-                            border: on ? '2px solid var(--lavender-ink)' : '1.5px solid var(--line)',
+                            background: on ? 'var(--pl-olive-mist, #E0DDC9)' : 'var(--card)',
+                            border: on ? '2px solid var(--pl-olive, #5C6B3F)' : '1.5px solid var(--line)',
                             textAlign: 'left',
                             cursor: 'pointer',
                             display: 'flex',
@@ -2633,7 +2617,7 @@ export function WizardV8() {
               {step === 'Review' && (
                 <>
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                    Everything in <span className="display-italic">order?</span>
+                    Everything in <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>order?</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
                     When you save, we&apos;ll build your first draft and open the studio.
@@ -2792,8 +2776,8 @@ export function WizardV8() {
                       marginTop: 22,
                       padding: 16,
                       borderRadius: 14,
-                      background: 'var(--lavender-bg)',
-                      border: '1px solid rgba(107,90,140,0.22)',
+                      background: 'var(--pl-olive-mist, #E0DDC9)',
+                      border: '1px solid var(--pl-olive-20, rgba(92,107,63,0.20))',
                       display: 'flex',
                       gap: 12,
                       alignItems: 'flex-start',
@@ -2801,7 +2785,7 @@ export function WizardV8() {
                   >
                     <Pear size={36} tone="sage" sparkle />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--lavender-ink)', marginBottom: 4 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--pl-olive-deep, #363F22)', marginBottom: 4 }}>
                         Want Pear to draft a hero tagline?
                       </div>
                       <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginBottom: 10 }}>
@@ -2853,9 +2837,9 @@ export function WizardV8() {
                         marginTop: 16,
                         padding: '10px 14px',
                         borderRadius: 12,
-                        background: 'rgba(198,86,61,0.08)',
-                        border: '1px solid rgba(198,86,61,0.22)',
-                        color: '#7A2D2D',
+                        background: 'var(--pl-warning-mist, rgba(161,74,44,0.10))',
+                        border: '1px solid var(--pl-warning, #A14A2C)',
+                        color: 'var(--pl-warning, #A14A2C)',
                         fontSize: 13,
                       }}
                     >
