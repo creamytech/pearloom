@@ -1,5 +1,11 @@
 'use client';
 
+/* eslint-disable no-restricted-syntax --
+   This panel is the redesign editor's Pear pane and deliberately
+   binds the redesign prototype tokens (--card / --ink / --cream /
+   --line), not --pl-chrome-*, so it matches the shell it mounts
+   inside (same convention as every file under pearloom/redesign/). */
+
 // ─────────────────────────────────────────────────────────────
 // DesignAdvisor (a.k.a. Pear Companion) — slide-in side panel
 // where Pear reads the host's manifest and helps in plain

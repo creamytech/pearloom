@@ -110,15 +110,17 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
   const viewportMobile = useMobileViewport();
   const [mobileSheet, setMobileSheet] = useState<MobileSheetId | null>(null);
   /* Last non-null sheet id — keeps the right content mounted
-     during the sheet's exit slide. */
-  const lastSheetRef = useRef<MobileSheetId>('sections');
-  useEffect(() => {
-    if (mobileSheet) lastSheetRef.current = mobileSheet;
-  }, [mobileSheet]);
+     during the sheet's exit slide. Render-time state adjustment
+     (the React-docs "derive from previous render" pattern), not
+     an effect, so there's no extra commit. */
+  const [lastSheet, setLastSheet] = useState<MobileSheetId>('sections');
+  if (mobileSheet && mobileSheet !== lastSheet) setLastSheet(mobileSheet);
   /* Stable ref so the window-event listeners below don't have to
      re-subscribe when the viewport flag flips. */
   const viewportMobileRef = useRef(false);
-  viewportMobileRef.current = viewportMobile;
+  useEffect(() => {
+    viewportMobileRef.current = viewportMobile;
+  }, [viewportMobile]);
   /* Crossing the breakpoint: hand the open Pear pane to the
      matching chrome on the other side. */
   useEffect(() => {
@@ -208,7 +210,7 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
       : '"top top top" "left canvas right"';
   /* Which sheet's content to render — falls back to the last open
      sheet while the exit slide plays so it doesn't empty mid-air. */
-  const displaySheet = mobileSheet ?? lastSheetRef.current;
+  const displaySheet = mobileSheet ?? lastSheet;
 
   return (
     <div

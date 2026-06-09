@@ -36,10 +36,13 @@ export function MobileSheet({
   children: ReactNode;
 }) {
   /* Keep children mounted while the sheet animates out so the
-     exit slide doesn't show an empty shell. */
+     exit slide doesn't show an empty shell. Mount synchronously
+     during render (the "derive from previous render" pattern);
+     unmount on a timer once the slide finishes. */
   const [render, setRender] = useState(open);
+  if (open && !render) setRender(true);
   useEffect(() => {
-    if (open) { setRender(true); return; }
+    if (open) return;
     const t = setTimeout(() => setRender(false), SHEET_MS + 40);
     return () => clearTimeout(t);
   }, [open]);
