@@ -27,6 +27,7 @@ import {
   useCopyOverride,
   useSectionHidden,
 } from './_section-atoms';
+import { pearErrorMessage } from '../../redesign/PearAssist';
 
 /* Place-search result shape from /api/places/search/route.ts. */
 interface SearchResult {
@@ -182,13 +183,15 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[travel] place search failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'The search didn’t come back — try again?');
       }
       const data = await res.json() as { results?: SearchResult[]; fallback?: boolean };
       setResults(Array.isArray(data.results) ? data.results : []);
       setOpen(true);
     } catch (e) {
-      setErr((e as Error).message);
+      console.error('[travel] place search error:', e);
+      setErr(pearErrorMessage(e, 'The search didn’t come back — try again?'));
       setResults([]);
     } finally {
       setSearching(false);
@@ -206,7 +209,8 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[travel] place details failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Couldn’t add that hotel — try again?');
       }
       const data = await res.json() as { details?: PlaceDetails | null; fallback?: boolean };
       /* Fallback to the cheap search-result shape when details fails —
@@ -235,7 +239,8 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
       setResults([]);
       setOpen(false);
     } catch (e) {
-      setErr((e as Error).message);
+      console.error('[travel] add hotel error:', e);
+      setErr(pearErrorMessage(e, 'Couldn’t add that hotel — try again?'));
     } finally {
       setAdding(null);
     }

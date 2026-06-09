@@ -14,6 +14,7 @@ import { useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Field, PanelDisclosure, PanelGroup, PanelSection } from '../atoms';
 import { PearThinking } from '../../pear-thinking';
+import { pearErrorMessage } from '../../redesign/PearAssist';
 import { NAV_ICON_LIBRARY } from '@/components/pearloom/assets/nav-icons';
 import { resolveEdition } from '@/lib/site-editions/resolve';
 
@@ -342,14 +343,16 @@ export function NavPanel({ manifest, onChange }: Props) {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error((body as { error?: string }).error ?? `Gen failed (${res.status})`);
+        console.error('[nav] icon draft failed:', res.status);
+        throw new Error((body as { error?: string }).error ?? "Pear couldn't draw that one — try again?");
       }
       const data = (await res.json()) as { url?: string };
       if (!data.url) throw new Error('No icon URL returned');
       setNav({ icon: { kind: 'ai', imageUrl: data.url } });
       setAiPrompt('');
     } catch (err) {
-      setAiError(err instanceof Error ? err.message : 'Icon generation failed');
+      console.error('[nav] icon draft error:', err);
+      setAiError(pearErrorMessage(err, "Pear couldn't draw that one — try again?"));
     } finally {
       setAiBusy(false);
     }

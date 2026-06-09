@@ -10,6 +10,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Icon } from '../../motifs';
 import { FGroup, FInput, SectionPanelShell } from './_section-atoms';
+import { pearErrorMessage } from '../../redesign/PearAssist';
 
 type GuestStatus = 'pending' | 'attending' | 'declined';
 interface Guest {
@@ -49,11 +50,14 @@ export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
       setBusy(true); setErr(null);
       try {
         const res = await fetch(`/api/guests?siteSlug=${encodeURIComponent(siteSlug)}`, { cache: 'no-store' });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) {
+          console.error('[guests] load failed:', res.status);
+          throw new Error('Couldn’t load guests — try again?');
+        }
         const data = await res.json() as { guests?: Guest[] };
         if (!cancelled) setGuests(data.guests ?? []);
       } catch (e) {
-        if (!cancelled) setErr((e as Error).message || 'Couldn’t load guests.');
+        if (!cancelled) setErr(pearErrorMessage(e, 'Couldn’t load guests — try again?'));
       } finally {
         if (!cancelled) setBusy(false);
       }
@@ -86,11 +90,14 @@ export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ siteSlug, name: name.trim(), email: email?.trim() || undefined }),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+        console.error('[guests] add failed:', res.status);
+        throw new Error('Couldn’t add the guest — try again?');
+      }
       const data = await res.json() as { guest?: Guest };
       if (data.guest) setGuests((prev) => [...prev, data.guest!]);
     } catch (e) {
-      setErr((e as Error).message || 'Couldn’t add the guest.');
+      setErr(pearErrorMessage(e, 'Couldn’t add the guest — try again?'));
     } finally {
       setBusy(false);
     }
@@ -100,10 +107,13 @@ export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
     setBusy(true);
     try {
       const res = await fetch(`/api/guests?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+        console.error('[guests] delete failed:', res.status);
+        throw new Error('Couldn’t remove the guest — try again?');
+      }
       setGuests((prev) => prev.filter((g) => g.id !== id));
     } catch (e) {
-      setErr((e as Error).message || 'Couldn’t remove the guest.');
+      setErr(pearErrorMessage(e, 'Couldn’t remove the guest — try again?'));
     } finally {
       setBusy(false);
     }
@@ -153,7 +163,7 @@ export function GuestsPanel({ siteSlug }: { siteSlug: string }) {
       setImportText('');
       setImportPreview([]);
     } catch (e) {
-      setErr((e as Error).message || 'Some guests didn’t import.');
+      setErr(pearErrorMessage(e, 'Some guests didn’t import — try again?'));
     } finally {
       setBusy(false);
     }

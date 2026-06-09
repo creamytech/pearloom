@@ -15,6 +15,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { StoryManifest } from '@/types';
+import { pearErrorMessage } from '../../redesign/PearAssist';
 
 interface Props {
   /** Current photo URL (absolute, served from R2/CDN). Empty string
@@ -70,14 +71,16 @@ export function PhotoUploadSlot({ url, onChange, aspectRatio = '16/9', hint, siz
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[photo-upload] upload failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'The upload didn’t take — try again?');
       }
       const data = await res.json() as { photos?: { baseUrl?: string }[] };
       const baseUrl = data.photos?.[0]?.baseUrl;
       if (!baseUrl) throw new Error('Upload finished but no URL was returned.');
       onChange(baseUrl);
     } catch (e) {
-      setErr((e as Error).message);
+      console.error('[photo-upload] upload error:', e);
+      setErr(pearErrorMessage(e, 'The upload didn’t take — try again?'));
     } finally {
       setBusy(false);
     }

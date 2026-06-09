@@ -37,6 +37,7 @@ import { startDecorJob, completeDecorJob } from '@/lib/decor-bus';
 import { pushDraft, pushSectionStampsDraft, buildAutoSummary } from './decor-shared';
 import type { DecorDraft, SectionStampsDraft } from '@/types';
 import { PearThinking } from '../../pear-thinking';
+import { pearErrorMessage } from '../../redesign/PearAssist';
 
 interface LibraryPhoto {
   id: string;
@@ -589,14 +590,18 @@ function CommunityTab({
         if (query) params.set('q', query);
         params.set('limit', '36');
         const r = await fetch(`/api/community/marks?${params.toString()}`, { cache: 'no-store' });
-        if (!r.ok) throw new Error(`Failed (${r.status})`);
+        if (!r.ok) {
+          console.error('[library] community marks failed:', r.status);
+          throw new Error('Couldn’t load the community library — try again?');
+        }
         const d = (await r.json()) as { marks?: CommunityMark[]; note?: string };
         if (cancelled) return;
         setMarks(d.marks ?? []);
         if ((d.marks?.length ?? 0) === 0 && d.note) setError(d.note);
       } catch (err) {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : 'Failed to browse');
+        console.error('[library] community marks error:', err);
+        setError(pearErrorMessage(err, 'Couldn’t load the community library — try again?'));
         setMarks([]);
       } finally {
         if (!cancelled) setLoading(false);
@@ -1256,7 +1261,8 @@ function AtelierModal({
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error((body as { error?: string }).error ?? `Failed (${res.status})`);
+        console.error('[library] paint failed:', res.status);
+        throw new Error((body as { error?: string }).error ?? "Pear couldn't paint that one — try again?");
       }
       const data = (await res.json()) as { library?: Record<string, unknown>; prompts?: Record<string, string>; failures?: string[] };
       const lib = data.library ?? {};
@@ -1331,7 +1337,8 @@ function AtelierModal({
       completeDecorJob(jobId, true);
       onClose();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Pear couldn't paint that one";
+      console.error('[library] paint error:', err);
+      const msg = pearErrorMessage(err, "Pear couldn't paint that one — try again?");
       setError(msg);
       completeDecorJob(jobId, false, msg);
     } finally {
@@ -1360,7 +1367,8 @@ function AtelierModal({
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error((body as { error?: string }).error ?? `Failed (${res.status})`);
+        console.error('[library] megasheet failed:', res.status);
+        throw new Error((body as { error?: string }).error ?? "Pear couldn't paint that one — try again?");
       }
       const data = (await res.json()) as {
         ok: boolean;
@@ -1444,7 +1452,8 @@ function AtelierModal({
       // Don't auto-close — show the result so the host can see
       // "9 of 12 came out clean" + retry if needed.
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Pear couldn't paint that one";
+      console.error('[library] megasheet error:', err);
+      const msg = pearErrorMessage(err, "Pear couldn't paint that one — try again?");
       setError(msg);
       completeDecorJob(jobId, false, msg);
     } finally {

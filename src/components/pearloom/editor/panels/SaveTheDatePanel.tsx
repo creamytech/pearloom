@@ -17,7 +17,7 @@ import { Icon } from '../../motifs';
 import { FGroup, FInput, SectionPanelShell } from './_section-atoms';
 import { FDate } from './_form-atoms';
 import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
-import { PearInlineRewrite } from '../../redesign/PearAssist';
+import { PearInlineRewrite, pearErrorMessage } from '../../redesign/PearAssist';
 
 interface SaveTheDate {
   message?: string;
@@ -94,13 +94,14 @@ export function SaveTheDatePanel({
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[save-the-date] send failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Couldn’t send — try again?');
       }
       const data = await res.json() as { sent?: number };
       setSentCount(data.sent ?? 0);
       patchStd({ sentAt: new Date().toISOString() });
     } catch (e) {
-      setErr((e as Error).message || 'Couldn’t send.');
+      setErr(pearErrorMessage(e, 'Couldn’t send — try again?'));
     } finally {
       setBusy(false);
     }

@@ -20,6 +20,7 @@ import { FGroup, FInput, SectionPanelShell } from './_section-atoms';
 import { buildSiteUrl, formatSiteDisplayUrl, type SiteOccasion } from '@/lib/site-urls';
 import { BrandedQR, useBrandedQrPng } from './BrandedQR';
 import { deriveInitials } from '../../site/Monogram';
+import { pearErrorMessage } from '../../redesign/PearAssist';
 
 type QrTone = 'ink' | 'accent' | 'gold' | 'plum';
 
@@ -115,12 +116,13 @@ export function SharePanel({
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[share] co-host invite failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Couldn’t send the invite — try again?');
       }
       setCoHostMsg(`Invite sent to ${coHostEmail.trim()}.`);
       setCoHostEmail('');
     } catch (e) {
-      setCoHostMsg((e as Error).message || 'Couldn’t send the invite.');
+      setCoHostMsg(pearErrorMessage(e, 'Couldn’t send the invite — try again?'));
     } finally {
       setCoHostBusy(false);
     }

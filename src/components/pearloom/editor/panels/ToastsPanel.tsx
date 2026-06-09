@@ -1,10 +1,13 @@
 'use client';
 
+/* eslint-disable no-restricted-syntax */
+
 import { useEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Field, PanelSection, SegmentedToggle, TextArea } from '../atoms';
 import { AIHint, AISuggestButton, useAICall } from '../ai';
 import { Icon, Sparkle } from '../../motifs';
+import { AISource } from '../../ai-source';
 
 type Kind = 'vows' | 'toast-parent' | 'toast-friend' | 'welcome';
 
@@ -120,7 +123,13 @@ export function ToastsPanel({
         manifest: { occasion, names, vibes },
       }),
     });
-    if (!res.ok) throw new Error(`Pear couldn't draft one (${res.status})`);
+    if (!res.ok) {
+      /* Status codes stay in the console — the host only ever
+         sees warm, code-free copy (BRAND.md §7). */
+      console.error('[toasts] draft failed:', res.status);
+      if (res.status === 429) throw new Error('Pear credits are used up for now');
+      throw new Error("Pear couldn't draft that one — try again?");
+    }
     const data = (await res.json()) as { text?: string; draft?: string; toast?: string; vows?: string };
     const text = (data.text ?? data.draft ?? data.toast ?? data.vows ?? '').trim();
     if (!text) throw new Error('Pear came back empty');
@@ -188,8 +197,31 @@ export function ToastsPanel({
           runningLabel="Drafting…"
           state={state}
           onClick={() => void run()}
-          error={error ?? undefined}
         />
+        {state === 'error' && (
+          <div
+            role="alert"
+            style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 11.5, color: 'var(--plum-ink, #7A2D2D)' }}
+          >
+            <span>{error ?? "Pear couldn't draft that one — try again?"}</span>
+            <button
+              type="button"
+              onClick={() => void run()}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
+                fontSize: 11.5,
+                fontWeight: 700,
+                color: 'var(--peach-ink, #C6703D)',
+                textDecoration: 'underline',
+              }}
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
         {draft && (
           <div
@@ -219,6 +251,9 @@ export function ToastsPanel({
               </span>
             </div>
             <div style={{ fontSize: 14.5, lineHeight: 1.7, whiteSpace: 'pre-wrap', color: 'var(--ink)' }}>{draft}</div>
+            {/* Quiet attribution — the host always knows what Pear
+                wrote vs what they typed (shared ai-source.tsx). */}
+            <AISource style={{ opacity: 0.85 }} />
             <div style={{ display: 'flex', gap: 8 }}>
               <button
                 type="button"

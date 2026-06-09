@@ -65,6 +65,8 @@ import {
   DiscoMotif,
 } from '../../site/MotifScatter';
 import { Monogram, deriveInitials, type MonogramFrame } from '../../site/Monogram';
+import { AISource } from '../../ai-source';
+import { pearErrorMessage } from '../../redesign/PearAssist';
 
 /* ─── Prototype tile registries (verbatim) ─────────────────────────── */
 
@@ -721,6 +723,10 @@ export function DecorLibraryPanel({
   const [tab, setTab] = useState<DLTab>('motifs');
   const [text, setText] = useState('');
   const [gen, setGen] = useState<DecorState | null>(null);
+  /* True when the current `gen` preview came from Pear (the
+     Generate flow) vs a curated preset tap — drives the
+     "drafted by Pear" attribution on the preview card. */
+  const [genFromPear, setGenFromPear] = useState(false);
   const [busy, setBusy] = useState(false);
   const [genError, setGenError] = useState<string | null>(null);
 
@@ -839,7 +845,10 @@ export function DecorLibraryPanel({
         rationale?: string;
         error?: string;
       };
-      if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status})`);
+      if (!res.ok) {
+        console.error('[decor-library] generate failed:', res.status);
+        throw new Error(data.error ?? "Pear couldn't style that one — try again?");
+      }
       if (!data.patternId || !data.motifId || !data.dividerId || !data.accentColor) {
         throw new Error('Pear returned a malformed preset — try again.');
       }
@@ -885,8 +894,10 @@ export function DecorLibraryPanel({
       };
       onChange(next as StoryManifest);
       setGen(presetForUi);
+      setGenFromPear(true);
     } catch (err) {
-      setGenError(err instanceof Error ? err.message : "Pear couldn't style that one");
+      console.error('[decor-library] generate error:', err);
+      setGenError(pearErrorMessage(err, "Pear couldn't style that one — try again?"));
     } finally {
       setBusy(false);
     }
@@ -933,6 +944,7 @@ export function DecorLibraryPanel({
     }
     onChange(next as StoryManifest);
     setGen(d);
+    setGenFromPear(false);
   }
 
   /* Subject for monogram — derived from manifest.names. */
@@ -1145,14 +1157,21 @@ export function DecorLibraryPanel({
                     {busy ? ' Pear is styling…' : ' Style my decor'}
                   </button>
                   {gen && !busy && (
-                    <div style={{ marginTop: 10, padding: '9px 11px', borderRadius: 9, background: 'var(--sage-tint, color-mix(in oklab, var(--pl-olive, #5C6B3F) 12%, var(--cream, #FBF7EE)))', fontSize: 11.5, color: 'var(--sage-deep, var(--pl-olive, #5C6B3F))', display: 'flex', gap: 7 }}>
-                      <Icon name="check" size={13} color="var(--sage-deep, var(--pl-olive, #5C6B3F))" style={{ flexShrink: 0, marginTop: 1 }} />
-                      <span>
-                        Applied <b>{gen.motif}</b> motifs, a <b>{gen.divider}</b> divider
-                        {gen.pattern && gen.pattern !== 'none' ? (
-                          <> and a <b>{gen.pattern}</b> print</>
-                        ) : null}.
-                      </span>
+                    <div style={{ marginTop: 10, padding: '9px 11px', borderRadius: 9, background: 'var(--sage-tint, color-mix(in oklab, var(--pl-olive, #5C6B3F) 12%, var(--cream, #FBF7EE)))', fontSize: 11.5, color: 'var(--sage-deep, var(--pl-olive, #5C6B3F))', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <div style={{ display: 'flex', gap: 7 }}>
+                        <Icon name="check" size={13} color="var(--sage-deep, var(--pl-olive, #5C6B3F))" style={{ flexShrink: 0, marginTop: 1 }} />
+                        <span>
+                          Applied <b>{gen.motif}</b> motifs, a <b>{gen.divider}</b> divider
+                          {gen.pattern && gen.pattern !== 'none' ? (
+                            <> and a <b>{gen.pattern}</b> print</>
+                          ) : null}.
+                        </span>
+                      </div>
+                      {genFromPear && (
+                        /* Quiet attribution — only when the set came
+                           from Pear, not a curated preset tap. */
+                        <AISource style={{ fontSize: 10.5, opacity: 0.85, marginLeft: 20 }} />
+                      )}
                     </div>
                   )}
                   {genError && !busy && (

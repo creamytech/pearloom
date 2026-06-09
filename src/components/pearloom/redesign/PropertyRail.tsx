@@ -12,6 +12,7 @@ import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import type { SectionId } from './EditorRedesign';
 import { LAYOUTS, readVariant, type LayoutVariant } from './layouts';
+import { pearErrorMessage } from './PearAssist';
 
 /* useSectionHidden — read/write manifest.hiddenSections from
    inside the rail. Mirrors the same hook in _section-atoms.tsx
@@ -220,14 +221,16 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[property-rail] rewrite failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t rewrite that one — try again?');
       }
       const { rewritten } = await res.json() as { rewritten: string };
       if (rewritten && rewritten !== current) {
         onChange(writePath(manifest as unknown as Record<string, unknown>, target.fieldPath, rewritten) as unknown as StoryManifest);
       }
     } catch (e) {
-      setPearErr((e as Error).message);
+      console.error('[property-rail] rewrite error:', e);
+      setPearErr(pearErrorMessage(e, 'Pear couldn’t rewrite that one — try again?'));
     } finally {
       setPearBusy(null);
     }

@@ -16,6 +16,7 @@ import type { StoryManifest, WeddingEvent } from '@/types';
 import { Icon } from '../../motifs';
 import { AddCard, FGroup, FInput, FSuggest, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { scheduleEventSuggestions } from './_suggestions';
+import { pearErrorMessage } from '../../redesign/PearAssist';
 
 const TONE_BY_INDEX: Array<'peach' | 'lavender' | 'sage'> = ['peach', 'lavender', 'sage', 'peach', 'lavender', 'sage'];
 
@@ -293,7 +294,8 @@ function BuildFromNotesButton({ onAppend }: { onAppend: (events: WeddingEvent[])
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[schedule] from-notes failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t draft that one — try again?');
       }
       const data = await res.json() as { events?: Array<{ name: string; time: string; venue?: string }> };
       const drafted: WeddingEvent[] = (data.events ?? []).map((e, i) => ({
@@ -313,7 +315,8 @@ function BuildFromNotesButton({ onAppend }: { onAppend: (events: WeddingEvent[])
         setOpen(false);
       }
     } catch (e) {
-      setErr((e as Error).message);
+      console.error('[schedule] from-notes error:', e);
+      setErr(pearErrorMessage(e, 'Pear couldn’t draft that one — try again?'));
     } finally {
       setBusy(false);
     }

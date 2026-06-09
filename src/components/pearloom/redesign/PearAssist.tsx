@@ -21,6 +21,21 @@
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import { Icon } from '../motifs';
 
+/* ─── pearErrorMessage — sanitize errors for display ───────── */
+/* Keeps human-written copy (server `error` fields, our own warm
+   strings) but swallows transport noise — "Failed to fetch",
+   HTTP status codes, JSON-parse text. Codes belong in
+   console.error, never in the UI (BRAND.md §7). */
+const RAW_ERROR_NOISE = /failed to fetch|fetch failed|networkerror|load failed|aborted|unexpected token|not valid json|json\.parse|\bhttp\b|\b[45]\d\d\b/i;
+export function pearErrorMessage(
+  e: unknown,
+  fallback = 'Pear couldn’t finish that one — try again?',
+): string {
+  const msg = e instanceof Error ? e.message.trim() : typeof e === 'string' ? e.trim() : '';
+  if (!msg || RAW_ERROR_NOISE.test(msg)) return fallback;
+  return msg;
+}
+
 /* ─── PearThinking — inline busy indicator ─────────────────── */
 
 export function PearThinking({
@@ -181,12 +196,14 @@ export function PearInlineRewrite({
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[pear-rewrite] request failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t polish that one — try again?');
       }
       const { rewritten } = await res.json() as { rewritten: string };
       if (rewritten && rewritten !== value) onCommit(rewritten);
     } catch (e) {
-      const msg = (e as Error).message;
+      console.error('[pear-rewrite] failed:', e);
+      const msg = pearErrorMessage(e, 'Pear couldn’t polish that one — try again?');
       setErr(msg);
       onError?.(msg);
     } finally {

@@ -20,6 +20,7 @@ import type { StoryManifest, Chapter, ChapterImage } from '@/types';
 import { Icon } from '../../motifs';
 import { FGroup, FInput, SectionPanelShell, useCopyOverride, useSectionHidden, SectionVisibilityFooter } from './_section-atoms';
 import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
+import { PearAiChip, pearErrorMessage } from '../../redesign/PearAssist';
 
 type Tone = 'Shorten' | 'Warmer' | 'Funnier' | 'More poetic';
 
@@ -184,13 +185,15 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[story] draft failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t draft that one — try again?');
       }
       const data = await res.json() as { draft?: string };
       if (data.draft && data.draft.trim()) patch({ body: data.draft.trim() });
       else setErr('Pear didn’t return anything to draft from.');
     } catch (e) {
-      setErr((e as Error).message);
+      console.error('[story] draft error:', e);
+      setErr(pearErrorMessage(e, 'Pear couldn’t draft that one — try again?'));
     } finally {
       setDraftBusy(false);
     }
@@ -233,12 +236,14 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[story] rewrite failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t rewrite that one — try again?');
       }
       const { rewritten } = await res.json() as { rewritten: string };
       if (rewritten && rewritten !== body) patch({ body: rewritten });
     } catch (e) {
-      setErr((e as Error).message);
+      console.error('[story] rewrite error:', e);
+      setErr(pearErrorMessage(e, 'Pear couldn’t rewrite that one — try again?'));
     } finally {
       setBusy(null);
     }
@@ -281,12 +286,14 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[story] chip suggest failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t think of chips just now — try again?');
       }
       const data = await res.json() as { chips?: string[] };
       setAiSuggestions(Array.isArray(data.chips) ? data.chips : []);
     } catch (e) {
-      setErr((e as Error).message);
+      console.error('[story] chip suggest error:', e);
+      setErr(pearErrorMessage(e, 'Pear couldn’t think of chips just now — try again?'));
     } finally {
       setAiBusy(false);
     }
@@ -304,24 +311,11 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
         <FGroup
           label="Your story"
           action={
-            <button
-              type="button"
-              onClick={draftForMe}
-              disabled={draftBusy}
-              style={{
-                fontSize: 11, fontWeight: 600,
-                padding: '5px 10px', borderRadius: 999,
-                background: draftBusy ? 'var(--peach-bg)' : 'var(--cream-2)',
-                border: '1px solid var(--line)',
-                color: draftBusy ? 'var(--peach-ink)' : 'var(--ink-soft)',
-                cursor: draftBusy ? 'wait' : 'pointer',
-                display: 'inline-flex', alignItems: 'center', gap: 5,
-              }}
-            >
-              {draftBusy && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--peach-ink)', animation: 'pl-dot-pulse 1.4s ease-in-out infinite' }} />}
-              <Icon name="sparkles" size={10} color={draftBusy ? 'var(--peach-ink)' : 'var(--gold)'} />
+            /* Shared AI-chip — single busy-dot implementation
+               (redesign/PearAssist.tsx). */
+            <PearAiChip onClick={draftForMe} busy={draftBusy}>
               {draftBusy ? 'Pear is drafting…' : (body.trim() ? 'Refine for me' : 'Draft for me')}
-            </button>
+            </PearAiChip>
           }
         >
           <textarea
@@ -336,16 +330,14 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
             {(['Shorten', 'Warmer', 'Funnier', 'More poetic'] as Tone[]).map((s) => {
               const on = busy === s;
               return (
-                <button
+                <PearAiChip
                   key={s}
-                  type="button"
                   onClick={() => rewrite(s)}
-                  disabled={!!busy}
-                  style={{ fontSize: 11, fontWeight: 600, padding: '5px 10px', borderRadius: 999, background: on ? 'var(--peach-bg)' : 'var(--cream-2)', border: '1px solid var(--line)', color: on ? 'var(--peach-ink)' : 'var(--ink-soft)', cursor: busy && !on ? 'wait' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5 }}
+                  busy={on}
+                  disabled={!!busy && !on}
                 >
-                  {on && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--peach-ink)', animation: 'pl-dot-pulse 1.4s ease-in-out infinite' }} />}
                   {on ? `${s}…` : s}
-                </button>
+                </PearAiChip>
               );
             })}
           </div>
@@ -418,24 +410,9 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
           label={`Highlight chips · ${chips.length}`}
           hint="Short labels above each chapter. The first 3 show as chapter eyebrows on the canvas; extras render as a pill row in some layouts."
           action={
-            <button
-              type="button"
-              onClick={suggestFromPear}
-              disabled={aiBusy}
-              style={{
-                fontSize: 11, fontWeight: 600,
-                padding: '5px 10px', borderRadius: 999,
-                background: aiBusy ? 'var(--peach-bg)' : 'var(--cream-2)',
-                border: '1px solid var(--line)',
-                color: aiBusy ? 'var(--peach-ink)' : 'var(--ink-soft)',
-                cursor: aiBusy ? 'wait' : 'pointer',
-                display: 'inline-flex', alignItems: 'center', gap: 5,
-              }}
-            >
-              {aiBusy && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--peach-ink)', animation: 'pl-dot-pulse 1.4s ease-in-out infinite' }} />}
-              <Icon name="sparkles" size={10} color={aiBusy ? 'var(--peach-ink)' : 'var(--gold)'} />
+            <PearAiChip onClick={suggestFromPear} busy={aiBusy}>
               {aiBusy ? 'Pear is thinking…' : 'Suggest from Pear'}
-            </button>
+            </PearAiChip>
           }
         >
           {/* Unified chip list — one flat list of all chips, in

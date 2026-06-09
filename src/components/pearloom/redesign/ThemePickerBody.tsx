@@ -28,6 +28,7 @@ import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { getTheme, type Theme } from '../site/themes';
 import { ThemePackPicker } from '../editor/panels/ThemePackPicker';
+import { pearErrorMessage } from './PearAssist';
 
 interface Props {
   manifest: StoryManifest;
@@ -204,7 +205,8 @@ function GenerateCard({ manifest, onChange }: { manifest: StoryManifest; onChang
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[theme-picker] look-from-story failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t style that one — try again?');
       }
       const data = await res.json() as {
         occasion?: string;
@@ -234,7 +236,8 @@ function GenerateCard({ manifest, onChange }: { manifest: StoryManifest; onChang
       onChange(next as unknown as StoryManifest);
       setRationale(data.rationale ?? 'Pear styled your site.');
     } catch (e) {
-      setErr((e as Error).message);
+      console.error('[theme-picker] look-from-story error:', e);
+      setErr(pearErrorMessage(e, 'Pear couldn’t style that one — try again?'));
     } finally {
       setBusy(false);
     }
@@ -671,7 +674,8 @@ function MatchMyPhotos({ manifest, onChange }: { manifest: StoryManifest; onChan
       };
       onChange(next as unknown as StoryManifest);
     } catch (e) {
-      setErr((e as Error).message);
+      console.error('[theme-picker] photo palette error:', e);
+      setErr(pearErrorMessage(e, 'Pear couldn’t read that photo — try another?'));
     } finally {
       setBusy(false);
     }

@@ -10,7 +10,8 @@ import type { FaqItem, StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
 import { AddCard, FGroup, FInput, FSuggest, PearChip, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { faqQuestionSuggestions } from './_suggestions';
-import { PearAiChip, PearInlineRewrite } from '../../redesign/PearAssist';
+import { PearAiChip, PearInlineRewrite, pearErrorMessage } from '../../redesign/PearAssist';
+import { AISource } from '../../ai-source';
 
 const DEFAULT_FAQS: FaqItem[] = [
   { id: 'f-dress', question: 'What is the dress code?', answer: '', order: 0 },
@@ -30,6 +31,10 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
      faq id so multiple rows can stage independently. */
   const [draftingId, setDraftingId] = useState<string | null>(null);
   const [draftErr, setDraftErr] = useState<string | null>(null);
+  /* Last answer Pear drafted — shown as a transient "drafted by
+     Pear" stamp under the answer field until the host edits it
+     (at which point it's theirs, not Pear's). */
+  const [drafted, setDrafted] = useState<{ id: string; text: string } | null>(null);
 
   async function draftAnswer(f: FaqItem, idx: number) {
     if (!f.question.trim()) {
@@ -48,12 +53,17 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[faq] draft-answer failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t draft that one — try again?');
       }
       const { rewritten } = await res.json() as { rewritten: string };
-      if (rewritten && rewritten !== f.question) patch(idx, { answer: rewritten });
+      if (rewritten && rewritten !== f.question) {
+        patch(idx, { answer: rewritten });
+        setDrafted({ id: f.id, text: rewritten });
+      }
     } catch (e) {
-      setDraftErr((e as Error).message);
+      console.error('[faq] draft-answer error:', e);
+      setDraftErr(pearErrorMessage(e, 'Pear couldn’t draft that one — try again?'));
     } finally {
       setDraftingId(null);
     }
@@ -104,6 +114,11 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
                         options={questionSet.options}
                       />
                       <FInput value={f.answer} onChange={(v) => patch(i, { answer: v })} placeholder="Answer (shown on the FAQ page)" />
+                      {drafted?.id === f.id && drafted.text === f.answer && (
+                        /* Transient attribution — disappears the
+                           moment the host edits the drafted answer. */
+                        <AISource style={{ fontSize: 10.5, opacity: 0.85, alignSelf: 'flex-start' }} />
+                      )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                           <PearAiChip
