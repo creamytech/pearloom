@@ -165,7 +165,7 @@ export function StudioSendOverlay({
         background: 'rgba(61,74,31,0.45)',
         backdropFilter: 'blur(6px)',
         display: 'grid', placeItems: 'center',
-        padding: 32,
+        padding: mobile ? 12 : 32,
         animation: 'pl-studio-card-in 300ms ease both',
       }}
     >
@@ -177,24 +177,44 @@ export function StudioSendOverlay({
           width: 'min(900px, 100%)', maxHeight: '90vh',
           background: 'var(--cream)', borderRadius: 18,
           boxShadow: 'var(--shadow-lg)',
-          display: 'grid', gridTemplateColumns: '320px 1fr',
+          display: 'grid',
+          gridTemplateColumns: mobile ? '1fr' : '320px 1fr',
+          gridTemplateRows: mobile ? 'auto 1fr' : undefined,
           overflow: 'hidden',
         }}
       >
-        <div style={{
-          background: 'var(--cream-3, var(--cream-2))', padding: 24,
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16,
-          borderRight: '1px solid var(--line-soft)',
-        }}>
-          <div style={{ transform: 'scale(0.5)', transformOrigin: 'center' }}>
-            {cardPreview}
+        {mobile ? (
+          /* Stacked: a compact preview strip on top — the scaled
+             box reserves its real footprint, so no negative-margin
+             counterweight is needed. */
+          <div style={{
+            background: 'var(--cream-3, var(--cream-2))', padding: '12px 16px',
+            display: 'flex', alignItems: 'center', gap: 14,
+            borderBottom: '1px solid var(--line-soft)',
+          }}>
+            <ScaledCardBox baseW={420} baseH={588} scale={0.22} radius={3}>
+              {cardPreview}
+            </ScaledCardBox>
+            <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
+              What guests will see
+            </div>
           </div>
-          <div style={{ fontSize: 11, color: 'var(--ink-muted)', textAlign: 'center', marginTop: -120 }}>
-            What guests will see
+        ) : (
+          <div style={{
+            background: 'var(--cream-3, var(--cream-2))', padding: 24,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16,
+            borderRight: '1px solid var(--line-soft)',
+          }}>
+            <div style={{ transform: 'scale(0.5)', transformOrigin: 'center' }}>
+              {cardPreview}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--ink-muted)', textAlign: 'center', marginTop: -120 }}>
+              What guests will see
+            </div>
           </div>
-        </div>
+        )}
 
-        <div style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 18, overflow: 'auto' }}>
+        <div style={{ padding: mobile ? 16 : 28, display: 'flex', flexDirection: 'column', gap: 18, overflow: 'auto', minHeight: mobile ? 0 : undefined }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--peach-ink)' }}>
@@ -320,7 +340,7 @@ export function StudioSendOverlay({
           </SendBlock>
 
           <SendBlock title="Schedule" sub="Pear staggers by timezone so nobody gets a 4am ping">
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: mobile ? 'wrap' : undefined }}>
               {[
                 { l: 'Send now', sub: 'Ships in next 5 min', on: true,  disabled: false },
                 { l: 'Tomorrow at 9 AM', sub: 'Coming soon', on: false, disabled: true },
@@ -354,7 +374,7 @@ export function StudioSendOverlay({
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 6, borderTop: '1px solid var(--line-soft)', marginTop: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 6, borderTop: '1px solid var(--line-soft)', marginTop: 4, flexWrap: mobile ? 'wrap' : undefined, gap: mobile ? 8 : undefined }}>
             <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>
               {withEmail > 0
                 ? `${withEmail} digital send${withEmail === 1 ? '' : 's'} are free.`
