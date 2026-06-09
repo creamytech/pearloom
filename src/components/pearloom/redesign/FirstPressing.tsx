@@ -128,7 +128,9 @@ export function FirstPressing({ manifest, names, onDone }: Props) {
     width: '50.5%', // tiny overlap so no seam shows while closed
     [side]: 0,
     background: palette.paper,
-    transition: 'transform 880ms cubic-bezier(0.65, 0, 0.35, 1)',
+    /* 880ms is choreographed against the phase timers — keep the
+       literal duration; the curve is exactly --pl-ease-in-out. */
+    transition: 'transform 880ms var(--pl-ease-in-out)',
     transform:
       phase === 'unveil'
         ? `translateX(${side === 'left' ? '-101%' : '101%'})`

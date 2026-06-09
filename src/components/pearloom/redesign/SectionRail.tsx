@@ -460,7 +460,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                 opacity: isDragging ? 0.32 : 1,
                 transform: isDragging ? 'scale(0.98)' : 'scale(1)',
                 transformOrigin: 'left center',
-                transition: 'background 100ms, opacity 140ms, transform 140ms',
+                transition: 'background var(--pl-dur-instant), opacity var(--pl-dur-quick), transform var(--pl-dur-quick)',
                 userSelect: 'none',
               }}
             >

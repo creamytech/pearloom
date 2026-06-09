@@ -160,7 +160,10 @@
   --pl-ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
   --pl-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --pl-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --pl-ease-emphasis: cubic-bezier(0.16, 1, 0.3, 1); /* redesign prototype's signature expo-out — NOT interchangeable with --pl-ease-out */
   --pl-dur-instant: 100ms;
+  --pl-dur-subtle:  120ms;  /* redesign prototype: hairline micro-feedback (outline focus, check pops) */
+  --pl-dur-quick:   140ms;  /* redesign prototype: chip/pill hover + active states */
   --pl-dur-fast:    180ms;
   --pl-dur-base:    280ms;
   --pl-dur-slow:    480ms;
@@ -243,7 +246,8 @@
   --pl-chrome-accent:         #B8754A;
   --pl-chrome-accent-soft:    rgba(184,117,74,0.12);
   --pl-chrome-accent-ink:     #FBF7EE;
-  --pl-chrome-danger:         #8B4A6A;
+  --pl-chrome-danger:         #7A2D2D;
+  --pl-chrome-danger-soft:    rgba(122, 45, 45, 0.08);
   --pl-chrome-success:        #7A8B4A;
   --pl-chrome-focus:          0 0 0 2px rgba(184,117,74,0.35);
   --pl-chrome-shadow:         0 1px 3px rgba(14,13,11,0.06), 0 1px 2px rgba(14,13,11,0.04);
@@ -345,6 +349,7 @@
   --pl-chrome-accent-soft:    rgba(224,138,92,0.14);
   --pl-chrome-accent-ink:     #0D0B07;
   --pl-chrome-danger:         #C46A6A;
+  --pl-chrome-danger-soft:    rgba(196, 106, 106, 0.10);
   --pl-chrome-success:        #A4B57A;
   --pl-chrome-focus:          0 0 0 2px rgba(224,138,92,0.40);
   --pl-chrome-shadow:         0 1px 3px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.30);

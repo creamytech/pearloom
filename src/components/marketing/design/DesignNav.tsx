@@ -8,7 +8,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Pear, Pearl, PLButton, PD } from './DesignAtoms';
+import { Pear, Pearl, PLButton, PD, pdInkMix, pdShadowMix } from './DesignAtoms';
 
 interface DesignNavProps {
   onGetStarted: () => void;
@@ -39,10 +39,10 @@ export function DesignNav({ onGetStarted }: DesignNavProps) {
       <div
         className="pd-nav-pill"
         style={{
-          background: 'rgba(244, 236, 216, 0.78)',
+          background: 'var(--pd-glass, rgba(244, 236, 216, 0.78))',
           backdropFilter: 'blur(14px) saturate(1.1)',
           WebkitBackdropFilter: 'blur(14px) saturate(1.1)',
-          border: '1px solid rgba(31,36,24,0.14)',
+          border: `1px solid ${pdInkMix(14)}`,
           borderRadius: 999,
           padding: '10px 14px 10px 22px',
           display: 'flex',
@@ -137,7 +137,7 @@ export function DesignNav({ onGetStarted }: DesignNavProps) {
               width: 36,
               height: 36,
               borderRadius: 999,
-              border: '1px solid rgba(31,36,24,0.2)',
+              border: `1px solid ${pdInkMix(20)}`,
               background: 'transparent',
               color: PD.ink,
               cursor: 'pointer',
@@ -174,7 +174,7 @@ export function DesignNav({ onGetStarted }: DesignNavProps) {
             padding: '14px 18px 18px',
             flexDirection: 'column',
             gap: 4,
-            boxShadow: '0 18px 40px -18px rgba(31,36,24,0.3)',
+            boxShadow: `0 18px 40px -18px ${pdShadowMix(30)}`,
           }}
         >
           {LINKS.map(([label, href]) => (

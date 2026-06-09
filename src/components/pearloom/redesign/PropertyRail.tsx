@@ -278,7 +278,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
                 display: 'grid', placeItems: 'center',
                 cursor: canHide ? 'pointer' : 'not-allowed',
                 opacity: canHide ? 1 : 0.4,
-                transition: 'background 140ms, border-color 140ms',
+                transition: 'background var(--pl-dur-quick), border-color var(--pl-dur-quick)',
               }}
             >
               <Icon
@@ -297,7 +297,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
                 width: 26, height: 26, borderRadius: 6,
                 background: optionsOpen ? 'var(--cream-3)' : 'var(--cream-2)',
                 display: 'grid', placeItems: 'center', border: 'none', cursor: 'pointer',
-                transition: 'background 140ms',
+                transition: 'background var(--pl-dur-quick)',
               }}
             >
               <Icon name="more" size={13} color="var(--ink-soft)" />
@@ -309,7 +309,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
                   position: 'absolute',
                   top: 'calc(100% + 6px)',
                   right: 0,
-                  zIndex: 50,
+                  zIndex: 'var(--z-dropdown)',
                   minWidth: 180,
                   padding: 4,
                   background: 'var(--card)',
@@ -519,7 +519,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
                 );
               })}
               {pearErr && (
-                <div style={{ padding: '7px 10px', borderRadius: 8, background: 'rgba(122,45,45,0.08)', fontSize: 11.5, color: '#7A2D2D' }}>
+                <div style={{ padding: '7px 10px', borderRadius: 8, background: 'var(--pl-chrome-danger-soft, rgba(122,45,45,0.08))', fontSize: 11.5, color: 'var(--pl-chrome-danger, #7A2D2D)' }}>
                   {pearErr}
                 </div>
               )}
@@ -814,7 +814,7 @@ function OptionRow({
         opacity: disabled ? 0.55 : 1,
         textAlign: 'left',
         borderRadius: 6,
-        transition: 'background 100ms',
+        transition: 'background var(--pl-dur-instant)',
       }}
       onMouseEnter={(e) => { if (!disabled) e.currentTarget.style.background = 'var(--cream-2)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}

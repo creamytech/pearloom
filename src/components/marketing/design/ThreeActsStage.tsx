@@ -8,7 +8,7 @@
 
 import { useState, type CSSProperties } from 'react';
 import { Bloom } from '@/components/brand/groove';
-import { Pear, Pearl, Pill, PLButton, Ornament, PD, DISPLAY_STYLE, MONO_STYLE } from './DesignAtoms';
+import { Pear, Pearl, Pill, PLButton, Ornament, PD, DISPLAY_STYLE, MONO_STYLE, pdInkMix } from './DesignAtoms';
 
 interface Act {
   key: string;
@@ -101,7 +101,7 @@ export function ThreeActsStage() {
           id="director"
           style={{
             background: PD.paper3,
-            border: '1px solid rgba(31,36,24,0.14)',
+            border: `1px solid ${pdInkMix(14)}`,
             borderRadius: 28,
             padding: 'clamp(24px, 3vw, 48px)',
             position: 'relative',
@@ -123,7 +123,7 @@ export function ThreeActsStage() {
             style={{
               display: 'flex',
               gap: 0,
-              borderBottom: '1px solid rgba(31,36,24,0.15)',
+              borderBottom: `1px solid ${pdInkMix(15)}`,
               marginBottom: 36,
               position: 'relative',
               zIndex: 1,
@@ -140,10 +140,10 @@ export function ThreeActsStage() {
                   cursor: 'pointer',
                   padding: '18px 14px 24px',
                   textAlign: 'left',
-                  color: act === i ? PD.ink : 'rgba(31,36,24,0.45)',
+                  color: act === i ? PD.ink : pdInkMix(45),
                   fontFamily: 'inherit',
                   position: 'relative',
-                  borderRight: i < 2 ? '1px solid rgba(31,36,24,0.1)' : 'none',
+                  borderRight: i < 2 ? `1px solid ${pdInkMix(10)}` : 'none',
                 }}
               >
                 <div style={{ ...MONO_STYLE, fontSize: 10, opacity: 0.7, marginBottom: 8 }}>
@@ -254,7 +254,7 @@ function ComposeStage({ accent }: { accent: string }) {
     <div
       style={{
         background: PD.paper,
-        border: '1px solid rgba(31,36,24,0.14)',
+        border: `1px solid ${pdInkMix(14)}`,
         borderRadius: 20,
         padding: 24,
         position: 'relative',
@@ -331,7 +331,7 @@ function ComposeStage({ accent }: { accent: string }) {
       <div
         style={{
           background: PD.paper2,
-          border: '1px solid rgba(31,36,24,0.08)',
+          border: `1px solid ${pdInkMix(8)}`,
           borderRadius: 14,
           padding: 14,
           marginBottom: 14,
@@ -363,7 +363,7 @@ function ComposeStage({ accent }: { accent: string }) {
                   aspectRatio: '1',
                   background: s.c,
                   borderRadius: 8,
-                  border: '1px solid rgba(31,36,24,0.12)',
+                  border: `1px solid ${pdInkMix(12)}`,
                 }}
               />
               <div style={{ ...MONO_STYLE, fontSize: 8, opacity: 0.55, marginTop: 4 }}>{s.l}</div>
@@ -385,7 +385,7 @@ function ComposeStage({ accent }: { accent: string }) {
                 borderRadius: 999,
                 background: on ? accent : 'transparent',
                 color: on ? PD.paper : PD.ink,
-                border: on ? 'none' : '1px dashed rgba(31,36,24,0.3)',
+                border: on ? 'none' : `1px dashed ${pdInkMix(30)}`,
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 5,
@@ -408,7 +408,7 @@ function ConductStage({ accent }: { accent: string }) {
     <div
       style={{
         background: PD.paper,
-        border: '1px solid rgba(31,36,24,0.14)',
+        border: `1px solid ${pdInkMix(14)}`,
         borderRadius: 20,
         padding: 20,
         minHeight: 420,
@@ -535,7 +535,7 @@ function ConductStage({ accent }: { accent: string }) {
               aspectRatio: '1.2',
               borderRadius: 12,
               background: i === 3 ? accent : PD.paper2,
-              border: '1px solid rgba(31,36,24,0.1)',
+              border: `1px solid ${pdInkMix(10)}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -560,7 +560,7 @@ function ConductStage({ accent }: { accent: string }) {
               borderRadius: 8,
               background: c,
               opacity: 0.8 - i * 0.08,
-              border: '1px solid rgba(31,36,24,0.1)',
+              border: `1px solid ${pdInkMix(10)}`,
             }}
           />
         ))}
@@ -596,7 +596,7 @@ function RememberStage({ accent }: { accent: string }) {
     <div
       style={{
         background: PD.paper,
-        border: '1px solid rgba(31,36,24,0.14)',
+        border: `1px solid ${pdInkMix(14)}`,
         borderRadius: 20,
         padding: 20,
         minHeight: 420,
@@ -621,7 +621,7 @@ function RememberStage({ accent }: { accent: string }) {
           background: PD.paper2,
           borderRadius: 14,
           padding: '14px 16px',
-          border: `1px solid ${accent}33`,
+          border: `1px solid color-mix(in oklab, ${accent} 20%, transparent)`,
           marginBottom: 10,
         }}
       >

@@ -268,7 +268,7 @@ export function FloatingPearBubble({ active, manifest, names, onJumpTab, onAskMo
           </>
         )}
         {err && (
-          <div style={{ padding: '6px 10px', borderRadius: 7, background: 'rgba(122,45,45,0.08)', fontSize: 11, color: '#7A2D2D', marginBottom: 8 }}>
+          <div style={{ padding: '6px 10px', borderRadius: 7, background: 'var(--pl-chrome-danger-soft, rgba(122,45,45,0.08))', fontSize: 11, color: 'var(--pl-chrome-danger, #7A2D2D)', marginBottom: 8 }}>
             {err}
           </div>
         )}

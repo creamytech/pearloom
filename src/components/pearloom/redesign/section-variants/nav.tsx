@@ -69,7 +69,7 @@ function stickyStyle(sticky: boolean | undefined): CSSProperties {
   return {
     position: 'sticky',
     top: 0,
-    zIndex: 50,
+    zIndex: 'var(--z-sticky)',
     background: 'var(--t-paper)',
     backdropFilter: 'saturate(140%) blur(6px)',
     WebkitBackdropFilter: 'saturate(140%) blur(6px)',
@@ -85,7 +85,7 @@ function linkStyle(active: boolean, base: CSSProperties): CSSProperties {
     textDecoration: 'none',
     cursor: 'pointer',
     background: 'transparent',
-    transition: 'color 180ms cubic-bezier(0.22,1,0.36,1)',
+    transition: 'color var(--pl-dur-fast) var(--pl-ease-out)',
   };
 }
 

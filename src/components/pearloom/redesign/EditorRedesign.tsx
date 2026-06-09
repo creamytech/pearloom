@@ -22,7 +22,7 @@
    on the visual shell.
 */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { ThemedSiteRenderer } from '../site/ThemedSiteRenderer';
@@ -35,6 +35,7 @@ import { EditorTopbar } from './EditorTopbar';
 import { FullSite } from './FullSite';
 import { ThemedSite } from './ThemedSite';
 import { EditorDrawers } from './EditorDrawers';
+import { FirstPressing, shouldPlayFirstPressing } from './FirstPressing';
 import './animations.css';
 
 interface Props {
@@ -96,6 +97,14 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
   const [hover, setHover] = useState<SectionId>(null);
   const [pearOpen, setPearOpen] = useState(false);
   const [pearPrefill, setPearPrefill] = useState<string>('');
+  /* The First Pressing — the once-per-generation reveal. Armed by
+     the wizard via sessionStorage; consumed before first paint so
+     a freshly-woven site opens behind the curtain, not in front
+     of it. useLayoutEffect (not state init) keeps SSR happy. */
+  const [pressing, setPressing] = useState(false);
+  useLayoutEffect(() => {
+    if (shouldPlayFirstPressing(siteSlug)) setPressing(true);
+  }, [siteSlug]);
 
   /* FloatingPearBubble + DesignAdvisor entry points fire window
      events; the shell mounts one listener that owns the state. */
@@ -158,7 +167,9 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
         background: 'var(--cream)',
         fontFamily: 'var(--font-ui)',
         color: 'var(--ink)',
-        transition: 'grid-template-columns 360ms cubic-bezier(0.16,1,0.3,1)',
+        /* 360ms is a coordinated pair with the device-frame width
+           transition below — keep the literal duration, tokenize the curve. */
+        transition: 'grid-template-columns 360ms var(--pl-ease-emphasis)',
       }}
     >
       <EditorTopbar
@@ -237,6 +248,14 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
         onChange={bridge.setManifest}
         siteSlug={siteSlug}
       />
+
+      {pressing && (
+        <FirstPressing
+          manifest={bridge.manifest}
+          names={bridge.names}
+          onDone={() => setPressing(false)}
+        />
+      )}
     </div>
   );
 }
@@ -330,7 +349,8 @@ function EditorCanvas({
           overflow: 'hidden',
           position: 'relative',
           zIndex: 1,
-          transition: 'width 360ms cubic-bezier(0.16, 1, 0.3, 1)',
+          /* 360ms pairs with the shell grid-template-columns transition. */
+          transition: 'width 360ms var(--pl-ease-emphasis)',
           containerType: 'inline-size',
           containerName: 'pl-site',
           /* CRITICAL: flexShrink: 0 stops the canvas flex-column from

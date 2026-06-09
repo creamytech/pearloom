@@ -606,7 +606,7 @@ export function ThemedSite({
                   style={{
                     width: 6, height: 6, borderRadius: '50%',
                     background: s === activeId ? 'var(--t-accent)' : 'var(--t-line)',
-                    transition: 'background 240ms cubic-bezier(0.22,1,0.36,1)',
+                    transition: 'background var(--pl-dur-base) var(--pl-ease-out)',
                   }}
                 />
               ))}
@@ -1765,7 +1765,7 @@ function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
             fontSize: 13, fontWeight: 600, color: 'var(--t-ink)',
             display: 'inline-flex', alignItems: 'center', gap: 6,
             textDecoration: 'none',
-            transition: 'transform 180ms cubic-bezier(0.16,1,0.3,1), border-color 180ms',
+            transition: 'transform var(--pl-dur-fast) var(--pl-ease-emphasis), border-color var(--pl-dur-fast)',
           };
           if (s.url) {
             return (
@@ -2824,7 +2824,7 @@ function TSection({ id, label, children, active, hover, setActive, setHover, edi
               position: 'absolute', inset: 4, borderRadius: 6,
               outline: isActive ? '2px solid var(--lavender-2)' : isHover ? '1.5px dashed var(--lavender-2)' : 'none',
               outlineOffset: -2, pointerEvents: 'none', zIndex: 4,
-              transition: 'outline 180ms cubic-bezier(0.16,1,0.3,1)',
+              transition: 'outline var(--pl-dur-fast) var(--pl-ease-emphasis)',
             }}
           />
           {(isActive || isHover) && !hideHandle && (
@@ -2867,7 +2867,7 @@ function TButton({
     display: 'inline-flex', alignItems: 'center', gap: 6,
     padding: '10px 22px', borderRadius: 999,
     fontSize: 13, fontWeight: 700, cursor: 'pointer',
-    border: 0, transition: 'all 180ms cubic-bezier(0.16,1,0.3,1)',
+    border: 0, transition: 'all var(--pl-dur-fast) var(--pl-ease-emphasis)',
     fontFamily: 'inherit', textDecoration: 'none',
     /* Don't let narrow viewports break button labels character-by-
        character ("R/S/V/P" / "Le/ar/n"). Force the label to stay on

@@ -116,7 +116,7 @@ interface PillProps {
 export function Pill({
   children,
   color = 'transparent',
-  ink = '#1F2418',
+  ink = 'var(--pd-ink, #1F2418)',
   bordered = true,
   onClick,
   style,
@@ -271,13 +271,32 @@ interface PLButtonProps {
   className?: string;
   disabled?: boolean;
 }
+// `ink`, `paper`, and `ghost` carry their own --pd-btn-* variables
+// (defined on `main.pd-landing` in LandingPageWrapper): in dark mode
+// the ink button INVERTS to a cream fill on midnight, the paper
+// button becomes a lifted dark card, and the ghost button's ink
+// strokes flip to cream. `olive`/`butter`/`terra` fills read fine on
+// both papers and stay constant. Fallbacks = light values, so dash
+// consumers outside the landing scope are unchanged.
 const PL_PALETTES = {
-  ink:    { bg: '#1F2418', fg: '#F4ECD8', hover: '#4C5A26' },
+  ink:    {
+    bg: 'var(--pd-btn-ink-bg, #1F2418)',
+    fg: 'var(--pd-btn-ink-fg, #F4ECD8)',
+    hover: 'var(--pd-btn-ink-hover, #4C5A26)',
+  },
   olive:  { bg: '#6B7A3A', fg: '#F4ECD8', hover: '#4C5A26' },
-  paper:  { bg: '#F4ECD8', fg: '#1F2418', hover: '#EADFC4' },
+  paper:  {
+    bg: 'var(--pd-btn-paper-bg, #F4ECD8)',
+    fg: 'var(--pd-btn-paper-fg, #1F2418)',
+    hover: 'var(--pd-btn-paper-hover, #EADFC4)',
+  },
   butter: { bg: '#E8C77A', fg: '#1F2418', hover: '#D4B260' },
   terra:  { bg: '#B5613A', fg: '#F4ECD8', hover: '#8F4828' },
-  ghost:  { bg: 'transparent', fg: '#1F2418', hover: 'rgba(31,36,24,0.06)' },
+  ghost:  {
+    bg: 'transparent',
+    fg: 'var(--pd-ink, #1F2418)',
+    hover: 'color-mix(in oklab, var(--pd-ink, #1F2418) 6%, transparent)',
+  },
 } as const;
 
 const PL_SIZES = {
@@ -314,7 +333,10 @@ export function PLButton({
           : {
               background: p.bg,
               color: p.fg,
-              border: variant === 'ghost' ? '1px solid rgba(31,36,24,0.2)' : 'none',
+              border:
+                variant === 'ghost'
+                  ? '1px solid color-mix(in oklab, var(--pd-ink, #1F2418) 20%, transparent)'
+                  : 'none',
             }),
         padding: s.pad,
         fontSize: s.fs,
@@ -377,34 +399,68 @@ export const DISPLAY_STYLE: CSSProperties = {
 // equivalents reskins the 9 marketing/design dashboard pages
 // without touching their JSX, so the whole product reads as one
 // system. Order of keys preserved so existing consumers compile.
+//
+// 2026-06-09 — editorial-midnight dark mode. Every themed entry is
+// now a `var(--pd-*, <light hex>)` string. The variables are
+// defined ONLY on the landing root (`main.pd-landing` in
+// LandingPageWrapper), where a `prefers-color-scheme: dark` block
+// swaps them to the BRAND.md §10 "editorial midnight" values
+// (warm #0D0B07-family paper, cream #F1EBDC ink, brightened olive,
+// warmed gold). Everywhere else (dash mock pages, marketing/v2)
+// the var() falls back to the unchanged light hex, so those
+// surfaces are pixel-identical. The mascot tones (pear / pearSkin /
+// butter) stay constant — the pear doesn't change color at night.
+//
+// CAREFUL: these values are var() strings now. Never concatenate
+// an alpha suffix onto them (`${PD.olive}33` breaks). Use the
+// `pdInkMix` / `pdShadowMix` helpers below, or
+// `color-mix(in oklab, ${PD.x} N%, transparent)`.
 export const PD = {
   // Surfaces — match v8 cream family
-  paper:    '#F5EFE2',  // was #F4ECD8 — now var(--pl-cream)
-  paper2:   '#EBE3D2',  // was #EADFC4 — now var(--pl-cream-deep)
-  paper3:   '#EBE3D2',  // was #EFE4C3 — collapsed onto cream-deep
-  paperCard:'#FBF7EE',  // was #F7F0DC — now var(--pl-cream-card)
-  paperDeep:'#EBE3D2',  // was #F1E6C8 — collapsed onto cream-deep
+  paper:    'var(--pd-paper, #F5EFE2)',     // light: --pl-cream        · dark: #0D0B07
+  paper2:   'var(--pd-paper2, #EBE3D2)',    // light: --pl-cream-deep   · dark: #15110A
+  paper3:   'var(--pd-paper3, #EBE3D2)',    // collapsed onto cream-deep
+  paperCard:'var(--pd-paperCard, #FBF7EE)', // light: --pl-cream-card   · dark: #1A1610
+  paperDeep:'var(--pd-paperDeep, #EBE3D2)', // collapsed onto cream-deep
   // Ink — match v8 ink family
-  ink:      '#0E0D0B',  // was #1F2418 — now var(--pl-ink)
-  inkSoft:  '#3A332C',  // was #4A4A3A — now var(--pl-ink-soft)
+  ink:      'var(--pd-ink, #0E0D0B)',       // dark: cream #F1EBDC
+  inkSoft:  'var(--pd-inkSoft, #3A332C)',   // dark: #D4CDBC
   // Brand voice — olive (primary), peach-ink (accent)
-  olive:    '#5C6B3F',  // was #6B7A3A — now var(--pl-olive)
-  oliveDeep:'#363F22',  // was #4C5A26 — matches v8 olive-deep
-  // Pearloom mascot warm tones — kept (these are brand-unique)
+  olive:    'var(--pd-olive, #5C6B3F)',     // dark: brightened #A4B57A
+  oliveDeep:'var(--pd-oliveDeep, #363F22)', // dark: #8A9A60
+  // Pearloom mascot warm tones — constant in both modes
   pear:     '#B8C96B',
   pearSkin: '#D5DE86',
   butter:   '#E8C77A',
   // Gold + Terra — align with v8 gold + peach-ink
-  gold:     '#B8935A',  // was #B89244 — now var(--pl-gold)
-  terra:    '#C6703D',  // was #B5613A — now matches editor peach-ink
-  // Specialty — kept
-  rose:     '#D9A89E',
-  plum:     '#7A2D2D',  // was #704A5A — now var(--pl-plum)
-  stone:    '#C8BFA5',
+  gold:     'var(--pd-gold, #B8935A)',      // dark: warmed #D4B373
+  terra:    'var(--pd-terra, #C6703D)',     // dark: #D67852 (warning-dark family)
+  // Specialty
+  rose:     'var(--pd-rose, #D9A89E)',      // dark: muted #C08A7E
+  plum:     'var(--pd-plum, #7A2D2D)',      // dark: #C46A6A
+  stone:    'var(--pd-stone, #C8BFA5)',     // dark: #6E6553
   // Lines + grain
-  line:     '#D8CFB8',  // was #D4C9AC — now var(--pl-divider)
-  sand:     '#E8DCB4',
-  wash:     '#E8D9D3',
-  blush:    '#E3DCC0',
-  mint:     '#DCDFB8',
+  line:     'var(--pd-line, #D8CFB8)',      // dark: --pl-divider #2A241A
+  sand:     'var(--pd-sand, #E8DCB4)',      // dark: #2B2412 (golden midnight)
+  wash:     'var(--pd-wash, #E8D9D3)',      // dark: #2A1F1C (rosy midnight)
+  blush:    'var(--pd-blush, #E3DCC0)',     // dark: #2A2418 (warm midnight)
+  mint:     'var(--pd-mint, #DCDFB8)',      // dark: #232813 (green midnight)
+  // Ink-slab surfaces (testimonials band, footer). In light mode
+  // these equal ink/paper; in dark mode the slab LIFTS slightly
+  // above the page paper (#1A1610) instead of inverting to cream,
+  // so the already-dark sections stay distinguishable.
+  slab:     'var(--pd-slab, #0E0D0B)',      // dark: lifted #1A1610
+  slabInk:  'var(--pd-slabInk, #F5EFE2)',   // dark: cream #F1EBDC
 } as const;
+
+/** Translucent ink — replaces the old hardcoded `rgba(31,36,24,N)`
+ *  hairlines/borders so they flip to cream-based lines in dark mode.
+ *  `pct` is 0–100. */
+export const pdInkMix = (pct: number) =>
+  `color-mix(in oklab, var(--pd-ink, #0E0D0B) ${pct}%, transparent)`;
+
+/** Shadow color — stays dark in BOTH modes (a cream-based shadow
+ *  would read as a glow on midnight paper). Light: warm ink.
+ *  Dark: black, matching the --pl-shadow-* dark family. */
+export const pdShadowMix = (pct: number) =>
+  `color-mix(in oklab, var(--pd-shadow, #1F2418) ${pct}%, transparent)`;

@@ -483,7 +483,7 @@ function SectionFrame({
               outline: isActive ? '2px solid var(--lavender-2)' : isHover ? '1.5px dashed var(--lavender-2)' : 'none',
               outlineOffset: -2,
               pointerEvents: 'none',
-              transition: 'outline-color 180ms cubic-bezier(0.16,1,0.3,1)',
+              transition: 'outline-color var(--pl-dur-fast) var(--pl-ease-emphasis)',
             }}
           />
           {(isActive || isHover) && !hideHandle && (

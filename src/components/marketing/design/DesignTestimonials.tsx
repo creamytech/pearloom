@@ -5,7 +5,7 @@
 // Matches design bundle's testimonials.jsx.
 
 import { Bloom, Swirl } from '@/components/brand/groove';
-import { Ornament, Pearl, Pill, PD, DISPLAY_STYLE } from './DesignAtoms';
+import { Ornament, Pearl, Pill, PD, DISPLAY_STYLE, pdInkMix } from './DesignAtoms';
 
 const QUOTES = [
   {
@@ -43,8 +43,12 @@ export function DesignTestimonials() {
     <section
       style={{
         padding: 'clamp(56px, 12vw, 140px) clamp(20px, 5vw, 24px)',
-        background: PD.ink,
-        color: PD.paper,
+        // Slab, not ink: in light mode this IS the ink (dark band on
+        // cream); in dark mode it lifts slightly above the midnight
+        // page paper instead of inverting to cream, so the section
+        // stays a distinguishable dark slab.
+        background: PD.slab,
+        color: PD.slabInk,
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -87,7 +91,7 @@ export function DesignTestimonials() {
 
       <div style={{ maxWidth: 1320, margin: '0 auto', position: 'relative', zIndex: 1 }}>
         <div style={{ textAlign: 'center', marginBottom: 72, maxWidth: 820, marginInline: 'auto' }}>
-          <Pill color="transparent" ink={PD.paper} style={{ marginBottom: 18, borderColor: PD.paper }}>
+          <Pill color="transparent" ink={PD.slabInk} style={{ marginBottom: 18, borderColor: PD.slabInk }}>
             <Pearl size={7} /> LOVE NOTES
           </Pill>
           <h2
@@ -98,7 +102,7 @@ export function DesignTestimonials() {
               margin: 0,
               fontWeight: 400,
               letterSpacing: '-0.025em',
-              color: PD.paper,
+              color: PD.slabInk,
             }}
           >
             Forty-two thousand days,
@@ -175,7 +179,7 @@ export function DesignTestimonials() {
                   alignItems: 'center',
                   gap: 10,
                   paddingTop: 16,
-                  borderTop: '1px solid rgba(31,36,24,0.15)',
+                  borderTop: `1px solid ${pdInkMix(15)}`,
                 }}
               >
                 <Ornament size={14} color={PD.olive} />

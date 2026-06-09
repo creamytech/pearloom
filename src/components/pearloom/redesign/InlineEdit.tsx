@@ -151,7 +151,7 @@ export function InlineEdit({
            start typing). */
         minHeight: '1em',
         minWidth: 8,
-        transition: 'outline 120ms',
+        transition: 'outline var(--pl-dur-subtle)',
       }}
       /* Initial DOM content — uncontrolled. The effect above syncs
          on prop changes when not focused. */

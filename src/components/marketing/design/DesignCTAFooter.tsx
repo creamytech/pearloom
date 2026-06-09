@@ -148,7 +148,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
             height: 400,
             background: PD.pear,
             borderRadius: '62% 38% 54% 46% / 49% 58% 42% 51%',
-            opacity: 0.4,
+            opacity: 'calc(0.4 * var(--pd-wash-fade, 1))',
             filter: 'blur(40px)',
           }}
         />
@@ -162,7 +162,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
             height: 300,
             background: PD.butter,
             borderRadius: '55% 45% 38% 62% / 38% 52% 48% 62%',
-            opacity: 0.35,
+            opacity: 'calc(0.35 * var(--pd-wash-fade, 1))',
             filter: 'blur(30px)',
           }}
         />
@@ -228,8 +228,11 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
       {/* ── Footer ──────────────────────────────────────────── */}
       <footer
         style={{
-          background: PD.ink,
-          color: PD.paper,
+          // Slab, not ink — the footer is already dark; in dark mode
+          // it lifts slightly above the midnight page instead of
+          // inverting (see DesignAtoms PD.slab).
+          background: PD.slab,
+          color: PD.slabInk,
           padding: 'clamp(40px, 7vw, 72px) clamp(20px, 5vw, 24px) 40px',
           position: 'relative',
           overflow: 'hidden',
@@ -243,12 +246,12 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
               gridTemplateColumns: '1.4fr 1fr 1fr 1fr',
               gap: 40,
               paddingBottom: 48,
-              borderBottom: '1px solid rgba(244,236,216,0.14)',
+              borderBottom: `1px solid color-mix(in oklab, ${PD.slabInk} 14%, transparent)`,
             }}
           >
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
-                <Pear size={40} color={PD.pear} stem={PD.paper} leaf={PD.olive} />
+                <Pear size={40} color={PD.pear} stem={PD.slabInk} leaf={PD.olive} />
                 <span
                   style={{
                     ...DISPLAY_STYLE,
@@ -308,7 +311,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
                         fontSize: 14,
                         opacity: 0.8,
                         textDecoration: 'none',
-                        color: PD.paper,
+                        color: PD.slabInk,
                         fontFamily: 'var(--pl-font-body)',
                       }}
                     >
@@ -335,8 +338,8 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
           >
             <div>© 2026 Pearloom, Inc. · Set, like type.</div>
             <div style={{ display: 'flex', gap: 18 }}>
-              <a href="/privacy" style={{ color: PD.paper, textDecoration: 'none' }}>Privacy</a>
-              <a href="/terms" style={{ color: PD.paper, textDecoration: 'none' }}>Terms</a>
+              <a href="/privacy" style={{ color: PD.slabInk, textDecoration: 'none' }}>Privacy</a>
+              <a href="/terms" style={{ color: PD.slabInk, textDecoration: 'none' }}>Terms</a>
             </div>
           </div>
 
@@ -351,7 +354,9 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
               marginTop: 40,
               whiteSpace: 'nowrap',
               textAlign: 'center',
-              color: '#2C3022',
+              // Barely-there olive-ink on the slab; the dark-mode
+              // value keeps the same whisper on the lifted slab.
+              color: 'var(--pd-wordmark, #2C3022)',
               letterSpacing: '-0.035em',
               userSelect: 'none',
               fontVariationSettings: '"SOFT" 60, "opsz" 144',

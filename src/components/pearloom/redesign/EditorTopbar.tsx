@@ -128,7 +128,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
             fontSize: 11.5,
             color: saveActive ? 'var(--peach-ink)' : 'var(--ink-muted)',
             fontWeight: saveActive ? 600 : 500,
-            transition: 'background 240ms cubic-bezier(0.16,1,0.3,1), padding 240ms, color 240ms',
+            transition: 'background var(--pl-dur-base) var(--pl-ease-emphasis), padding var(--pl-dur-base), color var(--pl-dur-base)',
           }}
         >
           <span
@@ -286,12 +286,12 @@ function GoLiveBadge({ manifest }: { manifest: StoryManifest }) {
         display: 'inline-flex', alignItems: 'center', gap: 6,
         padding: '4px 10px',
         borderRadius: 999,
-        background: isLive ? '#A14A2C' : 'var(--peach-bg)',
+        background: isLive ? 'var(--pl-chrome-danger, #A14A2C)' : 'var(--peach-bg)',
         color: isLive ? '#fff' : 'var(--peach-ink)',
         border: isLive ? 'none' : '1px solid rgba(198,112,61,0.18)',
         fontSize: 11.5, fontWeight: 700,
         cursor: 'pointer',
-        transition: 'transform 140ms',
+        transition: 'transform var(--pl-dur-quick)',
       }}
       onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}

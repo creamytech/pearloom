@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import { Bloom, Sparkle } from '@/components/brand/groove';
-import { Ornament, Pill, PD, DISPLAY_STYLE } from './DesignAtoms';
+import { Ornament, Pill, PD, DISPLAY_STYLE, pdInkMix } from './DesignAtoms';
 
 const QS = [
   {
@@ -51,8 +51,8 @@ export function DesignFAQ() {
       style={{
         padding: 'clamp(48px, 10vw, 120px) clamp(20px, 5vw, 24px)',
         background: PD.paper3,
-        borderTop: '1px solid rgba(31,36,24,0.1)',
-        borderBottom: '1px solid rgba(31,36,24,0.1)',
+        borderTop: `1px solid ${pdInkMix(10)}`,
+        borderBottom: `1px solid ${pdInkMix(10)}`,
         position: 'relative',
         scrollMarginTop: 96,
       }}
@@ -102,10 +102,10 @@ export function DesignFAQ() {
                 key={x.q}
                 onClick={() => setOpen(isOpen ? -1 : i)}
                 style={{
-                  borderTop: '1px solid rgba(31,36,24,0.15)',
+                  borderTop: `1px solid ${pdInkMix(15)}`,
                   padding: '24px 4px',
                   cursor: 'pointer',
-                  borderBottom: i === QS.length - 1 ? '1px solid rgba(31,36,24,0.15)' : 'none',
+                  borderBottom: i === QS.length - 1 ? `1px solid ${pdInkMix(15)}` : 'none',
                 }}
               >
                 <div
@@ -136,7 +136,7 @@ export function DesignFAQ() {
                       width: 26,
                       height: 26,
                       borderRadius: 999,
-                      border: '1px solid rgba(31,36,24,0.3)',
+                      border: `1px solid ${pdInkMix(30)}`,
                       display: 'inline-flex',
                       alignItems: 'center',
                       justifyContent: 'center',

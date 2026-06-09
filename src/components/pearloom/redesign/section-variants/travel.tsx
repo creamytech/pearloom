@@ -56,7 +56,7 @@ function HotelWrap({ h, children, style }: { h: Hotel; children: React.ReactNode
     ...style,
     textDecoration: 'none',
     color: 'inherit',
-    transition: 'transform 200ms cubic-bezier(0.16,1,0.3,1), border-color 200ms, box-shadow 200ms',
+    transition: 'transform var(--pl-dur-fast) var(--pl-ease-emphasis), border-color var(--pl-dur-fast), box-shadow var(--pl-dur-fast)',
     display: 'block',
   };
   if (h.bookingUrl) {

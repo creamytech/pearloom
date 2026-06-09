@@ -2957,6 +2957,16 @@ html { scroll-behavior: smooth; }
   animation: pl-icon-draw 800ms ease-out;
 }
 
+/* Honour reduced motion — the tile-hover previews above bypass the
+   [data-pl-icon-anim] guard (they key off data-pl-tile-hover), so
+   they need their own off-switch. One-shot hover flourishes whose
+   base state is fully visible — animation: none is sufficient. */
+@media (prefers-reduced-motion: reduce) {
+  [data-pl-tile-hover="1"] svg g {
+    animation: none !important;
+  }
+}
+
 /* "Live now" pulse on schedule rows during the event window. */
 @keyframes pl8-live-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
@@ -8021,6 +8031,27 @@ html { scroll-behavior: smooth; }
 @keyframes pl-drop-line-pop {
   from { transform: scaleX(0); opacity: 0; }
   to   { transform: scaleX(1); opacity: 1; }
+}
+/* Honour reduced motion — consumers attach the animation via inline
+   style (redesign SectionRail drop line + add-section menu), so the
+   guard keys off the style attribute, same pattern as
+   pl8-skeleton-shimmer. End state is visible: force it. */
+@media (prefers-reduced-motion: reduce) {
+  *[style*="pl-drop-line-pop"] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  /* Redesign mobile-nav drawers (pl-navmob-fade / -slide-x /
+     -slide-y / -pop) — keyframes are injected from nav-mobile.tsx,
+     consumed via inline style with `forwards` fill. The pop items
+     start at inline opacity: 0, so the guard must restore the
+     final visible state, matching pl8-drop-indicator. */
+  *[style*="pl-navmob"] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 /* ──────────────────────────────────────────────────────────

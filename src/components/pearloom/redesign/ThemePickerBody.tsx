@@ -308,7 +308,7 @@ function GenerateCard({ manifest, onChange }: { manifest: StoryManifest; onChang
           </div>
         )}
         {err && (
-          <div style={{ padding: '8px 10px', borderRadius: 9, background: 'rgba(122,45,45,0.10)', fontSize: 11.5, color: '#7A2D2D' }}>
+          <div style={{ padding: '8px 10px', borderRadius: 9, background: 'var(--pl-chrome-danger-soft, rgba(122,45,45,0.10))', fontSize: 11.5, color: 'var(--pl-chrome-danger, #7A2D2D)' }}>
             {err}
           </div>
         )}
@@ -612,8 +612,8 @@ function LegibilityNote({ manifest, theme, onChange }: { manifest: StoryManifest
   const highTex = intensity > 1.1;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, color: pass ? 'var(--sage-deep)' : '#b4543a' }}>
-        <Icon name={pass ? 'check' : 'eye-off'} size={13} color={pass ? 'var(--sage-deep)' : '#b4543a'} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, color: pass ? 'var(--sage-deep)' : 'var(--pl-chrome-danger, #b4543a)' }}>
+        <Icon name={pass ? 'check' : 'eye-off'} size={13} color={pass ? 'var(--sage-deep)' : 'var(--pl-chrome-danger, #b4543a)'} />
         {pass ? `Text contrast AA · ${ratio.toFixed(1)}:1` : `Low contrast · ${ratio.toFixed(1)}:1`}
       </div>
       {highTex && (
@@ -729,7 +729,7 @@ function MatchMyPhotos({ manifest, onChange }: { manifest: StoryManifest; onChan
         )}
       </div>
       {err && (
-        <div style={{ padding: '6px 10px', borderRadius: 7, background: 'rgba(122,45,45,0.08)', fontSize: 11.5, color: '#7A2D2D' }}>
+        <div style={{ padding: '6px 10px', borderRadius: 7, background: 'var(--pl-chrome-danger-soft, rgba(122,45,45,0.08))', fontSize: 11.5, color: 'var(--pl-chrome-danger, #7A2D2D)' }}>
           {err}
         </div>
       )}
@@ -817,7 +817,7 @@ function Toggle({ on, set }: { on: boolean; set: (v: boolean) => void }) {
         position: 'relative', border: 'none', cursor: 'pointer',
       }}
     >
-      <span style={{ position: 'absolute', top: 2, left: on ? 18 : 2, width: 18, height: 18, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,0.15)', transition: 'left 160ms ease' }} />
+      <span style={{ position: 'absolute', top: 2, left: on ? 18 : 2, width: 18, height: 18, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,0.15)', transition: 'left var(--pl-dur-fast) ease' }} />
     </button>
   );
 }

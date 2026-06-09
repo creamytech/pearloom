@@ -1211,7 +1211,9 @@ export function DashGuests() {
                             borderRadius: 999,
                             background: r.bg,
                             color: r.fg,
-                            border: `1px solid ${r.fg}26`,
+                            // r.fg is a var(--pd-*) string now — alpha
+                            // suffixes can't be concatenated onto it.
+                            border: `1px solid color-mix(in oklab, ${r.fg} 15%, transparent)`,
                           }}
                         >
                           {r.label}
