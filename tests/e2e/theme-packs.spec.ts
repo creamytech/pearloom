@@ -108,7 +108,7 @@ for (const pack of PACKS) {
    is intentional: PR'ing a new pack should require updating this
    number so the addition is deliberate and the diff list explicit.
    (58 → 62 on 2026-06-09: First Thread, Magnolia Porch, Gilded
-   Coupe, Paper Lanterns; 62 → 70 same day: Opera House, The Gallery, Tasting Menu, Sakura Drift, Mirrorball, Conservatory, Noël Press, Safe Harbor.) *
+   Coupe, Paper Lanterns; 62 → 70 same day: Opera House, The Gallery, Tasting Menu, Sakura Drift, Mirrorball, Conservatory, Noël Press, Safe Harbor.) */
 test('pack catalog count is stable', () => {
   expect(PACKS.length).toBe(70);
 });
