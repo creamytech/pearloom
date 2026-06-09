@@ -10,18 +10,46 @@
 
 import { Sprout } from 'lucide-react';
 import { Bloom, Swirl, ThreadStrand } from '@/components/brand/groove';
-import { HeroPear, Pear, Pearl, Pill, PLButton, PD, DISPLAY_STYLE, MONO_STYLE } from './DesignAtoms';
+import { Pear, Pearl, Pill, PLButton, PD, DISPLAY_STYLE, MONO_STYLE } from './DesignAtoms';
 import { Fragment } from 'react';
 
 interface DesignCTAFooterProps {
   onGetStarted: () => void;
 }
 
-const FOOTER_COLS: Array<{ h: string; l: string[] }> = [
-  { h: 'The product', l: ['The three acts', 'The Director', 'Occasions', 'Blocks', 'Changelog', 'Status'] },
-  { h: 'Occasions', l: ['Weddings', 'Memorials', 'Anniversaries', 'Milestones', 'Showers'] },
-  { h: 'The house', l: ['About', 'Manifesto', 'Careers', 'Press kit', 'Contact'] },
-  { h: 'The small print', l: ['Help', 'Host playbook', 'Privacy', 'Terms', "Pear's promise"] },
+// Every entry points somewhere real — on-page anchors or live
+// routes. Dead `href="#"` rows (Blocks, Changelog, Status, the
+// whole "The house" column, Help, Host playbook, Pear's promise,
+// the social glyphs) were removed: a shorter honest footer beats
+// a dead one.
+const FOOTER_COLS: Array<{ h: string; l: Array<[string, string]> }> = [
+  {
+    h: 'The product',
+    l: [
+      ['The three acts', '#acts'],
+      ['The Director', '#director'],
+      ['Occasions', '#occasions'],
+      ['Pricing', '#pricing'],
+      ['Journal', '#journal'],
+    ],
+  },
+  {
+    h: 'Occasions',
+    l: [
+      ['Weddings', '#occasions'],
+      ['Memorials', '#occasions'],
+      ['Anniversaries', '#occasions'],
+      ['Milestones', '#occasions'],
+      ['Showers', '#occasions'],
+    ],
+  },
+  {
+    h: 'The small print',
+    l: [
+      ['Privacy', '/privacy'],
+      ['Terms', '/terms'],
+    ],
+  },
 ];
 
 export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
@@ -42,7 +70,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
         >
           <div>
             <Pill style={{ marginBottom: 16 }}>
-              <Sprout size={11} stroke={PD.terra} strokeWidth={1.6} /> PEAR&rsquo;S PROMISE
+              <Sprout size={11} stroke={PD.olive} strokeWidth={1.6} /> PEAR&rsquo;S PROMISE
             </Pill>
             <h3
               style={{
@@ -84,6 +112,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <div style={{ position: 'relative', width: 220, height: 220 }}>
               <div
+                className="pd-anim"
                 style={{ position: 'absolute', inset: 0, animation: 'pl-spin-slow 50s linear infinite' }}
                 aria-hidden
               >
@@ -137,12 +166,14 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
             filter: 'blur(30px)',
           }}
         />
-        <div style={{ position: 'absolute', top: 60, right: '18%', opacity: 0.5 }} aria-hidden>
+        <div className="pd-anim" style={{ position: 'absolute', top: 60, right: '18%', opacity: 0.5 }} aria-hidden>
           <Bloom size={80} color={PD.butter} centerColor={PD.terra} speed={4} />
         </div>
 
-        <div style={{ maxWidth: 1080, margin: '0 auto', position: 'relative', textAlign: 'center' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
+        {/* Extra top padding keeps the closing CTA clear of the
+            sticky nav pill at natural scroll stops. */}
+        <div style={{ maxWidth: 1080, margin: '0 auto', position: 'relative', textAlign: 'center', paddingTop: 32 }}>
+          <div className="pd-anim" style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
             <ThreadStrand length={120} height={14} />
           </div>
           <h2
@@ -181,14 +212,14 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
             with you until the last toast is set, like type.
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <PLButton variant="ink" size="lg" onClick={onGetStarted}>
+            <PLButton variant="pearl" size="lg" onClick={onGetStarted}>
               Begin a thread <Pearl size={9} />
             </PLButton>
             <PLButton variant="ghost" size="lg">
               Read a real site ↗
             </PLButton>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 40 }}>
+          <div className="pd-anim" style={{ display: 'flex', justifyContent: 'center', marginTop: 40 }}>
             <ThreadStrand length={120} height={14} />
           </div>
         </div>
@@ -209,7 +240,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
             className="pd-footer-cols"
             style={{
               display: 'grid',
-              gridTemplateColumns: '1.4fr 1fr 1fr 1fr 1fr',
+              gridTemplateColumns: '1.4fr 1fr 1fr 1fr',
               gap: 40,
               paddingBottom: 48,
               borderBottom: '1px solid rgba(244,236,216,0.14)',
@@ -254,30 +285,6 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
               >
                 Made with care in Lisbon and Brooklyn.
               </p>
-              <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
-                {['✦', '◎', '◆', '❋'].map((x, i) => (
-                  <a
-                    key={i}
-                    href="#"
-                    style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: 999,
-                      border: '1px solid rgba(244,236,216,0.3)',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: 14,
-                      opacity: 0.75,
-                      textDecoration: 'none',
-                      color: PD.paper,
-                      fontFamily: '"Fraunces", Georgia, serif',
-                    }}
-                  >
-                    {x}
-                  </a>
-                ))}
-              </div>
             </div>
 
             {FOOTER_COLS.map((col) => (
@@ -293,10 +300,10 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
                   {col.h.toUpperCase()}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {col.l.map((x) => (
+                  {col.l.map(([label, href]) => (
                     <a
-                      key={x}
-                      href="#"
+                      key={label}
+                      href={href}
                       style={{
                         fontSize: 14,
                         opacity: 0.8,
@@ -305,7 +312,7 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
                         fontFamily: 'var(--pl-font-body)',
                       }}
                     >
-                      {x}
+                      {label}
                     </a>
                   ))}
                 </div>
@@ -328,9 +335,8 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
           >
             <div>© 2026 Pearloom, Inc. · Set, like type.</div>
             <div style={{ display: 'flex', gap: 18 }}>
-              <a href="#" style={{ color: PD.paper, textDecoration: 'none' }}>Privacy</a>
-              <a href="#" style={{ color: PD.paper, textDecoration: 'none' }}>Terms</a>
-              <a href="#" style={{ color: PD.paper, textDecoration: 'none' }}>Cookies</a>
+              <a href="/privacy" style={{ color: PD.paper, textDecoration: 'none' }}>Privacy</a>
+              <a href="/terms" style={{ color: PD.paper, textDecoration: 'none' }}>Terms</a>
             </div>
           </div>
 
@@ -356,12 +362,6 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
         </div>
       </footer>
 
-      {/* Use the hero pear here to prevent unused-import TS errors if
-          present; safely no-op-rendered offscreen. */}
-      <div aria-hidden style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-        <HeroPear size={1} />
-      </div>
-
       <style jsx>{`
         @media (max-width: 900px) {
           :global(.pd-promise-grid) {
@@ -370,6 +370,12 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
           }
           :global(.pd-footer-cols) {
             grid-template-columns: 1fr 1fr !important;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          :global(.pd-anim),
+          :global(.pd-anim *) {
+            animation: none !important;
           }
         }
       `}</style>

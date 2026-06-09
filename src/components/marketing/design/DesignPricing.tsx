@@ -6,7 +6,7 @@
 import { Leaf, Pearl, Pill, PLButton, PD, DISPLAY_STYLE, MONO_STYLE } from './DesignAtoms';
 
 type TierName = 'Journal' | 'Atelier' | 'Legacy';
-type BtnVariant = 'ghost' | 'butter' | 'ink';
+type BtnVariant = 'ghost' | 'pearl' | 'ink';
 
 interface Tier {
   name: TierName;
@@ -56,7 +56,10 @@ const TIERS: Tier[] = [
     bg: PD.ink,
     fg: PD.paper,
     accent: PD.butter,
-    btn: 'butter',
+    // Pearl, not a gold-filled button — gold is never a background
+    // (BRAND.md §5); the pearl is the documented highlighted-tier
+    // treatment (CLAUDE-DESIGN.md §6.5).
+    btn: 'pearl',
     featured: true,
   },
   {
@@ -94,6 +97,7 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
             <Pearl size={7} /> ONE-TIME, NOT A SUBSCRIPTION
           </Pill>
           <h2
+            className="pl-letterpress"
             style={{
               ...DISPLAY_STYLE,
               fontSize: 'clamp(40px, 5.5vw, 76px)',
@@ -281,6 +285,12 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
         @media (max-width: 900px) {
           :global(.pd-pricing-grid) {
             grid-template-columns: 1fr !important;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          :global(.pd-anim),
+          :global(.pd-anim *) {
+            animation: none !important;
           }
         }
       `}</style>

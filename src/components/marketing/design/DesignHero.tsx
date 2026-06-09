@@ -81,6 +81,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
     <section style={{ position: 'relative', padding: '56px 24px 160px', overflow: 'hidden' }}>
       {/* Floating curvy background blobs */}
       <div
+        className="pd-anim"
         style={{
           position: 'absolute',
           top: -80,
@@ -95,6 +96,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
         }}
       />
       <div
+        className="pd-anim"
         style={{
           position: 'absolute',
           top: 340,
@@ -109,6 +111,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
         }}
       />
       <div
+        className="pd-anim"
         style={{
           position: 'absolute',
           bottom: 40,
@@ -125,12 +128,13 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
 
       {/* Groovy swirl, bloom, sparkles */}
       <div
+        className="pd-anim"
         style={{ position: 'absolute', top: 80, right: '48%', opacity: 0.28, animation: 'pl-spin-slow 80s linear infinite' }}
         aria-hidden
       >
         <Swirl size={140} color={PD.olive} strokeWidth={1.6} />
       </div>
-      <div style={{ position: 'absolute', bottom: 120, right: 40, opacity: 0.45 }} aria-hidden>
+      <div className="pd-anim" style={{ position: 'absolute', bottom: 120, right: 40, opacity: 0.45 }} aria-hidden>
         <Bloom size={110} color={PD.pear} centerColor={PD.olive} speed={4} />
       </div>
       <div style={{ position: 'absolute', top: 180, left: 40 }} aria-hidden>
@@ -254,7 +258,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
           </div>
 
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 44 }}>
-            <PLButton variant="ink" size="lg" onClick={onGetStarted}>
+            <PLButton variant="pearl" size="lg" onClick={onGetStarted}>
               Start your loom <Pearl size={9} />
             </PLButton>
             <PLButton variant="ghost" size="lg">
@@ -290,7 +294,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
             {([
               { n: '42,000', l: 'days, already threaded', c: PD.olive },
               { n: '28', l: 'occasions, one voice each', c: PD.gold },
-              { n: '8 min', l: 'from hello to published', c: PD.terra },
+              { n: '8 min', l: 'from hello to published', c: PD.olive },
             ] as const).map((s, i) => (
               <div key={s.l} style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
                 <div>
@@ -327,6 +331,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
         {/* ── Right column — animated preview ─────────────── */}
         <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <div
+            className="pd-anim"
             style={{
               position: 'absolute',
               top: -40,
@@ -339,6 +344,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
             <HeroPear size={200} />
           </div>
           <div
+            className="pd-anim"
             style={{
               position: 'absolute',
               bottom: -30,
@@ -350,6 +356,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
             <Leaf size={64} color={PD.olive} rotate={35} />
           </div>
           <div
+            className="pd-anim"
             style={{
               position: 'absolute',
               top: 60,
@@ -607,6 +614,15 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
           :global(.pd-hero-grid) {
             grid-template-columns: 1fr !important;
             gap: 80px !important;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          :global(.pd-anim),
+          :global(.pd-anim *) {
+            animation: none !important;
+          }
+          :global(.pd-anim-draw) {
+            stroke-dashoffset: 0 !important;
           }
         }
       `}</style>

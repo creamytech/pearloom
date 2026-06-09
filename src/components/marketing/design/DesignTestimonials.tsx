@@ -78,10 +78,10 @@ export function DesignTestimonials() {
           filter: 'blur(30px)',
         }}
       />
-      <div style={{ position: 'absolute', top: 60, left: 40, opacity: 0.4 }} aria-hidden>
+      <div className="pd-anim" style={{ position: 'absolute', top: 60, left: 40, opacity: 0.4 }} aria-hidden>
         <Bloom size={90} color={PD.butter} centerColor={PD.olive} speed={8} />
       </div>
-      <div style={{ position: 'absolute', bottom: 80, right: 60, opacity: 0.3 }} aria-hidden>
+      <div className="pd-anim" style={{ position: 'absolute', bottom: 80, right: 60, opacity: 0.3 }} aria-hidden>
         <Swirl size={90} color={PD.butter} strokeWidth={1.4} />
       </div>
 
@@ -234,6 +234,12 @@ export function DesignTestimonials() {
         @media (max-width: 820px) {
           :global(.pd-testimonials-grid) {
             grid-template-columns: 1fr !important;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          :global(.pd-anim),
+          :global(.pd-anim *) {
+            animation: none !important;
           }
         }
       `}</style>

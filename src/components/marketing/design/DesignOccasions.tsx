@@ -240,6 +240,7 @@ export function DesignOccasions({ onGetStarted }: DesignOccasionsProps) {
               <Leaf size={11} color={PD.olive} /> TWENTY-EIGHT OCCASIONS
             </Pill>
             <h2
+              className="pl-letterpress"
               style={{
                 ...DISPLAY_STYLE,
                 fontSize: 'clamp(40px, 5.5vw, 76px)',
@@ -292,7 +293,9 @@ export function DesignOccasions({ onGetStarted }: DesignOccasionsProps) {
           ))}
         </div>
 
-        <div style={{ marginTop: 48, textAlign: 'center' }}>
+        {/* Generous top padding so the CTA never sits tucked under the
+            sticky nav pill at natural scroll stops. */}
+        <div style={{ marginTop: 48, paddingTop: 48, textAlign: 'center' }}>
           <div style={{ ...MONO_STYLE, fontSize: 11, opacity: 0.6, marginBottom: 16 }}>
             — AND SIXTEEN MORE, QUIETLY WAITING —
           </div>
@@ -311,6 +314,12 @@ export function DesignOccasions({ onGetStarted }: DesignOccasionsProps) {
         @media (max-width: 760px) {
           :global(.pd-occasions-grid) {
             grid-template-columns: repeat(2, 1fr) !important;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          :global(.pd-anim),
+          :global(.pd-anim *) {
+            animation: none !important;
           }
         }
       `}</style>

@@ -41,6 +41,7 @@ export function Pear({
       height={size}
       viewBox="0 0 100 100"
       fill="none"
+      className={animated ? 'pd-anim' : undefined}
       style={{ display: 'block', animation: animated ? 'pl-float-y 4s ease-in-out infinite' : undefined, ...style }}
     >
       <path d="M50 20 C 47 12, 43 7, 38 9" stroke={stem} strokeWidth="3" strokeLinecap="round" fill="none" />
@@ -66,6 +67,7 @@ export function HeroPear({ size = 420 }: HeroPearProps) {
       width={size}
       height={size}
       viewBox="0 0 400 400"
+      className="pd-anim"
       style={{ animation: 'pl-ripen 12s ease-in-out infinite', display: 'block' }}
     >
       <defs>
@@ -149,6 +151,7 @@ export function Pill({
 export function Pearl({ size = 10, style }: { size?: number; style?: CSSProperties }) {
   return (
     <span
+      className="pd-anim"
       style={{
         display: 'inline-block',
         width: size,
@@ -214,6 +217,7 @@ export function Squiggle({
     >
       <path
         d={`M2 ${height / 2} Q ${width * 0.15} 2, ${width * 0.3} ${height / 2} T ${width * 0.6} ${height / 2} T ${width * 0.9} ${height / 2} T ${width - 2} ${height / 2}`}
+        className={animated ? 'pd-anim pd-anim-draw' : undefined}
         stroke={color}
         strokeWidth={strokeWidth}
         fill="none"
@@ -254,12 +258,17 @@ export function Ornament({ size = 24, color = '#6B7A3A' }: { size?: number; colo
 }
 
 // ── Curvy button with pearl ──────────────────────────────────
+// `pearl` variant composes the global `.pl-pearl-accent` utility
+// (iridescent pearl surface, BRAND.md §6 / CLAUDE-DESIGN.md §6) —
+// it deliberately sets no inline background/color/border so the
+// class (which uses !important) composes cleanly.
 interface PLButtonProps {
   children: ReactNode;
-  variant?: 'ink' | 'olive' | 'paper' | 'butter' | 'terra' | 'ghost';
+  variant?: 'ink' | 'olive' | 'paper' | 'butter' | 'terra' | 'ghost' | 'pearl';
   size?: 'sm' | 'md' | 'lg';
   onClick?: () => void;
   style?: CSSProperties;
+  className?: string;
   disabled?: boolean;
 }
 const PL_PALETTES = {
@@ -283,18 +292,30 @@ export function PLButton({
   size = 'md',
   onClick,
   style,
+  className,
   disabled,
 }: PLButtonProps) {
-  const p = PL_PALETTES[variant];
+  const isPearl = variant === 'pearl';
+  const p = PL_PALETTES[isPearl ? 'ink' : variant];
   const s = PL_SIZES[size];
+  const classes = [className, isPearl ? 'pl-pearl-accent' : undefined]
+    .filter(Boolean)
+    .join(' ');
   return (
     <button
       onClick={onClick}
       disabled={disabled}
+      className={classes || undefined}
       style={{
-        background: p.bg,
-        color: p.fg,
-        border: variant === 'ghost' ? '1px solid rgba(31,36,24,0.2)' : 'none',
+        // Pearl buttons take bg / color / border from the global
+        // .pl-pearl-accent utility — no inline paint to fight it.
+        ...(isPearl
+          ? {}
+          : {
+              background: p.bg,
+              color: p.fg,
+              border: variant === 'ghost' ? '1px solid rgba(31,36,24,0.2)' : 'none',
+            }),
         padding: s.pad,
         fontSize: s.fs,
         fontWeight: 500,
@@ -307,15 +328,16 @@ export function PLButton({
         gap: 10,
         letterSpacing: '-0.005em',
         opacity: disabled ? 0.55 : 1,
+        whiteSpace: 'nowrap',
         ...style,
       }}
       onMouseEnter={(e) => {
         if (disabled) return;
-        e.currentTarget.style.background = p.hover;
+        if (!isPearl) e.currentTarget.style.background = p.hover;
         e.currentTarget.style.transform = 'translateY(-1px)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = p.bg;
+        if (!isPearl) e.currentTarget.style.background = p.bg;
         e.currentTarget.style.transform = 'translateY(0)';
       }}
     >

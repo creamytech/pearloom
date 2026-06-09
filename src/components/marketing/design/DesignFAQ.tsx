@@ -54,12 +54,13 @@ export function DesignFAQ() {
         borderTop: '1px solid rgba(31,36,24,0.1)',
         borderBottom: '1px solid rgba(31,36,24,0.1)',
         position: 'relative',
+        scrollMarginTop: 96,
       }}
     >
-      <div style={{ position: 'absolute', top: 40, right: 60, opacity: 0.4 }} aria-hidden>
+      <div className="pd-anim" style={{ position: 'absolute', top: 40, right: 60, opacity: 0.4 }} aria-hidden>
         <Sparkle size={30} color={PD.gold} />
       </div>
-      <div style={{ position: 'absolute', bottom: 60, left: 80, opacity: 0.4 }} aria-hidden>
+      <div className="pd-anim" style={{ position: 'absolute', bottom: 60, left: 80, opacity: 0.4 }} aria-hidden>
         <Bloom size={90} color={PD.pear} centerColor={PD.olive} speed={9} />
       </div>
 
@@ -69,6 +70,7 @@ export function DesignFAQ() {
             <Ornament size={12} color={PD.olive} /> THE SMALL PRINT
           </Pill>
           <h2
+            className="pl-letterpress"
             style={{
               ...DISPLAY_STYLE,
               fontSize: 'clamp(40px, 5.5vw, 72px)',

@@ -50,18 +50,26 @@ const ACTS: Act[] = [
   },
 ];
 
+// Gold/olive are the only sanctioned PRIMARY accents (BRAND.md §5);
+// terra stays inside the stage illustrations but never on the tab
+// chrome or the act CTA.
+const uiAccent = (c: string) => (c === PD.terra ? PD.olive : c);
+
 export function ThreeActsStage() {
   const [act, setAct] = useState(0);
   const a = ACTS[act];
 
+  // NOTE: the `#acts` anchor lives on the wrapper <section> in
+  // LandingPageWrapper — no id here so the document keeps unique ids.
   return (
-    <section id="acts" style={{ padding: '140px 24px 100px', position: 'relative', overflow: 'hidden' }}>
+    <section style={{ padding: '140px 24px 100px', position: 'relative', overflow: 'hidden' }}>
       <div style={{ maxWidth: 1320, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 72, maxWidth: 780, marginInline: 'auto' }}>
           <Pill color="transparent" style={{ marginBottom: 18 }}>
             <Pearl size={7} /> THE THREE ACTS
           </Pill>
           <h2
+            className="pl-letterpress"
             style={{
               ...DISPLAY_STYLE,
               fontSize: 'clamp(40px, 5.5vw, 80px)',
@@ -87,8 +95,10 @@ export function ThreeActsStage() {
           </h2>
         </div>
 
-        {/* Big tabbed stage */}
+        {/* Big tabbed stage — also the `#director` anchor target
+            (the Conduct act IS the Director; nav + footer link here). */}
         <div
+          id="director"
           style={{
             background: PD.paper3,
             border: '1px solid rgba(31,36,24,0.14)',
@@ -96,9 +106,11 @@ export function ThreeActsStage() {
             padding: 'clamp(24px, 3vw, 48px)',
             position: 'relative',
             overflow: 'hidden',
+            scrollMarginTop: 96,
           }}
         >
           <div
+            className="pd-anim"
             style={{ position: 'absolute', top: -30, right: -30, opacity: 0.3, pointerEvents: 'none' }}
             aria-hidden
           >
@@ -144,7 +156,7 @@ export function ThreeActsStage() {
                     fontStyle: 'italic',
                     fontWeight: 400,
                     letterSpacing: '-0.02em',
-                    color: act === i ? x.accent : 'inherit',
+                    color: act === i ? uiAccent(x.accent) : 'inherit',
                     fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
                   }}
                 >
@@ -158,7 +170,7 @@ export function ThreeActsStage() {
                       left: 0,
                       right: 0,
                       height: 3,
-                      background: x.accent,
+                      background: uiAccent(x.accent),
                       borderRadius: 2,
                     }}
                   />
@@ -205,7 +217,7 @@ export function ThreeActsStage() {
               >
                 {a.p}
               </p>
-              <PLButton variant="ghost" size="md" style={{ borderColor: a.accent, color: a.accent }}>
+              <PLButton variant="ghost" size="md" style={{ borderColor: uiAccent(a.accent), color: uiAccent(a.accent) }}>
                 See act {a.num.toLowerCase()} in motion →
               </PLButton>
             </div>
@@ -223,6 +235,12 @@ export function ThreeActsStage() {
         @media (max-width: 900px) {
           :global(.pd-acts-grid) {
             grid-template-columns: 1fr !important;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          :global(.pd-anim),
+          :global(.pd-anim *) {
+            animation: none !important;
           }
         }
       `}</style>
@@ -295,6 +313,7 @@ function ComposeStage({ accent }: { accent: string }) {
           >
             <span style={{ ...MONO_STYLE, opacity: 0.6, fontSize: 9 }}>threading</span>
             <span
+              className="pd-anim"
               style={{
                 display: 'inline-block',
                 width: 6,
@@ -414,6 +433,7 @@ function ConductStage({ accent }: { accent: string }) {
           </div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: accent, fontFamily: 'var(--pl-font-body)' }}>
             <span
+              className="pd-anim"
               style={{
                 width: 6,
                 height: 6,
