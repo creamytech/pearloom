@@ -491,7 +491,7 @@ export function buildSaveTheDateEmail(opts: SaveTheDateEmailOpts): { subject: st
     </td></tr>
     ${dateVenueBlock}
     <tr><td style="padding:16px 36px 40px;text-align:center">
-      ${button('See the site', opts.ctaUrl, t)}
+      ${button('Open the envelope', opts.ctaUrl, t)}
       <p style="font-size:12px;color:${t.muted};margin:20px 0 0;font-family:${bodyStack}">A formal invitation will follow.</p>
     </td></tr>
   `, t);

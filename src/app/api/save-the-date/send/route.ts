@@ -17,7 +17,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
-import { buildSiteUrl } from '@/lib/site-urls';
+import { getAppOrigin } from '@/lib/site-urls';
 import { suiteThemeFromManifest } from '@/lib/suite/theme';
 import { emailThemeFromSuite, buildSaveTheDateEmail } from '@/lib/email-sequences';
 import type { StoryManifest } from '@/types';
@@ -77,7 +77,6 @@ export async function POST(req: NextRequest) {
       ?? (siteRow.site_config?.names as [string, string] | undefined)
       ?? ['', ''];
     const coupleDisplay = a && b ? `${a} & ${b}` : (a || b || 'Save the date');
-    const occasion = siteRow.site_config?.occasion;
 
     // The Suite contract — palette, fonts, monogram all derive from
     // the couple's pack so the email wears the exact site look.
@@ -94,6 +93,25 @@ export async function POST(req: NextRequest) {
       .eq('site_id', siteRow.id)
       .not('email', 'is', null);
     const guests = (guestRows ?? []).filter((g) => g.email);
+
+    /* Per-guest passport tokens — one batched lookup so each
+       recipient's envelope link personalizes ("Dear Maya") on the
+       reveal page. The guests table doesn't carry the token;
+       pearloom_guests does, keyed by site + lowercased email. */
+    const tokenByEmail = new Map<string, string>();
+    try {
+      const emails = guests.map((g) => String(g.email).toLowerCase());
+      const { data: passportRows } = await supabase
+        .from('pearloom_guests')
+        .select('email, guest_token')
+        .eq('site_id', siteRow.id)
+        .in('email', emails);
+      for (const row of passportRows ?? []) {
+        if (row.email && row.guest_token) tokenByEmail.set(String(row.email).toLowerCase(), String(row.guest_token));
+      }
+    } catch {
+      /* tokens are a nice-to-have — the bare reveal link still works */
+    }
     if (guests.length === 0) {
       return NextResponse.json({ sent: 0, note: 'No guests with email addresses.' });
     }
@@ -103,8 +121,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ sent: guests.length, note: 'No RESEND_API_KEY — dev mode, emails not actually sent.' });
     }
 
-    // NB: signature is (slug, path, origin, occasion) — occasion is 4th.
-    const siteUrl = buildSiteUrl(siteSlug, '', undefined, occasion);
+    /* The CTA opens the themed reveal page (/std/[siteSlug]) — the
+       envelope, seal, and card experience — not the bare site. */
+    const revealBase = `${getAppOrigin()}/std/${encodeURIComponent(siteSlug)}`;
     const message = (body.message?.trim()) || `${coupleDisplay} are getting married! Save the date${body.dateDisplay ? ` for ${body.dateDisplay}` : ''}. A formal invitation will follow.`;
 
     let sent = 0; let failed = 0;
@@ -120,7 +139,10 @@ export async function POST(req: NextRequest) {
             dateDisplay: body.dateDisplay,
             venueName: suite.venue ?? undefined,
             photoUrl: body.photoUrl,
-            ctaUrl: siteUrl,
+            ctaUrl: (() => {
+              const tok = tokenByEmail.get(String(g.email).toLowerCase());
+              return tok ? `${revealBase}?g=${encodeURIComponent(tok)}` : revealBase;
+            })(),
             // Crest only when we genuinely have two initials (or the
             // host set an explicit monogram) — solo events would
             // otherwise crest with the 'B' placeholder initial.
