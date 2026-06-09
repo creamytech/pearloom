@@ -66,33 +66,31 @@ interface ActiveToast extends UndoableDetail {
 }
 
 export function UndoToast() {
-  const [primary, setPrimary] = useState(false);
   const [toast, setToast] = useState<ActiveToast | null>(null);
 
-  /* Claim the singleton slot. */
+  /* Claim the singleton slot + listen for pearloom:undoable. A
+     non-primary instance simply never subscribes, so its toast
+     state stays null and it renders nothing. A new event replaces
+     the current toast (single-toast rule — the latest destructive
+     action is the one the host is thinking about). */
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (undoToastClaimed) {
       console.warn('[undo-toast] duplicate <UndoToast /> mount ignored — it renders once per editor.');
       return;
     }
     undoToastClaimed = true;
-    setPrimary(true);
-    return () => { undoToastClaimed = false; };
-  }, []);
-
-  /* Listen for pearloom:undoable. A new event replaces the current
-     toast (single-toast rule — the latest destructive action is the
-     one the host is thinking about). */
-  useEffect(() => {
-    if (!primary || typeof window === 'undefined') return;
     const onUndoable = (e: Event) => {
       const detail = (e as CustomEvent<UndoableDetail>).detail;
       if (!detail || typeof detail.message !== 'string' || typeof detail.undo !== 'function') return;
       setToast({ message: detail.message, undo: detail.undo, key: Date.now() });
     };
     window.addEventListener(UNDOABLE_EVENT, onUndoable);
-    return () => window.removeEventListener(UNDOABLE_EVENT, onUndoable);
-  }, [primary]);
+    return () => {
+      undoToastClaimed = false;
+      window.removeEventListener(UNDOABLE_EVENT, onUndoable);
+    };
+  }, []);
 
   /* 6s auto-dismiss — keyed on the toast so replacements restart it. */
   useEffect(() => {

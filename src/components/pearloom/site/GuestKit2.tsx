@@ -12,7 +12,7 @@
    - <LiveWallDiscover />    : auto-shows when broadcast is active
    ======================================================================== */
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useFocusTrap } from '@/lib/use-focus-trap';
 
@@ -38,16 +38,16 @@ export function usePhotoLightbox(images: LightboxImage[]) {
 /** Lightbox-local reduced-motion read — when true the image never
  *  follows the finger and photo switches are instant cuts. */
 function useLightboxReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReduced(mq.matches);
-    const onChange = (e: MediaQueryListEvent) => setReduced(e.matches);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
-  return reduced;
+  return useSyncExternalStore(
+    (onChange) => {
+      if (!window.matchMedia) return () => {};
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+      mq.addEventListener('change', onChange);
+      return () => mq.removeEventListener('change', onChange);
+    },
+    () => (window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false),
+    () => false, // SSR — the reduced-motion CSS block still guards
+  );
 }
 
 /* Swipe thresholds — horizontal paging vs. downward dismissal. */

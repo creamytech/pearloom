@@ -4,13 +4,14 @@
 /* LITERAL PORT of handoff/pages/editor-redesign.jsx L56-135 EditorTopbar. */
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Icon, Pear } from '../motifs';
 import type { EditorMode } from './EditorRedesign';
 import type { SaveState } from './bridge';
 import type { StoryManifest } from '@/types';
 import { PublishChecklist } from './PublishChecklist';
+import { nextStepFor } from '@/lib/next-step';
 
 interface Props {
   mode: EditorMode;
@@ -99,6 +100,23 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
     window.dispatchEvent(new CustomEvent('pearloom:open-decor-library'));
   }
 
+  /* Golden thread — the ONE next-best-action, recomputed from the
+     live manifest prop on every change. Desktop only: the compact
+     bar is already at capacity at 390px. The topbar has no guest
+     counts, so the ladder naturally stops at the manifest rungs
+     (cover → date → gallery → story → publish). */
+  const nextStep = useMemo(() => (manifest ? nextStepFor(manifest) : null), [manifest]);
+  function followThread() {
+    if (!nextStep) return;
+    if (nextStep.target === 'publish') {
+      /* Open the publish flow exactly the way the Publish button does. */
+      onPublish();
+      return;
+    }
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { block: nextStep.target } }));
+  }
+
   return (
     <header
       style={{
@@ -167,6 +185,49 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
           })}
         </div>
       </div>
+
+      {/* Golden thread chip — quiet pill between the mode pill and
+          the right cluster. Names the one next-best-action; tap
+          jumps to its panel (or opens the publish flow). Vanishes
+          when the ladder is fully threaded. Desktop only. */}
+      {!compact && nextStep && (
+        <button
+          type="button"
+          onClick={followThread}
+          title={nextStep.hint}
+          aria-label={`Next step: ${nextStep.label}`}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7,
+            padding: '4px 11px',
+            borderRadius: 999,
+            background: 'var(--cream-2)',
+            border: '1px solid var(--line-soft)',
+            color: 'var(--ink-soft)',
+            fontSize: 11.5, fontWeight: 600,
+            whiteSpace: 'nowrap',
+            cursor: 'pointer',
+            transition: 'background var(--pl-dur-quick), border-color var(--pl-dur-quick), color var(--pl-dur-quick)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--card)';
+            e.currentTarget.style.color = 'var(--ink)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'var(--cream-2)';
+            e.currentTarget.style.color = 'var(--ink-soft)';
+          }}
+        >
+          <span
+            aria-hidden
+            style={{
+              width: 6, height: 6, borderRadius: '50%',
+              background: 'var(--gold, #B8935A)',
+              flexShrink: 0,
+            }}
+          />
+          {nextStep.label}
+        </button>
+      )}
 
       {/* Right zone — save state · | · Ask Pear · Share · Publish · | · avatar.
           Prototype L108-132. */}

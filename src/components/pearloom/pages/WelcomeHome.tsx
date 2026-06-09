@@ -34,6 +34,8 @@ import { useIsMobile } from '../redesign/use-nav-hooks';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { parseLocalDate } from '@/lib/date-utils';
 import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
+import { nextStepFor, rsvpMomentumFor, type NextStep, type RsvpMomentum } from '@/lib/next-step';
+import type { StoryManifest } from '@/types';
 import type { GuestInsight } from '@/app/api/guests/intelligence/route';
 
 interface Guest {
@@ -130,6 +132,31 @@ export function WelcomeHome() {
 
   // ── Pear recommendations ────────────────────────────────────
   const pearTodos = usePearTodos({ stage, insights, guestCounts, daysUntil });
+
+  // ── Golden thread — the ONE next-best-action ────────────────
+  // Shares src/lib/next-step.ts with the editor's topbar chip so
+  // the dashboard and the editor always name the same step.
+  // Counts come from the /api/guests fetch this page already does.
+  const manifest = (site?.manifest ?? null) as StoryManifest | null;
+  const nextStep = useMemo(
+    () => (manifest
+      ? nextStepFor(
+          manifest,
+          guestCounts ? { guests: guestCounts.invited, pendingRsvps: guestCounts.pending } : undefined,
+          new Date(now),
+        )
+      : null),
+    [manifest, guestCounts, now],
+  );
+  const nextStepHref = nextStep ? hrefForNextStep(nextStep, editorHref) : null;
+
+  // ── RSVP momentum — pending replies + reply-by inside 7 days ─
+  const rsvpMomentum = useMemo(
+    () => (manifest && guestCounts
+      ? rsvpMomentumFor(manifest, guestCounts.pending, new Date(now))
+      : null),
+    [manifest, guestCounts, now],
+  );
 
   // ── Next milestone (drives the hero callout) ────────────────
   const milestones = useMemo(

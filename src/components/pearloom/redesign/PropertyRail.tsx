@@ -167,6 +167,30 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
      without a hero is broken. Disable the eye-off button there. */
   const canHide = active !== 'hero';
   const [isHidden, setHidden] = useSectionHidden(manifest, onChange, active);
+
+  /* TRY-ANYTHING-SAFELY — hiding a section is destructive enough to
+     deserve a way back, but never an "are you sure?" gate. Hide
+     immediately, then fire `pearloom:undoable`. The undo closure is
+     SURGICAL: it removes just this section from hiddenSections on
+     the manifest as it stands at undo time (read via refs), so
+     edits the host made during the 6s toast window survive. Showing
+     a hidden section back is additive — no toast for that. */
+  const manifestRef = useRef(manifest);
+  manifestRef.current = manifest;
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  const toggleHidden = () => {
+    if (!canHide) return;
+    if (isHidden) { setHidden(false); return; }
+    const sectionId = active;
+    const label = section.label;
+    setHidden(true);
+    fireUndoable(`${label} hidden from the live site`, () => {
+      const loose = manifestRef.current as unknown as Record<string, unknown>;
+      const hidden = (Array.isArray(loose.hiddenSections) ? loose.hiddenSections : []) as string[];
+      onChangeRef.current({ ...loose, hiddenSections: hidden.filter((s) => s !== sectionId) } as unknown as StoryManifest);
+    });
+  };
   /* Options popover state — opens from the three-dot button. */
   const [optionsOpen, setOptionsOpen] = useState(false);
   const optionsWrapRef = useRef<HTMLDivElement | null>(null);
@@ -269,7 +293,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
                   : isHidden ? `Show ${section.label} on the live site`
                   : `Hide ${section.label} from the live site`
               }
-              onClick={() => canHide && setHidden(!isHidden)}
+              onClick={toggleHidden}
               disabled={!canHide}
               aria-pressed={isHidden}
               style={{
@@ -337,7 +361,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
                 <OptionRow
                   icon={isHidden ? 'eye' : 'eye-off'}
                   label={isHidden ? `Show on the live site` : `Hide from the live site`}
-                  onClick={() => { setHidden(!isHidden); setOptionsOpen(false); }}
+                  onClick={() => { toggleHidden(); setOptionsOpen(false); }}
                   disabled={!canHide}
                 />
               </div>

@@ -20,7 +20,7 @@
    GalleryBlock (grid), RsvpBlock (centered), FaqBlock (accordion).
 */
 
-import { useId, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useId, useEffect, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { getTheme, themeRootStyle, type Density, type Theme } from '../site/themes';
@@ -3234,16 +3234,16 @@ function PhotoPlaceholder({ tone = 'lavender', aspect = '1 / 1', style = {} }: {
    swap (no fade). */
 
 function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReduced(mq.matches);
-    const onChange = (e: MediaQueryListEvent) => setReduced(e.matches);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
-  return reduced;
+  return useSyncExternalStore(
+    (onChange) => {
+      if (!window.matchMedia) return () => {};
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+      mq.addEventListener('change', onChange);
+      return () => mq.removeEventListener('change', onChange);
+    },
+    () => (window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false),
+    () => false, // SSR — assume motion; CSS media queries still guard
+  );
 }
 
 function FadeInImage({
@@ -3263,13 +3263,13 @@ function FadeInImage({
   imgStyle?: CSSProperties;
 }) {
   const [loaded, setLoaded] = useState(false);
-  const imgRef = useRef<HTMLImageElement | null>(null);
   const reduced = usePrefersReducedMotion();
   /* SSR / cache guard — if the browser finished the image before
-     React hydrated, onLoad never fires; check .complete once. */
-  useEffect(() => {
-    if (imgRef.current?.complete) setLoaded(true);
-  }, []);
+     React attached (server-rendered markup, cached asset), onLoad
+     never fires; the ref callback checks .complete at attach time. */
+  const attachImg = (node: HTMLImageElement | null) => {
+    if (node?.complete && node.naturalWidth > 0) setLoaded(true);
+  };
   return (
     <div
       style={{
@@ -3280,9 +3280,8 @@ function FadeInImage({
         ...style,
       }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        ref={imgRef}
+        ref={attachImg}
         src={src}
         alt={alt}
         loading={eager ? 'eager' : 'lazy'}

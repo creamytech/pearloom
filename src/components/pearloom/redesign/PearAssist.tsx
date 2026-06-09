@@ -18,7 +18,7 @@
    sparkle, pulsing dot when busy. Reuse these instead of forking
    the styles. */
 
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 import { Icon } from '../motifs';
 
 /* ─── pearErrorMessage — sanitize errors for display ───────── */
@@ -155,7 +155,7 @@ const TONE_LABEL: Record<RewriteTone, string> = {
 export interface PearInlineRewriteProps {
   /** Current text to rewrite. */
   value: string;
-  /** Called with the rewritten text on success. */
+  /** Called with the rewritten text when the host keeps it. */
   onCommit: (next: string) => void;
   /** Free-form context tag passed to /api/inline-rewrite —
    *  identifies the field so Claude knows the register. E.g.
@@ -165,6 +165,11 @@ export interface PearInlineRewriteProps {
   tones?: RewriteTone[];
   /** Optional inline error renderer override. */
   onError?: (msg: string) => void;
+  /** Opt-out of preview-before-apply: when true, a tone tap writes
+   *  the rewrite straight through onCommit (the pre-2026-06
+   *  behavior). Default false — the rewrite lands in a quiet
+   *  preview card with Keep / Try again / Discard. */
+  instantApply?: boolean;
 }
 
 export function PearInlineRewrite({
@@ -173,9 +178,20 @@ export function PearInlineRewrite({
   context,
   tones = ['shorten', 'warmer', 'funnier', 'poetic'],
   onError,
+  instantApply = false,
 }: PearInlineRewriteProps) {
   const [busy, setBusy] = useState<RewriteTone | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  /* Preview-before-apply — the rewrite parks here until the host
+     keeps or discards it. Never shown when instantApply is on. */
+  const [pending, setPending] = useState<{ tone: RewriteTone; text: string } | null>(null);
+
+  /* A preview belongs to the text it was drafted from — if the host
+     edits the field (or keeps a suggestion), any parked preview is
+     stale and quietly discards itself. */
+  useEffect(() => {
+    setPending(null);
+  }, [value]);
 
   async function rewrite(tone: RewriteTone) {
     if (!value.trim() || value.trim().length < 2) {
@@ -200,7 +216,10 @@ export function PearInlineRewrite({
         throw new Error((j as { error?: string }).error ?? 'Pear couldn’t polish that one — try again?');
       }
       const { rewritten } = await res.json() as { rewritten: string };
-      if (rewritten && rewritten !== value) onCommit(rewritten);
+      if (rewritten && rewritten !== value) {
+        if (instantApply) onCommit(rewritten);
+        else setPending({ tone, text: rewritten });
+      }
     } catch (e) {
       console.error('[pear-rewrite] failed:', e);
       const msg = pearErrorMessage(e, 'Pear couldn’t polish that one — try again?');
@@ -211,8 +230,36 @@ export function PearInlineRewrite({
     }
   }
 
+  const keep = () => {
+    if (!pending) return;
+    onCommit(pending.text); /* same write path as instantApply */
+    setPending(null);
+  };
+  const discard = () => setPending(null);
+
+  /* Prevent focus from leaving the field/chips when tapping a
+     preview action — Safari fires focusout with a null
+     relatedTarget on button mousedown, which would discard the
+     preview before the click handler ran. */
+  const keepFocus = (e: ReactMouseEvent) => e.preventDefault();
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div
+      style={{ display: 'flex', flexDirection: 'column', gap: 6 }}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' && pending) {
+          e.stopPropagation();
+          discard();
+        }
+      }}
+      onBlur={(e) => {
+        /* Focus walked out of the chips + preview entirely → the
+           host moved on. Discard the parked suggestion. */
+        if (!pending) return;
+        const next = e.relatedTarget as Node | null;
+        if (!next || !e.currentTarget.contains(next)) discard();
+      }}
+    >
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {tones.map((t) => (
           <PearAiChip
@@ -224,6 +271,87 @@ export function PearInlineRewrite({
           />
         ))}
       </div>
+      {pending && (
+        <div
+          role="group"
+          aria-label="Pear’s suggestion"
+          style={{
+            padding: '9px 11px',
+            borderRadius: 9,
+            background: 'var(--sage-tint, rgba(122,138,79,0.12))',
+            border: '1px solid var(--sage, #7A8A4F)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+          }}
+        >
+          <div style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.5 }}>
+            {pending.text}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={keep}
+              onMouseDown={keepFocus}
+              disabled={!!busy}
+              style={{
+                padding: '5px 12px',
+                borderRadius: 999,
+                background: 'var(--sage-deep, #5C6B3F)',
+                color: 'var(--cream, #F5EFE2)',
+                border: 'none',
+                fontSize: 11.5,
+                fontWeight: 700,
+                cursor: busy ? 'wait' : 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              Keep
+            </button>
+            <button
+              type="button"
+              onClick={() => rewrite(pending.tone)}
+              onMouseDown={keepFocus}
+              disabled={!!busy}
+              style={{
+                padding: '5px 11px',
+                borderRadius: 999,
+                background: 'transparent',
+                color: 'var(--sage-deep, #5C6B3F)',
+                border: '1px solid var(--sage, #7A8A4F)',
+                fontSize: 11.5,
+                fontWeight: 600,
+                cursor: busy ? 'wait' : 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              {busy ? 'Polishing…' : 'Try again'}
+            </button>
+            <button
+              type="button"
+              onClick={discard}
+              onMouseDown={keepFocus}
+              disabled={!!busy}
+              style={{
+                padding: '5px 9px',
+                borderRadius: 999,
+                background: 'transparent',
+                color: 'var(--ink-muted)',
+                border: 'none',
+                fontSize: 11.5,
+                fontWeight: 600,
+                cursor: busy ? 'wait' : 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              Discard
+            </button>
+            <span style={{ marginLeft: 'auto' }}>
+              <AISource model="Haiku" />
+            </span>
+          </div>
+        </div>
+      )}
       {err && (
         <div
           style={{
