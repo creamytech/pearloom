@@ -25,7 +25,19 @@ interface CoverPhotoFieldProps {
 
 function CoverPhotoField({ url, onChange, pool, hint }: CoverPhotoFieldProps) {
   return (
-    <FGroup label="Cover photo" hint={hint}>
+    <FGroup
+      label="Cover photo"
+      hint={hint}
+      /* Quiet attention signal when no cover photo is set — a
+         small peach dot + "needed" in the label row. Not an
+         alarm; just the one thing the hero genuinely wants. */
+      action={!url ? (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', color: 'var(--peach-ink)' }}>
+          <span aria-hidden style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--peach-ink)', flexShrink: 0 }} />
+          needed
+        </span>
+      ) : undefined}
+    >
       <PhotoUploadSlot url={url} onChange={onChange} aspectRatio="16/9" size="md" pool={pool} />
     </FGroup>
   );

@@ -191,7 +191,38 @@ export function SaveTheDatePanel({
               />
             </div>
           )}
+          {/* Live preview — the effective text that actually goes
+              out (host's message, or Pear's default when blank). */}
+          <div style={{
+            marginTop: 8, padding: '9px 11px',
+            borderRadius: 9,
+            background: 'var(--sage-tint)',
+            border: '1px solid rgba(92,107,63,0.18)',
+          }}>
+            <div style={{
+              fontSize: 9.5, fontWeight: 700,
+              letterSpacing: '0.2em', textTransform: 'uppercase',
+              fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+              color: 'var(--sage-deep)', marginBottom: 4,
+            }}>
+              Preview
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
+              {message.trim() || defaultMessage}
+            </div>
+          </div>
         </FGroup>
+
+        {/* Recipient count — surfaced before the send action so the
+            host knows the blast radius before they commit. */}
+        {recipientCount !== null && (
+          <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Icon name="mail" size={12} color="var(--ink-muted)" />
+            {recipientCount > 0
+              ? `Sends to ${recipientCount} guest${recipientCount === 1 ? '' : 's'} with emails.`
+              : 'No guests with emails yet — add some in the Guests panel first.'}
+          </div>
+        )}
 
         {/* Send action */}
         {err && (

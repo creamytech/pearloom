@@ -67,14 +67,14 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
              one big inviting drop zone. Same drag-drop / click
              affordance, but communicates that the section starts
              EMPTY by design. */
-          <FGroup label="Photos" hint="A favorite shot of the two of you, a venue, your dog — anything you want guests to see.">
+          <FGroup label="Photos" hint="Nothing yet. Begin with one — a favorite shot of the two of you, a venue, your dog.">
             <PhotoUploadSlot
               url=""
               onChange={addPhoto}
               aspectRatio="3/2"
               size="md"
               pool={photoPool}
-              hint="Drop a photo here, or click to pick from your device. We'll line them up nicely on the canvas."
+              hint="Drag a photo in, or click to browse your device. Any image up to 12 MB, one at a time — we'll line them up on the canvas."
             />
             {photoPool.length > 0 && (
               <div style={{ marginTop: 6, fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
