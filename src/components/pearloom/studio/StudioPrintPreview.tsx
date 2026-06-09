@@ -43,6 +43,10 @@ interface Props {
   /** Trigger window.print() — the parent owns the button so the
    *  print preview can also be embedded inline in the studio. */
   onPrint?: () => void;
+  /** Open the paid "Mail it for you" flow (Pearloom Print) —
+   *  the parent closes this preview and opens the Send overlay
+   *  on its mail step. Home printing above stays untouched. */
+  onMailIt?: () => void;
   onClose?: () => void;
 }
 
@@ -62,6 +66,7 @@ export function StudioPrintPreview({
   rsvpDeadline,
   returnAddress,
   onPrint,
+  onMailIt,
   onClose,
 }: Props) {
   return (
@@ -120,6 +125,25 @@ export function StudioPrintPreview({
               : 'Thank-you · 5×7" + A7'}
         </span>
         <div style={{ flex: 1 }} />
+        {onMailIt && (
+          <button
+            type="button"
+            onClick={onMailIt}
+            style={{
+              padding: '8px 14px',
+              borderRadius: 999,
+              border: '1px solid var(--line, var(--pl-divider, #D8CFB8))',
+              background: 'transparent',
+              color: 'var(--ink, #0E0D0B)',
+              fontSize: 12.5,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            Mail it for you
+          </button>
+        )}
         {onPrint && (
           <button
             type="button"

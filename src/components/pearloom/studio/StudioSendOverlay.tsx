@@ -264,29 +264,52 @@ export function StudioSendOverlay({
             </div>
           </SendBlock>
 
-          <SendBlock title="Channel mix" sub="Email is the active channel today">
+          <SendBlock title="Channel mix" sub="Email is free · print is paid per card">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
               {[
                 { l: 'Digital', sub: `${withEmail} with email`, icon: 'mail',  primary: true,  count: withEmail },
                 { l: 'SMS',     sub: `${withPhone} with phone`, icon: 'phone', primary: false, count: withPhone, badge: 'Coming soon' },
-                { l: 'Print',   sub: `${withAddress} with addresses`, icon: 'send', primary: false, count: withAddress, badge: 'Coming soon' },
-              ].map(c => (
-                <div key={c.l} style={{
+                {
+                  l: 'Print',
+                  sub: `${withAddress} with addresses`,
+                  icon: 'send',
+                  primary: false,
+                  count: withAddress,
+                  badge: buildPrintSvg ? 'Mail it for you' : 'Coming soon',
+                  onPick: buildPrintSvg ? () => setMailMode(true) : undefined,
+                },
+              ].map(c => {
+                const cardStyle: React.CSSProperties = {
                   padding: 12, borderRadius: 12,
                   background: c.primary ? 'var(--ink)' : 'var(--card)',
                   color: c.primary ? 'var(--cream)' : 'var(--ink)',
                   border: '1px solid ' + (c.primary ? 'var(--ink)' : 'var(--line-soft)'),
                   display: 'flex', flexDirection: 'column', gap: 4,
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Icon name={c.icon} size={13} color={c.primary ? 'var(--cream)' : 'var(--ink-soft)'} />
-                    <div style={{ fontSize: 12, fontWeight: 700 }}>{c.l}</div>
+                  textAlign: 'left',
+                  cursor: c.onPick ? 'pointer' : undefined,
+                  fontFamily: 'inherit',
+                };
+                const inner = (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Icon name={c.icon} size={13} color={c.primary ? 'var(--cream)' : 'var(--ink-soft)'} />
+                      <div style={{ fontSize: 12, fontWeight: 700 }}>{c.l}</div>
+                    </div>
+                    <div style={{ fontSize: 18, fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)', fontWeight: 600 }}>{c.count}</div>
+                    <div style={{ fontSize: 10.5, opacity: c.primary ? 0.75 : 0.65 }}>{c.sub}</div>
+                    {c.badge && <div style={{ fontSize: 9, color: 'var(--peach-ink)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 2 }}>{c.badge}</div>}
+                  </>
+                );
+                return c.onPick ? (
+                  <button key={c.l} type="button" onClick={c.onPick} style={cardStyle}>
+                    {inner}
+                  </button>
+                ) : (
+                  <div key={c.l} style={cardStyle}>
+                    {inner}
                   </div>
-                  <div style={{ fontSize: 18, fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)', fontWeight: 600 }}>{c.count}</div>
-                  <div style={{ fontSize: 10.5, opacity: c.primary ? 0.75 : 0.65 }}>{c.sub}</div>
-                  {c.badge && <div style={{ fontSize: 9, color: 'var(--peach-ink)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 2 }}>{c.badge}</div>}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </SendBlock>
 
@@ -390,6 +413,8 @@ export function StudioSendOverlay({
           <div style={{ fontSize: 10, color: 'var(--ink-muted)' }}>
             <Pear size={10} tone="sage" shadow={false} /> Pear stamps email_sent_at on each guest so the bell &amp; dashboard pip light up live.
           </div>
+          </>
+          )}
         </div>
       </div>
     </div>
