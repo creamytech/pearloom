@@ -107,7 +107,10 @@ export function PLSidebar({ active }: { active?: string }) {
         gap: 18,
         position: 'sticky',
         top: 0,
-        height: '100vh',
+        // dvh, not vh — mobile browser UI chrome shrinks the visual
+        // viewport; static 100vh leaves the sidebar's bottom strip
+        // hidden behind the toolbar.
+        height: '100dvh',
         background: 'var(--cream)',
         zIndex: 2,
         fontFamily: 'var(--font-ui)',
@@ -665,7 +668,7 @@ export function PLChrome({
       className="pl8 pl8-pl-chrome"
       style={{
         display: 'flex',
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background: 'var(--cream)',
         position: 'relative',
         fontFamily: 'var(--font-ui)',

@@ -13,7 +13,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Icon } from '../motifs';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 
@@ -142,6 +142,26 @@ export function NotificationBell() {
 
   const unreadCount = items.filter((i) => new Date(i.createdAt).getTime() > seenAt).length;
 
+  // Narrow-viewport clamp. The bell sits LEFT of the avatar/CTA in
+  // the topbar action cluster, so a right-anchored 360px dropdown
+  // can run past the LEFT viewport edge on phones. Measure on open
+  // and shift the dropdown rightwards (negative `right`) just enough
+  // to keep a 16px gutter on both sides. DOM-measurement positioning
+  // — useLayoutEffect is the right hook; the lint rule is over-strict.
+  const [shift, setShift] = useState(0);
+  useLayoutEffect(() => {
+    if (!open) return;
+    const r = ref.current?.getBoundingClientRect();
+    if (!r) return;
+    const width = Math.min(360, window.innerWidth - 32);
+    // Push right until the dropdown's left edge clears 16px…
+    let next = Math.max(0, 16 - (r.right - width));
+    // …but never push its right edge past vw - 16.
+    next = Math.min(next, Math.max(0, window.innerWidth - 16 - r.right));
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setShift(next);
+  }, [open]);
+
   const handleOpen = useCallback(() => {
     setOpen((v) => {
       const next = !v;
@@ -221,9 +241,8 @@ export function NotificationBell() {
           style={{
             position: 'absolute',
             top: 'calc(100% + 8px)',
-            right: 0,
-            width: 360,
-            maxWidth: 'calc(100vw - 32px)',
+            right: -shift,
+            width: 'min(360px, calc(100vw - 32px))',
             background: 'var(--card)',
             border: '1px solid var(--card-ring)',
             borderRadius: 14,
