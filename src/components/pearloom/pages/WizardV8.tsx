@@ -33,6 +33,7 @@ import {
   type ManifestCookBody,
 } from '../wizard/useBackgroundManifest';
 import { BackgroundCookPill } from '../wizard/BackgroundCookPill';
+import { usePhotoPalette } from '../wizard/usePhotoPalette';
 import { useDialog } from '@/components/ui/confirm-dialog';
 
 // Layout step removed 2026-05-30 — Editions (picked later in the
@@ -128,6 +129,9 @@ const VIBES = [
   { id: 'outdoorsy', label: 'Outdoorsy', icon: '☘', tone: 'sage' as const },
   { id: 'modern', label: 'Modern', icon: '■', tone: 'lavender' as const },
 ];
+
+/** Palette-picker id for the photo-derived option ("From your photos"). */
+const PHOTO_PALETTE_ID = 'from-your-photos';
 
 const PALETTES = [
   { id: 'groovy-garden', name: 'Groovy Garden', colors: ['#F0C9A8', '#8B9C5A', '#CBD29E', '#3D4A1F'] },
@@ -1349,6 +1353,38 @@ export function WizardV8() {
   const [taglineState, setTaglineState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
   const step = STEPS[stepIndex];
 
+  // ── "From your photos" palette ──────────────────────────────
+  // Client-side extraction from the host's first uploaded photo
+  // (the one the hero leads with). Computed lazily when the host
+  // reaches the Palette step; cached per source URL by the hook,
+  // so revisits are free and re-picked photos recompute. Fails
+  // silently — no photos / tainted canvas / decode error just
+  // means the tile doesn't render.
+  const firstPhoto = st.photos[0];
+  const photoPaletteSource = firstPhoto
+    ? firstPhoto.previewUrl || firstPhoto.url || undefined
+    : undefined;
+  const photoPalette = usePhotoPalette(photoPaletteSource, step === 'Palette');
+  const photoPaletteColors = useMemo<[string, string, string, string] | null>(
+    () =>
+      photoPalette
+        ? [photoPalette.accent, photoPalette.gold, photoPalette.accentBg, photoPalette.accentInk]
+        : null,
+    [photoPalette],
+  );
+  // If the host picked the photo palette and then changed photos
+  // (back-navigation), re-sync the selected hex tuple so the
+  // generate pass honors the fresh extraction.
+  useEffect(() => {
+    if (!photoPaletteColors) return;
+    setSt((s) =>
+      s.palette === PHOTO_PALETTE_ID &&
+      (s.paletteColors ?? []).join(',') !== photoPaletteColors.join(',')
+        ? { ...s, paletteColors: photoPaletteColors }
+        : s,
+    );
+  }, [photoPaletteColors]);
+
   // Fetch AI palette suggestions. Factored out so we can fire it
   // automatically on step enter AND from the "Re-read my event"
   // button.
@@ -2375,12 +2411,101 @@ export function WizardV8() {
                     </div>
                   )}
 
-                  {(st.smartPalettes?.length ?? 0) > 0 && (
+                  {((st.smartPalettes?.length ?? 0) > 0 || photoPaletteColors) && (
                     <div
                       className="pl8-palette-grid pl-cascade-row"
                       style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}
                     >
-                      {st.smartPalettes!.map((p) => {
+                      {/* "From your photos" — client-side extraction from
+                          the first uploaded photo. Renders only when the
+                          extraction succeeded; selecting it flows through
+                          the same palette/paletteColors path as siblings. */}
+                      {photoPaletteColors && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSt((s) => ({
+                              ...s,
+                              palette: PHOTO_PALETTE_ID,
+                              paletteColors: photoPaletteColors,
+                            }));
+                            autoAdvance();
+                          }}
+                          style={{
+                            padding: 16,
+                            borderRadius: 16,
+                            background: 'var(--card)',
+                            border:
+                              st.palette === PHOTO_PALETTE_ID
+                                ? '2px solid var(--ink)'
+                                : '1.5px solid var(--line)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 10,
+                            cursor: 'pointer',
+                            position: 'relative',
+                            textAlign: 'left',
+                          }}
+                        >
+                          {st.palette === PHOTO_PALETTE_ID && (
+                            <div
+                              style={{
+                                position: 'absolute',
+                                top: 10,
+                                right: 10,
+                                width: 22,
+                                height: 22,
+                                borderRadius: '50%',
+                                background: 'var(--ink)',
+                                display: 'grid',
+                                placeItems: 'center',
+                              }}
+                            >
+                              <Icon name="check" size={11} color="#fff" strokeWidth={3} />
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', gap: 4 }}>
+                            {photoPaletteColors.map((c, i) => (
+                              <div
+                                key={i}
+                                style={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: '50%',
+                                  background: c,
+                                  border: '1.5px solid rgba(255,255,255,0.45)',
+                                }}
+                              />
+                            ))}
+                          </div>
+                          <div
+                            className="display"
+                            style={{
+                              fontSize: 18,
+                              fontStyle: 'italic',
+                              margin: 0,
+                              lineHeight: 1.2,
+                            }}
+                          >
+                            From your photos
+                          </div>
+                          <div style={{ fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
+                            Accents drawn straight from the photographs you shared.
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+                              fontSize: 9.5,
+                              letterSpacing: '0.16em',
+                              textTransform: 'uppercase',
+                              color: 'var(--ink-muted)',
+                            }}
+                          >
+                            Photo-matched
+                          </div>
+                        </button>
+                      )}
+                      {(st.smartPalettes ?? []).map((p) => {
                         const on = st.palette === p.id;
                         return (
                           <button
@@ -2638,9 +2763,11 @@ export function WizardV8() {
                     <Row
                       label="Palette"
                       val={
-                        PALETTES.find((p) => p.id === st.palette)?.name ??
-                        st.smartPalettes?.find((p) => p.id === st.palette)?.name ??
-                        (st.paletteColors && st.paletteColors.length > 0 ? 'Pear-picked palette' : '—')
+                        st.palette === PHOTO_PALETTE_ID
+                          ? 'From your photos'
+                          : PALETTES.find((p) => p.id === st.palette)?.name ??
+                            st.smartPalettes?.find((p) => p.id === st.palette)?.name ??
+                            (st.paletteColors && st.paletteColors.length > 0 ? 'Pear-picked palette' : '—')
                       }
                       swatches={
                         st.paletteColors && st.paletteColors.length > 0
