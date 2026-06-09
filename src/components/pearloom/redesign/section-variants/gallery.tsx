@@ -49,7 +49,15 @@ export function GalleryMasonry({ ctx }: { ctx: GalleryVariantCtx }) {
   return (
     <>
       <VariantSectionHead {...headProps(ctx)} />
-      <div style={{ maxWidth: 940, margin: '0 auto', columnCount: 4, columnGap: 9 }}>
+      {/* Responsive column count lives in a class + media queries
+          (inline `columnCount` can't respond to viewport width):
+          4 columns desktop → 2 below 860px → 1 below 520px. */}
+      <style>{`
+        .pl8-gallery-masonry { column-count: 4; column-gap: 9px; }
+        @media (max-width: 860px) { .pl8-gallery-masonry { column-count: 2; } }
+        @media (max-width: 520px) { .pl8-gallery-masonry { column-count: 1; } }
+      `}</style>
+      <div className="pl8-gallery-masonry" style={{ maxWidth: 940, margin: '0 auto' }}>
         {items.map((it, i) => (
           <div
             key={i}

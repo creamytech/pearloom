@@ -42,6 +42,12 @@ interface RailProps {
   aiBusy?: boolean;
   /** Send-history live counts. */
   sendStats?: { sent?: number; ready?: number; total?: number };
+  /** Which inspector tab the RemixRail opens on. The mobile
+   *  bottom bar's Design / Words buttons mount the rail inside a
+   *  bottom sheet keyed on this, so each button lands on its tab
+   *  (Pear stays reachable via the in-rail tab strip). Desktop
+   *  never passes it — default stays 'design'. */
+  initialTab?: 'design' | 'copy' | 'pear';
 }
 
 interface TopbarProps {
@@ -54,6 +60,12 @@ interface TopbarProps {
   saving?: boolean;
   saveError?: boolean;
   onRetrySave?: () => Promise<void> | void;
+  /** Phone-sized viewport — collapses the three-cluster bar to
+   *  back + title + Send on top, with the stationery-type tabs
+   *  in a scrollable second row. The view toggle and Export
+   *  collapse (the canvas pager pill flips sides; Print / PDF
+   *  stays reachable via See pair → Print). */
+  compact?: boolean;
 }
 
 const TYPE_TABS: Array<{ id: StationeryType; label: string; icon: string; sub: string }> = [
@@ -81,7 +93,7 @@ const PALETTE_NEIGHBOURHOOD: Record<string, string> = {
   rose:     'tender-romantic',
 };
 
-export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt, saving, saveError, onRetrySave }: TopbarProps) {
+export function StudioTopbar({ state, setField, nameA, nameB, dateShort, savedAt, saving, saveError, onRetrySave, compact }: TopbarProps) {
   // savedAt is null until the host's first edit lands. Until
   // then the manifest as loaded IS persisted, so "Unsaved" was
   // misleading — show no label on a clean session.
