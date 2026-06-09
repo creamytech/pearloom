@@ -15,7 +15,7 @@ import { RegistryShowcase } from '@/components/registry-showcase';
 import { FaqSection } from '@/components/faq-section';
 import { TravelSection } from '@/components/travel-section';
 import { PublicRsvpSection } from '@/components/public-rsvp-section';
-import { getEventType } from '@/lib/event-os/event-types';
+import { getEventType, isSoloOccasion } from '@/lib/event-os/event-types';
 import type { Chapter } from '@/types';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { WaveDivider } from '@/components/vibe/WaveDivider';
@@ -115,15 +115,8 @@ export async function generateMetadata(
   // Build themed OG image URL with full palette & font info.
   // Solo occasions (birthday, memorial, graduation, etc.) pass
   // only the first honoree — the OG route centres a single name
-  // without the "&" glyph.
-  const ogSoloOccasions = new Set<string>([
-    'birthday', 'first-birthday', 'sweet-sixteen', 'milestone-birthday',
-    'retirement', 'graduation', 'bar-mitzvah', 'bat-mitzvah', 'quinceanera',
-    'baptism', 'first-communion', 'confirmation',
-    'memorial', 'funeral', 'gender-reveal', 'sip-and-see', 'bridal-shower',
-    'bridal-luncheon', 'baby-shower',
-  ]);
-  const ogIsSolo = ogSoloOccasions.has(occasion);
+  // without the "&" glyph. Canonical list: lib/event-os/solo-occasions.ts.
+  const ogIsSolo = isSoloOccasion(occasion);
   const ogUrl = new URL('/api/og', siteUrl);
   ogUrl.searchParams.set(
     'names',

@@ -22,7 +22,7 @@ export function HeroMinimal({ manifest, names: _names, siteSlug: _siteSlug, onEd
   return (
     <div className="pl-hero-enter" style={{ maxWidth: 760, margin: '0 auto', textAlign: 'center', padding: '40px 0' }}>
       <HeroKicker manifest={manifest} dateInfo={dateInfo} onEditField={onEditField} />
-      <HeroNames n1={n1} n2={n2} onEditNames={onEditNames} scale={0.92} />
+      <HeroNames n1={n1} n2={n2} solo={context.solo} onEditNames={onEditNames} scale={0.92} />
       <HeroDateVenue dateInfo={dateInfo} venue={venue} manifest={manifest} onEditField={onEditField} />
       <HeroTagline manifest={manifest} onEditField={onEditField} />
       <div

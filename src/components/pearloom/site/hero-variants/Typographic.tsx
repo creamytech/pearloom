@@ -32,9 +32,11 @@ import type { StoryManifest } from '@/types';
 //   n2
 // Type sizes use clamp+cqw so they breathe in the device frame
 // and on the published viewport.
-function StackedHeroNames({ n1, n2, onEditNames, edition }: {
+function StackedHeroNames({ n1, n2, solo = false, onEditNames, edition }: {
   n1: string;
   n2: string;
+  /** Solo-honoree site — single name, no connector/second slot. */
+  solo?: boolean;
   onEditNames?: (next: [string, string]) => void;
   edition?: string;
 }) {
@@ -66,7 +68,7 @@ function StackedHeroNames({ n1, n2, onEditNames, edition }: {
         maxLength={80}
         style={{ display: 'block' }}
       />
-      {(n2 || onEditNames) && (
+      {!solo && (n2 || onEditNames) && (
         <>
           <span
             className="display-italic"
@@ -118,7 +120,7 @@ export function HeroTypographic({ manifest, names: _names, siteSlug: _siteSlug, 
       <HeroKicker manifest={manifest} dateInfo={dateInfo} onEditField={onEditField} />
 
       {/* Stacked oversized names — the defining feature. */}
-      <StackedHeroNames n1={n1} n2={n2} onEditNames={onEditNames} edition={edition} />
+      <StackedHeroNames n1={n1} n2={n2} solo={context.solo} onEditNames={onEditNames} edition={edition} />
 
       {/* Meta below the names — no tagline, no divider. */}
       <HeroDateVenue dateInfo={dateInfo} venue={venue} manifest={manifest} onEditField={onEditField} />

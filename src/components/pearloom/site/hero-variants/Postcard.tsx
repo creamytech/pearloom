@@ -86,7 +86,7 @@ export function HeroPostcard({ manifest, names, siteSlug: _siteSlug, onEditField
 
       {/* 3. HEADLINE — big serif names with italic connector. */}
       <div style={{ textAlign: 'center', position: 'relative' }}>
-        <HeroNames n1={n1} n2={n2} onEditNames={onEditNames} />
+        <HeroNames n1={n1} n2={n2} solo={context.solo} onEditNames={onEditNames} />
       </div>
 
       {/* 4. META — inline calendar+date / pin+venue, NO tag pills.

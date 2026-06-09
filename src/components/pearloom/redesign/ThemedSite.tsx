@@ -24,6 +24,7 @@ import { useId, useEffect, useState, type CSSProperties, type ReactNode } from '
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { getTheme, themeRootStyle, type Density, type Theme } from '../site/themes';
+import { isSoloOccasion } from '@/lib/event-os/solo-occasions';
 import { Motif, MotifScatter, WatercolorBloom, OliveSprig, type MotifKind } from '../site/MotifScatter';
 import { TextureFilters } from '../site/TextureFilters';
 import { readVariant } from './layouts';
@@ -178,8 +179,19 @@ export function ThemedSite({
     color: ((manifest as unknown as { decorColor?: string }).decorColor),
   };
 
-  const nameA = names[0] || 'Scott';
-  const nameB = names[1] || 'Shauna';
+  /* Names — demo fallbacks ('Scott'/'Shauna') only ever fill in
+     for COUPLE sites with a truly empty manifest (dev/demo). A
+     solo-honoree site must never grow a phantom second name
+     ("random names don't populate"). Explicit editor pick
+     (manifest.subject.kind) wins; the canonical occasion registry
+     (lib/event-os/solo-occasions.ts) is the fallback. */
+  const subjectKindPick = (manifest as unknown as { subject?: { kind?: string } }).subject?.kind;
+  const soloSite =
+    subjectKindPick === 'solo' ||
+    (subjectKindPick !== 'couple' &&
+      isSoloOccasion((manifest as unknown as { occasion?: string }).occasion));
+  const nameA = names[0] || (soloSite ? '' : 'Scott');
+  const nameB = soloSite ? (names[1] || '') : (names[1] || 'Shauna');
   const rawDate = (manifest as unknown as { logistics?: { date?: string } }).logistics?.date;
   const date = formatHeroDate(rawDate) || 'Monday, April 26, 2027';
   const venue = (manifest as unknown as { logistics?: { venue?: string } }).logistics?.venue || 'Casa Chorro';
@@ -1876,9 +1888,14 @@ function RsvpBlock({ ctx }: { ctx: SectionCtx }) {
 function GoingSocialProof({ ctx }: { ctx: SectionCtx }) {
   const sp = ctx.C.rsvp.socialProof;
   if (!sp?.enabled) return null;
-  const liveNames = sp.names;
-  const count = liveNames.length;
   const editable = ctx.editable;
+  /* Demo names preview the pile on the editor canvas only.
+     Published sites never invent guests — without real names
+     (manifest.goingPreview) the pile simply doesn't render. */
+  const DEMO_GOING = ['Maya', 'Jordan', 'Sam', 'Priya', 'Alex', 'Casey', 'Lin', 'Theo'];
+  const liveNames = sp.names.length > 0 ? sp.names : (editable ? DEMO_GOING : []);
+  if (liveNames.length === 0) return null;
+  const count = liveNames.length;
   /* First-name initials for the pile. */
   const initials = liveNames.slice(0, 5).map((n) => (n.trim()[0] ?? '?').toUpperCase());
   const TONES = [
@@ -3687,11 +3704,18 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
 
   return {
     subject: (() => {
-      /* Solo-honoree mode — set in the editor's Hero panel and
-         stored under manifest.subject.kind. When 'solo', the
-         renderer suppresses the second name + '&' glyph. */
+      /* Solo-honoree mode — an explicit editor pick
+         (manifest.subject.kind, Hero panel) always wins. With no
+         pick, solo occasions (canonical registry:
+         lib/event-os/solo-occasions.ts) and any site with an
+         empty second name render solo — one name, no '&' glyph,
+         no dangling ampersand. */
       const sub = (loose.subject as { kind?: 'couple' | 'solo' } | undefined);
-      const kind = sub?.kind === 'solo' ? 'solo' as const : 'couple' as const;
+      const kind =
+        sub?.kind === 'solo' ||
+        (sub?.kind !== 'couple' && (isSoloOccasion(occasion) || !(args.nameB ?? '').trim()))
+          ? 'solo' as const
+          : 'couple' as const;
       return { type: kind, a: args.nameA, b: kind === 'solo' ? '' : args.nameB };
     })(),
     lead: co('heroLead', V.lead),
@@ -3917,8 +3941,10 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       const occ = (loose.occasion as string | undefined) ?? 'wedding';
       const defaultEnabled = PUBLIC_RSVP_OCCASIONS.has(occ);
       const enabled = (loose.rsvpShowGoing as boolean | undefined) ?? defaultEnabled;
-      const previewNames = (loose.goingPreview as string[] | undefined)
-        ?? ['Maya', 'Jordan', 'Sam', 'Priya', 'Alex', 'Casey', 'Lin', 'Theo'];
+      /* No fabricated guests on published sites — the demo pile is
+         edit-mode-only (GoingSocialProof supplies it). Real names
+         arrive via manifest.goingPreview when wired. */
+      const previewNames = (loose.goingPreview as string[] | undefined) ?? [];
       return {
       eyebrow: co('rsvpEyebrow', rsvpDeadline ? `RSVP by ${formatHeroDate(rsvpDeadline) || rsvpDeadline}` : 'RSVP by April 28'),
       title: t.head,

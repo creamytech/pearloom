@@ -133,7 +133,10 @@ export function deriveInitials(subject?: string | null): { initA: string; initB:
   }
   const parts = s.replace('&', ' ').split(/\s+/).filter(Boolean);
   const initA = (parts[0] || 'A')[0].toUpperCase();
-  const initB = (parts[1] || parts[2] || 'B')[0].toUpperCase();
+  // Solo honoree — a single name ('Eleanor') gets a single initial,
+  // never a phantom 'B'. Two-plus words keep the paired treatment.
+  if (parts.length <= 1) return { initA, initB: '', raw: s };
+  const initB = (parts[1] || parts[2])[0].toUpperCase();
   return { initA, initB, raw: s };
 }
 

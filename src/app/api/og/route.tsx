@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
 import type { ReactElement } from 'react';
+import { isSoloOccasion } from '@/lib/event-os/solo-occasions';
 
 export const runtime = 'edge';
 
@@ -165,15 +166,10 @@ export async function GET(req: NextRequest) {
   const occasion = (searchParams.get('occasion') || 'wedding').slice(0, 30);
 
   // Solo events centre a single honoree; duet events show two names
-  // joined by an ampersand (weddings, anniversaries, etc.).
-  const SOLO_OCCASIONS = new Set([
-    'birthday', 'first-birthday', 'sweet-sixteen', 'milestone-birthday',
-    'retirement', 'graduation', 'bar-mitzvah', 'bat-mitzvah', 'quinceanera',
-    'baptism', 'first-communion', 'confirmation',
-    'memorial', 'funeral', 'gender-reveal', 'sip-and-see', 'bridal-shower',
-    'bridal-luncheon', 'baby-shower',
-  ]);
-  const isSolo = SOLO_OCCASIONS.has(occasion);
+  // joined by an ampersand (weddings, anniversaries, etc.). The
+  // canonical list lives in lib/event-os/solo-occasions.ts (a leaf
+  // module — safe for this edge bundle).
+  const isSolo = isSoloOccasion(occasion);
 
   // ── Parse params (support both legacy and new param names) ────────────
   // New format: ?names=Name1,Name2   Legacy: ?n1=Name1&n2=Name2

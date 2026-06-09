@@ -104,7 +104,7 @@ export function HeroPhotoFirst({ manifest, names: _names, siteSlug: _siteSlug, o
         <div className="pl-hero-enter" style={{ textAlign: 'center' }}>
           <HeroKicker manifest={manifest} dateInfo={dateInfo} onEditField={onEditField} />
           <HeroNames
-            n1={n1} n2={n2}
+            n1={n1} n2={n2} solo={context.solo}
             onEditNames={onEditNames}
             color="var(--cream, #FBF7EE)"
             italicColor="rgba(251, 247, 238, 0.78)"

@@ -22,6 +22,11 @@
 import type { BlockType } from '@/types';
 import type { SiteOccasion } from '@/lib/site-urls';
 
+// Solo-honoree registry lives in a leaf module so the edge OG
+// route can import it without the full registry. Re-exported
+// here so registry consumers have one import point.
+export { SOLO_OCCASIONS, isSoloOccasion } from '@/lib/event-os/solo-occasions';
+
 // ── Enums ────────────────────────────────────────────────────
 
 /** Grouping used by the wizard to reduce dropdown-fatigue. */

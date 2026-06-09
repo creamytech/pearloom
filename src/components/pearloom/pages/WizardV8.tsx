@@ -1067,8 +1067,15 @@ function ContextChips({ st }: { st: WizardState }) {
  */
 function WizardLiveVignette({ st }: { st: WizardState }) {
   const names = st.names.filter(Boolean);
-  const a = names[0] || 'Alex';
-  const b = names[1] || 'Jamie';
+  // Solo occasions preview ONE name — no '&', no phantom partner.
+  // Placeholders come from the occasion's name spec ('Sam',
+  // 'Valentina', 'Eleanor Rose Thompson'…) so a memorial never
+  // previews as 'Alex & Jamie'. Placeholders are preview-only —
+  // they never reach the saved manifest.
+  const nameSpec = nameModeFor(st.occasion);
+  const couple = nameSpec.mode === 'couple';
+  const a = names[0] || (couple ? 'Alex' : nameSpec.primaryPlaceholder);
+  const b = couple ? (names[1] || 'Jamie') : '';
   const dateLabel = parseLocalDate(st.eventDate)?.toLocaleDateString('en-US', {
     month: 'long',
     day: 'numeric',
@@ -1128,13 +1135,17 @@ function WizardLiveVignette({ st }: { st: WizardState }) {
         }}
       >
         {a}
-        <span
-          className="display-italic"
-          style={{ fontSize: '0.55em', color: accent, margin: '0 0.16em', fontStyle: 'italic', fontWeight: 400 }}
-        >
-          &amp;
-        </span>
-        {b}
+        {b ? (
+          <>
+            <span
+              className="display-italic"
+              style={{ fontSize: '0.55em', color: accent, margin: '0 0.16em', fontStyle: 'italic', fontWeight: 400 }}
+            >
+              &amp;
+            </span>
+            {b}
+          </>
+        ) : null}
       </div>
 
       {/* Sprig-flanked rule */}
@@ -1526,9 +1537,18 @@ export function WizardV8() {
     setErr(null);
     setGenStep('starting…');
     try {
+      // Belt-and-braces: solo / group occasions carry exactly one
+      // name into generation + the saved manifest. Placeholders
+      // are never written; a partner name typed under a previous
+      // occasion pick is dropped here even if state restoration
+      // skipped the Occasion step.
+      const submitNames: [string, string] =
+        nameModeFor(st.occasion).mode === 'couple'
+          ? [st.names[0].trim(), st.names[1].trim()]
+          : [st.names[0].trim(), ''];
       const derivedSubdomain =
         st.subdomain ||
-        slugify(st.names.filter(Boolean).join('-and-')) ||
+        slugify(submitNames.filter(Boolean).join('-and-')) ||
         slugify(st.occasion) ||
         `event-${Date.now().toString(36)}`;
 
@@ -1606,7 +1626,7 @@ export function WizardV8() {
           clusters,
           vibeString,
           vibeName: vibeString,
-          names: st.names,
+          names: submitNames,
           occasion: st.occasion,
           category,
           eventDate: st.eventDate || undefined,
@@ -1720,7 +1740,7 @@ export function WizardV8() {
           themeFamily: 'v8',
           templateId: st.templateId,
           vibeString: st.vibes.join(', '),
-          names: st.names,
+          names: submitNames,
           logistics: { date: st.eventDate || undefined, venue: st.location || undefined },
           chapters: [],
           layoutFormat: st.layout,
@@ -1736,7 +1756,7 @@ export function WizardV8() {
       const res = await fetch('/api/sites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subdomain: derivedSubdomain, manifest, names: st.names }),
+        body: JSON.stringify({ subdomain: derivedSubdomain, manifest, names: submitNames }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
@@ -1974,7 +1994,17 @@ export function WizardV8() {
                 <OccasionPicker
                   selected={st.occasion}
                   onPick={(id) => {
-                    setSt((s) => ({ ...s, occasion: id }));
+                    // Solo / group occasions hide the second name
+                    // field — clear any partner name typed under a
+                    // previous occasion so it can't silently ride
+                    // along into generation ("random names don't
+                    // populate").
+                    const keepSecond = nameModeFor(id).mode === 'couple';
+                    setSt((s) => ({
+                      ...s,
+                      occasion: id,
+                      names: keepSecond ? s.names : [s.names[0], ''],
+                    }));
                     autoAdvance();
                   }}
                 />
@@ -1982,10 +2012,19 @@ export function WizardV8() {
 
               {step === 'Basics' && (() => {
                 const nameSpec = nameModeFor(st.occasion);
+                const remembering = st.occasion === 'memorial' || st.occasion === 'funeral';
                 return (
                 <>
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                    Who, when, and <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>where.</span>
+                    {nameSpec.mode === 'solo' ? (
+                      remembering ? (
+                        <>Who are we <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>remembering?</span></>
+                      ) : (
+                        <>Who are we <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>celebrating?</span></>
+                      )
+                    ) : (
+                      <>Who, when, and <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>where.</span></>
+                    )}
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
                     Just the bones — you can make anything optional later.
@@ -2083,7 +2122,13 @@ export function WizardV8() {
                           className="input"
                           value={st.subdomain}
                           onChange={(e) => setSt((s) => ({ ...s, subdomain: slugify(e.target.value) }))}
-                          placeholder="alex-and-jamie"
+                          placeholder={
+                            nameSpec.mode === 'couple'
+                              ? 'alex-and-jamie'
+                              : nameSpec.mode === 'solo'
+                              ? slugify(nameSpec.primaryPlaceholder) || 'eleanor'
+                              : 'our-gathering'
+                          }
                           style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0, flex: 1, minWidth: 160 }}
                         />
                       </div>

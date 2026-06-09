@@ -13,6 +13,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { SiteOccasion } from '@/lib/site-urls';
+import { isSoloOccasion } from '@/lib/event-os/solo-occasions';
 
 export type NameMode = 'couple' | 'solo' | 'group';
 
@@ -32,35 +33,17 @@ const COUPLE_EVENTS: SiteOccasion[] = [
   'engagement',
   'vow-renewal',
   'anniversary',
-  'bridal-shower',       // hosted FOR a couple or future-bride
-  'bridal-luncheon',
-  'bachelor-party',
-  'bachelorette-party',
   'rehearsal-dinner',
   'welcome-party',
   'brunch',
-  'gender-reveal',       // for expecting parents
-  'baby-shower',         // baby shower for expecting parents
-  'sip-and-see',
+  'gender-reveal',       // for expecting parents (a pair)
 ];
 
-const SOLO_HONOREE_EVENTS: SiteOccasion[] = [
-  'birthday',
-  'milestone-birthday',
-  'first-birthday',
-  'sweet-sixteen',
-  'retirement',
-  'graduation',
-  'bar-mitzvah',
-  'bat-mitzvah',
-  'quinceanera',
-  'baptism',
-  'first-communion',
-  'confirmation',
-  'memorial',
-  'funeral',
-];
-
+// Solo-honoree events read the canonical registry in
+// lib/event-os/solo-occasions.ts — the same set the OG route,
+// metadata emitters, and renderers consume. One person, ONE
+// name field, no partner placeholder anywhere.
+//
 // Everything else (reunion, housewarming, story) is optional/group.
 
 /** Resolve which host-name field layout fits this occasion. */
@@ -68,9 +51,9 @@ export function nameModeFor(occasion: string | undefined): NameModeSpec {
   const occ = (occasion ?? '') as SiteOccasion;
 
   if (COUPLE_EVENTS.includes(occ)) {
-    // Specialize the field labels by occasion so memorials don't say
-    // "Name 1 / Name 2" and baby showers don't say "Partner".
-    if (occ === 'baby-shower' || occ === 'gender-reveal' || occ === 'sip-and-see') {
+    // Specialize the field labels by occasion so gender reveals
+    // don't say "Name 1 / Name 2".
+    if (occ === 'gender-reveal') {
       return {
         mode: 'couple',
         primaryLabel: 'Parent 1',
@@ -78,26 +61,6 @@ export function nameModeFor(occasion: string | undefined): NameModeSpec {
         secondaryLabel: 'Parent 2',
         secondaryPlaceholder: 'Alex',
         hint: 'Both names go on the invite and any paperwork Pear drafts for you.',
-      };
-    }
-    if (occ === 'bridal-shower' || occ === 'bridal-luncheon') {
-      return {
-        mode: 'couple',
-        primaryLabel: 'Guest of honor',
-        primaryPlaceholder: 'Jess',
-        secondaryLabel: 'Partner',
-        secondaryPlaceholder: 'Tom (optional)',
-        hint: 'If this shower is for one person only, leave the second field blank.',
-      };
-    }
-    if (occ === 'bachelor-party' || occ === 'bachelorette-party') {
-      return {
-        mode: 'couple',
-        primaryLabel: 'Guest of honor',
-        primaryPlaceholder: 'Marco',
-        secondaryLabel: 'Co-host / best man',
-        secondaryPlaceholder: 'Zack (optional)',
-        hint: 'Pear will reference the guest of honor by name across the site.',
       };
     }
     return {
@@ -110,7 +73,39 @@ export function nameModeFor(occasion: string | undefined): NameModeSpec {
     };
   }
 
-  if (SOLO_HONOREE_EVENTS.includes(occ)) {
+  if (isSoloOccasion(occ)) {
+    if (occ === 'baby-shower') {
+      return {
+        mode: 'solo',
+        primaryLabel: 'Parent-to-be',
+        primaryPlaceholder: 'Jamie',
+        hint: 'The shower centers on them — Pear writes the rest around their name.',
+      };
+    }
+    if (occ === 'sip-and-see') {
+      return {
+        mode: 'solo',
+        primaryLabel: 'Baby’s name',
+        primaryPlaceholder: 'Sage',
+        hint: 'Guests are coming to meet exactly one very small person.',
+      };
+    }
+    if (occ === 'bridal-shower' || occ === 'bridal-luncheon') {
+      return {
+        mode: 'solo',
+        primaryLabel: 'Guest of honor',
+        primaryPlaceholder: 'Jess',
+        hint: 'Pear centers the day on her — the wedding gets its own site.',
+      };
+    }
+    if (occ === 'bachelor-party' || occ === 'bachelorette-party') {
+      return {
+        mode: 'solo',
+        primaryLabel: 'Guest of honor',
+        primaryPlaceholder: 'Marco',
+        hint: 'Pear will reference the guest of honor by name across the site.',
+      };
+    }
     if (occ === 'memorial' || occ === 'funeral') {
       return {
         mode: 'solo',

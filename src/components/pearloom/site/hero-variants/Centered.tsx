@@ -61,7 +61,7 @@ export function HeroCentered({ manifest, names: _names, siteSlug: _siteSlug, onE
       <HeroKicker manifest={manifest} dateInfo={dateInfo} onEditField={onEditField} />
       <HeroTagline manifest={manifest} onEditField={onEditField} />
       <div style={{ textAlign: 'center', position: 'relative' }}>
-        <HeroNames n1={n1} n2={n2} onEditNames={onEditNames} />
+        <HeroNames n1={n1} n2={n2} solo={context.solo} onEditNames={onEditNames} />
       </div>
       <HeroDateVenue dateInfo={dateInfo} venue={venue} manifest={manifest} onEditField={onEditField} />
 
