@@ -4,9 +4,14 @@
 // Pearloom / components/site/ActivityVoteBlock.tsx
 //
 // Multi-choice poll for group trips — "Which activity Saturday?"
-// MVP is client-side voting via localStorage; the host sees the
-// leader bar, guests only see their own pick. Proper server-side
-// voting lands with an /api/vote route later.
+//
+// When `siteId` + `blockId` are set (the renderer always passes
+// them), votes sync to `activity_votes` via /api/event-os/votes:
+// GET on mount pulls the live tally + this browser's vote, POST
+// upserts on every change. localStorage stays as the optimistic /
+// offline layer — and the *whole* layer on keyless deploys, where
+// the API answers `{ stored: false }` and empty tallies; the
+// block then behaves exactly as the original local-only MVP.
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState, type CSSProperties } from 'react';
@@ -96,7 +101,13 @@ export function ActivityVoteBlock({
       .then((data) => {
         if (cancelled || !data?.ok) return;
         setServerTallies(data.tallies ?? {});
-        if (data.myVote !== undefined) setMyVote(data.myVote);
+        // Adopt the server's record of our vote only when it has
+        // one. voter_key is per-browser, so the server can never
+        // know a vote this browser doesn't — a null here just
+        // means the POST never landed (offline, or a keyless
+        // deploy where GET always answers myVote: null). The
+        // localStorage copy is the optimistic layer and wins.
+        if (data.myVote) setMyVote(data.myVote);
       })
       .catch(() => { /* offline — local wins */ });
     return () => { cancelled = true; };
@@ -131,10 +142,15 @@ export function ActivityVoteBlock({
     }
   };
 
-  // When synced, server tally is authoritative. Otherwise use
-  // host-seeded initialVotes + local "my vote" as a proxy.
-  const totalVotes = canSync
-    ? Object.values(serverTallies).reduce((a, b) => a + b, 0)
+  // Server tallies are authoritative once any exist. When the
+  // server has nothing — empty table, Supabase unconfigured
+  // ({ stored: false } deploys), or the fetch never landed —
+  // fall back to host-seeded initialVotes + the local "my vote"
+  // proxy, which is exactly the pre-sync local-only behavior.
+  const serverTotal = Object.values(serverTallies).reduce((a, b) => a + b, 0);
+  const useServerTallies = canSync && serverTotal > 0;
+  const totalVotes = useServerTallies
+    ? serverTotal
     : options.reduce((sum, o) => sum + (o.initialVotes ?? 0) + (myVote === o.id ? 1 : 0), 0);
 
   return (
@@ -185,7 +201,7 @@ export function ActivityVoteBlock({
         <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {options.map((option) => {
             const base = option.initialVotes ?? 0;
-            const votes = canSync
+            const votes = useServerTallies
               ? (serverTallies[option.id] ?? 0)
               : base + (myVote === option.id ? 1 : 0);
             const pct = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
