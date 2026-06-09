@@ -97,7 +97,8 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
     if (!open) return;
     openSnapshotRef.current = manifestRef.current;
     appliedRef.current = false;
-    setTryingId(null);
+    /* tryingId needs no reset here — handleClose always clears it
+       on the way out, so every open starts preview-free. */
   }, [open]);
 
   const packs = STORE_PACKS;

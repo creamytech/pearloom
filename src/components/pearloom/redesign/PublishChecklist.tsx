@@ -99,12 +99,14 @@ export function PublishChecklist({ manifest }: { manifest: StoryManifest }) {
   const published = isManifestPublished(manifest);
   /* The moment — publishing succeeded while we're mounted (the
      publish flow stamps manifest.published through the live
-     manifest prop). Auto-open the handoff exactly once. */
-  const prevPublished = useRef(published);
-  useEffect(() => {
-    if (published && !prevPublished.current) setOpen(true);
-    prevPublished.current = published;
-  }, [published]);
+     manifest prop). Auto-open the handoff exactly once, via the
+     render-time "derive from previous render" pattern (same as
+     EditorRedesign's lastSheet) — no effect, no cascading render. */
+  const [prevPublished, setPrevPublished] = useState(published);
+  if (published !== prevPublished) {
+    setPrevPublished(published);
+    if (published) setOpen(true);
+  }
 
   const checks = useMemo(() => buildChecks(manifest), [manifest]);
   const missing = checks.filter((c) => !c.ok);

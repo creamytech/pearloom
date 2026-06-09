@@ -330,6 +330,17 @@ function HeroBand({
   const urgencyBg =
     urgencyTone === 'peach' ? 'var(--peach-bg)' :
     urgencyTone === 'lavender' ? 'var(--lavender-bg)' : 'var(--sage-tint)';
+  // Golden-thread tone — the nudge step is time-boxed (reply-by
+  // inside 7 days), so it gets the urgent peach; publish gets
+  // lavender; everything else stays calm sage.
+  const stepTone = nextStep?.id === 'nudge' ? 'peach'
+    : nextStep?.id === 'publish' ? 'lavender' : 'sage';
+  const stepColor =
+    stepTone === 'peach' ? 'var(--peach-ink)' :
+    stepTone === 'lavender' ? 'var(--lavender-ink)' : 'var(--sage-deep)';
+  const stepBg =
+    stepTone === 'peach' ? 'var(--peach-bg)' :
+    stepTone === 'lavender' ? 'var(--lavender-bg)' : 'var(--sage-tint)';
   void firstName; void liveDisplay;
 
   // Phones: the 3-column band crushes every zone (clipped names,
@@ -441,9 +452,57 @@ function HeroBand({
         </div>
       </div>
 
-      {/* MIDDLE — next milestone callout */}
+      {/* MIDDLE — 'Next up' callout. Wired to the golden thread
+          (nextStepFor over the live manifest + guest counts) so
+          the dashboard names the same step as the editor's topbar
+          chip. Falls back to the milestone roadmap only when the
+          manifest hasn't loaded yet. */}
       <div style={{ position: 'relative', zIndex: 1 }}>
-        {nextMilestone ? (
+        {nextStep && nextStepHref ? (
+          <Link
+            href={nextStepHref}
+            style={{
+              display: 'block',
+              padding: '14px 16px',
+              borderRadius: 16,
+              background: stepBg,
+              border: `1px solid ${stepTone === 'peach' ? 'rgba(198,112,61,0.18)' : 'transparent'}`,
+              textDecoration: 'none',
+            }}
+          >
+            <div className="eyebrow" style={{ color: stepColor, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold, #B8935A)' }} />
+              NEXT UP
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 22,
+                fontWeight: 600,
+                color: stepColor,
+                lineHeight: 1.1,
+              }}
+            >
+              {nextStep.label}
+            </div>
+            <div style={{ fontSize: 13, color: stepColor, opacity: 0.85, marginTop: 4 }}>
+              {nextStep.hint}
+            </div>
+          </Link>
+        ) : hasManifest ? (
+          <div
+            style={{
+              padding: '14px 16px',
+              borderRadius: 16,
+              background: 'var(--cream-2)',
+              fontSize: 13,
+              color: 'var(--ink-muted)',
+              fontStyle: 'italic',
+            }}
+          >
+            All threaded. Pear&apos;s keeping watch.
+          </div>
+        ) : nextMilestone ? (
           <div
             style={{
               padding: '14px 16px',
@@ -545,6 +604,69 @@ function HeroBand({
           }
         }
       `}</style>
+    </div>
+  );
+}
+
+/** Route the golden-thread step to the right dashboard surface.
+ *  Editor rungs (cover/date/gallery/story/publish) open the
+ *  editor; guest rungs open the guest surfaces — building the
+ *  list starts at /dashboard/invite, nudging pending replies
+ *  lands on /dashboard/rsvp where the NudgeStrip's composer
+ *  (DashGuests → NudgeComposer) already lives. */
+function hrefForNextStep(step: NextStep, editorHref: string): string {
+  if (step.target === 'guests') {
+    return step.id === 'guest-list' ? '/dashboard/invite' : '/dashboard/rsvp';
+  }
+  return editorHref;
+}
+
+// ─────────────────────────────────────────────────────────────
+// RsvpMomentumCard — pending replies + reply-by inside 7 days.
+// The CTA deep-links to /dashboard/rsvp, where the existing
+// NudgeStrip opens the Pear-drafted NudgeComposer — we never
+// rebuild the composer here.
+// ─────────────────────────────────────────────────────────────
+function RsvpMomentumCard({ momentum }: { momentum: RsvpMomentum }) {
+  const dateLabel = momentum.replyBy.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+  const windowLine = momentum.daysLeft === 0 ? 'Reply-by is today.'
+    : momentum.daysLeft === 1 ? 'Reply-by lands tomorrow.'
+    : `Reply-by lands in ${momentum.daysLeft} days.`;
+  return (
+    <div
+      className="card"
+      style={{
+        padding: 20,
+        borderRadius: 20,
+        background: 'var(--peach-bg)',
+        border: '1px solid rgba(198,112,61,0.28)',
+      }}
+    >
+      <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span aria-hidden style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--peach-ink)' }} className="pulse-dot" />
+        RSVP MOMENTUM
+      </div>
+      <div
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 20,
+          fontWeight: 600,
+          color: 'var(--peach-ink)',
+          lineHeight: 1.15,
+        }}
+      >
+        {momentum.pending} still pending — reply-by {dateLabel}
+      </div>
+      <div style={{ fontSize: 12.5, color: 'var(--peach-ink)', opacity: 0.85, marginTop: 4 }}>
+        {windowLine} Pear has a gentle reminder drafted.
+      </div>
+      <Link
+        href="/dashboard/rsvp"
+        className="btn btn-primary btn-sm"
+        style={{ textDecoration: 'none', marginTop: 12, display: 'inline-flex' }}
+      >
+        Nudge them with Pear <Icon name="sparkles" size={11} color="var(--cream)" />
+      </Link>
     </div>
   );
 }
