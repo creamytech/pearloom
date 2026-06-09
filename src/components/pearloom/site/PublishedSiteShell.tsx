@@ -25,6 +25,7 @@ import { hydrateManifestForRedesign } from '@/components/pearloom/redesign/hydra
 import { GuestRsvpModal } from '@/components/pearloom/site/GuestRsvpModal';
 import { AnalyticsBeacon } from '@/components/analytics/AnalyticsBeacon';
 import { StickyRsvpPill } from '@/components/site/StickyRsvpPill';
+import { StoreFonts } from '@/lib/theme-store/fonts';
 
 interface Props {
   manifest: StoryManifest;
@@ -92,6 +93,9 @@ export function PublishedSiteShell(props: Props) {
 
   return (
     <ErrorBoundary fallback={<GuestCrashFallback />}>
+      {/* Pack typography — without this, store-pack display faces
+          (Cormorant, Playfair, Bodoni, …) fall back to Georgia. */}
+      <StoreFonts />
       <ThemedSite
         manifest={hydrated}
         names={props.names}

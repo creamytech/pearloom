@@ -14,7 +14,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { FREE_PACK_IDS, isPackFree } from './packs';
+import { FREE_PACK_IDS, PACKS, isPackFree } from './packs';
+import { getUserPlan } from '@/lib/db';
 
 // ─── Lazy Supabase client (service-role, server-side only) ───
 //
@@ -82,6 +83,48 @@ function syntheticFreeEntitlements(userEmail: string): Entitlement[] {
   }));
 }
 
+// ─── Plan-tier grants (finalized 2026-06-09) ─────────────────
+//
+// The plan ladder includes the Theme Store, so upgrading is the
+// best deal in the shop:
+//   • Journal (free)   → free packs only; everything else à la carte.
+//   • Atelier ($19)    → every PREMIUM pack included (sub-$20 shelf).
+//   • Legacy  ($129)   → the entire catalog, signature shelf included.
+//
+// Plan strings come from public.user_plans via getUserPlan and use
+// the canonical names in src/lib/plan-gate.ts (free/journal,
+// pro/atelier, premium/legacy).
+
+const PREMIUM_PACK_IDS: readonly string[] = PACKS.filter((p) => p.tier === 'premium').map((p) => p.id);
+const PAID_PACK_IDS: readonly string[] = PACKS.filter((p) => p.tier !== 'free').map((p) => p.id);
+
+/** Pack ids granted by a plan, beyond the free shelf. */
+export function planGrantedPackIds(plan: string | null | undefined): readonly string[] {
+  const p = (plan ?? '').toLowerCase();
+  if (p === 'premium' || p === 'legacy') return PAID_PACK_IDS;
+  if (p === 'pro' || p === 'atelier') return PREMIUM_PACK_IDS;
+  return [];
+}
+
+/**
+ * Look up the user's plan and return its granted pack ids.
+ * Fails closed (no grants) on any DB error — a transient outage
+ * should never hand out the catalog, and real purchases are
+ * still honored via theme_pack_purchases.
+ */
+async function planGrantsFor(userEmail: string): Promise<Entitlement[]> {
+  try {
+    const planRow = await getUserPlan(userEmail);
+    return planGrantedPackIds(planRow?.plan).map((packId) => ({
+      userId: userEmail,
+      packId,
+      purchasedAt: null,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 // ─── Reads ───────────────────────────────────────────────────
 
 /**
@@ -115,7 +158,12 @@ export async function getUserEntitlements(userEmail: string): Promise<Entitlemen
   // purchasedAt timestamp.)
   const implicit = syntheticFreeEntitlements(email).filter((e) => !purchasedIds.has(e.packId));
 
-  return [...purchased, ...implicit];
+  // Fold in plan-tier grants (Atelier → premium shelf, Legacy →
+  // everything). Synthetic like the free tier — no purchase row.
+  const seen = new Set([...purchasedIds, ...implicit.map((e) => e.packId)]);
+  const planGrants = (await planGrantsFor(email)).filter((e) => !seen.has(e.packId));
+
+  return [...purchased, ...implicit, ...planGrants];
 }
 
 /**
@@ -127,6 +175,17 @@ export async function userOwnsPack(userEmail: string, packId: string): Promise<b
   if (isPackFree(packId)) return true;
 
   const email = normalizeEmail(userEmail);
+
+  // Plan-tier grant — Atelier covers the premium shelf, Legacy
+  // covers everything. Checked before the purchase row so plan
+  // holders skip the extra query.
+  try {
+    const planRow = await getUserPlan(email);
+    if (planGrantedPackIds(planRow?.plan).includes(packId)) return true;
+  } catch {
+    /* fall through to the purchase-row check */
+  }
+
   const supabase = getSupabase();
 
   const { data, error } = await supabase

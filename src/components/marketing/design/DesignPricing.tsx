@@ -47,6 +47,7 @@ const TIERS: Tier[] = [
     feats: [
       'Everything in Journal',
       'Every block, every template',
+      'Every premium theme pack included',
       'Custom domain',
       'The Director (day-of room)',
       'Live photo wall + toasts',
@@ -70,6 +71,7 @@ const TIERS: Tier[] = [
     feats: [
       'Everything in Atelier',
       'Every event, forever',
+      'The full Theme Store, signature shelf included',
       'Family workspace',
       'Cross-event Reel',
       'Heirloom export (print-ready)',
