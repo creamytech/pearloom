@@ -11,11 +11,17 @@
 // Save-the-date and Thank-you flows reuse the same endpoint —
 // the channel field on the email tags lets the bell + dashboard
 // distinguish them.
+//
+// The Print channel opens StudioMailFlow — the paid Pearloom
+// Print path (POST /api/print/checkout). The card is serialized
+// to SVG from the live Studio state; everything money-shaped is
+// recomputed server-side.
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { StationeryType } from './studio-constants';
+import { StudioMailFlow } from './StudioMailFlow';
 import { Pear, Icon } from '../motifs';
 
 interface SendStats {
@@ -23,6 +29,9 @@ interface SendStats {
   withEmail: number;
   withPhone: number;
   withAddress: number;
+  /** Complete mailing address (line1 + city + state + zip) —
+   *  the exact set /api/print/checkout prices. */
+  withFullAddress: number;
   attending: number;
 }
 
@@ -35,14 +44,27 @@ interface Props {
   /** Optional caller-side callback when a real send completes —
    *  used to push a toast / refresh notification bell. */
   onSent?: (sentCount: number) => void;
+  /** Serializes the live card design to print-ready SVG. When
+   *  provided, the Print channel becomes the "Mail it for you"
+   *  flow instead of a "Coming soon" stub. */
+  buildPrintSvg?: () => Promise<string>;
+  /** Prefill for the mail flow's return-address name. */
+  defaultReturnName?: string;
+  /** Open directly on the mail flow (e.g. from the print
+   *  preview's "Mail it for you" button). */
+  initialMail?: boolean;
 }
 
-export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent }: Props) {
+export function StudioSendOverlay({
+  siteSlug, type, cardPreview, onClose, onSent,
+  buildPrintSvg, defaultReturnName, initialMail,
+}: Props) {
   const [stats, setStats] = useState<SendStats | null>(null);
   const [statsError, setStatsError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sentSummary, setSentSummary] = useState<string | null>(null);
+  const [mailMode, setMailMode] = useState(!!initialMail && !!buildPrintSvg);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,14 +74,17 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
         if (!r.ok) throw new Error(`stats ${r.status}`);
         return r.json();
       })
-      .then((data: { guests?: Array<{ email?: string | null; phone?: string | null; mailingAddress?: { line1?: string } | null; status?: string | null }> }) => {
+      .then((data: { guests?: Array<{ email?: string | null; phone?: string | null; mailingAddress?: { line1?: string; city?: string; state?: string; zip?: string } | null; status?: string | null }> }) => {
         if (cancelled || !data?.guests) return;
         const total = data.guests.length;
         const withEmail = data.guests.filter(g => !!g.email).length;
         const withPhone = data.guests.filter(g => !!g.phone).length;
         const withAddress = data.guests.filter(g => !!g.mailingAddress?.line1).length;
+        const withFullAddress = data.guests.filter(g =>
+          !!g.mailingAddress?.line1 && !!g.mailingAddress?.city && !!g.mailingAddress?.state && !!g.mailingAddress?.zip,
+        ).length;
         const attending = data.guests.filter(g => g.status === 'attending').length;
-        setStats({ total, withEmail, withPhone, withAddress, attending });
+        setStats({ total, withEmail, withPhone, withAddress, withFullAddress, attending });
       })
       .catch(() => {
         if (!cancelled) setStatsError(true);
@@ -118,6 +143,7 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
     invite: 'Off it goes.',
     thanks: 'Send the thanks.',
   };
+  const title = mailMode ? 'Pressed, stamped, mailed.' : titleByType[type];
 
   return (
     <div
@@ -165,7 +191,9 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
         <div style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 18, overflow: 'auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--peach-ink)' }}>Send</div>
+              <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--peach-ink)' }}>
+                {mailMode ? 'Pearloom Print' : 'Send'}
+              </div>
               <h2 id="studio-send-title" style={{
                 fontSize: 26,
                 margin: '4px 0 0',
@@ -175,7 +203,7 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
                 letterSpacing: '-0.02em',
                 lineHeight: 1.02,
                 color: 'var(--ink)',
-              }}>{titleByType[type]}</h2>
+              }}>{title}</h2>
             </div>
             <button type="button" onClick={onClose} aria-label="Close send overlay" style={{
               width: 32, height: 32, borderRadius: '50%',
@@ -186,6 +214,17 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
             </button>
           </div>
 
+          {mailMode && buildPrintSvg ? (
+            <StudioMailFlow
+              siteSlug={siteSlug}
+              type={type}
+              mailableCount={stats ? stats.withFullAddress : null}
+              defaultName={defaultReturnName ?? ''}
+              buildSvg={buildPrintSvg}
+              onBack={() => setMailMode(false)}
+            />
+          ) : (
+          <>
           <SendBlock title="Recipients" sub="Pulled from your guest list">
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{

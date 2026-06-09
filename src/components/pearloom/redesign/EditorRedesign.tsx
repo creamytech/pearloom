@@ -22,7 +22,7 @@
    on the visual shell.
 */
 
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { ThemedSiteRenderer } from '../site/ThemedSiteRenderer';
@@ -36,6 +36,8 @@ import { FullSite } from './FullSite';
 import { ThemedSite } from './ThemedSite';
 import { EditorDrawers } from './EditorDrawers';
 import { FirstPressing, shouldPlayFirstPressing } from './FirstPressing';
+import { MobileSheet, MobileBottomBar, type MobileSheetId } from './MobileSheet';
+import { useMobileViewport } from './use-mobile-viewport';
 import './animations.css';
 
 interface Props {
@@ -97,6 +99,51 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
   const [hover, setHover] = useState<SectionId>(null);
   const [pearOpen, setPearOpen] = useState(false);
   const [pearPrefill, setPearPrefill] = useState<string>('');
+
+  /* ── Viewport-mobile chrome ──────────────────────────────────
+     viewportMobile (real phone-sized browser) is NOT the canvas's
+     "Mobile" preview pill (mode === 'mobile'). Below 768px the
+     three-column grid collapses: the canvas goes full-width and
+     the rails re-mount inside bottom sheets driven by a fixed
+     bottom bar (Sections · Theme · Pear). Desktop behavior is
+     untouched — every mobile branch gates on this flag. */
+  const viewportMobile = useMobileViewport();
+  const [mobileSheet, setMobileSheet] = useState<MobileSheetId | null>(null);
+  /* Last non-null sheet id — keeps the right content mounted
+     during the sheet's exit slide. */
+  const lastSheetRef = useRef<MobileSheetId>('sections');
+  useEffect(() => {
+    if (mobileSheet) lastSheetRef.current = mobileSheet;
+  }, [mobileSheet]);
+  /* Stable ref so the window-event listeners below don't have to
+     re-subscribe when the viewport flag flips. */
+  const viewportMobileRef = useRef(false);
+  viewportMobileRef.current = viewportMobile;
+  /* Crossing the breakpoint: hand the open Pear pane to the
+     matching chrome on the other side. */
+  useEffect(() => {
+    if (viewportMobile && pearOpen) {
+      setPearOpen(false);
+      setMobileSheet('pear');
+    } else if (!viewportMobile && mobileSheet) {
+      if (mobileSheet === 'pear') setPearOpen(true);
+      setMobileSheet(null);
+    }
+  }, [viewportMobile, pearOpen, mobileSheet]);
+
+  /* Section selection wrappers — on a phone, activating a section
+     opens the PropertyRail sheet (tap on canvas or a row in the
+     Sections sheet); deselecting from the rail's Theme tab swaps
+     to the Theme sheet. Desktop passes straight through. */
+  const selectFromCanvas = useCallback((id: SectionId) => {
+    setActive(id);
+    if (viewportMobileRef.current && id) setMobileSheet('props');
+  }, []);
+  const selectFromRail = useCallback((id: SectionId) => {
+    setActive(id);
+    if (!viewportMobileRef.current) return;
+    setMobileSheet(id ? 'props' : 'theme');
+  }, []);
   /* The First Pressing — the once-per-generation reveal. Armed by
      the wizard via sessionStorage; consumed before first paint so
      a freshly-woven site opens behind the curtain, not in front
@@ -115,7 +162,9 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
     const onOpenPear = (e: Event) => {
       const detail = (e as CustomEvent).detail as { prefill?: string } | undefined;
       if (detail?.prefill) setPearPrefill(detail.prefill);
-      setPearOpen(true);
+      /* Phone → the Pear bottom sheet; desktop → 4th column. */
+      if (viewportMobileRef.current) setMobileSheet('pear');
+      else setPearOpen(true);
     };
     /* design-jump — dispatched by PublishChecklist + GoLiveBadge +
        Pear advisor when something needs to flip the active panel
@@ -125,12 +174,16 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
       const detail = (e as CustomEvent).detail as { block?: string } | undefined;
       if (!detail?.block) return;
       setActive(detail.block as SectionId);
+      if (viewportMobileRef.current) setMobileSheet('props');
     };
     /* Theme-rail shortcut — fired from the topbar Theme button.
        Switches the property rail to ThemeRail by clearing the
        active section (the conditional in the grid below renders
-       ThemeRail when active is null). */
-    const onOpenTheme = () => setActive(null);
+       ThemeRail when active is null). Phone: the Theme sheet. */
+    const onOpenTheme = () => {
+      setActive(null);
+      if (viewportMobileRef.current) setMobileSheet('theme');
+    };
     window.addEventListener('pearloom:open-pear', onOpenPear);
     window.addEventListener('pearloom:design-jump', onJump);
     window.addEventListener('pearloom:open-theme-rail', onOpenTheme);
@@ -142,11 +195,20 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
     };
   }, [bridge]);
 
-  // Prototype L1148-1160 — four-pane grid shell.
-  const gridColumns = pearOpen ? '256px 1fr 360px 320px' : '256px 1fr 360px';
-  const gridAreas = pearOpen
-    ? '"top top top top" "left canvas right pear"'
-    : '"top top top" "left canvas right"';
+  // Prototype L1148-1160 — four-pane grid shell. On phone-sized
+  // viewports the grid collapses to topbar + canvas; rails live
+  // in bottom sheets instead of columns.
+  const gridColumns = viewportMobile
+    ? '1fr'
+    : pearOpen ? '256px 1fr 360px 320px' : '256px 1fr 360px';
+  const gridAreas = viewportMobile
+    ? '"top" "canvas"'
+    : pearOpen
+      ? '"top top top top" "left canvas right pear"'
+      : '"top top top" "left canvas right"';
+  /* Which sheet's content to render — falls back to the last open
+     sheet while the exit slide plays so it doesn't empty mid-air. */
+  const displaySheet = mobileSheet ?? lastSheetRef.current;
 
   return (
     <div

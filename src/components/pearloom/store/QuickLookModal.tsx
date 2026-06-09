@@ -30,6 +30,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from '../motifs';
+import { useIsMobile } from '../redesign/use-nav-hooks';
 import { PackPreview } from './PackPreview';
 import { useCart } from './CartProvider';
 import {
@@ -211,6 +212,9 @@ export function QuickLookModal({
   onGetFree,
 }: QuickLookModalProps) {
   const { addToCart, hasItem } = useCart();
+  // Below ~720px the two-pane layout crushes both panes — stack
+  // previews above details instead. SSR-safe matchMedia hook.
+  const isNarrow = useIsMobile(720);
   // Track the DOM target for createPortal. Same lazy-init pattern
   // TemplatePreviewModal uses: resolve once on the first client
   // render, null during SSR. Avoids the setState-in-effect cascade.
@@ -276,7 +280,7 @@ export function QuickLookModal({
         backdropFilter: 'blur(6px)',
         display: 'grid',
         placeItems: 'center',
-        padding: 24,
+        padding: isNarrow ? 12 : 24,
       }}
     >
       <div
@@ -290,14 +294,16 @@ export function QuickLookModal({
           borderRadius: 'var(--pl-radius-2xl, 1.5rem)',
           boxShadow: 'var(--pl-shadow-xl, 0 16px 48px rgba(40,28,12,0.18))',
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1.05fr) minmax(0, 0.95fr)',
+          // Two panes side-by-side on desktop; stacked (previews
+          // above, details below) on phones.
+          gridTemplateColumns: isNarrow ? 'minmax(0, 1fr)' : 'minmax(0, 1.05fr) minmax(0, 0.95fr)',
         }}
       >
         {/* LEFT — previews */}
         <div
           style={{
             background: 'var(--pl-cream-deep, #EBE3D2)',
-            padding: 22,
+            padding: isNarrow ? 16 : 22,
             display: 'flex',
             flexDirection: 'column',
             gap: 14,
@@ -327,7 +333,7 @@ export function QuickLookModal({
         {/* RIGHT — details */}
         <div
           style={{
-            padding: '26px 26px 22px',
+            padding: isNarrow ? '20px 18px 18px' : '26px 26px 22px',
             display: 'flex',
             flexDirection: 'column',
             minWidth: 0,
@@ -536,6 +542,9 @@ export function QuickLookModal({
               gap: 14,
               paddingTop: 14,
               borderTop: '1px solid var(--pl-divider, #D8CFB8)',
+              // Narrow screens: let the CTA drop under the price
+              // instead of squeezing both.
+              flexWrap: 'wrap',
             }}
           >
             <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
