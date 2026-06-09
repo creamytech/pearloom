@@ -139,6 +139,25 @@ export function SaveTheDatePanel({
           {venue && <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{venue}</div>}
         </div>
 
+        {/* Reveal-page link — the themed envelope experience guests
+            land on from the email (/std/{slug}, Suite Phase 2). */}
+        {siteSlug && (
+          <a
+            href={`/std/${encodeURIComponent(siteSlug)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              alignSelf: 'center',
+              fontSize: 11.5, fontWeight: 600,
+              color: 'var(--sage-deep)', textDecoration: 'none',
+            }}
+          >
+            Preview the reveal page guests will open
+            <Icon name="arrow-right" size={11} color="var(--sage-deep)" />
+          </a>
+        )}
+
         {/* Sent banner */}
         {sentDateLabel && (
           <div style={{

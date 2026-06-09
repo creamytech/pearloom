@@ -14,6 +14,7 @@ import { Calendar, MapPin, Check } from 'lucide-react';
 import type { StoryManifest, WeddingEvent } from '@/types';
 import { InviteRsvpForm } from './InviteRsvpForm';
 import { GooeyText } from '@/components/brand/GooeyText';
+import { buildIcsDataHref } from './ics';
 
 interface InviteRevealProps {
   manifest: StoryManifest | null;
@@ -122,52 +123,19 @@ export function InviteReveal({
   // ── Practical actions (calendar / directions) ─────────────
   const icsHref = useMemo(() => {
     if (!headlineDate) return null;
-    const eventName = ceremony?.name || `${displayNames}'s Celebration`;
-    const descLines = [
-      `Save the date for ${displayNames}`,
-      headlineVenue ? `Venue: ${headlineVenue}` : '',
-      headlineAddress ? `Address: ${headlineAddress}` : '',
-    ].filter(Boolean);
-    const dateStr = headlineDate.includes('T') ? headlineDate.slice(0, 10) : headlineDate;
-    const [y, m, d] = dateStr.split('-').map(Number);
-    if (!y || !m || !d) return null;
-    const pad = (n: number) => String(n).padStart(2, '0');
-
-    // Parse headline time if present; default to 16:00 local.
-    let hh = 16, mm = 0;
-    if (headlineTime) {
-      const t = headlineTime.trim().toUpperCase();
-      const m12 = t.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/);
-      const m24 = t.match(/^(\d{1,2}):(\d{2})$/);
-      if (m12) {
-        hh = parseInt(m12[1], 10);
-        mm = m12[2] ? parseInt(m12[2], 10) : 0;
-        if (m12[3] === 'AM' && hh === 12) hh = 0;
-        if (m12[3] === 'PM' && hh !== 12) hh += 12;
-      } else if (m24) {
-        hh = parseInt(m24[1], 10);
-        mm = parseInt(m24[2], 10);
-      }
-    }
-    const endHh = (hh + 3) % 24;
-    const dtStart = `${y}${pad(m)}${pad(d)}T${pad(hh)}${pad(mm)}00`;
-    const dtEnd = `${y}${pad(m)}${pad(d)}T${pad(endHh)}${pad(mm)}00`;
-    const esc = (s: string) => s.replace(/[,;\\]/g, ' ');
-    const ics = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//Pearloom//Invitation//EN',
-      'BEGIN:VEVENT',
-      `UID:invite-${token}@pearloom.com`,
-      `DTSTART:${dtStart}`,
-      `DTEND:${dtEnd}`,
-      `SUMMARY:${esc(eventName)}`,
-      `LOCATION:${esc([headlineVenue, headlineAddress].filter(Boolean).join(', '))}`,
-      `DESCRIPTION:${esc(descLines.join(' \\n '))}`,
-      'END:VEVENT',
-      'END:VCALENDAR',
-    ].join('\r\n');
-    return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
+    return buildIcsDataHref({
+      date: headlineDate,
+      time: headlineTime,
+      title: ceremony?.name || `${displayNames}'s Celebration`,
+      venue: headlineVenue,
+      address: headlineAddress,
+      descriptionLines: [
+        `Save the date for ${displayNames}`,
+        headlineVenue ? `Venue: ${headlineVenue}` : '',
+        headlineAddress ? `Address: ${headlineAddress}` : '',
+      ].filter(Boolean),
+      uid: `invite-${token}@pearloom.com`,
+    });
   }, [headlineDate, headlineTime, headlineVenue, headlineAddress, ceremony?.name, displayNames, token]);
 
   const directionsHref = useMemo(() => {
