@@ -1753,6 +1753,12 @@ export function WizardV8() {
       // answers if the user starts a second site later.
       if (typeof window !== 'undefined') {
         try { window.localStorage.removeItem(STORAGE_KEY); } catch {}
+        // Arm the First Pressing — the editor plays the reveal
+        // sequence exactly once for this freshly-woven site.
+        try {
+          const { armFirstPressing } = await import('@/components/pearloom/redesign/FirstPressing');
+          armFirstPressing(derivedSubdomain);
+        } catch {}
       }
       router.push(`/editor/${derivedSubdomain}`);
     } catch (e) {
