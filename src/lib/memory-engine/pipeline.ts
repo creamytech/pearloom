@@ -48,6 +48,14 @@ export async function generateStoryManifest(
    * each pass falls back to getEventType(occasion).voice.
    */
   voiceOverride?: 'classic' | 'playful' | 'poetic',
+  /**
+   * Per-event wizard extras (bachelor/reunion day count, memorial
+   * livestream + in-memory-of, graduation school). Threaded into
+   * Pass 1's fact-sheet block (Claude path) and appended to the
+   * Gemini Pass-1 prompt (fallback path) so the story acknowledges
+   * them instead of only seeding blocks downstream.
+   */
+  eventDetails?: { days?: number; livestreamUrl?: string; inMemoryOf?: string; school?: string },
 ): Promise<StoryManifest> {
   /* Resolves the active voice — host's manual pick wins over the
      event-type default. Three-voice prototype union maps to five-
@@ -99,8 +107,31 @@ export async function generateStoryManifest(
   const photoCount = clusters.length;
   const prompt = buildPrompt(clusters, vibeString, coupleNames, occasion, eventDate, photoCount, layoutFormat);
 
+  // Mirror the per-event wizard extras into the Gemini Pass-1 prompt.
+  // The Claude path injects these via corePassClaude's fact-sheet
+  // block; the Gemini paths see them appended here so both providers
+  // honour the same anchors.
+  const ed = eventDetails ?? {};
+  const eventDetailsLines = [
+    ed.inMemoryOf
+      ? `- IN MEMORY OF: "${ed.inMemoryOf}" — the opening chapter MUST name them exactly as written; never rename, shorten, or paraphrase.`
+      : null,
+    ed.school
+      ? `- SCHOOL: "${ed.school}" — mention it by name exactly once across the chapters.`
+      : null,
+    ed.days && ed.days > 1
+      ? `- EVENT SPAN: ${ed.days} days — the story should acknowledge the span (e.g. "${ed.days} days in…").`
+      : null,
+    ed.livestreamUrl
+      ? `- A livestream will be available for guests who can't attend in person.`
+      : null,
+  ].filter(Boolean) as string[];
+  const geminiPrompt = eventDetailsLines.length
+    ? `${prompt}\n\nEVENT DETAILS (hard anchors — the story must honour these):\n${eventDetailsLines.join('\n')}`
+    : prompt;
+
   // Build the multimodal parts array
-  const parts: Record<string, unknown>[] = [{ text: prompt }];
+  const parts: Record<string, unknown>[] = [{ text: geminiPrompt }];
 
   // Fetch 1 representative image per cluster for Gemini vision.
   // Works for both Google Photos URLs (needs token) and regular URLs
@@ -127,6 +158,7 @@ export async function generateStoryManifest(
         layoutFormat,
         voice: activeVoice,
         factSheet,
+        eventDetails,
       });
       rawText = result.raw;
     } catch (err) {

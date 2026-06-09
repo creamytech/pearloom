@@ -586,6 +586,7 @@ export async function POST(req: Request) {
           selectedPaletteColors,
           factSheet,
           voiceOverride,
+          eventDetails,
         );
 
         // ── Post-processing (mirrors /api/generate/route.ts lines 354-506) ──

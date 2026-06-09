@@ -46,6 +46,13 @@ vi.mock('@/lib/claude/client', () => ({
   },
   textFrom: (msg: { content?: Array<{ text?: string }> }) =>
     msg.content?.[0]?.text ?? '',
+  // Mirrors the real cached() helper — the route wraps its static
+  // system prompt in a cache_control text block (prompt caching).
+  cached: (text: string, ttl: '5m' | '1h' = '5m') => ({
+    type: 'text',
+    text,
+    cache_control: { type: 'ephemeral', ttl },
+  }),
   CLAUDE_HAIKU: 'claude-haiku-4-5-20251001',
 }));
 
@@ -242,7 +249,17 @@ describe('POST /api/inline-rewrite — happy path', () => {
     // model-id central management — the test should care about the
     // contract, not the literal model string.
     expect(call.tier).toBe('haiku');
-    const system = call.system as string;
+    // The system prompt is now a cached() text-block array (prompt
+    // caching) — flatten to a string for the content assertions.
+    const systemBlocks = call.system as Array<{
+      text: string;
+      cache_control?: { type: string };
+    }>;
+    expect(Array.isArray(systemBlocks)).toBe(true);
+    // Regression guard for prompt caching: the static system prefix
+    // must carry a cache_control breakpoint.
+    expect(systemBlocks[0]?.cache_control?.type).toBe('ephemeral');
+    const system = systemBlocks.map((b) => b.text).join('\n');
     // Regression guard for the prompt's two non-negotiable rules:
     // ±20% length AND no extraneous quotes/headers. If either is
     // dropped, hosts see rewrites that drift in length or come

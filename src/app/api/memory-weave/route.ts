@@ -14,6 +14,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getSiteConfig } from '@/lib/db';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { GEMINI_PRO, geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
 
 export const dynamic = 'force-dynamic';
@@ -95,6 +96,19 @@ One object per guest, in the same order.`;
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  // Per-user rate limit — a run writes one Gemini-drafted prompt per
+  // guest, so each click is already a heavyweight model call.
+  const rate = checkRateLimit(`memory-weave:${session.user.email}`, {
+    max: 20,
+    windowMs: 5 * 60 * 1000,
+  });
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: 'Too many weave runs in a row — try again in a few minutes.' },
+      { status: 429 },
+    );
+  }
 
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) return NextResponse.json({ error: 'AI unavailable' }, { status: 503 });

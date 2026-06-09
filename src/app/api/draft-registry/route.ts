@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, checkPearGate } from '@/lib/rate-limit';
+import { geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,17 +94,25 @@ export async function POST(req: NextRequest) {
   let body: DraftRequest = {};
   try { body = await req.json(); } catch { /* tolerate empty body */ }
 
-  const upstream = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: SYSTEM_PROMPT(body) }] }],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 1024,
-      },
-    }),
-  });
+  // geminiRetryFetch retries 429/503 with backoff, then THROWS after
+  // exhausting attempts — catch and surface the same 502 the non-ok
+  // branch below returns, so callers see one failure shape.
+  let upstream: Response;
+  try {
+    upstream = await geminiRetryFetch(`${GEMINI_URL}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: SYSTEM_PROMPT(body) }] }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1024,
+        },
+      }),
+    });
+  } catch {
+    return NextResponse.json({ error: `Pear couldn't draft (upstream unavailable)` }, { status: 502 });
+  }
 
   if (!upstream.ok) {
     return NextResponse.json({ error: `Pear couldn't draft (${upstream.status})` }, { status: 502 });

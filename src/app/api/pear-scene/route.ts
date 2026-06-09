@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GEMINI_FLASH } from '@/lib/memory-engine/gemini-client';
+import { GEMINI_FLASH, geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import type { StoryManifest } from '@/types';
 
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
   const summary = `Occasion: ${occasion}\nSection: ${body.blockId}\nVibes: ${vibes || '(none)'}\nPalette: ${JSON.stringify(palette ?? {})}`;
 
   try {
-    const res = await fetch(`${GEMINI_FLASH}?key=${apiKey}`, {
+    const res = await geminiRetryFetch(`${GEMINI_FLASH}?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

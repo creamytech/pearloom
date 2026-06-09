@@ -137,8 +137,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // OpenAI gpt-image-2 is the PRIMARY painter (image-router prefers it
+  // whenever OPENAI_API_KEY is set); Gemini is the graceful fallback.
+  // Only fail closed when NEITHER provider is configured — previously
+  // a missing Gemini key 500'd even with OpenAI fully configured.
   const apiKey = env.GEMINI_API_KEY || env.GOOGLE_AI_KEY;
-  if (!apiKey) {
+  if (!apiKey && !process.env.OPENAI_API_KEY) {
     return NextResponse.json(
       { error: 'Image styling is not configured on this server.' },
       { status: 500 },
@@ -260,7 +264,9 @@ export async function POST(req: NextRequest) {
 // Shared painter. Throws on failure so async + sync paths share
 // error handling.
 async function runStylize(opts: {
-  apiKey: string;
+  /** Gemini key for the fallback provider. May be absent when only
+   *  OpenAI is configured — image-router reads env keys itself. */
+  apiKey?: string;
   prompt: string;
   sourceMime: string;
   sourceBuf: Buffer;

@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { GEMINI_PRO, geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
 
 export const dynamic = 'force-dynamic';
@@ -91,6 +92,20 @@ Return ONLY valid JSON (no markdown) in this shape:
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  // Per-user rate limit — each run fans out one Gemini Pro call per
+  // table, so a single click can already be several model calls.
+  const rate = checkRateLimit(`seatmate-intros:${session.user.email}`, {
+    max: 20,
+    windowMs: 5 * 60 * 1000,
+  });
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: 'Too many intro runs in a row — try again in a few minutes.' },
+      { status: 429 },
+    );
+  }
+
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) return NextResponse.json({ error: 'AI unavailable' }, { status: 503 });
   const supabase = sb();

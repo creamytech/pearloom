@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+import { geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
 import { checkPlanAccess } from '@/lib/plan-gate';
 
 export const dynamic = 'force-dynamic';
@@ -132,7 +133,7 @@ Return 5-7 FAQs that are genuinely useful for guests attending a wedding. Make t
 };
 
 async function callGemini(prompt: string, apiKey: string): Promise<string> {
-  const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
+  const res = await geminiRetryFetch(`${GEMINI_URL}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
