@@ -1837,6 +1837,10 @@ export function WizardV8() {
           happen. ≤640px condenses further for a 390px canvas:
           glyph-only wordmark, no decorative sprigs, stacked grids. */}
       <style jsx global>{`
+        @keyframes wizard-skeleton-pulse {
+          0%, 100% { opacity: 0.6; }
+          50%      { opacity: 0.85; }
+        }
         @media (max-width: 960px) {
           .pl8-wizard-header .pl8-wizard-progress {
             flex: 1 1 100% !important;
@@ -2540,12 +2544,6 @@ export function WizardV8() {
                               animation: `wizard-skeleton-pulse 1.4s ease-in-out ${i * 0.2}s infinite`,
                             }}
                           />
-                          <style jsx>{`
-                            @keyframes wizard-skeleton-pulse {
-                              0%, 100% { opacity: 0.6; }
-                              50%      { opacity: 0.85; }
-                            }
-                          `}</style>
                         </div>
                       ))}
                     </div>

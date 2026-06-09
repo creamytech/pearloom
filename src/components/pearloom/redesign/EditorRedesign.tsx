@@ -122,16 +122,16 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
     viewportMobileRef.current = viewportMobile;
   }, [viewportMobile]);
   /* Crossing the breakpoint: hand the open Pear pane to the
-     matching chrome on the other side. */
-  useEffect(() => {
-    if (viewportMobile && pearOpen) {
-      setPearOpen(false);
-      setMobileSheet('pear');
-    } else if (!viewportMobile && mobileSheet) {
-      if (mobileSheet === 'pear') setPearOpen(true);
-      setMobileSheet(null);
-    }
-  }, [viewportMobile, pearOpen, mobileSheet]);
+     matching chrome on the other side. Render-time adjustment
+     (the React-docs pattern, not an effect) — converges in one
+     extra render and never shows a frame with both chromes. */
+  if (viewportMobile && pearOpen) {
+    setPearOpen(false);
+    setMobileSheet('pear');
+  } else if (!viewportMobile && mobileSheet) {
+    if (mobileSheet === 'pear') setPearOpen(true);
+    setMobileSheet(null);
+  }
 
   /* Section selection wrappers — on a phone, activating a section
      opens the PropertyRail sheet (tap on canvas or a row in the
@@ -152,6 +152,10 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
      of it. useLayoutEffect (not state init) keeps SSR happy. */
   const [pressing, setPressing] = useState(false);
   useLayoutEffect(() => {
+    /* eslint-disable-next-line react-hooks/set-state-in-effect --
+       deliberate: sessionStorage can only be read client-side, and
+       the layout effect flips state before first paint (see the
+       comment above). A render-time read would break SSR. */
     if (shouldPlayFirstPressing(siteSlug)) setPressing(true);
   }, [siteSlug]);
 
@@ -602,6 +606,7 @@ function PearAside({
 }) {
   /* Lazy-load DesignAdvisor — 48 KB module. Renders as an inline
      <aside> in the 4th grid column via inline={true}. */
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- deliberate lazy require, keeps the module out of the initial editor bundle
   const DesignAdvisor = require('../editor/DesignAdvisor').DesignAdvisor as React.ComponentType<{
     manifest: StoryManifest;
     names: [string, string];
@@ -628,6 +633,7 @@ function PearAside({
         open
         onClose={onClose}
         onApplyPatch={onApplyPatch}
+        // eslint-disable-next-line react-hooks/purity -- pre-dates this lint; the key only needs to differ per prefill instance and the advisor dedupes via lastIntentKeyRef
         intent={prefill ? { pass: prefill, key: Date.now() } : null}
         inline
         currentBlock={currentBlock}
@@ -642,6 +648,7 @@ function PearAside({
    require() call keeps it out of the initial editor bundle until
    the canvas mounts. */
 function EditorCanvasRsvpModal({ siteSlug, manifest }: { siteSlug: string; manifest: StoryManifest }) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- deliberate lazy require, keeps the ~30KB modal out of the initial editor bundle
   const GuestRsvpModal = require('../site/GuestRsvpModal').GuestRsvpModal as React.ComponentType<{
     siteSlug: string;
     manifest: StoryManifest;
