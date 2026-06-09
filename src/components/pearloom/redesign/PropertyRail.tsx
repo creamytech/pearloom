@@ -99,6 +99,7 @@ import { SaveTheDatePanel } from '../editor/panels/SaveTheDatePanel';
 import { SharePanel } from '../editor/panels/SharePanel';
 import { DayOfPanel } from '../editor/panels/DayOfPanel';
 import { MemorialPanel } from '../editor/panels/MemorialPanel';
+import { ToastsPanel } from '../editor/panels/ToastsPanel';
 import { BachelorPanel } from '../editor/panels/BachelorPanel';
 import { CountdownPanel } from '../editor/panels/CountdownPanel';
 import { MapPanel } from '../editor/panels/MapPanel';
@@ -134,6 +135,7 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
   savetheDate: { id: 'savetheDate', label: 'Save the date',   desc: 'Pre-invite teaser' },
   share:       { id: 'share',       label: 'Share',           desc: 'Link, QR, preview' },
   dayof:       { id: 'dayof',       label: 'Day-of',          desc: 'Live broadcasts' },
+  toasts:      { id: 'toasts',      label: 'Toasts & speeches', desc: 'Vows, toasts, eulogies — drafted with Pear' },
   memorial:    { id: 'memorial',    label: 'Memorial',        desc: 'Obituary + program' },
   bachelor:    { id: 'bachelor',    label: 'Weekend planner', desc: 'Costs + polls + rooms' },
 };
@@ -155,7 +157,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
      workspaces — they don't render a canvas section, so Layout +
      Style tabs would be meaningless there. Hide the tab strip
      and force content-mode on tools. */
-  const TOOL_PANEL_KEYS = ['guests', 'savetheDate', 'share', 'dayof', 'memorial', 'bachelor'] as const;
+  const TOOL_PANEL_KEYS = ['guests', 'savetheDate', 'share', 'dayof', 'memorial', 'bachelor', 'toasts'] as const;
   const isToolPanel = (TOOL_PANEL_KEYS as readonly string[]).includes(active);
   const effectiveTab = isToolPanel ? 'content' : tab;
   const [pearBusy, setPearBusy] = useState<string | null>(null);
@@ -777,6 +779,7 @@ function renderSectionEditor(
     case 'savetheDate': return siteSlug ? <SaveTheDatePanel manifest={manifest} onChange={onChange} siteSlug={siteSlug} /> : null;
     case 'share':       return siteSlug ? <SharePanel manifest={manifest} siteSlug={siteSlug} /> : null;
     case 'dayof':       return siteSlug ? <DayOfPanel siteSlug={siteSlug} /> : null;
+    case 'toasts':      return <ToastsPanel manifest={manifest} names={((manifest as unknown as { names?: [string, string] }).names ?? ['', '']) as [string, string]} onChange={onChange} />;
     case 'memorial':    return <MemorialPanel {...props} />;
     case 'bachelor':    return <BachelorPanel {...props} />;
     /* nav / navMobile fall through — handled by PropertyRail's

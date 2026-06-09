@@ -54,6 +54,7 @@ export type SectionId =
      mount through the same PropertyRail dispatch so the editor's
      state machine stays simple. */
   | 'guests' | 'savetheDate' | 'share' | 'dayof' | 'memorial' | 'bachelor'
+  | 'toasts'
   | null;
 
 /* Occasion → which optional canvas sections fit. Countdown reads
@@ -79,6 +80,8 @@ export function isToolPanelApplicable(panel: Exclude<SectionId, null>, occasion?
         || occasion === 'sip-and-see';
   }
   if (panel === 'savetheDate') return occasion !== 'memorial' && occasion !== 'funeral';
+  /* Toasts & speeches apply everywhere — weddings get toasts and
+     vows, memorials get eulogies, retirements get tributes. */
   return true;
 }
 
@@ -244,7 +247,7 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
 
 function EditorCanvas({
   active, setActive, hover, setHover,
-  mode, manifest, names, siteSlug, onEditField, onEditNames, pearOpen: _pearOpen,
+  mode, manifest, names, siteSlug, onEditField, onEditNames, pearOpen,
   usePrototypeCanvas = false,
 }: {
   active: SectionId;
@@ -263,7 +266,6 @@ function EditorCanvas({
    *  full ThemedSiteRenderer. Preview pill flips to ThemedSiteRenderer. */
   usePrototypeCanvas?: boolean;
 }) {
-  void _pearOpen;
   const isMobile = mode === 'mobile';
   const isPreview = mode === 'preview';
   /* In the handoff, the canvas content is IDENTICAL between Edit and
@@ -380,7 +382,10 @@ function EditorCanvas({
         )}
       </div>
 
-      {!isPreview && (
+      {/* One Pear at a time — when the advisor column is open it
+          owns the conversation; the bubble would be a second,
+          competing Pear (audit 2026-06-09). */}
+      {!isPreview && !pearOpen && (
         <FloatingPearBubble
           active={active}
           manifest={manifest}
