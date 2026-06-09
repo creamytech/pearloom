@@ -30,6 +30,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { DashLayout } from '../dash/DashShell';
 import { Icon, Pear } from '../motifs';
+import { useIsMobile } from '../redesign/use-nav-hooks';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { parseLocalDate } from '@/lib/date-utils';
 import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
@@ -294,6 +295,13 @@ function HeroBand({
     urgencyTone === 'lavender' ? 'var(--lavender-bg)' : 'var(--sage-tint)';
   void firstName; void liveDisplay;
 
+  // Phones: the 3-column band crushes every zone (clipped names,
+  // vertical-word milestone, overlapping PLANNING header). Stack
+  // the three zones as full-width rows instead. The inline style
+  // is the one that wins, so it has to be responsive itself — the
+  // styled-jsx 920px rule below stays as a backstop.
+  const isNarrow = useIsMobile(920);
+
   return (
     <div
       className="hero-band"
@@ -303,20 +311,23 @@ function HeroBand({
         borderRadius: 20,
         padding: 'clamp(20px, 3vw, 28px)',
         display: 'grid',
-        gridTemplateColumns: '1.4fr 1fr 1fr',
-        gap: 28,
-        alignItems: 'center',
+        gridTemplateColumns: isNarrow ? '1fr' : '1.4fr 1fr 1fr',
+        gap: isNarrow ? 18 : 28,
+        alignItems: isNarrow ? 'stretch' : 'center',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* Atmosphere glyph — gold thread squiggle, decorative only */}
+      {/* Atmosphere glyph — gold thread squiggle, decorative only.
+          Hidden on narrow viewports where right:220 would park it
+          on top of the eyebrow copy. */}
       <svg
         width="160"
         height="40"
         viewBox="0 0 160 40"
         aria-hidden
         style={{
+          display: isNarrow ? 'none' : undefined,
           position: 'absolute',
           top: 22,
           right: 220,
@@ -439,9 +450,11 @@ function HeroBand({
       {/* RIGHT — progress + activity */}
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-            <span className="eyebrow">PLANNING</span>
-            <span style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
+          {/* gap + nowrap so the label and the counter can never
+              overlap, no matter how narrow the column gets. */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6, gap: 12, flexWrap: 'nowrap' }}>
+            <span className="eyebrow" style={{ whiteSpace: 'nowrap' }}>PLANNING</span>
+            <span style={{ fontSize: 12.5, color: 'var(--ink-soft)', whiteSpace: 'nowrap', flexShrink: 0 }}>
               <strong style={{ fontWeight: 700, color: 'var(--ink)' }}>{progressDone}</strong> of {progressTotal}
             </span>
           </div>
@@ -698,6 +711,9 @@ function severityRank(s: GuestInsight['severity']): number {
 
 function PearRecommendations({ todos, domain }: { todos: PearTodo[]; domain: string | null }) {
   void domain;
+  // On phones the trailing CTA squeezes the copy — drop the button
+  // to its own row under the text instead.
+  const isNarrow = useIsMobile(720);
   if (todos.length === 0) {
     return null;
   }
@@ -738,8 +754,8 @@ function PearRecommendations({ todos, domain }: { todos: PearTodo[]; domain: str
               key={i}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '6px 1fr auto',
-                gap: 14,
+                gridTemplateColumns: isNarrow ? '6px 1fr' : '6px 1fr auto',
+                gap: isNarrow ? 12 : 14,
                 alignItems: 'center',
                 padding: '12px 14px',
                 borderRadius: 12,
@@ -755,7 +771,12 @@ function PearRecommendations({ todos, domain }: { todos: PearTodo[]; domain: str
               <Link
                 href={it.href}
                 className={`btn ${urgent ? 'btn-primary' : 'btn-outline'} btn-sm`}
-                style={{ textDecoration: 'none' }}
+                style={{
+                  textDecoration: 'none',
+                  // Narrow: button drops to its own row, aligned
+                  // under the copy (past the stripe column).
+                  ...(isNarrow ? { gridColumn: '2', justifySelf: 'start' } : null),
+                }}
               >
                 {it.cta}
                 {urgent && <Icon name="arrow-right" size={12} color="var(--cream)" />}
@@ -850,6 +871,9 @@ function GuestPulse({
   loading: boolean;
 }) {
   void domain;
+  // Narrow: the 4-up legend squeezes "PENDING" past its column —
+  // fall back to a 2×2 grid.
+  const isNarrow = useIsMobile(720);
   if (loading) {
     return (
       <div className="card" style={{ padding: 20, borderRadius: 20, fontSize: 13, color: 'var(--ink-muted)', fontStyle: 'italic' }}>
@@ -947,7 +971,7 @@ function GuestPulse({
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 6 }}>
         {segs.map((s) => (
           <div key={s.label} style={{ padding: '8px 6px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
@@ -1043,6 +1067,10 @@ function buildMilestones({
 }
 
 function Milestones({ milestones, dateShort }: { milestones: Milestone[]; dateShort: string | null }) {
+  // Narrow: the date/dot/title/annotation 4-column row wraps
+  // awkwardly — drop the annotation onto its own muted line under
+  // the title and tighten the date gutter.
+  const isNarrow = useIsMobile(720);
   return (
     <div className="card" style={{ padding: 20, borderRadius: 20 }}>
       <SectionHeader icon="calendar">
@@ -1057,8 +1085,8 @@ function Milestones({ milestones, dateShort }: { milestones: Milestone[]; dateSh
               key={i}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '76px 22px 1fr auto',
-                gap: 12,
+                gridTemplateColumns: isNarrow ? '64px 22px 1fr' : '76px 22px 1fr auto',
+                gap: isNarrow ? 10 : 12,
                 alignItems: 'center',
                 padding: '12px 0',
                 borderBottom: !isLast ? '1px solid var(--line-soft)' : 'none',
@@ -1089,18 +1117,25 @@ function Milestones({ milestones, dateShort }: { milestones: Milestone[]; dateSh
                   {dot.check && <Icon name="check" size={8} color="white" strokeWidth={3} />}
                 </span>
               </div>
-              <div
-                style={{
-                  fontSize: 14,
-                  color: 'var(--ink)',
-                  fontWeight: m.status === 'urgent' || m.status === 'next' ? 600 : 500,
-                  textDecoration: m.status === 'done' ? 'line-through' : 'none',
-                  opacity: m.status === 'done' ? 0.7 : 1,
-                }}
-              >
-                {m.label}
+              <div style={{ minWidth: 0 }}>
+                <div
+                  style={{
+                    fontSize: 14,
+                    color: 'var(--ink)',
+                    fontWeight: m.status === 'urgent' || m.status === 'next' ? 600 : 500,
+                    textDecoration: m.status === 'done' ? 'line-through' : 'none',
+                    opacity: m.status === 'done' ? 0.7 : 1,
+                  }}
+                >
+                  {m.label}
+                </div>
+                {isNarrow && m.sub && (
+                  <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 2 }}>{m.sub}</div>
+                )}
               </div>
-              <div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>{m.sub}</div>
+              {!isNarrow && (
+                <div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>{m.sub}</div>
+              )}
             </div>
           );
         })}

@@ -297,8 +297,37 @@ export function QuickLookModal({
           // Two panes side-by-side on desktop; stacked (previews
           // above, details below) on phones.
           gridTemplateColumns: isNarrow ? 'minmax(0, 1fr)' : 'minmax(0, 1.05fr) minmax(0, 0.95fr)',
+          position: 'relative',
         }}
       >
+        {/* Stacked layout puts the details-pane × below the fold —
+            pin a close affordance over the previews instead. It
+            carries the focus ref so opening the modal doesn't
+            auto-scroll past the preview pane. */}
+        {isNarrow && (
+          <button
+            ref={closeBtnRef}
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              position: 'absolute',
+              top: 10,
+              right: 10,
+              zIndex: 2,
+              width: 32,
+              height: 32,
+              borderRadius: 10,
+              display: 'grid',
+              placeItems: 'center',
+              background: 'rgba(251,247,238,0.92)',
+              border: '1px solid var(--pl-divider, #D8CFB8)',
+              cursor: 'pointer',
+              color: 'var(--pl-ink-soft, #3A332C)',
+            }}
+          >
+            <Icon name="close" size={15} />
+          </button>
+        )}
         {/* LEFT — previews */}
         <div
           style={{
@@ -380,25 +409,27 @@ export function QuickLookModal({
                 </span>
               )}
             </div>
-            <button
-              ref={closeBtnRef}
-              onClick={onClose}
-              aria-label="Close"
-              style={{
-                width: 30,
-                height: 30,
-                borderRadius: 8,
-                display: 'grid',
-                placeItems: 'center',
-                background: 'var(--pl-cream-deep, #EBE3D2)',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--pl-ink-soft, #3A332C)',
-                flexShrink: 0,
-              }}
-            >
-              <Icon name="close" size={15} />
-            </button>
+            {!isNarrow && (
+              <button
+                ref={closeBtnRef}
+                onClick={onClose}
+                aria-label="Close"
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 8,
+                  display: 'grid',
+                  placeItems: 'center',
+                  background: 'var(--pl-cream-deep, #EBE3D2)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--pl-ink-soft, #3A332C)',
+                  flexShrink: 0,
+                }}
+              >
+                <Icon name="close" size={15} />
+              </button>
+            )}
           </div>
 
           <h2

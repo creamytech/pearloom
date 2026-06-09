@@ -270,6 +270,21 @@ function StoreInner() {
     loading: boolean;
   } | null>(null);
 
+  // The filter bar pins below the sticky header. On desktop the
+  // header is 57px tall, but on phones its flex-wrapped contents
+  // grow it to ~3 rows — a hardcoded top: 57 left the chip strip
+  // pinned underneath it. Measure the real height instead.
+  const headerRef = useRef<HTMLElement | null>(null);
+  const [headerH, setHeaderH] = useState(57);
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    setHeaderH(el.offsetHeight);
+    const ro = new ResizeObserver(() => setHeaderH(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   // Owned set combines server entitlements + free unlocks claimed
   // in this session.
   const ownedSet = useMemo(() => {
@@ -471,6 +486,7 @@ function StoreInner() {
     >
       {/* HEADER */}
       <header
+        ref={headerRef}
         style={{
           position: 'sticky',
           top: 0,
@@ -622,7 +638,7 @@ function StoreInner() {
       <div
         style={{
           position: 'sticky',
-          top: 57,
+          top: headerH,
           zIndex: 30,
           background: 'var(--pl-cream, #F5EFE2)',
         }}
