@@ -81,6 +81,19 @@ export type Motif =
   | 'palm'
   | 'shell'
   | 'sun'
+  /* 2026-06-09 collection — ids match MotifKind in
+     src/components/pearloom/site/MotifScatter.tsx verbatim, so
+     MOTIF_CANVAS_MAP needs no entry for them. */
+  | 'magnolia'
+  | 'gingko'
+  | 'champagne'
+  | 'lantern'
+  | 'compass'
+  | 'peony'
+  | 'vine'
+  | 'starburst'
+  | 'ribbon'
+  | 'hummingbird'
   | 'none';
 
 export type Kit =
@@ -340,7 +353,7 @@ export const COLLECTIONS: readonly Collection[] = [
   { id: 'seasonal', name: 'Seasonal & Fête', blurb: 'Holidays & celebration.' },
 ] as const;
 
-// ─── Packs (58) — full port of STORE_PACKS ────────────────────
+// ─── Packs (62) — full port of STORE_PACKS + the 2026-06-09 set ─
 
 export const PACKS: readonly Pack[] = [
   // ===== Editorial Cream & Quiet =====
@@ -420,6 +433,12 @@ export const PACKS: readonly Pack[] = [
   mk({ id: 'luna-rose', name: 'Luna Rose', collection: 'celestial', blurb: 'Plum-dusk velvet warmed with rose gold — a moonlit deco evening.', paper: '#241A33', ink: '#F1EAE2', accent: '#A98BC8', accent2: '#D8A06A', gold: '#D8A06A', dark: true, foil: true, motif: 'none', kit: 'deco', pattern: 'celestial', texture: 'velvet', section: '#2E2340', card: '#352A4A', display: F.cormorant, body: F.inter, radius: 6, wght: '500', ls: '0.20em', price: 20, r: 4.8, s: '1.4k', swatches: ['#241A33', '#A98BC8', '#D8A06A', '#F1EAE2'], tags: ['celestial', 'deco', 'rose-gold', 'mauve', 'romantic', 'foil'] }),
   mk({ id: 'winter-frost', name: 'Winter Frost', collection: 'seasonal', blurb: 'Pale ice and brushed silver — a clear-sky January morning on paper.', paper: '#F2F5F7', ink: '#1F2A35', accent: '#6E8FA6', accent2: '#B9C2D6', gold: '#A4B8C8', motif: 'none', kit: 'minimal', pattern: 'celestial', texture: 'paper', section: '#E8EEF2', card: '#FFFFFF', display: F.italiana, body: F.inter, radius: 4, ls: '0.18em', price: 14, r: 4.7, s: '1.2k', swatches: ['#F2F5F7', '#6E8FA6', '#A4B8C8', '#B9C2D6'], tags: ['seasonal', 'winter', 'minimal', 'ice', 'crisp', 'cool'] }),
   mk({ id: 'autumn-harvest', name: 'Autumn Harvest', collection: 'seasonal', blurb: 'Kraft paper, wheat stamps, and rust ink — the warmth of a late-October table.', paper: '#FAF2E4', ink: '#2A1A0E', accent: '#B5552B', accent2: '#D87A48', gold: '#C9A55E', motif: 'wheat', kit: 'stamp', texture: 'kraft', section: '#F0E5D0', card: '#FFFCEE', display: F.fraunces, body: F.inter, radius: 12, wght: '500', price: 14, r: 4.8, s: '1.8k', swatches: ['#FAF2E4', '#B5552B', '#C9A55E', '#D87A48'], tags: ['seasonal', 'autumn', 'harvest', 'rust', 'wheat', 'warm'] }),
+
+  // ===== 2026-06-09 collection — drawn around the new motif set =====
+  mk({ id: 'first-thread', name: 'First Thread', collection: 'modern', blurb: 'The house colors — cream paper, olive ink, one gold thread. The loom, unadorned.', paper: '#F5EFE2', ink: '#0E0D0B', accent: '#5C6B3F', accent2: '#A4B57A', gold: '#B8935A', motif: 'vine', kit: 'classic', texture: 'paper', section: '#EBE3D2', card: '#FBF7EE', display: F.fraunces, body: F.inter, radius: 12, price: 12, r: 4.9, s: '2.4k', swatches: ['#F5EFE2', '#5C6B3F', '#B8935A', '#A4B57A'], tags: ['editorial', 'olive', 'classic', 'letterpress', 'understated', 'vine'] }),
+  mk({ id: 'magnolia-porch', name: 'Magnolia Porch', collection: 'garden', blurb: 'Dusty rose magnolias on warm linen — a southern veranda in late May.', paper: '#F8F3EA', ink: '#2C2218', accent: '#A86B76', accent2: '#D9B8A6', gold: '#C9A55E', motif: 'magnolia', kit: 'plate', texture: 'linen', section: '#F0E7D8', card: '#FFFDF4', display: F.playfair, body: F.inter, radius: 14, price: 16, r: 4.8, s: '1.1k', swatches: ['#F8F3EA', '#A86B76', '#C9A55E', '#D9B8A6'], tags: ['garden', 'magnolia', 'rose', 'southern', 'romantic', 'linen'] }),
+  mk({ id: 'gilded-coupe', name: 'Gilded Coupe', collection: 'evening', blurb: 'Champagne bubbles rising through candlelit velvet — pour, toast, repeat.', paper: '#1C1712', ink: '#F1EBDC', accent: '#D4B373', accent2: '#E8C77A', gold: '#D8A06A', dark: true, foil: true, motif: 'champagne', kit: 'deco', pattern: 'deco', texture: 'velvet', section: '#251E16', card: '#2C241A', display: F.italiana, body: F.inter, radius: 6, wght: '500', ls: '0.20em', price: 20, r: 4.9, s: '1.6k', swatches: ['#1C1712', '#D4B373', '#D8A06A', '#E8C77A'], tags: ['evening', 'champagne', 'deco', 'gold', 'toast', 'foil', 'nye'] }),
+  mk({ id: 'paper-lanterns', name: 'Paper Lanterns', collection: 'whimsy', blurb: 'Warm lanterns strung against a kraft dusk — festival light you can fold.', paper: '#FAF1E2', ink: '#33231A', accent: '#C25E3C', accent2: '#E0935F', gold: '#D8A06A', motif: 'lantern', kit: 'stamp', pattern: 'celestial', texture: 'kraft', section: '#F2E5CE', card: '#FFF9EC', display: F.fraunces, body: F.dmsans, radius: 14, price: 14, r: 4.7, s: '940', swatches: ['#FAF1E2', '#C25E3C', '#D8A06A', '#E0935F'], tags: ['festival', 'lantern', 'warm', 'celebration', 'kraft', 'glow'] }),
 ] as const;
 
 // ─── Lookup helpers ──────────────────────────────────────────
@@ -454,16 +473,24 @@ export function dividerForMotif(motif: Motif): 'sprig' | 'brush' | 'dot' | 'rule
     case 'fern':
     case 'laurel':
     case 'wheat':
-      /* All four are leafy / stem motifs — sprig divider matches. */
+    case 'vine':
+    case 'gingko':
+    case 'hummingbird':
+      /* Leafy / stem / garden motifs — sprig divider matches. */
       return 'sprig';
     case 'bloom':
     case 'sun':
     case 'citrus':
+    case 'magnolia':
+    case 'peony':
       /* Floral / radial — the brush stroke divider reads warmer. */
       return 'brush';
     case 'pressed':
     case 'palm':
-      /* Imprinted / scattered marks — the dot rhythm matches. */
+    case 'champagne':
+    case 'starburst':
+    case 'lantern':
+      /* Imprinted / scattered / sparked marks — the dot rhythm matches. */
       return 'dot';
     case 'shell':
       /* Shell / scallop edges — the deckled divider matches the

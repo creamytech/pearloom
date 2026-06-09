@@ -2906,7 +2906,7 @@ function TButton({
 
 /* ─── KDivider — handoff/shared/kits.jsx divider variants. ──── */
 
-function KDivider({ look, width = 170, style = {} }: { look: string; width?: number; style?: CSSProperties }) {
+export function KDivider({ look, width = 170, style = {} }: { look: string; width?: number; style?: CSSProperties }) {
   const wrap: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, margin: '0 auto', width, ...style };
   if (look === 'sprig') {
     /* Handoff/prototype design — two olive sprigs facing inward
@@ -3015,6 +3015,92 @@ function KDivider({ look, width = 170, style = {} }: { look: string; width?: num
           <path d="M 42 5 L 38 1 L 34 5 L 38 9 Z" fill="var(--t-gold, var(--gold))" opacity="0.7" />
         </svg>
         <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+      </div>
+    );
+  }
+  if (look === 'thread') {
+    /* Two strands — accent + gold — weaving in counter-phase. The
+       brand's loom, as a rule. */
+    const cycles = Math.max(2, Math.round(width / 56));
+    const len = width / cycles;
+    const strand = (phase: number) => {
+      let d = `M 0 ${7 + phase} `;
+      for (let i = 0; i < cycles; i++) {
+        const x = i * len;
+        d += `C ${x + len * 0.25} ${7 + phase - 6}, ${x + len * 0.75} ${7 + phase + 6}, ${x + len} ${7 + phase} `;
+      }
+      return d;
+    };
+    return (
+      <div style={wrap}>
+        <svg width={width} height="14" viewBox={`0 0 ${width} 14`} aria-hidden>
+          <path d={strand(0)} stroke="var(--t-accent)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+          <path d={strand(0)} stroke="var(--t-gold, var(--gold))" strokeWidth="1.2" fill="none" strokeLinecap="round" transform={`translate(${len / 2} 0)`} opacity="0.85" />
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'vine') {
+    /* Leafy rule — centre stem with alternating leaf pairs. */
+    const leaves = Math.max(4, Math.round(width / 30));
+    return (
+      <div style={wrap}>
+        <svg width={width} height="14" viewBox={`0 0 ${width} 14`} aria-hidden>
+          <path d={`M 0 7 L ${width} 7`} stroke="var(--t-accent)" strokeWidth="1" opacity="0.8" />
+          {Array.from({ length: leaves }).map((_, i) => {
+            const x = ((i + 0.5) / leaves) * width;
+            const up = i % 2 === 0;
+            return (
+              <ellipse
+                key={i}
+                cx={x}
+                cy={up ? 4 : 10}
+                rx="4.4"
+                ry="1.9"
+                fill="var(--t-accent)"
+                opacity="0.75"
+                transform={`rotate(${up ? -28 : 28} ${x} ${up ? 4 : 10})`}
+              />
+            );
+          })}
+          <circle cx={width} cy="7" r="1.6" fill="var(--t-gold, var(--gold))" />
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'stars') {
+    /* Three four-point stars between hairlines — gold keystone centre. */
+    const star = (cx: number, cy: number, r: number) =>
+      `M ${cx} ${cy - r} Q ${cx + r * 0.22} ${cy - r * 0.22} ${cx + r} ${cy} Q ${cx + r * 0.22} ${cy + r * 0.22} ${cx} ${cy + r} Q ${cx - r * 0.22} ${cy + r * 0.22} ${cx - r} ${cy} Q ${cx - r * 0.22} ${cy - r * 0.22} ${cx} ${cy - r} Z`;
+    return (
+      <div style={wrap}>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+        <svg width="56" height="16" viewBox="0 0 56 16" aria-hidden>
+          <path d={star(10, 8, 4)} fill="var(--t-accent)" opacity="0.75" />
+          <path d={star(28, 8, 6.5)} fill="var(--t-gold, var(--gold))" />
+          <path d={star(46, 8, 4)} fill="var(--t-accent)" opacity="0.75" />
+        </svg>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+      </div>
+    );
+  }
+  if (look === 'scallop') {
+    /* Lace edge — a run of shallow scallop arcs with dot finials. */
+    const n = Math.max(5, Math.round(width / 26));
+    const len = width / n;
+    let d = `M 0 9 `;
+    for (let i = 0; i < n; i++) {
+      const x = i * len;
+      d += `Q ${x + len / 2} -3, ${x + len} 9 `;
+    }
+    return (
+      <div style={wrap}>
+        <svg width={width} height="12" viewBox={`0 0 ${width} 12`} aria-hidden>
+          <path d={d} stroke="var(--t-accent)" strokeWidth="1.1" fill="none" opacity="0.8" />
+          {Array.from({ length: n - 1 }).map((_, i) => (
+            <circle key={i} cx={(i + 1) * len} cy="10.4" r="1.1" fill="var(--t-gold, var(--gold))" opacity="0.9" />
+          ))}
+        </svg>
       </div>
     );
   }
