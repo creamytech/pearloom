@@ -145,8 +145,12 @@ export function HeroKicker({ manifest, dateInfo, onEditField }: {
   );
 }
 
-export function HeroNames({ n1, n2, onEditNames, scale = 1, color, italicColor, letterpress = true }: {
+export function HeroNames({ n1, n2, solo = false, onEditNames, scale = 1, color, italicColor, letterpress = true }: {
   n1: string; n2: string;
+  /** Solo-honoree site — render the single name only. Suppresses
+   *  the 'and Partner' slot even in edit mode so a memorial canvas
+   *  never invites a second name. */
+  solo?: boolean;
   onEditNames?: (next: [string, string]) => void;
   scale?: number;
   color?: string;
@@ -178,7 +182,7 @@ export function HeroNames({ n1, n2, onEditNames, scale = 1, color, italicColor, 
         ariaLabel="First host name"
         maxLength={80}
       />
-      {n2 || onEditNames ? (
+      {!solo && (n2 || onEditNames) ? (
         <>
           {' '}
           <span

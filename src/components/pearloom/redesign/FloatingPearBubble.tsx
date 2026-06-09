@@ -5,6 +5,8 @@
 
 import { useState } from 'react';
 import { Icon, Pear } from '../motifs';
+import { PearThinking } from '../pear-thinking';
+import { pearErrorMessage } from './PearAssist';
 import type { SectionId } from './EditorRedesign';
 import type { StoryManifest } from '@/types';
 
@@ -71,7 +73,8 @@ export function FloatingPearBubble({ active, manifest, names, onJumpTab, onAskMo
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[pear-bubble] critique failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t think that one through — try again?');
       }
       const data = await res.json() as { suggestions?: Suggestion[] };
       const first = data.suggestions?.[0];
@@ -81,7 +84,8 @@ export function FloatingPearBubble({ active, manifest, names, onJumpTab, onAskMo
         setErr('Pear had nothing to add right now.');
       }
     } catch (e) {
-      setErr((e as Error).message);
+      console.error('[pear-bubble] critique error:', e);
+      setErr(pearErrorMessage(e, 'Pear couldn’t think that one through — try again?'));
     } finally {
       setBusy(false);
     }
@@ -242,7 +246,15 @@ export function FloatingPearBubble({ active, manifest, names, onJumpTab, onAskMo
                 className="btn btn-primary btn-sm"
                 style={{ flex: 1, justifyContent: 'center', fontSize: 12, opacity: busy ? 0.7 : 1 }}
               >
-                {busy ? 'Pear is thinking…' : 'Yes, try it'}
+                {busy ? (
+                  <PearThinking
+                    active
+                    size="sm"
+                    label="Pear is thinking"
+                    color="currentColor"
+                    style={{ padding: 0 }}
+                  />
+                ) : 'Yes, try it'}
               </button>
               <button
                 type="button"
@@ -256,7 +268,7 @@ export function FloatingPearBubble({ active, manifest, names, onJumpTab, onAskMo
           </>
         )}
         {err && (
-          <div style={{ padding: '6px 10px', borderRadius: 7, background: 'rgba(122,45,45,0.08)', fontSize: 11, color: '#7A2D2D', marginBottom: 8 }}>
+          <div style={{ padding: '6px 10px', borderRadius: 7, background: 'var(--pl-chrome-danger-soft, rgba(122,45,45,0.08))', fontSize: 11, color: 'var(--pl-chrome-danger, #7A2D2D)', marginBottom: 8 }}>
             {err}
           </div>
         )}

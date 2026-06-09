@@ -22,6 +22,11 @@ export interface HeroVariantProps {
   context: {
     n1: string;
     n2: string;
+    /** Solo-honoree site — one person, so never render an '&' or
+     *  a second-name slot (even as an edit-mode placeholder).
+     *  Resolved by ThemedHero from manifest.subject.kind >
+     *  isSoloOccasion(occasion) > empty names[1]. */
+    solo?: boolean;
     coverPhoto?: string;
     photos: string[];
     venue: string;

@@ -12,6 +12,7 @@ import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import type { SectionId } from './EditorRedesign';
 import { LAYOUTS, readVariant, type LayoutVariant } from './layouts';
+import { pearErrorMessage } from './PearAssist';
 
 /* useSectionHidden — read/write manifest.hiddenSections from
    inside the rail. Mirrors the same hook in _section-atoms.tsx
@@ -98,6 +99,7 @@ import { SaveTheDatePanel } from '../editor/panels/SaveTheDatePanel';
 import { SharePanel } from '../editor/panels/SharePanel';
 import { DayOfPanel } from '../editor/panels/DayOfPanel';
 import { MemorialPanel } from '../editor/panels/MemorialPanel';
+import { ToastsPanel } from '../editor/panels/ToastsPanel';
 import { BachelorPanel } from '../editor/panels/BachelorPanel';
 import { CountdownPanel } from '../editor/panels/CountdownPanel';
 import { MapPanel } from '../editor/panels/MapPanel';
@@ -133,6 +135,7 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
   savetheDate: { id: 'savetheDate', label: 'Save the date',   desc: 'Pre-invite teaser' },
   share:       { id: 'share',       label: 'Share',           desc: 'Link, QR, preview' },
   dayof:       { id: 'dayof',       label: 'Day-of',          desc: 'Live broadcasts' },
+  toasts:      { id: 'toasts',      label: 'Toasts & speeches', desc: 'Vows, toasts, eulogies — drafted with Pear' },
   memorial:    { id: 'memorial',    label: 'Memorial',        desc: 'Obituary + program' },
   bachelor:    { id: 'bachelor',    label: 'Weekend planner', desc: 'Costs + polls + rooms' },
 };
@@ -154,7 +157,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
      workspaces — they don't render a canvas section, so Layout +
      Style tabs would be meaningless there. Hide the tab strip
      and force content-mode on tools. */
-  const TOOL_PANEL_KEYS = ['guests', 'savetheDate', 'share', 'dayof', 'memorial', 'bachelor'] as const;
+  const TOOL_PANEL_KEYS = ['guests', 'savetheDate', 'share', 'dayof', 'memorial', 'bachelor', 'toasts'] as const;
   const isToolPanel = (TOOL_PANEL_KEYS as readonly string[]).includes(active);
   const effectiveTab = isToolPanel ? 'content' : tab;
   const [pearBusy, setPearBusy] = useState<string | null>(null);
@@ -220,14 +223,16 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[property-rail] rewrite failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t rewrite that one — try again?');
       }
       const { rewritten } = await res.json() as { rewritten: string };
       if (rewritten && rewritten !== current) {
         onChange(writePath(manifest as unknown as Record<string, unknown>, target.fieldPath, rewritten) as unknown as StoryManifest);
       }
     } catch (e) {
-      setPearErr((e as Error).message);
+      console.error('[property-rail] rewrite error:', e);
+      setPearErr(pearErrorMessage(e, 'Pear couldn’t rewrite that one — try again?'));
     } finally {
       setPearBusy(null);
     }
@@ -273,7 +278,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
                 display: 'grid', placeItems: 'center',
                 cursor: canHide ? 'pointer' : 'not-allowed',
                 opacity: canHide ? 1 : 0.4,
-                transition: 'background 140ms, border-color 140ms',
+                transition: 'background var(--pl-dur-quick), border-color var(--pl-dur-quick)',
               }}
             >
               <Icon
@@ -292,7 +297,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
                 width: 26, height: 26, borderRadius: 6,
                 background: optionsOpen ? 'var(--cream-3)' : 'var(--cream-2)',
                 display: 'grid', placeItems: 'center', border: 'none', cursor: 'pointer',
-                transition: 'background 140ms',
+                transition: 'background var(--pl-dur-quick)',
               }}
             >
               <Icon name="more" size={13} color="var(--ink-soft)" />
@@ -304,7 +309,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
                   position: 'absolute',
                   top: 'calc(100% + 6px)',
                   right: 0,
-                  zIndex: 50,
+                  zIndex: 'var(--z-dropdown)',
                   minWidth: 180,
                   padding: 4,
                   background: 'var(--card)',
@@ -514,7 +519,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
                 );
               })}
               {pearErr && (
-                <div style={{ padding: '7px 10px', borderRadius: 8, background: 'rgba(122,45,45,0.08)', fontSize: 11.5, color: '#7A2D2D' }}>
+                <div style={{ padding: '7px 10px', borderRadius: 8, background: 'var(--pl-chrome-danger-soft, rgba(122,45,45,0.08))', fontSize: 11.5, color: 'var(--pl-chrome-danger, #7A2D2D)' }}>
                   {pearErr}
                 </div>
               )}
@@ -774,6 +779,7 @@ function renderSectionEditor(
     case 'savetheDate': return siteSlug ? <SaveTheDatePanel manifest={manifest} onChange={onChange} siteSlug={siteSlug} /> : null;
     case 'share':       return siteSlug ? <SharePanel manifest={manifest} siteSlug={siteSlug} /> : null;
     case 'dayof':       return siteSlug ? <DayOfPanel siteSlug={siteSlug} /> : null;
+    case 'toasts':      return <ToastsPanel manifest={manifest} names={((manifest as unknown as { names?: [string, string] }).names ?? ['', '']) as [string, string]} onChange={onChange} />;
     case 'memorial':    return <MemorialPanel {...props} />;
     case 'bachelor':    return <BachelorPanel {...props} />;
     /* nav / navMobile fall through — handled by PropertyRail's
@@ -808,7 +814,7 @@ function OptionRow({
         opacity: disabled ? 0.55 : 1,
         textAlign: 'left',
         borderRadius: 6,
-        transition: 'background 100ms',
+        transition: 'background var(--pl-dur-instant)',
       }}
       onMouseEnter={(e) => { if (!disabled) e.currentTarget.style.background = 'var(--cream-2)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}

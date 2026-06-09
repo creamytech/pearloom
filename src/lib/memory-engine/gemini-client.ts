@@ -41,6 +41,69 @@ export const log = process.env.NODE_ENV === 'development' ? console.log : () => 
 export const logWarn = process.env.NODE_ENV === 'development' ? console.warn : () => {};
 export const logError = process.env.NODE_ENV === 'development' ? console.error : () => {};
 
+// ── Usage accounting (src/lib/ai-usage.ts) ──────────────────────────────────
+// geminiRetryFetch is the shared chokepoint for Gemini calls, but it
+// hands raw Response objects back to callers who parse the JSON
+// themselves. So we clone() the response and read `usageMetadata`
+// (promptTokenCount / candidatesTokenCount / cachedContentTokenCount)
+// from the clone asynchronously — fire-and-forget, never touching the
+// body the caller needs. Streaming responses (:streamGenerateContent /
+// text/event-stream) are skipped rather than buffered.
+//
+// NOTE coverage boundary: a number of API routes call `fetch` against
+// the GEMINI_* URLs directly instead of going through geminiRetryFetch
+// (e.g. /api/rewrite-text, /api/translate, /api/ai-chat, pear-chat's
+// Gemini streaming path, photo-vision). Those bypass this accounting
+// until they're migrated onto geminiRetryFetch.
+
+function modelFromGeminiUrl(url: string): string | null {
+  const m = /\/models\/([^:/?]+)/.exec(url);
+  return m ? m[1] : null;
+}
+
+function recordGeminiUsage(url: string, res: Response, startedMs: number): void {
+  try {
+    if (!res.ok) return;
+    // Skip streaming responses — we'd have to buffer the whole stream
+    // to total the usage; not worth racing the caller's reader.
+    if (url.includes(':streamGenerateContent')) return;
+    const contentType = res.headers.get('content-type') ?? '';
+    if (contentType.includes('text/event-stream')) return;
+    const model = modelFromGeminiUrl(url);
+    if (!model) return;
+
+    // clone() so the caller's res.json()/res.text() is untouched.
+    const clone = res.clone();
+    void clone
+      .json()
+      .then(async (data) => {
+        const meta = (data as {
+          usageMetadata?: {
+            promptTokenCount?: number;
+            candidatesTokenCount?: number;
+            thoughtsTokenCount?: number;
+            cachedContentTokenCount?: number;
+          };
+        })?.usageMetadata;
+        if (!meta) return;
+        const { recordAiUsage } = await import('@/lib/ai-usage');
+        recordAiUsage({
+          provider: 'gemini',
+          model,
+          inputTokens: meta.promptTokenCount ?? 0,
+          outputTokens: (meta.candidatesTokenCount ?? 0) + (meta.thoughtsTokenCount ?? 0),
+          cacheReadTokens: meta.cachedContentTokenCount ?? 0,
+          ms: Date.now() - startedMs,
+        });
+      })
+      .catch(() => {
+        /* malformed body / aborted — accounting is best-effort */
+      });
+  } catch {
+    // accounting must never break a model call
+  }
+}
+
 /**
  * Wraps a Gemini fetch with automatic retry on 503 (UNAVAILABLE) and 429 (rate limit).
  * Uses exponential back-off: 2s â†’ 4s â†’ 8s (max 3 attempts).
@@ -50,6 +113,7 @@ export async function geminiRetryFetch(
   init: RequestInit,
   maxAttempts = 3
 ): Promise<Response> {
+  const startedMs = Date.now();
   let lastError: Error | null = null;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const res = await fetch(url, init);
@@ -64,6 +128,8 @@ export async function geminiRetryFetch(
       lastError = new Error(`Gemini API temporarily unavailable (${res.status}). Please try again in a moment.`);
       throw lastError;
     }
+    // ms includes retry back-off — it's the caller-perceived latency.
+    recordGeminiUsage(url, res, startedMs);
     return res;
   }
   throw lastError ?? new Error('Gemini request failed after max retries');

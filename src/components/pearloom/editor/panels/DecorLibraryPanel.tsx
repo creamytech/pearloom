@@ -47,8 +47,26 @@ import {
   ArrowsMotif,
   PineconeMotif,
   ButterflyMotif,
+  MagnoliaMotif,
+  GingkoMotif,
+  ChampagneMotif,
+  LanternMotif,
+  CompassMotif,
+  PeonyMotif,
+  VineMotif,
+  StarburstMotif,
+  RibbonMotif,
+  HummingbirdMotif,
+  OrchidMotif,
+  MonsteraMotif,
+  HollyMotif,
+  CherryBlossomMotif,
+  AnchorMotif,
+  DiscoMotif,
 } from '../../site/MotifScatter';
 import { Monogram, deriveInitials, type MonogramFrame } from '../../site/Monogram';
+import { AISource } from '../../ai-source';
+import { pearErrorMessage } from '../../redesign/PearAssist';
 
 /* ─── Prototype tile registries (verbatim) ─────────────────────────── */
 
@@ -60,6 +78,14 @@ const DL_MOTIFS = [
   { id: 'mountain', label: 'Mountain' }, { id: 'wave-curl', label: 'Wave Curl' }, { id: 'rose', label: 'Rose' },
   { id: 'crescent', label: 'Crescent' }, { id: 'dove', label: 'Dove' }, { id: 'arrows', label: 'Crossed Arrows' },
   { id: 'pinecone', label: 'Pinecone' }, { id: 'butterfly', label: 'Butterfly' },
+  /* 2026-06-09 collection. */
+  { id: 'magnolia', label: 'Magnolia' }, { id: 'gingko', label: 'Gingko' }, { id: 'champagne', label: 'Champagne' },
+  { id: 'lantern', label: 'Lantern' }, { id: 'compass', label: 'Compass' }, { id: 'peony', label: 'Peony' },
+  { id: 'vine', label: 'Ivy Vine' }, { id: 'starburst', label: 'Starburst' }, { id: 'ribbon', label: 'Ribbon Bow' },
+  { id: 'hummingbird', label: 'Hummingbird' },
+  /* 2026-06-09 collection II. */
+  { id: 'orchid', label: 'Orchid' }, { id: 'monstera', label: 'Monstera' }, { id: 'holly', label: 'Holly' },
+  { id: 'cherry-blossom', label: 'Cherry Blossom' }, { id: 'anchor', label: 'Anchor' }, { id: 'disco', label: 'Disco Ball' },
 ] as const;
 
 const DL_DIVIDERS = [
@@ -68,6 +94,9 @@ const DL_DIVIDERS = [
   /* New custom dividers. */
   { id: 'wave', label: 'Wave' }, { id: 'arrow', label: 'Arrow' }, { id: 'seal', label: 'Wax seal' },
   { id: 'bow', label: 'Ribbon bow' }, { id: 'diamond', label: 'Diamonds' }, { id: 'morse', label: 'Morse' },
+  /* 2026-06-09 collection. */
+  { id: 'thread', label: 'Loom thread' }, { id: 'vine', label: 'Vine' },
+  { id: 'stars', label: 'Stars' }, { id: 'scallop', label: 'Scallop' },
 ] as const;
 
 const DL_PATTERNS = [
@@ -103,6 +132,11 @@ const DL_PRESETS: { label: string; d: DecorState }[] = [
   { label: 'Coastal Calm', d: { motif: 'shell', divider: 'deckle', pattern: 'scallop', color: '--t-accent', density: 'sparse' } },
   { label: 'Wildflower Press', d: { motif: 'pressed', divider: 'dot', pattern: 'dots', color: '--t-accent-2', density: 'generous' } },
   { label: 'Tuscan Sun', d: { motif: 'wheat', divider: 'brush', pattern: 'none', color: '--t-gold', density: 'sparse' } },
+  /* 2026-06-09 collection. */
+  { label: 'Loom & Pearl', d: { motif: 'vine', divider: 'thread', pattern: 'none', color: '--t-accent', density: 'sparse' } },
+  { label: 'Magnolia Porch', d: { motif: 'magnolia', divider: 'vine', pattern: 'none', color: '--t-accent', density: 'generous' } },
+  { label: 'Gilded Coupe', d: { motif: 'champagne', divider: 'stars', pattern: 'deco', color: '--t-gold', density: 'sparse' } },
+  { label: 'Lantern Evening', d: { motif: 'lantern', divider: 'scallop', pattern: 'celestial', color: '--t-gold', density: 'sparse' } },
 ];
 
 /* ─── Prototype-internal subcomponents (ported verbatim) ───────────── */
@@ -129,6 +163,22 @@ function Motif({ kind, size }: { kind: string; size?: number }) {
     case 'arrows':  return <ArrowsMotif size={size} />;
     case 'pinecone':return <PineconeMotif size={size} />;
     case 'butterfly':return <ButterflyMotif size={size} />;
+    case 'magnolia':return <MagnoliaMotif size={size} />;
+    case 'gingko':  return <GingkoMotif size={size} />;
+    case 'champagne':return <ChampagneMotif size={size} />;
+    case 'lantern': return <LanternMotif size={size} />;
+    case 'compass': return <CompassMotif size={size} />;
+    case 'peony':   return <PeonyMotif size={size} />;
+    case 'vine':    return <VineMotif size={size} />;
+    case 'starburst':return <StarburstMotif size={size} />;
+    case 'ribbon':  return <RibbonMotif size={size} />;
+    case 'hummingbird':return <HummingbirdMotif size={size} />;
+    case 'orchid':  return <OrchidMotif size={size} />;
+    case 'monstera':return <MonsteraMotif size={size} />;
+    case 'holly':   return <HollyMotif size={size} />;
+    case 'cherry-blossom':return <CherryBlossomMotif size={size} />;
+    case 'anchor':  return <AnchorMotif size={size} />;
+    case 'disco':   return <DiscoMotif size={size} />;
     default:        return null;
   }
 }
@@ -673,6 +723,10 @@ export function DecorLibraryPanel({
   const [tab, setTab] = useState<DLTab>('motifs');
   const [text, setText] = useState('');
   const [gen, setGen] = useState<DecorState | null>(null);
+  /* True when the current `gen` preview came from Pear (the
+     Generate flow) vs a curated preset tap — drives the
+     "drafted by Pear" attribution on the preview card. */
+  const [genFromPear, setGenFromPear] = useState(false);
   const [busy, setBusy] = useState(false);
   const [genError, setGenError] = useState<string | null>(null);
 
@@ -791,7 +845,10 @@ export function DecorLibraryPanel({
         rationale?: string;
         error?: string;
       };
-      if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status})`);
+      if (!res.ok) {
+        console.error('[decor-library] generate failed:', res.status);
+        throw new Error(data.error ?? "Pear couldn't style that one — try again?");
+      }
       if (!data.patternId || !data.motifId || !data.dividerId || !data.accentColor) {
         throw new Error('Pear returned a malformed preset — try again.');
       }
@@ -837,8 +894,10 @@ export function DecorLibraryPanel({
       };
       onChange(next as StoryManifest);
       setGen(presetForUi);
+      setGenFromPear(true);
     } catch (err) {
-      setGenError(err instanceof Error ? err.message : "Pear couldn't style that one");
+      console.error('[decor-library] generate error:', err);
+      setGenError(pearErrorMessage(err, "Pear couldn't style that one — try again?"));
     } finally {
       setBusy(false);
     }
@@ -885,6 +944,7 @@ export function DecorLibraryPanel({
     }
     onChange(next as StoryManifest);
     setGen(d);
+    setGenFromPear(false);
   }
 
   /* Subject for monogram — derived from manifest.names. */
@@ -1097,14 +1157,21 @@ export function DecorLibraryPanel({
                     {busy ? ' Pear is styling…' : ' Style my decor'}
                   </button>
                   {gen && !busy && (
-                    <div style={{ marginTop: 10, padding: '9px 11px', borderRadius: 9, background: 'var(--sage-tint, color-mix(in oklab, var(--pl-olive, #5C6B3F) 12%, var(--cream, #FBF7EE)))', fontSize: 11.5, color: 'var(--sage-deep, var(--pl-olive, #5C6B3F))', display: 'flex', gap: 7 }}>
-                      <Icon name="check" size={13} color="var(--sage-deep, var(--pl-olive, #5C6B3F))" style={{ flexShrink: 0, marginTop: 1 }} />
-                      <span>
-                        Applied <b>{gen.motif}</b> motifs, a <b>{gen.divider}</b> divider
-                        {gen.pattern && gen.pattern !== 'none' ? (
-                          <> and a <b>{gen.pattern}</b> print</>
-                        ) : null}.
-                      </span>
+                    <div style={{ marginTop: 10, padding: '9px 11px', borderRadius: 9, background: 'var(--sage-tint, color-mix(in oklab, var(--pl-olive, #5C6B3F) 12%, var(--cream, #FBF7EE)))', fontSize: 11.5, color: 'var(--sage-deep, var(--pl-olive, #5C6B3F))', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <div style={{ display: 'flex', gap: 7 }}>
+                        <Icon name="check" size={13} color="var(--sage-deep, var(--pl-olive, #5C6B3F))" style={{ flexShrink: 0, marginTop: 1 }} />
+                        <span>
+                          Applied <b>{gen.motif}</b> motifs, a <b>{gen.divider}</b> divider
+                          {gen.pattern && gen.pattern !== 'none' ? (
+                            <> and a <b>{gen.pattern}</b> print</>
+                          ) : null}.
+                        </span>
+                      </div>
+                      {genFromPear && (
+                        /* Quiet attribution — only when the set came
+                           from Pear, not a curated preset tap. */
+                        <AISource style={{ fontSize: 10.5, opacity: 0.85, marginLeft: 20 }} />
+                      )}
                     </div>
                   )}
                   {genError && !busy && (
@@ -1286,6 +1353,18 @@ function MonogramTab({
     { id: 'sprig',  l: 'Sprig' },
     { id: 'seal',   l: 'Wax seal' },
     { id: 'banner', l: 'Banner' },
+    /* 2026-06-09 collection. */
+    { id: 'stitch',  l: 'Stitch hoop' },
+    { id: 'pearls',  l: 'Pearls' },
+    { id: 'fan',     l: 'Deco fan' },
+    { id: 'garland', l: 'Garland' },
+    { id: 'lozenge', l: 'Lozenge' },
+    { id: 'corners', l: 'Corners' },
+    /* 2026-06-09 collection II. */
+    { id: 'wreath',  l: 'Wreath' },
+    { id: 'gate',    l: 'Deco Gate' },
+    { id: 'halo',    l: 'Halo' },
+    { id: 'tag',     l: 'Gift Tag' },
   ];
 
   const Crest = ({ big }: { big: boolean }) => {

@@ -24,6 +24,7 @@ import { useId, useEffect, useState, type CSSProperties, type ReactNode } from '
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { getTheme, themeRootStyle, type Density, type Theme } from '../site/themes';
+import { isSoloOccasion } from '@/lib/event-os/solo-occasions';
 import { Motif, MotifScatter, WatercolorBloom, OliveSprig, type MotifKind } from '../site/MotifScatter';
 import { TextureFilters } from '../site/TextureFilters';
 import { readVariant } from './layouts';
@@ -178,8 +179,19 @@ export function ThemedSite({
     color: ((manifest as unknown as { decorColor?: string }).decorColor),
   };
 
-  const nameA = names[0] || 'Scott';
-  const nameB = names[1] || 'Shauna';
+  /* Names — demo fallbacks ('Scott'/'Shauna') only ever fill in
+     for COUPLE sites with a truly empty manifest (dev/demo). A
+     solo-honoree site must never grow a phantom second name
+     ("random names don't populate"). Explicit editor pick
+     (manifest.subject.kind) wins; the canonical occasion registry
+     (lib/event-os/solo-occasions.ts) is the fallback. */
+  const subjectKindPick = (manifest as unknown as { subject?: { kind?: string } }).subject?.kind;
+  const soloSite =
+    subjectKindPick === 'solo' ||
+    (subjectKindPick !== 'couple' &&
+      isSoloOccasion((manifest as unknown as { occasion?: string }).occasion));
+  const nameA = names[0] || (soloSite ? '' : 'Scott');
+  const nameB = soloSite ? (names[1] || '') : (names[1] || 'Shauna');
   const rawDate = (manifest as unknown as { logistics?: { date?: string } }).logistics?.date;
   const date = formatHeroDate(rawDate) || 'Monday, April 26, 2027';
   const venue = (manifest as unknown as { logistics?: { venue?: string } }).logistics?.venue || 'Casa Chorro';
@@ -606,7 +618,7 @@ export function ThemedSite({
                   style={{
                     width: 6, height: 6, borderRadius: '50%',
                     background: s === activeId ? 'var(--t-accent)' : 'var(--t-line)',
-                    transition: 'background 240ms cubic-bezier(0.22,1,0.36,1)',
+                    transition: 'background var(--pl-dur-base) var(--pl-ease-out)',
                   }}
                 />
               ))}
@@ -1765,7 +1777,7 @@ function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
             fontSize: 13, fontWeight: 600, color: 'var(--t-ink)',
             display: 'inline-flex', alignItems: 'center', gap: 6,
             textDecoration: 'none',
-            transition: 'transform 180ms cubic-bezier(0.16,1,0.3,1), border-color 180ms',
+            transition: 'transform var(--pl-dur-fast) var(--pl-ease-emphasis), border-color var(--pl-dur-fast)',
           };
           if (s.url) {
             return (
@@ -1876,9 +1888,14 @@ function RsvpBlock({ ctx }: { ctx: SectionCtx }) {
 function GoingSocialProof({ ctx }: { ctx: SectionCtx }) {
   const sp = ctx.C.rsvp.socialProof;
   if (!sp?.enabled) return null;
-  const liveNames = sp.names;
-  const count = liveNames.length;
   const editable = ctx.editable;
+  /* Demo names preview the pile on the editor canvas only.
+     Published sites never invent guests — without real names
+     (manifest.goingPreview) the pile simply doesn't render. */
+  const DEMO_GOING = ['Maya', 'Jordan', 'Sam', 'Priya', 'Alex', 'Casey', 'Lin', 'Theo'];
+  const liveNames = sp.names.length > 0 ? sp.names : (editable ? DEMO_GOING : []);
+  if (liveNames.length === 0) return null;
+  const count = liveNames.length;
   /* First-name initials for the pile. */
   const initials = liveNames.slice(0, 5).map((n) => (n.trim()[0] ?? '?').toUpperCase());
   const TONES = [
@@ -2824,7 +2841,7 @@ function TSection({ id, label, children, active, hover, setActive, setHover, edi
               position: 'absolute', inset: 4, borderRadius: 6,
               outline: isActive ? '2px solid var(--lavender-2)' : isHover ? '1.5px dashed var(--lavender-2)' : 'none',
               outlineOffset: -2, pointerEvents: 'none', zIndex: 4,
-              transition: 'outline 180ms cubic-bezier(0.16,1,0.3,1)',
+              transition: 'outline var(--pl-dur-fast) var(--pl-ease-emphasis)',
             }}
           />
           {(isActive || isHover) && !hideHandle && (
@@ -2867,7 +2884,7 @@ function TButton({
     display: 'inline-flex', alignItems: 'center', gap: 6,
     padding: '10px 22px', borderRadius: 999,
     fontSize: 13, fontWeight: 700, cursor: 'pointer',
-    border: 0, transition: 'all 180ms cubic-bezier(0.16,1,0.3,1)',
+    border: 0, transition: 'all var(--pl-dur-fast) var(--pl-ease-emphasis)',
     fontFamily: 'inherit', textDecoration: 'none',
     /* Don't let narrow viewports break button labels character-by-
        character ("R/S/V/P" / "Le/ar/n"). Force the label to stay on
@@ -2906,7 +2923,7 @@ function TButton({
 
 /* ─── KDivider — handoff/shared/kits.jsx divider variants. ──── */
 
-function KDivider({ look, width = 170, style = {} }: { look: string; width?: number; style?: CSSProperties }) {
+export function KDivider({ look, width = 170, style = {} }: { look: string; width?: number; style?: CSSProperties }) {
   const wrap: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, margin: '0 auto', width, ...style };
   if (look === 'sprig') {
     /* Handoff/prototype design — two olive sprigs facing inward
@@ -3015,6 +3032,92 @@ function KDivider({ look, width = 170, style = {} }: { look: string; width?: num
           <path d="M 42 5 L 38 1 L 34 5 L 38 9 Z" fill="var(--t-gold, var(--gold))" opacity="0.7" />
         </svg>
         <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+      </div>
+    );
+  }
+  if (look === 'thread') {
+    /* Two strands — accent + gold — weaving in counter-phase. The
+       brand's loom, as a rule. */
+    const cycles = Math.max(2, Math.round(width / 56));
+    const len = width / cycles;
+    const strand = (phase: number) => {
+      let d = `M 0 ${7 + phase} `;
+      for (let i = 0; i < cycles; i++) {
+        const x = i * len;
+        d += `C ${x + len * 0.25} ${7 + phase - 6}, ${x + len * 0.75} ${7 + phase + 6}, ${x + len} ${7 + phase} `;
+      }
+      return d;
+    };
+    return (
+      <div style={wrap}>
+        <svg width={width} height="14" viewBox={`0 0 ${width} 14`} aria-hidden>
+          <path d={strand(0)} stroke="var(--t-accent)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+          <path d={strand(0)} stroke="var(--t-gold, var(--gold))" strokeWidth="1.2" fill="none" strokeLinecap="round" transform={`translate(${len / 2} 0)`} opacity="0.85" />
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'vine') {
+    /* Leafy rule — centre stem with alternating leaf pairs. */
+    const leaves = Math.max(4, Math.round(width / 30));
+    return (
+      <div style={wrap}>
+        <svg width={width} height="14" viewBox={`0 0 ${width} 14`} aria-hidden>
+          <path d={`M 0 7 L ${width} 7`} stroke="var(--t-accent)" strokeWidth="1" opacity="0.8" />
+          {Array.from({ length: leaves }).map((_, i) => {
+            const x = ((i + 0.5) / leaves) * width;
+            const up = i % 2 === 0;
+            return (
+              <ellipse
+                key={i}
+                cx={x}
+                cy={up ? 4 : 10}
+                rx="4.4"
+                ry="1.9"
+                fill="var(--t-accent)"
+                opacity="0.75"
+                transform={`rotate(${up ? -28 : 28} ${x} ${up ? 4 : 10})`}
+              />
+            );
+          })}
+          <circle cx={width} cy="7" r="1.6" fill="var(--t-gold, var(--gold))" />
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'stars') {
+    /* Three four-point stars between hairlines — gold keystone centre. */
+    const star = (cx: number, cy: number, r: number) =>
+      `M ${cx} ${cy - r} Q ${cx + r * 0.22} ${cy - r * 0.22} ${cx + r} ${cy} Q ${cx + r * 0.22} ${cy + r * 0.22} ${cx} ${cy + r} Q ${cx - r * 0.22} ${cy + r * 0.22} ${cx - r} ${cy} Q ${cx - r * 0.22} ${cy - r * 0.22} ${cx} ${cy - r} Z`;
+    return (
+      <div style={wrap}>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+        <svg width="56" height="16" viewBox="0 0 56 16" aria-hidden>
+          <path d={star(10, 8, 4)} fill="var(--t-accent)" opacity="0.75" />
+          <path d={star(28, 8, 6.5)} fill="var(--t-gold, var(--gold))" />
+          <path d={star(46, 8, 4)} fill="var(--t-accent)" opacity="0.75" />
+        </svg>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+      </div>
+    );
+  }
+  if (look === 'scallop') {
+    /* Lace edge — a run of shallow scallop arcs with dot finials. */
+    const n = Math.max(5, Math.round(width / 26));
+    const len = width / n;
+    let d = `M 0 9 `;
+    for (let i = 0; i < n; i++) {
+      const x = i * len;
+      d += `Q ${x + len / 2} -3, ${x + len} 9 `;
+    }
+    return (
+      <div style={wrap}>
+        <svg width={width} height="12" viewBox={`0 0 ${width} 12`} aria-hidden>
+          <path d={d} stroke="var(--t-accent)" strokeWidth="1.1" fill="none" opacity="0.8" />
+          {Array.from({ length: n - 1 }).map((_, i) => (
+            <circle key={i} cx={(i + 1) * len} cy="10.4" r="1.1" fill="var(--t-gold, var(--gold))" opacity="0.9" />
+          ))}
+        </svg>
       </div>
     );
   }
@@ -3601,11 +3704,18 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
 
   return {
     subject: (() => {
-      /* Solo-honoree mode — set in the editor's Hero panel and
-         stored under manifest.subject.kind. When 'solo', the
-         renderer suppresses the second name + '&' glyph. */
+      /* Solo-honoree mode — an explicit editor pick
+         (manifest.subject.kind, Hero panel) always wins. With no
+         pick, solo occasions (canonical registry:
+         lib/event-os/solo-occasions.ts) and any site with an
+         empty second name render solo — one name, no '&' glyph,
+         no dangling ampersand. */
       const sub = (loose.subject as { kind?: 'couple' | 'solo' } | undefined);
-      const kind = sub?.kind === 'solo' ? 'solo' as const : 'couple' as const;
+      const kind =
+        sub?.kind === 'solo' ||
+        (sub?.kind !== 'couple' && (isSoloOccasion(occasion) || !(args.nameB ?? '').trim()))
+          ? 'solo' as const
+          : 'couple' as const;
       return { type: kind, a: args.nameA, b: kind === 'solo' ? '' : args.nameB };
     })(),
     lead: co('heroLead', V.lead),
@@ -3831,8 +3941,10 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       const occ = (loose.occasion as string | undefined) ?? 'wedding';
       const defaultEnabled = PUBLIC_RSVP_OCCASIONS.has(occ);
       const enabled = (loose.rsvpShowGoing as boolean | undefined) ?? defaultEnabled;
-      const previewNames = (loose.goingPreview as string[] | undefined)
-        ?? ['Maya', 'Jordan', 'Sam', 'Priya', 'Alex', 'Casey', 'Lin', 'Theo'];
+      /* No fabricated guests on published sites — the demo pile is
+         edit-mode-only (GoingSocialProof supplies it). Real names
+         arrive via manifest.goingPreview when wired. */
+      const previewNames = (loose.goingPreview as string[] | undefined) ?? [];
       return {
       eyebrow: co('rsvpEyebrow', rsvpDeadline ? `RSVP by ${formatHeroDate(rsvpDeadline) || rsvpDeadline}` : 'RSVP by April 28'),
       title: t.head,

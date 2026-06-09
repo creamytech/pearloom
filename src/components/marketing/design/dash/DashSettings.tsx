@@ -765,7 +765,8 @@ export function DashSettings() {
                   <button
                     type="button"
                     onClick={r.onClick}
-                    style={{ ...btnGhost, color: r.c, borderColor: `${r.c}44` }}
+                    // r.c is a var(--pd-*) string now — no alpha suffix.
+                    style={{ ...btnGhost, color: r.c, borderColor: `color-mix(in oklab, ${r.c} 27%, transparent)` }}
                   >
                     {r.cta}
                   </button>

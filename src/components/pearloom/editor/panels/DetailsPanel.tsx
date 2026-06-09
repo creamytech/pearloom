@@ -91,6 +91,33 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
             options={dressSet.options}
             hint={dressSet.hint}
           />
+          {/* One-tap presets — FSuggest only shows its chip row while
+              the field is EMPTY, but the default card ships with a
+              value, so most hosts never see the suggestions. Surface
+              the top 4 as preset pills (same write path as typing);
+              styling matches the RSVP panel's meal-option quick-adds. */}
+          {(cards[0]?.[1] ?? '').trim().length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 7 }}>
+              {dressSet.options
+                .filter((o) => o.trim().toLowerCase() !== (cards[0]?.[1] ?? '').trim().toLowerCase())
+                .slice(0, 4)
+                .map((o) => (
+                  <button
+                    key={o}
+                    type="button"
+                    onClick={() => setCardValue(0, o)}
+                    style={{
+                      fontSize: 11.5, fontWeight: 600,
+                      padding: '4px 9px', borderRadius: 999,
+                      background: 'var(--cream-2)', color: 'var(--ink-soft)',
+                      border: '1px solid var(--line)', cursor: 'pointer',
+                    }}
+                  >
+                    {o}
+                  </button>
+                ))}
+            </div>
+          )}
           {(cards[0]?.[1] ?? '').trim().length >= 2 && (
             <div style={{ marginTop: 7 }}>
               <PearInlineRewrite

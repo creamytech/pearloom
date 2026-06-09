@@ -26,12 +26,20 @@ const F = {
   tenor: "'Tenor Sans', sans-serif",
   inter: "'Inter', sans-serif",
   dmsans: "'DM Sans', sans-serif",
+  /* 2026-06-09 premium faces — loaded by <StoreFonts /> in
+     lib/theme-store/fonts.tsx alongside the rest of the catalog. */
+  bodoni: "'Bodoni Moda', Georgia, serif",
+  prata: "'Prata', Georgia, serif",
+  gilda: "'Gilda Display', Georgia, serif",
+  jost: "'Jost', sans-serif",
 } as const;
 
 const S = {
   caveat: "'Caveat', cursive",
   dancing: "'Dancing Script', cursive",
   pinyon: "'Pinyon Script', cursive",
+  greatvibes: "'Great Vibes', cursive",
+  parisienne: "'Parisienne', cursive",
 } as const;
 
 // color-mix helper used by the factory
@@ -81,6 +89,26 @@ export type Motif =
   | 'palm'
   | 'shell'
   | 'sun'
+  /* 2026-06-09 collection — ids match MotifKind in
+     src/components/pearloom/site/MotifScatter.tsx verbatim, so
+     MOTIF_CANVAS_MAP needs no entry for them. */
+  | 'magnolia'
+  | 'gingko'
+  | 'champagne'
+  | 'lantern'
+  | 'compass'
+  | 'peony'
+  | 'vine'
+  | 'starburst'
+  | 'ribbon'
+  | 'hummingbird'
+  /* Collection II (2026-06-09). */
+  | 'orchid'
+  | 'monstera'
+  | 'holly'
+  | 'cherry-blossom'
+  | 'anchor'
+  | 'disco'
   | 'none';
 
 export type Kit =
@@ -91,7 +119,9 @@ export type Kit =
   | 'ticket'
   | 'arch'
   | 'stamp'
-  | 'deco';
+  | 'deco'
+  | 'gallery'
+  | 'menu';
 
 export type CollectionId =
   | 'med'
@@ -340,7 +370,7 @@ export const COLLECTIONS: readonly Collection[] = [
   { id: 'seasonal', name: 'Seasonal & Fête', blurb: 'Holidays & celebration.' },
 ] as const;
 
-// ─── Packs (67) — full port of STORE_PACKS ────────────────────
+// ─── Packs (70) — STORE_PACKS port + the 2026-06-09 collections ─
 
 export const PACKS: readonly Pack[] = [
   // ===== Editorial Cream & Quiet =====
@@ -420,6 +450,21 @@ export const PACKS: readonly Pack[] = [
   mk({ id: 'luna-rose', name: 'Luna Rose', collection: 'celestial', blurb: 'Plum-dusk velvet warmed with rose gold — a moonlit deco evening.', paper: '#241A33', ink: '#F1EAE2', accent: '#A98BC8', accent2: '#D8A06A', gold: '#D8A06A', dark: true, foil: true, motif: 'none', kit: 'deco', pattern: 'celestial', texture: 'velvet', section: '#2E2340', card: '#352A4A', display: F.cormorant, body: F.inter, radius: 6, wght: '500', ls: '0.20em', price: 20, r: 4.8, s: '1.4k', swatches: ['#241A33', '#A98BC8', '#D8A06A', '#F1EAE2'], tags: ['celestial', 'deco', 'rose-gold', 'mauve', 'romantic', 'foil'] }),
   mk({ id: 'winter-frost', name: 'Winter Frost', collection: 'seasonal', blurb: 'Pale ice and brushed silver — a clear-sky January morning on paper.', paper: '#F2F5F7', ink: '#1F2A35', accent: '#6E8FA6', accent2: '#B9C2D6', gold: '#A4B8C8', motif: 'none', kit: 'minimal', pattern: 'celestial', texture: 'paper', section: '#E8EEF2', card: '#FFFFFF', display: F.italiana, body: F.inter, radius: 4, ls: '0.18em', price: 14, r: 4.7, s: '1.2k', swatches: ['#F2F5F7', '#6E8FA6', '#A4B8C8', '#B9C2D6'], tags: ['seasonal', 'winter', 'minimal', 'ice', 'crisp', 'cool'] }),
   mk({ id: 'autumn-harvest', name: 'Autumn Harvest', collection: 'seasonal', blurb: 'Kraft paper, wheat stamps, and rust ink — the warmth of a late-October table.', paper: '#FAF2E4', ink: '#2A1A0E', accent: '#B5552B', accent2: '#D87A48', gold: '#C9A55E', motif: 'wheat', kit: 'stamp', texture: 'kraft', section: '#F0E5D0', card: '#FFFCEE', display: F.fraunces, body: F.inter, radius: 12, wght: '500', price: 14, r: 4.8, s: '1.8k', swatches: ['#FAF2E4', '#B5552B', '#C9A55E', '#D87A48'], tags: ['seasonal', 'autumn', 'harvest', 'rust', 'wheat', 'warm'] }),
+
+  // ===== 2026-06-09 collection — drawn around the new motif set =====
+  mk({ id: 'first-thread', name: 'First Thread', collection: 'modern', blurb: 'The house colors — cream paper, olive ink, one gold thread. The loom, unadorned. On us.', paper: '#F5EFE2', ink: '#0E0D0B', accent: '#5C6B3F', accent2: '#A4B57A', gold: '#B8935A', motif: 'vine', kit: 'classic', texture: 'paper', section: '#EBE3D2', card: '#FBF7EE', display: F.fraunces, body: F.inter, radius: 12, price: 0, r: 4.9, s: '2.4k', swatches: ['#F5EFE2', '#5C6B3F', '#B8935A', '#A4B57A'], tags: ['editorial', 'olive', 'classic', 'letterpress', 'understated', 'vine'] }),
+  mk({ id: 'magnolia-porch', name: 'Magnolia Porch', collection: 'garden', blurb: 'Dusty rose magnolias on warm linen — a southern veranda in late May.', paper: '#F8F3EA', ink: '#2C2218', accent: '#A86B76', accent2: '#D9B8A6', gold: '#C9A55E', motif: 'magnolia', kit: 'plate', texture: 'linen', section: '#F0E7D8', card: '#FFFDF4', display: F.playfair, body: F.inter, radius: 14, price: 16, r: 4.8, s: '1.1k', swatches: ['#F8F3EA', '#A86B76', '#C9A55E', '#D9B8A6'], tags: ['garden', 'magnolia', 'rose', 'southern', 'romantic', 'linen'] }),
+  mk({ id: 'gilded-coupe', name: 'Gilded Coupe', collection: 'evening', blurb: 'Champagne bubbles rising through candlelit velvet — pour, toast, repeat.', paper: '#1C1712', ink: '#F1EBDC', accent: '#D4B373', accent2: '#E8C77A', gold: '#D8A06A', dark: true, foil: true, motif: 'champagne', kit: 'deco', pattern: 'deco', texture: 'velvet', section: '#251E16', card: '#2C241A', display: F.italiana, body: F.inter, radius: 6, wght: '500', ls: '0.20em', price: 20, r: 4.9, s: '1.6k', swatches: ['#1C1712', '#D4B373', '#D8A06A', '#E8C77A'], tags: ['evening', 'champagne', 'deco', 'gold', 'toast', 'foil', 'nye'] }),
+  // ===== 2026-06-09 II — the premium/signature shelf expansion =====
+  mk({ id: 'opera-house', name: 'Opera House', collection: 'evening', blurb: 'Aubergine velvet, orchids on the rail, and Bodoni at full voice — opening night.', paper: '#221420', ink: '#F2EAE4', accent: '#B687A8', accent2: '#D9B3C9', gold: '#D4AF6A', dark: true, foil: true, motif: 'orchid', kit: 'deco', texture: 'velvet', section: '#2B1A28', card: '#322030', display: F.bodoni, body: F.jost, radius: 4, wght: '500', ls: '0.16em', price: 24, r: 4.9, s: '860', badges: { new: true }, tags: ['evening', 'opera', 'orchid', 'velvet', 'bodoni', 'foil', 'formal'] }),
+  mk({ id: 'the-gallery', name: 'The Gallery', collection: 'modern', blurb: 'Museum mats, exhibit numbers, and Prata under glass — your day, on the wall.', paper: '#F7F5F1', ink: '#1A1916', accent: '#44403A', accent2: '#8A8378', gold: '#B8935A', motif: 'none', kit: 'gallery', texture: 'marble', section: '#EFECE6', card: '#FFFFFF', display: F.prata, body: F.jost, radius: 0, ls: '0.12em', price: 22, r: 4.8, s: '720', badges: { new: true }, tags: ['modern', 'gallery', 'museum', 'minimal', 'marble', 'editorial'] }),
+  mk({ id: 'tasting-menu', name: 'Tasting Menu', collection: 'heritage', blurb: 'Gold rules, dotted leaders, and Gilda in small caps — seven courses of a day.', paper: '#FBF6EA', ink: '#2B2118', accent: '#7A4A2E', accent2: '#B08254', gold: '#C9A55E', motif: 'champagne', kit: 'menu', texture: 'paper', section: '#F3EBD9', card: '#FFFDF4', display: F.gilda, body: F.ebgar, radius: 2, price: 20, r: 4.9, s: '1.0k', badges: { new: true }, tags: ['heritage', 'menu', 'bistro', 'dinner', 'champagne', 'formal'] }),
+  mk({ id: 'sakura-drift', name: 'Sakura Drift', collection: 'garden', blurb: 'Notched petals on watercolor wash — the week the cherry trees let go.', paper: '#FBF3F1', ink: '#3A2530', accent: '#C9798A', accent2: '#E8B7C2', gold: '#C9A55E', motif: 'cherry-blossom', kit: 'minimal', texture: 'watercolor', section: '#F5E7E5', card: '#FFFBFA', display: F.cormorant, body: F.inter, script: S.parisienne, radius: 14, price: 16, r: 4.8, s: '1.3k', badges: { new: true }, tags: ['garden', 'sakura', 'spring', 'blush', 'watercolor', 'romantic'] }),
+  mk({ id: 'mirrorball', name: 'Mirrorball', collection: 'whimsy', blurb: 'Facets, confetti, and Space Grotesk — the last song played twice.', paper: '#181620', ink: '#F2EFF8', accent: '#A8B4C8', accent2: '#D8C8E8', gold: '#D4B373', dark: true, motif: 'disco', kit: 'ticket', pattern: 'confetti', texture: 'velvet', section: '#201D2B', card: '#272335', display: F.space, body: F.inter, radius: 10, price: 18, r: 4.7, s: '1.5k', badges: { new: true }, tags: ['party', 'disco', 'nye', 'bachelorette', 'dance', 'dark'] }),
+  mk({ id: 'conservatory', name: 'Conservatory', collection: 'garden', blurb: 'Monstera shadows on linen — a glasshouse afternoon, doors propped open.', paper: '#F2F4EC', ink: '#1F2A1C', accent: '#3F6B4A', accent2: '#7AA86B', gold: '#C9A55E', motif: 'monstera', kit: 'arch', texture: 'linen', section: '#E8EDDD', card: '#FCFEF6', display: F.marcellus, body: F.jost, radius: 16, price: 14, r: 4.8, s: '1.1k', badges: { new: true }, tags: ['garden', 'tropical', 'monstera', 'green', 'linen', 'modern'] }),
+  mk({ id: 'noel-press', name: 'Noël Press', collection: 'seasonal', blurb: 'Holly, kraft, and berry-red ink — a letterpress card you can walk into.', paper: '#F8F1E4', ink: '#2A1F14', accent: '#4A6B4F', accent2: '#A84A42', gold: '#C9A55E', motif: 'holly', kit: 'stamp', texture: 'kraft', section: '#F0E6D2', card: '#FFFBEE', display: F.fraunces, body: F.inter, script: S.greatvibes, radius: 12, wght: '500', price: 14, r: 4.8, s: '980', badges: { new: true }, tags: ['seasonal', 'winter', 'holly', 'christmas', 'kraft', 'letterpress'] }),
+  mk({ id: 'safe-harbor', name: 'Safe Harbor', collection: 'coastal', blurb: 'Navy ink, rope and brass — an anchorage worth rowing home to.', paper: '#F6F3EC', ink: '#1E2A38', accent: '#2E4A66', accent2: '#7A93AC', gold: '#C0A068', motif: 'anchor', kit: 'ticket', pattern: 'stripe', texture: 'canvas', section: '#ECE8DD', card: '#FEFCF4', display: F.playfair, body: F.tenor, radius: 8, price: 12, r: 4.7, s: '1.2k', badges: { new: true }, tags: ['coastal', 'nautical', 'anchor', 'navy', 'harbor', 'stripe'] }),
+  mk({ id: 'paper-lanterns', name: 'Paper Lanterns', collection: 'whimsy', blurb: 'Warm lanterns strung against a kraft dusk — festival light you can fold.', paper: '#FAF1E2', ink: '#33231A', accent: '#C25E3C', accent2: '#E0935F', gold: '#D8A06A', motif: 'lantern', kit: 'stamp', pattern: 'celestial', texture: 'kraft', section: '#F2E5CE', card: '#FFF9EC', display: F.fraunces, body: F.dmsans, radius: 14, price: 14, r: 4.7, s: '940', swatches: ['#FAF1E2', '#C25E3C', '#D8A06A', '#E0935F'], tags: ['festival', 'lantern', 'warm', 'celebration', 'kraft', 'glow'] }),
 ] as const;
 
 // ─── Lookup helpers ──────────────────────────────────────────
@@ -454,16 +499,29 @@ export function dividerForMotif(motif: Motif): 'sprig' | 'brush' | 'dot' | 'rule
     case 'fern':
     case 'laurel':
     case 'wheat':
-      /* All four are leafy / stem motifs — sprig divider matches. */
+    case 'vine':
+    case 'gingko':
+    case 'hummingbird':
+    case 'monstera':
+    case 'holly':
+      /* Leafy / stem / garden motifs — sprig divider matches. */
       return 'sprig';
     case 'bloom':
     case 'sun':
     case 'citrus':
+    case 'magnolia':
+    case 'peony':
+    case 'orchid':
+    case 'cherry-blossom':
       /* Floral / radial — the brush stroke divider reads warmer. */
       return 'brush';
     case 'pressed':
     case 'palm':
-      /* Imprinted / scattered marks — the dot rhythm matches. */
+    case 'champagne':
+    case 'starburst':
+    case 'lantern':
+    case 'disco':
+      /* Imprinted / scattered / sparked marks — the dot rhythm matches. */
       return 'dot';
     case 'shell':
       /* Shell / scallop edges — the deckled divider matches the

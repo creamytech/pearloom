@@ -72,6 +72,47 @@ export function getLimitsForPlan(plan: string): PlanLimits {
   return PLAN_LIMITS.FREE;
 }
 
+// ─── Limit lookup + standard 402 body ────────────────────────
+
+/**
+ * Resolve plan name + limits for a user email in one lookup.
+ * Defaults to FREE on a missing row or any lookup error — including
+ * Supabase env vars not being configured (getUserPlan throws there).
+ */
+export async function getPlanWithLimitsForEmail(
+  email: string,
+): Promise<{ plan: string; limits: PlanLimits }> {
+  let plan = 'free';
+  try {
+    const row = await getUserPlan(email);
+    if (row?.plan) plan = row.plan;
+  } catch {
+    // Supabase unconfigured / unreachable — fall through to FREE.
+  }
+  return { plan, limits: getLimitsForPlan(plan) };
+}
+
+/** Limits-only convenience over getPlanWithLimitsForEmail. */
+export async function getPlanLimitsForEmail(email: string): Promise<PlanLimits> {
+  const { limits } = await getPlanWithLimitsForEmail(email);
+  return limits;
+}
+
+/**
+ * Standard JSON body for plan-limit rejections (status 402) so every
+ * enforcing route returns the same shape the UI can branch on.
+ */
+export function planLimitResponseBody(feature: string, limit: number, currentPlan: string) {
+  return {
+    error: `You've reached the ${feature} limit for your plan (${limit}). Upgrade to add more.`,
+    code: 'PLAN_LIMIT' as const,
+    feature,
+    limit,
+    currentPlan,
+    upgradeUrl: '/dashboard?upgrade=true',
+  };
+}
+
 // ─── Access check result ─────────────────────────────────────
 
 export interface PlanAccessResult {

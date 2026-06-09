@@ -538,14 +538,33 @@ export function QuickLookModal({
               borderTop: '1px solid var(--pl-divider, #D8CFB8)',
             }}
           >
-            <span
-              style={{
-                fontFamily: 'var(--pl-font-display, Fraunces), serif',
-                fontSize: 28,
-                fontWeight: 700,
-              }}
-            >
-              {priceLabel(pack.priceCents)}
+            <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <span
+                style={{
+                  fontFamily: 'var(--pl-font-display, Fraunces), serif',
+                  fontSize: 28,
+                  fontWeight: 700,
+                }}
+              >
+                {priceLabel(pack.priceCents)}
+              </span>
+              {/* Plan-grant hint — the store's quiet upsell. Premium
+                  packs come with Atelier; signature with Legacy.
+                  (Grants enforced server-side in entitlements.ts.) */}
+              {!owned && pack.tier !== 'free' && (
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: '0.04em',
+                    color: 'var(--pl-olive, #5C6B3F)',
+                  }}
+                >
+                  {pack.tier === 'premium'
+                    ? 'Included with the Atelier plan'
+                    : 'Included with the Legacy plan'}
+                </span>
+              )}
             </span>
             {owned ? (
               <button

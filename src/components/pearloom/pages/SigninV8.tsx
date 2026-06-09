@@ -6,7 +6,7 @@
    ======================================================================== */
 
 import Link from 'next/link';
-import { use, useState, type CSSProperties, type FormEvent } from 'react';
+import { use, useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import {
@@ -183,9 +183,14 @@ export function SigninV8({
   const [emailError, setEmailError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
 
-  if (status === 'authenticated') {
-    router.replace(next);
-  }
+  // Redirect after render — calling router.replace() during render
+  // triggers React's "Cannot update a component while rendering a
+  // different component" warning (it sets Router state mid-render).
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.replace(next);
+    }
+  }, [status, router, next]);
 
   const errorMessage = errorKey ? ERROR_COPY[errorKey] ?? ERROR_COPY.Default : null;
 
@@ -301,9 +306,9 @@ export function SigninV8({
                   marginBottom: 18,
                   padding: '12px 16px',
                   borderRadius: 12,
-                  background: 'rgba(198,86,61,0.08)',
-                  border: '1px solid rgba(198,86,61,0.22)',
-                  color: '#7A2D2D',
+                  background: 'var(--pl-warning-mist, rgba(161,74,44,0.10))',
+                  border: '1px solid var(--pl-warning, #A14A2C)',
+                  color: 'var(--pl-warning, #A14A2C)',
                   fontSize: 13.5,
                 }}
               >
@@ -395,7 +400,7 @@ export function SigninV8({
                     <label htmlFor="pl8-password" style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>
                       Password
                     </label>
-                    <Link href="/login?forgot=1" style={{ fontSize: 13, color: 'var(--lavender-ink)' }}>
+                    <Link href="/login?forgot=1" style={{ fontSize: 13, color: 'var(--pl-olive, #5C6B3F)' }}>
                       Forgot password?
                     </Link>
                   </div>
@@ -490,7 +495,7 @@ export function SigninV8({
 
             <div style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: 'var(--ink-soft)' }}>
               New to Pearloom?{' '}
-              <Link href="/wizard/new" style={{ color: 'var(--lavender-ink)', fontWeight: 500 }}>
+              <Link href="/wizard/new" style={{ color: 'var(--pl-olive, #5C6B3F)', fontWeight: 500 }}>
                 Create an account
               </Link>
             </div>
@@ -500,16 +505,16 @@ export function SigninV8({
               <Pear size={58} tone="cream" />
               <div
                 style={{
-                  background: 'var(--lavender-bg)',
+                  background: 'var(--pl-olive-mist, #E0DDC9)',
                   padding: '12px 16px',
                   borderRadius: 14,
                   borderBottomLeftRadius: 2,
-                  border: '1px solid rgba(107,90,140,0.15)',
+                  border: '1px solid var(--pl-olive-20, rgba(92,107,63,0.20))',
                   maxWidth: 240,
                   marginBottom: 8,
                 }}
               >
-                <div style={{ fontWeight: 600, color: 'var(--lavender-ink)', fontSize: 14, marginBottom: 2 }}>
+                <div style={{ fontWeight: 600, color: 'var(--pl-olive-deep, #363F22)', fontSize: 14, marginBottom: 2 }}>
                   Hi there! I&apos;m Pear.
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.4 }}>
@@ -522,7 +527,7 @@ export function SigninV8({
 
         {/* RIGHT — collage */}
         <div className="pl8-signin-collage" style={{ position: 'relative', height: 560 }}>
-          <Blob tone="lavender" size={320} opacity={0.85} style={{ position: 'absolute', top: 20, left: 40, zIndex: 0 }} />
+          <Blob tone="cream" size={320} opacity={0.85} style={{ position: 'absolute', top: 20, left: 40, zIndex: 0 }} />
           <Blob tone="sage" size={280} opacity={0.75} style={{ position: 'absolute', bottom: 60, right: -40, zIndex: 0 }} />
           <Blob tone="peach" size={260} opacity={0.7} style={{ position: 'absolute', bottom: 120, left: 100, zIndex: 0 }} />
 
@@ -532,7 +537,7 @@ export function SigninV8({
                 style={{
                   width: 220,
                   height: 290,
-                  background: '#C4B5D9',
+                  background: 'var(--pl-olive-mist, #E0DDC9)',
                   borderRadius: '3px 12px 12px 3px',
                   boxShadow: '0 20px 40px rgba(61,74,31,0.16), inset 10px 0 0 rgba(0,0,0,0.08)',
                   padding: '32px 28px',
@@ -622,13 +627,13 @@ export function SigninV8({
           </div>
 
           <div style={{ position: 'absolute', top: 0, left: 120, zIndex: 7 }}>
-            <Stamp size={88} tone="lavender" text="MADE FOR MEANINGFUL MOMENTS" rotation={-12} icon="pear" />
+            <Stamp size={88} tone="sage" text="MADE FOR MEANINGFUL MOMENTS" rotation={-12} icon="pear" />
           </div>
           <div style={{ position: 'absolute', top: 280, right: 30, zIndex: 7 }}>
             <Stamp size={80} tone="peach" text="MADE TO BE REMEMBERED" rotation={10} icon="pear" />
           </div>
           <div style={{ position: 'absolute', bottom: 40, right: 120, zIndex: 7 }}>
-            <Stamp size={74} tone="lavender" text="WITH YOU EVERY STEP OF THE WAY" rotation={-8} icon="heart" />
+            <Stamp size={74} tone="cream" text="WITH YOU EVERY STEP OF THE WAY" rotation={-8} icon="heart" />
           </div>
 
           {/* Botanical accents — the prototype's wildflower sprig,
@@ -660,8 +665,8 @@ export function SigninV8({
             height="30"
             viewBox="0 0 40 40"
           >
-            <path d="M20 20 C 10 10, 4 14, 6 22 C 8 28, 16 24, 20 20 Z" fill="#C4B5D9" />
-            <path d="M20 20 C 30 10, 36 14, 34 22 C 32 28, 24 24, 20 20 Z" fill="#C4B5D9" />
+            <path d="M20 20 C 10 10, 4 14, 6 22 C 8 28, 16 24, 20 20 Z" fill="var(--pl-olive-mist, #E0DDC9)" />
+            <path d="M20 20 C 30 10, 36 14, 34 22 C 32 28, 24 24, 20 20 Z" fill="var(--pl-olive-mist, #E0DDC9)" />
             <circle cx="20" cy="20" r="2" fill="#3D4A1F" />
           </svg>
 

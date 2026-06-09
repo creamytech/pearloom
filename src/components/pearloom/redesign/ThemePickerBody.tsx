@@ -28,6 +28,7 @@ import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { getTheme, type Theme } from '../site/themes';
 import { ThemePackPicker } from '../editor/panels/ThemePackPicker';
+import { pearErrorMessage } from './PearAssist';
 
 interface Props {
   manifest: StoryManifest;
@@ -204,7 +205,8 @@ function GenerateCard({ manifest, onChange }: { manifest: StoryManifest; onChang
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[theme-picker] look-from-story failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t style that one — try again?');
       }
       const data = await res.json() as {
         occasion?: string;
@@ -234,7 +236,8 @@ function GenerateCard({ manifest, onChange }: { manifest: StoryManifest; onChang
       onChange(next as unknown as StoryManifest);
       setRationale(data.rationale ?? 'Pear styled your site.');
     } catch (e) {
-      setErr((e as Error).message);
+      console.error('[theme-picker] look-from-story error:', e);
+      setErr(pearErrorMessage(e, 'Pear couldn’t style that one — try again?'));
     } finally {
       setBusy(false);
     }
@@ -305,7 +308,7 @@ function GenerateCard({ manifest, onChange }: { manifest: StoryManifest; onChang
           </div>
         )}
         {err && (
-          <div style={{ padding: '8px 10px', borderRadius: 9, background: 'rgba(122,45,45,0.10)', fontSize: 11.5, color: '#7A2D2D' }}>
+          <div style={{ padding: '8px 10px', borderRadius: 9, background: 'var(--pl-chrome-danger-soft, rgba(122,45,45,0.10))', fontSize: 11.5, color: 'var(--pl-chrome-danger, #7A2D2D)' }}>
             {err}
           </div>
         )}
@@ -488,6 +491,8 @@ const KITS = [
   { id: 'arch',      label: 'Arch',      blurb: 'Arched cards · soft domes' },
   { id: 'stamp',     label: 'Stamp',     blurb: 'Postage frames · postmarks' },
   { id: 'deco',      label: 'Deco',      blurb: 'Gold frames · geometric' },
+  { id: 'gallery',   label: 'Gallery',   blurb: 'Museum mats · exhibit numbers' },
+  { id: 'menu',      label: 'Tasting Menu', blurb: 'Gold rules · dotted leaders' },
 ];
 
 function KitPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
@@ -607,8 +612,8 @@ function LegibilityNote({ manifest, theme, onChange }: { manifest: StoryManifest
   const highTex = intensity > 1.1;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, color: pass ? 'var(--sage-deep)' : '#b4543a' }}>
-        <Icon name={pass ? 'check' : 'eye-off'} size={13} color={pass ? 'var(--sage-deep)' : '#b4543a'} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, color: pass ? 'var(--sage-deep)' : 'var(--pl-chrome-danger, #b4543a)' }}>
+        <Icon name={pass ? 'check' : 'eye-off'} size={13} color={pass ? 'var(--sage-deep)' : 'var(--pl-chrome-danger, #b4543a)'} />
         {pass ? `Text contrast AA · ${ratio.toFixed(1)}:1` : `Low contrast · ${ratio.toFixed(1)}:1`}
       </div>
       {highTex && (
@@ -669,7 +674,8 @@ function MatchMyPhotos({ manifest, onChange }: { manifest: StoryManifest; onChan
       };
       onChange(next as unknown as StoryManifest);
     } catch (e) {
-      setErr((e as Error).message);
+      console.error('[theme-picker] photo palette error:', e);
+      setErr(pearErrorMessage(e, 'Pear couldn’t read that photo — try another?'));
     } finally {
       setBusy(false);
     }
@@ -723,7 +729,7 @@ function MatchMyPhotos({ manifest, onChange }: { manifest: StoryManifest; onChan
         )}
       </div>
       {err && (
-        <div style={{ padding: '6px 10px', borderRadius: 7, background: 'rgba(122,45,45,0.08)', fontSize: 11.5, color: '#7A2D2D' }}>
+        <div style={{ padding: '6px 10px', borderRadius: 7, background: 'var(--pl-chrome-danger-soft, rgba(122,45,45,0.08))', fontSize: 11.5, color: 'var(--pl-chrome-danger, #7A2D2D)' }}>
           {err}
         </div>
       )}
@@ -811,7 +817,7 @@ function Toggle({ on, set }: { on: boolean; set: (v: boolean) => void }) {
         position: 'relative', border: 'none', cursor: 'pointer',
       }}
     >
-      <span style={{ position: 'absolute', top: 2, left: on ? 18 : 2, width: 18, height: 18, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,0.15)', transition: 'left 160ms ease' }} />
+      <span style={{ position: 'absolute', top: 2, left: on ? 18 : 2, width: 18, height: 18, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,0.15)', transition: 'left var(--pl-dur-fast) ease' }} />
     </button>
   );
 }

@@ -75,7 +75,7 @@ export function HeroSplit({ manifest, names: _names, siteSlug: _siteSlug, onEdit
               The kicker keeps its hairlines but reads left in this layout. */}
         </div>
         <div style={{ textAlign: 'left' }}>
-          <HeroNames n1={n1} n2={n2} onEditNames={onEditNames} scale={0.78} />
+          <HeroNames n1={n1} n2={n2} solo={context.solo} onEditNames={onEditNames} scale={0.78} />
         </div>
         <div style={{ textAlign: 'left' }}>
           <HeroDateVenue dateInfo={dateInfo} venue={venue} manifest={manifest} onEditField={onEditField} />

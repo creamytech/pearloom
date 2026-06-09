@@ -16,6 +16,36 @@ import { mealOptionSuggestions } from './_suggestions';
 
 interface MealOption { name: string }
 
+/* ─── defaultReplyBy ──────────────────────────────────────────
+   Derive the reply-by DEFAULT from the event date — 14 days
+   before, formatted in the same long style FDate emits
+   ("April 14, 2027"). manifest.logistics.date is a display
+   string (long form from FDate, or ISO from older wizard runs),
+   so parse defensively and fall back to the legacy placeholder
+   when nothing parses. An explicit host-set rsvpDeadline always
+   wins — this only changes the default. */
+const REPLY_BY_FALLBACK = 'April 28, 2027';
+const MONTHS_FULL = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+function defaultReplyBy(eventDate: string | undefined): string {
+  const trimmed = (eventDate ?? '').trim();
+  if (!trimmed) return REPLY_BY_FALLBACK;
+  let d: Date | null = null;
+  /* ISO yyyy-mm-dd — parse as local time to avoid tz drift. */
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(trimmed);
+  if (iso) {
+    d = new Date(+iso[1], +iso[2] - 1, +iso[3]);
+  } else {
+    const ms = Date.parse(trimmed);
+    d = Number.isNaN(ms) ? null : new Date(ms);
+  }
+  if (!d || Number.isNaN(d.getTime())) return REPLY_BY_FALLBACK;
+  d.setDate(d.getDate() - 14);
+  return `${MONTHS_FULL[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
 interface RsvpConfig {
   mealChoice?: boolean;
   dietary?: boolean;
@@ -34,7 +64,7 @@ export function RsvpPanel({ manifest, onChange, siteSlug }: { manifest: StoryMan
   const [rsvpEyebrow, setRsvpEyebrow] = useCopyOverride(manifest, onChange, 'rsvpEyebrow');
   const [rsvpCta, setRsvpCta] = useCopyOverride(manifest, onChange, 'rsvpCta');
   const loose = manifest as unknown as { rsvpDeadline?: string; rsvpConfig?: RsvpConfig };
-  const replyBy = loose.rsvpDeadline ?? 'April 28, 2027';
+  const replyBy = loose.rsvpDeadline ?? defaultReplyBy(manifest.logistics?.date);
   const config: RsvpConfig = loose.rsvpConfig ?? { mealChoice: true, dietary: true, songRequest: true, plusOne: false };
   const mealOptions: MealOption[] = Array.isArray(config.mealOptions) && config.mealOptions.length > 0
     ? config.mealOptions

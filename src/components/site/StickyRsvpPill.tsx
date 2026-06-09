@@ -16,12 +16,22 @@ import { Mail, X } from 'lucide-react';
 
 interface Props {
   accent?: string;
+  /** Foreground on the accent fill. Defaults to the theme's RSVP
+   *  ink with a warm-cream fallback. */
+  accentInk?: string;
   rsvpLabel?: string;
   anchorId?: string;
 }
 
+/* Defaults bind to the live theme tokens (--t-rsvp / --t-accent)
+   with the brand olive as the final fallback, so the pill wears the
+   site's palette when it renders inside the themed root — and stays
+   on-brand when it doesn't. PublishedSiteShell mounts the pill as a
+   SIBLING of the themed root (vars not inherited there), so it also
+   passes concrete theme values via props. */
 export function StickyRsvpPill({
-  accent = 'var(--pl-olive, #5C6B3F)',
+  accent = 'var(--t-rsvp, var(--t-accent, var(--pl-olive, #5C6B3F)))',
+  accentInk = 'var(--t-rsvp-ink, var(--t-paper, #FDFAF0))',
   rsvpLabel = 'RSVP',
   anchorId = 'rsvp',
 }: Props) {
@@ -98,7 +108,7 @@ export function StickyRsvpPill({
             minHeight: 48,
             borderRadius: 'var(--pl-radius-full)',
             background: accent,
-            color: '#FDFAF0',
+            color: accentInk,
             textDecoration: 'none',
             fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
             fontSize: 'clamp(0.82rem, 1.4vw, 0.88rem)',

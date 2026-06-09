@@ -5,12 +5,13 @@
    now host-editable. Writes manifest.faqs[] (canonical FaqItem
    shape) which ThemedSite's FaqBlock reads. */
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { FaqItem, StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
 import { AddCard, FGroup, FInput, FSuggest, PearChip, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { faqQuestionSuggestions } from './_suggestions';
-import { PearAiChip, PearInlineRewrite } from '../../redesign/PearAssist';
+import { PearAiChip, PearInlineRewrite, pearErrorMessage } from '../../redesign/PearAssist';
+import { AISource } from '../../ai-source';
 
 const DEFAULT_FAQS: FaqItem[] = [
   { id: 'f-dress', question: 'What is the dress code?', answer: '', order: 0 },
@@ -30,11 +31,29 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
      faq id so multiple rows can stage independently. */
   const [draftingId, setDraftingId] = useState<string | null>(null);
   const [draftErr, setDraftErr] = useState<string | null>(null);
+  /* Last answer Pear drafted — shown as a transient "drafted by
+     Pear" stamp under the answer field until the host edits it
+     (at which point it's theirs, not Pear's). */
+  const [drafted, setDrafted] = useState<{ id: string; text: string } | null>(null);
+  /* Bulk "Draft all unanswered" — sequential runs of draftAnswer
+     over every question with an empty answer. `done` counts
+     completed rows so the chip can read "Drafting 2 of 5…". */
+  const [bulk, setBulk] = useState<{ done: number; total: number } | null>(null);
+  const [bulkErr, setBulkErr] = useState<string | null>(null);
 
-  async function draftAnswer(f: FaqItem, idx: number) {
+  /* Refs mirror the latest manifest/faqs so the sequential bulk
+     drafter never writes through a stale closure — each patch in
+     the loop must see the answers earlier iterations landed. */
+  const manifestRef = useRef(manifest);
+  manifestRef.current = manifest;
+
+  /* Returns null on success, or the sanitized error copy on
+     failure (so the bulk runner can abort + surface it). */
+  async function draftAnswer(f: FaqItem, idx: number): Promise<string | null> {
     if (!f.question.trim()) {
-      setDraftErr('Add a question first so Pear knows what to answer.');
-      return;
+      const msg = 'Add a question first so Pear knows what to answer.';
+      setDraftErr(msg);
+      return msg;
     }
     setDraftingId(f.id); setDraftErr(null);
     try {
@@ -48,19 +67,54 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[faq] draft-answer failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t draft that one — try again?');
       }
       const { rewritten } = await res.json() as { rewritten: string };
-      if (rewritten && rewritten !== f.question) patch(idx, { answer: rewritten });
+      if (rewritten && rewritten !== f.question) {
+        patch(idx, { answer: rewritten });
+        setDrafted({ id: f.id, text: rewritten });
+      }
+      return null;
     } catch (e) {
-      setDraftErr((e as Error).message);
+      console.error('[faq] draft-answer error:', e);
+      const msg = pearErrorMessage(e, 'Pear couldn’t draft that one — try again?');
+      setDraftErr(msg);
+      return msg;
     } finally {
       setDraftingId(null);
     }
   }
 
-  const write = (next: FaqItem[]) => onChange({ ...manifest, faqs: next.map((f, i) => ({ ...f, order: i })) } as StoryManifest);
-  const patch = (i: number, p: Partial<FaqItem>) => write(faqs.map((f, idx) => idx === i ? { ...f, ...p } : f));
+  /* Sequential bulk drafter — reuses draftAnswer row by row (no
+     new API route, same busy + sanitized-error handling). Aborts
+     the remaining rows on the first error. Indexes stay stable
+     during the run (no add/remove can happen mid-bulk). */
+  async function draftAllUnanswered() {
+    if (bulk || draftingId) return;
+    const current = manifestRef.current.faqs && manifestRef.current.faqs.length > 0 ? manifestRef.current.faqs : DEFAULT_FAQS;
+    const targets = current
+      .map((f, i) => ({ f, i }))
+      .filter(({ f }) => f.question.trim() && !f.answer.trim());
+    if (targets.length === 0) return;
+    setBulkErr(null);
+    setBulk({ done: 0, total: targets.length });
+    for (let k = 0; k < targets.length; k++) {
+      setBulk({ done: k, total: targets.length });
+      const errMsg = await draftAnswer(targets[k].f, targets[k].i);
+      if (errMsg) {
+        setBulkErr(errMsg);
+        break;
+      }
+    }
+    setBulk(null);
+  }
+
+  const write = (next: FaqItem[]) => onChange({ ...manifestRef.current, faqs: next.map((f, i) => ({ ...f, order: i })) } as StoryManifest);
+  const patch = (i: number, p: Partial<FaqItem>) => {
+    const cur = manifestRef.current.faqs && manifestRef.current.faqs.length > 0 ? manifestRef.current.faqs : DEFAULT_FAQS;
+    write(cur.map((f, idx) => idx === i ? { ...f, ...p } : f));
+  };
   const remove = (i: number) => write(faqs.filter((_, idx) => idx !== i));
   const add = () => write([...faqs, { id: `f-${Date.now()}`, question: 'New question', answer: '', order: faqs.length }]);
   /* "Quick-add" — tap a curated question; appends it with an
@@ -73,6 +127,7 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
   const remainingQuickAdds = questionSet.options.filter(
     (q) => !faqs.some((f) => f.question.trim().toLowerCase() === q.toLowerCase()),
   );
+  const unansweredCount = faqs.filter((f) => f.question.trim() && !f.answer.trim()).length;
 
   return (
     <SectionPanelShell>
@@ -82,6 +137,25 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
         </FGroup>
         <FGroup label={`Questions · ${faqs.length}`} action={<PearChip>Suggest from data</PearChip>}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {/* Bulk drafter — only worth surfacing when 2+ rows are
+                unanswered (a single row has its own per-row chip). */}
+            {(unansweredCount >= 2 || bulk) && (
+              <PearAiChip
+                onClick={draftAllUnanswered}
+                busy={!!bulk}
+                disabled={!!draftingId && !bulk}
+                style={{ alignSelf: 'flex-start' }}
+              >
+                {bulk
+                  ? `Drafting ${Math.min(bulk.done + 1, bulk.total)} of ${bulk.total}…`
+                  : `Draft all ${unansweredCount} unanswered`}
+              </PearAiChip>
+            )}
+            {bulkErr && !bulk && (
+              <div style={{ padding: '6px 10px', borderRadius: 7, background: 'rgba(122,45,45,0.08)', fontSize: 11, color: '#7A2D2D' }}>
+                {bulkErr}
+              </div>
+            )}
             {faqs.map((f, i) => {
               const isOpen = openId === f.id;
               return (
@@ -104,6 +178,11 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
                         options={questionSet.options}
                       />
                       <FInput value={f.answer} onChange={(v) => patch(i, { answer: v })} placeholder="Answer (shown on the FAQ page)" />
+                      {drafted?.id === f.id && drafted.text === f.answer && (
+                        /* Transient attribution — disappears the
+                           moment the host edits the drafted answer. */
+                        <AISource style={{ fontSize: 10.5, opacity: 0.85, alignSelf: 'flex-start' }} />
+                      )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                           <PearAiChip

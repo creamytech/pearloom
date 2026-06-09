@@ -1,7 +1,19 @@
 import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
+import type { ReactElement } from 'react';
+import { isSoloOccasion } from '@/lib/event-os/solo-occasions';
 
 export const runtime = 'edge';
+
+/** Strictly sanitize a hex query param (with or without '#').
+ *  Returns '#RRGGBB' or null — never passes arbitrary strings into CSS. */
+function cleanHex(raw: string | null): string | null {
+  if (!raw) return null;
+  const h = raw.replace('#', '').trim();
+  if (/^[0-9a-fA-F]{6}$/.test(h)) return `#${h}`;
+  if (/^[0-9a-fA-F]{3}$/.test(h)) return `#${h.split('').map(c => c + c).join('')}`;
+  return null;
+}
 
 // Parse hex → [r, g, b] (0–255)
 function hexToRgb(hex: string): [number, number, number] {
@@ -60,21 +72,104 @@ function formatDate(raw: string): string {
   }
 }
 
+// ── Suite motif glyphs ────────────────────────────────────────
+// The site's MotifScatter components are client React; the OG route
+// renders via Satori, so the most iconic motifs get small bespoke
+// inline-SVG twins here. Unknown ids fall back to the text symbol.
+// Aliases map visually-close MotifKind ids onto the six glyphs.
+const MOTIF_GLYPH_ALIAS: Record<string, string> = {
+  olive: 'olive', laurel: 'olive', vine: 'olive', fern: 'olive',
+  champagne: 'champagne',
+  bloom: 'bloom', magnolia: 'bloom', peony: 'bloom', rose: 'bloom',
+  'cherry-blossom': 'bloom',
+  compass: 'compass',
+  holly: 'holly', pinecone: 'holly',
+  disco: 'disco', starburst: 'disco',
+};
+
+function motifGlyph(kind: string, color: string): ReactElement | null {
+  const glyph = MOTIF_GLYPH_ALIAS[kind];
+  if (!glyph) return null;
+  const sw = 1.6;
+  switch (glyph) {
+    case 'olive': // sprig — stem, three leaves, one olive
+      return (
+        <svg width="44" height="44" viewBox="0 0 40 40" fill="none">
+          <path d="M20 36 C20 25 20 14 20 5" stroke={color} strokeWidth={sw} strokeLinecap="round" />
+          <path d="M20 12 C15 11 11 8 10 4 C15 5 19 8 20 12 Z" fill={color} />
+          <path d="M20 19 C25 18 29 15 30 11 C25 12 21 15 20 19 Z" fill={color} />
+          <path d="M20 27 C15 26 11 23 10 19 C15 20 19 23 20 27 Z" fill={color} />
+          <circle cx="25" cy="29" r="3" fill={color} />
+        </svg>
+      );
+    case 'champagne': // coupe + rising bubbles
+      return (
+        <svg width="44" height="44" viewBox="0 0 40 40" fill="none">
+          <path d="M11 9 H29 C29 16 25 20 20 20 C15 20 11 16 11 9 Z" stroke={color} strokeWidth={sw} />
+          <path d="M20 20 V33" stroke={color} strokeWidth={sw} />
+          <path d="M13 35 H27" stroke={color} strokeWidth={sw} strokeLinecap="round" />
+          <circle cx="16" cy="5.5" r="1.4" fill={color} />
+          <circle cx="22" cy="3.6" r="1.1" fill={color} />
+          <circle cx="26" cy="5.8" r="0.9" fill={color} />
+        </svg>
+      );
+    case 'bloom': // generic four-petal bloom (magnolia / peony / rose)
+      return (
+        <svg width="44" height="44" viewBox="0 0 40 40" fill="none">
+          <path d="M20 20 C16 15 16 8 20 5 C24 8 24 15 20 20 Z" stroke={color} strokeWidth={sw} />
+          <path d="M20 20 C25 16 32 16 35 20 C32 24 25 24 20 20 Z" stroke={color} strokeWidth={sw} />
+          <path d="M20 20 C24 25 24 32 20 35 C16 32 16 25 20 20 Z" stroke={color} strokeWidth={sw} />
+          <path d="M20 20 C15 24 8 24 5 20 C8 16 15 16 20 20 Z" stroke={color} strokeWidth={sw} />
+          <circle cx="20" cy="20" r="3" fill={color} />
+        </svg>
+      );
+    case 'compass': // compass rose
+      return (
+        <svg width="44" height="44" viewBox="0 0 40 40" fill="none">
+          <circle cx="20" cy="20" r="14" stroke={color} strokeWidth={sw} />
+          <path d="M20 8 L23 20 L20 32 L17 20 Z" fill={color} />
+          <path d="M8 20 L20 17 L32 20 L20 23 Z" stroke={color} strokeWidth="1.2" />
+          <circle cx="20" cy="20" r="1.8" fill={color} />
+        </svg>
+      );
+    case 'holly': // crossed leaves + berries
+      return (
+        <svg width="44" height="44" viewBox="0 0 40 40" fill="none">
+          <path d="M19 21 C13 20 8 16 7 9 C13 10 18 14 19 21 Z" stroke={color} strokeWidth={sw} />
+          <path d="M21 21 C27 20 32 16 33 9 C27 10 22 14 21 21 Z" stroke={color} strokeWidth={sw} />
+          <circle cx="20" cy="26" r="2.4" fill={color} />
+          <circle cx="15.5" cy="28.5" r="2.4" fill={color} />
+          <circle cx="24.5" cy="28.5" r="2.4" fill={color} />
+        </svg>
+      );
+    case 'disco': // faceted ball on a hang line
+      return (
+        <svg width="44" height="44" viewBox="0 0 40 40" fill="none">
+          <path d="M20 3 V9" stroke={color} strokeWidth={sw} />
+          <circle cx="20" cy="22" r="13" stroke={color} strokeWidth={sw} />
+          <path d="M7 22 H33" stroke={color} strokeWidth="1.1" />
+          <path d="M9.5 15.5 H30.5" stroke={color} strokeWidth="1.1" />
+          <path d="M9.5 28.5 H30.5" stroke={color} strokeWidth="1.1" />
+          <path d="M20 9 V35" stroke={color} strokeWidth="1.1" />
+          <path d="M13.5 11.5 C11 18 11 26 13.5 32.5" stroke={color} strokeWidth="1.1" />
+          <path d="M26.5 11.5 C29 18 29 26 26.5 32.5" stroke={color} strokeWidth="1.1" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
 
   const occasion = (searchParams.get('occasion') || 'wedding').slice(0, 30);
 
   // Solo events centre a single honoree; duet events show two names
-  // joined by an ampersand (weddings, anniversaries, etc.).
-  const SOLO_OCCASIONS = new Set([
-    'birthday', 'first-birthday', 'sweet-sixteen', 'milestone-birthday',
-    'retirement', 'graduation', 'bar-mitzvah', 'bat-mitzvah', 'quinceanera',
-    'baptism', 'first-communion', 'confirmation',
-    'memorial', 'funeral', 'gender-reveal', 'sip-and-see', 'bridal-shower',
-    'bridal-luncheon', 'baby-shower',
-  ]);
-  const isSolo = SOLO_OCCASIONS.has(occasion);
+  // joined by an ampersand (weddings, anniversaries, etc.). The
+  // canonical list lives in lib/event-os/solo-occasions.ts (a leaf
+  // module — safe for this edge bundle).
+  const isSolo = isSoloOccasion(occasion);
 
   // ── Parse params (support both legacy and new param names) ────────────
   // New format: ?names=Name1,Name2   Legacy: ?n1=Name1&n2=Name2
@@ -94,7 +189,22 @@ export async function GET(req: NextRequest) {
   const bgRaw    = searchParams.get('bg') || 'F5F1E8';
   const fgRaw    = searchParams.get('fg') || '';
   const accentRaw = searchParams.get('accent') || 'A3B18A';
-  const headingFont = (searchParams.get('heading') || 'Playfair Display').slice(0, 60);
+  // ── Suite params (SuiteTheme contract, docs/SUITE-STRATEGY.md §6) ──
+  // All optional. When present they win over the legacy bg/fg/heading
+  // params so the link preview wears the couple's exact pack:
+  //   paper  — card background        (hex, no '#')
+  //   ink    — primary text           (hex, no '#')
+  //   gold   — hairlines + divider    (hex, no '#')
+  //   font   — display family name (Google Fonts)
+  //   motif  — MotifKind id → small glyph accent (unknown ids skipped)
+  // Absent params fall through to the existing behavior — zero
+  // regression on previously-shipped cards.
+  const suitePaper = cleanHex(searchParams.get('paper'));
+  const suiteInk   = cleanHex(searchParams.get('ink'));
+  const suiteGold  = cleanHex(searchParams.get('gold'));
+  const suiteFont  = (searchParams.get('font') || '').slice(0, 60).trim();
+  const motif      = (searchParams.get('motif') || '').toLowerCase().slice(0, 24);
+  const headingFont = (suiteFont || searchParams.get('heading') || 'Playfair Display').slice(0, 60);
   const symbol   = (searchParams.get('symbol') || '✦').slice(0, 4);
   // Couple photo (cover image). Allowed protocols: https only.
   const photoRaw = searchParams.get('photo') || '';
@@ -116,16 +226,18 @@ export async function GET(req: NextRequest) {
     | 'quiet'
     | '';
 
-  // Normalize colors — ensure they have # prefix
-  const bg     = bgRaw.startsWith('#') ? bgRaw : `#${bgRaw}`;
+  // Normalize colors — ensure they have # prefix.
+  // Suite paper/ink (sanitized) take precedence over legacy bg/fg.
+  const bg     = suitePaper ?? (bgRaw.startsWith('#') ? bgRaw : `#${bgRaw}`);
   const accent = accentRaw.startsWith('#') ? accentRaw : `#${accentRaw}`;
 
   // Derive fg from bg luminance if not provided
   const lum = luminance(bg);
   const isLight = lum > 0.35;
-  const fg = fgRaw
-    ? (fgRaw.startsWith('#') ? fgRaw : `#${fgRaw}`)
-    : (isLight ? '#1a1816' : '#ffffff');
+  const fg = suiteInk
+    ?? (fgRaw
+      ? (fgRaw.startsWith('#') ? fgRaw : `#${fgRaw}`)
+      : (isLight ? '#1a1816' : '#ffffff'));
 
   const textSecondary = isLight ? 'rgba(30,25,20,0.55)' : 'rgba(255,255,255,0.58)';
   const textMuted     = isLight ? 'rgba(30,25,20,0.30)' : 'rgba(255,255,255,0.30)';
@@ -188,6 +300,12 @@ export async function GET(req: NextRequest) {
   const [ar, ag, ab] = hexToRgb(accent);
   const accentFaded = `rgba(${ar},${ag},${ab},0.25)`;
   const accentMedium = `rgba(${ar},${ag},${ab},0.50)`;
+
+  // Suite gold drives hairlines when present; accent stands in otherwise.
+  const hairline = suiteGold ?? accent;
+  // Motif glyph — replaces the text symbol when the id maps to one of
+  // the iconic glyphs; unknown ids gracefully keep the symbol.
+  const glyph = motif ? motifGlyph(motif, suiteGold ?? accent) : null;
 
   return new ImageResponse(
     (
@@ -304,7 +422,7 @@ export async function GET(req: NextRequest) {
                 transform: 'translateX(-50%)',
                 width: '160px',
                 height: '1px',
-                background: '#B89244',
+                background: suiteGold ?? '#B89244',
                 display: 'flex',
               }}
             />
@@ -316,7 +434,7 @@ export async function GET(req: NextRequest) {
                 transform: 'translateX(-50%)',
                 width: '160px',
                 height: '1px',
-                background: '#B89244',
+                background: suiteGold ?? '#B89244',
                 display: 'flex',
               }}
             />
@@ -422,7 +540,8 @@ export async function GET(req: NextRequest) {
             zIndex: 10,
           }}
         >
-          {/* Decorative accent symbol at top */}
+          {/* Decorative accent at top — suite motif glyph when the
+              site's pack carries an iconic motif, text symbol otherwise */}
           <div
             style={{
               fontSize: '32px',
@@ -432,7 +551,7 @@ export async function GET(req: NextRequest) {
               opacity: 0.8,
             }}
           >
-            {symbol}
+            {glyph ?? symbol}
           </div>
 
           {/* Occasion label — small uppercase tracked text */}
@@ -502,12 +621,12 @@ export async function GET(req: NextRequest) {
             )}
           </div>
 
-          {/* Decorative divider */}
+          {/* Decorative divider — gold hairline when the suite carries one */}
           <div
             style={{
               width: '50px',
               height: '1px',
-              background: accent,
+              background: hairline,
               margin: '24px 0',
               display: 'flex',
               opacity: 0.6,

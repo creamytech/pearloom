@@ -35,6 +35,17 @@ function useUserPlan(): string {
   return 'free';
 }
 
+// ─── Tier display names ──────────────────────────────────────
+// The pricing page sells Journal / Atelier / Legacy; the internal
+// tier ids (free/pro/premium + aliases) stay unchanged — only the
+// label shown to the user maps to the pricing-page names.
+
+const TIER_DISPLAY: Record<string, string> = {
+  Free: 'Journal',
+  Pro: 'Atelier',
+  Premium: 'Legacy',
+};
+
 // ─── Component ───────────────────────────────────────────────
 
 export interface UpgradeGateProps {
@@ -55,7 +66,7 @@ export function UpgradeGate({ tier, feature, children, className }: UpgradeGateP
     return <>{children}</>;
   }
 
-  const label = tierLabel(tier);
+  const label = TIER_DISPLAY[tierLabel(tier)] ?? tierLabel(tier);
 
   return (
     <div

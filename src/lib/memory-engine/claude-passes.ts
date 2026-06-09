@@ -45,6 +45,16 @@ export async function corePassClaude(
       why?: string;
       favorite?: string;
     };
+    /** Per-event wizard extras (bachelor/reunion day count, memorial
+     *  livestream + in-memory-of, graduation school). Injected into
+     *  the fact-sheet block with hard rules so the story actually
+     *  uses them instead of inventing around them. */
+    eventDetails?: {
+      days?: number;
+      livestreamUrl?: string;
+      inMemoryOf?: string;
+      school?: string;
+    };
   }
 ): Promise<Pass1Result> {
   const prompt = buildPrompt(
@@ -62,23 +72,48 @@ export async function corePassClaude(
   // factSheet is a HARD anchor, not a hint. The story must weave
   // these facts in — the grounding pass flags and rewrites anything
   // that contradicts, but this prompt ensures the AI uses them
-  // proactively rather than inventing substitutes.
+  // proactively rather than inventing substitutes. eventDetails
+  // (days / livestream / in-memory-of / school) rides in the same
+  // block under the same contract.
   const fs = opts.factSheet ?? {};
+  const ed = opts.eventDetails ?? {};
+  const factLines = [
+    fs.howWeMet ? `  • HOW THEY GOT HERE: "${fs.howWeMet}"` : null,
+    fs.why ? `  • WHY THIS CELEBRATION: "${fs.why}"` : null,
+    fs.favorite ? `  • FAVOURITE MEMORY: "${fs.favorite}"` : null,
+    ed.inMemoryOf ? `  • IN MEMORY OF: "${ed.inMemoryOf}"` : null,
+    ed.school ? `  • SCHOOL: "${ed.school}"` : null,
+    ed.days && ed.days > 1 ? `  • EVENT SPAN: ${ed.days} days` : null,
+    ed.livestreamUrl
+      ? `  • A LIVESTREAM will be available for guests who can't attend in person`
+      : null,
+  ].filter(Boolean) as string[];
   const hasFactSheet = Boolean(fs.howWeMet || fs.why || fs.favorite);
-  const factSheetBlock = hasFactSheet
-    ? `\n\nFACT-SHEET — these are the user's own words. Weave them into the chapters naturally. Quote them back (paraphrasing allowed; contradicting them is forbidden):\n` +
-      [
-        fs.howWeMet ? `  • HOW THEY GOT HERE: "${fs.howWeMet}"` : null,
-        fs.why ? `  • WHY THIS CELEBRATION: "${fs.why}"` : null,
-        fs.favorite ? `  • FAVOURITE MEMORY: "${fs.favorite}"` : null,
-      ]
-        .filter(Boolean)
-        .join('\n') +
+  const hardRules = [
+    ...(hasFactSheet
+      ? [
+          `  - Chapter 1 MUST reference "HOW THEY GOT HERE" if present.`,
+          `  - At least one chapter MUST reference "WHY THIS CELEBRATION" if present.`,
+          `  - The final chapter MUST reference "FAVOURITE MEMORY" if present.`,
+          `  - Never invent alternative origin stories when the user's words are provided.`,
+        ]
+      : []),
+    ed.inMemoryOf
+      ? `  - The opening chapter MUST name ${ed.inMemoryOf} exactly as written in "IN MEMORY OF" — never rename, shorten, or paraphrase them.`
+      : null,
+    ed.school
+      ? `  - Mention "${ed.school}" by name exactly once across the chapters.`
+      : null,
+    ed.days && ed.days > 1
+      ? `  - The story should acknowledge the event's ${ed.days}-day span (e.g. "${ed.days} days in…").`
+      : null,
+  ].filter(Boolean) as string[];
+
+  const factSheetBlock = factLines.length
+    ? `FACT-SHEET — these are the user's own words. Weave them into the chapters naturally. Quote them back (paraphrasing allowed; contradicting them is forbidden):\n` +
+      factLines.join('\n') +
       `\n\nHARD RULES:\n` +
-      `  - Chapter 1 MUST reference "HOW THEY GOT HERE" if present.\n` +
-      `  - At least one chapter MUST reference "WHY THIS CELEBRATION" if present.\n` +
-      `  - The final chapter MUST reference "FAVOURITE MEMORY" if present.\n` +
-      `  - Never invent alternative origin stories when the user's words are provided.`
+      hardRules.join('\n')
     : '';
 
   const voiceSystem =
@@ -87,20 +122,22 @@ export async function corePassClaude(
     `Your output is always valid JSON matching the schema supplied in the user prompt.\n\n` +
     `Voice for this event (${voice}): ${VOICE_GUIDANCE[voice]}\n` +
     `Pronouns: ${VOICE_PRONOUNS[voice]}\n` +
-    `Banned clichés (never use): ${VOICE_BANNED[voice].map((w) => `"${w}"`).join(', ')}.` +
-    factSheetBlock;
+    `Banned clichés (never use): ${VOICE_BANNED[voice].map((w) => `"${w}"`).join(', ')}.`;
 
-  // We split the prompt into a "stable" cacheable prefix (the system rules
-  // and the cluster data block that won't change between revisions) and a
-  // small tail. Voice becomes part of the cache key implicitly through the
-  // system string — different voices produce distinct caches, which is
-  // fine: at most 5 variants instead of one.
+  // Prompt-caching contract: only the STATIC prefix is wrapped in
+  // cached(). voiceSystem varies solely by `voice` (5 enumerable
+  // variants → 5 cache entries, fine). The fact-sheet block carries
+  // per-couple words, so it rides in a SECOND, uncached system block
+  // after the breakpoint — baking it into the cached block would key
+  // a fresh cache entry per request and the cache would never hit.
+  // (Same split pattern as /api/pear-chat's stable-prefix caching.)
   const msg = await generate({
     tier: 'opus',
     temperature: 0.85,
     maxTokens: 16384,
     system: [
       cached(voiceSystem, '1h'),
+      ...(factSheetBlock ? [text(factSheetBlock)] : []),
     ],
     messages: [
       {
@@ -178,12 +215,17 @@ export async function critiqueChaptersClaude(
        a chapter is/isn't specific to this couple before
        emitting the score + rewrite. */
     thinkingBudget: 4000,
-    system: cached(
-      `You are a world-class story editor for Pearloom. You score chapter descriptions for specificity: could this chapter ONLY belong to this host, or could it fit any ${occ} site? Rewrite anything scoring below 7.\n\n` +
-      `Voice for this event (${activeVoice}): ${VOICE_GUIDANCE[activeVoice]}\n` +
-      `Pronouns: ${VOICE_PRONOUNS[activeVoice]}`,
-      '1h'
-    ) as unknown as string, // cached block array is accepted at runtime
+    /* Static-prefix cache: occ (≤28 occasions) × voice (5) are
+       enumerable, not per-request — bounded cache fan-out. Per-couple
+       material (names, notes, chapters) stays in the user message. */
+    system: [
+      cached(
+        `You are a world-class story editor for Pearloom. You score chapter descriptions for specificity: could this chapter ONLY belong to this host, or could it fit any ${occ} site? Rewrite anything scoring below 7.\n\n` +
+        `Voice for this event (${activeVoice}): ${VOICE_GUIDANCE[activeVoice]}\n` +
+        `Pronouns: ${VOICE_PRONOUNS[activeVoice]}`,
+        '1h'
+      ),
+    ],
     messages: [
       {
         role: 'user',
@@ -313,10 +355,15 @@ export async function poetryPassClaude(
     tier: 'sonnet',
     temperature: 1.0,
     maxTokens: 2048,
-    system: cached(
-      'You are a gifted literary copywriter. You write lines that feel plucked from a novel: specific, unexpected, quietly devastating. Never sentimental, never generic.',
-      '1h'
-    ) as unknown as string,
+    /* Fully static system prompt — one cache entry, every poetry
+       call shares it. Per-request material (vibe, chapters, names)
+       stays in the user message after the breakpoint. */
+    system: [
+      cached(
+        'You are a gifted literary copywriter. You write lines that feel plucked from a novel: specific, unexpected, quietly devastating. Never sentimental, never generic.',
+        '1h'
+      ),
+    ],
     messages: [
       {
         role: 'user',
@@ -477,6 +524,3 @@ export function isClaudeStoryEnabled(): boolean {
   if (process.env.PEARLOOM_CLAUDE_STORY === 'off') return false;
   return Boolean(process.env.ANTHROPIC_API_KEY);
 }
-
-// silence "unused" warning on `text` helper import if the caller pruned it
-void text;

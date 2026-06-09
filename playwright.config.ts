@@ -9,7 +9,7 @@ import { defineConfig, devices } from '@playwright/test';
 //      storageState every studio spec consumes.
 //   2. theme-packs-visual — public visual-regression sweep over the
 //      58 Theme-Store packs (testDir tests/e2e). No auth needed —
-//      renders the dev-only `/_test/theme-pack/[id]` route which
+//      renders the dev-only `/dev/theme-pack/[id]` route which
 //      404s in production. Baselines under
 //      tests/e2e/__screenshots__/. First run seeds; subsequent
 //      runs diff. Update with `--update-snapshots`.

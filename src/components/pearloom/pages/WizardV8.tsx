@@ -33,6 +33,7 @@ import {
   type ManifestCookBody,
 } from '../wizard/useBackgroundManifest';
 import { BackgroundCookPill } from '../wizard/BackgroundCookPill';
+import { usePhotoPalette } from '../wizard/usePhotoPalette';
 import { useDialog } from '@/components/ui/confirm-dialog';
 
 // Layout step removed 2026-05-30 — Editions (picked later in the
@@ -100,6 +101,23 @@ const OCCASIONS: OccasionCard[] = EVENT_TYPES
   .filter((e) => e.status === 'shipping' || e.status === 'beta')
   .map((e) => ({ id: e.id, label: e.label, icon: iconFor(e.id), tone: toneFor(e.id), category: e.category }));
 
+// Brand-family tints per card tone (BRAND.md §5). The prototype's
+// pastel peach/lavender chips are retired — every tone resolves to
+// a cream-deep / olive-mist surface with an olive or ink glyph.
+type CardTone = OccasionCard['tone'];
+const TONE_BG: Record<CardTone, string> = {
+  peach: 'var(--pl-cream-deep, #EBE3D2)',
+  lavender: 'var(--pl-olive-mist, #E0DDC9)',
+  sage: 'var(--sage-tint, #E3E6C8)',
+  cream: 'var(--cream-2, #FBF7EE)',
+};
+const TONE_INK: Record<CardTone, string> = {
+  peach: 'var(--pl-olive, #5C6B3F)',
+  lavender: 'var(--pl-ink, #0E0D0B)',
+  sage: 'var(--sage-deep, #5C6B3F)',
+  cream: 'var(--pl-ink, #0E0D0B)',
+};
+
 const VIBES = [
   { id: 'romantic', label: 'Romantic', icon: '♥', tone: 'peach' as const },
   { id: 'joyful', label: 'Joyful', icon: '✦', tone: 'peach' as const },
@@ -111,6 +129,9 @@ const VIBES = [
   { id: 'outdoorsy', label: 'Outdoorsy', icon: '☘', tone: 'sage' as const },
   { id: 'modern', label: 'Modern', icon: '■', tone: 'lavender' as const },
 ];
+
+/** Palette-picker id for the photo-derived option ("From your photos"). */
+const PHOTO_PALETTE_ID = 'from-your-photos';
 
 const PALETTES = [
   { id: 'groovy-garden', name: 'Groovy Garden', colors: ['#F0C9A8', '#8B9C5A', '#CBD29E', '#3D4A1F'] },
@@ -638,14 +659,7 @@ function OccasionPicker({
 
   const tile = (o: OccasionCard) => {
     const on = selected === o.id;
-    const glyphColor =
-      o.tone === 'peach'
-        ? 'var(--peach-ink, #C6703D)'
-        : o.tone === 'lavender'
-          ? 'var(--lavender-ink, #4F4072)'
-          : o.tone === 'sage'
-            ? 'var(--sage-deep, #5C6B3F)'
-            : 'var(--ink, #0E0D0B)';
+    const glyphColor = TONE_INK[o.tone];
     return (
       <button
         key={o.id}
@@ -657,10 +671,10 @@ function OccasionPicker({
           padding: 14,
           borderRadius: 14,
           border: on
-            ? '2px solid var(--peach-ink, #C6703D)'
+            ? '2px solid var(--pl-olive, #5C6B3F)'
             : '1px solid var(--line)',
-          background: on ? 'var(--peach-bg, #FCE6D7)' : 'var(--card)',
-          boxShadow: on ? '0 0 0 4px rgba(198,112,61,0.12)' : 'none',
+          background: on ? 'var(--pl-olive-mist, #E0DDC9)' : 'var(--card)',
+          boxShadow: on ? '0 0 0 4px var(--pl-olive-12, rgba(92,107,63,0.12))' : 'none',
           display: 'flex',
           alignItems: 'center',
           gap: 12,
@@ -682,14 +696,7 @@ function OccasionPicker({
             height: 38,
             borderRadius: 12,
             flexShrink: 0,
-            background:
-              o.tone === 'peach'
-                ? 'var(--peach-bg)'
-                : o.tone === 'lavender'
-                  ? 'var(--lavender-bg)'
-                  : o.tone === 'sage'
-                    ? 'var(--sage-tint)'
-                    : 'var(--cream-2)',
+            background: TONE_BG[o.tone],
             display: 'grid',
             placeItems: 'center',
             color: glyphColor,
@@ -710,7 +717,7 @@ function OccasionPicker({
         className="display"
         style={{ fontSize: 'clamp(36px, 5vw, 52px)', margin: '0 0 10px', lineHeight: 1.05 }}
       >
-        What are we <span className="display-italic">celebrating?</span>
+        What are we <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>celebrating?</span>
       </h2>
       <p
         style={{
@@ -755,7 +762,7 @@ function OccasionPicker({
             setQuery(e.target.value);
             if (e.target.value && !showAll) setShowAll(true);
           }}
-          placeholder="Search 31 events…"
+          placeholder={`Search ${OCCASIONS.length} events…`}
           style={{
             width: '100%',
             padding: '12px 14px 12px 38px',
@@ -796,7 +803,7 @@ function OccasionPicker({
             style={{
               background: 'transparent',
               border: 'none',
-              color: 'var(--peach-ink, #C6703D)',
+              color: 'var(--pl-olive, #5C6B3F)',
               fontFamily: 'inherit',
               fontSize: 13,
               fontWeight: 600,
@@ -822,7 +829,7 @@ function OccasionPicker({
                     fontWeight: 700,
                     letterSpacing: '0.14em',
                     textTransform: 'uppercase',
-                    color: 'var(--peach-ink)',
+                    color: 'var(--pl-olive, #5C6B3F)',
                     marginBottom: 10,
                   }}
                 >
@@ -858,7 +865,7 @@ function OccasionPicker({
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: 'var(--peach-ink, #C6703D)',
+                  color: 'var(--pl-olive, #5C6B3F)',
                   fontFamily: 'inherit',
                   fontSize: 13,
                   fontWeight: 600,
@@ -952,7 +959,7 @@ function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: St
             height: '100%',
             width: `${Math.round(fraction * 100)}%`,
             background:
-              'linear-gradient(90deg, var(--ink-soft) 0%, var(--peach-ink, #C6703D) 70%, var(--gold, #B89244) 100%)',
+              'linear-gradient(90deg, var(--ink-soft) 0%, var(--pl-olive, #5C6B3F) 70%, var(--gold, #B89244) 100%)',
             borderRadius: 999,
             transition: 'width 360ms cubic-bezier(0.22, 1, 0.36, 1)',
           }}
@@ -978,7 +985,7 @@ function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: St
                 background: phaseDone
                   ? 'var(--ink-soft)'
                   : phaseCur
-                    ? 'var(--peach-ink, #C6703D)'
+                    ? 'var(--pl-olive, #5C6B3F)'
                     : 'var(--line-soft)',
                 transition: 'background-color 280ms ease',
               }}
@@ -1020,12 +1027,7 @@ function ContextChips({ st }: { st: WizardState }) {
               width: 32,
               height: 32,
               borderRadius: '50%',
-              background:
-                c.tone === 'peach'
-                  ? 'var(--peach-bg)'
-                  : c.tone === 'lavender'
-                    ? 'var(--lavender-bg)'
-                    : 'var(--sage-tint)',
+              background: TONE_BG[c.tone],
               display: 'grid',
               placeItems: 'center',
               fontSize: 13,
@@ -1065,8 +1067,15 @@ function ContextChips({ st }: { st: WizardState }) {
  */
 function WizardLiveVignette({ st }: { st: WizardState }) {
   const names = st.names.filter(Boolean);
-  const a = names[0] || 'Alex';
-  const b = names[1] || 'Jamie';
+  // Solo occasions preview ONE name — no '&', no phantom partner.
+  // Placeholders come from the occasion's name spec ('Sam',
+  // 'Valentina', 'Eleanor Rose Thompson'…) so a memorial never
+  // previews as 'Alex & Jamie'. Placeholders are preview-only —
+  // they never reach the saved manifest.
+  const nameSpec = nameModeFor(st.occasion);
+  const couple = nameSpec.mode === 'couple';
+  const a = names[0] || (couple ? 'Alex' : nameSpec.primaryPlaceholder);
+  const b = couple ? (names[1] || 'Jamie') : '';
   const dateLabel = parseLocalDate(st.eventDate)?.toLocaleDateString('en-US', {
     month: 'long',
     day: 'numeric',
@@ -1126,13 +1135,17 @@ function WizardLiveVignette({ st }: { st: WizardState }) {
         }}
       >
         {a}
-        <span
-          className="display-italic"
-          style={{ fontSize: '0.55em', color: accent, margin: '0 0.16em', fontStyle: 'italic', fontWeight: 400 }}
-        >
-          &amp;
-        </span>
-        {b}
+        {b ? (
+          <>
+            <span
+              className="display-italic"
+              style={{ fontSize: '0.55em', color: accent, margin: '0 0.16em', fontStyle: 'italic', fontWeight: 400 }}
+            >
+              &amp;
+            </span>
+            {b}
+          </>
+        ) : null}
       </div>
 
       {/* Sprig-flanked rule */}
@@ -1351,6 +1364,38 @@ export function WizardV8() {
   const [taglineState, setTaglineState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
   const step = STEPS[stepIndex];
 
+  // ── "From your photos" palette ──────────────────────────────
+  // Client-side extraction from the host's first uploaded photo
+  // (the one the hero leads with). Computed lazily when the host
+  // reaches the Palette step; cached per source URL by the hook,
+  // so revisits are free and re-picked photos recompute. Fails
+  // silently — no photos / tainted canvas / decode error just
+  // means the tile doesn't render.
+  const firstPhoto = st.photos[0];
+  const photoPaletteSource = firstPhoto
+    ? firstPhoto.previewUrl || firstPhoto.url || undefined
+    : undefined;
+  const photoPalette = usePhotoPalette(photoPaletteSource, step === 'Palette');
+  const photoPaletteColors = useMemo<[string, string, string, string] | null>(
+    () =>
+      photoPalette
+        ? [photoPalette.accent, photoPalette.gold, photoPalette.accentBg, photoPalette.accentInk]
+        : null,
+    [photoPalette],
+  );
+  // If the host picked the photo palette and then changed photos
+  // (back-navigation), re-sync the selected hex tuple so the
+  // generate pass honors the fresh extraction.
+  useEffect(() => {
+    if (!photoPaletteColors) return;
+    setSt((s) =>
+      s.palette === PHOTO_PALETTE_ID &&
+      (s.paletteColors ?? []).join(',') !== photoPaletteColors.join(',')
+        ? { ...s, paletteColors: photoPaletteColors }
+        : s,
+    );
+  }, [photoPaletteColors]);
+
   // Fetch AI palette suggestions. Factored out so we can fire it
   // automatically on step enter AND from the "Re-read my event"
   // button.
@@ -1492,9 +1537,18 @@ export function WizardV8() {
     setErr(null);
     setGenStep('starting…');
     try {
+      // Belt-and-braces: solo / group occasions carry exactly one
+      // name into generation + the saved manifest. Placeholders
+      // are never written; a partner name typed under a previous
+      // occasion pick is dropped here even if state restoration
+      // skipped the Occasion step.
+      const submitNames: [string, string] =
+        nameModeFor(st.occasion).mode === 'couple'
+          ? [st.names[0].trim(), st.names[1].trim()]
+          : [st.names[0].trim(), ''];
       const derivedSubdomain =
         st.subdomain ||
-        slugify(st.names.filter(Boolean).join('-and-')) ||
+        slugify(submitNames.filter(Boolean).join('-and-')) ||
         slugify(st.occasion) ||
         `event-${Date.now().toString(36)}`;
 
@@ -1572,7 +1626,7 @@ export function WizardV8() {
           clusters,
           vibeString,
           vibeName: vibeString,
-          names: st.names,
+          names: submitNames,
           occasion: st.occasion,
           category,
           eventDate: st.eventDate || undefined,
@@ -1686,7 +1740,7 @@ export function WizardV8() {
           themeFamily: 'v8',
           templateId: st.templateId,
           vibeString: st.vibes.join(', '),
-          names: st.names,
+          names: submitNames,
           logistics: { date: st.eventDate || undefined, venue: st.location || undefined },
           chapters: [],
           layoutFormat: st.layout,
@@ -1702,7 +1756,7 @@ export function WizardV8() {
       const res = await fetch('/api/sites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subdomain: derivedSubdomain, manifest, names: st.names }),
+        body: JSON.stringify({ subdomain: derivedSubdomain, manifest, names: submitNames }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
@@ -1719,6 +1773,12 @@ export function WizardV8() {
       // answers if the user starts a second site later.
       if (typeof window !== 'undefined') {
         try { window.localStorage.removeItem(STORAGE_KEY); } catch {}
+        // Arm the First Pressing — the editor plays the reveal
+        // sequence exactly once for this freshly-woven site.
+        try {
+          const { armFirstPressing } = await import('@/components/pearloom/redesign/FirstPressing');
+          armFirstPressing(derivedSubdomain);
+        } catch {}
       }
       router.push(`/editor/${derivedSubdomain}`);
     } catch (e) {
@@ -1921,8 +1981,8 @@ export function WizardV8() {
                   marginBottom: 18,
                   padding: '6px 12px',
                   borderRadius: 999,
-                  background: 'var(--lavender-bg, #ECE4F5)',
-                  color: 'var(--lavender-ink, #4F4072)',
+                  background: 'var(--pl-olive-mist, #E0DDC9)',
+                  color: 'var(--pl-ink-soft, #3A332C)',
                   fontSize: 12,
                 }}
               >
@@ -1934,7 +1994,17 @@ export function WizardV8() {
                 <OccasionPicker
                   selected={st.occasion}
                   onPick={(id) => {
-                    setSt((s) => ({ ...s, occasion: id }));
+                    // Solo / group occasions hide the second name
+                    // field — clear any partner name typed under a
+                    // previous occasion so it can't silently ride
+                    // along into generation ("random names don't
+                    // populate").
+                    const keepSecond = nameModeFor(id).mode === 'couple';
+                    setSt((s) => ({
+                      ...s,
+                      occasion: id,
+                      names: keepSecond ? s.names : [s.names[0], ''],
+                    }));
                     autoAdvance();
                   }}
                 />
@@ -1942,10 +2012,19 @@ export function WizardV8() {
 
               {step === 'Basics' && (() => {
                 const nameSpec = nameModeFor(st.occasion);
+                const remembering = st.occasion === 'memorial' || st.occasion === 'funeral';
                 return (
                 <>
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                    Who, when, and <span className="display-italic">where.</span>
+                    {nameSpec.mode === 'solo' ? (
+                      remembering ? (
+                        <>Who are we <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>remembering?</span></>
+                      ) : (
+                        <>Who are we <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>celebrating?</span></>
+                      )
+                    ) : (
+                      <>Who, when, and <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>where.</span></>
+                    )}
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
                     Just the bones — you can make anything optional later.
@@ -2043,7 +2122,13 @@ export function WizardV8() {
                           className="input"
                           value={st.subdomain}
                           onChange={(e) => setSt((s) => ({ ...s, subdomain: slugify(e.target.value) }))}
-                          placeholder="alex-and-jamie"
+                          placeholder={
+                            nameSpec.mode === 'couple'
+                              ? 'alex-and-jamie'
+                              : nameSpec.mode === 'solo'
+                              ? slugify(nameSpec.primaryPlaceholder) || 'eleanor'
+                              : 'our-gathering'
+                          }
                           style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0, flex: 1, minWidth: 160 }}
                         />
                       </div>
@@ -2070,7 +2155,7 @@ export function WizardV8() {
                 return (
                   <>
                     <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                      A little more <span className="display-italic">about it.</span>
+                      A little more <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>about it.</span>
                     </h2>
                     <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
                       Every answer here sharpens the story Pear writes. Skip anything you want to leave to the editor.
@@ -2180,7 +2265,7 @@ export function WizardV8() {
               {step === 'Photos' && (
                 <>
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                    Give Pear <span className="display-italic">something to see.</span>
+                    Give Pear <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>something to see.</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
                     Add 6–20 favourite photos. Pear looks at them — scenes, people, light — and writes each chapter
@@ -2196,7 +2281,7 @@ export function WizardV8() {
               {step === 'Vibe' && (
                 <>
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                    Set the <span className="display-italic">vibe.</span>
+                    Set the <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>vibe.</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 18px' }}>
                     Pick 2–4. Your vibes shape tone, language, and flow.
@@ -2234,22 +2319,8 @@ export function WizardV8() {
                           onClick={() => toggleVibe(v.id)}
                           className="chip"
                           style={{
-                            background: on
-                              ? 'var(--sage-deep)'
-                              : v.tone === 'peach'
-                                ? 'var(--peach-bg)'
-                                : v.tone === 'lavender'
-                                  ? 'var(--lavender-bg)'
-                                  : v.tone === 'sage'
-                                    ? 'var(--sage-tint)'
-                                    : 'var(--cream-2)',
-                            color: on
-                              ? 'var(--cream)'
-                              : v.tone === 'peach'
-                                ? 'var(--peach-ink)'
-                                : v.tone === 'lavender'
-                                  ? 'var(--lavender-ink)'
-                                  : 'var(--ink)',
+                            background: on ? 'var(--sage-deep)' : TONE_BG[v.tone],
+                            color: on ? 'var(--cream)' : TONE_INK[v.tone],
                             border: 'none',
                             padding: '12px 20px',
                             fontSize: 14,
@@ -2267,7 +2338,7 @@ export function WizardV8() {
               {step === 'Palette' && (
                 <>
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                    Choose a <span className="display-italic">palette.</span>
+                    Choose a <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>palette.</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 18px' }}>
                     Pear read your venue and vibes and mixed three palettes just for you — or pick a classic below.
@@ -2297,7 +2368,7 @@ export function WizardV8() {
                         fontSize: 11,
                         letterSpacing: '0.14em',
                         textTransform: 'uppercase',
-                        color: 'var(--peach-ink)',
+                        color: 'var(--pl-olive, #5C6B3F)',
                       }}
                     >
                       <Sparkle size={11} color="var(--gold)" /> Pear's picks for you
@@ -2319,7 +2390,7 @@ export function WizardV8() {
                   </div>
 
                   {st.smartPalettesError && (
-                    <div style={{ fontSize: 12, color: 'var(--peach-ink)', marginBottom: 10 }}>
+                    <div style={{ fontSize: 12, color: 'var(--pl-warning, #A14A2C)', marginBottom: 10 }}>
                       {st.smartPalettesError}
                     </div>
                   )}
@@ -2391,12 +2462,101 @@ export function WizardV8() {
                     </div>
                   )}
 
-                  {(st.smartPalettes?.length ?? 0) > 0 && (
+                  {((st.smartPalettes?.length ?? 0) > 0 || photoPaletteColors) && (
                     <div
                       className="pl8-palette-grid pl-cascade-row"
                       style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}
                     >
-                      {st.smartPalettes!.map((p) => {
+                      {/* "From your photos" — client-side extraction from
+                          the first uploaded photo. Renders only when the
+                          extraction succeeded; selecting it flows through
+                          the same palette/paletteColors path as siblings. */}
+                      {photoPaletteColors && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSt((s) => ({
+                              ...s,
+                              palette: PHOTO_PALETTE_ID,
+                              paletteColors: photoPaletteColors,
+                            }));
+                            autoAdvance();
+                          }}
+                          style={{
+                            padding: 16,
+                            borderRadius: 16,
+                            background: 'var(--card)',
+                            border:
+                              st.palette === PHOTO_PALETTE_ID
+                                ? '2px solid var(--ink)'
+                                : '1.5px solid var(--line)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 10,
+                            cursor: 'pointer',
+                            position: 'relative',
+                            textAlign: 'left',
+                          }}
+                        >
+                          {st.palette === PHOTO_PALETTE_ID && (
+                            <div
+                              style={{
+                                position: 'absolute',
+                                top: 10,
+                                right: 10,
+                                width: 22,
+                                height: 22,
+                                borderRadius: '50%',
+                                background: 'var(--ink)',
+                                display: 'grid',
+                                placeItems: 'center',
+                              }}
+                            >
+                              <Icon name="check" size={11} color="#fff" strokeWidth={3} />
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', gap: 4 }}>
+                            {photoPaletteColors.map((c, i) => (
+                              <div
+                                key={i}
+                                style={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: '50%',
+                                  background: c,
+                                  border: '1.5px solid rgba(255,255,255,0.45)',
+                                }}
+                              />
+                            ))}
+                          </div>
+                          <div
+                            className="display"
+                            style={{
+                              fontSize: 18,
+                              fontStyle: 'italic',
+                              margin: 0,
+                              lineHeight: 1.2,
+                            }}
+                          >
+                            From your photos
+                          </div>
+                          <div style={{ fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
+                            Accents drawn straight from the photographs you shared.
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+                              fontSize: 9.5,
+                              letterSpacing: '0.16em',
+                              textTransform: 'uppercase',
+                              color: 'var(--ink-muted)',
+                            }}
+                          >
+                            Photo-matched
+                          </div>
+                        </button>
+                      )}
+                      {(st.smartPalettes ?? []).map((p) => {
                         const on = st.palette === p.id;
                         return (
                           <button
@@ -2579,7 +2739,7 @@ export function WizardV8() {
               {(step as string) === 'Layout' && (
                 <>
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                    How should it <span className="display-italic">read?</span>
+                    How should it <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>read?</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
                     Every layout is a full site — they just handle pacing differently.
@@ -2598,8 +2758,8 @@ export function WizardV8() {
                           style={{
                             padding: 18,
                             borderRadius: 14,
-                            background: on ? 'var(--lavender-bg)' : 'var(--card)',
-                            border: on ? '2px solid var(--lavender-ink)' : '1.5px solid var(--line)',
+                            background: on ? 'var(--pl-olive-mist, #E0DDC9)' : 'var(--card)',
+                            border: on ? '2px solid var(--pl-olive, #5C6B3F)' : '1.5px solid var(--line)',
                             textAlign: 'left',
                             cursor: 'pointer',
                             display: 'flex',
@@ -2633,7 +2793,7 @@ export function WizardV8() {
               {step === 'Review' && (
                 <>
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                    Everything in <span className="display-italic">order?</span>
+                    Everything in <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>order?</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
                     When you save, we&apos;ll build your first draft and open the studio.
@@ -2654,9 +2814,11 @@ export function WizardV8() {
                     <Row
                       label="Palette"
                       val={
-                        PALETTES.find((p) => p.id === st.palette)?.name ??
-                        st.smartPalettes?.find((p) => p.id === st.palette)?.name ??
-                        (st.paletteColors && st.paletteColors.length > 0 ? 'Pear-picked palette' : '—')
+                        st.palette === PHOTO_PALETTE_ID
+                          ? 'From your photos'
+                          : PALETTES.find((p) => p.id === st.palette)?.name ??
+                            st.smartPalettes?.find((p) => p.id === st.palette)?.name ??
+                            (st.paletteColors && st.paletteColors.length > 0 ? 'Pear-picked palette' : '—')
                       }
                       swatches={
                         st.paletteColors && st.paletteColors.length > 0
@@ -2792,8 +2954,8 @@ export function WizardV8() {
                       marginTop: 22,
                       padding: 16,
                       borderRadius: 14,
-                      background: 'var(--lavender-bg)',
-                      border: '1px solid rgba(107,90,140,0.22)',
+                      background: 'var(--pl-olive-mist, #E0DDC9)',
+                      border: '1px solid var(--pl-olive-20, rgba(92,107,63,0.20))',
                       display: 'flex',
                       gap: 12,
                       alignItems: 'flex-start',
@@ -2801,7 +2963,7 @@ export function WizardV8() {
                   >
                     <Pear size={36} tone="sage" sparkle />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--lavender-ink)', marginBottom: 4 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--pl-olive-deep, #363F22)', marginBottom: 4 }}>
                         Want Pear to draft a hero tagline?
                       </div>
                       <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginBottom: 10 }}>
@@ -2853,9 +3015,9 @@ export function WizardV8() {
                         marginTop: 16,
                         padding: '10px 14px',
                         borderRadius: 12,
-                        background: 'rgba(198,86,61,0.08)',
-                        border: '1px solid rgba(198,86,61,0.22)',
-                        color: '#7A2D2D',
+                        background: 'var(--pl-warning-mist, rgba(161,74,44,0.10))',
+                        border: '1px solid var(--pl-warning, #A14A2C)',
+                        color: 'var(--pl-warning, #A14A2C)',
                         fontSize: 13,
                       }}
                     >

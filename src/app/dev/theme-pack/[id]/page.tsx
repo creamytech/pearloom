@@ -1,14 +1,16 @@
 // ─────────────────────────────────────────────────────────────
-// /_test/theme-pack/[id] — visual-regression test harness.
+// /dev/theme-pack/[id] — visual-regression test harness.
 //
 // Renders a single Theme-Store pack against a frozen reference
 // manifest so the Playwright suite at tests/e2e/theme-packs.spec.ts
 // can screenshot every pack and diff against a baseline.
 //
 // This route is dev-only — `notFound()` in production so nothing
-// leaks into the public surface. The route name starts with an
-// underscore so it sorts away from real product routes when
-// browsing src/app/.
+// leaks into the public surface. It lives under src/app/dev/
+// alongside the other dev-only surfaces. (It previously sat at
+// src/app/_test/, but underscore-prefixed folders are PRIVATE in
+// the App Router, so that route never resolved — every request
+// 404'd.)
 //
 // The page mounts the same PublishedSiteShell guests see, with
 // `applyPackToManifest(pack, REFERENCE_MANIFEST)` so the entire
@@ -29,7 +31,7 @@ interface Props {
 }
 
 export default async function ThemePackTestPage({ params }: Props) {
-  // Hard gate — never serve in production. The folder name (`_test`)
+  // Hard gate — never serve in production. The folder name (`dev`)
   // wouldn't keep it out of a deployed bundle on its own.
   if (process.env.NODE_ENV === 'production') notFound();
 
@@ -44,7 +46,7 @@ export default async function ThemePackTestPage({ params }: Props) {
       manifest={themed}
       names={REFERENCE_NAMES}
       siteSlug={`__test_${pack.id}`}
-      prettyUrl={`pearloom.com/_test/theme-pack/${pack.id}`}
+      prettyUrl={`pearloom.com/dev/theme-pack/${pack.id}`}
     />
   );
 }

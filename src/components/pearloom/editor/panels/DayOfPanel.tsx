@@ -13,6 +13,7 @@ import { Icon } from '../../motifs';
 import { FGroup, FInput, FToggleStandalone, SectionPanelShell } from './_section-atoms';
 import { FSelect } from './_form-atoms';
 import { PhotoUploadSlot } from './_photo-upload';
+import { pearErrorMessage } from '../../redesign/PearAssist';
 
 type UpdateType = 'ceremony' | 'reception' | 'cocktail' | 'misc';
 
@@ -74,7 +75,8 @@ export function DayOfPanel({ siteSlug }: { siteSlug: string }) {
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[day-of] broadcast failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Couldn’t send the broadcast — try again?');
       }
       const data = await res.json() as { update?: LiveUpdate };
       if (data.update) {
@@ -82,7 +84,7 @@ export function DayOfPanel({ siteSlug }: { siteSlug: string }) {
       }
       setMessage(''); setPhotoUrl(''); setEmailToo(false);
     } catch (e) {
-      setErr((e as Error).message || 'Couldn’t send the broadcast.');
+      setErr(pearErrorMessage(e, 'Couldn’t send the broadcast — try again?'));
     } finally {
       setBusy(false);
     }

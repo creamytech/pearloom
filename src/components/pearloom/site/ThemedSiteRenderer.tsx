@@ -41,7 +41,7 @@ import { Motif, MotifScatter, WatercolorBloom, type MotifKind } from './MotifSca
 import { getTheme, themeRootStyle, type Density as ThemeDensity } from './themes';
 import { TextureFilters } from './TextureFilters';
 import { resolveEdition } from '@/lib/site-editions/resolve';
-import { getEventType } from '@/lib/event-os/event-types';
+import { getEventType, isSoloOccasion } from '@/lib/event-os/event-types';
 import { EditionSectionOpener } from './edition-openers';
 import { EditionDivider } from './edition-dividers';
 import {
@@ -1848,15 +1848,27 @@ function ThemedHero({ manifest, names, motif, onEditField, onEditNames }: { mani
     .filter(Boolean)
     .filter((s) => !isUuidLike(s))
     .map((s) => s.charAt(0).toUpperCase() + s.slice(1));
+  /* Solo-honoree resolution BEFORE name fallback so a single
+     honoree never gets a phantom second "name" backfilled from
+     coupleSplit (a memorial coupleId like 'eleanor-rose' must not
+     hero-render "Eleanor and Rose"). Canonical registry:
+     lib/event-os/solo-occasions.ts; an explicit editor pick
+     (manifest.subject.kind) always wins over the occasion default. */
+  const occasion = (manifest as unknown as { occasion?: string }).occasion;
+  const subjectKind = (manifest as unknown as { subject?: { kind?: string } }).subject?.kind;
+  const solo =
+    subjectKind === 'solo' ||
+    (subjectKind !== 'couple' && isSoloOccasion(occasion));
   const n1 = (names[0] && names[0] !== 'Your' ? names[0] : (coupleSplit[0] ?? names[0] ?? 'Your'));
-  const n2 = (names[1] && names[1] !== 'Partner' ? names[1] : (coupleSplit[1] ?? names[1] ?? 'Celebration'));
+  const n2 = solo
+    ? (names[1] ?? '')
+    : (names[1] && names[1] !== 'Partner' ? names[1] : (coupleSplit[1] ?? names[1] ?? 'Celebration'));
 
   /* Resolve the active Edition once — drives both the atmosphere
      preset and the hero variant fallback. */
   /* Cast occasion to satisfy EditionContext's SiteOccasion union —
      getEventType + resolveEdition both validate the string at runtime
      so an unknown value just falls back to the default. */
-  const occasion = (manifest as unknown as { occasion?: string }).occasion;
   const eventType = occasion ? getEventType(occasion) : null;
   const voice = eventType?.voice;
   const activeEdition = resolveEdition({
@@ -1954,6 +1966,7 @@ function ThemedHero({ manifest, names, motif, onEditField, onEditNames }: { mani
     onEditNames,
     context: {
       n1, n2,
+      solo,
       coverPhoto,
       photos,
       venue,
@@ -2059,10 +2072,10 @@ function ThemedHero({ manifest, names, motif, onEditField, onEditNames }: { mani
           const mono = (manifest as unknown as { monogram?: { initials?: string; frame?: MonogramFrame } }).monogram;
           if (!mono) return null;
           const frame: MonogramFrame = mono.frame ?? 'laurel';
-          const subject = mono.initials?.trim() || `${n1} & ${n2}`;
+          const subject = mono.initials?.trim() || [n1, n2].filter(Boolean).join(' & ');
           const { initA, initB } = deriveInitials(subject);
           const initialsForMono = subject.includes('&') || /\s/.test(subject)
-            ? `${initA} & ${initB}`
+            ? (initB ? `${initA} & ${initB}` : initA)
             : subject;
           return (
             <div
@@ -2476,7 +2489,7 @@ function ThemedStory({ manifest, motif, editMode, onEditField }: { manifest: Sto
   }
   const kit = (manifest.kitId ?? 'classic') as
     | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal'
-    | 'arch' | 'stamp' | 'deco';
+    | 'arch' | 'stamp' | 'deco' | 'gallery' | 'menu';
   return (
     <section
       id="our-story"
@@ -2494,10 +2507,10 @@ function ThemedStory({ manifest, motif, editMode, onEditField }: { manifest: Sto
       {kit === 'scrapbook' && <StoryScrapbook chapters={chapters} tones={tones} onEditField={onEditField} />}
       {kit === 'index'     && <StoryIndex chapters={chapters} tones={tones} onEditField={onEditField} />}
       {kit === 'minimal'   && <StoryMinimal chapters={chapters} tones={tones} onEditField={onEditField} />}
-      {/* Classic + arch / stamp / deco fall through to StoryClassic;
-          arch/stamp/deco get their personality from per-kit CSS
-          on the data-pl-kit attribute. */}
-      {(kit === 'classic' || kit === 'arch' || kit === 'stamp' || kit === 'deco' || !kit) && (
+      {/* Classic + arch / stamp / deco / gallery / menu fall through
+          to StoryClassic; these CSS-only kits get their personality
+          from per-kit CSS on the data-pl-kit attribute. */}
+      {(kit === 'classic' || kit === 'arch' || kit === 'stamp' || kit === 'deco' || kit === 'gallery' || kit === 'menu' || !kit) && (
         <StoryClassic chapters={chapters} tones={tones} motif={motif} onEditField={onEditField} />
       )}
     </section>
@@ -3063,7 +3076,7 @@ function ThemedDetails({ manifest, motif, editMode, onEditField }: { manifest: S
   }
   const kit = (manifest.kitId ?? 'classic') as
     | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal'
-    | 'arch' | 'stamp' | 'deco';
+    | 'arch' | 'stamp' | 'deco' | 'gallery' | 'menu';
   /* Variant dispatch — host-pick wins over kit-based render. When
      manifest.blockVariants.details.style names a registered variant
      (tiles / iconrow / list / accordion / bento), render its
@@ -3092,8 +3105,8 @@ function ThemedDetails({ manifest, motif, editMode, onEditField }: { manifest: S
           {kit === 'scrapbook' && <DetailsScrapbook items={items} onEditField={onEditField} />}
           {kit === 'index'     && <DetailsIndex items={items} onEditField={onEditField} />}
           {kit === 'minimal'   && <DetailsMinimal items={items} onEditField={onEditField} />}
-          {/* Classic + arch / stamp / deco → DetailsClassic with per-kit CSS. */}
-          {(kit === 'classic' || kit === 'arch' || kit === 'stamp' || kit === 'deco' || !kit) && (
+          {/* Classic + arch / stamp / deco / gallery / menu → DetailsClassic with per-kit CSS. */}
+          {(kit === 'classic' || kit === 'arch' || kit === 'stamp' || kit === 'deco' || kit === 'gallery' || kit === 'menu' || !kit) && (
             <DetailsClassic items={items} onEditField={onEditField} />
           )}
         </>
@@ -3554,7 +3567,7 @@ function ThemedSchedule({ manifest, editMode, onEditField }: { manifest: StoryMa
   }
   const kit = (manifest.kitId ?? 'classic') as
     | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal'
-    | 'arch' | 'stamp' | 'deco';
+    | 'arch' | 'stamp' | 'deco' | 'gallery' | 'menu';
   return (
     <section
       id="schedule"
@@ -3570,8 +3583,8 @@ function ThemedSchedule({ manifest, editMode, onEditField }: { manifest: StoryMa
       {kit === 'scrapbook' && <ScheduleScrapbook events={events} onEditField={onEditField} />}
       {kit === 'index'     && <ScheduleIndex events={events} onEditField={onEditField} />}
       {kit === 'minimal'   && <ScheduleMinimal events={events} onEditField={onEditField} />}
-      {/* Classic + arch / stamp / deco → ScheduleClassic with per-kit CSS. */}
-      {(kit === 'classic' || kit === 'arch' || kit === 'stamp' || kit === 'deco' || !kit) && (
+      {/* Classic + arch / stamp / deco / gallery / menu → ScheduleClassic with per-kit CSS. */}
+      {(kit === 'classic' || kit === 'arch' || kit === 'stamp' || kit === 'deco' || kit === 'gallery' || kit === 'menu' || !kit) && (
         <ScheduleClassic events={events} onEditField={onEditField} />
       )}
     </section>
@@ -5758,6 +5771,7 @@ function ThemedRsvp({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug:
               preset={rsvpPreset}
               title=""
               customMealOptions={customMealOptions.length > 0 ? customMealOptions : undefined}
+              manifest={manifest}
             />
           </div>
         </div>
@@ -5936,6 +5950,7 @@ function ThemedRsvp({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug:
             preset={rsvpPreset}
             title=""
             customMealOptions={customMealOptions.length > 0 ? customMealOptions : undefined}
+            manifest={manifest}
           />
         </div>
       </section>
@@ -6023,6 +6038,7 @@ function ThemedRsvp({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug:
           preset={rsvpPreset}
           title=""
           customMealOptions={customMealOptions.length > 0 ? customMealOptions : undefined}
+          manifest={manifest}
         />
       </div>
     </section>
@@ -6065,7 +6081,7 @@ function ThemedFaq({ manifest, editMode, onEditField }: { manifest: StoryManifes
   }
   const kit = (manifest.kitId ?? 'classic') as
     | 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal'
-    | 'arch' | 'stamp' | 'deco';
+    | 'arch' | 'stamp' | 'deco' | 'gallery' | 'menu';
 
   /* Variant dispatcher — supports all 4 FAQ variants. Defaults to
      accordion when blockVariants is unset or carries an unknown

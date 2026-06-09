@@ -17,7 +17,10 @@ import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
-import { buildSiteUrl } from '@/lib/site-urls';
+import { getAppOrigin } from '@/lib/site-urls';
+import { suiteThemeFromManifest } from '@/lib/suite/theme';
+import { emailThemeFromSuite, buildSaveTheDateEmail } from '@/lib/email-sequences';
+import type { StoryManifest } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,47 +29,6 @@ function getSupabase() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) throw new Error('Supabase env vars not configured');
   return createClient(url, key);
-}
-
-const esc = (s: string) =>
-  s.replace(/[<>&"]/g, (c) =>
-    ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c] || c),
-  );
-
-function buildHtml(opts: {
-  coupleDisplay: string;
-  guestName: string;
-  message: string;
-  dateDisplay?: string;
-  photoUrl?: string;
-  ctaUrl: string;
-}): string {
-  const { coupleDisplay, guestName, message, dateDisplay, photoUrl, ctaUrl } = opts;
-  /* Cream + sage + peach palette — matches BRAND.md §5. Single
-     wide column, ~520px max. The photo (when present) sits above
-     the headline; if absent, the headline carries the card. */
-  return `<!doctype html>
-<html><body style="margin:0;padding:0;background:#F5EFE2;">
-<div style="max-width:540px;margin:0 auto;padding:32px 24px;font-family:Georgia,serif;color:#0E0D0B;text-align:center;">
-  ${photoUrl ? `<img src="${esc(photoUrl)}" alt="" style="display:block;width:100%;max-width:480px;border-radius:14px;margin:0 auto 28px;"/>` : ''}
-  <div style="font-size:10px;font-weight:700;letter-spacing:0.28em;text-transform:uppercase;color:#A75D32;margin-bottom:12px;">
-    Save the date
-  </div>
-  <div style="font-size:32px;font-weight:700;line-height:1.05;letter-spacing:-0.02em;margin-bottom:14px;">
-    ${esc(coupleDisplay)}
-  </div>
-  ${dateDisplay ? `<div style="font-style:italic;font-size:18px;color:#3A332C;margin-bottom:24px;">${esc(dateDisplay)}</div>` : ''}
-  <div style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#3A332C;margin:0 auto 28px;max-width:420px;text-align:left;">
-    ${esc(`${guestName ? guestName + ', ' : ''}${message}`)}
-  </div>
-  <a href="${esc(ctaUrl)}" style="display:inline-block;background:#0E0D0B;color:#F5EFE2;text-decoration:none;padding:14px 28px;border-radius:999px;font-weight:700;font-size:13px;letter-spacing:0.04em;">
-    See the site
-  </a>
-  <div style="margin-top:32px;font-size:11px;color:#6F6557;font-family:-apple-system,Helvetica,Arial,sans-serif;">
-    A formal invitation will follow.
-  </div>
-</div>
-</body></html>`;
 }
 
 export async function POST(req: NextRequest) {
@@ -94,12 +56,16 @@ export async function POST(req: NextRequest) {
     /* Resolve siteSlug → siteId + verify ownership. */
     type SiteRow = {
       id: string; subdomain: string;
-      site_config?: { creator_email?: string; coupleNames?: [string, string]; occasion?: string } | null;
+      site_config?: {
+        creator_email?: string; coupleNames?: [string, string];
+        names?: string[]; occasion?: string;
+      } | null;
       creator_email?: string;
+      ai_manifest?: StoryManifest | null;
     };
     const { data: siteRow } = await supabase
       .from('sites')
-      .select('id, subdomain, site_config, creator_email')
+      .select('id, subdomain, site_config, creator_email, ai_manifest')
       .eq('subdomain', siteSlug)
       .maybeSingle() as { data: SiteRow | null };
     if (!siteRow) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
@@ -107,9 +73,18 @@ export async function POST(req: NextRequest) {
     if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase()) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-    const [a, b] = siteRow.site_config?.coupleNames ?? ['', ''];
+    const [a, b] = siteRow.site_config?.coupleNames
+      ?? (siteRow.site_config?.names as [string, string] | undefined)
+      ?? ['', ''];
     const coupleDisplay = a && b ? `${a} & ${b}` : (a || b || 'Save the date');
-    const occasion = siteRow.site_config?.occasion;
+
+    // The Suite contract — palette, fonts, monogram all derive from
+    // the couple's pack so the email wears the exact site look.
+    const suite = suiteThemeFromManifest(
+      (siteRow.ai_manifest ?? {}) as StoryManifest,
+      [a ?? '', b ?? ''],
+    );
+    const themeColors = emailThemeFromSuite(suite);
 
     /* Pull guests with an email. */
     const { data: guestRows } = await supabase
@@ -118,6 +93,25 @@ export async function POST(req: NextRequest) {
       .eq('site_id', siteRow.id)
       .not('email', 'is', null);
     const guests = (guestRows ?? []).filter((g) => g.email);
+
+    /* Per-guest passport tokens — one batched lookup so each
+       recipient's envelope link personalizes ("Dear Maya") on the
+       reveal page. The guests table doesn't carry the token;
+       pearloom_guests does, keyed by site + lowercased email. */
+    const tokenByEmail = new Map<string, string>();
+    try {
+      const emails = guests.map((g) => String(g.email).toLowerCase());
+      const { data: passportRows } = await supabase
+        .from('pearloom_guests')
+        .select('email, guest_token')
+        .eq('site_id', siteRow.id)
+        .in('email', emails);
+      for (const row of passportRows ?? []) {
+        if (row.email && row.guest_token) tokenByEmail.set(String(row.email).toLowerCase(), String(row.guest_token));
+      }
+    } catch {
+      /* tokens are a nice-to-have — the bare reveal link still works */
+    }
     if (guests.length === 0) {
       return NextResponse.json({ sent: 0, note: 'No guests with email addresses.' });
     }
@@ -127,7 +121,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ sent: guests.length, note: 'No RESEND_API_KEY — dev mode, emails not actually sent.' });
     }
 
-    const siteUrl = buildSiteUrl(siteSlug, '', occasion);
+    /* The CTA opens the themed reveal page (/std/[siteSlug]) — the
+       envelope, seal, and card experience — not the bare site. */
+    const revealBase = `${getAppOrigin()}/std/${encodeURIComponent(siteSlug)}`;
     const message = (body.message?.trim()) || `${coupleDisplay} are getting married! Save the date${body.dateDisplay ? ` for ${body.dateDisplay}` : ''}. A formal invitation will follow.`;
 
     let sent = 0; let failed = 0;
@@ -136,13 +132,24 @@ export async function POST(req: NextRequest) {
       const batch = guests.slice(i, i + BATCH);
       await Promise.all(batch.map(async (g) => {
         try {
-          const html = buildHtml({
+          const { subject, html } = buildSaveTheDateEmail({
             coupleDisplay,
             guestName: g.name as string,
             message,
             dateDisplay: body.dateDisplay,
+            venueName: suite.venue ?? undefined,
             photoUrl: body.photoUrl,
-            ctaUrl: siteUrl,
+            ctaUrl: (() => {
+              const tok = tokenByEmail.get(String(g.email).toLowerCase());
+              return tok ? `${revealBase}?g=${encodeURIComponent(tok)}` : revealBase;
+            })(),
+            // Crest only when we genuinely have two initials (or the
+            // host set an explicit monogram) — solo events would
+            // otherwise crest with the 'B' placeholder initial.
+            monogram: (a && b) || siteRow.ai_manifest?.monogram?.initials
+              ? { initA: suite.monogram.initA, initB: suite.monogram.initB }
+              : undefined,
+            themeColors,
           });
           const res = await fetch('https://api.resend.com/emails', {
             method: 'POST',
@@ -150,7 +157,7 @@ export async function POST(req: NextRequest) {
             body: JSON.stringify({
               from: `${coupleDisplay} <invites@pearloom.com>`,
               to: [g.email],
-              subject: `Save the date — ${coupleDisplay}`,
+              subject,
               html,
             }),
           });

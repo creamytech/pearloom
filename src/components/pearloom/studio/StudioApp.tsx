@@ -33,6 +33,8 @@ import { CardFront, CardBack, CardEnvelope } from './StudioCard';
 import { StudioTopbar, DraftsRail, RemixRail } from './StudioRails';
 import { StudioSendOverlay } from './StudioSendOverlay';
 import { StudioPrintPreview } from './StudioPrintPreview';
+import { StudioProofSheet } from './StudioProofSheet';
+import type { SuiteProof } from '@/lib/suite/proofs';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { parseLocalDate } from '@/lib/date-utils';
 
@@ -118,6 +120,9 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
   // production keeps the full editor as the home base and opens
   // this overlay on demand.
   const [showPrintPair, setShowPrintPair] = useState(false);
+  // Suite Phase 3 — "Pear pressed six proofs" overlay. Opened
+  // from the left rail; fetches /api/suite/proofs on mount.
+  const [showProofSheet, setShowProofSheet] = useState(false);
   // Last AI flow error, shown as a short-lived toast at the
   // bottom of the canvas. Auto-clears after 6s — the toast itself
   // owns the timer so the catch sites stay simple.
@@ -374,6 +379,45 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
     });
   }
 
+  // ── Suite Phase 3: apply a pressed proof ────────────────────
+  // The whole sheet becomes the rail's AI drafts (same slot
+  // askPearForDraft fills — this keeps the type-change effect
+  // above from resetting the picked draft, since the picked
+  // proof id IS in content.drafts afterwards). The picked
+  // proof's copy lands in the per-type overrides — the exact
+  // path host edits + Pear rewrites already use.
+  const stylizedArtUrl =
+    (manifest as unknown as { stylizedArt?: { url?: string } }).stylizedArt?.url ?? null;
+  function applyProof(proof: SuiteProof, sheet: SuiteProof[]) {
+    const draftEntries: StudioDraft[] = sheet.map(p => ({
+      id: p.id,
+      name: p.name,
+      tone: p.note,
+      accent: p.studio.palette,
+      layout: p.studio.layout,
+      motif: p.studio.motif,
+    }));
+    const prevSlice = state.copyOverrides[state.type] ?? {};
+    setMany({
+      drafts: { ...state.drafts, [state.type]: draftEntries },
+      draft: proof.id,
+      palette: proof.studio.palette,
+      layout: proof.studio.layout,
+      motif: proof.studio.motif,
+      customMotifUrl: null,
+      copyOverrides: {
+        ...state.copyOverrides,
+        [state.type]: {
+          ...prevSlice,
+          eyebrow: proof.copy.eyebrow,
+          line2: proof.copy.dateLine,
+          cta: proof.copy.footer,
+        },
+      },
+    });
+    setShowProofSheet(false);
+  }
+
   return (
     <div className="pl-studio-root" style={{
       display: 'grid',
@@ -406,6 +450,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
         onPickDraft={pickDraft}
         onAskPearForDraft={askPearForDraft}
         onAskPearForAsset={askPearForAsset}
+        onOpenProofSheet={() => setShowProofSheet(true)}
         aiBusy={aiBusy}
         sendStats={guestStats}
       />
@@ -597,6 +642,23 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
         </div>
       )}
 
+
+      {showProofSheet && (
+        <StudioProofSheet
+          siteSlug={siteSlug}
+          type={state.type}
+          baseContent={content}
+          nameA={nameA}
+          nameB={nameB}
+          monogram={monogram}
+          photoUrl={(manifest.coverPhoto as string | undefined) ?? null}
+          stylizedArtUrl={stylizedArtUrl}
+          siteUrl={siteUrl}
+          rsvpDeadline={rsvpDeadline}
+          onApply={applyProof}
+          onClose={() => setShowProofSheet(false)}
+        />
+      )}
 
       {showPrintPair && (
         <StudioPrintPreview

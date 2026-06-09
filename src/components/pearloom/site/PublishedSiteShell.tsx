@@ -25,6 +25,8 @@ import { hydrateManifestForRedesign } from '@/components/pearloom/redesign/hydra
 import { GuestRsvpModal } from '@/components/pearloom/site/GuestRsvpModal';
 import { AnalyticsBeacon } from '@/components/analytics/AnalyticsBeacon';
 import { StickyRsvpPill } from '@/components/site/StickyRsvpPill';
+import { StoreFonts } from '@/lib/theme-store/fonts';
+import { getTheme } from '@/components/pearloom/site/themes';
 
 interface Props {
   manifest: StoryManifest;
@@ -90,8 +92,20 @@ export function PublishedSiteShell(props: Props) {
   const rsvpPreset = ((hydrated as unknown as { rsvpConfig?: { preset?: string } }).rsvpConfig?.preset) ?? undefined;
   const rsvpLabel = rsvpPreset === 'memorial' ? 'Reply' : 'RSVP';
 
+  /* The pill + modal mount as SIBLINGS of ThemedSite's root, so the
+     --t-* vars never reach them via inheritance. Resolve the same
+     theme bag the canvas paints with (hydrated themeId + Theme-Store
+     pack vars) and hand the pill concrete values. */
+  const looseTheme = hydrated as unknown as { themeId?: string; themeVars?: Record<string, string> };
+  const themeBag = { ...getTheme(looseTheme.themeId).vars, ...(looseTheme.themeVars ?? {}) };
+  const pillAccent = themeBag['--t-rsvp'] ?? themeBag['--t-accent'];
+  const pillAccentInk = themeBag['--t-rsvp-ink'] ?? themeBag['--t-paper'];
+
   return (
     <ErrorBoundary fallback={<GuestCrashFallback />}>
+      {/* Pack typography — without this, store-pack display faces
+          (Cormorant, Playfair, Bodoni, …) fall back to Georgia. */}
+      <StoreFonts />
       <ThemedSite
         manifest={hydrated}
         names={props.names}
@@ -104,7 +118,7 @@ export function PublishedSiteShell(props: Props) {
           don't lose RSVP backend / sticky CTA / engagement
           analytics. GuestRsvpModal listens for the 'pl-open-rsvp'
           window event ThemedSite dispatches from its RSVP CTA. */}
-      <StickyRsvpPill rsvpLabel={rsvpLabel} />
+      <StickyRsvpPill rsvpLabel={rsvpLabel} accent={pillAccent} accentInk={pillAccentInk} />
       <AnalyticsBeacon siteId={props.siteSlug} />
       <GuestRsvpModal siteSlug={props.siteSlug} manifest={hydrated} />
     </ErrorBoundary>

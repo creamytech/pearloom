@@ -16,6 +16,7 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { useIsEditMode } from './EditorCanvasContext';
 import { HOVER_TOOLBAR_TONES, rewriteSubject, toneSpec } from '@/lib/rewrite-tones';
+import { PearThinking } from '../../pear-thinking';
 
 export interface HoverToolbarAction {
   id: string;
@@ -208,7 +209,20 @@ export function HoverToolbar({ value, onResult, actions, children, context }: Ho
                 (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
               }}
             >
-              {a.icon}
+              {busy ? (
+                /* Shared busy indicator — same breathing dots as
+                   every other Pear surface (pear-thinking.tsx). */
+                <PearThinking
+                  active
+                  size="sm"
+                  hideAvatar
+                  hideLabel
+                  color="currentColor"
+                  style={{ padding: 0 }}
+                />
+              ) : (
+                a.icon
+              )}
               {busy ? `${a.label}…` : a.label}
             </button>
           );

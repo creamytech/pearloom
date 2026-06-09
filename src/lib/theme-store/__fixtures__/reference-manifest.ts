@@ -2,7 +2,7 @@
 // Reference manifest for Theme-Store visual regression.
 //
 // Frozen content scaffold used by both the dev visual-test route
-// (src/app/_test/theme-pack/[id]/page.tsx) AND any unit test
+// (src/app/dev/theme-pack/[id]/page.tsx) AND any unit test
 // that wants to stamp a pack onto a "realistic" manifest. The
 // shape mirrors the rich seed mounted at /dev/site, but every
 // pack-coloured axis (theme.colors, themeId, kitId, motif,

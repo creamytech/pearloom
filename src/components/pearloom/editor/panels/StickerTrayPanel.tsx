@@ -15,6 +15,7 @@ import { useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Field, PanelSection, TextInput } from '../atoms';
 import { PearThinking } from '../../pear-thinking';
+import { pearErrorMessage } from '../../redesign/PearAssist';
 
 export function StickerTrayPanel({
   manifest,
@@ -78,7 +79,8 @@ export function StickerTrayPanel({
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error((body as { error?: string }).error ?? String(res.status));
+        console.error('[stickers] generate failed:', res.status);
+        throw new Error((body as { error?: string }).error ?? 'Pear couldn’t draw that one — try again?');
       }
       const data = (await res.json()) as { url?: string };
       if (!data.url) throw new Error('No sticker URL returned');
@@ -100,7 +102,8 @@ export function StickerTrayPanel({
       setHint('');
       setStatus('idle');
     } catch (error) {
-      setErr(error instanceof Error ? error.message : 'Sticker failed');
+      console.error('[stickers] generate error:', error);
+      setErr(pearErrorMessage(error, 'Pear couldn’t draw that one — try again?'));
       setStatus('error');
     }
   }

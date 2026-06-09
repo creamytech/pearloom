@@ -5,7 +5,7 @@
 // and lift on hover. Matches design bundle's templates.jsx.
 
 import { type ReactNode } from 'react';
-import { Pear, Pearl, Pill, PLButton, Leaf, PD, DISPLAY_STYLE, MONO_STYLE } from './DesignAtoms';
+import { Pear, Pearl, Pill, PLButton, Leaf, PD, DISPLAY_STYLE, MONO_STYLE, pdInkMix, pdShadowMix } from './DesignAtoms';
 
 interface Occasion {
   title: string;
@@ -217,8 +217,8 @@ export function DesignOccasions({ onGetStarted }: DesignOccasionsProps) {
       style={{
         padding: 'clamp(48px, 10vw, 120px) clamp(20px, 5vw, 24px)',
         background: PD.paper3,
-        borderTop: '1px solid rgba(31,36,24,0.1)',
-        borderBottom: '1px solid rgba(31,36,24,0.1)',
+        borderTop: `1px solid ${pdInkMix(10)}`,
+        borderBottom: `1px solid ${pdInkMix(10)}`,
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -240,6 +240,7 @@ export function DesignOccasions({ onGetStarted }: DesignOccasionsProps) {
               <Leaf size={11} color={PD.olive} /> TWENTY-EIGHT OCCASIONS
             </Pill>
             <h2
+              className="pl-letterpress"
               style={{
                 ...DISPLAY_STYLE,
                 fontSize: 'clamp(40px, 5.5vw, 76px)',
@@ -292,7 +293,9 @@ export function DesignOccasions({ onGetStarted }: DesignOccasionsProps) {
           ))}
         </div>
 
-        <div style={{ marginTop: 48, textAlign: 'center' }}>
+        {/* Generous top padding so the CTA never sits tucked under the
+            sticky nav pill at natural scroll stops. */}
+        <div style={{ marginTop: 48, paddingTop: 48, textAlign: 'center' }}>
           <div style={{ ...MONO_STYLE, fontSize: 11, opacity: 0.6, marginBottom: 16 }}>
             — AND SIXTEEN MORE, QUIETLY WAITING —
           </div>
@@ -313,6 +316,12 @@ export function DesignOccasions({ onGetStarted }: DesignOccasionsProps) {
             grid-template-columns: repeat(2, 1fr) !important;
           }
         }
+        @media (prefers-reduced-motion: reduce) {
+          :global(.pd-anim),
+          :global(.pd-anim *) {
+            animation: none !important;
+          }
+        }
       `}</style>
     </section>
   );
@@ -324,13 +333,13 @@ function OccasionCard({ o, rotate }: { o: Occasion; rotate: number }) {
       style={{
         background: o.bg,
         color: o.fg,
-        border: '1px solid rgba(31,36,24,0.15)',
+        border: `1px solid ${pdInkMix(15)}`,
         borderRadius: 28,
         padding: 22,
         aspectRatio: '0.82',
         transform: `rotate(${rotate}deg)`,
         transition: 'transform var(--pl-dur-base) var(--pl-ease-out), box-shadow var(--pl-dur-base) var(--pl-ease-out)',
-        boxShadow: '0 1px 3px rgba(31,36,24,0.06)',
+        boxShadow: `0 1px 3px ${pdShadowMix(6)}`,
         position: 'relative',
         overflow: 'hidden',
         cursor: 'pointer',
@@ -340,11 +349,11 @@ function OccasionCard({ o, rotate }: { o: Occasion; rotate: number }) {
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'rotate(0deg) translateY(-6px)';
-        e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(31,36,24,0.25)';
+        e.currentTarget.style.boxShadow = `0 18px 40px -16px ${pdShadowMix(25)}`;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = `rotate(${rotate}deg)`;
-        e.currentTarget.style.boxShadow = '0 1px 3px rgba(31,36,24,0.06)';
+        e.currentTarget.style.boxShadow = `0 1px 3px ${pdShadowMix(6)}`;
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>

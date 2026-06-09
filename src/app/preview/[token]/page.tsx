@@ -14,6 +14,7 @@ import { RegistryShowcase } from '@/components/registry-showcase';
 import { FaqSection } from '@/components/faq-section';
 import { TravelSection } from '@/components/travel-section';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
+import { isSoloOccasion } from '@/lib/event-os/solo-occasions';
 import { WaveDivider } from '@/components/vibe/WaveDivider';
 import type { FaqItem } from '@/types';
 import { parseLocalDate } from '@/lib/date-utils';
@@ -319,12 +320,14 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
 
   const coverPhoto = manifest.chapters?.[0]?.images?.[0]?.url || 'https://images.unsplash.com/photo-1519741497674-611481863552';
   const occasion = manifest.occasion || 'wedding';
-  const SOLO_OCCASIONS = new Set(['birthday', 'story']);
+  // Canonical solo registry + 'story' (a coupleId like 'maya-story'
+  // carries the occasion keyword, not a second person).
+  const soloHere = (occ: string) => isSoloOccasion(occ) || occ === 'story';
   const idParts = (manifest.coupleId || '').split('-');
   const safeNames: [string, string] = [
     idParts[0] || 'Together',
     // For single-person occasions, second "name" is the occasion keyword — suppress it
-    SOLO_OCCASIONS.has(occasion) || SOLO_OCCASIONS.has(idParts[1] || '') ? '' : (idParts[1] || 'Forever'),
+    soloHere(occasion) || soloHere(idParts[1] || '') ? '' : (idParts[1] || 'Forever'),
   ];
 
   const sitePages = [

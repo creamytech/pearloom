@@ -24,10 +24,76 @@ const SECTIONS: SectionDef[] = [
   { id: 'schedule', label: 'Schedule',  icon: 'calendar',   desc: 'Day-of timeline' },
   { id: 'travel',   label: 'Travel',    icon: 'map',        desc: 'Hotels, transit, tips' },
   { id: 'registry', label: 'Registry',  icon: 'gift',       desc: 'Linked stores' },
-  { id: 'gallery',  label: 'Gallery',   icon: 'image',      desc: '38 photos' },
-  { id: 'rsvp',     label: 'RSVP',      icon: 'mail',       required: true, desc: '47 yes · 63 pending' },
-  { id: 'faq',      label: 'FAQ',       icon: 'sparkles',   desc: '6 questions answered' },
+  { id: 'gallery',  label: 'Gallery',   icon: 'image',      desc: 'Your photo wall' },
+  { id: 'rsvp',     label: 'RSVP',      icon: 'mail',       required: true, desc: 'Reply form + deadline' },
+  { id: 'faq',      label: 'FAQ',       icon: 'sparkles',   desc: 'Guest questions' },
 ];
+
+/* ─── Live row signals ─────────────────────────────────────────
+   Derives each section row's one-line desc from the manifest so
+   the rail reflects the host's real content instead of mock copy.
+   Returns null when nothing meaningful is derivable — caller
+   falls back to the static SECTIONS desc.
+
+   Manifest paths mirror what each section panel reads:
+     gallery  → manifest.galleryImages[]      (GalleryPanel)
+     faq      → manifest.faqs[].answer        (FaqPanel)
+     schedule → manifest.events[]             (SchedulePanel)
+     story    → manifest.chapters[]           (StoryPanel)
+     rsvp     → manifest.rsvpDeadline         (RsvpPanel "Reply by")
+     hero     → manifest.coverPhoto           (HeroPanel) */
+function liveDesc(sectionId: string, manifest: StoryManifest): string | null {
+  const loose = manifest as unknown as { galleryImages?: string[]; rsvpDeadline?: string };
+  switch (sectionId) {
+    case 'gallery': {
+      const n = (loose.galleryImages ?? []).filter(Boolean).length;
+      return n > 0 ? `${n} photo${n === 1 ? '' : 's'}` : 'No photos yet';
+    }
+    case 'faq': {
+      const faqs = manifest.faqs ?? [];
+      if (faqs.length === 0) return null;
+      const answered = faqs.filter((f) => (f.answer ?? '').trim().length > 0).length;
+      const open = faqs.length - answered;
+      return open > 0 ? `${answered} answered · ${open} open` : `${answered} answered`;
+    }
+    case 'schedule': {
+      const events = manifest.events ?? [];
+      if (events.length === 0) return null;
+      return `${events.length} moment${events.length === 1 ? '' : 's'}`;
+    }
+    case 'story': {
+      const chapters = Array.isArray(manifest.chapters) ? manifest.chapters : [];
+      if (chapters.length === 0) return null;
+      return `${chapters.length} chapter${chapters.length === 1 ? '' : 's'}`;
+    }
+    case 'rsvp': {
+      const replyBy = loose.rsvpDeadline?.trim();
+      return replyBy ? `Closes ${replyBy}` : null;
+    }
+    default:
+      return null;
+  }
+}
+
+/* Sections that are effectively empty get a quiet peach dot next
+   to the label — a nudge, not an alarm. Same paths as liveDesc. */
+function needsAttention(sectionId: string, manifest: StoryManifest): boolean {
+  const loose = manifest as unknown as { galleryImages?: string[] };
+  switch (sectionId) {
+    case 'gallery':
+      return (loose.galleryImages ?? []).filter(Boolean).length === 0;
+    case 'faq': {
+      const faqs = manifest.faqs ?? [];
+      return faqs.filter((f) => (f.answer ?? '').trim().length > 0).length === 0;
+    }
+    case 'schedule':
+      return (manifest.events ?? []).length === 0;
+    case 'hero':
+      return !(manifest.coverPhoto ?? '').trim();
+    default:
+      return false;
+  }
+}
 
 /* Optional sections — not in the default site, added via the
    Add section button. Each is occasion-gated by
@@ -49,6 +115,7 @@ const TOOLS: SectionDef[] = [
   { id: 'savetheDate', label: 'Save the date',    icon: 'calendar',   desc: 'Pre-invite teaser' },
   { id: 'share',       label: 'Share',            icon: 'link',       desc: 'Link, QR, preview' },
   { id: 'dayof',       label: 'Day-of',           icon: 'sparkles',   desc: 'Live broadcasts' },
+  { id: 'toasts',      label: 'Toasts & speeches', icon: 'mic',       desc: 'Drafted with Pear' },
   { id: 'memorial',    label: 'Memorial',         icon: 'heart-icon', desc: 'Obituary + program' },
   { id: 'bachelor',    label: 'Weekend planner',  icon: 'sparkles',   desc: 'Costs + polls + rooms' },
 ];
@@ -393,7 +460,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                 opacity: isDragging ? 0.32 : 1,
                 transform: isDragging ? 'scale(0.98)' : 'scale(1)',
                 transformOrigin: 'left center',
-                transition: 'background 100ms, opacity 140ms, transform 140ms',
+                transition: 'background var(--pl-dur-instant), opacity var(--pl-dur-quick), transform var(--pl-dur-quick)',
                 userSelect: 'none',
               }}
             >
@@ -402,7 +469,25 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
               </span>
               <Icon name={s.icon} size={13} color={on ? 'var(--cream)' : 'var(--ink-soft)'} />
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 600 }}>{s.label}</div>
+                <div style={{ fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {s.label}
+                  {/* Quiet attention dot — this section is effectively
+                      empty. Peach, 5px, no alarm. */}
+                  {needsAttention(s.id, manifest) && (
+                    <span
+                      title="Nothing here yet"
+                      aria-label="Nothing here yet"
+                      style={{
+                        width: 5,
+                        height: 5,
+                        borderRadius: '50%',
+                        background: 'var(--peach-ink, #C6703D)',
+                        display: 'inline-block',
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
+                </div>
                 <div
                   style={{
                     fontSize: 10.5,
@@ -413,7 +498,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                     textOverflow: 'ellipsis',
                   }}
                 >
-                  {s.desc}
+                  {liveDesc(s.id, manifest) ?? s.desc}
                 </div>
               </div>
               {s.required && (

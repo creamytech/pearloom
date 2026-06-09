@@ -23,6 +23,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getStripe } from '@/lib/stripe/client';
 import { addEntitlement } from '@/lib/theme-store/entitlements';
 import { getPackById } from '@/lib/theme-store/packs';
+import { fulfillPrintIntent, type PrintOrderIntent } from '@/lib/print-engine/fulfill';
 
 export const dynamic = 'force-dynamic';
 // Stripe needs the raw body for signature verification.
@@ -75,6 +76,10 @@ export async function POST(request: NextRequest) {
         await handleCheckoutCompleted(supabase, event.data.object as Stripe.Checkout.Session);
         break;
       }
+      case 'checkout.session.expired': {
+        await handleCheckoutExpired(supabase, event.data.object as Stripe.Checkout.Session);
+        break;
+      }
       case 'charge.refunded': {
         await handleChargeRefunded(supabase, event.data.object as Stripe.Charge);
         break;
@@ -109,6 +114,15 @@ async function handleCheckoutCompleted(supabase: Sb, session: Stripe.Checkout.Se
   const meta = session.metadata || {};
   const siteId = meta.siteId;
   const paymentType = meta.paymentType;
+
+  // Pearloom Print orders — payment-gated Lob fulfillment. Keyed
+  // by the intent row created in /api/print/checkout. Dispatch
+  // BEFORE the siteId guard like theme packs (user-keyed, not a
+  // site-scoped gift).
+  if (meta.printIntentId) {
+    await handlePrintOrderPaid(supabase, session);
+    return;
+  }
 
   // Theme-Store pack purchases live outside the site-scoped payments
   // table (they're user-keyed entitlements, not site-keyed gifts).
@@ -386,5 +400,90 @@ async function handleThemePackPurchase(session: Stripe.Checkout.Session) {
     // index and be skipped).
     const perPackSessionKey = packIds.length === 1 ? session.id : `${session.id}:${packId}`;
     await addEntitlement(userEmail, packId, perPackSessionKey, perPackAmount);
+  }
+}
+
+// ── Pearloom Print orders ─────────────────────────────────────
+//
+// Payment is settled → mark the intent 'paid' and run Lob
+// fulfillment. Idempotency is a conditional status transition:
+// only the delivery that flips awaiting_payment → paid fulfills;
+// retries and concurrent deliveries see status !== 'awaiting_payment'
+// (or an empty conditional update) and no-op with a 200, so cards
+// are never mailed twice.
+//
+// Fulfillment failures do NOT throw — payment state is already
+// recorded, and a Stripe retry could not re-fulfill (the intent is
+// no longer awaiting_payment). The intent goes 'failed' with
+// detail instead, surfaced via [print] logs + the dashboard.
+
+async function handlePrintOrderPaid(supabase: Sb, session: Stripe.Checkout.Session) {
+  const intentId = session.metadata?.printIntentId;
+  if (!intentId) return;
+
+  const { data: intent, error: loadErr } = await supabase
+    .from('print_order_intents')
+    .select('*')
+    .eq('id', intentId)
+    .maybeSingle();
+  if (loadErr) {
+    console.error('[print] webhook intent load failed:', loadErr.message);
+    throw loadErr; // 500 → Stripe retries
+  }
+  if (!intent) {
+    console.warn('[print] webhook: intent not found for session', session.id, intentId);
+    return;
+  }
+  if (intent.status === 'paid' || intent.status === 'fulfilled') {
+    // Retry after a successful (or in-flight) delivery — no-op.
+    return;
+  }
+  if (intent.status !== 'awaiting_payment') {
+    console.warn(`[print] webhook: intent ${intentId} in unexpected status '${intent.status}' — skipping`);
+    return;
+  }
+
+  // Conditional transition: exactly one delivery wins the claim.
+  const { data: claimed, error: claimErr } = await supabase
+    .from('print_order_intents')
+    .update({ status: 'paid' })
+    .eq('id', intentId)
+    .eq('status', 'awaiting_payment')
+    .select('id');
+  if (claimErr) {
+    console.error('[print] webhook: could not mark intent paid:', claimErr.message);
+    throw claimErr; // 500 → Stripe retries
+  }
+  if (!claimed || claimed.length === 0) {
+    // A concurrent delivery raced us past the pre-check — benign.
+    return;
+  }
+
+  console.log(`[print] intent ${intentId} paid via session ${session.id} — fulfilling`);
+  try {
+    await fulfillPrintIntent({ ...(intent as PrintOrderIntent), status: 'paid' });
+  } catch (err) {
+    console.error(`[print] fulfillment crashed for intent ${intentId}:`, err);
+    await supabase
+      .from('print_order_intents')
+      .update({
+        status: 'failed',
+        status_detail: err instanceof Error ? err.message : 'Fulfillment crashed.',
+      })
+      .eq('id', intentId);
+    // Deliberately no throw — see header comment.
+  }
+}
+
+async function handleCheckoutExpired(supabase: Sb, session: Stripe.Checkout.Session) {
+  const intentId = session.metadata?.printIntentId;
+  if (!intentId) return;
+  const { error } = await supabase
+    .from('print_order_intents')
+    .update({ status: 'expired', status_detail: 'Checkout session expired without payment.' })
+    .eq('id', intentId)
+    .eq('status', 'awaiting_payment');
+  if (error) {
+    console.error('[print] could not expire intent', intentId, error.message);
   }
 }

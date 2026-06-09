@@ -731,6 +731,13 @@ export interface StoryManifest {
    *              dotted-rule divider with circular postmark pin
    *    deco    — gold triple-inset frames; three rotated gold
    *              diamonds at the divider center; uppercase chip
+   *
+   *  Two house kits added 2026-06-09:
+   *    gallery — museum placard: square corners, ink frame on a
+   *              wide mat (double inset hairline); times as tiny
+   *              "exhibit numbers" with a short gold underline
+   *    menu    — tasting-menu card: top + bottom gold rules only,
+   *              dotted-leader uppercase times
    */
   kitId?:
     | 'classic'
@@ -741,7 +748,9 @@ export interface StoryManifest {
     | 'minimal'
     | 'arch'
     | 'stamp'
-    | 'deco';
+    | 'deco'
+    | 'gallery'
+    | 'menu';
   /** Toggles for the public RSVP form. Both default ON if absent
    *  (legacy behaviour). plusOnes hides the "+1?" field on the
    *  passport invite link; songRequests hides the SongCard on

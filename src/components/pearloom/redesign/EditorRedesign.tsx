@@ -22,7 +22,7 @@
    on the visual shell.
 */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { ThemedSiteRenderer } from '../site/ThemedSiteRenderer';
@@ -35,6 +35,7 @@ import { EditorTopbar } from './EditorTopbar';
 import { FullSite } from './FullSite';
 import { ThemedSite } from './ThemedSite';
 import { EditorDrawers } from './EditorDrawers';
+import { FirstPressing, shouldPlayFirstPressing } from './FirstPressing';
 import './animations.css';
 
 interface Props {
@@ -54,6 +55,7 @@ export type SectionId =
      mount through the same PropertyRail dispatch so the editor's
      state machine stays simple. */
   | 'guests' | 'savetheDate' | 'share' | 'dayof' | 'memorial' | 'bachelor'
+  | 'toasts'
   | null;
 
 /* Occasion → which optional canvas sections fit. Countdown reads
@@ -79,6 +81,8 @@ export function isToolPanelApplicable(panel: Exclude<SectionId, null>, occasion?
         || occasion === 'sip-and-see';
   }
   if (panel === 'savetheDate') return occasion !== 'memorial' && occasion !== 'funeral';
+  /* Toasts & speeches apply everywhere — weddings get toasts and
+     vows, memorials get eulogies, retirements get tributes. */
   return true;
 }
 
@@ -93,6 +97,14 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
   const [hover, setHover] = useState<SectionId>(null);
   const [pearOpen, setPearOpen] = useState(false);
   const [pearPrefill, setPearPrefill] = useState<string>('');
+  /* The First Pressing — the once-per-generation reveal. Armed by
+     the wizard via sessionStorage; consumed before first paint so
+     a freshly-woven site opens behind the curtain, not in front
+     of it. useLayoutEffect (not state init) keeps SSR happy. */
+  const [pressing, setPressing] = useState(false);
+  useLayoutEffect(() => {
+    if (shouldPlayFirstPressing(siteSlug)) setPressing(true);
+  }, [siteSlug]);
 
   /* FloatingPearBubble + DesignAdvisor entry points fire window
      events; the shell mounts one listener that owns the state. */
@@ -155,7 +167,9 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
         background: 'var(--cream)',
         fontFamily: 'var(--font-ui)',
         color: 'var(--ink)',
-        transition: 'grid-template-columns 360ms cubic-bezier(0.16,1,0.3,1)',
+        /* 360ms is a coordinated pair with the device-frame width
+           transition below — keep the literal duration, tokenize the curve. */
+        transition: 'grid-template-columns 360ms var(--pl-ease-emphasis)',
       }}
     >
       <EditorTopbar
@@ -234,6 +248,14 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
         onChange={bridge.setManifest}
         siteSlug={siteSlug}
       />
+
+      {pressing && (
+        <FirstPressing
+          manifest={bridge.manifest}
+          names={bridge.names}
+          onDone={() => setPressing(false)}
+        />
+      )}
     </div>
   );
 }
@@ -244,7 +266,7 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
 
 function EditorCanvas({
   active, setActive, hover, setHover,
-  mode, manifest, names, siteSlug, onEditField, onEditNames, pearOpen: _pearOpen,
+  mode, manifest, names, siteSlug, onEditField, onEditNames, pearOpen,
   usePrototypeCanvas = false,
 }: {
   active: SectionId;
@@ -263,7 +285,6 @@ function EditorCanvas({
    *  full ThemedSiteRenderer. Preview pill flips to ThemedSiteRenderer. */
   usePrototypeCanvas?: boolean;
 }) {
-  void _pearOpen;
   const isMobile = mode === 'mobile';
   const isPreview = mode === 'preview';
   /* In the handoff, the canvas content is IDENTICAL between Edit and
@@ -328,7 +349,8 @@ function EditorCanvas({
           overflow: 'hidden',
           position: 'relative',
           zIndex: 1,
-          transition: 'width 360ms cubic-bezier(0.16, 1, 0.3, 1)',
+          /* 360ms pairs with the shell grid-template-columns transition. */
+          transition: 'width 360ms var(--pl-ease-emphasis)',
           containerType: 'inline-size',
           containerName: 'pl-site',
           /* CRITICAL: flexShrink: 0 stops the canvas flex-column from
@@ -380,7 +402,10 @@ function EditorCanvas({
         )}
       </div>
 
-      {!isPreview && (
+      {/* One Pear at a time — when the advisor column is open it
+          owns the conversation; the bubble would be a second,
+          competing Pear (audit 2026-06-09). */}
+      {!isPreview && !pearOpen && (
         <FloatingPearBubble
           active={active}
           manifest={manifest}

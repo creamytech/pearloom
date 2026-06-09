@@ -69,12 +69,19 @@ export async function POST(req: NextRequest) {
        calls share the same retry + caching behaviour. The raw
        fetch this replaced bypassed model-id central management
        — when client.ts bumps Haiku, this endpoint stays in sync. */
-    const { generate, textFrom, CLAUDE_HAIKU } = await import('@/lib/claude/client');
+    const { generate, textFrom, cached, CLAUDE_HAIKU } = await import('@/lib/claude/client');
     void CLAUDE_HAIKU; // model id is read via tier alias below
     const msg = await generate({
       tier: 'haiku',
-      system:
-        'You rewrite event-website microcopy with warmth and editorial precision. Preserve the original meaning. Keep length within ±20%. Do not add quote marks, headers, or explanation — return ONLY the rewritten text.',
+      /* Static system prompt → wrapped in cached() so every
+         inline-rewrite call shares one prompt-cache entry (same
+         pattern as /api/pear-chat). The per-request selection stays
+         in the user message after the breakpoint. */
+      system: [
+        cached(
+          'You rewrite event-website microcopy with warmth and editorial precision. Preserve the original meaning. Keep length within ±20%. Do not add quote marks, headers, or explanation — return ONLY the rewritten text.'
+        ),
+      ],
       messages: [
         {
           role: 'user',

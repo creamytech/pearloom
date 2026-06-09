@@ -21,6 +21,7 @@ import type {
   ToolUseBlock,
   ContentBlock,
 } from '@anthropic-ai/sdk/resources/messages';
+import { recordAiUsage } from '@/lib/ai-usage';
 
 // ── Model IDs ────────────────────────────────────────────────────
 // Keep these centralized so we can bump versions in one place.
@@ -51,6 +52,78 @@ export const MODEL_BY_TIER: Record<ClaudeTier, string> = {
   haiku: CLAUDE_HAIKU,
 };
 
+// ── Usage accounting (src/lib/ai-usage.ts) ──────────────────────
+// Instrumented at the lowest shared point: the singleton returned
+// by getAnthropicClient(). Every Claude call in the repo — the
+// generate()/generateJson()/runAgent() helpers AND the raw
+// `client.messages.stream(...)` consumers (structured.streamText,
+// /api/pear-chat's streamFromAnthropic) — flows through this one
+// instance, so wrapping `messages.create` + `messages.stream` here
+// gives full coverage without changing any call-site signature.
+// Anthropic responses carry `usage` (input_tokens, output_tokens,
+// cache_creation_input_tokens, cache_read_input_tokens).
+
+function recordClaudeMessage(requestModel: string, startedMs: number, msg: Message): void {
+  try {
+    const u = msg.usage;
+    recordAiUsage({
+      provider: 'claude',
+      model: msg.model ?? requestModel,
+      inputTokens: u?.input_tokens ?? 0,
+      outputTokens: u?.output_tokens ?? 0,
+      cacheReadTokens: u?.cache_read_input_tokens ?? 0,
+      cacheWriteTokens: u?.cache_creation_input_tokens ?? 0,
+      ms: Date.now() - startedMs,
+    });
+  } catch {
+    // accounting must never break a model call
+  }
+}
+
+function instrumentAnthropic(client: Anthropic): Anthropic {
+  const messages = client.messages;
+
+  // Non-streaming (and any raw create) path. The overloaded
+  // signature forces a cast; behaviour is pass-through — we only
+  // subscribe to the resolved Message to read `usage`.
+  const origCreate = messages.create.bind(messages) as (
+    body: unknown,
+    options?: unknown
+  ) => Promise<unknown>;
+  messages.create = ((body: unknown, options?: unknown) => {
+    const started = Date.now();
+    const result = origCreate(body, options);
+    const b = body as { stream?: boolean; model?: string };
+    if (!b?.stream) {
+      void (result as Promise<Message>)
+        .then((msg) => recordClaudeMessage(String(b?.model ?? ''), started, msg))
+        .catch(() => {});
+    }
+    return result;
+  }) as typeof messages.create;
+
+  // Streaming path. MessageStream accumulates the final Message
+  // internally regardless of how the caller consumes events, so a
+  // passive finalMessage() subscription records usage without
+  // interfering with the caller's iteration.
+  const origStream = messages.stream.bind(messages) as (
+    body: unknown,
+    options?: unknown
+  ) => ReturnType<typeof messages.stream>;
+  messages.stream = ((body: unknown, options?: unknown) => {
+    const started = Date.now();
+    const stream = origStream(body, options);
+    const b = body as { model?: string };
+    void stream
+      .finalMessage()
+      .then((msg: Message) => recordClaudeMessage(String(b?.model ?? ''), started, msg))
+      .catch(() => {});
+    return stream;
+  }) as typeof messages.stream;
+
+  return client;
+}
+
 // ── Singleton client ─────────────────────────────────────────────
 
 let _client: Anthropic | null = null;
@@ -63,7 +136,7 @@ export function getAnthropicClient(): Anthropic {
       'ANTHROPIC_API_KEY not configured. Set it in .env.local to enable Claude features.'
     );
   }
-  _client = new Anthropic({ apiKey, maxRetries: 2 });
+  _client = instrumentAnthropic(new Anthropic({ apiKey, maxRetries: 2 }));
   return _client;
 }
 

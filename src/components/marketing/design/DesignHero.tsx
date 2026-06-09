@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from 'react';
 import { Bloom, Sparkle, Swirl } from '@/components/brand/groove';
-import { HeroPear, Leaf, Pear, Pearl, Pill, PLButton, PD, DISPLAY_STYLE, Squiggle } from './DesignAtoms';
+import { HeroPear, Leaf, Pear, Pearl, Pill, PLButton, PD, DISPLAY_STYLE, Squiggle, pdInkMix, pdShadowMix } from './DesignAtoms';
 
 type Occasion = 'wedding' | 'milestone' | 'memorial';
 
@@ -81,6 +81,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
     <section style={{ position: 'relative', padding: '56px 24px 160px', overflow: 'hidden' }}>
       {/* Floating curvy background blobs */}
       <div
+        className="pd-anim"
         style={{
           position: 'absolute',
           top: -80,
@@ -89,12 +90,13 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
           height: 420,
           background: PD.pearSkin,
           borderRadius: '62% 38% 54% 46% / 49% 58% 42% 51%',
-          opacity: 0.55,
+          opacity: 'calc(0.55 * var(--pd-wash-fade, 1))',
           filter: 'blur(22px)',
           animation: 'pl-blob-morph 14s ease-in-out infinite',
         }}
       />
       <div
+        className="pd-anim"
         style={{
           position: 'absolute',
           top: 340,
@@ -103,12 +105,13 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
           height: 340,
           background: PD.butter,
           borderRadius: '55% 45% 38% 62% / 38% 52% 48% 62%',
-          opacity: 0.45,
+          opacity: 'calc(0.45 * var(--pd-wash-fade, 1))',
           filter: 'blur(18px)',
           animation: 'pl-blob-morph 14s ease-in-out infinite -5s',
         }}
       />
       <div
+        className="pd-anim"
         style={{
           position: 'absolute',
           bottom: 40,
@@ -117,7 +120,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
           height: 220,
           background: PD.rose,
           borderRadius: '70% 30% 58% 42% / 44% 62% 38% 56%',
-          opacity: 0.35,
+          opacity: 'calc(0.35 * var(--pd-wash-fade, 1))',
           filter: 'blur(16px)',
           animation: 'pl-blob-morph 14s ease-in-out infinite -9s',
         }}
@@ -125,12 +128,13 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
 
       {/* Groovy swirl, bloom, sparkles */}
       <div
+        className="pd-anim"
         style={{ position: 'absolute', top: 80, right: '48%', opacity: 0.28, animation: 'pl-spin-slow 80s linear infinite' }}
         aria-hidden
       >
         <Swirl size={140} color={PD.olive} strokeWidth={1.6} />
       </div>
-      <div style={{ position: 'absolute', bottom: 120, right: 40, opacity: 0.45 }} aria-hidden>
+      <div className="pd-anim" style={{ position: 'absolute', bottom: 120, right: 40, opacity: 0.45 }} aria-hidden>
         <Bloom size={110} color={PD.pear} centerColor={PD.olive} speed={4} />
       </div>
       <div style={{ position: 'absolute', top: 180, left: 40 }} aria-hidden>
@@ -222,7 +226,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
               background: PD.paper3,
               borderRadius: 999,
               marginBottom: 28,
-              border: '1px solid rgba(31,36,24,0.1)',
+              border: `1px solid ${pdInkMix(10)}`,
             }}
           >
             <Pearl size={9} />
@@ -254,7 +258,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
           </div>
 
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 44 }}>
-            <PLButton variant="ink" size="lg" onClick={onGetStarted}>
+            <PLButton variant="pearl" size="lg" onClick={onGetStarted}>
               Start your loom <Pearl size={9} />
             </PLButton>
             <PLButton variant="ghost" size="lg">
@@ -283,14 +287,14 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
               gap: 32,
               alignItems: 'center',
               paddingTop: 26,
-              borderTop: '1px solid rgba(31,36,24,0.12)',
+              borderTop: `1px solid ${pdInkMix(12)}`,
               flexWrap: 'wrap',
             }}
           >
             {([
               { n: '42,000', l: 'days, already threaded', c: PD.olive },
               { n: '28', l: 'occasions, one voice each', c: PD.gold },
-              { n: '8 min', l: 'from hello to published', c: PD.terra },
+              { n: '8 min', l: 'from hello to published', c: PD.olive },
             ] as const).map((s, i) => (
               <div key={s.l} style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
                 <div>
@@ -318,7 +322,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
                     {s.l}
                   </div>
                 </div>
-                {i < 2 && <div style={{ width: 1, height: 36, background: 'rgba(31,36,24,0.12)' }} />}
+                {i < 2 && <div style={{ width: 1, height: 36, background: pdInkMix(12) }} />}
               </div>
             ))}
           </div>
@@ -327,6 +331,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
         {/* ── Right column — animated preview ─────────────── */}
         <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <div
+            className="pd-anim"
             style={{
               position: 'absolute',
               top: -40,
@@ -339,6 +344,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
             <HeroPear size={200} />
           </div>
           <div
+            className="pd-anim"
             style={{
               position: 'absolute',
               bottom: -30,
@@ -350,6 +356,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
             <Leaf size={64} color={PD.olive} rotate={35} />
           </div>
           <div
+            className="pd-anim"
             style={{
               position: 'absolute',
               top: 60,
@@ -369,10 +376,10 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
                 background: PD.paperCard,
                 color: PD.ink,
                 borderRadius: 24,
-                border: '1px solid rgba(31,36,24,0.12)',
+                border: `1px solid ${pdInkMix(12)}`,
                 overflow: 'hidden',
                 position: 'relative',
-                boxShadow: '0 30px 70px -20px rgba(31,36,24,0.35)',
+                boxShadow: `0 30px 70px -20px ${pdShadowMix(35)}`,
               }}
             >
               <div
@@ -381,7 +388,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
                   alignItems: 'center',
                   gap: 8,
                   padding: '10px 14px',
-                  borderBottom: '1px solid #E5DAB9',
+                  borderBottom: `1px solid ${PD.line}`,
                   background: PD.paper3,
                 }}
               >
@@ -457,7 +464,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
               </div>
 
               {/* Inline timeline strip */}
-              <div style={{ padding: '18px 32px 24px', background: PD.paperDeep, borderTop: '1px solid #E5DAB9' }}>
+              <div style={{ padding: '18px 32px 24px', background: PD.paperDeep, borderTop: `1px solid ${PD.line}` }}>
                 <div
                   style={{
                     fontFamily: 'var(--pl-font-mono)',
@@ -526,7 +533,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
                 style={{
                   padding: '16px 32px 22px',
                   background: PD.paperCard,
-                  borderTop: '1px solid #E5DAB9',
+                  borderTop: `1px solid ${PD.line}`,
                   display: 'flex',
                   alignItems: 'center',
                   gap: 12,
@@ -566,11 +573,11 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
                 display: 'flex',
                 gap: 4,
                 padding: 4,
-                background: 'rgba(244, 236, 216, 0.95)',
+                background: `color-mix(in oklab, ${PD.paperCard} 95%, transparent)`,
                 backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(31,36,24,0.14)',
+                border: `1px solid ${pdInkMix(14)}`,
                 borderRadius: 999,
-                boxShadow: '0 10px 30px -10px rgba(31,36,24,0.25)',
+                boxShadow: `0 10px 30px -10px ${pdShadowMix(25)}`,
               }}
             >
               {([
@@ -607,6 +614,15 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
           :global(.pd-hero-grid) {
             grid-template-columns: 1fr !important;
             gap: 80px !important;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          :global(.pd-anim),
+          :global(.pd-anim *) {
+            animation: none !important;
+          }
+          :global(.pd-anim-draw) {
+            stroke-dashoffset: 0 !important;
           }
         }
       `}</style>

@@ -20,6 +20,7 @@ import { EditionPicker } from './EditionPicker';
 import { SiteLayoutPicker } from './SiteLayoutPicker';
 import { KitPicker } from './KitPicker';
 import { PearThinking } from '../../pear-thinking';
+import { pearErrorMessage } from '../../redesign/PearAssist';
 import { EDITIONS } from '@/lib/site-editions/editions';
 import { resolveEdition } from '@/lib/site-editions/resolve';
 import { ThemePackPicker } from './ThemePackPicker';
@@ -1221,7 +1222,8 @@ function AiAccentSection({
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error((body as { error?: string }).error ?? `Accent failed (${res.status})`);
+        console.error('[theme] accent failed:', res.status);
+        throw new Error((body as { error?: string }).error ?? "Pear couldn't paint that one — try again?");
       }
       const data = (await res.json()) as {
         url?: string; prompt?: string; customPrompt?: string | null; isolated?: boolean; warning?: string;
@@ -1243,7 +1245,8 @@ function AiAccentSection({
       if (data.warning) setError(data.warning);
       completeDecorJob(jobId, true);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Accent generation failed';
+      console.error('[theme] accent error:', err);
+      const msg = pearErrorMessage(err, "Pear couldn't paint that one — try again?");
       setError(msg);
       completeDecorJob(jobId, false, msg);
     } finally {
@@ -1381,13 +1384,15 @@ function PaletteSection({
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error((body as { error?: string }).error ?? `Pear couldn't mix that one (${res.status})`);
+        console.error('[theme] smart palette failed:', res.status);
+        throw new Error((body as { error?: string }).error ?? "Pear couldn't mix that one — try again?");
       }
       const data = (await res.json()) as { palettes?: Array<{ id: string; name: string; rationale?: string; colors: string[] }> };
       const presets: ThemePreset[] = (data.palettes ?? []).map((p) => smartPaletteToPreset(p));
       setAiPalettes(presets);
     } catch (err) {
-      setAiError(err instanceof Error ? err.message : "Pear couldn't mix that one");
+      console.error('[theme] smart palette error:', err);
+      setAiError(pearErrorMessage(err, "Pear couldn't mix that one — try again?"));
     } finally {
       setAiRunning(false);
     }

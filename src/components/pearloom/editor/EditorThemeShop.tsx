@@ -10,6 +10,7 @@ import { useState, useEffect, useMemo, type CSSProperties } from 'react';
 import type { StoryManifest } from '@/types';
 import { PACKS as STORE_PACKS, COLLECTIONS as STORE_COLLECTIONS, type Pack } from '@/lib/theme-store/packs';
 import { applyPackToManifest } from '@/lib/theme-store/apply';
+import { StoreFonts } from '@/lib/theme-store/fonts';
 import { PackPreview } from '../store/PackPreview';
 import { Icon, Pear } from '../motifs';
 
@@ -118,6 +119,7 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 85, pointerEvents: open ? 'auto' : 'none' }}>
+      <StoreFonts />
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(40,40,30,0.32)', opacity: open ? 1 : 0, transition: 'opacity 280ms ease' }}/>
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '72vh', background: 'var(--card)', borderRadius: '22px 22px 0 0', boxShadow: '0 -20px 60px rgba(40,40,30,0.22)', transform: open ? 'translateY(0)' : 'translateY(100%)', transition: 'transform 380ms cubic-bezier(0.16,1,0.3,1)', display: 'flex', flexDirection: 'column', overflow: 'hidden' } as CSSProperties}>
         <style>{`

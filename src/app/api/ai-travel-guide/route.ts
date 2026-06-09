@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, checkPearGate, pearHeaders, PEAR_MONTHLY_LIMIT } from '@/lib/rate-limit';
+import { geminiRetryFetch } from '@/lib/memory-engine/gemini-client';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +19,7 @@ const GEMINI_URL =
 const RATE_LIMIT_TRAVEL_GUIDE = { max: 10, windowMs: 60 * 60 * 1000 };
 
 async function callGemini(prompt: string, apiKey: string): Promise<string> {
-  const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
+  const res = await geminiRetryFetch(`${GEMINI_URL}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

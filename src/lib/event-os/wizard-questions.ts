@@ -182,8 +182,8 @@ const SETS: Partial<Record<SiteOccasion, WizardQuestionSet>> = {
 
   // ─── Family / home / baby ─────────────────────────────
   'baby-shower': {
-    q1Label: 'About the expecting parents',
-    q1Placeholder: 'Alex and Jamie. Due in May. Baby is already a sprout in the group chat.',
+    q1Label: 'About the parent-to-be',
+    q1Placeholder: 'Jamie. Due in May. Baby is already a sprout in the group chat.',
     q2Label: 'Why a shower',
     q2Placeholder: 'Because the village starts now. And everyone wants to meet the bump.',
     q3Label: 'A favourite memory (optional)',

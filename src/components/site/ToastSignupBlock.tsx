@@ -5,8 +5,16 @@
 //
 // Ordered list of toast slots for rehearsal dinners, milestone
 // birthdays, retirements. Host creates the slots; guests see who
-// has what. Local-only claim for MVP (sets the viewer's name on
-// an empty slot); backend table `toast_signups` lands later.
+// has what.
+//
+// When `siteId` + `blockId` are set (the renderer always passes
+// them), claims sync to `toast_signups` via /api/event-os/toasts:
+// GET on mount pulls everyone's claims, POST claims a slot, and a
+// 409 means someone else got there first — we roll back the
+// optimistic claim and show who has it. localStorage holds only
+// *this guest's* claims as the optimistic / offline layer; on
+// keyless deploys (`{ stored: false }`, empty GET) the block
+// behaves exactly as the original local-only MVP.
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState, type CSSProperties } from 'react';
@@ -56,14 +64,17 @@ export function ToastSignupBlock({
   const storeKey = `${LOCAL_PREFIX}${storageKey}`;
   const canSync = Boolean(siteId && blockId);
   // Lazy useState init for both stored values — render-pure
-  // and no setState-in-effect cascade.
-  const [claimed, setClaimed] = useState<Record<number, string>>(() => {
+  // and no setState-in-effect cascade. localClaims is *this
+  // guest's* claims (persisted); serverClaims is everyone's
+  // (fetched). Display merges the two, server winning per slot.
+  const [localClaims, setLocalClaims] = useState<Record<number, string>>(() => {
     if (typeof window === 'undefined') return {};
     try {
       const raw = window.localStorage.getItem(`${LOCAL_PREFIX}${storageKey}`);
       return raw ? (JSON.parse(raw) as Record<number, string>) : {};
     } catch { return {}; }
   });
+  const [serverClaims, setServerClaims] = useState<Record<number, string>>({});
   const [claimerName, setClaimerName] = useState<string>(() => {
     if (typeof window === 'undefined') return '';
     try { return window.localStorage.getItem('pearloom:guest-name') ?? ''; }
@@ -80,27 +91,42 @@ export function ToastSignupBlock({
       .then((r) => r.ok ? r.json() : null)
       .then((data) => {
         if (cancelled || !data?.ok) return;
-        // Server claims override any local (in case a different
-        // browser claimed ahead of us).
-        setClaimed(data.claims ?? {});
+        // Server claims win per slot at display time; we keep
+        // localClaims intact as the offline layer. On keyless
+        // deploys this is always {} so local-only behavior is
+        // untouched.
+        setServerClaims((data.claims as Record<number, string>) ?? {});
       })
       .catch(() => { /* offline — local only */ });
     return () => { cancelled = true; };
   }, [canSync, siteId, blockId]);
+
+  // Merged view — server is authoritative where it knows a slot.
+  const claimed: Record<number, string> = { ...localClaims, ...serverClaims };
+
+  // Functional updates so two in-flight claims can't clobber
+  // each other's optimistic state. The storage write inside the
+  // updater is idempotent (strict-mode double-invoke safe).
+  const writeLocal = (update: (prev: Record<number, string>) => Record<number, string>) => {
+    setLocalClaims((prev) => {
+      const next = update(prev);
+      if (typeof window !== 'undefined') {
+        try { window.localStorage.setItem(storeKey, JSON.stringify(next)); } catch { /* ignore */ }
+      }
+      return next;
+    });
+  };
 
   const claim = async (index: number) => {
     const name = claimerName.trim();
     if (!name) return;
     setError(null);
 
-    // Optimistic local update.
-    const next = { ...claimed, [index]: name };
-    setClaimed(next);
+    // Optimistic local update — only this guest's own claims
+    // are persisted; other guests' claims live on the server.
+    writeLocal((prev) => ({ ...prev, [index]: name }));
     if (typeof window !== 'undefined') {
-      try {
-        window.localStorage.setItem(storeKey, JSON.stringify(next));
-        window.localStorage.setItem('pearloom:guest-name', name);
-      } catch { /* ignore */ }
+      try { window.localStorage.setItem('pearloom:guest-name', name); } catch { /* ignore */ }
     }
 
     if (canSync) {
@@ -110,24 +136,38 @@ export function ToastSignupBlock({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ siteId, blockId, slotIndex: index, claimedBy: name }),
         });
+        // `{ stored: false }` (Supabase unconfigured) comes back
+        // 200 — the optimistic local claim simply stands, same
+        // as the original localStorage-only behavior. No banner.
         if (!res.ok) {
           const data = await res.json().catch(() => ({} as { error?: string; code?: string }));
-          // Slot taken by someone else — rollback the optimistic update.
-          if (res.status === 409) {
-            // Refresh from server to show who got it.
-            const params = new URLSearchParams({ siteId: siteId!, blockId: blockId! });
-            const refreshed = await fetch(`/api/event-os/toasts?${params}`, { cache: 'no-store' });
-            if (refreshed.ok) {
-              const payload = await refreshed.json();
-              if (payload?.ok) setClaimed(payload.claims ?? {});
-            }
-            setError('Someone else grabbed that slot first.');
+          if (res.status === 404) {
+            // Older deploy without the event-os routes — keep
+            // the local-only behavior, no banner.
+          } else if (res.status === 409) {
+            // Slot taken by someone else — roll back our
+            // optimistic claim (state + storage), then refresh
+            // so the guest sees whose toast it is now.
+            writeLocal((prev) => {
+              const next = { ...prev };
+              delete next[index];
+              return next;
+            });
+            try {
+              const params = new URLSearchParams({ siteId: siteId!, blockId: blockId! });
+              const refreshed = await fetch(`/api/event-os/toasts?${params}`, { cache: 'no-store' });
+              if (refreshed.ok) {
+                const payload = await refreshed.json();
+                if (payload?.ok) setServerClaims((payload.claims as Record<number, string>) ?? {});
+              }
+            } catch { /* the rollback above already freed the slot */ }
+            setError('Someone else grabbed that slot first — pick another and it’s yours.');
           } else {
             setError(data?.error ?? 'Could not save the claim. Try again.');
           }
         }
       } catch {
-        setError('Offline — claim saved locally, will sync when you\u2019re back.');
+        setError('You look offline — your claim is held in this browser. Claim it again once you\u2019re back.');
       }
     }
   };

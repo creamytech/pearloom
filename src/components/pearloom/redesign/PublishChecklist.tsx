@@ -91,7 +91,7 @@ export function PublishChecklist({ manifest }: { manifest: StoryManifest }) {
           border: '1px solid ' + (ready ? 'rgba(92,107,63,0.18)' : 'rgba(198,112,61,0.18)'),
           fontSize: 11.5, fontWeight: 600,
           cursor: 'pointer',
-          transition: 'background 140ms, color 140ms, border-color 140ms',
+          transition: 'background var(--pl-dur-quick), color var(--pl-dur-quick), border-color var(--pl-dur-quick)',
         }}
       >
         <span style={{
@@ -109,7 +109,7 @@ export function PublishChecklist({ manifest }: { manifest: StoryManifest }) {
             position: 'absolute',
             top: 'calc(100% + 8px)',
             right: 0,
-            zIndex: 200,
+            zIndex: 'var(--z-overlay)',
             width: 280,
             padding: 14,
             background: 'var(--card)',
@@ -140,7 +140,7 @@ export function PublishChecklist({ manifest }: { manifest: StoryManifest }) {
                 display: 'flex', alignItems: 'flex-start', gap: 8,
                 padding: '6px 8px', borderRadius: 8,
                 background: c.ok ? 'var(--sage-bg)' : 'var(--cream-2)',
-                transition: 'background 120ms, transform 120ms',
+                transition: 'background var(--pl-dur-subtle), transform var(--pl-dur-subtle)',
               } as const;
               const inner = (
                 <>

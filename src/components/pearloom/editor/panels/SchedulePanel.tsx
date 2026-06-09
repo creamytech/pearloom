@@ -16,6 +16,7 @@ import type { StoryManifest, WeddingEvent } from '@/types';
 import { Icon } from '../../motifs';
 import { AddCard, FGroup, FInput, FSuggest, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { scheduleEventSuggestions } from './_suggestions';
+import { pearErrorMessage } from '../../redesign/PearAssist';
 
 const TONE_BY_INDEX: Array<'peach' | 'lavender' | 'sage'> = ['peach', 'lavender', 'sage', 'peach', 'lavender', 'sage'];
 
@@ -25,6 +26,94 @@ const DEFAULT_EVENTS: WeddingEvent[] = [
   { id: 'e-dinner', name: 'Dinner', type: 'reception', date: '', time: '7:00 pm', venue: 'Long table', address: '' },
   { id: 'e-dancing', name: 'Dancing', type: 'other', date: '', time: '9:00 pm', venue: 'Until late', address: '' },
 ];
+
+/* ─── Occasion timeline templates ─────────────────────────────
+   One-tap starting timelines keyed by template family. Shown only
+   while the schedule is empty or still exactly the untouched
+   DEFAULT_EVENTS — once the host edits anything, the affordance
+   disappears. Occasion ids come from EVENT_TYPES
+   (src/lib/event-os/event-types.ts); aliases below map related
+   occasions onto the same template. */
+
+type TimelineSeed = { name: string; time: string; type: WeddingEvent['type'] };
+
+const TIMELINE_TEMPLATES: Record<string, { label: string; seeds: TimelineSeed[] }> = {
+  wedding: {
+    label: 'Wedding day',
+    seeds: [
+      { name: 'Ceremony', time: '4:00 pm', type: 'ceremony' },
+      { name: 'Cocktail hour', time: '5:00 pm', type: 'other' },
+      { name: 'Dinner', time: '6:30 pm', type: 'reception' },
+      { name: 'Dancing', time: '8:30 pm', type: 'other' },
+      { name: 'Send-off', time: '11:00 pm', type: 'other' },
+    ],
+  },
+  birthday: {
+    label: 'Birthday',
+    seeds: [
+      { name: 'Arrivals', time: '6:00 pm', type: 'other' },
+      { name: 'Toasts', time: '7:00 pm', type: 'other' },
+      { name: 'Cake', time: '8:00 pm', type: 'other' },
+      { name: 'Dancing', time: '8:30 pm', type: 'other' },
+    ],
+  },
+  memorial: {
+    label: 'Memorial',
+    seeds: [
+      { name: 'Gathering', time: '10:00 am', type: 'other' },
+      { name: 'Service', time: '11:00 am', type: 'ceremony' },
+      { name: 'Reception', time: '12:30 pm', type: 'reception' },
+    ],
+  },
+  reunion: {
+    label: 'Reunion',
+    seeds: [
+      { name: 'Arrivals', time: '4:00 pm', type: 'other' },
+      { name: 'Dinner', time: '6:00 pm', type: 'reception' },
+      { name: 'Stories', time: '8:00 pm', type: 'other' },
+      { name: 'Group photo', time: '9:00 pm', type: 'other' },
+    ],
+  },
+  shower: {
+    label: 'Shower',
+    seeds: [
+      { name: 'Arrivals', time: '1:00 pm', type: 'other' },
+      { name: 'Games', time: '1:45 pm', type: 'other' },
+      { name: 'Gifts', time: '2:30 pm', type: 'other' },
+      { name: 'Cake', time: '3:30 pm', type: 'other' },
+    ],
+  },
+};
+
+/* manifest.occasion → template key. Related occasions share a
+   template; anything unlisted just gets the full menu with no
+   highlighted match. */
+const OCCASION_TEMPLATE_KEY: Record<string, string> = {
+  'wedding': 'wedding',
+  'vow-renewal': 'wedding',
+  'engagement': 'wedding',
+  'birthday': 'birthday',
+  'milestone-birthday': 'birthday',
+  'first-birthday': 'birthday',
+  'sweet-sixteen': 'birthday',
+  'memorial': 'memorial',
+  'funeral': 'memorial',
+  'reunion': 'reunion',
+  'baby-shower': 'shower',
+  'bridal-shower': 'shower',
+};
+
+/* True while the host hasn't touched the timeline — either no
+   events saved yet, or the saved rows still exactly match the
+   untouched DEFAULT_EVENTS seed. */
+function isUntouchedSchedule(saved: WeddingEvent[] | undefined): boolean {
+  if (!saved || saved.length === 0) return true;
+  if (saved.length !== DEFAULT_EVENTS.length) return false;
+  return saved.every((e, i) => {
+    const d = DEFAULT_EVENTS[i];
+    return e.id === d.id && e.name === d.name && e.time === d.time && e.venue === d.venue && (e.day ?? 1) === 1;
+  });
+}
 
 export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'schedule');
@@ -41,6 +130,23 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
   const multiDay = maxDay > 1;
 
   const writeEvents = (next: WeddingEvent[]) => onChange({ ...manifest, events: next } as StoryManifest);
+  /* Template affordance — only while the timeline is pristine.
+     One tap replaces the seed with the picked template via the
+     same events write path as every other edit. */
+  const showTemplates = isUntouchedSchedule(manifest.events);
+  const applyTemplate = (key: string) => {
+    const tpl = TIMELINE_TEMPLATES[key];
+    if (!tpl) return;
+    writeEvents(tpl.seeds.map((s, i) => ({
+      id: `e-tpl-${Date.now().toString(36)}-${i}`,
+      name: s.name,
+      type: s.type,
+      date: '',
+      time: s.time,
+      venue: '',
+      address: '',
+    })));
+  };
   const patchEventByIndex = (i: number, patch: Partial<WeddingEvent>) => {
     const next = events.map((e, idx) => idx === i ? { ...e, ...patch } : e);
     writeEvents(next);
@@ -148,6 +254,10 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
           </button>
         </div>
 
+        {!multiDay && showTemplates && (
+          <TemplateStrip occasion={occasion} onPick={applyTemplate} />
+        )}
+
         {!multiDay && (
           <FGroup label={`Timeline · ${events.length} moments`} action={<BuildFromNotesButton onAppend={(drafted) => writeEvents([...events, ...drafted])} />}>
             <MiniTimeline events={events} />
@@ -230,6 +340,54 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
   );
 }
 
+/* ─── TemplateStrip ───────────────────────────────────────────
+   "Start from a template" — a quiet card of one-tap timeline
+   starters shown only while the schedule is pristine. The
+   occasion-matched template sorts first and gets the filled
+   peach treatment; the rest render as outline pills. */
+function TemplateStrip({ occasion, onPick }: { occasion?: string; onPick: (key: string) => void }) {
+  const matchKey = occasion ? OCCASION_TEMPLATE_KEY[occasion] : undefined;
+  const keys = Object.keys(TIMELINE_TEMPLATES)
+    .sort((a, b) => (a === matchKey ? -1 : 0) - (b === matchKey ? -1 : 0));
+  return (
+    <div style={{
+      padding: '10px 12px', borderRadius: 10,
+      background: 'var(--cream-2)', border: '1px solid var(--line-soft)',
+    }}>
+      <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>
+        Start from a template
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 1, marginBottom: 8 }}>
+        One tap drops in a starting timeline — every moment stays editable.
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {keys.map((key) => {
+          const isMatch = key === matchKey;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => onPick(key)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '5px 10px', borderRadius: 999,
+                background: isMatch ? 'var(--peach-ink)' : 'var(--peach-bg)',
+                color: isMatch ? '#fff' : 'var(--peach-ink)',
+                border: isMatch ? '1px solid var(--peach-ink)' : '1px solid rgba(198,112,61,0.22)',
+                fontSize: 11, fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              {isMatch && <Icon name="sparkles" size={11} color="#fff" />}
+              {TIMELINE_TEMPLATES[key].label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /* Single row — name + time + venue + remove. */
 function ScheduleRow({
   event: e, tone, eventNames, onPatch, onRemove,
@@ -293,7 +451,8 @@ function BuildFromNotesButton({ onAppend }: { onAppend: (events: WeddingEvent[])
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[schedule] from-notes failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t draft that one — try again?');
       }
       const data = await res.json() as { events?: Array<{ name: string; time: string; venue?: string }> };
       const drafted: WeddingEvent[] = (data.events ?? []).map((e, i) => ({
@@ -313,7 +472,8 @@ function BuildFromNotesButton({ onAppend }: { onAppend: (events: WeddingEvent[])
         setOpen(false);
       }
     } catch (e) {
-      setErr((e as Error).message);
+      console.error('[schedule] from-notes error:', e);
+      setErr(pearErrorMessage(e, 'Pear couldn’t draft that one — try again?'));
     } finally {
       setBusy(false);
     }

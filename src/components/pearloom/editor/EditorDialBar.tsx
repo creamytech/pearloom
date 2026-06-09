@@ -45,6 +45,7 @@ const MAX_LOOKS = 6;
 const KIT_LABEL: Record<KitId, string> = {
   classic: 'Classic', ticket: 'Ticket', plate: 'Plate', scrapbook: 'Scrapbook',
   index: 'Index', minimal: 'Minimal', arch: 'Arch', stamp: 'Stamp', deco: 'Deco',
+  gallery: 'Gallery', menu: 'Tasting Menu',
 };
 const LAYOUT_LABEL: Record<SiteLayoutId, string> = {
   stacked: 'Stacked', boxed: 'Boxed', split: 'Split',

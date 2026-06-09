@@ -6,7 +6,14 @@
 // Bring-this-list for destination trips — bachelor/ette weekend,
 // destination weddings, reunions. Host curates the items; each
 // guest can check items off locally (localStorage per site slug).
-// No server state — intentional MVP scope.
+//
+// DELIBERATELY localStorage-only — do not "fix" this by adding
+// server sync. Check-offs are a personal packing checklist
+// ("did *I* pack sunscreen?"), not shared state; guests should
+// never see each other's ticks. The 2026-04-23 event-OS
+// migration (supabase/migrations/20260423_event_os_submissions.sql)
+// explicitly excludes packingList for this reason while giving
+// adviceWall / activityVote / toastSignup their server tables.
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState, type CSSProperties } from 'react';

@@ -27,6 +27,7 @@ import {
   useCopyOverride,
   useSectionHidden,
 } from './_section-atoms';
+import { pearErrorMessage } from '../../redesign/PearAssist';
 
 /* Place-search result shape from /api/places/search/route.ts. */
 interface SearchResult {
@@ -182,13 +183,15 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[travel] place search failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'The search didn’t come back — try again?');
       }
       const data = await res.json() as { results?: SearchResult[]; fallback?: boolean };
       setResults(Array.isArray(data.results) ? data.results : []);
       setOpen(true);
     } catch (e) {
-      setErr((e as Error).message);
+      console.error('[travel] place search error:', e);
+      setErr(pearErrorMessage(e, 'The search didn’t come back — try again?'));
       setResults([]);
     } finally {
       setSearching(false);
@@ -206,7 +209,8 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? `HTTP ${res.status}`);
+        console.error('[travel] place details failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Couldn’t add that hotel — try again?');
       }
       const data = await res.json() as { details?: PlaceDetails | null; fallback?: boolean };
       /* Fallback to the cheap search-result shape when details fails —
@@ -235,7 +239,8 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
       setResults([]);
       setOpen(false);
     } catch (e) {
-      setErr((e as Error).message);
+      console.error('[travel] add hotel error:', e);
+      setErr(pearErrorMessage(e, 'Couldn’t add that hotel — try again?'));
     } finally {
       setAdding(null);
     }
@@ -250,6 +255,18 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
     ? `Hotels near ${venueAddress.split(',')[0].trim()}…`
     : 'Search hotels & venues…';
 
+  /* One-tap hotel finder — only when we have venue coordinates to
+     bias the search (PlaceAutocomplete caches venueLat/Lng onto
+     manifest.logistics when the host picks a venue) AND the host
+     hasn't added any hotels yet. Setting q runs the exact same
+     debounced search flow as typing — a visible affordance, never
+     an auto-fired network call on mount. */
+  const venueLat = manifest.logistics?.venueLat;
+  const venueLng = manifest.logistics?.venueLng;
+  const hasVenueCoords = typeof venueLat === 'number' && typeof venueLng === 'number';
+  const venueShort = venueAddress ? venueAddress.split(',')[0].trim() : '';
+  const showHotelFinder = hasVenueCoords && hotels.length === 0 && !q.trim();
+
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -258,6 +275,25 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
           <FInput value={travelEyebrow} onChange={setTravelEyebrow} placeholder="Getting there" />
         </FGroup>
         <FGroup label="Find hotels & venues" action={<PearChip>Powered by Google</PearChip>}>
+          {showHotelFinder && (
+            <button
+              type="button"
+              onClick={() => { setQ('hotels'); setOpen(true); }}
+              disabled={searching}
+              style={{
+                alignSelf: 'flex-start',
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '6px 11px', borderRadius: 999,
+                background: 'var(--peach-bg)',
+                border: '1px solid rgba(198,112,61,0.22)',
+                fontSize: 11.5, fontWeight: 600, color: 'var(--peach-ink)',
+                cursor: searching ? 'wait' : 'pointer',
+              }}
+            >
+              <Icon name="search" size={11} color="var(--peach-ink)" />
+              Find hotels near {venueShort || 'the venue'}
+            </button>
+          )}
           <div style={{ position: 'relative' }}>
             <FInput
               value={q}

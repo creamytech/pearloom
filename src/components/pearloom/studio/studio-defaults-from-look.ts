@@ -77,6 +77,12 @@ const KIT_TO_MOTIF: Record<KitId, string> = {
   /* Deco's gold geometric frames echo the monogram cartouche
      more than tape or stamps; pair with monogram. */
   deco: 'monogram',
+  /* Gallery's museum-placard restraint reads like index/minimal —
+     no decorative motif on the stationery. */
+  gallery: 'none',
+  /* Tasting Menu's fine-dining card carries a crest the way real
+     menus do — pair with the monogram cartouche. */
+  menu: 'monogram',
 };
 
 /* ── Voice override → Studio CopyTone ──

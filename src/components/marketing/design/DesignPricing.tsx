@@ -3,10 +3,10 @@
 // Pricing — three tiers. Middle tier is featured (dark, lifted,
 // MOST CHOSEN badge). Matches design bundle's pricing.jsx.
 
-import { Leaf, Pearl, Pill, PLButton, PD, DISPLAY_STYLE, MONO_STYLE } from './DesignAtoms';
+import { Leaf, Pearl, Pill, PLButton, PD, DISPLAY_STYLE, MONO_STYLE, pdInkMix, pdShadowMix } from './DesignAtoms';
 
 type TierName = 'Journal' | 'Atelier' | 'Legacy';
-type BtnVariant = 'ghost' | 'butter' | 'ink';
+type BtnVariant = 'ghost' | 'pearl' | 'ink';
 
 interface Tier {
   name: TierName;
@@ -31,7 +31,7 @@ const TIERS: Tier[] = [
       'One site, yours to keep',
       'The full drafting by Pear',
       'Unlimited RSVPs',
-      'All 28 occasions',
+      'All 31 occasions',
       'The Reel (one event)',
       'Pearloom subdomain',
     ],
@@ -47,16 +47,20 @@ const TIERS: Tier[] = [
     feats: [
       'Everything in Journal',
       'Every block, every template',
+      'Every premium theme pack included',
       'Custom domain',
       'The Director (day-of room)',
       'Live photo wall + toasts',
       'Anniversary rebroadcast',
-      'Priority Pear ~2h',
+      'Pear drafts — proofs, toasts, rewrites',
     ],
     bg: PD.ink,
     fg: PD.paper,
     accent: PD.butter,
-    btn: 'butter',
+    // Pearl, not a gold-filled button — gold is never a background
+    // (BRAND.md §5); the pearl is the documented highlighted-tier
+    // treatment (CLAUDE-DESIGN.md §6.5).
+    btn: 'pearl',
     featured: true,
   },
   {
@@ -66,11 +70,12 @@ const TIERS: Tier[] = [
     blurb: 'Every future celebration, one price.',
     feats: [
       'Everything in Atelier',
-      'Every event, forever',
-      'Family workspace',
-      'Cross-event Reel',
-      'Heirloom export (print-ready)',
-      'Pear-priority line',
+      'Up to ten sites, forever',
+      'The full Theme Store, signature shelf included',
+      'Co-hosts on every site',
+      'Linked celebrations — one weekend, many sites',
+      'Heirloom memory book (print-ready)',
+      '$50 Pearloom Print credit',
     ],
     bg: PD.paper2,
     accent: PD.gold,
@@ -94,6 +99,7 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
             <Pearl size={7} /> ONE-TIME, NOT A SUBSCRIPTION
           </Pill>
           <h2
+            className="pl-letterpress"
             style={{
               ...DISPLAY_STYLE,
               fontSize: 'clamp(40px, 5.5vw, 76px)',
@@ -147,13 +153,13 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
               style={{
                 background: t.bg,
                 color: t.fg ?? PD.ink,
-                border: `1px solid ${t.featured ? t.accent : 'rgba(31,36,24,0.14)'}`,
+                border: `1px solid ${t.featured ? t.accent : pdInkMix(14)}`,
                 borderRadius: 20,
                 padding: '36px 32px 32px',
                 transform: t.featured ? 'translateY(-14px)' : 'none',
                 boxShadow: t.featured
-                  ? '0 30px 60px -20px rgba(31,36,24,0.35)'
-                  : '0 1px 3px rgba(31,36,24,0.06)',
+                  ? `0 30px 60px -20px ${pdShadowMix(35)}`
+                  : `0 1px 3px ${pdShadowMix(6)}`,
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
@@ -167,7 +173,10 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
                     top: -11,
                     left: 32,
                     background: t.accent,
-                    color: PD.ink,
+                    // Constant dark ink — the butter badge keeps its
+                    // color in dark mode, so its text must not flip
+                    // to cream with PD.ink.
+                    color: '#2C1E12',
                     borderRadius: 999,
                     padding: '4px 12px',
                     fontSize: 10,
@@ -281,6 +290,12 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
         @media (max-width: 900px) {
           :global(.pd-pricing-grid) {
             grid-template-columns: 1fr !important;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          :global(.pd-anim),
+          :global(.pd-anim *) {
+            animation: none !important;
           }
         }
       `}</style>
