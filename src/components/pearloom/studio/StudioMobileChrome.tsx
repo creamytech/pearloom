@@ -123,9 +123,12 @@ export function ScaledCardBox({
   children: React.ReactNode;
 }) {
   if (scale >= 1) return <>{children}</>;
+  /* The pl-studio-fit-* classes are print escape hatches — the
+     @media print block in StudioApp resets the inline scale so a
+     phone print still lands full-size on the 5×7 page. */
   return (
-    <div style={{ width: baseW * scale, height: baseH * scale, overflow: 'hidden', borderRadius: radius, flexShrink: 0 }}>
-      <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: baseW, height: baseH }}>
+    <div className="pl-studio-fit-outer" style={{ width: baseW * scale, height: baseH * scale, overflow: 'hidden', borderRadius: radius, flexShrink: 0 }}>
+      <div className="pl-studio-fit-inner" style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: baseW, height: baseH }}>
         {children}
       </div>
     </div>

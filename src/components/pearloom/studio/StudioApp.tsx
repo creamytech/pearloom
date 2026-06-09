@@ -541,7 +541,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
               pl-studio-flip-in animates transform with fill:both,
               which would permanently override an inline scale on
               the same element. scale 1 (desktop) is a no-op. */}
-          <div style={cardScale < 1 ? { transform: `scale(${cardScale})`, transformOrigin: 'center' } : undefined}>
+          <div className="pl-studio-fit-inner" style={cardScale < 1 ? { transform: `scale(${cardScale})`, transformOrigin: 'center' } : undefined}>
           <div
             key={state.draft + state.view + state.layout + state.motif + state.palette}
             className={state.animate ? (state.view === 'envelope' ? 'pl-studio-card-in' : 'pl-studio-flip-in') : ''}
@@ -911,6 +911,11 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
           /* Drop the desk shadow + texture overlays so the print
              reads as flat ink-on-paper. */
           .pl-studio-card-shadow { box-shadow: none !important; }
+          /* Undo the phone fit-to-width scale — the artwork must
+             land full-size on the 5×7 page even when the screen
+             showed it scaled down. */
+          .pl-studio-fit-inner { transform: none !important; }
+          .pl-studio-fit-outer { width: auto !important; height: auto !important; overflow: visible !important; }
           /* Hide every floating affordance — the Pear nudge
              bubble, the AI error toast, and any open dialog
              (the host could fire window.print() while the Send

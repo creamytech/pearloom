@@ -21,6 +21,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { StationeryType } from './studio-constants';
+import { useMobileViewport } from '../redesign/use-mobile-viewport';
 import { Pear, Icon } from '../motifs';
 
 type MailProduct = 'postcard' | 'letter';
@@ -61,6 +62,9 @@ interface Props {
 }
 
 export function StudioMailFlow({ siteSlug, type, mailableCount, defaultName, buildSvg, onBack }: Props) {
+  /* Phone-sized viewport — format chips wrap and the checkout
+     footer stacks so the long price button never clips. */
+  const mobile = useMobileViewport();
   const [info, setInfo] = useState<CheckoutInfo | null>(null);
   const [product, setProduct] = useState<MailProduct>('postcard');
   const [size, setSize] = useState<MailSize>('4x6');
@@ -166,6 +170,7 @@ export function StudioMailFlow({ siteSlug, type, mailableCount, defaultName, bui
     letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4, display: 'block',
   };
   const chip = (active: boolean): React.CSSProperties => ({
+    minWidth: mobile ? 104 : undefined,
     padding: '10px 12px',
     borderRadius: 10,
     background: active ? 'var(--ink)' : 'var(--card)',
@@ -232,7 +237,7 @@ export function StudioMailFlow({ siteSlug, type, mailableCount, defaultName, bui
           <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>Format</div>
           <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>Printed, stamped, and mailed for you</div>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: mobile ? 'wrap' : undefined }}>
           {([
             { p: 'postcard' as const, s: '4x6' as const, label: 'Postcard 4×6', price: prices?.postcard['4x6'] },
             { p: 'postcard' as const, s: '6x9' as const, label: 'Postcard 6×9', price: prices?.postcard['6x9'] },
@@ -331,7 +336,15 @@ export function StudioMailFlow({ siteSlug, type, mailableCount, defaultName, bui
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 6, borderTop: '1px solid var(--line-soft)' }}>
+      <div style={{
+        display: 'flex',
+        flexDirection: mobile ? 'column' : 'row',
+        alignItems: mobile ? 'stretch' : 'center',
+        justifyContent: 'space-between',
+        gap: mobile ? 10 : undefined,
+        paddingTop: 6,
+        borderTop: '1px solid var(--line-soft)',
+      }}>
         <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
           After payment you&apos;ll land on{' '}
           <Link href="/dashboard/print" style={{ color: 'var(--ink-soft)', fontWeight: 600 }}>Print orders</Link>
@@ -353,6 +366,7 @@ export function StudioMailFlow({ siteSlug, type, mailableCount, defaultName, bui
             opacity: busy || !ready ? 0.55 : 1,
             display: 'inline-flex',
             alignItems: 'center',
+            justifyContent: mobile ? 'center' : undefined,
             gap: 6,
             fontFamily: 'inherit',
             flexShrink: 0,
