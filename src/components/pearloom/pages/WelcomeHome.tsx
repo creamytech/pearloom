@@ -243,6 +243,9 @@ export function WelcomeHome() {
           daysUntil={daysUntil}
           stage={stage}
           nextMilestone={nextMilestone}
+          nextStep={nextStep}
+          nextStepHref={nextStepHref}
+          hasManifest={manifest != null}
           progressDone={milestones.filter((m) => m.status === 'done').length}
           progressTotal={milestones.length}
           newSinceVisit={recentActivity.length}
@@ -259,6 +262,7 @@ export function WelcomeHome() {
             <ActivityFeed activity={recentActivity} stage={stage} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {rsvpMomentum && <RsvpMomentumCard momentum={rsvpMomentum} />}
             <GuestPulse counts={guestCounts} domain={site?.domain ?? null} loading={guests === null} />
             <Milestones milestones={milestones} dateShort={eventDateShort} />
           </div>
@@ -293,6 +297,9 @@ function HeroBand({
   daysUntil,
   stage,
   nextMilestone,
+  nextStep,
+  nextStepHref,
+  hasManifest,
   progressDone,
   progressTotal,
   newSinceVisit,
@@ -305,6 +312,9 @@ function HeroBand({
   daysUntil: number | null;
   stage: Stage;
   nextMilestone: Milestone | null;
+  nextStep: NextStep | null;
+  nextStepHref: string | null;
+  hasManifest: boolean;
   progressDone: number;
   progressTotal: number;
   newSinceVisit: number;

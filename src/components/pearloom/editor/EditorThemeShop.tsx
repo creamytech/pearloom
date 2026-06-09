@@ -90,7 +90,7 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
          it (the host's old look survives the whole shop visit,
          even try-A-then-apply-B). */
   const manifestRef = useRef(manifest);
-  manifestRef.current = manifest;
+  useEffect(() => { manifestRef.current = manifest; }, [manifest]);
   const openSnapshotRef = useRef<StoryManifest | null>(null);
   const appliedRef = useRef(false);
   useEffect(() => {

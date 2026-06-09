@@ -1,6 +1,5 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
 /* UndoToast — the TRY-ANYTHING-SAFELY primitive.
 
    One bottom-center toast for the redesign editor: paper card,
@@ -99,7 +98,7 @@ export function UndoToast() {
     return () => clearTimeout(t);
   }, [toast]);
 
-  if (!primary || !toast) return null;
+  if (!toast) return null;
 
   const runUndo = () => {
     try {

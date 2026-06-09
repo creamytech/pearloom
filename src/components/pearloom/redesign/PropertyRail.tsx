@@ -176,9 +176,11 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
      edits the host made during the 6s toast window survive. Showing
      a hidden section back is additive — no toast for that. */
   const manifestRef = useRef(manifest);
-  manifestRef.current = manifest;
   const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
+  useEffect(() => {
+    manifestRef.current = manifest;
+    onChangeRef.current = onChange;
+  }, [manifest, onChange]);
   const toggleHidden = () => {
     if (!canHide) return;
     if (isHidden) { setHidden(false); return; }
