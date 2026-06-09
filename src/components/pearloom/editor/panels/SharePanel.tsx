@@ -13,7 +13,7 @@
        blurb when pasted.
      - Co-host invite (unchanged from before). */
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
 import { FGroup, FInput, SectionPanelShell } from './_section-atoms';
@@ -21,6 +21,13 @@ import { buildSiteUrl, formatSiteDisplayUrl, type SiteOccasion } from '@/lib/sit
 import { BrandedQR, useBrandedQrPng } from './BrandedQR';
 import { deriveInitials } from '../../site/Monogram';
 import { pearErrorMessage } from '../../redesign/PearAssist';
+import { suiteThemeFromManifest } from '@/lib/suite/theme';
+import {
+  SHARE_KIT_SIZES,
+  drawShareKitCanvas,
+  downloadCanvasPng,
+  ensureSuiteFonts,
+} from './share-kit';
 
 type QrTone = 'ink' | 'accent' | 'gold' | 'plum';
 
@@ -204,6 +211,15 @@ export function SharePanel({
               </a>
             ))}
           </div>
+        </FGroup>
+
+        {/* Share kit — pre-sized themed images, drawn locally from
+            the SuiteTheme contract (Suite Phase 5). No server hop. */}
+        <FGroup
+          label="Share kit"
+          hint="Three ready-to-post images in your site's exact theme — Story for Instagram, Square for the grid, Banner for group chats and emails. Drawn on your device; nothing uploads."
+        >
+          <ShareKitStrip manifest={manifest} siteSlug={siteSlug} />
         </FGroup>
 
         {/* Site URL */}
@@ -396,6 +412,128 @@ export function SharePanel({
         </FGroup>
       </div>
     </SectionPanelShell>
+  );
+}
+
+/* ─── ShareKitStrip — three themed downloadables (Square 1080²,
+   Story 1080×1920, Banner 1600×900) drawn client-side onto
+   canvases from suiteThemeFromManifest. Previews ARE the export
+   canvases (full-res, CSS-scaled), so download is instant —
+   toBlob on the already-drawn pixels. Redraws on mount + when
+   the theme-relevant slice of the manifest changes (debounced).
+   No PearThinking — this is instant local work; a tiny
+   'Drawing…' veil covers the font-load beat. ───────────────── */
+function ShareKitStrip({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug: string }) {
+  const suite = useMemo(() => suiteThemeFromManifest(manifest), [manifest]);
+  const suiteRef = useRef(suite);
+  useEffect(() => { suiteRef.current = suite; }, [suite]);
+
+  /* Only the inputs the painter reads — manifest identity churns
+     on every keystroke; this key doesn't. */
+  const themeKey = useMemo(() => JSON.stringify([
+    suite.palette, suite.fonts.googleHref, suite.names, suite.eventDate,
+    suite.venue, suite.occasion, suite.monogram.initials, suite.photos.cover,
+  ]), [suite]);
+
+  const canvasRefs = useRef<Record<string, HTMLCanvasElement | null>>({});
+  const [drawing, setDrawing] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    /* Debounced redraw — `drawing` starts true on mount; on theme
+       changes the veil drops in when the redraw actually starts
+       (after the 350ms settle), not synchronously in the effect. */
+    const t = setTimeout(() => {
+      void (async () => {
+        if (cancelled) return;
+        setDrawing(true);
+        const theme = suiteRef.current;
+        await ensureSuiteFonts(theme);
+        for (const size of SHARE_KIT_SIZES) {
+          if (cancelled) return;
+          const cv = canvasRefs.current[size.id];
+          if (cv) await drawShareKitCanvas(cv, theme, size);
+        }
+        if (!cancelled) setDrawing(false);
+      })();
+    }, 350);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [themeKey]);
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+      {SHARE_KIT_SIZES.map((size) => (
+        <div
+          key={size.id}
+          style={{
+            display: 'flex', flexDirection: 'column', gap: 6,
+            padding: 8, borderRadius: 12,
+            background: 'var(--cream-2)', border: '1px solid var(--line)',
+          }}
+        >
+          <div style={{
+            position: 'relative',
+            height: 118,
+            display: 'grid', placeItems: 'center',
+            borderRadius: 8, overflow: 'hidden',
+            background: 'var(--cream)',
+            border: '1px solid var(--line-soft)',
+          }}>
+            <canvas
+              ref={(el) => { canvasRefs.current[size.id] = el; }}
+              aria-label={`${size.label} share image preview`}
+              style={{
+                maxWidth: '100%', maxHeight: '100%',
+                display: 'block',
+                opacity: drawing ? 0.25 : 1,
+                transition: 'opacity 200ms',
+              }}
+            />
+            {drawing && (
+              <span style={{
+                position: 'absolute', inset: 0,
+                display: 'grid', placeItems: 'center',
+                fontSize: 10, fontWeight: 600, color: 'var(--ink-muted)',
+                letterSpacing: '0.14em', textTransform: 'uppercase',
+              }}>
+                Drawing…
+              </span>
+            )}
+          </div>
+          <div style={{
+            fontSize: 10, fontWeight: 700,
+            letterSpacing: '0.1em', textTransform: 'uppercase',
+            color: 'var(--ink-soft)', textAlign: 'center',
+          }}>
+            {size.label}
+            <span style={{ display: 'block', fontWeight: 500, color: 'var(--ink-muted)', letterSpacing: '0.04em', marginTop: 1 }}>
+              {size.w}×{size.h}
+            </span>
+          </div>
+          <button
+            type="button"
+            disabled={drawing}
+            onClick={() => {
+              const cv = canvasRefs.current[size.id];
+              if (cv) downloadCanvasPng(cv, `${siteSlug}-share-${size.id}.png`);
+            }}
+            aria-label={`Download ${size.label} share image`}
+            style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+              padding: '6px 8px', borderRadius: 999,
+              background: 'transparent', border: '1px solid var(--line)',
+              fontSize: 10.5, fontWeight: 600, color: 'var(--ink-soft)',
+              cursor: drawing ? 'wait' : 'pointer',
+              opacity: drawing ? 0.55 : 1,
+              fontFamily: 'inherit',
+            }}
+          >
+            <Icon name="arrow-down" size={10} color="var(--ink-soft)" />
+            PNG
+          </button>
+        </div>
+      ))}
+    </div>
   );
 }
 

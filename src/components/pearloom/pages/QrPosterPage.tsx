@@ -60,10 +60,60 @@ const COPY_PRESETS: Array<{ id: string; label: string; kicker: string; hint: str
   { id: 'menu', label: 'Dinner menu', kicker: 'Scan to see the menu', hint: 'allergens + dietary tags inside' },
 ];
 
+// ── Print-size presets (Suite Phase 5) ───────────────────
+// The AI route paints one fixed portrait artwork (1024×1536, no
+// size param — see /api/qr/poster); sizing is purely client-side:
+// the poster surface's aspect / padding / type scale / QR pixel
+// size and the @page rule all follow the preset. The themed
+// background `cover`-crops into whichever aspect is picked.
+type PosterSizeId = 'a4' | 'tent57' | 'sticker3';
+interface PosterSizePreset {
+  id: PosterSizeId;
+  label: string;
+  /** CSS aspect-ratio of the on-screen poster surface. */
+  aspect: string;
+  /** @page size for printing. */
+  page: string;
+  /** Screen max-width of the preview surface. */
+  maxWidth: number;
+  /** Poster padding. */
+  pad: string;
+  /** QR pixel size — classic mode / themed-overlay mode. */
+  qr: number;
+  qrThemed: number;
+  /** Display headline clamp. */
+  headlineSize: string;
+  /** Page margin when printing. */
+  printPad: string;
+  /** Compact: sticker drops the big header + hint, keeps kicker + URL. */
+  compact: boolean;
+}
+const POSTER_SIZES: PosterSizePreset[] = [
+  {
+    id: 'a4', label: 'Welcome sign A4',
+    aspect: '1 / 1.414', page: 'A4 portrait', maxWidth: 720,
+    pad: '64px 56px 56px', qr: 320, qrThemed: 280,
+    headlineSize: 'clamp(34px, 4.6vw, 52px)', printPad: '14mm', compact: false,
+  },
+  {
+    id: 'tent57', label: 'Table tent 5×7',
+    aspect: '5 / 7', page: '5in 7in', maxWidth: 520,
+    pad: '44px 38px 38px', qr: 250, qrThemed: 220,
+    headlineSize: 'clamp(26px, 3.4vw, 38px)', printPad: '9mm', compact: false,
+  },
+  {
+    id: 'sticker3', label: 'Sticker 3×3',
+    aspect: '1 / 1', page: '3in 3in', maxWidth: 380,
+    pad: '28px 24px 24px', qr: 220, qrThemed: 210,
+    headlineSize: 'clamp(20px, 2.6vw, 28px)', printPad: '4mm', compact: true,
+  },
+];
+
 export function QrPosterPage() {
   const { site } = useSelectedSite();
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [presetId, setPresetId] = useState<string>('tabletop');
+  const [posterSizeId, setPosterSizeId] = useState<PosterSizeId>('a4');
   const [headline, setHeadline] = useState<string>('');
   const [subhead, setSubhead] = useState<string>('');
   // Themed-mode state — when active, the AI poster fills the
@@ -79,6 +129,7 @@ export function QrPosterPage() {
   const suggestedThemes = useMemo(() => suggestThemesForOccasion(occasion), [occasion]);
 
   const preset = COPY_PRESETS.find((p) => p.id === presetId) ?? COPY_PRESETS[0];
+  const sizePreset = POSTER_SIZES.find((s) => s.id === posterSizeId) ?? POSTER_SIZES[0];
 
   const targetUrl = useMemo(() => {
     if (!site?.domain) return '';
@@ -243,6 +294,38 @@ export function QrPosterPage() {
             <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
               {site?.domain ? <>Linking to <strong style={{ color: 'var(--ink)' }}>{displayHost}</strong></> : 'No site selected'}
             </span>
+          </div>
+
+          {/* Print-size presets — pure client-side layout scaling;
+              the @page rule below follows the pick. */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: '0.14em',
+              textTransform: 'uppercase', color: 'var(--ink-muted)',
+            }}>
+              Size
+            </span>
+            {POSTER_SIZES.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setPosterSizeId(s.id)}
+                aria-pressed={s.id === posterSizeId}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: 999,
+                  border: `1.5px solid ${s.id === posterSizeId ? 'var(--peach-ink)' : 'var(--line)'}`,
+                  background: s.id === posterSizeId ? 'var(--peach-bg, #FCEAD6)' : 'var(--cream-2)',
+                  color: s.id === posterSizeId ? 'var(--peach-ink)' : 'var(--ink-soft)',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {s.label}
+              </button>
+            ))}
           </div>
 
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -433,10 +516,10 @@ export function QrPosterPage() {
               : 'var(--paper, #F8F2E0)',
             border: posterMode === 'themed' && themedPosterUrl ? 'none' : '1px solid var(--line)',
             borderRadius: 6,
-            padding: '64px 56px 56px',
+            padding: sizePreset.pad,
             margin: '0 auto',
-            maxWidth: 720,
-            aspectRatio: '1 / 1.414', // A4 portrait
+            maxWidth: sizePreset.maxWidth,
+            aspectRatio: sizePreset.aspect,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -474,31 +557,37 @@ export function QrPosterPage() {
           )}
 
           {/* Header — only visible in classic mode (themed mode already
-              has names/date painted INTO the AI background). */}
+              has names/date painted INTO the AI background). The
+              sticker preset goes compact: kicker only, no big names
+              block — the QR is the whole point at 3×3. */}
           {!(posterMode === 'themed' && themedPosterUrl) && (
             <div style={{ textAlign: 'center', maxWidth: '92%' }}>
               <div
                 style={{
-                  fontSize: 12,
+                  fontSize: sizePreset.compact ? 10 : 12,
                   fontWeight: 700,
                   letterSpacing: '0.28em',
                   textTransform: 'uppercase',
                   color: 'var(--peach-ink)',
-                  marginBottom: 18,
+                  marginBottom: sizePreset.compact ? 0 : 18,
                 }}
               >
                 {finalKicker}
               </div>
-              <div
-                className="display"
-                style={{ fontSize: 'clamp(34px, 4.6vw, 52px)', lineHeight: 1.05, margin: 0, fontFamily: 'var(--font-display, Georgia, serif)' }}
-              >
-                {names}
-              </div>
-              {dateLabel && (
-                <div style={{ marginTop: 14, fontSize: 17, color: 'var(--ink-soft)', fontStyle: 'italic' }}>
-                  {dateLabel}
-                </div>
+              {!sizePreset.compact && (
+                <>
+                  <div
+                    className="display"
+                    style={{ fontSize: sizePreset.headlineSize, lineHeight: 1.05, margin: 0, fontFamily: 'var(--font-display, Georgia, serif)' }}
+                  >
+                    {names}
+                  </div>
+                  {dateLabel && (
+                    <div style={{ marginTop: 14, fontSize: 17, color: 'var(--ink-soft)', fontStyle: 'italic' }}>
+                      {dateLabel}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -508,7 +597,7 @@ export function QrPosterPage() {
               "blank centre area" the prompt reserved). */}
           <div
             style={{
-              padding: posterMode === 'themed' && themedPosterUrl ? 0 : 22,
+              padding: posterMode === 'themed' && themedPosterUrl ? 0 : sizePreset.compact ? 12 : 22,
               background: posterMode === 'themed' && themedPosterUrl
                 ? 'transparent'
                 : 'var(--cream-2, #FBF7EE)',
@@ -523,16 +612,16 @@ export function QrPosterPage() {
                 src={qrUrl}
                 alt="QR code linking to your site"
                 style={{
-                  width: posterMode === 'themed' && themedPosterUrl ? 280 : 320,
-                  height: posterMode === 'themed' && themedPosterUrl ? 280 : 320,
+                  width: posterMode === 'themed' && themedPosterUrl ? sizePreset.qrThemed : sizePreset.qr,
+                  height: posterMode === 'themed' && themedPosterUrl ? sizePreset.qrThemed : sizePreset.qr,
                   display: 'block',
                 }}
               />
             ) : (
               <div
                 style={{
-                  width: 320,
-                  height: 320,
+                  width: sizePreset.qr,
+                  height: sizePreset.qr,
                   background: 'var(--cream)',
                   border: '1px dashed var(--line)',
                   display: 'grid',
@@ -546,15 +635,17 @@ export function QrPosterPage() {
             )}
           </div>
 
-          {/* Footer — classic only */}
+          {/* Footer — classic only. Sticker keeps just the URL line. */}
           {!(posterMode === 'themed' && themedPosterUrl) && (
             <div style={{ textAlign: 'center', maxWidth: '92%' }}>
-              <div style={{ fontSize: 17, color: 'var(--ink)', marginBottom: 6 }}>
-                {finalHint}
-              </div>
+              {!sizePreset.compact && (
+                <div style={{ fontSize: 17, color: 'var(--ink)', marginBottom: 6 }}>
+                  {finalHint}
+                </div>
+              )}
               <div
                 style={{
-                  fontSize: 13,
+                  fontSize: sizePreset.compact ? 11 : 13,
                   fontFamily: 'var(--font-ui, ui-monospace, monospace)',
                   color: 'var(--ink-muted)',
                   letterSpacing: '0.04em',
@@ -584,12 +675,12 @@ export function QrPosterPage() {
             width: 100vw !important;
             height: 100vh !important;
             aspect-ratio: auto !important;
-            padding: 14mm !important;
+            padding: ${sizePreset.printPad} !important;
             page-break-after: always;
           }
           .pl8-dashshell, .pl8-dashshell aside, .pl8-dashshell header { display: none !important; }
           .pl8-dashshell main { padding: 0 !important; }
-          @page { margin: 0; size: A4 portrait; }
+          @page { margin: 0; size: ${sizePreset.page}; }
         }
       `}</style>
     </DashLayout>
