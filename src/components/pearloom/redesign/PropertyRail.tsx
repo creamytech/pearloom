@@ -16,6 +16,8 @@ import { VariantGlyph } from './variant-glyphs';
 import { getTheme } from '../site/themes';
 import { pearErrorMessage } from './PearAssist';
 import { fireUndoable } from './UndoToast';
+import { pearWorking } from './PearLoomFx';
+import { showPressings, type Pressing } from './ThreePressings';
 
 /* useSectionHidden — read/write manifest.hiddenSections from
    inside the rail. Mirrors the same hook in _section-atoms.tsx
@@ -262,10 +264,31 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
     setOptionsOpen(false);
   }
 
+  /* Alt+↑ / Alt+↓ reorder the selected section without reaching for
+     the options popover or the drag handle. Alt (not Cmd) so it
+     can't collide with browser/OS shortcuts or the bridge's Cmd
+     layer; skipped while typing so option-key character entry on
+     macOS keyboards isn't swallowed. */
+  const moveRef = useRef(moveSection);
+  moveRef.current = moveSection;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.altKey || e.metaKey || e.ctrlKey) return;
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+      const ae = document.activeElement as HTMLElement | null;
+      if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable)) return;
+      e.preventDefault();
+      moveRef.current(e.key === 'ArrowUp' ? -1 : 1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   /* runSuggestion — POST /api/inline-rewrite with the source field
      value + tone context, then patch the manifest with the rewrite. */
   async function runSuggestion(label: string) {
     setPearErr(null);
+    if (/3 styles/i.test(label)) { void runPressings(label); return; }
     const target = rewriteTarget(active, label);
     if (!target) return; /* Section doesn't map to a single text field. */
     const current = readPath(manifest, target.fieldPath);
@@ -274,11 +297,12 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
       return;
     }
     setPearBusy(label);
+    pearWorking('start', active);
     try {
       const res = await fetch('/api/inline-rewrite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: current, context: `${target.context} — make it ${target.tone}` }),
+        body: JSON.stringify({ text: current, context: target.context, instruction: `make it ${target.tone}` }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
@@ -289,9 +313,61 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
       if (rewritten && rewritten !== current) {
         onChange(writePath(manifest as unknown as Record<string, unknown>, target.fieldPath, rewritten) as unknown as StoryManifest);
       }
+      pearWorking('done', active);
     } catch (e) {
       console.error('[property-rail] rewrite error:', e);
+      pearWorking('error', active);
       setPearErr(pearErrorMessage(e, 'Pear couldn’t rewrite that one — try again?'));
+    } finally {
+      setPearBusy(null);
+    }
+  }
+
+  /* "…in 3 styles" — THE CONTACT SHEET. Three parallel rewrites in
+     three directions, each pressed into a full manifest variant and
+     laid out as live miniatures (ThreePressings). The pick drapes
+     in the Fitting Room; nothing applies until Keep. */
+  async function runPressings(label: string) {
+    const target = rewriteTarget(active, label);
+    if (!target) return;
+    const current = readPath(manifest, target.fieldPath);
+    if (!current.trim()) {
+      setPearErr(`Add some ${target.context} first, then Pear can press variations.`);
+      return;
+    }
+    setPearBusy(label);
+    pearWorking('start', active);
+    const DIRECTIONS: Array<[string, string]> = [
+      ['Tighter', 'make it shorter and punchier'],
+      ['Warmer', 'make it warmer and more romantic'],
+      ['Poetic', 'make it more poetic and editorial'],
+    ];
+    try {
+      const results = await Promise.all(DIRECTIONS.map(async ([name, instruction]) => {
+        const res = await fetch('/api/inline-rewrite', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: current, context: target.context, instruction }),
+        });
+        if (!res.ok) throw new Error('Pear couldn’t press the variations — try again?');
+        const { rewritten } = await res.json() as { rewritten: string };
+        return [name, rewritten] as const;
+      }));
+      const variants: Pressing[] = results
+        .filter(([, text]) => !!text)
+        .map(([name, text]) => ({
+          label: name,
+          manifest: writePath(manifest as unknown as Record<string, unknown>, target.fieldPath, text) as unknown as StoryManifest,
+        }));
+      pearWorking('done', active);
+      if (variants.length === 0 || variants.every((v) => readPath(v.manifest, target.fieldPath) === current)) {
+        setPearErr('Pear pressed the same line three times — try a whisper instead.');
+        return;
+      }
+      showPressings(active ?? 'hero', variants);
+    } catch (e) {
+      pearWorking('error', active);
+      setPearErr(pearErrorMessage(e, 'Pear couldn’t press the variations — try again?'));
     } finally {
       setPearBusy(null);
     }

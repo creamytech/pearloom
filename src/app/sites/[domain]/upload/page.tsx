@@ -64,6 +64,42 @@ export default async function GuestUploadPage({
   const names = (site.ai_manifest?.names ?? site.site_config?.names ?? []).filter(Boolean);
   const couple = names.length >= 2 ? `${names[0]} & ${names[1]}` : (names[0] ?? 'the celebration');
 
+  // Host's "Guest uploads" switch (GalleryPanel → manifest.guestUploads,
+  // default ON). When the host turns it off, this page becomes a
+  // gentle closed notice instead of a camera — and /api/guest-photos
+  // enforces the same flag server-side.
+  const uploadsOpen =
+    ((site.ai_manifest as unknown as { guestUploads?: boolean } | null)?.guestUploads) !== false;
+  if (!uploadsOpen) {
+    return (
+      <main
+        style={{
+          minHeight: '100dvh',
+          display: 'grid',
+          placeItems: 'center',
+          background: '#F5EFE2',
+          color: '#0E0D0B',
+          fontFamily: 'Georgia, serif',
+          padding: 24,
+          textAlign: 'center',
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.55, marginBottom: 12 }}>
+            {couple}
+          </div>
+          <h1 style={{ fontSize: 28, fontStyle: 'italic', margin: '0 0 10px' }}>
+            Photo uploads are closed.
+          </h1>
+          <p style={{ fontSize: 14, opacity: 0.7, maxWidth: 380, margin: '0 auto' }}>
+            The hosts aren&rsquo;t collecting photos right now — but they&rsquo;d
+            still love to see you at the celebration.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   // Pre-fill the uploader name + email from the personalized guest
   // record when /upload?t=<guest_token> is used. The form stays
   // editable in case the guest's borrowing someone's phone.

@@ -1,5 +1,7 @@
 'use client';
 
+import { pearWorking } from './PearLoomFx';
+
 /* eslint-disable no-restricted-syntax */
 /* LITERAL PORT of handoff/shared/themes.jsx L820-933 ThemePicker body.
 
@@ -66,6 +68,7 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor }:
      host's old look is one tap away. Undo-after, never
      confirm-before. */
   const applyPackWithUndo = (next: StoryManifest) => {
+    pearWorking('done', undefined, 'theme');
     const prior = manifest;
     onChange(next);
     fireUndoable('Pack applied — your old look is one tap away', () => onChange(prior));

@@ -357,6 +357,34 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         >
           <Icon name="sparkles" size={12} /> Decor
         </button>
+        {/* Command-palette discoverability — the palette has shipped
+            for months behind an unmarked Cmd+K. A visible chip is
+            the only way new hosts find it. */}
+        <button
+          type="button"
+          onClick={() => {
+            try { window.dispatchEvent(new CustomEvent('pearloom:command-palette-open')); } catch { /* noop */ }
+          }}
+          title="Jump to any section, theme, or tool"
+          aria-label="Open command palette (Cmd+K)"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 5,
+            padding: '5px 9px',
+            borderRadius: 8,
+            border: '1px solid var(--line-soft)',
+            background: 'transparent',
+            color: 'var(--ink-muted)',
+            fontSize: 11,
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontFamily: 'var(--font-ui)',
+          }}
+        >
+          <Icon name="search" size={11} />
+          <kbd style={{ fontFamily: 'inherit', fontSize: 10.5, letterSpacing: '0.02em' }}>⌘K</kbd>
+        </button>
         {manifest && <GoLiveBadge manifest={manifest} />}
         {manifest && <PublishChecklist manifest={manifest} />}
         <button type="button" className="btn btn-primary btn-sm pl-pearl-accent" onClick={onPublish}>

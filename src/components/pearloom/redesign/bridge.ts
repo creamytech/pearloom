@@ -264,7 +264,11 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
     setHistoryTick((t) => t + 1);
   }, [persist, names]);
 
-  /* Keyboard shortcuts — Cmd/Ctrl+Z + Shift to redo. */
+  /* Keyboard shortcuts — Cmd/Ctrl+Z (+Shift = redo), Cmd+S
+     (flush the autosave debounce now — pure muscle-memory
+     reassurance; the topbar dot flips Saving… → Saved), and
+     Cmd+Enter (open the publish flow, unless the host is typing
+     in a field that uses it as its own submit). */
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const onKey = (e: KeyboardEvent) => {
@@ -272,10 +276,22 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
       if (!meta) return;
       if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
       else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') { e.preventDefault(); redo(); }
+      else if (e.key === 's') {
+        e.preventDefault();
+        if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+        fireSave();
+      } else if (e.key === 'Enter') {
+        const ae = document.activeElement as HTMLElement | null;
+        const typing = !!ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable);
+        if (!typing) {
+          e.preventDefault();
+          window.dispatchEvent(new CustomEvent('pearloom:open-publish'));
+        }
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [undo, redo]);
+  }, [undo, redo, fireSave]);
 
   const setNames = useCallback((next: [string, string]) => {
     const clean = sanitiseNames(next);

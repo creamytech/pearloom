@@ -133,7 +133,7 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
         {step === 'live' && (
           <div style={{ padding: '30px 28px 24px', textAlign: 'center' }}>
             <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--sage-tint)', display: 'grid', placeItems: 'center', marginInline: 'auto' } as CSSProperties}><Pear size={32} tone="sage" sparkle shadow={false}/></div>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 600, margin: '14px 0 4px' }}>You{'’'}re live! 🎉</h2>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 600, margin: '14px 0 4px' }}>You{'’'}re live.</h2>
             <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 16 }}>Your site is published. Share this link — it unfurls into the card below.</p>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 10, background: 'var(--cream-2)', border: '1px solid var(--line)', marginBottom: 14 }}>

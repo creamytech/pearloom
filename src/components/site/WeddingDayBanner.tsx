@@ -57,11 +57,11 @@ export function WeddingDayBanner({ weddingDate, coupleNames, vibeSkin }: Wedding
 
   if (diff === 0) {
     isToday = true;
-    message = "Today's the day! 🎉";
+    message = "Today's the day!";
   } else if (diff > 0 && diff <= 7) {
-    message = `${diff} day${diff === 1 ? '' : 's'} to go ✨`;
+    message = `${diff} day${diff === 1 ? '' : 's'} to go`;
   } else if (diff < 0 && diff >= -30) {
-    message = 'Just married! 💍';
+    message = 'Just married!';
   } else {
     return null; // Outside the window — render nothing
   }

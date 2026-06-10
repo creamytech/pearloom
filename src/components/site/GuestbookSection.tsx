@@ -23,7 +23,46 @@ export interface GuestbookSectionProps {
   manifest: StoryManifest;
 }
 
-const EMOJI_OPTIONS = ['💕', '🌸', '✨', '🥂', '💐', '🌹', '🎉', '💫', '🕊️', '💍'];
+/* ── Guest glyphs — hand-drawn SVG marks replacing the old emoji
+   picker (BRAND.md §10: no emoji peppered through copy). Stored
+   by id; legacy rows that saved a raw emoji render through the
+   LEGACY_GLYPH map so old signatures keep their sentiment. ── */
+type GlyphId = 'heart' | 'sprig' | 'bloom' | 'sparkle' | 'rings' | 'dove';
+const GLYPH_OPTIONS: GlyphId[] = ['heart', 'sprig', 'bloom', 'sparkle', 'rings', 'dove'];
+const LEGACY_GLYPH: Record<string, GlyphId> = {
+  '💕': 'heart', '💝': 'heart', '❤️': 'heart',
+  '🌸': 'bloom', '💐': 'bloom', '🌹': 'bloom',
+  '✨': 'sparkle', '💫': 'sparkle', '🎉': 'sparkle',
+  '🥂': 'rings', '💍': 'rings',
+  '🕊️': 'dove', '🕊': 'dove',
+};
+const GLYPH_LABEL: Record<GlyphId, string> = {
+  heart: 'With love', sprig: 'An olive sprig', bloom: 'A bloom',
+  sparkle: 'A sparkle', rings: 'Two rings', dove: 'A dove',
+};
+
+function GuestGlyph({ id, size = 20, color = 'currentColor' }: { id: string; size?: number; color?: string }) {
+  const g = (GLYPH_OPTIONS as string[]).includes(id) ? (id as GlyphId) : LEGACY_GLYPH[id];
+  if (!g) return <span style={{ fontSize: size * 0.9, lineHeight: 1 }}>{id}</span>;
+  const k = { fill: 'none' as const, stroke: color, strokeWidth: 1.6, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
+  const body = (() => {
+    switch (g) {
+      case 'heart':
+        return <path d="M12 20 C 6 15, 3 11, 3 8 a4.4 4.4 0 0 1 9 -1.4 A4.4 4.4 0 0 1 21 8 c 0 3, -3 7, -9 12 Z" {...k} />;
+      case 'sprig':
+        return (<g {...k}><path d="M5 20 C 9 16, 13 11, 19 4" /><path d="M9 16 C 7 14, 7 12, 8.4 10.6 C 10 12, 10.4 14, 9 16 Z" /><path d="M13 11.5 C 14.6 10, 16.6 9.8, 18 11 C 16.4 12.6, 14.4 12.8, 13 11.5 Z" /></g>);
+      case 'bloom':
+        return (<g {...k}><circle cx="12" cy="12" r="2.3" /><path d="M12 9.7 C 10.6 7.4, 11 4.8, 12 3.4 C 13 4.8, 13.4 7.4, 12 9.7 Z" /><path d="M14.3 12 C 16.6 10.6, 19.2 11, 20.6 12 C 19.2 13, 16.6 13.4, 14.3 12 Z" /><path d="M12 14.3 C 13.4 16.6, 13 19.2, 12 20.6 C 11 19.2, 10.6 16.6, 12 14.3 Z" /><path d="M9.7 12 C 7.4 13.4, 4.8 13, 3.4 12 C 4.8 11, 7.4 10.6, 9.7 12 Z" /></g>);
+      case 'sparkle':
+        return <path d="M12 3 L 13.6 10.4 L 21 12 L 13.6 13.6 L 12 21 L 10.4 13.6 L 3 12 L 10.4 10.4 Z" {...k} />;
+      case 'rings':
+        return (<g {...k}><circle cx="9" cy="13.5" r="5.6" /><circle cx="15" cy="10.5" r="5.6" /></g>);
+      case 'dove':
+        return (<g {...k}><path d="M4 14 C 8 14, 11 12, 13 8 C 14 10, 14 12, 13.4 13.6 C 16 13.4, 18.4 12, 20 9.6 C 20 15, 16 19, 10.6 19 C 7.6 19, 5.2 17, 4 14 Z" /><path d="M13 8 C 12.4 6.6, 11.2 6, 9.8 6.2 C 10.6 7.2, 11 7.8, 11.4 8.8" /></g>);
+    }
+  })();
+  return <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden>{body}</svg>;
+}
 
 function formatDate(iso: string): string {
   try {
@@ -47,7 +86,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
   // Form state
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
-  const [selectedEmoji, setSelectedEmoji] = useState('💕');
+  const [selectedEmoji, setSelectedEmoji] = useState<string>('heart');
   const [showForm, setShowForm] = useState(false);
 
   const accent = vibeSkin?.palette?.accent || 'var(--pl-olive, #5C6B3F)';
@@ -105,7 +144,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
       // Reset form
       setName('');
       setMessage('');
-      setSelectedEmoji('💕');
+      setSelectedEmoji('heart');
       setShowForm(false);
       setSubmitSuccess(true);
       setTimeout(() => setSubmitSuccess(false), 5000);
@@ -179,7 +218,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
             fontWeight: 600,
           }}
         >
-          Your message was delivered! 💕
+          Your message was delivered.
         </div>
       )}
 
@@ -216,7 +255,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
             >
               {/* Emoji + Name row */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>{msg.emoji || '💕'}</span>
+                <span style={{ lineHeight: 0, color: accent }}><GuestGlyph id={msg.emoji || 'heart'} size={22} color={accent} /></span>
                 <span
                   style={{
                     fontFamily: `"${headingFont}", serif`,
@@ -267,7 +306,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
             margin: '0 auto 3rem',
           }}
         >
-          <div style={{ fontSize: '2rem', marginBottom: '0.75rem', opacity: 0.4 }}>💌</div>
+          <div style={{ marginBottom: '0.75rem', opacity: 0.45, display: 'flex', justifyContent: 'center' }}><GuestGlyph id="dove" size={32} color={accent} /></div>
           <p style={{ margin: 0, fontSize: '0.95rem' }}>Be the first to leave a message for the couple!</p>
         </div>
       )}
@@ -421,28 +460,29 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
                 Reaction
               </label>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                {EMOJI_OPTIONS.map(emoji => (
+                {GLYPH_OPTIONS.map((glyph) => (
                   <button
-                    key={emoji}
+                    key={glyph}
                     type="button"
-                    onClick={() => setSelectedEmoji(emoji)}
+                    onClick={() => setSelectedEmoji(glyph)}
+                    aria-label={GLYPH_LABEL[glyph]}
                     style={{
-                      fontSize: '1.3rem',
-                      padding: '0.4rem',
+                      padding: '0.45rem',
                       borderRadius: '0.5rem',
-                      border: selectedEmoji === emoji
-                        ? `2px solid var(--pl-plum, #6D597A)`
+                      border: selectedEmoji === glyph
+                        ? `2px solid ${accent}`
                         : '2px solid transparent',
-                      background: selectedEmoji === emoji
-                        ? 'rgba(109,89,122,0.08)'
+                      background: selectedEmoji === glyph
+                        ? 'rgba(92,107,63,0.08)'
                         : 'transparent',
                       cursor: 'pointer',
                       transition: 'all var(--pl-dur-instant)',
-                      lineHeight: 1,
+                      lineHeight: 0,
+                      color: accent,
                     }}
-                    title={emoji}
+                    title={GLYPH_LABEL[glyph]}
                   >
-                    {emoji}
+                    <GuestGlyph id={glyph} size={21} color={accent} />
                   </button>
                 ))}
               </div>

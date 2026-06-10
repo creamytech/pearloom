@@ -7,6 +7,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Blob, Icon, Pear, Sparkle, Squiggle } from '../motifs';
+import { AmbientSprig, AmbientThread } from '../ambient';
 import { Footbar, TopNav } from '../chrome';
 
 type Layout = 'timeline' | 'magazine' | 'filmstrip' | 'bento' | 'parallax' | 'kenburns';
@@ -349,7 +350,7 @@ export function TemplatesV8() {
       <section className="pl8-templates-hero" style={{ position: 'relative', padding: '72px 32px 48px', overflow: 'hidden' }}>
         <Blob tone="lavender" size={380} opacity={0.5} style={{ position: 'absolute', top: -80, left: -80 }} />
         <Blob tone="peach" size={320} opacity={0.45} style={{ position: 'absolute', top: 40, right: -80 }} />
-        <Squiggle variant={2} width={200} style={{ position: 'absolute', top: 120, right: 260, transform: 'rotate(-12deg)' }} />
+        <AmbientSprig size={190} style={{ position: 'absolute', top: 110, right: 240, transform: 'rotate(-10deg)', opacity: 0.08 }} />
 
         <div style={{ maxWidth: 900, margin: '0 auto', textAlign: 'center', position: 'relative' }}>
           <div
@@ -574,7 +575,7 @@ export function TemplatesV8() {
               gap: 30,
             }}
           >
-            <Squiggle variant={1} width={280} style={{ position: 'absolute', top: 30, right: 260, opacity: 0.6 }} />
+            <AmbientThread size={220} style={{ position: 'absolute', top: 24, right: 240, opacity: 0.09 }} />
             <div style={{ position: 'relative' }}>
               <div
                 style={{

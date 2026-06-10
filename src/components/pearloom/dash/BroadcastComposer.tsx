@@ -1,5 +1,7 @@
 'use client';
 
+import { Icon } from '../motifs';
+
 /* ========================================================================
    BroadcastComposer — host-side composer that sends a live update to
    every guest currently viewing the published site. Posts to
@@ -302,7 +304,7 @@ export function BroadcastComposer({ subdomain }: Props) {
                         verticalAlign: 'middle',
                       }}
                     >
-                      ✉ {u.email_recipient_count ?? '·'}
+                      <Icon name="mail" size={10} /> {u.email_recipient_count ?? '·'}
                     </span>
                   )}
                 </span>

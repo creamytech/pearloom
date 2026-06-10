@@ -114,11 +114,13 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
     { id: 'sidebar',   label: 'Sidebar',    sub: 'Player + description column' },
     { id: 'jukebox',   label: 'Jukebox',    sub: 'Dark plate + gold neon' },
   ],
-  /* ── Event-OS blocks (occasion-gated via isBlockApplicable). The
-     FIRST variant of each registry is implemented by the skeleton
-     renderer in section-variants/blocks/; the rest are reserved
-     ids the design agents flesh out without touching this file
-     beyond their renderer dispatch. */
+  /* ── Event-OS blocks (occasion-gated via isBlockApplicable).
+     Every variant id below is IMPLEMENTED — the renderers in
+     section-variants/blocks/ dispatch on the `variant` prop that
+     ThemedSite.blockProps reads from manifest.layouts[section],
+     and the Layout tab lists these same entries. (An earlier
+     version of this comment called the non-first ids "reserved";
+     that was true pre-2026-06-09 and misled an audit since.) */
   itinerary: [
     { id: 'days',    label: 'Days',    sub: 'One card per day, hour rows' },
     { id: 'flow',    label: 'Flow',    sub: 'Continuous rail across days' },

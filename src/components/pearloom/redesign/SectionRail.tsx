@@ -9,7 +9,7 @@ import type { StoryManifest } from '@/types';
 import { getEventType } from '@/lib/event-os/event-types';
 import { type SectionId, type BlockSectionId, BLOCK_SECTION_IDS, isToolPanelApplicable, isOptionalSectionApplicable, isBlockApplicable } from './EditorRedesign';
 import { isCoreSectionApplicable, sectionHasContent } from './section-applicability';
-import { SiteModeSection } from '../editor/panels/ThemePanel';
+import { SiteModeSection } from '../editor/panels/SiteModeSection';
 import { useMobileViewport } from './use-mobile-viewport';
 
 interface SectionDef {

@@ -145,7 +145,7 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
         )}
         <FToggleStandalone
           label="Guest photo uploads"
-          sub="Let guests add to a shared album"
+          sub="Guests can add photos via your QR poster's upload page; off closes it"
           def={guestUploads}
           onChange={setGuestUploads}
         />

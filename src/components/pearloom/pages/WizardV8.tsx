@@ -24,6 +24,8 @@ import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotos
 import { WizardLocationAutocomplete } from '../wizard/WizardLocationAutocomplete';
 import { WizardDatePicker } from '../wizard/WizardDatePicker';
 import { GeneratingScreen } from '../wizard/GeneratingScreen';
+import { StoryListen } from '../wizard/StoryListen';
+import { AmbientSprig } from '../ambient';
 import { useBackgroundCook, readCookedDecor } from '../wizard/useBackgroundCook';
 import {
   useBackgroundManifest,
@@ -129,8 +131,8 @@ const VIBES = [
   { id: 'playful', label: 'Playful', icon: '✿', tone: 'peach' as const },
   { id: 'quiet', label: 'Quiet', icon: '⟐', tone: 'sage' as const },
   { id: 'editorial', label: 'Editorial', icon: '❖', tone: 'cream' as const },
-  { id: 'groovy', label: 'Groovy', icon: '☀', tone: 'peach' as const },
-  { id: 'outdoorsy', label: 'Outdoorsy', icon: '☘', tone: 'sage' as const },
+  { id: 'groovy', label: 'Groovy', icon: '\u2600\uFE0E', tone: 'peach' as const },
+  { id: 'outdoorsy', label: 'Outdoorsy', icon: '\u2618\uFE0E', tone: 'sage' as const },
   { id: 'modern', label: 'Modern', icon: '■', tone: 'lavender' as const },
   // Voice-specific chips — same free-string contract as the originals.
   { id: 'gentle', label: 'Gentle', icon: '✾', tone: 'sage' as const },
@@ -227,6 +229,17 @@ interface WizardState {
   howWeMet?: string;
   whyCelebrate?: string;
   favoriteMemory?: string;
+  /** The host's story, told once in their own words ("tell me
+   *  about it"). Rides the factSheet verbatim — the richest
+   *  grounding source the pipeline gets. */
+  storyText?: string;
+  /** Named personal specifics Pear heard in the story
+   *  (/api/wizard/listen). The copy passes are required to spend
+   *  these — the dog, the bar in Lisbon, grandma's lemon cake. */
+  anchors?: string[];
+  /** Mood words Pear heard in HOW they told it — appended to the
+   *  vibeString at generation. */
+  heardVibes?: string[];
   // Occasion-specific details (consumed by /api/generate/stream as eventDetails)
   detailDays?: number;
   detailLivestreamUrl?: string;
@@ -1043,8 +1056,8 @@ function ContextChips({ st }: { st: WizardState }) {
   const chips = [
     { icon: '♥', tone: 'peach' as const, label: 'Occasion', val: occ },
     { icon: '✦', tone: 'lavender' as const, label: 'Names', val: namesVal },
-    { icon: '🗓', tone: 'sage' as const, label: 'Date', val: dateVal },
-    { icon: '📍', tone: 'peach' as const, label: 'Location', val: locVal },
+    { icon: <Icon name="calendar" size={13} />, tone: 'sage' as const, label: 'Date', val: dateVal },
+    { icon: <Icon name="pin" size={13} />, tone: 'peach' as const, label: 'Location', val: locVal },
   ];
   return (
     <div
@@ -1335,7 +1348,7 @@ export function WizardV8() {
         locationLabel: st.location || undefined,
       },
     ];
-    const vibeString = st.vibes.join(', ') || 'warm, celebratory';
+    const vibeString = [...st.vibes, ...(st.heardVibes ?? [])].filter(Boolean).join(', ') || 'warm, celebratory';
     const e = getEventType(st.occasion as never);
     const category = e?.category;
     const ctx: ManifestCookContext = {
@@ -1367,6 +1380,8 @@ export function WizardV8() {
           howWeMet: st.howWeMet,
           why: st.whyCelebrate,
           favorite: st.favoriteMemory,
+          anchors: st.anchors,
+          story: st.storyText,
         },
         eventDetails: {
           days: st.detailDays,
@@ -1392,6 +1407,9 @@ export function WizardV8() {
     st.howWeMet,
     st.whyCelebrate,
     st.favoriteMemory,
+    st.storyText,
+    st.anchors,
+    st.heardVibes,
     st.detailDays,
     st.detailLivestreamUrl,
     st.detailInMemoryOf,
@@ -1659,7 +1677,7 @@ export function WizardV8() {
             locationLabel: st.location || undefined,
           },
         ];
-        const vibeString = st.vibes.join(', ') || 'warm, celebratory';
+        const vibeString = [...st.vibes, ...(st.heardVibes ?? [])].filter(Boolean).join(', ') || 'warm, celebratory';
         const body = {
           photos: photosPayload,
           clusters,
@@ -1883,10 +1901,10 @@ export function WizardV8() {
         style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, color: 'var(--sage, #5C6B3F)' }}
       >
         <div style={{ position: 'absolute', top: 90, left: -20, opacity: 0.10, transform: 'rotate(-12deg)' }}>
-          <Sprig size={220} color="var(--sage-deep, #5C6B3F)" />
+          <AmbientSprig size={220} color="var(--sage-deep, #5C6B3F)" />
         </div>
         <div style={{ position: 'absolute', bottom: 40, right: -30, opacity: 0.09, transform: 'rotate(8deg) scaleX(-1)' }}>
-          <Sprig size={260} color="var(--sage-deep, #5C6B3F)" />
+          <AmbientSprig size={260} color="var(--sage-deep, #5C6B3F)" />
         </div>
         <div style={{ position: 'absolute', top: '44%', right: '32%', opacity: 0.18 }}>
           <Sparkle size={28} color="var(--gold, #C19A4B)" />
@@ -2248,45 +2266,55 @@ export function WizardV8() {
                 return (
                   <>
                     <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                      A little more <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>about it.</span>
+                      Tell me <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>about it.</span>
                     </h2>
                     <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
-                      Every answer here sharpens the story Pear writes. Skip anything you want to leave to the editor.
+                      Like you&rsquo;d tell a friend — how it started, who&rsquo;s coming, the detail that makes it
+                      yours. Pear listens for the specifics and weaves them into the site itself.
                     </p>
 
-                    <div style={{ display: 'grid', gap: 18 }}>
-                      <div>
-                        <label className="field-label">{q.q1Label}</label>
-                        <textarea
-                          className="input"
-                          rows={3}
-                          value={st.howWeMet ?? ''}
-                          onChange={(ev) => setSt((s) => ({ ...s, howWeMet: ev.target.value }))}
-                          placeholder={q.q1Placeholder}
-                        />
-                      </div>
+                    <StoryListen st={st} setSt={setSt} />
 
-                      <div>
-                        <label className="field-label">{q.q2Label}</label>
-                        <textarea
-                          className="input"
-                          rows={3}
-                          value={st.whyCelebrate ?? ''}
-                          onChange={(ev) => setSt((s) => ({ ...s, whyCelebrate: ev.target.value }))}
-                          placeholder={q.q2Placeholder}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="field-label">{q.q3Label}</label>
-                        <textarea
-                          className="input"
-                          rows={3}
-                          value={st.favoriteMemory ?? ''}
-                          onChange={(ev) => setSt((s) => ({ ...s, favoriteMemory: ev.target.value }))}
-                          placeholder={q.q3Placeholder}
-                        />
-                      </div>
+                    <div style={{ display: 'grid', gap: 18, marginTop: 18 }}>
+                      {/* One-by-one fallback — the old three prompts, tucked
+                          away. Their answers still ride the factSheet. */}
+                      <details>
+                        <summary style={{ fontSize: 12.5, color: 'var(--ink-muted)', cursor: 'pointer' }}>
+                          Prefer to answer one question at a time?
+                        </summary>
+                        <div style={{ display: 'grid', gap: 14, marginTop: 12 }}>
+                          <div>
+                            <label className="field-label">{q.q1Label}</label>
+                            <textarea
+                              className="input"
+                              rows={2}
+                              value={st.howWeMet ?? ''}
+                              onChange={(ev) => setSt((s) => ({ ...s, howWeMet: ev.target.value }))}
+                              placeholder={q.q1Placeholder}
+                            />
+                          </div>
+                          <div>
+                            <label className="field-label">{q.q2Label}</label>
+                            <textarea
+                              className="input"
+                              rows={2}
+                              value={st.whyCelebrate ?? ''}
+                              onChange={(ev) => setSt((s) => ({ ...s, whyCelebrate: ev.target.value }))}
+                              placeholder={q.q2Placeholder}
+                            />
+                          </div>
+                          <div>
+                            <label className="field-label">{q.q3Label}</label>
+                            <textarea
+                              className="input"
+                              rows={2}
+                              value={st.favoriteMemory ?? ''}
+                              onChange={(ev) => setSt((s) => ({ ...s, favoriteMemory: ev.target.value }))}
+                              placeholder={q.q3Placeholder}
+                            />
+                          </div>
+                        </div>
+                      </details>
 
                       {/* Occasion-specific fields */}
                       {isBachelor && (

@@ -121,6 +121,7 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
           {(cards[0]?.[1] ?? '').trim().length >= 2 && (
             <div style={{ marginTop: 7 }}>
               <PearInlineRewrite
+                fxSection="details"
                 value={cards[0]?.[1] ?? ''}
                 onCommit={(v) => setCardValue(0, v)}
                 context="details card value — dress code"

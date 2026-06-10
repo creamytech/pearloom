@@ -22,7 +22,7 @@
    on the visual shell.
 */
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { getEventType } from '@/lib/event-os/event-types';
 import { Icon, Pear } from '../motifs';
@@ -36,6 +36,10 @@ import { EditorTopbar } from './EditorTopbar';
 import { FullSite } from './FullSite';
 import { ThemedSite } from './ThemedSite';
 import { EditorDrawers } from './EditorDrawers';
+import { PearLoomFx } from './PearLoomFx';
+import { FittingRoom } from './FittingRoom';
+import { ThreePressings } from './ThreePressings';
+import { BastedIn } from './BastedIn';
 import { FirstPressing, shouldPlayFirstPressing } from './FirstPressing';
 import { MobileSheet, MobileBottomBar, type MobileSheetId } from './MobileSheet';
 import { useMobileViewport } from './use-mobile-viewport';
@@ -434,6 +438,23 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
         onChange={bridge.setManifest}
         siteSlug={siteSlug}
       />
+      {/* Pear's hands — thread-travel + weave-settle + dye-sweep
+          overlay for every AI operation (pearloom:pear-working). */}
+      <PearLoomFx />
+      {/* Pear's contact sheet — three live miniature canvases for
+          "in 3 styles" asks (pearloom:pressings). Picks chain into
+          the Fitting Room. */}
+      <ThreePressings names={bridge.names} />
+      {/* Basted in — Pear's while-you-were-away stitches. Hidden on
+          phone viewports (the FAB corner is already contested) and
+          in preview mode. */}
+      {!viewportMobile && mode === 'edit' && (
+        <BastedIn
+          manifest={bridge.manifest}
+          siteSlug={siteSlug}
+          onApply={(next) => bridge.editField(() => next)}
+        />
+      )}
 
       {pressing && (
         <FirstPressing
@@ -482,6 +503,14 @@ function EditorCanvas({
      their own phone's layout. */
   const isMobile = mode === 'mobile' || viewportMobile;
   const isPreview = mode === 'preview';
+  /* Keystroke responsiveness — every panel input writes a fresh
+     manifest object, and the 4,400-line ThemedSite tree re-renders
+     on each one. useDeferredValue lets React commit the cheap panel
+     update first and paint the canvas at lower priority, so typing
+     in the Property Rail never waits on a full canvas render.
+     InlineEdit on the canvas is uncontrolled (commits on blur), so
+     the deferral never lags text the host is actively typing. */
+  const canvasManifest = useDeferredValue(manifest);
   /* In the handoff, the canvas content is IDENTICAL between Edit and
      Preview modes — Preview just hides the section-frame chrome.
      Production now does the same: FullSite renders in both modes;
@@ -571,7 +600,7 @@ function EditorCanvas({
           setActive={setActive}
           setHover={setHover}
           editable={!isPreview}
-          manifest={manifest}
+          manifest={canvasManifest}
           names={names}
           /* When the editor's mode pill is "Mobile", force the canvas
              to use the mobile nav drawer variants — otherwise
@@ -585,14 +614,24 @@ function EditorCanvas({
           onEditField={isPreview ? undefined : onEditField}
           onEditNames={isPreview ? undefined : onEditNames}
         />
+        {/* The Fitting Room — drape layer for whole-site AI
+            proposals (pearloom:drape). Lives inside the device
+            frame so the drape aligns 1:1 with the canvas. */}
+        <FittingRoom
+          manifest={manifest}
+          names={names}
+          forceMobile={isMobile}
+          onApply={(next) => onEditField(() => next)}
+        />
         {/* GuestRsvpModal mount — same modal PublishedSiteShell
-            shows guests, mounted in the editor too so the RSVP
-            CTA in the nav actually opens the form in the editor
-            preview (it dispatches pl-open-rsvp on click; without
-            this mount, the click resolved to a no-op). Mounting
-            in both edit + preview so the host can test the flow
-            without switching contexts. */}
-        <EditorCanvasRsvpModal siteSlug={siteSlug} manifest={manifest} />
+            shows guests, mounted so the host can TEST the RSVP
+            flow from Preview / Mobile-preview. Deliberately NOT
+            mounted in Edit mode: the canvas CTAs there select the
+            RSVP section instead (a guest modal opening over the
+            editor blurred the whole shell and trapped the host). */}
+        {isPreview || mode === 'mobile' ? (
+          <EditorCanvasRsvpModal siteSlug={siteSlug} manifest={manifest} />
+        ) : null}
         {/* FullSite + ThemedSiteRenderer kept as imports for one-line
             rollback during cutover — not rendered. */}
         {false && (

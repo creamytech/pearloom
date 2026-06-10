@@ -193,6 +193,24 @@ export interface AdvisorIntent {
   key: number;
 }
 
+
+/* Dispatch a drape proposal; returns true when a FittingRoom is
+   mounted and took it (it preventDefaults the event). The apply
+   itself then happens inside the FittingRoom's Keep. */
+function draped(
+  proposed: StoryManifest,
+  label: string,
+  onKeep: () => void,
+  _apply: (m: StoryManifest) => void,
+): boolean {
+  const ev = new CustomEvent('pearloom:drape', {
+    detail: { proposed, label, onKeep },
+    cancelable: true,
+  });
+  window.dispatchEvent(ev);
+  return ev.defaultPrevented;
+}
+
 export function DesignAdvisor({
   manifest,
   names,
@@ -438,22 +456,25 @@ export function DesignAdvisor({
 
   function applyChatPatch(messageId: string, nextManifest: StoryManifest) {
     if (!onApplyPatch) return;
-    // Snapshot the manifest BEFORE applying so the toast's Undo
-    // can restore it. The applyPatch callback runs through the
-    // editor's manifest reducer (which has its own undo history),
-    // but the toast undo gives the host an immediate, single-tap
-    // path back without hunting for ⌘Z.
+    const target = chat.find((m) => m.id === messageId);
+    const summary = target?.patch?.summary ?? 'Pear’s proposal';
+    /* THE FITTING ROOM — Pear drapes, she doesn't apply. The
+       proposed manifest renders as a live crossfade layer over
+       the canvas; the manifest only changes when the host taps
+       Keep (FittingRoom routes the apply through the same
+       onApplyPatch + fires its own undoable toast). When no
+       FittingRoom is mounted (advisor used outside the redesign
+       editor), fall back to the previous direct-apply + toast. */
+    if (typeof window !== 'undefined' && draped(nextManifest, summary, () => {
+      setChat((prev) => prev.map((m) => (m.id === messageId ? { ...m, patchApplied: true } : m)));
+    }, onApplyPatch)) return;
     const previous = manifest;
     onApplyPatch(nextManifest);
     setChat((prev) => prev.map((m) => (m.id === messageId ? { ...m, patchApplied: true } : m)));
     if (typeof window !== 'undefined') {
-      const target = chat.find((m) => m.id === messageId);
       window.dispatchEvent(new CustomEvent('pearloom:patch-applied', {
         detail: {
-          summary: target?.patch?.summary ?? 'Pear applied a change',
-          // Pass the rollback through the event so the toast can
-          // surface Undo without the toast component knowing about
-          // the manifest at all.
+          summary,
           undo: () => onApplyPatch(previous),
         },
       }));

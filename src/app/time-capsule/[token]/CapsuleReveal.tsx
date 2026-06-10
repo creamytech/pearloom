@@ -66,7 +66,7 @@ export function CapsuleReveal({
               {/* Flap */}
               <div className="flap" style={envelopeStyles.flap} />
               {/* Seal dot */}
-              <div style={envelopeStyles.sealDot}>💌</div>
+              <div style={envelopeStyles.sealDot}><svg viewBox="0 0 24 24" width={20} height={20} aria-hidden style={{ display: 'block' }}><g fill="none" stroke="#FDFAF0" strokeWidth="1.6"><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="3" /></g></svg></div>
               {/* Bottom triangle */}
               <div style={envelopeStyles.bottomTriangle} />
             </div>
@@ -113,7 +113,7 @@ export function CapsuleReveal({
         <div style={letterStyles.texture} aria-hidden="true" />
 
         {/* Decorative top */}
-        <div style={letterStyles.topDecor}>💌</div>
+        <div style={letterStyles.topDecor}><svg viewBox="0 0 24 24" width={22} height={22} aria-hidden style={{ display: 'block' }}><g fill="none" stroke="#C19A4B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="6" width="18" height="13" rx="2" /><path d="M3 7.5 L 12 14 L 21 7.5" /></g></svg></div>
 
         {/* Greeting */}
         <p style={letterStyles.greeting}>Dear {toName},</p>

@@ -8,7 +8,7 @@
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useMemo, type CSSProperties } from 'react';
-import { Heart, Icon, Pear, PostIt, Sparkle, Stamp } from '../motifs';
+import { PearlDot, Heart, Icon, Pear, PostIt, Sparkle, Stamp } from '../motifs';
 import { DashLayout } from '../dash/DashShell';
 import { PLAtmosphere } from '../dash/PLChrome';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
@@ -580,7 +580,7 @@ function Milestones({ eventDate }: { eventDate?: string | null }) {
             />
             <div style={{ fontSize: 13.5, color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: 6 }}>
               {r.task}
-              {r.big && <Heart size={12} />}
+              {r.big && <PearlDot size={10} />}
             </div>
             <div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>{r.due}</div>
           </div>

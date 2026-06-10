@@ -25,6 +25,7 @@ import { InlineEdit } from '../InlineEdit';
    shared types module untouched. */
 export interface TravelVariantCtxEditable extends TravelVariantCtx {
   onEditHotelBlurb?: (idx: number, v: string) => void;
+  onEditHotelName?: (idx: number, v: string) => void;
 }
 
 /* Tone → photo-placeholder background. Only used when a hotel has
@@ -87,6 +88,7 @@ function HotelWrap({ h, children, style, disableLink }: { h: Hotel; children: Re
 function HotelCard({ h, style, idx, ctx }: { h: Hotel; style?: CSSProperties; idx?: number; ctx?: TravelVariantCtxEditable }) {
   const blurbStyle: CSSProperties = { fontSize: 12.5, color: 'var(--t-ink-soft)', lineHeight: 1.5, margin: '8px 0 10px' };
   const canEditBlurb = !!(ctx?.editable && ctx.onEditHotelBlurb && typeof idx === 'number');
+  const canEditName = !!(ctx?.editable && ctx.onEditHotelName && typeof idx === 'number');
   return (
     <HotelWrap
       h={h}
@@ -100,9 +102,21 @@ function HotelCard({ h, style, idx, ctx }: { h: Hotel; style?: CSSProperties; id
       }}
     >
       <HotelPhoto h={h} style={{ aspectRatio: '16/10', borderRadius: 8, marginBottom: 10 }} />
-      <div style={{ fontFamily: 'var(--t-display)', fontWeight: 600, fontSize: 15, color: 'var(--t-ink)', lineHeight: 1.15 }}>
-        {h.name}
-      </div>
+      {canEditName ? (
+        <InlineEdit
+          as="div"
+          value={h.name}
+          onChange={(v) => ctx!.onEditHotelName!(idx!, v)}
+          editable
+          placeholder="Hotel name"
+          className="pl8-inline-ghost"
+          style={{ fontFamily: 'var(--t-display)', fontWeight: 600, fontSize: 15, color: 'var(--t-ink)', lineHeight: 1.15 }}
+        />
+      ) : (
+        <div style={{ fontFamily: 'var(--t-display)', fontWeight: 600, fontSize: 15, color: 'var(--t-ink)', lineHeight: 1.15 }}>
+          {h.name}
+        </div>
+      )}
       <div style={{ fontSize: 11.5, color: 'var(--t-ink-muted)', marginTop: 4, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
         {h.rating > 0 && <span>★ {h.rating.toFixed(1)}</span>}
         {h.price && <span>{h.price}</span>}

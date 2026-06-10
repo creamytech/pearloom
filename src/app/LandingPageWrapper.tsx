@@ -22,6 +22,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 import { DesignNav } from '@/components/marketing/design/DesignNav';
 import { DesignHero } from '@/components/marketing/design/DesignHero';
+import { WovenDivider } from '@/components/marketing/design/WovenDivider';
 import { ThreeActsStage } from '@/components/marketing/design/ThreeActsStage';
 import { DesignOccasions } from '@/components/marketing/design/DesignOccasions';
 import { DesignPricing } from '@/components/marketing/design/DesignPricing';
@@ -70,7 +71,9 @@ export default function LandingPageWrapper() {
     >
       <DesignNav onGetStarted={onGetStarted} />
       <DesignHero onGetStarted={onGetStarted} />
-      <ThreadDivider />
+      {/* The loom passes through the page — one continuous thread
+          from the hero into the three acts. */}
+      <WovenDivider />
       <section id="acts" style={{ scrollMarginTop: 96 }}>
         <ThreeActsStage />
       </section>

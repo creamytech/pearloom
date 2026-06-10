@@ -391,6 +391,10 @@ export async function POST(req: Request) {
       howWeMet?: string;
       why?: string;
       favorite?: string;
+      /** Open-ended anchors mined from the host's story (wizard
+       *  listen step) + the story itself — the copy must spend them. */
+      anchors?: string[];
+      story?: string;
     };
     /** Song title/artist so Pass 2 can weight vibeSkin by mood. */
     songMeta?: { title: string; artist?: string };

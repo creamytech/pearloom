@@ -1,5 +1,7 @@
 'use client';
 
+import { AmbientSprig } from '@/components/pearloom/ambient';
+
 // ─────────────────────────────────────────────────────────────
 // Pearloom / app/(shell)/templates/TemplatesBrowser.tsx
 //
@@ -511,7 +513,7 @@ export function TemplatesBrowser() {
       <section style={heroSection}>
         <Wash tone="lavender" size={380} opacity={0.5} style={{ position: 'absolute', top: -80, left: -80, pointerEvents: 'none' }} />
         <Wash tone="peach" size={320} opacity={0.45} style={{ position: 'absolute', top: 40, right: -80, pointerEvents: 'none' }} />
-        <Squiggle width={200} height={70} variant={2} style={{ position: 'absolute', top: 120, right: 260, transform: 'rotate(-12deg)', opacity: 0.7, pointerEvents: 'none' }} />
+        <AmbientSprig size={190} style={{ position: 'absolute', top: 110, right: 240, transform: 'rotate(-10deg)', opacity: 0.08, pointerEvents: 'none' }} />
 
         <div style={{ maxWidth: 900, margin: '0 auto', textAlign: 'center', position: 'relative' }}>
           <div style={heroEyebrow}>

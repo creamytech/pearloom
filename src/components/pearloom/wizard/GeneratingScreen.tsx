@@ -20,6 +20,7 @@
 
 import { useMemo } from 'react';
 import { Blob, Icon, Pear, Sparkle, Squiggle } from '../motifs';
+import { AmbientSprig, AmbientThread } from '../ambient';
 import { Float, Reveal } from '../motion';
 
 interface Stage {
@@ -111,8 +112,8 @@ export function GeneratingScreen({ genStep, photoCount }: Props) {
       <Blob tone="cream" size={420} opacity={0.45} seed={0} style={{ position: 'absolute', top: -120, left: -140 }} />
       <Blob tone="peach" size={360} opacity={0.42} seed={1} style={{ position: 'absolute', bottom: -100, right: -120 }} />
       <Blob tone="sage" size={300} opacity={0.36} seed={2} style={{ position: 'absolute', top: '40%', left: '55%' }} />
-      <Squiggle variant={1} width={260} stroke="#D4A95D" style={{ position: 'absolute', top: 80, right: 80, opacity: 0.5 }} />
-      <Squiggle variant={3} width={220} stroke="#D4A95D" style={{ position: 'absolute', bottom: 120, left: 100, opacity: 0.45 }} />
+      <AmbientThread size={230} style={{ position: 'absolute', top: 70, right: 70, opacity: 0.1 }} />
+      <AmbientSprig size={200} style={{ position: 'absolute', bottom: 110, left: 90, opacity: 0.09, transform: 'scaleX(-1)' }} />
 
       <div
         className="container pl8-gen-layout"

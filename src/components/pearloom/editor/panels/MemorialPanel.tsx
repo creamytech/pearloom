@@ -108,6 +108,7 @@ export function MemorialPanel({ manifest, onChange }: { manifest: StoryManifest;
           {(obituary.body ?? '').trim().length >= 30 && (
             <div style={{ marginTop: 7 }}>
               <PearInlineRewrite
+                fxSection="obituary"
                 value={obituary.body ?? ''}
                 onCommit={(v) => patchObit({ body: v })}
                 context="obituary remembrance"

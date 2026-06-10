@@ -6,10 +6,11 @@
    ======================================================================== */
 
 import Link from 'next/link';
+import { PearloomMark } from '@/components/brand/PearloomMark';
 import { use, useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import {
+import { PearloomWordmark, PearlDot,
   Atmosphere,
   Blob,
   Heart,
@@ -234,8 +235,11 @@ export function SigninV8({
       <Atmosphere preset="sparse" />
 
       <div className="pl8-signin-logo" style={{ position: 'absolute', top: 40, left: 56, zIndex: 10 }}>
-        <Link href="/">
-          <PearloomLogo />
+        <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, textDecoration: 'none', color: 'var(--ink)' }}>
+          {/* The thread draws itself while the page settles — the
+              brand mark's draw-in is the sign-in's welcome gesture. */}
+          <PearloomMark size={34} animated />
+          <PearloomWordmark size={22} />
         </Link>
       </div>
 
@@ -483,7 +487,7 @@ export function SigninV8({
                   <button
                     type="submit"
                     disabled={busy !== null || !email.trim()}
-                    className="btn btn-primary btn-lg"
+                    className="btn btn-primary btn-lg pl-pearl-accent"
                     style={{ width: '100%', justifyContent: 'center', opacity: !email.trim() ? 0.55 : 1 }}
                   >
                     {busy === 'email' ? 'Sending…' : 'Sign in'}
@@ -518,7 +522,7 @@ export function SigninV8({
                   Hi there! I&apos;m Pear.
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.4 }}>
-                  I&apos;m here to help you cherish what matters most. <Heart size={12} />
+                  I&apos;m here to help you cherish what matters most. <PearlDot size={10} />
                 </div>
               </div>
             </div>
@@ -621,7 +625,7 @@ export function SigninV8({
                 Little moments,
                 <br />
                 big meaning.
-                <Heart size={14} style={{ marginLeft: 8 }} />
+                <PearlDot size={11} style={{ marginLeft: 8 }} />
               </div>
             </Float>
           </div>

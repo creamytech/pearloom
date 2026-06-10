@@ -12,7 +12,7 @@
 
 import { createContext, useContext, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
-import { Blob, Squiggle } from '../motifs';
+import { Blob } from '../motifs';
 import { DashSidebar } from './DashShell';
 import { DashSubNav } from './DashSubNav';
 import { DashCommandPalette } from './DashCommandPalette';
@@ -37,7 +37,6 @@ export function ShellPersistentLayout({ children }: { children: ReactNode }) {
         <main style={{ flex: 1, minWidth: 0, position: 'relative' }}>
           <div style={{ position: 'absolute', top: 0, right: 0, pointerEvents: 'none', zIndex: 0 }}>
             <Blob tone="peach" size={380} opacity={0.35} style={{ position: 'absolute', top: -120, right: -120 }} />
-            <Squiggle variant={1} width={180} style={{ position: 'absolute', top: 40, right: 200, transform: 'rotate(-15deg)', opacity: 0.6 }} />
           </div>
           <div style={{ position: 'relative', zIndex: 1 }}>
             {/* Section sub-nav — mounted ABOVE the page-enter
