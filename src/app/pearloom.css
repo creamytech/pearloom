@@ -8291,3 +8291,37 @@ html { scroll-behavior: smooth; }
     width: 100%;
   }
 }
+
+/* ── Guest scroll-rise — sections thread into view (ThemedSite
+   reveal observer; editor canvas + reduced motion opt out). ── */
+.pl8-guest .pl8-rise-pending {
+  opacity: 0;
+  transform: translateY(18px);
+}
+.pl8-guest .pl8-rise-in {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 640ms cubic-bezier(0.22, 1, 0.36, 1), transform 640ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-guest .pl8-rise-pending,
+  .pl8-guest .pl8-rise-in {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ── Hero display letterpress — the names pressed into the paper
+   (BRAND §3). A soft inset bite on light themes; dark themes get
+   a faint lift instead so the glyphs don't muddy. ── */
+.pl8-guest .pl8-hero-display {
+  text-shadow:
+    0 1px 1px rgba(255, 255, 255, 0.55),
+    0 -1px 1px rgba(40, 28, 12, 0.18);
+}
+[data-theme='dark'] .pl8-guest .pl8-hero-display {
+  text-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.45),
+    0 -1px 1px rgba(241, 235, 220, 0.10);
+}

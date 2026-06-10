@@ -20,7 +20,7 @@
    GalleryBlock (grid), RsvpBlock (centered), FaqBlock (accordion).
 */
 
-import { useId, useEffect, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
+import { useId, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { getTheme, themeRootStyle, type Density, type Theme } from '../site/themes';
@@ -357,6 +357,31 @@ export function ThemedSite({
      mounted next to <TextureFilters /> in every layout branch. */
   const ghostStyleEl = editable ? <style>{INLINE_GHOST_CSS}</style> : null;
 
+  /* Scroll-rise — guest-facing sections thread into view as the
+     reader reaches them (fade + 18px rise, 600ms). Editor canvas
+     opts out (instant paint while editing); reduced-motion opts
+     out via the CSS. Sections already in the first viewport get
+     the class immediately so there's no above-the-fold flash. */
+  const revealRoot = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (editable || typeof IntersectionObserver === 'undefined') return;
+    const root = revealRoot.current;
+    if (!root) return;
+    const els = Array.from(root.querySelectorAll('[data-section-id]')) as HTMLElement[];
+    if (!els.length) return;
+    els.forEach((el) => el.classList.add('pl8-rise-pending'));
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          (e.target as HTMLElement).classList.add('pl8-rise-in');
+          io.unobserve(e.target);
+        }
+      }
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [editable]);
+
   /* Hidden sections — host can hide any non-essential section via
      the "Hide on the site" toggle at the bottom of each panel.
      Stored as manifest.hiddenSections: SectionKind[]. The hero is
@@ -534,7 +559,7 @@ export function ThemedSite({
      Handoff themed-site.jsx L181-217 verbatim. */
   if (siteLayout === 'split') {
     return (
-      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-split">
+      <div ref={revealRoot} onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-split">
         <TextureFilters />
         {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
@@ -573,6 +598,7 @@ export function ThemedSite({
         style={{ ...rootStyle, background: 'color-mix(in oklab, var(--t-ink) 14%, var(--t-section))', padding: 'clamp(16px, 4vw, 40px) clamp(12px, 3vw, 26px)' }}
         data-pl-texture={effectiveTexture}
         data-pl-kit={kitId}
+        ref={revealRoot}
         className="pl8-guest pl8-guest-boxed"
       >
         <TextureFilters />
@@ -964,7 +990,7 @@ function SidebarHero({
               {C.lead}
             </div>
           )}
-          <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 46, lineHeight: 1.0, margin: 0, letterSpacing: '-0.02em', color: 'var(--t-ink)' }}>
+          <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 46, lineHeight: 1.0, margin: 0, letterSpacing: '-0.02em', color: 'var(--t-ink)' }}>
             {isCouple ? (
               <>
                 {C.subject.a}
@@ -1150,7 +1176,7 @@ function HeroCentered({ ctx }: { ctx: SectionCtx }) {
             {C.milestone}
           </div>
         )}
-        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(38px, 11vw, calc(74px * var(--t-hero-scale)))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: isEditorial ? '-0.045em' : '-0.02em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
+        <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(38px, 11vw, calc(74px * var(--t-hero-scale)))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: isEditorial ? '-0.045em' : '-0.02em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
           <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
           {C.subject.type === 'couple' && <>
             <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>
@@ -1222,7 +1248,7 @@ function HeroSplit({ ctx }: { ctx: SectionCtx }) {
         {(C.tagline || editable) && (
           <InlineEdit as="div" value={C.tagline ?? ''} onChange={edit?.tagline} editable={editable && !!edit?.tagline} placeholder="Click to add a tagline" style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', marginTop: 8 }} />
         )}
-        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(32px, 9vw, calc(60px * var(--t-hero-scale)))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
+        <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(32px, 9vw, calc(60px * var(--t-hero-scale)))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
           <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
           {C.subject.type === 'couple' && <>
             <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>{isEditorial ? '×' : 'and'}</span>
@@ -1268,7 +1294,7 @@ function HeroMinimal({ ctx }: { ctx: SectionCtx }) {
         {(C.tagline || editable) && (
           <InlineEdit as="div" value={C.tagline ?? ''} onChange={edit?.tagline} editable={editable && !!edit?.tagline} placeholder="Click to add a tagline" style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', marginTop: 8 }} />
         )}
-        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(38px, 11vw, calc(78px * var(--t-hero-scale)))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
+        <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(38px, 11vw, calc(78px * var(--t-hero-scale)))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
           <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
           {C.subject.type === 'couple' && <>
             <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>{isEditorial ? '×' : 'and'}</span>
@@ -1310,7 +1336,7 @@ function HeroFullbleed({ ctx }: { ctx: SectionCtx }) {
       <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.5))' }} />
       <div style={{ position: 'relative', color: '#fff', padding: '40px 24px' }}>
         <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase', opacity: 0.9, marginBottom: 8 }} />
-        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(38px, 11vw, calc(76px * var(--t-hero-scale)))', lineHeight: 0.96, margin: 0, color: '#fff', overflowWrap: 'break-word' }}>
+        <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(38px, 11vw, calc(76px * var(--t-hero-scale)))', lineHeight: 0.96, margin: 0, color: '#fff', overflowWrap: 'break-word' }}>
           <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
           {C.subject.type === 'couple' && <>
             <span style={{ fontStyle: 'italic', fontSize: '0.7em', margin: '0 0.16em', opacity: 0.85 }}>{isEditorial ? '×' : 'and'}</span>
@@ -1338,7 +1364,7 @@ function HeroTypographic({ ctx }: { ctx: SectionCtx }) {
       {motifsOn && <MotifScatter motif={motif} density="sparse" />}
       <div style={{ position: 'relative' }}>
         <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 8 }} />
-        <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(48px, 16vw, calc(108px * var(--t-hero-scale)))', lineHeight: 0.86, margin: '6px 0', letterSpacing: '-0.03em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
+        <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(48px, 16vw, calc(108px * var(--t-hero-scale)))', lineHeight: 0.86, margin: '6px 0', letterSpacing: '-0.03em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
           <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
           {C.subject.type === 'couple' && <>
             <br />
@@ -1376,7 +1402,7 @@ function HeroPostcard({ ctx }: { ctx: SectionCtx }) {
           {(C.tagline || editable) && (
             <InlineEdit as="div" value={C.tagline ?? ''} onChange={edit?.tagline} editable={editable && !!edit?.tagline} placeholder="Click to add a tagline" style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', marginTop: 8 }} />
           )}
-          <h1 style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(32px, 9vw, calc(58px * var(--t-hero-scale)))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
+          <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(32px, 9vw, calc(58px * var(--t-hero-scale)))', lineHeight: 0.96, margin: '12px 0 0', letterSpacing: '-0.02em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
             <InlineEdit as="span" value={C.subject.a} onChange={edit?.nameA} editable={editable && !!edit?.nameA} placeholder="First name" />
             <span style={{ fontStyle: isEditorial ? 'normal' : 'italic', fontSize: '0.74em', color: 'var(--t-ink-soft)', margin: '0 0.18em', fontWeight: 400 }}>{isEditorial ? '×' : 'and'}</span>
             <InlineEdit as="span" value={C.subject.b} onChange={edit?.nameB} editable={editable && !!edit?.nameB} placeholder="Second name" />
@@ -3217,25 +3243,57 @@ function TSection({ id, label, children, active, hover, setActive, setHover, edi
       {children}
       {editable && (
         <>
+          {/* Selection chrome — the loom's vocabulary, not a generic
+              outline: a gold hairline with four corner STITCHES
+              (photo-mount ticks), like the section is tacked to the
+              board while you work on it. Hover is the faint dashed
+              basting line. */}
           <div
             aria-hidden
             style={{
               position: 'absolute', inset: 4, borderRadius: 6,
-              outline: isActive ? '2px solid var(--lavender-2)' : isHover ? '1.5px dashed var(--lavender-2)' : 'none',
+              outline: isActive ? '1.5px solid var(--pl-gold, #C19A4B)' : isHover ? '1.5px dashed rgba(193,154,75,0.55)' : 'none',
               outlineOffset: -2, pointerEvents: 'none', zIndex: 4,
               transition: 'outline var(--pl-dur-fast) var(--pl-ease-emphasis)',
             }}
           />
+          {isActive && (
+            <>
+              {([['nw', { top: 0, left: 0 }], ['ne', { top: 0, right: 0 }], ['se', { bottom: 0, right: 0 }], ['sw', { bottom: 0, left: 0 }]] as const).map(([k, pos]) => (
+                <span
+                  key={k}
+                  aria-hidden
+                  style={{
+                    position: 'absolute',
+                    width: 14,
+                    height: 14,
+                    pointerEvents: 'none',
+                    zIndex: 5,
+                    borderColor: 'var(--pl-gold, #C19A4B)',
+                    borderStyle: 'solid',
+                    borderWidth: 0,
+                    ...('top' in pos ? { borderTopWidth: 2.5 } : { borderBottomWidth: 2.5 }),
+                    ...('left' in pos ? { borderLeftWidth: 2.5 } : { borderRightWidth: 2.5 }),
+                    ...pos,
+                    margin: 2,
+                    borderRadius: 1,
+                  }}
+                />
+              ))}
+            </>
+          )}
           {(isActive || isHover) && !hideHandle && (
             <div style={{
-              position: 'absolute', top: 8, left: 12, padding: '4px 10px', borderRadius: 6,
-              background: isActive ? 'var(--lavender-2)' : 'rgba(196,181,217,0.85)',
-              color: '#3D4A1F',
+              position: 'absolute', top: 8, left: 12, padding: '4px 10px', borderRadius: 999,
+              background: 'var(--pl-cream-card, #FBF7EE)',
+              color: 'var(--pl-ink, #18181B)',
+              border: `1px solid ${isActive ? 'var(--pl-gold, #C19A4B)' : 'rgba(193,154,75,0.45)'}`,
               fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
-              display: 'inline-flex', alignItems: 'center', gap: 6, zIndex: 5,
-              boxShadow: isActive ? '0 4px 12px rgba(61,74,31,0.15)' : 'none',
-              fontFamily: 'Inter, sans-serif',
+              display: 'inline-flex', alignItems: 'center', gap: 6, zIndex: 6,
+              boxShadow: isActive ? '0 4px 12px rgba(61,74,31,0.12)' : 'none',
+              fontFamily: 'var(--font-ui, sans-serif)',
             }}>
+              <span aria-hidden style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--pl-gold, #C19A4B)' }} />
               {label}
             </div>
           )}

@@ -113,6 +113,13 @@ export function WelcomeHome() {
   // fall back to the signed-in user's first name, then 'friend'.
   const sessionFirstName = (session?.user?.name ?? '').trim().split(/\s+/)[0] || null;
   const firstName = namesArr[0] ?? sessionFirstName ?? 'friend';
+  /* Time-of-day greeting — set after mount (client local time) so
+     SSR can't hydration-mismatch against the server's clock. */
+  const [greeting, setGreeting] = useState('Welcome back');
+  useEffect(() => {
+    const h = new Date().getHours();
+    setGreeting(h < 5 ? 'Up late' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening');
+  }, []);
   const occasion = site?.occasion ?? 'wedding';
   const editorHref = site?.domain ? `/editor/${site.domain}` : '/dashboard/event';
   const liveHref = site?.domain ? buildSiteUrl(site.domain, '', undefined, occasion) : '#';
@@ -203,7 +210,7 @@ export function WelcomeHome() {
       >
         <div style={{ minWidth: 0 }}>
           <h1
-            className="display"
+            className="display pl-letterpress"
             style={{
               fontSize: 'clamp(28px, 4vw, 36px)',
               margin: 0,
@@ -213,7 +220,7 @@ export function WelcomeHome() {
               lineHeight: 1.05,
             }}
           >
-            Welcome back, {firstName}
+            {greeting}, {firstName}
           </h1>
           <div style={{ marginTop: 4, fontSize: 14, color: 'var(--ink-soft)' }}>{stageBlurb}</div>
         </div>
@@ -416,7 +423,7 @@ function HeroBand({
           </span>
         </div>
         <h2
-          className="display"
+          className="display pl-letterpress"
           style={{
             fontSize: 'clamp(32px, 4vw, 48px)',
             margin: 0,
