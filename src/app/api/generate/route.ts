@@ -15,6 +15,7 @@ import { authOptions } from '@/lib/auth';
 import { clusterPhotos, reverseGeocode } from '@/lib/google-photos';
 import { generateStoryManifest } from '@/lib/memory-engine';
 import type { GooglePhotoMetadata, PhotoCluster, WeddingEvent, LogoIconId } from '@/types';
+import { applyWizardLook } from '@/lib/site-look/wizard-look';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import pLimit from 'p-limit';
 import { encryptBuffer, isEncryptionEnabled } from '@/lib/crypto';
@@ -538,6 +539,15 @@ export async function POST(req: NextRequest) {
     if (eventVenue) {
       manifest.logistics = { ...(manifest.logistics ?? {}), venue: eventVenue };
     }
+
+    // Canonical look wiring — same stamp as /api/generate/stream:
+    // themeVars / themeId / texture / layouts are the only fields
+    // the canonical renderer reads. Fill-missing-only.
+    Object.assign(manifest, applyWizardLook(manifest, {
+      selectedPaletteColors,
+      layoutFormat,
+      occasion,
+    }) as unknown as Record<string, unknown>);
     if (cashFundUrl) {
       manifest.registry = {
         ...(manifest.registry ?? { enabled: true }),
