@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getPlanWithLimitsForEmail, planLimitResponseBody } from '@/lib/plan-gate';
+import { getPlanWithLimitsForEmail, planLimitResponseBody, isSiteGriefExempt } from '@/lib/plan-gate';
 
 export const dynamic = 'force-dynamic';
 
@@ -144,9 +144,11 @@ export async function POST(req: NextRequest) {
     // Plan gate — maxGuests from PLAN_LIMITS (@/lib/plan-gate).
     // Counts this site's guest rows; fails OPEN if the count query
     // errors so a gate hiccup never blocks adding a guest.
+    // Memorial/funeral sites are exempt (the published "grief
+    // deserves no paywall" promise — see plan-gate.ts).
     try {
       const { plan, limits } = await getPlanWithLimitsForEmail(session.user.email);
-      if (Number.isFinite(limits.maxGuests)) {
+      if (Number.isFinite(limits.maxGuests) && !(await isSiteGriefExempt(supabase, siteId))) {
         const { count, error: countError } = await supabase
           .from('guests')
           .select('id', { count: 'exact', head: true })

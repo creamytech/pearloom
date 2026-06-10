@@ -53,3 +53,25 @@ describe('isDashSurfaceApplicable', () => {
     expect(isDashSurfaceApplicable('weekend', 'baby-shower')).toBe(false);
   });
 });
+
+// Grief exemption lives in plan-gate but is occasion logic — tested
+// here alongside the other occasion-driven gates.
+import { isGriefExempt, GRIEF_EXEMPT_OCCASIONS } from '@/lib/plan-gate';
+
+describe('isGriefExempt', () => {
+  it('exempts memorial and funeral, case-insensitively', () => {
+    expect(isGriefExempt('memorial')).toBe(true);
+    expect(isGriefExempt('funeral')).toBe(true);
+    expect(isGriefExempt(' Memorial ')).toBe(true);
+  });
+  it('does not exempt celebrations or unknowns', () => {
+    expect(isGriefExempt('wedding')).toBe(false);
+    expect(isGriefExempt('birthday')).toBe(false);
+    expect(isGriefExempt(null)).toBe(false);
+    expect(isGriefExempt(undefined)).toBe(false);
+    expect(isGriefExempt('')).toBe(false);
+  });
+  it('covers exactly the promised occasions', () => {
+    expect([...GRIEF_EXEMPT_OCCASIONS].sort()).toEqual(['funeral', 'memorial']);
+  });
+});

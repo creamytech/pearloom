@@ -1,38 +1,41 @@
 'use client';
 
-// Testimonials — 4 tilted sticky notes on a dark slab with
-// ambient blobs, bloom, and swirl. Hover straightens the note.
-// Matches design bundle's testimonials.jsx.
+// The promise slab — 4 tilted notes on a dark band, each one a
+// second-person product promise anchored to a real, shipped
+// feature (named in the attribution line). Deliberately NOT
+// testimonials: the product is pre-launch and fabricated quotes
+// with invented names undercut the trust the page is built to
+// earn. When real love notes arrive, swap them in here.
 
 import { Bloom, Swirl } from '@/components/brand/groove';
 import { Ornament, Pearl, Pill, PD, DISPLAY_STYLE, pdInkMix } from './DesignAtoms';
 
-const QUOTES = [
+const NOTES = [
   {
-    t: "It was the first thing anyone sent me that didn't feel like a form. I kept it open on my phone all day.",
-    n: 'Mira K.',
-    role: 'Mira & Jun · September wedding',
+    t: 'The save-the-date opens like a letter, not a form — set in your two names, in your own colors, from your own photographs.',
+    n: 'The suite',
+    role: 'Save-the-dates · drafted by Pear',
     bg: PD.paper2,
     rot: -2,
   },
   {
-    t: "Pear drafted the memorial in my mother's voice. I cried, then changed four words, and it was done.",
-    n: 'The Osei family',
-    role: 'For Amara · November',
+    t: 'A memorial, drafted gently in their voice. You change four words, and it is ready for family. It will never cost anything.',
+    n: 'Memorials',
+    role: 'Free on every tier — written into the code',
     bg: PD.wash,
     rot: 1.5,
   },
   {
-    t: 'The timeline alone saved my marriage. I knew what was next, she knew what was next, Pear just handled it.',
-    n: 'Priya & Devon',
-    role: 'Vow renewal · tenth anniversary',
+    t: 'On the day, everyone knows what is next. The run of show, the seating, the live photo wall — one quiet room, threading itself.',
+    n: 'The day-of room',
+    role: 'Timeline · toasts · broadcasts',
     bg: PD.blush,
     rot: -1,
   },
   {
-    t: "Everyone asked which studio we hired. No one believed a tool made it. I don't mind if it's our secret.",
-    n: 'The Lark family',
-    role: 'Maya at thirty',
+    t: 'A year on, the site returns — rewoven with every photo, toast, and note your guests left behind. Yours to keep, always.',
+    n: 'The rebroadcast',
+    role: 'Anniversaries · the memory book',
     bg: PD.sand,
     rot: 2,
   },
@@ -92,7 +95,7 @@ export function DesignTestimonials() {
       <div style={{ maxWidth: 1320, margin: '0 auto', position: 'relative', zIndex: 1 }}>
         <div style={{ textAlign: 'center', marginBottom: 72, maxWidth: 820, marginInline: 'auto' }}>
           <Pill color="transparent" ink={PD.slabInk} style={{ marginBottom: 18, borderColor: PD.slabInk }}>
-            <Pearl size={7} /> LOVE NOTES
+            <Pearl size={7} /> THE PROMISE
           </Pill>
           <h2
             style={{
@@ -105,7 +108,7 @@ export function DesignTestimonials() {
               color: PD.slabInk,
             }}
           >
-            Forty-two thousand days,
+            Days that deserve keeping,
             <br />
             <span
               style={{
@@ -129,7 +132,7 @@ export function DesignTestimonials() {
             margin: '0 auto',
           }}
         >
-          {QUOTES.map((q) => (
+          {NOTES.map((q) => (
             <div
               key={q.n}
               style={{
@@ -208,30 +211,10 @@ export function DesignTestimonials() {
           ))}
         </div>
 
-        <div
-          style={{
-            marginTop: 72,
-            display: 'flex',
-            justifyContent: 'center',
-            gap: 48,
-            flexWrap: 'wrap',
-            opacity: 0.55,
-          }}
-        >
-          {['The Paper', 'Offsite', 'Nib & Ink', 'Gather', 'Dinner Party Co.'].map((x) => (
-            <span
-              key={x}
-              style={{
-                ...DISPLAY_STYLE,
-                fontStyle: 'italic',
-                fontSize: 22,
-                fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-              }}
-            >
-              {x}
-            </span>
-          ))}
-        </div>
+        {/* (The fictional press strip that lived here — "The Paper",
+            "Offsite", etc. — was removed: invented publications cost
+            more trust than they buy. Real press goes here when it
+            exists.) */}
       </div>
 
       <style jsx>{`

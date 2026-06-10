@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import { saveSiteDraft } from '@/lib/db';
-import { getPlanWithLimitsForEmail, planLimitResponseBody } from '@/lib/plan-gate';
+import { getPlanWithLimitsForEmail, planLimitResponseBody, isGriefExempt } from '@/lib/plan-gate';
 import { mirrorManifestPhotos, stripProxyUrls } from '@/lib/mirror-photos';
 
 // Force this route to always be server-rendered (never statically collected)
@@ -177,9 +177,15 @@ export async function POST(req: NextRequest) {
     // so updates must NEVER be blocked. Fails OPEN whenever Supabase
     // is unconfigured or any gate query errors — a save is never
     // lost to the gate itself.
+    //
+    // GRIEF EXEMPTION (the published "grief deserves no paywall"
+    // promise, enforced): a memorial/funeral create is NEVER gated,
+    // and existing memorial/funeral sites never count against the
+    // slot limit — hosting a memorial can't paywall a celebration.
     try {
+      const newOccasion = (manifest?.occasion as string | undefined) ?? null;
       const gateDb = getSupabase();
-      if (gateDb) {
+      if (gateDb && !isGriefExempt(newOccasion)) {
         const sessionEmail = session.user.email.toLowerCase().trim();
         const { data: existingRow, error: existsError } = await gateDb
           .from('sites')
@@ -187,14 +193,25 @@ export async function POST(req: NextRequest) {
           .eq('subdomain', subdomain)
           .maybeSingle();
         if (!existsError && !existingRow) {
-          // CREATE path — count this user's sites with the same
-          // ownership filter the GET handler lists by.
+          // CREATE path — count this user's NON-exempt sites with the
+          // same ownership filter the GET handler lists by. Occasion
+          // lives in manifest (canonical) or site_config (legacy), so
+          // fetch both and count in JS rather than fighting JSONB
+          // operators in the filter.
           const { plan, limits } = await getPlanWithLimitsForEmail(sessionEmail);
-          const { count, error: countError } = await gateDb
+          const { data: ownedRows, error: countError } = await gateDb
             .from('sites')
-            .select('id', { count: 'exact', head: true })
-            .eq('site_config->>creator_email', sessionEmail);
-          if (!countError && typeof count === 'number'
+            .select('id, manifest, site_config')
+            .eq('site_config->>creator_email', sessionEmail)
+            .limit(500);
+          const count = countError || !ownedRows
+            ? null
+            : ownedRows.filter((r) => {
+                const m = r.manifest as { occasion?: string } | null;
+                const c = r.site_config as { occasion?: string } | null;
+                return !isGriefExempt(m?.occasion ?? c?.occasion);
+              }).length;
+          if (typeof count === 'number'
             && Number.isFinite(limits.maxSites) && count >= limits.maxSites) {
             return NextResponse.json(
               planLimitResponseBody('sites', limits.maxSites, plan),

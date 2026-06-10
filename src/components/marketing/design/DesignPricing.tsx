@@ -33,7 +33,7 @@ const TIERS: Tier[] = [
       'Unlimited RSVPs',
       'All 31 occasions',
       'The Reel (one event)',
-      'Pearloom subdomain',
+      'Your pearloom.com address',
     ],
     bg: PD.paper3,
     accent: PD.olive,
@@ -48,7 +48,7 @@ const TIERS: Tier[] = [
       'Everything in Journal',
       'Every block, every template',
       'Every premium theme pack included',
-      'Custom domain',
+      'Ten times the photo library',
       'The Director (day-of room)',
       'Live photo wall + toasts',
       'Anniversary rebroadcast',
@@ -91,10 +91,10 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
   return (
     <section
       id="pricing"
-      style={{ padding: 'clamp(56px, 12vw, 140px) clamp(20px, 5vw, 24px)', position: 'relative', overflow: 'hidden', background: PD.paper }}
+      style={{ padding: 'clamp(48px, 8vw, 96px) clamp(20px, 5vw, 24px) clamp(56px, 10vw, 120px)', position: 'relative', overflow: 'hidden', background: PD.paper }}
     >
       <div style={{ maxWidth: 1320, margin: '0 auto', position: 'relative' }}>
-        <div style={{ textAlign: 'center', marginBottom: 64, maxWidth: 760, marginInline: 'auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 48, maxWidth: 760, marginInline: 'auto' }}>
           <Pill style={{ marginBottom: 18 }}>
             <Pearl size={7} /> ONE-TIME, NOT A SUBSCRIPTION
           </Pill>

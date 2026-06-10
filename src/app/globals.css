@@ -176,7 +176,7 @@
   --pl-gradient-section: linear-gradient(180deg, var(--pl-cream) 0%, var(--pl-cream-deep) 50%, var(--pl-cream) 100%);
   --pl-gradient-olive:  linear-gradient(135deg, var(--pl-olive) 0%, var(--pl-olive-deep) 100%);
   --pl-gradient-gold:   linear-gradient(135deg, var(--pl-gold) 0%, #8C6E3D 100%);
-  --pl-grain:           url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.32 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --pl-grain:           url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.24 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
   /* ── Legacy aliases (keep so editor components still compile) ── */
   --eg-bg:           var(--pl-cream);
@@ -407,14 +407,16 @@ body {
   position: absolute;
   inset: 0;
   background-image: var(--pl-grain);
-  opacity: 0.5;
+  /* 0.5 read as visible static on long reading sections (FAQ,
+     pricing). BRAND.md §3: quiet enough to read through. */
+  opacity: 0.35;
   mix-blend-mode: multiply;
   pointer-events: none;
   z-index: 0;
 }
 [data-theme='dark'] .pl-grain::before {
   mix-blend-mode: screen;
-  opacity: 0.18;
+  opacity: 0.12;
 }
 
 /* ─── Micro-animation utilities ─── */
