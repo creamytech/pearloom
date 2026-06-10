@@ -233,3 +233,32 @@
     transition: box-shadow 600ms ease-out;
   }
 }
+
+/* ═══ Mobile editing — kill the iOS focus-zoom + tap-zoom ═══════
+   iOS Safari zooms the page when (a) a focused form control's
+   font-size is under 16px — panel inputs are 13px — or (b) a
+   double-tap lands anywhere zoomable. Both made phone editing
+   feel like the view was "yanking around". Under the editor's
+   mobile breakpoint every text-entry surface (inputs, textareas,
+   selects, AND the canvas's contenteditable InlineEdit spans)
+   gets the 16px floor, and touch-action: manipulation drops the
+   300ms double-tap-zoom gesture on the whole editor shell.
+   Desktop is untouched. */
+@media (max-width: 767px) {
+  .pl-redesign input,
+  .pl-redesign textarea,
+  .pl-redesign select {
+    font-size: 16px !important;
+  }
+  /* Canvas InlineEdit (contenteditable) keeps its DESIGN sizes —
+     forcing 16px would shrink hero display names. The pinned
+     editor viewport (maximumScale 1) covers its focus-zoom. */
+}
+.pl-redesign,
+.pl-redesign button,
+.pl-redesign a,
+.pl-redesign input,
+.pl-redesign textarea,
+.pl-redesign [contenteditable] {
+  touch-action: manipulation;
+}
