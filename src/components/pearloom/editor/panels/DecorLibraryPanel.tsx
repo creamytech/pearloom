@@ -66,6 +66,7 @@ import {
   DiscoMotif,
 } from '../../site/MotifScatter';
 import { Monogram, deriveInitials, type MonogramFrame } from '../../site/Monogram';
+import { isSoloSubject } from '@/lib/event-os/solo-occasions';
 import { AISource } from '../../ai-source';
 import { pearErrorMessage } from '../../redesign/PearAssist';
 
@@ -948,9 +949,14 @@ export function DecorLibraryPanel({
     setGenFromPear(false);
   }
 
-  /* Subject for monogram — derived from manifest.names. */
+  /* Subject for monogram — derived from manifest.names. Solo-honoree
+     sites (memorial, birthday, shower, …) crest one person — never a
+     couple-style pair, even when the name has multiple words. */
+  const solo = isSoloSubject(manifest);
   const [n1, n2] = manifest.names ?? ['', ''];
-  const subject = (n1 && n2 ? `${n1} & ${n2}` : (n1 || n2 || 'A & B')).trim();
+  const subject = solo
+    ? (n1 || n2 || 'A').trim()
+    : (n1 && n2 ? `${n1} & ${n2}` : (n1 || n2 || 'A & B')).trim();
 
   // Drawer mode: wrap the existing card in the prototype's fixed
   // overlay + slide-in aside. Embedded mode: render the card inline.
@@ -1164,7 +1170,7 @@ export function DecorLibraryPanel({
           )}
 
           {tab === 'monogram' && (
-            <MonogramTab subject={subject} color={color} manifest={manifest} onChange={onChange} />
+            <MonogramTab subject={subject} solo={solo} manifest={manifest} onChange={onChange} />
           )}
 
           {tab === 'generate' && (
@@ -1339,18 +1345,22 @@ export function DecorLibraryPanel({
 
 function MonogramTab({
   subject,
-  color,
+  solo,
   manifest,
   onChange,
 }: {
   subject: string;
-  color: string;
+  /** One honoree — derived names crest a single initial, the joiner
+   *  toggle hides, and no phantom 'B' is ever written back. */
+  solo: boolean;
   manifest: StoryManifest;
   onChange: (m: StoryManifest) => void;
 }) {
   const mono = (manifest as unknown as { monogram?: { initials?: string; frame?: MonogramFrame } }).monogram;
-  const userSubject = (mono?.initials?.trim() || subject);
-  const { initA, initB } = deriveInitials(userSubject);
+  const explicit = mono?.initials?.trim() || '';
+  const userSubject = explicit || subject;
+  const monoSolo = solo && !explicit;
+  const { initA, initB } = deriveInitials(userSubject, { solo: monoSolo });
   const useAmp = userSubject.includes('&');
 
   // Prototype-internal local state for frame + joiner so the picker feels
@@ -1377,8 +1387,12 @@ function MonogramTab({
   function setAmpAndPatch(v: boolean) {
     setAmp(v);
     const a = initA || 'A';
-    const b = initB || 'B';
-    patch({ initials: v ? `${a} & ${b}` : `${a} ${b}` });
+    // Solo crest has no second initial — never backfill a phantom 'B'.
+    if (!initB) {
+      patch({ initials: a });
+      return;
+    }
+    patch({ initials: v ? `${a} & ${initB}` : `${a} ${initB}` });
   }
 
   const frames: { id: MonogramFrame; l: string }[] = [
@@ -1408,59 +1422,11 @@ function MonogramTab({
     { id: 'tag',     l: 'Gift Tag' },
   ];
 
-  const Crest = ({ big }: { big: boolean }) => {
-    const s = big ? 1 : 0.5;
-    return (
-      <div
-        style={{
-          position: 'relative',
-          width: big ? 190 : 120,
-          height: big ? 190 : 120,
-          display: 'grid',
-          placeItems: 'center',
-          background: 'var(--t-paper, var(--paper, var(--pl-cream, #F5EFE2)))',
-          borderRadius: 14,
-          border: '1px solid var(--t-line, var(--line, rgba(14,13,11,0.12)))',
-          ['--t-motif' as string]: color,
-        } as CSSProperties}
-      >
-        {frame === 'ring' && (
-          <span style={{ position: 'absolute', width: 150 * s, height: 150 * s, borderRadius: '50%', border: '1.5px solid var(--t-accent, var(--pl-olive, #5C6B3F))' }} />
-        )}
-        {frame === 'diamond' && (
-          <span style={{ position: 'absolute', width: 132 * s, height: 132 * s, transform: 'rotate(45deg)', border: '1.5px solid var(--t-accent, var(--pl-olive, #5C6B3F))' }} />
-        )}
-        {frame === 'laurel' && (
-          <div style={{ position: 'absolute', opacity: 0.9, transform: 'scale(' + (big ? 2.05 : 1.3) + ')' }}>
-            <LaurelMotif size={80} />
-          </div>
-        )}
-        <div
-          style={{
-            position: 'relative',
-            fontFamily: 'var(--t-display, var(--font-display, "Fraunces", serif))',
-            fontWeight: 600,
-            color: 'var(--t-ink, var(--pl-ink, #0E0D0B))',
-            fontSize: big ? 64 : 40,
-            lineHeight: 1,
-            letterSpacing: '0.02em',
-          }}
-        >
-          {initA}
-          <span style={{ fontStyle: 'italic', color: 'var(--t-accent-ink, var(--pl-olive, #5C6B3F))', margin: '0 0.04em' }}>
-            {amp ? '&' : ' '}
-          </span>
-          {initB}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <>
       <GalleryLabel>Your monogram</GalleryLabel>
       <div style={{ display: 'grid', placeItems: 'center', padding: '6px 0 14px' }}>
-        <Monogram initials={userSubject} frame={frame} size={190} withCard={false} />
+        <Monogram initials={userSubject} frame={frame} size={190} withCard={false} solo={monoSolo} />
       </div>
 
       <GalleryLabel>Frame</GalleryLabel>
@@ -1487,28 +1453,34 @@ function MonogramTab({
         ))}
       </div>
 
-      <GalleryLabel>Joiner</GalleryLabel>
-      <div style={{ display: 'flex', gap: 6, padding: 3, background: 'var(--cream-2, #FBF7EE)', borderRadius: 9, width: 'fit-content' }}>
-        {[{ v: true, l: 'A & B' }, { v: false, l: 'A B' }].map((o) => (
-          <button
-            key={String(o.v)}
-            type="button"
-            onClick={() => setAmpAndPatch(o.v)}
-            style={{
-              padding: '6px 16px',
-              borderRadius: 7,
-              fontSize: 12,
-              fontWeight: 600,
-              background: amp === o.v ? 'var(--ink, var(--pl-ink, #0E0D0B))' : 'transparent',
-              color: amp === o.v ? 'var(--cream, #FBF7EE)' : 'var(--ink-soft, #3A332C)',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            {o.l}
-          </button>
-        ))}
-      </div>
+      {/* Joiner only applies to a two-initial crest — a solo honoree
+          has nothing to join, so the toggle hides. */}
+      {Boolean(initB) && (
+        <>
+          <GalleryLabel>Joiner</GalleryLabel>
+          <div style={{ display: 'flex', gap: 6, padding: 3, background: 'var(--cream-2, #FBF7EE)', borderRadius: 9, width: 'fit-content' }}>
+            {[{ v: true, l: 'A & B' }, { v: false, l: 'A B' }].map((o) => (
+              <button
+                key={String(o.v)}
+                type="button"
+                onClick={() => setAmpAndPatch(o.v)}
+                style={{
+                  padding: '6px 16px',
+                  borderRadius: 7,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  background: amp === o.v ? 'var(--ink, var(--pl-ink, #0E0D0B))' : 'transparent',
+                  color: amp === o.v ? 'var(--cream, #FBF7EE)' : 'var(--ink-soft, #3A332C)',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                {o.l}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Initials input — production extension. The prototype derived
          initials from `subject` (couple names) only; production lets
@@ -1534,7 +1506,9 @@ function MonogramTab({
       <div style={{ marginTop: 16, padding: '11px 13px', borderRadius: 11, background: 'var(--peach-bg, #FCE6D7)', fontSize: 11.5, color: 'var(--peach-ink, #C6703D)', display: 'flex', gap: 8 }}>
         <Icon name="sparkles" size={16} color="var(--peach-ink, #C6703D)" style={{ flexShrink: 0 }} />
         <span>
-          Your monogram updates with the couple&rsquo;s names &amp; theme. Use it on stationery, the hero, or as a watermark.
+          {solo
+            ? 'Your monogram updates with the honoree’s name & theme. Use it on stationery, the hero, or as a watermark.'
+            : 'Your monogram updates with the couple’s names & theme. Use it on stationery, the hero, or as a watermark.'}
         </span>
       </div>
     </>

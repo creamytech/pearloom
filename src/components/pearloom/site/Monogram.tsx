@@ -65,6 +65,11 @@ interface MonogramProps {
   withCard?: boolean;
   /** Marks the element as decorative. */
   ariaHidden?: boolean;
+  /** The subject is one honoree (memorial, birthday, shower, …) —
+   *  derive a single initial from the name, never a couple pair.
+   *  Only set this for derived sources; host-typed initials should
+   *  render verbatim. See deriveInitials. */
+  solo?: boolean;
 }
 
 /* ── LaurelMotif — two curved branches with leaf ellipses. Paths
@@ -119,23 +124,36 @@ function LaurelMotif({ size = 80, color = 'var(--t-accent, currentColor)' }: { s
    Then joined either with '&' (default, italic accent) or a space.
    This helper returns the three pieces so the JSX can style the
    joiner separately (the prototype italicises it and recolors it
-   to --t-accent-ink). ── */
-export function deriveInitials(subject?: string | null): { initA: string; initB: string; raw: string } {
+   to --t-accent-ink).
+
+   `opts.solo` — the subject is ONE person (lib/event-os/solo-occasions
+   is the canonical registry). A solo full name ('Eleanor Rose Thompson')
+   must yield a single initial, never a couple-style pair — without the
+   flag the second word reads as a partner. Callers should only pass
+   solo for DERIVED sources; an explicit host-typed initials string is
+   honoured verbatim through the normal parse. ── */
+export function deriveInitials(
+  subject?: string | null,
+  opts?: { solo?: boolean },
+): { initA: string; initB: string; raw: string } {
   const s = (subject || '').trim();
-  if (!s) return { initA: 'A', initB: 'B', raw: 'A & B' };
+  const solo = opts?.solo === true;
+  if (!s) return solo ? { initA: 'A', initB: '', raw: 'A' } : { initA: 'A', initB: 'B', raw: 'A & B' };
   // If caller passed a single 1-3 char string (already in initials form)
   // e.g. 'EJ' or 'E&J', honour it verbatim.
   if (s.length <= 3 && !/\s/.test(s)) {
     const stripped = s.replace(/[^A-Za-z]/g, '');
+    if (solo && stripped.length >= 1) return { initA: stripped[0].toUpperCase(), initB: '', raw: s };
     if (stripped.length === 1) return { initA: stripped[0].toUpperCase(), initB: '', raw: s };
     if (stripped.length === 2) return { initA: stripped[0].toUpperCase(), initB: stripped[1].toUpperCase(), raw: s };
     if (stripped.length === 3) return { initA: stripped[0].toUpperCase(), initB: stripped[2].toUpperCase(), raw: s };
   }
   const parts = s.replace('&', ' ').split(/\s+/).filter(Boolean);
   const initA = (parts[0] || 'A')[0].toUpperCase();
-  // Solo honoree — a single name ('Eleanor') gets a single initial,
-  // never a phantom 'B'. Two-plus words keep the paired treatment.
-  if (parts.length <= 1) return { initA, initB: '', raw: s };
+  // Solo honoree — one person, one initial. A single name ('Eleanor')
+  // gets it implicitly; a full name ('Eleanor Rose Thompson') needs the
+  // explicit flag so the middle name doesn't read as a partner.
+  if (solo || parts.length <= 1) return { initA, initB: '', raw: s };
   const initB = (parts[1] || parts[2])[0].toUpperCase();
   return { initA, initB, raw: s };
 }
@@ -149,6 +167,7 @@ export function Monogram({
   className,
   withCard = true,
   ariaHidden = false,
+  solo = false,
 }: MonogramProps) {
   /* Prototype scales every internal element off the big/small flag —
      `s = big ? 1 : 0.5`. We generalise that so the component scales
@@ -167,7 +186,7 @@ export function Monogram({
      '&' in the source means use ampersand; otherwise use a space.
      The renderer's wrapper decides what to pass; the editor panel
      toggle directly controls this via the source string. */
-  const { initA, initB, raw } = deriveInitials(initials);
+  const { initA, initB, raw } = deriveInitials(initials, { solo });
   const useAmp = raw.includes('&');
   const hasTwo = Boolean(initB);
 

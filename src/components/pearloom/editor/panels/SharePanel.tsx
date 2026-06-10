@@ -20,6 +20,7 @@ import { FGroup, FInput, SectionPanelShell } from './_section-atoms';
 import { buildSiteUrl, formatSiteDisplayUrl, type SiteOccasion } from '@/lib/site-urls';
 import { BrandedQR, useBrandedQrPng } from './BrandedQR';
 import { deriveInitials } from '../../site/Monogram';
+import { isSoloSubject } from '@/lib/event-os/solo-occasions';
 import { pearErrorMessage } from '../../redesign/PearAssist';
 import { suiteThemeFromManifest } from '@/lib/suite/theme';
 import {
@@ -81,7 +82,9 @@ export function SharePanel({
   const date = manifest.logistics?.date ?? '';
   const venue = manifest.logistics?.venue ?? '';
   const headline = [a, b].filter(Boolean).join(' & ') || 'Your site';
-  const { initA, initB } = deriveInitials(headline);
+  /* Solo honoree — one initial on the share card + QR, even when the
+     name is a multi-word full name. */
+  const { initA, initB } = deriveInitials(headline, { solo: isSoloSubject(manifest) });
   const monogramLetters = `${initA}${initB}`;
 
   /* SharePanel doesn't accept an onChange prop today — we write

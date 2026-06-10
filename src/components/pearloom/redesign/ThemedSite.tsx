@@ -508,8 +508,17 @@ export function ThemedSite({
      hook returns `string | null`. Pre-normalize so both prop shapes
      are satisfied without `as` casts at the call site. */
   /* Monogram — when the host has built one in the Decor Library,
-     it replaces the Pear glyph in the nav logo slot. */
-  const monogram = (manifest as unknown as { monogram?: { initials?: string; frame?: string } }).monogram;
+     it replaces the Pear glyph in the nav logo slot. Solo-honoree
+     sites flag the nav so its headline-derived fallback crests one
+     initial (never "E & R" from a full name like Eleanor Rose). */
+  const monogramRaw = (manifest as unknown as { monogram?: { initials?: string; frame?: string } }).monogram;
+  const monogram = monogramRaw
+    ? ({ ...monogramRaw, solo: C.subject.type === 'solo' } as {
+        initials?: string;
+        frame?: import('../site/Monogram').MonogramFrame;
+        solo?: boolean;
+      })
+    : undefined;
   const sharedDesktopNavProps = {
     headline,
     navItems,
@@ -517,7 +526,7 @@ export function ThemedSite({
     onNavClick,
     onCtaClick,
     activeId,
-    monogram: monogram as { initials?: string; frame?: import('../site/Monogram').MonogramFrame } | undefined,
+    monogram,
   };
   const sharedMobileNavProps = {
     headline,
@@ -526,7 +535,7 @@ export function ThemedSite({
     onNavClick,
     onCtaClick,
     activeId: activeId ?? undefined,
-    monogram: monogram as { initials?: string; frame?: import('../site/Monogram').MonogramFrame } | undefined,
+    monogram,
   };
 
   const renderNavVariant = () => {

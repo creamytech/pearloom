@@ -21,6 +21,7 @@
 
 import type { StoryManifest } from '@/types';
 import { deriveInitials } from '@/components/pearloom/site/Monogram';
+import { isSoloSubject } from '@/lib/event-os/solo-occasions';
 
 export interface SuitePalette {
   paper: string;
@@ -161,10 +162,19 @@ export function suiteThemeFromManifest(
 
   const names = (namesIn ??
     ((loose.names as [string, string] | undefined) ?? ['', ''])) as [string, string];
+  /* Solo honoree (memorial, birthday, shower, …) — a derived full
+     name ('Eleanor Rose Thompson') crests as ONE initial, never a
+     couple-style pair. Host-typed monogram initials win verbatim.
+     The stored `initials` string is pre-formatted from the derived
+     pieces so downstream <Monogram> consumers (save-the-date reveal,
+     address form, first pressing) can't re-split a full name. */
+  const solo = isSoloSubject(manifest);
+  const explicitMono =
+    (manifest.monogram?.initials && manifest.monogram.initials.trim()) || '';
   const monoSource =
-    (manifest.monogram?.initials && manifest.monogram.initials.trim()) ||
-    (names.filter(Boolean).join(' & ') || 'A & B');
-  const { initA, initB } = deriveInitials(monoSource);
+    explicitMono || names.filter(Boolean).join(' & ') || (solo ? 'A' : 'A & B');
+  const { initA, initB } = deriveInitials(monoSource, { solo: solo && !explicitMono });
+  const monoInitials = explicitMono || (initB ? `${initA} & ${initB}` : initA);
 
   const logistics =
     (loose.logistics as { date?: string; venue?: string } | undefined) ?? {};
@@ -183,7 +193,7 @@ export function suiteThemeFromManifest(
     },
     motif: ((loose.motifKind as string | undefined) ?? null),
     monogram: {
-      initials: monoSource,
+      initials: monoInitials,
       initA,
       initB,
       frame: manifest.monogram?.frame ?? 'ring',
