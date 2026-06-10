@@ -44,6 +44,15 @@ export async function corePassClaude(
       howWeMet?: string;
       why?: string;
       favorite?: string;
+      /** Open-ended personal anchors mined from the host's story by
+       *  /api/wizard/listen — named, specific facts (the dog, the
+       *  bar in Lisbon, grandma's lemon cake). The copy must SPEND
+       *  these, not summarize them. */
+      anchors?: string[];
+      /** The host's own story, verbatim, as they told it. The single
+       *  richest grounding source — quoted (clamped) so the model
+       *  hears their actual voice. */
+      story?: string;
     };
     /** Per-event wizard extras (bachelor/reunion day count, memorial
      *  livestream + in-memory-of, graduation school). Injected into
@@ -77,7 +86,11 @@ export async function corePassClaude(
   // block under the same contract.
   const fs = opts.factSheet ?? {};
   const ed = opts.eventDetails ?? {};
+  const anchors = (fs.anchors ?? []).map((a) => String(a).trim()).filter(Boolean).slice(0, 10);
+  const story = (fs.story ?? '').trim().slice(0, 1600);
   const factLines = [
+    story ? `  • IN THEIR OWN WORDS (the host's story, verbatim): "${story}"` : null,
+    ...anchors.map((a) => `  • ANCHOR: "${a}"`),
     fs.howWeMet ? `  • HOW THEY GOT HERE: "${fs.howWeMet}"` : null,
     fs.why ? `  • WHY THIS CELEBRATION: "${fs.why}"` : null,
     fs.favorite ? `  • FAVOURITE MEMORY: "${fs.favorite}"` : null,
@@ -88,7 +101,7 @@ export async function corePassClaude(
       ? `  • A LIVESTREAM will be available for guests who can't attend in person`
       : null,
   ].filter(Boolean) as string[];
-  const hasFactSheet = Boolean(fs.howWeMet || fs.why || fs.favorite);
+  const hasFactSheet = Boolean(fs.howWeMet || fs.why || fs.favorite || story || anchors.length);
   const hardRules = [
     ...(hasFactSheet
       ? [
@@ -106,6 +119,12 @@ export async function corePassClaude(
       : null,
     ed.days && ed.days > 1
       ? `  - The story should acknowledge the event's ${ed.days}-day span (e.g. "${ed.days} days in…").`
+      : null,
+    anchors.length
+      ? `  - SPEND THE ANCHORS: at least ${Math.min(anchors.length, 3)} of the ANCHOR facts must appear, by name, somewhere on the site — chapters, FAQ answers, schedule item names, or detail cards. Specifics beat summaries: "Biscuit gets a seat at the ceremony" is right; "their beloved pet" is wrong.`
+      : null,
+    story
+      ? `  - Match the register of IN THEIR OWN WORDS — if they're playful, be playful; if they're hushed, be hushed. Their phrasing outranks the voice preset when the two disagree.`
       : null,
   ].filter(Boolean) as string[];
 

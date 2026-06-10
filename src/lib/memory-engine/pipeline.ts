@@ -39,7 +39,7 @@ export async function generateStoryManifest(
    * (grounding) checks chapter sentences against these + cluster
    * notes and flags ungrounded claims for Pass 1.2 to strip.
    */
-  factSheet?: { howWeMet?: string; why?: string; favorite?: string },
+  factSheet?: { howWeMet?: string; why?: string; favorite?: string; anchors?: string[]; story?: string },
   /**
    * Optional manual voice override from manifest.voiceOverride (set
    * by the Look Engine panel). Uses the prototype's 3-voice union

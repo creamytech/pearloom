@@ -41,7 +41,24 @@ export function BastedIn({
     return () => window.clearTimeout(t);
   }, []);
 
-  if (!open || items.length === 0) return null;
+  /* THE RECEIPTS — first open after generation, Pear shows what she
+     wove in from the host's own story (factSheet.anchors, stamped
+     by the generation route). Once per site; explaining her choices
+     is what turns "nice template" into "she listened". */
+  const receipts = useMemo(() => {
+    if (typeof window === 'undefined') return [] as string[];
+    const key = `pl-receipts-shown:${siteSlug}`;
+    try {
+      if (window.localStorage.getItem(key)) return [];
+      const fs = (initial as unknown as { factSheet?: { anchors?: string[] } }).factSheet;
+      const list = (fs?.anchors ?? []).filter(Boolean).slice(0, 3);
+      if (list.length) window.localStorage.setItem(key, '1');
+      return list;
+    } catch { return []; }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [siteSlug]);
+
+  if (!open || (items.length === 0 && receipts.length === 0)) return null;
 
   const set = (b: Basting) => {
     const before = manifest;
@@ -92,6 +109,28 @@ export function BastedIn({
         </button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {receipts.length > 0 && (
+          <div
+            style={{
+              padding: '9px 10px',
+              borderRadius: 11,
+              background: 'var(--gold-mist, rgba(193,154,75,0.10))',
+              border: '1px solid var(--gold-line, #D0B070)',
+            }}
+          >
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', marginBottom: 5 }}>
+              I wove your story in — look for these:
+            </div>
+            <div style={{ display: 'grid', gap: 4 }}>
+              {receipts.map((r) => (
+                <div key={r} style={{ display: 'flex', gap: 7, fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
+                  <span aria-hidden style={{ color: 'var(--pl-gold, #C19A4B)' }}>✦</span>
+                  <span>{r}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {items.map((b) => (
           <div
             key={b.id}
