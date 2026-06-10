@@ -100,9 +100,12 @@ function useMinuteClock(enabled: boolean): number | null {
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
     if (!enabled) return;
-    setNow(Date.now());
-    const id = window.setInterval(() => setNow(Date.now()), 60_000);
-    return () => window.clearInterval(id);
+    const tick = () => setNow(Date.now());
+    /* First tick is scheduled (not synchronous) — keeps the SSR
+       paint and the hydration paint identical, then fills in. */
+    const t = window.setTimeout(tick, 0);
+    const id = window.setInterval(tick, 60_000);
+    return () => { window.clearTimeout(t); window.clearInterval(id); };
   }, [enabled]);
   return enabled ? now : null;
 }

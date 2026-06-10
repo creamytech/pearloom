@@ -1,6 +1,6 @@
 'use client';
 
- 
+
 /* LivestreamPanel (redesign) — Content tab for the Livestream
    section. Writes manifest.livestream = { url, startsAt, note,
    buttonLabel }. The CANVAS also reads the legacy
@@ -13,6 +13,7 @@
    consumers). */
 
 import type { StoryManifest } from '@/types';
+import { Icon } from '../../../motifs';
 import { FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
 import { FTextArea, type BlockPanelProps } from './_shared';
 
@@ -28,10 +29,32 @@ export function LivestreamPanel({ manifest, onChange }: BlockPanelProps) {
     livestream: { ...data, ...next },
   } as unknown as StoryManifest);
 
+  const url = data.url?.trim() ?? '';
+
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <FGroup label="Stream link" hint="Zoom, YouTube Live, Vimeo — wherever the camera points.">
+        <FGroup
+          label="Stream link"
+          hint="Zoom, YouTube Live, Vimeo — wherever the camera points. Guests open it in a new tab."
+          action={url ? (
+            /* Open the pasted URL exactly as a guest will — catches
+               typos + permission walls before the day. */
+            <button
+              type="button"
+              onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                background: 'transparent', border: 'none', cursor: 'pointer',
+                padding: '2px 4px', fontSize: 11, fontWeight: 700,
+                color: 'var(--peach-ink)', fontFamily: 'var(--font-ui)',
+              }}
+            >
+              <Icon name="arrow-ur" size={11} color="var(--peach-ink)" />
+              Test link
+            </button>
+          ) : undefined}
+        >
           <FInput
             value={data.url ?? ''}
             onChange={(v) => patch({ url: v })}
@@ -41,12 +64,15 @@ export function LivestreamPanel({ manifest, onChange }: BlockPanelProps) {
           />
         </FGroup>
 
-        <FGroup label="Starts at" hint='Free-form — "Saturday 2:00 PM CET" reads better than a timestamp.'>
+        <FGroup
+          label="Starts at"
+          hint='Shown as written. Include a full date — "June 14, 2026 2:00 PM" — and the site adds a live countdown, restates the time in each guest’s time zone, and flips to “Live now” at start time.'
+        >
           <FInput
             value={data.startsAt ?? ''}
             onChange={(v) => patch({ startsAt: v })}
             icon="clock"
-            placeholder="Saturday · 2:00 PM CET"
+            placeholder="June 14, 2026 2:00 PM"
           />
         </FGroup>
 

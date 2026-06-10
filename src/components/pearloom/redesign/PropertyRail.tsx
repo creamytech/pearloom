@@ -392,6 +392,14 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
                   disabled={!canHide}
                 />
                 <div style={{ height: 1, background: 'var(--line-soft)', margin: '4px 6px' }} />
+                {/* No "Duplicate section" row — deliberately. Every
+                    redesign section reads ONE manifest store
+                    (chapters / events / faqs / galleryImages /
+                    memorial.* / bachelor.*), and blockOrder is a
+                    set of unique section ids ThemedSite renders by
+                    kind (key={kind}). A duplicated id would paint
+                    the SAME data twice and collide React keys —
+                    a data-fork footgun, not a feature. */}
                 <OptionRow
                   icon={isHidden ? 'eye' : 'eye-off'}
                   label={isHidden ? `Show on the live site` : `Hide from the live site`}
@@ -465,6 +473,25 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
         className="pl-rd-tab-body"
         style={{ flex: 1, overflow: 'auto', minHeight: 0, padding: 20, display: 'flex', flexDirection: 'column', gap: 18 }}
       >
+        {/* RSVP "Preview as a guest" — fires the same `pl-open-rsvp`
+            window event every published-site RSVP CTA dispatches.
+            EditorRedesign mounts the real GuestRsvpModal on the
+            canvas (EditorCanvasRsvpModal), so this opens the exact
+            form + ceremony a guest experiences — no mock. */}
+        {effectiveTab === 'content' && active === 'rsvp' && (
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            style={{ justifyContent: 'center' }}
+            onClick={() => {
+              if (typeof window === 'undefined') return;
+              window.dispatchEvent(new CustomEvent('pl-open-rsvp'));
+            }}
+          >
+            <Icon name="eye" size={13} /> Preview as a guest
+          </button>
+        )}
+
         {effectiveTab === 'content' && renderSectionEditor(active, manifest, onChange, siteSlug)}
 
         {effectiveTab === 'layout' && (() => {
@@ -516,6 +543,22 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
           );
         })()}
 
+        {/* STYLE TAB — deliberately ships NO per-section override
+            controls. Audited 2026-06-10 against redesign/ThemedSite:
+            the renderer has zero per-section style read-paths —
+            backgrounds are hardcoded per variant (var(--t-section) /
+            var(--t-paper) inline), vertical padding is one GLOBAL
+            density multiplier (manifest.density → ctx.pad), and
+            section-head dividers are per-call-site constants
+            (TSectionHead divider='sprig' + global dividerLook).
+            The legacy manifest.blockStyles[*] shape (13 fields) is
+            only consumed by site/ThemedSiteRenderer's
+            BlockStyleWrapper — never by redesign/ThemedSite, which
+            is what BOTH the canvas and PublishedSiteShell mount.
+            Shipping paper-tint / padding-scale / divider toggles
+            here would be write-only orphans the guest never sees.
+            When ThemedSite grows a per-section style read (e.g.
+            manifest.sectionStyles[id]), add the controls then. */}
         {effectiveTab === 'style' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>Styling is theme-wide</div>

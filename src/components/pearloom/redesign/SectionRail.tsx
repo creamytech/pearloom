@@ -3,11 +3,12 @@
 /* eslint-disable no-restricted-syntax */
 /* LITERAL PORT of handoff/pages/editor-redesign.jsx L137-234 SectionRail. */
 
-import { useRef, useState } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import { Icon } from '../motifs';
 import type { StoryManifest } from '@/types';
 import { type SectionId, type BlockSectionId, BLOCK_SECTION_IDS, isToolPanelApplicable, isOptionalSectionApplicable, isBlockApplicable } from './EditorRedesign';
 import { SiteModeSection } from '../editor/panels/ThemePanel';
+import { useMobileViewport } from './use-mobile-viewport';
 
 interface SectionDef {
   id: Exclude<SectionId, null>;
@@ -168,6 +169,16 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
      section" button. Shows the OPTIONAL_SECTIONS that aren't yet in
      manifest.blockOrder + are applicable to this occasion. */
   const [pickerOpen, setPickerOpen] = useState(false);
+  /* Insert-at-position — when the host clicks a between-rows gap
+     affordance, this carries the restOrder index the picked
+     section should land at. null = append (the bottom button's
+     behaviour). Mutually exclusive with pickerOpen so only one
+     picker menu is ever mounted. */
+  const [insertAt, setInsertAt] = useState<number | null>(null);
+  /* Phone-sized viewport (rail lives in the Sections bottom sheet
+     there) — gap affordances can't rely on hover, so they render
+     as always-visible subtle dots instead. */
+  const isMobileViewport = useMobileViewport();
   /** Custom drag-image element ref. Created once and reused across
    *  drags to keep the GC quiet. Removed from the DOM at drag-end. */
   const dragImageRef = useRef<HTMLDivElement | null>(null);
@@ -245,16 +256,78 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
     .filter((s) => !restOrder.includes(s.id as string));
 
   /* Add an optional section to the manifest order + flip active
-     to it so the host immediately lands in its config panel. */
-  function addOptionalSection(id: Exclude<SectionId, null>) {
+     to it so the host immediately lands in its config panel.
+     `at` is a restOrder index (insert-at-position via a gap
+     affordance); null appends — the bottom button's behaviour. */
+  function addOptionalSection(id: Exclude<SectionId, null>, at: number | null = null) {
     if (!onChange) return;
-    const next = [...restOrder.filter((k) => k !== id), id as string];
+    const without = restOrder.filter((k) => k !== id);
+    const idx = at === null ? without.length : Math.max(0, Math.min(at, without.length));
+    const next = [...without.slice(0, idx), id as string, ...without.slice(idx)];
     onChange({
       ...(manifest as unknown as Record<string, unknown>),
       blockOrder: next,
     } as unknown as StoryManifest);
     setActive(id);
     setPickerOpen(false);
+    setInsertAt(null);
+  }
+
+  /* One picker menu, two openers — the bottom "Add section" button
+     (append, at === null) and the between-rows gap affordances
+     (insert at that restOrder index). Same options, same gating. */
+  function renderPicker(at: number | null) {
+    return (
+      <div
+        role="menu"
+        style={{
+          marginTop: 4,
+          display: 'flex', flexDirection: 'column', gap: 2,
+          padding: 4,
+          background: 'var(--card)',
+          border: '1px solid var(--line-soft)',
+          borderRadius: 10,
+          boxShadow: '0 8px 20px rgba(40,28,12,0.10)',
+          animation: 'pl-drop-line-pop 160ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+        }}
+      >
+        {availableOptional.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            role="menuitem"
+            onClick={() => addOptionalSection(s.id, at)}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '22px 1fr',
+              gap: 8,
+              alignItems: 'center',
+              padding: '8px 10px',
+              borderRadius: 6,
+              background: 'transparent',
+              border: 0,
+              cursor: 'pointer',
+              color: 'var(--ink)',
+              textAlign: 'left',
+              fontFamily: 'var(--font-ui)',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--cream-3)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+          >
+            <Icon name={s.icon} size={13} color="var(--ink-soft)" />
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 12.5, fontWeight: 600 }}>{s.label}</div>
+              <div style={{
+                fontSize: 10.5, opacity: 0.55, marginTop: 1,
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              }}>
+                {s.desc}
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+    );
   }
 
   /* Drop handler — moves the dragged section to the target index
@@ -437,8 +510,20 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
              goes." */
           const dropBefore = isHovered && draggingIdx !== null && draggingIdx > i;
           const dropAfter  = isHovered && draggingIdx !== null && draggingIdx < i;
+          /* Gap affordances sit between rows (not after the last —
+             the bottom "Add section" button owns append). Rendered
+             whenever there's something left to add; visuals + clicks
+             are suppressed mid-drag so the drop-line indicators own
+             that gesture, but the element keeps its height so rows
+             don't shift under the pointer at drag start. */
+          const showGap = !!onChange && availableOptional.length > 0 && i < orderedSections.length - 1;
+          /* The gap after visual row i inserts BEFORE the next row —
+             in restOrder coordinates that's (i + 1) minus the pinned
+             hero at visual index 0. */
+          const gapInsertIndex = i + 1 - (heroSection ? 1 : 0);
           return (
-            <div key={s.id} style={{ position: 'relative' }}>
+            <Fragment key={s.id}>
+            <div style={{ position: 'relative' }}>
               {/* Drop-line indicator — a peach bar above or below
                   the row. Sits OUTSIDE the row's flow so the row
                   doesn't jitter during drag. */}
@@ -533,6 +618,21 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
               )}
             </div>
             </div>
+            {showGap && (
+              <>
+                <GapInsert
+                  mobile={isMobileViewport}
+                  open={insertAt === gapInsertIndex}
+                  suppressed={draggingIdx !== null}
+                  onToggle={() => {
+                    setPickerOpen(false);
+                    setInsertAt(insertAt === gapInsertIndex ? null : gapInsertIndex);
+                  }}
+                />
+                {insertAt === gapInsertIndex && renderPicker(gapInsertIndex)}
+              </>
+            )}
+            </Fragment>
           );
         })}
 

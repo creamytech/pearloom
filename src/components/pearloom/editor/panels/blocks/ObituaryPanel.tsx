@@ -25,7 +25,10 @@ export function ObituaryPanel({ manifest, onChange }: BlockPanelProps) {
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <FGroup label="Dates" hint="Shown above the remembrance.">
+        <FGroup
+          label="Dates"
+          hint="Shown above the remembrance in small capitals. A dash or middot between dates ('1942 — 2026') renders as a quiet gold mark on the site."
+        >
           <FInput
             value={obituary.dates ?? ''}
             onChange={(v) => patch({ dates: v })}
@@ -34,7 +37,10 @@ export function ObituaryPanel({ manifest, onChange }: BlockPanelProps) {
           />
         </FGroup>
 
-        <FGroup label="Remembrance" hint="Family details, what they loved, what they leave behind. Blank lines become paragraphs.">
+        <FGroup
+          label="Remembrance"
+          hint="Family details, what they loved, what they leave behind. Blank lines become paragraphs; the first letter opens the setting."
+        >
           <FTextArea
             value={obituary.body ?? ''}
             onChange={(v) => patch({ body: v })}

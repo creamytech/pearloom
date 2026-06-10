@@ -16,6 +16,25 @@ import { isMemorialOccasion, mkId, readOccasion, RemoveButton, ToolPointerCard, 
 
 interface ProgramRow { id: string; name: string; detail?: string }
 
+/* Roman numerals — mirrors toRoman in the canvas renderer
+   (section-variants/blocks/program.tsx) so the panel previews the
+   exact leaders the Numbered layout prints. Duplicated (not
+   imported) so the editor/panels tree never pulls the redesign
+   canvas into its module graph. */
+function toRoman(n: number): string {
+  const table: Array<[number, string]> = [
+    [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'],
+    [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'],
+    [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I'],
+  ];
+  let out = '';
+  let v = Math.floor(n);
+  for (const [val, sym] of table) {
+    while (v >= val) { out += sym; v -= val; }
+  }
+  return out || 'I';
+}
+
 export function ProgramPanel({ manifest, onChange }: BlockPanelProps) {
   const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'program');
   const loose = manifest as unknown as { memorial?: { program?: ProgramRow[] } & Record<string, unknown> };
@@ -32,19 +51,23 @@ export function ProgramPanel({ manifest, onChange }: BlockPanelProps) {
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <FGroup label={`Order of service · ${program.length} moments`} hint="In the order guests will experience them.">
+        <FGroup label={`Order of service · ${program.length} moments`} hint="In the order guests will experience them — the Numbered layout prints these leaders as I · II · III.">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {program.map((row, i) => (
               <div key={row.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: 10, borderRadius: 11, background: 'var(--card)', border: '1px solid var(--line)' }}>
-                <span style={{
-                  width: 28, height: 28, borderRadius: 8,
-                  background: 'var(--lavender-bg)',
-                  color: 'var(--lavender-ink)',
-                  display: 'grid', placeItems: 'center', flexShrink: 0, marginTop: 4,
-                  fontSize: 11, fontWeight: 700,
-                  fontVariantNumeric: 'tabular-nums',
-                }}>
-                  {i + 1}
+                <span
+                  title={`Moment ${i + 1}`}
+                  style={{
+                    minWidth: 28, height: 28, borderRadius: 8, padding: '0 5px',
+                    background: 'var(--lavender-bg)',
+                    color: 'var(--lavender-ink)',
+                    display: 'grid', placeItems: 'center', flexShrink: 0, marginTop: 4,
+                    fontFamily: 'var(--font-display)', fontStyle: 'italic',
+                    fontSize: 11.5, fontWeight: 600,
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  {toRoman(i + 1)}
                 </span>
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                   <FInput value={row.name} onChange={(v) => patchRow(i, { name: v })} placeholder="Processional" />

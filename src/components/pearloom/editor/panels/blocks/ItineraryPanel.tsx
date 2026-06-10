@@ -9,11 +9,35 @@
    detail, location }] }. */
 
 import type { StoryManifest } from '@/types';
+import { Icon } from '../../../motifs';
 import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
 import { mkId, RemoveButton, RowCard, type BlockPanelProps } from './_shared';
 
 interface SlotRow { id: string; time?: string; title?: string; detail?: string; location?: string }
 interface DayRow { id: string; label?: string; date?: string; slots: SlotRow[] }
+
+/** Tiny chevron button for reordering days. */
+function MoveDayButton({ dir, disabled, onClick }: { dir: -1 | 1; disabled: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-label={dir < 0 ? 'Move day earlier' : 'Move day later'}
+      disabled={disabled}
+      onClick={onClick}
+      style={{
+        width: 22, height: 22, borderRadius: 6,
+        display: 'grid', placeItems: 'center',
+        background: 'transparent',
+        border: '1px solid var(--line-soft)',
+        color: disabled ? 'var(--line)' : 'var(--ink-muted)',
+        cursor: disabled ? 'default' : 'pointer',
+        opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      <Icon name={dir < 0 ? 'chev-up' : 'chev-down'} size={11} />
+    </button>
+  );
+}
 
 function readDays(manifest: StoryManifest): DayRow[] {
   const loose = manifest as unknown as { itinerary?: { days?: DayRow[] } };
@@ -41,11 +65,30 @@ export function ItineraryPanel({ manifest, onChange }: BlockPanelProps) {
   const patchSlot = (di: number, si: number, p: Partial<SlotRow>) =>
     patchDay(di, { slots: days[di].slots.map((s, j) => (j === si ? { ...s, ...p } : s)) });
 
+  /* Reorder — swap the day with its neighbour. The canvas (and the
+     day-jump pills) follow array order, so this is the whole story. */
+  const moveDay = (di: number, dir: -1 | 1) => {
+    const target = di + dir;
+    if (target < 0 || target >= days.length) return;
+    const next = [...days];
+    [next[di], next[target]] = [next[target], next[di]];
+    write(next);
+  };
+
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {days.map((day, di) => (
-          <FGroup key={day.id} label={day.label?.trim() || `Day ${di + 1}`}>
+          <FGroup
+            key={day.id}
+            label={day.label?.trim() || `Day ${di + 1}`}
+            action={days.length > 1 ? (
+              <span style={{ display: 'inline-flex', gap: 3 }}>
+                <MoveDayButton dir={-1} disabled={di === 0} onClick={() => moveDay(di, -1)} />
+                <MoveDayButton dir={1} disabled={di === days.length - 1} onClick={() => moveDay(di, 1)} />
+              </span>
+            ) : undefined}
+          >
             <RowCard>
               <div style={{ display: 'flex', gap: 6 }}>
                 <FInput value={day.label ?? ''} onChange={(v) => patchDay(di, { label: v })} placeholder={`Day ${di + 1} — "Friday"`} />
