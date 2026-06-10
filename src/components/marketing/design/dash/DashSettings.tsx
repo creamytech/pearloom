@@ -938,6 +938,15 @@ function Field({
   onSave?: (v: string) => void;
 }) {
   const [v, setV] = useState(value);
+  // Session + prefs load after mount; re-seed the local draft when
+  // the canonical value arrives (or changes elsewhere) so the field
+  // doesn't stay frozen on the empty first-render value. Skipped
+  // while the host has an unsaved edit in progress.
+  const [seeded, setSeeded] = useState(value);
+  if (value !== seeded) {
+    setSeeded(value);
+    if (v === seeded) setV(value);
+  }
   const changed = v !== value;
   return (
     <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

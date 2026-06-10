@@ -10,6 +10,7 @@ import { DashEmpty } from '../dash/DashEmpty';
 import { DashSkeleton } from '../dash/DashSkeleton';
 import { Heart, Icon, Pear, PhotoPlaceholder, Sparkle } from '../motifs';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
+import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
 import { useDialog } from '@/components/ui/confirm-dialog';
 
 function occasionLabel(o?: string) {
@@ -437,6 +438,40 @@ export function EventIndexPage() {
           <div style={{ padding: 56, textAlign: 'center', color: 'var(--ink-soft)' }}>
             All cleared. <Link href="/wizard/new" style={{ color: 'var(--peach-ink)' }}>Begin a new thread</Link>.
           </div>
+        )}
+        {/* Weekend builder discovery — it lives at a ⌘K-only route, so
+            this strip is the one place hosts planning multi-event
+            weekends will stumble onto it. Wedding-arc sites only
+            (the builder weaves rehearsal → ceremony → brunch);
+            hidden in pick mode (the host is mid-flow elsewhere). */}
+        {!loading && !pickMode && visibleSites.length > 0 &&
+          visibleSites.some((s) => isDashSurfaceApplicable('weekend', s.occasion)) && (
+          <Link
+            href="/dashboard/weekend"
+            style={{
+              marginTop: 28,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+              padding: '16px 20px',
+              borderRadius: 14,
+              background: 'var(--sage-tint)',
+              border: '1px solid var(--line-soft)',
+              textDecoration: 'none',
+              color: 'var(--ink)',
+            }}
+          >
+            <Icon name="calendar" size={18} />
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ fontWeight: 700, fontSize: 14 }}>Planning a whole weekend?</span>{' '}
+              <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
+                One date, one base name — Pear weaves a linked site for every event, rehearsal to brunch.
+              </span>
+            </span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--sage-deep)', flexShrink: 0 }}>
+              Weekend builder →
+            </span>
+          </Link>
         )}
       </div>
     </DashLayout>

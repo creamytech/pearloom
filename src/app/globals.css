@@ -2319,3 +2319,33 @@ button:not(:disabled):active,
     transform: none;
   }
 }
+
+/* ── Dashboard sidebar chrome keyframes ──────────────────────────
+   Moved out of DashShell.tsx <style jsx> blocks: the styled-jsx
+   scope class hashed differently between SSR and the client in the
+   persistent shell, tripping a hydration-attribute warning on every
+   dashboard page. @keyframes are global anyway — nothing scoped. */
+@keyframes pl8-plan-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.06); }
+}
+@keyframes pl8-plan-halo {
+  0%, 100% { opacity: 0.45; transform: translateX(-50%) scale(0.94); }
+  50%      { opacity: 0.9;  transform: translateX(-50%) scale(1.08); }
+}
+@keyframes pl8-sb-cele-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  @keyframes pl8-plan-breathe {
+    0%, 100% { transform: none; }
+  }
+  @keyframes pl8-plan-halo {
+    0%, 100% { opacity: 0.6; transform: translateX(-50%); }
+  }
+  @keyframes pl8-sb-cele-spin {
+    from { transform: none; }
+    to   { transform: none; }
+  }
+}

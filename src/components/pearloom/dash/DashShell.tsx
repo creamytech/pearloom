@@ -287,24 +287,9 @@ export function DashSidebar({ active }: { active?: string }) {
 
         <UserMenu name={name} email={email} initial={initial} />
       </div>
-      <style jsx>{`
-        @keyframes pl8-plan-breathe {
-          0%, 100% { transform: scale(1); }
-          50%      { transform: scale(1.06); }
-        }
-        @keyframes pl8-plan-halo {
-          0%, 100% { opacity: 0.45; transform: translateX(-50%) scale(0.94); }
-          50%      { opacity: 0.9;  transform: translateX(-50%) scale(1.08); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          @keyframes pl8-plan-breathe {
-            0%, 100% { transform: none; }
-          }
-          @keyframes pl8-plan-halo {
-            0%, 100% { opacity: 0.6; transform: translateX(-50%); }
-          }
-        }
-      `}</style>
+      {/* pl8-plan-* keyframes live in globals.css — a <style jsx>
+          block here made the styled-jsx scope class hash differently
+          between SSR and client, warning on every dashboard page. */}
     </aside>
     </>
   );
@@ -807,18 +792,8 @@ function CelebrationCard() {
           </Link>
         </div>
       )}
-      <style jsx>{`
-        @keyframes pl8-sb-cele-spin {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          @keyframes pl8-sb-cele-spin {
-            from { transform: none; }
-            to   { transform: none; }
-          }
-        }
-      `}</style>
+      {/* pl8-sb-cele-spin keyframes live in globals.css (see note in
+          DashSidebar). */}
     </div>
   );
 }

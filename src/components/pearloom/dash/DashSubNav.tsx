@@ -13,6 +13,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { DASH_SECTIONS, sectionForHref } from './DashShell';
+import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
+import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
 
 interface Props {
   /** Section id (`site` | `guests` | `day` | `studio` | `memory`).
@@ -22,10 +24,20 @@ interface Props {
 
 export function DashSubNav({ section }: Props) {
   const pathname = usePathname();
+  const { site } = useSelectedSite();
   const sectionId = (section ?? sectionForHref(pathname || '')) as keyof typeof DASH_SECTIONS | null;
   if (!sectionId) return null;
   const meta = DASH_SECTIONS[sectionId];
   if (!meta) return null;
+
+  // Occasion-aware tabs: don't advertise surfaces the selected
+  // event can't use (registry for a bachelor party, seating for a
+  // trip). The tab the host is currently ON always stays visible
+  // so a bookmark or site-switch never strands them on a route
+  // with no tab.
+  const tabs = meta.tabs.filter(
+    (tab) => pathname === tab.href || isDashSurfaceApplicable(tab.id, site?.occasion),
+  );
 
   return (
     <nav
@@ -41,7 +53,7 @@ export function DashSubNav({ section }: Props) {
         marginBottom: 8,
       }}
     >
-      {meta.tabs.map((tab) => {
+      {tabs.map((tab) => {
         const on = pathname === tab.href;
         return (
           <Link

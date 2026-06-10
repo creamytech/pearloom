@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, EmptyShell, btnInk, btnGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
-import { PLAtmosphere, PLTabs } from '@/components/pearloom/dash/PLChrome';
+import { PLAtmosphere } from '@/components/pearloom/dash/PLChrome';
 import { Icon, Sprig } from '@/components/pearloom/motifs';
 import Link from 'next/link';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
@@ -795,6 +795,9 @@ export function DashGuests() {
       }
       actions={
         <>
+          <Link href="/dashboard/guest-review" style={{ ...btnGhost, textDecoration: 'none' }}>
+            Pear&rsquo;s review
+          </Link>
           <button style={btnGhost} onClick={() => setImportOpen(true)}>Import CSV</button>
           <button style={btnInk} onClick={() => setAddOpen(true)} disabled={!site?.id}>
             ✦ Add a guest
@@ -803,15 +806,8 @@ export function DashGuests() {
       }
     >
       <PLAtmosphere />
-      <PLTabs
-        tabs={[
-          { label: 'Roster' },
-          { label: 'Submissions', href: '/dashboard/submissions' },
-          { label: 'Registry', href: '/dashboard/registry' },
-        ]}
-        active={0}
-        style={{ marginTop: 4, marginBottom: 18 }}
-      />
+      {/* Roster / Submissions / Registry tabs come from the shell's
+          DashSubNav — no in-page duplicate strip. */}
       <main
         className="pd-guests-main"
         style={{
