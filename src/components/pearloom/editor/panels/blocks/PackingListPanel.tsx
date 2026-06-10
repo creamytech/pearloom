@@ -73,7 +73,7 @@ export function PackingListPanel({ manifest, onChange }: BlockPanelProps) {
                         value={group.cat}
                         onChange={(v) => renameGroup(group.rows.map((r) => r.idx), v)}
                         placeholder="Essentials"
-                        icon="tag"
+                        icon="folder"
                       />
                     </div>
                     <span style={{ fontSize: 10.5, color: 'var(--ink-muted)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>

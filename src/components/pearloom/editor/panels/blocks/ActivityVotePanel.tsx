@@ -3,8 +3,13 @@
 /* eslint-disable no-restricted-syntax */
 /* ActivityVotePanel — Content tab for the Group vote section.
    THIN editor over manifest.bachelor.votes[] — the SAME field the
-   Weekend planner tool (BachelorPanel) owns. Guest voting + tallies
-   are design-agent work; this panel authors the polls. */
+   Weekend planner tool (BachelorPanel) owns. Guest voting + live
+   tallies render in the canvas section (activity-vote.tsx).
+
+   TALLY CAVEAT: the redesign data carries plain option strings, so
+   the server-side option_id is a slug of the LABEL. Renaming an
+   option after guests vote resets its live tally (reordering is
+   safe — ids travel with the label). Surfaced as a hint below. */
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../../motifs';

@@ -656,7 +656,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
           <button
             type="button"
             className="pl-rd-add-section"
-            onClick={() => setPickerOpen((v) => !v)}
+            onClick={() => { setInsertAt(null); setPickerOpen((v) => !v); }}
             aria-expanded={pickerOpen}
             style={{
               marginTop: 4,
@@ -678,57 +678,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
           </button>
         )}
 
-        {pickerOpen && availableOptional.length > 0 && (
-          <div
-            role="menu"
-            style={{
-              marginTop: 4,
-              display: 'flex', flexDirection: 'column', gap: 2,
-              padding: 4,
-              background: 'var(--card)',
-              border: '1px solid var(--line-soft)',
-              borderRadius: 10,
-              boxShadow: '0 8px 20px rgba(40,28,12,0.10)',
-              animation: 'pl-drop-line-pop 160ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-            }}
-          >
-            {availableOptional.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                role="menuitem"
-                onClick={() => addOptionalSection(s.id)}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '22px 1fr',
-                  gap: 8,
-                  alignItems: 'center',
-                  padding: '8px 10px',
-                  borderRadius: 6,
-                  background: 'transparent',
-                  border: 0,
-                  cursor: 'pointer',
-                  color: 'var(--ink)',
-                  textAlign: 'left',
-                  fontFamily: 'var(--font-ui)',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--cream-3)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-              >
-                <Icon name={s.icon} size={13} color="var(--ink-soft)" />
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 600 }}>{s.label}</div>
-                  <div style={{
-                    fontSize: 10.5, opacity: 0.55, marginTop: 1,
-                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                  }}>
-                    {s.desc}
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
+        {pickerOpen && availableOptional.length > 0 && renderPicker(null)}
       </div>
       )}
 
@@ -798,6 +748,91 @@ function GripDots({ color = 'var(--ink-muted)' }: { color?: string }) {
         <circle key={i} cx={(i % 2) * 6 + 2} cy={Math.floor(i / 2) * 5 + 3} r="1.2" fill={color} />
       ))}
     </svg>
+  );
+}
+
+/* GapInsert — the quiet between-rows insertion affordance.
+
+   Desktop: an 10px hover zone between section rows; hovering
+   reveals a peach hairline + a small '+' chip ("a new section
+   threads in here"). Mobile (no hover): three subtle always-
+   visible dots mark the gap; tapping opens the picker. While a
+   drag is in flight the affordance goes inert (the DropLine
+   indicators own that gesture) but keeps its height so rows
+   don't shift under the pointer. */
+function GapInsert({ mobile, open, suppressed, onToggle }: {
+  mobile: boolean;
+  open: boolean;
+  suppressed: boolean;
+  onToggle: () => void;
+}) {
+  const [hover, setHover] = useState(false);
+  const showPlus = !suppressed && (open || (!mobile && hover));
+  const showDots = !suppressed && mobile && !open;
+  return (
+    <div
+      role="button"
+      tabIndex={suppressed ? -1 : 0}
+      aria-label="Insert a section here"
+      aria-expanded={open}
+      onClick={() => { if (!suppressed) onToggle(); }}
+      onKeyDown={(e) => {
+        if (suppressed) return;
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(); }
+      }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        height: mobile ? 14 : 10,
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: suppressed ? 'default' : 'pointer',
+        pointerEvents: suppressed ? 'none' : 'auto',
+        outline: 'none',
+      }}
+    >
+      {showPlus && (
+        <>
+          <span
+            aria-hidden
+            style={{
+              position: 'absolute', left: 10, right: 10, top: '50%',
+              height: 1, marginTop: -0.5,
+              background: open ? 'var(--peach-ink, #C6703D)' : 'var(--line)',
+              pointerEvents: 'none',
+            }}
+          />
+          <span
+            aria-hidden
+            style={{
+              position: 'relative',
+              width: 16, height: 16, borderRadius: '50%',
+              background: open ? 'var(--peach-ink, #C6703D)' : 'var(--peach-bg, #F8E4D5)',
+              border: '1px solid var(--peach-ink, #C6703D)',
+              display: 'grid', placeItems: 'center',
+              animation: 'pl-drop-line-pop 160ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+            }}
+          >
+            <Icon name="plus" size={9} color={open ? 'var(--cream-2, #FBF7EE)' : 'var(--peach-ink, #C6703D)'} />
+          </span>
+        </>
+      )}
+      {showDots && (
+        <span aria-hidden style={{ display: 'inline-flex', gap: 4 }}>
+          {[0, 1, 2].map((d) => (
+            <span
+              key={d}
+              style={{
+                width: 3, height: 3, borderRadius: '50%',
+                background: 'var(--ink-muted)', opacity: 0.4,
+              }}
+            />
+          ))}
+        </span>
+      )}
+    </div>
   );
 }
 
