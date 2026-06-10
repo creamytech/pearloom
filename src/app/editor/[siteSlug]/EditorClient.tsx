@@ -16,6 +16,7 @@
 import { useSearchParams } from 'next/navigation';
 import { BuilderV8 } from '@/components/pearloom/pages/BuilderV8';
 import EditorRedesign from '@/components/pearloom/redesign/EditorRedesign';
+import { hydrateManifestForRedesign } from '@/components/pearloom/redesign/hydrate-manifest';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import type { StoryManifest } from '@/types';
 
@@ -81,7 +82,11 @@ export default function EditorClient({ manifest, siteSlug, names }: EditorClient
       {view === 'studio' ? (
         <BuilderV8 manifest={manifest} siteSlug={siteSlug} names={names} />
       ) : (
-        <EditorRedesign manifest={manifest} siteSlug={siteSlug} names={names} />
+        /* Hydrated exactly like PublishedSiteShell — older manifests
+           carry only the legacy theme.colors contract; without this
+           the editor canvas dropped their palette while the
+           published site kept it. Fill-missing-only. */
+        <EditorRedesign manifest={hydrateManifestForRedesign(manifest)} siteSlug={siteSlug} names={names} />
       )}
     </ErrorBoundary>
   );

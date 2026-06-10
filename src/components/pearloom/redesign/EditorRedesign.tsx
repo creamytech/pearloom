@@ -26,7 +26,6 @@ import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useRef, useS
 import type { StoryManifest } from '@/types';
 import { getEventType } from '@/lib/event-os/event-types';
 import { Icon, Pear } from '../motifs';
-import { ThemedSiteRenderer } from '../site/ThemedSiteRenderer';
 import { useEditorRedesignBridge } from './bridge';
 import { EditorRailLeft } from './SectionRail';
 import { PropertyRail } from './PropertyRail';
@@ -632,14 +631,6 @@ function EditorCanvas({
         {isPreview || mode === 'mobile' ? (
           <EditorCanvasRsvpModal siteSlug={siteSlug} manifest={manifest} />
         ) : null}
-        {/* FullSite + ThemedSiteRenderer kept as imports for one-line
-            rollback during cutover — not rendered. */}
-        {false && (
-          <>
-            <FullSite active={active} hover={hover} setActive={setActive} setHover={setHover} editable={!isPreview} manifest={manifest} names={names} />
-            <ThemedSiteRenderer manifest={manifest} names={names} siteSlug={siteSlug} editMode={!isPreview} onEditField={isPreview ? undefined : onEditField} onEditNames={isPreview ? undefined : onEditNames} />
-          </>
-        )}
       </div>
 
       {/* One Pear, one entry point — the pill only OPENS the

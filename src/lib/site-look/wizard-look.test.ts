@@ -84,3 +84,13 @@ describe('occasion look defaults', () => {
     expect(out.kitId).toBe('plate');
   });
 });
+
+describe('legacy-contract rescue (hydrate path)', () => {
+  it('derives a full --t-* bag from old theme.colors values', () => {
+    // Mirrors hydrate-manifest's pick order for pre-fix sites.
+    const vars = themeVarsFromPalette(['#F5EFE2', '#5C6B3F', '#E0DDC9', '#0E0D0B']);
+    expect(vars).toBeTruthy();
+    expect(vars!['--t-accent']).toBeTruthy();
+    expect(vars!['--t-paper']).not.toBe(vars!['--t-ink']);
+  });
+});

@@ -17,6 +17,7 @@ import type { StoryManifest, Chapter } from '@/types';
 import { normalizeOccasion } from '@/lib/site-urls';
 import { THEMES } from '../site/themes';
 import { recommendEdition } from '@/lib/site-editions/resolve';
+import { themeVarsFromPalette } from '@/lib/site-look/wizard-look';
 
 /* Canonical accent colours per redesign theme, used to map an old
    manifest's theme.colors.accent to the nearest themeId. Pulled
@@ -122,6 +123,22 @@ export function hydrateManifestForRedesign(input: StoryManifest): StoryManifest 
     const accent = ((m as unknown as { theme?: { colors?: { accent?: string } } }).theme?.colors?.accent) ?? undefined;
     const matched = nearestThemeId(accent);
     if (matched) out.themeId = matched;
+  }
+
+  /* 1b. themeVars — derive the REAL palette from the legacy
+     theme.colors contract instead of settling for the nearest base
+     theme. Pre-2026-06-10 generated sites only carried
+     theme.colors; without this their exact picked colors were lost
+     to a 6-theme approximation. Fill-missing: pack/host themeVars
+     always win. */
+  if (!(out as Record<string, unknown>).themeVars) {
+    const legacy = (m as unknown as { theme?: { colors?: Record<string, string> } }).theme?.colors;
+    if (legacy) {
+      const picks = [legacy.background, legacy.accent, legacy.accentLight, legacy.foreground, legacy.muted]
+        .filter((c): c is string => typeof c === 'string' && /^#?[0-9a-f]{6}$/i.test(c.trim()));
+      const vars = themeVarsFromPalette(picks);
+      if (vars) (out as Record<string, unknown>).themeVars = vars;
+    }
   }
 
   /* 2. edition — recommend from occasion when none set. */
