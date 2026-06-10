@@ -34,38 +34,38 @@ export function Pear({
 }: {
   size?: number;
   tone?: PearTone;
+  /** Legacy prop — the thread-drawn pear casts no cartoon ground
+   *  shadow. Kept so 100+ call sites keep compiling. */
   shadow?: boolean;
+  /** Legacy prop — the gold pearl IS the sparkle now. */
   sparkle?: boolean;
   className?: string;
   style?: CSSProperties;
 }) {
-  const tones: Record<PearTone, { body: string; shade: string; leaf: string; stem: string }> = {
-    sage: { body: '#8B9C5A', shade: '#6d7d3f', leaf: '#6d7d3f', stem: '#4a3b1f' },
-    lavender: { body: '#C4B5D9', shade: '#a08bc2', leaf: '#6d7d3f', stem: '#4a3b1f' },
-    peach: { body: '#EAB286', shade: '#d49960', leaf: '#6d7d3f', stem: '#4a3b1f' },
-    cream: { body: '#F3E9D4', shade: '#e0d3b3', leaf: '#6d7d3f', stem: '#4a3b1f' },
-    ink: { body: '#3D4A1F', shade: '#2a3512', leaf: '#8B9C5A', stem: '#D4A95D' },
+  void shadow; void sparkle;
+  /* Rebrand 2026-06-10: the filled cartoon fruit predated the woven
+     identity and clashed with it. Pear now renders the brand mark —
+     one continuous thread, gold weft, pearl at the crossing — with
+     the legacy tones mapped onto stroke colors so all existing call
+     sites (sage chips, cream-on-ink toasts, peach Pear-cards…)
+     re-skin in place. */
+  const toneColors: Record<PearTone, { body: string; gold: string; paper: string }> = {
+    sage:     { body: 'var(--pl-olive, #5C6B3F)',    gold: 'var(--pl-gold, #C19A4B)', paper: 'var(--pl-cream, #FDFAF0)' },
+    lavender: { body: 'var(--lavender-ink, #6B5A8C)', gold: 'var(--pl-gold, #C19A4B)', paper: 'var(--pl-cream, #FDFAF0)' },
+    peach:    { body: 'var(--peach-ink, #C6703D)',   gold: 'var(--pl-gold, #C19A4B)', paper: 'var(--pl-cream, #FDFAF0)' },
+    cream:    { body: 'var(--pl-cream, #F1EBDC)',    gold: '#D4B373',                 paper: 'transparent' },
+    ink:      { body: 'var(--pl-ink, #18181B)',      gold: 'var(--pl-gold, #C19A4B)', paper: 'var(--pl-cream, #FDFAF0)' },
   };
-  const t = tones[tone] ?? tones.sage;
+  const t = toneColors[tone] ?? toneColors.sage;
   return (
-    <svg viewBox="0 0 100 120" width={size} height={size * 1.2} className={className} style={style} aria-hidden>
-      {shadow && <ellipse cx="50" cy="114" rx="26" ry="3" fill="rgba(61,74,31,0.15)" />}
-      <path
-        d="M50 22 C 38 22, 30 30, 30 44 C 30 56, 20 64, 20 82 C 20 100, 34 112, 50 112 C 66 112, 80 100, 80 82 C 80 64, 70 56, 70 44 C 70 30, 62 22, 50 22 Z"
-        fill={t.body}
-      />
-      <path
-        d="M64 44 C 72 54, 78 68, 74 88 C 70 102, 60 110, 50 112 C 62 110, 72 100, 76 86 C 80 70, 74 56, 68 48 C 66 46, 65 45, 64 44 Z"
-        fill={t.shade}
-        opacity="0.8"
-      />
-      <path d="M50 22 L 50 10 Q 50 6, 54 4" stroke={t.stem} strokeWidth="3" strokeLinecap="round" fill="none" />
-      <path d="M54 4 C 64 2, 74 8, 74 18 C 66 20, 56 16, 54 4 Z" fill={t.leaf} />
-      <ellipse cx="40" cy="58" rx="6" ry="14" fill="rgba(255,255,255,0.25)" transform="rotate(-20 40 58)" />
-      {sparkle && (
-        <path d="M 20 30 L 22 34 L 26 36 L 22 38 L 20 42 L 18 38 L 14 36 L 18 34 Z" fill="#D4A95D" />
-      )}
-    </svg>
+    <PearloomGlyph
+      size={size * 1.06}
+      color={t.body}
+      gold={t.gold}
+      paper={t.paper}
+      className={className}
+      style={style}
+    />
   );
 }
 
@@ -82,54 +82,53 @@ export function PearMascot({
   className?: string;
   style?: CSSProperties;
 }) {
+  /* The character, redrawn in the thread language (rebrand
+     2026-06-10): the woven-pear outline with the smallest possible
+     face — ink dots and one hairline smile. No fills, no blush
+     stickers; she's drawn with the same pen as the rest of the
+     brand. `love` swaps her eyes for gold pearls. */
+  const ink = 'var(--pl-olive, #5C6B3F)';
+  const gold = 'var(--pl-gold, #C19A4B)';
+  const k = { fill: 'none' as const, stroke: ink, strokeWidth: 5, strokeLinecap: 'round' as const };
+  const face = { stroke: ink, strokeWidth: 3.4, strokeLinecap: 'round' as const, fill: 'none' as const };
   return (
     <svg
-      viewBox="0 0 120 140"
-      width={size}
-      height={size * (140 / 120)}
+      viewBox="0 0 96 112"
+      width={size * (96 / 112)}
+      height={size}
       className={className}
       style={style}
       aria-hidden
     >
-      <ellipse cx="60" cy="134" rx="30" ry="3.5" fill="rgba(61,74,31,0.12)" />
-      <path d="M60 22 C 60 14, 58 8, 54 4" stroke="#4a3b1f" strokeWidth="3.5" strokeLinecap="round" fill="none" />
-      <path d="M54 4 C 44 2, 36 10, 38 22 C 48 22, 56 16, 54 4 Z" fill="#6d7d3f" />
-      <path d="M62 10 C 72 12, 80 22, 74 30 C 66 28, 60 20, 62 10 Z" fill="#8B9C5A" />
       <path
-        d="M60 24 C 48 24, 40 32, 40 46 C 40 58, 28 66, 28 86 C 28 108, 44 124, 60 124 C 76 124, 92 108, 92 86 C 92 66, 80 58, 80 46 C 80 32, 72 24, 60 24 Z"
-        fill="#A8BA72"
+        d="M 52 29 C 59 32, 63 39, 62 48 C 73 56, 79 69, 76 83 C 72 98, 61 106, 48 106 C 35 106, 24 98, 20 83 C 17 69, 23 56, 34 48 C 33 39, 37 32, 44 29"
+        {...k}
       />
-      <path
-        d="M72 46 C 82 58, 88 74, 84 94 C 80 112, 68 122, 60 124 C 74 122, 86 108, 88 90 C 90 72, 84 58, 78 50 Z"
-        fill="#8B9C5A"
-      />
-      <ellipse cx="46" cy="60" rx="7" ry="16" fill="rgba(255,255,255,0.28)" transform="rotate(-15 46 60)" />
-      <ellipse cx="46" cy="86" rx="6" ry="4" fill="#F4B0A0" opacity="0.75" />
-      <ellipse cx="74" cy="86" rx="6" ry="4" fill="#F4B0A0" opacity="0.75" />
+      <path d="M 48 27 C 49 21, 52 15, 58 10" {...k} />
+      <path d="M 58 10 C 63 2.5, 74 2, 80 8 C 76 16.5, 64 17.5, 58 10 Z" fill={ink} />
+      {/* Face */}
       {mood === 'wink' ? (
         <>
-          <circle cx="50" cy="76" r="2.4" fill="#3D4A1F" />
-          <path d="M70 76 Q 74 74 78 76" stroke="#3D4A1F" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+          <circle cx="38" cy="72" r="2.6" fill={ink} />
+          <path d="M 53 71 Q 57 68.5 61 71" {...face} />
         </>
       ) : mood === 'sleep' ? (
         <>
-          <path d="M46 76 Q 50 74 54 76" stroke="#3D4A1F" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-          <path d="M66 76 Q 70 74 74 76" stroke="#3D4A1F" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+          <path d="M 34 72 Q 38 69.5 42 72" {...face} />
+          <path d="M 53 72 Q 57 69.5 61 72" {...face} />
         </>
       ) : mood === 'love' ? (
         <>
-          <path d="M50 78 l-3 -3 a2 2 0 113 -3 a2 2 0 113 3 z" fill="#E8A07A" />
-          <path d="M70 78 l-3 -3 a2 2 0 113 -3 a2 2 0 113 3 z" fill="#E8A07A" />
+          <circle cx="38" cy="71" r="3.6" fill={gold} stroke="var(--pl-cream, #FDFAF0)" strokeWidth="1.4" />
+          <circle cx="57" cy="71" r="3.6" fill={gold} stroke="var(--pl-cream, #FDFAF0)" strokeWidth="1.4" />
         </>
       ) : (
         <>
-          <circle cx="50" cy="76" r="2.4" fill="#3D4A1F" />
-          <circle cx="70" cy="76" r="2.4" fill="#3D4A1F" />
-          <circle cx="50.8" cy="75.2" r="0.8" fill="#fff" />
-          <circle cx="70.8" cy="75.2" r="0.8" fill="#fff" />
+          <circle cx="38" cy="72" r="2.6" fill={ink} />
+          <circle cx="57" cy="72" r="2.6" fill={ink} />
         </>
       )}
-      <path d="M54 90 Q 60 95 66 90" stroke="#3D4A1F" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <path d="M 41 84 Q 47.5 89.5 54 84" {...face} />
     </svg>
   );
 }

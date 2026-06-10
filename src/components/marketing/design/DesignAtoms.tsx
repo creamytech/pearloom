@@ -1,5 +1,7 @@
 'use client';
 
+import { PearloomGlyph } from '@/components/pearloom/motifs';
+
 // ─────────────────────────────────────────────────────────────
 // Pearloom / marketing/design/DesignAtoms.tsx
 //
@@ -35,25 +37,21 @@ export function Pear({
   animated = false,
   style,
 }: PearProps) {
+  /* Rebrand 2026-06-10: the filled cartoon fruit predated the woven
+     identity. This now renders the brand mark — one continuous
+     thread, gold weft, pearl — keeping the old prop names so the
+     marketing surfaces re-skin in place. The strongest of the three
+     legacy greens becomes the stroke. */
+  void color; void highlight;
+  const body = leaf ?? stem ?? 'var(--pl-olive, #5C6B3F)';
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 100 100"
-      fill="none"
+    <PearloomGlyph
+      size={size}
+      color={body}
+      gold="var(--pl-gold, #C19A4B)"
       className={animated ? 'pd-anim' : undefined}
       style={{ display: 'block', animation: animated ? 'pl-float-y 4s ease-in-out infinite' : undefined, ...style }}
-    >
-      <path d="M50 20 C 47 12, 43 7, 38 9" stroke={stem} strokeWidth="3" strokeLinecap="round" fill="none" />
-      <ellipse cx="40" cy="10" rx="6" ry="3.2" fill={leaf} transform="rotate(-30 40 10)" />
-      <path
-        d="M50 22 C 30 22, 20 42, 23 64 C 26 82, 40 94, 55 92 C 76 90, 82 72, 80 56 C 78 38, 68 22, 50 22 Z"
-        fill={color}
-      />
-      {highlight && (
-        <ellipse cx="38" cy="46" rx="7" ry="13" fill="#fff" opacity="0.22" transform="rotate(-20 38 46)" />
-      )}
-    </svg>
+    />
   );
 }
 
@@ -62,45 +60,13 @@ interface HeroPearProps {
   size?: number;
 }
 export function HeroPear({ size = 420 }: HeroPearProps) {
+  /* Rebrand 2026-06-10: was a 420px glossy gradient fruit — the
+     most cartoon pear in the product. Now the woven mark at mural
+     scale, breathing gently. */
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 400 400"
-      className="pd-anim"
-      style={{ animation: 'pl-ripen 12s ease-in-out infinite', display: 'block' }}
-    >
-      <defs>
-        <radialGradient id="pd-pear-grad" cx="38%" cy="38%" r="70%">
-          <stop offset="0%" stopColor="#E1E99A" />
-          <stop offset="45%" stopColor="#B8C96B" />
-          <stop offset="85%" stopColor="#6B7A3A" />
-          <stop offset="100%" stopColor="#3A4520" />
-        </radialGradient>
-        <radialGradient id="pd-pear-hl" cx="35%" cy="38%" r="30%">
-          <stop offset="0%" stopColor="#FFFDE8" stopOpacity="0.85" />
-          <stop offset="100%" stopColor="#FFFDE8" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id="pd-leaf-g" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stopColor="#8D9E4A" />
-          <stop offset="100%" stopColor="#4C5A26" />
-        </linearGradient>
-      </defs>
-      <ellipse cx="200" cy="360" rx="130" ry="16" fill="#1F2418" opacity="0.2" />
-      <path d="M200 90 C 192 60, 175 40, 158 44" stroke="#4C5A26" strokeWidth="7" strokeLinecap="round" fill="none" />
-      <g transform="translate(156 40) rotate(-28)">
-        <ellipse cx="0" cy="0" rx="28" ry="12" fill="url(#pd-leaf-g)" />
-        <path d="M-26 0 L 26 0" stroke="#3A4520" strokeWidth="1.2" opacity="0.6" />
-      </g>
-      <path
-        d="M200 96 C 140 96, 100 156, 108 230 C 116 306, 158 348, 200 348 C 242 348, 294 310, 298 232 C 302 160, 260 96, 200 96 Z"
-        fill="url(#pd-pear-grad)"
-      />
-      <ellipse cx="155" cy="190" rx="40" ry="70" fill="url(#pd-pear-hl)" transform="rotate(-18 155 190)" />
-      {[[170, 160], [180, 210], [220, 170], [240, 230], [200, 270], [160, 250]].map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="1.6" fill="#3A4520" opacity="0.35" />
-      ))}
-    </svg>
+    <div className="pd-anim" style={{ animation: 'pl-float-y 6s ease-in-out infinite', display: 'block' }}>
+      <PearloomGlyph size={size} color="var(--pd-olive, #5C6B3F)" gold="var(--pd-gold, #C19A4B)" paper="var(--pd-paper, #F5EFE2)" />
+    </div>
   );
 }
 
