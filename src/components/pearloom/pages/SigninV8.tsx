@@ -288,7 +288,7 @@ export function SigninV8({
                 gap: 10,
               }}
             >
-              beautiful soul. <Heart size={24} />
+              beautiful soul. <PearlDot size={13} style={{ marginLeft: 2 }} />
             </h1>
             <p
               style={{
@@ -301,7 +301,7 @@ export function SigninV8({
               }}
             >
               Every moment matters. Let&apos;s keep your story growing.
-              <Sparkle size={12} />
+
             </p>
 
             {errorMessage && (
@@ -506,7 +506,9 @@ export function SigninV8({
 
             {/* Pear chat bubble */}
             <div style={{ marginTop: 40, display: 'flex', gap: 12, alignItems: 'flex-end' }}>
-              <Pear size={58} tone="cream" />
+              {/* sage, not cream — cream strokes on the cream page
+                  rendered as a ghost scribble. */}
+              <Pear size={58} tone="sage" />
               <div
                 style={{
                   background: 'var(--pl-olive-mist, #E0DDC9)',
@@ -674,9 +676,6 @@ export function SigninV8({
             <circle cx="20" cy="20" r="2" fill="#3D4A1F" />
           </svg>
 
-          <div style={{ position: 'absolute', bottom: 10, left: 220 }}>
-            <Heart size={28} color="#6d7d3f" />
-          </div>
         </div>
       </div>
 
