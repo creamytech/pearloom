@@ -30,6 +30,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from '../motifs';
+import { useIsMobile } from '../redesign/use-nav-hooks';
 import { PackPreview } from './PackPreview';
 import { useCart } from './CartProvider';
 import {
@@ -211,6 +212,9 @@ export function QuickLookModal({
   onGetFree,
 }: QuickLookModalProps) {
   const { addToCart, hasItem } = useCart();
+  // Below ~720px the two-pane layout crushes both panes — stack
+  // previews above details instead. SSR-safe matchMedia hook.
+  const isNarrow = useIsMobile(720);
   // Track the DOM target for createPortal. Same lazy-init pattern
   // TemplatePreviewModal uses: resolve once on the first client
   // render, null during SSR. Avoids the setState-in-effect cascade.
@@ -276,7 +280,7 @@ export function QuickLookModal({
         backdropFilter: 'blur(6px)',
         display: 'grid',
         placeItems: 'center',
-        padding: 24,
+        padding: isNarrow ? 12 : 24,
       }}
     >
       <div
@@ -290,14 +294,45 @@ export function QuickLookModal({
           borderRadius: 'var(--pl-radius-2xl, 1.5rem)',
           boxShadow: 'var(--pl-shadow-xl, 0 16px 48px rgba(40,28,12,0.18))',
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1.05fr) minmax(0, 0.95fr)',
+          // Two panes side-by-side on desktop; stacked (previews
+          // above, details below) on phones.
+          gridTemplateColumns: isNarrow ? 'minmax(0, 1fr)' : 'minmax(0, 1.05fr) minmax(0, 0.95fr)',
+          position: 'relative',
         }}
       >
+        {/* Stacked layout puts the details-pane × below the fold —
+            pin a close affordance over the previews instead. It
+            carries the focus ref so opening the modal doesn't
+            auto-scroll past the preview pane. */}
+        {isNarrow && (
+          <button
+            ref={closeBtnRef}
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              position: 'absolute',
+              top: 10,
+              right: 10,
+              zIndex: 2,
+              width: 32,
+              height: 32,
+              borderRadius: 10,
+              display: 'grid',
+              placeItems: 'center',
+              background: 'rgba(251,247,238,0.92)',
+              border: '1px solid var(--pl-divider, #D8CFB8)',
+              cursor: 'pointer',
+              color: 'var(--pl-ink-soft, #3A332C)',
+            }}
+          >
+            <Icon name="close" size={15} />
+          </button>
+        )}
         {/* LEFT — previews */}
         <div
           style={{
             background: 'var(--pl-cream-deep, #EBE3D2)',
-            padding: 22,
+            padding: isNarrow ? 16 : 22,
             display: 'flex',
             flexDirection: 'column',
             gap: 14,
@@ -327,7 +362,7 @@ export function QuickLookModal({
         {/* RIGHT — details */}
         <div
           style={{
-            padding: '26px 26px 22px',
+            padding: isNarrow ? '20px 18px 18px' : '26px 26px 22px',
             display: 'flex',
             flexDirection: 'column',
             minWidth: 0,
@@ -374,25 +409,27 @@ export function QuickLookModal({
                 </span>
               )}
             </div>
-            <button
-              ref={closeBtnRef}
-              onClick={onClose}
-              aria-label="Close"
-              style={{
-                width: 30,
-                height: 30,
-                borderRadius: 8,
-                display: 'grid',
-                placeItems: 'center',
-                background: 'var(--pl-cream-deep, #EBE3D2)',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--pl-ink-soft, #3A332C)',
-                flexShrink: 0,
-              }}
-            >
-              <Icon name="close" size={15} />
-            </button>
+            {!isNarrow && (
+              <button
+                ref={closeBtnRef}
+                onClick={onClose}
+                aria-label="Close"
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 8,
+                  display: 'grid',
+                  placeItems: 'center',
+                  background: 'var(--pl-cream-deep, #EBE3D2)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--pl-ink-soft, #3A332C)',
+                  flexShrink: 0,
+                }}
+              >
+                <Icon name="close" size={15} />
+              </button>
+            )}
           </div>
 
           <h2
@@ -536,6 +573,9 @@ export function QuickLookModal({
               gap: 14,
               paddingTop: 14,
               borderTop: '1px solid var(--pl-divider, #D8CFB8)',
+              // Narrow screens: let the CTA drop under the price
+              // instead of squeezing both.
+              flexWrap: 'wrap',
             }}
           >
             <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

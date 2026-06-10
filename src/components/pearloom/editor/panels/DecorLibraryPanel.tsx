@@ -1011,8 +1011,9 @@ export function DecorLibraryPanel({
           </div>
         </div>
 
-        {/* Body */}
-        <div style={{ flex: 1, overflow: 'auto', padding: 18 }}>
+        {/* Body — drawer mode pads the scroll lane past the home
+            indicator so the last row is reachable full-bleed. */}
+        <div style={{ flex: 1, overflow: 'auto', padding: asDrawer ? '18px 18px calc(18px + env(safe-area-inset-bottom, 0px))' : 18 }}>
           {tab === 'motifs' && (
             <>
               <GalleryLabel>Motif art — tap to place around your sections</GalleryLabel>
@@ -1221,7 +1222,7 @@ export function DecorLibraryPanel({
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '12px 18px', borderTop: '1px solid var(--line-soft, rgba(14,13,11,0.10))', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+        <div style={{ padding: asDrawer ? '12px 18px calc(12px + env(safe-area-inset-bottom, 0px))' : '12px 18px', borderTop: '1px solid var(--line-soft, rgba(14,13,11,0.10))', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
           <button
             type="button"
             onClick={resetDecor}
@@ -1262,7 +1263,9 @@ export function DecorLibraryPanel({
         pointerEvents: 'none',
       }}
     >
-      <style>{`@keyframes dl-in{from{transform:translateX(28px);opacity:0}to{transform:none;opacity:1}}`}</style>
+      <style>{`@keyframes dl-in{from{transform:translateX(28px);opacity:0}to{transform:none;opacity:1}}
+.pl8-dl-drawer{width:min(460px,94vw);border-radius:0;}
+@media (max-width:520px){.pl8-dl-drawer{width:100vw;border-radius:14px 0 0 14px;}}`}</style>
       <div
         onClick={onClose}
         aria-hidden
@@ -1274,15 +1277,20 @@ export function DecorLibraryPanel({
         }}
       />
       <aside
+        className="pl8-dl-drawer"
         style={{
           position: 'relative',
-          width: 'min(460px, 94vw)',
+          // Width lives in the .pl8-dl-drawer class above so the
+          // ≤520px media query can go full-bleed (100vw, no side
+          // gap, leading edge rounded). ≥521px keeps the existing
+          // min(460px, 94vw).
           height: '100%',
           background: 'var(--card, var(--pl-cream-card, #FBF7EE))',
           boxShadow: '-16px 0 46px rgba(0,0,0,0.18)',
           display: 'flex',
           flexDirection: 'column',
           pointerEvents: 'auto',
+          overflow: 'hidden',
           animation: 'dl-in 300ms cubic-bezier(0.16,1,0.3,1)',
         }}
       >

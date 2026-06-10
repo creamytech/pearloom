@@ -343,7 +343,10 @@ function StickerPiece({
                 whiteSpace: 'pre',
                 userSelect: isEditing && isSelected ? 'text' : 'none',
                 cursor: isEditing ? 'grab' : 'default',
-                padding: '4px 8px',
+                /* Tap target: was 4px 8px — grew so text stickers are
+                   draggable on touch without pixel-hunting. Font size
+                   unchanged. */
+                padding: '8px 12px',
                 outline: isEditing && isSelected ? '2px dashed var(--sage-deep, #5C6B3F)' : 'none',
                 outlineOffset: 4,
                 transition: isSelected ? 'none' : 'outline 140ms',

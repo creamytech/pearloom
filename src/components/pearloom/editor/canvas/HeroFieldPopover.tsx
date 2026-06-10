@@ -47,12 +47,16 @@ export function HeroFieldPopover({ anchor, field, manifest, onEditField, onClose
     if (!anchor) return;
     const r = anchor.getBoundingClientRect();
     const popH = field === 'venue' ? 360 : 460;
-    const popW = field === 'venue' ? 360 : 340;
+    // Effective width matches the CSS min(<base>px, 100vw - 24px)
+    // clamp on the popover itself, so the left-edge math below can
+    // never place it off-screen on a 390px phone.
+    const popW = Math.min(field === 'venue' ? 360 : 340, window.innerWidth - 24);
     const flip = r.bottom + popH > window.innerHeight - 16;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPos({
       top: flip ? r.top - 8 : r.bottom + 8,
-      left: Math.max(16, Math.min(r.left + r.width / 2 - popW / 2, window.innerWidth - popW - 16)),
+      // Clamp so left ≥ 12 and left + width ≤ vw - 12.
+      left: Math.max(12, Math.min(r.left + r.width / 2 - popW / 2, window.innerWidth - popW - 12)),
       flipped: flip,
     });
   }, [anchor, field]);
@@ -124,7 +128,7 @@ export function HeroFieldPopover({ anchor, field, manifest, onEditField, onClose
         position: 'fixed',
         top: pos.top,
         left: pos.left,
-        width: field === 'venue' ? 360 : 340,
+        width: field === 'venue' ? 'min(360px, calc(100vw - 24px))' : 'min(340px, calc(100vw - 24px))',
         zIndex: 9100,
         background: 'var(--card, #FBF7EE)',
         border: '1px solid var(--card-ring, rgba(61,74,31,0.16))',

@@ -10,9 +10,19 @@
 // Visible only when:
 //   • Day-Of Mode is active (state.active = true)
 //   • The viewer is the site owner (creatorEmail match)
+//
+// Bottom-right corner stacking policy (shared with
+// site/StickyRsvpPill.tsx + pearloom/site/GuestPearChat.tsx):
+//   GuestPearChat      z 160  (topmost — open chat panel)
+//   StickyRsvpPill     z 150
+//   DayOfBroadcastDock z 140  (this file)
+// When this dock is OPEN on viewports < 480px the RSVP pill hides
+// (the dock is the day-of priority surface). We announce open/close
+// via the `pearloom:broadcast-dock` window event so the pill can
+// coordinate without coupling.
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface Props {
   siteSlug: string;
@@ -35,6 +45,18 @@ export function DayOfBroadcastDock({ siteSlug, templates = DEFAULT_TEMPLATES }: 
   const [body, setBody] = useState('');
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<string | null>(null);
+
+  // Announce open/close to the rest of the bottom-right corner
+  // (StickyRsvpPill yields on small viewports — see policy above).
+  useEffect(() => {
+    try {
+      window.dispatchEvent(
+        new CustomEvent('pearloom:broadcast-dock', { detail: { open } }),
+      );
+    } catch {
+      /* noop — SSR or sandboxed env */
+    }
+  }, [open]);
 
   async function handleSend(t: string, b: string) {
     if (!t.trim() || !b.trim()) return;
@@ -66,17 +88,18 @@ export function DayOfBroadcastDock({ siteSlug, templates = DEFAULT_TEMPLATES }: 
     <div
       style={{
         position: 'fixed',
-        bottom: 'clamp(16px, 3vw, 32px)',
+        bottom: 'calc(clamp(16px, 3vw, 32px) + env(safe-area-inset-bottom, 0px))',
         right: 'clamp(16px, 3vw, 32px)',
-        zIndex: 80,
+        /* Corner stacking policy: chat 160 > pill 150 > dock 140. */
+        zIndex: 140,
         fontFamily: 'Inter, system-ui, sans-serif',
-        maxWidth: 'calc(100vw - 32px)',
+        maxWidth: 'calc(100vw - 24px)',
       }}
     >
       {open ? (
         <div
           style={{
-            width: 360,
+            width: 'min(360px, calc(100vw - 24px))',
             maxWidth: '100%',
             background: 'rgba(14,13,11,0.96)',
             color: '#F1EBDC',

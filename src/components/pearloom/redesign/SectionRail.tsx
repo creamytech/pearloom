@@ -3,11 +3,12 @@
 /* eslint-disable no-restricted-syntax */
 /* LITERAL PORT of handoff/pages/editor-redesign.jsx L137-234 SectionRail. */
 
-import { useRef, useState } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import { Icon } from '../motifs';
 import type { StoryManifest } from '@/types';
-import { type SectionId, isToolPanelApplicable, isOptionalSectionApplicable } from './EditorRedesign';
+import { type SectionId, type BlockSectionId, BLOCK_SECTION_IDS, isToolPanelApplicable, isOptionalSectionApplicable, isBlockApplicable } from './EditorRedesign';
 import { SiteModeSection } from '../editor/panels/ThemePanel';
+import { useMobileViewport } from './use-mobile-viewport';
 
 interface SectionDef {
   id: Exclude<SectionId, null>;
@@ -104,7 +105,34 @@ const OPTIONAL_SECTIONS: SectionDef[] = [
   { id: 'countdown', label: 'Countdown', icon: 'clock',    desc: 'Stat tiles · stripe · minimal · hero' },
   { id: 'map',       label: 'Map',       icon: 'map',      desc: 'Live embed · pin · static' },
   { id: 'music',     label: 'Music',     icon: 'music',    desc: 'Spotify · Apple · YouTube' },
+  /* Event-OS blocks — gated against the EVENT_TYPES registry via
+     isBlockApplicable (default + optional blocks per occasion), so
+     a bachelorette host sees Itinerary/Cost/Vote/Packing while a
+     memorial host sees Program/Livestream/Obituary. */
+  { id: 'itinerary',    label: 'Itinerary',    icon: 'calendar-check', desc: 'Multi-day plan, hour by hour' },
+  { id: 'costSplitter', label: 'Cost splitter', icon: 'ticket',        desc: 'Who owes what — settled gently' },
+  { id: 'activityVote', label: 'Group vote',   icon: 'check',          desc: 'Let the group pick' },
+  { id: 'toastSignup',  label: 'Toast signup', icon: 'mic',            desc: 'Claim a toast slot' },
+  { id: 'adviceWall',   label: 'Advice wall',  icon: 'text',           desc: 'Words for the honoree' },
+  { id: 'program',      label: 'Program',      icon: 'page',           desc: 'The order of the ceremony' },
+  { id: 'livestream',   label: 'Livestream',   icon: 'play',           desc: 'For the ones far away' },
+  { id: 'obituary',     label: 'Obituary',     icon: 'leaf',           desc: 'A life, remembered' },
+  { id: 'packingList',  label: 'Packing list', icon: 'list',           desc: 'What to bring' },
+  { id: 'honorList',    label: 'Honor list',   icon: 'users',          desc: 'The people beside them' },
 ];
+
+/* One gate for everything the Add Section picker offers — the
+   original optional trio keeps its bespoke rules; the Event-OS
+   blocks go through the EVENT_TYPES registry. */
+function isAddableSectionApplicable(id: Exclude<SectionId, null>, occasion?: string): boolean {
+  if (id === 'countdown' || id === 'map' || id === 'music') {
+    return isOptionalSectionApplicable(id, occasion);
+  }
+  if ((BLOCK_SECTION_IDS as readonly string[]).includes(id)) {
+    return isBlockApplicable(id as BlockSectionId, occasion);
+  }
+  return true;
+}
 
 /* Tool panels — surface in the rail below the canvas sections.
    These aren't sections on the published site; they're host-only
@@ -141,6 +169,16 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
      section" button. Shows the OPTIONAL_SECTIONS that aren't yet in
      manifest.blockOrder + are applicable to this occasion. */
   const [pickerOpen, setPickerOpen] = useState(false);
+  /* Insert-at-position — when the host clicks a between-rows gap
+     affordance, this carries the restOrder index the picked
+     section should land at. null = append (the bottom button's
+     behaviour). Mutually exclusive with pickerOpen so only one
+     picker menu is ever mounted. */
+  const [insertAt, setInsertAt] = useState<number | null>(null);
+  /* Phone-sized viewport (rail lives in the Sections bottom sheet
+     there) — gap affordances can't rely on hover, so they render
+     as always-visible subtle dots instead. */
+  const isMobileViewport = useMobileViewport();
   /** Custom drag-image element ref. Created once and reused across
    *  drags to keep the GC quiet. Removed from the DOM at drag-end. */
   const dragImageRef = useRef<HTMLDivElement | null>(null);
@@ -214,20 +252,82 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
   /* Available picker options — anything optional + applicable +
      not yet in the order. */
   const availableOptional = OPTIONAL_SECTIONS
-    .filter((s) => isOptionalSectionApplicable(s.id as 'countdown' | 'map' | 'music', occasion))
+    .filter((s) => isAddableSectionApplicable(s.id, occasion))
     .filter((s) => !restOrder.includes(s.id as string));
 
   /* Add an optional section to the manifest order + flip active
-     to it so the host immediately lands in its config panel. */
-  function addOptionalSection(id: Exclude<SectionId, null>) {
+     to it so the host immediately lands in its config panel.
+     `at` is a restOrder index (insert-at-position via a gap
+     affordance); null appends — the bottom button's behaviour. */
+  function addOptionalSection(id: Exclude<SectionId, null>, at: number | null = null) {
     if (!onChange) return;
-    const next = [...restOrder.filter((k) => k !== id), id as string];
+    const without = restOrder.filter((k) => k !== id);
+    const idx = at === null ? without.length : Math.max(0, Math.min(at, without.length));
+    const next = [...without.slice(0, idx), id as string, ...without.slice(idx)];
     onChange({
       ...(manifest as unknown as Record<string, unknown>),
       blockOrder: next,
     } as unknown as StoryManifest);
     setActive(id);
     setPickerOpen(false);
+    setInsertAt(null);
+  }
+
+  /* One picker menu, two openers — the bottom "Add section" button
+     (append, at === null) and the between-rows gap affordances
+     (insert at that restOrder index). Same options, same gating. */
+  function renderPicker(at: number | null) {
+    return (
+      <div
+        role="menu"
+        style={{
+          marginTop: 4,
+          display: 'flex', flexDirection: 'column', gap: 2,
+          padding: 4,
+          background: 'var(--card)',
+          border: '1px solid var(--line-soft)',
+          borderRadius: 10,
+          boxShadow: '0 8px 20px rgba(40,28,12,0.10)',
+          animation: 'pl-drop-line-pop 160ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+        }}
+      >
+        {availableOptional.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            role="menuitem"
+            onClick={() => addOptionalSection(s.id, at)}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '22px 1fr',
+              gap: 8,
+              alignItems: 'center',
+              padding: '8px 10px',
+              borderRadius: 6,
+              background: 'transparent',
+              border: 0,
+              cursor: 'pointer',
+              color: 'var(--ink)',
+              textAlign: 'left',
+              fontFamily: 'var(--font-ui)',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--cream-3)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+          >
+            <Icon name={s.icon} size={13} color="var(--ink-soft)" />
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 12.5, fontWeight: 600 }}>{s.label}</div>
+              <div style={{
+                fontSize: 10.5, opacity: 0.55, marginTop: 1,
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              }}>
+                {s.desc}
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+    );
   }
 
   /* Drop handler — moves the dragged section to the target index
@@ -410,8 +510,20 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
              goes." */
           const dropBefore = isHovered && draggingIdx !== null && draggingIdx > i;
           const dropAfter  = isHovered && draggingIdx !== null && draggingIdx < i;
+          /* Gap affordances sit between rows (not after the last —
+             the bottom "Add section" button owns append). Rendered
+             whenever there's something left to add; visuals + clicks
+             are suppressed mid-drag so the drop-line indicators own
+             that gesture, but the element keeps its height so rows
+             don't shift under the pointer at drag start. */
+          const showGap = !!onChange && availableOptional.length > 0 && i < orderedSections.length - 1;
+          /* The gap after visual row i inserts BEFORE the next row —
+             in restOrder coordinates that's (i + 1) minus the pinned
+             hero at visual index 0. */
+          const gapInsertIndex = i + 1 - (heroSection ? 1 : 0);
           return (
-            <div key={s.id} style={{ position: 'relative' }}>
+            <Fragment key={s.id}>
+            <div style={{ position: 'relative' }}>
               {/* Drop-line indicator — a peach bar above or below
                   the row. Sits OUTSIDE the row's flow so the row
                   doesn't jitter during drag. */}
@@ -506,6 +618,21 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
               )}
             </div>
             </div>
+            {showGap && (
+              <>
+                <GapInsert
+                  mobile={isMobileViewport}
+                  open={insertAt === gapInsertIndex}
+                  suppressed={draggingIdx !== null}
+                  onToggle={() => {
+                    setPickerOpen(false);
+                    setInsertAt(insertAt === gapInsertIndex ? null : gapInsertIndex);
+                  }}
+                />
+                {insertAt === gapInsertIndex && renderPicker(gapInsertIndex)}
+              </>
+            )}
+            </Fragment>
           );
         })}
 
@@ -529,7 +656,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
           <button
             type="button"
             className="pl-rd-add-section"
-            onClick={() => setPickerOpen((v) => !v)}
+            onClick={() => { setInsertAt(null); setPickerOpen((v) => !v); }}
             aria-expanded={pickerOpen}
             style={{
               marginTop: 4,
@@ -551,57 +678,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
           </button>
         )}
 
-        {pickerOpen && availableOptional.length > 0 && (
-          <div
-            role="menu"
-            style={{
-              marginTop: 4,
-              display: 'flex', flexDirection: 'column', gap: 2,
-              padding: 4,
-              background: 'var(--card)',
-              border: '1px solid var(--line-soft)',
-              borderRadius: 10,
-              boxShadow: '0 8px 20px rgba(40,28,12,0.10)',
-              animation: 'pl-drop-line-pop 160ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-            }}
-          >
-            {availableOptional.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                role="menuitem"
-                onClick={() => addOptionalSection(s.id)}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '22px 1fr',
-                  gap: 8,
-                  alignItems: 'center',
-                  padding: '8px 10px',
-                  borderRadius: 6,
-                  background: 'transparent',
-                  border: 0,
-                  cursor: 'pointer',
-                  color: 'var(--ink)',
-                  textAlign: 'left',
-                  fontFamily: 'var(--font-ui)',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--cream-3)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-              >
-                <Icon name={s.icon} size={13} color="var(--ink-soft)" />
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 600 }}>{s.label}</div>
-                  <div style={{
-                    fontSize: 10.5, opacity: 0.55, marginTop: 1,
-                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                  }}>
-                    {s.desc}
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
+        {pickerOpen && availableOptional.length > 0 && renderPicker(null)}
       </div>
       )}
 
@@ -671,6 +748,91 @@ function GripDots({ color = 'var(--ink-muted)' }: { color?: string }) {
         <circle key={i} cx={(i % 2) * 6 + 2} cy={Math.floor(i / 2) * 5 + 3} r="1.2" fill={color} />
       ))}
     </svg>
+  );
+}
+
+/* GapInsert — the quiet between-rows insertion affordance.
+
+   Desktop: an 10px hover zone between section rows; hovering
+   reveals a peach hairline + a small '+' chip ("a new section
+   threads in here"). Mobile (no hover): three subtle always-
+   visible dots mark the gap; tapping opens the picker. While a
+   drag is in flight the affordance goes inert (the DropLine
+   indicators own that gesture) but keeps its height so rows
+   don't shift under the pointer. */
+function GapInsert({ mobile, open, suppressed, onToggle }: {
+  mobile: boolean;
+  open: boolean;
+  suppressed: boolean;
+  onToggle: () => void;
+}) {
+  const [hover, setHover] = useState(false);
+  const showPlus = !suppressed && (open || (!mobile && hover));
+  const showDots = !suppressed && mobile && !open;
+  return (
+    <div
+      role="button"
+      tabIndex={suppressed ? -1 : 0}
+      aria-label="Insert a section here"
+      aria-expanded={open}
+      onClick={() => { if (!suppressed) onToggle(); }}
+      onKeyDown={(e) => {
+        if (suppressed) return;
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(); }
+      }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        height: mobile ? 14 : 10,
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: suppressed ? 'default' : 'pointer',
+        pointerEvents: suppressed ? 'none' : 'auto',
+        outline: 'none',
+      }}
+    >
+      {showPlus && (
+        <>
+          <span
+            aria-hidden
+            style={{
+              position: 'absolute', left: 10, right: 10, top: '50%',
+              height: 1, marginTop: -0.5,
+              background: open ? 'var(--peach-ink, #C6703D)' : 'var(--line)',
+              pointerEvents: 'none',
+            }}
+          />
+          <span
+            aria-hidden
+            style={{
+              position: 'relative',
+              width: 16, height: 16, borderRadius: '50%',
+              background: open ? 'var(--peach-ink, #C6703D)' : 'var(--peach-bg, #F8E4D5)',
+              border: '1px solid var(--peach-ink, #C6703D)',
+              display: 'grid', placeItems: 'center',
+              animation: 'pl-drop-line-pop 160ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+            }}
+          >
+            <Icon name="plus" size={9} color={open ? 'var(--cream-2, #FBF7EE)' : 'var(--peach-ink, #C6703D)'} />
+          </span>
+        </>
+      )}
+      {showDots && (
+        <span aria-hidden style={{ display: 'inline-flex', gap: 4 }}>
+          {[0, 1, 2].map((d) => (
+            <span
+              key={d}
+              style={{
+                width: 3, height: 3, borderRadius: '50%',
+                background: 'var(--ink-muted)', opacity: 0.4,
+              }}
+            />
+          ))}
+        </span>
+      )}
+    </div>
   );
 }
 

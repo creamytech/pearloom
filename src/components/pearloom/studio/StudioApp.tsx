@@ -31,9 +31,13 @@ import {
 import { useStudioState } from './useStudioState';
 import { CardFront, CardBack, CardEnvelope } from './StudioCard';
 import { StudioTopbar, DraftsRail, RemixRail } from './StudioRails';
+import { StudioMobileBar, useViewportSize, type StudioSheetId } from './StudioMobileChrome';
+import { MobileSheet } from '../redesign/MobileSheet';
+import { useMobileViewport } from '../redesign/use-mobile-viewport';
 import { StudioSendOverlay } from './StudioSendOverlay';
 import { StudioPrintPreview } from './StudioPrintPreview';
 import { StudioProofSheet } from './StudioProofSheet';
+import { studioCardToPrintSvg, inlineRemoteImage } from './studio-card-svg';
 import type { SuiteProof } from '@/lib/suite/proofs';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { parseLocalDate } from '@/lib/date-utils';
@@ -120,6 +124,10 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
   // production keeps the full editor as the home base and opens
   // this overlay on demand.
   const [showPrintPair, setShowPrintPair] = useState(false);
+  // When true, the Send overlay opens directly on the "Mail it
+  // for you" (Pearloom Print) flow — used by the print preview's
+  // toolbar button. Reset whenever the overlay closes.
+  const [sendMailFirst, setSendMailFirst] = useState(false);
   // Suite Phase 3 — "Pear pressed six proofs" overlay. Opened
   // from the left rail; fetches /api/suite/proofs on mount.
   const [showProofSheet, setShowProofSheet] = useState(false);
@@ -132,6 +140,40 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
     const id = window.setTimeout(() => setAiError(null), 6000);
     return () => window.clearTimeout(id);
   }, [aiError]);
+
+  // ── Phone chrome — the redesign editor's just-shipped pattern
+  // (EditorRedesign.tsx). Below 768px the three-rail grid
+  // collapses to topbar + card canvas; DraftsRail / RemixRail
+  // re-mount inside MobileSheet bottom drawers driven by a fixed
+  // bottom bar (Drafts · Design · Words). Every mobile branch
+  // gates on viewportMobile so desktop stays byte-identical.
+  const viewportMobile = useMobileViewport();
+  const [mobileSheet, setMobileSheet] = useState<StudioSheetId | null>(null);
+  /* Last non-null sheet id — keeps the right content mounted
+     during the sheet's exit slide. Render-time state adjustment
+     (the React-docs "derive from previous render" pattern). */
+  const [lastSheet, setLastSheet] = useState<StudioSheetId>('drafts');
+  if (mobileSheet && mobileSheet !== lastSheet) setLastSheet(mobileSheet);
+  /* Crossing back to desktop: the rails are columns again, so any
+     open sheet folds away. Full-screen overlays (Send / proofs /
+     print pair) own the stage — drop the sheet when one opens so
+     it never sits above them (the sheet's z-index outranks
+     theirs). Both converge in one extra render. */
+  if (!viewportMobile && mobileSheet) setMobileSheet(null);
+  if (mobileSheet && (state.showSend || showProofSheet || showPrintPair)) setMobileSheet(null);
+  const displaySheet = mobileSheet ?? lastSheet;
+
+  /* Fit-to-viewport card scale. The card is 420×588 (front/back)
+     or 540×380 (envelope); on a phone it scales to
+     min(100vw - 32px, full size), with a height clamp so short
+     viewports (SE, landscape) keep the whole card + pager pill
+     on screen. Desktop renders unscaled. */
+  const { w: vpW, h: vpH } = useViewportSize(viewportMobile);
+  const cardBaseW = state.view === 'envelope' ? 540 : 420;
+  const cardBaseH = state.view === 'envelope' ? 380 : 588;
+  const cardScale = viewportMobile && vpW > 0
+    ? Math.min((vpW - 32) / cardBaseW, Math.max(vpH - 232, 240) / cardBaseH, 1)
+    : 1;
 
   // Live guest counts for the left-rail "This send" pill. The
   // Send overlay does its own fetch on open; this one keeps the
@@ -186,6 +228,32 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
     }
     return merged;
   }, [baseContent, state.drafts, state.copyOverrides, state.type]);
+
+  // ── Pearloom Print: serialize the live card to print SVG ───
+  // The mail flow (Send overlay → "Mail it for you") POSTs this
+  // to /api/print/checkout, whose Sharp/librsvg renderer can't
+  // fetch remote images — so the couple photo + AI motif are
+  // inlined as data URIs first. Failures degrade to the same
+  // tonal placeholder the canvas shows.
+  async function buildPrintSvg(): Promise<string> {
+    const [photoDataUrl, motifDataUrl] = await Promise.all([
+      inlineRemoteImage((manifest.coverPhoto as string | undefined) ?? null),
+      inlineRemoteImage(state.customMotifUrl),
+    ]);
+    return studioCardToPrintSvg({
+      type: state.type,
+      layout: state.layout,
+      motif: state.motif,
+      palette,
+      font,
+      content,
+      nameA,
+      nameB,
+      monogram,
+      photoDataUrl,
+      motifDataUrl,
+    });
+  }
 
   // When stationery type changes, reset to the first draft of that
   // type so palette/layout/motif pick up sensible defaults.
@@ -421,10 +489,12 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
   return (
     <div className="pl-studio-root" style={{
       display: 'grid',
-      gridTemplateColumns: '296px 1fr 312px',
-      gridTemplateRows: '64px 1fr',
-      gridTemplateAreas: '"top top top" "left canvas right"',
-      height: '100vh',
+      gridTemplateColumns: viewportMobile ? '1fr' : '296px 1fr 312px',
+      gridTemplateRows: viewportMobile ? '102px 1fr' : '64px 1fr',
+      gridTemplateAreas: viewportMobile ? '"top" "canvas"' : '"top top top" "left canvas right"',
+      /* dvh on phones — mobile browser chrome resizes the visual
+         viewport; desktop keeps the original vh. */
+      height: viewportMobile ? '100dvh' : '100vh',
       background: 'var(--cream)',
       overflow: 'hidden',
       fontFamily: 'var(--font-ui, "Inter", system-ui, sans-serif)',
@@ -439,29 +509,39 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
         saving={saving}
         saveError={saveError}
         onRetrySave={retrySave}
+        compact={viewportMobile}
       />
 
-      <DraftsRail
-        state={state}
-        setField={setField}
-        content={content}
-        nameA={nameA}
-        nameB={nameB}
-        onPickDraft={pickDraft}
-        onAskPearForDraft={askPearForDraft}
-        onAskPearForAsset={askPearForAsset}
-        onOpenProofSheet={() => setShowProofSheet(true)}
-        aiBusy={aiBusy}
-        sendStats={guestStats}
-      />
+      {!viewportMobile && (
+        <DraftsRail
+          state={state}
+          setField={setField}
+          content={content}
+          nameA={nameA}
+          nameB={nameB}
+          onPickDraft={pickDraft}
+          onAskPearForDraft={askPearForDraft}
+          onAskPearForAsset={askPearForAsset}
+          onOpenProofSheet={() => setShowProofSheet(true)}
+          aiBusy={aiBusy}
+          sendStats={guestStats}
+        />
+      )}
 
       <CanvasStage>
-        <DeskStickers type={state.type} />
+        {!viewportMobile && <DeskStickers type={state.type} />}
         <div style={{
           position: 'absolute', inset: 0,
           display: 'grid', placeItems: 'center',
-          padding: 32,
+          /* Mobile: clear the pager pill + bottom bar so the card
+             centres in the visible desk, not under the chrome. */
+          padding: viewportMobile ? '16px 16px 110px' : 32,
         }}>
+          {/* Scale wrapper sits OUTSIDE the keyed animation div —
+              pl-studio-flip-in animates transform with fill:both,
+              which would permanently override an inline scale on
+              the same element. scale 1 (desktop) is a no-op. */}
+          <div className="pl-studio-fit-inner" style={cardScale < 1 ? { transform: `scale(${cardScale})`, transformOrigin: 'center' } : undefined}>
           <div
             key={state.draft + state.view + state.layout + state.motif + state.palette}
             className={state.animate ? (state.view === 'envelope' ? 'pl-studio-card-in' : 'pl-studio-flip-in') : ''}
@@ -520,10 +600,13 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
               />
             )}
           </div>
+          </div>
         </div>
 
         <div style={{
-          position: 'absolute', bottom: 18, left: '50%', transform: 'translateX(-50%)',
+          position: 'absolute',
+          bottom: viewportMobile ? 'calc(68px + env(safe-area-inset-bottom))' : 18,
+          left: '50%', transform: 'translateX(-50%)',
           display: 'flex', alignItems: 'center', gap: 8,
           padding: '6px 8px', background: 'var(--card)', borderRadius: 999,
           border: '1px solid var(--line)', boxShadow: 'var(--shadow)',
@@ -571,24 +654,91 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
         </div>
       </CanvasStage>
 
-      <RemixRail
-        state={state}
-        setField={setField}
-        content={content}
-        nameA={nameA}
-        nameB={nameB}
-        onPickDraft={pickDraft}
-        onRewriteField={rewriteField}
-        onMatchSiteTheme={matchSiteTheme}
-        onSuggestPair={suggestPair}
-        aiBusy={aiBusy}
-      />
+      {!viewportMobile && (
+        <RemixRail
+          state={state}
+          setField={setField}
+          content={content}
+          nameA={nameA}
+          nameB={nameB}
+          onPickDraft={pickDraft}
+          onRewriteField={rewriteField}
+          onMatchSiteTheme={matchSiteTheme}
+          onSuggestPair={suggestPair}
+          aiBusy={aiBusy}
+        />
+      )}
+
+      {/* ── Phone chrome — bottom bar + bottom sheets. The bar
+          mirrors the desktop rails: Drafts (left rail), Design
+          (inspector's Design tab), Words (inspector's Copy tab —
+          Pear's tab stays reachable via the in-sheet tab strip).
+          The bar hides while a full-screen overlay owns the
+          stage, matching how the sheets fold away. */}
+      {viewportMobile && (
+        <div className="pl-studio-mobile-chrome">
+          {!state.showSend && !showProofSheet && !showPrintPair && (
+            <StudioMobileBar
+              activeSheet={mobileSheet}
+              onDrafts={() => setMobileSheet('drafts')}
+              onDesign={() => setMobileSheet('design')}
+              onWords={() => setMobileSheet('words')}
+            />
+          )}
+          <MobileSheet
+            open={mobileSheet !== null}
+            onClose={() => setMobileSheet(null)}
+            height="75vh"
+            label={
+              displaySheet === 'drafts' ? "Pear's drafts"
+                : displaySheet === 'design' ? 'Design'
+                : 'Words'
+            }
+          >
+            {displaySheet === 'drafts' && (
+              <DraftsRail
+                state={state}
+                setField={setField}
+                content={content}
+                nameA={nameA}
+                nameB={nameB}
+                /* Picking a draft closes the sheet — the payoff is
+                   the card changing on the desk, so show it. */
+                onPickDraft={(d) => { pickDraft(d); setMobileSheet(null); }}
+                onAskPearForDraft={askPearForDraft}
+                onAskPearForAsset={askPearForAsset}
+                onOpenProofSheet={() => { setMobileSheet(null); setShowProofSheet(true); }}
+                aiBusy={aiBusy}
+                sendStats={guestStats}
+              />
+            )}
+            {(displaySheet === 'design' || displaySheet === 'words') && (
+              <RemixRail
+                /* Keyed remount so Design / Words each land on
+                   their tab; in-sheet tab strip still works. */
+                key={displaySheet}
+                initialTab={displaySheet === 'words' ? 'copy' : 'design'}
+                state={state}
+                setField={setField}
+                content={content}
+                nameA={nameA}
+                nameB={nameB}
+                onPickDraft={pickDraft}
+                onRewriteField={rewriteField}
+                onMatchSiteTheme={matchSiteTheme}
+                onSuggestPair={suggestPair}
+                aiBusy={aiBusy}
+              />
+            )}
+          </MobileSheet>
+        </div>
+      )}
 
       {/* Always mounted — FloatingPear has its own internal
           expanded/minimized state. Closing the bubble shows a
           peach mini-button the host can reopen, instead of
           unmounting and stranding the affordance. */}
-      <FloatingPear nudges={content.pearNudges} />
+      <FloatingPear nudges={content.pearNudges} mobile={viewportMobile} />
 
       {/* Transient AI error toast — surfaces failures from the
           three Pear flows so a host doesn't see a Threading…
@@ -601,7 +751,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
           role="alert"
           style={{
             position: 'fixed',
-            bottom: 24,
+            bottom: viewportMobile ? 'calc(72px + env(safe-area-inset-bottom))' : 24,
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 40,
@@ -678,6 +828,11 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
           returnAddress={returnAddress}
           manifest={manifest}
           onPrint={() => window.print()}
+          onMailIt={() => {
+            setShowPrintPair(false);
+            setSendMailFirst(true);
+            setField('showSend', true);
+          }}
           onClose={() => setShowPrintPair(false)}
         />
       )}
@@ -704,8 +859,14 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
               rsvpDeadline={rsvpDeadline}
             />
           }
-          onClose={() => setField('showSend', false)}
+          onClose={() => {
+            setField('showSend', false);
+            setSendMailFirst(false);
+          }}
           onSent={() => setStatsTick((t) => t + 1)}
+          buildPrintSvg={buildPrintSvg}
+          defaultReturnName={`${nameA} & ${nameB}`}
+          initialMail={sendMailFirst}
         />
       )}
 
@@ -723,6 +884,11 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
         .pl-studio-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
         @media (prefers-reduced-motion: reduce) {
           .pl-studio-card-in, .pl-studio-flip-in, .pl-studio-nudge-in { animation: none !important; }
+          /* The MobileSheet's slide + backdrop fade are inline
+             transitions killed by the .pl-redesign scope in the
+             editor; the Studio mounts the same component outside
+             that scope, so mirror the kill-switch here. */
+          .pl-studio-mobile-chrome, .pl-studio-mobile-chrome * { animation: none !important; transition: none !important; }
         }
         @media print {
           /* Strip the dashboard chrome so Export → window.print()
@@ -733,7 +899,9 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
           body * { visibility: hidden !important; }
           .pl-studio-root, .pl-studio-root * { visibility: visible !important; }
           .pl-studio-root header,
-          .pl-studio-root aside { display: none !important; }
+          .pl-studio-root aside,
+          .pl-studio-root nav,
+          .pl-studio-mobile-chrome { display: none !important; }
           .pl-studio-root { display: block !important; height: auto !important; background: white !important; overflow: visible !important; }
           .pl-studio-canvas {
             background: white !important;
@@ -743,6 +911,11 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
           /* Drop the desk shadow + texture overlays so the print
              reads as flat ink-on-paper. */
           .pl-studio-card-shadow { box-shadow: none !important; }
+          /* Undo the phone fit-to-width scale — the artwork must
+             land full-size on the 5×7 page even when the screen
+             showed it scaled down. */
+          .pl-studio-fit-inner { transform: none !important; }
+          .pl-studio-fit-outer { width: auto !important; height: auto !important; overflow: visible !important; }
           /* Hide every floating affordance — the Pear nudge
              bubble, the AI error toast, and any open dialog
              (the host could fire window.print() while the Send
@@ -798,14 +971,25 @@ function DeskStickers({ type }: { type: StationeryType }) {
   );
 }
 
-function FloatingPear({ nudges }: { nudges: string[] }) {
-  const [open, setOpen] = useState(true);
+function FloatingPear({ nudges, mobile }: { nudges: string[]; mobile?: boolean }) {
+  /* null = "host hasn't toggled yet" — defaults open on desktop,
+     minimised on a phone (a 280px nudge card over a fit-to-width
+     card canvas is chrome, not help). The host's explicit toggle
+     wins on both sides of the breakpoint. */
+  const [openPref, setOpenPref] = useState<boolean | null>(null);
+  const open = openPref ?? !mobile;
+  const setOpen = setOpenPref;
   const [idx, setIdx] = useState(0);
   const nudge = nudges[idx % nudges.length];
+  /* Mobile: tuck above the bottom bar in the right corner —
+     desktop keeps its slot beside the inspector rail. */
+  const anchor: React.CSSProperties = mobile
+    ? { bottom: 'calc(72px + env(safe-area-inset-bottom))', right: 16 }
+    : { bottom: 70, right: 332 };
   if (!open) {
     return (
       <button type="button" onClick={() => setOpen(true)} aria-label="Open Pear's nudges" style={{
-        position: 'fixed', bottom: 70, right: 332, zIndex: 30,
+        position: 'fixed', ...anchor, zIndex: 30,
         width: 48, height: 48, borderRadius: '50%',
         background: 'var(--card)', border: '1px solid var(--line)',
         boxShadow: 'var(--shadow-md)', display: 'grid', placeItems: 'center',
@@ -816,9 +1000,9 @@ function FloatingPear({ nudges }: { nudges: string[] }) {
     );
   }
   return (
-    <div style={{ position: 'fixed', bottom: 70, right: 332, zIndex: 30, pointerEvents: 'auto' }}>
+    <div style={{ position: 'fixed', ...anchor, zIndex: 30, pointerEvents: 'auto' }}>
       <div className="pl-studio-nudge-in" style={{
-        width: 280, padding: 14,
+        width: mobile ? 'min(280px, calc(100vw - 32px))' : 280, padding: 14,
         background: 'var(--card)', borderRadius: 14,
         border: '1px solid var(--line-soft)',
         boxShadow: 'var(--shadow-md)',

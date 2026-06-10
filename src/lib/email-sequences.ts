@@ -499,6 +499,158 @@ export function buildSaveTheDateEmail(opts: SaveTheDateEmailOpts): { subject: st
   return { subject, html };
 }
 
+// ── Weekly host digest ──────────────────────────────────────
+
+export interface WeeklyDigestStats {
+  /** RSVPs that landed inside the digest window (responded_at). */
+  newRsvps: { attending: number; declined: number };
+  /** Standing count of guests still to reply (not window-scoped). */
+  pendingTotal: number;
+  newGuestbook: number;
+  newPhotos: number;
+  /** Mailing addresses collected inside the window (optional —
+   *  callers on deployments without the address columns omit it). */
+  addressesCollected?: number;
+}
+
+export interface WeeklyDigestEmailOpts {
+  /** Display names, e.g. "Emma & James". */
+  names: string;
+  /** Published-site URL — linked from the header line. */
+  siteUrl: string;
+  /** Dashboard origin base, e.g. "https://pearloom.com". Deep links
+   *  are built as `${dashboardBase}/dashboard/...`. */
+  dashboardBase: string;
+  stats: WeeklyDigestStats;
+  /** Pass `emailThemeFromSuite(suiteThemeFromManifest(manifest))` so
+   *  the digest wears the couple's own pack. Falls back to brand. */
+  themeColors?: EmailThemeColors;
+}
+
+/** One quiet stat row — count chip, label + sub-line, chevron, the
+ *  whole row a deep link into the dashboard. Table-based for Outlook. */
+function digestRow(
+  count: number,
+  label: string,
+  sub: string,
+  href: string,
+  t: EmailThemeColors,
+): string {
+  const headingStack = `'${t.headingFont}',Georgia,serif`;
+  const bodyStack = `'${t.bodyFont}',Georgia,serif`;
+  return `<a href="${esc(href)}" style="display:block;text-decoration:none;margin-bottom:10px">
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+      <tr>
+        <td style="width:52px;padding:14px 0 14px 18px;background-color:${t.card};border-radius:10px 0 0 10px;text-align:center;vertical-align:middle">
+          <span style="font-family:${headingStack};font-size:22px;font-style:italic;color:${t.accent};line-height:1">${count}</span>
+        </td>
+        <td style="padding:14px 12px;background-color:${t.card};text-align:left;vertical-align:middle">
+          <p style="font-size:13px;font-weight:700;color:${t.foreground};margin:0 0 2px;font-family:${bodyStack}">${esc(label)}</p>
+          <p style="font-size:12px;color:${t.muted};margin:0;font-family:${bodyStack}">${esc(sub)}</p>
+        </td>
+        <td style="width:40px;padding:14px 16px 14px 0;background-color:${t.card};border-radius:0 10px 10px 0;text-align:center;vertical-align:middle;color:${t.accent};font-size:18px">&#8250;</td>
+      </tr>
+    </table>
+  </a>`;
+}
+
+/**
+ * Weekly host digest — "The loom this week". Themed through the
+ * SuiteTheme contract (pass `emailThemeFromSuite(suite)` as
+ * themeColors; display face renders with system-serif fallback via
+ * emailLayout's font stacks). Each nonzero stat becomes a quiet
+ * linked row; zero rows are skipped entirely. Callers must not send
+ * when every window-scoped stat is zero — the template assumes at
+ * least one row will render.
+ */
+export function buildWeeklyDigestEmail(opts: WeeklyDigestEmailOpts): { subject: string; html: string } {
+  const t = emailSafeTheme(opts.themeColors || DEFAULT_THEME);
+  const headingStack = `'${t.headingFont}',Georgia,serif`;
+  const bodyStack = `'${t.bodyFont}',Georgia,serif`;
+  const { stats } = opts;
+  const dash = opts.dashboardBase.replace(/\/$/, '');
+
+  const subject = `The loom this week — ${opts.names}`;
+
+  const rows: string[] = [];
+  if (stats.newRsvps.attending > 0) {
+    rows.push(digestRow(
+      stats.newRsvps.attending,
+      stats.newRsvps.attending === 1 ? 'guest said yes' : 'guests said yes',
+      'New acceptances landed on your list this week.',
+      `${dash}/dashboard/rsvp`, t,
+    ));
+  }
+  if (stats.newRsvps.declined > 0) {
+    rows.push(digestRow(
+      stats.newRsvps.declined,
+      stats.newRsvps.declined === 1 ? 'guest sent regrets' : 'guests sent regrets',
+      'They took the time to reply — worth a warm note back.',
+      `${dash}/dashboard/rsvp`, t,
+    ));
+  }
+  if (stats.newGuestbook > 0) {
+    rows.push(digestRow(
+      stats.newGuestbook,
+      stats.newGuestbook === 1 ? 'new guestbook note' : 'new guestbook notes',
+      'Words from your people, waiting to be read.',
+      `${dash}/dashboard/submissions`, t,
+    ));
+  }
+  if (stats.newPhotos > 0) {
+    rows.push(digestRow(
+      stats.newPhotos,
+      stats.newPhotos === 1 ? 'photo dropped on the wall' : 'photos dropped on the wall',
+      'Fresh frames in your gallery.',
+      `${dash}/dashboard/gallery`, t,
+    ));
+  }
+  if ((stats.addressesCollected ?? 0) > 0) {
+    rows.push(digestRow(
+      stats.addressesCollected!,
+      stats.addressesCollected === 1 ? 'mailing address collected' : 'mailing addresses collected',
+      'Closer to a full envelope run.',
+      `${dash}/dashboard/invite`, t,
+    ));
+  }
+  if (stats.pendingTotal > 0) {
+    rows.push(digestRow(
+      stats.pendingTotal,
+      stats.pendingTotal === 1 ? 'guest still to reply' : 'guests still to reply',
+      'A gentle nudge goes a long way.',
+      `${dash}/dashboard/rsvp`, t,
+    ));
+  }
+
+  const html = emailLayout(`
+    <tr><td style="padding:44px 36px 0;text-align:center">
+      <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:${t.accent};margin:0 0 16px;font-family:${bodyStack}">The loom this week</p>
+      <h1 style="font-family:${headingStack};font-size:28px;font-weight:400;font-style:italic;color:${t.foreground};margin:0 0 8px;line-height:1.25">Your celebration kept weaving.</h1>
+      ${divider(t)}
+    </td></tr>
+    <tr><td style="padding:4px 36px 20px;text-align:center">
+      <p style="font-size:14px;color:${t.foreground};line-height:1.7;margin:0">
+        While you were getting on with life, your guests were busy on
+        <a href="${esc(opts.siteUrl)}" style="color:${t.accent};text-decoration:none;font-weight:600">your site</a>.
+        Here's what landed in the last seven days.
+      </p>
+    </td></tr>
+    <tr><td style="padding:0 28px 8px">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:${t.accentLight};border-radius:14px">
+        <tr><td style="padding:14px 14px 4px">
+          ${rows.join('')}
+        </td></tr>
+      </table>
+    </td></tr>
+    <tr><td style="padding:20px 36px 44px;text-align:center">
+      ${button('Open your dashboard', `${dash}/dashboard`, t)}
+      <p style="font-size:12px;color:${t.muted};margin:20px 0 0;font-family:${bodyStack}">Sent once a week, only when something happened. — ${esc(opts.names)}'s loom, kept by Pearloom.</p>
+    </td></tr>
+  `, t);
+
+  return { subject, html };
+}
+
 // ── Template registry ───────────────────────────────────────
 
 const TEMPLATES: Record<EmailType, (ctx: EmailContext) => { subject: string; html: string }> = {

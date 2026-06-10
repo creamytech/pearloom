@@ -7,6 +7,16 @@
 import type { CSSProperties } from 'react';
 import type { StoryVariantCtx, PhotoTone } from './types';
 import { VariantSectionHead } from './_section-head';
+import { InlineEdit } from '../InlineEdit';
+
+/* Edit-context extension — per-chapter title/body writers backed
+   by manifest.chapters[idx].title / .description (the same path
+   StoryPanel writes + buildCopy reads). Local extension keeps the
+   shared types module untouched. */
+export interface StoryVariantCtxEditable extends StoryVariantCtx {
+  onEditChapterTitle?: (idx: number, v: string) => void;
+  onEditChapterBody?: (idx: number, v: string) => void;
+}
 
 const TONE_BG: Record<string, string> = {
   lavender: 'linear-gradient(135deg, #D7CCE5, #B7A4D0)',
@@ -20,7 +30,7 @@ const TONE_BG: Record<string, string> = {
   rose: 'linear-gradient(135deg, #F2C9CE, #C97A8A)',
 };
 
-function headProps(ctx: StoryVariantCtx) {
+function headProps(ctx: StoryVariantCtxEditable) {
   return {
     eyebrow: ctx.C.eyebrow, title: ctx.C.title, italic: ctx.C.italic,
     editable: ctx.editable,
@@ -29,8 +39,8 @@ function headProps(ctx: StoryVariantCtx) {
   };
 }
 
-export function StoryZigzag({ ctx }: { ctx: StoryVariantCtx }) {
-  const { C, pad } = ctx;
+export function StoryZigzag({ ctx }: { ctx: StoryVariantCtxEditable }) {
+  const { C, pad, editable } = ctx;
   const tones: PhotoTone[] = ['warm', 'sage', 'dusk'];
   const fallbackChips = ['01', '02', '03'];
   const fallbackBody = C.body || 'A short, friendly answer goes here.';
@@ -73,29 +83,71 @@ export function StoryZigzag({ ctx }: { ctx: StoryVariantCtx }) {
               >
                 {eyebrow}
               </div>
-              <h3
-                style={{
-                  fontFamily: 'var(--t-display)',
-                  fontWeight: 'var(--t-display-wght)' as CSSProperties['fontWeight'],
-                  fontSize: 24,
-                  margin: '0 0 12px',
-                  lineHeight: 1.1,
-                  color: 'var(--t-ink)',
-                }}
-              >
-                {chapterTitle}
-              </h3>
-              <p
-                style={{
-                  fontFamily: 'var(--t-body)',
-                  fontSize: 14,
-                  lineHeight: 1.6,
-                  color: 'var(--t-ink-soft)',
-                  margin: 0,
-                }}
-              >
-                {chapterBody}
-              </p>
+              {/* Per-chapter inline edit — value falls back to the
+                  shared title/body; an edit commit writes
+                  chapters[i].title / .description so the row
+                  diverges from the shared copy from then on. */}
+              {editable && ctx.onEditChapterTitle ? (
+                <InlineEdit
+                  as="h3"
+                  value={chapterTitle}
+                  onChange={(v) => ctx.onEditChapterTitle?.(i, v)}
+                  editable
+                  placeholder="Add a chapter title…"
+                  className="pl8-inline-ghost"
+                  style={{
+                    fontFamily: 'var(--t-display)',
+                    fontWeight: 'var(--t-display-wght)' as CSSProperties['fontWeight'],
+                    fontSize: 24,
+                    margin: '0 0 12px',
+                    lineHeight: 1.1,
+                    color: 'var(--t-ink)',
+                  }}
+                />
+              ) : (
+                <h3
+                  style={{
+                    fontFamily: 'var(--t-display)',
+                    fontWeight: 'var(--t-display-wght)' as CSSProperties['fontWeight'],
+                    fontSize: 24,
+                    margin: '0 0 12px',
+                    lineHeight: 1.1,
+                    color: 'var(--t-ink)',
+                  }}
+                >
+                  {chapterTitle}
+                </h3>
+              )}
+              {editable && ctx.onEditChapterBody ? (
+                <InlineEdit
+                  as="div"
+                  value={chapterBody}
+                  onChange={(v) => ctx.onEditChapterBody?.(i, v)}
+                  editable
+                  multiline
+                  placeholder="Write this chapter…"
+                  className="pl8-inline-ghost"
+                  style={{
+                    fontFamily: 'var(--t-body)',
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                    color: 'var(--t-ink-soft)',
+                    margin: 0,
+                  }}
+                />
+              ) : (
+                <p
+                  style={{
+                    fontFamily: 'var(--t-body)',
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                    color: 'var(--t-ink-soft)',
+                    margin: 0,
+                  }}
+                >
+                  {chapterBody}
+                </p>
+              )}
             </div>
             <div style={{ direction: 'ltr' }}>
               <div

@@ -395,15 +395,30 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
         WebkitBackdropFilter: 'blur(6px)',
         display: 'grid',
         placeItems: 'center',
-        padding: 20,
+        /* Centering contract: the card's width below is
+           `min(460px, calc(100vw - 24px))` — i.e. it can NEVER exceed
+           this 12px-per-side padded box. If the card were allowed to
+           outgrow the padded area (the old `96vw` + `padding: 20`
+           combo), the auto-sized grid track overflows the container
+           and start-aligns (place-content, not place-items, governs
+           track placement) — which pinned the card to the left
+           padding edge and clipped its right side off 390px screens. */
+        padding: 12,
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: 'min(460px, 96vw)',
-          maxHeight: '92vh',
-          overflow: 'auto',
+          width: 'min(460px, calc(100vw - 24px))',
+          /* dvh so iOS Safari's collapsing URL bar can't push the
+             card's bottom edge off-screen. 24px = overlay padding. */
+          maxHeight: 'calc(100dvh - 24px)',
+          /* The CARD never scrolls — the step content below does.
+             This keeps the absolutely-positioned close button pinned
+             on-screen even when meal options make a step tall. */
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
           background: 'var(--card, var(--pl-cream-card, #FBF7EE))',
           borderRadius: 22,
           position: 'relative',
@@ -436,6 +451,11 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
         >
           ×
         </button>
+
+        {/* Internal scroll region — every step renders inside this so
+            long content (meal options open for a large party) scrolls
+            here while the card frame + close button stay put. */}
+        <div style={{ overflowY: 'auto', overscrollBehavior: 'contain', minHeight: 0 }}>
 
         {step === 'find' && (
           <div style={{ padding: '30px 28px' }}>
@@ -838,6 +858,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
             />
           </div>
         )}
+        </div>
       </div>
     </div>
   );

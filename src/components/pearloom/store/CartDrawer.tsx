@@ -373,7 +373,9 @@ export function CartDrawer({ open, onClose, onCheckout }: CartDrawerProps) {
         {items.length > 0 && (
           <footer
             style={{
-              padding: 18,
+              // Fixed-position drawer — keep the checkout CTA clear
+              // of the iOS home indicator.
+              padding: '18px 18px calc(18px + env(safe-area-inset-bottom, 0px))',
               borderTop: '1px solid var(--pl-divider, #D8CFB8)',
               background: 'var(--pl-cream, #F5EFE2)',
             }}

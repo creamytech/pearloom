@@ -7,12 +7,15 @@
    Eyebrow + title + hide/more icons + Content/Layout/Style sub-tabs +
    body (SectionEditor + Pear assist card). */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import type { SectionId } from './EditorRedesign';
 import { LAYOUTS, readVariant, type LayoutVariant } from './layouts';
+import { VariantGlyph } from './variant-glyphs';
+import { getTheme } from '../site/themes';
 import { pearErrorMessage } from './PearAssist';
+import { fireUndoable } from './UndoToast';
 
 /* useSectionHidden — read/write manifest.hiddenSections from
    inside the rail. Mirrors the same hook in _section-atoms.tsx
@@ -104,6 +107,20 @@ import { BachelorPanel } from '../editor/panels/BachelorPanel';
 import { CountdownPanel } from '../editor/panels/CountdownPanel';
 import { MapPanel } from '../editor/panels/MapPanel';
 import { MusicPanel } from '../editor/panels/MusicPanel';
+/* Event-OS block panels — one per occasion-gated canvas section.
+   Where the Memorial / Weekend-planner tools already own the data
+   (manifest.memorial.* / manifest.bachelor.*), these are thin
+   editors over the SAME fields. */
+import { ItineraryPanel } from '../editor/panels/blocks/ItineraryPanel';
+import { CostSplitterPanel } from '../editor/panels/blocks/CostSplitterPanel';
+import { ActivityVotePanel } from '../editor/panels/blocks/ActivityVotePanel';
+import { ToastSignupPanel } from '../editor/panels/blocks/ToastSignupPanel';
+import { AdviceWallPanel } from '../editor/panels/blocks/AdviceWallPanel';
+import { ProgramPanel } from '../editor/panels/blocks/ProgramPanel';
+import { LivestreamPanel } from '../editor/panels/blocks/LivestreamPanel';
+import { ObituaryPanel } from '../editor/panels/blocks/ObituaryPanel';
+import { PackingListPanel } from '../editor/panels/blocks/PackingListPanel';
+import { HonorListPanel } from '../editor/panels/blocks/HonorListPanel';
 
 interface SectionInfo {
   id: Exclude<SectionId, null>;
@@ -129,6 +146,18 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
   countdown: { id: 'countdown', label: 'Countdown', desc: 'Cards · stripe · minimal · hero' },
   map:       { id: 'map',       label: 'Map',       desc: 'Live Google Maps embed' },
   music:     { id: 'music',     label: 'Music',     desc: 'Spotify · Apple · YouTube playlist' },
+  /* Event-OS blocks — occasion-gated sections added via the Add
+     Section picker (isBlockApplicable). */
+  itinerary:    { id: 'itinerary',    label: 'Itinerary',     desc: 'Multi-day plan, hour by hour' },
+  costSplitter: { id: 'costSplitter', label: 'Cost splitter', desc: 'Who owes what — settled gently' },
+  activityVote: { id: 'activityVote', label: 'Group vote',    desc: 'Let the group pick' },
+  toastSignup:  { id: 'toastSignup',  label: 'Toast signup',  desc: 'Claim a toast slot' },
+  adviceWall:   { id: 'adviceWall',   label: 'Advice wall',   desc: 'Words for the honoree' },
+  program:      { id: 'program',      label: 'Program',       desc: 'The order of the ceremony' },
+  livestream:   { id: 'livestream',   label: 'Livestream',    desc: 'For the ones far away' },
+  obituary:     { id: 'obituary',     label: 'Obituary',      desc: 'A life, remembered' },
+  packingList:  { id: 'packingList',  label: 'Packing list',  desc: 'What to bring' },
+  honorList:    { id: 'honorList',    label: 'Honor list',    desc: 'The people beside them' },
   /* Tool panels — same lookup so the rail header shows the
      right label + tagline when the host picks a tool. */
   guests:      { id: 'guests',      label: 'Guests',          desc: 'Your guest list' },
@@ -166,6 +195,32 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
      without a hero is broken. Disable the eye-off button there. */
   const canHide = active !== 'hero';
   const [isHidden, setHidden] = useSectionHidden(manifest, onChange, active);
+
+  /* TRY-ANYTHING-SAFELY — hiding a section is destructive enough to
+     deserve a way back, but never an "are you sure?" gate. Hide
+     immediately, then fire `pearloom:undoable`. The undo closure is
+     SURGICAL: it removes just this section from hiddenSections on
+     the manifest as it stands at undo time (read via refs), so
+     edits the host made during the 6s toast window survive. Showing
+     a hidden section back is additive — no toast for that. */
+  const manifestRef = useRef(manifest);
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    manifestRef.current = manifest;
+    onChangeRef.current = onChange;
+  }, [manifest, onChange]);
+  const toggleHidden = () => {
+    if (!canHide) return;
+    if (isHidden) { setHidden(false); return; }
+    const sectionId = active;
+    const label = section.label;
+    setHidden(true);
+    fireUndoable(`${label} hidden from the live site`, () => {
+      const loose = manifestRef.current as unknown as Record<string, unknown>;
+      const hidden = (Array.isArray(loose.hiddenSections) ? loose.hiddenSections : []) as string[];
+      onChangeRef.current({ ...loose, hiddenSections: hidden.filter((s) => s !== sectionId) } as unknown as StoryManifest);
+    });
+  };
   /* Options popover state — opens from the three-dot button. */
   const [optionsOpen, setOptionsOpen] = useState(false);
   const optionsWrapRef = useRef<HTMLDivElement | null>(null);
@@ -189,7 +244,11 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
   function moveSection(direction: -1 | 1) {
     const loose = manifest as unknown as Record<string, unknown>;
     const coreReorderable = ['story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
-    const optionalReorderable = ['countdown', 'map', 'music'];
+    const optionalReorderable = [
+      'countdown', 'map', 'music',
+      'itinerary', 'costSplitter', 'activityVote', 'toastSignup', 'adviceWall',
+      'program', 'livestream', 'obituary', 'packingList', 'honorList',
+    ];
     const allReorderable = [...coreReorderable, ...optionalReorderable];
     const current = (loose.blockOrder as string[] | undefined) ?? coreReorderable;
     const filtered = current.filter((k) => allReorderable.includes(k));
@@ -268,7 +327,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
                   : isHidden ? `Show ${section.label} on the live site`
                   : `Hide ${section.label} from the live site`
               }
-              onClick={() => canHide && setHidden(!isHidden)}
+              onClick={toggleHidden}
               disabled={!canHide}
               aria-pressed={isHidden}
               style={{
@@ -333,10 +392,18 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
                   disabled={!canHide}
                 />
                 <div style={{ height: 1, background: 'var(--line-soft)', margin: '4px 6px' }} />
+                {/* No "Duplicate section" row — deliberately. Every
+                    redesign section reads ONE manifest store
+                    (chapters / events / faqs / galleryImages /
+                    memorial.* / bachelor.*), and blockOrder is a
+                    set of unique section ids ThemedSite renders by
+                    kind (key={kind}). A duplicated id would paint
+                    the SAME data twice and collide React keys —
+                    a data-fork footgun, not a feature. */}
                 <OptionRow
                   icon={isHidden ? 'eye' : 'eye-off'}
                   label={isHidden ? `Show on the live site` : `Hide from the live site`}
-                  onClick={() => { setHidden(!isHidden); setOptionsOpen(false); }}
+                  onClick={() => { toggleHidden(); setOptionsOpen(false); }}
                   disabled={!canHide}
                 />
               </div>
@@ -406,6 +473,25 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
         className="pl-rd-tab-body"
         style={{ flex: 1, overflow: 'auto', minHeight: 0, padding: 20, display: 'flex', flexDirection: 'column', gap: 18 }}
       >
+        {/* RSVP "Preview as a guest" — fires the same `pl-open-rsvp`
+            window event every published-site RSVP CTA dispatches.
+            EditorRedesign mounts the real GuestRsvpModal on the
+            canvas (EditorCanvasRsvpModal), so this opens the exact
+            form + ceremony a guest experiences — no mock. */}
+        {effectiveTab === 'content' && active === 'rsvp' && (
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            style={{ justifyContent: 'center' }}
+            onClick={() => {
+              if (typeof window === 'undefined') return;
+              window.dispatchEvent(new CustomEvent('pl-open-rsvp'));
+            }}
+          >
+            <Icon name="eye" size={13} /> Preview as a guest
+          </button>
+        )}
+
         {effectiveTab === 'content' && renderSectionEditor(active, manifest, onChange, siteSlug)}
 
         {effectiveTab === 'layout' && (() => {
@@ -457,6 +543,22 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
           );
         })()}
 
+        {/* STYLE TAB — deliberately ships NO per-section override
+            controls. Audited 2026-06-10 against redesign/ThemedSite:
+            the renderer has zero per-section style read-paths —
+            backgrounds are hardcoded per variant (var(--t-section) /
+            var(--t-paper) inline), vertical padding is one GLOBAL
+            density multiplier (manifest.density → ctx.pad), and
+            section-head dividers are per-call-site constants
+            (TSectionHead divider='sprig' + global dividerLook).
+            The legacy manifest.blockStyles[*] shape (13 fields) is
+            only consumed by site/ThemedSiteRenderer's
+            BlockStyleWrapper — never by redesign/ThemedSite, which
+            is what BOTH the canvas and PublishedSiteShell mount.
+            Shipping paper-tint / padding-scale / divider toggles
+            here would be write-only orphans the guest never sees.
+            When ThemedSite grows a per-section style read (e.g.
+            manifest.sectionStyles[id]), add the controls then. */}
         {effectiveTab === 'style' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>Styling is theme-wide</div>
@@ -571,6 +673,21 @@ function LayoutPickerGroup({
       [section]: id,
     },
   } as unknown as StoryManifest);
+  /* LIVE-THEME variant previews — resolve the same theme-var bag
+     ThemedSite paints on the canvas root (base theme by id, then
+     the Theme Store pack's manifest.themeVars override) and scope
+     it onto the tile column. Every <VariantGlyph /> sketch inside
+     reads var(--t-accent) / var(--t-gold) / var(--t-line) /
+     var(--t-paper) / currentColor(--t-ink), so the previews
+     re-color the moment the host switches theme or applies a
+     pack — no static editor-chrome greys. */
+  const themeId = ((manifest as unknown as { themeId?: string }).themeId)
+    ?? ((manifest as unknown as { theme?: { id?: string } }).theme?.id);
+  const themeVarsOverride = (manifest as unknown as { themeVars?: Record<string, string> }).themeVars;
+  const liveThemeVars = {
+    ...getTheme(themeId).vars,
+    ...(themeVarsOverride ?? {}),
+  } as unknown as CSSProperties;
   if (!variants) return null;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -582,7 +699,7 @@ function LayoutPickerGroup({
           </div>
         )}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, ...liveThemeVars }}>
         {variants.map((v) => (
           <VariantTile
             key={v.id}
@@ -597,9 +714,11 @@ function LayoutPickerGroup({
   );
 }
 
-/* ─── VariantTile + LayoutGlyph — handoff editor-redesign.jsx L725-739.
-   A row-per-variant with a mini-diagram preview + label + check
-   indicator when active. */
+/* ─── VariantTile — handoff editor-redesign.jsx L725-739, upgraded.
+   A row-per-variant with a THEME-AWARE mini-preview (VariantGlyph,
+   see variant-glyphs.tsx) + label + check indicator when active.
+   The tile chrome (background / border / labels) stays editor
+   tokens; only the glyph inside previews in the live site theme. */
 
 function VariantTile({ variant, section, on, onPick }: { variant: LayoutVariant; section: Exclude<SectionId, null>; on: boolean; onPick: () => void }) {
   return (
@@ -621,134 +740,13 @@ function VariantTile({ variant, section, on, onPick }: { variant: LayoutVariant;
         fontFamily: 'inherit',
       }}
     >
-      <LayoutGlyph section={section} variant={variant.id} on={on} />
+      <VariantGlyph section={section} variant={variant.id} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>{variant.label}</div>
         {variant.sub && <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 1 }}>{variant.sub}</div>}
       </div>
       {on && <Icon name="check" size={14} color="var(--ink)" />}
     </button>
-  );
-}
-
-function LayoutGlyph({ section, variant, on }: { section: Exclude<SectionId, null>; variant: string; on: boolean }) {
-  const c = on ? 'var(--ink)' : 'var(--ink-muted)';
-  const bg = on ? 'rgba(14,13,11,0.04)' : 'var(--cream-2)';
-  const W = 44, H = 32;
-  const wrap = { width: W, height: H, borderRadius: 4, background: bg, display: 'grid', placeItems: 'center', flexShrink: 0, padding: 3 } as const;
-  /* Each section + variant gets a tiny SVG glyph that hints at the
-     layout's structure. Falls through to a 3-bar block for any
-     variant not specifically diagrammed. */
-  if (section === 'hero') {
-    if (variant === 'split') {
-      return (
-        <div style={wrap}>
-          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-            <rect x="1" y="6" width="18" height="2" fill={c} />
-            <rect x="1" y="10" width="14" height="2" fill={c} opacity={0.6} />
-            <rect x="1" y="14" width="16" height="2" fill={c} opacity={0.6} />
-            <rect x={W - 6 - 14} y="2" width="13" height={H - 10} rx="1" fill={c} opacity={0.4} />
-          </svg>
-        </div>
-      );
-    }
-    if (variant === 'fullbleed') {
-      return (
-        <div style={wrap}>
-          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-            <rect x="0" y="0" width={W - 6} height={H - 6} fill={c} opacity={0.4} />
-            <rect x={(W - 6) / 2 - 8} y={(H - 6) / 2 - 1} width="16" height="2" fill="white" />
-          </svg>
-        </div>
-      );
-    }
-    if (variant === 'typographic') {
-      return (
-        <div style={wrap}>
-          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-            <rect x="2" y="4" width={W - 10} height="6" fill={c} />
-            <rect x={(W - 6) / 2 - 1} y="12" width="2" height="2" fill={c} opacity={0.6} />
-            <rect x="2" y="16" width={W - 10} height="6" fill={c} />
-          </svg>
-        </div>
-      );
-    }
-    if (variant === 'minimal') {
-      return (
-        <div style={wrap}>
-          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-            <rect x="2" y="6" width={(W - 10) * 0.65} height="4" fill={c} />
-            <rect x="2" y="13" width={(W - 10) * 0.45} height="2" fill={c} opacity={0.6} />
-            <rect x="2" y="17" width={(W - 10) * 0.5} height="2" fill={c} opacity={0.6} />
-          </svg>
-        </div>
-      );
-    }
-    if (variant === 'postcard') {
-      return (
-        <div style={wrap}>
-          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-            <rect x="3" y="3" width={W - 12} height={H - 12} rx="1.5" fill={c} opacity={0.3} stroke={c} strokeWidth="0.5" />
-          </svg>
-        </div>
-      );
-    }
-    /* centered (default) */
-    return (
-      <div style={wrap}>
-        <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-          <rect x="6" y="6" width={W - 18} height="3" fill={c} />
-          <rect x="9" y="12" width={W - 24} height="2" fill={c} opacity={0.6} />
-          <rect x="11" y="17" width={W - 28} height="2" fill={c} opacity={0.4} />
-        </svg>
-      </div>
-    );
-  }
-  if (section === 'story') {
-    if (variant === 'stacked') {
-      return (
-        <div style={wrap}>
-          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-            <rect x="2" y="2" width={W - 10} height="10" fill={c} opacity={0.4} />
-            <rect x="2" y="15" width={W - 10} height="2" fill={c} />
-            <rect x="2" y="19" width={(W - 10) * 0.7} height="2" fill={c} opacity={0.6} />
-          </svg>
-        </div>
-      );
-    }
-    if (variant === 'timeline') {
-      return (
-        <div style={wrap}>
-          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-            <line x1="5" y1="3" x2="5" y2={H - 9} stroke={c} strokeWidth="0.8" />
-            <circle cx="5" cy="6" r="2" fill={c} />
-            <circle cx="5" cy="14" r="2" fill={c} />
-            <circle cx="5" cy="22" r="2" fill={c} opacity={0.5} />
-          </svg>
-        </div>
-      );
-    }
-    /* sidebyside (default) */
-    return (
-      <div style={wrap}>
-        <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-          <rect x="2" y="2" width="14" height={H - 10} fill={c} opacity={0.4} />
-          <rect x="20" y="6" width={W - 28} height="2" fill={c} />
-          <rect x="20" y="11" width={W - 28} height="2" fill={c} opacity={0.6} />
-          <rect x="20" y="15" width={(W - 28) * 0.7} height="2" fill={c} opacity={0.6} />
-        </svg>
-      </div>
-    );
-  }
-  /* Generic fallback — 3 stacked rows. */
-  return (
-    <div style={wrap}>
-      <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-        <rect x="2" y="3" width={W - 10} height="4" fill={c} />
-        <rect x="2" y="10" width={W - 10} height="4" fill={c} opacity={0.6} />
-        <rect x="2" y="17" width={(W - 10) * 0.7} height="4" fill={c} opacity={0.6} />
-      </svg>
-    </div>
   );
 }
 
@@ -773,6 +771,17 @@ function renderSectionEditor(
     case 'countdown':return <CountdownPanel {...props} />;
     case 'map':      return <MapPanel {...props} />;
     case 'music':    return <MusicPanel {...props} />;
+    /* Event-OS blocks — occasion-gated canvas sections. */
+    case 'itinerary':    return <ItineraryPanel {...props} />;
+    case 'costSplitter': return <CostSplitterPanel {...props} />;
+    case 'activityVote': return <ActivityVotePanel {...props} />;
+    case 'toastSignup':  return <ToastSignupPanel {...props} />;
+    case 'adviceWall':   return <AdviceWallPanel {...props} />;
+    case 'program':      return <ProgramPanel {...props} />;
+    case 'livestream':   return <LivestreamPanel {...props} />;
+    case 'obituary':     return <ObituaryPanel {...props} />;
+    case 'packingList':  return <PackingListPanel {...props} />;
+    case 'honorList':    return <HonorListPanel {...props} />;
     /* Tool panels — host-only workspaces. Most need siteSlug to
        fetch live data (guest counts, broadcasts, OG card). */
     case 'guests':      return siteSlug ? <GuestsPanel siteSlug={siteSlug} /> : null;

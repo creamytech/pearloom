@@ -1,5 +1,11 @@
 'use client';
 
+/* eslint-disable no-restricted-syntax --
+   This panel is the redesign editor's Pear pane and deliberately
+   binds the redesign prototype tokens (--card / --ink / --cream /
+   --line), not --pl-chrome-*, so it matches the shell it mounts
+   inside (same convention as every file under pearloom/redesign/). */
+
 // ─────────────────────────────────────────────────────────────
 // DesignAdvisor (a.k.a. Pear Companion) — slide-in side panel
 // where Pear reads the host's manifest and helps in plain
@@ -35,6 +41,7 @@ import { PatchProposalCard } from './pear/PatchProposalCard';
 import { PearActionCard } from './pear/PearActionCard';
 import { pearPromptFor } from './panels/pear-passes';
 import { PearThinking } from '../pear-thinking';
+import { pearErrorMessage } from '../redesign/PearAssist';
 
 // Minimal Web Speech API typing — TS doesn't ship a built-in
 // declaration. Only the subset we use is modelled.
@@ -137,6 +144,18 @@ function adaptApiToLocal(api: ApiCritique): Suggestion {
     targetTab: api.tab,
   };
 }
+
+/* ── Proactive nudges — formerly FloatingPearBubble's opener ───
+   The canvas pill used to carry these + its own critique fetch +
+   inline suggestion UI; consolidated here (one-Pear, 2026-06-09)
+   so the advisor opens with the same "Pear noticed…" thought the
+   pill advertised. Keyed by the section the host is editing. */
+const NUDGES: Record<string, string> = {
+  hero:    'Your tagline is doing a lot of work. Want me to try 3 alternatives?',
+  rsvp:    "You haven't set a reminder cadence yet. I drafted one — want to review?",
+  gallery: '38 photos! I can pick the 12 strongest for the homepage strip.',
+  default: 'I noticed your schedule has gaps — want me to rebalance the timeline?',
+};
 
 type QuickActionKey = 'review' | 'missing' | 'polish-hero';
 
@@ -533,7 +552,10 @@ export function DesignAdvisor({
         aria-label="Pear, your design advisor"
         onClick={inline ? undefined : (e) => e.stopPropagation()}
         style={{
-          width: inline ? 320 : 'min(460px, 100vw)',
+          /* Inline fills its mount — the editor's 4th grid column
+             is a fixed 320px (pixel-identical to the old literal
+             320) and the mobile bottom sheet is full-bleed. */
+          width: inline ? '100%' : 'min(460px, 100vw)',
           height: '100%',
           flexShrink: 0,
           background: 'var(--card)',
@@ -662,6 +684,16 @@ export function DesignAdvisor({
 
         {/* Body — review affordance + suggestion stream. */}
         <div style={{ padding: '18px 22px 28px', display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto', flex: 1 }}>
+          {/* Pear noticed… — the proactive opener that used to live
+              in the canvas bubble. State resets per open because the
+              whole advisor unmounts when closed. */}
+          <PearNoticedCard
+            manifest={manifest}
+            names={names}
+            currentBlock={currentBlock}
+            onJump={(tab) => jumpToTab(tab)}
+          />
+
           <AISuggestButton
             label={suggestions.length ? 'Review again' : 'Ask Pear'}
             runningLabel="Pear is reading…"
@@ -1236,6 +1268,180 @@ function ChatBubble({
         </div>
       )}
     </div>
+  );
+}
+
+/* ─── PearNoticedCard ─────────────────────────────────────────
+   The advisor's proactive opener — ported wholesale from the old
+   FloatingPearBubble expansion. Shows the section-aware nudge
+   with "Yes, try it" (fires the same /api/pear-critique pass the
+   bubble used); a returned suggestion surfaces with a
+   "Jump to <tab>" CTA that reuses the advisor's jumpToTab
+   (design-jump event + advisor close). Dismissable; remounts
+   fresh each time the advisor opens. */
+
+interface NudgeSuggestion {
+  id: string;
+  level: 'critical' | 'warning' | 'tip';
+  title: string;
+  description: string;
+  tab: string;
+}
+
+function PearNoticedCard({
+  manifest,
+  names,
+  currentBlock,
+  onJump,
+}: {
+  manifest: StoryManifest;
+  names: [string, string];
+  currentBlock?: string;
+  onJump: (tab: ApiCritique['tab']) => void;
+}) {
+  const [dismissed, setDismissed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [suggestion, setSuggestion] = useState<NudgeSuggestion | null>(null);
+
+  if (dismissed) return null;
+
+  const nudge = (currentBlock && NUDGES[currentBlock]) || NUDGES.default;
+
+  async function tryIt() {
+    setBusy(true);
+    setErr(null);
+    try {
+      /* /api/pear-critique requires { manifest, coupleNames } per
+         the route's request schema — without coupleNames the call
+         400's. Same payload the bubble sent. */
+      const res = await fetch('/api/pear-critique', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          manifest,
+          coupleNames: names,
+          intent: currentBlock ? `polish-${currentBlock}` : 'review',
+        }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        console.error('[pear-noticed] critique failed:', res.status);
+        throw new Error((j as { error?: string }).error ?? 'Pear couldn’t think that one through — try again?');
+      }
+      const data = await res.json() as { suggestions?: NudgeSuggestion[] };
+      const first = data.suggestions?.[0];
+      if (first) setSuggestion(first);
+      else setErr('Pear had nothing to add right now.');
+    } catch (e) {
+      console.error('[pear-noticed] critique error:', e);
+      setErr(pearErrorMessage(e, 'Pear couldn’t think that one through — try again?'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section
+      aria-label="Pear noticed"
+      style={{
+        padding: 14,
+        background: 'var(--peach-bg, rgba(198,112,61,0.10))',
+        border: '1px solid rgba(198,112,61,0.20)',
+        borderRadius: 14,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          color: 'var(--peach-ink, #C6703D)',
+          fontFamily: 'var(--font-ui)',
+        }}
+      >
+        Pear noticed…
+      </div>
+      {suggestion ? (
+        <>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>
+            {suggestion.title}
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
+            {suggestion.description}
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              type="button"
+              onClick={() => onJump(suggestion.tab as ApiCritique['tab'])}
+              className="btn btn-primary btn-sm"
+              style={{ flex: 1, justifyContent: 'center', fontSize: 12 }}
+            >
+              Jump to {suggestion.tab}
+            </button>
+            <button
+              type="button"
+              onClick={() => setDismissed(true)}
+              className="btn btn-outline btn-sm"
+              style={{ fontSize: 12 }}
+            >
+              Dismiss
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.45 }}>
+            {nudge}
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              type="button"
+              onClick={() => void tryIt()}
+              disabled={busy}
+              className="btn btn-primary btn-sm"
+              style={{ flex: 1, justifyContent: 'center', fontSize: 12, opacity: busy ? 0.7 : 1 }}
+            >
+              {busy ? (
+                <PearThinking
+                  active
+                  size="sm"
+                  label="Pear is thinking"
+                  color="currentColor"
+                  style={{ padding: 0 }}
+                />
+              ) : 'Yes, try it'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setDismissed(true)}
+              className="btn btn-outline btn-sm"
+              style={{ fontSize: 12 }}
+            >
+              Not now
+            </button>
+          </div>
+        </>
+      )}
+      {err && (
+        <div
+          role="alert"
+          style={{
+            padding: '6px 10px',
+            borderRadius: 7,
+            background: 'rgba(122,45,45,0.08)',
+            fontSize: 11,
+            color: 'var(--plum-ink, #7A2D2D)',
+          }}
+        >
+          {err}
+        </div>
+      )}
+    </section>
   );
 }
 

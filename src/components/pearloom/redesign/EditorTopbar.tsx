@@ -4,12 +4,14 @@
 /* LITERAL PORT of handoff/pages/editor-redesign.jsx L56-135 EditorTopbar. */
 
 import Link from 'next/link';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Icon, Pear } from '../motifs';
 import type { EditorMode } from './EditorRedesign';
 import type { SaveState } from './bridge';
 import type { StoryManifest } from '@/types';
 import { PublishChecklist } from './PublishChecklist';
+import { nextStepFor } from '@/lib/next-step';
 
 interface Props {
   mode: EditorMode;
@@ -25,9 +27,14 @@ interface Props {
    *  audit missing fields. Optional — if omitted the checklist
    *  pill is hidden. */
   manifest?: StoryManifest;
+  /** Phone-width chrome: icon-only mode pills, save dot + Publish
+   *  kept inline, everything else (Share / Theme / Decor /
+   *  Settings) tucked into an ellipsis menu so the bar fits
+   *  390px. Desktop layout is untouched when false. */
+  compact?: boolean;
 }
 
-export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPublish, pearOpen, setPearOpen, onOpenSettings, displayNames, manifest }: Props) {
+export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPublish, pearOpen, setPearOpen, onOpenSettings, displayNames, manifest, compact = false }: Props) {
   const { data: session } = useSession();
   /* Profile pic was rendering initials from `displayNames` (the
      COUPLE'S names), so the avatar text changed on every keystroke
@@ -48,30 +55,94 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
     : saveState === 'saved' ? 'var(--sage)'
     : 'var(--peach-ink)';
   const saveActive = saveState === 'saving' || saveState === 'unsaved';
+  /* Compact: hide the "Saved 12:30" text while idle — the dot
+     carries the state, the title attr keeps the detail. The label
+     comes back the moment a save is in flight or failed. */
+  const showSaveLabel = !compact || saveActive || saveState === 'error';
+
+  /* Ellipsis overflow menu (compact only). */
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuWrapRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (!menuWrapRef.current?.contains(e.target as Node)) setMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false); };
+    window.addEventListener('mousedown', onDown);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('mousedown', onDown);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [menuOpen]);
+
+  async function shareSite() {
+    if (typeof window === 'undefined') return;
+    const url = window.location.href;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: displayNames, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        window.dispatchEvent(new CustomEvent('pearloom:toast', { detail: { message: 'Link copied' } }));
+      }
+    } catch {
+      /* user dismissed share sheet — no-op */
+    }
+  }
+  function openThemeRail() {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('pearloom:open-theme-rail'));
+  }
+  function openDecorLibrary() {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('pearloom:open-decor-library'));
+  }
+
+  /* Golden thread — the ONE next-best-action, recomputed from the
+     live manifest prop on every change. Desktop only: the compact
+     bar is already at capacity at 390px. The topbar has no guest
+     counts, so the ladder naturally stops at the manifest rungs
+     (cover → date → gallery → story → publish). */
+  const nextStep = useMemo(() => (manifest ? nextStepFor(manifest) : null), [manifest]);
+  function followThread() {
+    if (!nextStep) return;
+    if (nextStep.target === 'publish') {
+      /* Open the publish flow exactly the way the Publish button does. */
+      onPublish();
+      return;
+    }
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { block: nextStep.target } }));
+  }
+
   return (
     <header
       style={{
         gridArea: 'top',
         background: 'var(--cream)',
         borderBottom: '1px solid var(--line-soft)',
-        padding: '0 16px',
+        padding: compact ? '0 10px' : '0 16px',
         display: 'flex',
         alignItems: 'center',
-        gap: 16,
+        gap: compact ? 8 : 16,
         height: 56,
         position: 'relative',
         zIndex: 5,
       }}
     >
-      {/* Left zone — back to dashboard. Prototype L70-76. */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 232 }}>
+      {/* Left zone — back to dashboard. Prototype L70-76. Compact
+          drops the word + the 232px reservation. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: compact ? 0 : 232 }}>
         <Link
           href="/dashboard"
+          aria-label="Back to dashboard"
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--ink-soft)', textDecoration: 'none' }}
         >
           <Icon name="chev-left" size={14} />
           <Pear size={20} tone="sage" shadow={false} />
-          Dashboard
+          {!compact && 'Dashboard'}
         </Link>
       </div>
 
@@ -96,8 +167,10 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
                 type="button"
                 onClick={() => setMode(m.id)}
                 className="pl-rd-mode-pill"
+                aria-label={m.label}
+                title={m.label}
                 style={{
-                  padding: '6px 14px', borderRadius: 999,
+                  padding: compact ? '6px 10px' : '6px 14px', borderRadius: 999,
                   fontSize: 12.5, fontWeight: 600,
                   background: on ? 'var(--ink)' : 'transparent',
                   color: on ? 'var(--cream)' : 'var(--ink-soft)',
@@ -106,16 +179,59 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
                 }}
               >
                 <Icon name={m.icon} size={12} color={on ? 'var(--cream)' : 'var(--ink-soft)'} />
-                {m.label}
+                {!compact && m.label}
               </button>
             );
           })}
         </div>
       </div>
 
+      {/* Golden thread chip — quiet pill between the mode pill and
+          the right cluster. Names the one next-best-action; tap
+          jumps to its panel (or opens the publish flow). Vanishes
+          when the ladder is fully threaded. Desktop only. */}
+      {!compact && nextStep && (
+        <button
+          type="button"
+          onClick={followThread}
+          title={nextStep.hint}
+          aria-label={`Next step: ${nextStep.label}`}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7,
+            padding: '4px 11px',
+            borderRadius: 999,
+            background: 'var(--cream-2)',
+            border: '1px solid var(--line-soft)',
+            color: 'var(--ink-soft)',
+            fontSize: 11.5, fontWeight: 600,
+            whiteSpace: 'nowrap',
+            cursor: 'pointer',
+            transition: 'background var(--pl-dur-quick), border-color var(--pl-dur-quick), color var(--pl-dur-quick)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--card)';
+            e.currentTarget.style.color = 'var(--ink)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'var(--cream-2)';
+            e.currentTarget.style.color = 'var(--ink-soft)';
+          }}
+        >
+          <span
+            aria-hidden
+            style={{
+              width: 6, height: 6, borderRadius: '50%',
+              background: 'var(--gold, #B8935A)',
+              flexShrink: 0,
+            }}
+          />
+          {nextStep.label}
+        </button>
+      )}
+
       {/* Right zone — save state · | · Ask Pear · Share · Publish · | · avatar.
           Prototype L108-132. */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 8 : 10 }}>
         <div
           aria-live="polite"
           title={saveState === 'error' ? 'Last save attempt failed — next edit will retry.' : `Last saved at ${savedAt}`}
@@ -140,8 +256,63 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
               boxShadow: saveActive ? '0 0 0 3px rgba(198,112,61,0.16)' : 'none',
             }}
           />
-          {saveLabel}
+          {showSaveLabel && saveLabel}
         </div>
+        {compact ? (
+          <>
+            {/* Compact right zone — Publish + ellipsis menu. Pear
+                lives in the bottom bar; Share / Theme / Decor /
+                Settings overflow into the menu. GoLiveBadge +
+                PublishChecklist pills don't fit at 390px. */}
+            <button type="button" className="btn btn-primary btn-sm pl-pearl-accent" onClick={onPublish}>
+              Publish
+              <Icon name="arrow-up" size={12} color="var(--cream)" />
+            </button>
+            <div style={{ position: 'relative' }} ref={menuWrapRef}>
+              <button
+                type="button"
+                onClick={() => setMenuOpen(!menuOpen)}
+                aria-label="More actions"
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                style={{
+                  width: 30, height: 30, borderRadius: 8,
+                  background: menuOpen ? 'var(--cream-3)' : 'var(--card)',
+                  border: '1px solid var(--line-soft)',
+                  display: 'grid', placeItems: 'center', cursor: 'pointer',
+                }}
+              >
+                <Icon name="more" size={14} color="var(--ink-soft)" />
+              </button>
+              {menuOpen && (
+                <div
+                  role="menu"
+                  style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 6px)',
+                    right: 0,
+                    zIndex: 'var(--z-dropdown)',
+                    minWidth: 180,
+                    padding: 4,
+                    background: 'var(--card)',
+                    border: '1px solid var(--line)',
+                    borderRadius: 10,
+                    boxShadow: '0 14px 38px rgba(40,28,12,0.16), 0 4px 12px rgba(40,28,12,0.08)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <MenuRow icon="share" label="Share" onClick={() => { setMenuOpen(false); void shareSite(); }} />
+                  <MenuRow icon="palette" label="Theme" onClick={() => { setMenuOpen(false); openThemeRail(); }} />
+                  <MenuRow icon="sparkles" label="Decor" onClick={() => { setMenuOpen(false); openDecorLibrary(); }} />
+                  <div style={{ height: 1, background: 'var(--line-soft)', margin: '4px 6px' }} />
+                  <MenuRow icon="settings" label={userLabel} onClick={() => { setMenuOpen(false); onOpenSettings(); }} />
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
         <div style={{ width: 1, height: 18, background: 'var(--line-soft)' }} />
         <button
           type="button"
@@ -159,20 +330,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         <button
           type="button"
           className="btn btn-outline btn-sm"
-          onClick={async () => {
-            if (typeof window === 'undefined') return;
-            const url = window.location.href;
-            try {
-              if (navigator.share) {
-                await navigator.share({ title: displayNames, url });
-              } else {
-                await navigator.clipboard.writeText(url);
-                window.dispatchEvent(new CustomEvent('pearloom:toast', { detail: { message: 'Link copied' } }));
-              }
-            } catch {
-              /* user dismissed share sheet — no-op */
-            }
-          }}
+          onClick={() => void shareSite()}
           aria-label="Share this site"
         >
           <Icon name="share" size={12} /> Share
@@ -186,10 +344,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         <button
           type="button"
           className="btn btn-outline btn-sm"
-          onClick={() => {
-            if (typeof window === 'undefined') return;
-            window.dispatchEvent(new CustomEvent('pearloom:open-theme-rail'));
-          }}
+          onClick={openThemeRail}
           title="Open theme panel"
         >
           <Icon name="palette" size={12} /> Theme
@@ -197,10 +352,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         <button
           type="button"
           className="btn btn-outline btn-sm"
-          onClick={() => {
-            if (typeof window === 'undefined') return;
-            window.dispatchEvent(new CustomEvent('pearloom:open-decor-library'));
-          }}
+          onClick={openDecorLibrary}
           title="Open decor library — motifs, dividers, patterns, monogram"
         >
           <Icon name="sparkles" size={12} /> Decor
@@ -233,8 +385,41 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
               via background. */}
           {!userImage && <span>{userInitials}</span>}
         </button>
+          </>
+        )}
       </div>
     </header>
+  );
+}
+
+/* MenuRow — one row in the compact overflow menu. Mirrors the
+   OptionRow shape used by PropertyRail's section-options popover. */
+function MenuRow({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 9,
+        padding: '9px 10px',
+        background: 'transparent', border: 'none',
+        cursor: 'pointer',
+        fontSize: 12.5,
+        color: 'var(--ink)',
+        textAlign: 'left',
+        borderRadius: 6,
+        fontFamily: 'var(--font-ui)',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--cream-2)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+    >
+      <Icon name={icon} size={12} color="var(--ink-soft)" />
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
+    </button>
   );
 }
 

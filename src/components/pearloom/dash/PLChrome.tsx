@@ -30,6 +30,7 @@ import {
 } from 'react';
 import { parseLocalDate } from '@/lib/date-utils';
 import { Icon, Pear, Sprig } from '../motifs';
+import { useIsMobile } from '../redesign/use-nav-hooks';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
 
 /* ─────────────────────────────────────────────────────────────────────
@@ -106,7 +107,10 @@ export function PLSidebar({ active }: { active?: string }) {
         gap: 18,
         position: 'sticky',
         top: 0,
-        height: '100vh',
+        // dvh, not vh — mobile browser UI chrome shrinks the visual
+        // viewport; static 100vh leaves the sidebar's bottom strip
+        // hidden behind the toolbar.
+        height: '100dvh',
         background: 'var(--cream)',
         zIndex: 2,
         fontFamily: 'var(--font-ui)',
@@ -310,6 +314,8 @@ export function PLTabs({
         justifyContent: 'center',
         gap: 6,
         marginBottom: 22,
+        // Phones: let long tab strips wrap instead of overflowing.
+        flexWrap: 'wrap',
         ...style,
       }}
     >
@@ -406,7 +412,7 @@ export function PLHead({
         <h1
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 38,
+            fontSize: 'clamp(28px, 7.5vw, 38px)',
             fontWeight: 600,
             margin: 0,
             letterSpacing: '-0.01em',
@@ -455,6 +461,9 @@ export function PLHead({
         justifyContent: 'space-between',
         gap: 16,
         marginBottom: 20,
+        // Phones: actions drop below the title instead of
+        // squeezing it. No-op on desktop (only wraps when needed).
+        flexWrap: 'wrap',
         ...style,
       }}
     >
@@ -476,7 +485,7 @@ export function PLHead({
         <h1
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 38,
+            fontSize: 'clamp(28px, 7.5vw, 38px)',
             fontWeight: 600,
             margin: 0,
             letterSpacing: '-0.01em',
@@ -649,12 +658,17 @@ export function PLChrome({
   atmosphere = true,
   children,
 }: PLChromeProps) {
+  // Below the dashboard's 960px drawer breakpoint the fixed 200px
+  // PLSidebar would eat half a phone viewport (and double up with
+  // the shell's DashSidebar drawer, which already provides nav).
+  // Hide it and slim the main gutters. Desktop untouched.
+  const isNarrow = useIsMobile(960);
   return (
     <div
       className="pl8 pl8-pl-chrome"
       style={{
         display: 'flex',
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background: 'var(--cream)',
         position: 'relative',
         fontFamily: 'var(--font-ui)',
@@ -662,14 +676,14 @@ export function PLChrome({
       }}
     >
       {atmosphere && <PLAtmosphere />}
-      {sidebar && <PLSidebar active={active} />}
+      {sidebar && !isNarrow && <PLSidebar active={active} />}
       <main
         style={{
           flex: 1,
           minWidth: 0,
           position: 'relative',
           zIndex: 1,
-          padding: pad,
+          padding: isNarrow ? '16px 18px 48px' : pad,
           maxWidth,
           margin: '0 auto',
           width: '100%',

@@ -30,9 +30,12 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { DashLayout } from '../dash/DashShell';
 import { Icon, Pear } from '../motifs';
+import { useIsMobile } from '../redesign/use-nav-hooks';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { parseLocalDate } from '@/lib/date-utils';
 import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
+import { nextStepFor, rsvpMomentumFor, type NextStep, type RsvpMomentum } from '@/lib/next-step';
+import type { StoryManifest } from '@/types';
 import type { GuestInsight } from '@/app/api/guests/intelligence/route';
 
 interface Guest {
@@ -130,6 +133,31 @@ export function WelcomeHome() {
   // ── Pear recommendations ────────────────────────────────────
   const pearTodos = usePearTodos({ stage, insights, guestCounts, daysUntil });
 
+  // ── Golden thread — the ONE next-best-action ────────────────
+  // Shares src/lib/next-step.ts with the editor's topbar chip so
+  // the dashboard and the editor always name the same step.
+  // Counts come from the /api/guests fetch this page already does.
+  const manifest = (site?.manifest ?? null) as StoryManifest | null;
+  const nextStep = useMemo(
+    () => (manifest
+      ? nextStepFor(
+          manifest,
+          guestCounts ? { guests: guestCounts.invited, pendingRsvps: guestCounts.pending } : undefined,
+          new Date(now),
+        )
+      : null),
+    [manifest, guestCounts, now],
+  );
+  const nextStepHref = nextStep ? hrefForNextStep(nextStep, editorHref) : null;
+
+  // ── RSVP momentum — pending replies + reply-by inside 7 days ─
+  const rsvpMomentum = useMemo(
+    () => (manifest && guestCounts
+      ? rsvpMomentumFor(manifest, guestCounts.pending, new Date(now))
+      : null),
+    [manifest, guestCounts, now],
+  );
+
   // ── Next milestone (drives the hero callout) ────────────────
   const milestones = useMemo(
     () => buildMilestones({ stage, eventDate, eventDateShort, daysUntil, guestCounts }),
@@ -215,6 +243,9 @@ export function WelcomeHome() {
           daysUntil={daysUntil}
           stage={stage}
           nextMilestone={nextMilestone}
+          nextStep={nextStep}
+          nextStepHref={nextStepHref}
+          hasManifest={manifest != null}
           progressDone={milestones.filter((m) => m.status === 'done').length}
           progressTotal={milestones.length}
           newSinceVisit={recentActivity.length}
@@ -231,6 +262,7 @@ export function WelcomeHome() {
             <ActivityFeed activity={recentActivity} stage={stage} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {rsvpMomentum && <RsvpMomentumCard momentum={rsvpMomentum} />}
             <GuestPulse counts={guestCounts} domain={site?.domain ?? null} loading={guests === null} />
             <Milestones milestones={milestones} dateShort={eventDateShort} />
           </div>
@@ -265,6 +297,9 @@ function HeroBand({
   daysUntil,
   stage,
   nextMilestone,
+  nextStep,
+  nextStepHref,
+  hasManifest,
   progressDone,
   progressTotal,
   newSinceVisit,
@@ -277,6 +312,9 @@ function HeroBand({
   daysUntil: number | null;
   stage: Stage;
   nextMilestone: Milestone | null;
+  nextStep: NextStep | null;
+  nextStepHref: string | null;
+  hasManifest: boolean;
   progressDone: number;
   progressTotal: number;
   newSinceVisit: number;
@@ -292,7 +330,25 @@ function HeroBand({
   const urgencyBg =
     urgencyTone === 'peach' ? 'var(--peach-bg)' :
     urgencyTone === 'lavender' ? 'var(--lavender-bg)' : 'var(--sage-tint)';
+  // Golden-thread tone — the nudge step is time-boxed (reply-by
+  // inside 7 days), so it gets the urgent peach; publish gets
+  // lavender; everything else stays calm sage.
+  const stepTone = nextStep?.id === 'nudge' ? 'peach'
+    : nextStep?.id === 'publish' ? 'lavender' : 'sage';
+  const stepColor =
+    stepTone === 'peach' ? 'var(--peach-ink)' :
+    stepTone === 'lavender' ? 'var(--lavender-ink)' : 'var(--sage-deep)';
+  const stepBg =
+    stepTone === 'peach' ? 'var(--peach-bg)' :
+    stepTone === 'lavender' ? 'var(--lavender-bg)' : 'var(--sage-tint)';
   void firstName; void liveDisplay;
+
+  // Phones: the 3-column band crushes every zone (clipped names,
+  // vertical-word milestone, overlapping PLANNING header). Stack
+  // the three zones as full-width rows instead. The inline style
+  // is the one that wins, so it has to be responsive itself — the
+  // styled-jsx 920px rule below stays as a backstop.
+  const isNarrow = useIsMobile(920);
 
   return (
     <div
@@ -303,20 +359,23 @@ function HeroBand({
         borderRadius: 20,
         padding: 'clamp(20px, 3vw, 28px)',
         display: 'grid',
-        gridTemplateColumns: '1.4fr 1fr 1fr',
-        gap: 28,
-        alignItems: 'center',
+        gridTemplateColumns: isNarrow ? '1fr' : '1.4fr 1fr 1fr',
+        gap: isNarrow ? 18 : 28,
+        alignItems: isNarrow ? 'stretch' : 'center',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* Atmosphere glyph — gold thread squiggle, decorative only */}
+      {/* Atmosphere glyph — gold thread squiggle, decorative only.
+          Hidden on narrow viewports where right:220 would park it
+          on top of the eyebrow copy. */}
       <svg
         width="160"
         height="40"
         viewBox="0 0 160 40"
         aria-hidden
         style={{
+          display: isNarrow ? 'none' : undefined,
           position: 'absolute',
           top: 22,
           right: 220,
@@ -393,9 +452,57 @@ function HeroBand({
         </div>
       </div>
 
-      {/* MIDDLE — next milestone callout */}
+      {/* MIDDLE — 'Next up' callout. Wired to the golden thread
+          (nextStepFor over the live manifest + guest counts) so
+          the dashboard names the same step as the editor's topbar
+          chip. Falls back to the milestone roadmap only when the
+          manifest hasn't loaded yet. */}
       <div style={{ position: 'relative', zIndex: 1 }}>
-        {nextMilestone ? (
+        {nextStep && nextStepHref ? (
+          <Link
+            href={nextStepHref}
+            style={{
+              display: 'block',
+              padding: '14px 16px',
+              borderRadius: 16,
+              background: stepBg,
+              border: `1px solid ${stepTone === 'peach' ? 'rgba(198,112,61,0.18)' : 'transparent'}`,
+              textDecoration: 'none',
+            }}
+          >
+            <div className="eyebrow" style={{ color: stepColor, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold, #B8935A)' }} />
+              NEXT UP
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 22,
+                fontWeight: 600,
+                color: stepColor,
+                lineHeight: 1.1,
+              }}
+            >
+              {nextStep.label}
+            </div>
+            <div style={{ fontSize: 13, color: stepColor, opacity: 0.85, marginTop: 4 }}>
+              {nextStep.hint}
+            </div>
+          </Link>
+        ) : hasManifest ? (
+          <div
+            style={{
+              padding: '14px 16px',
+              borderRadius: 16,
+              background: 'var(--cream-2)',
+              fontSize: 13,
+              color: 'var(--ink-muted)',
+              fontStyle: 'italic',
+            }}
+          >
+            All threaded. Pear&apos;s keeping watch.
+          </div>
+        ) : nextMilestone ? (
           <div
             style={{
               padding: '14px 16px',
@@ -439,9 +546,11 @@ function HeroBand({
       {/* RIGHT — progress + activity */}
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-            <span className="eyebrow">PLANNING</span>
-            <span style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
+          {/* gap + nowrap so the label and the counter can never
+              overlap, no matter how narrow the column gets. */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6, gap: 12, flexWrap: 'nowrap' }}>
+            <span className="eyebrow" style={{ whiteSpace: 'nowrap' }}>PLANNING</span>
+            <span style={{ fontSize: 12.5, color: 'var(--ink-soft)', whiteSpace: 'nowrap', flexShrink: 0 }}>
               <strong style={{ fontWeight: 700, color: 'var(--ink)' }}>{progressDone}</strong> of {progressTotal}
             </span>
           </div>
@@ -495,6 +604,69 @@ function HeroBand({
           }
         }
       `}</style>
+    </div>
+  );
+}
+
+/** Route the golden-thread step to the right dashboard surface.
+ *  Editor rungs (cover/date/gallery/story/publish) open the
+ *  editor; guest rungs open the guest surfaces — building the
+ *  list starts at /dashboard/invite, nudging pending replies
+ *  lands on /dashboard/rsvp where the NudgeStrip's composer
+ *  (DashGuests → NudgeComposer) already lives. */
+function hrefForNextStep(step: NextStep, editorHref: string): string {
+  if (step.target === 'guests') {
+    return step.id === 'guest-list' ? '/dashboard/invite' : '/dashboard/rsvp';
+  }
+  return editorHref;
+}
+
+// ─────────────────────────────────────────────────────────────
+// RsvpMomentumCard — pending replies + reply-by inside 7 days.
+// The CTA deep-links to /dashboard/rsvp, where the existing
+// NudgeStrip opens the Pear-drafted NudgeComposer — we never
+// rebuild the composer here.
+// ─────────────────────────────────────────────────────────────
+function RsvpMomentumCard({ momentum }: { momentum: RsvpMomentum }) {
+  const dateLabel = momentum.replyBy.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+  const windowLine = momentum.daysLeft === 0 ? 'Reply-by is today.'
+    : momentum.daysLeft === 1 ? 'Reply-by lands tomorrow.'
+    : `Reply-by lands in ${momentum.daysLeft} days.`;
+  return (
+    <div
+      className="card"
+      style={{
+        padding: 20,
+        borderRadius: 20,
+        background: 'var(--peach-bg)',
+        border: '1px solid rgba(198,112,61,0.28)',
+      }}
+    >
+      <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span aria-hidden style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--peach-ink)' }} className="pulse-dot" />
+        RSVP MOMENTUM
+      </div>
+      <div
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 20,
+          fontWeight: 600,
+          color: 'var(--peach-ink)',
+          lineHeight: 1.15,
+        }}
+      >
+        {momentum.pending} still pending — reply-by {dateLabel}
+      </div>
+      <div style={{ fontSize: 12.5, color: 'var(--peach-ink)', opacity: 0.85, marginTop: 4 }}>
+        {windowLine} Pear has a gentle reminder drafted.
+      </div>
+      <Link
+        href="/dashboard/rsvp"
+        className="btn btn-primary btn-sm"
+        style={{ textDecoration: 'none', marginTop: 12, display: 'inline-flex' }}
+      >
+        Nudge them with Pear <Icon name="sparkles" size={11} color="var(--cream)" />
+      </Link>
     </div>
   );
 }
@@ -698,6 +870,9 @@ function severityRank(s: GuestInsight['severity']): number {
 
 function PearRecommendations({ todos, domain }: { todos: PearTodo[]; domain: string | null }) {
   void domain;
+  // On phones the trailing CTA squeezes the copy — drop the button
+  // to its own row under the text instead.
+  const isNarrow = useIsMobile(720);
   if (todos.length === 0) {
     return null;
   }
@@ -738,8 +913,8 @@ function PearRecommendations({ todos, domain }: { todos: PearTodo[]; domain: str
               key={i}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '6px 1fr auto',
-                gap: 14,
+                gridTemplateColumns: isNarrow ? '6px 1fr' : '6px 1fr auto',
+                gap: isNarrow ? 12 : 14,
                 alignItems: 'center',
                 padding: '12px 14px',
                 borderRadius: 12,
@@ -755,7 +930,12 @@ function PearRecommendations({ todos, domain }: { todos: PearTodo[]; domain: str
               <Link
                 href={it.href}
                 className={`btn ${urgent ? 'btn-primary' : 'btn-outline'} btn-sm`}
-                style={{ textDecoration: 'none' }}
+                style={{
+                  textDecoration: 'none',
+                  // Narrow: button drops to its own row, aligned
+                  // under the copy (past the stripe column).
+                  ...(isNarrow ? { gridColumn: '2', justifySelf: 'start' } : null),
+                }}
               >
                 {it.cta}
                 {urgent && <Icon name="arrow-right" size={12} color="var(--cream)" />}
@@ -850,6 +1030,9 @@ function GuestPulse({
   loading: boolean;
 }) {
   void domain;
+  // Narrow: the 4-up legend squeezes "PENDING" past its column —
+  // fall back to a 2×2 grid.
+  const isNarrow = useIsMobile(720);
   if (loading) {
     return (
       <div className="card" style={{ padding: 20, borderRadius: 20, fontSize: 13, color: 'var(--ink-muted)', fontStyle: 'italic' }}>
@@ -947,7 +1130,7 @@ function GuestPulse({
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 6 }}>
         {segs.map((s) => (
           <div key={s.label} style={{ padding: '8px 6px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
@@ -1043,6 +1226,10 @@ function buildMilestones({
 }
 
 function Milestones({ milestones, dateShort }: { milestones: Milestone[]; dateShort: string | null }) {
+  // Narrow: the date/dot/title/annotation 4-column row wraps
+  // awkwardly — drop the annotation onto its own muted line under
+  // the title and tighten the date gutter.
+  const isNarrow = useIsMobile(720);
   return (
     <div className="card" style={{ padding: 20, borderRadius: 20 }}>
       <SectionHeader icon="calendar">
@@ -1057,8 +1244,8 @@ function Milestones({ milestones, dateShort }: { milestones: Milestone[]; dateSh
               key={i}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '76px 22px 1fr auto',
-                gap: 12,
+                gridTemplateColumns: isNarrow ? '64px 22px 1fr' : '76px 22px 1fr auto',
+                gap: isNarrow ? 10 : 12,
                 alignItems: 'center',
                 padding: '12px 0',
                 borderBottom: !isLast ? '1px solid var(--line-soft)' : 'none',
@@ -1089,18 +1276,25 @@ function Milestones({ milestones, dateShort }: { milestones: Milestone[]; dateSh
                   {dot.check && <Icon name="check" size={8} color="white" strokeWidth={3} />}
                 </span>
               </div>
-              <div
-                style={{
-                  fontSize: 14,
-                  color: 'var(--ink)',
-                  fontWeight: m.status === 'urgent' || m.status === 'next' ? 600 : 500,
-                  textDecoration: m.status === 'done' ? 'line-through' : 'none',
-                  opacity: m.status === 'done' ? 0.7 : 1,
-                }}
-              >
-                {m.label}
+              <div style={{ minWidth: 0 }}>
+                <div
+                  style={{
+                    fontSize: 14,
+                    color: 'var(--ink)',
+                    fontWeight: m.status === 'urgent' || m.status === 'next' ? 600 : 500,
+                    textDecoration: m.status === 'done' ? 'line-through' : 'none',
+                    opacity: m.status === 'done' ? 0.7 : 1,
+                  }}
+                >
+                  {m.label}
+                </div>
+                {isNarrow && m.sub && (
+                  <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 2 }}>{m.sub}</div>
+                )}
               </div>
-              <div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>{m.sub}</div>
+              {!isNarrow && (
+                <div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>{m.sub}</div>
+              )}
             </div>
           );
         })}

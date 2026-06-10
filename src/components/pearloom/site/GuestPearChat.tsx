@@ -14,6 +14,12 @@
 // Hides on the editor canvas (editMode prop) since the host has
 // the floating advisor up top. Hides on /g/[token] too — the
 // personal page is its own conversation surface.
+//
+// Bottom-right corner stacking policy (shared with
+// site/StickyRsvpPill.tsx + pearloom/site/DayOfBroadcastDock.tsx):
+//   GuestPearChat      z 160  (this file — topmost)
+//   StickyRsvpPill     z 150
+//   DayOfBroadcastDock z 140
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from 'react';
@@ -209,6 +215,7 @@ export function GuestPearChat({ manifest, coupleNames, guest, domain }: Props) {
           position: 'fixed',
           bottom: 18,
           right: 18,
+          /* Corner stacking policy: chat 160 > pill 150 > dock 140. */
           zIndex: 160,
           padding: '10px 16px 10px 12px',
           borderRadius: 999,
@@ -239,8 +246,11 @@ export function GuestPearChat({ manifest, coupleNames, guest, domain }: Props) {
         position: 'fixed',
         bottom: 18,
         right: 18,
+        /* Corner stacking policy: chat 160 > pill 150 > dock 140. */
         zIndex: 160,
-        width: 'min(360px, calc(100vw - 36px))',
+        /* Subtract the right notch inset (landscape phones) so the
+           panel's left edge doesn't get pushed past the viewport. */
+        width: 'min(360px, calc(100vw - 36px - env(safe-area-inset-right, 0px)))',
         maxHeight: '70vh',
         background: 'var(--card, #FBF7EE)',
         borderRadius: 18,

@@ -11,11 +11,19 @@
 // Save-the-date and Thank-you flows reuse the same endpoint —
 // the channel field on the email tags lets the bell + dashboard
 // distinguish them.
+//
+// The Print channel opens StudioMailFlow — the paid Pearloom
+// Print path (POST /api/print/checkout). The card is serialized
+// to SVG from the live Studio state; everything money-shaped is
+// recomputed server-side.
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { StationeryType } from './studio-constants';
+import { StudioMailFlow } from './StudioMailFlow';
+import { ScaledCardBox } from './StudioMobileChrome';
+import { useMobileViewport } from '../redesign/use-mobile-viewport';
 import { Pear, Icon } from '../motifs';
 
 interface SendStats {
@@ -23,6 +31,9 @@ interface SendStats {
   withEmail: number;
   withPhone: number;
   withAddress: number;
+  /** Complete mailing address (line1 + city + state + zip) —
+   *  the exact set /api/print/checkout prices. */
+  withFullAddress: number;
   attending: number;
 }
 
@@ -35,14 +46,31 @@ interface Props {
   /** Optional caller-side callback when a real send completes —
    *  used to push a toast / refresh notification bell. */
   onSent?: (sentCount: number) => void;
+  /** Serializes the live card design to print-ready SVG. When
+   *  provided, the Print channel becomes the "Mail it for you"
+   *  flow instead of a "Coming soon" stub. */
+  buildPrintSvg?: () => Promise<string>;
+  /** Prefill for the mail flow's return-address name. */
+  defaultReturnName?: string;
+  /** Open directly on the mail flow (e.g. from the print
+   *  preview's "Mail it for you" button). */
+  initialMail?: boolean;
 }
 
-export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent }: Props) {
+export function StudioSendOverlay({
+  siteSlug, type, cardPreview, onClose, onSent,
+  buildPrintSvg, defaultReturnName, initialMail,
+}: Props) {
+  /* Phone-sized viewport — the 320px-preview + 1fr two-pane grid
+     stacks; the preview becomes a small strip so the form keeps
+     the room. Desktop output is untouched. */
+  const mobile = useMobileViewport();
   const [stats, setStats] = useState<SendStats | null>(null);
   const [statsError, setStatsError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sentSummary, setSentSummary] = useState<string | null>(null);
+  const [mailMode, setMailMode] = useState(!!initialMail && !!buildPrintSvg);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,14 +80,17 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
         if (!r.ok) throw new Error(`stats ${r.status}`);
         return r.json();
       })
-      .then((data: { guests?: Array<{ email?: string | null; phone?: string | null; mailingAddress?: { line1?: string } | null; status?: string | null }> }) => {
+      .then((data: { guests?: Array<{ email?: string | null; phone?: string | null; mailingAddress?: { line1?: string; city?: string; state?: string; zip?: string } | null; status?: string | null }> }) => {
         if (cancelled || !data?.guests) return;
         const total = data.guests.length;
         const withEmail = data.guests.filter(g => !!g.email).length;
         const withPhone = data.guests.filter(g => !!g.phone).length;
         const withAddress = data.guests.filter(g => !!g.mailingAddress?.line1).length;
+        const withFullAddress = data.guests.filter(g =>
+          !!g.mailingAddress?.line1 && !!g.mailingAddress?.city && !!g.mailingAddress?.state && !!g.mailingAddress?.zip,
+        ).length;
         const attending = data.guests.filter(g => g.status === 'attending').length;
-        setStats({ total, withEmail, withPhone, withAddress, attending });
+        setStats({ total, withEmail, withPhone, withAddress, withFullAddress, attending });
       })
       .catch(() => {
         if (!cancelled) setStatsError(true);
@@ -118,6 +149,7 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
     invite: 'Off it goes.',
     thanks: 'Send the thanks.',
   };
+  const title = mailMode ? 'Pressed, stamped, mailed.' : titleByType[type];
 
   return (
     <div
@@ -133,7 +165,7 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
         background: 'rgba(61,74,31,0.45)',
         backdropFilter: 'blur(6px)',
         display: 'grid', placeItems: 'center',
-        padding: 32,
+        padding: mobile ? 12 : 32,
         animation: 'pl-studio-card-in 300ms ease both',
       }}
     >
@@ -145,27 +177,49 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
           width: 'min(900px, 100%)', maxHeight: '90vh',
           background: 'var(--cream)', borderRadius: 18,
           boxShadow: 'var(--shadow-lg)',
-          display: 'grid', gridTemplateColumns: '320px 1fr',
+          display: 'grid',
+          gridTemplateColumns: mobile ? '1fr' : '320px 1fr',
+          gridTemplateRows: mobile ? 'auto 1fr' : undefined,
           overflow: 'hidden',
         }}
       >
-        <div style={{
-          background: 'var(--cream-3, var(--cream-2))', padding: 24,
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16,
-          borderRight: '1px solid var(--line-soft)',
-        }}>
-          <div style={{ transform: 'scale(0.5)', transformOrigin: 'center' }}>
-            {cardPreview}
+        {mobile ? (
+          /* Stacked: a compact preview strip on top — the scaled
+             box reserves its real footprint, so no negative-margin
+             counterweight is needed. */
+          <div style={{
+            background: 'var(--cream-3, var(--cream-2))', padding: '12px 16px',
+            display: 'flex', alignItems: 'center', gap: 14,
+            borderBottom: '1px solid var(--line-soft)',
+          }}>
+            <ScaledCardBox baseW={420} baseH={588} scale={0.22} radius={3}>
+              {cardPreview}
+            </ScaledCardBox>
+            <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
+              What guests will see
+            </div>
           </div>
-          <div style={{ fontSize: 11, color: 'var(--ink-muted)', textAlign: 'center', marginTop: -120 }}>
-            What guests will see
+        ) : (
+          <div style={{
+            background: 'var(--cream-3, var(--cream-2))', padding: 24,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16,
+            borderRight: '1px solid var(--line-soft)',
+          }}>
+            <div style={{ transform: 'scale(0.5)', transformOrigin: 'center' }}>
+              {cardPreview}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--ink-muted)', textAlign: 'center', marginTop: -120 }}>
+              What guests will see
+            </div>
           </div>
-        </div>
+        )}
 
-        <div style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 18, overflow: 'auto' }}>
+        <div style={{ padding: mobile ? 16 : 28, display: 'flex', flexDirection: 'column', gap: 18, overflow: 'auto', minHeight: mobile ? 0 : undefined }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--peach-ink)' }}>Send</div>
+              <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--peach-ink)' }}>
+                {mailMode ? 'Pearloom Print' : 'Send'}
+              </div>
               <h2 id="studio-send-title" style={{
                 fontSize: 26,
                 margin: '4px 0 0',
@@ -175,7 +229,7 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
                 letterSpacing: '-0.02em',
                 lineHeight: 1.02,
                 color: 'var(--ink)',
-              }}>{titleByType[type]}</h2>
+              }}>{title}</h2>
             </div>
             <button type="button" onClick={onClose} aria-label="Close send overlay" style={{
               width: 32, height: 32, borderRadius: '50%',
@@ -186,6 +240,17 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
             </button>
           </div>
 
+          {mailMode && buildPrintSvg ? (
+            <StudioMailFlow
+              siteSlug={siteSlug}
+              type={type}
+              mailableCount={stats ? stats.withFullAddress : null}
+              defaultName={defaultReturnName ?? ''}
+              buildSvg={buildPrintSvg}
+              onBack={() => setMailMode(false)}
+            />
+          ) : (
+          <>
           <SendBlock title="Recipients" sub="Pulled from your guest list">
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{
@@ -225,34 +290,57 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
             </div>
           </SendBlock>
 
-          <SendBlock title="Channel mix" sub="Email is the active channel today">
+          <SendBlock title="Channel mix" sub="Email is free · print is paid per card">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
               {[
                 { l: 'Digital', sub: `${withEmail} with email`, icon: 'mail',  primary: true,  count: withEmail },
                 { l: 'SMS',     sub: `${withPhone} with phone`, icon: 'phone', primary: false, count: withPhone, badge: 'Coming soon' },
-                { l: 'Print',   sub: `${withAddress} with addresses`, icon: 'send', primary: false, count: withAddress, badge: 'Coming soon' },
-              ].map(c => (
-                <div key={c.l} style={{
+                {
+                  l: 'Print',
+                  sub: `${withAddress} with addresses`,
+                  icon: 'send',
+                  primary: false,
+                  count: withAddress,
+                  badge: buildPrintSvg ? 'Mail it for you' : 'Coming soon',
+                  onPick: buildPrintSvg ? () => setMailMode(true) : undefined,
+                },
+              ].map(c => {
+                const cardStyle: React.CSSProperties = {
                   padding: 12, borderRadius: 12,
                   background: c.primary ? 'var(--ink)' : 'var(--card)',
                   color: c.primary ? 'var(--cream)' : 'var(--ink)',
                   border: '1px solid ' + (c.primary ? 'var(--ink)' : 'var(--line-soft)'),
                   display: 'flex', flexDirection: 'column', gap: 4,
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Icon name={c.icon} size={13} color={c.primary ? 'var(--cream)' : 'var(--ink-soft)'} />
-                    <div style={{ fontSize: 12, fontWeight: 700 }}>{c.l}</div>
+                  textAlign: 'left',
+                  cursor: c.onPick ? 'pointer' : undefined,
+                  fontFamily: 'inherit',
+                };
+                const inner = (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Icon name={c.icon} size={13} color={c.primary ? 'var(--cream)' : 'var(--ink-soft)'} />
+                      <div style={{ fontSize: 12, fontWeight: 700 }}>{c.l}</div>
+                    </div>
+                    <div style={{ fontSize: 18, fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)', fontWeight: 600 }}>{c.count}</div>
+                    <div style={{ fontSize: 10.5, opacity: c.primary ? 0.75 : 0.65 }}>{c.sub}</div>
+                    {c.badge && <div style={{ fontSize: 9, color: 'var(--peach-ink)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 2 }}>{c.badge}</div>}
+                  </>
+                );
+                return c.onPick ? (
+                  <button key={c.l} type="button" onClick={c.onPick} style={cardStyle}>
+                    {inner}
+                  </button>
+                ) : (
+                  <div key={c.l} style={cardStyle}>
+                    {inner}
                   </div>
-                  <div style={{ fontSize: 18, fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)', fontWeight: 600 }}>{c.count}</div>
-                  <div style={{ fontSize: 10.5, opacity: c.primary ? 0.75 : 0.65 }}>{c.sub}</div>
-                  {c.badge && <div style={{ fontSize: 9, color: 'var(--peach-ink)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 2 }}>{c.badge}</div>}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </SendBlock>
 
           <SendBlock title="Schedule" sub="Pear staggers by timezone so nobody gets a 4am ping">
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: mobile ? 'wrap' : undefined }}>
               {[
                 { l: 'Send now', sub: 'Ships in next 5 min', on: true,  disabled: false },
                 { l: 'Tomorrow at 9 AM', sub: 'Coming soon', on: false, disabled: true },
@@ -286,7 +374,7 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 6, borderTop: '1px solid var(--line-soft)', marginTop: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 6, borderTop: '1px solid var(--line-soft)', marginTop: 4, flexWrap: mobile ? 'wrap' : undefined, gap: mobile ? 8 : undefined }}>
             <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>
               {withEmail > 0
                 ? `${withEmail} digital send${withEmail === 1 ? '' : 's'} are free.`
@@ -351,6 +439,8 @@ export function StudioSendOverlay({ siteSlug, type, cardPreview, onClose, onSent
           <div style={{ fontSize: 10, color: 'var(--ink-muted)' }}>
             <Pear size={10} tone="sage" shadow={false} /> Pear stamps email_sent_at on each guest so the bell &amp; dashboard pip light up live.
           </div>
+          </>
+          )}
         </div>
       </div>
     </div>

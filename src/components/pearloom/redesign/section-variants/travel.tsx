@@ -16,6 +16,16 @@
 import type { CSSProperties } from 'react';
 import type { Hotel, TravelVariantCtx } from './types';
 import { VariantSectionHead } from './_section-head';
+import { InlineEdit } from '../InlineEdit';
+
+/* Edit-context extension — per-hotel blurb writer. Indices align
+   with manifest.travelInfo.hotels[] (ThemedSite maps them 1:1 and
+   only mints the callback when the host has real hotels saved, so
+   the canned demo pair stays read-only). Local extension keeps the
+   shared types module untouched. */
+export interface TravelVariantCtxEditable extends TravelVariantCtx {
+  onEditHotelBlurb?: (idx: number, v: string) => void;
+}
 
 /* Tone → photo-placeholder background. Only used when a hotel has
    no real photoUrl. */
@@ -31,7 +41,7 @@ const TONE_BG: Record<string, string> = {
   rose: 'linear-gradient(135deg, #f0c8c4 0%, #d49a96 100%)',
 };
 
-function headProps(ctx: TravelVariantCtx) {
+function headProps(ctx: TravelVariantCtxEditable) {
   return {
     eyebrow: ctx.C.eyebrow, title: ctx.C.title, italic: ctx.C.italic,
     editable: ctx.editable,
@@ -50,8 +60,12 @@ function HotelPhoto({ h, style }: { h: Hotel; style?: CSSProperties }) {
 }
 
 /** Wrap a card in <a href> when bookingUrl is present, plain
- *  <div> otherwise. Keeps styling consistent across modes. */
-function HotelWrap({ h, children, style }: { h: Hotel; children: React.ReactNode; style: CSSProperties }) {
+ *  <div> otherwise. Keeps styling consistent across modes.
+ *  `disableLink` (set in edit mode when the blurb is inline-
+ *  editable) forces the <div> form — otherwise clicking into the
+ *  contentEditable blurb would trigger the anchor's navigation
+ *  (stopPropagation can't cancel an ancestor <a>'s default). */
+function HotelWrap({ h, children, style, disableLink }: { h: Hotel; children: React.ReactNode; style: CSSProperties; disableLink?: boolean }) {
   const merged: CSSProperties = {
     ...style,
     textDecoration: 'none',
@@ -59,7 +73,7 @@ function HotelWrap({ h, children, style }: { h: Hotel; children: React.ReactNode
     transition: 'transform var(--pl-dur-fast) var(--pl-ease-emphasis), border-color var(--pl-dur-fast), box-shadow var(--pl-dur-fast)',
     display: 'block',
   };
-  if (h.bookingUrl) {
+  if (h.bookingUrl && !disableLink) {
     return (
       <a href={h.bookingUrl} target="_blank" rel="noopener noreferrer" style={merged}>
         {children}
@@ -70,10 +84,13 @@ function HotelWrap({ h, children, style }: { h: Hotel; children: React.ReactNode
 }
 
 /* ─── shared hotel card (used by map + carousel) ─── */
-function HotelCard({ h, style }: { h: Hotel; style?: CSSProperties }) {
+function HotelCard({ h, style, idx, ctx }: { h: Hotel; style?: CSSProperties; idx?: number; ctx?: TravelVariantCtxEditable }) {
+  const blurbStyle: CSSProperties = { fontSize: 12.5, color: 'var(--t-ink-soft)', lineHeight: 1.5, margin: '8px 0 10px' };
+  const canEditBlurb = !!(ctx?.editable && ctx.onEditHotelBlurb && typeof idx === 'number');
   return (
     <HotelWrap
       h={h}
+      disableLink={canEditBlurb}
       style={{
         background: 'var(--t-card)',
         border: '1px solid var(--t-line)',
@@ -91,11 +108,22 @@ function HotelCard({ h, style }: { h: Hotel; style?: CSSProperties }) {
         {h.price && <span>{h.price}</span>}
         {h.dist && <span>{h.dist}</span>}
       </div>
-      {h.blurb && (
-        <div style={{ fontSize: 12.5, color: 'var(--t-ink-soft)', lineHeight: 1.5, margin: '8px 0 10px' }}>
+      {canEditBlurb ? (
+        <InlineEdit
+          as="div"
+          value={h.blurb}
+          onChange={(v) => ctx!.onEditHotelBlurb!(idx!, v)}
+          editable
+          multiline
+          placeholder="Add a note about this stay…"
+          className="pl8-inline-ghost"
+          style={blurbStyle}
+        />
+      ) : h.blurb ? (
+        <div style={blurbStyle}>
           {h.blurb}
         </div>
-      )}
+      ) : null}
       {h.amenities.length > 0 && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {h.amenities.map((a) => (
@@ -110,7 +138,7 @@ function HotelCard({ h, style }: { h: Hotel; style?: CSSProperties }) {
 }
 
 /* ─── TravelMap ─── */
-export function TravelMap({ ctx }: { ctx: TravelVariantCtx }) {
+export function TravelMap({ ctx }: { ctx: TravelVariantCtxEditable }) {
   const { C } = ctx;
   return (
     <>
@@ -150,18 +178,36 @@ export function TravelMap({ ctx }: { ctx: TravelVariantCtx }) {
         ))}
       </div>
       <div style={{ maxWidth: 820, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-        {C.hotels.map((h, i) => <HotelCard key={i} h={h} />)}
+        {C.hotels.map((h, i) => <HotelCard key={i} h={h} idx={i} ctx={ctx} />)}
       </div>
     </>
   );
 }
 
 /* ─── TravelTable — proper card rows with thumbnails ─── */
-export function TravelTable({ ctx }: { ctx: TravelVariantCtx }) {
+export function TravelTable({ ctx }: { ctx: TravelVariantCtxEditable }) {
   const { C } = ctx;
   return (
     <>
       <VariantSectionHead {...headProps(ctx)} />
+      {/* Mobile stack: below 500px the 88px-photo / text / rating
+          three-column row collapses to a 64px inline photo + text,
+          with the rating/price meta wrapping onto its own full-width
+          row. !important beats the inline grid styles. */}
+      <style>{`
+        @media (max-width: 500px) {
+          .pl8-hotel-row { grid-template-columns: 64px minmax(0, 1fr) !important; gap: 10px !important; }
+          .pl8-hotel-row > div:first-child { width: 64px !important; height: 64px !important; }
+          .pl8-hotel-row .pl8-hotel-meta {
+            grid-column: 1 / -1;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            gap: 10px !important;
+            min-width: 0 !important;
+          }
+        }
+      `}</style>
       <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {C.hotels.map((h, i) => (
           <HotelWrap
@@ -181,6 +227,8 @@ export function TravelTable({ ctx }: { ctx: TravelVariantCtx }) {
                 gridTemplateColumns: '88px 1fr auto',
                 gap: 14,
                 alignItems: 'center',
+                maxWidth: '100%',
+                minWidth: 0,
               }}
             >
               <HotelPhoto h={h} style={{ width: 88, height: 88, borderRadius: 8 }} />
@@ -193,7 +241,7 @@ export function TravelTable({ ctx }: { ctx: TravelVariantCtx }) {
                   {h.name}
                 </div>
                 {h.amenities.length > 0 && (
-                  <div style={{ fontSize: 11.5, color: 'var(--t-ink-muted)', marginTop: 4 }}>
+                  <div style={{ fontSize: 11.5, color: 'var(--t-ink-muted)', marginTop: 4, overflow: 'hidden' }}>
                     {h.amenities.slice(0, 3).join(' · ')}
                   </div>
                 )}
@@ -203,7 +251,7 @@ export function TravelTable({ ctx }: { ctx: TravelVariantCtx }) {
                   </div>
                 )}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, minWidth: 70 }}>
+              <div className="pl8-hotel-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, minWidth: 70 }}>
                 {h.rating > 0 && (
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t-accent-ink)', fontFamily: 'var(--t-display)' }}>
                     ★ {h.rating.toFixed(1)}
@@ -224,7 +272,7 @@ export function TravelTable({ ctx }: { ctx: TravelVariantCtx }) {
 }
 
 /* ─── TravelCarousel ─── */
-export function TravelCarousel({ ctx }: { ctx: TravelVariantCtx }) {
+export function TravelCarousel({ ctx }: { ctx: TravelVariantCtxEditable }) {
   const { C } = ctx;
   return (
     <>
@@ -240,7 +288,7 @@ export function TravelCarousel({ ctx }: { ctx: TravelVariantCtx }) {
         }}
       >
         {C.hotels.map((h, i) => (
-          <HotelCard key={i} h={h} style={{ flex: '0 0 300px', scrollSnapAlign: 'start' }} />
+          <HotelCard key={i} h={h} idx={i} ctx={ctx} style={{ flex: '0 0 300px', scrollSnapAlign: 'start' }} />
         ))}
       </div>
     </>

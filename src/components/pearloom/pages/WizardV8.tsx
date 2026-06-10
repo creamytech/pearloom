@@ -15,7 +15,7 @@ import { Reveal } from '../motion';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { parseLocalDate } from '@/lib/date-utils';
 import { TEMPLATES_BY_ID } from '../marketplace/templates-data';
-import { EVENT_TYPES, getEventType, recommendTextureFor, lookDefaultsFor, type EventCategory } from '@/lib/event-os/event-types';
+import { EVENT_TYPES, getEventType, recommendTextureFor, lookDefaultsFor, type EventCategory, type EventVoice } from '@/lib/event-os/event-types';
 import { recommendEdition } from '@/lib/site-editions/resolve';
 import { nameModeFor, nameModeIsValid } from '@/lib/event-os/name-mode';
 import { questionsFor } from '@/lib/event-os/wizard-questions';
@@ -118,6 +118,10 @@ const TONE_INK: Record<CardTone, string> = {
   cream: 'var(--pl-ink, #0E0D0B)',
 };
 
+// Master vibe-chip catalog. Ids are free strings — they flow into
+// generation verbatim as the vibeString (st.vibes.join(', ')) — so
+// the only contract is that existing ids stay stable. Which chips
+// SHOW per occasion is voice-aware: see VOICE_VIBES below.
 const VIBES = [
   { id: 'romantic', label: 'Romantic', icon: '♥', tone: 'peach' as const },
   { id: 'joyful', label: 'Joyful', icon: '✦', tone: 'peach' as const },
@@ -128,7 +132,40 @@ const VIBES = [
   { id: 'groovy', label: 'Groovy', icon: '☀', tone: 'peach' as const },
   { id: 'outdoorsy', label: 'Outdoorsy', icon: '☘', tone: 'sage' as const },
   { id: 'modern', label: 'Modern', icon: '■', tone: 'lavender' as const },
+  // Voice-specific chips — same free-string contract as the originals.
+  { id: 'gentle', label: 'Gentle', icon: '✾', tone: 'sage' as const },
+  { id: 'reflective', label: 'Reflective', icon: '☾', tone: 'lavender' as const },
+  { id: 'warm', label: 'Warm', icon: '✺', tone: 'peach' as const },
+  { id: 'classic', label: 'Classic', icon: '❦', tone: 'cream' as const },
+  { id: 'traditional', label: 'Traditional', icon: '⚜', tone: 'cream' as const },
+  { id: 'elegant', label: 'Elegant', icon: '⚘', tone: 'lavender' as const },
+  { id: 'formal', label: 'Formal', icon: '◆', tone: 'cream' as const },
+  { id: 'bold', label: 'Bold', icon: '▲', tone: 'peach' as const },
+  { id: 'retro', label: 'Retro', icon: '✶', tone: 'peach' as const },
+  { id: 'whimsical', label: 'Whimsical', icon: '✩', tone: 'lavender' as const },
 ];
+
+// Per-voice chip sets (EVENT_TYPES[occasion].voice drives which
+// chips the Vibe step offers). 'Romantic' and 'Playful' have no
+// business on a memorial site; each voice keeps ~8 coherent
+// options. Celebratory keeps the original default nine.
+const VOICE_VIBES: Record<EventVoice, string[]> = {
+  celebratory: ['romantic', 'joyful', 'intimate', 'playful', 'quiet', 'editorial', 'groovy', 'outdoorsy', 'modern'],
+  intimate: ['romantic', 'intimate', 'quiet', 'warm', 'editorial', 'outdoorsy', 'classic', 'modern'],
+  ceremonial: ['elegant', 'classic', 'traditional', 'intimate', 'formal', 'editorial', 'warm', 'modern'],
+  playful: ['playful', 'groovy', 'bold', 'modern', 'outdoorsy', 'joyful', 'retro', 'whimsical'],
+  solemn: ['gentle', 'reflective', 'warm', 'classic', 'quiet', 'outdoorsy', 'editorial', 'traditional'],
+};
+
+/** Vibe chips offered for an occasion, in voice order. Unknown /
+ *  unset occasions fall back to the celebratory (default) set. */
+function vibesForOccasion(occasion: string) {
+  const voice = getEventType(occasion)?.voice ?? 'celebratory';
+  const ids = VOICE_VIBES[voice] ?? VOICE_VIBES.celebratory;
+  return ids
+    .map((id) => VIBES.find((v) => v.id === id))
+    .filter((v): v is (typeof VIBES)[number] => Boolean(v));
+}
 
 /** Palette-picker id for the photo-derived option ("From your photos"). */
 const PHOTO_PALETTE_ID = 'from-your-photos';
@@ -424,6 +461,7 @@ function WizardPhotoUpload({
   return (
     <div>
       <div
+        className="pl8-photo-sources"
         style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
@@ -1010,6 +1048,7 @@ function ContextChips({ st }: { st: WizardState }) {
   ];
   return (
     <div
+      className="pl8-context-chips"
       style={{
         display: 'flex',
         gap: 10,
@@ -1790,11 +1829,57 @@ export function WizardV8() {
 
   return (
     <div className="pl8" style={{ minHeight: '100vh', background: 'var(--cream)', position: 'relative', overflow: 'hidden' }}>
+      {/* Wizard mobile rules — scoped to wizard classnames.
+          pearloom.css owns the ≤960px header wrap, but the progress
+          strip's inline flex:1 (flex-basis: 0) meant it always fit
+          on row 1 and got crushed between the logo + actions —
+          basis 100% below makes the intended own-row wrap actually
+          happen. ≤640px condenses further for a 390px canvas:
+          glyph-only wordmark, no decorative sprigs, stacked grids. */}
+      <style jsx global>{`
+        @keyframes wizard-skeleton-pulse {
+          0%, 100% { opacity: 0.6; }
+          50%      { opacity: 0.85; }
+        }
+        @media (max-width: 960px) {
+          .pl8-wizard-header .pl8-wizard-progress {
+            flex: 1 1 100% !important;
+            max-width: none !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .pl8-wizard-header {
+            padding: 10px 14px !important;
+          }
+          /* Glyph-only wordmark — the "Pearloom" text + trailing gold
+             spark crowd the Save draft / Exit buttons at 390px. */
+          .pl8-wizard-header .logo > span {
+            display: none !important;
+          }
+          .pl8-wizard-canvas {
+            padding: 28px 18px 64px !important;
+          }
+          /* Decorative margin sprigs/sparkle crowd a phone canvas. */
+          .pl8-wizard-atmosphere {
+            display: none !important;
+          }
+          /* Upload-source cards stack one-up. */
+          .pl8-photo-sources {
+            grid-template-columns: 1fr !important;
+          }
+          /* Context strip: 2×2 grid instead of four crushed chips. */
+          .pl8-context-chips {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+          }
+        }
+      `}</style>
       {/* Botanical atmosphere — replaces the older Blob/Squiggle
           underlay with the prototype's subtle Sprig + flower glyphs.
           Reads as paper-grain garden, not AI-startup gradient mesh. */}
       <div
         aria-hidden
+        className="pl8-wizard-atmosphere"
         style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, color: 'var(--sage, #5C6B3F)' }}
       >
         <div style={{ position: 'absolute', top: 90, left: -20, opacity: 0.10, transform: 'rotate(-12deg)' }}>
@@ -2000,10 +2085,18 @@ export function WizardV8() {
                     // along into generation ("random names don't
                     // populate").
                     const keepSecond = nameModeFor(id).mode === 'couple';
+                    // Voice-aware chip sets differ per occasion —
+                    // drop any selected vibe the new occasion doesn't
+                    // offer ('Romantic' can't ride from a wedding
+                    // pick into a memorial). Template vibes are free
+                    // strings outside the chip catalog and the Vibe
+                    // step is hidden for templates, so leave those.
+                    const allowedVibes = new Set(vibesForOccasion(id).map((v) => v.id));
                     setSt((s) => ({
                       ...s,
                       occasion: id,
                       names: keepSecond ? s.names : [s.names[0], ''],
+                      vibes: s.templateId ? s.vibes : s.vibes.filter((v) => allowedVibes.has(v)),
                     }));
                     autoAdvance();
                   }}
@@ -2310,7 +2403,7 @@ export function WizardV8() {
                       : `${st.vibes.length} of 4 selected${st.vibes.length === 1 ? ' — one more to continue' : ''}`}
                   </p>
                   <div className="pl-cascade-row" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                    {VIBES.map((v) => {
+                    {vibesForOccasion(st.occasion).map((v) => {
                       const on = st.vibes.includes(v.id);
                       return (
                         <button
@@ -2451,12 +2544,6 @@ export function WizardV8() {
                               animation: `wizard-skeleton-pulse 1.4s ease-in-out ${i * 0.2}s infinite`,
                             }}
                           />
-                          <style jsx>{`
-                            @keyframes wizard-skeleton-pulse {
-                              0%, 100% { opacity: 0.6; }
-                              50%      { opacity: 0.85; }
-                            }
-                          `}</style>
                         </div>
                       ))}
                     </div>

@@ -23,6 +23,7 @@ import type { StationeryType, StudioContent } from './studio-constants';
 import { PALETTES, FONT_PAIRS } from './studio-constants';
 import { CardFront } from './StudioCard';
 import { PearThinking } from '../pear-thinking';
+import { useMobileViewport } from '../redesign/use-mobile-viewport';
 import { Pear, Icon } from '../motifs';
 
 const CARD_W = 420;
@@ -86,6 +87,10 @@ async function fetchProofSheet(siteSlug: string, type: StationeryType): Promise<
 
 export function StudioProofSheet(props: Props) {
   const { siteSlug, type, onClose } = props;
+  /* Phone-sized viewport — clamp the dialog to the screen with a
+     12px gutter; the auto-fill tile grid already collapses to one
+     column at that width. */
+  const mobile = useMobileViewport();
   const [state, setState] = useState<SheetState>({ phase: 'pressing' });
   /** Bumping this re-runs the press effect (the retry path). */
   const [attempt, setAttempt] = useState(0);
@@ -123,14 +128,14 @@ export function StudioProofSheet(props: Props) {
         position: 'fixed', inset: 0, zIndex: 50,
         background: 'rgba(14,13,11,0.45)',
         display: 'grid', placeItems: 'center',
-        padding: 24,
+        padding: mobile ? 12 : 24,
       }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
         className="pl-studio-card-in"
         style={{
-          width: 'min(880px, 96vw)', maxHeight: '90vh',
+          width: mobile ? 'calc(100vw - 24px)' : 'min(880px, 96vw)', maxHeight: '90vh',
           background: 'var(--cream)', borderRadius: 18,
           border: '1px solid var(--line-soft)',
           boxShadow: '0 30px 80px rgba(14,13,11,0.35)',

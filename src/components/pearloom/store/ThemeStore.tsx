@@ -29,6 +29,7 @@ import { useRouter } from 'next/navigation';
 import { COLLECTIONS, PACKS, getPackById, type Pack } from '@/lib/theme-store/packs';
 import { StoreFonts } from '@/lib/theme-store/fonts';
 import { Icon, Pear } from '../motifs';
+import { useIsMobile } from '../redesign/use-nav-hooks';
 import { PackCard } from './PackCard';
 import { PackPreview } from './PackPreview';
 import { QuickLookModal } from './QuickLookModal';
@@ -60,17 +61,22 @@ interface FeaturedHeroProps {
 }
 
 function FeaturedHero({ pack, onOpen }: FeaturedHeroProps) {
+  // Below ~720px the side-by-side hero crushes the featured pack
+  // preview into a sliver — stack instead (text above, preview
+  // below) and give the preview real height. SSR-safe matchMedia
+  // hook; first paint is desktop, flips on mount.
+  const isNarrow = useIsMobile(720);
   return (
-    <section style={{ maxWidth: 1280, margin: '0 auto', padding: '34px 26px 8px' }}>
+    <section style={{ maxWidth: 1280, margin: '0 auto', padding: isNarrow ? '22px 16px 8px' : '34px 26px 8px' }}>
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 34,
-          alignItems: 'center',
+          gridTemplateColumns: isNarrow ? '1fr' : '1fr 1fr',
+          gap: isNarrow ? 22 : 34,
+          alignItems: isNarrow ? 'stretch' : 'center',
           background: 'var(--pl-cream-card, #FBF7EE)',
           borderRadius: 24,
-          padding: 30,
+          padding: isNarrow ? 20 : 30,
           border: '1px solid var(--pl-divider-soft, #E5DCC4)',
           overflow: 'hidden',
         }}
@@ -90,7 +96,9 @@ function FeaturedHero({ pack, onOpen }: FeaturedHeroProps) {
           <h1
             style={{
               fontFamily: 'var(--pl-font-display, "Fraunces"), Georgia, serif',
-              fontSize: 46,
+              // clamp() keeps desktop at 46 while letting 390px
+              // viewports breathe — "once-in-a-lifetime" overflowed.
+              fontSize: 'clamp(32px, 9vw, 46px)',
               fontWeight: 600,
               lineHeight: 1.02,
               margin: '8px 0 12px',
@@ -115,7 +123,7 @@ function FeaturedHero({ pack, onOpen }: FeaturedHeroProps) {
             {PACKS.length} designer theme packs — each a full kit of palette, real material texture,
             type, motifs and matching components. One tap to own, one tap to dress your site.
           </p>
-          <div style={{ display: 'flex', gap: 22, marginTop: 20 }}>
+          <div style={{ display: 'flex', gap: 22, marginTop: 20, flexWrap: 'wrap' }}>
             {[
               { n: PACKS.length, l: 'theme packs' },
               { n: COLLECTIONS.length, l: 'collections' },
@@ -163,7 +171,7 @@ function FeaturedHero({ pack, onOpen }: FeaturedHeroProps) {
           }}
           aria-label={`Open ${pack.name} quick look`}
         >
-          <PackPreview pack={pack} height={300} rich />
+          <PackPreview pack={pack} height={isNarrow ? 360 : 300} rich />
           <span
             style={{
               position: 'absolute',
@@ -261,6 +269,21 @@ function StoreInner() {
     sites: OwnedSiteRow[];
     loading: boolean;
   } | null>(null);
+
+  // The filter bar pins below the sticky header. On desktop the
+  // header is 57px tall, but on phones its flex-wrapped contents
+  // grow it to ~3 rows — a hardcoded top: 57 left the chip strip
+  // pinned underneath it. Measure the real height instead.
+  const headerRef = useRef<HTMLElement | null>(null);
+  const [headerH, setHeaderH] = useState(57);
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    setHeaderH(el.offsetHeight);
+    const ro = new ResizeObserver(() => setHeaderH(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   // Owned set combines server entitlements + free unlocks claimed
   // in this session.
@@ -463,6 +486,7 @@ function StoreInner() {
     >
       {/* HEADER */}
       <header
+        ref={headerRef}
         style={{
           position: 'sticky',
           top: 0,
@@ -614,7 +638,7 @@ function StoreInner() {
       <div
         style={{
           position: 'sticky',
-          top: 57,
+          top: headerH,
           zIndex: 30,
           background: 'var(--pl-cream, #F5EFE2)',
         }}
@@ -638,6 +662,11 @@ function StoreInner() {
               overflowX: 'auto',
               paddingBottom: 2,
               minWidth: 0,
+              // Phone polish — the strip already scrolls instead of
+              // wrapping; snap each chip to the leading edge so a
+              // flick lands cleanly, and keep iOS momentum.
+              scrollSnapType: 'x proximity',
+              WebkitOverflowScrolling: 'touch',
             }}
           >
             {chips.map((c) => {
@@ -649,6 +678,8 @@ function StoreInner() {
                   onClick={() => setChip(c.id)}
                   style={{
                     whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                    scrollSnapAlign: 'start',
                     padding: '7px 14px',
                     borderRadius: 999,
                     fontSize: 12.5,
@@ -909,10 +940,11 @@ function StoreInner() {
           aria-live="polite"
           style={{
             position: 'fixed',
-            bottom: 24,
+            bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 90,
+            maxWidth: 'calc(100vw - 32px)',
             background: 'var(--pl-ink, #0E0D0B)',
             color: 'var(--pl-cream, #F5EFE2)',
             padding: '12px 20px',

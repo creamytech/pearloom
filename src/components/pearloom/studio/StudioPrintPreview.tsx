@@ -20,6 +20,8 @@
 import type { StoryManifest } from '@/types';
 import type { StudioPalette, StudioFontPair, StudioContent, StationeryType } from './studio-constants';
 import { CardFront, CardEnvelope } from './StudioCard';
+import { ScaledCardBox, useViewportSize } from './StudioMobileChrome';
+import { useMobileViewport } from '../redesign/use-mobile-viewport';
 
 interface Props {
   type: StationeryType;
@@ -43,6 +45,10 @@ interface Props {
   /** Trigger window.print() — the parent owns the button so the
    *  print preview can also be embedded inline in the studio. */
   onPrint?: () => void;
+  /** Open the paid "Mail it for you" flow (Pearloom Print) —
+   *  the parent closes this preview and opens the Send overlay
+   *  on its mail step. Home printing above stays untouched. */
+  onMailIt?: () => void;
   onClose?: () => void;
 }
 
@@ -62,8 +68,17 @@ export function StudioPrintPreview({
   rsvpDeadline,
   returnAddress,
   onPrint,
+  onMailIt,
   onClose,
 }: Props) {
+  /* Phone-sized viewport — the 5×7 card (420px) and A7 envelope
+     (540px) scale to fit the screen width; the @media print
+     block in StudioApp strips the scale so paper output stays
+     full-size. */
+  const mobile = useMobileViewport();
+  const { w: vpW } = useViewportSize(mobile);
+  const cardScale = mobile && vpW > 0 ? Math.min((vpW - 32) / 420, 1) : 1;
+  const envScale = mobile && vpW > 0 ? Math.min((vpW - 32) / 540, 1) : 1;
   return (
     <div
       role="dialog"
@@ -86,10 +101,11 @@ export function StudioPrintPreview({
       <header
         className="no-print"
         style={{
-          padding: '12px 22px',
+          padding: mobile ? '10px 14px' : '12px 22px',
           display: 'flex',
           alignItems: 'center',
-          gap: 16,
+          flexWrap: mobile ? 'wrap' : undefined,
+          gap: mobile ? 10 : 16,
           background: 'rgba(248,241,228,0.92)',
           backdropFilter: 'blur(12px)',
           borderBottom: '1px solid var(--line-soft, var(--pl-divider-soft, #E5DCC4))',
@@ -120,6 +136,25 @@ export function StudioPrintPreview({
               : 'Thank-you · 5×7" + A7'}
         </span>
         <div style={{ flex: 1 }} />
+        {onMailIt && (
+          <button
+            type="button"
+            onClick={onMailIt}
+            style={{
+              padding: '8px 14px',
+              borderRadius: 999,
+              border: '1px solid var(--line, var(--pl-divider, #D8CFB8))',
+              background: 'transparent',
+              color: 'var(--ink, #0E0D0B)',
+              fontSize: 12.5,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            Mail it for you
+          </button>
+        )}
         {onPrint && (
           <button
             type="button"
@@ -171,43 +206,47 @@ export function StudioPrintPreview({
         style={{
           flex: 1,
           display: 'flex',
-          gap: 40,
+          gap: mobile ? 24 : 40,
           flexWrap: 'wrap',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '48px 24px',
+          padding: mobile ? '24px 16px' : '48px 24px',
           overflow: 'auto',
         }}
       >
-        <CardFront
-          type={type}
-          view="front"
-          layout={layout}
-          motif={motif}
-          palette={palette}
-          font={font}
-          content={content}
-          nameA={nameA}
-          nameB={nameB}
-          monogram={monogram}
-          photoUrl={photoUrl}
-          customMotifUrl={customMotifUrl}
-          siteUrl={siteUrl}
-          rsvpDeadline={rsvpDeadline}
-        />
-        <CardEnvelope
-          type={type}
-          view="envelope"
-          layout={layout}
-          motif={motif}
-          palette={palette}
-          font={font}
-          content={content}
-          nameA={nameA}
-          nameB={nameB}
-          monogram={monogram}
-          returnAddress={returnAddress}
-        />
+        <ScaledCardBox baseW={420} baseH={588} scale={cardScale} radius={6}>
+          <CardFront
+            type={type}
+            view="front"
+            layout={layout}
+            motif={motif}
+            palette={palette}
+            font={font}
+            content={content}
+            nameA={nameA}
+            nameB={nameB}
+            monogram={monogram}
+            photoUrl={photoUrl}
+            customMotifUrl={customMotifUrl}
+            siteUrl={siteUrl}
+            rsvpDeadline={rsvpDeadline}
+          />
+        </ScaledCardBox>
+        <ScaledCardBox baseW={540} baseH={380} scale={envScale} radius={6}>
+          <CardEnvelope
+            type={type}
+            view="envelope"
+            layout={layout}
+            motif={motif}
+            palette={palette}
+            font={font}
+            content={content}
+            nameA={nameA}
+            nameB={nameB}
+            monogram={monogram}
+            returnAddress={returnAddress}
+          />
+        </ScaledCardBox>
       </div>
     </div>
   );

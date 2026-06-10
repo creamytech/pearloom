@@ -188,12 +188,14 @@ export function DashSidebar({ active }: { active?: string }) {
         borderRight: '1px solid var(--line-soft)',
         // Sidebar is exactly the viewport height and pinned to the
         // top of the viewport so it always reads as a fixed shell
-        // even on long pages. We deliberately set both min + max to
-        // 100vh so flex stretching can't blow it past the window.
+        // even on long pages. We deliberately set both height + max
+        // so flex stretching can't blow it past the window. dvh, not
+        // vh — mobile browser UI chrome shrinks the visual viewport
+        // and static 100vh hides the pinned bottom plan/user chrome.
         position: 'sticky',
         top: 0,
-        height: '100vh',
-        maxHeight: '100vh',
+        height: '100dvh',
+        maxHeight: '100dvh',
         // Outer aside no longer scrolls — the nav block in the
         // middle is the only scroll surface. Logo + celebration
         // card pin to the top, plan card + user menu pin to the

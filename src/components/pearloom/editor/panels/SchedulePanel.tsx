@@ -414,6 +414,13 @@ function ScheduleRow({
           <FInput value={e.time ?? ''} onChange={(v) => onPatch({ time: v })} placeholder="4:30 pm" />
           <FInput value={e.venue ?? ''} onChange={(v) => onPatch({ venue: v })} placeholder="Olive grove" />
         </div>
+        {/* Optional quiet note rendered under the time/venue line on
+            the canvas (WeddingEvent.description). */}
+        <FInput
+          value={e.description ?? ''}
+          onChange={(v) => onPatch({ description: v })}
+          placeholder="A note for guests — “unplugged ceremony”, “cash bar”… (optional)"
+        />
       </div>
       <button
         type="button"

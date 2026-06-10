@@ -22,8 +22,9 @@
    on the visual shell.
 */
 
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
+import { getEventType } from '@/lib/event-os/event-types';
 import { Icon, Pear } from '../motifs';
 import { ThemedSiteRenderer } from '../site/ThemedSiteRenderer';
 import { useEditorRedesignBridge } from './bridge';
@@ -36,6 +37,8 @@ import { FullSite } from './FullSite';
 import { ThemedSite } from './ThemedSite';
 import { EditorDrawers } from './EditorDrawers';
 import { FirstPressing, shouldPlayFirstPressing } from './FirstPressing';
+import { MobileSheet, MobileBottomBar, type MobileSheetId } from './MobileSheet';
+import { useMobileViewport } from './use-mobile-viewport';
 import './animations.css';
 
 interface Props {
@@ -51,6 +54,13 @@ export type SectionId =
   /* Optional sections added via Add Section — applicability gated
      by occasion (see isSectionApplicable below). */
   | 'countdown' | 'map' | 'music'
+  /* Event-OS canvas blocks — also added via Add Section, but gated
+     against the EVENT_TYPES registry (see isBlockApplicable below)
+     so a memorial host sees Program/Livestream/Obituary while a
+     bachelorette host sees Itinerary/Cost/Vote/Packing. */
+  | 'itinerary' | 'costSplitter' | 'activityVote' | 'toastSignup'
+  | 'adviceWall' | 'program' | 'livestream' | 'obituary'
+  | 'packingList' | 'honorList'
   /* Tool panels — not canvas sections, but host-facing tools that
      mount through the same PropertyRail dispatch so the editor's
      state machine stays simple. */
@@ -67,6 +77,37 @@ export type SectionId =
 export function isOptionalSectionApplicable(section: 'countdown' | 'map' | 'music', occasion?: string): boolean {
   if (section === 'music') return occasion !== 'memorial' && occasion !== 'funeral';
   return true;
+}
+
+/* The ten Event-OS canvas blocks the Add Section picker can offer. */
+export type BlockSectionId =
+  | 'itinerary' | 'costSplitter' | 'activityVote' | 'toastSignup'
+  | 'adviceWall' | 'program' | 'livestream' | 'obituary'
+  | 'packingList' | 'honorList';
+
+export const BLOCK_SECTION_IDS: readonly BlockSectionId[] = [
+  'itinerary', 'costSplitter', 'activityVote', 'toastSignup',
+  'adviceWall', 'program', 'livestream', 'obituary',
+  'packingList', 'honorList',
+];
+
+/* honorList is the generalized weddingParty (wedding party / court
+   of honor / candle-lighters) — the EVENT_TYPES registry gates it
+   under the legacy 'weddingParty' BlockType id. */
+const BLOCK_GATE_ALIAS: Partial<Record<BlockSectionId, string>> = {
+  honorList: 'weddingParty',
+};
+
+/* Occasion → which Event-OS blocks are addable. A block is addable
+   when the EVENT_TYPES registry lists it in defaultBlocks OR
+   optionalBlocks for the occasion. Unknown / missing occasion →
+   true (never strand a host whose manifest predates the registry). */
+export function isBlockApplicable(blockId: BlockSectionId, occasion?: string): boolean {
+  const event = getEventType(occasion);
+  if (!event) return true;
+  const gateId = BLOCK_GATE_ALIAS[blockId] ?? blockId;
+  return (event.defaultBlocks as readonly string[]).includes(gateId)
+      || (event.optionalBlocks as readonly string[]).includes(gateId);
 }
 
 /* Occasion → which tool panels are applicable. Memorial only on
@@ -97,12 +138,63 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
   const [hover, setHover] = useState<SectionId>(null);
   const [pearOpen, setPearOpen] = useState(false);
   const [pearPrefill, setPearPrefill] = useState<string>('');
+
+  /* ── Viewport-mobile chrome ──────────────────────────────────
+     viewportMobile (real phone-sized browser) is NOT the canvas's
+     "Mobile" preview pill (mode === 'mobile'). Below 768px the
+     three-column grid collapses: the canvas goes full-width and
+     the rails re-mount inside bottom sheets driven by a fixed
+     bottom bar (Sections · Theme · Pear). Desktop behavior is
+     untouched — every mobile branch gates on this flag. */
+  const viewportMobile = useMobileViewport();
+  const [mobileSheet, setMobileSheet] = useState<MobileSheetId | null>(null);
+  /* Last non-null sheet id — keeps the right content mounted
+     during the sheet's exit slide. Render-time state adjustment
+     (the React-docs "derive from previous render" pattern), not
+     an effect, so there's no extra commit. */
+  const [lastSheet, setLastSheet] = useState<MobileSheetId>('sections');
+  if (mobileSheet && mobileSheet !== lastSheet) setLastSheet(mobileSheet);
+  /* Stable ref so the window-event listeners below don't have to
+     re-subscribe when the viewport flag flips. */
+  const viewportMobileRef = useRef(false);
+  useEffect(() => {
+    viewportMobileRef.current = viewportMobile;
+  }, [viewportMobile]);
+  /* Crossing the breakpoint: hand the open Pear pane to the
+     matching chrome on the other side. Render-time adjustment
+     (the React-docs pattern, not an effect) — converges in one
+     extra render and never shows a frame with both chromes. */
+  if (viewportMobile && pearOpen) {
+    setPearOpen(false);
+    setMobileSheet('pear');
+  } else if (!viewportMobile && mobileSheet) {
+    if (mobileSheet === 'pear') setPearOpen(true);
+    setMobileSheet(null);
+  }
+
+  /* Section selection wrappers — on a phone, activating a section
+     opens the PropertyRail sheet (tap on canvas or a row in the
+     Sections sheet); deselecting from the rail's Theme tab swaps
+     to the Theme sheet. Desktop passes straight through. */
+  const selectFromCanvas = useCallback((id: SectionId) => {
+    setActive(id);
+    if (viewportMobileRef.current && id) setMobileSheet('props');
+  }, []);
+  const selectFromRail = useCallback((id: SectionId) => {
+    setActive(id);
+    if (!viewportMobileRef.current) return;
+    setMobileSheet(id ? 'props' : 'theme');
+  }, []);
   /* The First Pressing — the once-per-generation reveal. Armed by
      the wizard via sessionStorage; consumed before first paint so
      a freshly-woven site opens behind the curtain, not in front
      of it. useLayoutEffect (not state init) keeps SSR happy. */
   const [pressing, setPressing] = useState(false);
   useLayoutEffect(() => {
+    /* eslint-disable-next-line react-hooks/set-state-in-effect --
+       deliberate: sessionStorage can only be read client-side, and
+       the layout effect flips state before first paint (see the
+       comment above). A render-time read would break SSR. */
     if (shouldPlayFirstPressing(siteSlug)) setPressing(true);
   }, [siteSlug]);
 
@@ -115,7 +207,9 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
     const onOpenPear = (e: Event) => {
       const detail = (e as CustomEvent).detail as { prefill?: string } | undefined;
       if (detail?.prefill) setPearPrefill(detail.prefill);
-      setPearOpen(true);
+      /* Phone → the Pear bottom sheet; desktop → 4th column. */
+      if (viewportMobileRef.current) setMobileSheet('pear');
+      else setPearOpen(true);
     };
     /* design-jump — dispatched by PublishChecklist + GoLiveBadge +
        Pear advisor when something needs to flip the active panel
@@ -125,12 +219,16 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
       const detail = (e as CustomEvent).detail as { block?: string } | undefined;
       if (!detail?.block) return;
       setActive(detail.block as SectionId);
+      if (viewportMobileRef.current) setMobileSheet('props');
     };
     /* Theme-rail shortcut — fired from the topbar Theme button.
        Switches the property rail to ThemeRail by clearing the
        active section (the conditional in the grid below renders
-       ThemeRail when active is null). */
-    const onOpenTheme = () => setActive(null);
+       ThemeRail when active is null). Phone: the Theme sheet. */
+    const onOpenTheme = () => {
+      setActive(null);
+      if (viewportMobileRef.current) setMobileSheet('theme');
+    };
     window.addEventListener('pearloom:open-pear', onOpenPear);
     window.addEventListener('pearloom:design-jump', onJump);
     window.addEventListener('pearloom:open-theme-rail', onOpenTheme);
@@ -142,11 +240,20 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
     };
   }, [bridge]);
 
-  // Prototype L1148-1160 — four-pane grid shell.
-  const gridColumns = pearOpen ? '256px 1fr 360px 320px' : '256px 1fr 360px';
-  const gridAreas = pearOpen
-    ? '"top top top top" "left canvas right pear"'
-    : '"top top top" "left canvas right"';
+  // Prototype L1148-1160 — four-pane grid shell. On phone-sized
+  // viewports the grid collapses to topbar + canvas; rails live
+  // in bottom sheets instead of columns.
+  const gridColumns = viewportMobile
+    ? '1fr'
+    : pearOpen ? '256px 1fr 360px 320px' : '256px 1fr 360px';
+  const gridAreas = viewportMobile
+    ? '"top" "canvas"'
+    : pearOpen
+      ? '"top top top top" "left canvas right pear"'
+      : '"top top top" "left canvas right"';
+  /* Which sheet's content to render — falls back to the last open
+     sheet while the exit slide plays so it doesn't empty mid-air. */
+  const displaySheet = mobileSheet ?? lastSheet;
 
   return (
     <div
@@ -182,9 +289,10 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
         setPearOpen={setPearOpen}
         onOpenSettings={bridge.openSettings}
         displayNames={bridge.displayNames}
+        compact={viewportMobile}
       />
 
-      {mode !== 'preview' && (
+      {!viewportMobile && mode !== 'preview' && (
         <EditorRailLeft
           active={active}
           setActive={setActive}
@@ -198,7 +306,7 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
 
       <EditorCanvas
         active={active}
-        setActive={setActive}
+        setActive={viewportMobile ? selectFromCanvas : setActive}
         hover={hover}
         setHover={setHover}
         mode={mode}
@@ -207,11 +315,12 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
         siteSlug={siteSlug}
         onEditField={bridge.editField}
         onEditNames={bridge.setNames}
-        pearOpen={pearOpen}
+        pearOpen={pearOpen || mobileSheet === 'pear'}
+        viewportMobile={viewportMobile}
         usePrototypeCanvas={false}
       />
 
-      {mode !== 'preview' && (
+      {!viewportMobile && mode !== 'preview' && (
         active
           ? <PropertyRail
               active={active}
@@ -228,15 +337,84 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
             />
       )}
 
-      {pearOpen && (
+      {!viewportMobile && pearOpen && (
         <PearAside
           onClose={() => setPearOpen(false)}
           manifest={bridge.manifest}
           names={bridge.names}
           siteSlug={siteSlug}
           prefill={pearPrefill}
+          currentBlock={active ?? undefined}
           onApplyPatch={(next) => bridge.setManifest(next)}
         />
+      )}
+
+      {/* ── Phone chrome — fixed bottom bar + bottom sheets. The
+          bar mirrors the desktop rails: Sections (left rail),
+          Theme (theme rail), Pear (advisor). Activating a section
+          opens the PropertyRail sheet. Hidden in Preview mode,
+          matching how the desktop rails unmount there. */}
+      {viewportMobile && mode !== 'preview' && (
+        <MobileBottomBar
+          activeSheet={mobileSheet}
+          onSections={() => setMobileSheet('sections')}
+          onTheme={() => setMobileSheet('theme')}
+          onPear={() => setMobileSheet('pear')}
+        />
+      )}
+      {viewportMobile && (
+        <MobileSheet
+          open={mobileSheet !== null}
+          onClose={() => setMobileSheet(null)}
+          height={displaySheet === 'props' ? '80vh' : '75vh'}
+          label={
+            displaySheet === 'sections' ? 'Page sections'
+              : displaySheet === 'theme' ? 'Theme'
+              : displaySheet === 'pear' ? 'Pear, your design advisor'
+              : 'Edit section'
+          }
+        >
+          {displaySheet === 'sections' && (
+            <EditorRailLeft
+              active={active}
+              setActive={selectFromRail}
+              completion={bridge.completion}
+              title={bridge.displayNames}
+              slug={bridge.prettyUrl}
+              manifest={bridge.manifest}
+              onChange={bridge.setManifest}
+            />
+          )}
+          {displaySheet === 'theme' && (
+            <ThemeRail
+              manifest={bridge.manifest}
+              onChange={bridge.setManifest}
+              onOpenShop={bridge.openThemeShop}
+              onOpenDecor={bridge.openDecor}
+            />
+          )}
+          {displaySheet === 'props' && active && (
+            <PropertyRail
+              active={active}
+              setActive={selectFromRail}
+              manifest={bridge.manifest}
+              onChange={bridge.setManifest}
+              siteSlug={siteSlug}
+            />
+          )}
+          {displaySheet === 'pear' && (
+            <PearAside
+              mobile
+              onClose={() => setMobileSheet(null)}
+              manifest={bridge.manifest}
+              names={bridge.names}
+              siteSlug={siteSlug}
+              prefill={pearPrefill}
+              currentBlock={active ?? undefined}
+              onApplyPatch={(next) => bridge.setManifest(next)}
+            />
+          )}
+        </MobileSheet>
       )}
 
       {/* Floating chrome — Decor Library drawer, Theme Shop bottom
@@ -267,6 +445,7 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
 function EditorCanvas({
   active, setActive, hover, setHover,
   mode, manifest, names, siteSlug, onEditField, onEditNames, pearOpen,
+  viewportMobile = false,
   usePrototypeCanvas = false,
 }: {
   active: SectionId;
@@ -280,12 +459,20 @@ function EditorCanvas({
   onEditField: (patch: (m: StoryManifest) => StoryManifest) => void;
   onEditNames: (next: [string, string]) => void;
   pearOpen: boolean;
+  /** Real phone-sized browser viewport (NOT the Mobile preview
+   *  pill). Canvas goes edge-to-edge, the device frame drops its
+   *  chrome, and ThemedSite is forced into its mobile variants
+   *  regardless of the mode pill. */
+  viewportMobile?: boolean;
   /** When true, the canvas renders the prototype-faithful FullSite
    *  (decorative arches, gradient blobs, photo strips) instead of the
    *  full ThemedSiteRenderer. Preview pill flips to ThemedSiteRenderer. */
   usePrototypeCanvas?: boolean;
 }) {
-  const isMobile = mode === 'mobile';
+  /* On a real phone the canvas always uses mobile sizing — the
+     host shouldn't have to toggle the Mobile preview pill to see
+     their own phone's layout. */
+  const isMobile = mode === 'mobile' || viewportMobile;
   const isPreview = mode === 'preview';
   /* In the handoff, the canvas content is IDENTICAL between Edit and
      Preview modes — Preview just hides the section-frame chrome.
@@ -313,7 +500,11 @@ function EditorCanvas({
            the same calculation). */
         minHeight: 0,
         display: 'flex', flexDirection: 'column', alignItems: 'center',
-        padding: isMobile ? '24px 0' : '28px 24px',
+        /* Viewport-mobile: edge-to-edge canvas; the bottom inset
+           keeps the end of the site clear of the fixed bottom bar. */
+        padding: viewportMobile
+          ? '0 0 calc(64px + env(safe-area-inset-bottom))'
+          : isMobile ? '24px 0' : '28px 24px',
         position: 'relative',
       }}
     >
@@ -340,12 +531,14 @@ function EditorCanvas({
       <div
         onClick={() => setActive(null)}
         style={{
-          width: isMobile ? 390 : 1100,
+          /* Real phone: the canvas IS the device — no 390px frame
+             inside a 390px screen. Edge-to-edge, no chrome. */
+          width: viewportMobile ? '100%' : isMobile ? 390 : 1100,
           maxWidth: '100%',
           background: 'var(--paper)',
-          borderRadius: isMobile ? 36 : 14,
-          boxShadow: 'var(--shadow-md)',
-          border: '1px solid var(--card-ring)',
+          borderRadius: viewportMobile ? 0 : isMobile ? 36 : 14,
+          boxShadow: viewportMobile ? 'none' : 'var(--shadow-md)',
+          border: viewportMobile ? 'none' : '1px solid var(--card-ring)',
           overflow: 'hidden',
           position: 'relative',
           zIndex: 1,
@@ -402,26 +595,14 @@ function EditorCanvas({
         )}
       </div>
 
-      {/* One Pear at a time — when the advisor column is open it
-          owns the conversation; the bubble would be a second,
-          competing Pear (audit 2026-06-09). */}
+      {/* One Pear, one entry point — the pill only OPENS the
+          advisor (desktop column or mobile sheet, routed through
+          pearloom:open-pear). Its old nudge/chat UI moved into the
+          advisor itself. Hidden while the advisor is open so there
+          are never two Pears on screen (audit 2026-06-09). */}
       {!isPreview && !pearOpen && (
         <FloatingPearBubble
-          active={active}
-          manifest={manifest}
-          names={names}
-          onApplyPatch={(next) => {
-            /* Forward to the bridge via setManifest — flowing through
-               the same persistence + saveState wiring. */
-            (window as unknown as { __plPearApply?: (m: StoryManifest) => void }).__plPearApply?.(next);
-          }}
-          onAskMore={(text) => {
-            /* Open the 4th-column Pear pane prefilled with the host's
-               question. The shell listens for this event. */
-            if (typeof window !== 'undefined') {
-              window.dispatchEvent(new CustomEvent('pearloom:open-pear', { detail: { prefill: text } }));
-            }
-          }}
+          bottomOffset={viewportMobile ? 'calc(72px + env(safe-area-inset-bottom))' : 24}
         />
       )}
 
@@ -447,7 +628,7 @@ function EditorCanvas({
 /* ─── Pear aside (4th column) ──────────────────────────────────────── */
 
 function PearAside({
-  onClose, manifest, names, siteSlug, prefill, onApplyPatch,
+  onClose, manifest, names, siteSlug, prefill, onApplyPatch, currentBlock, mobile = false,
 }: {
   onClose: () => void;
   manifest: StoryManifest;
@@ -455,9 +636,16 @@ function PearAside({
   siteSlug: string;
   prefill?: string;
   onApplyPatch: (next: StoryManifest) => void;
+  /** Section the host is editing — lets the advisor open with the
+   *  matching "Pear noticed…" nudge + answer "polish this". */
+  currentBlock?: string;
+  /** Mount inside the mobile bottom sheet instead of the 4th grid
+   *  column — drops the gridArea so the sheet's grid cell sizes it. */
+  mobile?: boolean;
 }) {
   /* Lazy-load DesignAdvisor — 48 KB module. Renders as an inline
      <aside> in the 4th grid column via inline={true}. */
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- deliberate lazy require, keeps the module out of the initial editor bundle
   const DesignAdvisor = require('../editor/DesignAdvisor').DesignAdvisor as React.ComponentType<{
     manifest: StoryManifest;
     names: [string, string];
@@ -467,9 +655,16 @@ function PearAside({
     onApplyPatch?: (next: StoryManifest) => void;
     intent?: { pass: string; key: number } | null;
     inline?: boolean;
+    currentBlock?: string;
   }>;
   return (
-    <div style={{ gridArea: 'pear', minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+    <div
+      style={
+        mobile
+          ? { minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }
+          : { gridArea: 'pear', minWidth: 0, display: 'flex', flexDirection: 'column' }
+      }
+    >
       <DesignAdvisor
         manifest={manifest}
         names={names}
@@ -477,8 +672,10 @@ function PearAside({
         open
         onClose={onClose}
         onApplyPatch={onApplyPatch}
+        // eslint-disable-next-line react-hooks/purity -- pre-dates this lint; the key only needs to differ per prefill instance and the advisor dedupes via lastIntentKeyRef
         intent={prefill ? { pass: prefill, key: Date.now() } : null}
         inline
+        currentBlock={currentBlock}
       />
     </div>
   );
@@ -490,6 +687,7 @@ function PearAside({
    require() call keeps it out of the initial editor bundle until
    the canvas mounts. */
 function EditorCanvasRsvpModal({ siteSlug, manifest }: { siteSlug: string; manifest: StoryManifest }) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- deliberate lazy require, keeps the ~30KB modal out of the initial editor bundle
   const GuestRsvpModal = require('../site/GuestRsvpModal').GuestRsvpModal as React.ComponentType<{
     siteSlug: string;
     manifest: StoryManifest;
