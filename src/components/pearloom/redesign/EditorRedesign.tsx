@@ -37,6 +37,8 @@ import { FullSite } from './FullSite';
 import { ThemedSite } from './ThemedSite';
 import { EditorDrawers } from './EditorDrawers';
 import { PearLoomFx } from './PearLoomFx';
+import { FittingRoom } from './FittingRoom';
+import { ThreePressings } from './ThreePressings';
 import { FirstPressing, shouldPlayFirstPressing } from './FirstPressing';
 import { MobileSheet, MobileBottomBar, type MobileSheetId } from './MobileSheet';
 import { useMobileViewport } from './use-mobile-viewport';
@@ -438,6 +440,10 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
       {/* Pear's hands — thread-travel + weave-settle + dye-sweep
           overlay for every AI operation (pearloom:pear-working). */}
       <PearLoomFx />
+      {/* Pear's contact sheet — three live miniature canvases for
+          "in 3 styles" asks (pearloom:pressings). Picks chain into
+          the Fitting Room. */}
+      <ThreePressings names={bridge.names} />
 
       {pressing && (
         <FirstPressing
@@ -596,6 +602,15 @@ function EditorCanvas({
              canvas now share the same write path. */
           onEditField={isPreview ? undefined : onEditField}
           onEditNames={isPreview ? undefined : onEditNames}
+        />
+        {/* The Fitting Room — drape layer for whole-site AI
+            proposals (pearloom:drape). Lives inside the device
+            frame so the drape aligns 1:1 with the canvas. */}
+        <FittingRoom
+          manifest={manifest}
+          names={names}
+          forceMobile={isMobile}
+          onApply={(next) => onEditField(() => next)}
         />
         {/* GuestRsvpModal mount — same modal PublishedSiteShell
             shows guests, mounted so the host can TEST the RSVP

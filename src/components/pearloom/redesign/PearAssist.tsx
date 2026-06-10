@@ -185,11 +185,17 @@ export function PearInlineRewrite({
   onError,
   instantApply = false,
 }: PearInlineRewriteProps) {
-  const [busy, setBusy] = useState<RewriteTone | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   /* Preview-before-apply — the rewrite parks here until the host
-     keeps or discards it. Never shown when instantApply is on. */
-  const [pending, setPending] = useState<{ tone: RewriteTone; text: string } | null>(null);
+     keeps or discards it. Never shown when instantApply is on.
+     `instruction` is kept so "Try again" replays whispers too. */
+  const [pending, setPending] = useState<{ label: string; instruction: string; text: string } | null>(null);
+  /* The whisper — a free-form direction typed (or spoken) by the
+     host. The preset tone chips are suggestions; this is the
+     ceiling-remover. */
+  const [whisper, setWhisper] = useState('');
+  const [listening, setListening] = useState(false);
 
   /* A preview belongs to the text it was drafted from — if the host
      edits the field (or keeps a suggestion), any parked preview is
@@ -198,14 +204,14 @@ export function PearInlineRewrite({
     setPending(null);
   }, [value]);
 
-  async function rewrite(tone: RewriteTone) {
+  async function rewrite(label: string, instruction: string) {
     if (!value.trim() || value.trim().length < 2) {
       const msg = 'Write something first, then Pear can polish it.';
       setErr(msg);
       onError?.(msg);
       return;
     }
-    setBusy(tone); setErr(null);
+    setBusy(label); setErr(null);
     try {
       pearWorking('start', fxSection);
       const res = await fetch('/api/inline-rewrite', {
@@ -214,7 +220,7 @@ export function PearInlineRewrite({
         body: JSON.stringify({
           text: value,
           context,
-          instruction: `make it ${TONE_LABEL[tone].toLowerCase()}`,
+          instruction,
         }),
       });
       if (!res.ok) {
@@ -226,7 +232,7 @@ export function PearInlineRewrite({
       if (rewritten && rewritten !== value) {
         if (instantApply) { onCommit(rewritten); pearWorking('done', fxSection); }
         else {
-          setPending({ tone, text: rewritten });
+          setPending({ label, instruction, text: rewritten });
           /* Preview parked — retract the thread without the landed
              settle; that fires when the host keeps it. */
           pearWorking('error', fxSection);
@@ -281,12 +287,75 @@ export function PearInlineRewrite({
           <PearAiChip
             key={t}
             label={busy === t ? `${TONE_LABEL[t]}…` : TONE_LABEL[t]}
-            onClick={() => rewrite(t)}
+            onClick={() => rewrite(t, `make it ${TONE_LABEL[t].toLowerCase()}`)}
             busy={busy === t}
             disabled={!!busy && busy !== t}
           />
         ))}
       </div>
+      {/* The whisper — type (or speak) any direction. This is the
+          grab-anything-ask-anything surface: the chips above are
+          suggestions, not the ceiling. */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const w = whisper.trim();
+          if (!w || busy) return;
+          void rewrite('whisper', w);
+        }}
+        style={{ display: 'flex', gap: 6, alignItems: 'center' }}
+      >
+        <input
+          value={whisper}
+          onChange={(e) => setWhisper(e.target.value)}
+          placeholder="or whisper a direction — “like a dinner party, not a gala”"
+          aria-label="Tell Pear how to rewrite this"
+          maxLength={280}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            padding: '7px 10px',
+            borderRadius: 999,
+            border: '1px dashed var(--sage, #7A8A4F)',
+            background: 'transparent',
+            fontSize: 11.5,
+            fontFamily: 'inherit',
+            color: 'var(--ink)',
+            outline: 'none',
+          }}
+        />
+        {speechAvailable() && (
+          <button
+            type="button"
+            aria-label={listening ? 'Stop listening' : 'Speak your direction'}
+            onClick={() => startListening(setWhisper, setListening, listening)}
+            style={{
+              width: 28, height: 28, borderRadius: 999, flexShrink: 0,
+              border: '1px solid var(--sage, #7A8A4F)',
+              background: listening ? 'var(--sage-tint, rgba(122,138,79,0.18))' : 'transparent',
+              color: 'var(--sage-deep, #5C6B3F)', cursor: 'pointer',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 12,
+            }}
+          >
+            {listening ? '●' : '🎙'}
+          </button>
+        )}
+        {whisper.trim() && (
+          <button
+            type="submit"
+            disabled={!!busy}
+            style={{
+              padding: '6px 12px', borderRadius: 999, flexShrink: 0,
+              background: 'var(--sage-deep, #5C6B3F)', color: 'var(--cream, #F5EFE2)',
+              border: 'none', fontSize: 11.5, fontWeight: 700,
+              cursor: busy ? 'wait' : 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            {busy === 'whisper' ? 'Weaving…' : 'Weave it'}
+          </button>
+        )}
+      </form>
       {pending && (
         <div
           role="group"
@@ -326,7 +395,7 @@ export function PearInlineRewrite({
             </button>
             <button
               type="button"
-              onClick={() => rewrite(pending.tone)}
+              onClick={() => rewrite(pending.label, pending.instruction)}
               onMouseDown={keepFocus}
               disabled={!!busy}
               style={{
@@ -406,4 +475,63 @@ export function AISource({ when, model = 'Haiku' }: { when?: Date | string | nul
       Drafted by Pear · {model}{ts ? ` · ${ts}` : ''}
     </span>
   );
+}
+
+/* ─── Speech-to-whisper — browser SpeechRecognition where it
+   exists (Chrome/Safari); silently absent elsewhere. One short
+   utterance per tap, appended into the whisper input. ─── */
+type SpeechRecognitionLike = {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  start: () => void;
+  stop: () => void;
+  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+};
+
+function speechCtor(): (new () => SpeechRecognitionLike) | null {
+  if (typeof window === 'undefined') return null;
+  const w = window as unknown as {
+    SpeechRecognition?: new () => SpeechRecognitionLike;
+    webkitSpeechRecognition?: new () => SpeechRecognitionLike;
+  };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
+
+export function speechAvailable(): boolean {
+  return speechCtor() !== null;
+}
+
+let activeRecognition: SpeechRecognitionLike | null = null;
+
+export function startListening(
+  setText: (updater: (prev: string) => string) => void,
+  setListening: (on: boolean) => void,
+  alreadyListening: boolean,
+) {
+  if (alreadyListening) {
+    activeRecognition?.stop();
+    return;
+  }
+  const Ctor = speechCtor();
+  if (!Ctor) return;
+  try {
+    const rec = new Ctor();
+    activeRecognition = rec;
+    rec.lang = typeof navigator !== 'undefined' ? navigator.language || 'en-US' : 'en-US';
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = (e) => {
+      const t = e.results?.[0]?.[0]?.transcript ?? '';
+      if (t) setText((prev) => (prev ? `${prev} ${t}` : t));
+    };
+    rec.onend = () => { setListening(false); activeRecognition = null; };
+    rec.onerror = () => { setListening(false); activeRecognition = null; };
+    setListening(true);
+    rec.start();
+  } catch {
+    setListening(false);
+  }
 }
