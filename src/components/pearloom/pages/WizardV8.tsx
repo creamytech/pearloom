@@ -8,9 +8,10 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Icon, Pear, PearloomLogo, Sparkle, Sprig } from '../motifs';
 import { OccasionGlyph } from '../icons/OccasionGlyph';
+import { Motif, type MotifKind } from '../site/MotifScatter';
 import { Reveal } from '../motion';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { parseLocalDate } from '@/lib/date-utils';
@@ -210,6 +211,10 @@ interface SmartPalette {
   colors: [string, string, string, string];
   tone: string;
   source: string;
+  /** Decor-library ornament the advisor paired with this palette. */
+  motif?: string;
+  /** MotifLayer placement the advisor paired with this palette. */
+  motifLayout?: string;
 }
 
 interface WizardState {
@@ -251,6 +256,11 @@ interface WizardState {
   smartPalettes?: SmartPalette[];
   smartPalettesLoading?: boolean;
   smartPalettesError?: string;
+  /** Ornament + placement riding along with the picked smart
+   *  palette — stamped onto the manifest at generation. Cleared
+   *  when the host picks a preset/photo palette instead. */
+  suggestedMotif?: string;
+  suggestedMotifLayout?: string;
 }
 
 const defaultState: WizardState = {
@@ -1392,6 +1402,8 @@ export function WizardV8() {
         layoutFormat: st.layout,
         templateId: st.templateId,
         selectedPaletteColors: st.paletteColors,
+        motifKind: st.suggestedMotif,
+        motifLayout: st.suggestedMotifLayout,
       },
     };
   }, [
@@ -1400,6 +1412,8 @@ export function WizardV8() {
     st.occasion,
     st.vibes,
     st.paletteColors,
+    st.suggestedMotif,
+    st.suggestedMotifLayout,
     st.templateId,
     st.layout,
     st.eventDate,
@@ -1470,6 +1484,10 @@ export function WizardV8() {
           vibes: st.vibes,
           howWeMet: st.howWeMet,
           whyCelebrate: st.whyCelebrate,
+          // Colors actually present in their pictures (client-side
+          // quantize of the lead photo) — the advisor builds one
+          // suggestion from these instead of guessing from words.
+          photoHexes: photoPalette?.swatches,
         }),
       });
       const data = await res.json();
@@ -1488,6 +1506,20 @@ export function WizardV8() {
     }
   };
 
+  // The photo-palette extraction races the auto-fire below: give it
+  // a short beat so the advisor sees the photo colors, but fire
+  // anyway after 2.5s so a failed extraction (tainted canvas, decode
+  // error) never blocks the suggestions.
+  const [photoWaitExpired, setPhotoWaitExpired] = useState(false);
+  useEffect(() => {
+    if (step !== 'Palette') {
+      setPhotoWaitExpired(false);
+      return;
+    }
+    const t = setTimeout(() => setPhotoWaitExpired(true), 2500);
+    return () => clearTimeout(t);
+  }, [step]);
+
   // Auto-fire palette suggestions the FIRST time the user lands on
   // the Palette step — no click required. Guards against re-firing
   // on step-navigation back-and-forth by checking existing results.
@@ -1497,9 +1529,12 @@ export function WizardV8() {
     if ((st.smartPalettes?.length ?? 0) > 0) return;
     // Don't auto-fire if the user hasn't given us enough to work with.
     if (!st.occasion) return;
+    // Photos uploaded but colors not extracted yet → wait for the
+    // extraction (or the 2.5s grace timer) before asking the advisor.
+    if (st.photos.length > 0 && !photoPalette && !photoWaitExpired) return;
     void fetchSmartPalettes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  }, [step, photoPalette, photoWaitExpired]);
 
   // Steps that are redundant when a template is selected — the
   // template already picked the occasion, vibes, palette, and
@@ -1703,6 +1738,8 @@ export function WizardV8() {
           layoutFormat: st.layout,
           templateId: st.templateId,
           selectedPaletteColors: st.paletteColors,
+          motifKind: st.suggestedMotif,
+          motifLayout: st.suggestedMotifLayout,
           // Speculative decor library, baked while the wizard
           // ran. The generate route can fold this into the new
           // manifest so the editor opens with decor already
@@ -2594,6 +2631,9 @@ export function WizardV8() {
                               ...s,
                               palette: PHOTO_PALETTE_ID,
                               paletteColors: photoPaletteColors,
+                              // Not a smart-palette pick — drop its ornament.
+                              suggestedMotif: undefined,
+                              suggestedMotifLayout: undefined,
                             }));
                             autoAdvance();
                           }}
@@ -2682,6 +2722,9 @@ export function WizardV8() {
                                 ...s,
                                 palette: p.id,
                                 paletteColors: p.colors,
+                                // The ornament rides with the palette pick.
+                                suggestedMotif: p.motif,
+                                suggestedMotifLayout: p.motifLayout,
                               }));
                               autoAdvance();
                             }}
@@ -2743,6 +2786,18 @@ export function WizardV8() {
                             <div style={{ fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
                               {p.rationale}
                             </div>
+                            {p.motif && (
+                              /* The ornament that rides with this palette —
+                                 drawn for real so the host sees the pairing,
+                                 not a label. Accent color comes from the
+                                 palette's own accent swatch. */
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, '--t-motif': p.colors[2] } as CSSProperties}>
+                                <Motif kind={p.motif as MotifKind} size={30} />
+                                <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
+                                  paired mark · {p.motif.replace(/-/g, ' ')}
+                                </span>
+                              </div>
+                            )}
                             <div
                               style={{
                                 fontFamily: 'var(--font-mono, ui-monospace, monospace)',
@@ -2752,7 +2807,7 @@ export function WizardV8() {
                                 color: 'var(--ink-muted)',
                               }}
                             >
-                              {p.source === 'venue' ? 'Venue-aware' : p.source === 'vibe' ? 'Vibe-aware' : p.source}
+                              {p.source === 'venue' ? 'Venue-aware' : p.source === 'vibe' ? 'Vibe-aware' : p.source === 'photos' ? 'From your photos' : p.source}
                             </div>
                           </button>
                         );
@@ -2791,6 +2846,9 @@ export function WizardV8() {
                               ...s,
                               palette: p.id,
                               paletteColors: p.colors,
+                              // Not a smart-palette pick — drop its ornament.
+                              suggestedMotif: undefined,
+                              suggestedMotifLayout: undefined,
                             }));
                             autoAdvance();
                           }}

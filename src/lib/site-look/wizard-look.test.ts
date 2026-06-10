@@ -103,3 +103,35 @@ describe('motif placement default', () => {
     expect(kept.motifLayout).toBe('crest');
   });
 });
+
+describe('advisor-paired ornament', () => {
+  it('stamps the advisor motif + placement, beating the kit default', () => {
+    const out = applyWizardLook(m(), {
+      occasion: 'wedding',
+      motifKind: 'champagne',
+      motifLayout: 'crest',
+    }) as unknown as Record<string, unknown>;
+    expect(out.motifKind).toBe('champagne');
+    expect(out.motifLayout).toBe('crest');
+  });
+
+  it('drops off-catalog values instead of stamping junk', () => {
+    const out = applyWizardLook(m(), {
+      occasion: 'wedding',
+      motifKind: 'glitter-bomb',
+      motifLayout: 'everywhere',
+    }) as unknown as Record<string, unknown>;
+    expect(out.motifKind).toBeUndefined();
+    // Invalid placement falls back to the kit default, not junk.
+    expect(out.motifLayout).not.toBe('everywhere');
+    expect(typeof out.motifLayout).toBe('string');
+  });
+
+  it('never clobbers an explicit host motif', () => {
+    const out = applyWizardLook(m({ motifKind: 'fern' }), {
+      occasion: 'wedding',
+      motifKind: 'disco',
+    }) as unknown as Record<string, unknown>;
+    expect(out.motifKind).toBe('fern');
+  });
+});

@@ -87,6 +87,19 @@ export type MotifKind =
   | 'none';
 export type MotifDensity = 'none' | 'sparse' | 'generous';
 
+/** Runtime catalog of every drawable MotifKind (excludes 'none').
+ *  `satisfies` keeps it from drifting when the union grows — a
+ *  missing/extra id is a type error here, not a silent gap in the
+ *  AI prompts and pickers that consume it. */
+export const MOTIF_KINDS = [
+  'olive', 'bloom', 'pressed', 'lemon', 'sun', 'wheat', 'fern', 'shell',
+  'citrus', 'laurel', 'deco-fan', 'palm', 'mountain', 'wave-curl', 'rose',
+  'crescent', 'dove', 'arrows', 'pinecone', 'butterfly', 'magnolia', 'gingko',
+  'champagne', 'lantern', 'compass', 'peony', 'vine', 'starburst', 'ribbon',
+  'hummingbird', 'orchid', 'monstera', 'holly', 'cherry-blossom', 'anchor',
+  'disco',
+] as const satisfies readonly MotifKind[];
+
 /** Theme-aware default stroke/fill for the new prototype motifs.
  *  Falls back from per-theme motif var → per-theme accent → the
  *  brand olive token if neither is set (e.g. SSR / isolated preview). */

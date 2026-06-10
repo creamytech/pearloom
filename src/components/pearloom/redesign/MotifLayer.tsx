@@ -30,31 +30,13 @@
 
 import type { CSSProperties } from 'react';
 import { Motif, type MotifKind } from '../site/MotifScatter';
+import type { MotifLayout } from '@/lib/site-look/motif-layouts';
 
-export type MotifLayout = 'scattered' | 'corners' | 'margins' | 'dividers' | 'crest' | 'none';
-
-export const MOTIF_LAYOUTS: Array<{ id: MotifLayout; label: string; sub: string }> = [
-  { id: 'scattered', label: 'Scattered', sub: 'A sprinkle on every section' },
-  { id: 'corners',   label: 'Corners',   sub: 'Chapter marks, alternating sides' },
-  { id: 'margins',   label: 'Margins',   sub: 'Down the outer edges, manuscript-style' },
-  { id: 'dividers',  label: 'Dividers',  sub: 'Only in the seams between sections' },
-  { id: 'crest',     label: 'Crest',     sub: 'One large watermark behind the hero' },
-  { id: 'none',      label: 'Off',       sub: 'Clean paper, no marks' },
-];
-
-/** Kit → default placement, so generated sites compose coherently
- *  before the host touches the picker. */
-export function motifLayoutForKit(kitId?: string | null): MotifLayout {
-  switch (kitId) {
-    case 'scrapbook': return 'scattered';
-    case 'plate':     return 'corners';
-    case 'index':     return 'margins';
-    case 'ticket':    return 'dividers';
-    case 'minimal':   return 'none';
-    case 'arch':      return 'crest';
-    default:          return 'scattered';
-  }
-}
+/* The placement catalog lives in lib (server-safe — the generate
+   routes and the smart-palette advisor read it); re-exported here
+   so client consumers keep one import site. */
+export { MOTIF_LAYOUTS, motifLayoutForKit } from '@/lib/site-look/motif-layouts';
+export type { MotifLayout } from '@/lib/site-look/motif-layouts';
 
 /* Deterministic per-section seed — tiny string hash. */
 function seedFor(sectionId: string): number {

@@ -22,7 +22,11 @@
 
 import type { StoryManifest } from '@/types';
 import { lookDefaultsFor, recommendTextureFor } from '@/lib/event-os/event-types';
-import { motifLayoutForKit } from '@/components/pearloom/redesign/MotifLayer';
+import { MOTIF_LAYOUTS, motifLayoutForKit } from '@/lib/site-look/motif-layouts';
+import { MOTIF_KINDS } from '@/components/pearloom/site/MotifScatter';
+
+const MOTIF_KIND_SET: ReadonlySet<string> = new Set(MOTIF_KINDS);
+const MOTIF_LAYOUT_SET: ReadonlySet<string> = new Set(MOTIF_LAYOUTS.map((l) => l.id));
 
 type Loose = Record<string, unknown>;
 
@@ -128,6 +132,11 @@ export interface WizardLookInput {
   selectedPaletteColors?: string[];
   layoutFormat?: string;
   occasion?: string;
+  /** Ornament the palette advisor paired with the picked palette
+   *  (one of the MotifScatter kinds). Off-catalog values dropped. */
+  motifKind?: string;
+  /** MotifLayer placement paired with the picked palette. */
+  motifLayout?: string;
 }
 
 /** Stamp the canonical look fields the renderer reads. Fills only
@@ -162,10 +171,25 @@ export function applyWizardLook(manifest: StoryManifest, input: WizardLookInput)
     if (next.kitId === undefined) next.kitId = look.kitId;
     if (next.density === undefined) next.density = look.density;
     if (next.textureIntensity === undefined) next.textureIntensity = look.textureIntensity;
-    // Motif placement follows the kit (scrapbook→scattered,
-    // plate→corners, index→margins…) so generated pages compose
-    // coherently before the host opens the Decor picker.
-    if (next.motifLayout === undefined) next.motifLayout = motifLayoutForKit(String(next.kitId));
+  }
+
+  // 3b. Ornament + placement. The palette advisor's pick (rides
+  //     with the chosen smart palette) wins over the kit default;
+  //     both fill-missing so template/host picks survive. Values
+  //     are validated against the catalogs — junk never lands on
+  //     a manifest.
+  if (next.motifKind === undefined && input.motifKind && MOTIF_KIND_SET.has(input.motifKind)) {
+    next.motifKind = input.motifKind;
+  }
+  if (next.motifLayout === undefined) {
+    if (input.motifLayout && MOTIF_LAYOUT_SET.has(input.motifLayout)) {
+      next.motifLayout = input.motifLayout;
+    } else if (input.occasion) {
+      // Placement follows the kit (scrapbook→scattered,
+      // plate→corners, index→margins…) so generated pages compose
+      // coherently before the host opens the Decor picker.
+      next.motifLayout = motifLayoutForKit(String(next.kitId));
+    }
   }
 
   // 4. Wizard layout → section variants (merge under existing).

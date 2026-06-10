@@ -362,6 +362,8 @@ export async function POST(req: Request) {
     cashFundUrl,
     eventVenue,
     selectedPaletteColors,
+    motifKind,
+    motifLayout,
     photoNotes,
     storyLayout,
     songUrl,
@@ -433,6 +435,10 @@ export async function POST(req: Request) {
     cashFundUrl?: string;
     eventVenue?: string;
     selectedPaletteColors?: string[];
+    /** Decor-library ornament + placement paired with the picked
+     *  smart palette (AI advisor). Stamped fill-missing. */
+    motifKind?: string;
+    motifLayout?: string;
     photoNotes?: Record<string, { note?: string; location?: string; date?: string }>;
     storyLayout?: 'parallax' | 'filmstrip' | 'magazine' | 'timeline' | 'kenburns' | 'bento';
     songUrl?: string;
@@ -888,6 +894,8 @@ export async function POST(req: Request) {
           selectedPaletteColors,
           layoutFormat,
           occasion,
+          motifKind,
+          motifLayout,
         }) as unknown as Record<string, unknown>);
 
         // ── Consent + tone rails ──────────────────────────────
