@@ -290,7 +290,16 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
     setPearErr(null);
     if (/3 styles/i.test(label)) { void runPressings(label); return; }
     const target = rewriteTarget(active, label);
-    if (!target) return; /* Section doesn't map to a single text field. */
+    if (label === ASK_PEAR_CHIP || !target) {
+      /* No single-field rewrite target — open Pear with the section
+         already on the table instead of silently doing nothing. */
+      try {
+        window.dispatchEvent(new CustomEvent('pearloom:open-pear', {
+          detail: { prefill: `Help me improve the ${section.label} section — what would you change?` },
+        }));
+      } catch { /* never break the rail */ }
+      return;
+    }
     const current = readPath(manifest, target.fieldPath);
     if (!current.trim()) {
       setPearErr(`Add some ${target.context} first, then Pear can rewrite it.`);
@@ -709,16 +718,24 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
   );
 }
 
+/* Every chip here maps to an IMPLEMENTED action. The previous list
+   was prototype copy — 'Suggest a cover photo from gallery' secretly
+   rewrote the tagline, and the RSVP chips ('Draft the reminder
+   cadence', 'Add allergy field'…) mapped to nothing and died
+   silently on click. Sections with a rewrite target get rewrite +
+   pressings chips; everything else gets a real conversation with
+   Pear, prefilled with the section context. */
+export const ASK_PEAR_CHIP = 'Ask Pear about this section';
 function pearSuggestions(active: Exclude<SectionId, null>): string[] {
   switch (active) {
     case 'hero':
-      return ['Rewrite tagline in 3 styles', 'Suggest a cover photo from gallery', 'Translate to Greek'];
+      return ['Rewrite tagline in 3 styles', 'Warmer tagline', 'Shorter tagline'];
     case 'story':
-      return ['Write a draft from your story', 'Make it 30% shorter', 'Punch up the ending'];
-    case 'rsvp':
-      return ['Draft the reminder cadence', 'Add allergy field', 'Smart follow-up wording'];
+      return ['Rewrite story in 3 styles', 'Make it 30% shorter', 'Warmer telling'];
+    case 'registry':
+      return ['Rewrite intro in 3 styles', 'Warmer intro', 'Shorter intro'];
     default:
-      return ['Rewrite this section', 'Suggest a layout variant', 'Pick a complementary photo'];
+      return [ASK_PEAR_CHIP];
   }
 }
 
