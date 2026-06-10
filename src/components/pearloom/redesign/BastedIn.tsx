@@ -4,11 +4,16 @@
    BASTED IN — "From Pear, while you were away."
 
    The quiet card that surfaces Pear's bastings (bastings.ts) when
-   the editor opens. Hovering a stitch threads the loom FX to the
-   section it would land in; SET keeps it (undoable, with the
-   weave-settle); PULL THE THREAD unravels it away for good.
-   Dismissed + set stitches persist per site so the card never
-   nags. Renders nothing when there's nothing worth offering.
+   the editor opens. "Add it" keeps a stitch (undoable, with the
+   weave-settle landing on the section); "No thanks" dismisses it
+   for good. Dismissed + added stitches persist per site so the
+   card never nags. Renders nothing when there's nothing worth
+   offering, and reports its visibility upward so the floating
+   Pear pill yields while the card is up (one Pear at a time).
+
+   The loom-thread FX deliberately does NOT fire on hover here —
+   a gold thread shooting across the canvas for a mouse-over read
+   as "something is happening" when nothing was (2026-06-10).
    ════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -22,10 +27,15 @@ export function BastedIn({
   manifest,
   siteSlug,
   onApply,
+  onOpenChange,
 }: {
   manifest: StoryManifest;
   siteSlug: string;
   onApply: (next: StoryManifest) => void;
+  /** Fires with the card's visibility so the shell can keep the
+   *  floating Pear pill hidden while this card is up — one Pear
+   *  affordance on screen at a time. */
+  onOpenChange?: (open: boolean) => void;
 }) {
   /* Derived once per editor open — the card describes the site as
      Pear found it, not a live-updating todo list. */
@@ -58,19 +68,27 @@ export function BastedIn({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [siteSlug]);
 
-  if (!open || (items.length === 0 && receipts.length === 0)) return null;
+  const visible = open && (items.length > 0 || receipts.length > 0);
+  /* Tell the shell when we appear/disappear so the floating Pear
+     pill yields — two pulsing Pear popups at once read as noise. */
+  useEffect(() => {
+    onOpenChange?.(visible && entered);
+    return () => onOpenChange?.(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, entered]);
+
+  if (!visible) return null;
 
   const set = (b: Basting) => {
     const before = manifest;
     onApply(b.apply(manifest));
     pearWorking('done', b.section);
-    fireUndoable(`${b.label} — set`, () => onApply(before));
+    fireUndoable(`${b.label} — added`, () => onApply(before));
     pullThread(siteSlug, b.id); // set stitches don't re-offer
     setItems((prev) => prev.filter((x) => x.id !== b.id));
   };
   const pull = (b: Basting) => {
     pullThread(siteSlug, b.id);
-    pearWorking('error', b.section);
     setItems((prev) => prev.filter((x) => x.id !== b.id));
   };
 
@@ -134,8 +152,6 @@ export function BastedIn({
         {items.map((b) => (
           <div
             key={b.id}
-            onMouseEnter={() => pearWorking('start', b.section)}
-            onMouseLeave={() => pearWorking('error', b.section)}
             style={{
               padding: '9px 10px',
               borderRadius: 11,
@@ -155,7 +171,7 @@ export function BastedIn({
                   fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                 }}
               >
-                Set the stitch
+                Add it
               </button>
               <button
                 type="button"
@@ -167,7 +183,7 @@ export function BastedIn({
                   cursor: 'pointer', fontFamily: 'inherit',
                 }}
               >
-                Pull the thread
+                No thanks
               </button>
             </div>
           </div>

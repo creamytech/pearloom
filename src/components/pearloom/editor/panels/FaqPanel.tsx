@@ -190,7 +190,7 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
                             busy={draftingId === f.id}
                             disabled={!!draftingId && draftingId !== f.id}
                           >
-                            {draftingId === f.id ? 'Pear is drafting…' : f.answer ? 'Rewrite answer' : 'Draft answer'}
+                            {draftingId === f.id ? 'Pear is drafting…' : f.answer ? 'Draft a fresh answer' : 'Draft answer'}
                           </PearAiChip>
                           {f.answer.trim().length >= 2 && (
                             /* Rewrite-tone chips for the existing

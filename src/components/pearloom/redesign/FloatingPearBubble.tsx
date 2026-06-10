@@ -13,9 +13,14 @@
    `pearloom:open-pear`; the editor shell routes that to the
    4th-column advisor on desktop or the Pear bottom sheet on
    phones. The proactive "Pear noticed…" nudge logic moved INTO
-   the advisor (see editor/DesignAdvisor.tsx PearNoticedCard),
-   so the thought the pill advertises is the first thing the
-   host sees when the advisor opens.
+   the advisor (see editor/DesignAdvisor.tsx PearNoticedCard).
+
+   The label is a plain "Ask Pear" — the old "Pear has a thought"
+   + always-pulsing dot claimed urgency whether or not Pear had
+   anything to say, which trained hosts to ignore it
+   (2026-06-10 calm-the-AI pass). The shell also hides this pill
+   while the BastedIn card is on screen, so there is never more
+   than one Pear popup at a time.
    ───────────────────────────────────────────────────────────── */
 
 import { Pear } from '../motifs';
@@ -54,18 +59,8 @@ export function FloatingPearBubble({ bottomOffset = 24 }: Props) {
     >
       <Pear size={28} tone="sage" sparkle shadow={false} />
       <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>
-        Pear has a thought
+        Ask Pear
       </span>
-      <span
-        aria-hidden
-        style={{
-          width: 7,
-          height: 7,
-          background: 'var(--peach-ink)',
-          borderRadius: '50%',
-          animation: 'pl-dot-pulse 1.4s ease-in-out infinite',
-        }}
-      />
     </button>
   );
 }
