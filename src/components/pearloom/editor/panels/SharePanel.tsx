@@ -137,12 +137,17 @@ export function SharePanel({
      `wa.me`, X uses `x.com/intent/post`. */
   const composed = `${blurb} ${siteUrl}`;
   const composedEnc = encodeURIComponent(composed);
+  /* iMessage gets the URL ALONE: iOS only renders the big rich
+     link card when the URL is the entire message — text + link in
+     one bubble collapses to a bare domain pill. The share card
+     already carries the names, date, and photo, so nothing is
+     lost. WhatsApp / Email / X unfurl fine alongside the blurb. */
   const intents = useMemo(() => [
-    { id: 'imessage',  label: 'iMessage', icon: 'phone' as const, href: `sms:?&body=${composedEnc}` },
+    { id: 'imessage',  label: 'iMessage', icon: 'phone' as const, href: `sms:?&body=${encodeURIComponent(siteUrl)}` },
     { id: 'whatsapp',  label: 'WhatsApp', icon: 'send' as const,  href: `https://wa.me/?text=${composedEnc}` },
     { id: 'email',     label: 'Email',    icon: 'mail' as const,  href: `mailto:?subject=${encodeURIComponent(`${headline}`)}&body=${composedEnc}` },
     { id: 'x',         label: 'X',        icon: 'share' as const, href: `https://x.com/intent/post?text=${composedEnc}` },
-  ], [composedEnc, headline]);
+  ], [composedEnc, headline, siteUrl]);
 
   async function inviteCoHost() {
     if (!coHostEmail.trim() || coHostBusy) return;
