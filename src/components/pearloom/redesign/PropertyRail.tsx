@@ -7,11 +7,13 @@
    Eyebrow + title + hide/more icons + Content/Layout/Style sub-tabs +
    body (SectionEditor + Pear assist card). */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import type { SectionId } from './EditorRedesign';
 import { LAYOUTS, readVariant, type LayoutVariant } from './layouts';
+import { VariantGlyph } from './variant-glyphs';
+import { getTheme } from '../site/themes';
 import { pearErrorMessage } from './PearAssist';
 import { fireUndoable } from './UndoToast';
 
@@ -628,6 +630,21 @@ function LayoutPickerGroup({
       [section]: id,
     },
   } as unknown as StoryManifest);
+  /* LIVE-THEME variant previews — resolve the same theme-var bag
+     ThemedSite paints on the canvas root (base theme by id, then
+     the Theme Store pack's manifest.themeVars override) and scope
+     it onto the tile column. Every <VariantGlyph /> sketch inside
+     reads var(--t-accent) / var(--t-gold) / var(--t-line) /
+     var(--t-paper) / currentColor(--t-ink), so the previews
+     re-color the moment the host switches theme or applies a
+     pack — no static editor-chrome greys. */
+  const themeId = ((manifest as unknown as { themeId?: string }).themeId)
+    ?? ((manifest as unknown as { theme?: { id?: string } }).theme?.id);
+  const themeVarsOverride = (manifest as unknown as { themeVars?: Record<string, string> }).themeVars;
+  const liveThemeVars = {
+    ...getTheme(themeId).vars,
+    ...(themeVarsOverride ?? {}),
+  } as unknown as CSSProperties;
   if (!variants) return null;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -639,7 +656,7 @@ function LayoutPickerGroup({
           </div>
         )}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, ...liveThemeVars }}>
         {variants.map((v) => (
           <VariantTile
             key={v.id}
@@ -654,9 +671,11 @@ function LayoutPickerGroup({
   );
 }
 
-/* ─── VariantTile + LayoutGlyph — handoff editor-redesign.jsx L725-739.
-   A row-per-variant with a mini-diagram preview + label + check
-   indicator when active. */
+/* ─── VariantTile — handoff editor-redesign.jsx L725-739, upgraded.
+   A row-per-variant with a THEME-AWARE mini-preview (VariantGlyph,
+   see variant-glyphs.tsx) + label + check indicator when active.
+   The tile chrome (background / border / labels) stays editor
+   tokens; only the glyph inside previews in the live site theme. */
 
 function VariantTile({ variant, section, on, onPick }: { variant: LayoutVariant; section: Exclude<SectionId, null>; on: boolean; onPick: () => void }) {
   return (
@@ -678,134 +697,13 @@ function VariantTile({ variant, section, on, onPick }: { variant: LayoutVariant;
         fontFamily: 'inherit',
       }}
     >
-      <LayoutGlyph section={section} variant={variant.id} on={on} />
+      <VariantGlyph section={section} variant={variant.id} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>{variant.label}</div>
         {variant.sub && <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 1 }}>{variant.sub}</div>}
       </div>
       {on && <Icon name="check" size={14} color="var(--ink)" />}
     </button>
-  );
-}
-
-function LayoutGlyph({ section, variant, on }: { section: Exclude<SectionId, null>; variant: string; on: boolean }) {
-  const c = on ? 'var(--ink)' : 'var(--ink-muted)';
-  const bg = on ? 'rgba(14,13,11,0.04)' : 'var(--cream-2)';
-  const W = 44, H = 32;
-  const wrap = { width: W, height: H, borderRadius: 4, background: bg, display: 'grid', placeItems: 'center', flexShrink: 0, padding: 3 } as const;
-  /* Each section + variant gets a tiny SVG glyph that hints at the
-     layout's structure. Falls through to a 3-bar block for any
-     variant not specifically diagrammed. */
-  if (section === 'hero') {
-    if (variant === 'split') {
-      return (
-        <div style={wrap}>
-          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-            <rect x="1" y="6" width="18" height="2" fill={c} />
-            <rect x="1" y="10" width="14" height="2" fill={c} opacity={0.6} />
-            <rect x="1" y="14" width="16" height="2" fill={c} opacity={0.6} />
-            <rect x={W - 6 - 14} y="2" width="13" height={H - 10} rx="1" fill={c} opacity={0.4} />
-          </svg>
-        </div>
-      );
-    }
-    if (variant === 'fullbleed') {
-      return (
-        <div style={wrap}>
-          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-            <rect x="0" y="0" width={W - 6} height={H - 6} fill={c} opacity={0.4} />
-            <rect x={(W - 6) / 2 - 8} y={(H - 6) / 2 - 1} width="16" height="2" fill="white" />
-          </svg>
-        </div>
-      );
-    }
-    if (variant === 'typographic') {
-      return (
-        <div style={wrap}>
-          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-            <rect x="2" y="4" width={W - 10} height="6" fill={c} />
-            <rect x={(W - 6) / 2 - 1} y="12" width="2" height="2" fill={c} opacity={0.6} />
-            <rect x="2" y="16" width={W - 10} height="6" fill={c} />
-          </svg>
-        </div>
-      );
-    }
-    if (variant === 'minimal') {
-      return (
-        <div style={wrap}>
-          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-            <rect x="2" y="6" width={(W - 10) * 0.65} height="4" fill={c} />
-            <rect x="2" y="13" width={(W - 10) * 0.45} height="2" fill={c} opacity={0.6} />
-            <rect x="2" y="17" width={(W - 10) * 0.5} height="2" fill={c} opacity={0.6} />
-          </svg>
-        </div>
-      );
-    }
-    if (variant === 'postcard') {
-      return (
-        <div style={wrap}>
-          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-            <rect x="3" y="3" width={W - 12} height={H - 12} rx="1.5" fill={c} opacity={0.3} stroke={c} strokeWidth="0.5" />
-          </svg>
-        </div>
-      );
-    }
-    /* centered (default) */
-    return (
-      <div style={wrap}>
-        <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-          <rect x="6" y="6" width={W - 18} height="3" fill={c} />
-          <rect x="9" y="12" width={W - 24} height="2" fill={c} opacity={0.6} />
-          <rect x="11" y="17" width={W - 28} height="2" fill={c} opacity={0.4} />
-        </svg>
-      </div>
-    );
-  }
-  if (section === 'story') {
-    if (variant === 'stacked') {
-      return (
-        <div style={wrap}>
-          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-            <rect x="2" y="2" width={W - 10} height="10" fill={c} opacity={0.4} />
-            <rect x="2" y="15" width={W - 10} height="2" fill={c} />
-            <rect x="2" y="19" width={(W - 10) * 0.7} height="2" fill={c} opacity={0.6} />
-          </svg>
-        </div>
-      );
-    }
-    if (variant === 'timeline') {
-      return (
-        <div style={wrap}>
-          <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-            <line x1="5" y1="3" x2="5" y2={H - 9} stroke={c} strokeWidth="0.8" />
-            <circle cx="5" cy="6" r="2" fill={c} />
-            <circle cx="5" cy="14" r="2" fill={c} />
-            <circle cx="5" cy="22" r="2" fill={c} opacity={0.5} />
-          </svg>
-        </div>
-      );
-    }
-    /* sidebyside (default) */
-    return (
-      <div style={wrap}>
-        <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-          <rect x="2" y="2" width="14" height={H - 10} fill={c} opacity={0.4} />
-          <rect x="20" y="6" width={W - 28} height="2" fill={c} />
-          <rect x="20" y="11" width={W - 28} height="2" fill={c} opacity={0.6} />
-          <rect x="20" y="15" width={(W - 28) * 0.7} height="2" fill={c} opacity={0.6} />
-        </svg>
-      </div>
-    );
-  }
-  /* Generic fallback — 3 stacked rows. */
-  return (
-    <div style={wrap}>
-      <svg width={W - 6} height={H - 6} viewBox={`0 0 ${W - 6} ${H - 6}`}>
-        <rect x="2" y="3" width={W - 10} height="4" fill={c} />
-        <rect x="2" y="10" width={W - 10} height="4" fill={c} opacity={0.6} />
-        <rect x="2" y="17" width={(W - 10) * 0.7} height="4" fill={c} opacity={0.6} />
-      </svg>
-    </div>
   );
 }
 
