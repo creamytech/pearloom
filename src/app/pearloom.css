@@ -1674,12 +1674,14 @@ button.pl8-mobile-only { display: none !important; }
 .pl8-dashshell { display: flex; min-height: 100dvh; background: var(--cream); position: relative; }
 .pl8-dashshell > aside { width: 260px; flex-shrink: 0; }
 .pl8-dashshell > main { flex: 1; min-width: 0; position: relative; }
+/* Mobile-only — revealed inside the 960px drawer media block. */
+.pl8-dash-mobilebar { display: none; }
 
 @media (max-width: 960px) {
   /* Mobile dashboard — sidebar becomes a real drawer, not a
-     squashed icon strip. Hamburger button (rendered in the
-     DashTopbar) toggles data-drawer-open on the aside, which
-     slides the full sidebar in from the left. */
+     squashed icon strip. The DashMobileBar hamburger toggles
+     data-drawer-open on the aside, which slides the full
+     sidebar in from the left. */
   .pl8-dashshell > aside.pl8-dash-sidebar {
     position: fixed !important;
     top: 0;
@@ -1701,11 +1703,25 @@ button.pl8-mobile-only { display: none !important; }
   .pl8-dashshell > main {
     width: 100%;
   }
-  .pl8-dash-mobile-menu {
-    display: grid !important;
+  /* Shell-wide mobile strip: hamburger + wordmark + avatar.
+     Mounted once by ShellPersistentLayout; the only drawer
+     trigger (DashTopbar no longer carries its own). z below the
+     drawer scrim (80) so the open drawer covers it. */
+  .pl8-dash-mobilebar {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 70;
+    padding: 10px 14px;
+    background: color-mix(in srgb, var(--cream) 90%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line-soft);
   }
-  /* Topbar leaves room for the hamburger on the left + the
-     bell on the right and keeps the title editorial-feeling. */
+  /* Topbar leaves room for the bell cluster on the right and
+     keeps the title editorial-feeling. */
   .pl8-dashshell > main [data-topbar] {
     padding-left: 64px !important;
     padding-right: 64px !important;

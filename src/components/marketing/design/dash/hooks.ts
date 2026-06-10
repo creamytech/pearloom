@@ -17,7 +17,7 @@
 // thread the id through their data fetches.
 // ─────────────────────────────────────────────────────────────
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 export interface SiteSummary {
@@ -80,9 +80,25 @@ interface ApiSitesResponse {
 function notifySitesSubscribers() {
   sitesSubscribers.forEach((fn) => fn());
 }
+function subscribeSites(cb: () => void): () => void {
+  sitesSubscribers.add(cb);
+  return () => {
+    sitesSubscribers.delete(cb);
+  };
+}
+function getSitesSnapshot(): SiteSummary[] | null {
+  return sitesCache;
+}
+function getSitesServerSnapshot(): SiteSummary[] | null {
+  return null;
+}
 
 export function useUserSites(): UserSitesState {
-  const [, tick] = useState(0);
+  // useSyncExternalStore, not a useState-tick: under the React
+  // Compiler (reactCompiler: true) a tick whose value is never
+  // read gets memoized away — sibling components stopped seeing
+  // cache refreshes (new site created → stale picker).
+  const sites = useSyncExternalStore(subscribeSites, getSitesSnapshot, getSitesServerSnapshot);
   const [loading, setLoading] = useState(sitesCache === null);
   const [error, setError] = useState<string | null>(null);
 
@@ -128,17 +144,12 @@ export function useUserSites(): UserSitesState {
   }, []);
 
   useEffect(() => {
-    const sub = () => tick((t) => t + 1);
-    sitesSubscribers.add(sub);
     const stale = sitesCache === null || Date.now() - sitesCacheAt > SITES_CACHE_TTL_MS;
     if (stale) void refresh();
     else setLoading(false);
-    return () => {
-      sitesSubscribers.delete(sub);
-    };
   }, [refresh]);
 
-  return { sites: sitesCache, loading, error, refresh };
+  return { sites, loading, error, refresh };
 }
 
 // ── useSelectedSite ───────────────────────────────────────────

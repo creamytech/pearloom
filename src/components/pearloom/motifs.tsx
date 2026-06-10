@@ -173,13 +173,11 @@ export function PearloomGlyph({
     >
       {/* The pear — one continuous olive thread, open at the neck */}
       <path
-        d="M 52 29
-           C 59 32, 63 39, 62 48
-           C 73 56, 79 69, 76 83
-           C 72 98, 61 106, 48 106
-           C 35 106, 24 98, 20 83
-           C 17 69, 23 56, 34 48
-           C 33 39, 37 32, 44 29"
+        // Single line on purpose — a multiline d attribute hydrates
+        // differently than the SSR-serialized HTML (whitespace gets
+        // normalized on one side only) and React regenerates the
+        // whole dashboard tree on every load chasing the mismatch.
+        d="M 52 29 C 59 32, 63 39, 62 48 C 73 56, 79 69, 76 83 C 72 98, 61 106, 48 106 C 35 106, 24 98, 20 83 C 17 69, 23 56, 34 48 C 33 39, 37 32, 44 29"
         fill="none"
         stroke={color}
         strokeWidth="5"

@@ -1089,47 +1089,56 @@ function NavLinkPending({ isActive }: { isActive: boolean }) {
   );
 }
 
-// Mobile-only hamburger pinned to the topbar's leading edge. On
-// desktop it's hidden via .pl8-dash-mobile-menu visibility CSS.
-function MobileMenuButton() {
+/** Mobile-only sticky strip mounted once by ShellPersistentLayout:
+ *  hamburger (opens the sidebar drawer) · wordmark · account avatar.
+ *
+ *  The drawer trigger used to live only inside DashTopbar — pages on
+ *  the PLChrome/PLHead chrome never mounted one, so on a phone there
+ *  was NO way to reach the other dashboard sections or sign out.
+ *  Hidden ≥960px via .pl8-dash-mobilebar (the drawer breakpoint). */
+export function DashMobileBar() {
   const { toggle, open } = useDashDrawer();
   return (
-    <button
-      type="button"
-      onClick={toggle}
-      aria-label={open ? 'Close menu' : 'Open menu'}
-      className="pl8-dash-mobile-menu"
-      style={{
-        position: 'absolute',
-        top: 'clamp(16px, 2.6vw, 28px)',
-        left: 'clamp(16px, 4vw, 24px)',
-        width: 38,
-        height: 38,
-        borderRadius: 999,
-        border: '1px solid var(--line)',
-        background: 'var(--card)',
-        color: 'var(--ink)',
-        cursor: 'pointer',
-        display: 'none', // CSS media query reveals it
-        placeItems: 'center',
-        zIndex: 5,
-      }}
-    >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-        {open ? (
-          <>
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </>
-        ) : (
-          <>
-            <line x1="3" y1="7" x2="21" y2="7" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="17" x2="21" y2="17" />
-          </>
-        )}
-      </svg>
-    </button>
+    <div className="pl8-dash-mobilebar">
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label={open ? 'Close menu' : 'Open menu'}
+        style={{
+          width: 38,
+          height: 38,
+          borderRadius: 999,
+          border: '1px solid var(--line)',
+          background: 'var(--card)',
+          color: 'var(--ink)',
+          cursor: 'pointer',
+          display: 'grid',
+          placeItems: 'center',
+          flexShrink: 0,
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          {open ? (
+            <>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </>
+          ) : (
+            <>
+              <line x1="3" y1="7" x2="21" y2="7" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="17" x2="21" y2="17" />
+            </>
+          )}
+        </svg>
+      </button>
+      <Link href="/dashboard" aria-label="Dashboard home" style={{ display: 'flex', alignItems: 'center', color: 'var(--ink)' }}>
+        <PearloomLogo size={24} />
+      </Link>
+      {/* Tap your face for account — same settings modal as the
+          desktop sidebar; sign out lives on its account tab. */}
+      <TopbarAvatarButton />
+    </div>
   );
 }
 
@@ -1214,7 +1223,6 @@ export function DashTopbar({
         textAlign: 'center',
       }}
     >
-      <MobileMenuButton />
       <h1
         className="display"
         style={{
