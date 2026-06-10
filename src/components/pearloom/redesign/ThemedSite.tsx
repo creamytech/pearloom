@@ -235,6 +235,15 @@ export function ThemedSite({
         return { ...m, travelInfo: { ...ti, hotels } };
       })
     : undefined;
+  const patchHotelName = onEditField && hostHotelCount > 0
+    ? (idx: number, next: string) => onEditField((m) => {
+        const ti = m.travelInfo ?? { airports: [], hotels: [] };
+        const hotels = [...(ti.hotels ?? [])];
+        if (!hotels[idx]) return m;
+        hotels[idx] = { ...hotels[idx], name: next };
+        return { ...m, travelInfo: { ...ti, hotels } };
+      })
+    : undefined;
   const patchA = onEditNames ? (a: string) => onEditNames([a, names[1] ?? '']) : undefined;
   const patchB = onEditNames ? (b: string) => onEditNames([names[0] ?? '', b]) : undefined;
   const themeId = ((manifest as unknown as { themeId?: string }).themeId)
@@ -338,6 +347,7 @@ export function ThemedSite({
     chapterBody: patchChapter ? (i, v) => patchChapter(i, 'description', v) : undefined,
     galleryCaption: patchGalleryCaption,
     hotelBlurb: patchHotelBlurb,
+    hotelName: patchHotelName,
     nameA: patchA,
     nameB: patchB,
     copy: patchCopy,
@@ -430,7 +440,11 @@ export function ThemedSite({
   const navMobileVariant = readVariant(manifest, 'navMobile');
 
   const onNavClick = (id: string) => scrollToSection(id);
-  const onCtaClick = () => {
+  const onCtaClick = (e?: { stopPropagation?: () => void }) => {
+    /* Variants wire this as onClick={onCtaClick}, so React hands us
+       the click event — stop it before the TSection frame's own
+       click handler re-selects the section the button sits in. */
+    e?.stopPropagation?.();
     scrollToSection('rsvp');
     if (editable) {
       /* Edit mode — the CTA selects the RSVP section so the host
@@ -999,7 +1013,8 @@ function SidebarHero({
         <div style={{ position: 'relative' }}>
           <button
             type="button"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               scrollToSection('rsvp');
               if (editable) {
                 /* Edit mode: select the section, never open the
@@ -1910,6 +1925,7 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
     onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('travelEyebrow', v) : undefined,
     onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('travelTitle', v) : undefined,
     onEditHotelBlurb: ctx.edit?.hotelBlurb,
+    onEditHotelName: ctx.edit?.hotelName,
     eyebrowPlaceholder: 'Travel',
     titlePlaceholder: 'Where to stay',
   };
@@ -3773,6 +3789,7 @@ interface SectionCtx {
      *  Undefined when the host has no real hotels saved (demo cards
      *  stay read-only). */
     hotelBlurb?: (idx: number, v: string) => void;
+    hotelName?: (idx: number, v: string) => void;
     nameA?: (v: string) => void;
     nameB?: (v: string) => void;
     /** Generic manifest.copy.<key> writer. Used for every editable

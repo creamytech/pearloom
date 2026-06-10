@@ -262,6 +262,26 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
     setOptionsOpen(false);
   }
 
+  /* Alt+↑ / Alt+↓ reorder the selected section without reaching for
+     the options popover or the drag handle. Alt (not Cmd) so it
+     can't collide with browser/OS shortcuts or the bridge's Cmd
+     layer; skipped while typing so option-key character entry on
+     macOS keyboards isn't swallowed. */
+  const moveRef = useRef(moveSection);
+  moveRef.current = moveSection;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.altKey || e.metaKey || e.ctrlKey) return;
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+      const ae = document.activeElement as HTMLElement | null;
+      if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable)) return;
+      e.preventDefault();
+      moveRef.current(e.key === 'ArrowUp' ? -1 : 1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   /* runSuggestion — POST /api/inline-rewrite with the source field
      value + tone context, then patch the manifest with the rewrite. */
   async function runSuggestion(label: string) {

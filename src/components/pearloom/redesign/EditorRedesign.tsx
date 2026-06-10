@@ -22,7 +22,7 @@
    on the visual shell.
 */
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { getEventType } from '@/lib/event-os/event-types';
 import { Icon, Pear } from '../motifs';
@@ -482,6 +482,14 @@ function EditorCanvas({
      their own phone's layout. */
   const isMobile = mode === 'mobile' || viewportMobile;
   const isPreview = mode === 'preview';
+  /* Keystroke responsiveness — every panel input writes a fresh
+     manifest object, and the 4,400-line ThemedSite tree re-renders
+     on each one. useDeferredValue lets React commit the cheap panel
+     update first and paint the canvas at lower priority, so typing
+     in the Property Rail never waits on a full canvas render.
+     InlineEdit on the canvas is uncontrolled (commits on blur), so
+     the deferral never lags text the host is actively typing. */
+  const canvasManifest = useDeferredValue(manifest);
   /* In the handoff, the canvas content is IDENTICAL between Edit and
      Preview modes — Preview just hides the section-frame chrome.
      Production now does the same: FullSite renders in both modes;
@@ -571,7 +579,7 @@ function EditorCanvas({
           setActive={setActive}
           setHover={setHover}
           editable={!isPreview}
-          manifest={manifest}
+          manifest={canvasManifest}
           names={names}
           /* When the editor's mode pill is "Mobile", force the canvas
              to use the mobile nav drawer variants — otherwise
