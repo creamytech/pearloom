@@ -131,6 +131,6 @@ export function siteProgressPct(manifest: StoryManifest | null | undefined): num
  *  surfaces stay visually synced. */
 export const FILL_STATE_COLORS: Record<BlockFillState, { bg: string; ring: string; label: string }> = {
   filled: { bg: 'var(--sage-deep, #5C6B3F)', ring: 'rgba(92,107,63,0.30)', label: 'Filled in' },
-  partial: { bg: 'var(--gold, #B8935A)', ring: 'rgba(184,147,90,0.30)', label: 'In progress' },
+  partial: { bg: 'var(--gold, #C19A4B)', ring: 'rgba(184,147,90,0.30)', label: 'In progress' },
   empty: { bg: 'rgba(14,13,11,0.18)', ring: 'transparent', label: 'Empty' },
 };

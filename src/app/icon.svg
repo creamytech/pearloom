@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 112 112">
+  <!-- Pearloom favicon — the woven pear (rebrand 2026-06-10).
+       Literal brand hexes: olive #5C6B3F, gold #C19A4B, cream #FDFAF0. -->
+  <rect width="112" height="112" rx="26" fill="#FDFAF0"/>
+  <g transform="translate(8,2)">
+    <path d="M 52 29 C 59 32, 63 39, 62 48 C 73 56, 79 69, 76 83 C 72 98, 61 106, 48 106 C 35 106, 24 98, 20 83 C 17 69, 23 56, 34 48 C 33 39, 37 32, 44 29" fill="none" stroke="#5C6B3F" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 48 27 C 49 21, 52 15, 58 10" fill="none" stroke="#5C6B3F" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 58 10 C 63 2.5, 74 2, 80 8 C 76 16.5, 64 17.5, 58 10 Z" fill="#5C6B3F"/>
+    <path d="M 4 67 C 9 63, 13 62.5, 17 64.5" fill="none" stroke="#C19A4B" stroke-width="4.4" stroke-linecap="round"/>
+    <path d="M 26 68 C 35 71.5, 42 60, 55 62.5 C 64 64.5, 73 69, 80 69.5 C 85 70, 90 67, 93 63" fill="none" stroke="#C19A4B" stroke-width="4.4" stroke-linecap="round"/>
+    <circle cx="46" cy="64" r="6" fill="#C19A4B" stroke="#FDFAF0" stroke-width="2.4"/>
+  </g>
+</svg>

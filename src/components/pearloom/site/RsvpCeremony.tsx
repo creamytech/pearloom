@@ -138,7 +138,7 @@ export function RsvpCeremony({ manifest, attending, preset, onClose }: RsvpCerem
 
   const ink = 'var(--t-ink, var(--ink, var(--pl-ink, #0E0D0B)))';
   const inkSoft = 'var(--t-ink-soft, var(--ink-soft, var(--pl-ink-soft, #3A332C)))';
-  const gold = 'var(--t-gold, var(--gold, #B8935A))';
+  const gold = 'var(--t-gold, var(--gold, #C19A4B))';
 
   return (
     <div role="status" style={{ textAlign: 'center', position: 'relative' }}>

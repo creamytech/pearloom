@@ -49,7 +49,7 @@ function MiniDivider({ look, width }: { look: DividerStyle; width: number }) {
     return (
       <svg width={width} height={12} viewBox={`0 0 ${width} 12`} aria-hidden="true">
         <line x1="0" y1="6" x2={width} y2="6" stroke={stroke} strokeWidth="1" />
-        <circle cx={width / 2} cy="6" r="2.6" fill="var(--t-gold, #B8935A)" />
+        <circle cx={width / 2} cy="6" r="2.6" fill="var(--t-gold, #C19A4B)" />
       </svg>
     );
   }
@@ -70,7 +70,7 @@ function MiniDivider({ look, width }: { look: DividerStyle; width: number }) {
     return (
       <svg width={width} height={6} viewBox={`0 0 ${width} 6`} aria-hidden="true">
         <circle cx={width / 2 - 14} cy="3" r="1.4" fill={stroke} />
-        <circle cx={width / 2} cy="3" r="1.6" fill="var(--t-gold, #B8935A)" />
+        <circle cx={width / 2} cy="3" r="1.6" fill="var(--t-gold, #C19A4B)" />
         <circle cx={width / 2 + 14} cy="3" r="1.4" fill={stroke} />
       </svg>
     );

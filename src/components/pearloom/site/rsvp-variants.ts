@@ -87,7 +87,7 @@ function MinimalPreview() {
     [
       createElement('text', { key: 'e', x: 32, y: 14, textAnchor: 'middle', fontFamily: 'sans-serif', fontSize: 2.3, fill: '#6F6557' }, 'KINDLY REPLY'),
       createElement('text', { key: 't', x: 32, y: 22, textAnchor: 'middle', fontFamily: 'serif', fontSize: 6, fontStyle: 'italic', fill: '#0E0D0B' }, 'Save your seat'),
-      createElement('line', { key: 'r1', x1: 22, y1: 26, x2: 42, y2: 26, stroke: '#B8935A', strokeWidth: 0.4 }),
+      createElement('line', { key: 'r1', x1: 22, y1: 26, x2: 42, y2: 26, stroke: '#C19A4B', strokeWidth: 0.4 }),
       createElement('text', { key: 'c', x: 32, y: 32, textAnchor: 'middle', fontFamily: 'sans-serif', fontSize: 2.5, fill: '#0E0D0B' }, 'RSVP →'),
     ],
   );

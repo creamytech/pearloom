@@ -186,7 +186,7 @@ function Motif({ kind, size }: { kind: string; size?: number }) {
 /* TDivider — themed inline divider preview (5 looks from prototype) */
 function TDivider({ look, width = 150 }: { look: string; width?: number }) {
   const accent = 'var(--t-accent, var(--pl-olive, #5C6B3F))';
-  const gold = 'var(--t-gold, var(--gold, #B8935A))';
+  const gold = 'var(--t-gold, var(--gold, #C19A4B))';
   const ink = 'var(--t-ink-soft, var(--pl-ink-soft, #3A332C))';
   if (look === 'rule') {
     return (
@@ -327,7 +327,7 @@ function TDivider({ look, width = 150 }: { look: string; width?: number }) {
 function PatternLayer({ pattern, intensity = 1 }: { pattern: string; intensity?: number }) {
   const accent = 'var(--t-accent, var(--pl-olive, #5C6B3F))';
   const accent2 = 'var(--t-accent-2, var(--peach-ink, #C6703D))';
-  const gold = 'var(--t-gold, var(--gold, #B8935A))';
+  const gold = 'var(--t-gold, var(--gold, #C19A4B))';
   const ink = 'var(--t-ink, var(--pl-ink, #0E0D0B))';
   const opacityMul = intensity;
   const W = 80, H = 78;
@@ -689,7 +689,7 @@ function dividerLookToStrength(look: string | null | undefined): 'subtle' | 'sta
 function colorVarToHex(varId: string, theme?: { accent?: string; accentLight?: string; foreground?: string }): string | null {
   if (varId === '--t-accent') return theme?.accent ?? null;
   if (varId === '--t-accent-2') return theme?.accentLight ?? null;
-  if (varId === '--t-gold') return '#B8935A';
+  if (varId === '--t-gold') return '#C19A4B';
   if (varId === '--t-ink') return theme?.foreground ?? '#0E0D0B';
   if (varId === '--t-accent-ink') return theme?.foreground ?? null;
   return null;

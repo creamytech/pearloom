@@ -41,7 +41,7 @@ const ERROR_COPY: Record<string, string> = {
 
 function SigninMotif({ pack, size = 46, flip = false }: { pack: Pack; size?: number; flip?: boolean }) {
   const color = 'var(--t-accent-ink, var(--t-ink, #2A2A28))';
-  const gold = 'var(--t-gold, #B8935A)';
+  const gold = 'var(--t-gold, #C19A4B)';
   const transform = flip ? 'scaleX(-1)' : undefined;
   if (pack.motif === 'olive') {
     return (
@@ -71,7 +71,7 @@ function SigninMotif({ pack, size = 46, flip = false }: { pack: Pack; size?: num
 
 function SigninSprigDivider({ width = 104 }: { width?: number }) {
   const color = 'var(--t-accent-ink, var(--t-ink, #2A2A28))';
-  const gold = 'var(--t-gold, #B8935A)';
+  const gold = 'var(--t-gold, #C19A4B)';
   return (
     <svg width={width} height={14} viewBox={`0 0 ${width} 14`} aria-hidden>
       <line x1="2" y1="7" x2={width - 2} y2="7" stroke={color} strokeWidth="1" />

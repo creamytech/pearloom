@@ -215,7 +215,7 @@ function buildMonogram(
 </svg>`
       : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
 <text x="32" y="42" font-family="Fraunces, Georgia, serif" font-size="38" font-style="italic" font-weight="500" fill="currentColor" text-anchor="middle">${A}</text>
-<line x1="22" y1="52" x2="42" y2="52" stroke="#B89244" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="22" y1="52" x2="42" y2="52" stroke="#C19A4B" stroke-width="1.5" stroke-linecap="round"/>
 </svg>`;
     return { logoIcon: fallbackIcon, logoSvg: svg };
   }

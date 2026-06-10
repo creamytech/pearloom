@@ -131,7 +131,7 @@ function QuotePreview(): ReactNode {
       createElement('rect', { key: 't1', x: 8, y: 14, width: 48, height: 1.4, fill: '#0E0D0B' }),
       createElement('rect', { key: 't2', x: 12, y: 17.5, width: 40, height: 1.4, fill: '#0E0D0B' }),
       createElement('rect', { key: 't3', x: 16, y: 21, width: 32, height: 1.4, fill: '#0E0D0B' }),
-      createElement('line', { key: 'r', x1: 24, y1: 27, x2: 40, y2: 27, stroke: '#B8935A', strokeWidth: 0.4 }),
+      createElement('line', { key: 'r', x1: 24, y1: 27, x2: 40, y2: 27, stroke: '#C19A4B', strokeWidth: 0.4 }),
       createElement('text', {
         key: 'a', x: 32, y: 33, textAnchor: 'middle', fontFamily: 'serif', fontSize: 3,
         fontStyle: 'italic', fill: '#6F6557',
@@ -489,7 +489,7 @@ function StoryQuote({ chapters, onEditField }: StoryVariantProps): ReactNode {
             style: {
               width: 160,
               height: 1,
-              background: 'var(--t-gold, var(--peach-ink, #B8935A))',
+              background: 'var(--t-gold, var(--peach-ink, #C19A4B))',
               opacity: 0.55,
               margin: '20px auto 0',
             } satisfies CSSProperties,

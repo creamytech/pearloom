@@ -150,7 +150,7 @@ function GoldHairlineDivider() {
         margin: 'clamp(48px, 7vw, 72px) auto',
         width: 80,
         height: 1,
-        background: 'var(--gold, #B89244)',
+        background: 'var(--gold, #C19A4B)',
       }}
     />
   );

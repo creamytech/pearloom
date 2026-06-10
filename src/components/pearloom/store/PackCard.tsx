@@ -93,7 +93,7 @@ function TierBadge({ tier }: { tier: Pack['tier'] }) {
 function Stars({ rating }: { rating: number }) {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-      <Icon name="star" size={12} color="var(--gold, #B8935A)" />
+      <Icon name="star" size={12} color="var(--gold, #C19A4B)" />
       <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink, #0E0D0B)' }}>{rating.toFixed(1)}</span>
     </span>
   );

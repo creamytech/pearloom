@@ -33,7 +33,7 @@ function accentFor(occasion?: string): { ribbon: string; tint: string } {
     return { ribbon: 'var(--plum, #7A2D2D)', tint: 'var(--plum-mist, rgba(122,45,45,0.10))' };
   }
   if (occasion === 'birthday' || occasion === 'milestone-birthday' || occasion === 'first-birthday' || occasion === 'sweet-sixteen') {
-    return { ribbon: 'var(--gold, #B8935A)', tint: 'var(--gold-mist, rgba(184,147,90,0.10))' };
+    return { ribbon: 'var(--gold, #C19A4B)', tint: 'var(--gold-mist, rgba(184,147,90,0.10))' };
   }
   return { ribbon: 'var(--peach-ink, #C6703D)', tint: 'var(--peach-bg, rgba(198,112,61,0.08))' };
 }

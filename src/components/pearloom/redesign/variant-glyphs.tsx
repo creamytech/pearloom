@@ -31,7 +31,7 @@ import type { SectionId } from './EditorRedesign';
 /* Live theme token reads (garden-theme fallbacks). */
 const A  = 'var(--t-accent, #B7A4D0)';
 const AB = 'var(--t-accent-bg, #E8E0F0)';
-const G  = 'var(--t-gold, #B89244)';
+const G  = 'var(--t-gold, #C19A4B)';
 const L  = 'var(--t-line, rgba(61,74,31,0.22))';
 const CARD = 'var(--t-card, #FFFEF7)';
 

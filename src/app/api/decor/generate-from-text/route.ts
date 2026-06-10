@@ -102,7 +102,7 @@ ACCENT COLOR (the brand color the pattern tints from). Return a 6-digit hex (wit
 - terracotta/peach (#C6703D): desert, sunset, warm, amber.
 - plum/merlot (#7A2D2D): wine, autumn, burgundy.
 - navy/midnight (#1E3A5F): evening, gala, black-tie.
-- gold/champagne (#B89244): deco, glamour, sparkle.
+- gold/champagne (#C19A4B): deco, glamour, sparkle.
 - mauve/blush (#9C7B6E): dusty rose, soft romance.
 - coastal blue (#4A6B8F): seaside, ocean, maritime.
 

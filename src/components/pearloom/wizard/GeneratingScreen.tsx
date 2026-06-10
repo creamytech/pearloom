@@ -356,7 +356,7 @@ function StageMarker({ status }: { status: 'done' | 'active' | 'pending' }) {
             width: 10,
             height: 10,
             borderRadius: '50%',
-            background: 'var(--pl-gold, #B8935A)',
+            background: 'var(--pl-gold, #C19A4B)',
             animation: 'pear-stage-pulse 1.4s ease-in-out infinite',
           }}
         />

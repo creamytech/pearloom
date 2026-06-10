@@ -481,7 +481,7 @@ function HeroBand({
             }}
           >
             <div className="eyebrow" style={{ color: stepColor, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold, #B8935A)' }} />
+              <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold, #C19A4B)' }} />
               NEXT UP
             </div>
             <div

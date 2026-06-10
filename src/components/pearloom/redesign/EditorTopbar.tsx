@@ -221,7 +221,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
             aria-hidden
             style={{
               width: 6, height: 6, borderRadius: '50%',
-              background: 'var(--gold, #B8935A)',
+              background: 'var(--gold, #C19A4B)',
               flexShrink: 0,
             }}
           />

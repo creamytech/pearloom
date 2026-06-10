@@ -39,7 +39,7 @@ const PALETTES = [
   { id: 'groovy-garden', name: 'Groovy Garden', colors: ['#3D4A1F', '#8B9C5A', '#C4B5D9', '#F3E9D4', '#2A3512', '#D7CCE5'] },
   { id: 'dusk-meadow', name: 'Dusk Meadow', colors: ['#6B5A8C', '#B7A4D0', '#CBD29E', '#F3E9D4', '#4A3F6B', '#D7CCE5'] },
   { id: 'warm-linen', name: 'Warm Linen', colors: ['#8B4720', '#EAB286', '#F7DDC2', '#F3E9D4', '#C6703D', '#FBE8D6'] },
-  { id: 'olive-gold', name: 'Olive & Gold', colors: ['#3D4A1F', '#6d7d3f', '#D4A95D', '#F3E9D4', '#B89244', '#CBD29E'] },
+  { id: 'olive-gold', name: 'Olive & Gold', colors: ['#3D4A1F', '#6d7d3f', '#D4A95D', '#F3E9D4', '#C19A4B', '#CBD29E'] },
 ];
 
 const MOTIFS = [

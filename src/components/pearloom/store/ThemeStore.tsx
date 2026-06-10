@@ -28,7 +28,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { COLLECTIONS, PACKS, getPackById, type Pack } from '@/lib/theme-store/packs';
 import { StoreFonts } from '@/lib/theme-store/fonts';
-import { Icon, Pear } from '../motifs';
+import { Icon, Pear, PearloomGlyph, PearloomWordmark } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
 import { PackCard } from './PackCard';
 import { PackPreview } from './PackPreview';
@@ -517,16 +517,8 @@ function StoreInner() {
               color: 'inherit',
             }}
           >
-            <Pear size={26} tone="sage" shadow={false} />
-            <span
-              style={{
-                fontFamily: 'var(--pl-font-display, "Fraunces"), Georgia, serif',
-                fontWeight: 700,
-                fontSize: 19,
-              }}
-            >
-              Pearloom
-            </span>
+            <PearloomGlyph size={28} />
+            <PearloomWordmark size={19} />
           </Link>
           <span
             style={{

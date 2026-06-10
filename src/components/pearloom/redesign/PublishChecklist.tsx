@@ -150,7 +150,7 @@ export function PublishChecklist({ manifest }: { manifest: StoryManifest }) {
         >
           <span style={{
             width: 6, height: 6, borderRadius: '50%',
-            background: 'var(--gold, #B8935A)',
+            background: 'var(--gold, #C19A4B)',
           }} />
           Live
         </button>

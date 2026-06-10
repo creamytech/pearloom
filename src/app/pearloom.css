@@ -6,7 +6,12 @@
    which do NOT clash with the existing --pl-* namespace.
    ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,400;1,9..144,500;1,9..144,600;1,9..144,700&family=Caveat:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+/* Caveat (script accents) is the only family this layer loads.
+   Fraunces + Geist + Geist Mono come from next/font in layout.tsx
+   (--font-fraunces / --font-geist / --font-geist-mono) — loading
+   them here too double-shipped Fraunces and shipped Inter purely
+   to power an off-brand --font-ui. Rebrand 2026-06-10. */
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
 
 :root {
   /* Paper & ink — aliased to the canonical --pl-* tokens declared
@@ -43,8 +48,11 @@
   --peach-bg:    #FBE8D6;
   --peach-ink:   #C6703D;
 
-  --gold:        #B89244;
-  --gold-line:   #D4A95D;
+  /* One gold across the product (BRAND: gold is the punctuation).
+     Aliased to the canonical --pl-gold; --gold-line is its hairline
+     tint, derived so it can never drift on its own again. */
+  --gold:        var(--pl-gold, #C19A4B);
+  --gold-line:   color-mix(in oklab, var(--pl-gold, #C19A4B) 76%, #FFF6E4);
   --heart:       #E8A07A;
 
   /* Surfaces — aliased to --pl-* so theme swap flows through. */
@@ -68,10 +76,13 @@
   --r-lg: 28px;
   --r-xl: 36px;
 
-  /* Type */
-  --font-display: 'Fraunces', 'Times New Roman', serif;
+  /* Type — aliased to the canonical brand stacks (BRAND.md §4:
+     Fraunces display, Geist body). --font-ui previously pinned
+     Inter, which made every dashboard/editor chrome surface render
+     a different body face than the rest of the product. */
+  --font-display: var(--pl-font-display, 'Fraunces', 'Times New Roman', serif);
   --font-script:  'Caveat', cursive;
-  --font-ui:      'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-ui:      var(--pl-font-body, 'Geist', system-ui, -apple-system, sans-serif);
 
   /* Layout */
   --maxw: 1280px;
@@ -446,7 +457,7 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 /* Sliding underline that follows hover/active across nav links. */
 .pl8 .pl8-nav-underline {
   height: 2px;
-  background: linear-gradient(90deg, var(--peach-ink, #C6703D) 0%, var(--gold, #D4A95D) 100%);
+  background: linear-gradient(90deg, var(--peach-ink, #C6703D) 0%, var(--gold, #C19A4B) 100%);
   border-radius: 2px;
   transform-origin: center;
   transition:
@@ -475,7 +486,7 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
   height: 100%;
   background: linear-gradient(90deg,
     var(--peach-ink, #C6703D) 0%,
-    var(--gold, #D4A95D) 55%,
+    var(--gold, #C19A4B) 55%,
     var(--peach-ink, #C6703D) 100%);
   background-size: 200% 100%;
   border-top-right-radius: 2px;
@@ -2068,7 +2079,7 @@ button.pl8-mobile-only { display: none !important; }
   right: 0;
   bottom: -2px;
   height: 2px;
-  background: linear-gradient(90deg, var(--peach-ink, #C6703D) 0%, var(--gold, #D4A95D) 100%);
+  background: linear-gradient(90deg, var(--peach-ink, #C6703D) 0%, var(--gold, #C19A4B) 100%);
   border-radius: 2px;
   transform: scaleX(0);
   transform-origin: center;

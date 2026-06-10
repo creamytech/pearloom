@@ -203,7 +203,7 @@ interface SquiggleProps {
 export function Squiggle({
   width = 120,
   height = 14,
-  color = '#B89244',
+  color = '#C19A4B',
   strokeWidth = 2.5,
   animated = false,
   style,
@@ -433,7 +433,7 @@ export const PD = {
   pearSkin: '#D5DE86',
   butter:   '#E8C77A',
   // Gold + Terra — align with v8 gold + peach-ink
-  gold:     'var(--pd-gold, #B8935A)',      // dark: warmed #D4B373
+  gold:     'var(--pd-gold, #C19A4B)',      // dark: warmed #D4B373
   terra:    'var(--pd-terra, #C6703D)',     // dark: #D67852 (warning-dark family)
   // Specialty
   rose:     'var(--pd-rose, #D9A89E)',      // dark: muted #C08A7E

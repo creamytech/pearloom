@@ -100,7 +100,7 @@ interface OliveSprigProps {
   style?: CSSProperties;
 }
 
-export function OliveSprig({ size = 90, color = 'var(--t-motif, var(--t-accent, var(--pl-olive, #5C6B3F)))', berry = 'var(--t-gold, var(--gold, #B8935A))', flip = false, style }: OliveSprigProps) {
+export function OliveSprig({ size = 90, color = 'var(--t-motif, var(--t-accent, var(--pl-olive, #5C6B3F)))', berry = 'var(--t-gold, var(--gold, #C19A4B))', flip = false, style }: OliveSprigProps) {
   return (
     <svg
       viewBox="0 0 120 60"
@@ -153,7 +153,7 @@ interface LemonProps {
   style?: CSSProperties;
 }
 
-export function Lemon({ size = 44, color = 'var(--t-gold, var(--gold, #B8935A))', leaf = 'var(--t-accent, var(--pl-olive, #5C6B3F))', style }: LemonProps) {
+export function Lemon({ size = 44, color = 'var(--t-gold, var(--gold, #C19A4B))', leaf = 'var(--t-accent, var(--pl-olive, #5C6B3F))', style }: LemonProps) {
   return (
     <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
       <ellipse cx={30} cy={36} rx={17} ry={13} fill={color} transform="rotate(-24 30 36)" />
@@ -171,7 +171,7 @@ interface PressedFlowerProps {
   style?: CSSProperties;
 }
 
-export function PressedFlower({ size = 56, petal = 'var(--t-motif, var(--t-accent, var(--peach-ink, #C6703D)))', center = 'var(--t-gold, var(--gold, #B8935A))', style }: PressedFlowerProps) {
+export function PressedFlower({ size = 56, petal = 'var(--t-motif, var(--t-accent, var(--peach-ink, #C6703D)))', center = 'var(--t-gold, var(--gold, #C19A4B))', style }: PressedFlowerProps) {
   const petals = [0, 60, 120, 180, 240, 300];
   return (
     <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
@@ -338,7 +338,7 @@ export function ShellMotif({ size = 22, color = MOTIF_COLOR, style }: BaseMotifP
 }
 
 export function CitrusMotif({ size = 22, color = MOTIF_COLOR, style }: BaseMotifProps) {
-  const flesh = 'var(--t-gold, var(--gold, #B8935A))';
+  const flesh = 'var(--t-gold, var(--gold, #C19A4B))';
   return (
     <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
       <circle cx={30} cy={30} r={22} fill="none" stroke={color} strokeWidth={2} />
@@ -505,7 +505,7 @@ export function RoseMotif({ size = 28, color = MOTIF_COLOR, style }: { size?: nu
   );
 }
 
-export function CrescentMotif({ size = 24, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+export function CrescentMotif({ size = 24, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
   return (
     <svg viewBox="0 0 40 40" width={size} height={size} style={style} aria-hidden>
       {/* Crescent — large circle with a slightly-offset cutout. */}
@@ -535,7 +535,7 @@ export function DoveMotif({ size = 30, color = MOTIF_COLOR, style }: { size?: nu
       <path d="M50 14 L54 12 L52 16 Z" fill={color} opacity="0.5" />
       <circle cx="48" cy="16" r="0.8" fill={color} />
       {/* Olive branch in beak — single tiny leaf. */}
-      <path d="M54 12 Q 58 10, 60 14" fill="none" stroke="var(--t-gold, var(--gold, #B8935A))" strokeWidth="0.8" />
+      <path d="M54 12 Q 58 10, 60 14" fill="none" stroke="var(--t-gold, var(--gold, #C19A4B))" strokeWidth="0.8" />
     </svg>
   );
 }
@@ -581,7 +581,7 @@ export function PineconeMotif({ size = 30, color = MOTIF_COLOR, style }: { size?
   );
 }
 
-export function ButterflyMotif({ size = 28, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+export function ButterflyMotif({ size = 28, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
   return (
     <svg viewBox="0 0 60 50" width={size} height={size * (50 / 60)} style={style} aria-hidden>
       {/* Two pairs of wings — upper teardrops, lower scallops.
@@ -611,7 +611,7 @@ export function ButterflyMotif({ size = 28, color = MOTIF_COLOR, gold = 'var(--t
 
 /** Open magnolia bloom in three-quarter view — cupped outer petals,
  *  upright inner pair, gold stamen. Reads "southern porch in May". */
-export function MagnoliaMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+export function MagnoliaMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
   return (
     <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
       {/* Branch stub entering from lower-left. */}
@@ -666,7 +666,7 @@ export function GingkoMotif({ size = 30, color = MOTIF_COLOR, style }: { size?: 
 }
 
 /** Champagne coupe with rising gold bubbles — the toast, distilled. */
-export function ChampagneMotif({ size = 30, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+export function ChampagneMotif({ size = 30, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
   return (
     <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
       {/* Shallow coupe bowl. */}
@@ -686,7 +686,7 @@ export function ChampagneMotif({ size = 30, color = MOTIF_COLOR, gold = 'var(--t
 }
 
 /** Paper lantern — ribbed body, caps, tassel, gold glow. */
-export function LanternMotif({ size = 30, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+export function LanternMotif({ size = 30, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
   return (
     <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
       {/* Hanging cord. */}
@@ -709,7 +709,7 @@ export function LanternMotif({ size = 30, color = MOTIF_COLOR, gold = 'var(--t-g
 }
 
 /** Compass rose — four-point star, ring, gold heart. North runs long. */
-export function CompassMotif({ size = 30, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+export function CompassMotif({ size = 30, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
   return (
     <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
       {/* Outer ring with cardinal ticks. */}
@@ -732,7 +732,7 @@ export function CompassMotif({ size = 30, color = MOTIF_COLOR, gold = 'var(--t-g
 }
 
 /** Peony — three ruffled petal rings around a gold stamen cluster. */
-export function PeonyMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+export function PeonyMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
   const outer = [0, 60, 120, 180, 240, 300];
   const mid = [30, 102, 174, 246, 318];
   return (
@@ -787,7 +787,7 @@ export function VineMotif({ size = 44, color = MOTIF_COLOR, flip = false, style 
 }
 
 /** Retro starburst — alternating long/short rays, gold heart, satellites. */
-export function StarburstMotif({ size = 28, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+export function StarburstMotif({ size = 28, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
   return (
     <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
       <g stroke={color} strokeWidth="1.4" strokeLinecap="round">
@@ -817,7 +817,7 @@ export function StarburstMotif({ size = 28, color = MOTIF_COLOR, gold = 'var(--t
 }
 
 /** Tied ribbon bow — two loops, trailing tails, gold knot. */
-export function RibbonMotif({ size = 34, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+export function RibbonMotif({ size = 34, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
   return (
     <svg viewBox="0 0 70 60" width={size} height={size * 0.86} style={style} aria-hidden="true">
       {/* Loops. */}
@@ -835,7 +835,7 @@ export function RibbonMotif({ size = 34, color = MOTIF_COLOR, gold = 'var(--t-go
 }
 
 /** Hummingbird at sip — swept wing, fanned tail, gold nectar dot. */
-export function HummingbirdMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+export function HummingbirdMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
   return (
     <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
       {/* Body — plump teardrop pitched toward the flower. */}
@@ -862,7 +862,7 @@ export function HummingbirdMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(-
 
 /** Phalaenopsis orchid in profile — two broad wing petals, smaller
  *  upright top petal, the signature gold lip, arched stem + one bud. */
-export function OrchidMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+export function OrchidMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
   return (
     <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
       {/* Arched stem rising from lower-left to the bloom. */}
@@ -887,7 +887,7 @@ export function OrchidMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-go
 
 /** Monstera deliciosa leaf — heart outline with four edge splits, two
  *  fenestration windows along the midrib, hairline veins, short stem. */
-export function MonsteraMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+export function MonsteraMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
   /* Heart-shaped blade, tip at bottom; two split cuts per side run
      from the edge toward the midrib. */
   const blade =
@@ -917,7 +917,7 @@ export function MonsteraMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-
 }
 
 /** Two spiky holly leaves crossed at a stem point, three gold berries. */
-export function HollyMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+export function HollyMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
   /* One spiked leaf pointing up from the local origin; concave waves
      between the spike tips give the classic holly edge. */
   const leaf =
@@ -944,7 +944,7 @@ export function HollyMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gol
 
 /** Sakura branch fragment — angular twig, two five-petal blossoms with
  *  the notched petal tip, one bud; gold stamen dots at the hearts. */
-export function CherryBlossomMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+export function CherryBlossomMotif({ size = 32, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
   /* Petal with the characteristic notch — tip dips at (0,-7) between
      two points at (±3.8,-8.6). */
   const petal = 'M0 0 C 3 -1.5, 4.6 -5, 3.8 -8.6 L 0 -7 L -3.8 -8.6 C -4.6 -5, -3 -1.5, 0 0 Z';
@@ -980,7 +980,7 @@ export function CherryBlossomMotif({ size = 32, color = MOTIF_COLOR, gold = 'var
 
 /** Classic anchor — gold ring, stock crossbar, shank, two curved arms
  *  with pointed flukes, and a rope curve threading the ring. */
-export function AnchorMotif({ size = 30, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+export function AnchorMotif({ size = 30, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
   return (
     <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
       {/* Rope threading behind the ring. */}
@@ -1002,7 +1002,7 @@ export function AnchorMotif({ size = 30, color = MOTIF_COLOR, gold = 'var(--t-go
 
 /** Disco ball — faceted sphere (3 latitude + 4 longitude arcs), hanger
  *  link, and three sparks thrown off to the right (one gold). */
-export function DiscoMotif({ size = 30, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #B8935A))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+export function DiscoMotif({ size = 30, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
   return (
     <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
       {/* Hanger link. */}

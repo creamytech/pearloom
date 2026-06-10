@@ -365,7 +365,7 @@ function TemplateTile({
                 color: 'var(--ink, #0E0D0B)',
               }}
             >
-              <Icon name="sparkles" size={10} color="var(--gold, #B8935A)" /> Featured
+              <Icon name="sparkles" size={10} color="var(--gold, #C19A4B)" /> Featured
             </span>
           </div>
         )}

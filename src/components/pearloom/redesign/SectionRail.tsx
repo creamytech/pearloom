@@ -423,7 +423,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                 width: 4,
                 height: 4,
                 borderRadius: '50%',
-                background: 'var(--gold, #B8935A)',
+                background: 'var(--gold, #C19A4B)',
                 marginRight: 6,
                 verticalAlign: 'middle',
                 marginTop: -1,

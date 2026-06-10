@@ -456,7 +456,7 @@ export function QuickLookModal({
             <span>{collectionName(pack.collection)}</span>
             <span aria-hidden>·</span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <Icon name="star" size={12} color="var(--pl-gold, #B8935A)" />
+              <Icon name="star" size={12} color="var(--pl-gold, #C19A4B)" />
               <strong style={{ color: 'var(--pl-ink, #0E0D0B)' }}>{pack.rating.toFixed(1)}</strong>
             </span>
             <span aria-hidden>·</span>

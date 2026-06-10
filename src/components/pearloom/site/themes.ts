@@ -91,7 +91,7 @@ export const THEMES: Theme[] = [
       '--t-paper': '#FDFAF0', '--t-section': '#F3E9D4', '--t-card': '#FFFEF7',
       '--t-ink': '#3D4A1F', '--t-ink-soft': '#566438', '--t-ink-muted': '#8A8671',
       '--t-accent': '#B7A4D0', '--t-accent-2': '#C4B5D9', '--t-accent-bg': '#E8E0F0', '--t-accent-ink': '#6B5A8C',
-      '--t-gold': '#B89244', '--t-line': 'rgba(61,74,31,0.14)', '--t-line-soft': 'rgba(61,74,31,0.08)',
+      '--t-gold': '#C19A4B', '--t-line': 'rgba(61,74,31,0.14)', '--t-line-soft': 'rgba(61,74,31,0.08)',
       '--t-rsvp': '#3D4A1F', '--t-rsvp-ink': '#F8F1E4',
       '--t-display': "'Fraunces', Georgia, serif", '--t-body': "'Inter', sans-serif", '--t-script': "'Caveat', cursive",
       '--t-radius': '14px', '--t-radius-lg': '22px',

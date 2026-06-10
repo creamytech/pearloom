@@ -71,7 +71,7 @@ function pickPackForSite(
  *  primarily a positional scatterer). */
 function MiniMotif({ pack, size = 26 }: { pack: Pack; size?: number }) {
   const color = 'var(--t-accent-ink, var(--t-ink, #2A2A28))';
-  const gold = 'var(--t-gold, #B8935A)';
+  const gold = 'var(--t-gold, #C19A4B)';
   switch (pack.motif) {
     case 'olive':
       return (
@@ -477,7 +477,7 @@ function EventSites({
                       background: progress >= 75
                         ? 'var(--sage-deep, #5C6B3F)'
                         : progress >= 35
-                          ? 'var(--gold, #B8935A)'
+                          ? 'var(--gold, #C19A4B)'
                           : 'var(--peach-ink, #C6703D)',
                       transition: 'width 320ms cubic-bezier(0.22, 1, 0.36, 1)',
                     }}

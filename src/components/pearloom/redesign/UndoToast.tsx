@@ -190,7 +190,7 @@ export function UndoToast() {
           right: 0,
           bottom: 0,
           height: 1,
-          background: 'var(--gold, #B8935A)',
+          background: 'var(--gold, #C19A4B)',
           transformOrigin: 'left center',
           animation: `pl-rd-undo-run ${TOAST_MS}ms linear forwards`,
         }}

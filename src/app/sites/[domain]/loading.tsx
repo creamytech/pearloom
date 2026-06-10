@@ -120,7 +120,7 @@ export default function Loading() {
           width: 100,
           height: 1,
           margin: '24px auto 14px',
-          background: 'linear-gradient(90deg, transparent, #B8935A 50%, transparent)',
+          background: 'linear-gradient(90deg, transparent, #C19A4B 50%, transparent)',
           opacity: 0.55,
         }}
       />

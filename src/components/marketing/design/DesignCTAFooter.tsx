@@ -362,7 +362,10 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
               fontVariationSettings: '"SOFT" 60, "opsz" 144',
             }}
           >
-            <span style={{ fontStyle: 'italic' }}>pearloom</span>
+            {/* The wordmark's signature: upright "pear", italic turn
+                on "loom" — same lockup as the nav, at mural scale. */}
+            <span style={{ fontVariationSettings: '"SOFT" 40, "opsz" 144, "WONK" 0' }}>pear</span>
+            <span style={{ fontStyle: 'italic', fontVariationSettings: '"SOFT" 80, "opsz" 144, "WONK" 1' }}>loom</span>
           </div>
         </div>
       </footer>
