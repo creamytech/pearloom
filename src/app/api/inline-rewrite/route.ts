@@ -42,9 +42,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Too many rewrites — wait a moment.' }, { status: 429 });
   }
 
-  let body: { text?: unknown; context?: unknown };
+  let body: { text?: unknown; context?: unknown; instruction?: unknown };
   try {
-    body = (await req.json()) as { text?: unknown; context?: unknown };
+    body = (await req.json()) as { text?: unknown; context?: unknown; instruction?: unknown };
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
@@ -56,6 +56,16 @@ export async function POST(req: NextRequest) {
   if (text.length > 1200) {
     return NextResponse.json({ error: 'Selection too long for inline rewrite (>1200 chars)' }, { status: 400 });
   }
+
+  /* The host's direction — either a tone tag from the preset chips
+     ("funnier", "more poetic") or a free-form whisper typed at the
+     selection ("like a dinner party, not a gala"). Before this
+     param existed the route hardcoded "tighter and warmer", which
+     made every tone chip produce the same rewrite. Clamped + quoted
+     into the user turn (never the system prompt) so a creative
+     instruction can't override the formatting contract. */
+  const instruction = String(body.instruction ?? '').trim().slice(0, 280);
+  const context = String(body.context ?? '').trim().slice(0, 80);
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -85,7 +95,14 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: 'user',
-          content: `Rewrite this snippet to be tighter and warmer for a wedding/celebration site:\n\n${text}`,
+          content: [
+            `Rewrite this ${context || 'snippet'} for a wedding/celebration site.`,
+            instruction
+              ? `The host's direction: "${instruction}"`
+              : 'Direction: tighter and warmer.',
+            '',
+            text,
+          ].join('\n'),
         },
       ],
       maxTokens: 400,

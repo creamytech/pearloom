@@ -18,6 +18,7 @@
    sparkle, pulsing dot when busy. Reuse these instead of forking
    the styles. */
 
+import { pearWorking } from './PearLoomFx';
 import { useEffect, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 import { Icon } from '../motifs';
 
@@ -161,6 +162,9 @@ export interface PearInlineRewriteProps {
    *  identifies the field so Claude knows the register. E.g.
    *  'hero tagline', 'story body', 'details value — dress code'. */
   context: string;
+  /** Canvas section the field belongs to — when set, the loom FX
+   *  thread travels there while the rewrite is in flight. */
+  fxSection?: string;
   /** Tone presets to show. Defaults to all four. */
   tones?: RewriteTone[];
   /** Optional inline error renderer override. */
@@ -176,6 +180,7 @@ export function PearInlineRewrite({
   value,
   onCommit,
   context,
+  fxSection,
   tones = ['shorten', 'warmer', 'funnier', 'poetic'],
   onError,
   instantApply = false,
@@ -202,12 +207,14 @@ export function PearInlineRewrite({
     }
     setBusy(tone); setErr(null);
     try {
+      pearWorking('start', fxSection);
       const res = await fetch('/api/inline-rewrite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text: value,
-          context: `${context} — make it ${TONE_LABEL[tone].toLowerCase()}`,
+          context,
+          instruction: `make it ${TONE_LABEL[tone].toLowerCase()}`,
         }),
       });
       if (!res.ok) {
@@ -217,11 +224,19 @@ export function PearInlineRewrite({
       }
       const { rewritten } = await res.json() as { rewritten: string };
       if (rewritten && rewritten !== value) {
-        if (instantApply) onCommit(rewritten);
-        else setPending({ tone, text: rewritten });
+        if (instantApply) { onCommit(rewritten); pearWorking('done', fxSection); }
+        else {
+          setPending({ tone, text: rewritten });
+          /* Preview parked — retract the thread without the landed
+             settle; that fires when the host keeps it. */
+          pearWorking('error', fxSection);
+        }
+      } else {
+        pearWorking('error', fxSection);
       }
     } catch (e) {
       console.error('[pear-rewrite] failed:', e);
+      pearWorking('error', fxSection);
       const msg = pearErrorMessage(e, 'Pear couldn’t polish that one — try again?');
       setErr(msg);
       onError?.(msg);
@@ -233,6 +248,7 @@ export function PearInlineRewrite({
   const keep = () => {
     if (!pending) return;
     onCommit(pending.text); /* same write path as instantApply */
+    pearWorking('done', fxSection);
     setPending(null);
   };
   const discard = () => setPending(null);

@@ -196,6 +196,7 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
                             /* Rewrite-tone chips for the existing
                                answer — Shorten / Warmer / etc. */
                             <PearInlineRewrite
+                fxSection="faq"
                               value={f.answer}
                               onCommit={(v) => patch(i, { answer: v })}
                               context={`FAQ answer to "${f.question}"`}

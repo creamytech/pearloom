@@ -36,6 +36,7 @@ import { EditorTopbar } from './EditorTopbar';
 import { FullSite } from './FullSite';
 import { ThemedSite } from './ThemedSite';
 import { EditorDrawers } from './EditorDrawers';
+import { PearLoomFx } from './PearLoomFx';
 import { FirstPressing, shouldPlayFirstPressing } from './FirstPressing';
 import { MobileSheet, MobileBottomBar, type MobileSheetId } from './MobileSheet';
 import { useMobileViewport } from './use-mobile-viewport';
@@ -434,6 +435,9 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
         onChange={bridge.setManifest}
         siteSlug={siteSlug}
       />
+      {/* Pear's hands — thread-travel + weave-settle + dye-sweep
+          overlay for every AI operation (pearloom:pear-working). */}
+      <PearLoomFx />
 
       {pressing && (
         <FirstPressing

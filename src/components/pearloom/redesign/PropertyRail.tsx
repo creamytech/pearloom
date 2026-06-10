@@ -16,6 +16,7 @@ import { VariantGlyph } from './variant-glyphs';
 import { getTheme } from '../site/themes';
 import { pearErrorMessage } from './PearAssist';
 import { fireUndoable } from './UndoToast';
+import { pearWorking } from './PearLoomFx';
 
 /* useSectionHidden — read/write manifest.hiddenSections from
    inside the rail. Mirrors the same hook in _section-atoms.tsx
@@ -294,11 +295,12 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
       return;
     }
     setPearBusy(label);
+    pearWorking('start', active);
     try {
       const res = await fetch('/api/inline-rewrite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: current, context: `${target.context} — make it ${target.tone}` }),
+        body: JSON.stringify({ text: current, context: target.context, instruction: `make it ${target.tone}` }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
@@ -309,8 +311,10 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
       if (rewritten && rewritten !== current) {
         onChange(writePath(manifest as unknown as Record<string, unknown>, target.fieldPath, rewritten) as unknown as StoryManifest);
       }
+      pearWorking('done', active);
     } catch (e) {
       console.error('[property-rail] rewrite error:', e);
+      pearWorking('error', active);
       setPearErr(pearErrorMessage(e, 'Pear couldn’t rewrite that one — try again?'));
     } finally {
       setPearBusy(null);
