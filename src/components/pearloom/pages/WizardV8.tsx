@@ -37,6 +37,8 @@ import {
 import { BackgroundCookPill } from '../wizard/BackgroundCookPill';
 import { usePhotoPalette } from '../wizard/usePhotoPalette';
 import { useDialog } from '@/components/ui/confirm-dialog';
+import { applyWizardLook } from '@/lib/site-look/wizard-look';
+import type { StoryManifest } from '@/types';
 
 // Layout step removed 2026-05-30 — superseded again 2026-06-10:
 // Editions are no longer host-facing anywhere; layout variants now
@@ -274,6 +276,29 @@ const defaultState: WizardState = {
   subdomain: '',
   photos: [],
 };
+
+/** Fold a background-cooked decor library (useBackgroundCook result)
+ *  into a manifest's `decorLibrary` so the editor opens with decor
+ *  already populated. No-ops when the cooked shape doesn't match. */
+function foldCookedDecorInto(manifest: Record<string, unknown>, decorRaw: unknown): void {
+  if (!decorRaw || typeof decorRaw !== 'object') return;
+  const lib: Record<string, unknown> = {
+    ...((manifest.decorLibrary as Record<string, unknown> | undefined) ?? {}),
+    updatedAt: new Date().toISOString(),
+  };
+  const d = decorRaw as Record<string, unknown>;
+  if (typeof d.divider === 'string') lib.divider = d.divider;
+  if (typeof d.confetti === 'string') lib.confetti = d.confetti;
+  if (typeof d.footerBouquet === 'string') lib.footerBouquet = d.footerBouquet;
+  if (d.sectionStamps && typeof d.sectionStamps === 'object') {
+    const stamps: Record<string, string> = {};
+    for (const [k, v] of Object.entries(d.sectionStamps as Record<string, unknown>)) {
+      if (typeof v === 'string') stamps[k] = v;
+    }
+    if (Object.keys(stamps).length) lib.sectionStamps = stamps;
+  }
+  manifest.decorLibrary = lib;
+}
 
 // User-friendly upload failure messages keyed on HTTP status.
 function humanizeUploadStatus(status: number): string {
@@ -1303,16 +1328,36 @@ export function WizardV8() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  // Live mirror of wizard state for async flows — handleFinish
+  // captures a stale `st` in its closure, so the upload-wait loop
+  // below reads through this ref to see fresh photo upload state.
+  const stRef = useRef(st);
+  stRef.current = st;
+
+  // Palette colors that generation should honor. st.paletteColors
+  // is only written when the host CLICKS a palette tile — a host
+  // who keeps the pre-selected default (or restores an old draft)
+  // would otherwise generate with no colors at all, silently
+  // dropping their palette. Fall back to the selected preset's
+  // swatches, exactly like the live vignette + Review step do.
+  const resolvedPaletteColors = useMemo<string[] | undefined>(
+    () =>
+      st.paletteColors && st.paletteColors.length > 0
+        ? st.paletteColors
+        : PALETTES.find((p) => p.id === st.palette)?.colors,
+    [st.paletteColors, st.palette],
+  );
+
   // Background cook — kicks off the AI decor library generation
   // as soon as the host has occasion + palette + venue. The
   // result lands in sessionStorage so the editor's first paint
   // can read it instead of generating decor on demand. Saves
   // 60-120s after the wizard's main generate pass.
   const cookSig =
-    st.occasion && st.paletteColors && st.paletteColors.length > 0
+    st.occasion && resolvedPaletteColors && resolvedPaletteColors.length > 0
       ? {
           occasion: st.occasion,
-          paletteHex: st.paletteColors,
+          paletteHex: resolvedPaletteColors,
           venue: st.location || undefined,
           vibe: st.vibes.join(', ') || undefined,
         }
@@ -1335,8 +1380,8 @@ export function WizardV8() {
       !st.names[0] ||
       !st.occasion ||
       !st.vibes.length ||
-      !st.paletteColors ||
-      st.paletteColors.length === 0
+      !resolvedPaletteColors ||
+      resolvedPaletteColors.length === 0
     ) {
       return null;
     }
@@ -1367,7 +1412,7 @@ export function WizardV8() {
       occasion: st.occasion,
       category,
       vibes: st.vibes,
-      paletteColors: st.paletteColors,
+      paletteColors: resolvedPaletteColors,
       templateId: st.templateId,
       layout: st.layout,
       eventDate: st.eventDate,
@@ -1401,7 +1446,7 @@ export function WizardV8() {
         },
         layoutFormat: st.layout,
         templateId: st.templateId,
-        selectedPaletteColors: st.paletteColors,
+        selectedPaletteColors: resolvedPaletteColors,
         motifKind: st.suggestedMotif,
         motifLayout: st.suggestedMotifLayout,
       },
@@ -1411,7 +1456,7 @@ export function WizardV8() {
     st.names,
     st.occasion,
     st.vibes,
-    st.paletteColors,
+    resolvedPaletteColors,
     st.suggestedMotif,
     st.suggestedMotifLayout,
     st.templateId,
@@ -1644,9 +1689,24 @@ export function WizardV8() {
         slugify(st.occasion) ||
         `event-${Date.now().toString(36)}`;
 
+      // Wait out in-flight uploads instead of silently dropping
+      // them. Tapping "Build my site" while photos were still
+      // uploading used to send ZERO photos into the pipeline —
+      // the wizard fell through to the instant skeleton path and
+      // the host landed in the editor with none of their photos
+      // (and, before applyWizardLook below, none of their look).
+      const uploadWaitStart = Date.now();
+      while (
+        stRef.current.photos.some((p) => p.uploading) &&
+        Date.now() - uploadWaitStart < 90_000
+      ) {
+        setGenStep('Threading your photos in…');
+        await new Promise((r) => setTimeout(r, 400));
+      }
+
       // Only photos that have a resolvable URL reach the pipeline.
-      // Uploads that haven't finished (or failed) are dropped here.
-      const readyPhotos = st.photos.filter((p) => p.url && !p.uploading);
+      // Uploads that failed (or timed out above) are dropped here.
+      const readyPhotos = stRef.current.photos.filter((p) => p.url && !p.uploading);
       const hasPhotos = readyPhotos.length > 0;
       const e = getEventType(st.occasion as never);
       const category = e?.category;
@@ -1666,25 +1726,7 @@ export function WizardV8() {
           // Still fold in any cooked decor that may have arrived
           // separately so the editor opens fully populated.
           if (cookSig) {
-            const decorRaw = readCookedDecor(cookSig);
-            if (decorRaw && typeof decorRaw === 'object') {
-              const lib: Record<string, unknown> = {
-                ...((cachedPrewarm as { decorLibrary?: Record<string, unknown> }).decorLibrary ?? {}),
-                updatedAt: new Date().toISOString(),
-              };
-              const d = decorRaw as Record<string, unknown>;
-              if (typeof d.divider === 'string') lib.divider = d.divider;
-              if (typeof d.confetti === 'string') lib.confetti = d.confetti;
-              if (typeof d.footerBouquet === 'string') lib.footerBouquet = d.footerBouquet;
-              if (d.sectionStamps && typeof d.sectionStamps === 'object') {
-                const stamps: Record<string, string> = {};
-                for (const [k, v] of Object.entries(d.sectionStamps as Record<string, unknown>)) {
-                  if (typeof v === 'string') stamps[k] = v;
-                }
-                if (Object.keys(stamps).length) lib.sectionStamps = stamps;
-              }
-              (cachedPrewarm as { decorLibrary?: Record<string, unknown> }).decorLibrary = lib;
-            }
+            foldCookedDecorInto(cachedPrewarm as unknown as Record<string, unknown>, readCookedDecor(cookSig));
           }
           manifest = cachedPrewarm as unknown as Record<string, unknown>;
           // Tiny visual settle so the GeneratingScreen doesn't
@@ -1737,7 +1779,7 @@ export function WizardV8() {
           },
           layoutFormat: st.layout,
           templateId: st.templateId,
-          selectedPaletteColors: st.paletteColors,
+          selectedPaletteColors: resolvedPaletteColors,
           motifKind: st.suggestedMotif,
           motifLayout: st.suggestedMotifLayout,
           // Speculative decor library, baked while the wizard
@@ -1845,6 +1887,44 @@ export function WizardV8() {
           },
           ...(seedTagline ? { poetry: { heroTagline: seedTagline } } : {}),
         };
+
+        // Stamp the host's picked palette on the legacy theme.colors
+        // contract — same mapping /api/generate/stream uses — so
+        // surfaces that still read theme.colors (hero atmosphere
+        // accent, hydration fallback) see the pick too.
+        if (resolvedPaletteColors && resolvedPaletteColors.length >= 3) {
+          manifest.theme = {
+            colors: {
+              background: resolvedPaletteColors[0] ?? '#F5EFE2',
+              foreground: resolvedPaletteColors[3] ?? '#0E0D0B',
+              accent: resolvedPaletteColors[1] ?? '#5C6B3F',
+              accentLight: resolvedPaletteColors[2] ?? '#E0DDC9',
+              muted: resolvedPaletteColors[4] ?? '#6F6557',
+              cardBg: resolvedPaletteColors[0] ?? '#F5EFE2',
+            },
+          };
+        }
+
+        // Canonical look wiring — themeVars / texture / kit /
+        // density / motif / layout variants, exactly like the AI
+        // path gets server-side. Without this the no-photos path
+        // saved a bare manifest and the editor opened on the
+        // default theme: every wizard pick (palette, pattern,
+        // component kit) silently evaporated and only the tagline
+        // survived.
+        manifest = applyWizardLook(manifest as unknown as StoryManifest, {
+          selectedPaletteColors: resolvedPaletteColors,
+          layoutFormat: st.layout,
+          occasion: st.occasion,
+          motifKind: st.suggestedMotif,
+          motifLayout: st.suggestedMotifLayout,
+        }) as unknown as Record<string, unknown>;
+
+        // Fold in any background-cooked decor (the cook only needs
+        // occasion + palette, so it runs even without photos).
+        if (cookSig) {
+          foldCookedDecorInto(manifest, readCookedDecor(cookSig));
+        }
       }
 
       const res = await fetch('/api/sites', {
