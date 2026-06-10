@@ -94,3 +94,12 @@ describe('legacy-contract rescue (hydrate path)', () => {
     expect(vars!['--t-paper']).not.toBe(vars!['--t-ink']);
   });
 });
+
+describe('motif placement default', () => {
+  it('stamps motifLayout from the kit default, fill-missing', () => {
+    const out = applyWizardLook(m(), { occasion: 'bachelor-party' }) as unknown as Record<string, unknown>;
+    expect(typeof out.motifLayout).toBe('string');
+    const kept = applyWizardLook(m({ motifLayout: 'crest' }), { occasion: 'bachelor-party' }) as unknown as Record<string, unknown>;
+    expect(kept.motifLayout).toBe('crest');
+  });
+});

@@ -23,6 +23,7 @@
      Generate       → POST /api/decor/generate-from-text
    ========================================================================= */
 
+import { MOTIF_LAYOUTS, motifLayoutForKit } from '../../redesign/MotifLayer';
 import { useState, type ReactNode, type CSSProperties } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
@@ -1026,6 +1027,38 @@ export function DecorLibraryPanel({
                     <Motif kind={m.id} size={52} />
                   </ThemedTile>
                 ))}
+              </div>
+
+              <GalleryLabel>Where they live</GalleryLabel>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8, marginBottom: 4 }}>
+                {MOTIF_LAYOUTS.map((l) => {
+                  const current = ((manifest as unknown as { motifLayout?: string }).motifLayout)
+                    ?? motifLayoutForKit((manifest as unknown as { kitId?: string }).kitId);
+                  const on = current === l.id;
+                  return (
+                    <button
+                      key={l.id}
+                      type="button"
+                      onClick={() => {
+                        const next = { ...manifest } as LooseManifest;
+                        (next as unknown as Record<string, unknown>).motifLayout = l.id;
+                        onChange(next as unknown as StoryManifest);
+                      }}
+                      style={{
+                        textAlign: 'left',
+                        padding: '9px 11px',
+                        borderRadius: 10,
+                        border: on ? '1.5px solid var(--sage-deep, #5C6B3F)' : '1px solid var(--line, #D8CFB8)',
+                        background: on ? 'var(--sage-tint, rgba(122,138,79,0.10))' : 'var(--card, #FBF7EE)',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>{l.label}</div>
+                      <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', lineHeight: 1.35 }}>{l.sub}</div>
+                    </button>
+                  );
+                })}
               </div>
 
               <GalleryLabel>Motif color</GalleryLabel>

@@ -22,6 +22,7 @@
 
 import type { StoryManifest } from '@/types';
 import { lookDefaultsFor, recommendTextureFor } from '@/lib/event-os/event-types';
+import { motifLayoutForKit } from '@/components/pearloom/redesign/MotifLayer';
 
 type Loose = Record<string, unknown>;
 
@@ -161,6 +162,10 @@ export function applyWizardLook(manifest: StoryManifest, input: WizardLookInput)
     if (next.kitId === undefined) next.kitId = look.kitId;
     if (next.density === undefined) next.density = look.density;
     if (next.textureIntensity === undefined) next.textureIntensity = look.textureIntensity;
+    // Motif placement follows the kit (scrapbook→scattered,
+    // plate→corners, index→margins…) so generated pages compose
+    // coherently before the host opens the Decor picker.
+    if (next.motifLayout === undefined) next.motifLayout = motifLayoutForKit(String(next.kitId));
   }
 
   // 4. Wizard layout → section variants (merge under existing).

@@ -7,8 +7,15 @@ import type { StoryManifest } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
-export default function SiteDevPreview() {
+export default async function SiteDevPreview({
+  searchParams,
+}: {
+  searchParams: Promise<{ motifLayout?: string; motifKind?: string }>;
+}) {
   if (process.env.NODE_ENV === 'production') notFound();
+  // Dev knobs: /dev/site?motifLayout=corners&motifKind=olive lets us
+  // eyeball each motif placement against the same mock manifest.
+  const { motifLayout, motifKind } = await searchParams;
 
   const manifest = {
     occasion: 'wedding',
@@ -127,6 +134,8 @@ export default function SiteDevPreview() {
     /* Spotify playlist — exercises ThemedSpotify. */
     spotifyUrl: 'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M',
     spotifyPlaylistName: 'soundtrack',
+    ...(motifLayout ? { motifLayout } : {}),
+    ...(motifKind ? { motifKind } : {}),
   } as unknown as StoryManifest;
 
   return (
