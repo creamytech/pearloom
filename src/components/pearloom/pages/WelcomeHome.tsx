@@ -76,9 +76,14 @@ export function WelcomeHome() {
     fetch(`/api/guests?site=${encodeURIComponent(site.domain)}`)
       .then((r) => r.ok ? r.json() : null)
       .then((data: { guests?: Guest[] } | null) => {
-        if (!cancelled && data?.guests) setGuests(data.guests);
+        if (!cancelled) setGuests(data?.guests ?? []);
       })
-      .catch(() => {});
+      .catch(() => {
+        // Keyless deploy / API error — resolve to empty so the
+        // Guests card shows its real empty state instead of an
+        // eternal 'Threading…' strip.
+        if (!cancelled) setGuests([]);
+      });
     return () => { cancelled = true; };
   }, [site?.domain]);
 
@@ -1035,8 +1040,11 @@ function GuestPulse({
   const isNarrow = useIsMobile(720);
   if (loading) {
     return (
-      <div className="card" style={{ padding: 20, borderRadius: 20, fontSize: 13, color: 'var(--ink-muted)', fontStyle: 'italic' }}>
-        Threading…
+      <div className="card" style={{ padding: 20, borderRadius: 20 }}>
+        <SectionHeader icon="users">Guests</SectionHeader>
+        <div style={{ padding: '14px 4px 4px', fontSize: 13, color: 'var(--ink-muted)', fontStyle: 'italic' }}>
+          Threading…
+        </div>
       </div>
     );
   }

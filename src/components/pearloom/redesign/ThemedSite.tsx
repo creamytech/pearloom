@@ -1386,7 +1386,7 @@ function StorySideBySide({ ctx }: { ctx: SectionCtx }) {
   void theme;
   const heroPhoto = C.story.chapterImages?.[0];
   return (
-    <div style={{ position: 'relative', padding: `${48 * pad}px 72px`, display: 'grid', gridTemplateColumns: '0.85fr 1fr', gap: 44, alignItems: 'center', background: 'var(--t-paper)' }}>
+    <div className="pl8-story-sbs" style={{ position: 'relative', padding: `${48 * pad}px clamp(20px, 6vw, 72px)`, display: 'grid', gridTemplateColumns: '0.85fr 1fr', gap: 'clamp(24px, 5vw, 44px)', alignItems: 'center', background: 'var(--t-paper)' }}>
       <div style={{ position: 'relative' }}>
         {heroPhoto ? (
           <FadeInImage src={heroPhoto} style={{ aspectRatio: '4/5', borderRadius: 'var(--t-radius)' }} />
@@ -1446,7 +1446,7 @@ function StoryStacked({ ctx }: { ctx: SectionCtx }) {
   const { pad, C, editable, edit } = ctx;
   const heroPhoto = C.story.chapterImages?.[0];
   return (
-    <div style={{ padding: `${48 * pad}px 72px`, textAlign: 'center', maxWidth: 760, marginInline: 'auto', background: 'var(--t-paper)' }}>
+    <div style={{ padding: `${48 * pad}px clamp(20px, 6vw, 72px)`, textAlign: 'center', maxWidth: 760, marginInline: 'auto', background: 'var(--t-paper)' }}>
       <div style={{ marginInline: 'auto', maxWidth: 520, marginBottom: 26 }}>
         {heroPhoto ? (
           <FadeInImage src={heroPhoto} style={{ aspectRatio: '16/9', borderRadius: 'var(--t-radius)' }} />
@@ -1503,7 +1503,7 @@ function StoryQuote({ ctx }: { ctx: SectionCtx }) {
   const isEditorial = theme.id === 'editorial';
   const heroPhoto = C.story.chapterImages?.[0];
   return (
-    <div style={{ position: 'relative', padding: `${56 * pad}px 72px`, textAlign: 'center', maxWidth: 880, marginInline: 'auto', background: 'var(--t-paper)' }}>
+    <div style={{ position: 'relative', padding: `${56 * pad}px clamp(20px, 6vw, 72px)`, textAlign: 'center', maxWidth: 880, marginInline: 'auto', background: 'var(--t-paper)' }}>
       {motifsOn && <MotifScatter motif={motif} density="sparse" />}
       {heroPhoto && (
         /* Decorative cover above the quote — small + centered so it

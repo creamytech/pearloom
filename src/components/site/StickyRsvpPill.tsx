@@ -61,6 +61,7 @@ export function StickyRsvpPill({
   });
   const [overRsvp, setOverRsvp] = useState(false);
   const [nearFooter, setNearFooter] = useState(false);
+  const [scrollingDown, setScrollingDown] = useState(false);
   const [dockOpen, setDockOpen] = useState(false);
   const [smallViewport, setSmallViewport] = useState(false);
 
@@ -133,6 +134,31 @@ export function StickyRsvpPill({
     return () => mq.removeEventListener('change', update);
   }, []);
 
+  // Mid-page occlusion guard (phones): the pill covers card text
+  // while a guest is actively reading downward, so hide on
+  // scroll-DOWN and return on scroll-up or after 900ms idle —
+  // the standard FAB pattern. Desktop keeps the pill steady.
+  useEffect(() => {
+    if (!window.matchMedia('(max-width: 640px)').matches) return;
+    let lastY = window.scrollY;
+    let idleTimer: number | undefined;
+    const onScroll = () => {
+      const y = window.scrollY;
+      const goingDown = y > lastY + 4;
+      const goingUp = y < lastY - 4;
+      lastY = y;
+      if (goingDown) setScrollingDown(true);
+      else if (goingUp) setScrollingDown(false);
+      window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(() => setScrollingDown(false), 900);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.clearTimeout(idleTimer);
+    };
+  }, []);
+
   function handleDismiss(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
@@ -145,7 +171,8 @@ export function StickyRsvpPill({
   }
 
   const visible =
-    show && !dismissed && !overRsvp && !nearFooter && !(dockOpen && smallViewport);
+    show && !dismissed && !overRsvp && !nearFooter && !scrollingDown &&
+    !(dockOpen && smallViewport);
 
   return (
     <AnimatePresence>

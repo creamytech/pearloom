@@ -8265,3 +8265,18 @@ html { scroll-behavior: smooth; }
     gap: 4px !important;
   }
 }
+
+/* ── Story side-by-side: stack on phones (2026-06-10) ─────────
+   The 0.85fr/1fr spread crushed the prose into a ~130px ragged
+   column at 390px. Below 640px the photo sits above a full-width
+   measure instead. */
+@media (max-width: 640px) {
+  .pl8-guest .pl8-story-sbs {
+    grid-template-columns: 1fr !important;
+  }
+  .pl8-guest .pl8-story-sbs > div:first-child {
+    max-width: 420px;
+    margin-inline: auto;
+    width: 100%;
+  }
+}
