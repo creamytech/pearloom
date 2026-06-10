@@ -86,6 +86,9 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor }:
       <SiteLayoutPick manifest={manifest} onChange={onChange} />
       <KitPick manifest={manifest} onChange={onChange} />
 
+      <ColorsPick theme={theme} manifest={manifest} onChange={onChange} />
+      <TexturePick theme={theme} manifest={manifest} onChange={onChange} />
+
       <FineTune theme={theme} manifest={manifest} onChange={onChange} />
 
       <LegibilityNote manifest={manifest} theme={theme} onChange={onChange} />
@@ -563,6 +566,10 @@ function FineTune({ theme, manifest, onChange }: { theme: Theme; manifest: Story
   const density = manifest.density ?? 'comfortable';
   const intensity = (manifest as unknown as { textureIntensity?: number }).textureIntensity ?? 1;
   const motifsOn = (manifest as unknown as { motifsEnabled?: boolean }).motifsEnabled ?? true;
+  /* Manual texture override (TexturePick) wins over the theme's
+     own material — gate + label follow what's actually painted. */
+  const textureOverride = (manifest as unknown as { texture?: string }).texture;
+  const effectiveTexture = textureOverride && textureOverride !== '' ? textureOverride : theme.texture;
 
   const setVoice = (v: string) => onChange({ ...(manifest as unknown as Record<string, unknown>), voiceOverride: v } as unknown as StoryManifest);
   const setDensity = (v: string) => onChange({ ...manifest, density: v as 'cozy' | 'comfortable' | 'spacious' });
@@ -576,7 +583,14 @@ function FineTune({ theme, manifest, onChange }: { theme: Theme; manifest: Story
     velvet: 'Velvet sheen',
     paper: 'Paper grain',
     none: 'Texture',
-  } as Record<string, string>)[theme.texture] ?? 'Paper grain';
+    canvas: 'Canvas weave',
+    kraft: 'Kraft paper',
+    vellum: 'Vellum sheet',
+    letterpress: 'Letterpress',
+    newsprint: 'Newsprint',
+    marble: 'Marble vein',
+    gilded: 'Gilded leaf',
+  } as Record<string, string>)[effectiveTexture] ?? 'Paper grain';
 
   const intensityLabel = intensity <= 0.01 ? 'Off'
     : intensity < 0.6 ? 'Faint'
@@ -605,7 +619,7 @@ function FineTune({ theme, manifest, onChange }: { theme: Theme; manifest: Story
         ]} />
       </PickRow>
 
-      {theme.texture !== 'none' && (
+      {effectiveTexture !== 'none' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 500 }}>{textureLabel}</span>
@@ -792,6 +806,214 @@ function extractPalette(img: HTMLImageElement, count: number): string[] {
 }
 
 /* ─── shared atoms ────────────────────────────────────────── */
+
+/* ─── ColorsPick — manual color overrides on themeVars ──────────
+   Five host-facing tokens (Paper / Ink / Accent / Soft / Gold) as
+   native color wells. Each pick also recomputes the DEPENDENT
+   tones (section wash, card, accent-bg/ink, ink-soft/muted, hairlines,
+   RSVP plate) with the same mixing math the wizard's
+   themeVarsFromPalette uses, so a single bold accent pick never
+   strands an unreadable button. Writes manifest.themeVars — the
+   exact bag Theme Store packs write — so the renderer needs no new
+   read path and pack picks keep winning until the host re-tweaks. */
+
+const EDITABLE_COLORS: Array<[token: string, label: string]> = [
+  ['--t-paper', 'Paper'],
+  ['--t-ink', 'Ink'],
+  ['--t-accent', 'Accent'],
+  ['--t-accent-2', 'Soft'],
+  ['--t-gold', 'Gold'],
+];
+
+function cpHex(v: unknown): string | null {
+  return typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v.trim()) ? v.trim() : null;
+}
+function cpRgb(hex: string): [number, number, number] {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function cpMix(a: string, b: string, t: number): string {
+  const [ar, ag, ab] = cpRgb(a); const [br, bg, bb] = cpRgb(b);
+  const c = (x: number, y: number) => Math.round(x + (y - x) * t).toString(16).padStart(2, '0');
+  return `#${c(ar, br)}${c(ag, bg)}${c(ab, bb)}`.toUpperCase();
+}
+function cpRgba(hex: string, alpha: number): string {
+  const [r, g, b] = cpRgb(hex);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/** Tones derived from the three structural picks. */
+function deriveDependentVars(paper: string, ink: string, accent: string): Record<string, string> {
+  return {
+    '--t-section': cpMix(paper, accent, 0.10),
+    '--t-card': cpMix(paper, '#FFFFFF', 0.5),
+    '--t-ink-soft': cpMix(ink, paper, 0.28),
+    '--t-ink-muted': cpMix(ink, paper, 0.52),
+    '--t-accent-bg': cpMix(paper, accent, 0.16),
+    '--t-accent-ink': cpMix(accent, '#14120E', 0.3),
+    '--t-line': cpRgba(ink, 0.16),
+    '--t-line-soft': cpRgba(ink, 0.08),
+    '--t-rsvp': ink,
+    '--t-rsvp-ink': paper,
+  };
+}
+
+function ColorsPick({ theme, manifest, onChange }: { theme: Theme; manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const overrides = ((manifest as unknown as { themeVars?: Record<string, string> }).themeVars) ?? {};
+  const resolved = (token: string): string =>
+    cpHex(overrides[token]) ?? cpHex((theme.vars as Record<string, unknown>)[token]) ?? '#888888';
+
+  /* Mount snapshot — "Reset" returns to whatever the host walked in
+     with (theme default OR an applied pack), not to a guess. */
+  const [initialVars] = useState<Record<string, string> | undefined>(
+    () => (manifest as unknown as { themeVars?: Record<string, string> }).themeVars,
+  );
+  const dirty = JSON.stringify(overrides) !== JSON.stringify(initialVars ?? {}) && Object.keys(overrides).length > 0;
+
+  const setColor = (token: string, hex: string) => {
+    const next = { ...overrides, [token]: hex.toUpperCase() };
+    const paper = token === '--t-paper' ? hex : resolved('--t-paper');
+    const ink = token === '--t-ink' ? hex : resolved('--t-ink');
+    const accent = token === '--t-accent' ? hex : resolved('--t-accent');
+    /* Recompute dependents only when a structural color moved —
+       Soft + Gold are leaf accents with no derived tones. */
+    if (token === '--t-paper' || token === '--t-ink' || token === '--t-accent') {
+      Object.assign(next, deriveDependentVars(paper, ink, accent));
+      /* Keep explicit picks for tokens the host set directly. */
+      for (const [t] of EDITABLE_COLORS) {
+        if (cpHex(overrides[t])) next[t] = overrides[t];
+      }
+      next[token] = hex.toUpperCase();
+    }
+    onChange({ ...(manifest as unknown as Record<string, unknown>), themeVars: next } as unknown as StoryManifest);
+  };
+
+  const reset = () => {
+    const loose = { ...(manifest as unknown as Record<string, unknown>) };
+    if (initialVars && Object.keys(initialVars).length > 0) loose.themeVars = initialVars;
+    else delete loose.themeVars;
+    onChange(loose as unknown as StoryManifest);
+  };
+
+  return (
+    <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+          Colors
+        </div>
+        {dirty && (
+          <button
+            type="button"
+            onClick={reset}
+            style={{ border: 'none', background: 'transparent', color: 'var(--ink-muted)', fontSize: 10.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}
+          >
+            Reset
+          </button>
+        )}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
+        {EDITABLE_COLORS.map(([token, label]) => (
+          <label key={token} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+            <span
+              style={{
+                position: 'relative', width: '100%', aspectRatio: '1.4/1',
+                borderRadius: 8, border: '1px solid var(--line)',
+                background: resolved(token), overflow: 'hidden', display: 'block',
+              }}
+            >
+              <input
+                type="color"
+                value={resolved(token)}
+                onChange={(e) => setColor(token, e.target.value)}
+                aria-label={`${label} color`}
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+              />
+            </span>
+            <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--ink-soft)' }}>{label}</span>
+          </label>
+        ))}
+      </div>
+      <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
+        Paper, ink and accent re-mix the washes, hairlines and buttons with them — the site stays readable.
+      </div>
+    </div>
+  );
+}
+
+/* ─── TexturePick — manual paper material ───────────────────────
+   Writes manifest.texture (the same field Theme Store packs write);
+   the grain slider in Fine-tune controls its strength. "None" is a
+   real override — ThemedSite honors it instead of falling back to
+   the theme's material. */
+
+const TEXTURE_OPTIONS: Array<{ id: string; label: string }> = [
+  { id: 'none', label: 'None' },
+  { id: 'linen', label: 'Linen' },
+  { id: 'paper', label: 'Paper' },
+  { id: 'cotton', label: 'Cotton' },
+  { id: 'watercolor', label: 'Watercolor' },
+  { id: 'velvet', label: 'Velvet' },
+  { id: 'canvas', label: 'Canvas' },
+  { id: 'kraft', label: 'Kraft' },
+  { id: 'vellum', label: 'Vellum' },
+  { id: 'letterpress', label: 'Letterpress' },
+  { id: 'newsprint', label: 'Newsprint' },
+  { id: 'marble', label: 'Marble' },
+];
+
+function TexturePick({ theme, manifest, onChange }: { theme: Theme; manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const override = (manifest as unknown as { texture?: string }).texture;
+  const active = override && override !== '' ? override : theme.texture;
+  const set = (id: string) =>
+    onChange({ ...(manifest as unknown as Record<string, unknown>), texture: id } as unknown as StoryManifest);
+  return (
+    <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+          Paper texture
+        </div>
+        {override && override !== theme.texture && (
+          <button
+            type="button"
+            onClick={() => {
+              const loose = { ...(manifest as unknown as Record<string, unknown>) };
+              delete loose.texture;
+              onChange(loose as unknown as StoryManifest);
+            }}
+            style={{ border: 'none', background: 'transparent', color: 'var(--ink-muted)', fontSize: 10.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}
+          >
+            Match theme
+          </button>
+        )}
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+        {TEXTURE_OPTIONS.map((o) => {
+          const on = o.id === active;
+          return (
+            <button
+              key={o.id}
+              type="button"
+              onClick={() => set(o.id)}
+              aria-pressed={on}
+              style={{
+                padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                border: on ? '1px solid var(--ink)' : '1px solid var(--line)',
+                background: on ? 'var(--ink)' : 'transparent',
+                color: on ? 'var(--cream)' : 'var(--ink-soft)',
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+      <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
+        Strength lives under Fine-tune — slide Grain to 0 to turn any material off.
+      </div>
+    </div>
+  );
+}
 
 function PickRow({ label, children }: { label: string; children: ReactNode }) {
   return (

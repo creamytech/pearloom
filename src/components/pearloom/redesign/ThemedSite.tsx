@@ -312,7 +312,11 @@ export function ThemedSite({
      override instead of staying stuck on the base theme's
      default. */
   const textureOverride = ((manifest as unknown as { texture?: string }).texture);
-  const effectiveTexture = (typeof textureOverride === 'string' && textureOverride !== 'none' && textureOverride !== '')
+  /* 'none' is a REAL override — the host (TexturePick) or a Theme
+     Store pack chose bare paper. The old check treated 'none' as
+     unset and fell back to the theme's material, which made the
+     None pick (and matte packs) silently impossible. */
+  const effectiveTexture = (typeof textureOverride === 'string' && textureOverride !== '')
     ? textureOverride
     : theme.texture;
   const showWashHero = textureIntensity > 0 && effectiveTexture === 'watercolor';
