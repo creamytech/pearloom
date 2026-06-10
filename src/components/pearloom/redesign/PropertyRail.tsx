@@ -18,6 +18,7 @@ import { pearErrorMessage } from './PearAssist';
 import { fireUndoable } from './UndoToast';
 import { pearWorking } from './PearLoomFx';
 import { showPressings, type Pressing } from './ThreePressings';
+import { useMobileViewport } from './use-mobile-viewport';
 
 /* useSectionHidden — read/write manifest.hiddenSections from
    inside the rail. Mirrors the same hook in _section-atoms.tsx
@@ -182,6 +183,9 @@ interface Props {
 }
 
 export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }: Props) {
+  /* True when mounted inside the phone bottom sheet (the desktop
+     grid only renders this rail above the breakpoint). */
+  const isMobileViewport = useMobileViewport();
   const section = SECTIONS[active];
   const [tab, setTab] = useState<'content' | 'layout' | 'style'>('content');
   /* Tool panels (Guests / Share / Day-of / etc.) are host-only
@@ -387,9 +391,14 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
       key={active}
       className="pl-rd-rail-right"
       style={{
-        gridArea: 'right',
+        /* Desktop grid placement only — inside the phone bottom
+           sheet's single-cell grid, the named-area lookup creates an
+           implicit empty track that shoves the rail off-center (same
+           fix as PearAside / SectionRail). */
+        ...(isMobileViewport
+          ? {}
+          : { gridArea: 'right', borderLeft: '1px solid var(--line-soft)' }),
         background: 'var(--card)',
-        borderLeft: '1px solid var(--line-soft)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',

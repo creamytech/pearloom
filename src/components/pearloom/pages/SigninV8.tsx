@@ -10,6 +10,7 @@ import { PearloomMark } from '@/components/brand/PearloomMark';
 import { use, useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { GoogleOneTap } from '@/components/auth/GoogleOneTap';
 import { PearloomWordmark, PearlDot,
   Atmosphere,
   Blob,
@@ -232,6 +233,12 @@ export function SigninV8({
 
   return (
     <div className="pl8" style={{ minHeight: '100vh', background: 'var(--cream)', position: 'relative', overflow: 'hidden' }}>
+      {/* Stay-on-page Google sign-in — the One Tap card appears in
+          the corner when NEXT_PUBLIC_GOOGLE_CLIENT_ID is set; one
+          tap mints the session with no redirect. The button below
+          remains the full-OAuth path (it also grants the Google
+          Photos scope One Tap can't). */}
+      <GoogleOneTap next={next} />
       <Atmosphere preset="sparse" />
 
       <div className="pl8-signin-logo" style={{ position: 'absolute', top: 40, left: 56, zIndex: 10 }}>

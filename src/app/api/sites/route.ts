@@ -18,6 +18,41 @@ function getSupabase() {
   return createClient(url, key);
 }
 
+/** First available subdomain for a wizard CREATE.
+ *
+ *  A new site must NEVER land on a slug that's already taken — by
+ *  anyone, including the caller. Before this, a host who left the
+ *  URL field blank got the same names-derived slug as their last
+ *  site and saveSiteDraft (the autosave write path, which upserts
+ *  by subdomain for same-owner rows) silently overwrote it.
+ *
+ *  One LIKE query, then counts up: base, base-2, base-3, … with a
+ *  timestamp suffix as the deep-collision escape hatch. The base is
+ *  already slugified by the wizard ([a-z0-9-]), so it can't carry
+ *  LIKE wildcards. Fails OPEN to the requested slug — the old
+ *  behavior — so a transient query error never blocks the create. */
+async function findAvailableSubdomain(
+  db: NonNullable<ReturnType<typeof getSupabase>>,
+  requested: string,
+): Promise<string> {
+  const { data, error } = await db
+    .from('sites')
+    .select('subdomain')
+    .like('subdomain', `${requested}%`)
+    .limit(500);
+  if (error || !data) {
+    console.warn('[api/sites] subdomain availability query failed (using requested):', error);
+    return requested;
+  }
+  const taken = new Set(data.map((r) => (r as { subdomain: string }).subdomain));
+  if (!taken.has(requested)) return requested;
+  for (let i = 2; i <= 60; i++) {
+    const candidate = `${requested}-${i}`;
+    if (!taken.has(candidate)) return candidate;
+  }
+  return `${requested}-${Date.now().toString(36)}`;
+}
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -206,9 +241,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { subdomain, manifest, names } = await req.json();
-    if (!subdomain || !manifest) {
+    const body = await req.json();
+    const { manifest, names } = body;
+    const requestedSubdomain: string | undefined = body.subdomain;
+    if (!requestedSubdomain || !manifest) {
       return NextResponse.json({ error: 'Missing subdomain or manifest' }, { status: 400 });
+    }
+
+    // CREATE intent (wizard) — never land on a taken slug. Autosave
+    // callers omit the flag and keep upsert-by-subdomain semantics.
+    // The final subdomain is returned in the response so the wizard
+    // can route to the editor it actually created.
+    let subdomain = requestedSubdomain;
+    if (body.create === true) {
+      const createDb = getSupabase();
+      if (createDb) {
+        subdomain = await findAvailableSubdomain(createDb, requestedSubdomain);
+        if (subdomain !== requestedSubdomain) {
+          console.log(`[api/sites] create: '${requestedSubdomain}' taken — using '${subdomain}'`);
+        }
+      }
     }
 
     // Plan gate — maxSites from PLAN_LIMITS (@/lib/plan-gate). Only
@@ -331,7 +383,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: result.error }, { status: 409 });
     }
 
-    return NextResponse.json({ success: true }, { status: 201 });
+    // `subdomain` may differ from the requested one on a create —
+    // callers route to the editor with the returned value.
+    return NextResponse.json({ success: true, subdomain }, { status: 201 });
   } catch (error) {
     console.error('Error saving site draft:', error);
     return NextResponse.json({ error: 'Failed to save site' }, { status: 500 });

@@ -11,6 +11,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { buildMemoryPromptEmail } from '@/lib/email/brand-emails';
+import { emailThemeFromSuite } from '@/lib/email-sequences';
+import { suiteThemeFromManifest } from '@/lib/suite/theme';
+import type { StoryManifest } from '@/types';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getSiteConfig } from '@/lib/db';
@@ -30,61 +34,9 @@ function appOrigin(): string {
   return process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
 }
 
-function emailHtml({
-  guestFirstName,
-  names,
-  prompt,
-  passportUrl,
-}: {
-  guestFirstName: string;
-  names: string;
-  prompt: string;
-  passportUrl: string;
-}): string {
-  return `<!doctype html>
-<html>
-<body style="margin:0;padding:0;background:#F5EFE2;font-family:Inter,system-ui,-apple-system,sans-serif;color:#0E0D0B;">
-  <table role="presentation" cellspacing="0" cellpadding="0" width="100%" style="background:#F5EFE2;padding:32px 16px;">
-    <tr><td align="center">
-      <table role="presentation" cellspacing="0" cellpadding="0" width="560" style="background:#FBF7EE;border-radius:16px;padding:36px 32px;">
-        <tr><td style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#C19A4B;margin-bottom:12px;">
-          A story they asked for
-        </td></tr>
-        <tr><td style="padding-top:6px;font-family:Fraunces,Georgia,serif;font-size:28px;line-height:1.2;color:#0E0D0B;">
-          ${escape(guestFirstName)}, would you share a memory?
-        </td></tr>
-        <tr><td style="padding-top:16px;font-size:15px;line-height:1.65;color:#4A5642;">
-          ${escape(names)} are gathering memories for their celebration. Pear wrote you a prompt:
-        </td></tr>
-        <tr><td style="padding-top:16px;font-style:italic;font-size:15px;line-height:1.6;color:#4A5642;border-left:2px solid #C19A4B;padding-left:14px;">
-          ${escape(prompt)}
-        </td></tr>
-        <tr><td style="padding-top:24px;">
-          <a href="${passportUrl}" style="display:inline-block;padding:12px 22px;background:#5C6B3F;color:#F5EFE2;text-decoration:none;border-radius:999px;font-weight:600;font-size:14px;">
-            Open your passport
-          </a>
-        </td></tr>
-        <tr><td style="padding-top:24px;font-size:12px;color:#6F6557;line-height:1.55;">
-          Your response flows into the toast, the reel, and the keepsake book. Write as much or as little as you'd
-          like — Pear weaves the best lines in.
-        </td></tr>
-      </table>
-      <div style="max-width:560px;margin:18px auto 0;font-size:11px;color:#6F6557;text-align:center;">
-        Sent from Pearloom on behalf of ${escape(names)}.
-      </div>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-}
 
-function escape(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
+
+
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -105,6 +57,7 @@ export async function POST(req: NextRequest) {
   const cfg = await getSiteConfig(siteId).catch(() => null);
   if (!cfg?.manifest) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
 
+  const emailTheme = emailThemeFromSuite(suiteThemeFromManifest(cfg.manifest as unknown as StoryManifest));
   const names = Array.isArray(cfg.names) && cfg.names.length >= 2
     ? cfg.names.filter(Boolean).join(' & ')
     : 'Your hosts';
@@ -137,7 +90,7 @@ export async function POST(req: NextRequest) {
         from,
         to: guest.email,
         subject: `A memory for ${names}`,
-        html: emailHtml({ guestFirstName: first, names, prompt: p.prompt, passportUrl }),
+        html: buildMemoryPromptEmail({ guestFirstName: first, names, prompt: p.prompt, passportUrl, theme: emailTheme }).html,
       });
       sent += 1;
     } catch (err) {

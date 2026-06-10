@@ -16,6 +16,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import { buildAnniversaryEmail } from '@/lib/email/brand-emails';
+import { emailThemeFromSuite } from '@/lib/email-sequences';
+import { suiteThemeFromManifest } from '@/lib/suite/theme';
+import type { StoryManifest } from '@/types';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 120;
@@ -128,7 +132,6 @@ export async function GET(req: NextRequest) {
       const couple = names.length >= 2 ? `${names[0]} & ${names[1]}` : (names[0] ?? 'You');
       const recapUrl = `${baseUrl}/sites/${row.subdomain}/recap`;
       const unsubUrl = `${baseUrl}/api/email-prefs?site=${encodeURIComponent(row.id)}&channel=anniversary&action=opt-out`;
-      const yearWord = yearsAgo === 1 ? 'one year' : `${yearsAgo} years`;
 
       if (!resend) {
         // Dry-run when no Resend key — log the match but don't try
@@ -140,11 +143,16 @@ export async function GET(req: NextRequest) {
         continue;
       }
 
+      /* Anniversary note wears the couple's own site palette. */
+      const emailTheme = row.ai_manifest
+        ? emailThemeFromSuite(suiteThemeFromManifest(row.ai_manifest as unknown as StoryManifest))
+        : undefined;
+      const anniversaryEmail = buildAnniversaryEmail({ couple, yearsAgo, recapUrl, unsubUrl, theme: emailTheme });
       await resend.emails.send({
         from: fromEmail,
         to: recipient,
-        subject: `Today, ${yearWord} ago — ${couple}`,
-        html: anniversaryEmailHtml({ couple, yearsAgo, recapUrl, unsubUrl }),
+        subject: anniversaryEmail.subject,
+        html: anniversaryEmail.html,
         tags: [
           { name: 'channel', value: 'anniversary' },
           { name: 'site_id', value: row.id },
@@ -167,29 +175,4 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ ok: true, sent, skipped, matches });
 }
 
-function anniversaryEmailHtml(args: { couple: string; yearsAgo: number; recapUrl: string; unsubUrl: string }): string {
-  const { couple, yearsAgo, recapUrl, unsubUrl } = args;
-  const yearWord = yearsAgo === 1 ? 'one year' : `${yearsAgo} years`;
-  return `<!doctype html>
-<html><body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px 24px; color: #0E0D0B; background: #FBF7EE;">
-  <div style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 13px; color: #C6703D; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px;">Pearloom</div>
-  <h1 style="font-family: 'Fraunces', Georgia, serif; font-size: 32px; font-weight: 500; margin: 0 0 18px; line-height: 1.15;">Today, ${yearWord} ago.</h1>
-  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 18px; color: #3A332C;">
-    ${couple} — your day is in our records as one of the warmer ones we've held.
-    We pulled the threads back out to look at it again, and thought you might
-    want to too.
-  </p>
-  <p style="margin: 0 0 28px;">
-    <a href="${recapUrl}" style="display: inline-block; padding: 12px 22px; background: #0E0D0B; color: #FBF7EE; border-radius: 999px; font-weight: 600; font-size: 14px; text-decoration: none;">Open the recap →</a>
-  </p>
-  <p style="font-size: 13px; line-height: 1.5; margin: 0 0 32px; color: #6F6557;">
-    The site, the photos, the schedule, the notes. Everything you wove together
-    is still there. Want to extend it for an anniversary, vow renewal, or just
-    keep it as a keepsake? You can do any of those from the recap page.
-  </p>
-  <hr style="border: 0; border-top: 1px solid rgba(14,13,11,0.1); margin: 32px 0 16px;"/>
-  <p style="font-size: 11px; line-height: 1.5; color: #8a8671; margin: 0;">
-    Sent because you celebrated ${couple}'s day on Pearloom. <a href="${unsubUrl}" style="color: #8a8671; text-decoration: underline;">Stop these reminders</a> — we'll only send the milestone years (1, 5, 10…).
-  </p>
-</body></html>`;
-}
+

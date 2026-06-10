@@ -16,6 +16,7 @@ import { createSiteInvite, getSiteInvites, deleteSiteInvite } from '@/lib/db';
 import { Resend } from 'resend';
 import { getAppOrigin } from '@/lib/site-urls';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { buildCoordinatorInviteEmail } from '@/lib/email/brand-emails';
 
 export const dynamic = 'force-dynamic';
 
@@ -91,20 +92,15 @@ export async function POST(req: NextRequest) {
     if (resendKey) {
       try {
         const resend = new Resend(resendKey);
-        const html = `
-<div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #2B2B2B;">
-  <h1 style="font-size: 28px; font-weight: 400; font-style: italic; color: #2B2B2B; margin: 0 0 16px;">You're invited to help plan a wedding</h1>
-  <p style="font-size: 16px; line-height: 1.7; color: #5A5450;">${inviterName} has invited you as a ${roleLabel} for their Pearloom wedding site.</p>
-  <div style="margin: 32px 0; text-align: center;">
-    <a href="${acceptUrl}" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #5C6B3F, #6D597A); color: white; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 15px;">Accept Invitation</a>
-  </div>
-  <p style="font-size: 12px; color: #9A9488;">This invite expires in 7 days.</p>
-</div>
-`;
+        const { subject, html } = buildCoordinatorInviteEmail({
+          inviterName,
+          roleLabel,
+          acceptUrl,
+        });
         await resend.emails.send({
           from: 'Pearloom <noreply@pearloom.com>',
           to: email,
-          subject: `${inviterName} invited you to their Pearloom wedding site`,
+          subject,
           html,
         });
       } catch (emailErr) {

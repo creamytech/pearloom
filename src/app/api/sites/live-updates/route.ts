@@ -19,6 +19,10 @@ import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { Resend } from 'resend';
+import { buildBroadcastEmail } from '@/lib/email/brand-emails';
+import { emailThemeFromSuite } from '@/lib/email-sequences';
+import { suiteThemeFromManifest } from '@/lib/suite/theme';
+import type { StoryManifest } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -239,6 +243,11 @@ async function emailBroadcastToGuests({
   const manifest = (site as { ai_manifest?: { names?: [string, string]; logistics?: { venue?: string } } } | null)?.ai_manifest;
   const names = (manifest?.names ?? (site as { site_config?: { names?: [string, string] } } | null)?.site_config?.names ?? []).filter(Boolean);
   const couple = names.length >= 2 ? `${names[0]} & ${names[1]}` : (names[0] ?? 'Your hosts');
+  /* The broadcast wears the couple's site palette + faces — same
+     suite contract as every other guest-facing email. */
+  const emailTheme = manifest
+    ? emailThemeFromSuite(suiteThemeFromManifest(manifest as unknown as StoryManifest))
+    : undefined;
 
   const { data: rows } = await supabase
     .from('guests')
@@ -269,7 +278,7 @@ async function emailBroadcastToGuests({
       const cta = r.guest_token
         ? `${baseUrl}/g/${r.guest_token}`
         : `${baseUrl}/sites/${subdomain}`;
-      const html = broadcastEmailHtml({ couple, message, ctaUrl: cta, recipientName: r.name });
+      const { html } = buildBroadcastEmail({ couple, message, ctaUrl: cta, recipientName: r.name, theme: emailTheme });
       if (resend && r.email) {
         await resend.emails.send({
           from: fromEmail,
@@ -304,30 +313,4 @@ async function emailBroadcastToGuests({
   return { sent, limited: false };
 }
 
-function broadcastEmailHtml({
-  couple,
-  message,
-  ctaUrl,
-  recipientName,
-}: {
-  couple: string;
-  message: string;
-  ctaUrl: string;
-  recipientName: string;
-}): string {
-  const safeMessage = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const safeCta = ctaUrl.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const safeCouple = couple.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const safeName = recipientName.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  return `
-    <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; padding: 2rem; color: #2B2B2B;">
-      <p style="margin: 0 0 4px; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #9A9488;">A note from ${safeCouple}</p>
-      <p style="margin: 0 0 18px; font-size: 1.1rem;">Hi ${safeName},</p>
-      <p style="font-size: 1.05rem; line-height: 1.7; color: #2B2B2B; white-space: pre-wrap;">${safeMessage}</p>
-      <div style="margin: 28px 0 8px;">
-        <a href="${safeCta}" style="display: inline-block; padding: 10px 18px; background: #5C6B3F; color: #FBF7EE; text-decoration: none; border-radius: 999px; font-size: 0.92rem; font-weight: 600;">View on the site →</a>
-      </div>
-      <p style="margin-top: 28px; font-size: 0.72rem; color: #B5AFA5;">Sent via <a href="https://pearloom.com" style="color: #5C6B3F;">Pearloom</a> · because the day deserved it.</p>
-    </div>
-  `;
-}
+

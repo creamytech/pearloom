@@ -12,6 +12,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { ownerEmailOf } from '@/lib/cohost-access';
+import { buildCoHostInviteEmail } from '@/lib/email/brand-emails';
 import crypto from 'node:crypto';
 
 export const dynamic = 'force-dynamic';
@@ -93,21 +94,12 @@ export async function POST(req: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
     const acceptUrl = `${baseUrl}/co-host/${token}`;
 
-    const html = `<!doctype html>
-<html><body style="margin:0;padding:0;background:#F5EFE2;">
-<div style="max-width:520px;margin:0 auto;padding:32px 24px;font-family:Georgia,serif;color:#0E0D0B;">
-  <div style="font-size:10px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#A75D32;margin-bottom:12px;">
-    You're invited to co-host
-  </div>
-  <h1 style="font-size:24px;line-height:1.2;margin:0 0 14px;">${coupleDisplay} would like your help with their site.</h1>
-  <p style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#3A332C;margin:0 0 24px;">
-    Click below to accept and you'll be able to edit alongside them. The invite expires in 14 days.
-  </p>
-  <a href="${acceptUrl}" style="display:inline-block;background:#0E0D0B;color:#F5EFE2;text-decoration:none;padding:14px 28px;border-radius:999px;font-weight:700;font-size:13px;">
-    Accept the invite
-  </a>
-</div>
-</body></html>`;
+    const { subject, html } = buildCoHostInviteEmail({
+      coupleDisplay,
+      role,
+      acceptUrl,
+      invitedBy: session.user.name ?? null,
+    });
 
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -115,7 +107,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         from: `${coupleDisplay} <invites@pearloom.com>`,
         to: [body.email],
-        subject: `${coupleDisplay} invited you to co-host`,
+        subject,
         html,
       }),
     });
