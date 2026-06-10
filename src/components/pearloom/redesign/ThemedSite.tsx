@@ -29,6 +29,10 @@ import { Motif, MotifScatter, WatercolorBloom, OliveSprig, type MotifKind } from
 import { TextureFilters } from '../site/TextureFilters';
 import { readVariant } from './layouts';
 import type { SectionId } from './EditorRedesign';
+/* Occasion gating for the nine core sections — leaf module shared
+   with EditorRedesign / SectionRail (importing from EditorRedesign
+   here would cycle: EditorRedesign imports ThemedSite). */
+import { isCoreSectionApplicable, sectionHasContent } from './section-applicability';
 import { InlineEdit } from './InlineEdit';
 /* Per-section layout variants — each section block dispatches via
    ctx.variants.<section> to one of these. Default ('tiles', 'cards',
@@ -371,8 +375,19 @@ export function ThemedSite({
     ...savedOrder.filter((k): k is SectionKind => k !== 'hero' && (allKinds as readonly string[]).includes(k)) as SectionKind[],
     ...coreKinds.filter((k) => k !== 'hero' && !savedOrder.includes(k)),
   ];
+  /* Occasion gate — core sections that don't fit this occasion
+     (per the EVENT_TYPES registry) AND are content-empty are
+     skipped, so e.g. a bachelorette site never renders a demo
+     Registry with placeholder stores. Sections carrying real host
+     content always render — content wins. Unknown occasion →
+     everything renders (manifests that predate the registry). */
+  const occasionId = (manifest as unknown as { occasion?: string }).occasion;
   const sections: SectionKind[] = ['hero' as SectionKind, ...reorderedRest]
-    .filter((s) => s === 'hero' || !hidden.includes(s));
+    .filter((s) => s === 'hero' || !hidden.includes(s))
+    .filter((s) =>
+      !coreKinds.includes(s)
+      || isCoreSectionApplicable(s, occasionId)
+      || sectionHasContent(s, manifest));
   /* navItems carry section id + label so the nav can render real
      anchors that scroll to the right block. Excludes 'hero' and
      'rsvp' from the link list (hero is the top of the page, rsvp

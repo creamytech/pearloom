@@ -6,7 +6,9 @@
 import { Fragment, useRef, useState } from 'react';
 import { Icon } from '../motifs';
 import type { StoryManifest } from '@/types';
+import { getEventType } from '@/lib/event-os/event-types';
 import { type SectionId, type BlockSectionId, BLOCK_SECTION_IDS, isToolPanelApplicable, isOptionalSectionApplicable, isBlockApplicable } from './EditorRedesign';
+import { isCoreSectionApplicable, sectionHasContent } from './section-applicability';
 import { SiteModeSection } from '../editor/panels/ThemePanel';
 import { useMobileViewport } from './use-mobile-viewport';
 
@@ -222,6 +224,10 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
     return el;
   }
   const occasion = (manifest as unknown as { occasion?: string }).occasion;
+  /* Occasion chip — quiet mono-caps label on the site card so the
+     editor states what the event IS. Omitted entirely when the
+     occasion is unknown (never show 'Wedding' wrongly). */
+  const occasionLabel = getEventType(occasion)?.label;
   const applicableTools = TOOLS.filter((t) => isToolPanelApplicable(t.id, occasion));
 
   /* Build the ORDERED list: read manifest.blockOrder when present,
@@ -239,7 +245,14 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
     /* Auto-append missing CORE sections only — optional sections
        stay opt-in via the Add Section picker. */
     for (const k of reorderableCoreKeys) if (!valid.includes(k)) valid.push(k);
-    return valid;
+    /* Occasion gate — core sections that don't fit this occasion
+       (per the EVENT_TYPES registry) drop out of the rail, UNLESS
+       they already carry real host content. Content always wins:
+       those rows stay, marked "unusual for this occasion". */
+    return valid.filter((k) =>
+      !reorderableCoreKeys.includes(k)
+      || isCoreSectionApplicable(k, occasion)
+      || sectionHasContent(k, manifest));
   })();
   const sectionLookup = new Map<string, SectionDef>([
     ...SECTIONS.map((s) => [s.id as string, s] as const),
@@ -385,6 +398,40 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
           borderRadius: 12,
         }}
       >
+        {/* Occasion chip — the editor says what the event is.
+            Mono-caps in the rail's micro-label language, led by a
+            gold dot. Rendered only when the EVENT_TYPES registry
+            recognizes the occasion — an unknown occasion shows
+            nothing rather than a wrong 'Wedding'. */}
+        {occasionLabel && (
+          <div
+            style={{
+              marginBottom: 5,
+              fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+              fontSize: 9,
+              fontWeight: 600,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-muted)',
+              lineHeight: 1.6,
+            }}
+          >
+            <span
+              aria-hidden
+              style={{
+                display: 'inline-block',
+                width: 4,
+                height: 4,
+                borderRadius: '50%',
+                background: 'var(--gold, #B8935A)',
+                marginRight: 6,
+                verticalAlign: 'middle',
+                marginTop: -1,
+              }}
+            />
+            {occasionLabel}
+          </div>
+        )}
         <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', marginBottom: 2 }}>
           {title}
         </div>
@@ -510,6 +557,12 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
              goes." */
           const dropBefore = isHovered && draggingIdx !== null && draggingIdx > i;
           const dropAfter  = isHovered && draggingIdx !== null && draggingIdx < i;
+          /* A core section that survived the occasion gate only
+             because it carries host content — flag it quietly in
+             the desc instead of hiding the host's work. */
+          const unusualForOccasion = !isHero
+            && reorderableCoreKeys.includes(s.id)
+            && !isCoreSectionApplicable(s.id, occasion);
           /* Gap affordances sit between rows (not after the last —
              the bottom "Add section" button owns append). Rendered
              whenever there's something left to add; visuals + clicks
@@ -611,6 +664,11 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                   }}
                 >
                   {liveDesc(s.id, manifest) ?? s.desc}
+                  {unusualForOccasion && (
+                    <span style={{ opacity: 0.6, fontStyle: 'italic' }}>
+                      {' · unusual for this occasion'}
+                    </span>
+                  )}
                 </div>
               </div>
               {s.required && (

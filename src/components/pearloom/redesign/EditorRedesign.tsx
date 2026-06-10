@@ -110,6 +110,14 @@ export function isBlockApplicable(blockId: BlockSectionId, occasion?: string): b
       || (event.optionalBlocks as readonly string[]).includes(gateId);
 }
 
+/* Occasion → whether each of the nine CORE sections fits, plus the
+   content-wins escape hatch. Implementation lives in the leaf
+   module section-applicability.ts (ThemedSite needs the same
+   helpers and is imported BY this file — importing them from here
+   would cycle). Re-exported for compat with the existing pattern
+   of pulling applicability gates out of EditorRedesign. */
+export { isCoreSectionApplicable, sectionHasContent } from './section-applicability';
+
 /* Occasion → which tool panels are applicable. Memorial only on
    memorial/funeral, Bachelor weekend planner on bachelor/ette /
    bridal-shower / reunion / sip-and-see, Save-the-date never on
