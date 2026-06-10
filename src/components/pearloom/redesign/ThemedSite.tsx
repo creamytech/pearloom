@@ -273,6 +273,11 @@ export function ThemedSite({
     pattern: ((manifest as unknown as { pattern?: string }).pattern),
     color: ((manifest as unknown as { decorColor?: string }).decorColor),
   };
+  /* Pattern strength (0–1.5) — multiplies the PatternLayer's
+     color-mix percentages, exactly like textureIntensity scales
+     the grain. Theme Store packs + the demo look panel write it;
+     unset → 1 so existing manifests render unchanged. */
+  const patternIntensity = (manifest as unknown as { patternIntensity?: number }).patternIntensity ?? 1;
 
   /* Names — demo fallbacks ('Scott'/'Shauna') only ever fill in
      for COUPLE sites with a truly empty manifest (dev/demo). A
@@ -573,7 +578,7 @@ export function ThemedSite({
       <div ref={revealRoot} onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-split">
         <TextureFilters />
         {ghostStyleEl}
-        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
+        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
         {C.isPostEvent && <PostEventBanner />}
         {/* Tighter, fixed-width sidebar — 290-340px instead of
@@ -626,7 +631,7 @@ export function ThemedSite({
             overflow: 'hidden',
           }}
         >
-          {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
+          {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
           <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
           <div style={{ position: 'relative', zIndex: 1 }}>
             {C.isPostEvent && <PostEventBanner />}
@@ -651,7 +656,7 @@ export function ThemedSite({
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-magazine">
         <TextureFilters />
         {ghostStyleEl}
-        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
+        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           {C.isPostEvent && <PostEventBanner />}
@@ -679,7 +684,7 @@ export function ThemedSite({
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-zine">
         <TextureFilters />
         {ghostStyleEl}
-        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
+        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           {C.isPostEvent && <PostEventBanner />}
@@ -718,7 +723,7 @@ export function ThemedSite({
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-storybook">
         <TextureFilters />
         {ghostStyleEl}
-        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
+        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           {C.isPostEvent && <PostEventBanner />}
@@ -772,7 +777,7 @@ export function ThemedSite({
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-gallery">
         <TextureFilters />
         {ghostStyleEl}
-        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
+        {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           {C.isPostEvent && <PostEventBanner />}
@@ -879,7 +884,7 @@ export function ThemedSite({
               overflow: 'hidden',
             }}
           >
-            {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
+            {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
             <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
             <div style={{ position: 'relative', zIndex: 1 }}>
               {C.isPostEvent && <PostEventBanner />}
@@ -919,7 +924,7 @@ export function ThemedSite({
     <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest">
       <TextureFilters />
         {ghostStyleEl}
-      {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={1} />}
+      {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
       <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
       <div style={{ position: 'relative', zIndex: 1 }}>
         {C.isPostEvent && <PostEventBanner />}
