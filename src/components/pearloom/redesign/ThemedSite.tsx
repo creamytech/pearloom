@@ -76,6 +76,15 @@ import { ObituarySection } from './section-variants/blocks/obituary';
 import { PackingListSection } from './section-variants/blocks/packing-list';
 import { HonorListSection } from './section-variants/blocks/honor-list';
 import { useIsMobile, useActiveSection } from './use-nav-hooks';
+import {
+  readSiteMode,
+  readHomePageBlocks,
+  isSiteBlockKey,
+  BLOCK_PAGE_SLUG,
+  MULTI_PAGE_BLOCKS,
+  type SiteBlockKey,
+} from '@/lib/site-mode';
+import { buildSitePath } from '@/lib/site-urls';
 
 interface Props {
   /* Editor-only props — optional so PublishedSiteShell can mount
@@ -104,6 +113,27 @@ interface Props {
      omits both so guests never see edit chrome. */
   onEditField?: (patch: (m: StoryManifest) => StoryManifest) => void;
   onEditNames?: (next: [string, string]) => void;
+  /* Inline-edit selection — fired when an editable field INSIDE a
+     section gains focus, so the editor can flip the property rail
+     to that section without the section-frame click (InlineEdit
+     stops click propagation to protect the caret). Separate from
+     setActive because the mobile editor opens a bottom sheet on
+     click-selection — doing that on text focus would cover the
+     keyboard mid-typing. */
+  onSectionFocus?: (id: SectionId) => void;
+  /* Multi-page routing (manifest.siteMode === 'multi-page') —
+     mirrors ThemedSiteRenderer's pageFilter semantics:
+       • undefined → render everything (scroll mode, editor canvas)
+       • 'home'    → hero + homePageBlocks ∪ {details} (+ optional /
+                     Event-OS sections, which stay home-page content)
+       • block key → that single section (nav + footer chrome kept)
+     The published routes pass this; nav links to off-page sections
+     navigate to their sub-page when siteSlug is provided. */
+  pageFilter?: 'home' | SiteBlockKey;
+  /* Canonical slug for sub-page nav links on multi-page sites.
+     The editor canvas deliberately omits it so in-canvas nav never
+     navigates the editor tab away. */
+  siteSlug?: string;
 }
 
 /* ─── Top-level shell — handoff themed-site.jsx L106-218. ────── */
@@ -130,6 +160,9 @@ export function ThemedSite({
   forceMobile = false,
   onEditField,
   onEditNames,
+  onSectionFocus,
+  pageFilter,
+  siteSlug,
 }: Props) {
   /* Edit-write helpers for InlineEdit components. patchManifest
      writes a top-level (or nested via dot path) field; patchNames
@@ -435,17 +468,39 @@ export function ThemedSite({
      content always render — content wins. Unknown occasion →
      everything renders (manifests that predate the registry). */
   const occasionId = (manifest as unknown as { occasion?: string }).occasion;
-  const sections: SectionKind[] = ['hero' as SectionKind, ...reorderedRest]
+  const allSections: SectionKind[] = ['hero' as SectionKind, ...reorderedRest]
     .filter((s) => s === 'hero' || !hidden.includes(s))
     .filter((s) =>
       !coreKinds.includes(s)
       || isCoreSectionApplicable(s, occasionId)
       || sectionHasContent(s, manifest));
+  /* Multi-page narrowing — pageFilter mirrors ThemedSiteRenderer:
+       • undefined → render everything (scroll mode, editor canvas)
+       • 'home'    → hero + homePageBlocks ∪ {details}; optional /
+                     Event-OS sections stay (they're home content)
+       • block key → that single section, nav + footer chrome kept
+     siteMode + homeBlockSet are computed unconditionally so the
+     editor canvas can badge own-page sections while still
+     rendering everything for editing. */
+  const siteMode = readSiteMode(manifest);
+  const homeBlockSet = new Set<string>([...readHomePageBlocks(manifest), 'details']);
+  const multiPageSet = new Set<string>(MULTI_PAGE_BLOCKS);
+  const sections: SectionKind[] = (() => {
+    if (!pageFilter) return allSections;
+    if (pageFilter === 'home') {
+      return allSections.filter(
+        (s) => s === 'hero' || !multiPageSet.has(s) || homeBlockSet.has(s),
+      );
+    }
+    return allSections.filter((s) => s === pageFilter);
+  })();
   /* navItems carry section id + label so the nav can render real
      anchors that scroll to the right block. Excludes 'hero' and
      'rsvp' from the link list (hero is the top of the page, rsvp
-     gets its own dedicated CTA button). */
-  const navItems = sections.filter((s) => s !== 'hero' && s !== 'rsvp').map((s) => ({ id: s, label: SECTION_LABEL[s] }));
+     gets its own dedicated CTA button). Built from allSections —
+     on a multi-page home the nav still lists Travel even though
+     Travel lives on its own page (the click navigates there). */
+  const navItems = allSections.filter((s) => s !== 'hero' && s !== 'rsvp').map((s) => ({ id: s, label: SECTION_LABEL[s] }));
   const headline = C.subject.type === 'solo' ? C.subject.a : `${C.subject.a} & ${C.subject.b}`;
 
   /* Smooth-scroll handler — every nav link + the RSVP CTA call this
@@ -482,7 +537,29 @@ export function ThemedSite({
   const navVariant = readVariant(manifest, 'nav');
   const navMobileVariant = readVariant(manifest, 'navMobile');
 
-  const onNavClick = (id: string) => scrollToSection(id);
+  const onNavClick = (id: string) => {
+    /* Multi-page published sites — a nav item whose section isn't on
+       the current page navigates to its own page (or back to the
+       home anchor) instead of scrolling to an anchor that doesn't
+       exist here. The editor canvas never passes siteSlug, so
+       in-canvas nav clicks stay scroll-only and can't navigate the
+       editor tab away. */
+    if (
+      siteMode === 'multi-page'
+      && !editable
+      && siteSlug
+      && !sections.includes(id as SectionKind)
+    ) {
+      if (typeof window === 'undefined') return;
+      if (isSiteBlockKey(id) && !homeBlockSet.has(id)) {
+        window.location.assign(buildSitePath(siteSlug, `/${BLOCK_PAGE_SLUG[id]}`, occasionId));
+      } else {
+        window.location.assign(`${buildSitePath(siteSlug, '', occasionId)}#${id}`);
+      }
+      return;
+    }
+    scrollToSection(id);
+  };
   const onCtaClick = (e?: { stopPropagation?: () => void }) => {
     /* Variants wire this as onClick={onCtaClick}, so React hands us
        the click event — stop it before the TSection frame's own
@@ -559,27 +636,38 @@ export function ThemedSite({
   };
 
   const navEl = (
-    <TSection id="nav" label="Site nav" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable} hideHandle>
+    <TSection id="nav" label="Site nav" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable} onSectionFocus={onSectionFocus} hideHandle>
       {renderNavVariant()}
     </TSection>
   );
 
-  const sectionEl = (kind: SectionKind) => (
-    <TSection
-      key={kind}
-      id={kind}
-      label={SECTION_LABEL[kind]}
-      active={active}
-      hover={hover}
-      setActive={setActive}
-      setHover={setHover}
-      editable={editable}
-      motifLayout={ctx.motifLayout}
-      motif={ctx.motif}
-    >
-      {renderKind(kind, ctx)}
-    </TSection>
-  );
+  const sectionEl = (kind: SectionKind) => {
+    /* Magazine (multi-page) mode in the editor — every section still
+       renders on the canvas so it stays editable, but sections that
+       live on their own page get flagged in the selection handle so
+       the host can see what the home page won't carry. */
+    const ownPage = editable
+      && siteMode === 'multi-page'
+      && multiPageSet.has(kind)
+      && !homeBlockSet.has(kind);
+    return (
+      <TSection
+        key={kind}
+        id={kind}
+        label={ownPage ? `${SECTION_LABEL[kind]} · own page` : SECTION_LABEL[kind]}
+        active={active}
+        hover={hover}
+        setActive={setActive}
+        setHover={setHover}
+        editable={editable}
+        onSectionFocus={onSectionFocus}
+        motifLayout={ctx.motifLayout}
+        motif={ctx.motif}
+      >
+        {renderKind(kind, ctx)}
+      </TSection>
+    );
+  };
 
   /* kitId hoisted above ctx for motifLayout. */
 
@@ -610,6 +698,7 @@ export function ThemedSite({
               setActive={setActive}
               setHover={setHover}
               editable={editable}
+              onSectionFocus={onSectionFocus}
             />
           </div>
           <div className="pl8-split-body" style={{ borderLeft: '1px solid var(--t-line-soft)', minWidth: 0 }}>
@@ -987,7 +1076,7 @@ function PostEventBanner() {
    nav links, and RSVP CTA in a vertical column. */
 
 function SidebarHero({
-  ctx, headline, navItems, scrollToSection, active, hover, setActive, setHover, editable,
+  ctx, headline, navItems, scrollToSection, active, hover, setActive, setHover, editable, onSectionFocus,
 }: {
   ctx: SectionCtx;
   headline: string;
@@ -998,13 +1087,14 @@ function SidebarHero({
   setActive: (id: SectionId) => void;
   setHover: (id: SectionId) => void;
   editable: boolean;
+  onSectionFocus?: (id: SectionId) => void;
 }) {
   void headline;
   const { theme, C, motif, motifsOn } = ctx;
   const isCouple = C.subject.type === 'couple';
   const isEditorial = theme.id === 'editorial';
   return (
-    <TSection id="hero" label="Hero" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable} motifLayout={ctx.motifLayout} motif={ctx.motif}>
+    <TSection id="hero" label="Hero" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable} onSectionFocus={onSectionFocus} motifLayout={ctx.motifLayout} motif={ctx.motif}>
       <div style={{ position: 'relative', minHeight: 520, background: 'var(--t-section)', padding: '44px 36px', display: 'flex', flexDirection: 'column', gap: 18, overflow: 'hidden' }}>
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 9 }}>
           <Pear size={24} tone="sage" shadow={false} />
@@ -3239,7 +3329,7 @@ function TSectionHead({ eyebrow, title, italic, editable, onEditEyebrow, onEditT
 
 /* ─── TSection — handoff L29-56 verbatim (selection chrome). ── */
 
-function TSection({ id, label, children, active, hover, setActive, setHover, editable, hideHandle, motifLayout = 'none', motif = 'none' }: {
+function TSection({ id, label, children, active, hover, setActive, setHover, editable, onSectionFocus, hideHandle, motifLayout = 'none', motif = 'none' }: {
   id: Exclude<SectionId, null>;
   label: string;
   children: ReactNode;
@@ -3248,6 +3338,11 @@ function TSection({ id, label, children, active, hover, setActive, setHover, edi
   setActive: (id: SectionId) => void;
   setHover: (id: SectionId) => void;
   editable: boolean;
+  /** Fired when an editable field inside this section gains focus.
+   *  InlineEdit stops click propagation to protect the caret, so
+   *  without this the property rail never followed inline edits —
+   *  only whole-section clicks. */
+  onSectionFocus?: (id: SectionId) => void;
   hideHandle?: boolean;
   /** Motif placement — every section participates by construction. */
   motifLayout?: MotifLayout;
@@ -3265,6 +3360,11 @@ function TSection({ id, label, children, active, hover, setActive, setHover, edi
         e.stopPropagation();
         setActive(id);
       }}
+      onFocusCapture={
+        editable && onSectionFocus
+          ? () => { if (active !== id) onSectionFocus(id); }
+          : undefined
+      }
       style={{ position: 'relative', cursor: editable ? 'pointer' : 'default', scrollMarginTop: 80 }}
     >
       <MotifLayer layout={motifLayout} kind={motif} sectionId={id} />

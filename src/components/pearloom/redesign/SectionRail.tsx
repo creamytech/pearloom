@@ -11,6 +11,7 @@ import { type SectionId, type BlockSectionId, BLOCK_SECTION_IDS, isToolPanelAppl
 import { isCoreSectionApplicable, sectionHasContent } from './section-applicability';
 import { SiteModeSection } from '../editor/panels/SiteModeSection';
 import { useMobileViewport } from './use-mobile-viewport';
+import { readSiteMode, readHomePageBlocks, MULTI_PAGE_BLOCKS } from '@/lib/site-mode';
 
 interface SectionDef {
   id: Exclude<SectionId, null>;
@@ -229,6 +230,12 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
      occasion is unknown (never show 'Wedding' wrongly). */
   const occasionLabel = getEventType(occasion)?.label;
   const applicableTools = TOOLS.filter((t) => isToolPanelApplicable(t.id, occasion));
+  /* Magazine (multi-page) mode — sections that live on their own
+     page get a quiet "· own page" tag on their row so the Pages
+     tab's mode pick is legible from the section list. */
+  const siteMode = readSiteMode(manifest);
+  const homeBlockSet = new Set<string>([...readHomePageBlocks(manifest), 'details']);
+  const multiPageSet = new Set<string>(MULTI_PAGE_BLOCKS);
 
   /* Build the ORDERED list: read manifest.blockOrder when present,
      otherwise fall through to the SECTIONS default order. Hero is
@@ -519,6 +526,33 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
         </div>
       )}
 
+      {/* Theme tab body — selecting the tab already swaps the right
+          rail to the Theme panel (setActive(null) above); this note
+          says so instead of leaving the left rail blank, which read
+          as a broken tab. */}
+      {tab === 'theme' && (
+        <div
+          style={{
+            padding: '12px 13px',
+            borderRadius: 10,
+            background: 'var(--card)',
+            border: '1px solid var(--line-soft)',
+            fontSize: 11.5,
+            color: 'var(--ink-soft)',
+            lineHeight: 1.55,
+            display: 'flex',
+            gap: 8,
+          }}
+        >
+          <Icon name="sparkles" size={14} color="var(--peach-ink, #C6703D)" />
+          <span>
+            Theme controls are open in the <strong>panel on the right</strong> —
+            palette, type, layout, texture, and the Theme Shop all live there.
+            Pick a section under <strong>Sections</strong> to edit content instead.
+          </span>
+        </div>
+      )}
+
       {/* "Page sections / drag to reorder" header — prototype L185-188. */}
       {tab === 'sections' && (
       <div
@@ -563,6 +597,11 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
           const unusualForOccasion = !isHero
             && reorderableCoreKeys.includes(s.id)
             && !isCoreSectionApplicable(s.id, occasion);
+          /* Magazine mode — this section renders on its own page,
+             not the home page. */
+          const ownPage = siteMode === 'multi-page'
+            && multiPageSet.has(s.id)
+            && !homeBlockSet.has(s.id);
           /* Gap affordances sit between rows (not after the last —
              the bottom "Add section" button owns append). Rendered
              whenever there's something left to add; visuals + clicks
@@ -667,6 +706,11 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                   {unusualForOccasion && (
                     <span style={{ opacity: 0.6, fontStyle: 'italic' }}>
                       {' · unusual for this occasion'}
+                    </span>
+                  )}
+                  {ownPage && (
+                    <span style={{ opacity: 0.6, fontStyle: 'italic' }}>
+                      {' · own page'}
                     </span>
                   )}
                 </div>
