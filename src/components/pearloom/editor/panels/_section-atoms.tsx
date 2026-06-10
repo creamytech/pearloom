@@ -216,9 +216,76 @@ export function FSuggest({
      a value, hide the chips so the panel reads quieter. */
   const isEmpty = value.trim().length === 0;
   const showChips = options.length > 0 && (append || isEmpty);
+
+  /* ── Type-ahead combobox ─────────────────────────────────────
+     As the host TYPES, matching options drop down under the input
+     (the chips above only ever showed on an empty field). Arrow
+     keys walk the list, Enter picks, Esc dismisses. Skipped in
+     append mode — the chips stay the affordance there. */
+  const [focused, setFocused] = useState(false);
+  const [cursor, setCursor] = useState(-1);
+  const q = value.trim().toLowerCase();
+  const matches = !append && focused && q.length >= 1
+    ? options.filter((o) => {
+        const lo = o.toLowerCase();
+        return lo !== q && lo.includes(q);
+      }).slice(0, 6)
+    : [];
+  const pick = (opt: string) => {
+    onChange(opt);
+    setCursor(-1);
+  };
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-      <FInput value={value} onChange={onChange} placeholder={placeholder} icon={icon} />
+    <div
+      style={{ display: 'flex', flexDirection: 'column', gap: 7, position: 'relative' }}
+      onFocus={() => setFocused(true)}
+      onBlur={(e) => {
+        const next = e.relatedTarget as Node | null;
+        if (!next || !e.currentTarget.contains(next)) { setFocused(false); setCursor(-1); }
+      }}
+      onKeyDown={(e) => {
+        if (matches.length === 0) return;
+        if (e.key === 'ArrowDown') { e.preventDefault(); setCursor((c) => (c + 1) % matches.length); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); setCursor((c) => (c <= 0 ? matches.length - 1 : c - 1)); }
+        else if (e.key === 'Enter' && cursor >= 0) { e.preventDefault(); pick(matches[cursor]); }
+        else if (e.key === 'Escape') { setFocused(false); setCursor(-1); }
+      }}
+    >
+      <div style={{ position: 'relative' }}>
+        <FInput value={value} onChange={(v) => { onChange(v); setCursor(-1); }} placeholder={placeholder} icon={icon} />
+      {matches.length > 0 && (
+        <div
+          role="listbox"
+          aria-label="Suggestions"
+          style={{
+            position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+            zIndex: 'var(--z-dropdown, 50)' as unknown as number,
+            background: 'var(--card)', border: '1px solid var(--line)',
+            borderRadius: 10, boxShadow: '0 14px 38px rgba(40,28,12,0.16), 0 4px 12px rgba(40,28,12,0.08)',
+            padding: 4, display: 'flex', flexDirection: 'column',
+          }}
+        >
+          {matches.map((opt, i) => (
+            <button
+              key={opt}
+              type="button"
+              role="option"
+              aria-selected={i === cursor}
+              onMouseDown={(e) => { e.preventDefault(); pick(opt); }}
+              onMouseEnter={() => setCursor(i)}
+              style={{
+                textAlign: 'left', padding: '7px 10px', borderRadius: 7,
+                background: i === cursor ? 'var(--cream-2)' : 'transparent',
+                border: 'none', fontSize: 12.5, color: 'var(--ink)',
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      )}
+      </div>
       {showChips && (
         <>
           {hint && (

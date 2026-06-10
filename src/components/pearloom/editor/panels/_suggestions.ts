@@ -275,3 +275,68 @@ export const KIDS_POLICY_OPTIONS = [
   'Adults only (18+)',
   'Adults only (21+)',
 ];
+
+/* ── Smart context — venue/date/name-aware suggestions ─────────
+   smartContext(manifest) pulls the fields suggestion sets can
+   interpolate so options read like they were written for THIS
+   event ("Casa Chorro is a short taxi from the airport"), not a
+   generic template. Every set below degrades cleanly when a field
+   is missing. */
+
+export interface SmartContext {
+  occasion?: string;
+  venue: string;
+  place: string;
+  firstName: string;
+}
+
+export function smartContext(manifest: unknown): SmartContext {
+  const loose = manifest as {
+    occasion?: string;
+    logistics?: { venue?: string; place?: string };
+    names?: [string, string];
+  } | null;
+  return {
+    occasion: loose?.occasion,
+    venue: (loose?.logistics?.venue ?? '').trim(),
+    place: (loose?.logistics?.place ?? '').trim(),
+    firstName: ((loose?.names?.[0] ?? '').trim().split(/\s+/)[0]) || '',
+  };
+}
+
+/** Hero kicker / lead lines — the tiny editorial line above the
+ *  names. Occasion-keyed with a couple of venue-aware entries. */
+export function heroLeadSuggestions(ctx: SmartContext): SuggestionSet {
+  const occ = (ctx.occasion ?? '').toLowerCase();
+  const at = ctx.place || ctx.venue;
+  const base: string[] = [];
+  if (occ === 'memorial' || occ === 'funeral') {
+    base.push('In loving memory', 'A life well loved', 'Gathering to remember');
+  } else if (occ.includes('birthday') || occ === 'sweet-sixteen' || occ === 'quinceanera') {
+    base.push('Save the date', 'A milestone worth a party', `${ctx.firstName ? `${ctx.firstName}’s big day` : 'The big day'}`);
+  } else if (occ === 'baby-shower' || occ === 'gender-reveal' || occ === 'sip-and-see') {
+    base.push('Someone small is on the way', 'Save the date', 'A shower of love');
+  } else if (occ.includes('bachelor')) {
+    base.push('One last fling', 'The send-off weekend', 'Pack your bags');
+  } else {
+    base.push('Save the date', 'Together, at last', 'We’re getting married');
+  }
+  if (at) base.push(`Meet us in ${at}`);
+  return { hint: 'The small line above the names — tap one or write your own.', options: base.slice(0, 5) };
+}
+
+/** Travel “getting there” intro lines, interpolated with the
+ *  saved venue + place so the draft reads specific. */
+export function travelDirectionsSuggestions(ctx: SmartContext): SuggestionSet {
+  const v = ctx.venue || 'the venue';
+  const p = ctx.place;
+  const options = [
+    `${v} is easiest by taxi or rideshare — parking nearby is limited.`,
+    p
+      ? `Fly into the nearest airport to ${p}; ${v} is a short ride from there. Say our names when you book the hotels below.`
+      : `${v} is a short ride from the airport. Say our names when you book the hotels below.`,
+    `We’ve held room blocks at the hotels below — mention us for the group rate.`,
+    `A shuttle will loop between the hotels and ${v} — times to follow.`,
+  ];
+  return { hint: 'A line guests read before the hotel list.', options };
+}
