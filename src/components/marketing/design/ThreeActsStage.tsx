@@ -20,6 +20,11 @@ interface Act {
   accent: string;
 }
 
+/** Where "See act … in motion" lands on the live showcase site:
+ *  Compose → the woven site itself; Conduct → the day-of schedule;
+ *  Remember → the gallery. */
+const ACT_DEMO_HREF = ['/demo', '/demo#schedule', '/demo#gallery'];
+
 const ACTS: Act[] = [
   {
     key: 'compose',
@@ -217,7 +222,14 @@ export function ThreeActsStage() {
               >
                 {a.p}
               </p>
-              <PLButton variant="ghost" size="md" style={{ borderColor: uiAccent(a.accent), color: uiAccent(a.accent) }}>
+              <PLButton
+                variant="ghost"
+                size="md"
+                style={{ borderColor: uiAccent(a.accent), color: uiAccent(a.accent) }}
+                /* Each act opens the live showcase site at the part
+                   of the page that act produces. */
+                onClick={() => window.open(ACT_DEMO_HREF[act] ?? '/demo', '_blank', 'noopener')}
+              >
                 See act {a.num.toLowerCase()} in motion →
               </PLButton>
             </div>
@@ -511,20 +523,21 @@ function ConductStage({ accent }: { accent: string }) {
             Toasts are starting. Come back to the long table.
           </em>
         </div>
-        <button
+        {/* Decorative chip inside the product mockup — a span, not a
+            button, so it doesn't read as a dead control. */}
+        <span
+          aria-hidden
           style={{
             background: accent,
             color: PD.paper,
-            border: 'none',
             padding: '5px 10px',
             borderRadius: 999,
             fontSize: 10,
             fontFamily: 'inherit',
-            cursor: 'pointer',
           }}
         >
           Push
-        </button>
+        </span>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 12 }}>

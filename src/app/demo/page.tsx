@@ -1,11 +1,21 @@
-// Demo route — showcase example site now rendered via the v8 published-site
-// renderer. Redirects to /dev/site so the same warm sage + cream wedding
-// site serves as the canonical showcase.
+// The public showcase site — a real, fully-rendered Pearloom site
+// (Alex & Jamie's garden wedding) served in production. Marketing's
+// "Read a real site" and "See act … in motion" CTAs land here.
+// Previously redirected to /dev/site, which 404s in production —
+// the demo path was dead on the live site.
 
-import { redirect } from 'next/navigation';
+import { PublishedSiteShell } from '@/components/pearloom/site/PublishedSiteShell';
+import { DEMO_MANIFEST, DEMO_NAMES } from '@/lib/demo-manifest';
 
 export const dynamic = 'force-dynamic';
 
-export default function LegacyDemoSite() {
-  redirect('/dev/site');
+export default function DemoSite() {
+  return (
+    <PublishedSiteShell
+      manifest={DEMO_MANIFEST}
+      names={DEMO_NAMES}
+      siteSlug="demo"
+      prettyUrl="pearloom.com/demo"
+    />
+  );
 }
