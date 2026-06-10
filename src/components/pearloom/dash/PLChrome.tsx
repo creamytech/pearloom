@@ -32,6 +32,7 @@ import { parseLocalDate } from '@/lib/date-utils';
 import { Icon, Pear, Sprig } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
+import { ambientFor, AmbientSprig, type AmbientContext } from '../ambient';
 import { useIsInsideShell } from './ShellPersistentLayout';
 import { usePlan } from './usePlan';
 
@@ -242,7 +243,25 @@ export function PLSidebar({ active }: { active?: string }) {
    PLAtmosphere — fixed-position botanical underlay
    ===================================================================== */
 
-export function PLAtmosphere() {
+export function PLAtmosphere({ context }: { context?: AmbientContext } = {}) {
+  /* Contextual paper marks — each section's underlay depicts what
+     the page is ABOUT (guests → a thread strung through pearls,
+     day-of → a thread-handed clock, studio → a sealed envelope,
+     memory → an album page). When no context is passed we infer it
+     from the route so every existing call site upgrades for free.
+     The previous version scaled a 24-unit Sprig icon to 230px —
+     its filled leaves melted into a gray smudge at that size. */
+  const pathname = usePathname();
+  const inferred: AmbientContext = context ?? (() => {
+    const p = pathname ?? '';
+    if (/\/(rsvp|rsvps|guest|submissions|registry|payments|bridge|cadence|passport)/.test(p)) return 'guests';
+    if (/\/(day-of|seating|director|weekend)/.test(p)) return 'day';
+    if (/\/(invite|library|speech|print|qr-poster|studio)/.test(p)) return 'studio';
+    if (/\/(keepsakes|memory|gallery|voice)/.test(p)) return 'memory';
+    if (/\/(profile|settings|connections)/.test(p)) return 'settings';
+    return 'site';
+  })();
+  const Motif = ambientFor(inferred);
   return (
     <div
       aria-hidden
@@ -257,24 +276,24 @@ export function PLAtmosphere() {
       <div
         style={{
           position: 'absolute',
-          top: 120,
-          right: 60,
-          opacity: 0.07,
-          transform: 'rotate(10deg)',
+          top: 110,
+          right: 48,
+          opacity: 0.08,
+          transform: 'rotate(8deg)',
         }}
       >
-        <Sprig size={230} color="var(--sage)" accent="var(--gold)" />
+        <Motif size={250} color="var(--sage-deep, #5C6B3F)" accent="var(--gold, #C19A4B)" />
       </div>
       <div
         style={{
           position: 'absolute',
-          bottom: 60,
-          left: 260,
-          opacity: 0.05,
-          transform: 'rotate(-8deg) scaleX(-1)',
+          bottom: 48,
+          left: 250,
+          opacity: 0.06,
+          transform: 'rotate(-7deg) scaleX(-1)',
         }}
       >
-        <Sprig size={190} color="var(--sage)" accent="var(--gold)" />
+        <AmbientSprig size={200} color="var(--sage-deep, #5C6B3F)" accent="var(--gold, #C19A4B)" />
       </div>
     </div>
   );

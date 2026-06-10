@@ -15,7 +15,7 @@
    ════════════════════════════════════════════════════════════════ */
 
 import { useState } from 'react';
-import { Pear } from '../motifs';
+import { Icon, Pear } from '../motifs';
 import { PearThinking } from '../pear-thinking';
 import { speechAvailable, startListening } from '../redesign/PearAssist';
 
@@ -141,7 +141,7 @@ export function StoryListen<S extends StorySlice>({
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
-            {listening ? '●' : '🎙'}
+            {listening ? <span aria-hidden style={{ width: 8, height: 8, borderRadius: 999, background: 'var(--sage-deep, #5C6B3F)' }} /> : <Icon name="mic" size={15} />}
           </button>
         )}
       </div>
@@ -178,10 +178,10 @@ export function StoryListen<S extends StorySlice>({
           {caught && (
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', fontSize: 12 }}>
               {(caught.names ?? []).filter(Boolean).map((n) => (
-                <span key={`n-${n}`} style={chipStyle}>👤 {n}</span>
+                <span key={`n-${n}`} style={chipStyle}><Icon name="user" size={11} /> {n}</span>
               ))}
-              {caught.eventDate && <span style={chipStyle}>📅 {caught.eventDate}</span>}
-              {caught.location && <span style={chipStyle}>📍 {caught.location}</span>}
+              {caught.eventDate && <span style={chipStyle}><Icon name="calendar" size={11} /> {caught.eventDate}</span>}
+              {caught.location && <span style={chipStyle}><Icon name="pin" size={11} /> {caught.location}</span>}
               {(caught.vibeWords ?? []).map((v) => (
                 <span key={`v-${v}`} style={{ ...chipStyle, fontStyle: 'italic' }}>{v}</span>
               ))}
@@ -215,6 +215,9 @@ export function StoryListen<S extends StorySlice>({
 }
 
 const chipStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 5,
   padding: '4px 10px',
   borderRadius: 999,
   background: 'var(--card, #FBF7EE)',

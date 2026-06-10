@@ -32,7 +32,7 @@ export function ShareBar({ url, title, accent, bgColor }: ShareBarProps) {
     }
   };
 
-  const twitterUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(`${title} 💕`)}&url=${encodeURIComponent(url)}`;
+  const twitterUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`;
 
   const btnBase: React.CSSProperties = {

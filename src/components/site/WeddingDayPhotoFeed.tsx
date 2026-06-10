@@ -1,5 +1,7 @@
 'use client';
 
+import { Icon } from '@/components/pearloom/motifs';
+
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/site/WeddingDayPhotoFeed.tsx
 // Real-time guest photo upload + display widget.
@@ -169,7 +171,7 @@ export function WeddingDayPhotoFeed({ siteId, vibeSkin }: WeddingDayPhotoFeedPro
       {/* Section heading */}
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
         <div style={{ fontSize: '1.5rem', marginBottom: '0.75rem', opacity: 0.5 }}>
-          {vibeSkin.accentSymbol || '📷'}
+          {vibeSkin.accentSymbol || <Icon name="camera" size={18} color="currentColor" />}
         </div>
         <h2
           style={{
@@ -229,7 +231,7 @@ export function WeddingDayPhotoFeed({ siteId, vibeSkin }: WeddingDayPhotoFeedPro
               />
             ) : (
               <div>
-                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📷</div>
+                <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}><Icon name="camera" size={30} color="currentColor" /></div>
                 <p style={{ color: muted, fontFamily: `"${body}", sans-serif`, fontSize: '0.9rem', margin: 0 }}>
                   Click to choose a photo
                 </p>
@@ -273,7 +275,7 @@ export function WeddingDayPhotoFeed({ siteId, vibeSkin }: WeddingDayPhotoFeedPro
           )}
           {uploadSuccess && (
             <p style={{ color: '#27AE60', fontFamily: `"${body}", sans-serif`, fontSize: '0.875rem', margin: 0 }}>
-              Photo shared! Thank you 🎉
+              Photo shared — thank you.
             </p>
           )}
 

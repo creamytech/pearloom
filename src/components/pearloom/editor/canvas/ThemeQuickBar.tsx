@@ -1,5 +1,7 @@
 'use client';
 
+import { Icon } from '../../motifs';
+
 // ─────────────────────────────────────────────────────────────
 // Pearloom / editor/canvas/ThemeQuickBar.tsx
 //
@@ -286,7 +288,7 @@ export function ThemeQuickBar({ manifest, names, onApply, docked = false }: Them
   return (
     <>
       <button type="button" onClick={() => setOpen((o) => !o)} style={triggerStyle} aria-label="Quick theme change">
-        🎨 Theme
+        <Icon name="palette" size={12} /> Theme
       </button>
       {open && (
         <div

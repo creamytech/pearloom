@@ -25,6 +25,7 @@ import { WizardLocationAutocomplete } from '../wizard/WizardLocationAutocomplete
 import { WizardDatePicker } from '../wizard/WizardDatePicker';
 import { GeneratingScreen } from '../wizard/GeneratingScreen';
 import { StoryListen } from '../wizard/StoryListen';
+import { AmbientSprig } from '../ambient';
 import { useBackgroundCook, readCookedDecor } from '../wizard/useBackgroundCook';
 import {
   useBackgroundManifest,
@@ -130,8 +131,8 @@ const VIBES = [
   { id: 'playful', label: 'Playful', icon: '✿', tone: 'peach' as const },
   { id: 'quiet', label: 'Quiet', icon: '⟐', tone: 'sage' as const },
   { id: 'editorial', label: 'Editorial', icon: '❖', tone: 'cream' as const },
-  { id: 'groovy', label: 'Groovy', icon: '☀', tone: 'peach' as const },
-  { id: 'outdoorsy', label: 'Outdoorsy', icon: '☘', tone: 'sage' as const },
+  { id: 'groovy', label: 'Groovy', icon: '\u2600\uFE0E', tone: 'peach' as const },
+  { id: 'outdoorsy', label: 'Outdoorsy', icon: '\u2618\uFE0E', tone: 'sage' as const },
   { id: 'modern', label: 'Modern', icon: '■', tone: 'lavender' as const },
   // Voice-specific chips — same free-string contract as the originals.
   { id: 'gentle', label: 'Gentle', icon: '✾', tone: 'sage' as const },
@@ -1055,8 +1056,8 @@ function ContextChips({ st }: { st: WizardState }) {
   const chips = [
     { icon: '♥', tone: 'peach' as const, label: 'Occasion', val: occ },
     { icon: '✦', tone: 'lavender' as const, label: 'Names', val: namesVal },
-    { icon: '🗓', tone: 'sage' as const, label: 'Date', val: dateVal },
-    { icon: '📍', tone: 'peach' as const, label: 'Location', val: locVal },
+    { icon: <Icon name="calendar" size={13} />, tone: 'sage' as const, label: 'Date', val: dateVal },
+    { icon: <Icon name="pin" size={13} />, tone: 'peach' as const, label: 'Location', val: locVal },
   ];
   return (
     <div
@@ -1900,10 +1901,10 @@ export function WizardV8() {
         style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, color: 'var(--sage, #5C6B3F)' }}
       >
         <div style={{ position: 'absolute', top: 90, left: -20, opacity: 0.10, transform: 'rotate(-12deg)' }}>
-          <Sprig size={220} color="var(--sage-deep, #5C6B3F)" />
+          <AmbientSprig size={220} color="var(--sage-deep, #5C6B3F)" />
         </div>
         <div style={{ position: 'absolute', bottom: 40, right: -30, opacity: 0.09, transform: 'rotate(8deg) scaleX(-1)' }}>
-          <Sprig size={260} color="var(--sage-deep, #5C6B3F)" />
+          <AmbientSprig size={260} color="var(--sage-deep, #5C6B3F)" />
         </div>
         <div style={{ position: 'absolute', top: '44%', right: '32%', opacity: 0.18 }}>
           <Sparkle size={28} color="var(--gold, #C19A4B)" />

@@ -352,7 +352,7 @@ export function PearInlineRewrite({
               fontSize: 12,
             }}
           >
-            {listening ? '●' : '🎙'}
+            {listening ? <span aria-hidden style={{ width: 7, height: 7, borderRadius: 999, background: 'var(--sage-deep, #5C6B3F)' }} /> : <Icon name="mic" size={13} />}
           </button>
         )}
         {whisper.trim() && (

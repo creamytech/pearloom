@@ -87,7 +87,7 @@ export default async function TimeCapsulePage({
     return (
       <div style={sealedStyles.page}>
         <div style={sealedStyles.card}>
-          <div style={sealedStyles.lockIcon}>🔒</div>
+          <div style={sealedStyles.lockIcon}><svg viewBox="0 0 24 24" width={34} height={34} aria-hidden style={{ display: 'block', margin: '0 auto' }}><g fill="none" stroke="#5C6B3F" strokeWidth="1.6" strokeLinecap="round"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11 V 8 a4 4 0 0 1 8 0 v 3" /><circle cx="12" cy="15.5" r="1.4" /></g></svg></div>
           <h1 style={sealedStyles.heading}>This Letter Is Still Sealed</h1>
           <p style={sealedStyles.body}>
             This love letter will open on{' '}

@@ -2427,7 +2427,7 @@ export function StorySection({
                   fontFamily: 'system-ui, sans-serif',
                 } as React.CSSProperties}
               >
-                📷 {photos.length > 0 ? 'Replace Photo' : 'Add Photo'}
+                {photos.length > 0 ? 'Replace photo' : 'Add photo'}
               </button>
             )}
             {icon && (

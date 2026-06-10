@@ -7,7 +7,8 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { buildSitePath } from '@/lib/site-urls';
-import { Icon, PhotoPlaceholder, Sprig, Squiggle } from '../motifs';
+import { Icon, PhotoPlaceholder, Squiggle } from '../motifs';
+import { AmbientHour } from '../ambient';
 import { DashEmpty } from '../dash/DashEmpty';
 
 // Shared deep-link helper for day-of CTAs. EditorV8 reads ?focus=
@@ -123,7 +124,7 @@ function PulseBar({
       }}
     >
       <div style={{ position: 'absolute', top: -16, right: -8, opacity: 0.16, pointerEvents: 'none' }}>
-        <Sprig size={150} color="var(--cream)" accent="var(--gold)" />
+        <AmbientHour size={150} color="var(--cream)" accent="var(--gold)" />
       </div>
       <div
         className="pl8-pulse-layout"

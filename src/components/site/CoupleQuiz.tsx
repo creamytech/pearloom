@@ -1,5 +1,7 @@
 'use client';
 
+import { Icon } from '@/components/pearloom/motifs';
+
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/site/CoupleQuiz.tsx
 // "How We Met" quiz — interactive trivia widget for wedding guests.
@@ -15,6 +17,7 @@ interface QuizQuestion {
   question: string;
   options: string[];
   correctIndex: number;
+  /** Icon name from the motifs Icon set — replaced the old emoji. */
   emoji: string;
 }
 
@@ -47,7 +50,7 @@ function generateQuestionsFromChapters(
           ['A chance encounter', 'A mutual friend introduced them', 'At a work event']
         ),
         correctIndex: 0,
-        emoji: '💑',
+        emoji: 'users',
       });
     } else if (c.mood) {
       // Mood question
@@ -57,7 +60,7 @@ function generateQuestionsFromChapters(
         question: `What was the mood of the chapter "${c.title}"?`,
         options: opts,
         correctIndex: opts.indexOf(c.mood),
-        emoji: '💫',
+        emoji: 'sparkles',
       });
     } else if (c.location?.label) {
       // Location question
@@ -69,7 +72,7 @@ function generateQuestionsFromChapters(
         question: `Where did the "${c.title}" chapter take place?`,
         options: opts,
         correctIndex: opts.indexOf(c.location.label),
-        emoji: '📍',
+        emoji: 'pin',
       });
     } else {
       // Generic chapter title recognition question
@@ -83,7 +86,7 @@ function generateQuestionsFromChapters(
         question: `Which chapter came ${i === 1 ? 'second' : `${i + 1}th`} in their story?`,
         options: opts,
         correctIndex: opts.indexOf(correctOpt),
-        emoji: '📖',
+        emoji: 'page',
       });
     }
   });
@@ -284,8 +287,12 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               style={{ ...cardStyle, textAlign: 'center' }}
             >
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>
-                {score === total ? '🎉' : score >= total / 2 ? '💫' : '💝'}
+              <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}>
+                <Icon
+                  name={score === total ? 'star' : score >= total / 2 ? 'sparkles' : 'heart-icon'}
+                  size={44}
+                  color="var(--t-accent, #C19A4B)"
+                />
               </div>
               <h3
                 style={{
@@ -385,7 +392,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
                   >
                     Question {currentIndex + 1} of {total}
                   </span>
-                  <span style={{ fontSize: '1rem' }}>{currentQuestion.emoji}</span>
+                  <Icon name={currentQuestion.emoji} size={16} color="var(--t-accent, #5C6B3F)" />
                 </div>
                 <div
                   style={{
