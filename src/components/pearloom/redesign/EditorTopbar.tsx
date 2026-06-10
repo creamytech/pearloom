@@ -81,19 +81,15 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
     };
   }, [menuOpen]);
 
-  async function shareSite() {
+  /* Share — opens the Share workspace (link + QR + share kit +
+     co-host invites) in the property rail via the same design-jump
+     event PublishChecklist uses. The old behavior shared
+     window.location.href through the native share sheet — which in
+     the editor is the EDITOR url, not the published site, and it
+     buried the co-host flow entirely. */
+  function shareSite() {
     if (typeof window === 'undefined') return;
-    const url = window.location.href;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: displayNames, url });
-      } else {
-        await navigator.clipboard.writeText(url);
-        window.dispatchEvent(new CustomEvent('pearloom:toast', { detail: { message: 'Link copied' } }));
-      }
-    } catch {
-      /* user dismissed share sheet — no-op */
-    }
+    window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { block: 'share' } }));
   }
   function openThemeRail() {
     if (typeof window === 'undefined') return;
@@ -340,7 +336,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
                     flexDirection: 'column',
                   }}
                 >
-                  <MenuRow icon="share" label="Share" onClick={() => { setMenuOpen(false); void shareSite(); }} />
+                  <MenuRow icon="share" label="Share" onClick={() => { setMenuOpen(false); shareSite(); }} />
                   <MenuRow icon="palette" label="Theme" onClick={() => { setMenuOpen(false); openThemeRail(); }} />
                   <MenuRow icon="sparkles" label="Decor" onClick={() => { setMenuOpen(false); openDecorLibrary(); }} />
                   <div style={{ height: 1, background: 'var(--line-soft)', margin: '4px 6px' }} />
@@ -368,8 +364,9 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         <button
           type="button"
           className="btn btn-outline btn-sm"
-          onClick={() => void shareSite()}
-          aria-label="Share this site"
+          onClick={shareSite}
+          aria-label="Open the Share panel — link, QR, share kit, co-hosts"
+          title="Share — link, QR, share kit, co-host invites"
         >
           <Icon name="share" size={12} /> Share
         </button>

@@ -113,6 +113,11 @@ export function CoHostAccept({
   const roleCopy = ROLE_COPY[invite.role];
 
   if (state === 'done') {
+    /* Land accepted collaborators straight in the editor — the
+       /editor route resolves their cohosts-table role server-side
+       (editors get the full canvas, viewers open in preview). The
+       dashboard stays as the fallback when the slug is unknown. */
+    const editorHref = siteName ? `/editor/${encodeURIComponent(siteName)}` : '/dashboard';
     return (
       <Shell>
         <div
@@ -137,11 +142,13 @@ export function CoHostAccept({
         </div>
         <Heading>Welcome to {displayCouple}&rsquo;s site.</Heading>
         <p style={{ color: INK_SOFT, fontSize: '0.95rem', marginBottom: 28 }}>
-          You&rsquo;re set up as a <strong>{roleCopy.label}</strong>. Head to the
-          dashboard to start contributing.
+          You&rsquo;re set up as a <strong>{roleCopy.label}</strong>.
+          {invite.role === 'viewer'
+            ? ' Open the site to look around.'
+            : ' Open the editor to start contributing.'}
         </p>
         <a
-          href="/dashboard"
+          href={editorHref}
           style={{
             display: 'inline-block',
             padding: '14px 28px',
@@ -156,7 +163,9 @@ export function CoHostAccept({
             textDecoration: 'none',
           }}
         >
-          Open the dashboard →
+          {siteName
+            ? (invite.role === 'viewer' ? 'Open the site →' : 'Open the editor →')
+            : 'Open the dashboard →'}
         </a>
       </Shell>
     );
