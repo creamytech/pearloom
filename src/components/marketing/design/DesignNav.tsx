@@ -8,7 +8,8 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Pear, Pearl, PLButton, PD, pdInkMix, pdShadowMix } from './DesignAtoms';
+import { Pearl, PLButton, PD, pdInkMix, pdShadowMix } from './DesignAtoms';
+import { PearloomGlyph } from '@/components/pearloom/motifs';
 
 interface DesignNavProps {
   onGetStarted: () => void;
@@ -51,21 +52,20 @@ export function DesignNav({ onGetStarted }: DesignNavProps) {
           gap: 20,
         }}
       >
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: PD.ink }}>
-          <Pear size={30} color={PD.pear} stem={PD.oliveDeep} leaf={PD.olive} />
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', color: PD.ink }}>
+          <PearloomGlyph size={32} color={PD.olive} gold={PD.gold} paper={PD.paper} />
           <span
             className="pd-nav-wordmark"
             style={{
               fontFamily: '"Fraunces", Georgia, serif',
-              fontVariationSettings: '"SOFT" 80, "opsz" 144',
               fontSize: 24,
-              fontWeight: 500,
-              letterSpacing: '-0.02em',
+              letterSpacing: '-0.015em',
               color: PD.ink,
               whiteSpace: 'nowrap',
             }}
           >
-            Pearloom
+            <span style={{ fontWeight: 640, fontVariationSettings: '"opsz" 60, "SOFT" 40, "WONK" 0' }}>Pear</span>
+            <span style={{ fontWeight: 560, fontStyle: 'italic', fontVariationSettings: '"opsz" 60, "SOFT" 80, "WONK" 1' }}>loom</span>
           </span>
         </Link>
 

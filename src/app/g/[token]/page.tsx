@@ -317,7 +317,7 @@ export default async function PersonalGuestPage({
     ['--cream-2' as string]: cardBg,
     ['--line' as string]: 'rgba(14,13,11,0.16)',
     ['--line-soft' as string]: 'rgba(14,13,11,0.08)',
-    ['--gold' as string]: '#B8935A',
+    ['--gold' as string]: '#C19A4B',
     ['--sage-deep' as string]: accent,
     ['--font-display' as string]: `"${headingFont}", Georgia, serif`,
     ['--font-ui' as string]: `"${bodyFont}", system-ui, sans-serif`,
@@ -344,7 +344,7 @@ export default async function PersonalGuestPage({
     ['--t-accent' as string]: accent,
     ['--t-accent-bg' as string]: accentLight,
     ['--t-accent-ink' as string]: accent,
-    ['--t-gold' as string]: '#B8935A',
+    ['--t-gold' as string]: '#C19A4B',
     ['--t-line' as string]: 'rgba(14,13,11,0.16)',
     ['--t-line-soft' as string]: 'rgba(14,13,11,0.08)',
     ['--t-rsvp' as string]: accent,
@@ -723,7 +723,7 @@ export default async function PersonalGuestPage({
                   width: 60,
                   height: 1,
                   marginBottom: 12,
-                  background: 'linear-gradient(90deg, var(--t-gold, #B8935A) 0%, transparent 100%)',
+                  background: 'linear-gradient(90deg, var(--t-gold, #C19A4B) 0%, transparent 100%)',
                   opacity: 0.6,
                 }}
               />
@@ -845,7 +845,7 @@ export default async function PersonalGuestPage({
             width: 180,
             height: 1,
             margin: '0 auto 24px',
-            background: 'linear-gradient(90deg, transparent, var(--t-gold, #B8935A) 50%, transparent)',
+            background: 'linear-gradient(90deg, transparent, var(--t-gold, #C19A4B) 50%, transparent)',
             opacity: 0.6,
           }}
         />

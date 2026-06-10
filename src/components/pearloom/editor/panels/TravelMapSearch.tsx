@@ -654,7 +654,7 @@ export function TravelMapSearch({ onAdd, venueCity, venueLat, venueLng }: Props)
             gap: 5,
           }}
         >
-          <Icon name="sparkles" size={11} color="var(--gold, #B8935A)" />
+          <Icon name="sparkles" size={11} color="var(--gold, #C19A4B)" />
           {searching
             ? 'Searching Google Places…'
             : usingFallback
@@ -698,7 +698,7 @@ function StarsInline({ rating, size = 9 }: { rating: number; size?: number }) {
           key={i}
           name="star"
           size={size}
-          color={i <= full ? 'var(--gold, #B8935A)' : 'var(--cream-3, #D8CFB8)'}
+          color={i <= full ? 'var(--gold, #C19A4B)' : 'var(--cream-3, #D8CFB8)'}
         />
       ))}
     </span>

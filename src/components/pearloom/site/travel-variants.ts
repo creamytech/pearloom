@@ -146,7 +146,7 @@ function TablePreview() {
           y: 12 + row * 8,
           fontFamily: 'sans-serif',
           fontSize: 2.5,
-          fill: '#B8935A',
+          fill: '#C19A4B',
         }, '★ 4.8'),
         createElement('text', {
           key: `p-${row}`,

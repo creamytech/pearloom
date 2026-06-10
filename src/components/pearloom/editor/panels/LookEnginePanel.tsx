@@ -74,7 +74,7 @@ const EDITION_TINT: Record<EditionId, string> = {
   almanac: '#5C6B3F',
   cinema: '#0E0D0B',
   'postcard-box': '#C49A6F',
-  'linen-folder': '#B8935A',
+  'linen-folder': '#C19A4B',
   quiet: '#F5EFE2',
   coastal: '#2C5E7A',
 };
@@ -786,7 +786,7 @@ export function LookEnginePanel({ manifest, onChange }: Props) {
                 gap: 8,
                 padding: '7px 10px',
                 borderRadius: 8,
-                background: 'color-mix(in oklab, var(--gold, #B8935A) 16%, var(--cream, #F5EFE2))',
+                background: 'color-mix(in oklab, var(--gold, #C19A4B) 16%, var(--cream, #F5EFE2))',
               }}
             >
               <span style={{ fontSize: 11, color: 'var(--ink-soft, #3A332C)' }}>

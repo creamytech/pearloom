@@ -106,7 +106,7 @@ export default function LandingPageWrapper() {
           --pd-inkSoft: #3a332c;
           --pd-olive: #5c6b3f;
           --pd-oliveDeep: #363f22;
-          --pd-gold: #b8935a;
+          --pd-gold: #c19a4b;
           --pd-terra: #c6703d;
           --pd-rose: #d9a89e;
           --pd-plum: #7a2d2d;

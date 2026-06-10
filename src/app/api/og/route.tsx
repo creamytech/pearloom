@@ -422,7 +422,7 @@ export async function GET(req: NextRequest) {
                 transform: 'translateX(-50%)',
                 width: '160px',
                 height: '1px',
-                background: suiteGold ?? '#B89244',
+                background: suiteGold ?? '#C19A4B',
                 display: 'flex',
               }}
             />
@@ -434,7 +434,7 @@ export async function GET(req: NextRequest) {
                 transform: 'translateX(-50%)',
                 width: '160px',
                 height: '1px',
-                background: suiteGold ?? '#B89244',
+                background: suiteGold ?? '#C19A4B',
                 display: 'flex',
               }}
             />

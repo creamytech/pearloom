@@ -112,7 +112,7 @@ const NAV_STYLES: Array<{
         {[6, 12, 18].map((x) => <line key={x} x1={x - 2} y1="9" x2={x + 2} y2="9" stroke="#6F6557" strokeWidth="0.6" />)}
         <circle cx="27" cy="7.5" r="2.2" fill="#5C6B3F" />
         <text x="31" y="9.4" fontFamily="serif" fontSize="4.5" fontStyle="italic" fill="#0E0D0B">Anna</text>
-        <line x1="29" y1="12" x2="38" y2="12" stroke="#B8935A" strokeWidth="0.5" />
+        <line x1="29" y1="12" x2="38" y2="12" stroke="#C19A4B" strokeWidth="0.5" />
         {[46, 52, 58].map((x) => <line key={x} x1={x - 2} y1="9" x2={x + 2} y2="9" stroke="#6F6557" strokeWidth="0.6" />)}
       </svg>
     ),
@@ -145,7 +145,7 @@ const NAV_STYLES: Array<{
         <text x="11" y="11.5" fontFamily="serif" fontSize="4.5" fontStyle="italic" fill="#0E0D0B">Anna · Liam</text>
         {[36, 47, 58].map((x, i) => (
           <g key={x}>
-            <circle cx={x - 4} cy="9" r="0.7" fill="#B8935A" />
+            <circle cx={x - 4} cy="9" r="0.7" fill="#C19A4B" />
             <text x={x - 2} y="10.5" fontFamily="monospace" fontSize="2.6" fill="#3A332C">{`0${i+1}`}</text>
           </g>
         ))}

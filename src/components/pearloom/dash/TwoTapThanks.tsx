@@ -61,7 +61,13 @@ export function TwoTapThanks() {
   }, [siteId]);
 
   const load = useCallback(async () => {
-    if (!siteId) return;
+    if (!siteId) {
+      // No site selected — resolve to the empty state instead of
+      // an eternal 'Threading…' strip.
+      setGuests([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const [guestsR, whispersR, memoryR, songsR] = await Promise.all([

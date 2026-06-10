@@ -5,6 +5,7 @@
 // design bundle's faq.jsx.
 
 import { useState } from 'react';
+import { EVENT_TYPES } from '@/lib/event-os/event-types';
 import { Bloom, Sparkle } from '@/components/brand/groove';
 import { Ornament, Pill, PD, DISPLAY_STYLE, pdInkMix } from './DesignAtoms';
 
@@ -15,11 +16,11 @@ const QS = [
   },
   {
     q: 'Is the first site really free, forever?',
-    a: 'Yes. Journal is free. One site, every block it needs, all 28 occasions, unlimited RSVPs, and The Reel. No card to start, no expiry, no trial. Your first celebration is our gift.',
+    a: `Yes. Journal is free. One site, every block it needs, all ${EVENT_TYPES.length} occasions, unlimited RSVPs, and The Reel. No card to start, no expiry, no trial. Your first celebration is our gift.`,
   },
   {
     q: 'Can I use my own domain?',
-    a: 'On Atelier and Legacy, yes. Bring any domain. It takes about ninety seconds, HTTPS is automatic, and Pear handles the DNS copy-paste for you.',
+    a: 'Not yet. Every site lives at a clean pearloom.com address — pearloom.com/wedding/your-names — on every tier, with HTTPS automatic. Custom domains are on the loom; when they ship, Atelier and Legacy hosts get them included.',
   },
   {
     q: 'What happens on the day of the event?',
@@ -27,15 +28,15 @@ const QS = [
   },
   {
     q: 'What happens after?',
-    a: "Photos file themselves into The Reel, one gallery across every site you've made. On your anniversary, the site returns with a highlight reel auto-cut from the weekend. Your site is yours to keep.",
+    a: "Photos file themselves into The Reel, one gallery across every site you've made. On your anniversary, the site returns — rewoven with the photos, toasts, and notes your guests left behind. Your site is yours to keep.",
   },
   {
     q: 'Is memorial hosting really always free?',
-    a: "Always, on every tier. Every block, every feature, no asterisk. Grief deserves no paywall. This is Pear's promise.",
+    a: "Always, on every tier. A memorial never counts against your plan's site limit, its guest list is never capped, and every memorial block — obituary, tribute wall, program, livestream — is included. Grief deserves no paywall. This is Pear's promise, and it's written into the code.",
   },
   {
     q: 'How is my data handled?',
-    a: 'GDPR and CCPA compliant, your choice of EU or US regions, nothing is ever sold. Delete a site and every byte is gone within thirty days, verified. Your photos are yours. They are never used to train anything.',
+    a: 'GDPR and CCPA compliant, and nothing is ever sold. Export everything as a single JSON file anytime from Settings. Delete a site and it is gone. Your photos are yours — they are never used to train anything.',
   },
   {
     q: 'Can co-hosts edit?',
@@ -103,9 +104,13 @@ export function DesignFAQ() {
                 onClick={() => setOpen(isOpen ? -1 : i)}
                 style={{
                   borderTop: `1px solid ${pdInkMix(15)}`,
-                  padding: '24px 4px',
+                  padding: isOpen ? '24px 4px 24px 16px' : '24px 4px',
                   cursor: 'pointer',
                   borderBottom: i === QS.length - 1 ? `1px solid ${pdInkMix(15)}` : 'none',
+                  // Gold hairline on the open item — gold as 1px
+                  // punctuation (BRAND.md §5), never a background.
+                  borderLeft: isOpen ? `2px solid ${PD.gold}` : '2px solid transparent',
+                  transition: 'padding var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
                 }}
               >
                 <div

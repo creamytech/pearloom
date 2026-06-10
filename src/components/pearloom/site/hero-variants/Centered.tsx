@@ -74,7 +74,7 @@ export function HeroCentered({ manifest, names: _names, siteSlug: _siteSlug, onE
           marginInline: 'auto',
           width: 220,
           height: 1,
-          background: 'linear-gradient(90deg, transparent, var(--pl-gold, var(--gold, #B8935A)) 50%, transparent)',
+          background: 'linear-gradient(90deg, transparent, var(--pl-gold, var(--gold, #C19A4B)) 50%, transparent)',
           opacity: 0.7,
         }}
       />

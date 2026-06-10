@@ -35,7 +35,7 @@ interface Props {
 const DEFAULT_SWATCHES = [
   '#0E0D0B', '#3A332C', '#6F6557', '#A89F8E',
   '#F5EFE2', '#FBF7EE', '#E5DCC4', '#C6703D',
-  '#B8935A', '#5C6B3F', 'var(--plum-ink, #7A2D2D)', '#8B6F8E',
+  '#C19A4B', '#5C6B3F', 'var(--plum-ink, #7A2D2D)', '#8B6F8E',
   '#C49A6F', '#A14A2C', '#D4A95D', '#A4B57A',
 ];
 

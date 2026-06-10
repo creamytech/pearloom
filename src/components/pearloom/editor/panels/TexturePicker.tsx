@@ -58,7 +58,7 @@ function LinenPreview() {
         </pattern>
       </defs>
       <rect width="240" height="72" fill="url(#linen-weave)" />
-      <rect x="40" y="22" width="160" height="28" fill="#FBF7EE" stroke="#B89244" strokeWidth="0.6" />
+      <rect x="40" y="22" width="160" height="28" fill="#FBF7EE" stroke="#C19A4B" strokeWidth="0.6" />
     </svg>
   );
 }

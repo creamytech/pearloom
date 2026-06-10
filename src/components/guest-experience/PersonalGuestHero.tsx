@@ -170,7 +170,7 @@ export function PersonalGuestHero({
             width: 160,
             height: 1,
             margin: '0 auto 22px',
-            background: 'linear-gradient(90deg, transparent, var(--t-gold, #B8935A) 50%, transparent)',
+            background: 'linear-gradient(90deg, transparent, var(--t-gold, #C19A4B) 50%, transparent)',
             opacity: 0.55,
           }}
         />

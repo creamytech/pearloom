@@ -29,6 +29,10 @@ import { Motif, MotifScatter, WatercolorBloom, OliveSprig, type MotifKind } from
 import { TextureFilters } from '../site/TextureFilters';
 import { readVariant } from './layouts';
 import type { SectionId } from './EditorRedesign';
+/* Occasion gating for the nine core sections — leaf module shared
+   with EditorRedesign / SectionRail (importing from EditorRedesign
+   here would cycle: EditorRedesign imports ThemedSite). */
+import { isCoreSectionApplicable, sectionHasContent } from './section-applicability';
 import { InlineEdit } from './InlineEdit';
 /* Per-section layout variants — each section block dispatches via
    ctx.variants.<section> to one of these. Default ('tiles', 'cards',
@@ -371,8 +375,19 @@ export function ThemedSite({
     ...savedOrder.filter((k): k is SectionKind => k !== 'hero' && (allKinds as readonly string[]).includes(k)) as SectionKind[],
     ...coreKinds.filter((k) => k !== 'hero' && !savedOrder.includes(k)),
   ];
+  /* Occasion gate — core sections that don't fit this occasion
+     (per the EVENT_TYPES registry) AND are content-empty are
+     skipped, so e.g. a bachelorette site never renders a demo
+     Registry with placeholder stores. Sections carrying real host
+     content always render — content wins. Unknown occasion →
+     everything renders (manifests that predate the registry). */
+  const occasionId = (manifest as unknown as { occasion?: string }).occasion;
   const sections: SectionKind[] = ['hero' as SectionKind, ...reorderedRest]
-    .filter((s) => s === 'hero' || !hidden.includes(s));
+    .filter((s) => s === 'hero' || !hidden.includes(s))
+    .filter((s) =>
+      !coreKinds.includes(s)
+      || isCoreSectionApplicable(s, occasionId)
+      || sectionHasContent(s, manifest));
   /* navItems carry section id + label so the nav can render real
      anchors that scroll to the right block. Excludes 'hero' and
      'rsvp' from the link list (hero is the top of the page, rsvp
@@ -1386,7 +1401,7 @@ function StorySideBySide({ ctx }: { ctx: SectionCtx }) {
   void theme;
   const heroPhoto = C.story.chapterImages?.[0];
   return (
-    <div style={{ position: 'relative', padding: `${48 * pad}px 72px`, display: 'grid', gridTemplateColumns: '0.85fr 1fr', gap: 44, alignItems: 'center', background: 'var(--t-paper)' }}>
+    <div className="pl8-story-sbs" style={{ position: 'relative', padding: `${48 * pad}px clamp(20px, 6vw, 72px)`, display: 'grid', gridTemplateColumns: '0.85fr 1fr', gap: 'clamp(24px, 5vw, 44px)', alignItems: 'center', background: 'var(--t-paper)' }}>
       <div style={{ position: 'relative' }}>
         {heroPhoto ? (
           <FadeInImage src={heroPhoto} style={{ aspectRatio: '4/5', borderRadius: 'var(--t-radius)' }} />
@@ -1446,7 +1461,7 @@ function StoryStacked({ ctx }: { ctx: SectionCtx }) {
   const { pad, C, editable, edit } = ctx;
   const heroPhoto = C.story.chapterImages?.[0];
   return (
-    <div style={{ padding: `${48 * pad}px 72px`, textAlign: 'center', maxWidth: 760, marginInline: 'auto', background: 'var(--t-paper)' }}>
+    <div style={{ padding: `${48 * pad}px clamp(20px, 6vw, 72px)`, textAlign: 'center', maxWidth: 760, marginInline: 'auto', background: 'var(--t-paper)' }}>
       <div style={{ marginInline: 'auto', maxWidth: 520, marginBottom: 26 }}>
         {heroPhoto ? (
           <FadeInImage src={heroPhoto} style={{ aspectRatio: '16/9', borderRadius: 'var(--t-radius)' }} />
@@ -1503,7 +1518,7 @@ function StoryQuote({ ctx }: { ctx: SectionCtx }) {
   const isEditorial = theme.id === 'editorial';
   const heroPhoto = C.story.chapterImages?.[0];
   return (
-    <div style={{ position: 'relative', padding: `${56 * pad}px 72px`, textAlign: 'center', maxWidth: 880, marginInline: 'auto', background: 'var(--t-paper)' }}>
+    <div style={{ position: 'relative', padding: `${56 * pad}px clamp(20px, 6vw, 72px)`, textAlign: 'center', maxWidth: 880, marginInline: 'auto', background: 'var(--t-paper)' }}>
       {motifsOn && <MotifScatter motif={motif} density="sparse" />}
       {heroPhoto && (
         /* Decorative cover above the quote — small + centered so it

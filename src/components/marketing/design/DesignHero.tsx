@@ -7,6 +7,7 @@
 // and sparkles drift behind the grid.
 
 import { useEffect, useState } from 'react';
+import { EVENT_TYPES } from '@/lib/event-os/event-types';
 import { Bloom, Sparkle, Swirl } from '@/components/brand/groove';
 import { HeroPear, Leaf, Pear, Pearl, Pill, PLButton, PD, DISPLAY_STYLE, Squiggle, pdInkMix, pdShadowMix } from './DesignAtoms';
 
@@ -261,7 +262,16 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
             <PLButton variant="pearl" size="lg" onClick={onGetStarted}>
               Start your loom <Pearl size={9} />
             </PLButton>
-            <PLButton variant="ghost" size="lg">
+            <PLButton
+              variant="ghost"
+              size="lg"
+              onClick={() => {
+                // No demo video exists — "watch" goes to the live
+                // three-acts walkthrough below, which IS Pear
+                // threading a site. (Was a dead button.)
+                document.getElementById('acts')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+            >
               <span
                 style={{
                   display: 'inline-flex',
@@ -291,10 +301,16 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
               flexWrap: 'wrap',
             }}
           >
+            {/* Counters carry only claims the product actually makes:
+                the occasion count reads straight from the registry so
+                it can never drift, "20 sec" is the wizard's own
+                first-draft claim, and the free tier is real. (The old
+                "42,000 days already threaded" was a fabricated usage
+                stat — removed.) */}
             {([
-              { n: '42,000', l: 'days, already threaded', c: PD.olive },
-              { n: '28', l: 'occasions, one voice each', c: PD.gold },
-              { n: '8 min', l: 'from hello to published', c: PD.olive },
+              { n: String(EVENT_TYPES.length), l: 'occasions, one voice each', c: PD.olive },
+              { n: '20 sec', l: 'to a first draft', c: PD.gold },
+              { n: '$0', l: 'your first site, forever', c: PD.olive },
             ] as const).map((s, i) => (
               <div key={s.l} style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
                 <div>

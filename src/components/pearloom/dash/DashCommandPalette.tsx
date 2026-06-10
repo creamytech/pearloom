@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DASH_SECTIONS } from './DashShell';
 import { useUserSettings } from './UserSettingsModal';
 import { useSelectedSite, useUserSites, siteDisplayName, type SiteSummary } from '@/components/marketing/design/dash/hooks';
+import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
 import { Icon } from '../motifs';
 
 interface CmdItem {
@@ -38,6 +39,34 @@ const TOP_LEVEL_DESTINATIONS: Array<{ id: string; label: string; icon: string; h
   { id: 'nav-studio',   label: 'Studio',   icon: 'sparkles',   href: '/dashboard/invite' },
   { id: 'nav-memory',   label: 'Memory',   icon: 'heart-icon', href: '/dashboard/keepsakes' },
   { id: 'nav-settings', label: 'Settings', icon: 'settings',   href: '/dashboard/profile' },
+];
+
+/** The routes de-promoted from the sidebar in the 22→10 nav trim.
+ *  They were always meant to live here in ⌘K — this list is the
+ *  discovery surface. `gate` keys into dashboard-applicability so
+ *  occasion-shaped tools hide for events they don't fit. */
+const DEPROMOTED_DESTINATIONS: Array<{
+  id: string;
+  label: string;
+  hint: string;
+  icon: string;
+  href: string;
+  gate?: string;
+}> = [
+  { id: 'tool-analytics',  label: 'Analytics',        hint: 'Visits & sections',         icon: 'eye',      href: '/dashboard/analytics' },
+  { id: 'tool-bridge',     label: 'The bridge',       hint: 'Every guest thread',        icon: 'users',    href: '/dashboard/bridge' },
+  { id: 'tool-cadence',    label: 'Send timeline',    hint: 'Save-the-dates & reminders', icon: 'bell',    href: '/dashboard/cadence' },
+  { id: 'tool-director',   label: 'The Director',     hint: 'Pear plans with you',       icon: 'sparkles', href: '/dashboard/director' },
+  { id: 'tool-gallery',    label: 'The Reel',         hint: 'Every photo, all sites',    icon: 'image',    href: '/dashboard/gallery' },
+  { id: 'tool-review',     label: "Pear's review",    hint: 'Duplicates, VIPs, gaps',    icon: 'check',    href: '/dashboard/guest-review' },
+  { id: 'tool-help',       label: 'Help & docs',      hint: 'Shortcuts & answers',       icon: 'heart-icon', href: '/dashboard/help' },
+  { id: 'tool-music',      label: 'Music',            hint: 'Guest song requests',       icon: 'music',    href: '/dashboard/music', gate: 'music' },
+  { id: 'tool-passport',   label: 'Passport cards',   hint: 'Printable guest QR cards',  icon: 'gift',     href: '/dashboard/passport-cards' },
+  { id: 'tool-payments',   label: 'Gifts & payments', hint: 'Stripe feed',               icon: 'gift',     href: '/dashboard/payments' },
+  { id: 'tool-print',      label: 'Print orders',     hint: 'Pearloom Print tracking',   icon: 'mail',     href: '/dashboard/print' },
+  { id: 'tool-qr',         label: 'QR poster',        hint: 'Welcome-table scan sign',   icon: 'image',    href: '/dashboard/qr-poster' },
+  { id: 'tool-voice',      label: "Pear's voice",     hint: 'Train Pear on your tone',   icon: 'mic',      href: '/dashboard/voice' },
+  { id: 'tool-weekend',    label: 'Weekend builder',  hint: 'Linked multi-event sites',  icon: 'calendar', href: '/dashboard/weekend', gate: 'weekend' },
 ];
 
 export function DashCommandPalette() {
@@ -76,9 +105,11 @@ export function DashCommandPalette() {
     for (const d of TOP_LEVEL_DESTINATIONS) {
       items.push({ id: d.id, kind: 'nav', label: d.label, icon: d.icon, href: d.href });
     }
-    // Sub-tabs across every section.
+    // Sub-tabs across every section — occasion-gated so e.g. a
+    // bachelor-party host doesn't see Registry in the switcher.
     for (const [sectionId, section] of Object.entries(DASH_SECTIONS)) {
       for (const tab of section.tabs) {
+        if (!isDashSurfaceApplicable(tab.id, selectedSite?.occasion)) continue;
         items.push({
           id: `tab-${sectionId}-${tab.id}`,
           kind: 'nav',
@@ -88,6 +119,12 @@ export function DashCommandPalette() {
           href: tab.href,
         });
       }
+    }
+    // The de-promoted tools — ⌘K is their only discovery surface,
+    // so the trimmed sidebar doesn't orphan them. Occasion-gated.
+    for (const d of DEPROMOTED_DESTINATIONS) {
+      if (d.gate && !isDashSurfaceApplicable(d.gate, selectedSite?.occasion)) continue;
+      items.push({ id: d.id, kind: 'nav', label: d.label, hint: d.hint, icon: d.icon, href: d.href });
     }
     // Settings modal entries — opens the in-shell modal rather
     // than routing to a page. Mirrors the four tabs.

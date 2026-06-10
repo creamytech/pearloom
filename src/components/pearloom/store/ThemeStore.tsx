@@ -28,7 +28,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { COLLECTIONS, PACKS, getPackById, type Pack } from '@/lib/theme-store/packs';
 import { StoreFonts } from '@/lib/theme-store/fonts';
-import { Icon, Pear } from '../motifs';
+import { Icon, Pear, PearloomGlyph, PearloomWordmark } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
 import { PackCard } from './PackCard';
 import { PackPreview } from './PackPreview';
@@ -517,16 +517,8 @@ function StoreInner() {
               color: 'inherit',
             }}
           >
-            <Pear size={26} tone="sage" shadow={false} />
-            <span
-              style={{
-                fontFamily: 'var(--pl-font-display, "Fraunces"), Georgia, serif',
-                fontWeight: 700,
-                fontSize: 19,
-              }}
-            >
-              Pearloom
-            </span>
+            <PearloomGlyph size={28} />
+            <PearloomWordmark size={19} />
           </Link>
           <span
             style={{
@@ -538,7 +530,7 @@ function StoreInner() {
           >
             Theme Store
           </span>
-          <div style={{ flex: 1, maxWidth: 440, marginInline: 'auto', position: 'relative', minWidth: 200 }}>
+          <div className="pl-store-search" style={{ flex: 1, maxWidth: 440, marginInline: 'auto', position: 'relative', minWidth: 200 }}>
             <span
               style={{
                 position: 'absolute',
@@ -570,6 +562,7 @@ function StoreInner() {
             />
           </div>
           <div
+            className="pl-store-owned"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -580,8 +573,19 @@ function StoreInner() {
           >
             <Icon name="check" size={13} color="var(--sage-deep, #6d7d3f)" /> {ownedSet.size} owned
           </div>
+          <style>{`
+            @media (max-width: 600px) {
+              /* Row 1: brand · label · owned (pushed right).
+                 Row 2: search grows + cart beside it — no orphan
+                 cart row. */
+              .pl-store-owned { order: 1; margin-left: auto; }
+              .pl-store-search { order: 2; flex: 1 1 220px; min-width: 0; margin-inline: 0; }
+              .pl-store-cart { order: 3; flex-shrink: 0; }
+            }
+          `}</style>
           <button
             type="button"
+            className="pl-store-cart"
             onClick={() => setCartOpen(true)}
             style={{
               position: 'relative',

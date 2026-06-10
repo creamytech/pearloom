@@ -68,7 +68,7 @@ interface MiniDividerProps {
 
 function MiniDivider({ look, width }: MiniDividerProps) {
   const stroke = 'var(--t-accent-ink, var(--t-ink, #2A2A28))';
-  const gold = 'var(--t-gold, #B8935A)';
+  const gold = 'var(--t-gold, #C19A4B)';
   if (look === 'sprig') {
     return (
       <svg width={width} height={12} viewBox={`0 0 ${width} 12`} aria-hidden="true">

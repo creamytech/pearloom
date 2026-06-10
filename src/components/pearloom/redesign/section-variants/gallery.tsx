@@ -49,7 +49,7 @@ const TONE_BG: Record<string, string> = {
   dusk: 'linear-gradient(135deg,#c8b6e8,#9b88c9)',
   peach: 'linear-gradient(135deg,#f0c4a4,#d49474)',
   lavender: 'linear-gradient(135deg,#d4c4e8,#a89bc4)',
-  gold: 'linear-gradient(135deg,#d9b380,#b8935a)',
+  gold: 'linear-gradient(135deg,#d9b380,#C19A4B)',
   ink: 'linear-gradient(135deg,#3a332c,#0e0d0b)',
   rose: 'linear-gradient(135deg,#e8b8b8,#c48888)',
 };

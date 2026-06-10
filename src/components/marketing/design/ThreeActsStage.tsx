@@ -27,7 +27,7 @@ const ACTS: Act[] = [
     verb: 'Compose',
     tag: 'THE SITE',
     h: 'Three questions. A handful of photos. A whole site.',
-    p: "Tell Pear what you're gathering for, when, and where. Drop in some pictures. She reads the faces, the light, the season, and presses a five-color palette from your own photographs. The cover, the story, the RSVP, travel, registry, FAQ, all drafted in your voice, ready for you to edit a word or two.",
+    p: "Tell Pear what you're gathering for, when, and where. Drop in some pictures. She reads the faces, the light, the season, and presses a six-color palette from your own photographs. The cover, the story, the RSVP, travel, registry, FAQ, all drafted in your voice, ready for you to edit a word or two.",
     accent: PD.olive,
   },
   {
@@ -45,7 +45,7 @@ const ACTS: Act[] = [
     verb: 'Remember',
     tag: 'THE FILM',
     h: "Pearloom doesn't quietly retire.",
-    p: "Photos file themselves into The Reel, one gallery across every site you've ever made. On the right dates, the site returns with a highlight film auto-cut from the weekend and a time capsule of notes. Your first site is yours to keep, free, forever.",
+    p: "Photos file themselves into The Reel, one gallery across every site you've ever made. On your anniversary the site returns, rewoven with everything your guests left behind — the photos, the toasts, the time-capsule notes. Your first site is yours to keep, free, forever.",
     accent: PD.gold,
   },
 ];
@@ -62,9 +62,9 @@ export function ThreeActsStage() {
   // NOTE: the `#acts` anchor lives on the wrapper <section> in
   // LandingPageWrapper — no id here so the document keeps unique ids.
   return (
-    <section style={{ padding: '140px 24px 100px', position: 'relative', overflow: 'hidden' }}>
+    <section style={{ padding: 'clamp(72px, 9vw, 110px) 24px 100px', position: 'relative', overflow: 'hidden' }}>
       <div style={{ maxWidth: 1320, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: 72, maxWidth: 780, marginInline: 'auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 44, maxWidth: 780, marginInline: 'auto' }}>
           <Pill color="transparent" style={{ marginBottom: 18 }}>
             <Pearl size={7} /> THE THREE ACTS
           </Pill>
@@ -641,7 +641,7 @@ function RememberStage({ accent }: { accent: string }) {
           <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55 }}>LANDS SEP 6 · 2027</div>
         </div>
         <div style={{ fontSize: 12, color: PD.inkSoft, lineHeight: 1.45, fontFamily: 'var(--pl-font-body)' }}>
-          A highlight reel, auto-cut from your weekend, arrives in your inbox. The site stays, always.
+          On the anniversary, the site rebroadcasts itself — every photo and note your guests left, gathered into one keepsake page. The site stays, always.
         </div>
       </div>
 

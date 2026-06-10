@@ -70,7 +70,7 @@ const PALETTES: ThemePreset[] = [
   {
     id: 'olive-gold',
     name: 'Olive & Gold',
-    colors: ['#3D4A1F', '#6d7d3f', '#D4A95D', '#F3E9D4', '#B89244', '#CBD29E'],
+    colors: ['#3D4A1F', '#6d7d3f', '#D4A95D', '#F3E9D4', '#C19A4B', '#CBD29E'],
     theme: { background: '#F3E9D4', foreground: '#2B341A', accent: '#D4A95D', accentLight: '#E9E0C6', muted: '#6D7D3F', cardBg: '#FBF4E0' },
   },
   {
@@ -544,7 +544,7 @@ function ThemeCategory({ label, hint }: { label: string; hint?: string }) {
             fontWeight: 800,
             letterSpacing: '0.22em',
             textTransform: 'uppercase',
-            color: 'var(--gold, #B8935A)',
+            color: 'var(--gold, #C19A4B)',
             fontFamily: 'var(--font-ui)',
           }}
         >
@@ -555,7 +555,7 @@ function ThemeCategory({ label, hint }: { label: string; hint?: string }) {
           style={{
             flex: 1,
             height: 1,
-            background: 'linear-gradient(to right, var(--gold, #B8935A), transparent 75%)',
+            background: 'linear-gradient(to right, var(--gold, #C19A4B), transparent 75%)',
             opacity: 0.45,
           }}
         />

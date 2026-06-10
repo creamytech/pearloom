@@ -138,7 +138,7 @@ function MonoLabelOpener({ title }: OpenerProps) {
           width: 4,
           height: 4,
           borderRadius: '50%',
-          background: 'var(--gold, #B89244)',
+          background: 'var(--gold, #C19A4B)',
           display: 'inline-block',
           flexShrink: 0,
         }}

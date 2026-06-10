@@ -23,8 +23,10 @@ function editorDeepLink(siteDomain: string | null | undefined, block?: string, a
   return `/editor/${encodeURIComponent(siteDomain)}${q ? `?${q}` : ''}`;
 }
 import { DashLayout } from '../dash/DashShell';
-import { PLAtmosphere, PLTabs } from '../dash/PLChrome';
+import { PLAtmosphere } from '../dash/PLChrome';
 import { BroadcastComposer } from '../dash/BroadcastComposer';
+import { parseLocalDate } from '@/lib/date-utils';
+import { buildSiteUrl } from '@/lib/site-urls';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
 import { useDashStats } from '@/components/marketing/v2/useDashStats';
 
@@ -43,16 +45,39 @@ function PulseBar({
   today,
   registryClicks,
   totalGuests,
+  daysUntil,
 }: {
   rsvps: number;
   visits: number;
   today: number;
   registryClicks: number;
   totalGuests: number | null;
+  /** Whole days to the event: 0 = today, null = no date set. */
+  daysUntil: number | null;
 }) {
   const now = useLiveClock();
   const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  // "It's happening" only when it actually is. Before the day this
+  // strip is a countdown; after, a quiet recap; with no date set,
+  // an honest nudge to add one.
+  const isEventDay = daysUntil === 0;
+  const liveLabel =
+    daysUntil === null
+      ? `Preview · ${dateStr}`
+      : isEventDay
+        ? `Live · ${dateStr}`
+        : daysUntil > 0
+          ? `T-minus ${daysUntil} day${daysUntil === 1 ? '' : 's'} · ${dateStr}`
+          : `After the day · ${dateStr}`;
+  const liveAside =
+    daysUntil === null
+      ? 'set your date in the editor'
+      : isEventDay
+        ? "it's happening"
+        : daysUntil > 0
+          ? `${daysUntil} day${daysUntil === 1 ? '' : 's'} to go`
+          : 'the recap lives here';
   const metrics = [
     {
       k: 'RSVPs in',
@@ -112,15 +137,17 @@ function PulseBar({
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
-            <span
-              className="pulse-dot"
-              style={{
-                width: 7,
-                height: 7,
-                borderRadius: '50%',
-                background: '#B8D66A',
-              }}
-            />
+            {isEventDay && (
+              <span
+                className="pulse-dot"
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: '50%',
+                  background: '#B8D66A',
+                }}
+              />
+            )}
             <span
               style={{
                 fontSize: 10.5,
@@ -130,7 +157,7 @@ function PulseBar({
                 color: 'rgba(241,235,221,0.6)',
               }}
             >
-              Live · {dateStr}
+              {liveLabel}
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
@@ -153,7 +180,7 @@ function PulseBar({
                 color: 'var(--peach-2)',
               }}
             >
-              it&apos;s happening
+              {liveAside}
             </span>
           </div>
         </div>
@@ -886,6 +913,43 @@ export function DayOfV8() {
   const stats = useDashStats(site?.id);
   const siteName = site ? siteDisplayName(site) : 'Your celebration';
   const occasion = site?.occasion ?? null;
+  const [shared, setShared] = useState(false);
+
+  // Whole days until the event (0 = today, negative = past,
+  // null = no date set). Drives the headline + the pulse strip so
+  // the room never claims "it's happening" weeks early.
+  const daysUntil = (() => {
+    const d = parseLocalDate(site?.eventDate);
+    if (!d) return null;
+    const a = new Date();
+    a.setHours(0, 0, 0, 0);
+    d.setHours(0, 0, 0, 0);
+    return Math.round((d.getTime() - a.getTime()) / 86_400_000);
+  })();
+
+  // "Share with crew" — hands the live site link to vendors and the
+  // wedding party. Native share sheet where it exists, clipboard
+  // fallback with inline confirmation.
+  const shareWithCrew = async () => {
+    if (!site?.domain) return;
+    const url = buildSiteUrl(site.domain, '', undefined, site.occasion);
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        await navigator.share({ title: siteName, url });
+        return;
+      }
+    } catch {
+      // user dismissed the sheet — fall through to nothing
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setShared(true);
+      setTimeout(() => setShared(false), 2200);
+    } catch {
+      /* clipboard unavailable — leave the button as-is */
+    }
+  };
 
   // Pull events from the selected site's manifest (shaped by /api/sites).
   const events = (() => {
@@ -913,7 +977,11 @@ export function DayOfV8() {
         ? { a: 'The', b: 'weekend.' }
         : occasion === 'reunion'
           ? { a: 'Everyone', b: 'together.' }
-          : { a: "Today's the", b: 'day.' };
+          : daysUntil !== null && daysUntil > 0
+            ? { a: 'The day is', b: 'coming.' }
+            : daysUntil !== null && daysUntil < 0
+              ? { a: 'What a', b: 'day.' }
+              : { a: "Today's the", b: 'day.' };
 
   return (
     <DashLayout active="timeline" hideTopbar>
@@ -922,15 +990,8 @@ export function DayOfV8() {
           owns the cream + nav chrome. */}
       <PLAtmosphere />
       <div className="pl8-dayof-wrap" style={{ padding: '24px clamp(20px, 4vw, 40px) 60px', maxWidth: 1160, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        {/* Editorial tabs — Timeline (default) / Seating. Matches the
-            prototype's centered filled-pill tab strip. */}
-        <PLTabs
-          tabs={[
-            { label: 'Timeline' },
-            { label: 'Seating', href: '/dashboard/seating' },
-          ]}
-          active={0}
-        />
+        {/* Timeline / Seating tabs come from the shell's DashSubNav —
+            no in-page duplicate strip. */}
         <div
           className="pl8-dayof-header"
           style={{
@@ -959,8 +1020,13 @@ export function DayOfV8() {
             </h1>
           </div>
           <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-            <button className="btn btn-outline btn-sm">
-              <Icon name="share" size={13} /> Share with crew
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={shareWithCrew}
+              disabled={!site?.domain}
+              style={!site?.domain ? { opacity: 0.5, cursor: 'default' } : undefined}
+            >
+              <Icon name={shared ? 'check' : 'share'} size={13} /> {shared ? 'Link copied' : 'Share with crew'}
             </button>
             <Link
               href={site ? buildSitePath(site.domain, '', site.occasion) : '/'}
@@ -977,6 +1043,7 @@ export function DayOfV8() {
           today={stats.today}
           registryClicks={stats.registryClicks}
           totalGuests={null}
+          daysUntil={daysUntil}
         />
 
         <div className="pl8-dayof-main" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1fr)', gap: 18, alignItems: 'start' }}>

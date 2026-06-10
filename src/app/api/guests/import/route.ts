@@ -31,7 +31,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { parseGuestCsv, dedupeAgainst } from '@/lib/csv/parse-guests';
-import { getPlanWithLimitsForEmail, planLimitResponseBody } from '@/lib/plan-gate';
+import { getPlanWithLimitsForEmail, planLimitResponseBody, isSiteGriefExempt } from '@/lib/plan-gate';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -123,9 +123,12 @@ export async function POST(req: NextRequest) {
     // fetch counts as 0 — fail open). Rejects the whole batch rather
     // than partially importing silently; `allowed` tells the UI how
     // many more rows would fit so it can offer a partial import.
+    // Memorial/funeral sites are exempt from the guest cap (the
+    // published "grief deserves no paywall" promise — plan-gate.ts).
     const { plan, limits } = await getPlanWithLimitsForEmail(session.user.email);
     const currentGuests = (existing ?? []).length;
-    if (Number.isFinite(limits.maxGuests) && currentGuests + toInsert.length > limits.maxGuests) {
+    const griefExempt = await isSiteGriefExempt(supabase, siteId);
+    if (!griefExempt && Number.isFinite(limits.maxGuests) && currentGuests + toInsert.length > limits.maxGuests) {
       return NextResponse.json({
         ...planLimitResponseBody('guests', limits.maxGuests, plan),
         allowed: Math.max(0, limits.maxGuests - currentGuests),

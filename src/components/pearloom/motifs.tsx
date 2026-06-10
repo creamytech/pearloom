@@ -134,24 +134,136 @@ export function PearMascot({
   );
 }
 
-export function PearloomLogo({ size = 28 }: { size?: number }) {
+/* ─────────────────────────────────────────────────────────────
+   PearloomGlyph — the brand mark (rebrand 2026-06-10).
+
+   "The woven pear": the fruit drawn as ONE continuous olive
+   thread, open at the top where the loose end rises into the
+   stem; a gold weft thread passes through the waist (under the
+   left edge, over the right — a real weave); and a single gold
+   pearl sits at the crossing. Pear · loom · pearl in one mark.
+
+   Strokes only, no fills except leaf + pearl — reads at 16px
+   (favicon) and 96px (hero). Colors default to brand tokens but
+   accept overrides so e.g. the published-site PasswordGate can
+   tint it with the site accent.
+   ──────────────────────────────────────────────────────────── */
+export function PearloomGlyph({
+  size = 32,
+  color = 'var(--pl-olive, #5C6B3F)',
+  gold = 'var(--pl-gold, #C19A4B)',
+  paper = 'var(--pl-cream, #FDFAF0)',
+  className,
+  style,
+}: {
+  size?: number;
+  color?: string;
+  gold?: string;
+  paper?: string;
+  className?: string;
+  style?: CSSProperties;
+}) {
   return (
-    <div className="logo">
-      <Pear size={size + 8} tone="sage" shadow={false} />
+    <svg
+      viewBox="0 0 96 112"
+      width={size * (96 / 112)}
+      height={size}
+      className={className}
+      style={style}
+      aria-hidden
+    >
+      {/* The pear — one continuous olive thread, open at the neck */}
+      <path
+        d="M 52 29
+           C 59 32, 63 39, 62 48
+           C 73 56, 79 69, 76 83
+           C 72 98, 61 106, 48 106
+           C 35 106, 24 98, 20 83
+           C 17 69, 23 56, 34 48
+           C 33 39, 37 32, 44 29"
+        fill="none"
+        stroke={color}
+        strokeWidth="5"
+        strokeLinecap="round"
+      />
+      {/* The loose thread end becomes the stem */}
+      <path
+        d="M 48 27 C 49 21, 52 15, 58 10"
+        fill="none"
+        stroke={color}
+        strokeWidth="5"
+        strokeLinecap="round"
+      />
+      {/* Leaf */}
+      <path d="M 58 10 C 63 2.5, 74 2, 80 8 C 76 16.5, 64 17.5, 58 10 Z" fill={color} />
+      {/* Gold weft — under the left edge (gap), over the right */}
+      <path
+        d="M 4 67 C 9 63, 13 62.5, 17 64.5"
+        fill="none"
+        stroke={gold}
+        strokeWidth="3.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M 26 68 C 35 71.5, 42 60, 55 62.5 C 64 64.5, 73 69, 80 69.5 C 85 70, 90 67, 93 63"
+        fill="none"
+        stroke={gold}
+        strokeWidth="3.6"
+        strokeLinecap="round"
+      />
+      {/* The pearl, threaded onto the weft at the heart */}
+      <circle cx="46" cy="64" r="5" fill={gold} stroke={paper} strokeWidth="2" />
+    </svg>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PearloomWordmark — "Pear" upright + "loom" italic, Fraunces.
+   The italic turn IS the wordmark's signature (BRAND.md §4:
+   display italic is the brand's voice). Pure text — kerns and
+   scales like text, themes like text.
+   ──────────────────────────────────────────────────────────── */
+export function PearloomWordmark({
+  size = 24,
+  color = 'inherit',
+}: {
+  size?: number;
+  color?: string;
+}) {
+  return (
+    <span
+      style={{
+        fontFamily: 'var(--pl-font-display, var(--font-display, serif))',
+        fontSize: size,
+        lineHeight: 1,
+        color,
+        letterSpacing: '-0.015em',
+        display: 'inline-flex',
+        alignItems: 'baseline',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <span style={{ fontWeight: 640, fontVariationSettings: '"opsz" 60, "SOFT" 40, "WONK" 0' }}>
+        Pear
+      </span>
       <span
         style={{
-          fontSize: size * 0.9,
-          lineHeight: 1,
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 3,
+          fontWeight: 560,
+          fontStyle: 'italic',
+          fontVariationSettings: '"opsz" 60, "SOFT" 80, "WONK" 1',
         }}
       >
-        Pearloom
-        <svg width={size * 0.28} height={size * 0.28} viewBox="0 0 24 24" aria-hidden>
-          <path d="M12 2 L13 10 L22 12 L13 14 L12 22 L11 14 L2 12 L11 10 Z" fill="var(--gold)" />
-        </svg>
+        loom
       </span>
+    </span>
+  );
+}
+
+export function PearloomLogo({ size = 28 }: { size?: number }) {
+  return (
+    <div className="logo" style={{ gap: Math.max(6, Math.round(size * 0.3)) }}>
+      <PearloomGlyph size={size + 10} />
+      <PearloomWordmark size={size * 0.95} />
     </div>
   );
 }

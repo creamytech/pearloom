@@ -36,7 +36,7 @@ export function readObituary(manifest: BlockSectionProps['manifest']): ObituaryD
 }
 
 const MONO = 'var(--t-mono, var(--pl-font-mono, ui-monospace, monospace))';
-const GOLD = 'var(--t-gold, var(--gold, #B8935A))';
+const GOLD = 'var(--t-gold, var(--gold, #C19A4B))';
 
 /** Split the host's free-form dates string into segments so the
  *  separators render as gold middots regardless of what the host

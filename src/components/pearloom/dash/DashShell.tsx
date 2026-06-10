@@ -17,6 +17,7 @@ import { useIsInsideShell } from './ShellPersistentLayout';
 import { NotificationBell } from './NotificationBell';
 import { useDashDrawer } from './useDashDrawer';
 import { useUserSettings } from './UserSettingsModal';
+import { usePlan } from './usePlan';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
 
 interface DashNavItem {
@@ -135,6 +136,7 @@ export function DashSidebar({ active }: { active?: string }) {
   const name = session?.user?.name ?? 'Guest';
   const email = session?.user?.email ?? '';
   const initial = (name.trim()[0] ?? 'P').toUpperCase();
+  const plan = usePlan();
 
   // Unread-whispers badge — counts whispers delivered but not yet
   // read across all of the user's sites. Cheap endpoint, 30s refresh.
@@ -265,11 +267,11 @@ export function DashSidebar({ active }: { active?: string }) {
               sidebar bottom. */}
           <Pear size={26} tone="sage" />
           <div style={{ flex: 1, minWidth: 0, fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.3 }}>
-            <strong style={{ color: 'var(--ink)' }}>Evergreen</strong>
-            <span style={{ color: 'var(--ink-muted)', marginLeft: 4 }}>· trial</span>
+            <strong style={{ color: 'var(--ink)' }}>{plan.label}</strong>
+            <span style={{ color: 'var(--ink-muted)', marginLeft: 4 }}>· plan</span>
           </div>
           <Link
-            href="/dashboard/help"
+            href="/dashboard/profile"
             style={{
               fontSize: 11,
               fontWeight: 600,
@@ -279,30 +281,15 @@ export function DashSidebar({ active }: { active?: string }) {
               borderRadius: 6,
             }}
           >
-            View
+            {plan.plan === 'free' ? 'Upgrade' : 'View'}
           </Link>
         </div>
 
         <UserMenu name={name} email={email} initial={initial} />
       </div>
-      <style jsx>{`
-        @keyframes pl8-plan-breathe {
-          0%, 100% { transform: scale(1); }
-          50%      { transform: scale(1.06); }
-        }
-        @keyframes pl8-plan-halo {
-          0%, 100% { opacity: 0.45; transform: translateX(-50%) scale(0.94); }
-          50%      { opacity: 0.9;  transform: translateX(-50%) scale(1.08); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          @keyframes pl8-plan-breathe {
-            0%, 100% { transform: none; }
-          }
-          @keyframes pl8-plan-halo {
-            0%, 100% { opacity: 0.6; transform: translateX(-50%); }
-          }
-        }
-      `}</style>
+      {/* pl8-plan-* keyframes live in globals.css — a <style jsx>
+          block here made the styled-jsx scope class hash differently
+          between SSR and client, warning on every dashboard page. */}
     </aside>
     </>
   );
@@ -805,18 +792,8 @@ function CelebrationCard() {
           </Link>
         </div>
       )}
-      <style jsx>{`
-        @keyframes pl8-sb-cele-spin {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          @keyframes pl8-sb-cele-spin {
-            from { transform: none; }
-            to   { transform: none; }
-          }
-        }
-      `}</style>
+      {/* pl8-sb-cele-spin keyframes live in globals.css (see note in
+          DashSidebar). */}
     </div>
   );
 }

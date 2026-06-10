@@ -24,7 +24,7 @@ export default function NotFound() {
           fontWeight: 700,
           letterSpacing: '0.22em',
           textTransform: 'uppercase',
-          color: 'var(--pl-gold, #B8935A)',
+          color: 'var(--pl-gold, #C19A4B)',
           marginBottom: 18,
         }}
       >
@@ -65,7 +65,7 @@ export default function NotFound() {
           width: 120,
           height: 1,
           margin: '0 auto 28px',
-          background: 'linear-gradient(90deg, transparent, var(--pl-gold, #B8935A) 50%, transparent)',
+          background: 'linear-gradient(90deg, transparent, var(--pl-gold, #C19A4B) 50%, transparent)',
           opacity: 0.55,
         }}
       />

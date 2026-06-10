@@ -337,7 +337,7 @@ function HeroBand({
           pointerEvents: 'none',
         }}
       >
-        <Sprig size={130} color="var(--sage, #8B9C5A)" accent="var(--gold, #B8935A)" />
+        <Sprig size={130} color="var(--sage, #8B9C5A)" accent="var(--gold, #C19A4B)" />
       </div>
 
       {/* LEFT — names + meta */}
@@ -799,11 +799,11 @@ function HomeSitePreview({
           {/* Mini divider — a delicate hairline with three berries */}
           <div style={{ display: 'flex', justifyContent: 'center', margin: '9px 0' }}>
             <svg width={120} height={10} viewBox="0 0 120 10" aria-hidden>
-              <line x1="2" y1="5" x2="48" y2="5" stroke="var(--gold, #B8935A)" strokeWidth="1" strokeLinecap="round" />
-              <circle cx="56" cy="5" r="1.6" fill="var(--gold, #B8935A)" />
-              <circle cx="64" cy="5" r="1.6" fill="var(--gold, #B8935A)" />
-              <circle cx="72" cy="5" r="1.6" fill="var(--gold, #B8935A)" />
-              <line x1="80" y1="5" x2="118" y2="5" stroke="var(--gold, #B8935A)" strokeWidth="1" strokeLinecap="round" />
+              <line x1="2" y1="5" x2="48" y2="5" stroke="var(--gold, #C19A4B)" strokeWidth="1" strokeLinecap="round" />
+              <circle cx="56" cy="5" r="1.6" fill="var(--gold, #C19A4B)" />
+              <circle cx="64" cy="5" r="1.6" fill="var(--gold, #C19A4B)" />
+              <circle cx="72" cy="5" r="1.6" fill="var(--gold, #C19A4B)" />
+              <line x1="80" y1="5" x2="118" y2="5" stroke="var(--gold, #C19A4B)" strokeWidth="1" strokeLinecap="round" />
             </svg>
           </div>
           <div style={{ fontSize: 11, color: 'var(--ink-soft)' }}>

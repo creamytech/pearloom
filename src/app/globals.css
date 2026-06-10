@@ -176,7 +176,7 @@
   --pl-gradient-section: linear-gradient(180deg, var(--pl-cream) 0%, var(--pl-cream-deep) 50%, var(--pl-cream) 100%);
   --pl-gradient-olive:  linear-gradient(135deg, var(--pl-olive) 0%, var(--pl-olive-deep) 100%);
   --pl-gradient-gold:   linear-gradient(135deg, var(--pl-gold) 0%, #8C6E3D 100%);
-  --pl-grain:           url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.32 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --pl-grain:           url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.24 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
   /* ── Legacy aliases (keep so editor components still compile) ── */
   --eg-bg:           var(--pl-cream);
@@ -407,14 +407,16 @@ body {
   position: absolute;
   inset: 0;
   background-image: var(--pl-grain);
-  opacity: 0.5;
+  /* 0.5 read as visible static on long reading sections (FAQ,
+     pricing). BRAND.md §3: quiet enough to read through. */
+  opacity: 0.35;
   mix-blend-mode: multiply;
   pointer-events: none;
   z-index: 0;
 }
 [data-theme='dark'] .pl-grain::before {
   mix-blend-mode: screen;
-  opacity: 0.18;
+  opacity: 0.12;
 }
 
 /* ─── Micro-animation utilities ─── */
@@ -2317,5 +2319,35 @@ button:not(:disabled):active,
   button:not(:disabled):active,
   [role='button']:active {
     transform: none;
+  }
+}
+
+/* ── Dashboard sidebar chrome keyframes ──────────────────────────
+   Moved out of DashShell.tsx <style jsx> blocks: the styled-jsx
+   scope class hashed differently between SSR and the client in the
+   persistent shell, tripping a hydration-attribute warning on every
+   dashboard page. @keyframes are global anyway — nothing scoped. */
+@keyframes pl8-plan-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.06); }
+}
+@keyframes pl8-plan-halo {
+  0%, 100% { opacity: 0.45; transform: translateX(-50%) scale(0.94); }
+  50%      { opacity: 0.9;  transform: translateX(-50%) scale(1.08); }
+}
+@keyframes pl8-sb-cele-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  @keyframes pl8-plan-breathe {
+    0%, 100% { transform: none; }
+  }
+  @keyframes pl8-plan-halo {
+    0%, 100% { opacity: 0.6; transform: translateX(-50%); }
+  }
+  @keyframes pl8-sb-cele-spin {
+    from { transform: none; }
+    to   { transform: none; }
   }
 }

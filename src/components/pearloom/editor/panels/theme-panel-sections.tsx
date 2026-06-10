@@ -411,7 +411,7 @@ export function FineTuneSection({
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
             padding: '7px 10px', borderRadius: 8,
-            background: 'color-mix(in oklab, var(--pl-gold, #B8935A) 16%, var(--cream-2, #EBE3D2))',
+            background: 'color-mix(in oklab, var(--pl-gold, #C19A4B) 16%, var(--cream-2, #EBE3D2))',
           }}>
             <span style={{ fontSize: 11, color: INK_MUTED }}>High texture can reduce legibility</span>
             <button

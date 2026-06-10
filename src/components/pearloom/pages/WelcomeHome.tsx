@@ -28,6 +28,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { DashLayout } from '../dash/DashShell';
 import { Icon, Pear } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
@@ -61,6 +62,7 @@ function stageFromDaysUntil(daysUntil: number | null): Stage {
 // ─────────────────────────────────────────────────────────────
 export function WelcomeHome() {
   const { site } = useSelectedSite();
+  const { data: session } = useSession();
   const [insights, setInsights] = useState<GuestInsight[] | null>(null);
   const [guests, setGuests] = useState<Guest[] | null>(null);
 
@@ -76,9 +78,14 @@ export function WelcomeHome() {
     fetch(`/api/guests?site=${encodeURIComponent(site.domain)}`)
       .then((r) => r.ok ? r.json() : null)
       .then((data: { guests?: Guest[] } | null) => {
-        if (!cancelled && data?.guests) setGuests(data.guests);
+        if (!cancelled) setGuests(data?.guests ?? []);
       })
-      .catch(() => {});
+      .catch(() => {
+        // Keyless deploy / API error — resolve to empty so the
+        // Guests card shows its real empty state instead of an
+        // eternal 'Threading…' strip.
+        if (!cancelled) setGuests([]);
+      });
     return () => { cancelled = true; };
   }, [site?.domain]);
 
@@ -102,7 +109,10 @@ export function WelcomeHome() {
     : null;
   const stage = stageFromDaysUntil(daysUntil);
   const namesArr = (site?.names ?? []).filter(Boolean) as string[];
-  const firstName = namesArr[0] ?? 'friend';
+  // Greet by the celebration's honoree name; before a site exists,
+  // fall back to the signed-in user's first name, then 'friend'.
+  const sessionFirstName = (session?.user?.name ?? '').trim().split(/\s+/)[0] || null;
+  const firstName = namesArr[0] ?? sessionFirstName ?? 'friend';
   const occasion = site?.occasion ?? 'wedding';
   const editorHref = site?.domain ? `/editor/${site.domain}` : '/dashboard/event';
   const liveHref = site?.domain ? buildSiteUrl(site.domain, '', undefined, occasion) : '#';
@@ -471,7 +481,7 @@ function HeroBand({
             }}
           >
             <div className="eyebrow" style={{ color: stepColor, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold, #B8935A)' }} />
+              <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold, #C19A4B)' }} />
               NEXT UP
             </div>
             <div
@@ -1035,8 +1045,11 @@ function GuestPulse({
   const isNarrow = useIsMobile(720);
   if (loading) {
     return (
-      <div className="card" style={{ padding: 20, borderRadius: 20, fontSize: 13, color: 'var(--ink-muted)', fontStyle: 'italic' }}>
-        Threading…
+      <div className="card" style={{ padding: 20, borderRadius: 20 }}>
+        <SectionHeader icon="users">Guests</SectionHeader>
+        <div style={{ padding: '14px 4px 4px', fontSize: 13, color: 'var(--ink-muted)', fontStyle: 'italic' }}>
+          Threading…
+        </div>
       </div>
     );
   }

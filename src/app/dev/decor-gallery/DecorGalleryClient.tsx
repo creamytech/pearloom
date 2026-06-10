@@ -55,7 +55,7 @@ export function DecorGalleryClient() {
            brand-default pass here. */
         ['--t-accent' as string]: '#5C6B3F',
         ['--t-accent-ink' as string]: '#363F22',
-        ['--t-gold' as string]: '#B8935A',
+        ['--t-gold' as string]: '#C19A4B',
         ['--t-line' as string]: '#D8CFB8',
         ['--t-ink' as string]: '#0E0D0B',
         ['--t-paper' as string]: '#FBF7EE',

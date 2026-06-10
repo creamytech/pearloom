@@ -107,7 +107,7 @@ const ACCENT_HINTS: ReadonlyArray<readonly [string, readonly string[]]> = [
   ['#C6703D', ['peach', 'terracotta', 'sunset', 'desert', 'warm', 'amber']],
   ['#7A2D2D', ['plum', 'merlot', 'wine', 'burgundy', 'crimson']],
   ['#1E3A5F', ['navy', 'midnight', 'evening', 'black-tie', 'gala']],
-  ['#B89244', ['gold', 'champagne', 'deco', 'glamour']],
+  ['#C19A4B', ['gold', 'champagne', 'deco', 'glamour']],
   ['#9C7B6E', ['mauve', 'dusty', 'blush', 'rose']],
   ['#4A6B8F', ['coastal', 'seaside', 'ocean', 'beach', 'maritime']],
 ];

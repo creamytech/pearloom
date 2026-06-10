@@ -614,7 +614,7 @@ export function ThemedSiteRenderer({
       ['--cream-2' as string]: cardBg,
       ['--line' as string]: 'rgba(14,13,11,0.16)',
       ['--line-soft' as string]: 'rgba(14,13,11,0.08)',
-      ['--gold' as string]: '#B8935A',
+      ['--gold' as string]: '#C19A4B',
       ['--font-display' as string]: `"${displayFamily}", Georgia, serif`,
       ['--font-ui' as string]: `"${bodyFamily}", system-ui, sans-serif`,
       /* Per-edition typography + chrome multipliers */
@@ -1082,7 +1082,7 @@ function ThemedNavBody({ navStyle, scrolled, coupleLabel, links, rsvpHref, brand
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
           <ThemedNavBrand manifest={manifest} label={coupleLabel} size={30} href={brandHref} />
-          <span aria-hidden style={{ display: 'block', width: 32, height: 1, background: 'var(--pl-gold, #B8935A)', opacity: 0.6 }} />
+          <span aria-hidden style={{ display: 'block', width: 32, height: 1, background: 'var(--pl-gold, #C19A4B)', opacity: 0.6 }} />
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 18 }}>
           <ThemedNavLinks links={right} gap={26} />
@@ -1152,7 +1152,7 @@ function ThemedNavBody({ navStyle, scrolled, coupleLabel, links, rsvpHref, brand
                   textDecoration: 'none',
                 }}
               >
-                <span aria-hidden style={{ display: 'inline-block', width: 4, height: 4, borderRadius: '50%', background: 'var(--pl-gold, #B8935A)' }} />
+                <span aria-hidden style={{ display: 'inline-block', width: 4, height: 4, borderRadius: '50%', background: 'var(--pl-gold, #C19A4B)' }} />
                 <span>{String(i + 1).padStart(2, '0')}</span>
                 <span style={{ opacity: 0.5 }}>·</span>
                 {l.label}
@@ -2344,7 +2344,7 @@ function ThemedHero({ manifest, names, motif, onEditField, onEditNames }: { mani
             marginInline: 'auto',
             width: 200,
             height: 1,
-            background: 'linear-gradient(90deg, transparent, var(--gold, #B8935A) 50%, transparent)',
+            background: 'linear-gradient(90deg, transparent, var(--gold, #C19A4B) 50%, transparent)',
             opacity: 0.55,
           }}
         />
@@ -2756,7 +2756,7 @@ function StoryScrapbook({ chapters, tones, onEditField }: { chapters: Chapter[];
         const photoTone = tones?.[i] ?? null;
         const tapeBg = photoTone
           ? `color-mix(in oklab, ${photoTone} 40%, transparent)`
-          : 'color-mix(in oklab, var(--gold, #B8935A) 32%, transparent)';
+          : 'color-mix(in oklab, var(--gold, #C19A4B) 32%, transparent)';
         const dateColor = photoTone ?? 'var(--peach-ink, #C6703D)';
         return (
           <div key={c.id ?? i} className="pl8-chapter-row" style={{
@@ -4235,7 +4235,7 @@ function ThemedHotelCard({
                         key={n}
                         name="star"
                         size={11}
-                        color={n <= Math.round(rating) ? 'var(--gold, #B8935A)' : 'var(--cream-3, #D8CFB8)'}
+                        color={n <= Math.round(rating) ? 'var(--gold, #C19A4B)' : 'var(--cream-3, #D8CFB8)'}
                       />
                     ))}
                     <b style={{ marginLeft: 4, color: 'var(--ink, #0E0D0B)' }}>{rating.toFixed(1)}</b>
@@ -4356,7 +4356,7 @@ function ThemedHotelCard({
                           key={n}
                           name="star"
                           size={11}
-                          color={n <= Math.round(rating) ? 'var(--gold, #B8935A)' : 'var(--cream-3, #D8CFB8)'}
+                          color={n <= Math.round(rating) ? 'var(--gold, #C19A4B)' : 'var(--cream-3, #D8CFB8)'}
                         />
                       ))}
                       <b style={{ marginLeft: 4, color: 'var(--ink, #0E0D0B)' }}>{rating.toFixed(1)}</b>
@@ -4696,7 +4696,7 @@ function ThemedTravel({ manifest, motif, editMode, onEditField }: { manifest: St
                   )}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13 }}>
-                  <Icon name="star" size={12} color="var(--gold, #B8935A)" />
+                  <Icon name="star" size={12} color="var(--gold, #C19A4B)" />
                   <b style={{ color: 'var(--ink, #0E0D0B)' }}>
                     {typeof rating === 'number' ? rating.toFixed(1) : '—'}
                   </b>
@@ -4952,7 +4952,7 @@ function themedTileFrameForEdition(editionId: string): ThemedTileFrame {
         borderRadius: 4,
         padding: 5,
         background: 'var(--card, #FBF7EE)',
-        border: '1px solid var(--gold, #B8935A)',
+        border: '1px solid var(--gold, #C19A4B)',
         boxShadow: '0 1px 0 rgba(184,147,90,0.18)',
       };
     case 'postcard-box':
@@ -5922,7 +5922,7 @@ function ThemedRsvp({ manifest, siteSlug }: { manifest: StoryManifest; siteSlug:
             width: 80,
             height: 1,
             margin: '20px auto',
-            background: 'var(--t-accent, var(--gold, #B8935A))',
+            background: 'var(--t-accent, var(--gold, #C19A4B))',
             opacity: 0.55,
           }}
         />
@@ -6673,7 +6673,7 @@ function ThemedPullQuote({ manifest }: { manifest: StoryManifest }) {
           fontStyle: 'italic',
           fontSize: 72,
           fontWeight: 400,
-          color: 'var(--gold, #B8935A)',
+          color: 'var(--gold, #C19A4B)',
           opacity: 0.45,
           lineHeight: 0.6,
           marginBottom: -8,
@@ -7594,7 +7594,7 @@ const ThemedFooter = memo(function ThemedFooter({ siteSlug: _siteSlug, names, ma
             width: 220,
             height: 1,
             margin: '0 auto 36px',
-            background: `linear-gradient(90deg, transparent, var(--gold, #B8935A) 50%, transparent)`,
+            background: `linear-gradient(90deg, transparent, var(--gold, #C19A4B) 50%, transparent)`,
             opacity: 0.6,
           }}
         />

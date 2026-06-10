@@ -139,9 +139,9 @@ registerBlockStyle<HeroVariantProps>({
 const CenteredPreview = (
   <svg viewBox="0 0 64 40" width="100%" height="100%">
     <text x="32" y="11" textAnchor="middle" fontFamily="sans-serif" fontSize="2.6" fill="#6F6557">SAVE THE DATE</text>
-    <line x1="22" y1="14" x2="42" y2="14" stroke="#B8935A" strokeWidth="0.4" />
+    <line x1="22" y1="14" x2="42" y2="14" stroke="#C19A4B" strokeWidth="0.4" />
     <text x="32" y="22" textAnchor="middle" fontFamily="serif" fontSize="8" fontStyle="italic" fill="#0E0D0B">Anna · Liam</text>
-    <line x1="20" y1="26" x2="44" y2="26" stroke="#B8935A" strokeWidth="0.4" />
+    <line x1="20" y1="26" x2="44" y2="26" stroke="#C19A4B" strokeWidth="0.4" />
     <text x="32" y="31" textAnchor="middle" fontFamily="sans-serif" fontSize="2.6" fill="#6F6557">APR 26 · SANTORINI</text>
     <rect x="20" y="33" width="10" height="3" rx="1.5" fill="#5C6B3F" />
   </svg>

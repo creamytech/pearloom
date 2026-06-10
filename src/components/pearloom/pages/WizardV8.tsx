@@ -997,7 +997,7 @@ function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: St
             height: '100%',
             width: `${Math.round(fraction * 100)}%`,
             background:
-              'linear-gradient(90deg, var(--ink-soft) 0%, var(--pl-olive, #5C6B3F) 70%, var(--gold, #B89244) 100%)',
+              'linear-gradient(90deg, var(--ink-soft) 0%, var(--pl-olive, #5C6B3F) 70%, var(--gold, #C19A4B) 100%)',
             borderRadius: 999,
             transition: 'width 360ms cubic-bezier(0.22, 1, 0.36, 1)',
           }}
@@ -1889,7 +1889,7 @@ export function WizardV8() {
           <Sprig size={260} color="var(--sage-deep, #5C6B3F)" />
         </div>
         <div style={{ position: 'absolute', top: '44%', right: '32%', opacity: 0.18 }}>
-          <Sparkle size={28} color="var(--gold, #B89244)" />
+          <Sparkle size={28} color="var(--gold, #C19A4B)" />
         </div>
       </div>
 

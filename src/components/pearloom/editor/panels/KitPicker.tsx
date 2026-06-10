@@ -198,20 +198,20 @@ function DecoPreview() {
       <rect width="80" height="48" fill="#FBF7EE" />
       {/* Triple-inset gold frame card (square corners) */}
       <rect x="12" y="10" width="56" height="22" fill="#FFFFFF" />
-      <rect x="12" y="10" width="56" height="22" fill="none" stroke="#B8935A" strokeWidth="0.45" />
+      <rect x="12" y="10" width="56" height="22" fill="none" stroke="#C19A4B" strokeWidth="0.45" />
       <rect x="14.5" y="12.5" width="51" height="17" fill="none" stroke="#D8B475" strokeWidth="0.35" opacity="0.7" />
       {/* Gold rule + 3 rotated diamonds at center */}
-      <line x1="10" y1="40" x2="32" y2="40" stroke="#B8935A" strokeWidth="0.55" />
+      <line x1="10" y1="40" x2="32" y2="40" stroke="#C19A4B" strokeWidth="0.55" />
       <g transform="translate(36 40) rotate(45)">
-        <rect x="-1.2" y="-1.2" width="2.4" height="2.4" fill="none" stroke="#B8935A" strokeWidth="0.45" />
+        <rect x="-1.2" y="-1.2" width="2.4" height="2.4" fill="none" stroke="#C19A4B" strokeWidth="0.45" />
       </g>
       <g transform="translate(40 40) rotate(45)">
-        <rect x="-1.2" y="-1.2" width="2.4" height="2.4" fill="none" stroke="#B8935A" strokeWidth="0.45" />
+        <rect x="-1.2" y="-1.2" width="2.4" height="2.4" fill="none" stroke="#C19A4B" strokeWidth="0.45" />
       </g>
       <g transform="translate(44 40) rotate(45)">
-        <rect x="-1.2" y="-1.2" width="2.4" height="2.4" fill="none" stroke="#B8935A" strokeWidth="0.45" />
+        <rect x="-1.2" y="-1.2" width="2.4" height="2.4" fill="none" stroke="#C19A4B" strokeWidth="0.45" />
       </g>
-      <line x1="48" y1="40" x2="70" y2="40" stroke="#B8935A" strokeWidth="0.55" />
+      <line x1="48" y1="40" x2="70" y2="40" stroke="#C19A4B" strokeWidth="0.55" />
       <text x="16" y="20" fontSize="4" fontFamily="ui-sans-serif" fontWeight="700" letterSpacing="0.18em" fill="#0E0D0B">CEREMONY</text>
       <text x="16" y="27" fontSize="4" fontFamily="serif" fill="#6F6557">Half past four</text>
     </svg>
@@ -232,7 +232,7 @@ function GalleryPreview() {
       <rect x="15" y="13" width="50" height="22" fill="none" stroke="#0E0D0B" strokeWidth="0.5" />
       {/* Exhibit number with short gold underline */}
       <text x="19" y="22" fontSize="3.8" fontFamily="ui-sans-serif" fontWeight="700" letterSpacing="0.16em" fill="#3A332C">NO. 04</text>
-      <line x1="19" y1="23.6" x2="30" y2="23.6" stroke="#B8935A" strokeWidth="0.6" />
+      <line x1="19" y1="23.6" x2="30" y2="23.6" stroke="#C19A4B" strokeWidth="0.6" />
       <text x="19" y="30" fontSize="5" fontFamily="ui-sans-serif" fill="#0E0D0B">Ceremony</text>
     </svg>
   );
@@ -247,8 +247,8 @@ function MenuPreview() {
       <rect width="80" height="48" fill="#FBF7EE" />
       <rect x="10" y="10" width="60" height="28" fill="#FFFFFF" />
       {/* Top + bottom gold rules only */}
-      <line x1="10" y1="10" x2="70" y2="10" stroke="#B8935A" strokeWidth="0.7" opacity="0.75" />
-      <line x1="10" y1="38" x2="70" y2="38" stroke="#B8935A" strokeWidth="0.7" opacity="0.75" />
+      <line x1="10" y1="10" x2="70" y2="10" stroke="#C19A4B" strokeWidth="0.7" opacity="0.75" />
+      <line x1="10" y1="38" x2="70" y2="38" stroke="#C19A4B" strokeWidth="0.7" opacity="0.75" />
       {/* Course line with dotted leader to the time */}
       <text x="15" y="22" fontSize="5" fontFamily="serif" fill="#0E0D0B">First course</text>
       <line x1="43" y1="20.6" x2="55" y2="20.6" stroke="#3A332C" strokeWidth="0.4" strokeDasharray="0.8 1.4" opacity="0.6" />

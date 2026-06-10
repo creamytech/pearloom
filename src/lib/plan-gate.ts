@@ -226,3 +226,65 @@ export function tierLabel(tier: string): string {
   if (canonical === 'pro') return 'Pro';
   return 'Free';
 }
+
+/**
+ * Marketed plan name (the pricing-page vocabulary: Journal /
+ * Atelier / Legacy) for any plan alias. Use this for host-facing
+ * chrome (plan strips, settings badges); use `tierLabel` for
+ * internal/diagnostic copy.
+ */
+export function planMarketingLabel(plan: string): 'Journal' | 'Atelier' | 'Legacy' {
+  const canonical = CANONICAL[plan.toLowerCase()] ?? 'free';
+  if (canonical === 'premium') return 'Legacy';
+  if (canonical === 'pro') return 'Atelier';
+  return 'Journal';
+}
+
+/** Canonical plan id (`free` / `pro` / `premium`) for any alias. */
+export function canonicalPlan(plan: string): 'free' | 'pro' | 'premium' {
+  return (CANONICAL[plan.toLowerCase()] ?? 'free') as 'free' | 'pro' | 'premium';
+}
+
+// ─── Grief exemption ─────────────────────────────────────────
+//
+// "Grief deserves no paywall" is a published brand promise
+// (landing page, pricing footer, Settings). It is enforced HERE,
+// not just in copy: memorial and funeral sites are exempt from
+// plan limits — creating one is never blocked, and owning one
+// never consumes a slot that would paywall a celebration later.
+// Every site-scoped gate must consult this before rejecting.
+
+export const GRIEF_EXEMPT_OCCASIONS: ReadonlySet<string> = new Set(['memorial', 'funeral']);
+
+/** True when the occasion is covered by the no-paywall promise. */
+export function isGriefExempt(occasion: string | null | undefined): boolean {
+  return !!occasion && GRIEF_EXEMPT_OCCASIONS.has(occasion.toLowerCase().trim());
+}
+
+/**
+ * Site-scoped variant for gates that only have a site id. Reads the
+ * occasion from the site row (manifest is canonical, site_config is
+ * the legacy fallback — same order as /api/sites GET). Fails CLOSED
+ * to `false` (i.e. the normal gate applies) on any lookup error so a
+ * DB hiccup can't open a billing hole; the named-occasion overload
+ * above is the fast path when the caller already knows the occasion.
+ */
+export async function isSiteGriefExempt(
+  db: { from: (t: string) => any } | null,
+  siteId: string | null | undefined,
+): Promise<boolean> {
+  if (!db || !siteId) return false;
+  try {
+    const { data } = await db
+      .from('sites')
+      .select('manifest, site_config')
+      .eq('id', siteId)
+      .maybeSingle();
+    if (!data) return false;
+    const m = data.manifest as { occasion?: string } | null;
+    const c = data.site_config as { occasion?: string } | null;
+    return isGriefExempt(m?.occasion ?? c?.occasion);
+  } catch {
+    return false;
+  }
+}

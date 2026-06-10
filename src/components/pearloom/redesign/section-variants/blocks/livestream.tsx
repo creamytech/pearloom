@@ -65,7 +65,7 @@ export function readLivestream(manifest: BlockSectionProps['manifest']): Livestr
 }
 
 const MONO = 'var(--t-mono, var(--pl-font-mono, ui-monospace, monospace))';
-const GOLD = 'var(--t-gold, var(--gold, #B8935A))';
+const GOLD = 'var(--t-gold, var(--gold, #C19A4B))';
 /* Editorial midnight — fixed, NOT theme-bound: the cinema band is
    ink regardless of the site's paper (BRAND.md §10: warm dark,
    never OLED black). */

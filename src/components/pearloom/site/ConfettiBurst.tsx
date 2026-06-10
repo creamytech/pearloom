@@ -125,7 +125,7 @@ function CssConfetti({ reduced }: { reduced?: boolean }) {
     'var(--peach-ink, #C6703D)',
     'var(--sage-deep, #5C6B3F)',
     'var(--lavender-ink, #8B6F8E)',
-    'var(--gold, #B8935A)',
+    'var(--gold, #C19A4B)',
     'var(--cream-deep, #EBE3D2)',
   ];
   // Three shape families — render-order interleaved so the burst

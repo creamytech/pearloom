@@ -419,7 +419,7 @@ export function Monogram({
             const x = 50 + Math.cos(a) * 44;
             const y = 50 + Math.sin(a) * 44;
             if (i === 0) {
-              return <circle key={i} cx={x} cy={y} r={3.4} fill="var(--t-gold, var(--pl-gold, #B8935A))" />;
+              return <circle key={i} cx={x} cy={y} r={3.4} fill="var(--t-gold, var(--pl-gold, #C19A4B))" />;
             }
             const r = 1.8 + (i % 3 === 0 ? 0.5 : 0);
             return <circle key={i} cx={x} cy={y} r={r} fill={accent} opacity={0.85} />;
@@ -462,7 +462,7 @@ export function Monogram({
                 cx={60 + Math.cos(a) * 48}
                 cy={52 + Math.sin(a) * 48 * 0.92}
                 r="1.5"
-                fill="var(--t-gold, var(--pl-gold, #B8935A))"
+                fill="var(--t-gold, var(--pl-gold, #C19A4B))"
               />
             );
           })}
@@ -501,7 +501,7 @@ export function Monogram({
               {[0, 72, 144, 216, 288].map((a) => (
                 <circle key={a} cx={Math.cos((a * Math.PI) / 180) * 4.6} cy={Math.sin((a * Math.PI) / 180) * 4.6} r="2.5" fill={accent} opacity="0.55" />
               ))}
-              <circle r="2" fill="var(--t-gold, var(--pl-gold, #B8935A))" />
+              <circle r="2" fill="var(--t-gold, var(--pl-gold, #C19A4B))" />
             </g>
           ))}
         </svg>
@@ -518,8 +518,8 @@ export function Monogram({
               inner hairline and gold pips at the east/west vertices. */}
           <path d="M 34 8 L 126 8 L 154 45 L 126 82 L 34 82 L 6 45 Z" fill="none" stroke={accent} strokeWidth="1.5" strokeLinejoin="round" />
           <path d="M 38 14 L 122 14 L 146 45 L 122 76 L 38 76 L 14 45 Z" fill="none" stroke={accent} strokeWidth="0.7" opacity="0.6" strokeLinejoin="round" />
-          <circle cx="10" cy="45" r="1.8" fill="var(--t-gold, var(--pl-gold, #B8935A))" />
-          <circle cx="150" cy="45" r="1.8" fill="var(--t-gold, var(--pl-gold, #B8935A))" />
+          <circle cx="10" cy="45" r="1.8" fill="var(--t-gold, var(--pl-gold, #C19A4B))" />
+          <circle cx="150" cy="45" r="1.8" fill="var(--t-gold, var(--pl-gold, #C19A4B))" />
         </svg>
       )}
       {frame === 'corners' && (
@@ -584,8 +584,8 @@ export function Monogram({
               />
             );
           })}
-          <circle cx="46.8" cy="92" r="2" fill="var(--t-gold, var(--pl-gold, #B8935A))" />
-          <circle cx="53.2" cy="92" r="2" fill="var(--t-gold, var(--pl-gold, #B8935A))" />
+          <circle cx="46.8" cy="92" r="2" fill="var(--t-gold, var(--pl-gold, #C19A4B))" />
+          <circle cx="53.2" cy="92" r="2" fill="var(--t-gold, var(--pl-gold, #C19A4B))" />
         </svg>
       )}
       {frame === 'gate' && (
@@ -606,7 +606,7 @@ export function Monogram({
             strokeWidth="1.5"
           />
           <rect x="24" y="24" width="72" height="72" fill="none" stroke={accent} strokeWidth="0.6" opacity="0.6" />
-          <circle cx="60" cy="9" r="2.2" fill="var(--t-gold, var(--pl-gold, #B8935A))" />
+          <circle cx="60" cy="9" r="2.2" fill="var(--t-gold, var(--pl-gold, #C19A4B))" />
         </svg>
       )}
       {frame === 'halo' && (
@@ -622,7 +622,7 @@ export function Monogram({
               one gold pearl rests on the front ring's upper-right arc. */}
           <circle cx="48" cy="48" r="42" fill="none" stroke={accent} strokeWidth="1.2" opacity="0.5" />
           <circle cx="52" cy="52" r="42" fill="none" stroke={accent} strokeWidth="1.3" />
-          <circle cx="81.7" cy="22.3" r="2.6" fill="var(--t-gold, var(--pl-gold, #B8935A))" />
+          <circle cx="81.7" cy="22.3" r="2.6" fill="var(--t-gold, var(--pl-gold, #C19A4B))" />
         </svg>
       )}
       {frame === 'tag' && (
@@ -648,7 +648,7 @@ export function Monogram({
             strokeLinejoin="round"
           />
           {/* Reinforcing eyelet — the gold note. */}
-          <circle cx="42" cy="45" r="5" fill="none" stroke="var(--t-gold, var(--pl-gold, #B8935A))" strokeWidth="1.6" />
+          <circle cx="42" cy="45" r="5" fill="none" stroke="var(--t-gold, var(--pl-gold, #C19A4B))" strokeWidth="1.6" />
           {/* String. */}
           <path d="M 37.5 47.5 C 27 54, 20 50, 12 58 C 8 62, 6 65, 4 68" fill="none" stroke={accent} strokeWidth="1.1" strokeLinecap="round" opacity="0.8" />
         </svg>

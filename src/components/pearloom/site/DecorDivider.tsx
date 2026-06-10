@@ -196,7 +196,7 @@ function ThreadWeave({
         {/* Gold weft, opposite phase + slower */}
         <path
           d={strand(-1)}
-          stroke="var(--gold, #B8935A)"
+          stroke="var(--gold, #C19A4B)"
           strokeWidth={1.1}
           strokeDasharray={`${period * 0.45} ${period * 0.55}`}
           opacity={0.9}
