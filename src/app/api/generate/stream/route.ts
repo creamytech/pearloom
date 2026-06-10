@@ -11,6 +11,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { clusterPhotos, reverseGeocode } from '@/lib/google-photos';
 import { generateStoryManifest } from '@/lib/memory-engine';
+import { applyWizardLook } from '@/lib/site-look/wizard-look';
 import { runAutoDraft } from '@/lib/auto-draft';
 import type { StoryManifest } from '@/types';
 import type { GooglePhotoMetadata, PhotoCluster, WeddingEvent, LogoIconId } from '@/types';
@@ -361,6 +362,8 @@ export async function POST(req: Request) {
     cashFundUrl,
     eventVenue,
     selectedPaletteColors,
+    motifKind,
+    motifLayout,
     photoNotes,
     storyLayout,
     songUrl,
@@ -432,6 +435,10 @@ export async function POST(req: Request) {
     cashFundUrl?: string;
     eventVenue?: string;
     selectedPaletteColors?: string[];
+    /** Decor-library ornament + placement paired with the picked
+     *  smart palette (AI advisor). Stamped fill-missing. */
+    motifKind?: string;
+    motifLayout?: string;
     photoNotes?: Record<string, { note?: string; location?: string; date?: string }>;
     storyLayout?: 'parallax' | 'filmstrip' | 'magazine' | 'timeline' | 'kenburns' | 'bento';
     songUrl?: string;
@@ -874,6 +881,22 @@ export async function POST(req: Request) {
             },
           } as StoryManifest['theme'];
         }
+
+        // ── Canonical look wiring (the fields ThemedSite READS) ──
+        // The theme.colors write above feeds only the legacy
+        // fallback renderer. The canonical redesign renderer paints
+        // exclusively from themeVars / themeId / texture / layouts —
+        // without this stamp, every wizard choice (palette, layout,
+        // vibe-borne texture) silently evaporated and sites fell
+        // back to the default 'garden' theme. Fills only missing
+        // keys, so template themes + host edits always win.
+        Object.assign(manifest, applyWizardLook(manifest, {
+          selectedPaletteColors,
+          layoutFormat,
+          occasion,
+          motifKind,
+          motifLayout,
+        }) as unknown as Record<string, unknown>);
 
         // ── Consent + tone rails ──────────────────────────────
         // Write the wizard's soft signals onto the manifest so the

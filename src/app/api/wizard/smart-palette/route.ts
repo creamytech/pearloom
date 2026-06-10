@@ -18,6 +18,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { generateJson } from '@/lib/claude';
+import { MOTIF_KINDS } from '@/components/pearloom/site/MotifScatter';
+import { MOTIF_LAYOUTS } from '@/lib/site-look/motif-layouts';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 45;
@@ -30,6 +32,10 @@ interface Body {
   vibes?: string[];
   howWeMet?: string;
   whyCelebrate?: string;
+  /** Dominant hexes quantized client-side from the host's uploaded
+   *  photos — lets the advisor weave palettes from the colors that
+   *  are actually IN their pictures, not just the venue name. */
+  photoHexes?: string[];
 }
 
 interface Palette {
@@ -38,8 +44,19 @@ interface Palette {
   rationale: string;     // 1 sentence "why this fits"
   colors: [string, string, string, string];   // hex: [background, primary, accent, contrast]
   tone: string;          // 1-word mood
-  source: string;        // e.g. "venue" | "vibe" | "fallback"
+  source: string;        // e.g. "venue" | "vibe" | "photos" | "fallback"
+  /** Hand-drawn ornament from the decor library that suits this
+   *  palette + event. Stamped onto the manifest when picked. */
+  motif?: string;
+  /** Where the ornaments live on the page (MotifLayer placement). */
+  motifLayout?: string;
 }
+
+const MOTIF_KIND_SET: ReadonlySet<string> = new Set(MOTIF_KINDS);
+/** Placements the advisor may pick — everything except 'none'
+ *  ('off' is a host choice, never an AI suggestion). */
+const MOTIF_LAYOUT_IDS = MOTIF_LAYOUTS.map((l) => l.id).filter((id) => id !== 'none');
+const MOTIF_LAYOUT_SET: ReadonlySet<string> = new Set(MOTIF_LAYOUT_IDS);
 
 const PALETTE_SCHEMA = {
   type: 'object',
@@ -60,8 +77,10 @@ const PALETTE_SCHEMA = {
           },
           tone: { type: 'string' },
           source: { type: 'string' },
+          motif: { type: 'string', enum: [...MOTIF_KINDS] },
+          motifLayout: { type: 'string', enum: MOTIF_LAYOUT_IDS },
         },
-        required: ['id', 'name', 'rationale', 'colors', 'tone', 'source'],
+        required: ['id', 'name', 'rationale', 'colors', 'tone', 'source', 'motif', 'motifLayout'],
       },
     },
   },
@@ -106,6 +125,17 @@ export async function POST(req: NextRequest) {
   if (body.vibes?.length) lines.push(`Vibes: ${body.vibes.join(', ')}`);
   if (body.howWeMet) lines.push(`Backstory: ${body.howWeMet.slice(0, 400)}`);
   if (body.whyCelebrate) lines.push(`Why this celebration: ${body.whyCelebrate.slice(0, 400)}`);
+  const photoHexes = Array.isArray(body.photoHexes)
+    ? body.photoHexes
+        .filter((h): h is string => typeof h === 'string' && /^#[0-9a-fA-F]{6}$/.test(h.trim()))
+        .map((h) => h.trim().toUpperCase())
+        .slice(0, 6)
+    : [];
+  if (photoHexes.length) {
+    lines.push(
+      `Dominant colors in their uploaded photos: ${photoHexes.join(', ')} — at least one palette must be built around these (harmonize, don't copy verbatim; keep the background light).`,
+    );
+  }
 
   const context = lines.join('\n');
 
@@ -134,10 +164,24 @@ export async function POST(req: NextRequest) {
     `- Never produce neon unless the voice literally is "playful" or "disco".\n` +
     `- Memorial and funeral occasions must return quiet, muted palettes (no saturated brights). No exceptions.\n` +
     `- Respect the season when the venue or date hints at one.\n` +
-    `- "source" field must be one of: "venue", "vibe", "voice", "fallback".\n` +
+    `- "source" field must be one of: "venue", "vibe", "voice", "photos", "fallback".\n` +
     `- Palette "id" must be kebab-case and unique within the response.\n` +
     `- Palette "name" is 2–3 poetic words. No clichés.\n` +
-    `- Rationale is ONE sentence, under 20 words, specific to their actual context.`;
+    `- Rationale is ONE sentence, under 20 words, specific to their actual context.\n` +
+    `- When photo colors are given, one palette's "source" must be "photos" and lead from them.\n\n` +
+    `Each palette also carries a hand-drawn ornament suited to it:\n` +
+    `- "motif" — pick the ONE mark from this library that best fits the venue, occasion, and palette: ` +
+    `${MOTIF_KINDS.join(', ')}. ` +
+    `Think like an illustrator: vineyard → olive or vine; coastal → shell, wave-curl, or anchor; ` +
+    `bachelorette in a city → disco or champagne; memorial → crescent, dove, or fern (quiet marks only); ` +
+    `winter → holly or pinecone; spring garden → cherry-blossom, magnolia, or peony.\n` +
+    `- "motifLayout" — where the marks live on the page: ` +
+    `"scattered" (a sprinkle on every section — casual, playful), ` +
+    `"corners" (one chapter mark per section — classic), ` +
+    `"margins" (small marks down the outer edges — manuscript, formal), ` +
+    `"dividers" (only in the seams between sections — restrained), ` +
+    `"crest" (one large watermark behind the hero — stately, formal). ` +
+    `Formal/solemn events lean margins, dividers, or crest; playful events lean scattered.`;
 
   try {
     const result = await generateJson<{ palettes: Palette[] }>({
@@ -159,6 +203,10 @@ export async function POST(req: NextRequest) {
         ...p,
         id: (p.id || `palette-${i + 1}`).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-|-$/g, ''),
         colors: (p.colors ?? []).map((c) => String(c).trim()).filter((c) => /^#[0-9a-fA-F]{6}$/.test(c)) as string[],
+        // Defensive: schema enums constrain these, but drop anything
+        // off-catalog rather than stamping junk onto a manifest.
+        motif: typeof p.motif === 'string' && MOTIF_KIND_SET.has(p.motif) ? p.motif : undefined,
+        motifLayout: typeof p.motifLayout === 'string' && MOTIF_LAYOUT_SET.has(p.motifLayout) ? p.motifLayout : undefined,
       }))
       .filter((p) => p.colors.length === 4)
       .slice(0, 3);

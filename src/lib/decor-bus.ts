@@ -14,7 +14,7 @@
 // This bus is that signal.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 
 export type DecorJobStatus = 'running' | 'done' | 'error';
 
@@ -72,15 +72,24 @@ export function dismissDecorJob(id: string): void {
   notify();
 }
 
-/** Hook that re-renders every time the jobs list changes. */
-export function useDecorJobs(): DecorJob[] {
-  const [, tick] = useState(0);
-  useEffect(() => {
-    const sub = () => tick((n) => n + 1);
-    subscribers.add(sub);
-    return () => {
-      subscribers.delete(sub);
-    };
-  }, []);
+function subscribe(cb: () => void): () => void {
+  subscribers.add(cb);
+  return () => {
+    subscribers.delete(cb);
+  };
+}
+function getSnapshot(): DecorJob[] {
   return jobs;
+}
+const NO_JOBS: DecorJob[] = [];
+function getServerSnapshot(): DecorJob[] {
+  return NO_JOBS;
+}
+
+/** Hook that re-renders every time the jobs list changes.
+ *  useSyncExternalStore, not a useState-tick: under the React
+ *  Compiler (reactCompiler: true) a tick whose value is never
+ *  read gets memoized away and the toast never updates. */
+export function useDecorJobs(): DecorJob[] {
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

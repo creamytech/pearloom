@@ -15,6 +15,7 @@ import { authOptions } from '@/lib/auth';
 import { clusterPhotos, reverseGeocode } from '@/lib/google-photos';
 import { generateStoryManifest } from '@/lib/memory-engine';
 import type { GooglePhotoMetadata, PhotoCluster, WeddingEvent, LogoIconId } from '@/types';
+import { applyWizardLook } from '@/lib/site-look/wizard-look';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import pLimit from 'p-limit';
 import { encryptBuffer, isEncryptionEnabled } from '@/lib/crypto';
@@ -306,6 +307,8 @@ export async function POST(req: NextRequest) {
       cashFundUrl,
       eventVenue,
       selectedPaletteColors,
+      motifKind,
+      motifLayout,
       photoNotes,
       storyLayout,
       songUrl,
@@ -350,6 +353,10 @@ export async function POST(req: NextRequest) {
       cashFundUrl?: string;
       eventVenue?: string;
       selectedPaletteColors?: string[];
+      /** Decor-library ornament + placement paired with the picked
+       *  smart palette (AI advisor). Stamped fill-missing. */
+      motifKind?: string;
+      motifLayout?: string;
       photoNotes?: Record<string, { note?: string; location?: string; date?: string }>;
       storyLayout?: 'parallax' | 'filmstrip' | 'magazine' | 'timeline' | 'kenburns' | 'bento';
       songUrl?: string;
@@ -538,6 +545,17 @@ export async function POST(req: NextRequest) {
     if (eventVenue) {
       manifest.logistics = { ...(manifest.logistics ?? {}), venue: eventVenue };
     }
+
+    // Canonical look wiring — same stamp as /api/generate/stream:
+    // themeVars / themeId / texture / layouts are the only fields
+    // the canonical renderer reads. Fill-missing-only.
+    Object.assign(manifest, applyWizardLook(manifest, {
+      selectedPaletteColors,
+      layoutFormat,
+      occasion,
+      motifKind,
+      motifLayout,
+    }) as unknown as Record<string, unknown>);
     if (cashFundUrl) {
       manifest.registry = {
         ...(manifest.registry ?? { enabled: true }),

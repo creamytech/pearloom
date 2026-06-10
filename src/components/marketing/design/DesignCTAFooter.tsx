@@ -215,7 +215,11 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
             <PLButton variant="pearl" size="lg" onClick={onGetStarted}>
               Begin a thread <Pearl size={9} />
             </PLButton>
-            <PLButton variant="ghost" size="lg">
+            <PLButton
+              variant="ghost"
+              size="lg"
+              onClick={() => window.open('/demo', '_blank', 'noopener')}
+            >
               Read a real site ↗
             </PLButton>
           </div>

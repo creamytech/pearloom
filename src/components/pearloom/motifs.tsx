@@ -173,13 +173,11 @@ export function PearloomGlyph({
     >
       {/* The pear — one continuous olive thread, open at the neck */}
       <path
-        d="M 52 29
-           C 59 32, 63 39, 62 48
-           C 73 56, 79 69, 76 83
-           C 72 98, 61 106, 48 106
-           C 35 106, 24 98, 20 83
-           C 17 69, 23 56, 34 48
-           C 33 39, 37 32, 44 29"
+        // Single line on purpose — a multiline d attribute hydrates
+        // differently than the SSR-serialized HTML (whitespace gets
+        // normalized on one side only) and React regenerates the
+        // whole dashboard tree on every load chasing the mismatch.
+        d="M 52 29 C 59 32, 63 39, 62 48 C 73 56, 79 69, 76 83 C 72 98, 61 106, 48 106 C 35 106, 24 98, 20 83 C 17 69, 23 56, 34 48 C 33 39, 37 32, 44 29"
         fill="none"
         stroke={color}
         strokeWidth="5"
@@ -977,43 +975,31 @@ export function Atmosphere({
   className?: string;
   style?: CSSProperties;
 }) {
+  /* 2026-06-10: the filigree squiggles were removed from every
+     preset — at ambient scale they read as stray pen marks (user
+     feedback: "terrible"). The washes carry the warmth alone. */
   const presets = {
     warm: [
       { el: 'wash' as const, tone: 'lavender' as WashTone, size: 540, opacity: 0.55, style: { top: -120, left: -160 } },
       { el: 'wash' as const, tone: 'peach' as WashTone, size: 460, opacity: 0.42, style: { top: 0, right: -160 } },
       { el: 'wash' as const, tone: 'sage' as WashTone, size: 400, opacity: 0.35, style: { bottom: -140, left: 0 } },
-      { el: 'filigree' as const, variant: 0, width: 280, style: { top: 140, right: 220, transform: 'rotate(-10deg)' } },
-      { el: 'filigree' as const, variant: 3, width: 200, style: { bottom: 140, left: 180, transform: 'rotate(8deg)' } },
     ],
     hero: [
       { el: 'wash' as const, tone: 'lavender' as WashTone, size: 580, opacity: 0.45, style: { top: -160, left: -140 } },
       { el: 'wash' as const, tone: 'peach' as WashTone, size: 480, opacity: 0.36, style: { top: 60, right: -160 } },
       { el: 'wash' as const, tone: 'sage' as WashTone, size: 420, opacity: 0.26, style: { bottom: -180, right: 80 } },
-      { el: 'filigree' as const, variant: 1, width: 260, style: { top: 80, right: 320, transform: 'rotate(6deg)' } },
-      { el: 'filigree' as const, variant: 3, width: 200, style: { top: 260, left: 60, transform: 'rotate(-8deg)' } },
     ],
     sparse: [
       { el: 'wash' as const, tone: 'lavender' as WashTone, size: 320, opacity: 0.30, style: { top: 60, left: -80 } },
       { el: 'wash' as const, tone: 'peach' as WashTone, size: 260, opacity: 0.22, style: { bottom: -60, right: 40 } },
-      { el: 'filigree' as const, variant: 0, width: 220, style: { top: 100, right: 80, transform: 'rotate(4deg)' } },
     ],
   };
   const items = presets[preset] ?? presets.warm;
   return (
     <div className={`atmosphere ${className}`} style={style}>
-      {items.map((it, i) =>
-        it.el === 'wash' ? (
-          <Wash key={i} tone={it.tone} size={it.size} opacity={it.opacity} seed={i} style={it.style as CSSProperties} />
-        ) : (
-          <Filigree
-            key={i}
-            variant={it.variant}
-            width={it.width}
-            height={it.width * 0.36}
-            style={it.style as CSSProperties}
-          />
-        )
-      )}
+      {items.map((it, i) => (
+        <Wash key={i} tone={it.tone} size={it.size} opacity={it.opacity} seed={i} style={it.style as CSSProperties} />
+      ))}
     </div>
   );
 }

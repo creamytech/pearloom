@@ -25,7 +25,8 @@ import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { getTheme, themeRootStyle, type Density, type Theme } from '../site/themes';
 import { isSoloOccasion } from '@/lib/event-os/solo-occasions';
-import { Motif, MotifScatter, WatercolorBloom, OliveSprig, type MotifKind } from '../site/MotifScatter';
+import { Motif, WatercolorBloom, OliveSprig, type MotifKind } from '../site/MotifScatter';
+import { MotifLayer, motifLayoutForKit, type MotifLayout } from './MotifLayer';
 import { TextureFilters } from '../site/TextureFilters';
 import { readVariant } from './layouts';
 import type { SectionId } from './EditorRedesign';
@@ -352,7 +353,15 @@ export function ThemedSite({
     nameB: patchB,
     copy: patchCopy,
   } : undefined;
-  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, textureIntensity, showWashHero, dividerLook, variants, C, manifest, coverPhoto, edit };
+  /* WHERE the motifs live — host pick wins, then the kit's default
+     (scrapbook→scattered, plate→corners, index→margins…). The old
+     system hardcoded 17 per-section scatter calls; placement is now
+     a first-class axis rendered by every TSection. */
+  const kitId = ((manifest as unknown as { kitId?: string }).kitId) ?? 'classic';
+  const motifLayout: MotifLayout = !motifsOn || motif === 'none'
+    ? 'none'
+    : (((manifest as unknown as { motifLayout?: MotifLayout }).motifLayout) ?? motifLayoutForKit(kitId));
+  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, motifLayout, textureIntensity, showWashHero, dividerLook, variants, C, manifest, coverPhoto, edit };
   /* Edit-mode-only <style> for empty-value InlineEdit ghosts —
      mounted next to <TextureFilters /> in every layout branch. */
   const ghostStyleEl = editable ? <style>{INLINE_GHOST_CSS}</style> : null;
@@ -547,12 +556,14 @@ export function ThemedSite({
       setActive={setActive}
       setHover={setHover}
       editable={editable}
+      motifLayout={ctx.motifLayout}
+      motif={ctx.motif}
     >
       {renderKind(kind, ctx)}
     </TSection>
   );
 
-  const kitId = ((manifest as unknown as { kitId?: string }).kitId) ?? 'classic';
+  /* kitId hoisted above ctx for motifLayout. */
 
   /* siteLayout — Classic stacked (default) / Invitation boxed
      (a card on a tinted mat) / Split sticky-sidebar lockup.
@@ -975,9 +986,8 @@ function SidebarHero({
   const isCouple = C.subject.type === 'couple';
   const isEditorial = theme.id === 'editorial';
   return (
-    <TSection id="hero" label="Hero" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable}>
+    <TSection id="hero" label="Hero" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable} motifLayout={ctx.motifLayout} motif={ctx.motif}>
       <div style={{ position: 'relative', minHeight: 520, background: 'var(--t-section)', padding: '44px 36px', display: 'flex', flexDirection: 'column', gap: 18, overflow: 'hidden' }}>
-        {motifsOn && <MotifScatter motif={motif} density="generous" />}
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 9 }}>
           <Pear size={24} tone="sage" shadow={false} />
           <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--t-ink-soft)' }}>
@@ -1141,7 +1151,6 @@ function HeroCentered({ ctx }: { ctx: SectionCtx }) {
           style={{ position: 'absolute', top: '8%', left: '50%', transform: 'translateX(-50%)', opacity: 0.7, pointerEvents: 'none' }}
         />
       )}
-      {motifsOn && <MotifScatter motif={motif} density="generous" />}
       <div style={{ position: 'relative', marginInline: 'auto' }}>
         <InlineEdit
           as="div"
@@ -1242,7 +1251,6 @@ function HeroSplit({ ctx }: { ctx: SectionCtx }) {
   const isEditorial = theme.id === 'editorial';
   return (
     <div className="pl8-hero-split" style={{ position: 'relative', padding: `clamp(28px, 6vw, ${56 * pad}px) clamp(20px, 5vw, 56px)`, background: 'var(--t-section)', overflow: 'hidden', display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 'clamp(24px, 4vw, 44px)', alignItems: 'center' }}>
-      {motifsOn && <MotifScatter motif={motif} density="sparse" />}
       <div style={{ position: 'relative', textAlign: 'left' }}>
         <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 8 }} />
         {(C.tagline || editable) && (
@@ -1361,7 +1369,6 @@ function HeroTypographic({ ctx }: { ctx: SectionCtx }) {
   const isEditorial = theme.id === 'editorial';
   return (
     <div style={{ position: 'relative', padding: `${78 * pad}px 48px ${60 * pad}px`, background: 'var(--t-section)', overflow: 'hidden', textAlign: 'center' }}>
-      {motifsOn && <MotifScatter motif={motif} density="sparse" />}
       <div style={{ position: 'relative' }}>
         <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 8 }} />
         <h1 className="pl8-hero-display" style={{ fontFamily: 'var(--t-display)', fontWeight: 'var(--t-display-wght)', fontSize: 'clamp(48px, 16vw, calc(108px * var(--t-hero-scale)))', lineHeight: 0.86, margin: '6px 0', letterSpacing: '-0.03em', color: 'var(--t-ink)', overflowWrap: 'break-word' }}>
@@ -1396,7 +1403,6 @@ function HeroPostcard({ ctx }: { ctx: SectionCtx }) {
     <div style={{ position: 'relative', padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'color-mix(in oklab, var(--t-ink) 8%, var(--t-section))', overflow: 'hidden' }}>
       <div style={{ maxWidth: 720, marginInline: 'auto', background: 'var(--t-paper)', borderRadius: 'var(--t-radius-lg)', boxShadow: 'var(--t-shadow)', border: '1px solid var(--t-line)', padding: `${40 * pad}px clamp(16px, 5vw, 40px)`, textAlign: 'center', position: 'relative' }}>
         <div aria-hidden style={{ position: 'absolute', inset: 10, border: '1px solid var(--t-line)', borderRadius: 'var(--t-radius)', pointerEvents: 'none' }} />
-        {motifsOn && <MotifScatter motif={motif} density="sparse" />}
         <div style={{ position: 'relative' }}>
           <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 8 }} />
           {(C.tagline || editable) && (
@@ -1574,7 +1580,6 @@ function StoryQuote({ ctx }: { ctx: SectionCtx }) {
   const heroPhoto = C.story.chapterImages?.[0];
   return (
     <div style={{ position: 'relative', padding: `${56 * pad}px clamp(20px, 6vw, 72px)`, textAlign: 'center', maxWidth: 880, marginInline: 'auto', background: 'var(--t-paper)' }}>
-      {motifsOn && <MotifScatter motif={motif} density="sparse" />}
       {heroPhoto && (
         /* Decorative cover above the quote — small + centered so it
            sits as a deckle motif rather than dominating the pull. */
@@ -1697,7 +1702,6 @@ function StoryLetter({ ctx }: { ctx: SectionCtx }) {
   const heroPhoto = C.story.chapterImages?.[0];
   return (
     <div style={{ position: 'relative', padding: `${52 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}>
-      {motifsOn && <MotifScatter motif={motif} density="sparse" />}
       <div style={{ position: 'relative', maxWidth: 640, marginInline: 'auto', background: 'var(--t-paper)', borderRadius: 'var(--t-radius-lg)', boxShadow: 'var(--t-shadow)', border: '1px solid var(--t-line)', padding: '40px 46px', textAlign: 'center' }}>
         <InlineEdit
           as="div"
@@ -1746,12 +1750,12 @@ function DetailsBlock({ ctx }: { ctx: SectionCtx }) {
     eyebrowPlaceholder: 'The fine print',
     titlePlaceholder: 'Good to know',
   };
-  if (variants.details === 'iconrow')   return <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><DetailsIconRow ctx={sub} /></div>;
-  if (variants.details === 'accordion') return <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><DetailsAccordion ctx={sub} /></div>;
-  if (variants.details === 'bento')     return <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><DetailsBento ctx={sub} /></div>;
+  if (variants.details === 'iconrow')   return <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><DetailsIconRow ctx={sub} /></div>;
+  if (variants.details === 'accordion') return <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><DetailsAccordion ctx={sub} /></div>;
+  if (variants.details === 'bento')     return <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><DetailsBento ctx={sub} /></div>;
   return (
     <div style={{ position: 'relative', padding: `${44 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}>
-      <MotifScatter motif={motif} density="sparse" />
+      
       <TSectionHead
         eyebrow={C.details.eyebrow}
         title={C.details.title}
@@ -1955,12 +1959,12 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
     eyebrowPlaceholder: 'Travel',
     titlePlaceholder: 'Where to stay',
   };
-  if (variants.travel === 'map')      return <div style={{ position: 'relative', padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><TravelMap ctx={sub} /></div>;
-  if (variants.travel === 'table')    return <div style={{ position: 'relative', padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><TravelTable ctx={sub} /></div>;
-  if (variants.travel === 'carousel') return <div style={{ position: 'relative', padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><MotifScatter motif={motif} density="sparse" /><TravelCarousel ctx={sub} /></div>;
+  if (variants.travel === 'map')      return <div style={{ position: 'relative', padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><TravelMap ctx={sub} /></div>;
+  if (variants.travel === 'table')    return <div style={{ position: 'relative', padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><TravelTable ctx={sub} /></div>;
+  if (variants.travel === 'carousel') return <div style={{ position: 'relative', padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}><TravelCarousel ctx={sub} /></div>;
   return (
     <div style={{ position: 'relative', padding: `${48 * pad}px clamp(16px, 5vw, 40px)`, background: 'var(--t-section)' }}>
-      <MotifScatter motif={motif} density="sparse" />
+      
       <TSectionHead
         eyebrow={C.travel.eyebrow}
         title={C.travel.title}
@@ -3215,7 +3219,7 @@ function TSectionHead({ eyebrow, title, italic, editable, onEditEyebrow, onEditT
 
 /* ─── TSection — handoff L29-56 verbatim (selection chrome). ── */
 
-function TSection({ id, label, children, active, hover, setActive, setHover, editable, hideHandle }: {
+function TSection({ id, label, children, active, hover, setActive, setHover, editable, hideHandle, motifLayout = 'none', motif = 'none' }: {
   id: Exclude<SectionId, null>;
   label: string;
   children: ReactNode;
@@ -3225,6 +3229,9 @@ function TSection({ id, label, children, active, hover, setActive, setHover, edi
   setHover: (id: SectionId) => void;
   editable: boolean;
   hideHandle?: boolean;
+  /** Motif placement — every section participates by construction. */
+  motifLayout?: MotifLayout;
+  motif?: MotifKind;
 }) {
   const isActive = active === id;
   const isHover = hover === id && !isActive;
@@ -3240,6 +3247,7 @@ function TSection({ id, label, children, active, hover, setActive, setHover, edi
       }}
       style={{ position: 'relative', cursor: editable ? 'pointer' : 'default', scrollMarginTop: 80 }}
     >
+      <MotifLayer layout={motifLayout} kind={motif} sectionId={id} />
       {children}
       {editable && (
         <>
@@ -3788,6 +3796,8 @@ interface SectionCtx {
   editable: boolean;
   motif: MotifKind;
   motifsOn: boolean;
+  /** WHERE the motifs live (MotifLayer) — host pick or kit default. */
+  motifLayout: MotifLayout;
   textureIntensity: number;
   showWashHero: boolean;
   /** Decor Library divider override OR theme.look.divider fallback. */

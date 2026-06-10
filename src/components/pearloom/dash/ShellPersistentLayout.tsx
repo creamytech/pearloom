@@ -13,7 +13,7 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { Blob } from '../motifs';
-import { DashSidebar } from './DashShell';
+import { DashSidebar, DashMobileBar } from './DashShell';
 import { DashSubNav } from './DashSubNav';
 import { DashCommandPalette } from './DashCommandPalette';
 import { UserSettingsProvider } from './UserSettingsModal';
@@ -35,6 +35,10 @@ export function ShellPersistentLayout({ children }: { children: ReactNode }) {
         <DashCommandPalette />
         <DashSidebar />
         <main style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+          {/* Mobile-only nav strip (hamburger / wordmark / account).
+              Without it, pages on the PLChrome chrome had no drawer
+              trigger on phones — no section nav, no sign-out. */}
+          <DashMobileBar />
           <div style={{ position: 'absolute', top: 0, right: 0, pointerEvents: 'none', zIndex: 0 }}>
             <Blob tone="peach" size={380} opacity={0.35} style={{ position: 'absolute', top: -120, right: -120 }} />
           </div>
