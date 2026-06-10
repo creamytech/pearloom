@@ -1,37 +1,27 @@
 'use client';
 
 // ──────────────────────────────────────────────────────────────
-// OccasionGlyph — bespoke hand-drawn SVG marks per occasion type.
-// Each glyph carries a stable data-pl-glyph attribute that pairs
-// with hover animations declared in pearloom.css (.pl8-glyph-*).
+// OccasionGlyph — bespoke hand-drawn SVG marks, ONE per occasion.
 //
 // Drawing language (matches the MotifScatter decor library):
-//   - hairline strokes, round caps, organic curves — never the
-//     stiff geometry of a stock icon set
-//   - asymmetry and slight tilt so the marks read drawn, not
-//     drafted
-//   - ONE gold grace note per glyph (a berry, a pearl, a tassel
-//     end) — the same single-gold-dot rule the motifs follow
+//   - hairline strokes (1.5), round caps, organic curves — never
+//     the stiff geometry of a stock icon set
+//   - slight asymmetry/tilt so the marks read drawn, not drafted
+//   - ONE gold grace note per glyph (a pearl, a flame, a berry)
+//   - 24×24 viewBox, currentColor ink, STATIC — the 2026-06 redo
+//     removed the hover animation classes; the marks hold still
+//     and let the occasion cards breathe
 //
-// Why bespoke instead of the generic Icon library: every
-// occasion deserves its own visual language. A wedding's rings
-// shouldn't share an icon with an anniversary's pen, baby
-// shower's rattle, retirement's watch, etc.
-//
-// Hover animations:
-//   spin     — rings, watch
-//   wiggle   — rattle, compass, coupes
-//   bloom    — bouquet, starburst, tiara
-//   flicker  — candles on the cake
-//   draw     — stroke-dashoffset reveal (anniversary script, book)
-//   sway     — leaf-bough, dove
-//   pop      — cup, mortarboard, family circle, home
-//
-// Falls back to a brand sparkle for occasions without a custom
-// glyph.
+// Every occasion id gets a UNIQUE mark — a wedding's interlocked
+// rings, an engagement's solitaire, a vow renewal's ribboned
+// bands, a bachelorette's popped bottle. No more sharing one
+// rattle across four baby events. Unknown ids fall back to the
+// brand sparkle.
 // ──────────────────────────────────────────────────────────────
 
-import type { CSSProperties, ReactElement } from 'react';
+import type { CSSProperties, ReactElement, ReactNode } from 'react';
+
+const GOLD = 'var(--pl-gold, #C19A4B)';
 
 interface Props {
   id: string;
@@ -41,426 +31,406 @@ interface Props {
 }
 
 export function OccasionGlyph({ id, size = 22, color = 'currentColor', style }: Props) {
-  const glyph = pickGlyph(id);
+  const Component = GLYPHS[id] ?? Sparkle;
   return (
     <span
-      className={`pl8-glyph pl8-glyph-${glyph.anim}`}
-      data-pl-glyph={glyph.kind}
-      style={{
-        display: 'inline-grid',
-        placeItems: 'center',
-        width: size,
-        height: size,
-        color,
-        ...style,
-      }}
+      className="pl8-glyph"
+      data-pl-glyph={GLYPHS[id] ? id : 'sparkle'}
+      style={{ display: 'inline-grid', placeItems: 'center', width: size, height: size, color, ...style }}
     >
-      <glyph.Component size={size} />
+      <Component size={size} />
     </span>
   );
 }
 
-type GlyphAnim = 'spin' | 'wiggle' | 'bloom' | 'flicker' | 'draw' | 'sway' | 'pop';
+type G = (props: { size: number }) => ReactElement;
 
-interface GlyphSpec {
-  kind: string;
-  anim: GlyphAnim;
-  Component: (props: { size: number }) => ReactElement;
-}
-
-function pickGlyph(id: string): GlyphSpec {
-  // Wedding arc — rings spin gently on hover.
-  if (id === 'wedding' || id === 'engagement' || id === 'vow-renewal') {
-    return { kind: 'rings', anim: 'spin', Component: Rings };
-  }
-  if (id === 'bridal-shower' || id === 'bridal-luncheon') {
-    return { kind: 'bouquet', anim: 'bloom', Component: Bouquet };
-  }
-  if (id === 'bachelor-party' || id === 'bachelorette-party') {
-    return { kind: 'compass', anim: 'wiggle', Component: CompassStar };
-  }
-  if (id === 'rehearsal-dinner') {
-    return { kind: 'glasses', anim: 'wiggle', Component: ClinkingCoupes };
-  }
-  if (id === 'welcome-party' || id === 'brunch') {
-    return { kind: 'cup', anim: 'pop', Component: CoffeeCup };
-  }
-
-  // Family & home
-  if (id === 'anniversary') {
-    return { kind: 'script', anim: 'draw', Component: ScriptHeart };
-  }
-  if (id === 'baby-shower' || id === 'sip-and-see' || id === 'gender-reveal' || id === 'first-birthday') {
-    return { kind: 'rattle', anim: 'wiggle', Component: Rattle };
-  }
-  if (id === 'housewarming') {
-    return { kind: 'home', anim: 'pop', Component: HouseGable };
-  }
-
-  // Milestones
-  if (id === 'birthday' || id === 'milestone-birthday') {
-    return { kind: 'cake', anim: 'flicker', Component: BirthdayCake };
-  }
-  if (id === 'sweet-sixteen') {
-    return { kind: 'starburst', anim: 'bloom', Component: Starburst };
-  }
-  if (id === 'graduation') {
-    return { kind: 'mortarboard', anim: 'pop', Component: Mortarboard };
-  }
-  if (id === 'retirement') {
-    return { kind: 'watch', anim: 'spin', Component: PocketWatch };
-  }
-
-  // Cultural
-  if (id === 'bar-mitzvah' || id === 'bat-mitzvah') {
-    return { kind: 'mitzvah', anim: 'pop', Component: StarScroll };
-  }
-  if (id === 'quinceanera') {
-    return { kind: 'tiara', anim: 'bloom', Component: Tiara };
-  }
-  if (id === 'baptism' || id === 'first-communion' || id === 'confirmation') {
-    return { kind: 'dove', anim: 'sway', Component: Dove };
-  }
-
-  // Commemoration
-  if (id === 'memorial' || id === 'funeral') {
-    return { kind: 'bough', anim: 'sway', Component: LeafBough };
-  }
-  if (id === 'reunion') {
-    return { kind: 'circle', anim: 'pop', Component: FamilyCircle };
-  }
-
-  // Story-only
-  if (id === 'story') {
-    return { kind: 'book', anim: 'draw', Component: OpenBook };
-  }
-
-  return { kind: 'sparkles', anim: 'bloom', Component: Sparkle };
-}
-
-// ── Glyph SVGs ──────────────────────────────────────────────────
-// Stroke inherits currentColor; the one gold grace note per glyph
-// uses the brand gold token. ViewBox 24×24, strokeWidth 1.5 —
-// reads as a crisp hairline at the 20px render the wizard uses.
-
-interface S { size: number }
-const GOLD = 'var(--pl-gold, #C19A4B)';
-const stroke = (s: { size: number }) => ({
-  width: s.size,
-  height: s.size,
-  viewBox: '0 0 24 24',
-  fill: 'none',
-  stroke: 'currentColor',
-  strokeWidth: 1.5,
-  strokeLinecap: 'round' as const,
-  strokeLinejoin: 'round' as const,
-});
-
-/** Two rings interlocked at an angle — the top one wears the stone. */
-function Rings({ size }: S) {
+/* Shared svg shell — stroke-first, round everything. */
+function Svg({ size, children }: { size: number; children: ReactNode }) {
   return (
-    <svg {...stroke({ size })}>
-      <circle cx="9.6" cy="14.2" r="4.7" />
-      <circle cx="14.6" cy="11" r="4.7" />
-      {/* marquise stone on the upper ring */}
-      <path d="M16.2 3.2l1.5 1.6-1.5 1.6-1.5-1.6z" fill={GOLD} stroke="none" />
-      {/* glint */}
-      <path d="M20.2 3.4l1.4-1.2M21 6.2l1.4.2" strokeWidth="1.2" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      {children}
     </svg>
   );
 }
 
-/** Hand-tied posy — three stems gathered at a wrap, one gold berry. */
-function Bouquet({ size }: S) {
-  return (
-    <svg {...stroke({ size })}>
-      {/* stems fanning out from the binding */}
-      <path d="M12 15.6c-1.6-2.6-3-4.2-4.8-5.4" />
-      <path d="M12 15.6c.1-2.8.3-4.8.7-6.8" />
-      <path d="M12 15.6c1.6-2.4 3.1-3.9 5-5" />
-      {/* bloom heads */}
-      <circle cx="6.4" cy="9" r="1.9" />
-      <circle cx="13" cy="7.2" r="1.9" />
-      <circle cx="17.9" cy="9.6" r="1.9" />
-      {/* the gold berry tucked into the posy */}
-      <circle cx="9.8" cy="7.4" r="1.1" fill={GOLD} stroke="none" />
-      {/* leaf */}
-      <path d="M15.2 12.2c1.4-.2 2.4.2 3 1.2-1.2.5-2.3.3-3-1.2z" fill="currentColor" fillOpacity="0.16" />
-      {/* ribbon wrap + tails */}
-      <path d="M10.7 15.2l2.7 1" />
-      <path d="M12 16c-.7 1.5-1.7 2.4-3 3M12 16c.9 1.3 2 2 3.3 2.4" />
-    </svg>
-  );
-}
+/* ── Wedding arc ─────────────────────────────────────────────── */
 
-/** Compass rose — the trip-planning mark; gold north point. */
-function CompassStar({ size }: S) {
-  return (
-    <svg {...stroke({ size })}>
-      <circle cx="12" cy="12.6" r="7.8" />
-      {/* needle — north half inked */}
-      <path d="M12 6.2l1.7 6.4-1.7 6.4-1.7-6.4z" />
-      <path d="M12 6.2l1.7 6.4h-3.4z" fill="currentColor" stroke="none" fillOpacity="0.75" />
-      {/* cardinal ticks */}
-      <path d="M5.4 12.6h-1M19.6 12.6h1M12 19.2v1" strokeWidth="1.2" />
-      {/* gold north star */}
-      <circle cx="12" cy="3.2" r="1.1" fill={GOLD} stroke="none" />
-    </svg>
-  );
-}
+// wedding — interlocked rings, gold pearl at the crossing.
+const Wedding: G = ({ size }) => (
+  <Svg size={size}>
+    <circle cx="9.4" cy="13.2" r="5.4" />
+    <circle cx="15" cy="10.6" r="5.4" />
+    <circle cx="12.4" cy="11.6" r="1.1" fill={GOLD} stroke="none" />
+  </Svg>
+);
 
-/** Two coupes mid-clink, spark where they touch. */
-function ClinkingCoupes({ size }: S) {
-  return (
-    <svg {...stroke({ size })}>
-      <g transform="rotate(-16 8 13)">
-        <path d="M4.8 6.6h6.4c0 2.8-1.4 4.4-3.2 4.4S4.8 9.4 4.8 6.6z" />
-        <path d="M8 11v6M5.8 18.4c1.4-.9 3-.9 4.4 0" />
-      </g>
-      <g transform="rotate(16 16 13)">
-        <path d="M12.8 6.6h6.4c0 2.8-1.4 4.4-3.2 4.4s-3.2-1.6-3.2-4.4z" />
-        <path d="M16 11v6M13.8 18.4c1.4-.9 3-.9 4.4 0" />
-      </g>
-      {/* clink sparks */}
-      <path d="M12 3.2v-1M9.4 4.2l-.8-.9M14.6 4.2l.8-.9" strokeWidth="1.2" />
-      <circle cx="12" cy="5.4" r="0.9" fill={GOLD} stroke="none" />
-    </svg>
-  );
-}
+// engagement — a solitaire: band + faceted stone.
+const Engagement: G = ({ size }) => (
+  <Svg size={size}>
+    <circle cx="12" cy="14.6" r="5.6" />
+    <path d="M9.6 6.8 L12 3.4 L14.4 6.8 L12 9.2 Z" />
+    <path d="M9.6 6.8 H14.4" />
+    <circle cx="12" cy="6.6" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
 
-/** Morning cup on its saucer, steam curling. */
-function CoffeeCup({ size }: S) {
-  return (
-    <svg {...stroke({ size })}>
-      <path d="M6 10.4h9.6l-.8 5.6a3 3 0 01-3 2.6h-2a3 3 0 01-3-2.6z" />
-      <path d="M15.6 11.6h1.6a1.9 1.9 0 01.2 3.8l-2.2.2" />
-      <path d="M5 20.6c3.8.8 8 .8 11.8 0" />
-      {/* steam */}
-      <path d="M9 7.6c.6-1 0-1.7.6-2.9M12.2 7.6c.6-1 0-1.7.6-2.9" />
-      <circle cx="15.8" cy="4.4" r="0.9" fill={GOLD} stroke="none" />
-    </svg>
-  );
-}
+// vow-renewal — two bands beneath a tied ribbon arc.
+const VowRenewal: G = ({ size }) => (
+  <Svg size={size}>
+    <circle cx="9" cy="15" r="4.6" />
+    <circle cx="15" cy="15" r="4.6" />
+    <path d="M8.4 6.4 C 10 3.6, 14 3.6, 15.6 6.4" />
+    <path d="M10.4 7.6 C 11.2 6.2, 12.8 6.2, 13.6 7.6" />
+    <circle cx="12" cy="4.4" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
 
-/** One cursive line that loops into a heart — drawn on hover. */
-function ScriptHeart({ size }: S) {
-  return (
-    <svg {...stroke({ size })}>
-      <path
-        d="M2.8 17.2c1.6-.9 2.8-.9 3.8-.4-1-2.6-1-5 .6-6.4 1.6-1.4 3.6-.8 4.8 1.4 1.2-2.2 3.2-2.8 4.8-1.4 1.6 1.4 1.6 3.9-.4 6.2-1.3 1.5-2.9 2.7-4.4 3.6-1.2-.7-2.4-1.6-3.5-2.6"
-        className="pl8-glyph-draw-path"
-      />
-      <path d="M17.6 19.2c1.2-.2 2.2-.8 2.9-1.8" />
-      {/* the full stop after the signature */}
-      <circle cx="21.6" cy="18.6" r="1" fill={GOLD} stroke="none" />
-    </svg>
-  );
-}
+// anniversary — a script heart with an underline flourish.
+const Anniversary: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M12 18.6 C 7 14.6, 4.6 11.4, 5.6 8.4 C 6.4 6, 9.4 5.4, 12 8.4 C 14.6 5.4, 17.6 6, 18.4 8.4 C 19.4 11.4, 17 14.6, 12 18.6 Z" />
+    <path d="M4.4 21 C 9 19.6, 15 19.6, 19.6 21" />
+    <circle cx="20.6" cy="20.6" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
 
-/** Rattle with a banded head and looped handle, mid-shake. */
-function Rattle({ size }: S) {
-  return (
-    <svg {...stroke({ size })}>
-      <circle cx="9.2" cy="8.6" r="4.4" />
-      {/* band across the head */}
-      <path d="M5.4 6.4c2.4 1.5 5.2 1.5 7.6 0" />
-      <circle cx="9.2" cy="9.8" r="1" fill={GOLD} stroke="none" />
-      {/* handle with end loop */}
-      <path d="M12.4 11.8l3.6 3.8" />
-      <circle cx="17.4" cy="17.2" r="1.9" />
-      {/* shake ticks */}
-      <path d="M19.8 11.8l1.6-1.1M21 14.8l1.8-.3" strokeWidth="1.2" />
-    </svg>
-  );
-}
+// bridal-shower — a hand-tied bouquet.
+const BridalShower: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M9.6 12.6 L8 20 M14.4 12.6 L16 20 M12 13 V20.6" />
+    <path d="M10.2 18.2 H13.8" />
+    <circle cx="8.6" cy="9.4" r="2.4" />
+    <circle cx="15.4" cy="9.4" r="2.4" />
+    <circle cx="12" cy="6.4" r="2.6" />
+    <circle cx="12" cy="6.4" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
 
-/** Cottage gable with a curl of chimney smoke. */
-function HouseGable({ size }: S) {
-  return (
-    <svg {...stroke({ size })}>
-      <path d="M3.2 11.8L12 4.6l8.8 7.2" />
-      <path d="M5.4 10.4v9c4.4.8 8.8.8 13.2 0v-9" />
-      {/* arched door */}
-      <path d="M10.2 19.8v-3.8a1.8 1.8 0 013.6 0v3.8" />
-      <circle cx="12.9" cy="17.7" r="0.8" fill={GOLD} stroke="none" />
-      {/* chimney + smoke curl */}
-      <path d="M16.2 6.2V3.8h2.2v4.2" />
-      <path d="M17.6 2.4c.7-.5.2-1 .8-1.4" strokeWidth="1.2" />
-    </svg>
-  );
-}
+// bridal-luncheon — teacup on a saucer, steam curl.
+const BridalLuncheon: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M5.6 10.4 H16.4 V13.6 C 16.4 16.4, 14.4 18, 11 18 C 7.6 18, 5.6 16.4, 5.6 13.6 Z" />
+    <path d="M16.4 11.4 C 19 11.2, 19.6 14.6, 16.2 15.2" />
+    <path d="M4.6 20.4 H17.4" />
+    <path d="M10 7.4 C 9.2 6.2, 10.6 5.4, 10 4.2" />
+    <circle cx="13.4" cy="5.6" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
 
-/** Cake with scalloped icing and three lit candles. */
-function BirthdayCake({ size }: S) {
-  return (
-    <svg {...stroke({ size })}>
-      {/* body with dripping icing */}
-      <path d="M5.4 13.2v5.4c4.4 1 8.8 1 13.2 0v-5.4" />
-      <path d="M5.4 13.2c1.1 1.9 2.2 1.9 3.3 0 1.1 1.9 2.2 1.9 3.3 0 1.1 1.9 2.2 1.9 3.3 0 1.1 1.9 2.2 1.9 3.3 0" />
-      <path d="M4 20.8h16" />
-      {/* candles */}
-      <g className="pl8-glyph-flicker-stem">
-        <path d="M8.6 12.6V9.8M12 12.2V9.2M15.4 12.6V9.8" />
-      </g>
-      {/* flames */}
-      <g className="pl8-glyph-flicker-flame">
-        <path d="M8.6 8c.8.9.8 1.6 0 1.6S7.8 8.9 8.6 8z" fill="currentColor" stroke="none" fillOpacity="0.7" />
-        <path d="M12 7.2c.9 1 .9 1.8 0 1.8s-.9-.8 0-1.8z" fill={GOLD} stroke="none" />
-        <path d="M15.4 8c.8.9.8 1.6 0 1.6s-.8-.7 0-1.6z" fill="currentColor" stroke="none" fillOpacity="0.7" />
-      </g>
-    </svg>
-  );
-}
+// bachelor-party — compass star, gold north pearl.
+const BachelorParty: G = ({ size }) => (
+  <Svg size={size}>
+    <circle cx="12" cy="12" r="8.4" />
+    <path d="M12 5.4 L13.8 10.2 L18.6 12 L13.8 13.8 L12 18.6 L10.2 13.8 L5.4 12 L10.2 10.2 Z" />
+    <circle cx="12" cy="6.6" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
 
-/** Retro starburst — rays of three lengths, one orbiting gold spark. */
-function Starburst({ size }: S) {
-  return (
-    <svg {...stroke({ size })}>
-      <path d="M12 3.6v3.6M12 17.6v3M3.8 12.4h3.4M17.6 12.4h3M6.2 6.6l2.4 2.4M15.8 16l2.2 2.2M6.4 18.2l2.3-2.3M15.6 9l2.3-2.3" />
-      <circle cx="12" cy="12.4" r="1.5" />
-      <circle cx="19.4" cy="4.4" r="1.1" fill={GOLD} stroke="none" />
-    </svg>
-  );
-}
+// bachelorette-party — champagne bottle mid-pop, cork flying.
+const BacheloretteParty: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M10.2 9.4 C 10.2 7.8, 11 7, 11 5.4 L13 5.4 C 13 7, 13.8 7.8, 13.8 9.4 L13.8 19 C 13.8 19.8, 13.2 20.4, 12.4 20.4 L11.6 20.4 C 10.8 20.4, 10.2 19.8, 10.2 19 Z" />
+    <path d="M11 5.4 H13" />
+    <path d="M16.4 4.6 L18.2 2.8 M17.6 7.2 L19.8 6.6" />
+    <circle cx="20.4" cy="3.6" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
 
-/** Tilted mortarboard, tassel swinging to a gold end. */
-function Mortarboard({ size }: S) {
-  return (
-    <svg {...stroke({ size })}>
-      <path d="M2.6 9.8L12 5.4l9.4 4.4-9.4 4.2z" />
-      <path d="M7 12.4v3c0 1.7 2.2 2.8 5 2.8s5-1.1 5-2.8v-3" />
-      {/* tassel draped off the board */}
-      <path d="M12 9.8c2.5.6 4.4 2.4 4.8 5.7" />
-      <circle cx="16.9" cy="16.6" r="1.1" fill={GOLD} stroke="none" />
-    </svg>
-  );
-}
+// rehearsal-dinner — two coupes mid-clink.
+const RehearsalDinner: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M4.2 4.8 L9.6 6.6 C 9.4 9.2, 7.8 10.4, 6.2 10 C 4.6 9.6, 3.8 7.8, 4.2 4.8 Z" />
+    <path d="M6.6 10.2 L5.4 16.2 M3.6 17.2 L7.2 18" />
+    <path d="M19.8 4.8 L14.4 6.6 C 14.6 9.2, 16.2 10.4, 17.8 10 C 19.4 9.6, 20.2 7.8, 19.8 4.8 Z" />
+    <path d="M17.4 10.2 L18.6 16.2 M20.4 17.2 L16.8 18" />
+    <circle cx="12" cy="4.4" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
 
-/** Pocket watch — crown bow, hands at a quarter past. */
-function PocketWatch({ size }: S) {
-  return (
-    <svg {...stroke({ size })}>
-      <circle cx="12" cy="13.6" r="6.6" />
-      <path d="M12 7V5.2" />
-      <circle cx="12" cy="3.8" r="1.3" />
-      {/* face ticks */}
-      <path d="M12 8.6v1M16.8 13.6h-1M12 18.6v-1M7.2 13.6h1" strokeWidth="1.1" />
-      {/* hands */}
-      <path d="M12 13.6V10.4M12 13.6l2.6 1.5" />
-      <circle cx="12" cy="13.6" r="0.9" fill={GOLD} stroke="none" />
-    </svg>
-  );
-}
+// welcome-party — bunting strung across.
+const WelcomeParty: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M3 7 C 8 10.4, 16 10.4, 21 7" />
+    <path d="M6.6 9.4 L7.6 13 L9.8 10.2 Z" />
+    <path d="M11 10.6 L12 14.2 L14.2 11 Z" />
+    <path d="M15.6 10 L17 13.2 L18.8 9.8 Z" />
+    <circle cx="21" cy="7" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
 
-/** Star of David above an open scroll. */
-function StarScroll({ size }: S) {
-  return (
-    <svg {...stroke({ size })}>
-      <path d="M12 3.2l3.2 5.5h-6.4z" strokeWidth="1.3" />
-      <path d="M12 11.9L8.8 6.4h6.4z" strokeWidth="1.3" />
-      <circle cx="12" cy="7.6" r="0.9" fill={GOLD} stroke="none" />
-      {/* scroll: rolled handles + parchment */}
-      <circle cx="6.4" cy="15.2" r="1.1" />
-      <circle cx="17.6" cy="15.2" r="1.1" />
-      <path d="M6.4 16.3v4.2M17.6 16.3v4.2" />
-      <path d="M7.8 16.4h8.4M7.8 19.6h8.4" />
-      <path d="M10.2 18h3.6" strokeWidth="1.1" />
-    </svg>
-  );
-}
+// brunch — sun rising over a coffee cup.
+const Brunch: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M7.6 9.6 C 7.6 7, 9.6 5.2, 12 5.2 C 14.4 5.2, 16.4 7, 16.4 9.6" />
+    <path d="M12 2.2 V3.4 M5.8 4.6 L6.8 5.6 M18.2 4.6 L17.2 5.6" />
+    <path d="M6.4 12.6 H15.6 V15 C 15.6 17.6, 13.8 19, 11 19 C 8.2 19, 6.4 17.6, 6.4 15 Z" />
+    <path d="M15.6 13.4 C 18 13.2, 18.4 16.2, 15.4 16.6" />
+    <circle cx="12" cy="9.6" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
 
-/** Tiara — rising arcs to a center pearl. */
-function Tiara({ size }: S) {
-  return (
-    <svg {...stroke({ size })}>
-      <path d="M4.2 16.2C5.4 11.2 8 9.2 12 9c4 .2 6.6 2.2 7.8 7.2" />
-      <path d="M12 9V6.6" />
-      <path d="M3.6 16.6c5.6 1.3 11.2 1.3 16.8 0" />
-      <path d="M3.6 19c5.6 1 11.2 1 16.8 0" strokeWidth="1.1" />
-      {/* side jewels + the center pearl */}
-      <circle cx="6.6" cy="11.4" r="0.8" fill="currentColor" stroke="none" />
-      <circle cx="17.4" cy="11.4" r="0.8" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="5.2" r="1.2" fill={GOLD} stroke="none" />
-    </svg>
-  );
-}
+/* ── Family & home ───────────────────────────────────────────── */
 
-/** Dove carrying an olive sprig — the brand's own branch. */
-function Dove({ size }: S) {
-  return (
-    <svg {...stroke({ size })}>
-      <path d="M4.6 13.8c2.6-1.7 5-2 7.2-.8 1.5-2.7 3.9-4 7.2-3.7-1.5 3.6-4 5.7-7.6 6.5l-1.5 3.4-2.4-2.3-2.9-.7z" />
-      {/* lifted wing */}
-      <path d="M11.4 12.6c.9-2 2.4-3.2 4.6-3.7" />
-      {/* eye */}
-      <circle cx="17.4" cy="10.2" r="0.6" fill="currentColor" stroke="none" />
-      {/* olive sprig in the beak */}
-      <path d="M19.4 9.6c1.2-.7 2.3-.9 3.2-.6" strokeWidth="1.2" />
-      <circle cx="21.4" cy="7.8" r="0.9" fill={GOLD} stroke="none" />
-    </svg>
-  );
-}
+// baby-shower — a rattle, gold bead at its heart.
+const BabyShower: G = ({ size }) => (
+  <Svg size={size}>
+    <circle cx="9.4" cy="8.4" r="4.6" />
+    <path d="M12.8 11.6 L17.8 16.8" />
+    <circle cx="18.8" cy="17.8" r="1.6" />
+    <path d="M6.6 7 C 7.6 6, 9 5.8, 10.2 6.4" />
+    <circle cx="9.4" cy="8.4" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
 
-/** Olive bough — paired leaves up a quiet arc, one gold berry. */
-function LeafBough({ size }: S) {
-  return (
-    <svg {...stroke({ size })}>
-      <path d="M4.6 19.6C8.2 16.2 12.8 11.4 19.4 4.6" />
-      {/* leaves alternating along the branch */}
-      <path d="M7.8 16.6c-.4-2-1.5-3-3.4-3.2.5 2 1.6 3 3.4 3.2z" fill="currentColor" fillOpacity="0.16" />
-      <path d="M9.6 14.7c2-.3 3-1.4 3.3-3.3-2 .4-3.1 1.5-3.3 3.3z" fill="currentColor" fillOpacity="0.16" />
-      <path d="M12.6 11.7c-.3-2-1.4-3-3.3-3.3.4 2 1.5 3 3.3 3.3z" fill="currentColor" fillOpacity="0.16" />
-      <path d="M14.4 9.8c2-.3 3-1.4 3.3-3.3-1.9.4-3 1.5-3.3 3.3z" fill="currentColor" fillOpacity="0.16" />
-      <circle cx="18.4" cy="7.4" r="1" fill={GOLD} stroke="none" />
-    </svg>
-  );
-}
+// gender-reveal — a balloon holding its secret.
+const GenderReveal: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M12 15.4 C 8.2 15.4, 6 12.6, 6 9.4 C 6 5.8, 8.6 3.4, 12 3.4 C 15.4 3.4, 18 5.8, 18 9.4 C 18 12.6, 15.8 15.4, 12 15.4 Z" />
+    <path d="M11.2 15.6 L12 17 L12.8 15.6" />
+    <path d="M12 17 C 11 18.4, 13 19.6, 12 21" />
+    <path d="M10.4 8 C 10.4 6.2, 13.6 6.2, 13.6 8 C 13.6 9.4, 12 9.2, 12 10.6" />
+    <circle cx="12" cy="12.6" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
 
-/** Three gathered figures, arms linked. */
-function FamilyCircle({ size }: S) {
-  return (
-    <svg {...stroke({ size })}>
-      <circle cx="7.2" cy="9.6" r="2.1" />
-      <circle cx="12" cy="7.8" r="2.1" />
-      <circle cx="16.8" cy="9.6" r="2.1" />
-      <path d="M3.6 19.8c.5-3.2 2-4.9 3.6-5.1M20.4 19.8c-.5-3.2-2-4.9-3.6-5.1" />
-      <path d="M8.4 20c.4-2.6 1.8-4.1 3.6-4.1s3.2 1.5 3.6 4.1" />
-      {/* the spark above the gathering */}
-      <circle cx="12" cy="3.4" r="0.9" fill={GOLD} stroke="none" />
-    </svg>
-  );
-}
+// sip-and-see — a pram with a canopy.
+const SipAndSee: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M4.6 9.4 H17.4 V11.4 C 17.4 14.4, 15 16.6, 11 16.6 C 7 16.6, 4.6 14.4, 4.6 11.4 Z" />
+    <path d="M17.4 9.4 C 17.4 5.8, 14.6 3.4, 11 3.4 V9.4" />
+    <path d="M17.4 9.4 L20.4 6.8" />
+    <circle cx="7.6" cy="19.4" r="1.7" />
+    <circle cx="14.6" cy="19.4" r="1.7" />
+    <circle cx="14" cy="6.6" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
 
-/** Open book with a gold ribbon marker — drawn on hover. */
-function OpenBook({ size }: S) {
-  return (
-    <svg {...stroke({ size })}>
-      <path
-        d="M3.4 5.8c2.9-1.1 5.8-.7 8.6.9 2.8-1.6 5.7-2 8.6-.9v12.6c-2.9-1.1-5.8-.7-8.6.9-2.8-1.6-5.7-2-8.6-.9z"
-        className="pl8-glyph-draw-path"
-      />
-      <path d="M12 6.7v12.6" />
-      {/* the lines of the story */}
-      <path d="M6 9.6c1.5-.4 2.9-.3 4.1.2M6 12.4c1.5-.4 2.9-.3 4.1.2" strokeWidth="1.1" />
-      <path d="M13.9 9.8c1.2-.5 2.6-.6 4.1-.2" strokeWidth="1.1" />
-      {/* ribbon marker */}
-      <path d="M16.2 5.6v4.2" stroke={GOLD} strokeWidth="1.3" />
-      <circle cx="16.2" cy="10.6" r="0.8" fill={GOLD} stroke="none" />
-    </svg>
-  );
-}
+// first-birthday — one proud candle on a small cake.
+const FirstBirthday: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M5.6 20.4 H18.4" />
+    <path d="M6.8 20.4 V15.6 C 6.8 14.4, 7.8 13.6, 9 13.6 H15 C 16.2 13.6, 17.2 14.4, 17.2 15.6 V20.4" />
+    <path d="M6.8 16.8 C 8.4 18.4, 9.8 16, 12 17.4 C 14.2 18.8, 15.6 15.8, 17.2 17.2" />
+    <path d="M12 13.6 V8" />
+    <circle cx="12" cy="6.4" r="0.95" fill={GOLD} stroke="none" />
+  </Svg>
+);
 
-/** Brand sparkle — concave four-point star + gold companion. */
-function Sparkle({ size }: S) {
-  return (
-    <svg {...stroke({ size })}>
-      <path
-        d="M12 4.4c.7 3.5 2.4 5.4 6 6.2-3.6.8-5.3 2.7-6 6.2-.7-3.5-2.4-5.4-6-6.2 3.6-.8 5.3-2.7 6-6.2z"
-        fill="currentColor"
-        fillOpacity="0.14"
-      />
-      <path d="M5.8 17.2l-.6 1.7-1.7.6 1.7.6.6 1.7.6-1.7 1.7-.6-1.7-.6z" strokeWidth="1.1" />
-      <circle cx="19.2" cy="5" r="1" fill={GOLD} stroke="none" />
-    </svg>
-  );
-}
+// housewarming — a gabled house, gold light in the window.
+const Housewarming: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M4.6 11 L12 4.2 L19.4 11" />
+    <path d="M6.4 9.6 V19.4 H17.6 V9.6" />
+    <path d="M10.4 19.4 V14.4 C 10.4 13.6, 11 13, 11.8 13 H12.2 C 13 13, 13.6 13.6, 13.6 14.4 V19.4" />
+    <circle cx="12" cy="8.6" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
+
+/* ── Milestones ──────────────────────────────────────────────── */
+
+// birthday — tiered cake, three candles, gold flame.
+const Birthday: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M5 20.4 H19" />
+    <path d="M6 20.4 V15.4 H18 V20.4" />
+    <path d="M8 15.4 V11.4 H16 V15.4" />
+    <path d="M6 17.4 C 8 18.8, 9.4 16.6, 12 18 C 14.6 19.4, 16 17, 18 18.4" />
+    <path d="M9.4 11.4 V9 M12 11.4 V8.4 M14.6 11.4 V9" />
+    <circle cx="12" cy="6.8" r="0.95" fill={GOLD} stroke="none" />
+  </Svg>
+);
+
+// milestone-birthday — a laurel-framed plinth.
+const MilestoneBirthday: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M5.4 19.6 C 3.6 15.4, 4.2 9.6, 7.6 6.2" />
+    <path d="M18.6 19.6 C 20.4 15.4, 19.8 9.6, 16.4 6.2" />
+    <path d="M5.8 16.6 L7.8 15.8 M5 13 L7.2 12.8 M5.6 9.4 L7.6 10" />
+    <path d="M18.2 16.6 L16.2 15.8 M19 13 L16.8 12.8 M18.4 9.4 L16.4 10" />
+    <path d="M9.4 16.4 H14.6 M10.2 16.4 V11.2 H13.8 V16.4" />
+    <circle cx="12" cy="7.6" r="1" fill={GOLD} stroke="none" />
+  </Svg>
+);
+
+// sweet-sixteen — a shooting star, twin trails.
+const SweetSixteen: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M15.4 5.2 L16.6 8.4 L19.8 9.6 L16.6 10.8 L15.4 14 L14.2 10.8 L11 9.6 L14.2 8.4 Z" />
+    <path d="M11.4 12.8 C 8.8 15, 6.2 17, 3.6 18.4" />
+    <path d="M13.4 15 C 11.6 16.8, 9.6 18.4, 7.6 19.8" />
+    <circle cx="15.4" cy="9.6" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
+
+// graduation — mortarboard, gold tassel end.
+const Graduation: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M2.8 9.8 L12 5.4 L21.2 9.8 L12 14.2 Z" />
+    <path d="M6.8 12.2 V16.4 C 6.8 18, 9.2 19.2, 12 19.2 C 14.8 19.2, 17.2 18, 17.2 16.4 V12.2" />
+    <path d="M21.2 9.8 V14.6" />
+    <circle cx="21.2" cy="15.6" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
+
+// retirement — a pocket watch on its chain.
+const Retirement: G = ({ size }) => (
+  <Svg size={size}>
+    <circle cx="12" cy="13.4" r="6.6" />
+    <path d="M12 9.6 V13.4 L14.8 15" />
+    <path d="M10.6 5 H13.4 M12 5 V6.8" />
+    <path d="M14.6 4.8 C 16.2 3.6, 18.2 3.8, 19.4 5" />
+    <circle cx="20.2" cy="5.8" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
+
+// story — an open book, gold bookmark dot.
+const Story: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M12 6.4 C 10 4.8, 6.8 4.4, 4 5.2 V18 C 6.8 17.2, 10 17.6, 12 19.2 C 14 17.6, 17.2 17.2, 20 18 V5.2 C 17.2 4.4, 14 4.8, 12 6.4 Z" />
+    <path d="M12 6.4 V19.2" />
+    <path d="M6.4 8.6 C 7.8 8.2, 9.4 8.4, 10.4 9 M6.4 11.6 C 7.8 11.2, 9.4 11.4, 10.4 12" />
+    <circle cx="16.4" cy="8" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
+
+/* ── Cultural ────────────────────────────────────────────────── */
+
+// bar-mitzvah — Star of David, hand-drawn weight.
+const BarMitzvah: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M12 3.8 L19 16 H5 Z" />
+    <path d="M12 20.2 L5 8 H19 Z" />
+    <circle cx="12" cy="12" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
+
+// bat-mitzvah — an open scroll between two rollers.
+const BatMitzvah: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M7.4 5.4 V18.6 M5.4 4.4 C 5.4 5.6, 9.4 5.6, 9.4 4.4 M5.4 19.6 C 5.4 18.4, 9.4 18.4, 9.4 19.6" />
+    <path d="M16.6 5.4 V18.6 M14.6 4.4 C 14.6 5.6, 18.6 5.6, 18.6 4.4 M14.6 19.6 C 14.6 18.4, 18.6 18.4, 18.6 19.6" />
+    <path d="M9.4 7.4 H14.6 M9.4 10.4 H14.6 M9.4 13.4 H14.6 M9.4 16.4 H12.6" />
+    <circle cx="14.6" cy="16.4" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
+
+// quinceanera — a five-point tiara on its band.
+const Quinceanera: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M4.4 16.6 L5.4 9.4 L8.6 12.6 L12 7 L15.4 12.6 L18.6 9.4 L19.6 16.6 Z" />
+    <path d="M4.8 18.8 H19.2" />
+    <circle cx="12" cy="4.8" r="1" fill={GOLD} stroke="none" />
+  </Svg>
+);
+
+// baptism — a scallop shell shedding three drops.
+const Baptism: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M5.4 10.6 C 5.4 6.6, 8.4 3.8, 12 3.8 C 15.6 3.8, 18.6 6.6, 18.6 10.6 L12 13.4 Z" />
+    <path d="M8.2 10.2 L10 5 M12 13 L12 4.2 M15.8 10.2 L14 5" />
+    <path d="M8.6 16.4 C 8 17.4, 9.2 18.2, 8.6 19.2 M15.4 16.4 C 14.8 17.4, 16 18.2, 15.4 19.2" />
+    <path d="M12 16.8 C 11.4 17.8, 12.6 18.6, 12 19.6" />
+    <circle cx="12" cy="8.4" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
+
+// first-communion — chalice beneath a host.
+const FirstCommunion: G = ({ size }) => (
+  <Svg size={size}>
+    <circle cx="12" cy="5.6" r="2.6" />
+    <path d="M10.9 5.6 H13.1 M12 4.5 V6.7" strokeWidth="1.1" />
+    <path d="M6.8 10.2 H17.2 C 17.2 13.6, 15 15.8, 12 15.8 C 9 15.8, 6.8 13.6, 6.8 10.2 Z" />
+    <path d="M12 15.8 V19 M9.2 20.2 H14.8" />
+    <circle cx="17.8" cy="10.2" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
+
+// confirmation — a descending dove.
+const Confirmation: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M13.6 8.2 C 15.8 6.4, 18.8 6.6, 20.4 8.6 C 17.6 9, 16 10.4, 15 12.6 C 13.8 15.2, 11 16.8, 7.6 16.4 L4 19 C 4.6 14.8, 6.4 11.6, 9.6 9.8 C 10.8 9.2, 12.2 8.6, 13.6 8.2 Z" />
+    <path d="M13 12.4 C 14.6 12.8, 16.2 12.6, 17.6 11.8" />
+    <circle cx="18" cy="7.2" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
+
+/* ── Commemoration & community ───────────────────────────────── */
+
+// memorial — an olive bough, one gold fruit.
+const Memorial: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M5 19.6 C 8.4 15.2, 12.6 10.4, 19 5" />
+    <path d="M9.6 14.6 C 8.6 13, 8.8 11.2, 10.2 9.8 C 11.2 11.6, 11 13.4, 9.6 14.6 Z" />
+    <path d="M13.4 10.8 C 12.4 9.2, 12.6 7.4, 14 6 C 15 7.8, 14.8 9.6, 13.4 10.8 Z" />
+    <path d="M11.4 13.2 C 13 14.2, 14.8 14, 16.2 12.6 C 14.4 11.6, 12.6 11.8, 11.4 13.2 Z" />
+    <circle cx="7.2" cy="16.6" r="1" fill={GOLD} stroke="none" />
+  </Svg>
+);
+
+// funeral — a single candle, still gold flame, soft halo.
+const Funeral: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M10.4 11.4 H13.6 V19.6 H10.4 Z" />
+    <path d="M8 21.2 H16" />
+    <path d="M7.6 7.4 C 8.6 5, 10 3.6, 12 3 M16.4 7.4 C 15.4 5, 14 3.6, 12 3" opacity="0.45" />
+    <circle cx="12" cy="8.6" r="1" fill={GOLD} stroke="none" />
+  </Svg>
+);
+
+// reunion — three figures arm in arm.
+const Reunion: G = ({ size }) => (
+  <Svg size={size}>
+    <circle cx="6.6" cy="9.2" r="2.1" />
+    <circle cx="12" cy="7.6" r="2.3" />
+    <circle cx="17.4" cy="9.2" r="2.1" />
+    <path d="M3.6 18.4 C 4 15.4, 5.2 13.6, 6.6 13.6 C 7.6 13.6, 8.4 14.4, 9 15.6" />
+    <path d="M20.4 18.4 C 20 15.4, 18.8 13.6, 17.4 13.6 C 16.4 13.6, 15.6 14.4, 15 15.6" />
+    <path d="M8.6 19.4 C 9 15.8, 10.2 13.8, 12 13.8 C 13.8 13.8, 15 15.8, 15.4 19.4" />
+    <circle cx="12" cy="7.6" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
+
+/* ── Fallback ────────────────────────────────────────────────── */
+
+const Sparkle: G = ({ size }) => (
+  <Svg size={size}>
+    <path d="M12 4 C 12.8 8.4, 15.6 11.2, 20 12 C 15.6 12.8, 12.8 15.6, 12 20 C 11.2 15.6, 8.4 12.8, 4 12 C 8.4 11.2, 11.2 8.4, 12 4 Z" />
+    <circle cx="18" cy="6" r="0.9" fill={GOLD} stroke="none" />
+  </Svg>
+);
+
+/* One unique mark per occasion id. */
+const GLYPHS: Record<string, G> = {
+  wedding: Wedding,
+  engagement: Engagement,
+  'vow-renewal': VowRenewal,
+  anniversary: Anniversary,
+  'bridal-shower': BridalShower,
+  'bridal-luncheon': BridalLuncheon,
+  'bachelor-party': BachelorParty,
+  'bachelorette-party': BacheloretteParty,
+  'rehearsal-dinner': RehearsalDinner,
+  'welcome-party': WelcomeParty,
+  brunch: Brunch,
+  'baby-shower': BabyShower,
+  'gender-reveal': GenderReveal,
+  'sip-and-see': SipAndSee,
+  'first-birthday': FirstBirthday,
+  housewarming: Housewarming,
+  birthday: Birthday,
+  'milestone-birthday': MilestoneBirthday,
+  'sweet-sixteen': SweetSixteen,
+  graduation: Graduation,
+  retirement: Retirement,
+  story: Story,
+  'bar-mitzvah': BarMitzvah,
+  'bat-mitzvah': BatMitzvah,
+  quinceanera: Quinceanera,
+  baptism: Baptism,
+  'first-communion': FirstCommunion,
+  confirmation: Confirmation,
+  memorial: Memorial,
+  funeral: Funeral,
+  reunion: Reunion,
+};
