@@ -586,13 +586,14 @@ function EditorCanvas({
           onEditNames={isPreview ? undefined : onEditNames}
         />
         {/* GuestRsvpModal mount — same modal PublishedSiteShell
-            shows guests, mounted in the editor too so the RSVP
-            CTA in the nav actually opens the form in the editor
-            preview (it dispatches pl-open-rsvp on click; without
-            this mount, the click resolved to a no-op). Mounting
-            in both edit + preview so the host can test the flow
-            without switching contexts. */}
-        <EditorCanvasRsvpModal siteSlug={siteSlug} manifest={manifest} />
+            shows guests, mounted so the host can TEST the RSVP
+            flow from Preview / Mobile-preview. Deliberately NOT
+            mounted in Edit mode: the canvas CTAs there select the
+            RSVP section instead (a guest modal opening over the
+            editor blurred the whole shell and trapped the host). */}
+        {isPreview || mode === 'mobile' ? (
+          <EditorCanvasRsvpModal siteSlug={siteSlug} manifest={manifest} />
+        ) : null}
         {/* FullSite + ThemedSiteRenderer kept as imports for one-line
             rollback during cutover — not rendered. */}
         {false && (

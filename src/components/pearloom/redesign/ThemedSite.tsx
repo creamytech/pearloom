@@ -432,6 +432,14 @@ export function ThemedSite({
   const onNavClick = (id: string) => scrollToSection(id);
   const onCtaClick = () => {
     scrollToSection('rsvp');
+    if (editable) {
+      /* Edit mode — the CTA selects the RSVP section so the host
+         lands in its panel. Dispatching pl-open-rsvp here used to
+         open the GUEST RSVP modal over the editor (a guest flow
+         hijacking the host). Preview/published keep the modal. */
+      setActive?.('rsvp' as SectionId);
+      return;
+    }
     /* Dispatch 'pl-open-rsvp' so PublishedSiteShell's GuestRsvpModal
        opens too. */
     if (typeof window !== 'undefined') {
@@ -993,6 +1001,12 @@ function SidebarHero({
             type="button"
             onClick={() => {
               scrollToSection('rsvp');
+              if (editable) {
+                /* Edit mode: select the section, never open the
+                   guest modal over the editor. */
+                setActive?.('rsvp' as SectionId);
+                return;
+              }
               if (typeof window !== 'undefined') {
                 window.dispatchEvent(new CustomEvent('pl-open-rsvp'));
               }
