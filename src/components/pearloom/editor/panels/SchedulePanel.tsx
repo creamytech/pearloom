@@ -15,7 +15,7 @@ import { useState } from 'react';
 import type { StoryManifest, WeddingEvent } from '@/types';
 import { Icon } from '../../motifs';
 import { AddCard, FGroup, FInput, FSuggest, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
-import { scheduleEventSuggestions } from './_suggestions';
+import { scheduleEventSuggestions, typicalTimeFor } from './_suggestions';
 import { pearErrorMessage } from '../../redesign/PearAssist';
 
 const TONE_BY_INDEX: Array<'peach' | 'lavender' | 'sage'> = ['peach', 'lavender', 'sage', 'peach', 'lavender', 'sage'];
@@ -407,6 +407,14 @@ function ScheduleRow({
         <FSuggest
           value={e.name ?? ''}
           onChange={(v) => onPatch({ name: v })}
+          onPick={(opt) => {
+            /* Picking a suggested moment pre-fills a typical time
+               when the time field is still empty — one tap fills
+               the row, the host just nudges the clock. */
+            const t = typicalTimeFor(opt);
+            if (t && !(e.time ?? '').trim()) onPatch({ name: opt, time: t });
+            else onPatch({ name: opt });
+          }}
           placeholder="Ceremony"
           options={eventNames}
         />

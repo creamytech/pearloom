@@ -196,6 +196,7 @@ export function FSuggest({
   icon,
   options,
   hint,
+  onPick,
   /** When true, chip click APPENDS the option to the input as a
    *  new comma-separated entry instead of replacing the whole
    *  input — useful for fields where the host is building a list
@@ -209,6 +210,10 @@ export function FSuggest({
   options: readonly string[];
   hint?: string;
   append?: boolean;
+  /** Fires when the host PICKS a suggestion (chip or dropdown) —
+   *  not while typing. Lets panels chain autofill (e.g. picking
+   *  "Ceremony" pre-fills a typical time). */
+  onPick?: (opt: string) => void;
 }) {
   /* Show the suggestion chips ONLY when the input is empty (or
      when the field is in append-mode, where every chip adds a new
@@ -233,6 +238,7 @@ export function FSuggest({
     : [];
   const pick = (opt: string) => {
     onChange(opt);
+    onPick?.(opt);
     setCursor(-1);
   };
   return (
@@ -309,6 +315,7 @@ export function FSuggest({
                     onChange(`${trimmed}, ${opt}`);
                   } else {
                     onChange(opt);
+                    onPick?.(opt);
                   }
                 }}
                 style={{
