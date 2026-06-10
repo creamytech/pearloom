@@ -380,9 +380,15 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
     <aside
       className="pl-rd-rail-left"
       style={{
-        gridArea: 'left',
+        /* Desktop grid placement only. Inside the phone bottom sheet
+           (a single-cell grid) the named-area lookup resolves against
+           lines that don't exist, creating an implicit empty track
+           that shoves the rail off-center — the PearAside mount
+           drops its gridArea for the same reason. */
+        ...(isMobileViewport
+          ? {}
+          : { gridArea: 'left', borderRight: '1px solid var(--line-soft)' }),
         background: 'var(--cream-2)',
-        borderRight: '1px solid var(--line-soft)',
         padding: '14px 12px',
         display: 'flex',
         flexDirection: 'column',

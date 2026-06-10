@@ -15,6 +15,7 @@ import type { StoryManifest } from '@/types';
 import { Icon } from '../motifs';
 import { ThemePackPicker } from '../editor/panels/ThemePackPicker';
 import { ThemePickerBody } from './ThemePickerBody';
+import { useMobileViewport } from './use-mobile-viewport';
 
 interface Props {
   manifest: StoryManifest;
@@ -24,13 +25,21 @@ interface Props {
 }
 
 export function ThemeRail({ manifest, onChange, onOpenShop, onOpenDecor }: Props) {
+  /* True when mounted inside the phone bottom sheet (the desktop
+     grid only renders this rail above the breakpoint). */
+  const isMobileViewport = useMobileViewport();
   return (
     <aside
       className="pl-rd-rail-right"
       style={{
-        gridArea: 'right',
+        /* Desktop grid placement only — inside the phone bottom
+           sheet's single-cell grid, the named-area lookup creates an
+           implicit empty track that shoves the rail off-center (same
+           fix as PearAside / SectionRail). */
+        ...(isMobileViewport
+          ? {}
+          : { gridArea: 'right', borderLeft: '1px solid var(--line-soft)' }),
         background: 'var(--card)',
-        borderLeft: '1px solid var(--line-soft)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
