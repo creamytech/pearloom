@@ -11,7 +11,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
-import { buildSiteUrl } from '@/lib/site-urls';
+import { ownerEmailOf } from '@/lib/cohost-access';
 import crypto from 'node:crypto';
 
 export const dynamic = 'force-dynamic';
@@ -29,18 +29,21 @@ export async function POST(req: NextRequest) {
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const allowed = await checkRateLimit(`cohost:${session.user.email}`, { max: 6, windowMs: 3600_000 });
-    if (!allowed) {
+    const rate = checkRateLimit(`cohost:${session.user.email}`, { max: 6, windowMs: 3600_000 });
+    if (!rate.allowed) {
       return NextResponse.json({ error: 'Too many co-host invites recently. Try again in an hour.' }, { status: 429 });
     }
 
-    const body = await req.json() as { siteSlug?: string; email?: string };
+    const body = await req.json() as { siteSlug?: string; email?: string; role?: string };
     if (!body.siteSlug || !body.email) {
       return NextResponse.json({ error: 'siteSlug and email required' }, { status: 400 });
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
       return NextResponse.json({ error: 'That doesn’t look like an email.' }, { status: 400 });
     }
+    const role = body.role && ['editor', 'guest-manager', 'viewer'].includes(body.role)
+      ? body.role
+      : 'editor';
 
     const supabase = getSupabase();
     type SiteRow = { id: string; subdomain: string; site_config?: { creator_email?: string; coupleNames?: [string, string]; occasion?: string } | null; creator_email?: string };
@@ -50,29 +53,31 @@ export async function POST(req: NextRequest) {
       .eq('subdomain', body.siteSlug)
       .maybeSingle() as { data: SiteRow | null };
     if (!siteRow) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
-    const ownerEmail = (siteRow.creator_email ?? siteRow.site_config?.creator_email ?? '').toLowerCase();
-    if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase()) {
+    const ownerEmail = ownerEmailOf(siteRow);
+    if (!ownerEmail || ownerEmail !== session.user.email.toLowerCase().trim()) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    /* Mint the invite token. cohost_invites table is created
-       lazily — if it doesn't exist we degrade to a session-only
-       success so dev/staging don't break the UI. */
+    /* Mint the invite token. The insert is error-CHECKED — the
+       previous version wrote a column that didn't exist and
+       ignored the failure, so the email shipped a token that was
+       never in the database (every invite was dead on arrival). */
     const token = crypto.randomBytes(24).toString('hex');
-    try {
-      await supabase.from('cohost_invites').insert({
-        token,
-        site_id: siteRow.id,
-        invited_email: body.email.toLowerCase(),
-        invited_by: session.user.email.toLowerCase(),
-        role: 'editor',
-        accepted_at: null,
-        created_at: new Date().toISOString(),
-      });
-    } catch (err) {
-      console.warn('[co-host] cohost_invites insert failed (table may not exist yet):', err);
-      /* Fall through — still try to send the email so the host
-         sees the right UX in dev. */
+    const { error: insertError } = await supabase.from('cohost_invites').insert({
+      token,
+      site_id: siteRow.id,
+      invited_email: body.email.toLowerCase(),
+      invited_by: session.user.email.toLowerCase(),
+      role,
+      created_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+    if (insertError) {
+      console.error('[co-host/invite] insert failed:', insertError);
+      return NextResponse.json(
+        { error: 'Couldn’t create the invite — try again in a moment.' },
+        { status: 500 },
+      );
     }
 
     const resendKey = process.env.RESEND_API_KEY;
@@ -82,7 +87,11 @@ export async function POST(req: NextRequest) {
 
     const [a, b] = siteRow.site_config?.coupleNames ?? ['', ''];
     const coupleDisplay = a && b ? `${a} & ${b}` : (a || b || 'the site');
-    const acceptUrl = buildSiteUrl(siteRow.subdomain, `/co-host/accept?token=${token}`);
+    /* Accept page lives at the APP route /co-host/<token> — the
+       previous buildSiteUrl(subdomain, '/co-host/accept?…') form
+       produced a published-site sub-path that 404s. */
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
+    const acceptUrl = `${baseUrl}/co-host/${token}`;
 
     const html = `<!doctype html>
 <html><body style="margin:0;padding:0;background:#F5EFE2;">
@@ -92,7 +101,7 @@ export async function POST(req: NextRequest) {
   </div>
   <h1 style="font-size:24px;line-height:1.2;margin:0 0 14px;">${coupleDisplay} would like your help with their site.</h1>
   <p style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#3A332C;margin:0 0 24px;">
-    Click below to accept and you'll be able to edit alongside them. The invite expires in 7 days.
+    Click below to accept and you'll be able to edit alongside them. The invite expires in 14 days.
   </p>
   <a href="${acceptUrl}" style="display:inline-block;background:#0E0D0B;color:#F5EFE2;text-decoration:none;padding:14px 28px;border-radius:999px;font-weight:700;font-size:13px;">
     Accept the invite

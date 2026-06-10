@@ -151,6 +151,46 @@ export async function GET() {
       };
     }) || [];
 
+    // ── Co-host sites — sites shared WITH this user. Appended
+    //    after owned sites with a coHostRole marker so the
+    //    dashboard can badge them ("Co-hosting · editor") and the
+    //    co-host actually has a path to the editor.
+    try {
+      const { data: cohostRows } = await supabase
+        .from('cohosts')
+        .select('site_id, role')
+        .eq('email', sessionEmail)
+        .limit(50);
+      const ownedIds = new Set(mappedSites.map((s) => s.id));
+      const sharedIds = (cohostRows ?? [])
+        .filter((r) => !ownedIds.has(r.site_id as string));
+      if (sharedIds.length > 0) {
+        const roleById = new Map(sharedIds.map((r) => [r.site_id as string, r.role as string]));
+        const { data: sharedSites } = await supabase
+          .from('sites')
+          .select(SELECT_COLUMNS)
+          .in('id', [...roleById.keys()]);
+        for (const site of sharedSites ?? []) {
+          const manifest = site.ai_manifest as Record<string, unknown> | null;
+          const config = site.site_config as Record<string, unknown> | null;
+          mappedSites.push({
+            id: site.id,
+            domain: site.subdomain,
+            occasion: (manifest?.occasion as string | undefined)
+              ?? (config?.occasion as string | undefined) ?? null,
+            manifest,
+            created_at: site.created_at,
+            updated_at: (site as Record<string, unknown>).updated_at as string | undefined,
+            published: Boolean(manifest?.published),
+            names: Array.isArray(config?.names) ? config.names : ['', ''],
+            coHostRole: roleById.get(site.id as string),
+          } as (typeof mappedSites)[number] & { coHostRole?: string });
+        }
+      }
+    } catch (cohostErr) {
+      console.warn('[api/sites] co-host site lookup failed (non-fatal):', cohostErr);
+    }
+
     return NextResponse.json({ sites: mappedSites }, { status: 200 });
   } catch (error) {
     console.error('Error fetching sites:', error);
@@ -260,8 +300,28 @@ export async function POST(req: NextRequest) {
       manifestToSave = stripProxyUrls(manifest);
     }
 
+    // Co-host editors save ON BEHALF OF the owner — resolve the
+    // caller's role and substitute the owner's email so
+    // saveSiteDraft's ownership check passes without ever
+    // reassigning creator_email. Viewers / guest-managers /
+    // strangers fall through with their own email and get the
+    // ownership rejection, exactly as before.
+    let actingAs = session.user.email;
+    try {
+      const roleDb = getSupabase();
+      if (roleDb) {
+        const { resolveViewerRole } = await import('@/lib/cohost-access');
+        const access = await resolveViewerRole(roleDb, { subdomain }, session.user.email);
+        if (access.role === 'editor' && access.ownerEmail) {
+          actingAs = access.ownerEmail;
+        }
+      }
+    } catch (roleErr) {
+      console.warn('[api/sites] co-host role check failed (saving as caller):', roleErr);
+    }
+
     const result = await saveSiteDraft(
-      session.user.email,
+      actingAs,
       subdomain,
       manifestToSave,
       names || ['', '']

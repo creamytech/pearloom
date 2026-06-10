@@ -32,9 +32,13 @@ interface Props {
    *  Settings) tucked into an ellipsis menu so the bar fits
    *  390px. Desktop layout is untouched when false. */
   compact?: boolean;
+  /** Owner-only Publish — co-hosts can edit but not press. */
+  canPublish?: boolean;
+  /** Realtime presence — other people with this editor open now. */
+  peers?: Array<{ key: string; name: string; email: string; color: string }>;
 }
 
-export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPublish, pearOpen, setPearOpen, onOpenSettings, displayNames, manifest, compact = false }: Props) {
+export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPublish, pearOpen, setPearOpen, onOpenSettings, displayNames, manifest, compact = false, canPublish = true, peers = [] }: Props) {
   const { data: session } = useSession();
   /* Profile pic was rendering initials from `displayNames` (the
      COUPLE'S names), so the avatar text changed on every keystroke
@@ -232,6 +236,38 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
       {/* Right zone — save state · | · Ask Pear · Share · Publish · | · avatar.
           Prototype L108-132. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 8 : 10 }}>
+        {/* Realtime presence — one initial-dot per collaborator
+            currently in this editor. Live manifest sync means
+            their edits re-weave the canvas as they type. */}
+        {peers.length > 0 && (
+          <div
+            aria-label={`Also here: ${peers.map((p) => p.name).join(', ')}`}
+            title={`Also here: ${peers.map((p) => p.name).join(', ')} — edits sync live`}
+            style={{ display: 'inline-flex', alignItems: 'center' }}
+          >
+            {peers.slice(0, 4).map((p, i) => (
+              <span
+                key={p.key}
+                aria-hidden
+                style={{
+                  width: 22, height: 22, borderRadius: '50%',
+                  background: p.color, color: 'var(--cream, #F5EFE2)',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 10.5, fontWeight: 700,
+                  border: '2px solid var(--card, #FBF7EE)',
+                  marginLeft: i === 0 ? 0 : -7,
+                }}
+              >
+                {(p.name || p.email).charAt(0).toUpperCase()}
+              </span>
+            ))}
+            {!compact && (
+              <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 600, color: 'var(--ink-soft)' }}>
+                {peers.length === 1 ? `${(peers[0].name || '').split(' ')[0] || 'A co-host'} is here` : `${peers.length} here`}
+              </span>
+            )}
+          </div>
+        )}
         <div
           aria-live="polite"
           title={saveState === 'error' ? 'Last save attempt failed — next edit will retry.' : `Last saved at ${savedAt}`}
@@ -264,10 +300,12 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
                 lives in the bottom bar; Share / Theme / Decor /
                 Settings overflow into the menu. GoLiveBadge +
                 PublishChecklist pills don't fit at 390px. */}
-            <button type="button" className="btn btn-primary btn-sm pl-pearl-accent" onClick={onPublish}>
-              Publish
-              <Icon name="arrow-up" size={12} color="var(--cream)" />
-            </button>
+            {canPublish && (
+              <button type="button" className="btn btn-primary btn-sm pl-pearl-accent" onClick={onPublish}>
+                Publish
+                <Icon name="arrow-up" size={12} color="var(--cream)" />
+              </button>
+            )}
             <div style={{ position: 'relative' }} ref={menuWrapRef}>
               <button
                 type="button"
@@ -386,11 +424,13 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
           <kbd style={{ fontFamily: 'inherit', fontSize: 10.5, letterSpacing: '0.02em' }}>⌘K</kbd>
         </button>
         {manifest && <GoLiveBadge manifest={manifest} />}
-        {manifest && <PublishChecklist manifest={manifest} />}
-        <button type="button" className="btn btn-primary btn-sm pl-pearl-accent" onClick={onPublish}>
-          Publish
-          <Icon name="arrow-up" size={12} color="var(--cream)" />
-        </button>
+        {manifest && canPublish && <PublishChecklist manifest={manifest} />}
+        {canPublish && (
+          <button type="button" className="btn btn-primary btn-sm pl-pearl-accent" onClick={onPublish}>
+            Publish
+            <Icon name="arrow-up" size={12} color="var(--cream)" />
+          </button>
+        )}
         <div style={{ width: 1, height: 18, background: 'var(--line-soft)' }} />
         <button
           type="button"
