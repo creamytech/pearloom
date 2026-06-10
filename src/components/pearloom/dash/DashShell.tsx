@@ -12,7 +12,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useLinkStatus } from 'next/link';
 import { useEffect, useLayoutEffect, useRef, useState, useTransition, type ReactNode } from 'react';
 import { parseLocalDate } from '@/lib/date-utils';
-import { Blob, Heart, Icon, Pear, PearloomLogo, Squiggle } from '../motifs';
+import { Blob, Heart, Icon, Pear, PearloomLogo } from '../motifs';
 import { useIsInsideShell } from './ShellPersistentLayout';
 import { NotificationBell } from './NotificationBell';
 import { useDashDrawer } from './useDashDrawer';
@@ -1230,9 +1230,12 @@ export function DashTopbar({
       >
         {title}
         {showHeart && (
-          <span style={{ display: 'inline-flex', color: 'var(--peach-ink, #C6703D)' }}>
-            <Heart size={18} />
-          </span>
+          /* The pearl — the same gold bead knotted into the logo's
+             weft, as a full-stop after the page title. (Was an 18px
+             Heart→Sprig alias, which read as a meaningless slash.) */
+          <svg width={12} height={12} viewBox="0 0 12 12" aria-hidden style={{ flexShrink: 0, marginTop: 6 }}>
+            <circle cx="6" cy="6" r="4.4" fill="var(--pl-gold, #C19A4B)" stroke="var(--pl-cream, #FDFAF0)" strokeWidth="1.4" />
+          </svg>
         )}
       </h1>
       {subtitle && (
@@ -1349,7 +1352,6 @@ export function DashLayout({
       <main style={{ flex: 1, minWidth: 0, position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, right: 0, pointerEvents: 'none', zIndex: 0 }}>
           <Blob tone="peach" size={380} opacity={0.35} style={{ position: 'absolute', top: -120, right: -120 }} />
-          <Squiggle variant={1} width={180} style={{ position: 'absolute', top: 40, right: 200, transform: 'rotate(-15deg)', opacity: 0.6 }} />
         </div>
         <div style={{ position: 'relative', zIndex: 1 }}>
           {!hideTopbar && (

@@ -7,7 +7,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { buildSitePath } from '@/lib/site-urls';
-import { Icon, PhotoPlaceholder, Squiggle } from '../motifs';
+import { Icon, PhotoPlaceholder } from '../motifs';
 import { AmbientHour } from '../ambient';
 import { DashEmpty } from '../dash/DashEmpty';
 
@@ -882,7 +882,6 @@ function SongQueue({ siteDomain }: { siteDomain?: string | null }) {
   const editHref = siteDomain ? `/editor/${encodeURIComponent(siteDomain)}` : '/dashboard/event';
   return (
     <div className="card" style={{ padding: 24, position: 'relative', overflow: 'hidden' }}>
-      <Squiggle variant={2} width={180} style={{ position: 'absolute', top: 20, right: 20, opacity: 0.3 }} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, position: 'relative' }}>
         <Icon name="music" size={18} color="var(--gold)" />
         <h3 className="display" style={{ fontSize: 24, margin: 0 }}>

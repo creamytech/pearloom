@@ -268,6 +268,20 @@ export function PearloomLogo({ size = 28 }: { size?: number }) {
   );
 }
 
+/* ─────────────────────────────────────────────────────────────
+   PearlDot — the brand's gold pearl as inline punctuation (the
+   same bead knotted into the logo's weft). Use this beside
+   headlines and sentences where a tiny Sprig/Heart used to sit —
+   at 12-14px those read as a meaningless slash mark.
+   ──────────────────────────────────────────────────────────── */
+export function PearlDot({ size = 11, style }: { size?: number; style?: CSSProperties }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 12 12" aria-hidden style={{ flexShrink: 0, ...style }}>
+      <circle cx="6" cy="6" r="4.4" fill="var(--pl-gold, #C19A4B)" stroke="var(--pl-cream, #FDFAF0)" strokeWidth="1.4" />
+    </svg>
+  );
+}
+
 type StampTone = 'lavender' | 'peach' | 'sage' | 'cream';
 
 export function Stamp({

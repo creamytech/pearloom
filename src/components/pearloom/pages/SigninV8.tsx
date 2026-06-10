@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { use, useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import {
+import { PearlDot,
   Atmosphere,
   Blob,
   Heart,
@@ -518,7 +518,7 @@ export function SigninV8({
                   Hi there! I&apos;m Pear.
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.4 }}>
-                  I&apos;m here to help you cherish what matters most. <Heart size={12} />
+                  I&apos;m here to help you cherish what matters most. <PearlDot size={10} />
                 </div>
               </div>
             </div>
@@ -621,7 +621,7 @@ export function SigninV8({
                 Little moments,
                 <br />
                 big meaning.
-                <Heart size={14} style={{ marginLeft: 8 }} />
+                <PearlDot size={11} style={{ marginLeft: 8 }} />
               </div>
             </Float>
           </div>

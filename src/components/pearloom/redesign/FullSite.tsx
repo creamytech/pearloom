@@ -15,6 +15,7 @@
 import { type CSSProperties, type ReactNode } from 'react';
 import type { StoryManifest } from '@/types';
 import { Blob, Icon, Pear, Squiggle } from '../motifs';
+import { AmbientThread } from '../ambient';
 import { getTheme, themeRootStyle, type Density } from '../site/themes';
 import { TextureFilters } from '../site/TextureFilters';
 import type { SectionId } from './EditorRedesign';
@@ -180,7 +181,7 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
             <>
               <Blob tone={accent} size={360} opacity={0.5} style={{ position: 'absolute', top: -80, left: -80 }} />
               <Blob tone="peach" size={280} opacity={0.5} style={{ position: 'absolute', bottom: -60, right: -40 }} />
-              <Squiggle variant={1} width={180} stroke={themeGold} style={{ position: 'absolute', top: 60, right: 80, opacity: 0.6, transform: 'rotate(-8deg)' }} />
+              <AmbientThread size={170} accent={themeGold} style={{ position: 'absolute', top: 54, right: 74, opacity: 0.1, transform: 'rotate(-6deg)' }} />
             </>
           )}
 
