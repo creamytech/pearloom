@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { publishSite } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { ownerEmailOf } from '@/lib/cohost-access';
 import { createClient } from '@supabase/supabase-js';
 import type { StoryManifest } from '@/types';
 import { generateVibeSkin } from '@/lib/vibe-engine';
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
         const sb = createClient(url, key);
         const { data: existing } = await sb
           .from('sites')
-          .select('creator_email')
+          .select('creator_email, site_config')
           .eq('subdomain', cleanSubdomain)
           .maybeSingle();
         // Compare normalised — saveSiteDraft / publishSite store
@@ -51,7 +52,11 @@ export async function POST(req: NextRequest) {
         // back in whatever case the IdP supplied. Without
         // normalisation the owner gets 403'd whenever Google returns
         // their email with different casing than was stored.
-        const storedOwner = String(existing?.creator_email ?? '').toLowerCase().trim();
+        // ownerEmailOf reads the top-level column with the
+        // site_config JSON fallback — the column-only read was
+        // empty on post-backfill sites, which made this gate
+        // FAIL-OPEN (any logged-in user could publish them).
+        const storedOwner = ownerEmailOf(existing);
         const requestUser = session.user.email.toLowerCase().trim();
         if (storedOwner && storedOwner !== requestUser) {
           return NextResponse.json(

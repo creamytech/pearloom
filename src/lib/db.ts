@@ -140,6 +140,7 @@ export async function adoptSite(
     const { error } = await supabase
       .from('sites')
       .update({
+        creator_email: normalised,
         site_config: {
           ...cfg,
           creator_email: normalised,
@@ -181,6 +182,10 @@ export async function saveSiteDraft(
         .from('sites')
         .update({
           ai_manifest: manifest,
+          // Top-level column kept in sync with the JSON — RLS
+          // policies + the co-host routes read the column
+          // (lib/cohost-access.ts has the full history).
+          creator_email: normalizedUserId,
           site_config: {
             ...((existing.site_config as Record<string, unknown>) || {}),
             slug: subdomain,
@@ -198,6 +203,7 @@ export async function saveSiteDraft(
       .insert({
         subdomain: subdomain.toLowerCase(),
         ai_manifest: { ...(manifest as Record<string, unknown>), comingSoon: { enabled: true } },
+        creator_email: normalizedUserId,
         site_config: {
           slug: subdomain,
           creator_email: normalizedUserId,
@@ -241,6 +247,7 @@ export async function publishSite(
         .from('sites')
         .update({
           ai_manifest: manifest,
+          creator_email: normalizedUserId,
           site_config: {
             ...((existing.site_config as Record<string, unknown>) || {}),
             slug: subdomain,
@@ -264,6 +271,7 @@ export async function publishSite(
       .insert({
         subdomain: subdomain.toLowerCase(),
         ai_manifest: manifest,
+        creator_email: normalizedUserId,
         site_config: {
           slug: subdomain,
           creator_email: normalizedUserId,

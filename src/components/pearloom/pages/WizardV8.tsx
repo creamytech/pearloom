@@ -37,6 +37,8 @@ import {
 import { BackgroundCookPill } from '../wizard/BackgroundCookPill';
 import { usePhotoPalette } from '../wizard/usePhotoPalette';
 import { useDialog } from '@/components/ui/confirm-dialog';
+import { scheduleEventSuggestions, dressCodeSuggestions, typicalTimeFor } from '@/components/pearloom/editor/panels/_suggestions';
+import { seedSectionsFromWizard, suggestRsvpDeadline } from '@/lib/wizard-seed';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
 import type { StoryManifest } from '@/types';
 
@@ -47,7 +49,7 @@ import type { StoryManifest } from '@/types';
 // overwritten by an Edition was double work + confusing. Default
 // layout 'timeline' stays seeded as st.layout for backward compat
 // with the generation pipeline which still reads layoutFormat.
-const STEPS = ['Occasion', 'Basics', 'Details', 'Photos', 'Vibe', 'Palette', 'Review'] as const;
+const STEPS = ['Occasion', 'Basics', 'Details', 'Day', 'Photos', 'Vibe', 'Palette', 'Review'] as const;
 type StepKey = (typeof STEPS)[number];
 
 // 8 steps grouped into 4 phases. Pearloom's wizard now reads as
@@ -56,7 +58,7 @@ type StepKey = (typeof STEPS)[number];
 // chrome. PhaseHeader renders this above the canvas.
 type PhaseKey = 'Story' | 'Photos' | 'Look' | 'Review';
 const PHASES: Array<{ key: PhaseKey; steps: readonly StepKey[] }> = [
-  { key: 'Story', steps: ['Occasion', 'Basics', 'Details'] },
+  { key: 'Story', steps: ['Occasion', 'Basics', 'Details', 'Day'] },
   { key: 'Photos', steps: ['Photos'] },
   { key: 'Look', steps: ['Vibe', 'Palette'] },
   { key: 'Review', steps: ['Review'] },
@@ -247,6 +249,12 @@ interface WizardState {
   /** Mood words Pear heard in HOW they told it — appended to the
    *  vibeString at generation. */
   heardVibes?: string[];
+  /** "The Day" step — tap-built schedule + dress code + RSVP
+   *  deadline. Stamped onto the manifest at finish (beats any
+   *  generated content) and seeds Details/RSVP. */
+  dayEvents?: Array<{ name: string; time: string }>;
+  dressCode?: string;
+  rsvpDeadline?: string;
   // Occasion-specific details (consumed by /api/generate/stream as eventDetails)
   detailDays?: number;
   detailLivestreamUrl?: string;
@@ -1270,6 +1278,7 @@ const STEP_TIPS: Record<StepKey, string> = {
   Occasion: 'Not sure? Pick the closest — we can change it any time.',
   Basics: 'Guests only see what you choose. First names work fine.',
   Details: 'Skip any field — write it yourself later in the editor.',
+  Day: 'Everything here is optional — it pre-fills your sections.',
   Photos: '6 to 20 photos is the sweet spot. More = more chapters.',
   Vibe: 'Pick 2 to 4 vibes that capture the heart of the day.',
   Palette: 'Pick what you love — Pear builds matching gradients + accents.',
@@ -1927,6 +1936,17 @@ export function WizardV8() {
         }
       }
 
+      // ── Section seeding — stamp "The Day" picks (always win) and
+      //    derive the rest (FAQ answers, travel intro, RSVP deadline)
+      //    where the manifest is still empty. Both paths get this so
+      //    a host lands in the editor with sections READY, not
+      //    placeholder copy. Fill-missing only — AI content survives.
+      manifest = seedSectionsFromWizard(manifest as unknown as StoryManifest, {
+        events: st.dayEvents,
+        dressCode: st.dressCode,
+        rsvpDeadline: st.rsvpDeadline,
+      }) as unknown as Record<string, unknown>;
+
       const res = await fetch('/api/sites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1962,8 +1982,24 @@ export function WizardV8() {
     }
   }
 
+  /* DYE THE LOOM — the moment a palette exists, the wizard chrome
+     itself takes the dye: two soft radial washes in the host's own
+     colors bloom behind the canvas (700ms, honours the cream
+     ground). The product wears your choice before the site does. */
+  const dye = resolvedPaletteColors;
   return (
     <div className="pl8" style={{ minHeight: '100vh', background: 'var(--cream)', position: 'relative', overflow: 'hidden' }}>
+      <div
+        aria-hidden
+        style={{
+          position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+          opacity: dye && st.palette ? 1 : 0,
+          transition: 'opacity 700ms var(--pl-ease-out, ease-out), background 700ms var(--pl-ease-out, ease-out)',
+          background: dye
+            ? `radial-gradient(560px 420px at 12% 8%, ${dye[1]}1f, transparent 70%), radial-gradient(640px 480px at 88% 92%, ${dye[2]}33, transparent 70%)`
+            : 'none',
+        }}
+      />
       {/* Wizard mobile rules — scoped to wizard classnames.
           pearloom.css owns the ≤960px header wrap, but the progress
           strip's inline flex:1 (flex-basis: 0) meant it always fit
@@ -1972,6 +2008,12 @@ export function WizardV8() {
           happen. ≤640px condenses further for a 390px canvas:
           glyph-only wordmark, no decorative sprigs, stacked grids. */}
       <style jsx global>{`
+        @keyframes pl8-wiz-thread {
+          to { stroke-dashoffset: 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .pl8-wizard-canvas svg path { animation: none !important; stroke-dashoffset: 0 !important; }
+        }
         @keyframes wizard-skeleton-pulse {
           0%, 100% { opacity: 0.6; }
           50%      { opacity: 0.85; }
@@ -2181,6 +2223,13 @@ export function WizardV8() {
           )}
 
           <Reveal y={14} key={step}>
+            {/* The shuttle pass — a two-strand thread draws across
+                as each step arrives (BRAND.md: things thread in,
+                they don't fade in). */}
+            <svg width="148" height="8" viewBox="0 0 148 8" aria-hidden style={{ display: 'block', marginBottom: 18 }}>
+              <path d="M2 5 C 30 1, 60 7, 88 4 S 132 3, 146 4" fill="none" stroke="var(--sage-deep, #5C6B3F)" strokeWidth="1.6" strokeLinecap="round" opacity="0.5" strokeDasharray="180" strokeDashoffset="180" style={{ animation: 'pl8-wiz-thread 720ms var(--pl-ease-out, ease-out) forwards' }} />
+              <path d="M2 4 C 30 0, 60 6, 88 3 S 132 2, 146 3" fill="none" stroke="var(--pl-gold, #C19A4B)" strokeWidth="1.2" strokeLinecap="round" strokeDasharray="180" strokeDashoffset="180" style={{ animation: 'pl8-wiz-thread 720ms var(--pl-ease-out, ease-out) 90ms forwards' }} />
+            </svg>
             <div
               style={{
                 position: 'relative',
@@ -2365,6 +2414,33 @@ export function WizardV8() {
                       </div>
                     </div>
                   </div>
+
+                  {/* THE PRESS — the names set themselves in letterpress
+                      as the host types, like type locked into a chase.
+                      First taste of "this is being made FOR me". */}
+                  {st.names[0].trim() && (
+                    <div aria-hidden style={{ marginTop: 30, textAlign: 'center', overflow: 'hidden' }}>
+                      <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 9.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'var(--pl-gold, #B8935A)', marginBottom: 8 }}>
+                        Setting the type
+                      </div>
+                      <div
+                        className="display pl-letterpress"
+                        style={{ fontSize: 'clamp(34px, 7vw, 54px)', lineHeight: 1.02, color: 'var(--ink)', letterSpacing: '-0.02em', transition: 'opacity 280ms var(--pl-ease-out, ease-out)' }}
+                      >
+                        {st.names[0].trim()}
+                        {nameSpec.mode === 'couple' && st.names[1].trim() && (
+                          <>
+                            {' '}
+                            <span className="display-italic" style={{ fontSize: '0.72em', color: 'var(--ink-soft)' }}>and</span>{' '}
+                            {st.names[1].trim()}
+                          </>
+                        )}
+                      </div>
+                      <svg width="148" height="6" viewBox="0 0 148 6" aria-hidden style={{ display: 'block', margin: '12px auto 0', opacity: 0.6 }}>
+                        <path d="M2 3 C 40 1, 100 5, 146 3" fill="none" stroke="var(--pl-gold, #C19A4B)" strokeWidth="1.2" strokeLinecap="round" />
+                      </svg>
+                    </div>
+                  )}
                 </>
                 );
               })()}
@@ -2496,6 +2572,92 @@ export function WizardV8() {
                         </div>
                       )}
                     </div>
+                  </>
+                );
+              })()}
+
+              {step === 'Day' && (() => {
+                const moments = scheduleEventSuggestions(st.occasion).options;
+                const picked = st.dayEvents ?? [];
+                const has = (n: string) => picked.some((e) => e.name === n);
+                const toggle = (n: string) => setSt((s) => {
+                  const cur = s.dayEvents ?? [];
+                  if (cur.some((e) => e.name === n)) return { ...s, dayEvents: cur.filter((e) => e.name !== n) };
+                  const next = [...cur, { name: n, time: typicalTimeFor(n) ?? '5:00 pm' }];
+                  next.sort((a, b) => Date.parse(`2000-01-01 ${a.time}`) - Date.parse(`2000-01-01 ${b.time}`));
+                  return { ...s, dayEvents: next };
+                });
+                const dresses = dressCodeSuggestions(st.occasion).options;
+                const suggestedDl = suggestRsvpDeadline(st.eventDate || undefined);
+                return (
+                  <>
+                    <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
+                      Sketch <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>the day.</span>
+                    </h2>
+                    <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
+                      Three taps builds your schedule — times are typical, nudge them in the editor.
+                      Skip anything you haven’t decided.
+                    </p>
+
+                    <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 10 }}>
+                      Moments
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 8 }}>
+                      {moments.map((m) => {
+                        const on = has(m);
+                        return (
+                          <button key={m} type="button" onClick={() => toggle(m)} aria-pressed={on}
+                            style={{
+                              padding: '8px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
+                              border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
+                              background: on ? 'var(--ink)' : 'var(--card)',
+                              color: on ? 'var(--cream)' : 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
+                            }}>
+                            {on ? `${m} · ${picked.find((e) => e.name === m)?.time}` : m}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {picked.length > 0 && (
+                      <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 18 }}>
+                        {picked.length} {picked.length === 1 ? 'moment' : 'moments'} — they’ll arrive in your Schedule section, in order.
+                      </div>
+                    )}
+
+                    <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)', margin: '14px 0 10px' }}>
+                      Dress code
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 6 }}>
+                      {dresses.map((d) => {
+                        const on = st.dressCode === d;
+                        return (
+                          <button key={d} type="button" onClick={() => setSt((s) => ({ ...s, dressCode: on ? undefined : d }))} aria-pressed={on}
+                            style={{
+                              padding: '8px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
+                              border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
+                              background: on ? 'var(--ink)' : 'var(--card)',
+                              color: on ? 'var(--cream)' : 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
+                            }}>
+                            {d}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {suggestedDl && (
+                      <div style={{ marginTop: 18, padding: '12px 14px', borderRadius: 12, background: 'var(--cream-2)', border: '1px solid var(--line-soft)', fontSize: 13, color: 'var(--ink-soft)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                        <span>
+                          RSVP deadline: <b style={{ color: 'var(--ink)' }}>{st.rsvpDeadline ?? suggestedDl}</b>
+                          {!st.rsvpDeadline && ' (five weeks out — our suggestion)'}
+                        </span>
+                        <input
+                          type="date"
+                          value={st.rsvpDeadline ?? suggestedDl}
+                          onChange={(ev) => setSt((s) => ({ ...s, rsvpDeadline: ev.target.value || undefined }))}
+                          style={{ padding: '5px 9px', borderRadius: 8, border: '1px solid var(--line)', background: 'var(--card)', fontSize: 12.5, fontFamily: 'inherit', color: 'var(--ink)' }}
+                        />
+                      </div>
+                    )}
                   </>
                 );
               })()}
@@ -3192,6 +3354,37 @@ export function WizardV8() {
                               >
                                 {it.val}
                               </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Coverage checklist — what arrives woven vs. what
+                      the host will add in the editor. Makes skipping a
+                      conscious choice instead of a surprise. */}
+                  {(() => {
+                    const rows: Array<[string, boolean]> = [
+                      ['Story & photos', st.photos.length > 0],
+                      ['Schedule', (st.dayEvents?.length ?? 0) > 0],
+                      ['Details · dress code', !!st.dressCode],
+                      ['RSVP deadline', !!(st.rsvpDeadline || st.eventDate)],
+                      ['Travel intro', !!st.location],
+                      ['FAQ starters', true],
+                    ];
+                    return (
+                      <div style={{ marginTop: 18, padding: 16, borderRadius: 14, background: 'var(--cream-2)', border: '1px solid var(--line-soft)' }}>
+                        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', marginBottom: 8 }}>
+                          What arrives woven
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                          {rows.map(([label, on]) => (
+                            <div key={label} style={{ display: 'flex', gap: 7, alignItems: 'center', fontSize: 12, color: on ? 'var(--ink-soft)' : 'var(--ink-muted)' }}>
+                              <span aria-hidden style={{ color: on ? 'var(--pl-olive, #5C6B3F)' : 'var(--ink-muted)', fontWeight: 700 }}>
+                                {on ? '✓' : '—'}
+                              </span>
+                              {label}{!on && ' · add later'}
                             </div>
                           ))}
                         </div>

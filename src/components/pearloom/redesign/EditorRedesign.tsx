@@ -42,12 +42,21 @@ import { BastedIn } from './BastedIn';
 import { FirstPressing, shouldPlayFirstPressing } from './FirstPressing';
 import { MobileSheet, MobileBottomBar, type MobileSheetId } from './MobileSheet';
 import { useMobileViewport } from './use-mobile-viewport';
+import { useEditorCollab } from './useEditorCollab';
 import './animations.css';
 
 interface Props {
   manifest: StoryManifest;
   siteSlug: string;
   names: [string, string];
+  /** 'owner' or the viewer's cohosts-table role. Owner-only
+   *  affordances (Publish) hide for co-hosts; viewers open in
+   *  preview. Defaults 'owner' for existing mounts. */
+  viewerRole?: 'owner' | 'editor' | 'guest-manager' | 'viewer';
+  /** Session identity for realtime presence + collab. Collab is
+   *  disabled when absent (e.g. dev mounts). */
+  viewerEmail?: string;
+  viewerName?: string;
 }
 
 export type EditorMode = 'edit' | 'preview' | 'mobile';
@@ -138,13 +147,30 @@ export function isToolPanelApplicable(panel: Exclude<SectionId, null>, occasion?
   return true;
 }
 
-export default function EditorRedesign({ manifest: initialManifest, siteSlug, names: initialNames }: Props) {
+export default function EditorRedesign({
+  manifest: initialManifest, siteSlug, names: initialNames,
+  viewerRole = 'owner', viewerEmail, viewerName,
+}: Props) {
   // Bridge — autosave, manifest state, undo/redo, publish. Hides the
   // production machinery behind a small interface that mirrors the
   // prototype's tweaks-panel locals (setActive, setLayout, etc.).
   const bridge = useEditorRedesignBridge({ initialManifest, initialNames, siteSlug });
 
-  const [mode, setMode] = useState<EditorMode>('edit');
+  /* Viewers open read-only — preview mode, no publish, and the
+     server rejects their saves anyway. */
+  const [mode, setMode] = useState<EditorMode>(viewerRole === 'viewer' ? 'preview' : 'edit');
+
+  /* Realtime collaboration — presence dots + live manifest sync
+     across everyone with this editor open (owner + co-hosts).
+     Remote applies ride the normal setManifest path so they land
+     in the undo stack and the canvas re-weaves in place. */
+  const { peers } = useEditorCollab({
+    siteSlug,
+    email: viewerEmail,
+    name: viewerName,
+    manifest: bridge.manifest,
+    onRemoteManifest: (next) => bridge.setManifest(next),
+  });
   const [active, setActive] = useState<SectionId>('hero');
   const [hover, setHover] = useState<SectionId>(null);
   const [pearOpen, setPearOpen] = useState(false);
@@ -300,6 +326,8 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
         savedAt={bridge.savedAt}
         saveState={bridge.saveState}
         onPublish={bridge.openPublish}
+        canPublish={viewerRole === 'owner'}
+        peers={peers}
         pearOpen={pearOpen}
         setPearOpen={setPearOpen}
         onOpenSettings={bridge.openSettings}

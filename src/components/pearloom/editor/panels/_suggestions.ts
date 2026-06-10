@@ -275,3 +275,127 @@ export const KIDS_POLICY_OPTIONS = [
   'Adults only (18+)',
   'Adults only (21+)',
 ];
+
+/* ── Smart context — venue/date/name-aware suggestions ─────────
+   smartContext(manifest) pulls the fields suggestion sets can
+   interpolate so options read like they were written for THIS
+   event ("Casa Chorro is a short taxi from the airport"), not a
+   generic template. Every set below degrades cleanly when a field
+   is missing. */
+
+export interface SmartContext {
+  occasion?: string;
+  venue: string;
+  place: string;
+  firstName: string;
+}
+
+export function smartContext(manifest: unknown): SmartContext {
+  const loose = manifest as {
+    occasion?: string;
+    logistics?: { venue?: string; place?: string };
+    names?: [string, string];
+  } | null;
+  return {
+    occasion: loose?.occasion,
+    venue: (loose?.logistics?.venue ?? '').trim(),
+    place: (loose?.logistics?.place ?? '').trim(),
+    firstName: ((loose?.names?.[0] ?? '').trim().split(/\s+/)[0]) || '',
+  };
+}
+
+/** Hero kicker / lead lines — the tiny editorial line above the
+ *  names. Occasion-keyed with a couple of venue-aware entries. */
+export function heroLeadSuggestions(ctx: SmartContext): SuggestionSet {
+  const occ = (ctx.occasion ?? '').toLowerCase();
+  const at = ctx.place || ctx.venue;
+  const base: string[] = [];
+  if (occ === 'memorial' || occ === 'funeral') {
+    base.push('In loving memory', 'A life well loved', 'Gathering to remember');
+  } else if (occ.includes('birthday') || occ === 'sweet-sixteen' || occ === 'quinceanera') {
+    base.push('Save the date', 'A milestone worth a party', `${ctx.firstName ? `${ctx.firstName}’s big day` : 'The big day'}`);
+  } else if (occ === 'baby-shower' || occ === 'gender-reveal' || occ === 'sip-and-see') {
+    base.push('Someone small is on the way', 'Save the date', 'A shower of love');
+  } else if (occ.includes('bachelor')) {
+    base.push('One last fling', 'The send-off weekend', 'Pack your bags');
+  } else {
+    base.push('Save the date', 'Together, at last', 'We’re getting married');
+  }
+  if (at) base.push(`Meet us in ${at}`);
+  return { hint: 'The small line above the names — tap one or write your own.', options: base.slice(0, 5) };
+}
+
+/** Travel “getting there” intro lines, interpolated with the
+ *  saved venue + place so the draft reads specific. */
+export function travelDirectionsSuggestions(ctx: SmartContext): SuggestionSet {
+  const v = ctx.venue || 'the venue';
+  const p = ctx.place;
+  const options = [
+    `${v} is easiest by taxi or rideshare — parking nearby is limited.`,
+    p
+      ? `Fly into the nearest airport to ${p}; ${v} is a short ride from there. Say our names when you book the hotels below.`
+      : `${v} is a short ride from the airport. Say our names when you book the hotels below.`,
+    `We’ve held room blocks at the hotels below — mention us for the group rate.`,
+    `A shuttle will loop between the hotels and ${v} — times to follow.`,
+  ];
+  return { hint: 'A line guests read before the hotel list.', options };
+}
+
+/** Typical start time for a picked schedule event name — used to
+ *  pre-fill an EMPTY time field when the host picks a suggestion.
+ *  Loose keyword match so "Welcome dinner" hits "dinner". */
+export function typicalTimeFor(eventName: string): string | null {
+  const n = eventName.toLowerCase();
+  const TABLE: Array<[RegExp, string]> = [
+    [/brunch/, '11:00 am'],
+    [/lunch|luncheon/, '12:30 pm'],
+    [/ceremony|vows|service/, '4:30 pm'],
+    [/cocktail|golden hour|aperitif/, '5:30 pm'],
+    [/welcome|rehearsal/, '7:00 pm'],
+    [/dinner|feast|reception/, '7:00 pm'],
+    [/toast|speech|cake/, '8:30 pm'],
+    [/danc|party|dj|band/, '9:00 pm'],
+    [/afterparty|late/, '11:00 pm'],
+    [/arriv|doors|seated/, '4:00 pm'],
+    [/send.?off|farewell|sparkler/, '10:30 pm'],
+  ];
+  for (const [re, t] of TABLE) if (re.test(n)) return t;
+  return null;
+}
+
+/** Venue-aware draft ANSWER for a picked FAQ question — fills an
+ *  empty answer field so the host edits a sentence instead of
+ *  facing a blank box. Returns null for questions we can't draft
+ *  honestly from manifest data. */
+export function faqAnswerDraftFor(question: string, ctx: SmartContext, manifest?: unknown): string | null {
+  const q = question.toLowerCase();
+  const loose = manifest as { logistics?: { dresscode?: string; dressCode?: string } } | null;
+  const dress = (loose?.logistics?.dresscode ?? loose?.logistics?.dressCode ?? '').trim();
+  const v = ctx.venue || 'the venue';
+  if (/dress|wear/.test(q)) {
+    return dress
+      ? `${dress}. When in doubt, dress up a notch — you can never be too celebratory.`
+      : 'Dress to celebrate — we\u2019ll post the dress code here once it\u2019s settled.';
+  }
+  if (/plus.?one|bring a guest|\+1/.test(q)) {
+    return 'Check your invitation — if it includes a guest, the RSVP form will offer a spot for them.';
+  }
+  if (/kids|children/.test(q)) {
+    return 'We love your little ones — check your invitation for whether this one\u2019s adults-only.';
+  }
+  if (/park|get there|directions|airport|travel/.test(q)) {
+    return ctx.place
+      ? `${v} is in ${ctx.place} — see the Travel section for hotels, directions and the shuttle.`
+      : `See the Travel section for hotels, directions and parking near ${v}.`;
+  }
+  if (/photo|phone|unplugged|camera/.test(q)) {
+    return 'Take all the photos you like at the reception — we just ask for screens away during the ceremony.';
+  }
+  if (/gift|registry/.test(q)) {
+    return 'Your presence is the gift. If you\u2019d like to do more, the Registry section has a few ideas.';
+  }
+  if (/outdoor|outside|weather|rain/.test(q)) {
+    return `Parts of the day are outdoors at ${v} — bring a light layer for after dark.`;
+  }
+  return null;
+}

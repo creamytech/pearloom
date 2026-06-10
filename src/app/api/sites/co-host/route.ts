@@ -16,6 +16,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { ownerEmailOf } from '@/lib/cohost-access';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,20 +36,25 @@ function generateToken(): string {
   );
 }
 
-// Creator verifies ownership of the site. Returns site row or null.
+// Creator verifies ownership of the site (by id OR subdomain).
+// Returns site row or null. Ownership reads the top-level column
+// with the site_config JSON fallback (ownerEmailOf) — the column
+// is NULL on sites created after the 20260415 backfill, so the
+// column-only check 403'd every legitimate owner of a newer site.
 async function ownedSite(
   supabase: ReturnType<typeof getSupabase>,
-  siteId: string,
+  by: { siteId?: string | null; subdomain?: string | null },
   email: string,
 ) {
+  if (!by.siteId && !by.subdomain) return null;
   const { data } = await supabase
     .from('sites')
     .select('id, creator_email, site_config')
-    .eq('id', siteId)
+    .eq(by.siteId ? 'id' : 'subdomain', (by.siteId || by.subdomain) as string)
     .maybeSingle();
   // Case-insensitive owner check — IdP casing variance otherwise
   // 403s the legitimate owner. Matches /api/sites/[domain].
-  const owner = String(data?.creator_email ?? '').toLowerCase().trim();
+  const owner = ownerEmailOf(data);
   const caller = email.toLowerCase().trim();
   if (!data || !owner || owner !== caller) return null;
   return data;
@@ -76,6 +82,7 @@ export async function POST(req: NextRequest) {
 
   const body = (await req.json().catch(() => ({}))) as {
     siteId?: string;
+    siteSlug?: string;
     role?: CoHostRole;
     note?: string;
     acceptToken?: string;
@@ -94,14 +101,15 @@ export async function POST(req: NextRequest) {
     if (inv.expires_at && new Date(inv.expires_at) < new Date()) {
       return NextResponse.json({ error: 'expired' }, { status: 410 });
     }
+    const acceptedEmail = email.toLowerCase().trim();
     await supabase
       .from('cohost_invites')
-      .update({ accepted_at: new Date().toISOString(), accepted_email: email })
+      .update({ accepted_at: new Date().toISOString(), accepted_email: acceptedEmail })
       .eq('token', body.acceptToken);
     await supabase.from('cohosts').upsert(
       {
         site_id: inv.site_id,
-        email,
+        email: acceptedEmail,
         role: inv.role,
         invited_by: inv.invited_by,
         joined_at: new Date().toISOString(),
@@ -112,8 +120,8 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Mint path ──────────────────────────────────────────────
-  if (!body.siteId) {
-    return NextResponse.json({ error: 'siteId required' }, { status: 400 });
+  if (!body.siteId && !body.siteSlug) {
+    return NextResponse.json({ error: 'siteId or siteSlug required' }, { status: 400 });
   }
   const role: CoHostRole = body.role ?? 'editor';
   if (!['editor', 'guest-manager', 'viewer'].includes(role)) {
@@ -121,14 +129,14 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = getSupabase();
-  const site = await ownedSite(supabase, body.siteId, email);
+  const site = await ownedSite(supabase, { siteId: body.siteId, subdomain: body.siteSlug }, email);
   if (!site) return NextResponse.json({ error: 'Not your site' }, { status: 403 });
 
   const token = generateToken();
   const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // 14 days
   const { error } = await supabase.from('cohost_invites').insert({
     token,
-    site_id: body.siteId,
+    site_id: site.id,
     role,
     invited_by: email,
     note: body.note ?? null,
@@ -152,22 +160,23 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   const siteId = req.nextUrl.searchParams.get('siteId');
-  if (!siteId) return NextResponse.json({ error: 'siteId required' }, { status: 400 });
+  const subdomain = req.nextUrl.searchParams.get('subdomain');
+  if (!siteId && !subdomain) return NextResponse.json({ error: 'siteId required' }, { status: 400 });
 
   const supabase = getSupabase();
-  const site = await ownedSite(supabase, siteId, session.user.email);
+  const site = await ownedSite(supabase, { siteId, subdomain }, session.user.email);
   if (!site) return NextResponse.json({ error: 'Not your site' }, { status: 403 });
 
   const [active, pending] = await Promise.all([
     supabase
       .from('cohosts')
       .select('email, role, joined_at')
-      .eq('site_id', siteId)
+      .eq('site_id', site.id)
       .order('joined_at', { ascending: false }),
     supabase
       .from('cohost_invites')
-      .select('token, role, note, created_at, expires_at, accepted_at')
-      .eq('site_id', siteId)
+      .select('token, role, note, created_at, expires_at, accepted_at, invited_email')
+      .eq('site_id', site.id)
       .is('accepted_at', null)
       .order('created_at', { ascending: false }),
   ]);
@@ -186,22 +195,23 @@ export async function DELETE(req: NextRequest) {
   }
   const body = (await req.json().catch(() => ({}))) as {
     siteId?: string;
+    siteSlug?: string;
     email?: string;
     token?: string;
   };
-  if (!body.siteId) {
-    return NextResponse.json({ error: 'siteId required' }, { status: 400 });
+  if (!body.siteId && !body.siteSlug) {
+    return NextResponse.json({ error: 'siteId or siteSlug required' }, { status: 400 });
   }
   const supabase = getSupabase();
-  const site = await ownedSite(supabase, body.siteId, session.user.email);
+  const site = await ownedSite(supabase, { siteId: body.siteId, subdomain: body.siteSlug }, session.user.email);
   if (!site) return NextResponse.json({ error: 'Not your site' }, { status: 403 });
 
   if (body.email) {
     await supabase
       .from('cohosts')
       .delete()
-      .eq('site_id', body.siteId)
-      .eq('email', body.email);
+      .eq('site_id', site.id)
+      .eq('email', body.email.toLowerCase().trim());
   }
   if (body.token) {
     await supabase.from('cohost_invites').delete().eq('token', body.token);

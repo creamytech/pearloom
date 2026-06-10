@@ -34,17 +34,27 @@ export default async function CoHostAcceptPage({
 }) {
   const { token } = await params;
   const session = await getServerSession(authOptions);
-  const supabase = getSupabase();
 
-  const { data: inv } = await supabase
-    .from('cohost_invites')
-    .select('token, site_id, role, invited_by, note, created_at, expires_at, accepted_at')
-    .eq('token', token)
-    .maybeSingle();
+  /* Keyless deploys (no Supabase env) degrade to the invalid-invite
+     card instead of a 500 — same graceful posture as the API routes. */
+  let supabase: ReturnType<typeof getSupabase> | null = null;
+  try {
+    supabase = getSupabase();
+  } catch {
+    supabase = null;
+  }
+
+  const { data: inv } = supabase
+    ? await supabase
+        .from('cohost_invites')
+        .select('token, site_id, role, invited_by, note, created_at, expires_at, accepted_at')
+        .eq('token', token)
+        .maybeSingle()
+    : { data: null };
 
   let siteName = '';
   let coupleNames: [string, string] = ['', ''];
-  if (inv) {
+  if (inv && supabase) {
     const { data: siteRow } = await supabase
       .from('sites')
       .select('subdomain, site_config')

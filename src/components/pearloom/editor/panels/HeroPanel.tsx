@@ -9,7 +9,8 @@
 
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { FGroup, FInput, FToggleStandalone, SectionPanelShell } from './_section-atoms';
+import { FGroup, FInput, FSuggest, FToggleStandalone, SectionPanelShell } from './_section-atoms';
+import { heroLeadSuggestions, smartContext } from './_suggestions';
 import { FDate, FSelect } from './_form-atoms';
 import { PearInlineRewrite } from '../../redesign/PearAssist';
 import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
@@ -189,7 +190,18 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <FGroup label="Lead / eyebrow" hint="The tiny ALL-CAPS line above the names.">
-          <FInput value={heroLead} onChange={(v) => setCopy('heroLead', v)} placeholder={v.hero.leadPlaceholder} />
+          {(() => {
+            const sug = heroLeadSuggestions(smartContext(manifest));
+            return (
+              <FSuggest
+                value={heroLead}
+                onChange={(v) => setCopy('heroLead', v)}
+                placeholder={v.hero.leadPlaceholder}
+                options={sug.options}
+                hint={sug.hint}
+              />
+            );
+          })()}
         </FGroup>
         <FGroup label="Tagline" hint={tagline.trim().length >= 2 ? undefined : 'Type a line, then Pear can rewrite it in different tones.'}>
           <FInput value={tagline} onChange={setTagline} placeholder={v.hero.taglinePlaceholder} />

@@ -43,7 +43,7 @@ export function ThemeRail({ manifest, onChange, onOpenShop, onOpenDecor }: Props
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 22, margin: '4px 0 2px', fontWeight: 600 }}>
-            Theme packs
+            Site look
           </h3>
           <button
             type="button"
@@ -67,7 +67,7 @@ export function ThemeRail({ manifest, onChange, onOpenShop, onOpenDecor }: Props
           </button>
         </div>
         <div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>
-          A whole look — texture, palette, type &amp; motifs, tuned to your event.
+          Pick a whole pack, or dial in your own colors &amp; texture below.
         </div>
       </div>
 

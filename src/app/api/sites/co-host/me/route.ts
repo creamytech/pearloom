@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { resolveViewerRole } from '@/lib/cohost-access';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,24 +36,7 @@ export async function GET(req: NextRequest) {
   }
 
   const supabase = getSupabase();
-  const { data: site } = await supabase
-    .from('sites')
-    .select('id, creator_email')
-    .eq(siteId ? 'id' : 'subdomain', (siteId || subdomain) as string)
-    .maybeSingle();
-  if (!site) return NextResponse.json({ role: null });
-
-  if (String(site.creator_email ?? '').toLowerCase().trim() === email) {
-    return NextResponse.json({ role: 'owner', siteId: site.id });
-  }
-
-  const { data: cohost } = await supabase
-    .from('cohosts')
-    .select('role')
-    .eq('site_id', site.id as string)
-    .eq('email', email)
-    .maybeSingle();
-
-  if (!cohost) return NextResponse.json({ role: null, siteId: site.id });
-  return NextResponse.json({ role: cohost.role as string, siteId: site.id });
+  const access = await resolveViewerRole(supabase, { siteId, subdomain }, email);
+  if (!access.siteId) return NextResponse.json({ role: null });
+  return NextResponse.json({ role: access.role, siteId: access.siteId });
 }

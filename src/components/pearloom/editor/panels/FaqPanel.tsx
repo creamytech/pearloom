@@ -9,7 +9,7 @@ import { useRef, useState } from 'react';
 import type { FaqItem, StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
 import { AddCard, FGroup, FInput, FSuggest, PearChip, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
-import { faqQuestionSuggestions } from './_suggestions';
+import { faqQuestionSuggestions, faqAnswerDraftFor, smartContext } from './_suggestions';
 import { PearAiChip, PearInlineRewrite, pearErrorMessage } from '../../redesign/PearAssist';
 import { AISource } from '../../ai-source';
 
@@ -174,6 +174,16 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
                       <FSuggest
                         value={f.question}
                         onChange={(v) => patch(i, { question: v })}
+                        onPick={(opt) => {
+                          /* Picking a suggested question also drafts a
+                             venue-aware answer when the answer box is
+                             empty — the host edits a sentence instead
+                             of facing a blank field. */
+                          const draft = !f.answer.trim()
+                            ? faqAnswerDraftFor(opt, smartContext(manifest), manifest)
+                            : null;
+                          patch(i, draft ? { question: opt, answer: draft } : { question: opt });
+                        }}
                         placeholder="Question"
                         options={questionSet.options}
                       />
