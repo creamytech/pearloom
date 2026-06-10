@@ -1982,8 +1982,24 @@ export function WizardV8() {
     }
   }
 
+  /* DYE THE LOOM — the moment a palette exists, the wizard chrome
+     itself takes the dye: two soft radial washes in the host's own
+     colors bloom behind the canvas (700ms, honours the cream
+     ground). The product wears your choice before the site does. */
+  const dye = resolvedPaletteColors;
   return (
     <div className="pl8" style={{ minHeight: '100vh', background: 'var(--cream)', position: 'relative', overflow: 'hidden' }}>
+      <div
+        aria-hidden
+        style={{
+          position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+          opacity: dye && st.palette ? 1 : 0,
+          transition: 'opacity 700ms var(--pl-ease-out, ease-out), background 700ms var(--pl-ease-out, ease-out)',
+          background: dye
+            ? `radial-gradient(560px 420px at 12% 8%, ${dye[1]}1f, transparent 70%), radial-gradient(640px 480px at 88% 92%, ${dye[2]}33, transparent 70%)`
+            : 'none',
+        }}
+      />
       {/* Wizard mobile rules — scoped to wizard classnames.
           pearloom.css owns the ≤960px header wrap, but the progress
           strip's inline flex:1 (flex-basis: 0) meant it always fit
@@ -1992,6 +2008,12 @@ export function WizardV8() {
           happen. ≤640px condenses further for a 390px canvas:
           glyph-only wordmark, no decorative sprigs, stacked grids. */}
       <style jsx global>{`
+        @keyframes pl8-wiz-thread {
+          to { stroke-dashoffset: 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .pl8-wizard-canvas svg path { animation: none !important; stroke-dashoffset: 0 !important; }
+        }
         @keyframes wizard-skeleton-pulse {
           0%, 100% { opacity: 0.6; }
           50%      { opacity: 0.85; }
@@ -2201,6 +2223,13 @@ export function WizardV8() {
           )}
 
           <Reveal y={14} key={step}>
+            {/* The shuttle pass — a two-strand thread draws across
+                as each step arrives (BRAND.md: things thread in,
+                they don't fade in). */}
+            <svg width="148" height="8" viewBox="0 0 148 8" aria-hidden style={{ display: 'block', marginBottom: 18 }}>
+              <path d="M2 5 C 30 1, 60 7, 88 4 S 132 3, 146 4" fill="none" stroke="var(--sage-deep, #5C6B3F)" strokeWidth="1.6" strokeLinecap="round" opacity="0.5" strokeDasharray="180" strokeDashoffset="180" style={{ animation: 'pl8-wiz-thread 720ms var(--pl-ease-out, ease-out) forwards' }} />
+              <path d="M2 4 C 30 0, 60 6, 88 3 S 132 2, 146 3" fill="none" stroke="var(--pl-gold, #C19A4B)" strokeWidth="1.2" strokeLinecap="round" strokeDasharray="180" strokeDashoffset="180" style={{ animation: 'pl8-wiz-thread 720ms var(--pl-ease-out, ease-out) 90ms forwards' }} />
+            </svg>
             <div
               style={{
                 position: 'relative',
@@ -2385,6 +2414,33 @@ export function WizardV8() {
                       </div>
                     </div>
                   </div>
+
+                  {/* THE PRESS — the names set themselves in letterpress
+                      as the host types, like type locked into a chase.
+                      First taste of "this is being made FOR me". */}
+                  {st.names[0].trim() && (
+                    <div aria-hidden style={{ marginTop: 30, textAlign: 'center', overflow: 'hidden' }}>
+                      <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 9.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'var(--pl-gold, #B8935A)', marginBottom: 8 }}>
+                        Setting the type
+                      </div>
+                      <div
+                        className="display pl-letterpress"
+                        style={{ fontSize: 'clamp(34px, 7vw, 54px)', lineHeight: 1.02, color: 'var(--ink)', letterSpacing: '-0.02em', transition: 'opacity 280ms var(--pl-ease-out, ease-out)' }}
+                      >
+                        {st.names[0].trim()}
+                        {nameSpec.mode === 'couple' && st.names[1].trim() && (
+                          <>
+                            {' '}
+                            <span className="display-italic" style={{ fontSize: '0.72em', color: 'var(--ink-soft)' }}>and</span>{' '}
+                            {st.names[1].trim()}
+                          </>
+                        )}
+                      </div>
+                      <svg width="148" height="6" viewBox="0 0 148 6" aria-hidden style={{ display: 'block', margin: '12px auto 0', opacity: 0.6 }}>
+                        <path d="M2 3 C 40 1, 100 5, 146 3" fill="none" stroke="var(--pl-gold, #C19A4B)" strokeWidth="1.2" strokeLinecap="round" />
+                      </svg>
+                    </div>
+                  )}
                 </>
                 );
               })()}
