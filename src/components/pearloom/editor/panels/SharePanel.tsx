@@ -46,7 +46,11 @@ export function SharePanel({
   siteSlug: string;
 }) {
   const occasion = ((manifest as unknown as { occasion?: SiteOccasion }).occasion);
-  const siteUrl = buildSiteUrl(siteSlug, '', occasion);
+  /* buildSiteUrl's 3rd param is ORIGIN, occasion is 4th — passing
+     occasion as origin yielded 'anniversary/sites/slug' (no scheme,
+     wrong path shape) in every share intent, the QR code, and the
+     copy button. */
+  const siteUrl = buildSiteUrl(siteSlug, '', undefined, occasion);
   const prettyUrl = formatSiteDisplayUrl(siteSlug, '', occasion);
   const [copied, setCopied] = useState<string | null>(null);
   const [coHostEmail, setCoHostEmail] = useState('');
