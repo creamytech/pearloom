@@ -39,6 +39,7 @@ import { EditorDrawers } from './EditorDrawers';
 import { PearLoomFx } from './PearLoomFx';
 import { FittingRoom } from './FittingRoom';
 import { ThreePressings } from './ThreePressings';
+import { BastedIn } from './BastedIn';
 import { FirstPressing, shouldPlayFirstPressing } from './FirstPressing';
 import { MobileSheet, MobileBottomBar, type MobileSheetId } from './MobileSheet';
 import { useMobileViewport } from './use-mobile-viewport';
@@ -444,6 +445,16 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
           "in 3 styles" asks (pearloom:pressings). Picks chain into
           the Fitting Room. */}
       <ThreePressings names={bridge.names} />
+      {/* Basted in — Pear's while-you-were-away stitches. Hidden on
+          phone viewports (the FAB corner is already contested) and
+          in preview mode. */}
+      {!viewportMobile && mode === 'edit' && (
+        <BastedIn
+          manifest={bridge.manifest}
+          siteSlug={siteSlug}
+          onApply={(next) => bridge.editField(() => next)}
+        />
+      )}
 
       {pressing && (
         <FirstPressing

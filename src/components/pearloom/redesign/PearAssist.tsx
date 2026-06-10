@@ -19,6 +19,7 @@
    the styles. */
 
 import { pearWorking } from './PearLoomFx';
+import { recordTaste, orderByTaste, tasteHint, tasteLine } from './taste';
 import { useEffect, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 import { Icon } from '../motifs';
 
@@ -196,6 +197,10 @@ export function PearInlineRewrite({
      ceiling-remover. */
   const [whisper, setWhisper] = useState('');
   const [listening, setListening] = useState(false);
+  /* Taste memory — most-kept directions lead; computed once per
+     mount so chips don't reshuffle mid-interaction. */
+  const [orderedTones] = useState(() => orderByTaste(tones));
+  const [learnedLine] = useState(() => tasteLine());
 
   /* A preview belongs to the text it was drafted from — if the host
      edits the field (or keeps a suggestion), any parked preview is
@@ -220,7 +225,7 @@ export function PearInlineRewrite({
         body: JSON.stringify({
           text: value,
           context,
-          instruction,
+          instruction: [instruction, tasteHint()].filter(Boolean).join(' '),
         }),
       });
       if (!res.ok) {
@@ -254,10 +259,14 @@ export function PearInlineRewrite({
   const keep = () => {
     if (!pending) return;
     onCommit(pending.text); /* same write path as instantApply */
+    recordTaste('keep', pending.label, value.length, pending.text.length);
     pearWorking('done', fxSection);
     setPending(null);
   };
-  const discard = () => setPending(null);
+  const discard = () => {
+    if (pending) recordTaste('discard', pending.label, value.length, pending.text.length);
+    setPending(null);
+  };
 
   /* Prevent focus from leaving the field/chips when tapping a
      preview action — Safari fires focusout with a null
@@ -283,7 +292,7 @@ export function PearInlineRewrite({
       }}
     >
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        {tones.map((t) => (
+        {orderedTones.map((t) => (
           <PearAiChip
             key={t}
             label={busy === t ? `${TONE_LABEL[t]}…` : TONE_LABEL[t]}
@@ -292,6 +301,11 @@ export function PearInlineRewrite({
             disabled={!!busy && busy !== t}
           />
         ))}
+        {learnedLine && (
+          <span style={{ fontSize: 10.5, color: 'var(--ink-muted)', alignSelf: 'center', fontStyle: 'italic' }}>
+            {learnedLine}
+          </span>
+        )}
       </div>
       {/* The whisper — type (or speak) any direction. This is the
           grab-anything-ask-anything surface: the chips above are
