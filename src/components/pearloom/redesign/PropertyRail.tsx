@@ -105,6 +105,20 @@ import { BachelorPanel } from '../editor/panels/BachelorPanel';
 import { CountdownPanel } from '../editor/panels/CountdownPanel';
 import { MapPanel } from '../editor/panels/MapPanel';
 import { MusicPanel } from '../editor/panels/MusicPanel';
+/* Event-OS block panels — one per occasion-gated canvas section.
+   Where the Memorial / Weekend-planner tools already own the data
+   (manifest.memorial.* / manifest.bachelor.*), these are thin
+   editors over the SAME fields. */
+import { ItineraryPanel } from '../editor/panels/blocks/ItineraryPanel';
+import { CostSplitterPanel } from '../editor/panels/blocks/CostSplitterPanel';
+import { ActivityVotePanel } from '../editor/panels/blocks/ActivityVotePanel';
+import { ToastSignupPanel } from '../editor/panels/blocks/ToastSignupPanel';
+import { AdviceWallPanel } from '../editor/panels/blocks/AdviceWallPanel';
+import { ProgramPanel } from '../editor/panels/blocks/ProgramPanel';
+import { LivestreamPanel } from '../editor/panels/blocks/LivestreamPanel';
+import { ObituaryPanel } from '../editor/panels/blocks/ObituaryPanel';
+import { PackingListPanel } from '../editor/panels/blocks/PackingListPanel';
+import { HonorListPanel } from '../editor/panels/blocks/HonorListPanel';
 
 interface SectionInfo {
   id: Exclude<SectionId, null>;
@@ -130,6 +144,18 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
   countdown: { id: 'countdown', label: 'Countdown', desc: 'Cards · stripe · minimal · hero' },
   map:       { id: 'map',       label: 'Map',       desc: 'Live Google Maps embed' },
   music:     { id: 'music',     label: 'Music',     desc: 'Spotify · Apple · YouTube playlist' },
+  /* Event-OS blocks — occasion-gated sections added via the Add
+     Section picker (isBlockApplicable). */
+  itinerary:    { id: 'itinerary',    label: 'Itinerary',     desc: 'Multi-day plan, hour by hour' },
+  costSplitter: { id: 'costSplitter', label: 'Cost splitter', desc: 'Who owes what — settled gently' },
+  activityVote: { id: 'activityVote', label: 'Group vote',    desc: 'Let the group pick' },
+  toastSignup:  { id: 'toastSignup',  label: 'Toast signup',  desc: 'Claim a toast slot' },
+  adviceWall:   { id: 'adviceWall',   label: 'Advice wall',   desc: 'Words for the honoree' },
+  program:      { id: 'program',      label: 'Program',       desc: 'The order of the ceremony' },
+  livestream:   { id: 'livestream',   label: 'Livestream',    desc: 'For the ones far away' },
+  obituary:     { id: 'obituary',     label: 'Obituary',      desc: 'A life, remembered' },
+  packingList:  { id: 'packingList',  label: 'Packing list',  desc: 'What to bring' },
+  honorList:    { id: 'honorList',    label: 'Honor list',    desc: 'The people beside them' },
   /* Tool panels — same lookup so the rail header shows the
      right label + tagline when the host picks a tool. */
   guests:      { id: 'guests',      label: 'Guests',          desc: 'Your guest list' },
@@ -216,7 +242,11 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
   function moveSection(direction: -1 | 1) {
     const loose = manifest as unknown as Record<string, unknown>;
     const coreReorderable = ['story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
-    const optionalReorderable = ['countdown', 'map', 'music'];
+    const optionalReorderable = [
+      'countdown', 'map', 'music',
+      'itinerary', 'costSplitter', 'activityVote', 'toastSignup', 'adviceWall',
+      'program', 'livestream', 'obituary', 'packingList', 'honorList',
+    ];
     const allReorderable = [...coreReorderable, ...optionalReorderable];
     const current = (loose.blockOrder as string[] | undefined) ?? coreReorderable;
     const filtered = current.filter((k) => allReorderable.includes(k));
@@ -800,6 +830,17 @@ function renderSectionEditor(
     case 'countdown':return <CountdownPanel {...props} />;
     case 'map':      return <MapPanel {...props} />;
     case 'music':    return <MusicPanel {...props} />;
+    /* Event-OS blocks — occasion-gated canvas sections. */
+    case 'itinerary':    return <ItineraryPanel {...props} />;
+    case 'costSplitter': return <CostSplitterPanel {...props} />;
+    case 'activityVote': return <ActivityVotePanel {...props} />;
+    case 'toastSignup':  return <ToastSignupPanel {...props} />;
+    case 'adviceWall':   return <AdviceWallPanel {...props} />;
+    case 'program':      return <ProgramPanel {...props} />;
+    case 'livestream':   return <LivestreamPanel {...props} />;
+    case 'obituary':     return <ObituaryPanel {...props} />;
+    case 'packingList':  return <PackingListPanel {...props} />;
+    case 'honorList':    return <HonorListPanel {...props} />;
     /* Tool panels — host-only workspaces. Most need siteSlug to
        fetch live data (guest counts, broadcasts, OG card). */
     case 'guests':      return siteSlug ? <GuestsPanel siteSlug={siteSlug} /> : null;

@@ -114,6 +114,55 @@ export const LAYOUTS: Partial<Record<Exclude<SectionId, null>, LayoutVariant[]>>
     { id: 'sidebar',   label: 'Sidebar',    sub: 'Player + description column' },
     { id: 'jukebox',   label: 'Jukebox',    sub: 'Dark plate + gold neon' },
   ],
+  /* ── Event-OS blocks (occasion-gated via isBlockApplicable). The
+     FIRST variant of each registry is implemented by the skeleton
+     renderer in section-variants/blocks/; the rest are reserved
+     ids the design agents flesh out without touching this file
+     beyond their renderer dispatch. */
+  itinerary: [
+    { id: 'days',    label: 'Days',    sub: 'One card per day, hour rows' },
+    { id: 'flow',    label: 'Flow',    sub: 'Continuous rail across days' },
+    { id: 'tickets', label: 'Tickets', sub: 'Perforated stub per slot' },
+  ],
+  costSplitter: [
+    { id: 'ledger', label: 'Ledger', sub: 'Ruled rows + running total' },
+    { id: 'cards',  label: 'Cards',  sub: 'One card per line item' },
+  ],
+  activityVote: [
+    { id: 'pills', label: 'Pills', sub: 'Options as a pill cluster' },
+    { id: 'bars',  label: 'Bars',  sub: 'Horizontal tally bars' },
+  ],
+  toastSignup: [
+    { id: 'slots', label: 'Slots', sub: 'Numbered claimable cards' },
+    { id: 'list',  label: 'List',  sub: 'Compact single-column list' },
+  ],
+  adviceWall: [
+    { id: 'wall',    label: 'Wall',    sub: 'Masonry of note cards' },
+    { id: 'cards',   label: 'Cards',   sub: 'Even card grid' },
+    { id: 'letters', label: 'Letters', sub: 'Stacked letter sheets' },
+  ],
+  program: [
+    { id: 'classic',    label: 'Classic',    sub: 'Centered order of service' },
+    { id: 'numbered',   label: 'Numbered',   sub: 'Index-style list' },
+    { id: 'centerline', label: 'Centerline', sub: 'Moments down a center rail' },
+  ],
+  livestream: [
+    { id: 'card',   label: 'Card',   sub: 'Framed player + join button' },
+    { id: 'cinema', label: 'Cinema', sub: 'Letterboxed full-width' },
+  ],
+  obituary: [
+    { id: 'letter',  label: 'Letter',  sub: 'Single centered column' },
+    { id: 'columns', label: 'Columns', sub: 'Newspaper two-column' },
+  ],
+  packingList: [
+    { id: 'checklist', label: 'Checklist', sub: 'Single ticked column' },
+    { id: 'grid',      label: 'Grid',      sub: 'Two-column item grid' },
+  ],
+  honorList: [
+    { id: 'cards',  label: 'Cards',  sub: 'Portrait card per person' },
+    { id: 'circle', label: 'Circle', sub: 'Round portraits in a row' },
+    { id: 'rows',   label: 'Rows',   sub: 'Compact name + role rows' },
+  ],
 };
 
 export const DEFAULT_VARIANT: Partial<Record<Exclude<SectionId, null>, string>> = {
@@ -131,6 +180,17 @@ export const DEFAULT_VARIANT: Partial<Record<Exclude<SectionId, null>, string>> 
   countdown: 'cards',
   map: 'embed',
   music: 'card',
+  /* Event-OS blocks — first variant of each registry above. */
+  itinerary: 'days',
+  costSplitter: 'ledger',
+  activityVote: 'pills',
+  toastSignup: 'slots',
+  adviceWall: 'wall',
+  program: 'classic',
+  livestream: 'card',
+  obituary: 'letter',
+  packingList: 'checklist',
+  honorList: 'cards',
   /* Tool panels (guests, savetheDate, share, dayof, memorial,
      bachelor) have no layout variants — they're host workspaces.
      Partial<> lets the type compile without forcing stub entries

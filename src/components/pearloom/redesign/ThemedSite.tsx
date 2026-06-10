@@ -55,6 +55,21 @@ import {
   NavMobileBottomSheet,
   NavMobilePill,
 } from './section-variants/nav-mobile';
+/* Event-OS block sections — occasion-gated optional sections added
+   via the Add Section picker (see isBlockApplicable). Each owns its
+   full section frame + empty-state handling; renderKind passes the
+   shared BlockSectionProps bag so design agents only ever touch the
+   block files, never this dispatch. */
+import { ItinerarySection } from './section-variants/blocks/itinerary';
+import { CostSplitterSection } from './section-variants/blocks/cost-splitter';
+import { ActivityVoteSection } from './section-variants/blocks/activity-vote';
+import { ToastSignupSection } from './section-variants/blocks/toast-signup';
+import { AdviceWallSection } from './section-variants/blocks/advice-wall';
+import { ProgramSection } from './section-variants/blocks/program';
+import { LivestreamSection } from './section-variants/blocks/livestream';
+import { ObituarySection } from './section-variants/blocks/obituary';
+import { PackingListSection } from './section-variants/blocks/packing-list';
+import { HonorListSection } from './section-variants/blocks/honor-list';
 import { useIsMobile, useActiveSection } from './use-nav-hooks';
 
 interface Props {
@@ -344,7 +359,13 @@ export function ThemedSite({
      host adds them via the Add Section picker → they live in
      blockOrder but aren't auto-appended. */
   const coreKinds: SectionKind[] = ['hero', 'story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
-  const allKinds: SectionKind[] = [...coreKinds, 'countdown', 'map', 'music'];
+  const allKinds: SectionKind[] = [
+    ...coreKinds, 'countdown', 'map', 'music',
+    /* Event-OS blocks — render only when present in blockOrder
+       (added via the Add Section picker); never auto-appended. */
+    'itinerary', 'costSplitter', 'activityVote', 'toastSignup', 'adviceWall',
+    'program', 'livestream', 'obituary', 'packingList', 'honorList',
+  ];
   const savedOrder = ((manifest as unknown as { blockOrder?: string[] }).blockOrder) ?? [];
   const reorderedRest: SectionKind[] = [
     ...savedOrder.filter((k): k is SectionKind => k !== 'hero' && (allKinds as readonly string[]).includes(k)) as SectionKind[],
@@ -992,7 +1013,35 @@ function renderKind(kind: SectionKind, ctx: SectionCtx): ReactNode {
     case 'countdown':return <CountdownBlock ctx={ctx} />;
     case 'map':      return <MapBlock ctx={ctx} />;
     case 'music':    return <MusicBlock ctx={ctx} />;
+    /* Event-OS blocks — uniform BlockSectionProps bag (manifest +
+       pad + editable + variant + copy writer). Variant resolved
+       here via readVariant so SectionCtx.variants stays scoped to
+       the core sections. Data paths are documented per block file
+       (memorial.* / bachelor.* fields are shared with the Memorial
+       + Weekend-planner tool panels). */
+    case 'itinerary':    return <ItinerarySection {...blockProps(ctx, 'itinerary')} />;
+    case 'costSplitter': return <CostSplitterSection {...blockProps(ctx, 'costSplitter')} />;
+    case 'activityVote': return <ActivityVoteSection {...blockProps(ctx, 'activityVote')} />;
+    case 'toastSignup':  return <ToastSignupSection {...blockProps(ctx, 'toastSignup')} />;
+    case 'adviceWall':   return <AdviceWallSection {...blockProps(ctx, 'adviceWall')} />;
+    case 'program':      return <ProgramSection {...blockProps(ctx, 'program')} />;
+    case 'livestream':   return <LivestreamSection {...blockProps(ctx, 'livestream')} />;
+    case 'obituary':     return <ObituarySection {...blockProps(ctx, 'obituary')} />;
+    case 'packingList':  return <PackingListSection {...blockProps(ctx, 'packingList')} />;
+    case 'honorList':    return <HonorListSection {...blockProps(ctx, 'honorList')} />;
   }
+}
+
+/* Shared props bag for the Event-OS block sections — see
+   section-variants/blocks/_shared.tsx for the contract. */
+function blockProps(ctx: SectionCtx, section: Exclude<SectionId, null>) {
+  return {
+    manifest: ctx.manifest,
+    pad: ctx.pad,
+    editable: ctx.editable,
+    variant: readVariant(ctx.manifest, section),
+    onEditCopy: ctx.edit?.copy,
+  };
 }
 
 /* ─── HeroBlock — handoff L256-363 centered variant verbatim. ── */
@@ -3616,12 +3665,18 @@ function formatHeroDate(raw: string | undefined): string {
 /* ─── Copy / data — pulls from manifest with prototype fallbacks. ─── */
 
 type SectionKind = 'hero' | 'story' | 'details' | 'schedule' | 'travel' | 'registry' | 'gallery' | 'rsvp' | 'faq'
-                 | 'countdown' | 'map' | 'music';
+                 | 'countdown' | 'map' | 'music'
+                 | 'itinerary' | 'costSplitter' | 'activityVote' | 'toastSignup' | 'adviceWall'
+                 | 'program' | 'livestream' | 'obituary' | 'packingList' | 'honorList';
 
 const SECTION_LABEL: Record<SectionKind, string> = {
   hero: 'Hero', story: 'Our story', details: 'Details', schedule: 'Schedule',
   travel: 'Travel', registry: 'Registry', gallery: 'Gallery', rsvp: 'RSVP', faq: 'FAQ',
   countdown: 'Countdown', map: 'Map', music: 'Music',
+  itinerary: 'Itinerary', costSplitter: 'Costs', activityVote: 'Group vote',
+  toastSignup: 'Toasts', adviceWall: 'Advice wall', program: 'Program',
+  livestream: 'Livestream', obituary: 'Obituary', packingList: 'Packing list',
+  honorList: 'Honor list',
 };
 
 interface SectionCtx {

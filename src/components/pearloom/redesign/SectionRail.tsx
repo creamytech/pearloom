@@ -6,7 +6,7 @@
 import { useRef, useState } from 'react';
 import { Icon } from '../motifs';
 import type { StoryManifest } from '@/types';
-import { type SectionId, isToolPanelApplicable, isOptionalSectionApplicable } from './EditorRedesign';
+import { type SectionId, type BlockSectionId, BLOCK_SECTION_IDS, isToolPanelApplicable, isOptionalSectionApplicable, isBlockApplicable } from './EditorRedesign';
 import { SiteModeSection } from '../editor/panels/ThemePanel';
 
 interface SectionDef {
@@ -104,7 +104,34 @@ const OPTIONAL_SECTIONS: SectionDef[] = [
   { id: 'countdown', label: 'Countdown', icon: 'clock',    desc: 'Stat tiles · stripe · minimal · hero' },
   { id: 'map',       label: 'Map',       icon: 'map',      desc: 'Live embed · pin · static' },
   { id: 'music',     label: 'Music',     icon: 'music',    desc: 'Spotify · Apple · YouTube' },
+  /* Event-OS blocks — gated against the EVENT_TYPES registry via
+     isBlockApplicable (default + optional blocks per occasion), so
+     a bachelorette host sees Itinerary/Cost/Vote/Packing while a
+     memorial host sees Program/Livestream/Obituary. */
+  { id: 'itinerary',    label: 'Itinerary',    icon: 'calendar-check', desc: 'Multi-day plan, hour by hour' },
+  { id: 'costSplitter', label: 'Cost splitter', icon: 'ticket',        desc: 'Who owes what — settled gently' },
+  { id: 'activityVote', label: 'Group vote',   icon: 'check',          desc: 'Let the group pick' },
+  { id: 'toastSignup',  label: 'Toast signup', icon: 'mic',            desc: 'Claim a toast slot' },
+  { id: 'adviceWall',   label: 'Advice wall',  icon: 'text',           desc: 'Words for the honoree' },
+  { id: 'program',      label: 'Program',      icon: 'page',           desc: 'The order of the ceremony' },
+  { id: 'livestream',   label: 'Livestream',   icon: 'play',           desc: 'For the ones far away' },
+  { id: 'obituary',     label: 'Obituary',     icon: 'leaf',           desc: 'A life, remembered' },
+  { id: 'packingList',  label: 'Packing list', icon: 'list',           desc: 'What to bring' },
+  { id: 'honorList',    label: 'Honor list',   icon: 'users',          desc: 'The people beside them' },
 ];
+
+/* One gate for everything the Add Section picker offers — the
+   original optional trio keeps its bespoke rules; the Event-OS
+   blocks go through the EVENT_TYPES registry. */
+function isAddableSectionApplicable(id: Exclude<SectionId, null>, occasion?: string): boolean {
+  if (id === 'countdown' || id === 'map' || id === 'music') {
+    return isOptionalSectionApplicable(id, occasion);
+  }
+  if ((BLOCK_SECTION_IDS as readonly string[]).includes(id)) {
+    return isBlockApplicable(id as BlockSectionId, occasion);
+  }
+  return true;
+}
 
 /* Tool panels — surface in the rail below the canvas sections.
    These aren't sections on the published site; they're host-only
@@ -214,7 +241,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
   /* Available picker options — anything optional + applicable +
      not yet in the order. */
   const availableOptional = OPTIONAL_SECTIONS
-    .filter((s) => isOptionalSectionApplicable(s.id as 'countdown' | 'map' | 'music', occasion))
+    .filter((s) => isAddableSectionApplicable(s.id, occasion))
     .filter((s) => !restOrder.includes(s.id as string));
 
   /* Add an optional section to the manifest order + flip active

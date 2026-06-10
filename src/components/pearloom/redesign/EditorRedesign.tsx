@@ -24,6 +24,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
+import { getEventType } from '@/lib/event-os/event-types';
 import { Icon, Pear } from '../motifs';
 import { ThemedSiteRenderer } from '../site/ThemedSiteRenderer';
 import { useEditorRedesignBridge } from './bridge';
@@ -53,6 +54,13 @@ export type SectionId =
   /* Optional sections added via Add Section — applicability gated
      by occasion (see isSectionApplicable below). */
   | 'countdown' | 'map' | 'music'
+  /* Event-OS canvas blocks — also added via Add Section, but gated
+     against the EVENT_TYPES registry (see isBlockApplicable below)
+     so a memorial host sees Program/Livestream/Obituary while a
+     bachelorette host sees Itinerary/Cost/Vote/Packing. */
+  | 'itinerary' | 'costSplitter' | 'activityVote' | 'toastSignup'
+  | 'adviceWall' | 'program' | 'livestream' | 'obituary'
+  | 'packingList' | 'honorList'
   /* Tool panels — not canvas sections, but host-facing tools that
      mount through the same PropertyRail dispatch so the editor's
      state machine stays simple. */
@@ -69,6 +77,37 @@ export type SectionId =
 export function isOptionalSectionApplicable(section: 'countdown' | 'map' | 'music', occasion?: string): boolean {
   if (section === 'music') return occasion !== 'memorial' && occasion !== 'funeral';
   return true;
+}
+
+/* The ten Event-OS canvas blocks the Add Section picker can offer. */
+export type BlockSectionId =
+  | 'itinerary' | 'costSplitter' | 'activityVote' | 'toastSignup'
+  | 'adviceWall' | 'program' | 'livestream' | 'obituary'
+  | 'packingList' | 'honorList';
+
+export const BLOCK_SECTION_IDS: readonly BlockSectionId[] = [
+  'itinerary', 'costSplitter', 'activityVote', 'toastSignup',
+  'adviceWall', 'program', 'livestream', 'obituary',
+  'packingList', 'honorList',
+];
+
+/* honorList is the generalized weddingParty (wedding party / court
+   of honor / candle-lighters) — the EVENT_TYPES registry gates it
+   under the legacy 'weddingParty' BlockType id. */
+const BLOCK_GATE_ALIAS: Partial<Record<BlockSectionId, string>> = {
+  honorList: 'weddingParty',
+};
+
+/* Occasion → which Event-OS blocks are addable. A block is addable
+   when the EVENT_TYPES registry lists it in defaultBlocks OR
+   optionalBlocks for the occasion. Unknown / missing occasion →
+   true (never strand a host whose manifest predates the registry). */
+export function isBlockApplicable(blockId: BlockSectionId, occasion?: string): boolean {
+  const event = getEventType(occasion);
+  if (!event) return true;
+  const gateId = BLOCK_GATE_ALIAS[blockId] ?? blockId;
+  return (event.defaultBlocks as readonly string[]).includes(gateId)
+      || (event.optionalBlocks as readonly string[]).includes(gateId);
 }
 
 /* Occasion → which tool panels are applicable. Memorial only on
