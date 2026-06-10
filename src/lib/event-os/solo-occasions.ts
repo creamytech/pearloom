@@ -16,9 +16,17 @@
 //   • /api/og/route.tsx          — centers one name, skips name2
 //   • /sites/[domain]/page.tsx   — metadata emitter (OG params)
 //   • /preview/[token]/page.tsx  — coupleId → names parsing
+//   • /g/[token]/page.tsx        — passport hero monogram initial
 //   • lib/event-os/name-mode.ts  — wizard asks for ONE name
-//   • pearloom/redesign/ThemedSite.tsx — subject.kind fallback
-//   • pearloom/site/ThemedSiteRenderer.tsx — hero name lockup
+//   • lib/suite/theme.ts         — suite monogram (save-the-date,
+//     share kit, proofs, address form) crests one initial
+//   • pearloom/redesign/ThemedSite.tsx — subject.kind fallback +
+//     nav monogram solo flag
+//   • pearloom/site/ThemedSiteRenderer.tsx — hero name lockup +
+//     monogram watermark
+//   • pearloom/site/RsvpCeremony.tsx — ceremony crest
+//   • pearloom/editor/panels/DecorLibraryPanel.tsx — Monogram tab
+//   • pearloom/editor/panels/SharePanel.tsx — share-card + QR initials
 //
 // Decisions (2026-06-09 solo-honoree fix):
 //   solo — birthday family, quinceañera, bar/bat mitzvah,
@@ -69,4 +77,21 @@ export function isSoloOccasion(
   occasion: SiteOccasion | string | null | undefined,
 ): boolean {
   return !!occasion && SOLO_OCCASIONS.has(occasion);
+}
+
+/** Resolve solo-ness from manifest fields. An explicit editor pick
+ *  (`manifest.subject.kind`, Hero panel) always wins; the occasion
+ *  registry above is the fallback. Structurally typed so callers can
+ *  pass a StoryManifest (or any loose record) without this module
+ *  importing the full manifest type — it stays edge-bundle-safe. */
+export function isSoloSubject(
+  manifest:
+    | { occasion?: string | null; subject?: { kind?: string | null } | null }
+    | null
+    | undefined,
+): boolean {
+  const kind = manifest?.subject?.kind;
+  if (kind === 'solo') return true;
+  if (kind === 'couple') return false;
+  return isSoloOccasion(manifest?.occasion);
 }

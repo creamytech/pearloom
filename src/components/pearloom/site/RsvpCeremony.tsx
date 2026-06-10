@@ -37,6 +37,7 @@ import { Monogram, type MonogramFrame } from './Monogram';
 import { getTheme } from './themes';
 import { generateICS } from '@/lib/calendar';
 import { getEventType } from '@/lib/event-os/event-types';
+import { isSoloSubject } from '@/lib/event-os/solo-occasions';
 
 export interface RsvpCeremonyProps {
   manifest: StoryManifest;
@@ -96,11 +97,14 @@ export function RsvpCeremony({ manifest, attending, preset, onClose }: RsvpCerem
   const protoTheme = getTheme(themeId);
   const motifKind = ((loose.motifKind as MotifKind | undefined) ?? protoTheme.motif ?? 'none') as MotifKind;
 
-  /* Monogram — manifest.monogram or names-derived. */
-  const monoSource =
-    (manifest.monogram?.initials && manifest.monogram.initials.trim()) ||
-    namesLine(manifest) ||
-    'A & B';
+  /* Monogram — manifest.monogram or names-derived. Solo honoree
+     sites crest a single initial from the derived name; host-typed
+     initials render verbatim. */
+  const soloSite = isSoloSubject(manifest);
+  const explicitMono =
+    (manifest.monogram?.initials && manifest.monogram.initials.trim()) || '';
+  const monoSource = explicitMono || namesLine(manifest) || (soloSite ? 'A' : 'A & B');
+  const monoSolo = soloSite && !explicitMono;
   const monoFrame: MonogramFrame = (manifest.monogram?.frame as MonogramFrame) ?? 'ring';
 
   /* Copy — preset-aware, BRAND.md §7 voice. */
@@ -155,7 +159,7 @@ export function RsvpCeremony({ manifest, attending, preset, onClose }: RsvpCerem
       )}
 
       <div className="pl-cere-mono" style={{ display: 'flex', justifyContent: 'center' }}>
-        <Monogram initials={monoSource} frame={monoFrame} size={96} withCard={false} ariaHidden />
+        <Monogram initials={monoSource} frame={monoFrame} size={96} withCard={false} solo={monoSolo} ariaHidden />
       </div>
 
       <div className="pl-cere-copy">

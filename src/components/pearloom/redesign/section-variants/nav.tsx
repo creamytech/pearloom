@@ -24,8 +24,9 @@ export interface NavProps {
   sticky?: boolean;
   /** When set, renders the host's Decor-Library monogram in
    *  place of the Pear glyph. Falls through to Pear when undefined.
-   *  Source: manifest.monogram. */
-  monogram?: { initials?: string; frame?: MonogramFrame };
+   *  Source: manifest.monogram. `solo` marks a single-honoree site
+   *  so the headline-derived fallback crests one initial. */
+  monogram?: { initials?: string; frame?: MonogramFrame; solo?: boolean };
 }
 
 /* NavLogo — renders the host's monogram when configured, the Pear
@@ -45,9 +46,10 @@ function NavLogo({ monogram, headline, size = 26 }: { monogram?: NavProps['monog
     let initials = typed;
     if (!initials) {
       /* Derive from headline. Falls back to "S&S" defaults when
-         the headline is the canvas placeholder too. */
-      const { initA, initB } = deriveInitials(headline ?? '');
-      initials = `${initA || 'A'} & ${initB || 'B'}`;
+         the headline is the canvas placeholder too. Solo honoree:
+         one initial, never a phantom '& B'. */
+      const { initA, initB } = deriveInitials(headline ?? '', { solo: monogram?.solo });
+      initials = initB ? `${initA || 'A'} & ${initB}` : (initA || 'A');
     }
     return (
       <Monogram

@@ -35,6 +35,8 @@ import { getTheme, themeRootStyle, type Density } from '@/components/pearloom/si
 import { familyFromStack, googleFontsHrefFor } from '@/lib/suite/theme';
 import { resolveEdition } from '@/lib/site-editions/resolve';
 import { getEventType } from '@/lib/event-os/event-types';
+import { isSoloSubject } from '@/lib/event-os/solo-occasions';
+import { deriveInitials } from '@/components/pearloom/site/Monogram';
 
 export const metadata: Metadata = {
   title: "You're Invited | Pearloom",
@@ -426,9 +428,13 @@ export default async function PersonalGuestPage({
         eventDate={manifest.logistics?.date ?? ''}
         venue={manifest.logistics?.venue ?? ''}
         monogram={{
+          /* Solo honoree — derived names crest one initial, never a
+             couple pair. Host-typed initials render verbatim. */
           initials:
             (manifest.monogram?.initials && manifest.monogram.initials.trim()) ||
-            coupleNames.filter(Boolean).join(' & '),
+            (isSoloSubject(manifest)
+              ? deriveInitials(coupleNames.filter(Boolean)[0] ?? '', { solo: true }).initA
+              : coupleNames.filter(Boolean).join(' & ')),
           frame: manifest.monogram?.frame ?? 'ring',
         }}
       />

@@ -112,6 +112,11 @@ export function PublishedSiteShell(props: Props) {
         /* editor wiring intentionally omitted — published guests
            don't click sections; ThemedSite's editor-only props
            default to no-op + null in published mode. */
+        /* Multi-page routing — the home route passes 'home', sub-page
+           routes pass their block key. Without this forward, magazine
+           (multi-page) sites rendered every section on every route. */
+        pageFilter={props.pageFilter}
+        siteSlug={props.siteSlug}
       />
       {/* Overlays — keep the product features ThemedSiteRenderer
           used to provide before the swap, so published sites

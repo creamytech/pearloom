@@ -32,8 +32,9 @@ export interface NavProps {
   onCtaClick: () => void;
   activeId?: string;
   /** Host's Decor-Library monogram, when set. Replaces the Pear
-   *  glyph in the mobile nav header. */
-  monogram?: { initials?: string; frame?: import('../../site/Monogram').MonogramFrame };
+   *  glyph in the mobile nav header. `solo` marks a single-honoree
+   *  site so the headline-derived fallback crests one initial. */
+  monogram?: { initials?: string; frame?: import('../../site/Monogram').MonogramFrame; solo?: boolean };
 }
 
 /* ---------- shared bits ---------- */
@@ -121,8 +122,9 @@ function TopBar({
         if (typed || hasFrame) {
           let initials = typed;
           if (!initials) {
-            const { initA, initB } = deriveInitials(headline ?? '');
-            initials = `${initA || 'A'} & ${initB || 'B'}`;
+            /* Solo honoree: one initial, never a phantom '& B'. */
+            const { initA, initB } = deriveInitials(headline ?? '', { solo: monogram?.solo });
+            initials = initB ? `${initA || 'A'} & ${initB}` : (initA || 'A');
           }
           return (
             <Monogram

@@ -2072,8 +2072,12 @@ function ThemedHero({ manifest, names, motif, onEditField, onEditNames }: { mani
           const mono = (manifest as unknown as { monogram?: { initials?: string; frame?: MonogramFrame } }).monogram;
           if (!mono) return null;
           const frame: MonogramFrame = mono.frame ?? 'laurel';
-          const subject = mono.initials?.trim() || [n1, n2].filter(Boolean).join(' & ');
-          const { initA, initB } = deriveInitials(subject);
+          const explicitMono = mono.initials?.trim();
+          const subject = explicitMono || [n1, n2].filter(Boolean).join(' & ');
+          /* Solo honoree — a derived full name ('Eleanor Rose Thompson')
+             must crest as a single initial, not a couple pair. Host-typed
+             initials render verbatim. */
+          const { initA, initB } = deriveInitials(subject, { solo: solo && !explicitMono });
           const initialsForMono = subject.includes('&') || /\s/.test(subject)
             ? (initB ? `${initA} & ${initB}` : initA)
             : subject;

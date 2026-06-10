@@ -25,6 +25,7 @@
 import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { getEventType } from '@/lib/event-os/event-types';
+import { readSiteMode } from '@/lib/site-mode';
 import { Icon, Pear } from '../motifs';
 import { useEditorRedesignBridge } from './bridge';
 import { EditorRailLeft } from './SectionRail';
@@ -350,6 +351,10 @@ export default function EditorRedesign({
       <EditorCanvas
         active={active}
         setActive={viewportMobile ? selectFromCanvas : setActive}
+        /* Inline-edit focus selection — plain setActive on every
+           viewport (no mobile props-sheet pop: opening a sheet over
+           the keyboard mid-typing would bury the field being edited). */
+        onSectionFocus={setActive}
         hover={hover}
         setHover={setHover}
         mode={mode}
@@ -504,13 +509,16 @@ export default function EditorRedesign({
    paper backdrop with a radial-grid dot pattern + FloatingPearBubble. */
 
 function EditorCanvas({
-  active, setActive, hover, setHover,
+  active, setActive, onSectionFocus, hover, setHover,
   mode, manifest, names, siteSlug, onEditField, onEditNames, pearOpen,
   viewportMobile = false,
   usePrototypeCanvas = false,
 }: {
   active: SectionId;
   setActive: (id: SectionId) => void;
+  /** Fired when an inline-editable field gains focus — selects the
+   *  section in the property rail without the mobile sheet pop. */
+  onSectionFocus?: (id: SectionId) => void;
   hover: SectionId;
   setHover: (id: SectionId) => void;
   mode: EditorMode;
@@ -634,6 +642,7 @@ function EditorCanvas({
           hover={hover}
           setActive={setActive}
           setHover={setHover}
+          onSectionFocus={isPreview ? undefined : onSectionFocus}
           editable={!isPreview}
           manifest={canvasManifest}
           names={names}
@@ -648,6 +657,16 @@ function EditorCanvas({
              canvas now share the same write path. */
           onEditField={isPreview ? undefined : onEditField}
           onEditNames={isPreview ? undefined : onEditNames}
+          /* Magazine (multi-page) sites — Preview shows the real home
+             page (hero + the keep-on-home picks) exactly as guests
+             will see it. Edit mode keeps every section on the canvas
+             so they all stay editable; own-page sections carry an
+             "· own page" tag in their selection handle. siteSlug is
+             deliberately NOT passed: in-canvas nav clicks must never
+             navigate the editor tab to the published site. */
+          pageFilter={
+            isPreview && readSiteMode(canvasManifest) === 'multi-page' ? 'home' : undefined
+          }
         />
         {/* The Fitting Room — drape layer for whole-site AI
             proposals (pearloom:drape). Lives inside the device
