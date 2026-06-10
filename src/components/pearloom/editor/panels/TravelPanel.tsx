@@ -19,6 +19,7 @@ import { Icon } from '../../motifs';
 import {
   FGroup,
   FInput,
+  FSuggest,
   FToggleStandalone,
   PearChip,
   SectionPanelShell,
@@ -28,6 +29,7 @@ import {
   useSectionHidden,
 } from './_section-atoms';
 import { pearErrorMessage } from '../../redesign/PearAssist';
+import { travelDirectionsSuggestions, smartContext } from './_suggestions';
 
 /* Place-search result shape from /api/places/search/route.ts. */
 interface SearchResult {
@@ -431,11 +433,18 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
         </FGroup>
 
         <FGroup label="Getting there">
-          <FInput
-            value={directions}
-            onChange={setDirections}
-            placeholder="Fly into Santorini (JTR), 20 min by taxi"
-          />
+          {(() => {
+            const sug = travelDirectionsSuggestions(smartContext(manifest));
+            return (
+              <FSuggest
+                value={directions}
+                onChange={setDirections}
+                placeholder="Fly into Santorini (JTR), 20 min by taxi"
+                options={sug.options}
+                hint={sug.hint}
+              />
+            );
+          })()}
           <div style={{ height: 8 }} />
           <ShuttleToggle manifest={manifest} onChange={onChange} />
         </FGroup>

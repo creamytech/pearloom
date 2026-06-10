@@ -6,12 +6,23 @@
 
 export const dynamic = 'force-dynamic';
 
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { notFound, redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'Editor · Pearloom',
   description: 'Edit and customise your celebration site.',
+};
+
+/* Editor-only: pin page zoom so focusing a field or fat-finger
+   double-taps never scale the whole editor shell (the canvas has
+   its own device-width preview; the page itself isn't meant to
+   zoom). Published sites keep the root layout's maximumScale 5. */
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
