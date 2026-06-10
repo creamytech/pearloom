@@ -3,21 +3,18 @@
 // Marketing's "Read a real site" and "See act … in motion" CTAs
 // land here. Previously redirected to /dev/site, which 404s in
 // production — the demo path was dead on the live site.
-// The manifest exercises every core section + the optional
+//
+// DemoClient wraps the published-site shell with "Try the loom" —
+// a floating panel of the real look dials (motif / placement /
+// divider / pattern / texture / intensity sliders) so visitors
+// can restyle the demo live and see how a woven site actually
+// works. The manifest exercises every core section + the optional
 // countdown / map / music blocks — see src/lib/demo-manifest.ts.
 
-import { PublishedSiteShell } from '@/components/pearloom/site/PublishedSiteShell';
-import { DEMO_MANIFEST, DEMO_NAMES } from '@/lib/demo-manifest';
+import DemoClient from './DemoClient';
 
 export const dynamic = 'force-dynamic';
 
 export default function DemoSite() {
-  return (
-    <PublishedSiteShell
-      manifest={DEMO_MANIFEST}
-      names={DEMO_NAMES}
-      siteSlug="demo"
-      prettyUrl="pearloom.com/demo"
-    />
-  );
+  return <DemoClient />;
 }

@@ -106,7 +106,10 @@ export const DEMO_MANIFEST = {
     mapBlock: { showDirections: true },
     music: {
       provider: 'spotify',
-      url: 'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M',
+      /* "Greek Summer 2026" — Minos EMI's (Universal Greece) own
+         editorial playlist, so it stays maintained. Verified
+         public, 128 songs (2026-06-10). */
+      url: 'https://open.spotify.com/playlist/61UhFOPck9ZN6G3c1GrbiH',
       title: 'Songs for a Greek summer',
       description:
         'What we’ll be playing on the terrace — bouzouki at dinner, disco after dark. Add your requests in the RSVP.',

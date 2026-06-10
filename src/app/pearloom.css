@@ -1009,14 +1009,16 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
     gap: 8px !important;
   }
   .pl8-guest .pl8-hero-strip > div:nth-child(n+3) { display: none; }
-  /* Hotel legend rows — hide the distance/last column so the
-     hotel name has room. The number pin + name remain. */
-  .pl8-guest .pl8-hotel-row {
-    grid-template-columns: 32px 1fr !important;
-  }
-  .pl8-guest .pl8-hotel-row > :last-child {
-    display: none !important;
-  }
+  /* NO .pl8-hotel-row rules here — a previous block hid the
+     row's last child to make room in the old "hotel legend"
+     (32px number pin + name + distance). That component is gone,
+     and every CURRENT .pl8-hotel-row consumer (ThemedSite rows
+     cards, TravelTable, ThemedSiteRenderer cards) puts the entire
+     info block — name, stars, price, blurb, amenities — in the
+     last child, so on phones the "Where to stay" cards rendered
+     as bare images with no info (fixed 2026-06-10). The rows
+     cards stack photo-over-info and need no phone override;
+     TravelTable carries its own ≤500px collapse inline. */
 }
 
 /* ═══════════════════════════════════════════════════════════════
