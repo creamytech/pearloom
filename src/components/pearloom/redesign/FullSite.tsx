@@ -17,6 +17,7 @@ import type { StoryManifest } from '@/types';
 import { Blob, Icon, Pear, Squiggle } from '../motifs';
 import { AmbientThread } from '../ambient';
 import { getTheme, themeRootStyle, type Density } from '../site/themes';
+import { isSoloOccasion } from '@/lib/event-os/solo-occasions';
 import { TextureFilters } from '../site/TextureFilters';
 import type { SectionId } from './EditorRedesign';
 
@@ -91,8 +92,17 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
     /^[0-9a-f]{4,}$/i.test(s) || /^\d+$/.test(s) || s.toLowerCase() === 'couple';
   const cleanA = names[0] && !isUuidLike(names[0]) ? names[0] : '';
   const cleanB = names[1] && !isUuidLike(names[1]) ? names[1] : '';
-  const nameA = cleanA || 'Scott';
-  const nameB = cleanB || 'Shauna';
+  /* Solo-honoree sites must never grow a phantom partner —
+     explicit editor pick (manifest.subject.kind) wins, the
+     canonical occasion registry is the fallback. Demo names
+     ('Scott'/'Shauna') only ever fill in for couple sites. */
+  const subjectKind = (manifest as unknown as { subject?: { kind?: string } }).subject?.kind;
+  const solo =
+    subjectKind === 'solo' ||
+    (subjectKind !== 'couple' &&
+      isSoloOccasion((manifest as unknown as { occasion?: string }).occasion));
+  const nameA = cleanA || (solo ? 'Sam' : 'Scott');
+  const nameB = solo ? '' : (cleanB || 'Shauna');
   /* Date formatter — accepts ISO ("2027-04-27") or pre-formatted
      strings ("Monday, April 26, 2027") and always renders the long
      human form the handoff hero uses. */
@@ -150,7 +160,7 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <Pear size={22} tone="sage" shadow={false} />
             <span style={{ fontFamily: headFont, fontStyle: 'italic', fontSize: 16, color: themeInk }}>
-              {nameA} &amp; {nameB}
+              {nameB ? <>{nameA} &amp; {nameB}</> : nameA}
             </span>
           </div>
           <div style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: 18, opacity: 0.85 }}>
@@ -204,10 +214,14 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
             </div>
             <h1 style={{ fontFamily: headFont, fontSize: 84, lineHeight: 0.95, margin: 0, letterSpacing: '-0.02em', fontWeight: Number(theme.vars['--t-display-wght'] ?? 600), color: themeInk }}>
               {nameA}
-              <span style={{ fontStyle: 'italic', fontFamily: headFont, fontSize: 64, color: themeInkSoft, margin: '0 12px' }}>
-                and
-              </span>
-              {nameB}
+              {nameB && (
+                <>
+                  <span style={{ fontStyle: 'italic', fontFamily: headFont, fontSize: 64, color: themeInkSoft, margin: '0 12px' }}>
+                    and
+                  </span>
+                  {nameB}
+                </>
+              )}
             </h1>
             <div style={{ marginTop: 22, fontSize: 14, color: themeInkSoft, display: 'flex', gap: 22, justifyContent: 'center', flexWrap: 'wrap' }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>

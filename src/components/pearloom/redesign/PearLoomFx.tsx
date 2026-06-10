@@ -85,20 +85,21 @@ export function PearLoomFx() {
         activeSection.current = section ?? null;
         if (reduced) return; // settle-only on done
         const target = findTarget(section);
+        // No resolvable section → no thread. A thread that points
+        // at nothing (the old fallback aimed at screen center) reads
+        // as a glitch, not as Pear working — the busy state on the
+        // chip that fired the call carries the feedback instead.
+        if (!target) return;
         const vw = window.innerWidth;
         const vh = window.innerHeight;
         // Origin: Pear's corner — where the FloatingPearBubble lives.
         const x0 = vw - 96;
         const y0 = vh - 64;
-        let x1 = vw / 2;
-        let y1 = vh / 2;
-        if (target) {
-          const t = target.getBoundingClientRect();
-          // The section may extend past the viewport — aim at the
-          // visible part of it so the shuttle is always on screen.
-          x1 = Math.min(vw - 24, Math.max(24, t.left + t.width / 2));
-          y1 = Math.min(vh - 80, Math.max(64, t.top + 24));
-        }
+        const t = target.getBoundingClientRect();
+        // The section may extend past the viewport — aim at the
+        // visible part of it so the shuttle is always on screen.
+        const x1 = Math.min(vw - 24, Math.max(24, t.left + t.width / 2));
+        const y1 = Math.min(vh - 80, Math.max(64, t.top + 24));
         // A relaxed S-curve — thread, not laser.
         const mx = (x0 + x1) / 2;
         const d = `M ${x0} ${y0} C ${x0 - 120} ${y0 - 40}, ${mx + 80} ${y1 + 120}, ${x1} ${y1}`;
@@ -131,7 +132,6 @@ export function PearLoomFx() {
 
     window.addEventListener(PEAR_WORKING_EVENT, onEvent);
     return () => window.removeEventListener(PEAR_WORKING_EVENT, onEvent);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [thread]);
 
   return (

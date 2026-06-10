@@ -175,6 +175,12 @@ export interface PearInlineRewriteProps {
    *  behavior). Default false — the rewrite lands in a quiet
    *  preview card with Keep / Try again / Discard. */
   instantApply?: boolean;
+  /** Start with the tone chips + whisper visible. Default false:
+   *  the component renders as ONE quiet "Polish with Pear" chip
+   *  and expands on tap. Before this, every field stacked four
+   *  tone chips + a whisper input + a mic — multiplied across a
+   *  panel it read as a wall of AI chrome (2026-06-10). */
+  defaultOpen?: boolean;
 }
 
 export function PearInlineRewrite({
@@ -185,7 +191,10 @@ export function PearInlineRewrite({
   tones = ['shorten', 'warmer', 'funnier', 'poetic'],
   onError,
   instantApply = false,
+  defaultOpen = false,
 }: PearInlineRewriteProps) {
+  /* Progressive disclosure — collapsed is a single chip. */
+  const [open, setOpen] = useState(defaultOpen);
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   /* Preview-before-apply — the rewrite parks here until the host
@@ -274,6 +283,13 @@ export function PearInlineRewrite({
      preview before the click handler ran. */
   const keepFocus = (e: ReactMouseEvent) => e.preventDefault();
 
+  /* Collapsed — one quiet chip. Everything (tones, whisper, mic)
+     stays one tap away instead of permanently stacked under the
+     field. */
+  if (!open) {
+    return <PearAiChip label="Polish with Pear" onClick={() => setOpen(true)} />;
+  }
+
   return (
     <div
       style={{ display: 'flex', flexDirection: 'column', gap: 6 }}
@@ -305,6 +321,20 @@ export function PearInlineRewrite({
           <span style={{ fontSize: 10.5, color: 'var(--ink-muted)', alignSelf: 'center', fontStyle: 'italic' }}>
             {learnedLine}
           </span>
+        )}
+        {!busy && !pending && (
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            aria-label="Hide polish options"
+            style={{
+              border: 'none', background: 'transparent', alignSelf: 'center',
+              color: 'var(--ink-muted)', fontSize: 10.5, fontWeight: 600,
+              cursor: 'pointer', fontFamily: 'inherit', padding: '2px 4px',
+            }}
+          >
+            Hide
+          </button>
         )}
       </div>
       {/* The whisper — type (or speak) any direction. This is the

@@ -149,6 +149,10 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
   const [hover, setHover] = useState<SectionId>(null);
   const [pearOpen, setPearOpen] = useState(false);
   const [pearPrefill, setPearPrefill] = useState<string>('');
+  /* One Pear at a time — while the BastedIn card is visible the
+     floating "Ask Pear" pill stays hidden so the host never sees
+     two Pear popups competing from opposite corners. */
+  const [bastedOpen, setBastedOpen] = useState(false);
 
   /* ── Viewport-mobile chrome ──────────────────────────────────
      viewportMobile (real phone-sized browser) is NOT the canvas's
@@ -326,7 +330,7 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
         siteSlug={siteSlug}
         onEditField={bridge.editField}
         onEditNames={bridge.setNames}
-        pearOpen={pearOpen || mobileSheet === 'pear'}
+        pearOpen={pearOpen || mobileSheet === 'pear' || bastedOpen}
         viewportMobile={viewportMobile}
         usePrototypeCanvas={false}
       />
@@ -452,6 +456,7 @@ export default function EditorRedesign({ manifest: initialManifest, siteSlug, na
           manifest={bridge.manifest}
           siteSlug={siteSlug}
           onApply={(next) => bridge.editField(() => next)}
+          onOpenChange={setBastedOpen}
         />
       )}
 
@@ -486,6 +491,9 @@ function EditorCanvas({
   siteSlug: string;
   onEditField: (patch: (m: StoryManifest) => StoryManifest) => void;
   onEditNames: (next: [string, string]) => void;
+  /** True when another Pear surface owns the screen (advisor
+   *  column, Pear bottom sheet, or the BastedIn card) — hides the
+   *  floating "Ask Pear" pill so only one Pear shows at a time. */
   pearOpen: boolean;
   /** Real phone-sized browser viewport (NOT the Mobile preview
    *  pill). Canvas goes edge-to-edge, the device frame drops its
