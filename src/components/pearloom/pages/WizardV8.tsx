@@ -16,7 +16,6 @@ import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { parseLocalDate } from '@/lib/date-utils';
 import { TEMPLATES_BY_ID } from '../marketplace/templates-data';
 import { EVENT_TYPES, getEventType, recommendTextureFor, lookDefaultsFor, type EventCategory, type EventVoice } from '@/lib/event-os/event-types';
-import { recommendEdition } from '@/lib/site-editions/resolve';
 import { nameModeFor, nameModeIsValid } from '@/lib/event-os/name-mode';
 import { questionsFor } from '@/lib/event-os/wizard-questions';
 import { NumberInput } from '../editor/v8-forms';
@@ -38,8 +37,9 @@ import { BackgroundCookPill } from '../wizard/BackgroundCookPill';
 import { usePhotoPalette } from '../wizard/usePhotoPalette';
 import { useDialog } from '@/components/ui/confirm-dialog';
 
-// Layout step removed 2026-05-30 — Editions (picked later in the
-// editor) stamp manifest.storyLayout per Edition, so making the
+// Layout step removed 2026-05-30 — superseded again 2026-06-10:
+// Editions are no longer host-facing anywhere; layout variants now
+// stamp via applyWizardLook at generation, so making the
 // host pick a layout in the wizard then potentially have it
 // overwritten by an Edition was double work + confusing. Default
 // layout 'timeline' stays seeded as st.layout for backward compat
@@ -2847,7 +2847,7 @@ export function WizardV8() {
               )}
 
               {/* Layout step removed from STEPS in 2026-05-30 but the
-                  JSX is kept dead-coded for easy re-enable. Editions
+                  JSX is kept dead-coded for easy re-enable. Layouts
                   pick the layout per persona. The cast bypasses the
                   StepKey narrow check so the branch compiles
                   unreachable. */}
@@ -2941,7 +2941,7 @@ export function WizardV8() {
                           : PALETTES.find((p) => p.id === st.palette)?.colors
                       }
                     />
-                    {/* Layout row removed — host picks an Edition in
+                    {/* Layout row removed — layout variants stamp via applyWizardLook in
                         the editor; Pear seeds a sensible default at
                         generation time. Showing "Layout: Memory
                         Thread" in the review confused hosts who
@@ -2956,21 +2956,20 @@ export function WizardV8() {
                     />
                   </div>
 
-                  {/* Pear's first-draft Look preview — surfaces the per-event
-                      defaults the renderer will fall back to (edition / kit /
-                      texture / density / voice). Lets the host see what Pear
-                      will pick BEFORE the editor opens, and quietly introduces
-                      the Look Engine concept (every value here has a dial in
-                      the editor's Theme panel). Live-computed from the host's
-                      occasion + voice; no manifest writes. */}
+                  {/* Pear's first-draft Look preview — the per-event look
+                      values applyWizardLook stamps onto the generated site
+                      (texture / kit / density / voice / grain). Live-computed
+                      from the occasion; no manifest writes here. Edition was
+                      removed 2026-06-10 — it's an internal layout-defaults
+                      signal now, not a host-facing concept (the v8
+                      EditionPicker is long gone). */}
                   {st.occasion && (() => {
                     const eventType = getEventType(st.occasion as never);
                     const voice = eventType?.voice;
                     const occ = st.occasion as never;
-                    const ed = recommendEdition(occ, voice);
+                    void occ;
                     const tex = recommendTextureFor(st.occasion);
                     const ld = lookDefaultsFor(st.occasion);
-                    const editionLabel = ed.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
                     /* Intensity label matches LookEnginePanel's
                        intensityLabel() thresholds so the wizard preview
                        reads the same way the editor pickers do. */
@@ -2981,7 +2980,6 @@ export function WizardV8() {
                       : ld.textureIntensity < 1.35 ? 'Rich'
                       : 'Bold';
                     const items = [
-                      { label: 'Edition', val: editionLabel },
                       { label: 'Texture', val: tex.charAt(0).toUpperCase() + tex.slice(1) },
                       { label: 'Kit',     val: ld.kitId.charAt(0).toUpperCase() + ld.kitId.slice(1) },
                       { label: 'Spacing', val: ld.density.charAt(0).toUpperCase() + ld.density.slice(1) },
@@ -3012,7 +3010,7 @@ export function WizardV8() {
                               Pear&apos;s first draft of your look
                             </div>
                             <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 1 }}>
-                              Tuned to your event. Every dial is editable in the Theme panel.
+                              Woven into your site from the start — reshape any of it with theme packs and layouts in the editor.
                             </div>
                           </div>
                         </div>

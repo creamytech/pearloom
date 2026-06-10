@@ -7,8 +7,6 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { StoryManifest } from '@/types';
-import type { EditionId } from '@/lib/site-editions/types';
-import { EDITIONS } from '@/lib/site-editions/editions';
 import { EVENT_TYPES } from '@/lib/event-os/event-types';
 import { Icon, Pear } from '../motifs';
 
@@ -98,10 +96,9 @@ export function CommandPalette({
     for (const s of sections) {
       out.push({ id: `section:${s.key}`, label: `Jump to ${s.label}`, hint: s.description, icon: 'arrow-right', group: 'Sections', keywords: ['jump', 'section', s.key], run: () => onJumpSection(s.key) });
     }
-    for (const ed of EDITIONS) {
-      const accent = ed.recommendedTheme?.colors?.accent ?? '#0E0D0B';
-      out.push({ id: `edition:${ed.id}`, label: `Edition — ${ed.label}`, hint: ed.tagline, swatch: accent, group: 'Themes', keywords: ['edition', 'theme', ed.id, ...(ed.recommendedFor ?? [])], run: () => onPatchManifest({ ...manifest, edition: ed.id as EditionId } as StoryManifest) });
-    }
+    /* Editions removed from the palette 2026-06-10 — they were a v8
+       concept (EditionPicker is gone); manifest.edition survives only
+       as an internal layout-defaults signal, not a host-facing pick. */
     for (const k of KITS) {
       out.push({ id: `kit:${k.id}`, label: `Kit — ${k.label}`, hint: k.blurb, icon: 'sparkles', group: 'Kits', keywords: ['kit', 'component', k.id], run: () => onPatchManifest({ ...manifest, kitId: k.id } as StoryManifest) });
     }
@@ -109,7 +106,7 @@ export function CommandPalette({
       if (et.status === 'planned') continue;
       out.push({ id: `event:${et.id}`, label: `Event — ${et.label}`, hint: et.tagline, icon: 'heart-icon', group: 'Events', keywords: ['event', 'occasion', et.id, et.category, et.voice], run: () => onPatchManifest({ ...manifest, occasion: et.id } as unknown as StoryManifest) });
     }
-    if (onOpenThemeShop)    out.push({ id: 'flow:theme-shop', label: 'Open theme shop',     hint: 'Editions, palettes, templates',     icon: 'palette',   group: 'Flows', keywords: ['theme', 'shop'],         run: onOpenThemeShop });
+    if (onOpenThemeShop)    out.push({ id: 'flow:theme-shop', label: 'Open theme shop',     hint: 'Theme packs, palettes, templates',     icon: 'palette',   group: 'Flows', keywords: ['theme', 'shop'],         run: onOpenThemeShop });
     if (onOpenDecorLibrary) out.push({ id: 'flow:decor',      label: 'Open decor library',  hint: 'Dividers, stamps, motifs, stickers', icon: 'brush',     group: 'Flows', keywords: ['decor', 'library'],      run: onOpenDecorLibrary });
     if (onOpenSettings)     out.push({ id: 'flow:settings',   label: 'Open settings',       hint: 'Site URL, privacy, account',         icon: 'section',   group: 'Flows', keywords: ['settings', 'account'],   run: onOpenSettings });
     if (onPublish)          out.push({ id: 'flow:publish',    label: 'Publish & share',     hint: 'Push the latest draft live',         icon: 'arrow-ur',  group: 'Flows', keywords: ['publish', 'share'],      run: onPublish });
