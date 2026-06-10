@@ -1,11 +1,17 @@
 'use client';
 
- 
+/* eslint-disable no-restricted-syntax */
 /* ToastSignupPanel — Content tab for the Toast signup section.
    Writes manifest.toastSlots[] — { id, label, assigned?, note? },
    mirroring the legacy ToastSlot shape. NOT the same thing as the
    "Toasts & speeches" tool (ToastsPanel): that drafts speech TEXT
-   with Pear; this authors the claimable slot list guests see. */
+   with Pear; this authors the claimable slot list guests see.
+
+   CLAIM CAVEAT: guest claims are keyed by the slot's position in
+   this list (toast-signup.tsx posts the raw manifest index), so
+   removing or inserting slots mid-list after guests start claiming
+   shifts later claims. Add new slots at the END once the site is
+   live — surfaced as a hint below. */
 
 import type { StoryManifest } from '@/types';
 import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
@@ -29,7 +35,33 @@ export function ToastSignupPanel({ manifest, onChange }: BlockPanelProps) {
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <FGroup label={`Toast slots · ${slots.length}`} hint="Each slot can be pre-assigned or left open for guests to claim.">
+        <FGroup
+          label={`Toast slots · ${slots.length}`}
+          hint="Each slot can be pre-assigned or left open for guests to claim. Claims attach to a slot's position in this list — once guests start claiming, add new slots at the end rather than removing or inserting mid-list."
+          action={
+            slots.length === 0 ? (
+              <button
+                type="button"
+                onClick={() =>
+                  write([
+                    { id: mkId('toast'), label: 'Welcome toast' },
+                    { id: mkId('toast'), label: 'A story about the early days' },
+                    { id: mkId('toast'), label: 'Open toast — anyone' },
+                    { id: mkId('toast'), label: 'The send-off' },
+                  ])
+                }
+                style={{
+                  padding: '4px 9px', borderRadius: 999,
+                  background: 'var(--cream-2)', border: '1px solid var(--line-soft)',
+                  fontSize: 10.5, fontWeight: 700, color: 'var(--ink-soft)',
+                  cursor: 'pointer', whiteSpace: 'nowrap',
+                }}
+              >
+                Seed 4 open slots
+              </button>
+            ) : undefined
+          }
+        >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {slots.map((slot, i) => (
               <RowCard key={slot.id}>

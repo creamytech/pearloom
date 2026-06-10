@@ -77,17 +77,18 @@ const tabular: CSSProperties = {
   whiteSpace: 'nowrap',
 };
 
-/* Mobile-first ledger grid — the PAID BY column collapses into a
-   subline under the item below 560px. !important beats inline grid. */
+/* Mobile-first ledger grid. The PAID BY column only exists when at
+   least one row names a payer (.pl8-ledger--payers), and collapses
+   into a subline under the item below 560px. */
 const LEDGER_CSS = `
 .pl8-ledger .pl8-ledger-row { display: grid; grid-template-columns: minmax(0, 1fr) 84px; gap: 12px; align-items: baseline; }
 .pl8-ledger--each .pl8-ledger-row { grid-template-columns: minmax(0, 1fr) 84px 72px; }
 .pl8-ledger .pl8-ledger-payer-col { display: none; }
 @media (min-width: 560px) {
-  .pl8-ledger .pl8-ledger-row { grid-template-columns: minmax(0, 1fr) 120px 84px; }
-  .pl8-ledger--each .pl8-ledger-row { grid-template-columns: minmax(0, 1fr) 120px 84px 72px; }
-  .pl8-ledger .pl8-ledger-payer-col { display: block; }
-  .pl8-ledger .pl8-ledger-payer-sub { display: none; }
+  .pl8-ledger--payers .pl8-ledger-row { grid-template-columns: minmax(0, 1fr) 120px 84px; }
+  .pl8-ledger--payers.pl8-ledger--each .pl8-ledger-row { grid-template-columns: minmax(0, 1fr) 120px 84px 72px; }
+  .pl8-ledger--payers .pl8-ledger-payer-col { display: block; }
+  .pl8-ledger--payers .pl8-ledger-payer-sub { display: none; }
 }
 `;
 
@@ -200,8 +201,13 @@ function SettleLines({ math }: { math: CostMath }) {
 function CostLedger({ math }: { math: CostMath }) {
   const { rows, total, perHead } = math;
   const hasPayers = rows.some((r) => r.paidBy);
+  const ledgerClass = [
+    'pl8-ledger',
+    perHead != null ? 'pl8-ledger--each' : '',
+    hasPayers ? 'pl8-ledger--payers' : '',
+  ].filter(Boolean).join(' ');
   return (
-    <div className={`pl8-ledger${perHead != null ? ' pl8-ledger--each' : ''}`} style={{ maxWidth: 620, margin: '0 auto' }}>
+    <div className={ledgerClass} style={{ maxWidth: 620, margin: '0 auto' }}>
       <style>{LEDGER_CSS}</style>
       <div
         style={{
@@ -215,7 +221,6 @@ function CostLedger({ math }: { math: CostMath }) {
         <div className="pl8-ledger-row" style={{ padding: '12px 0 8px', borderBottom: '1px solid var(--t-line)' }}>
           <span style={monoLabel}>Expense</span>
           {hasPayers && <span className="pl8-ledger-payer-col" style={monoLabel}>Paid by</span>}
-          {!hasPayers && <span className="pl8-ledger-payer-col" aria-hidden />}
           <span style={{ ...monoLabel, textAlign: 'right' }}>Total</span>
           {perHead != null && <span style={{ ...monoLabel, textAlign: 'right' }}>Each</span>}
         </div>
@@ -236,9 +241,11 @@ function CostLedger({ math }: { math: CostMath }) {
                 </span>
               )}
             </span>
-            <span className="pl8-ledger-payer-col" style={{ fontSize: 12.5, color: 'var(--t-ink-soft)' }}>
-              {r.paidBy || '—'}
-            </span>
+            {hasPayers && (
+              <span className="pl8-ledger-payer-col" style={{ fontSize: 12.5, color: 'var(--t-ink-soft)' }}>
+                {r.paidBy || '—'}
+              </span>
+            )}
             <span style={{ ...tabular, fontSize: 14, fontWeight: 600, color: 'var(--t-ink)', textAlign: 'right' }}>
               {formatUsd(r.amount)}
             </span>
@@ -254,7 +261,7 @@ function CostLedger({ math }: { math: CostMath }) {
           <span style={{ ...monoLabel, fontSize: 10.5, letterSpacing: '0.16em', color: 'var(--t-ink-soft)' }}>
             Together
           </span>
-          <span className="pl8-ledger-payer-col" aria-hidden />
+          {hasPayers && <span className="pl8-ledger-payer-col" aria-hidden />}
           <span
             style={{
               ...tabular,
