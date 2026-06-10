@@ -24,6 +24,13 @@ interface EditorClientProps {
   manifest: StoryManifest;
   siteSlug: string;
   names: [string, string];
+  /** Resolved server-side: 'owner' or the viewer's cohosts-table
+   *  role. Gates publish (owner-only) and locks viewers to
+   *  preview. Defaults to 'owner' for backward compat. */
+  viewerRole?: 'owner' | 'editor' | 'guest-manager' | 'viewer';
+  /** Session identity — drives realtime presence + collab. */
+  viewerEmail?: string | null;
+  viewerName?: string | null;
 }
 
 // Editor crash fallback — points the host at the dashboard so they
@@ -73,7 +80,7 @@ function EditorCrashFallback({ siteSlug }: { siteSlug: string }) {
   );
 }
 
-export default function EditorClient({ manifest, siteSlug, names }: EditorClientProps) {
+export default function EditorClient({ manifest, siteSlug, names, viewerRole = 'owner', viewerEmail, viewerName }: EditorClientProps) {
   const searchParams = useSearchParams();
   const view = searchParams.get('view');
 
@@ -86,7 +93,14 @@ export default function EditorClient({ manifest, siteSlug, names }: EditorClient
            carry only the legacy theme.colors contract; without this
            the editor canvas dropped their palette while the
            published site kept it. Fill-missing-only. */
-        <EditorRedesign manifest={hydrateManifestForRedesign(manifest)} siteSlug={siteSlug} names={names} />
+        <EditorRedesign
+          manifest={hydrateManifestForRedesign(manifest)}
+          siteSlug={siteSlug}
+          names={names}
+          viewerRole={viewerRole}
+          viewerEmail={viewerEmail ?? undefined}
+          viewerName={viewerName ?? undefined}
+        />
       )}
     </ErrorBoundary>
   );

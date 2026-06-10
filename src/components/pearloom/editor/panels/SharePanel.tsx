@@ -13,7 +13,7 @@
        blurb when pasted.
      - Co-host invite (unchanged from before). */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
 import { FGroup, FInput, SectionPanelShell } from './_section-atoms';
@@ -49,8 +49,33 @@ export function SharePanel({
   const prettyUrl = formatSiteDisplayUrl(siteSlug, '', occasion);
   const [copied, setCopied] = useState<string | null>(null);
   const [coHostEmail, setCoHostEmail] = useState('');
+  const [coHostRole, setCoHostRole] = useState<'editor' | 'guest-manager' | 'viewer'>('editor');
   const [coHostBusy, setCoHostBusy] = useState(false);
   const [coHostMsg, setCoHostMsg] = useState<string | null>(null);
+  /* Collaborator roster — active cohosts + pending invites for the
+     manage list below the composer. Owner-gated server-side. */
+  const [roster, setRoster] = useState<{
+    active: Array<{ email: string; role: string; joined_at?: string }>;
+    pending: Array<{ token: string; role: string; invited_email?: string | null; expires_at?: string }>;
+  } | null>(null);
+  const refreshRoster = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/sites/co-host?subdomain=${encodeURIComponent(siteSlug)}`);
+      if (!res.ok) return; // non-owners just don't see the list
+      setRoster(await res.json());
+    } catch { /* roster is a nicety */ }
+  }, [siteSlug]);
+  useEffect(() => { void refreshRoster(); }, [refreshRoster]);
+  const revoke = useCallback(async (body: { email?: string; token?: string }) => {
+    try {
+      await fetch('/api/sites/co-host', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteSlug, ...body }),
+      });
+      void refreshRoster();
+    } catch { /* refresh next open */ }
+  }, [siteSlug, refreshRoster]);
 
   const [a, b] = manifest.names ?? ['', ''];
   const date = manifest.logistics?.date ?? '';
@@ -119,7 +144,7 @@ export function SharePanel({
       const res = await fetch('/api/co-host/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteSlug, email: coHostEmail.trim() }),
+        body: JSON.stringify({ siteSlug, email: coHostEmail.trim(), role: coHostRole }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
@@ -128,6 +153,7 @@ export function SharePanel({
       }
       setCoHostMsg(`Invite sent to ${coHostEmail.trim()}.`);
       setCoHostEmail('');
+      void refreshRoster();
     } catch (e) {
       setCoHostMsg(pearErrorMessage(e, 'Couldn’t send the invite — try again?'));
     } finally {
@@ -375,7 +401,7 @@ export function SharePanel({
         </FGroup>
 
         {/* Co-host invite — extends edit access. */}
-        <FGroup label="Invite a co-host" hint="Send someone else access to edit this site. They’ll get an email with a magic link.">
+        <FGroup label="Invite a co-host" hint="They’ll get an email with a magic link. Editors can change everything except Publish; viewers can only look around.">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <FInput
               value={coHostEmail}
@@ -384,6 +410,25 @@ export function SharePanel({
               type="email"
               placeholder="partner@example.com"
             />
+            <div style={{ display: 'flex', gap: 5 }}>
+              {([['editor', 'Co-editor'], ['guest-manager', 'Guest manager'], ['viewer', 'Viewer']] as const).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setCoHostRole(id)}
+                  aria-pressed={coHostRole === id}
+                  style={{
+                    padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                    border: coHostRole === id ? '1px solid var(--ink)' : '1px solid var(--line)',
+                    background: coHostRole === id ? 'var(--ink)' : 'transparent',
+                    color: coHostRole === id ? 'var(--cream)' : 'var(--ink-soft)',
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
             <button
               type="button"
               onClick={inviteCoHost}
@@ -406,6 +451,31 @@ export function SharePanel({
                 padding: '6px 10px', borderRadius: 8,
               }}>
                 {coHostMsg}
+              </div>
+            )}
+            {/* Roster — who already has access + invites in flight. */}
+            {roster && (roster.active.length > 0 || roster.pending.length > 0) && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+                {roster.active.map((c) => (
+                  <div key={c.email} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 8, background: 'var(--cream-2)', fontSize: 11.5 }}>
+                    <span style={{ fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>{c.email}</span>
+                    <span style={{ color: 'var(--ink-muted)', flexShrink: 0 }}>{c.role}</span>
+                    <button type="button" onClick={() => void revoke({ email: c.email })} style={{ border: 'none', background: 'transparent', color: 'var(--ink-muted)', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+                      Remove
+                    </button>
+                  </div>
+                ))}
+                {roster.pending.map((inv) => (
+                  <div key={inv.token} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 8, border: '1px dashed var(--line)', fontSize: 11.5 }}>
+                    <span style={{ color: 'var(--ink-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>
+                      {inv.invited_email || 'Invite link'} · awaiting accept
+                    </span>
+                    <span style={{ color: 'var(--ink-muted)', flexShrink: 0 }}>{inv.role}</span>
+                    <button type="button" onClick={() => void revoke({ token: inv.token })} style={{ border: 'none', background: 'transparent', color: 'var(--ink-muted)', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+                      Cancel
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>

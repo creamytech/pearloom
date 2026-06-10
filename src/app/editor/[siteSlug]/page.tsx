@@ -57,13 +57,37 @@ export default async function EditorPage({ params }: Props) {
   const rawCreator = (siteConfig as unknown as Record<string, unknown>).creator_email as string | undefined;
   const storedCreator = (rawCreator ?? '').toLowerCase().trim();
 
+  // Co-host resolution — accepted collaborators (cohosts table)
+  // open the editor with their role; everyone else with a
+  // mismatched email still bounces to the dashboard. 'editor'
+  // edits + saves; 'viewer' / 'guest-manager' open read-only
+  // (server-side save gate in /api/sites enforces it regardless).
+  let viewerRole: 'owner' | 'editor' | 'guest-manager' | 'viewer' = 'owner';
   if (storedCreator && storedCreator !== sessionEmail) {
-    redirect('/dashboard');
+    try {
+      const { createClient } = await import('@supabase/supabase-js');
+      const { resolveViewerRole } = await import('@/lib/cohost-access');
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      );
+      const access = await resolveViewerRole(supabase, { subdomain: siteSlug }, sessionEmail);
+      if (!access.role || access.role === 'owner') redirect('/dashboard');
+      viewerRole = access.role;
+    } catch (err) {
+      // redirect() throws NEXT_REDIRECT — rethrow it; only genuine
+      // lookup failures fall through to the dashboard bounce.
+      if ((err as { digest?: string })?.digest?.startsWith('NEXT_REDIRECT')) throw err;
+      console.warn('[editor] co-host lookup failed:', err);
+      redirect('/dashboard');
+    }
   }
 
   // Self-heal cases (a) and (b): write the normalised creator_email
   // back to site_config so the dashboard's listing picks it up.
-  if (!rawCreator || rawCreator !== sessionEmail) {
+  // OWNERS ONLY — a co-host opening an orphaned site must never
+  // adopt it out from under the real host.
+  if (viewerRole === 'owner' && (!rawCreator || rawCreator !== sessionEmail)) {
     try {
       const { adoptSite } = await import('@/lib/db');
       await adoptSite(siteSlug, sessionEmail);
@@ -83,6 +107,9 @@ export default async function EditorPage({ params }: Props) {
       manifest={siteConfig.manifest}
       siteSlug={siteSlug}
       names={names}
+      viewerRole={viewerRole}
+      viewerEmail={sessionEmail}
+      viewerName={session.user.name ?? null}
     />
   );
 }
