@@ -65,6 +65,55 @@ export const authOptions: NextAuthOptions = {
       },
     }),
 
+    // ── Google One Tap / GIS popup ─────────────────────────────
+    // The stay-on-page sign-in: the GIS script (see
+    // components/auth/GoogleOneTap.tsx) hands us a signed ID token
+    // and we verify it server-side against Google. No redirect, no
+    // consent screen — the user never leaves Pearloom.
+    //
+    // Sessions minted this way carry NO Google access token (One
+    // Tap grants identity only), so Google-Photos import is
+    // unavailable until the user runs the full OAuth button — the
+    // same posture as email/password sessions.
+    CredentialsProvider({
+      id: 'google-onetap',
+      name: 'Google One Tap',
+      credentials: {
+        credential: { label: 'ID token', type: 'text' },
+      },
+      async authorize(credentials) {
+        const idToken = credentials?.credential;
+        const clientId = process.env.GOOGLE_CLIENT_ID;
+        if (!idToken || !clientId) return null;
+        try {
+          // Google validates the signature; we validate the claims.
+          const res = await fetch(
+            `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`,
+          );
+          if (!res.ok) return null;
+          const p = await res.json() as {
+            aud?: string; iss?: string; sub?: string; email?: string;
+            email_verified?: string | boolean; name?: string; picture?: string;
+            exp?: string;
+          };
+          if (p.aud !== clientId) return null;
+          if (p.iss !== 'https://accounts.google.com' && p.iss !== 'accounts.google.com') return null;
+          if (!(p.email_verified === true || p.email_verified === 'true')) return null;
+          if (!p.email || !p.sub) return null;
+          if (p.exp && Number(p.exp) * 1000 < Date.now()) return null;
+          return {
+            id: p.sub,
+            email: p.email.toLowerCase(),
+            name: p.name ?? p.email.split('@')[0],
+            image: p.picture,
+          };
+        } catch (err) {
+          console.error('[auth/google-onetap] verification failed:', err);
+          return null;
+        }
+      },
+    }),
+
     CredentialsProvider({
       id: 'credentials',
       name: 'Email',
@@ -160,12 +209,14 @@ export const authOptions: NextAuthOptions = {
               : Date.now() + 3600 * 1000,
           };
         }
-        // Credentials provider — no access token needed
-        return { ...token, provider: 'credentials' };
+        // Token-less providers (credentials, google-onetap, e2e) —
+        // keep the real provider id so the session can distinguish
+        // a One Tap Google identity from email/password.
+        return { ...token, provider: account.provider };
       }
 
-      // For credentials users, no token refresh needed
-      if (token.provider === 'credentials') return token;
+      // Only full Google OAuth sessions carry a refreshable token.
+      if (token.provider !== 'google') return token;
 
       // Return the token if it hasn't expired
       if (token.accessTokenExpires && Date.now() < token.accessTokenExpires) {
@@ -181,6 +232,22 @@ export const authOptions: NextAuthOptions = {
       session.error = token.error;
       session.provider = token.provider;
       return session;
+    },
+  },
+
+  events: {
+    /* Welcome email — first sign-in only. JWT strategy has no
+       isNewUser signal, so lib/email/welcome.ts dedupes against
+       the welcome_emails ledger. Fully fail-safe: a thrown error
+       here would break sign-in, so it never throws. */
+    async signIn({ user }) {
+      if (!user?.email) return;
+      try {
+        const { sendWelcomeEmailOnce } = await import('@/lib/email/welcome');
+        await sendWelcomeEmailOnce(user.email, user.name);
+      } catch (err) {
+        console.warn('[auth] welcome email hook failed (non-fatal):', err);
+      }
     },
   },
 

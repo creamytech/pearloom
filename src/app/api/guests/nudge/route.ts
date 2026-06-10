@@ -19,6 +19,10 @@ import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { buildNudgeEmail } from '@/lib/email/brand-emails';
+import { emailThemeFromSuite } from '@/lib/email-sequences';
+import { suiteThemeFromManifest } from '@/lib/suite/theme';
+import type { StoryManifest } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -105,6 +109,12 @@ export async function POST(req: NextRequest) {
   const couple = names.length >= 2 ? `${names[0]} & ${names[1]}` : (names[0] ?? 'us');
   const subjectLine = subject || `A nudge from ${couple}`;
 
+  /* The nudge wears the couple's site palette + faces — same suite
+     contract as the save-the-date and RSVP confirmation emails. */
+  const emailTheme = site.ai_manifest
+    ? emailThemeFromSuite(suiteThemeFromManifest(site.ai_manifest as unknown as StoryManifest))
+    : undefined;
+
   // Dry-run when no Resend key — still stamp email_sent_at so the
   // dashboard timeline reflects the host's intent.
   const resend = resendKey ? new Resend(resendKey) : null;
@@ -120,7 +130,7 @@ export async function POST(req: NextRequest) {
       const cta = r.guest_token
         ? `${baseUrl}/g/${r.guest_token}`
         : `${baseUrl}/sites/${site.subdomain}#rsvp`;
-      const html = nudgeHtml({ couple, body: bodyText, ctaUrl: cta, recipientName: r.name });
+      const { html } = buildNudgeEmail({ couple, bodyText, ctaUrl: cta, recipientName: r.name, theme: emailTheme });
 
       if (resend && r.email) {
         await resend.emails.send({
@@ -149,19 +159,4 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ ok: true, sent, failed, errors: errors.slice(0, 10) });
 }
 
-function nudgeHtml(args: { couple: string; body: string; ctaUrl: string; recipientName: string }): string {
-  const { couple, body, ctaUrl, recipientName } = args;
-  const escapedBody = body.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const greeting = recipientName ? recipientName.split(/\s+/)[0] : '';
-  return `<!doctype html>
-<html><body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px 24px; color: #0E0D0B; background: #FBF7EE; line-height: 1.6;">
-  <div style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 11px; color: #C6703D; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px;">From ${couple}</div>
-  ${greeting ? `<p style="margin: 0 0 12px; font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 22px; color: #0E0D0B;">Hi ${greeting},</p>` : ''}
-  <p style="font-size: 15px; margin: 0 0 24px; color: #3A332C; white-space: pre-wrap;">${escapedBody}</p>
-  <p style="margin: 0 0 28px;">
-    <a href="${ctaUrl}" style="display: inline-block; padding: 12px 22px; background: #0E0D0B; color: #FBF7EE; border-radius: 999px; font-weight: 600; font-size: 14px; text-decoration: none;">Tap to RSVP →</a>
-  </p>
-  <hr style="border: 0; border-top: 1px solid rgba(14,13,11,0.1); margin: 32px 0 16px;"/>
-  <p style="font-size: 11px; color: #8a8671; margin: 0;">Sent via Pearloom by ${couple}.</p>
-</body></html>`;
-}
+

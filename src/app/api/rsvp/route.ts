@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import { buildHostRsvpNotificationEmail } from '@/lib/email/brand-emails';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
@@ -116,31 +117,30 @@ export async function POST(req: NextRequest) {
     const notifEmail = process.env.NOTIFICATION_EMAIL;
     const resendKey = process.env.RESEND_API_KEY;
     if (notifEmail && resendKey) {
-      const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       const resend = new Resend(resendKey);
       const fromEmail = process.env.EMAIL_FROM || 'noreply@pearloom.com';
-      const emoji = status === 'attending' ? '🎉' : status === 'declined' ? '😢' : '⏳';
-      const statusLabel = status === 'attending' ? 'is coming!' : status === 'declined' ? 'can\'t make it' : 'is pending';
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
+      const rows: Array<{ label: string; value: string }> = [
+        { label: 'Guest', value: String(guestName) },
+        { label: 'Status', value: String(status) },
+        ...(email ? [{ label: 'Email', value: String(email) }] : []),
+        ...(plusOne ? [{ label: 'Plus one', value: String(plusOneName || 'Yes') }] : []),
+        ...(mealPreference ? [{ label: 'Meal', value: String(mealPreference) }] : []),
+        ...(songRequest ? [{ label: 'Song request', value: String(songRequest) }] : []),
+        ...(message ? [{ label: 'Message', value: String(message) }] : []),
+      ];
+      const notif = buildHostRsvpNotificationEmail({
+        guestName: String(guestName).slice(0, 100),
+        attending: status === 'attending',
+        siteLabel: String(siteId).slice(0, 60),
+        rows,
+        dashboardUrl: `${baseUrl}/dashboard/rsvps`,
+      });
       resend.emails.send({
         from: fromEmail,
         to: notifEmail,
-        subject: `${emoji} ${String(guestName).slice(0, 100)} ${statusLabel} — ${String(siteId).slice(0, 60)}`,
-        html: `
-          <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:2rem">
-            <h2 style="margin:0 0 0.5rem">${emoji} New RSVP</h2>
-            <p style="margin:0 0 1rem;color:#666">Someone responded to <strong>${esc(String(siteId))}</strong></p>
-            <table style="width:100%;border-collapse:collapse;font-size:0.9rem">
-              <tr><td style="padding:0.4rem 0;color:#999;width:140px">Guest</td><td><strong>${esc(String(guestName))}</strong></td></tr>
-              <tr><td style="padding:0.4rem 0;color:#999">Status</td><td style="text-transform:capitalize"><strong>${esc(String(status))}</strong></td></tr>
-              ${email ? `<tr><td style="padding:0.4rem 0;color:#999">Email</td><td>${esc(String(email))}</td></tr>` : ''}
-              ${plusOne ? `<tr><td style="padding:0.4rem 0;color:#999">+1</td><td>${esc(String(plusOneName || 'Yes'))}</td></tr>` : ''}
-              ${mealPreference ? `<tr><td style="padding:0.4rem 0;color:#999">Meal</td><td>${esc(String(mealPreference))}</td></tr>` : ''}
-              ${songRequest ? `<tr><td style="padding:0.4rem 0;color:#999">Song request</td><td style="font-style:italic">${esc(String(songRequest))}</td></tr>` : ''}
-              ${message ? `<tr><td style="padding:0.4rem 0;color:#999">Message</td><td style="font-style:italic">"${esc(String(message))}"</td></tr>` : ''}
-            </table>
-            <p style="margin:1.5rem 0 0;font-size:0.8rem;color:#aaa">Sent by Pearloom · <a href="${esc(process.env.NEXT_PUBLIC_SITE_URL || '')}" style="color:#5C6B3F">pearloom.com</a></p>
-          </div>
-        `,
+        subject: notif.subject,
+        html: notif.html,
       }).catch((e: unknown) => console.error('[RSVP] Resend error:', e));
     }
 
