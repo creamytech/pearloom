@@ -1947,15 +1947,23 @@ export function WizardV8() {
         rsvpDeadline: st.rsvpDeadline,
       }) as unknown as Record<string, unknown>;
 
+      // `create: true` — the server guarantees a FREE slug. If the
+      // derived one (typed, or names-fallback) is already taken — by
+      // anyone, including this host's own earlier site — the server
+      // picks the next available variant and returns it. Without
+      // this, a second site with the same names landed on the same
+      // slug and silently overwrote the first.
       const res = await fetch('/api/sites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subdomain: derivedSubdomain, manifest, names: submitNames }),
+        body: JSON.stringify({ subdomain: derivedSubdomain, manifest, names: submitNames, create: true }),
       });
+      const resData = await res.json().catch(() => null);
       if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error ?? `Failed to create site (${res.status})`);
+        throw new Error(resData?.error ?? `Failed to create site (${res.status})`);
       }
+      const finalSubdomain: string =
+        (typeof resData?.subdomain === 'string' && resData.subdomain) || derivedSubdomain;
       // Invalidate the shared sites cache so the dashboard renders
       // this freshly-created site the next time the user lands on it.
       try {
@@ -1971,10 +1979,10 @@ export function WizardV8() {
         // sequence exactly once for this freshly-woven site.
         try {
           const { armFirstPressing } = await import('@/components/pearloom/redesign/FirstPressing');
-          armFirstPressing(derivedSubdomain);
+          armFirstPressing(finalSubdomain);
         } catch {}
       }
-      router.push(`/editor/${derivedSubdomain}`);
+      router.push(`/editor/${finalSubdomain}`);
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Something went wrong');
     } finally {
@@ -2410,7 +2418,8 @@ export function WizardV8() {
                         />
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 6 }}>
-                        We&apos;ll derive this from your names if you leave it empty.
+                        We&apos;ll derive this from your names if you leave it empty —
+                        and if a link is already taken, we&apos;ll use the next available one.
                       </div>
                     </div>
                   </div>
