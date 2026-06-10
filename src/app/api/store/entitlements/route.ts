@@ -17,6 +17,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getUserEntitlements } from '@/lib/theme-store/entitlements';
 import { FREE_PACK_IDS } from '@/lib/theme-store/packs';
+import { getPlanWithLimitsForEmail, canonicalPlan, planMarketingLabel } from '@/lib/plan-gate';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,6 +31,7 @@ export async function GET() {
 
     const entitlements = await getUserEntitlements(userEmail);
     const ownedPackIds = Array.from(new Set(entitlements.map((e) => e.packId)));
+    const { plan } = await getPlanWithLimitsForEmail(userEmail);
 
     return NextResponse.json({
       ok: true,
@@ -38,6 +40,11 @@ export async function GET() {
       // distinguish implicit ownership from real purchases
       // without re-deriving from the catalog.
       freePackIds: FREE_PACK_IDS,
+      // Plan for host-facing chrome (sidebar strip, settings
+      // badge). `plan` is canonical (free/pro/premium); the
+      // label is the marketed name (Journal/Atelier/Legacy).
+      plan: canonicalPlan(plan),
+      planLabel: planMarketingLabel(plan),
     });
   } catch (err) {
     console.error('[api/store/entitlements] error:', err);
@@ -47,6 +54,8 @@ export async function GET() {
       ok: true,
       packIds: FREE_PACK_IDS,
       freePackIds: FREE_PACK_IDS,
+      plan: 'free',
+      planLabel: 'Journal',
       degraded: true,
     });
   }

@@ -17,6 +17,7 @@ import { useIsInsideShell } from './ShellPersistentLayout';
 import { NotificationBell } from './NotificationBell';
 import { useDashDrawer } from './useDashDrawer';
 import { useUserSettings } from './UserSettingsModal';
+import { usePlan } from './usePlan';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
 
 interface DashNavItem {
@@ -135,6 +136,7 @@ export function DashSidebar({ active }: { active?: string }) {
   const name = session?.user?.name ?? 'Guest';
   const email = session?.user?.email ?? '';
   const initial = (name.trim()[0] ?? 'P').toUpperCase();
+  const plan = usePlan();
 
   // Unread-whispers badge — counts whispers delivered but not yet
   // read across all of the user's sites. Cheap endpoint, 30s refresh.
@@ -265,11 +267,11 @@ export function DashSidebar({ active }: { active?: string }) {
               sidebar bottom. */}
           <Pear size={26} tone="sage" />
           <div style={{ flex: 1, minWidth: 0, fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.3 }}>
-            <strong style={{ color: 'var(--ink)' }}>Evergreen</strong>
-            <span style={{ color: 'var(--ink-muted)', marginLeft: 4 }}>· trial</span>
+            <strong style={{ color: 'var(--ink)' }}>{plan.label}</strong>
+            <span style={{ color: 'var(--ink-muted)', marginLeft: 4 }}>· plan</span>
           </div>
           <Link
-            href="/dashboard/help"
+            href="/dashboard/profile"
             style={{
               fontSize: 11,
               fontWeight: 600,
@@ -279,7 +281,7 @@ export function DashSidebar({ active }: { active?: string }) {
               borderRadius: 6,
             }}
           >
-            View
+            {plan.plan === 'free' ? 'Upgrade' : 'View'}
           </Link>
         </div>
 

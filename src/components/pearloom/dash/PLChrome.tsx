@@ -32,6 +32,8 @@ import { parseLocalDate } from '@/lib/date-utils';
 import { Icon, Pear, Sprig } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
+import { useIsInsideShell } from './ShellPersistentLayout';
+import { usePlan } from './usePlan';
 
 /* ─────────────────────────────────────────────────────────────────────
    Nav model — mirrors the prototype's PL_NAV exactly, mapped to the
@@ -86,6 +88,7 @@ export function PLSidebar({ active }: { active?: string }) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { site } = useSelectedSite();
+  const plan = usePlan();
   const resolvedActive = active ?? plActiveFromPath(pathname);
 
   const celebrationLabel = site ? siteDisplayName(site) : (session?.user?.name ?? 'Your celebration');
@@ -216,10 +219,10 @@ export function PLSidebar({ active }: { active?: string }) {
       >
         <Pear size={18} tone="sage" shadow={false} />
         <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--sage-deep)' }}>
-          Evergreen · trial
+          {plan.label} · plan
         </span>
         <Link
-          href="/dashboard/help"
+          href="/dashboard/profile"
           style={{
             marginLeft: 'auto',
             fontSize: 11.5,
@@ -228,7 +231,7 @@ export function PLSidebar({ active }: { active?: string }) {
             textDecoration: 'none',
           }}
         >
-          View
+          {plan.plan === 'free' ? 'Upgrade' : 'View'}
         </Link>
       </div>
     </aside>
@@ -663,6 +666,11 @@ export function PLChrome({
   // the shell's DashSidebar drawer, which already provides nav).
   // Hide it and slim the main gutters. Desktop untouched.
   const isNarrow = useIsMobile(960);
+  // Inside the (shell) layout the DashSidebar is already mounted —
+  // rendering PLSidebar too nests a second full nav column inside
+  // the content area. Auto-suppress regardless of the prop.
+  const insideShell = useIsInsideShell();
+  const showSidebar = sidebar && !isNarrow && !insideShell;
   return (
     <div
       className="pl8 pl8-pl-chrome"
@@ -676,7 +684,7 @@ export function PLChrome({
       }}
     >
       {atmosphere && <PLAtmosphere />}
-      {sidebar && !isNarrow && <PLSidebar active={active} />}
+      {showSidebar && <PLSidebar active={active} />}
       <main
         style={{
           flex: 1,

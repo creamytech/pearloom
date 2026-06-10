@@ -28,6 +28,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { DashLayout } from '../dash/DashShell';
 import { Icon, Pear } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
@@ -61,6 +62,7 @@ function stageFromDaysUntil(daysUntil: number | null): Stage {
 // ─────────────────────────────────────────────────────────────
 export function WelcomeHome() {
   const { site } = useSelectedSite();
+  const { data: session } = useSession();
   const [insights, setInsights] = useState<GuestInsight[] | null>(null);
   const [guests, setGuests] = useState<Guest[] | null>(null);
 
@@ -107,7 +109,10 @@ export function WelcomeHome() {
     : null;
   const stage = stageFromDaysUntil(daysUntil);
   const namesArr = (site?.names ?? []).filter(Boolean) as string[];
-  const firstName = namesArr[0] ?? 'friend';
+  // Greet by the celebration's honoree name; before a site exists,
+  // fall back to the signed-in user's first name, then 'friend'.
+  const sessionFirstName = (session?.user?.name ?? '').trim().split(/\s+/)[0] || null;
+  const firstName = namesArr[0] ?? sessionFirstName ?? 'friend';
   const occasion = site?.occasion ?? 'wedding';
   const editorHref = site?.domain ? `/editor/${site.domain}` : '/dashboard/event';
   const liveHref = site?.domain ? buildSiteUrl(site.domain, '', undefined, occasion) : '#';

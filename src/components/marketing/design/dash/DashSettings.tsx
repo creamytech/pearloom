@@ -12,6 +12,7 @@ import { Pear, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, SectionTitle, btnInk, btnGhost, btnMini } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PLAtmosphere } from '@/components/pearloom/dash/PLChrome';
+import { usePlan } from '@/components/pearloom/dash/usePlan';
 import { useUserPrefs, useUserSites, type AutonomyKey, type PearVoice } from './hooks';
 
 type Section = 'profile' | 'pear' | 'domain' | 'privacy' | 'billing' | 'export' | 'danger';
@@ -30,6 +31,7 @@ export function DashSettings() {
   const { data: session } = useSession();
   const { prefs, save, loading, error } = useUserPrefs();
   const { sites } = useUserSites();
+  const plan = usePlan();
   const [section, setSection] = useState<Section>('profile');
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
 
@@ -260,7 +262,7 @@ export function DashSettings() {
                         borderRadius: 999,
                       }}
                     >
-                      Bloom tier
+                      {plan.label} plan
                     </span>
                     <span
                       style={{
@@ -627,7 +629,7 @@ export function DashSettings() {
                     letterSpacing: '-0.025em',
                   }}
                 >
-                  Journal
+                  {plan.label}
                   <br />
                   <span
                     style={{
@@ -636,7 +638,11 @@ export function DashSettings() {
                       fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
                     }}
                   >
-                    free, forever.
+                    {plan.plan === 'premium'
+                      ? 'every event, covered.'
+                      : plan.plan === 'pro'
+                        ? 'yours, once.'
+                        : 'free, forever.'}
                   </span>
                 </div>
                 <p
@@ -648,9 +654,11 @@ export function DashSettings() {
                     lineHeight: 1.55,
                   }}
                 >
-                  Your first site is free forever. Upgrade to Atelier ($19 once per celebration) to
-                  unlock every block + the day-of room. Legacy ($129 lifetime) covers every future
-                  event.
+                  {plan.plan === 'premium'
+                    ? 'Legacy covers every future event — every block, every theme pack on the premium shelf, the Signature shelf included, and the day-of room, for life.'
+                    : plan.plan === 'pro'
+                      ? 'Atelier unlocks every block, the premium theme shelf, and the day-of room for this celebration. Legacy ($129 lifetime) covers every future event and adds the Signature shelf.'
+                      : 'Your first site is free forever. Upgrade to Atelier ($19 once per celebration) to unlock every block + the day-of room. Legacy ($129 lifetime) covers every future event.'}
                 </p>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <a

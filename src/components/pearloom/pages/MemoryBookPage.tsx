@@ -18,7 +18,7 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { Icon } from '../motifs';
-import { PLChrome, PLHead, PLTabs } from '../dash/PLChrome';
+import { PLChrome, PLHead } from '../dash/PLChrome';
 
 type Chapter = { id?: string; title: string; subtitle?: string; description: string };
 type Memory = { guest_name: string; prompt: string; response: string };
@@ -284,13 +284,6 @@ export function MemoryBookPage() {
   return (
     <PLChrome active="memory" maxWidth={1080}>
       <div className="pl8-no-print">
-        <PLTabs
-          tabs={[
-            { label: 'Keepsakes', href: '/dashboard/keepsakes' },
-            { label: 'Book' },
-          ]}
-          active={1}
-        />
         <PLHead
           align="center"
           pre="The memory book"

@@ -226,3 +226,21 @@ export function tierLabel(tier: string): string {
   if (canonical === 'pro') return 'Pro';
   return 'Free';
 }
+
+/**
+ * Marketed plan name (the pricing-page vocabulary: Journal /
+ * Atelier / Legacy) for any plan alias. Use this for host-facing
+ * chrome (plan strips, settings badges); use `tierLabel` for
+ * internal/diagnostic copy.
+ */
+export function planMarketingLabel(plan: string): 'Journal' | 'Atelier' | 'Legacy' {
+  const canonical = CANONICAL[plan.toLowerCase()] ?? 'free';
+  if (canonical === 'premium') return 'Legacy';
+  if (canonical === 'pro') return 'Atelier';
+  return 'Journal';
+}
+
+/** Canonical plan id (`free` / `pro` / `premium`) for any alias. */
+export function canonicalPlan(plan: string): 'free' | 'pro' | 'premium' {
+  return (CANONICAL[plan.toLowerCase()] ?? 'free') as 'free' | 'pro' | 'premium';
+}

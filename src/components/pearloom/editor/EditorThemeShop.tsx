@@ -213,9 +213,9 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
                 <Icon name="eye" size={15} color={tpTier === 'Signature' ? 'var(--gold)' : 'var(--lavender-ink)'}/>
                 You&rsquo;re previewing <b>{tp.name}</b> · <span style={{ opacity: 0.7 }}>{tpTier}</span>
               </span>
-              <span style={{ fontSize: 12, opacity: 0.75 }}>Included with <b>Bloom</b>, or unlock once.</span>
+              <span style={{ fontSize: 12, opacity: 0.75 }}>Included with <b>{tpTier === 'Signature' ? 'Legacy' : 'Atelier'}</b>, or unlock once.</span>
               <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-                <button onClick={() => { try { window.dispatchEvent(new CustomEvent('pl-open-upgrade')); } catch (e) {} }} className="shopbtn" style={{ background: 'transparent', color: tpTier === 'Signature' ? '#EDE7DA' : 'var(--ink)', border: '1px solid currentColor' }}>Go Bloom</button>
+                <button onClick={() => { try { window.dispatchEvent(new CustomEvent('pl-open-upgrade')); } catch (e) {} }} className="shopbtn" style={{ background: 'transparent', color: tpTier === 'Signature' ? '#EDE7DA' : 'var(--ink)', border: '1px solid currentColor' }}>{tpTier === 'Signature' ? 'Go Legacy' : 'Go Atelier'}</button>
                 <button onClick={() => unlock(tp)} disabled={busyId === tp.id} className="shopbtn" style={{ background: tpTier === 'Signature' ? 'var(--gold)' : 'var(--ink)', color: tpTier === 'Signature' ? '#231F33' : 'var(--cream)' }}>{busyId === tp.id ? <span className="shop-spin"/> : <>Unlock ${price}</>}</button>
               </div>
             </div>

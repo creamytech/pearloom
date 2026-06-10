@@ -17,8 +17,8 @@ import { TwoTapThanks } from '../dash/TwoTapThanks';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { getEventType } from '@/lib/event-os/event-types';
 import { getKeepsakeTools } from '@/lib/event-os/dashboard-presets';
-import { Icon, Pear } from '../motifs';
-import { PLChrome, PLHead, PLTabs, PLCard } from '../dash/PLChrome';
+import { Icon } from '../motifs';
+import { PLChrome, PLHead, PLCard } from '../dash/PLChrome';
 
 function KeepsakeCard({
   title,
@@ -94,7 +94,6 @@ export function KeepsakesPage() {
 
   return (
     <PLChrome active="memory" maxWidth={1080}>
-      <PLTabs tabs={[{ label: 'Keepsakes' }, { label: 'Book', href: '/dashboard/memory-book' }]} active={0} />
       <PLHead
         align="center"
         pre="After the celebration"
@@ -103,63 +102,8 @@ export function KeepsakesPage() {
         sub={subtitle}
       />
 
-      {/* Two-tap thanks editorial intro card — peach-tinted */}
-      <PLCard tone="peach" style={{ marginBottom: 18 }}>
-        <div
-          style={{
-            fontSize: 10.5,
-            fontWeight: 700,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: 'var(--peach-ink)',
-            marginBottom: 4,
-          }}
-        >
-          Two-tap thanks
-        </div>
-        <h2
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 24,
-            fontWeight: 600,
-            margin: '0 0 10px',
-            color: 'var(--ink)',
-          }}
-        >
-          Drafted from <span style={{ fontStyle: 'italic' }}>what they did</span>.
-        </h2>
-        <div
-          style={{
-            display: 'flex',
-            gap: 10,
-            alignItems: 'center',
-            padding: '11px 13px',
-            borderRadius: 11,
-            background: 'var(--card, var(--cream-2))',
-          }}
-        >
-          <span
-            aria-hidden
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: 8,
-              background: 'var(--lavender-bg)',
-              display: 'grid',
-              placeItems: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <Pear size={16} tone="sage" shadow={false} />
-          </span>
-          <span style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>
-            Tap a guest → see what they did (memory, song, attendance) → tap Draft → Pear writes a note
-            grounded in their specific contribution. Copy and send. Next.
-          </span>
-        </div>
-      </PLCard>
-
-      {/* Headline two-tap composer (real data wiring kept intact) */}
+      {/* Headline two-tap composer — renders its own intro header,
+          so no editorial card above it. */}
       <div style={{ marginBottom: 22 }}>
         <TwoTapThanks />
       </div>
