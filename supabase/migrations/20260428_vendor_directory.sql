@@ -30,6 +30,26 @@ create table if not exists public.vendors (
   created_at timestamptz not null default now()
 );
 
+-- 20260416_event_os.sql ALSO creates a `vendors` table (an earlier,
+-- different shape) — on a fresh database its version wins and this
+-- file's CREATE IF NOT EXISTS no-ops, so the directory columns the
+-- indexes + policies below depend on never exist. Backfill them
+-- column-by-column; every ALTER is a no-op wherever this file's own
+-- CREATE (or production's dashboard-era table) already has them.
+alter table public.vendors add column if not exists slug text;
+alter table public.vendors add column if not exists region text;
+alter table public.vendors add column if not exists palettes text[] default array[]::text[];
+alter table public.vendors add column if not exists vibes text[] default array[]::text[];
+alter table public.vendors add column if not exists hero_image_url text;
+alter table public.vendors add column if not exists website_url text;
+alter table public.vendors add column if not exists booking_url text;
+alter table public.vendors add column if not exists contact_phone text;
+alter table public.vendors add column if not exists price_band text;
+alter table public.vendors add column if not exists rating numeric(2, 1);
+alter table public.vendors add column if not exists review_count integer default 0;
+alter table public.vendors add column if not exists featured boolean default false;
+alter table public.vendors add column if not exists active boolean default true;
+
 create index if not exists vendors_category_idx on public.vendors (category);
 create index if not exists vendors_region_idx on public.vendors (region);
 create index if not exists vendors_active_idx on public.vendors (active);
