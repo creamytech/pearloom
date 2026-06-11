@@ -1782,6 +1782,24 @@ export function WizardV8() {
     setBusy(true);
     setErr(null);
     setGenStep('starting…');
+    /* ── Make-ready choreography ─────────────────────────────
+       The skeleton (no photos) and pre-warmed-cache paths finish
+       in a couple of seconds — the generating screen flashed and
+       the moment read as cheap after an eight-step investment.
+       Each path now declares a MINIMUM press duration and (for
+       the fast paths) a measured label script; the route to the
+       editor waits for whichever finishes last: the real work or
+       the performance. The AI path is barely affected — its real
+       stream almost always outlasts the floor. */
+    const pressStartedAt = Date.now();
+    let minPressMs = 4500;
+    const scriptTimers: Array<ReturnType<typeof setTimeout>> = [];
+    const pressScript = (labels: string[], dwell = 1300): number => {
+      labels.forEach((label, i) => {
+        scriptTimers.push(setTimeout(() => setGenStep(label), i * dwell));
+      });
+      return labels.length * dwell;
+    };
     try {
       // Belt-and-braces: solo / group occasions carry exactly one
       // name into generation + the saved manifest. Placeholders
@@ -1831,16 +1849,19 @@ export function WizardV8() {
         const liveSig = manifestCookInput ? buildManifestSignature(manifestCookInput.ctx) : null;
         const cachedPrewarm = liveSig ? readCookedManifest(liveSig) : null;
         if (cachedPrewarm) {
-          setGenStep('Pear already prepared this — opening the editor…');
+          /* Pear cooked this in the background while the host
+             finished the steps — honest about the head start, but
+             still a beat of theatre instead of a 50ms flash. */
+          minPressMs = pressScript([
+            'Pear already prepared this one on the bench…',
+            'Unrolling the proof…',
+          ], 1400) + 500;
           // Still fold in any cooked decor that may have arrived
           // separately so the editor opens fully populated.
           if (cookSig) {
             foldCookedDecorInto(cachedPrewarm as unknown as Record<string, unknown>, readCookedDecor(cookSig));
           }
           manifest = cachedPrewarm as unknown as Record<string, unknown>;
-          // Tiny visual settle so the GeneratingScreen doesn't
-          // flash for 50ms — feels like real progress.
-          await new Promise((r) => setTimeout(r, 600));
           // Skip the rest of the pipeline; jump to the publish path.
         } else {
         // Full AI pipeline — stream generate returns a populated
@@ -1979,6 +2000,16 @@ export function WizardV8() {
       } else {
         // Skeleton path — no photos → no AI pass. Seed what we can
         // so the editor opens with enough for the user to write.
+        // The work below takes ~1s; the make-ready script gives the
+        // press its full run (GeneratingScreen's PRESS_STAGES tick
+        // along with these labels).
+        minPressMs = pressScript([
+          'Setting your names in type…',
+          'Mixing the palette…',
+          'Cutting the component kit…',
+          'Laying out the sections…',
+          'Pressing the proof…',
+        ]) + 600;
         const seedTagline = st.templateId ? TEMPLATES_BY_ID[st.templateId]?.tagline : generatedTagline || undefined;
         manifest = {
           occasion: st.occasion,
@@ -2097,8 +2128,15 @@ export function WizardV8() {
           armFirstPressing(finalSubdomain);
         } catch {}
       }
+      /* Hold the curtain until the press has had its minimum run —
+         whichever finished last, the work or the performance. */
+      const remaining = minPressMs - (Date.now() - pressStartedAt);
+      if (remaining > 0) await new Promise((r) => setTimeout(r, remaining));
       router.push(`/editor/${finalSubdomain}`);
     } catch (e) {
+      // A failed run must not keep narrating the script over the
+      // error state.
+      scriptTimers.forEach(clearTimeout);
       setErr(e instanceof Error ? e.message : 'Something went wrong');
     } finally {
       setBusy(false);

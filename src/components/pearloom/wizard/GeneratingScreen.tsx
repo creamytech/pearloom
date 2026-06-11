@@ -76,6 +76,42 @@ const STAGES: Stage[] = [
   },
 ];
 
+/* The no-photos "make-ready" script — the skeleton path has no AI
+   passes to narrate, so the press itself is the story. Labels are
+   driven by WizardV8's pressScript at a measured cadence. */
+const PRESS_STAGES: Stage[] = [
+  {
+    id: 'type',
+    label: 'Setting your names in type',
+    hint: 'Fraunces italic, pressed into the paper.',
+    matches: [/names in type/i],
+  },
+  {
+    id: 'palette',
+    label: 'Mixing the palette',
+    hint: 'Your colors pulled across paper, ink, and accent.',
+    matches: [/mixing the palette/i],
+  },
+  {
+    id: 'kit',
+    label: 'Cutting the component kit',
+    hint: 'Cards, rows, and seams in the look you chose.',
+    matches: [/component kit/i],
+  },
+  {
+    id: 'sections',
+    label: 'Laying out the sections',
+    hint: 'Schedule, RSVP, travel — seeded from your answers.',
+    matches: [/laying out the sections/i],
+  },
+  {
+    id: 'press',
+    label: 'Pressing the proof',
+    hint: 'One pass through the press, then the editor opens.',
+    matches: [/pressing the proof|already prepared|unrolling/i],
+  },
+];
+
 interface Props {
   /** Current server-provided label, e.g. "Pear is reading your photos…". */
   genStep: string;
@@ -83,16 +119,19 @@ interface Props {
   photoCount: number;
 }
 
-function stageIndexFor(step: string): number {
+function stageIndexFor(step: string, stages: Stage[]): number {
   if (!step) return 0;
-  for (let i = STAGES.length - 1; i >= 0; i--) {
-    if (STAGES[i].matches.some((r) => r.test(step))) return i;
+  for (let i = stages.length - 1; i >= 0; i--) {
+    if (stages[i].matches.some((r) => r.test(step))) return i;
   }
   return 0;
 }
 
 export function GeneratingScreen({ genStep, photoCount }: Props) {
-  const stageIdx = useMemo(() => stageIndexFor(genStep), [genStep]);
+  /* Photo runs narrate the real AI passes; no-photo runs get the
+     make-ready script (there's no story pass to describe). */
+  const stages = photoCount > 0 ? STAGES : PRESS_STAGES;
+  const stageIdx = useMemo(() => stageIndexFor(genStep, stages), [genStep, stages]);
 
   return (
     <div
@@ -146,7 +185,7 @@ export function GeneratingScreen({ genStep, photoCount }: Props) {
               }}
             >
               <Sparkle size={12} color="var(--gold)" />
-              Weaving step {stageIdx + 1} of {STAGES.length}
+              Weaving step {stageIdx + 1} of {stages.length}
             </div>
           </Reveal>
 
