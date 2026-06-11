@@ -181,7 +181,6 @@ export function SigninV8({
   const errorKey = params.error;
   const { status } = useSession();
   const router = useRouter();
-  const [keep, setKeep] = useState(true);
   const [showPw, setShowPw] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -445,37 +444,6 @@ export function SigninV8({
                     </button>
                   </div>
 
-                  <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      fontSize: 13,
-                      marginBottom: 24,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setKeep((v) => !v)}
-                      aria-pressed={keep}
-                      aria-label="Keep me signed in"
-                      style={{
-                        width: 18,
-                        height: 18,
-                        borderRadius: 5,
-                        background: keep ? 'var(--sage-deep)' : 'var(--card)',
-                        border: `1.5px solid ${keep ? 'var(--sage-deep)' : 'var(--line)'}`,
-                        display: 'grid',
-                        placeItems: 'center',
-                        padding: 0,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {keep && <Icon name="check" size={12} color="#fff" strokeWidth={3} />}
-                    </button>
-                    Keep me signed in
-                  </label>
 
                   {emailError && (
                     <p style={{ margin: '0 0 12px', fontSize: 12.5, color: '#7A2D2D' }}>{emailError}</p>

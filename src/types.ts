@@ -341,6 +341,11 @@ export interface StoryManifest {
    *  - 'quiet': single thread + name, gentle fade.
    *  - 'off': the site opens plain. */
   arrival?: 'auto' | 'envelope' | 'quiet' | 'off';
+  /** Site-level privacy. When password is set, PublishedSiteShell
+   *  mounts the password gate before the site renders (client-side
+   *  gate — parity with the legacy PasswordGate). Edited in the
+   *  editor's Privacy panel; DashSettings deep-links ?jump=privacy. */
+  privacyGate?: { password?: string };
   /** Per-icon name override map. Drag any icon from the asset
    *  library onto a canvas glyph to write
    *  `iconOverrides[<originalName>] = <newName>`. The renderer

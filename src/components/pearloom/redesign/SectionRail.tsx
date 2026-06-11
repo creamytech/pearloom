@@ -145,6 +145,7 @@ const TOOLS: SectionDef[] = [
   { id: 'guests',      label: 'Guests',           icon: 'user',       desc: 'Your guest list' },
   { id: 'savetheDate', label: 'Save the date',    icon: 'calendar',   desc: 'Pre-invite teaser' },
   { id: 'share',       label: 'Share',            icon: 'link',       desc: 'Link, QR, preview' },
+  { id: 'privacy',     label: 'Privacy',          icon: 'lock',       desc: 'Password / public' },
   { id: 'dayof',       label: 'Day-of',           icon: 'sparkles',   desc: 'Live broadcasts' },
   { id: 'toasts',      label: 'Toasts & speeches', icon: 'mic',       desc: 'Drafted with Pear' },
   { id: 'memorial',    label: 'Memorial',         icon: 'heart-icon', desc: 'Obituary + program' },

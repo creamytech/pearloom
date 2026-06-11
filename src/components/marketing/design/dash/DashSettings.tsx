@@ -580,7 +580,7 @@ export function DashSettings() {
                 {sites?.map((s) => (
                   <a
                     key={s.id}
-                    href={`/editor/${s.domain}?panel=privacy`}
+                    href={`/editor/${s.domain}?jump=privacy`}
                     style={{
                       padding: '14px 18px',
                       background: PD.paper3,

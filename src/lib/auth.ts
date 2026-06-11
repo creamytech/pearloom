@@ -252,7 +252,9 @@ export const authOptions: NextAuthOptions = {
   },
 
   pages: {
-    signIn: '/dashboard',
+    /* The sign-in PAGE — NextAuth bounces unauthenticated flows
+       here. Was '/dashboard', which isn't a sign-in page at all. */
+    signIn: '/login',
   },
 
   session: {

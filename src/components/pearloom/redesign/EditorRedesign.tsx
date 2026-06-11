@@ -84,7 +84,7 @@ export type SectionId =
      mount through the same PropertyRail dispatch so the editor's
      state machine stays simple. */
   | 'guests' | 'savetheDate' | 'share' | 'dayof' | 'memorial' | 'bachelor'
-  | 'toasts'
+  | 'toasts' | 'privacy'
   | null;
 
 /* Occasion → which optional canvas sections fit. Countdown reads
@@ -146,7 +146,7 @@ const JUMPABLE_SECTIONS: ReadonlySet<string> = new Set([
   'countdown', 'map', 'music',
   ...BLOCK_SECTION_IDS,
   'guests', 'savetheDate', 'share', 'dayof', 'memorial', 'bachelor',
-  'toasts',
+  'toasts', 'privacy',
 ]);
 
 /* Occasion → which tool panels are applicable. Memorial only on
