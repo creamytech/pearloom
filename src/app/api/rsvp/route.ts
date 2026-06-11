@@ -113,6 +113,43 @@ export async function POST(req: NextRequest) {
     // Always log new RSVP responses
     console.log('[RSVP] New response from:', guestName, '| Status:', status, '| Site:', siteId);
 
+    // Notify the site owner per their notification prefs.
+    // Declines default to an instant email (they change plans);
+    // yeses default to the daily digest so a happy day never
+    // floods an inbox. Fire-and-forget — never blocks the RSVP.
+    void (async () => {
+      try {
+        const UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const q = supabase.from('sites').select('id, subdomain, creator_email, site_config');
+        const { data: site } = await (UUID_RX.test(String(siteId))
+          ? q.eq('id', siteId)
+          : q.eq('subdomain', siteId)
+        ).maybeSingle();
+        if (!site) return;
+        const cfg = (site as { site_config?: { creator_email?: string; names?: [string, string] } }).site_config;
+        const ownerEmail = String((site as { creator_email?: string }).creator_email ?? cfg?.creator_email ?? '');
+        if (!ownerEmail) return;
+        const names = (cfg?.names ?? []).filter(Boolean);
+        const siteLabel = names.length >= 2 ? `${names[0]} & ${names[1]}` : (site as { subdomain?: string }).subdomain ?? String(siteId);
+        const declined = status === 'declined';
+        const { notifyHost } = await import('@/lib/notifications/notify');
+        await notifyHost(supabase, {
+          siteId: String((site as { id?: string }).id ?? siteId),
+          siteLabel,
+          ownerEmail,
+          category: declined ? 'declines' : 'replies',
+          title: declined
+            ? `${String(guestName)} can’t make it`
+            : `${String(guestName)} is woven in`,
+          body: message ? String(message).slice(0, 200) : undefined,
+          href: '/dashboard/rsvp',
+          dedupeKey: `rsvp:${(data as { id?: string })?.id ?? `${siteId}:${guestName}`}:${status}`,
+        });
+      } catch (err) {
+        console.warn('[RSVP] owner notify failed (non-fatal):', err);
+      }
+    })();
+
     // Non-blocking notification via Resend — fire and forget
     const notifEmail = process.env.NOTIFICATION_EMAIL;
     const resendKey = process.env.RESEND_API_KEY;

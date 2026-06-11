@@ -39,6 +39,9 @@ export function ShellPersistentLayout({ children }: { children: ReactNode }) {
               Without it, pages on the PLChrome chrome had no drawer
               trigger on phones — no section nav, no sign-out. */}
           <DashMobileBar />
+          {/* Paper grain — BRAND.md §3's fixed warm underlay, shared
+              with DashLayout's standalone shell. */}
+          <div aria-hidden className="pl-grain" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, opacity: 0.5 }} />
           <div style={{ position: 'absolute', top: 0, right: 0, pointerEvents: 'none', zIndex: 0 }}>
             <Blob tone="peach" size={380} opacity={0.35} style={{ position: 'absolute', top: -120, right: -120 }} />
           </div>

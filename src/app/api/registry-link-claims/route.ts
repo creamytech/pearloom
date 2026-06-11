@@ -216,6 +216,37 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Could not save your claim — try again in a moment.' }, { status: 500 });
   }
 
+  // Gift claims default to an instant host email (thank-you notes
+  // start with knowing who gave what). Fire-and-forget.
+  void (async () => {
+    try {
+      const { data: site } = await sb
+        .from('sites')
+        .select('id, subdomain, creator_email, site_config')
+        .eq('id', siteUuid)
+        .maybeSingle();
+      const cfg = (site as { site_config?: { creator_email?: string; names?: [string, string] } } | null)?.site_config;
+      const ownerEmail = String((site as { creator_email?: string } | null)?.creator_email ?? cfg?.creator_email ?? '');
+      if (!ownerEmail) return;
+      const names = (cfg?.names ?? []).filter(Boolean);
+      const siteLabel = names.length >= 2 ? `${names[0]} & ${names[1]}` : ((site as { subdomain?: string } | null)?.subdomain ?? 'your site');
+      const who = (claimerName ?? '').split(/\s+/)[0] || 'A guest';
+      const { notifyHost } = await import('@/lib/notifications/notify');
+      await notifyHost(sb, {
+        siteId: siteUuid,
+        siteLabel,
+        ownerEmail,
+        category: 'gifts',
+        title: `${who} claimed a registry gift`,
+        body: message ? String(message).slice(0, 200) : undefined,
+        href: '/dashboard/registry',
+        dedupeKey: `claim:${data.id}`,
+      });
+    } catch (err) {
+      console.warn('[registry-link-claims] owner notify failed (non-fatal):', err);
+    }
+  })();
+
   return NextResponse.json({ ok: true, id: data.id });
 }
 

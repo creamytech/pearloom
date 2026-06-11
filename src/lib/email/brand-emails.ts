@@ -299,3 +299,94 @@ export function buildHostRsvpNotificationEmail(opts: {
     html,
   };
 }
+
+/* ── 9 · Host alert — instant notification (declines, gifts,
+        co-host events) routed through notifyHost() ───────────── */
+
+export function buildHostAlertEmail(opts: {
+  siteLabel: string;
+  title: string;
+  body?: string;
+  ctaUrl: string;
+}): { subject: string; html: string } {
+  const t = BRAND_EMAIL_THEME;
+  const html = emailLayout(frame(`
+    ${eyebrow(opts.siteLabel, t)}
+    ${heading(esc(opts.title), t)}
+    ${opts.body ? pull(esc(opts.body), t) : ''}
+    ${ctaBlock('Open the dashboard', opts.ctaUrl, t)}
+    ${fine('You can change which moments reach your inbox — instantly, in the daily note, or not at all — under Settings → Notifications.', t)}
+  `, t), t);
+  return { subject: opts.title, html };
+}
+
+/* ── 10 · Daily digest — "The loom today" ───────────────────── */
+
+export interface DailyDigestItem {
+  label: string;
+  preview?: string;
+  /** Dashboard path, e.g. /dashboard/rsvp */
+  href: string;
+}
+
+export function buildDailyDigestEmail(opts: {
+  coupleDisplay: string;
+  siteLabel: string;
+  items: DailyDigestItem[];
+  /** Headline counts, e.g. [{ n: 4, noun: 'replies' }] */
+  counts: Array<{ n: number; noun: string }>;
+  dashboardUrl: string;
+  theme?: EmailThemeColors;
+}): { subject: string; html: string } {
+  const t = opts.theme ?? BRAND_EMAIL_THEME;
+  const countLine = opts.counts
+    .filter((c) => c.n > 0)
+    .map((c) => `${c.n} ${c.noun}`)
+    .join(' · ');
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com').replace(/\/$/, '');
+  const rows = opts.items.slice(0, 12).map((i) => `
+    <tr>
+      <td style="padding:10px 0;border-bottom:1px solid ${t.accentLight}">
+        <a href="${esc(`${baseUrl}${i.href}`)}" style="text-decoration:none">
+          <span style="font-family:${bodys(t)};font-size:14px;font-weight:600;color:${t.foreground}">${esc(i.label)}</span>
+          ${i.preview ? `<br><span style="font-family:${bodys(t)};font-size:12.5px;color:${t.muted}">${esc(i.preview)}</span>` : ''}
+        </a>
+      </td>
+    </tr>`).join('');
+  const html = emailLayout(frame(`
+    ${eyebrow(`The loom today · ${opts.siteLabel}`, t)}
+    ${heading(countLine || 'A quiet day on the loom.', t)}
+    ${para(`Here&rsquo;s what your people left on ${esc(opts.coupleDisplay)}&rsquo;s site since yesterday:`, t)}
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:4px 0 6px">${rows}</table>
+    ${opts.items.length > 12 ? fine(`…and ${opts.items.length - 12} more on the dashboard.`, t) : ''}
+    ${ctaBlock('Open the dashboard', opts.dashboardUrl, t)}
+    ${fine('Sent once a day, only when something happened. Tune it under Settings → Notifications.', t)}
+  `, t), t);
+  return {
+    subject: countLine
+      ? `The loom today — ${countLine}`
+      : `The loom today — ${opts.siteLabel}`,
+    html,
+  };
+}
+
+/* ── 11 · Cadence send — host-approved scheduled message to
+        guests (save-the-date / reminder / day-before / thanks) ── */
+
+export function buildCadenceEmail(opts: {
+  couple: string;
+  /** Pear-drafted, host-edited body. Plain text with newlines. */
+  body: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  theme?: EmailThemeColors;
+}): { html: string } {
+  const t = opts.theme ?? BRAND_EMAIL_THEME;
+  const bodyHtml = esc(opts.body).replace(/\n{2,}/g, '</p><p style="margin:14px 0 0">').replace(/\n/g, '<br>');
+  const html = emailLayout(frame(`
+    ${eyebrow(`From ${opts.couple}`, t)}
+    ${pull(bodyHtml, t)}
+    ${ctaBlock(opts.ctaLabel, opts.ctaUrl, t)}
+  `, t), t);
+  return { html };
+}

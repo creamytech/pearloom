@@ -303,3 +303,39 @@ self.addEventListener('message', (event) => {
     });
   }
 });
+
+// ── Web Push (host notifications) ────────────────────────────
+// Payload shape from lib/notifications/push.ts:
+//   { title, body, url }
+// Clicking focuses an existing dashboard tab when one is open,
+// otherwise opens a new one at the notification's deep link.
+
+self.addEventListener('push', (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch { /* opaque payload */ }
+  const title = data.title || 'Pearloom';
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: data.body || '',
+      icon: '/logo.png',
+      badge: '/logo.png',
+      data: { url: data.url || '/dashboard' },
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || '/dashboard';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if (client.url.includes('/dashboard') && 'focus' in client) {
+          client.navigate(url);
+          return client.focus();
+        }
+      }
+      return self.clients.openWindow(url);
+    })
+  );
+});

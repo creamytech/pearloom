@@ -29,7 +29,8 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { DashLayout } from '../dash/DashShell';
+import { DashLayout, TopbarAvatarButton } from '../dash/DashShell';
+import { NotificationBell } from '../dash/NotificationBell';
 import { Icon, Pear } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
@@ -46,6 +47,14 @@ interface Guest {
   respondedAt?: string | null;
   message?: string | null;
   plusOneName?: string | null;
+}
+
+/** The slice of /api/cadence's MergedPhase the milestones read. */
+interface CadencePhaseLite {
+  label: string;
+  scheduledAt: string;
+  status: 'preset' | 'draft' | 'scheduled' | 'sent' | 'cancelled' | 'failed';
+  sentCount?: number;
 }
 
 type Stage = 'early' | 'mid' | 'late';
@@ -65,6 +74,7 @@ export function WelcomeHome() {
   const { data: session } = useSession();
   const [insights, setInsights] = useState<GuestInsight[] | null>(null);
   const [guests, setGuests] = useState<Guest[] | null>(null);
+  const [cadence, setCadence] = useState<CadencePhaseLite[] | null>(null);
 
   useEffect(() => {
     if (!site?.domain) return;
@@ -75,6 +85,12 @@ export function WelcomeHome() {
         if (!cancelled && data?.insights) setInsights(data.insights);
       })
       .catch(() => {});
+    fetch(`/api/cadence?site=${encodeURIComponent(site.domain)}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data: { phases?: CadencePhaseLite[] } | null) => {
+        if (!cancelled) setCadence(data?.phases ?? null);
+      })
+      .catch(() => { if (!cancelled) setCadence(null); });
     fetch(`/api/guests?site=${encodeURIComponent(site.domain)}`)
       .then((r) => r.ok ? r.json() : null)
       .then((data: { guests?: Guest[] } | null) => {
@@ -147,9 +163,6 @@ export function WelcomeHome() {
       .slice(0, 7);
   }, [guests]);
 
-  // ── Pear recommendations ────────────────────────────────────
-  const pearTodos = usePearTodos({ stage, insights, guestCounts, daysUntil });
-
   // ── Golden thread — the ONE next-best-action ────────────────
   // Shares src/lib/next-step.ts with the editor's topbar chip so
   // the dashboard and the editor always name the same step.
@@ -167,6 +180,10 @@ export function WelcomeHome() {
   );
   const nextStepHref = nextStep ? hrefForNextStep(nextStep, editorHref) : null;
 
+  // ── Pear recommendations — after the golden thread so the same
+  //    urgent task never renders twice (suppressNudge dedupe). ──
+  const pearTodos = usePearTodos({ stage, insights, guestCounts, daysUntil, suppressNudge: nextStep?.id === 'nudge' });
+
   // ── RSVP momentum — pending replies + reply-by inside 7 days ─
   const rsvpMomentum = useMemo(
     () => (manifest && guestCounts
@@ -177,8 +194,8 @@ export function WelcomeHome() {
 
   // ── Next milestone (drives the hero callout) ────────────────
   const milestones = useMemo(
-    () => buildMilestones({ stage, eventDate, eventDateShort, daysUntil, guestCounts }),
-    [stage, eventDate, eventDateShort, daysUntil, guestCounts],
+    () => buildMilestones({ stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence }),
+    [stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence],
   );
   const nextMilestone = milestones.find((m) => m.status === 'urgent')
     ?? milestones.find((m) => m.status === 'next')
@@ -192,39 +209,32 @@ export function WelcomeHome() {
 
   return (
     <DashLayout active="home" title="Welcome back" subtitle={stageBlurb} hideTopbar>
-      {/* Custom topbar — denser, more intentional than DashLayout's default */}
-      {/* Custom topbar — matches the canonical dashboard horizontal
-          padding (20-40px clamp) instead of the prior 20-32 clamp
-          so the title aligns with the section content below it. */}
+      {/* Slim header — the old 36px "Good evening" display heading
+          stacked directly above the HeroBand's 48px name lockup, two
+          hero moments competing in the first 300px. The greeting is
+          now a quiet mono-caps eyebrow, the bell + avatar join the
+          action cluster (Home previously had NEITHER — the most-
+          visited page had no notifications and no settings entry),
+          and ~90px returns to the fold. */}
       <div
         style={{
           padding: '20px clamp(20px, 4vw, 40px) 8px',
           maxWidth: 1240,
           margin: '0 auto',
           display: 'flex',
-          alignItems: 'flex-start',
+          alignItems: 'center',
           justifyContent: 'space-between',
-          gap: 24,
+          gap: 16,
           flexWrap: 'wrap',
         }}
       >
-        <div style={{ minWidth: 0 }}>
-          <h1
-            className="display pl-letterpress"
-            style={{
-              fontSize: 'clamp(28px, 4vw, 36px)',
-              margin: 0,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              lineHeight: 1.05,
-            }}
-          >
-            {greeting}, {firstName}
-          </h1>
-          <div style={{ marginTop: 4, fontSize: 14, color: 'var(--ink-soft)' }}>{stageBlurb}</div>
-        </div>
+        <span className="eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--ink-soft)' }}>
+          <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold, #C19A4B)' }} />
+          {greeting}, {firstName}
+        </span>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <NotificationBell />
+          <TopbarAvatarButton />
           {site?.domain && (
             <a
               href={liveHref}
@@ -279,7 +289,11 @@ export function WelcomeHome() {
             <ActivityFeed activity={recentActivity} stage={stage} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {rsvpMomentum && <RsvpMomentumCard momentum={rsvpMomentum} />}
+            {/* One urgent task could shout four times (hero NEXT UP,
+                this card, a Pear todo, a milestone row). When the
+                golden thread already names the nudge, the momentum
+                card stands down. */}
+            {rsvpMomentum && nextStep?.id !== 'nudge' && <RsvpMomentumCard momentum={rsvpMomentum} />}
             <GuestPulse counts={guestCounts} domain={site?.domain ?? null} loading={guests === null} />
             <Milestones milestones={milestones} dateShort={eventDateShort} />
           </div>
@@ -371,9 +385,9 @@ function HeroBand({
     <div
       className="hero-band"
       style={{
-        background: 'linear-gradient(180deg, var(--card, #FBF7EE) 0%, #FBF6E8 100%)',
+        background: 'linear-gradient(180deg, var(--card, #FBF7EE) 0%, var(--cream-2, #FBF6E8) 100%)',
         border: '1px solid var(--card-ring, rgba(14,13,11,0.08))',
-        borderRadius: 20,
+        borderRadius: 16,
         padding: 'clamp(20px, 3vw, 28px)',
         display: 'grid',
         gridTemplateColumns: isNarrow ? '1fr' : '1.4fr 1fr 1fr',
@@ -383,30 +397,30 @@ function HeroBand({
         overflow: 'hidden',
       }}
     >
-      {/* Atmosphere glyph — gold thread squiggle, decorative only.
-          Hidden on narrow viewports where right:220 would park it
-          on top of the eyebrow copy. */}
-      <svg
-        width="160"
-        height="40"
-        viewBox="0 0 160 40"
-        aria-hidden
-        style={{
-          display: isNarrow ? 'none' : undefined,
-          position: 'absolute',
-          top: 22,
-          right: 220,
-          opacity: 0.45,
-          transform: 'rotate(-10deg)',
-          pointerEvents: 'none',
-          color: 'var(--gold-line, #D4A95D)',
-        }}
-      >
-        <path d="M2 20 Q 20 4 38 20 T 74 20 T 110 20 T 146 20" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round"/>
-      </svg>
-
       {/* LEFT — names + meta */}
       <div style={{ position: 'relative', zIndex: 1, minWidth: 0 }}>
+        {/* Atmosphere glyph — gold thread squiggle, decorative only.
+            Anchored INSIDE the left column so it can never drift
+            onto the middle column (the old right:220 magic number
+            collided with it around 960-1100px). */}
+        <svg
+          width="120"
+          height="30"
+          viewBox="0 0 160 40"
+          aria-hidden
+          style={{
+            display: isNarrow ? 'none' : undefined,
+            position: 'absolute',
+            top: -4,
+            right: 8,
+            opacity: 0.4,
+            transform: 'rotate(-10deg)',
+            pointerEvents: 'none',
+            color: 'var(--gold-line, #D4A95D)',
+          }}
+        >
+          <path d="M2 20 Q 20 4 38 20 T 74 20 T 110 20 T 146 20" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round"/>
+        </svg>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
           <span className="eyebrow" style={{ color: 'var(--peach-ink)' }}>
             {daysUntil == null ? 'Your celebration' : daysUntil === 0 ? 'Today' : `${daysUntil} days until`}
@@ -481,9 +495,9 @@ function HeroBand({
             style={{
               display: 'block',
               padding: '14px 16px',
-              borderRadius: 16,
+              borderRadius: 10,
               background: stepBg,
-              border: `1px solid ${stepTone === 'peach' ? 'rgba(198,112,61,0.18)' : 'transparent'}`,
+              border: `1px solid ${stepTone === 'peach' ? 'color-mix(in oklab, var(--peach-ink, #C6703D) 18%, transparent)' : 'transparent'}`,
               textDecoration: 'none',
             }}
           >
@@ -510,7 +524,7 @@ function HeroBand({
           <div
             style={{
               padding: '14px 16px',
-              borderRadius: 16,
+              borderRadius: 10,
               background: 'var(--cream-2)',
               fontSize: 13,
               color: 'var(--ink-muted)',
@@ -523,9 +537,9 @@ function HeroBand({
           <div
             style={{
               padding: '14px 16px',
-              borderRadius: 16,
+              borderRadius: 10,
               background: urgencyBg,
-              border: `1px solid ${urgencyTone === 'peach' ? 'rgba(198,112,61,0.18)' : 'transparent'}`,
+              border: `1px solid ${urgencyTone === 'peach' ? 'color-mix(in oklab, var(--peach-ink, #C6703D) 18%, transparent)' : 'transparent'}`,
             }}
           >
             <div className="eyebrow" style={{ color: urgencyColor, marginBottom: 4 }}>NEXT UP</div>
@@ -548,7 +562,7 @@ function HeroBand({
           <div
             style={{
               padding: '14px 16px',
-              borderRadius: 16,
+              borderRadius: 10,
               background: 'var(--cream-2)',
               fontSize: 13,
               color: 'var(--ink-muted)',
@@ -654,9 +668,9 @@ function RsvpMomentumCard({ momentum }: { momentum: RsvpMomentum }) {
       className="card"
       style={{
         padding: 20,
-        borderRadius: 20,
+        borderRadius: 16,
         background: 'var(--peach-bg)',
-        border: '1px solid rgba(198,112,61,0.28)',
+        border: '1px solid color-mix(in oklab, var(--peach-ink, #C6703D) 28%, transparent)',
       }}
     >
       <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -720,7 +734,7 @@ function QuickJumps({
       return [
         { label: 'Open the editor',  sub: 'Edit your wedding site',                      icon: 'brush',   href: editorHref },
         { label: 'Build guest list', sub: 'Import or draft with Pear',                   icon: 'users',   href: '/dashboard/invite' },
-        { label: 'Studio',           sub: 'Save-the-dates & invites',                    icon: 'palette', href: '/dashboard/print' },
+        { label: 'Studio',           sub: 'Save-the-dates & invites',                    icon: 'palette', href: '/dashboard/invite' },
         { label: 'Day-of room',      sub: 'Locked until 30 days out',                    icon: 'lock',    href: '/dashboard/day-of', dim: true },
       ];
     }
@@ -735,7 +749,7 @@ function QuickJumps({
     return [
       { label: 'Open the editor',  sub: 'Edit your wedding site',                          icon: 'brush', href: editorHref },
       { label: 'Send invitations', sub: 'Pear has cadences ready',                         icon: 'send',  href: '/dashboard/cadence' },
-      { label: 'Studio',           sub: 'Save-the-dates & invites',                        icon: 'palette', href: '/dashboard/print' },
+      { label: 'Studio',           sub: 'Save-the-dates & invites',                        icon: 'palette', href: '/dashboard/invite' },
       { label: 'View live site',   sub: domain ? liveDisplay : 'Publish to share',         icon: 'eye',   href: liveHref },
     ];
   })();
@@ -749,7 +763,7 @@ function QuickJumps({
           className="lift"
           style={{
             padding: '14px 16px',
-            borderRadius: 14,
+            borderRadius: 16,
             background: j.glow ? 'var(--ink)' : 'var(--card, #FBF7EE)',
             color: j.glow ? 'var(--cream)' : 'var(--ink)',
             border: j.glow ? 'none' : '1px solid var(--card-ring, rgba(14,13,11,0.08))',
@@ -806,12 +820,15 @@ interface PearTodo {
 }
 
 function usePearTodos({
-  stage, insights, guestCounts, daysUntil,
+  stage, insights, guestCounts, daysUntil, suppressNudge = false,
 }: {
   stage: Stage;
   insights: GuestInsight[] | null;
   guestCounts: { invited: number; yes: number; no: number; maybe: number; pending: number } | null;
   daysUntil: number | null;
+  /** The hero's golden-thread card already names the pending-RSVP
+   *  nudge — skip the todo that would repeat it. */
+  suppressNudge?: boolean;
 }): PearTodo[] {
   return useMemo(() => {
     const out: PearTodo[] = [];
@@ -845,7 +862,7 @@ function usePearTodos({
         urgency: 'soon',
       });
     } else if (stage === 'late') {
-      if (out.length < 3 && guestCounts && guestCounts.pending > 0) out.push({
+      if (out.length < 3 && !suppressNudge && guestCounts && guestCounts.pending > 0) out.push({
         title: `Chase ${guestCounts.pending} pending RSVP${guestCounts.pending === 1 ? '' : 's'}`,
         sub: daysUntil != null
           ? `${daysUntil} days until the date. Pear has a final-reminder draft.`
@@ -862,7 +879,7 @@ function usePearTodos({
         urgency: 'soon',
       });
     } else {
-      if (out.length < 3 && guestCounts && guestCounts.pending > 0) out.push({
+      if (out.length < 3 && !suppressNudge && guestCounts && guestCounts.pending > 0) out.push({
         title: `Send a reminder cadence`,
         sub: `${guestCounts.pending} guest${guestCounts.pending === 1 ? '' : 's'} haven't replied yet.`,
         cta: 'Review draft',
@@ -878,7 +895,7 @@ function usePearTodos({
       });
     }
     return out.slice(0, 3);
-  }, [stage, insights, guestCounts, daysUntil]);
+  }, [stage, insights, guestCounts, daysUntil, suppressNudge]);
 }
 
 function severityRank(s: GuestInsight['severity']): number {
@@ -900,7 +917,7 @@ function PearRecommendations({ todos, domain }: { todos: PearTodo[]; domain: str
         padding: 20,
         background: 'var(--card, #FBF7EE)',
         border: '1px solid var(--card-ring, rgba(14,13,11,0.08))',
-        borderRadius: 20,
+        borderRadius: 16,
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -934,7 +951,7 @@ function PearRecommendations({ todos, domain }: { todos: PearTodo[]; domain: str
                 gap: isNarrow ? 12 : 14,
                 alignItems: 'center',
                 padding: '12px 14px',
-                borderRadius: 12,
+                borderRadius: 10,
                 background: 'var(--card)',
                 border: '1px solid var(--line-soft)',
               }}
@@ -979,7 +996,10 @@ function ActivityFeed({ activity, stage }: { activity: Guest[]; stage: Stage }) 
         </div>
       ) : (
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', left: 17, top: 8, bottom: 8, width: 1.5, background: 'var(--line-soft)' }} />
+          {/* The thread — the brand's visual atom (BRAND.md §3):
+              two strands, olive and gold, instead of a gray rule. */}
+          <div aria-hidden style={{ position: 'absolute', left: 16, top: 8, bottom: 8, width: 1, background: 'var(--sage, #7A8A4F)', opacity: 0.55 }} />
+          <div aria-hidden style={{ position: 'absolute', left: 18.5, top: 8, bottom: 8, width: 1, background: 'var(--gold, #C19A4B)', opacity: 0.5 }} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {activity.map((g) => {
               const tone = g.status === 'no' || g.status === 'declined'
@@ -1068,11 +1088,11 @@ function GuestPulse({
           style={{
             padding: '20px 8px',
             background: 'var(--cream-2)',
-            borderRadius: 14,
+            borderRadius: 10,
             textAlign: 'center',
           }}
         >
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 6 }}>No guests yet</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 6 }}>Nothing yet. Begin a thread.</div>
           <div
             style={{
               fontSize: 12.5,
@@ -1114,7 +1134,7 @@ function GuestPulse({
           <span style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600 }}>Guests</span>
         </div>
         <Link
-          href="/rsvps"
+          href="/dashboard/rsvp"
           style={{ fontSize: 12, color: 'var(--ink-soft)', textDecoration: 'none' }}
         >
           Open Guests
@@ -1144,7 +1164,7 @@ function GuestPulse({
         {segs.map((s) => s.val > 0 && (
           <div
             key={s.label}
-            style={{ flex: s.val, background: s.color, transition: 'flex 400ms ease' }}
+            style={{ flex: s.val, background: s.color, transition: 'flex var(--pl-dur-base) var(--pl-ease-out)' }}
             title={`${s.label}: ${s.val}`}
           />
         ))}
@@ -1187,13 +1207,14 @@ interface Milestone {
 }
 
 function buildMilestones({
-  stage, eventDate, eventDateShort, daysUntil, guestCounts,
+  stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence,
 }: {
   stage: Stage;
   eventDate: Date | null;
   eventDateShort: string | null;
   daysUntil: number | null;
   guestCounts: { invited: number; yes: number; no: number; maybe: number; pending: number } | null;
+  cadence?: CadencePhaseLite[] | null;
 }): Milestone[] {
   const out: Milestone[] = [];
   out.push({ date: 'Done', label: 'Site claimed', sub: '', status: 'done', urgency: 'on-track' });
@@ -1201,6 +1222,50 @@ function buildMilestones({
     out.push({ date: 'Done', label: 'Date locked', sub: eventDateShort ?? '', status: 'done', urgency: 'on-track' });
   } else {
     out.push({ date: 'Now', label: 'Lock the date', sub: 'Anchors every milestone', status: 'next', urgency: 'soon' });
+  }
+
+  // ── Real roadmap — the host's Smart Send Cadence. Sent phases are
+  //    genuinely done; scheduled phases carry real dates; presets are
+  //    Pear's date-derived suggestions. This replaces the previous
+  //    stage-hardcoded ladder ("Book vendors · ~4 mo") whose progress
+  //    bar measured fiction. The synthetic ladder below survives only
+  //    as the fallback when there's no event date / cadence data. */
+  const phases = (cadence ?? [])
+    .filter((ph) => ph.status !== 'cancelled' && ph.status !== 'failed' && ph.scheduledAt)
+    .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
+  if (eventDate && phases.length > 0) {
+    let nextAssigned = false;
+    for (const ph of phases.slice(0, 5)) {
+      const due = new Date(ph.scheduledAt);
+      const dateLabel = due.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      if (ph.status === 'sent') {
+        out.push({ date: 'Done', label: ph.label, sub: ph.sentCount ? `${ph.sentCount} sent` : 'sent', status: 'done', urgency: 'on-track' });
+        continue;
+      }
+      const daysToDue = Math.round((due.getTime() - Date.now()) / 86_400_000);
+      const isFirstOpen = !nextAssigned;
+      nextAssigned = true;
+      const urgent = ph.status === 'scheduled' && daysToDue <= 7;
+      out.push({
+        date: daysToDue <= 0 ? 'Now' : dateLabel,
+        label: ph.label,
+        sub: ph.status === 'scheduled'
+          ? (daysToDue <= 0 ? 'sending today' : `sends in ${daysToDue} day${daysToDue === 1 ? '' : 's'}`)
+          : ph.status === 'draft' ? 'drafted — approve to schedule' : 'suggested by Pear',
+        status: urgent ? 'urgent' : isFirstOpen ? 'next' : 'upcoming',
+        urgency: urgent ? 'urgent' : isFirstOpen ? 'soon' : 'on-track',
+      });
+    }
+    if (eventDateShort) {
+      out.push({
+        date: eventDateShort,
+        label: 'The big day',
+        sub: daysUntil != null ? `${daysUntil} days out` : '',
+        status: 'distant',
+        urgency: 'on-track',
+      });
+    }
+    return out;
   }
 
   if (stage === 'early') {

@@ -95,14 +95,18 @@ CREATE POLICY "pearloom_guests: via site owner"
   USING (
     EXISTS (
       SELECT 1 FROM sites s
-      WHERE s.id = pearloom_guests.site_id
+      -- site_id holds the SUBDOMAIN for pearloom_guests (text), not
+      -- the uuid. The file originally compared s.id = site_id, which
+      -- can't even type-check on a fresh database — production's
+      -- live policy (pg_policy, 2026-06-11) compares subdomain.
+      WHERE s.subdomain = pearloom_guests.site_id
         AND s.creator_email = COALESCE(auth.jwt() ->> 'email', '')
     )
   )
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM sites s
-      WHERE s.id = pearloom_guests.site_id
+      WHERE s.subdomain = pearloom_guests.site_id
         AND s.creator_email = COALESCE(auth.jwt() ->> 'email', '')
     )
   );
@@ -111,6 +115,12 @@ CREATE INDEX IF NOT EXISTS idx_pearloom_guests_site ON pearloom_guests(site_id);
 CREATE INDEX IF NOT EXISTS idx_pearloom_guests_event ON pearloom_guests(event_id);
 CREATE INDEX IF NOT EXISTS idx_pearloom_guests_token ON pearloom_guests(guest_token);
 CREATE INDEX IF NOT EXISTS idx_pearloom_guests_email ON pearloom_guests(site_id, email);
+
+-- NOTE (2026-06-11): every owner policy below compares
+-- s.subdomain = <table>.site_id — these site_id columns hold the
+-- SUBDOMAIN (text). The file originally compared s.id (uuid), which
+-- cannot type-check on a fresh database; production's live policies
+-- (pg_policy) all use subdomain. Aligned so preview branches green.
 
 -- ── Relationship graph ────────────────────────────────────────
 -- Directed edges between guests, or between host and guest.
@@ -138,14 +148,14 @@ CREATE POLICY "relationship_graph: site owner"
   USING (
     EXISTS (
       SELECT 1 FROM sites s
-      WHERE s.id = relationship_graph.site_id
+      WHERE s.subdomain = relationship_graph.site_id
         AND s.creator_email = COALESCE(auth.jwt() ->> 'email', '')
     )
   )
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM sites s
-      WHERE s.id = relationship_graph.site_id
+      WHERE s.subdomain = relationship_graph.site_id
         AND s.creator_email = COALESCE(auth.jwt() ->> 'email', '')
     )
   );
@@ -250,7 +260,7 @@ CREATE POLICY "guest_personalization: site owner"
   USING (
     EXISTS (
       SELECT 1 FROM sites s
-      WHERE s.id = guest_personalization.site_id
+      WHERE s.subdomain = guest_personalization.site_id
         AND s.creator_email = COALESCE(auth.jwt() ->> 'email', '')
     )
   );
@@ -347,14 +357,14 @@ CREATE POLICY "day_of_announcements: site owner write"
   USING (
     EXISTS (
       SELECT 1 FROM sites s
-      WHERE s.id = day_of_announcements.site_id
+      WHERE s.subdomain = day_of_announcements.site_id
         AND s.creator_email = COALESCE(auth.jwt() ->> 'email', '')
     )
   )
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM sites s
-      WHERE s.id = day_of_announcements.site_id
+      WHERE s.subdomain = day_of_announcements.site_id
         AND s.creator_email = COALESCE(auth.jwt() ->> 'email', '')
     )
   );
@@ -387,7 +397,7 @@ CREATE POLICY "voice_toasts: owner read"
   USING (
     EXISTS (
       SELECT 1 FROM sites s
-      WHERE s.id = voice_toasts.site_id
+      WHERE s.subdomain = voice_toasts.site_id
         AND s.creator_email = COALESCE(auth.jwt() ->> 'email', '')
     )
   );
