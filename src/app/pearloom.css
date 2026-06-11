@@ -90,6 +90,43 @@
   --sidebar-w: 260px;
 }
 
+/* ─── Editorial midnight — dark companions for the pl8 accents ───
+   The paper/ink/card/line tokens above alias --pl-* and flip with
+   <html data-theme>, but the six accent families were hardcoded
+   light pastels — pastel chips glaring on near-black, washed-out
+   tinted text. These pair every accent with a midnight value:
+   strokes/inks brighten to read on #0D0B07, the -bg/-tint washes
+   become deep warm pools, shadows go true-black, and the gold
+   hairline mixes toward the dark paper instead of #FFF6E4.
+   (BRAND.md §10: dark mode is editorial midnight, not OLED.) */
+[data-theme='dark'] {
+  --sage:        #97A968;
+  --sage-2:      #ABBD7E;
+  --sage-deep:   #B8C98F;
+  --sage-bg:     #2A301B;
+  --sage-tint:   #20251A;
+
+  --lavender:    #9D8BB8;
+  --lavender-2:  #B7A4D0;
+  --lavender-3:  #463C5C;
+  --lavender-bg: #221E2D;
+  --lavender-ink:#C5B5DD;
+
+  --peach:       #D9A172;
+  --peach-2:     #E0AC7E;
+  --peach-3:     #3A2B1D;
+  --peach-bg:    #2B2014;
+  --peach-ink:   #E29B62;
+
+  --gold-line:   color-mix(in oklab, var(--pl-gold, #D4B373) 62%, #0D0B07);
+  --heart:       #ECAB85;
+
+  --shadow-sm:  0 2px 6px rgba(0, 0, 0, 0.40);
+  --shadow:     0 6px 18px rgba(0, 0, 0, 0.45);
+  --shadow-md:  0 12px 32px rgba(0, 0, 0, 0.50);
+  --shadow-lg:  0 24px 56px rgba(0, 0, 0, 0.55);
+}
+
 /* ═══════════════════════════════════════════════════════════════
    ── PROTOTYPE FOUNDATION TOKENS & BASE CLASSES ──
    Literal port of ClaudeDesign/shared/pearloom.css base layer.
@@ -748,13 +785,11 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
     0 -1px 1px rgba(14, 13, 11, 0.10),
     0 2px 3px rgba(14, 13, 11, 0.05);
 }
-@media (prefers-color-scheme: dark) {
-  .pl8-guest .display {
-    text-shadow:
-      0 1px 0 rgba(0, 0, 0, 0.45),
-      0 -1px 1px rgba(255, 255, 255, 0.06),
-      0 2px 4px rgba(0, 0, 0, 0.32);
-  }
+[data-theme='dark'] .pl8-guest .display {
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.45),
+    0 -1px 1px rgba(255, 255, 255, 0.06),
+    0 2px 4px rgba(0, 0, 0, 0.32);
 }
 .pl8-guest .display-italic {
   font-family: var(--font-display);
@@ -787,14 +822,12 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
     0 -1px 1px rgba(14, 13, 11, 0.10),
     0 2px 3px rgba(14, 13, 11, 0.05);
 }
-@media (prefers-color-scheme: dark) {
-  .pl8-guest .display.pl-letterpress,
-  .pl8-guest .pl-letterpress {
-    text-shadow:
-      0 1px 0 rgba(0, 0, 0, 0.45),
-      0 -1px 1px rgba(255, 255, 255, 0.06),
-      0 2px 4px rgba(0, 0, 0, 0.32);
-  }
+[data-theme='dark'] .pl8-guest .display.pl-letterpress,
+[data-theme='dark'] .pl8-guest .pl-letterpress {
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.45),
+    0 -1px 1px rgba(255, 255, 255, 0.06),
+    0 2px 4px rgba(0, 0, 0, 0.32);
 }
 .pl8-guest .btn, .pl8-guest .chip, .pl8-guest .pill, .pl8-guest .card { all: revert; }
 .pl8-guest .btn {

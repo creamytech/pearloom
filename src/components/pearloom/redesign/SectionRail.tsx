@@ -961,7 +961,7 @@ function DropLine({ position }: { position: 'top' | 'bottom' }) {
         borderRadius: 1,
         zIndex: 2,
         pointerEvents: 'none',
-        boxShadow: '0 0 0 1px rgba(255,255,255,0.6)',
+        boxShadow: '0 0 0 1px var(--card, #FBF7EE)',
         ...(position === 'top'
           ? { top: -2 }
           : { bottom: -2 }

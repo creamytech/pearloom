@@ -25,6 +25,7 @@ import { Icon, Pear } from '../motifs';
 import { NotificationPrefsTab } from './NotificationPrefsTab';
 import { usePlan } from './usePlan';
 import { useMobileViewport } from '../redesign/use-mobile-viewport';
+import { useTheme } from '@/components/shell/ThemeProvider';
 
 /* ─── Context (existing consumer API — DashShell + DashCommandPalette
        call useUserSettings().openTab(<id>)) ─────────────────────────────── */
@@ -351,14 +352,45 @@ function PreferencesTab() {
     if (typeof window === 'undefined') return;
     fetch('/api/user/preferences', { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).catch(() => {});
   };
+  const { preference, setPreference } = useTheme();
   return (
     <div>
       <SettingsHead title="Preferences" sub="How Pearloom behaves for you." />
+      {/* Appearance — light / dark / follow-system. The theme has
+          been switchable since the boot script shipped, but nothing
+          in settings ever exposed it. */}
+      <UsRow>
+        <div style={{ flex: 1, minWidth: 180 }}>
+          <div style={{ fontSize: 14, fontWeight: 500 }}>Appearance</div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>Editorial paper or editorial midnight.</div>
+        </div>
+        <div style={{ display: 'flex', gap: 3, padding: 3, background: 'var(--cream-2)', borderRadius: 999, flexShrink: 0 }}>
+          {([['light', 'Light'], ['dark', 'Dark'], ['system', 'System']] as const).map(([id, label]) => {
+            const on = preference === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setPreference(id)}
+                style={{
+                  padding: '5px 12px', borderRadius: 999, fontSize: 11.5, fontWeight: 600,
+                  background: on ? 'var(--ink)' : 'transparent',
+                  color: on ? 'var(--cream)' : 'var(--ink-soft)',
+                  border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </UsRow>
       <UsRow><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500 }}>Email notifications</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>RSVPs, partner edits, and Pear nudges.</div></div><UsToggle on={notif} set={(v) => { setNotif(v); patch({ email_notifications: v }); }} /></UsRow>
       <UsRow><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500 }}>Weekly digest</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>A Sunday summary of what changed.</div></div><UsToggle on={digest} set={(v) => { setDigest(v); patch({ weekly_digest: v }); }} /></UsRow>
       <UsRow><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500 }}>Autosave</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>Save edits as you go.</div></div><UsToggle on={autosave} set={(v) => { setAutosave(v); patch({ autosave: v }); }} /></UsRow>
       <UsRow><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500 }}>Reduced motion</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>Calm the scroll-reveal animations.</div></div><UsToggle on={motion} set={(v) => { setMotion(v); patch({ reduced_motion: v }); }} /></UsRow>
-      <UsRow style={{ borderBottom: 'none' }}><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500, color: '#b4543a' }}>Export or delete account</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>Both live in account settings, with a proper confirm step.</div></div><button className="btn btn-outline btn-sm" style={{ color: '#b4543a', borderColor: 'rgba(180,84,58,0.3)' }} onClick={() => { if (typeof window !== 'undefined') window.location.assign('/dashboard/profile'); }}>Open settings</button></UsRow>
+      <UsRow style={{ borderBottom: 'none' }}><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500, color: 'var(--pl-plum, #b4543a)' }}>Export or delete account</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>Both live in account settings, with a proper confirm step.</div></div><button className="btn btn-outline btn-sm" style={{ color: 'var(--pl-plum, #b4543a)', borderColor: 'color-mix(in oklab, var(--pl-plum, #b4543a) 30%, transparent)' }} onClick={() => { if (typeof window !== 'undefined') window.location.assign('/dashboard/profile'); }}>Open settings</button></UsRow>
     </div>
   );
 }

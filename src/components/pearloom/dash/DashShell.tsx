@@ -15,6 +15,7 @@ import { parseLocalDate } from '@/lib/date-utils';
 import { Blob, Heart, Icon, Pear, PearloomLogo } from '../motifs';
 import { useIsInsideShell } from './ShellPersistentLayout';
 import { NotificationBell } from './NotificationBell';
+import { ThemeToggle } from '@/components/shell/ThemeToggle';
 import { useDashDrawer } from './useDashDrawer';
 import { useUserSettings } from './UserSettingsModal';
 import { usePlan } from './usePlan';
@@ -1037,7 +1038,7 @@ function NavLink({
             width: 6,
             height: 6,
             borderRadius: 999,
-            background: isActive ? 'rgba(255,255,255,0.85)' : 'var(--peach-ink, #C6703D)',
+            background: isActive ? 'var(--cream)' : 'var(--peach-ink, #C6703D)',
             display: 'inline-block',
             marginRight: 4,
             animation: 'pl-dot-pulse 0.9s ease-in-out infinite',
@@ -1052,7 +1053,7 @@ function NavLink({
             fontSize: 11,
             padding: '2px 8px',
             borderRadius: 999,
-            background: isActive ? 'rgba(255,255,255,0.18)' : 'var(--peach-bg)',
+            background: isActive ? 'color-mix(in oklab, var(--cream) 18%, transparent)' : 'var(--peach-bg)',
             color: isActive ? 'var(--cream)' : 'var(--peach-ink)',
             fontWeight: 700,
           }}
@@ -1079,7 +1080,7 @@ function NavLinkPending({ isActive }: { isActive: boolean }) {
         width: 6,
         height: 6,
         borderRadius: 999,
-        background: isActive ? 'rgba(255,255,255,0.85)' : 'var(--peach-ink, #C6703D)',
+        background: isActive ? 'var(--cream)' : 'var(--peach-ink, #C6703D)',
         display: 'inline-block',
         marginRight: 4,
         animation: 'pl-dot-pulse 0.9s ease-in-out infinite',
@@ -1279,6 +1280,7 @@ export function DashTopbar({
         {/* Aggregated activity bell — always present in the
             topbar so the host doesn't have to scan multiple
             widgets to see what's new. Polls every 60s. */}
+        <ThemeToggle size="md" />
         <NotificationBell />
         <TopbarAvatarButton />
         {actions}
