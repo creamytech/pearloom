@@ -237,15 +237,20 @@ function ShareCelebrationRow({ manifest, ink }: ShareRowProps) {
   // Messages: prefer sms: on touch devices (iOS / Android), fall
   // back to a mailto: pre-fill for desktop where there's no SMS
   // app to hand off to.
+  //
+  // The SMS body is the URL ALONE — iMessage only renders the big
+  // rich link card when the URL is the entire message; text + link
+  // in one bubble collapses to a bare domain pill. The share card
+  // (og:image) carries the names and photo, so nothing is lost.
   const messagesHref = useMemo(() => {
     if (typeof window === 'undefined') return '#';
     const isTouch = 'ontouchstart' in window || (navigator.maxTouchPoints ?? 0) > 0;
     if (isTouch) {
       // iOS uses '&', Android uses '?' — '?' works on both.
-      return `sms:?body=${encodeURIComponent(shareText)}`;
+      return `sms:?body=${encodeURIComponent(shareUrl || shareText)}`;
     }
     return `mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(shareText)}`;
-  }, [shareText, shareTitle]);
+  }, [shareText, shareTitle, shareUrl]);
 
   const emailHref = useMemo(() => {
     return `mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(shareText)}`;
