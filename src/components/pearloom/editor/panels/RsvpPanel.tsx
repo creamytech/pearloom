@@ -110,7 +110,9 @@ export function RsvpPanel({ manifest, onChange, siteSlug }: { manifest: StoryMan
             <FToggleStandalone label="Dietary restrictions" def={!!config.dietary} onChange={(v) => setToggle('dietary', v)} />
             <FToggleStandalone label="Song request" def={!!config.songRequest} onChange={(v) => setToggle('songRequest', v)} />
             <FToggleStandalone label="Plus-one" def={!!config.plusOne} onChange={(v) => setToggle('plusOne', v)} />
-            <AddCard label="Add a custom question" />
+            {/* "Add a custom question" removed — it had no handler and
+                no data model behind it. Restore with real custom-
+                question support, not before. */}
           </div>
         </FGroup>
         {config.mealChoice && (
@@ -316,7 +318,7 @@ function ShowGoingToggle({
     <FToggleStandalone
       label={current ? 'Showing attendee pile' : 'Hidden — private guest list'}
       sub={current
-        ? `Guests see a small "${defaultEnabled ? 'X going' : 'X going'}" pile under the RSVP button.`
+        ? 'Guests see a small attendee pile + count under the RSVP button — real replies only.'
         : 'Standard for weddings + memorials. Your guest list stays private.'}
       def={current}
       onChange={setVal}

@@ -28,10 +28,13 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
      cards from earlier sessions (before the cap was enforced)
      don't bleed extra rows into the rail. The canvas already
      slices to 3 too — both sides agree on the max. */
+  /* The panel's starter rows MATCH the canvas's editor demo cards
+     ('Aegean formal' here vs 'Garden formal' on the canvas left
+     hosts unsure which was real). */
   const rawCards: Card[] = ((manifest as unknown as { detailsCards?: Card[] }).detailsCards) ?? [
-    ['Dress code', 'Aegean formal'],
-    ['Parking', 'Valet on-site'],
-    ['Weather', 'Warm evenings, ~22°C'],
+    ['Dress code', 'Garden formal'],
+    ['Kids welcome', 'Ages 10 +'],
+    ['Gifts', 'Your presence is enough'],
   ];
   const cards: Card[] = rawCards.slice(0, 3);
 

@@ -3,7 +3,7 @@
 /* eslint-disable no-restricted-syntax */
 /* MusicPanel — Spotify / Apple Music playlist embed + guest song
    submissions. Writes manifest.music = { provider, url, title,
-   description, acceptSubmissions }. */
+   description }. */
 
 import type { StoryManifest } from '@/types';
 import { FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
@@ -19,7 +19,6 @@ interface MusicData {
   url?: string;
   title?: string;
   description?: string;
-  acceptSubmissions?: boolean;
 }
 
 export function MusicPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
@@ -30,7 +29,10 @@ export function MusicPanel({ manifest, onChange }: { manifest: StoryManifest; on
   const url = data.url ?? '';
   const title = data.title ?? '';
   const description = data.description ?? '';
-  const acceptSubmissions = data.acceptSubmissions ?? false;
+  /* Reads rsvpConfig.songRequests — the field the RSVP form and
+     passport song composer actually honor (defaults ON, matching
+     their behavior). music.acceptSubmissions was write-only. */
+  const acceptSubmissions = ((manifest as unknown as { rsvpConfig?: { songRequests?: boolean } }).rsvpConfig?.songRequests) ?? true;
   const [eyebrow, setEyebrow] = useCopyOverride(manifest, onChange, 'musicEyebrow');
 
   const patch = (next: Partial<MusicData>) => onChange({
@@ -96,13 +98,22 @@ export function MusicPanel({ manifest, onChange }: { manifest: StoryManifest; on
           />
         </FGroup>
 
+        {/* Wired to rsvpConfig.songRequests — the field the RSVP form
+            and the guest passport's song composer ACTUALLY read. The
+            old write (music.acceptSubmissions) went nowhere. */}
         <FToggleStandalone
           label="Accept song requests from guests"
           sub={acceptSubmissions
-            ? 'Guests can submit songs via the RSVP form. Builds a wishlist Pear can compile for the DJ.'
+            ? 'The RSVP form asks for a song, and passport guests get a request composer.'
             : 'Off — the player is one-way listening only.'}
           def={acceptSubmissions}
-          onChange={(v) => patch({ acceptSubmissions: v })}
+          onChange={(v) => {
+            const loose = manifest as unknown as { rsvpConfig?: Record<string, unknown> };
+            onChange({
+              ...(manifest as unknown as Record<string, unknown>),
+              rsvpConfig: { ...(loose.rsvpConfig ?? {}), songRequests: v },
+            } as unknown as StoryManifest);
+          }}
         />
 
         <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Music" />
