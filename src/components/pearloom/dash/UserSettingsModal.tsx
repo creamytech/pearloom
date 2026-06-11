@@ -19,9 +19,11 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react';
+import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { Icon, Pear } from '../motifs';
 import { NotificationPrefsTab } from './NotificationPrefsTab';
+import { usePlan } from './usePlan';
 
 /* ─── Context (existing consumer API — DashShell + DashCommandPalette
        call useUserSettings().openTab(<id>)) ─────────────────────────────── */
@@ -116,13 +118,14 @@ interface PlanShape {
   current?: boolean;
 }
 
-function planList(currentPlanId: string): PlanShape[] {
-  const isBloom = ['pro', 'bloom', 'premium'].includes(currentPlanId);
-  const isForever = ['atelier', 'forever', 'legacy'].includes(currentPlanId);
+/** Canonical tier catalog — names, prices, and limits mirror the
+ *  pricing page (DesignPricing) + PLAN_LIMITS. The previous list
+ *  showed an invented 'Bloom $12/mo' tier that never existed. */
+function planList(plan: 'free' | 'pro' | 'premium'): PlanShape[] {
   return [
-    { id: 'free', name: 'Free', price: '$0', per: 'forever', features: ['1 event site', '50 Pear credits / mo', 'Core theme packs'], cta: !isBloom && !isForever ? 'Current plan' : 'Downgrade', current: !isBloom && !isForever },
-    { id: 'bloom', name: 'Bloom', price: '$12', per: 'per month', features: ['5 event sites', '500 Pear credits / mo', 'All theme packs + store', 'Custom domain', 'Partner access'], cta: isBloom ? 'Current plan' : 'Upgrade', current: isBloom },
-    { id: 'forever', name: 'Forever', price: '$240', per: 'one-time', features: ['Unlimited sites', 'Unlimited Pear credits', 'Everything in Bloom', 'Lifetime — no renewals', 'Priority support'], cta: isForever ? 'Current plan' : 'Upgrade', current: isForever },
+    { id: 'journal', name: 'Journal', price: '$0',   per: 'forever',  features: ['One site, yours to keep', 'The full drafting by Pear', 'Unlimited RSVPs'], cta: plan === 'free' ? 'Current plan' : 'Included', current: plan === 'free' },
+    { id: 'atelier', name: 'Atelier', price: '$19',  per: 'once',     features: ['Everything in Journal', 'Every block, template & theme pack', 'The Director (day-of room)'], cta: plan === 'pro' ? 'Current plan' : 'Upgrade', current: plan === 'pro' },
+    { id: 'legacy',  name: 'Legacy',  price: '$129', per: 'lifetime', features: ['Everything in Atelier', 'Up to ten sites, forever', 'Co-hosts + the signature theme shelf'], cta: plan === 'premium' ? 'Current plan' : 'Upgrade', current: plan === 'premium' },
   ];
 }
 
@@ -158,21 +161,83 @@ function SettingsHead({ title, sub }: { title: string; sub: string }) {
 
 /* ─── Tabs (verbatim from prototype, with live data wiring) ──────────── */
 
-function AccountTab({ user }: { user: { name: string; email: string; initials: string; joined: string } }) {
+function AccountTab({ user }: { user: { name: string; email: string; initials: string; joined: string; image?: string | null } }) {
+  /* Display name persists to /api/user/preferences (display_name) —
+     the same field DashSettings (/dashboard/profile) edits, so the
+     two surfaces can never disagree. The old tab rendered dead
+     Edit / Change password / Change photo buttons with no wiring;
+     identity fields (email, photo) come from the sign-in provider
+     and are labeled as such instead of pretending to be editable. */
+  const [prefName, setPrefName] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [saved, setSaved] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/user/preferences', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const n = (d as { preferences?: { display_name?: string | null } } | null)?.preferences?.display_name;
+        if (!cancelled && typeof n === 'string' && n.trim()) setPrefName(n);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+  const effectiveName = prefName ?? user.name;
+  function saveName() {
+    const v = draft.trim();
+    setPrefName(v || null);
+    setEditing(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1800);
+    void fetch('/api/user/preferences', {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ display_name: v || null }),
+    }).catch(() => { /* optimistic — re-syncs on next open */ });
+  }
   return (
     <div>
       <SettingsHead title="Account" sub="Your profile and how we reach you." />
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '6px 0 18px' }}>
-        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg, var(--sage-deep), var(--sage))', color: 'var(--cream)', display: 'grid', placeItems: 'center', fontSize: 26, fontWeight: 700 }}>{user.initials}</div>
+        {user.image ? (
+          <img src={user.image} alt={effectiveName} style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }} />
+        ) : (
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg, var(--sage-deep), var(--sage))', color: 'var(--cream)', display: 'grid', placeItems: 'center', fontSize: 26, fontWeight: 700 }}>{user.initials}</div>
+        )}
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600 }}>{user.name}</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600 }}>{effectiveName}</div>
           <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>{user.joined}</div>
         </div>
-        <button className="btn btn-outline btn-sm"><Icon name="image" size={12} /> Change photo</button>
       </div>
-      <UsRow><UsField label="Full name" value={user.name} /><button className="btn btn-outline btn-sm">Edit</button></UsRow>
-      <UsRow><UsField label="Email" value={user.email} /><button className="btn btn-outline btn-sm">Edit</button></UsRow>
-      <UsRow><UsField label="Password" value="••••••••••" /><button className="btn btn-outline btn-sm">Change</button></UsRow>
+      <UsRow>
+        {editing ? (
+          <>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 3 }}>Display name</div>
+              <input
+                autoFocus
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') setEditing(false); }}
+                style={{ width: '100%', maxWidth: 280, padding: '7px 10px', borderRadius: 8, border: '1px solid var(--line)', background: 'var(--cream-2)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }}
+              />
+            </div>
+            <button className="btn btn-primary btn-sm" onClick={saveName}>Save</button>
+            <button className="btn btn-outline btn-sm" onClick={() => setEditing(false)}>Cancel</button>
+          </>
+        ) : (
+          <>
+            <UsField label="Display name" value={<>{effectiveName}{saved && <span style={{ marginLeft: 8, fontSize: 11.5, color: 'var(--sage-deep)', fontWeight: 600 }}>✓ Saved</span>}</>} />
+            <button className="btn btn-outline btn-sm" onClick={() => { setDraft(effectiveName); setEditing(true); }}>Edit</button>
+          </>
+        )}
+      </UsRow>
+      <UsRow>
+        <UsField label="Email" value={user.email} />
+        <span style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>Managed by your sign-in provider</span>
+      </UsRow>
       <UsRow style={{ borderBottom: 'none' }}>
         <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--lavender-2)', color: '#3D4A1F', display: 'grid', placeItems: 'center', fontSize: 13, fontWeight: 700 }}>+</div>
         <UsField label="Partner access" value="Invite a collaborator to edit your site" />
@@ -182,12 +247,12 @@ function AccountTab({ user }: { user: { name: string; email: string; initials: s
   );
 }
 
-function UsageTab({ usage }: { usage: UsageData }) {
+function UsageTab({ usage, planLabel, onUpgrade }: { usage: UsageData; planLabel: string; onUpgrade: () => void }) {
   const pearPct = Math.round((usage.pear.used / usage.pear.total) * 100);
   const sitePct = Math.round((usage.sites.used / usage.sites.total) * 100);
   return (
     <div>
-      <SettingsHead title="Usage & credits" sub={usage.cycle + ' · on the Bloom plan.'} />
+      <SettingsHead title="Usage & credits" sub={`${usage.cycle} · on the ${planLabel} plan.`} />
       <div style={{ background: 'linear-gradient(150deg, var(--peach-bg), var(--lavender-bg))', borderRadius: 16, padding: 18, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 18 }}>
         <div style={{ position: 'relative', width: 72, height: 72, flexShrink: 0 }}>
           <svg width="72" height="72" viewBox="0 0 72 72" style={{ transform: 'rotate(-90deg)' }}>
@@ -201,7 +266,7 @@ function UsageTab({ usage }: { usage: UsageData }) {
           <div style={{ fontFamily: 'var(--font-display)', fontSize: 30, fontWeight: 600, lineHeight: 1.1 }}>{usage.pear.total - usage.pear.used} <span style={{ fontSize: 15, color: 'var(--ink-soft)' }}>of {usage.pear.total} left</span></div>
           <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 2 }}>{usage.pear.used} used this cycle</div>
         </div>
-        <button className="btn btn-primary btn-sm">Get more</button>
+        <button className="btn btn-primary btn-sm" onClick={onUpgrade}>Get more</button>
       </div>
       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--ink-muted)', margin: '6px 0 8px' }}>Where credits went</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 16 }}>
@@ -241,12 +306,21 @@ function SubscriptionTab({ plans }: { plans: PlanShape[] }) {
                 </div>
               ))}
             </div>
-            <button className={`btn ${p.current ? 'btn-outline' : p.id === 'forever' ? 'btn-primary' : 'btn-outline'} btn-sm`} disabled={p.current} style={{ width: '100%', justifyContent: 'center', opacity: p.current ? 0.6 : 1 }}>{p.cta}</button>
+            {p.current || p.cta === 'Included' ? (
+              <button className="btn btn-outline btn-sm" disabled style={{ width: '100%', justifyContent: 'center', opacity: 0.6 }}>{p.cta}</button>
+            ) : (
+              /* Upgrades go through the pricing section's Stripe
+                 checkout — there is no in-modal purchase flow, so
+                 the CTA is a real link instead of a dead button. */
+              <Link href="/#pricing" className={`btn ${p.id === 'legacy' ? 'btn-primary' : 'btn-outline'} btn-sm`} style={{ width: '100%', justifyContent: 'center', textDecoration: 'none' }}>{p.cta}</Link>
+            )}
           </div>
         ))}
       </div>
-      <UsRow><UsField label="Billing" value="Managed in your billing portal" /><button className="btn btn-outline btn-sm">Manage billing</button></UsRow>
-      <UsRow style={{ borderBottom: 'none' }}><UsField label="Invoices" value="Download past receipts" /><button className="btn btn-outline btn-sm">View all</button></UsRow>
+      <UsRow style={{ borderBottom: 'none' }}>
+        <UsField label="Billing" value="Purchases are one-time through Stripe — receipts arrive by email." />
+        <Link href="/#pricing" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>See pricing</Link>
+      </UsRow>
     </div>
   );
 }
@@ -281,7 +355,7 @@ function PreferencesTab() {
       <UsRow><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500 }}>Weekly digest</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>A Sunday summary of what changed.</div></div><UsToggle on={digest} set={(v) => { setDigest(v); patch({ weekly_digest: v }); }} /></UsRow>
       <UsRow><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500 }}>Autosave</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>Save edits as you go.</div></div><UsToggle on={autosave} set={(v) => { setAutosave(v); patch({ autosave: v }); }} /></UsRow>
       <UsRow><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500 }}>Reduced motion</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>Calm the scroll-reveal animations.</div></div><UsToggle on={motion} set={(v) => { setMotion(v); patch({ reduced_motion: v }); }} /></UsRow>
-      <UsRow style={{ borderBottom: 'none' }}><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500, color: '#b4543a' }}>Delete account</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>Permanently remove your data.</div></div><button className="btn btn-outline btn-sm" style={{ color: '#b4543a', borderColor: 'rgba(180,84,58,0.3)' }}>Delete</button></UsRow>
+      <UsRow style={{ borderBottom: 'none' }}><div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500, color: '#b4543a' }}>Export or delete account</div><div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>Both live in account settings, with a proper confirm step.</div></div><button className="btn btn-outline btn-sm" style={{ color: '#b4543a', borderColor: 'rgba(180,84,58,0.3)' }} onClick={() => { if (typeof window !== 'undefined') window.location.assign('/dashboard/profile'); }}>Open settings</button></UsRow>
     </div>
   );
 }
@@ -304,13 +378,16 @@ export function UserSettingsModal({
   const setTab = setTabProp ?? setLocalTab;
   const { data: session } = useSession();
   const [usage, setUsage] = useState<UsageData>(DEFAULT_USAGE);
-  const [planId, setPlanId] = useState<string>('free');
+  /* Live plan — /api/store/entitlements via the shared usePlan hook
+     (same source as the sidebar strip). The previous code hardcoded
+     'Bloom plan' in the rail regardless of reality. */
+  const planInfo = usePlan();
 
   const user = useMemo(() => {
     const name = session?.user?.name ?? 'Pearloom Host';
     const email = session?.user?.email ?? '';
     const initials = name.split(/\s+/).filter(Boolean).map((s) => s[0]).slice(0, 2).join('').toUpperCase() || 'P';
-    return { name, email, initials, joined: 'Member of Pearloom' };
+    return { name, email, initials, joined: 'Member of Pearloom', image: session?.user?.image ?? null };
   }, [session]);
 
   useEffect(() => {
@@ -332,7 +409,6 @@ export function UserSettingsModal({
             ],
             sites: { used: data.sites_used ?? 0, total: data.sites_total ?? 5 },
           });
-          if (data.plan) setPlanId(String(data.plan));
         }
       })
       .catch(() => {});
@@ -347,7 +423,7 @@ export function UserSettingsModal({
     { id: 'notifications', label: 'Notifications', icon: 'bell' },
     { id: 'preferences', label: 'Preferences', icon: 'settings' },
   ];
-  const plans = planList(planId);
+  const plans = planList(planInfo.plan);
 
   return (
     <div className="pl8" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(40,40,30,0.45)', backdropFilter: 'blur(6px)', display: 'grid', placeItems: 'center', padding: 24 }}>
@@ -359,7 +435,7 @@ export function UserSettingsModal({
             <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, var(--sage-deep), var(--sage))', color: 'var(--cream)', display: 'grid', placeItems: 'center', fontSize: 14, fontWeight: 700 }}>{user.initials}</div>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 13.5, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.name}</div>
-              <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>Bloom plan</div>
+              <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{planInfo.label} plan</div>
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -380,7 +456,7 @@ export function UserSettingsModal({
         <div style={{ position: 'relative', overflow: 'auto', padding: '24px 28px' }}>
           <button onClick={onClose} style={{ position: 'absolute', top: 18, right: 18, width: 30, height: 30, borderRadius: 8, display: 'grid', placeItems: 'center', background: 'var(--cream-2)', zIndex: 2, border: 'none', cursor: 'pointer' }}><Icon name="close" size={15} color="var(--ink-soft)" /></button>
           {tab === 'account' && <AccountTab user={user} />}
-          {tab === 'usage' && <UsageTab usage={usage} />}
+          {tab === 'usage' && <UsageTab usage={usage} planLabel={planInfo.label} onUpgrade={() => setTab('subscription')} />}
           {tab === 'subscription' && <SubscriptionTab plans={plans} />}
           {tab === 'notifications' && <NotificationPrefsTab />}
           {tab === 'preferences' && <PreferencesTab />}
