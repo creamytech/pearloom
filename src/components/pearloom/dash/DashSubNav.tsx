@@ -49,7 +49,9 @@ export function DashSubNav({ section }: Props) {
         padding: '14px clamp(20px, 4vw, 40px) 4px',
         maxWidth: 1240,
         margin: '0 auto',
-        borderBottom: '1px solid var(--line-soft)',
+        // Gold hairline — the brand's punctuation (BRAND.md §5):
+        // a 1px rule tinted toward gold instead of a plain gray border.
+        borderBottom: '1px solid color-mix(in oklab, var(--gold, #C19A4B) 30%, var(--line-soft))',
         marginBottom: 8,
       }}
     >
@@ -71,7 +73,7 @@ export function DashSubNav({ section }: Props) {
               background: on ? 'var(--ink)' : 'transparent',
               color: on ? 'var(--cream)' : 'var(--ink-soft)',
               border: on ? '1.5px solid var(--ink)' : '1.5px solid transparent',
-              transition: 'background 200ms ease, color 200ms ease, border-color 200ms ease',
+              transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
             }}
           >
             {tab.label}

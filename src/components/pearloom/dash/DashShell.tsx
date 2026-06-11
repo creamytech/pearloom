@@ -1147,7 +1147,7 @@ export function DashMobileBar() {
  *  of "tap your face for account". The sidebar UserMenu remains the
  *  primary entry; this is the alternate path the user expects from
  *  a topbar avatar. */
-function TopbarAvatarButton() {
+export function TopbarAvatarButton() {
   const { data: session } = useSession();
   const { openTab } = useUserSettings();
   const name = session?.user?.name ?? 'Guest';
@@ -1214,23 +1214,30 @@ export function DashTopbar({
         // unnecessarily. New scale (16-28 top / 8-12 bottom) keeps
         // the editorial feel without forcing a scroll.
         padding: 'clamp(16px, 2.6vw, 28px) clamp(20px, 4vw, 40px) clamp(8px, 1.4vw, 12px)',
-        // Match page content maxWidth (1240) so the title sits
-        // visually centered above the card grid instead of being
-        // 240px wider than the content rail beneath it.
+        // Match page content maxWidth (1240) so the title aligns
+        // with the content rail beneath it. Left-aligned with an
+        // in-flow action cluster — the old centered title +
+        // absolute right cluster could overlap at mid widths, and
+        // split the dashboard into two title paradigms (Home was
+        // already left-aligned).
         maxWidth: 1240,
         margin: '0 auto',
         width: '100%',
-        textAlign: 'center',
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: 16,
+        flexWrap: 'wrap',
       }}
     >
+      <div style={{ minWidth: 0, flex: 1 }}>
       <h1
-        className="display"
+        className="display pl-letterpress"
         style={{
           fontSize: 'clamp(28px, 3.6vw, 38px)',
           margin: 0,
           display: 'inline-flex',
           alignItems: 'center',
-          justifyContent: 'center',
           gap: 12,
           lineHeight: 1.05,
           letterSpacing: '-0.01em',
@@ -1253,23 +1260,20 @@ export function DashTopbar({
             fontSize: 13.5,
             color: 'var(--ink-soft)',
             maxWidth: 640,
-            marginLeft: 'auto',
-            marginRight: 'auto',
             lineHeight: 1.5,
           }}
         >
           {subtitle}
         </div>
       )}
+      </div>
       <div
         style={{
-          position: 'absolute',
-          top: 'clamp(16px, 2.6vw, 28px)',
-          right: 'clamp(20px, 4vw, 40px)',
           display: 'flex',
           gap: 10,
           alignItems: 'center',
           flexWrap: 'wrap',
+          flexShrink: 0,
         }}
       >
         {/* Aggregated activity bell — always present in the
@@ -1358,6 +1362,11 @@ export function DashLayout({
     <div className="pl8 pl8-dashshell">
       <DashSidebar active={active} />
       <main style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+        {/* Paper grain — the brand's fixed warm underlay (BRAND.md §3),
+            previously missing from the dashboard entirely. Wrapper
+            opacity halves the utility's 0.35 so the work surface
+            stays quiet enough to read through. */}
+        <div aria-hidden className="pl-grain" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, opacity: 0.5 }} />
         <div style={{ position: 'absolute', top: 0, right: 0, pointerEvents: 'none', zIndex: 0 }}>
           <Blob tone="peach" size={380} opacity={0.35} style={{ position: 'absolute', top: -120, right: -120 }} />
         </div>
