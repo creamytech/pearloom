@@ -28,6 +28,12 @@ interface PrefsRow {
   timezone: string | null;
   /** Orchard-mark avatar id (PL_AVATARS in components/pearloom/avatars.tsx). */
   avatar: string | null;
+  /** Welcome-flow completion (set once via { onboarded: true }). */
+  onboarded_at: string | null;
+  /** Terms + Privacy agreement (set once via { terms_accepted: true }). */
+  terms_accepted_at: string | null;
+  /** What brought them to the loom — seeds wizard defaults. */
+  intent: string | null;
 }
 
 const DEFAULTS: Omit<PrefsRow, 'email'> = {
@@ -44,6 +50,9 @@ const DEFAULTS: Omit<PrefsRow, 'email'> = {
   pronouns: null,
   timezone: null,
   avatar: null,
+  onboarded_at: null,
+  terms_accepted_at: null,
+  intent: null,
 };
 
 function sb() {
@@ -97,6 +106,14 @@ export async function PATCH(req: NextRequest) {
   if ((typeof body.avatar === 'string' && body.avatar.length <= 40) || body.avatar === null) {
     patch.avatar = body.avatar;
   }
+  if ((typeof body.intent === 'string' && body.intent.length <= 40) || body.intent === null) {
+    patch.intent = body.intent;
+  }
+  /* Onboarding milestones are stamped server-side and only move
+     forward — clients send booleans, never timestamps. */
+  const milestones = body as { onboarded?: unknown; terms_accepted?: unknown };
+  if (milestones.terms_accepted === true) patch.terms_accepted_at = new Date().toISOString();
+  if (milestones.onboarded === true) patch.onboarded_at = new Date().toISOString();
 
   try {
     /* Merge with the EXISTING row before upserting. The previous

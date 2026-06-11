@@ -72,7 +72,9 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
   };
 
   const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl: '/dashboard' });
+    // /welcome is the first-run onboarding gate — onboarded
+    // accounts pass straight through to /dashboard server-side.
+    signIn('google', { callbackUrl: '/welcome' });
   };
 
   if (!open) return null;

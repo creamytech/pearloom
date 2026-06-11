@@ -444,6 +444,51 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-06-11 — Welcome flow + orchard avatars + site-crest switcher
+
+**The Welcome flow** (`/welcome`, server gate + `WelcomeFlowClient`):
+first-run onboarding between sign-in and the product. Sign-in
+defaults (SigninV8 + AuthModal) now land on `/welcome`; onboarded
+accounts pass straight through server-side (one indexed read at
+login, nothing after). Five movements on one sheet of paper —
+arrival (auto-advances), name ("What should Pear call you?"),
+mark (avatar picker), occasion (intent chips: wedding / engagement
+/ baby / birthday / reunion / memorial / exploring), the agreement
+(Terms + Privacy links, three product-verifiable promises, required
+checkbox), then "The loom is yours" → Begin a thread (/wizard/new,
+or /dashboard for explorers). Two-strand progress thread, Fraunces
+letterpress, Enter-to-advance, reduced-motion fades. Name/mark/
+occasion skippable; the agreement is the only gate. Migration
+`20260624_onboarding.sql` (applied + tracked): `onboarded_at`,
+`terms_accepted_at` (both stamped server-side from booleans),
+`intent` on user_preferences. `intent` is stored but not yet read
+by the wizard — named follow-up.
+
+**Orchard avatars** (`src/components/pearloom/avatars.tsx`): twelve
+hand-drawn SVG account marks (pears, sprig, bloom, spool, seal,
+envelope, lantern, bunting, midnight moon) in the dashboard tints.
+Picker in Settings → Account ("Your mark") + the Welcome flow;
+stored as `user_preferences.avatar` (migration `20260623`); a
+module-cached `useUserAvatar()` store keeps the topbar button,
+sidebar menu, and settings modal in sync instantly. Fallback chain:
+mark → sign-in photo → initials.
+
+**Site crest** (DashShell): the sidebar celebration switcher's
+spinning conic-gradient square (BRAND §10 "AI startup" energy) is
+replaced by `SiteCrest` — cover photo in a gold hairline frame, or
+an occasion-tinted paper tile (peach wedding-arc / plum memorial /
+gold party / lavender family-ceremony / sage default) with the
+site's initial in display italic + the gold pearl. Dropdown rows
+get mini-crests + a gold check on the active site. Dead
+`pl8-sb-cele-spin` keyframes removed.
+
+**Fixed while in there:** `/api/user/preferences` PATCH was
+clobbering every unspecified field back to defaults (saving a
+display name reset Pear voice / quiet hours / pronouns / timezone)
+— now merges with the existing row. The settings modal read
+`display_name` from a `.preferences.` envelope the API never
+returned — saved names now load back.
+
 ### 2026-06-11 — Sealed Arrival + persistent guest identity (event graph phase 1)
 
 **Sealed Arrival** — the published site's envelope-opening first-

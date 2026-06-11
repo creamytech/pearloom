@@ -173,7 +173,11 @@ export function SigninV8({
   searchParamsPromise: Promise<{ next?: string; error?: string }>;
 }) {
   const params = use(searchParamsPromise);
-  const next = params.next || '/dashboard';
+  /* Default landing is /welcome — the first-run onboarding gate.
+     Finished accounts pass straight through to /dashboard server-
+     side, so returning users never see the flow. Explicit ?next=
+     deep links still win. */
+  const next = params.next || '/welcome';
   const errorKey = params.error;
   const { status } = useSession();
   const router = useRouter();
