@@ -88,3 +88,50 @@ describe('brand emails', () => {
     expect(no.subject).toContain('can’t make it');
   });
 });
+
+describe('notification system emails', () => {
+  it('host alert — title as subject, optional body quoted, prefs hint', async () => {
+    const { buildHostAlertEmail } = await import('./brand-emails');
+    const { subject, html } = buildHostAlertEmail({
+      siteLabel: 'Scott & Shauna',
+      title: 'Marco can’t make it',
+      body: 'So sorry — we will toast from afar <3',
+      ctaUrl: 'https://pearloom.com/dashboard/rsvp',
+    });
+    expect(subject).toBe('Marco can’t make it');
+    expect(html).toContain('&lt;3');
+    expect(html).toContain('Settings → Notifications');
+  });
+
+  it('daily digest — counts headline, item rows, overflow note', async () => {
+    const { buildDailyDigestEmail } = await import('./brand-emails');
+    const items = Array.from({ length: 14 }, (_, i) => ({
+      label: `Guest ${i} is in`,
+      href: '/dashboard/rsvp',
+    }));
+    const { subject, html } = buildDailyDigestEmail({
+      coupleDisplay: 'Scott & Shauna',
+      siteLabel: 'Scott & Shauna',
+      items,
+      counts: [{ n: 14, noun: 'replies' }, { n: 0, noun: 'gifts claimed' }],
+      dashboardUrl: 'https://pearloom.com/dashboard',
+    });
+    expect(subject).toContain('14 replies');
+    expect(subject).not.toContain('gifts');
+    expect(html).toContain('Guest 0 is in');
+    expect(html).toContain('…and 2 more');
+  });
+
+  it('cadence — host copy escaped + quoted, CTA label honored', async () => {
+    const { buildCadenceEmail } = await import('./brand-emails');
+    const { html } = buildCadenceEmail({
+      couple: 'A & B',
+      body: 'Reply by <Friday>!\n\nLove, us',
+      ctaLabel: 'Reply on the site',
+      ctaUrl: 'https://x/g/tok',
+    });
+    expect(html).toContain('&lt;Friday&gt;');
+    expect(html).toContain('Reply on the site');
+    expect(html).toContain('https://x/g/tok');
+  });
+});

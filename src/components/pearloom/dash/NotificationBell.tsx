@@ -91,11 +91,13 @@ export function NotificationBell() {
   const ref = useRef<HTMLDivElement | null>(null);
 
   // Poll for new activity every 60s. The bell badge derives from
-  // items newer than seenAt (local-only).
+  // items newer than seenAt. Read state is server-side
+  // (notification_reads — survives across devices); localStorage
+  // is kept as the offline/legacy fallback.
   useEffect(() => {
     if (!site?.id) return;
     const currentSiteId = site.id;
-    const initialSeenAt = readSeenAt(currentSiteId);
+    const localSeenAt = readSeenAt(currentSiteId);
     let cancelled = false;
     async function pull() {
       try {
@@ -103,9 +105,14 @@ export function NotificationBell() {
           cache: 'no-store',
         });
         if (!res.ok) return;
-        const data = (await res.json()) as { items?: Notification[] };
+        const data = (await res.json()) as { items?: Notification[]; seenAt?: string | null };
         if (cancelled) return;
-        setBell({ siteId: currentSiteId, items: data.items ?? [], seenAt: initialSeenAt });
+        const serverSeenAt = data.seenAt ? new Date(data.seenAt).getTime() : 0;
+        setBell({
+          siteId: currentSiteId,
+          items: data.items ?? [],
+          seenAt: Math.max(serverSeenAt, localSeenAt),
+        });
       } catch {
         // ignore — bell stays empty until next tick
       }
@@ -165,11 +172,17 @@ export function NotificationBell() {
   const handleOpen = useCallback(() => {
     setOpen((v) => {
       const next = !v;
-      // Opening marks everything currently visible as seen.
+      // Opening marks everything currently visible as seen — both
+      // locally (instant) and server-side (cross-device).
       if (next && site?.id) {
         const now = Date.now();
         writeSeenAt(site.id, now);
         setBell((prev) => prev && prev.siteId === site.id ? { ...prev, seenAt: now } : prev);
+        void fetch('/api/dashboard/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ siteId: site.id }),
+        }).catch(() => { /* server state catches up on next poll */ });
       }
       return next;
     });

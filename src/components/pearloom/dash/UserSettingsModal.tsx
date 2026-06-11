@@ -21,11 +21,12 @@ import {
 } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { Icon, Pear } from '../motifs';
+import { NotificationPrefsTab } from './NotificationPrefsTab';
 
 /* ─── Context (existing consumer API — DashShell + DashCommandPalette
        call useUserSettings().openTab(<id>)) ─────────────────────────────── */
 
-type SettingsTab = 'account' | 'usage' | 'subscription' | 'preferences';
+type SettingsTab = 'account' | 'usage' | 'subscription' | 'notifications' | 'preferences';
 
 interface UserSettingsContextValue {
   open: boolean;
@@ -343,6 +344,7 @@ export function UserSettingsModal({
     { id: 'account', label: 'Account', icon: 'user' },
     { id: 'usage', label: 'Usage & credits', icon: 'sparkles' },
     { id: 'subscription', label: 'Subscription', icon: 'star' },
+    { id: 'notifications', label: 'Notifications', icon: 'bell' },
     { id: 'preferences', label: 'Preferences', icon: 'settings' },
   ];
   const plans = planList(planId);
@@ -380,6 +382,7 @@ export function UserSettingsModal({
           {tab === 'account' && <AccountTab user={user} />}
           {tab === 'usage' && <UsageTab usage={usage} />}
           {tab === 'subscription' && <SubscriptionTab plans={plans} />}
+          {tab === 'notifications' && <NotificationPrefsTab />}
           {tab === 'preferences' && <PreferencesTab />}
         </div>
       </div>

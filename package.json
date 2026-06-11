@@ -58,7 +58,8 @@
     "resend": "^6.9.4",
     "stripe": "^21.0.1",
     "tailwind-merge": "^3.5.0",
-    "three": "^0.184.0"
+    "three": "^0.184.0",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
