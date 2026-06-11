@@ -512,6 +512,37 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
         compact={viewportMobile}
       />
 
+      {/* Save failures were only visible as a topbar label — easy
+          to miss with the tab backgrounded. The banner can't be. */}
+      {saveError && (
+        <div
+          role="alert"
+          style={{
+            position: 'fixed', bottom: 16, left: '50%', transform: 'translateX(-50%)',
+            zIndex: 400, display: 'flex', alignItems: 'center', gap: 12,
+            padding: '11px 16px', borderRadius: 999,
+            background: 'var(--pl-warning-mist, rgba(161,74,44,0.10))',
+            border: '1px solid var(--pl-warning, #A14A2C)',
+            color: 'var(--pl-warning, #A14A2C)',
+            fontSize: 12.5, fontWeight: 600,
+            boxShadow: '0 8px 24px rgba(14,13,11,0.18)',
+          }}
+        >
+          Your last change didn&rsquo;t save.
+          <button
+            type="button"
+            onClick={() => void retrySave()}
+            style={{
+              padding: '6px 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
+              background: 'var(--pl-warning, #A14A2C)', color: 'var(--pl-cream, #F5EFE2)',
+              fontSize: 11.5, fontWeight: 700, fontFamily: 'inherit',
+            }}
+          >
+            Retry now
+          </button>
+        </div>
+      )}
+
       {!viewportMobile && (
         <DraftsRail
           state={state}

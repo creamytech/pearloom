@@ -127,10 +127,15 @@ export function StudioSendOverlay({
         const data = await res.json().catch(() => ({}));
         throw new Error((data as { error?: string }).error ?? `Send failed (${res.status})`);
       }
-      const data = (await res.json()) as { sent?: number; failed?: number };
+      const data = (await res.json()) as { sent?: number; failed?: number; noEmail?: number };
       const sent = data.sent ?? 0;
       const failed = data.failed ?? 0;
-      setSentSummary(`Sent to ${sent}${failed ? ` · ${failed} failed` : ''}`);
+      const noEmail = data.noEmail ?? 0;
+      setSentSummary(
+        `Sent to ${sent}` +
+        (noEmail ? ` · ${noEmail} had no email on file — add addresses in Guests` : '') +
+        (failed ? ` · ${failed} failed` : ''),
+      );
       onSent?.(sent);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not send.');
@@ -291,10 +296,11 @@ export function StudioSendOverlay({
           </SendBlock>
 
           <SendBlock title="Channel mix" sub="Email is free · print is paid per card">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+            {/* SMS was a disabled fake affordance ("Coming soon" card
+                that looked tappable) — removed until it's real. */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
               {[
                 { l: 'Digital', sub: `${withEmail} with email`, icon: 'mail',  primary: true,  count: withEmail },
-                { l: 'SMS',     sub: `${withPhone} with phone`, icon: 'phone', primary: false, count: withPhone, badge: 'Coming soon' },
                 {
                   l: 'Print',
                   sub: `${withAddress} with addresses`,
@@ -339,12 +345,14 @@ export function StudioSendOverlay({
             </div>
           </SendBlock>
 
-          <SendBlock title="Schedule" sub="Pear staggers by timezone so nobody gets a 4am ping">
+          {/* Scheduled sends aren't built yet — the disabled
+              "Tomorrow at 9 AM" / "Custom" buttons and the
+              "staggers by timezone" promise are gone until they
+              are. One honest option. */}
+          <SendBlock title="Schedule" sub="Ships in the next few minutes — scheduled sends are on the loom">
             <div style={{ display: 'flex', gap: 8, flexWrap: mobile ? 'wrap' : undefined }}>
               {[
                 { l: 'Send now', sub: 'Ships in next 5 min', on: true,  disabled: false },
-                { l: 'Tomorrow at 9 AM', sub: 'Coming soon', on: false, disabled: true },
-                { l: 'Custom', sub: 'Coming soon', on: false, disabled: true },
               ].map(s => (
                 <button key={s.l} type="button" aria-pressed={s.on} disabled={s.disabled} aria-disabled={s.disabled} style={{
                   flex: 1, padding: 12, borderRadius: 10,

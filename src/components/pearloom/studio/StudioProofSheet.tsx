@@ -67,6 +67,9 @@ async function fetchProofSheet(siteSlug: string, type: StationeryType): Promise<
     if (!r.ok) {
       let message = 'Pear lost the thread mid-press. Give it a beat and try again.';
       if (r.status === 429) message = 'Pear is taking a breath — try the press again in a minute.';
+      if (r.status === 401) message = 'Your session lapsed — sign in again and the press picks right back up.';
+      if (r.status === 403) message = 'This site belongs to another account — switch accounts to press its proofs.';
+      if (r.status >= 500) message = 'The press jammed on our side. A retry usually clears it.';
       try {
         const data = (await r.json()) as { error?: string };
         if (typeof data.error === 'string' && data.error && r.status !== 401 && r.status !== 403) {

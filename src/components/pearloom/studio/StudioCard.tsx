@@ -9,6 +9,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { StudioPalette, StudioFontPair, StudioContent, StationeryType } from './studio-constants';
+import { BrandedQR } from '@/components/pearloom/editor/panels/BrandedQR';
 import {
   ClassicLayout, AsymLayout, PhotoLayout, ScriptLayout, MinimalLayout,
   PaperTexture, MotifOverlay, Rule,
@@ -145,7 +146,12 @@ export function CardBack(props: CardProps) {
                 we can’t wait
               </div>
               <div style={{ width: 60, height: 60, background: '#fff', display: 'grid', placeItems: 'center', borderRadius: 4, padding: 4 }}>
-                <QRGlyph color={palette.ink} />
+                {/* Real QR — encodes the live site so a printed card
+                    actually scans. Decorative glyph only when the
+                    site has no address yet. */}
+                {siteUrl
+                  ? <BrandedQR value={`https://${siteUrl}`} size={52} dark={palette.ink} light="#ffffff" />
+                  : <QRGlyph color={palette.ink} />}
               </div>
             </div>
           </div>

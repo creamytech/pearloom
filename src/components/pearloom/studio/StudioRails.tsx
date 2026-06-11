@@ -1106,7 +1106,8 @@ function PearTab({ state, content, nameA, nameB, onMatchSiteTheme, onSuggestPair
           {[
             { l: 'Match this card to your site theme',  i: 'palette',  tone: 'lavender', onPress: onMatchSiteTheme },
             { l: 'Suggest a stamp + accent that pair',   i: 'sparkles', tone: 'peach',    onPress: onSuggestPair },
-            { l: 'Translate every word to the venue’s language', i: 'globe', tone: 'lavender' },
+            /* "Translate every word" had no handler — a disabled
+               button posing as a feature. Restore when it ships. */
           ].map(s => (
             <button key={s.l}
               type="button"
