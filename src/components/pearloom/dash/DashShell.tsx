@@ -19,7 +19,8 @@ import { ThemeToggle } from '@/components/shell/ThemeToggle';
 import { useDashDrawer } from './useDashDrawer';
 import { useUserSettings } from './UserSettingsModal';
 import { usePlan } from './usePlan';
-import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
+import { useSelectedSite, siteDisplayName, type SiteSummary } from '@/components/marketing/design/dash/hooks';
+import { PlAvatar, useUserAvatar } from '../avatars';
 
 interface DashNavItem {
   id: string;
@@ -308,6 +309,7 @@ function UserMenu({ name, email, initial }: { name: string; email: string; initi
   const menuRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const { openTab } = useUserSettings();
+  const { avatarId } = useUserAvatar();
 
   useEffect(() => {
     if (!open) return;
@@ -357,22 +359,26 @@ function UserMenu({ name, email, initial }: { name: string; email: string; initi
           if (!open) e.currentTarget.style.background = 'var(--card)';
         }}
       >
-        <div
-          style={{
-            width: 30,
-            height: 30,
-            borderRadius: '50%',
-            background: 'var(--lavender)',
-            display: 'grid',
-            placeItems: 'center',
-            fontSize: 12,
-            fontWeight: 700,
-            color: 'var(--ink)',
-            flexShrink: 0,
-          }}
-        >
-          {initial}
-        </div>
+        {avatarId ? (
+          <PlAvatar id={avatarId} size={30} />
+        ) : (
+          <div
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: '50%',
+              background: 'var(--lavender)',
+              display: 'grid',
+              placeItems: 'center',
+              fontSize: 12,
+              fontWeight: 700,
+              color: 'var(--ink)',
+              flexShrink: 0,
+            }}
+          >
+            {initial}
+          </div>
+        )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {name}
@@ -557,6 +563,121 @@ function UserMenuItem({
   );
 }
 
+/* ── Site crest — the switcher's identity tile ────────────────
+   Replaces the old spinning conic-gradient square (which read
+   "AI startup", BRAND.md §10, and said nothing about the site).
+   Cover photo when the site has one — inside a gold hairline
+   frame per the brand's photo rule — otherwise an occasion-
+   tinted paper tile with the celebration's initial in the
+   display italic and the gold pearl as punctuation. */
+
+const CREST_TINTS = {
+  sage:     { bg: 'var(--sage-tint, #E4E2CC)',     fg: 'var(--sage-deep, #3D4A1F)' },
+  peach:    { bg: 'var(--peach-bg, #F4E3D3)',      fg: 'var(--peach-ink, #C6703D)' },
+  lavender: { bg: 'var(--lavender-bg, #E8E0F0)',   fg: 'var(--lavender-ink, #6B5A8C)' },
+  gold:     { bg: 'rgba(193,154,75,0.16)',         fg: '#8A6A2E' },
+  plum:     { bg: 'rgba(122,45,45,0.10)',          fg: 'var(--pl-plum, #7A2D2D)' },
+} as const;
+
+function crestTint(occasion?: string): { bg: string; fg: string } {
+  switch (occasion) {
+    case 'wedding': case 'engagement': case 'anniversary': case 'vow-renewal':
+      return CREST_TINTS.peach;
+    case 'memorial': case 'funeral':
+      return CREST_TINTS.plum;
+    case 'bachelor-party': case 'bachelorette-party': case 'bridal-shower':
+    case 'birthday': case 'milestone-birthday': case 'sweet-sixteen':
+      return CREST_TINTS.gold;
+    case 'baby-shower': case 'gender-reveal': case 'sip-and-see':
+    case 'baptism': case 'first-communion': case 'confirmation':
+    case 'bar-mitzvah': case 'bat-mitzvah': case 'quinceanera':
+      return CREST_TINTS.lavender;
+    default:
+      return CREST_TINTS.sage;
+  }
+}
+
+function SiteCrest({ site, size = 38 }: { site: SiteSummary | null | undefined; size?: number }) {
+  const radius = Math.max(8, Math.round(size * 0.26));
+  if (!site) {
+    // No site yet — the pear waits on cream.
+    return (
+      <div
+        aria-hidden
+        style={{
+          width: size, height: size, borderRadius: radius, flexShrink: 0,
+          background: 'var(--cream-2, #FBF6E8)',
+          border: '1px solid var(--card-ring, rgba(14,13,11,0.08))',
+          display: 'grid', placeItems: 'center',
+        }}
+      >
+        <Pear size={Math.round(size * 0.55)} tone="sage" shadow={false} />
+      </div>
+    );
+  }
+  if (site.coverPhoto) {
+    return (
+      <div
+        aria-hidden
+        style={{
+          width: size, height: size, borderRadius: radius, flexShrink: 0,
+          border: '1px solid var(--pl-gold, #C19A4B)',
+          padding: 1.5,
+          background: 'var(--card, #FBF7EE)',
+        }}
+      >
+        <img
+          src={site.coverPhoto}
+          alt=""
+          style={{
+            width: '100%', height: '100%', objectFit: 'cover',
+            borderRadius: radius - 3, display: 'block',
+          }}
+        />
+      </div>
+    );
+  }
+  const tint = crestTint(site.occasion);
+  const letter = (siteDisplayName(site).trim()[0] ?? 'P').toUpperCase();
+  return (
+    <div
+      aria-hidden
+      style={{
+        width: size, height: size, borderRadius: radius, flexShrink: 0,
+        background: tint.bg,
+        border: '1px solid var(--card-ring, rgba(14,13,11,0.08))',
+        display: 'grid', placeItems: 'center',
+        position: 'relative',
+      }}
+    >
+      <span
+        style={{
+          fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+          fontStyle: 'italic',
+          fontWeight: 600,
+          fontSize: size * 0.48,
+          lineHeight: 1,
+          color: tint.fg,
+        }}
+      >
+        {letter}
+      </span>
+      {/* The gold pearl — the brand bead as punctuation. */}
+      <span
+        style={{
+          position: 'absolute',
+          right: Math.round(size * 0.14),
+          bottom: Math.round(size * 0.14),
+          width: Math.max(4, Math.round(size * 0.13)),
+          height: Math.max(4, Math.round(size * 0.13)),
+          borderRadius: 999,
+          background: 'var(--pl-gold, #C19A4B)',
+        }}
+      />
+    </div>
+  );
+}
+
 /* ── Celebration switcher card (top of sidebar) ──────────────── */
 function CelebrationCard() {
   const { site, sites, selectSite } = useSelectedSite();
@@ -631,19 +752,7 @@ function CelebrationCard() {
           e.currentTarget.style.boxShadow = '';
         }}
       >
-        <div
-          aria-hidden
-          style={{
-            width: 38,
-            height: 38,
-            borderRadius: 10,
-            flexShrink: 0,
-            background:
-              'conic-gradient(from 140deg at 50% 50%, var(--peach-2), var(--lavender-ink), var(--sage-deep), var(--peach-2))',
-            opacity: 0.88,
-            animation: 'pl8-sb-cele-spin 24s linear infinite',
-          }}
-        />
+        <SiteCrest site={site} size={38} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
             style={{
@@ -728,17 +837,7 @@ function CelebrationCard() {
                   if (!on) e.currentTarget.style.background = 'transparent';
                 }}
               >
-                <span
-                  aria-hidden
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 999,
-                    background: on ? 'var(--peach-ink, #C6703D)' : 'transparent',
-                    border: on ? 'none' : '1.5px solid var(--line)',
-                    flexShrink: 0,
-                  }}
-                />
+                <SiteCrest site={s} size={28} />
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span
                     style={{
@@ -771,6 +870,17 @@ function CelebrationCard() {
                     })()}
                   </span>
                 </span>
+                {on && (
+                  <svg
+                    aria-hidden
+                    width="13" height="13" viewBox="0 0 24 24"
+                    fill="none" stroke="var(--pl-gold, #C19A4B)" strokeWidth="3"
+                    strokeLinecap="round" strokeLinejoin="round"
+                    style={{ flexShrink: 0 }}
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
               </button>
             );
           })}
@@ -794,8 +904,6 @@ function CelebrationCard() {
           </Link>
         </div>
       )}
-      {/* pl8-sb-cele-spin keyframes live in globals.css (see note in
-          DashSidebar). */}
     </div>
   );
 }
@@ -1152,6 +1260,7 @@ export function DashMobileBar() {
 export function TopbarAvatarButton() {
   const { data: session } = useSession();
   const { openTab } = useUserSettings();
+  const { avatarId } = useUserAvatar();
   const name = session?.user?.name ?? 'Guest';
   const initial = (name.trim()[0] ?? 'P').toUpperCase();
   return (
@@ -1163,10 +1272,13 @@ export function TopbarAvatarButton() {
       style={{
         width: 32,
         height: 32,
+        padding: 0,
         borderRadius: '50%',
         cursor: 'pointer',
         flexShrink: 0,
-        background: 'linear-gradient(135deg, var(--sage-deep), var(--sage, #9ca77a))',
+        background: avatarId
+          ? 'transparent'
+          : 'linear-gradient(135deg, var(--sage-deep), var(--sage, #9ca77a))',
         color: 'var(--cream)',
         display: 'grid',
         placeItems: 'center',
@@ -1174,12 +1286,13 @@ export function TopbarAvatarButton() {
         fontWeight: 700,
         border: '2px solid var(--card)',
         boxShadow: '0 1px 3px rgba(61,74,31,0.18)',
+        overflow: 'hidden',
         transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
       }}
       onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
       onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
     >
-      {initial}
+      {avatarId ? <PlAvatar id={avatarId} size={28} /> : initial}
     </button>
   );
 }

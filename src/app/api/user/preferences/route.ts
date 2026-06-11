@@ -26,6 +26,8 @@ interface PrefsRow {
   display_name: string | null;
   pronouns: string | null;
   timezone: string | null;
+  /** Orchard-mark avatar id (PL_AVATARS in components/pearloom/avatars.tsx). */
+  avatar: string | null;
 }
 
 const DEFAULTS: Omit<PrefsRow, 'email'> = {
@@ -41,6 +43,7 @@ const DEFAULTS: Omit<PrefsRow, 'email'> = {
   display_name: null,
   pronouns: null,
   timezone: null,
+  avatar: null,
 };
 
 function sb() {
@@ -91,11 +94,25 @@ export async function PATCH(req: NextRequest) {
   if (typeof body.display_name === 'string' || body.display_name === null) patch.display_name = body.display_name;
   if (typeof body.pronouns === 'string' || body.pronouns === null) patch.pronouns = body.pronouns;
   if (typeof body.timezone === 'string' || body.timezone === null) patch.timezone = body.timezone;
+  if ((typeof body.avatar === 'string' && body.avatar.length <= 40) || body.avatar === null) {
+    patch.avatar = body.avatar;
+  }
 
   try {
+    /* Merge with the EXISTING row before upserting. The previous
+       `{ email, ...DEFAULTS, ...patch }` silently reset every
+       field the caller didn't send (saving a display name wiped
+       the Pear voice back to 'gentle', picking an avatar would
+       have cleared pronouns, etc.). Defaults only fill gaps for
+       first-time rows now. */
+    const { data: existing } = await sb()
+      .from('user_preferences')
+      .select('*')
+      .eq('email', email)
+      .maybeSingle();
     const { data, error } = await sb()
       .from('user_preferences')
-      .upsert({ email, ...DEFAULTS, ...patch }, { onConflict: 'email' })
+      .upsert({ ...DEFAULTS, ...(existing ?? {}), ...patch, email }, { onConflict: 'email' })
       .select('*')
       .single();
     if (error) throw error;
