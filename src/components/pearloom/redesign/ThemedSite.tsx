@@ -2363,7 +2363,10 @@ function GoingSocialProof({ ctx }: { ctx: SectionCtx }) {
   const DEMO_GOING = ['Maya', 'Jordan', 'Sam', 'Priya', 'Alex', 'Casey', 'Lin', 'Theo'];
   const liveNames = sp.names.length > 0 ? sp.names : (editable ? DEMO_GOING : []);
   if (liveNames.length === 0) return null;
-  const count = liveNames.length;
+  /* Published sites show the TRUE attending count (goingCount,
+     stamped server-side) — the names are just the first 8. The
+     editor's demo pile counts its demo names. */
+  const count = !editable && typeof sp.count === 'number' && sp.count > 0 ? sp.count : liveNames.length;
   /* First-name initials for the pile. */
   const initials = liveNames.slice(0, 5).map((n) => (n.trim()[0] ?? '?').toUpperCase());
   const TONES = [
@@ -4065,7 +4068,7 @@ interface Copy {
     /** Optional "X going" social proof — shown under the CTA
      *  when manifest.rsvpShowGoing is true (or undefined +
      *  event type defaults to public). */
-    socialProof?: { enabled: boolean; names: string[] };
+    socialProof?: { enabled: boolean; names: string[]; count?: number };
   };
   faq: { eyebrow: string; title: string; italic?: string; questions: string[]; qa?: { q: string; a?: string }[] };
 }
@@ -4639,11 +4642,12 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
          edit-mode-only (GoingSocialProof supplies it). Real names
          arrive via manifest.goingPreview when wired. */
       const previewNames = (loose.goingPreview as string[] | undefined) ?? [];
+      const goingCount = (loose.goingCount as number | undefined);
       return {
       eyebrow: co('rsvpEyebrow', rsvpDeadline ? `RSVP by ${formatHeroDate(rsvpDeadline) || rsvpDeadline}` : 'RSVP by April 28'),
       title: t.head,
       body: co('rsvpBody', 'It takes about 90 seconds. Pear will follow up if anyone forgets.'),
-      socialProof: { enabled, names: previewNames },
+      socialProof: { enabled, names: previewNames, count: goingCount },
       };
     })(),
     faq: (() => {

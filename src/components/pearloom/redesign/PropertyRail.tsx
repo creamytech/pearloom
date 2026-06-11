@@ -126,6 +126,23 @@ import { ObituaryPanel } from '../editor/panels/blocks/ObituaryPanel';
 import { PackingListPanel } from '../editor/panels/blocks/PackingListPanel';
 import { HonorListPanel } from '../editor/panels/blocks/HonorListPanel';
 
+/* Live header sub-lines — the prototype shipped hardcoded counts
+   ('47 yes · 63 pending', '38 photos') that read as real data.
+   Counts now come from the manifest; the RSVP panel's own meal
+   counter already fetches the real guest list. */
+function liveSectionDesc(id: Exclude<SectionId, null>, manifest: StoryManifest): string | null {
+  const loose = manifest as unknown as { galleryImages?: unknown[]; faqs?: unknown[]; faq?: unknown[] };
+  if (id === 'gallery') {
+    const n = Array.isArray(loose.galleryImages) ? loose.galleryImages.filter(Boolean).length : 0;
+    return n > 0 ? `${n} photo${n === 1 ? '' : 's'}` : 'No photos yet';
+  }
+  if (id === 'faq') {
+    const list = Array.isArray(loose.faqs) ? loose.faqs : Array.isArray(loose.faq) ? loose.faq : [];
+    return list.length > 0 ? `${list.length} question${list.length === 1 ? '' : 's'}` : 'No questions yet';
+  }
+  return null;
+}
+
 interface SectionInfo {
   id: Exclude<SectionId, null>;
   label: string;
@@ -139,9 +156,9 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
   schedule: { id: 'schedule', label: 'Schedule',  desc: 'Day-of timeline' },
   travel:   { id: 'travel',   label: 'Travel',    desc: 'Hotels, transit, tips' },
   registry: { id: 'registry', label: 'Registry',  desc: 'Linked stores' },
-  gallery:  { id: 'gallery',  label: 'Gallery',   desc: '38 photos' },
-  rsvp:     { id: 'rsvp',     label: 'RSVP',      desc: '47 yes · 63 pending' },
-  faq:      { id: 'faq',      label: 'FAQ',       desc: '6 questions answered' },
+  gallery:  { id: 'gallery',  label: 'Gallery',   desc: 'Your photo wall' },
+  rsvp:     { id: 'rsvp',     label: 'RSVP',      desc: 'Reply form & deadline' },
+  faq:      { id: 'faq',      label: 'FAQ',       desc: 'Guest questions' },
   nav:      { id: 'nav',      label: 'Site nav',  desc: 'Brand + links' },
   navMobile:{ id: 'navMobile',label: 'Mobile nav',desc: 'Drawer for phones' },
   /* Optional sections — added via the Add Section picker.
@@ -506,7 +523,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
             )}
           </div>
         </div>
-        <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 4 }}>{section.desc}</div>
+        <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 4 }}>{liveSectionDesc(section.id, manifest) ?? section.desc}</div>
 
         {/* Tabs — Content / Layout / Style. Hidden on tool panels
             (Guests / Share / Day-of / etc.) since they aren't

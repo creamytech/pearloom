@@ -88,7 +88,19 @@ export async function GET(req: NextRequest) {
 
   const eventDate = cfg.manifest.logistics?.date ?? null;
   const occasion = (cfg.manifest as unknown as { occasion?: string }).occasion;
-  const preset = getCadencePreset(occasion);
+  /* The RSVP panel's reminder-cadence pick (manifest.reminderCadence)
+     filters the preset's reminder phases — this is what makes that
+     picker REAL instead of a write-only field:
+       'off'    → no automatic reminder phases
+       'gentle' → only the single 'reminder' phase
+       unset / 'standard' / legacy 'firm' → the preset as shipped. */
+  const cadencePref = (cfg.manifest as unknown as { reminderCadence?: string }).reminderCadence;
+  const preset = getCadencePreset(occasion).filter((phase) => {
+    if (phase.id !== 'reminder' && phase.id !== 'final-reminder') return true;
+    if (cadencePref === 'off') return false;
+    if (cadencePref === 'gentle') return phase.id === 'reminder';
+    return true;
+  });
 
   // Pull existing override rows.
   const sb = getServiceClient();
