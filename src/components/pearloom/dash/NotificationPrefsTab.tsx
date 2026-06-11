@@ -147,8 +147,8 @@ export function NotificationPrefsTab() {
           {categories.map((c) => {
             const pref = prefs[c.id] ?? { emailMode: 'digest' as EmailMode, pushEnabled: false };
             return (
-              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 0', borderBottom: '1px solid var(--line-soft)' }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
+              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '13px 0', borderBottom: '1px solid var(--line-soft)' }}>
+                <div style={{ flex: 1, minWidth: 170 }}>
                   <div style={{ fontSize: 14, fontWeight: 600 }}>{c.label}</div>
                   <div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>{c.desc}</div>
                 </div>
