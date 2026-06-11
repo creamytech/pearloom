@@ -155,6 +155,36 @@ const VIBES = [
   { id: 'whimsical', label: 'Whimsical', icon: '✩', tone: 'lavender' as const },
 ];
 
+/* Each chip wears its own vibe — the typography IS the preview.
+   'Elegant' is set in airy italic serif, 'Formal' in letterspaced
+   caps, 'Bold' heavy, so picking a vibe means picking a feeling
+   you can already see, not a word. */
+const VIBE_FACE: Record<string, CSSProperties> = {
+  romantic:    { fontFamily: 'var(--font-display, Georgia, serif)', fontStyle: 'italic', fontWeight: 500, fontSize: 15 },
+  elegant:     { fontFamily: 'var(--font-display, Georgia, serif)', fontStyle: 'italic', fontWeight: 400, letterSpacing: '0.08em', fontSize: 15 },
+  classic:     { fontFamily: 'var(--font-display, Georgia, serif)', fontWeight: 600, fontSize: 14.5 },
+  traditional: { fontFamily: 'var(--font-display, Georgia, serif)', fontWeight: 600, letterSpacing: '0.03em', fontSize: 14.5 },
+  formal:      { textTransform: 'uppercase', letterSpacing: '0.22em', fontSize: 11, fontWeight: 700 },
+  editorial:   { textTransform: 'uppercase', letterSpacing: '0.16em', fontSize: 11.5, fontWeight: 700 },
+  modern:      { letterSpacing: '0.05em', fontWeight: 700 },
+  quiet:       { fontWeight: 400, letterSpacing: '0.14em', fontSize: 13.5 },
+  gentle:      { fontFamily: 'var(--font-display, Georgia, serif)', fontStyle: 'italic', fontWeight: 400, fontSize: 14.5 },
+  reflective:  { fontFamily: 'var(--font-display, Georgia, serif)', fontStyle: 'italic', fontWeight: 400, letterSpacing: '0.04em', fontSize: 14.5 },
+  intimate:    { fontFamily: 'var(--font-display, Georgia, serif)', fontStyle: 'italic', fontWeight: 500, fontSize: 14.5 },
+  bold:        { fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 13 },
+  groovy:      { fontWeight: 800, fontStyle: 'italic', fontSize: 14.5 },
+  retro:       { fontWeight: 800, letterSpacing: '0.1em', fontSize: 13.5 },
+  playful:     { fontWeight: 700, fontSize: 14.5 },
+  whimsical:   { fontFamily: 'var(--font-display, Georgia, serif)', fontStyle: 'italic', fontWeight: 500, fontSize: 14.5 },
+  joyful:      { fontWeight: 700, fontSize: 14.5 },
+  warm:        { fontFamily: 'var(--font-display, Georgia, serif)', fontWeight: 500, fontSize: 14.5 },
+  outdoorsy:   { fontWeight: 600, letterSpacing: '0.03em' },
+};
+/* A hand-placed tilt on the inherently crooked ones. */
+const VIBE_TILT: Record<string, number> = {
+  playful: -1.6, whimsical: 1.6, groovy: -1.1, joyful: 1.1, retro: -0.8,
+};
+
 // Per-voice chip sets (EVENT_TYPES[occasion].voice drives which
 // chips the Vibe step offers). 'Romantic' and 'Playful' have no
 // business on a memorial site; each voice keeps ~8 coherent
@@ -739,17 +769,29 @@ const POPULAR_OCCASIONS: string[] = [
 function OccasionPicker({
   selected,
   onPick,
+  intentOccasion,
 }: {
   selected: string;
   onPick: (id: string) => void;
+  /** The occasion mapped from the account's signup intent — its
+   *  tile leads the grid with a "For you" badge. */
+  intentOccasion?: string | null;
 }) {
   const [query, setQuery] = useState('');
   const [showAll, setShowAll] = useState(false);
   const q = query.trim().toLowerCase();
 
-  const popular = POPULAR_OCCASIONS
+  let popular = POPULAR_OCCASIONS
     .map((id) => OCCASIONS.find((o) => o.id === id))
     .filter((o): o is OccasionCard => Boolean(o));
+  /* The signup-intent occasion leads the grid — hoisted to the
+     front (and added if it isn't in the popular set at all). */
+  if (intentOccasion) {
+    const intentCard = OCCASIONS.find((o) => o.id === intentOccasion);
+    if (intentCard) {
+      popular = [intentCard, ...popular.filter((o) => o.id !== intentOccasion)];
+    }
+  }
 
   const filtered = q
     ? OCCASIONS.filter((o) => o.label.toLowerCase().includes(q))
@@ -759,6 +801,7 @@ function OccasionPicker({
 
   const tile = (o: OccasionCard) => {
     const on = selected === o.id;
+    const isIntent = intentOccasion === o.id;
     const glyphColor = TONE_INK[o.tone];
     return (
       <button
@@ -768,6 +811,7 @@ function OccasionPicker({
         // Hover host — bespoke glyph anims fire on parent hover.
         className="pl8-glyph-host"
         style={{
+          position: 'relative',
           padding: 14,
           borderRadius: 14,
           border: on
@@ -807,6 +851,19 @@ function OccasionPicker({
         <div className="display" style={{ fontSize: 14.5 }}>
           {o.label}
         </div>
+        {isIntent && (
+          <span
+            style={{
+              position: 'absolute', top: -8, right: 10,
+              fontSize: 8.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+              color: 'var(--peach-ink, #C6703D)', background: 'var(--peach-bg, #F4E3D3)',
+              border: '1px solid var(--card, #fff)',
+              padding: '2px 8px', borderRadius: 999,
+            }}
+          >
+            ★ For you
+          </span>
+        )}
       </button>
     );
   };
@@ -828,6 +885,11 @@ function OccasionPicker({
         }}
       >
         Pick the closest — you can change it any time. Pearloom supports {OCCASIONS.length} event types.
+        {intentOccasion && (
+          <span style={{ display: 'block', marginTop: 6, fontSize: 13, color: 'var(--peach-ink, #C6703D)', fontWeight: 600 }}>
+            You mentioned this one when you joined — Pear put it up front.
+          </span>
+        )}
       </p>
 
       {/* Search input + popular tiles. The 31-tile directory is the
@@ -1340,11 +1402,14 @@ export function WizardV8() {
     }, 400);
     return () => clearTimeout(t);
   }, [st]);
-  /* Welcome-flow intent → occasion prefill. The onboarding flow
-     stores what brought the user here (user_preferences.intent);
-     when the wizard opens cold — no saved draft, no template seed,
-     nothing picked — that answer preselects the occasion. An
-     explicit pick always wins (functional update re-checks). */
+  /* Welcome-flow intent → occasion prefill + the visible "For you"
+     badge on the Occasion step. The onboarding flow stores what
+     brought the user here (user_preferences.intent); when the
+     wizard opens cold that answer preselects the occasion, and the
+     matching tile leads the grid with a badge so it reads like
+     Pear remembered — because it did. An explicit pick always wins
+     (functional update re-checks). */
+  const [intentOccasion, setIntentOccasion] = useState<string | null>(null);
   useEffect(() => {
     if (typeof window === 'undefined') return;
     let cancelled = false;
@@ -1361,7 +1426,9 @@ export function WizardV8() {
           memorial: 'memorial',
         };
         const occ = INTENT_TO_OCCASION[d.intent];
-        if (occ) setSt((prev) => (prev.occasion ? prev : { ...prev, occasion: occ }));
+        if (!occ) return;
+        setIntentOccasion(occ);
+        setSt((prev) => (prev.occasion ? prev : { ...prev, occasion: occ }));
       })
       .catch(() => { /* prefill is a nicety */ });
     return () => { cancelled = true; };
@@ -2318,6 +2385,7 @@ export function WizardV8() {
               {step === 'Occasion' && (
                 <OccasionPicker
                   selected={st.occasion}
+                  intentOccasion={intentOccasion}
                   onPick={(id) => {
                     // Solo / group occasions hide the second name
                     // field — clear any partner name typed under a
@@ -2707,12 +2775,15 @@ export function WizardV8() {
                           RSVP deadline: <b style={{ color: 'var(--ink)' }}>{st.rsvpDeadline ?? suggestedDl}</b>
                           {!st.rsvpDeadline && ' (five weeks out — our suggestion)'}
                         </span>
-                        <input
-                          type="date"
-                          value={st.rsvpDeadline ?? suggestedDl}
-                          onChange={(ev) => setSt((s) => ({ ...s, rsvpDeadline: ev.target.value || undefined }))}
-                          style={{ padding: '5px 9px', borderRadius: 8, border: '1px solid var(--line)', background: 'var(--card)', fontSize: 12.5, fontFamily: 'inherit', color: 'var(--ink)' }}
-                        />
+                        {/* Brand date picker — the native input was
+                            the one OS-chrome control in the flow. */}
+                        <div style={{ minWidth: 180 }}>
+                          <WizardDatePicker
+                            value={st.rsvpDeadline ?? suggestedDl}
+                            onChange={(iso) => setSt((s) => ({ ...s, rsvpDeadline: iso || undefined }))}
+                            placeholder="Pick a deadline"
+                          />
+                        </div>
                       </div>
                     )}
                   </>
