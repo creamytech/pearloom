@@ -17,6 +17,7 @@ import { Panel, EmptyShell, btnInk } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PLHead } from '@/components/pearloom/dash/PLChrome';
 import { useSelectedSite } from './hooks';
+import { useMessagePings } from '@/lib/messages-realtime';
 
 const POLL_MS = 30_000;
 
@@ -71,6 +72,10 @@ export function DashMessages() {
     return () => clearInterval(id);
   }, [refresh]);
 
+  /* Realtime — same content-free ping channel the guest cards
+     subscribe to. Pings trigger an owner-gated refetch. */
+  const ping = useMessagePings(site?.id ? `pl-msg-${site.id}` : null, () => void refresh());
+
   async function post(thread: 'party' | 'dm', body: string, guestId?: string) {
     if (!site?.id || !body.trim() || busy) return;
     setBusy(true);
@@ -84,6 +89,7 @@ export function DashMessages() {
         if (thread === 'party') setDraft('');
         else setDmDraft('');
         await refresh();
+        ping();
       }
     } finally {
       setBusy(false);

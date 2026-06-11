@@ -18,6 +18,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useMessagePings } from '@/lib/messages-realtime';
 
 const POLL_MS = 25_000;
 const MONO = 'var(--pl-font-mono, ui-monospace, monospace)';
@@ -75,15 +76,19 @@ export function GuestThreadCard({
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rtChannel, setRtChannel] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const tabRef = useRef(tab);
+  useEffect(() => { tabRef.current = tab; }, [tab]);
 
   const load = useCallback(async (which: 'party' | 'dm', signal?: AbortSignal) => {
     try {
       const r = await fetch(`/api/messages?token=${encodeURIComponent(token)}&thread=${which}`, { cache: 'no-store', signal });
       if (!r.ok) return;
-      const data = (await r.json()) as { messages?: ThreadMessage[]; canDm?: boolean };
+      const data = (await r.json()) as { messages?: ThreadMessage[]; canDm?: boolean; channel?: string };
       setMessages(data.messages ?? []);
       setCanDm(Boolean(data.canDm));
+      if (data.channel) setRtChannel(data.channel);
     } catch { /* polling — next tick retries */ }
   }, [token]);
 
@@ -94,6 +99,10 @@ export function GuestThreadCard({
     const id = setInterval(() => void load(tab, ctrl.signal), POLL_MS);
     return () => { ctrl.abort(); clearInterval(id); };
   }, [tab, load]);
+
+  /* Realtime — content-free pings flip a refetch; the 25s poll
+     stays as the fallback for keyless deploys. */
+  const ping = useMessagePings(rtChannel, () => void load(tabRef.current));
 
   // Pin to the latest message whenever the list grows.
   useEffect(() => {
@@ -120,6 +129,7 @@ export function GuestThreadCard({
       }
       setMessages((prev) => [...(prev ?? []), data.message!]);
       setDraft('');
+      ping();
     } catch {
       setError('Could not send — try again?');
     } finally {

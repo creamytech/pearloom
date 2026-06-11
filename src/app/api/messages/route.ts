@@ -83,6 +83,9 @@ export async function GET(req: NextRequest) {
       messages: ((data ?? []) as MessageRow[]).map(shape),
       canDm: Boolean(guest.guestRowId),
       guestName: guest.name,
+      /* Realtime broadcast channel — content-free pings only;
+         every refetch still goes through token auth. */
+      channel: `pl-msg-${guest.siteId}`,
     });
   } catch (err) {
     console.error('[messages] GET failed:', err);
