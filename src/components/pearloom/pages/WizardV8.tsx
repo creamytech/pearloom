@@ -40,6 +40,7 @@ import { useDialog } from '@/components/ui/confirm-dialog';
 import { scheduleEventSuggestions, dressCodeSuggestions, typicalTimeFor } from '@/components/pearloom/editor/panels/_suggestions';
 import { seedSectionsFromWizard, suggestRsvpDeadline } from '@/lib/wizard-seed';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
+import { WizardLookPreviews, type LookCandidate } from './WizardLookPreviews';
 import type { StoryManifest } from '@/types';
 
 // Layout step removed 2026-05-30 — superseded again 2026-06-10:
@@ -3367,6 +3368,65 @@ export function WizardV8() {
                           ))}
                         </div>
                       </div>
+                    );
+                  })()}
+
+                  {/* Live look previews — three real miniature sites
+                      pressed from the host's answers (names, date,
+                      venue, palette). Tapping one writes the palette
+                      pick back through the same state the palette
+                      step uses, so the choice flows into generation
+                      untouched. */}
+                  {(() => {
+                    const candidates: LookCandidate[] = [];
+                    const selColors = resolvedPaletteColors;
+                    const selIsSmart = (st.smartPalettes ?? []).some((p) => p.id === st.palette);
+                    if (selColors && selColors.length >= 2) {
+                      candidates.push({
+                        id: st.palette,
+                        label:
+                          st.smartPalettes?.find((p) => p.id === st.palette)?.name
+                          ?? PALETTES.find((p) => p.id === st.palette)?.name
+                          ?? 'Your palette',
+                        colors: selColors,
+                        motifKind: st.suggestedMotif,
+                        motifLayout: st.suggestedMotifLayout,
+                        smart: selIsSmart,
+                      });
+                    }
+                    for (const p of st.smartPalettes ?? []) {
+                      if (candidates.length >= 3) break;
+                      if (p.id === st.palette) continue;
+                      candidates.push({ id: p.id, label: p.name, colors: p.colors, motifKind: p.motif, motifLayout: p.motifLayout, smart: true });
+                    }
+                    for (const p of PALETTES) {
+                      if (candidates.length >= 3) break;
+                      if (p.id === st.palette || candidates.some((c) => c.id === p.id)) continue;
+                      candidates.push({ id: p.id, label: p.name, colors: p.colors, smart: false });
+                    }
+                    if (candidates.length === 0) return null;
+                    return (
+                      <WizardLookPreviews
+                        names={[st.names[0] ?? '', st.names[1] ?? '']}
+                        occasion={st.occasion}
+                        eventDate={st.eventDate}
+                        venue={st.location}
+                        layoutFormat={st.layout}
+                        candidates={candidates}
+                        selectedId={st.palette}
+                        onPick={(c) => {
+                          setSt((s2) => ({
+                            ...s2,
+                            palette: c.id,
+                            paletteColors: c.colors,
+                            // Smart picks carry their paired ornament;
+                            // presets clear it — mirrors the palette
+                            // step's two click handlers.
+                            suggestedMotif: c.smart ? c.motifKind : undefined,
+                            suggestedMotifLayout: c.smart ? c.motifLayout : undefined,
+                          }));
+                        }}
+                      />
                     );
                   })()}
 
