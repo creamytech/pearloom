@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getPlanWithLimitsForEmail, planLimitResponseBody, isSiteGriefExempt } from '@/lib/plan-gate';
+import { linkGuestRowToPerson } from '@/lib/people';
 
 export const dynamic = 'force-dynamic';
 
@@ -182,6 +183,15 @@ export async function POST(req: NextRequest) {
       // Return a graceful fake guest if table doesn't exist
       return NextResponse.json({
         guest: { id: `local-${Date.now()}`, name, email, status: 'pending', plusOne: plusOne || false }
+      });
+    }
+
+    // Persistent guest identity — fire-and-forget link to the
+    // people record (migration 20260621). Never blocks the add.
+    if (data?.email) {
+      void linkGuestRowToPerson(supabase, String(data.id), {
+        email: String(data.email),
+        name: String(data.name ?? name),
       });
     }
 

@@ -444,6 +444,58 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-06-11 — Sealed Arrival + persistent guest identity (event graph phase 1)
+
+**Sealed Arrival** — the published site's envelope-opening first-
+visit experience. `src/components/pearloom/site/ArrivalReveal.tsx`,
+mounted by `PublishedSiteShell` (home route only). Wax-seal
+monogram envelope in the site's theme; tap breaks the seal, the
+flap lifts, two threads draw across the seam, the paper parts like
+curtains. Passport-link guests (`?g=`) get an envelope addressed to
+them + a postmark with the event date. Solemn voices (memorial /
+funeral) resolve to a Quiet Arrival (thread rule + name + fade).
+New `manifest.arrival` field ('auto' | 'envelope' | 'quiet' |
+'off') with an Arrival picker in the editor's Share panel. Client
+overlay only (crawlers / OG never gated); reduced-motion skips;
+once per device with a per-session thread flourish on return
+visits; transient RSVP hand-off pill after open.
+
+**Persistent guest identity (event graph phase 1)** — the
+deliberate alternative to a general-purpose social network (see
+the strategy note in this entry's session). One human across every
+celebration:
+- Migration `20260621_people.sql` (APPLIED to prod via MCP +
+  recorded in `_pearloom_migrations`): `public.people` keyed by
+  lowercase email (deny-anon RLS), `person_id` on `guests` +
+  `pearloom_guests`, `link_guests_to_people(p_site_id)` SQL linker,
+  full backfill. `connections_opt_in boolean DEFAULT false` ships
+  now so phase 2 (opt-in "people you've celebrated with") has its
+  flag, but NOTHING cross-guest is exposed yet.
+- `src/lib/people.ts` — `normalizePersonEmail`, `resolvePersonId`
+  (upsert, latest-known facts), `linkGuestRowToPerson`,
+  `personHistoryForHost`. All failure-tolerant: identity never
+  blocks an RSVP/import. PRIVACY CONTRACT in the module header:
+  hosts only see history from their OWN sites; guests see their
+  own history via passport token; cross-guest visibility is
+  opt-in-later.
+- Write paths wired: `/api/rsvp` POST + `/api/guests` POST link
+  fire-and-forget; `/api/guests/import` batch-upserts people then
+  calls the SQL linker once.
+- Host surface: `GET /api/guests/person-history` (owner-gated,
+  rate-limited) + "A familiar face" recognition chip in
+  DashGuests' AddGuestDialog (debounced on email entry, shows
+  shared events + known dietary).
+- Guest surface: "Your celebrations on Pearloom" card on
+  `/g/[token]` (`YourCelebrationsCard`) — every other PUBLISHED
+  site where the guest's email appears, with their reply status,
+  linking to each public site. Drafts never surface.
+
+**Phase 2 candidates (not built):** opt-in connections ("3 people
+you've celebrated with are going"), event-scoped group threads
+(the `groupChat` block), host↔guest logistics DMs. The decision
+log: full social network rejected — episodic users, cold-start,
+brand mismatch; the event graph is the social layer.
+
 ### 2026-06-01 — Brief #2 surface-layer port + orphan/stale cleanup
 
 Brief #2 from `ClaudeDesign/` shipped as commit `334f6f19`,
