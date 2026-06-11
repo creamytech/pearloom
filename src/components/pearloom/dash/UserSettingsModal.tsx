@@ -26,6 +26,7 @@ import { NotificationPrefsTab } from './NotificationPrefsTab';
 import { usePlan } from './usePlan';
 import { useMobileViewport } from '../redesign/use-mobile-viewport';
 import { useTheme } from '@/components/shell/ThemeProvider';
+import { useUserSites, resolveStickySite } from '@/components/marketing/design/dash/hooks';
 
 /* ─── Context (existing consumer API — DashShell + DashCommandPalette
        call useUserSettings().openTab(<id>)) ─────────────────────────────── */
@@ -176,6 +177,10 @@ function AccountTab({ user }: { user: { name: string; email: string; initials: s
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [saved, setSaved] = useState(false);
+  /* Partner-access target — the sticky-selected site whose Share
+     panel hosts the co-host invite flow. */
+  const { sites } = useUserSites();
+  const shareSite = resolveStickySite(sites);
   useEffect(() => {
     let cancelled = false;
     fetch('/api/user/preferences', { credentials: 'include' })
@@ -244,8 +249,20 @@ function AccountTab({ user }: { user: { name: string; email: string; initials: s
       </UsRow>
       <UsRow style={{ borderBottom: 'none' }}>
         <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--lavender-2)', color: '#3D4A1F', display: 'grid', placeItems: 'center', fontSize: 13, fontWeight: 700 }}>+</div>
-        <UsField label="Partner access" value="Invite a collaborator to edit your site" />
-        <button className="btn btn-outline btn-sm" onClick={() => { if (typeof window !== 'undefined') window.location.assign('/dashboard/connections'); }}>Manage</button>
+        <UsField label="Partner access" value="Invite a co-host to edit your site" />
+        {/* Co-host invites live in the editor's Share panel (the
+            flow that mints /api/co-host/invite magic links). The
+            old target — /dashboard/connections — links SITES into
+            celebrations and has nothing to do with people. */}
+        <button
+          className="btn btn-outline btn-sm"
+          onClick={() => {
+            if (typeof window === 'undefined') return;
+            window.location.assign(shareSite ? `/editor/${shareSite.domain}?jump=share` : '/dashboard/event');
+          }}
+        >
+          {shareSite ? 'Invite' : 'Manage'}
+        </button>
       </UsRow>
     </div>
   );
