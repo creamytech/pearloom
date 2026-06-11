@@ -2351,3 +2351,47 @@ button:not(:disabled):active,
     to   { transform: none; }
   }
 }
+
+/* ── --pd-* global aliases ─────────────────────────────────────
+   The marketing PD palette (DesignAtoms.PD) is consumed OUTSIDE
+   main.pd-landing too — DashSettings (/dashboard/profile) styles
+   entirely with PD.* — and there the vars were undefined, so every
+   value fell back to its light hex and the page was light-locked
+   in dark mode. Alias the family at :root (canonical --pl-* where
+   one exists, the documented dark pairs otherwise) so PD themes by
+   data-theme everywhere. main.pd-landing's own scoped definitions
+   still win inside the landing, preserving its behavior. */
+:root {
+  --pd-paper:     var(--pl-cream);
+  --pd-paper2:    var(--pl-cream-deep);
+  --pd-paper3:    var(--pl-cream-deep);
+  --pd-paperCard: var(--pl-cream-card);
+  --pd-paperDeep: var(--pl-cream-deep);
+  --pd-ink:       var(--pl-ink);
+  --pd-inkSoft:   var(--pl-ink-soft);
+  --pd-olive:     var(--pl-olive);
+  --pd-oliveDeep: var(--pl-olive-deep);
+  --pd-gold:      var(--pl-gold);
+  --pd-plum:      var(--pl-plum);
+  --pd-line:      var(--pl-divider);
+  --pd-terra:     #C6703D;
+  --pd-rose:      #D9A89E;
+  --pd-stone:     #C8BFA5;
+  --pd-sand:      #E8DCB4;
+  --pd-wash:      #E8D9D3;
+  --pd-blush:     #E3DCC0;
+  --pd-mint:      #DCDFB8;
+  --pd-slab:      #0E0D0B;
+  --pd-slabInk:   #F5EFE2;
+}
+[data-theme='dark'] {
+  --pd-terra:     #D67852;
+  --pd-rose:      #C08A7E;
+  --pd-stone:     #6E6553;
+  --pd-sand:      #2B2412;
+  --pd-wash:      #2A1F1C;
+  --pd-blush:     #2A2418;
+  --pd-mint:      #232813;
+  --pd-slab:      #1A1610;
+  --pd-slabInk:   #F1EBDC;
+}

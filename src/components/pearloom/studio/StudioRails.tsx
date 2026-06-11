@@ -1083,7 +1083,7 @@ function PearTab({ state, content, nameA, nameB, onMatchSiteTheme, onSuggestPair
   return (
     <>
       <div style={{
-        padding: 14, background: 'linear-gradient(135deg, #FBE8D6, #E8E0F0)',
+        padding: 14, background: 'linear-gradient(135deg, var(--peach-bg, #FBE8D6), var(--lavender-bg, #E8E0F0))',
         borderRadius: 12, border: '1px solid var(--line-soft)',
         display: 'flex', flexDirection: 'column', gap: 10,
       }}>

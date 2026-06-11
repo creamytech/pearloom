@@ -31,6 +31,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { DashLayout, TopbarAvatarButton } from '../dash/DashShell';
 import { NotificationBell } from '../dash/NotificationBell';
+import { ThemeToggle } from '@/components/shell/ThemeToggle';
 import { Icon, Pear } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
@@ -233,6 +234,7 @@ export function WelcomeHome() {
           {greeting}, {firstName}
         </span>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <ThemeToggle size="md" />
           <NotificationBell />
           <TopbarAvatarButton />
           {site?.domain && (
@@ -1358,7 +1360,7 @@ function Milestones({ milestones, dateShort }: { milestones: Milestone[]; dateSh
                   }}
                   className={dot.pulse ? 'pulse-dot' : ''}
                 >
-                  {dot.check && <Icon name="check" size={8} color="white" strokeWidth={3} />}
+                  {dot.check && <Icon name="check" size={8} color="var(--card, #FBF7EE)" strokeWidth={3} />}
                 </span>
               </div>
               <div style={{ minWidth: 0 }}>
