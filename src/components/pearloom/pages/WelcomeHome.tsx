@@ -134,10 +134,17 @@ export function WelcomeHome() {
      SSR can't hydration-mismatch against the server's clock. */
   const [greeting, setGreeting] = useState('Welcome back');
   useEffect(() => {
-    const h = new Date().getHours();
-    setGreeting(h < 5 ? 'Up late' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening');
+    /* rAF, not a direct set — the compiler lint flags synchronous
+       setState in effects (cascading-render risk). */
+    const id = requestAnimationFrame(() => {
+      const h = new Date().getHours();
+      setGreeting(h < 5 ? 'Up late' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening');
+    });
+    return () => cancelAnimationFrame(id);
   }, []);
   const occasion = site?.occasion ?? 'wedding';
+  /* Work-zone breakpoint — inline (see the grid comment below). */
+  const workZoneNarrow = useIsMobile(920);
   const editorHref = site?.domain ? `/editor/${site.domain}` : '/dashboard/event';
   const liveHref = site?.domain ? buildSiteUrl(site.domain, '', undefined, occasion) : '#';
   const liveDisplay = site?.domain ? formatSiteDisplayUrl(site.domain, '', occasion) : '';
@@ -284,8 +291,20 @@ export function WelcomeHome() {
         <QuickJumps stage={stage} editorHref={editorHref} liveHref={liveHref} liveDisplay={liveDisplay} domain={site?.domain ?? null} />
 
         {/* Two-column work zone — same shape as the design.
-            Stacks below 920px so phones get a single column. */}
-        <div className="welcome-grid">
+            Stacks below 920px so phones get a single column.
+            INLINE grid, not styled-jsx: the runtime style injection
+            occasionally raced inside ShellPersistentLayout and the
+            class resolved to nothing — every card stacked. Inline
+            styles can't race; responsiveness rides useIsMobile, the
+            same pattern HeroBand documents above. */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: workZoneNarrow ? '1fr' : '1.25fr 1fr',
+            gap: 16,
+            alignItems: 'start',
+          }}
+        >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <PearRecommendations todos={pearTodos} domain={site?.domain ?? null} />
             <ActivityFeed activity={recentActivity} stage={stage} />
@@ -302,19 +321,6 @@ export function WelcomeHome() {
         </div>
       </div>
 
-      <style jsx>{`
-        .welcome-grid {
-          display: grid;
-          grid-template-columns: 1.25fr 1fr;
-          gap: 16px;
-          align-items: start;
-        }
-        @media (max-width: 920px) {
-          .welcome-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
     </DashLayout>
   );
 }
@@ -759,8 +765,11 @@ function QuickJumps({
     ];
   })();
 
+  /* Inline grid for the same styled-jsx race reason as the work
+     zone above — 4-up desktop, 2-up under 760px. */
+  const twoCol = useIsMobile(760);
   return (
-    <div className="qj-grid">
+    <div style={{ display: 'grid', gridTemplateColumns: twoCol ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 12 }}>
       {tiles.map((j) => (
         <Link
           key={j.label}
@@ -797,18 +806,6 @@ function QuickJumps({
           </div>
         </Link>
       ))}
-      <style jsx>{`
-        .qj-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 12px;
-        }
-        @media (max-width: 760px) {
-          .qj-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-      `}</style>
     </div>
   );
 }

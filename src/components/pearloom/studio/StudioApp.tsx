@@ -198,7 +198,43 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
     return () => { cancelled = true; };
   }, [siteSlug, statsTick]);
 
-  const palette = PALETTES.find(p => p.id === state.palette) ?? PALETTES[0];
+  /* The site's decor library — AI-drafted dividers/stamps + host
+     uploads — offered as card flourishes (they set customMotifUrl,
+     the existing custom-PNG motif pipeline). */
+  const decorAssets = useMemo(() => {
+    const lib = (manifest as unknown as {
+      decorLibrary?: {
+        divider?: string;
+        footerBouquet?: string;
+        confetti?: string;
+        sectionStamps?: Partial<Record<string, string>>;
+        uploads?: Array<{ id: string; url: string; label: string }>;
+      };
+    }).decorLibrary;
+    if (!lib) return [];
+    const out: Array<{ id: string; url: string; label: string }> = [];
+    if (lib.divider) out.push({ id: 'divider', url: lib.divider, label: 'Divider' });
+    if (lib.footerBouquet) out.push({ id: 'bouquet', url: lib.footerBouquet, label: 'Bouquet' });
+    for (const [key, url] of Object.entries(lib.sectionStamps ?? {})) {
+      if (url) out.push({ id: `stamp-${key}`, url, label: `${key[0].toUpperCase()}${key.slice(1)} stamp` });
+    }
+    for (const u of lib.uploads ?? []) out.push({ id: u.id, url: u.url, label: u.label });
+    return out;
+  }, [manifest]);
+
+  const basePalette = PALETTES.find(p => p.id === state.palette) ?? PALETTES[0];
+  /* Custom color overrides ride on top of the preset — the same
+     accent/paper/ink freedom the site editor's Tweak-colors panel
+     gives, so the suite can match a custom-colored site exactly. */
+  const palette = state.customColors
+    ? {
+        ...basePalette,
+        ...(state.customColors.paper ? { paper: state.customColors.paper } : {}),
+        ...(state.customColors.ink ? { ink: state.customColors.ink } : {}),
+        ...(state.customColors.accent ? { accent: state.customColors.accent } : {}),
+        ...(state.customColors.accent2 ? { accent2: state.customColors.accent2 } : {}),
+      }
+    : basePalette;
   const font = FONT_PAIRS.find(f => f.id === state.fontPair) ?? FONT_PAIRS[0];
 
   const baseContent = useMemo(() => buildTypeContent({
@@ -583,6 +619,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
                 view="front"
                 layout={state.layout}
                 motif={state.motif}
+                texture={state.texture}
                 palette={palette}
                 font={font}
                 content={content}
@@ -601,6 +638,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
                 view="back"
                 layout={state.layout}
                 motif={state.motif}
+                texture={state.texture}
                 palette={palette}
                 font={font}
                 content={content}
@@ -621,6 +659,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
                 view="envelope"
                 layout={state.layout}
                 motif={state.motif}
+                texture={state.texture}
                 palette={palette}
                 font={font}
                 content={content}
@@ -687,6 +726,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
 
       {!viewportMobile && (
         <RemixRail
+          decorAssets={decorAssets}
           state={state}
           setField={setField}
           content={content}
@@ -745,6 +785,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
             )}
             {(displaySheet === 'design' || displaySheet === 'words') && (
               <RemixRail
+          decorAssets={decorAssets}
                 /* Keyed remount so Design / Words each land on
                    their tab; in-sheet tab strip still works. */
                 key={displaySheet}
@@ -878,6 +919,7 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
               view="front"
               layout={state.layout}
               motif={state.motif}
+              texture={state.texture}
               palette={palette}
               font={font}
               content={content}

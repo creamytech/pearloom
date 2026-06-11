@@ -38,6 +38,9 @@ interface CardProps {
   returnAddress?: { name: string; line1?: string; line2?: string };
   /** AI-generated motif URL — overrides the SVG glyph if set. */
   customMotifUrl?: string | null;
+  /** Paper texture ([data-pl-texture]) — same grain system the
+   *  published site wears, so the suite matches the site. */
+  texture?: string | null;
   /** Save-the-date back details — derived from manifest.events +
    *  manifest.travelInfo. Each is optional; the card falls back to
    *  an em-dash placeholder when missing. */
@@ -48,11 +51,15 @@ interface CardProps {
 }
 
 export function CardFront(props: CardProps) {
-  const { palette, font, content, layout, motif, type, nameA, nameB, photoUrl, monogram, customMotifUrl } = props;
+  const { palette, font, content, layout, motif, type, nameA, nameB, photoUrl, monogram, customMotifUrl, texture } = props;
   const w = 420, h = 588;
   const isDark = palette.id === 'twilight';
   return (
-    <div className="pl-studio-card-shadow" style={{
+    <div
+      className={texture ? 'pl-studio-card-shadow pl8-guest' : 'pl-studio-card-shadow'}
+      data-pl-texture={texture ?? undefined}
+      style={{
+      ...(texture ? { ['--pl-texture-intensity' as string]: '1' } : {}),
       width: w, height: h,
       background: palette.paper,
       color: palette.ink,
@@ -86,11 +93,15 @@ export function CardFront(props: CardProps) {
 export function CardBack(props: CardProps) {
   const {
     palette, font, type, monogram, siteUrl, rsvpDeadline, nameA, nameB,
-    ceremonyAt, receptionAt, dressCode, hotelLine,
+    ceremonyAt, receptionAt, dressCode, hotelLine, texture,
   } = props;
   const w = 420, h = 588;
   return (
-    <div className="pl-studio-card-shadow" style={{
+    <div
+      className={texture ? 'pl-studio-card-shadow pl8-guest' : 'pl-studio-card-shadow'}
+      data-pl-texture={texture ?? undefined}
+      style={{
+      ...(texture ? { ['--pl-texture-intensity' as string]: '1' } : {}),
       width: w, height: h,
       background: palette.paper,
       color: palette.ink,

@@ -20,6 +20,7 @@ import { studioDefaultsFromLook } from './studio-defaults-from-look';
 import {
   DEFAULT_ASSET_PALETTE,
   PALETTES,
+  STUDIO_TEXTURES,
   FONT_PAIRS,
   LAYOUTS,
   MOTIFS,
@@ -29,6 +30,16 @@ import {
   type CardView,
   type StudioDraft,
 } from './studio-constants';
+
+/** Host-typed color overrides — each key, when set, wins over the
+ *  preset palette's matching slot. Mirrors the site editor's
+ *  "Tweak colors" panel so the suite can match a custom site. */
+export interface StudioCustomColors {
+  paper?: string;
+  ink?: string;
+  accent?: string;
+  accent2?: string;
+}
 
 export interface StudioState {
   type: StationeryType;
@@ -46,8 +57,13 @@ export interface StudioState {
   assets: AssetEntry[];
   /** When set, the active card's motif renders a custom AI-
    *  generated PNG instead of the SVG glyph. Cleared when the
-   *  host picks a different built-in motif. */
+   *  host picks a different built-in motif. The site editor's
+   *  decor library feeds this too (RemixRail's Decor group). */
   customMotifUrl: string | null;
+  /** Custom color overrides on top of the preset palette. */
+  customColors: StudioCustomColors | null;
+  /** Card paper texture ([data-pl-texture] id) — null = smooth. */
+  texture: string | null;
   /** AI-drafted alternates per stationery type. Falls back to the
    *  built-in TYPE_CONTENT defaults when empty. */
   drafts: Partial<Record<StationeryType, StudioDraft[]>>;
@@ -76,6 +92,8 @@ const DEFAULT_STATE: StudioState = {
   animate: true,
   assets: DEFAULT_ASSET_PALETTE,
   customMotifUrl: null,
+  customColors: null,
+  texture: null,
   drafts: {},
   copyOverrides: {},
 };
@@ -92,6 +110,8 @@ interface ManifestStudio {
   motif?: string;
   tone?: string;
   customMotifUrl?: string | null;
+  customColors?: StudioCustomColors | null;
+  texture?: string | null;
   assets?: AssetEntry[];
   drafts?: Partial<Record<StationeryType, StudioDraft[]>>;
   copyOverrides?: Partial<Record<StationeryType, {
@@ -115,6 +135,18 @@ const VALID_FONTS = new Set(FONT_PAIRS.map(f => f.id));
 const VALID_LAYOUTS = new Set(LAYOUTS.map(l => l.id));
 const VALID_MOTIFS = new Set(MOTIFS.map(m => m.id));
 const VALID_TONES = new Set(COPY_TONES.map(t => t.id));
+const VALID_TEXTURES = new Set(STUDIO_TEXTURES.map(t => t.id));
+
+const HEX_RX = /^#[0-9a-fA-F]{6}$/;
+function sanitizeCustomColors(raw: unknown): StudioCustomColors | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const out: StudioCustomColors = {};
+  for (const key of ['paper', 'ink', 'accent', 'accent2'] as const) {
+    const v = (raw as Record<string, unknown>)[key];
+    if (typeof v === 'string' && HEX_RX.test(v)) out[key] = v;
+  }
+  return Object.keys(out).length > 0 ? out : null;
+}
 
 function pick<T extends string>(value: unknown, allowed: ReadonlySet<T>, fallback: T): T {
   return typeof value === 'string' && allowed.has(value as T) ? (value as T) : fallback;
@@ -150,6 +182,8 @@ function readInitialState(manifest: StoryManifest | null | undefined): StudioSta
     motif: pick(studio.motif, VALID_MOTIFS, DEFAULT_STATE.motif),
     tone: pick(studio.tone, VALID_TONES, DEFAULT_STATE.tone),
     customMotifUrl: studio.customMotifUrl ?? null,
+    customColors: sanitizeCustomColors(studio.customColors),
+    texture: typeof studio.texture === 'string' && VALID_TEXTURES.has(studio.texture) ? studio.texture : null,
     assets: Array.isArray(studio.assets) && studio.assets.length > 0
       ? studio.assets
       : DEFAULT_ASSET_PALETTE,
@@ -247,6 +281,8 @@ export function useStudioState(args: {
       motif: state.motif,
       tone: state.tone,
       customMotifUrl: state.customMotifUrl,
+      customColors: state.customColors,
+      texture: state.texture,
       assets: state.assets,
       drafts: state.drafts,
       copyOverrides: state.copyOverrides,

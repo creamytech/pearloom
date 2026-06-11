@@ -10,7 +10,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  PALETTES, FONT_PAIRS, LAYOUTS, MOTIFS, COPY_TONES,
+  PALETTES, FONT_PAIRS, LAYOUTS, MOTIFS, COPY_TONES, STUDIO_TEXTURES,
   type StationeryType, type CardView, type StudioContent, type StudioDraft, type AssetEntry,
 } from './studio-constants';
 import type { StudioState, SetStudioField } from './useStudioState';
@@ -42,6 +42,9 @@ interface RailProps {
   aiBusy?: boolean;
   /** Send-history live counts. */
   sendStats?: { sent?: number; ready?: number; total?: number };
+  /** Site decor library + uploads — offered as card flourishes
+   *  via the customMotifUrl pipeline. */
+  decorAssets?: Array<{ id: string; url: string; label: string }>;
   /** Which inspector tab the RemixRail opens on. The mobile
    *  bottom bar's Design / Words buttons mount the rail inside a
    *  bottom sheet keyed on this, so each button lands on its tab
@@ -692,7 +695,7 @@ function AssetPalette({ state, setField, onAskPearForAsset, aiBusy }: { state: S
   );
 }
 
-export function RemixRail({ state, setField, content, nameA, nameB, onRewriteField, onMatchSiteTheme, onSuggestPair, initialTab }: RailProps) {
+export function RemixRail({ state, setField, content, nameA, nameB, onRewriteField, onMatchSiteTheme, onSuggestPair, initialTab, decorAssets }: RailProps) {
   const [tab, setTab] = useState<'design' | 'copy' | 'pear'>(initialTab ?? 'design');
   return (
     <aside aria-label="Inspector" style={{
@@ -736,7 +739,7 @@ export function RemixRail({ state, setField, content, nameA, nameB, onRewriteFie
       </div>
 
       <div className="pl-studio-scroll" style={{ flex: 1, overflow: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 22 }}>
-        {tab === 'design' && <DesignTab state={state} setField={setField} />}
+        {tab === 'design' && <DesignTab state={state} setField={setField} decorAssets={decorAssets} />}
         {tab === 'copy' && <CopyTab content={content} state={state} setField={setField} onRewriteField={onRewriteField} />}
         {tab === 'pear' && <PearTab state={state} content={content} nameA={nameA} nameB={nameB} onMatchSiteTheme={onMatchSiteTheme} onSuggestPair={onSuggestPair} />}
       </div>
@@ -756,7 +759,7 @@ function RailGroup({ label, sub, children }: { label: string; sub?: string; chil
   );
 }
 
-function DesignTab({ state, setField }: { state: StudioState; setField: SetStudioField }) {
+function DesignTab({ state, setField, decorAssets }: { state: StudioState; setField: SetStudioField; decorAssets?: Array<{ id: string; url: string; label: string }> }) {
   return (
     <>
       <RailGroup label="Palette" sub={PALETTES.find(p => p.id === state.palette)?.sub}>
@@ -785,6 +788,111 @@ function DesignTab({ state, setField }: { state: StudioState; setField: SetStudi
             );
           })}
         </div>
+        {/* Custom colors — the site editor's Tweak-colors freedom,
+            here. Each picker overrides one slot of the preset. */}
+        <details style={{ marginTop: 8 }}>
+          <summary style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', cursor: 'pointer', userSelect: 'none' }}>
+            Custom colors{state.customColors ? ' · on' : ''}
+          </summary>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6, marginTop: 8 }}>
+            {([['paper', 'Paper'], ['ink', 'Ink'], ['accent', 'Accent'], ['accent2', 'Wash']] as const).map(([key, label]) => {
+              const preset = PALETTES.find(pp => pp.id === state.palette) ?? PALETTES[0];
+              const current = state.customColors?.[key] ?? preset[key];
+              return (
+                <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: 'var(--ink)', cursor: 'pointer' }}>
+                  <input
+                    type="color"
+                    value={current}
+                    onChange={(e) => setField('customColors', { ...(state.customColors ?? {}), [key]: e.target.value })}
+                    style={{ width: 26, height: 26, padding: 0, border: '1px solid var(--line)', borderRadius: 7, background: 'transparent', cursor: 'pointer' }}
+                  />
+                  {label}
+                </label>
+              );
+            })}
+          </div>
+          {state.customColors && (
+            <button
+              type="button"
+              onClick={() => setField('customColors', null)}
+              style={{ marginTop: 8, padding: 0, border: 'none', background: 'transparent', fontSize: 10.5, color: 'var(--ink-muted)', textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              Back to the palette&rsquo;s own colors
+            </button>
+          )}
+        </details>
+      </RailGroup>
+
+      <RailGroup label="Paper" sub="The same grain the site wears">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {[{ id: null as string | null, name: 'Smooth' }, ...STUDIO_TEXTURES].map((t) => {
+            const on = (state.texture ?? null) === t.id;
+            return (
+              <button
+                key={t.id ?? 'none'}
+                type="button"
+                onClick={() => setField('texture', t.id)}
+                aria-pressed={on}
+                style={{
+                  padding: '6px 12px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                  background: on ? 'var(--ink)' : 'var(--card)',
+                  color: on ? 'var(--cream)' : 'var(--ink)',
+                  border: '1px solid ' + (on ? 'var(--ink)' : 'var(--line-soft)'),
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                {t.name}
+              </button>
+            );
+          })}
+        </div>
+      </RailGroup>
+
+      <RailGroup label="Decor library" sub="Flourishes from your site's decor">
+        {(decorAssets?.length ?? 0) === 0 ? (
+          <div style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.55 }}>
+            Nothing here yet — draft dividers and stamps in the site
+            editor&rsquo;s Decor panel (or upload your own) and they
+            appear as card flourishes.
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+            <button
+              type="button"
+              onClick={() => setField('customMotifUrl', null)}
+              aria-pressed={!state.customMotifUrl}
+              title="No flourish"
+              style={{
+                aspectRatio: '1', borderRadius: 10, display: 'grid', placeItems: 'center',
+                background: 'var(--card)', fontSize: 9.5, fontWeight: 600, color: 'var(--ink-muted)',
+                border: !state.customMotifUrl ? '2px solid var(--ink)' : '1px solid var(--line-soft)',
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              None
+            </button>
+            {decorAssets!.map((a) => {
+              const on = state.customMotifUrl === a.url;
+              return (
+                <button
+                  key={a.id}
+                  type="button"
+                  onClick={() => setField('customMotifUrl', on ? null : a.url)}
+                  aria-pressed={on}
+                  title={a.label}
+                  style={{
+                    aspectRatio: '1', borderRadius: 10, padding: 4, overflow: 'hidden',
+                    background: 'var(--cream-2)',
+                    border: on ? '2px solid var(--ink)' : '1px solid var(--line-soft)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <img src={a.url} alt={a.label} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+                </button>
+              );
+            })}
+          </div>
+        )}
       </RailGroup>
 
       <RailGroup label="Layout">
