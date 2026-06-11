@@ -40,6 +40,8 @@ import { useDialog } from '@/components/ui/confirm-dialog';
 import { scheduleEventSuggestions, dressCodeSuggestions, typicalTimeFor } from '@/components/pearloom/editor/panels/_suggestions';
 import { seedSectionsFromWizard, suggestRsvpDeadline } from '@/lib/wizard-seed';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
+import { lookRecipesFor } from '@/lib/site-look/look-recipes';
+import { WizardLooksSection } from './wizard-looks';
 import { WizardLookPreviews, type LookCandidate } from './WizardLookPreviews';
 import type { StoryManifest } from '@/types';
 
@@ -272,6 +274,9 @@ interface WizardState {
    *  when the host picks a preset/photo palette instead. */
   suggestedMotif?: string;
   suggestedMotifLayout?: string;
+  /** Explicit end-of-wizard LOOK pick (look-recipes.ts id). null =
+   *  Pear's match, i.e. exactly what generation stamps anyway. */
+  lookRecipeId?: string | null;
 }
 
 const defaultState: WizardState = {
@@ -1975,6 +1980,21 @@ export function WizardV8() {
         rsvpDeadline: st.rsvpDeadline,
       }) as unknown as Record<string, unknown>;
 
+      // ── Explicit LOOK pick — overwrites the occasion defaults on
+      //    both paths (AI + skeleton). The host saw exactly this
+      //    construction in the wizard's preview; it must be what
+      //    the editor opens on.
+      if (st.lookRecipeId) {
+        const recipe = lookRecipesFor(st.occasion).find((r) => r.id === st.lookRecipeId);
+        if (recipe) {
+          manifest.kitId = recipe.kitId;
+          manifest.texture = recipe.texture;
+          manifest.textureIntensity = recipe.textureIntensity;
+          manifest.motifLayout = recipe.motifLayout;
+          manifest.density = recipe.density;
+        }
+      }
+
       // `create: true` — the server guarantees a FREE slug. If the
       // derived one (typed, or names-fallback) is already taken — by
       // anyone, including this host's own earlier site — the server
@@ -3239,6 +3259,31 @@ export function WizardV8() {
                       );
                     })}
                   </div>
+
+                  {/* ── The look — three real constructions of the
+                      picked palette (kit + texture + ornament), each
+                      expandable to full size. Replaces "three tints
+                      of the same card". */}
+                  {(() => {
+                    const lookNameSpec = nameModeFor(st.occasion);
+                    const lookCouple = lookNameSpec.mode === 'couple';
+                    const lookNames = st.names.filter(Boolean);
+                    const lookPalette = st.paletteColors && st.paletteColors.length > 0
+                      ? st.paletteColors
+                      : PALETTES.find((pp) => pp.id === st.palette)?.colors;
+                    return (
+                      <WizardLooksSection
+                        occasion={st.occasion}
+                        paletteColors={lookPalette}
+                        nameA={lookNames[0] || (lookCouple ? 'Alex' : lookNameSpec.primaryPlaceholder)}
+                        nameB={lookCouple ? (lookNames[1] || 'Jamie') : ''}
+                        dateLabel={parseLocalDate(st.eventDate)?.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) || 'Your date'}
+                        placeLabel={st.location || 'Your place'}
+                        selectedId={st.lookRecipeId ?? null}
+                        onSelect={(id) => setSt((prev) => ({ ...prev, lookRecipeId: id }))}
+                      />
+                    );
+                  })()}
                 </>
               )}
 
