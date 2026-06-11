@@ -26,6 +26,7 @@ import { VoiceToastRecorder } from '@/components/guest-experience/VoiceToastReco
 import { YourRsvpCard } from '@/components/guest-experience/YourRsvpCard';
 import { YourContributionsCard } from '@/components/guest-experience/YourContributionsCard';
 import { YourCelebrationsCard, type CelebrationEntry } from '@/components/guest-experience/YourCelebrationsCard';
+import { GuestThreadCard, CelebratedTogetherCard } from '@/components/guest-experience/GuestCircleCards';
 import { buildSitePath, normalizeOccasion } from '@/lib/site-urls';
 import { isManifestPublished } from '@/lib/next-step';
 import { GuestPearChat } from '@/components/pearloom/site/GuestPearChat';
@@ -605,6 +606,23 @@ export default async function PersonalGuestPage({
           accent={accent}
           headingFont={headingFont}
         />
+      </section>
+
+      {/* Event-scoped messaging — the guest thread + the private
+          hosts line. Token-authenticated; host-moderated. */}
+      <section style={{ padding: '2rem 1.5rem 0', maxWidth: 720, margin: '0 auto' }}>
+        <GuestThreadCard
+          token={token}
+          accent={accent}
+          headingFont={headingFont}
+          guestName={guest.display_name}
+          solemn={manifest.occasion === 'memorial' || manifest.occasion === 'funeral'}
+        />
+      </section>
+
+      {/* Opt-in connections — mutual, first-names-only, default off. */}
+      <section style={{ padding: '2rem 1.5rem 0', maxWidth: 720, margin: '0 auto' }}>
+        <CelebratedTogetherCard token={token} accent={accent} headingFont={headingFont} />
       </section>
 
       {celebrations.length > 0 && (

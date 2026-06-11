@@ -490,11 +490,36 @@ celebration:
   site where the guest's email appears, with their reply status,
   linking to each public site. Drafts never surface.
 
-**Phase 2 candidates (not built):** opt-in connections ("3 people
-you've celebrated with are going"), event-scoped group threads
-(the `groupChat` block), host↔guest logistics DMs. The decision
-log: full social network rejected — episodic users, cold-start,
-brand mismatch; the event graph is the social layer.
+**Phase 2 (SHIPPED same day):** event-scoped messaging + opt-in
+connections. Migration `20260622_event_graph_phase2.sql` (applied
+to prod + tracked): `site_messages` table — one table, two shapes
+(`thread='party'` = the event-wide guest thread, `thread='dm'` =
+host↔guest logistics line), deny-anon RLS, host moderation via
+`hidden_at`. Also enables RLS on `_pearloom_migrations` (Supabase
+advisor finding, owner signed off).
+- `src/lib/people.ts` phase-2 helpers: `resolveGuestToken`
+  (normalizes BOTH guest credentials — guests.passport_token and
+  pearloom_guests.guest_token, email-bridged), opt-in get/set,
+  `familiarFacesForPerson` (mutual opt-in enforced in-query,
+  first names only — unit-tested).
+- Guest APIs: `/api/messages` (token-authed GET/POST, party + DM,
+  rate-limited, DM pings the host's notification bell via
+  notifyHost category 'replies'), `/api/guest/connections`
+  (GET status+faces, POST toggle).
+- Host API: `/api/messages/host` (owner-gated GET grouped
+  party/DMs, POST as host, DELETE = hide/moderate).
+- Guest surfaces on `/g/[token]`: `GuestThreadCard` (tabs: "The
+  thread" / "Hosts", 25s poll, optimistic send, solemn-voice copy
+  for memorials) + `CelebratedTogetherCard` (opt-in toggle,
+  default off, familiar-face first names).
+- Host surface: `/dashboard/messages` (DashMessages) — guest
+  thread with post + hide, DM conversations with inline reply.
+  New "Messages" tab in the Guests sub-nav.
+- Delivery is polling (the BroadcastBar cadence); Supabase
+  Realtime is the named upgrade path.
+
+The decision log: full social network rejected — episodic users,
+cold-start, brand mismatch; the event graph is the social layer.
 
 ### 2026-06-01 — Brief #2 surface-layer port + orphan/stale cleanup
 

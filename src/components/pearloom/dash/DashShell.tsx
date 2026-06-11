@@ -76,6 +76,7 @@ export const DASH_SECTIONS: Record<string, { label: string; tabs: Array<{ id: st
     label: 'Guests',
     tabs: [
       { id: 'roster',      label: 'Roster',      href: '/dashboard/rsvp' },
+      { id: 'messages',    label: 'Messages',    href: '/dashboard/messages' },
       { id: 'submissions', label: 'Submissions', href: '/dashboard/submissions' },
       { id: 'registry',    label: 'Registry',    href: '/dashboard/registry' },
     ],
