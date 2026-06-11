@@ -24,6 +24,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { Icon, Pear } from '../motifs';
 import { NotificationPrefsTab } from './NotificationPrefsTab';
 import { usePlan } from './usePlan';
+import { useMobileViewport } from '../redesign/use-mobile-viewport';
 
 /* ─── Context (existing consumer API — DashShell + DashCommandPalette
        call useUserSettings().openTab(<id>)) ─────────────────────────────── */
@@ -132,7 +133,9 @@ function planList(plan: 'free' | 'pro' | 'premium'): PlanShape[] {
 /* ─── UI atoms (verbatim from prototype) ─────────────────────────────── */
 
 function UsRow({ children, style }: { children: ReactNode; style?: CSSProperties }) {
-  return <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 0', borderBottom: '1px solid var(--line-soft)', ...style }}>{children}</div>;
+  // flexWrap — on phone widths the trailing button drops onto its own
+  // line instead of crushing the label into a one-word-per-line column.
+  return <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '13px 0', borderBottom: '1px solid var(--line-soft)', ...style }}>{children}</div>;
 }
 function UsToggle({ on, set }: { on: boolean; set: (v: boolean) => void }) {
   return (
@@ -143,7 +146,7 @@ function UsToggle({ on, set }: { on: boolean; set: (v: boolean) => void }) {
 }
 function UsField({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div style={{ flex: 1 }}>
+    <div style={{ flex: 1, minWidth: 180 }}>
       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 3 }}>{label}</div>
       <div style={{ fontSize: 14, color: 'var(--ink)', fontWeight: 500 }}>{value}</div>
     </div>
@@ -200,7 +203,7 @@ function AccountTab({ user }: { user: { name: string; email: string; initials: s
   return (
     <div>
       <SettingsHead title="Account" sub="Your profile and how we reach you." />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '6px 0 18px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '6px 0 18px', flexWrap: 'wrap' }}>
         {user.image ? (
           <img src={user.image} alt={effectiveName} style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }} />
         ) : (
@@ -253,7 +256,7 @@ function UsageTab({ usage, planLabel, onUpgrade }: { usage: UsageData; planLabel
   return (
     <div>
       <SettingsHead title="Usage & credits" sub={`${usage.cycle} · on the ${planLabel} plan.`} />
-      <div style={{ background: 'linear-gradient(150deg, var(--peach-bg), var(--lavender-bg))', borderRadius: 16, padding: 18, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 18 }}>
+      <div style={{ background: 'linear-gradient(150deg, var(--peach-bg), var(--lavender-bg))', borderRadius: 16, padding: 18, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
         <div style={{ position: 'relative', width: 72, height: 72, flexShrink: 0 }}>
           <svg width="72" height="72" viewBox="0 0 72 72" style={{ transform: 'rotate(-90deg)' }}>
             <circle cx="36" cy="36" r="30" fill="none" stroke="rgba(61,74,31,0.12)" strokeWidth="8" />
@@ -293,7 +296,7 @@ function SubscriptionTab({ plans }: { plans: PlanShape[] }) {
   return (
     <div>
       <SettingsHead title="Subscription" sub="Manage your plan and billing." />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10, marginBottom: 16 }}>
         {plans.map((p) => (
           <div key={p.id} style={{ position: 'relative', borderRadius: 16, padding: 16, background: p.current ? 'linear-gradient(165deg, var(--sage-tint), var(--card))' : 'var(--card)', border: p.current ? '2px solid var(--sage-deep)' : '1px solid var(--line)' }}>
             {p.current && <span style={{ position: 'absolute', top: 12, right: 12, fontSize: 9.5, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--sage-deep)', background: 'var(--card)', padding: '3px 8px', borderRadius: 999 }}>Current</span>}
@@ -378,6 +381,11 @@ export function UserSettingsModal({
   const setTab = setTabProp ?? setLocalTab;
   const { data: session } = useSession();
   const [usage, setUsage] = useState<UsageData>(DEFAULT_USAGE);
+  /* Phone-sized viewport — the desktop 232px-rail grid crushed the
+     content column to ~130px on phones (one-word-per-line wraps).
+     Below 768px the rail becomes a horizontal tab strip on top and
+     the content gets the full width. */
+  const isPhone = useMobileViewport();
   /* Live plan — /api/store/entitlements via the shared usePlan hook
      (same source as the sidebar strip). The previous code hardcoded
      'Bloom plan' in the rail regardless of reality. */
@@ -427,9 +435,25 @@ export function UserSettingsModal({
 
   return (
     <div className="pl8" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(40,40,30,0.45)', backdropFilter: 'blur(6px)', display: 'grid', placeItems: 'center', padding: 24 }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: 'min(880px, 96vw)', height: 'min(620px, 92vh)', background: 'var(--card)', borderRadius: 22, overflow: 'hidden', display: 'grid', gridTemplateColumns: '232px 1fr', boxShadow: 'var(--shadow-lg)', animation: 'us-in 240ms cubic-bezier(0.16,1,0.3,1)' } as CSSProperties}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: 'min(880px, 96vw)', height: isPhone ? 'min(700px, 94dvh)' : 'min(620px, 92vh)', background: 'var(--card)', borderRadius: 22, overflow: 'hidden', display: 'grid', gridTemplateColumns: isPhone ? '1fr' : '232px 1fr', gridTemplateRows: isPhone ? 'auto 1fr' : undefined, boxShadow: 'var(--shadow-lg)', animation: 'us-in 240ms cubic-bezier(0.16,1,0.3,1)' } as CSSProperties}>
         <style>{`@keyframes us-in{from{transform:scale(0.97);opacity:0}to{transform:none;opacity:1}}`}</style>
-        {/* left rail */}
+        {/* left rail — horizontal tab strip on phones */}
+        {isPhone ? (
+          <div style={{ background: 'var(--cream-2)', borderBottom: '1px solid var(--line-soft)', padding: '10px 10px', display: 'flex', alignItems: 'center', gap: 4, overflowX: 'auto' }}>
+            <div aria-hidden style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg, var(--sage-deep), var(--sage))', color: 'var(--cream)', display: 'grid', placeItems: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0, marginRight: 2 }}>{user.initials}</div>
+            {tabs.map((t) => {
+              const on = tab === t.id;
+              return (
+                <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 11px', borderRadius: 999, whiteSpace: 'nowrap', flexShrink: 0, cursor: 'pointer', background: on ? 'var(--card)' : 'transparent', color: on ? 'var(--ink)' : 'var(--ink-soft)', fontSize: 12.5, fontWeight: on ? 700 : 500, boxShadow: on ? '0 1px 3px rgba(61,74,31,0.08)' : 'none', border: 'none', fontFamily: 'inherit' }}>
+                  <Icon name={t.icon} size={13} color={on ? 'var(--sage-deep)' : 'var(--ink-muted)'} /> {t.label}
+                </button>
+              );
+            })}
+            <button onClick={() => signOut({ callbackUrl: '/' })} aria-label="Sign out" title="Sign out" style={{ marginLeft: 'auto', flexShrink: 0, width: 32, height: 32, borderRadius: 999, display: 'grid', placeItems: 'center', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+              <Icon name="arrow-left" size={14} color="var(--ink-muted)" />
+            </button>
+          </div>
+        ) : (
         <div style={{ background: 'var(--cream-2)', borderRight: '1px solid var(--line-soft)', padding: 16, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 8px 16px' }}>
             <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, var(--sage-deep), var(--sage))', color: 'var(--cream)', display: 'grid', placeItems: 'center', fontSize: 14, fontWeight: 700 }}>{user.initials}</div>
@@ -452,8 +476,9 @@ export function UserSettingsModal({
             <Icon name="arrow-left" size={15} color="var(--ink-muted)" /> Sign out
           </button>
         </div>
+        )}
         {/* content */}
-        <div style={{ position: 'relative', overflow: 'auto', padding: '24px 28px' }}>
+        <div style={{ position: 'relative', overflow: 'auto', minHeight: 0, padding: isPhone ? '18px 16px 20px' : '24px 28px' }}>
           <button onClick={onClose} style={{ position: 'absolute', top: 18, right: 18, width: 30, height: 30, borderRadius: 8, display: 'grid', placeItems: 'center', background: 'var(--cream-2)', zIndex: 2, border: 'none', cursor: 'pointer' }}><Icon name="close" size={15} color="var(--ink-soft)" /></button>
           {tab === 'account' && <AccountTab user={user} />}
           {tab === 'usage' && <UsageTab usage={usage} planLabel={planInfo.label} onUpgrade={() => setTab('subscription')} />}
