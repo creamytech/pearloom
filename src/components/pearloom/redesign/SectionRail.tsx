@@ -11,7 +11,7 @@ import { type SectionId, type BlockSectionId, BLOCK_SECTION_IDS, isToolPanelAppl
 import { isCoreSectionApplicable, sectionHasContent } from './section-applicability';
 import { SiteModeSection } from '../editor/panels/SiteModeSection';
 import { useMobileViewport } from './use-mobile-viewport';
-import { readSiteMode, readHomePageBlocks, MULTI_PAGE_BLOCKS } from '@/lib/site-mode';
+import { readSiteMode, readHomePageBlocks, MULTI_PAGE_BLOCKS, BLOCK_PAGE_SLUG, type SiteBlockKey } from '@/lib/site-mode';
 
 interface SectionDef {
   id: Exclude<SectionId, null>;
@@ -163,9 +163,13 @@ interface Props {
    *  + homePageBlocks. When omitted, the Pages tab still renders
    *  but its controls become read-only. */
   onChange?: (next: StoryManifest) => void;
+  /** Magazine mode — which page the canvas is focused on. null =
+   *  all sections on one canvas. Owned by EditorRedesign. */
+  canvasPage?: 'home' | SiteBlockKey | null;
+  setCanvasPage?: (page: 'home' | SiteBlockKey | null) => void;
 }
 
-export function EditorRailLeft({ active, setActive, completion, title, slug, manifest, onChange }: Props) {
+export function EditorRailLeft({ active, setActive, completion, title, slug, manifest, onChange, canvasPage = null, setCanvasPage }: Props) {
   const [tab, setTab] = useState<'sections' | 'pages' | 'theme'>('sections');
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
@@ -528,8 +532,76 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
           page block picker. Mounted from the section-panels module
           since the same control lives in ThemePanel's Pages section. */}
       {tab === 'pages' && onChange && (
-        <div style={{ padding: 2 }}>
+        <div style={{ padding: 2, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <SiteModeSection manifest={manifest} onChange={onChange} />
+
+          {/* The pages themselves — flipping to magazine mode used
+              to change NOTHING visible in the editor. Each row
+              focuses the canvas on that page exactly as guests get
+              it; "All pages" returns the whole site to one canvas. */}
+          {siteMode === 'multi-page' && setCanvasPage && (() => {
+            const ownPages = orderedSections.filter(
+              (sec) => multiPageSet.has(sec.id) && !homeBlockSet.has(sec.id),
+            );
+            const homeCount = orderedSections.length - ownPages.length;
+            const row = (
+              key: string,
+              label: string,
+              sub: string,
+              onPick: () => void,
+              on: boolean,
+            ) => (
+              <button
+                key={key}
+                type="button"
+                onClick={onPick}
+                aria-pressed={on}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 9, width: '100%',
+                  padding: '9px 11px', borderRadius: 10, textAlign: 'left',
+                  background: on ? 'var(--pl-olive-mist, #E0DDC9)' : 'var(--card)',
+                  border: on ? '1.5px solid var(--pl-olive, #5C6B3F)' : '1px solid var(--line-soft)',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                <Icon name="page" size={13} color={on ? 'var(--pl-olive, #5C6B3F)' : 'var(--ink-muted)'} />
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>{label}</span>
+                  <span style={{ display: 'block', fontSize: 10, color: 'var(--ink-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</span>
+                </span>
+                {on && <Icon name="eye" size={12} color="var(--pl-olive, #5C6B3F)" />}
+              </button>
+            );
+            return (
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', margin: '2px 0 8px' }}>
+                  Your pages
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  {row('all', 'All pages', 'The whole site on one canvas — everything editable', () => setCanvasPage(null), canvasPage === null)}
+                  {row('home', 'Home', `/ · ${homeCount} section${homeCount === 1 ? '' : 's'}`, () => setCanvasPage('home'), canvasPage === 'home')}
+                  {ownPages.map((sec) =>
+                    row(
+                      sec.id,
+                      sec.label,
+                      `/${BLOCK_PAGE_SLUG[sec.id as SiteBlockKey] ?? sec.id}`,
+                      () => {
+                        setCanvasPage(sec.id as SiteBlockKey);
+                        setActive(sec.id);
+                      },
+                      canvasPage === sec.id,
+                    ),
+                  )}
+                </div>
+                {canvasPage !== null && (
+                  <div style={{ marginTop: 8, fontSize: 10.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
+                    The canvas shows this page as guests will see it.
+                    Pick <strong>All pages</strong> to edit everything at once.
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       )}
 
