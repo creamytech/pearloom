@@ -46,19 +46,36 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
       setError('Please enter your email and password.');
       return;
     }
-    if (mode === 'register' && password.length < 6) {
-      setError('Password must be at least 6 characters.');
-      return;
-    }
     setLoading(true);
     setError('');
+
+    // Registration goes through /api/auth/register (rate-limited,
+    // creates the account_credentials row), then both modes sign
+    // in through the credentials provider.
+    if (mode === 'register') {
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email.trim(), password, name: name.trim() || undefined }),
+        });
+        if (!res.ok) {
+          const body = (await res.json().catch(() => ({}))) as { error?: string };
+          setError(body.error ?? 'Could not create the account. Try again?');
+          setLoading(false);
+          return;
+        }
+      } catch {
+        setError('Could not create the account. Try again?');
+        setLoading(false);
+        return;
+      }
+    }
 
     const result = await signIn('credentials', {
       redirect: false,
       email: email.trim(),
       password,
-      name: name.trim(),
-      action: mode,
     });
 
     setLoading(false);
@@ -67,7 +84,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
       setError(result.error);
     } else if (result?.ok) {
       onClose();
-      window.location.href = '/dashboard';
+      window.location.href = '/welcome';
     }
   };
 

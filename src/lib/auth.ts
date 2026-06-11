@@ -7,7 +7,8 @@ import type { NextAuthOptions, Session } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { createHash } from 'crypto';
+import { createClient } from '@supabase/supabase-js';
+import { verifyPassword } from '@/lib/password';
 
 /**
  * Extend the default session/token types to include
@@ -31,20 +32,13 @@ declare module 'next-auth/jwt' {
   }
 }
 
-/**
- * Simple password hashing — in production, use bcrypt.
- * This is a SHA-256 hash with a salt prefix for basic security.
- */
-function hashPassword(password: string): string {
-  const salt = process.env.NEXTAUTH_SECRET || 'pearloom-salt';
-  return createHash('sha256').update(`${salt}:${password}`).digest('hex');
+/** Service-role client for credential lookups — RLS denies anon. */
+function credentialsDb() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
 }
-
-/**
- * In-memory user store for credentials auth.
- * In production, replace with database queries (Supabase, Prisma, etc.)
- */
-const credentialUsers = new Map<string, { id: string; email: string; name: string; passwordHash: string }>();
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -114,41 +108,47 @@ export const authOptions: NextAuthOptions = {
       },
     }),
 
+    // ── Manual accounts — email + password ─────────────────────
+    // Backed by public.account_credentials (migration 20260625):
+    // scrypt per-user-salt hashes via lib/password.ts. Registration
+    // lives in POST /api/auth/register (rate-limited there);
+    // authorize() only ever signs in. The launch-era version kept
+    // accounts in an in-memory Map — every deploy erased them.
     CredentialsProvider({
       id: 'credentials',
       name: 'Email',
       credentials: {
         email: { label: 'Email', type: 'email', placeholder: 'you@example.com' },
         password: { label: 'Password', type: 'password' },
-        name: { label: 'Name', type: 'text' },
-        action: { label: 'Action', type: 'text' }, // 'login' | 'register'
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
-
         const email = credentials.email.toLowerCase().trim();
-        const passwordHash = hashPassword(credentials.password);
 
-        if (credentials.action === 'register') {
-          // Register new user
-          if (credentialUsers.has(email)) {
-            throw new Error('An account with this email already exists. Try signing in.');
-          }
-          if (credentials.password.length < 6) {
-            throw new Error('Password must be at least 6 characters.');
-          }
-          const id = `user-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-          const name = credentials.name?.trim() || email.split('@')[0];
-          credentialUsers.set(email, { id, email, name, passwordHash });
-          return { id, email, name };
+        const db = credentialsDb();
+        if (!db) {
+          throw new Error('Sign-in is not configured on this deployment.');
         }
-
-        // Login existing user
-        const user = credentialUsers.get(email);
-        if (!user || user.passwordHash !== passwordHash) {
-          throw new Error('Invalid email or password.');
+        const { data: row } = await db
+          .from('account_credentials')
+          .select('email, password_hash, display_name')
+          .eq('email', email)
+          .maybeSingle();
+        // Same error whether the account or the password is wrong —
+        // sign-in never confirms which emails have accounts.
+        if (!row || !verifyPassword(credentials.password, row.password_hash)) {
+          throw new Error('That email and password don’t match our records.');
         }
-        return { id: user.id, email: user.email, name: user.name };
+        void db
+          .from('account_credentials')
+          .update({ last_login_at: new Date().toISOString() })
+          .eq('email', email)
+          .then(() => {}, () => {});
+        return {
+          id: email,
+          email,
+          name: (row.display_name as string | null) ?? email.split('@')[0],
+        };
       },
     }),
 
