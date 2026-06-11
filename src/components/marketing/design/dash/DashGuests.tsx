@@ -1505,6 +1505,33 @@ function AddGuestDialog({
   const [plusOne, setPlusOne] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* Returning-guest recognition — once the email looks complete,
+     ask /api/guests/person-history whether this person has
+     celebrated with the host before (own-sites-only privacy
+     boundary lives server-side). Debounced; purely a hint. */
+  const [known, setKnown] = useState<{
+    history: Array<{ domain: string; names: string[]; occasion: string | null; status: string | null }>;
+    dietary: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    const e = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) {
+      setKnown(null);
+      return;
+    }
+    const ctrl = new AbortController();
+    const t = setTimeout(() => {
+      fetch(`/api/guests/person-history?siteId=${encodeURIComponent(siteId)}&email=${encodeURIComponent(e)}`, { signal: ctrl.signal })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data: null | { known?: boolean; history?: Array<{ domain: string; names: string[]; occasion: string | null; status: string | null }>; dietary?: string | null }) => {
+          if (data?.known) setKnown({ history: data.history ?? [], dietary: data.dietary ?? null });
+          else setKnown(null);
+        })
+        .catch(() => { /* recognition is a nicety */ });
+    }, 450);
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [email, siteId]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -1630,6 +1657,33 @@ function AddGuestDialog({
             style={inputStyle}
           />
         </label>
+
+        {known && (
+          <div
+            style={{
+              fontSize: 12.5,
+              color: PD.ink,
+              background: 'rgba(92,107,63,0.10)',
+              border: '1px solid rgba(92,107,63,0.25)',
+              padding: '9px 12px',
+              borderRadius: 10,
+              lineHeight: 1.5,
+            }}
+          >
+            <span style={{ fontWeight: 700, color: PD.olive }}>✓ A familiar face.</span>{' '}
+            {known.history.length > 0
+              ? `They've celebrated with you before — ${known.history
+                  .slice(0, 2)
+                  .map((h) => h.names.filter(Boolean).join(' & ') || h.domain)
+                  .join(', ')}${known.history.length > 2 ? ` +${known.history.length - 2} more` : ''}.`
+              : 'Pearloom already knows this guest.'}
+            {known.dietary && (
+              <span style={{ display: 'block', color: PD.inkSoft, marginTop: 2 }}>
+                Known dietary note: {known.dietary}
+              </span>
+            )}
+          </div>
+        )}
 
         <label
           style={{

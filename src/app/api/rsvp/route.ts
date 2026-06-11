@@ -5,6 +5,7 @@ import { buildHostRsvpNotificationEmail } from '@/lib/email/brand-emails';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { linkGuestRowToPerson } from '@/lib/people';
 
 export const dynamic = 'force-dynamic';
 
@@ -112,6 +113,17 @@ export async function POST(req: NextRequest) {
 
     // Always log new RSVP responses
     console.log('[RSVP] New response from:', guestName, '| Status:', status, '| Site:', siteId);
+
+    // Persistent guest identity — link this RSVP to the person
+    // record keyed by email (people table, migration 20260621).
+    // Fire-and-forget: identity is a nicety, never blocks an RSVP.
+    if (email && (data as { id?: string })?.id) {
+      void linkGuestRowToPerson(supabase, String((data as { id: string }).id), {
+        email: String(email),
+        name: String(guestName),
+        dietary: dietaryRestrictions ? String(dietaryRestrictions) : null,
+      });
+    }
 
     // Notify the site owner per their notification prefs.
     // Declines default to an instant email (they change plans);

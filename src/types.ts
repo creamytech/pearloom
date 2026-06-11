@@ -331,6 +331,21 @@ export interface StoryManifest {
     initials?: string;
     frame?: 'ring' | 'diamond' | 'laurel' | 'none';
   };
+  /** The Sealed Arrival — how the published site opens the first
+   *  time a guest taps the link (ArrivalReveal, mounted by
+   *  PublishedSiteShell; host control in the editor's Share panel).
+   *  - 'auto' (default when unset): matched to the occasion —
+   *    solemn voices (memorial / funeral) get the quiet thread
+   *    reveal, everything else gets the sealed envelope.
+   *  - 'envelope': wax-seal envelope + curtain reveal.
+   *  - 'quiet': single thread + name, gentle fade.
+   *  - 'off': the site opens plain. */
+  arrival?: 'auto' | 'envelope' | 'quiet' | 'off';
+  /** Site-level privacy. When password is set, PublishedSiteShell
+   *  mounts the password gate before the site renders (client-side
+   *  gate — parity with the legacy PasswordGate). Edited in the
+   *  editor's Privacy panel; DashSettings deep-links ?jump=privacy. */
+  privacyGate?: { password?: string };
   /** Per-icon name override map. Drag any icon from the asset
    *  library onto a canvas glyph to write
    *  `iconOverrides[<originalName>] = <newName>`. The renderer

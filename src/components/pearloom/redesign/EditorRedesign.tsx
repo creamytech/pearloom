@@ -58,6 +58,12 @@ interface Props {
    *  disabled when absent (e.g. dev mounts). */
   viewerEmail?: string;
   viewerName?: string;
+  /** Deep-link target from `?jump=<section>` (EditorClient). Lets
+   *  dashboard surfaces open the editor with the right property-
+   *  rail panel active — the golden-thread "Add your cover photo"
+   *  card lands on Hero, Partner access lands on Share, etc.
+   *  Unknown values are ignored (hero default). */
+  initialSection?: string;
 }
 
 export type EditorMode = 'edit' | 'preview' | 'mobile';
@@ -78,7 +84,7 @@ export type SectionId =
      mount through the same PropertyRail dispatch so the editor's
      state machine stays simple. */
   | 'guests' | 'savetheDate' | 'share' | 'dayof' | 'memorial' | 'bachelor'
-  | 'toasts'
+  | 'toasts' | 'privacy'
   | null;
 
 /* Occasion → which optional canvas sections fit. Countdown reads
@@ -131,6 +137,18 @@ export function isBlockApplicable(blockId: BlockSectionId, occasion?: string): b
    of pulling applicability gates out of EditorRedesign. */
 export { isCoreSectionApplicable, sectionHasContent } from './section-applicability';
 
+/* Every non-null SectionId — the allowlist for `?jump=` deep
+   links. Kept next to the SectionId union so adding a section
+   means touching both lines in the same screenful. */
+const JUMPABLE_SECTIONS: ReadonlySet<string> = new Set([
+  'hero', 'story', 'details', 'schedule', 'travel',
+  'registry', 'gallery', 'rsvp', 'faq', 'nav', 'navMobile',
+  'countdown', 'map', 'music',
+  ...BLOCK_SECTION_IDS,
+  'guests', 'savetheDate', 'share', 'dayof', 'memorial', 'bachelor',
+  'toasts', 'privacy',
+]);
+
 /* Occasion → which tool panels are applicable. Memorial only on
    memorial/funeral, Bachelor weekend planner on bachelor/ette /
    bridal-shower / reunion / sip-and-see, Save-the-date never on
@@ -150,8 +168,14 @@ export function isToolPanelApplicable(panel: Exclude<SectionId, null>, occasion?
 
 export default function EditorRedesign({
   manifest: initialManifest, siteSlug, names: initialNames,
-  viewerRole = 'owner', viewerEmail, viewerName,
+  viewerRole = 'owner', viewerEmail, viewerName, initialSection,
 }: Props) {
+  /* Validated `?jump=` deep-link — unknown values fall back to
+     the hero default below. */
+  const initialJump: SectionId =
+    initialSection && JUMPABLE_SECTIONS.has(initialSection)
+      ? (initialSection as SectionId)
+      : null;
   // Bridge — autosave, manifest state, undo/redo, publish. Hides the
   // production machinery behind a small interface that mirrors the
   // prototype's tweaks-panel locals (setActive, setLayout, etc.).
@@ -172,7 +196,7 @@ export default function EditorRedesign({
     manifest: bridge.manifest,
     onRemoteManifest: (next) => bridge.setManifest(next),
   });
-  const [active, setActive] = useState<SectionId>('hero');
+  const [active, setActive] = useState<SectionId>(initialJump ?? 'hero');
   const [hover, setHover] = useState<SectionId>(null);
   const [pearOpen, setPearOpen] = useState(false);
   const [pearPrefill, setPearPrefill] = useState<string>('');
@@ -202,6 +226,18 @@ export default function EditorRedesign({
   useEffect(() => {
     viewportMobileRef.current = viewportMobile;
   }, [viewportMobile]);
+  /* Phone deep-link: on desktop the jumped panel is already
+     visible in the property rail, but on a phone the rails live
+     in bottom sheets — a `?jump=` open would land on a bare
+     canvas. Render-time adjustment (the React-docs pattern, same
+     as the breakpoint-crossing block below): once the viewport
+     resolves mobile with a jump pending, open the props sheet on
+     the jumped section. One-shot. */
+  const [jumpSheetPending, setJumpSheetPending] = useState(Boolean(initialJump));
+  if (viewportMobile && jumpSheetPending) {
+    setJumpSheetPending(false);
+    setMobileSheet('props');
+  }
   /* Crossing the breakpoint: hand the open Pear pane to the
      matching chrome on the other side. Render-time adjustment
      (the React-docs pattern, not an effect) — converges in one

@@ -1335,6 +1335,33 @@ export function WizardV8() {
     }, 400);
     return () => clearTimeout(t);
   }, [st]);
+  /* Welcome-flow intent → occasion prefill. The onboarding flow
+     stores what brought the user here (user_preferences.intent);
+     when the wizard opens cold — no saved draft, no template seed,
+     nothing picked — that answer preselects the occasion. An
+     explicit pick always wins (functional update re-checks). */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let cancelled = false;
+    fetch('/api/user/preferences', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { intent?: string | null } | null) => {
+        if (cancelled || !d?.intent) return;
+        const INTENT_TO_OCCASION: Record<string, string> = {
+          wedding: 'wedding',
+          engagement: 'engagement',
+          baby: 'baby-shower',
+          birthday: 'birthday',
+          reunion: 'reunion',
+          memorial: 'memorial',
+        };
+        const occ = INTENT_TO_OCCASION[d.intent];
+        if (occ) setSt((prev) => (prev.occasion ? prev : { ...prev, occasion: occ }));
+      })
+      .catch(() => { /* prefill is a nicety */ });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 

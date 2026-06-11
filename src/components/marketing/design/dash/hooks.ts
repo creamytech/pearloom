@@ -162,6 +162,25 @@ export function useUserSites(): UserSitesState {
 
 const SITE_KEY = 'pl-dash-site';
 
+/** Resolve the dashboard's sticky site selection WITHOUT the
+ *  ?site= query param — for surfaces (modals, global chrome)
+ *  that shouldn't pull in useSearchParams. Same fallback order
+ *  as useSelectedSite minus the URL: localStorage → first site. */
+export function resolveStickySite(sites: SiteSummary[] | null): SiteSummary | null {
+  if (!sites || sites.length === 0) return null;
+  if (typeof window !== 'undefined') {
+    let stored: string | null = null;
+    try {
+      stored = window.localStorage.getItem(SITE_KEY);
+    } catch { /* ignore */ }
+    if (stored) {
+      const match = sites.find((s) => s.id === stored || s.domain === stored);
+      if (match) return match;
+    }
+  }
+  return sites[0];
+}
+
 export function useSelectedSite() {
   const router = useRouter();
   const params = useSearchParams();

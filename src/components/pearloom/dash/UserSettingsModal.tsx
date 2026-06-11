@@ -26,6 +26,8 @@ import { NotificationPrefsTab } from './NotificationPrefsTab';
 import { usePlan } from './usePlan';
 import { useMobileViewport } from '../redesign/use-mobile-viewport';
 import { useTheme } from '@/components/shell/ThemeProvider';
+import { useUserSites, resolveStickySite } from '@/components/marketing/design/dash/hooks';
+import { PlAvatar, PL_AVATARS, useUserAvatar } from '../avatars';
 
 /* ─── Context (existing consumer API — DashShell + DashCommandPalette
        call useUserSettings().openTab(<id>)) ─────────────────────────────── */
@@ -176,12 +178,22 @@ function AccountTab({ user }: { user: { name: string; email: string; initials: s
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [saved, setSaved] = useState(false);
+  /* Partner-access target — the sticky-selected site whose Share
+     panel hosts the co-host invite flow. */
+  const { sites } = useUserSites();
+  const shareSite = resolveStickySite(sites);
+  /* The orchard mark — shared cache, so the topbar + sidebar
+     update the moment a tile is tapped. */
+  const { avatarId, setAvatarId } = useUserAvatar();
   useEffect(() => {
     let cancelled = false;
     fetch('/api/user/preferences', { credentials: 'include' })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        const n = (d as { preferences?: { display_name?: string | null } } | null)?.preferences?.display_name;
+        /* GET returns the prefs row flat — the old `.preferences.`
+           path never matched, so saved names didn't load back. */
+        const row = d as { display_name?: string | null; preferences?: { display_name?: string | null } } | null;
+        const n = row?.display_name ?? row?.preferences?.display_name;
         if (!cancelled && typeof n === 'string' && n.trim()) setPrefName(n);
       })
       .catch(() => {});
@@ -205,7 +217,9 @@ function AccountTab({ user }: { user: { name: string; email: string; initials: s
     <div>
       <SettingsHead title="Account" sub="Your profile and how we reach you." />
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '6px 0 18px', flexWrap: 'wrap' }}>
-        {user.image ? (
+        {avatarId ? (
+          <PlAvatar id={avatarId} size={64} />
+        ) : user.image ? (
           <img src={user.image} alt={effectiveName} style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }} />
         ) : (
           <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg, var(--sage-deep), var(--sage))', color: 'var(--cream)', display: 'grid', placeItems: 'center', fontSize: 26, fontWeight: 700 }}>{user.initials}</div>
@@ -213,6 +227,46 @@ function AccountTab({ user }: { user: { name: string; email: string; initials: s
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600 }}>{effectiveName}</div>
           <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>{user.joined}</div>
+        </div>
+      </div>
+
+      {/* Your mark — the orchard avatars. Picked by id, rendered
+          everywhere the account shows a face (topbar, sidebar,
+          this modal). "No mark" falls back to photo / initials. */}
+      <div style={{ padding: '2px 0 16px' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 8 }}>
+          Your mark
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {PL_AVATARS.map((a) => {
+            const on = avatarId === a.id;
+            return (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => setAvatarId(on ? null : a.id)}
+                aria-pressed={on}
+                title={a.label}
+                style={{
+                  width: 48, height: 48, padding: 0,
+                  borderRadius: 14,
+                  border: on ? '2px solid var(--sage-deep, #3D4A1F)' : '2px solid transparent',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  boxShadow: on ? '0 0 0 2px var(--card), 0 4px 10px rgba(61,74,31,0.16)' : 'none',
+                  transition: 'transform var(--pl-dur-fast, 180ms) var(--pl-ease-spring, ease), box-shadow var(--pl-dur-fast, 180ms) var(--pl-ease-out, ease)',
+                  transform: on ? 'translateY(-1px)' : 'none',
+                }}
+              >
+                <PlAvatar id={a.id} size={44} round={false} />
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 8 }}>
+          {avatarId
+            ? 'Tap your mark again to go back to your photo or initials.'
+            : 'Pick a mark, or stay with your sign-in photo.'}
         </div>
       </div>
       <UsRow>
@@ -244,8 +298,20 @@ function AccountTab({ user }: { user: { name: string; email: string; initials: s
       </UsRow>
       <UsRow style={{ borderBottom: 'none' }}>
         <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--lavender-2)', color: '#3D4A1F', display: 'grid', placeItems: 'center', fontSize: 13, fontWeight: 700 }}>+</div>
-        <UsField label="Partner access" value="Invite a collaborator to edit your site" />
-        <button className="btn btn-outline btn-sm" onClick={() => { if (typeof window !== 'undefined') window.location.assign('/dashboard/connections'); }}>Manage</button>
+        <UsField label="Partner access" value="Invite a co-host to edit your site" />
+        {/* Co-host invites live in the editor's Share panel (the
+            flow that mints /api/co-host/invite magic links). The
+            old target — /dashboard/connections — links SITES into
+            celebrations and has nothing to do with people. */}
+        <button
+          className="btn btn-outline btn-sm"
+          onClick={() => {
+            if (typeof window === 'undefined') return;
+            window.location.assign(shareSite ? `/editor/${shareSite.domain}?jump=share` : '/dashboard/event');
+          }}
+        >
+          {shareSite ? 'Invite' : 'Manage'}
+        </button>
       </UsRow>
     </div>
   );
@@ -418,6 +484,7 @@ export function UserSettingsModal({
      Below 768px the rail becomes a horizontal tab strip on top and
      the content gets the full width. */
   const isPhone = useMobileViewport();
+  const { avatarId } = useUserAvatar();
   /* Live plan — /api/store/entitlements via the shared usePlan hook
      (same source as the sidebar strip). The previous code hardcoded
      'Bloom plan' in the rail regardless of reality. */
@@ -472,7 +539,7 @@ export function UserSettingsModal({
         {/* left rail — horizontal tab strip on phones */}
         {isPhone ? (
           <div style={{ background: 'var(--cream-2)', borderBottom: '1px solid var(--line-soft)', padding: '10px 10px', display: 'flex', alignItems: 'center', gap: 4, overflowX: 'auto' }}>
-            <div aria-hidden style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg, var(--sage-deep), var(--sage))', color: 'var(--cream)', display: 'grid', placeItems: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0, marginRight: 2 }}>{user.initials}</div>
+            {avatarId ? <PlAvatar id={avatarId} size={30} style={{ marginRight: 2 }} /> : <div aria-hidden style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg, var(--sage-deep), var(--sage))', color: 'var(--cream)', display: 'grid', placeItems: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0, marginRight: 2 }}>{user.initials}</div>}
             {tabs.map((t) => {
               const on = tab === t.id;
               return (
@@ -488,7 +555,7 @@ export function UserSettingsModal({
         ) : (
         <div style={{ background: 'var(--cream-2)', borderRight: '1px solid var(--line-soft)', padding: 16, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 8px 16px' }}>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, var(--sage-deep), var(--sage))', color: 'var(--cream)', display: 'grid', placeItems: 'center', fontSize: 14, fontWeight: 700 }}>{user.initials}</div>
+            {avatarId ? <PlAvatar id={avatarId} size={36} /> : <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, var(--sage-deep), var(--sage))', color: 'var(--cream)', display: 'grid', placeItems: 'center', fontSize: 14, fontWeight: 700 }}>{user.initials}</div>}
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 13.5, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.name}</div>
               <div style={{ fontSize: 11, color: 'var(--ink-muted)' }}>{planInfo.label} plan</div>

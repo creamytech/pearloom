@@ -642,16 +642,19 @@ function HeroBand({
 }
 
 /** Route the golden-thread step to the right dashboard surface.
- *  Editor rungs (cover/date/gallery/story/publish) open the
- *  editor; guest rungs open the guest surfaces — building the
- *  list starts at /dashboard/invite, nudging pending replies
- *  lands on /dashboard/rsvp where the NudgeStrip's composer
- *  (DashGuests → NudgeComposer) already lives. */
+ *  Editor rungs (cover/date/gallery/story) deep-link into the
+ *  editor's matching property-rail panel via `?jump=` so "Add
+ *  your cover photo" actually opens the Hero panel (and the
+ *  props sheet on phones). Publish opens the editor plain — the
+ *  topbar Publish button is the flow's entry point. Guest rungs
+ *  land on /dashboard/rsvp (DashGuests): the roster with add /
+ *  CSV import, and the NudgeStrip's composer for pending
+ *  replies. (NOT /dashboard/invite — that's the stationery
+ *  Studio, which confused guest-list clicks for months.) */
 function hrefForNextStep(step: NextStep, editorHref: string): string {
-  if (step.target === 'guests') {
-    return step.id === 'guest-list' ? '/dashboard/invite' : '/dashboard/rsvp';
-  }
-  return editorHref;
+  if (step.target === 'guests') return '/dashboard/rsvp';
+  if (step.target === 'publish') return editorHref;
+  return `${editorHref}?jump=${step.target}`;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -735,7 +738,7 @@ function QuickJumps({
     if (stage === 'early') {
       return [
         { label: 'Open the editor',  sub: 'Edit your wedding site',                      icon: 'brush',   href: editorHref },
-        { label: 'Build guest list', sub: 'Import or draft with Pear',                   icon: 'users',   href: '/dashboard/invite' },
+        { label: 'Build guest list', sub: 'Import or draft with Pear',                   icon: 'users',   href: '/dashboard/rsvp' },
         { label: 'Studio',           sub: 'Save-the-dates & invites',                    icon: 'palette', href: '/dashboard/invite' },
         { label: 'Day-of room',      sub: 'Locked until 30 days out',                    icon: 'lock',    href: '/dashboard/day-of', dim: true },
       ];
@@ -853,14 +856,14 @@ function usePearTodos({
         title: 'Build your guest list',
         sub: 'Pear can suggest one from your story, or import contacts.',
         cta: 'Start with Pear',
-        href: '/dashboard/invite',
+        href: '/dashboard/rsvp',
         urgency: 'now',
       });
       if (out.length < 3) out.push({
         title: 'Pick a save-the-date',
         sub: 'Three styles ready to try in the studio.',
         cta: 'Preview',
-        href: '/dashboard/print',
+        href: '/dashboard/invite',
         urgency: 'soon',
       });
     } else if (stage === 'late') {
@@ -1107,10 +1110,10 @@ function GuestPulse({
             Pear can draft a list from your story, or import from your contacts.
           </div>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/dashboard/invite" className="btn btn-primary btn-sm" style={{ textDecoration: 'none' }}>
+            <Link href="/dashboard/rsvp" className="btn btn-primary btn-sm" style={{ textDecoration: 'none' }}>
               Start with Pear <Icon name="sparkles" size={11} color="var(--cream)" />
             </Link>
-            <Link href="/dashboard/invite" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
+            <Link href="/dashboard/rsvp" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
               Import contacts
             </Link>
           </div>

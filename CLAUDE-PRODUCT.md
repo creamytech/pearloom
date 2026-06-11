@@ -444,6 +444,128 @@ How we actually ship this over many sessions without re-explaining every time.
 
 ## 10 · Changelog
 
+### 2026-06-11 — Welcome flow + orchard avatars + site-crest switcher
+
+**The Welcome flow** (`/welcome`, server gate + `WelcomeFlowClient`):
+first-run onboarding between sign-in and the product. Sign-in
+defaults (SigninV8 + AuthModal) now land on `/welcome`; onboarded
+accounts pass straight through server-side (one indexed read at
+login, nothing after). Five movements on one sheet of paper —
+arrival (auto-advances), name ("What should Pear call you?"),
+mark (avatar picker), occasion (intent chips: wedding / engagement
+/ baby / birthday / reunion / memorial / exploring), the agreement
+(Terms + Privacy links, three product-verifiable promises, required
+checkbox), then "The loom is yours" → Begin a thread (/wizard/new,
+or /dashboard for explorers). Two-strand progress thread, Fraunces
+letterpress, Enter-to-advance, reduced-motion fades. Name/mark/
+occasion skippable; the agreement is the only gate. Migration
+`20260624_onboarding.sql` (applied + tracked): `onboarded_at`,
+`terms_accepted_at` (both stamped server-side from booleans),
+`intent` on user_preferences. `intent` is stored but not yet read
+by the wizard — named follow-up.
+
+**Orchard avatars** (`src/components/pearloom/avatars.tsx`): twelve
+hand-drawn SVG account marks (pears, sprig, bloom, spool, seal,
+envelope, lantern, bunting, midnight moon) in the dashboard tints.
+Picker in Settings → Account ("Your mark") + the Welcome flow;
+stored as `user_preferences.avatar` (migration `20260623`); a
+module-cached `useUserAvatar()` store keeps the topbar button,
+sidebar menu, and settings modal in sync instantly. Fallback chain:
+mark → sign-in photo → initials.
+
+**Site crest** (DashShell): the sidebar celebration switcher's
+spinning conic-gradient square (BRAND §10 "AI startup" energy) is
+replaced by `SiteCrest` — cover photo in a gold hairline frame, or
+an occasion-tinted paper tile (peach wedding-arc / plum memorial /
+gold party / lavender family-ceremony / sage default) with the
+site's initial in display italic + the gold pearl. Dropdown rows
+get mini-crests + a gold check on the active site. Dead
+`pl8-sb-cele-spin` keyframes removed.
+
+**Fixed while in there:** `/api/user/preferences` PATCH was
+clobbering every unspecified field back to defaults (saving a
+display name reset Pear voice / quiet hours / pronouns / timezone)
+— now merges with the existing row. The settings modal read
+`display_name` from a `.preferences.` envelope the API never
+returned — saved names now load back.
+
+### 2026-06-11 — Sealed Arrival + persistent guest identity (event graph phase 1)
+
+**Sealed Arrival** — the published site's envelope-opening first-
+visit experience. `src/components/pearloom/site/ArrivalReveal.tsx`,
+mounted by `PublishedSiteShell` (home route only). Wax-seal
+monogram envelope in the site's theme; tap breaks the seal, the
+flap lifts, two threads draw across the seam, the paper parts like
+curtains. Passport-link guests (`?g=`) get an envelope addressed to
+them + a postmark with the event date. Solemn voices (memorial /
+funeral) resolve to a Quiet Arrival (thread rule + name + fade).
+New `manifest.arrival` field ('auto' | 'envelope' | 'quiet' |
+'off') with an Arrival picker in the editor's Share panel. Client
+overlay only (crawlers / OG never gated); reduced-motion skips;
+once per device with a per-session thread flourish on return
+visits; transient RSVP hand-off pill after open.
+
+**Persistent guest identity (event graph phase 1)** — the
+deliberate alternative to a general-purpose social network (see
+the strategy note in this entry's session). One human across every
+celebration:
+- Migration `20260621_people.sql` (APPLIED to prod via MCP +
+  recorded in `_pearloom_migrations`): `public.people` keyed by
+  lowercase email (deny-anon RLS), `person_id` on `guests` +
+  `pearloom_guests`, `link_guests_to_people(p_site_id)` SQL linker,
+  full backfill. `connections_opt_in boolean DEFAULT false` ships
+  now so phase 2 (opt-in "people you've celebrated with") has its
+  flag, but NOTHING cross-guest is exposed yet.
+- `src/lib/people.ts` — `normalizePersonEmail`, `resolvePersonId`
+  (upsert, latest-known facts), `linkGuestRowToPerson`,
+  `personHistoryForHost`. All failure-tolerant: identity never
+  blocks an RSVP/import. PRIVACY CONTRACT in the module header:
+  hosts only see history from their OWN sites; guests see their
+  own history via passport token; cross-guest visibility is
+  opt-in-later.
+- Write paths wired: `/api/rsvp` POST + `/api/guests` POST link
+  fire-and-forget; `/api/guests/import` batch-upserts people then
+  calls the SQL linker once.
+- Host surface: `GET /api/guests/person-history` (owner-gated,
+  rate-limited) + "A familiar face" recognition chip in
+  DashGuests' AddGuestDialog (debounced on email entry, shows
+  shared events + known dietary).
+- Guest surface: "Your celebrations on Pearloom" card on
+  `/g/[token]` (`YourCelebrationsCard`) — every other PUBLISHED
+  site where the guest's email appears, with their reply status,
+  linking to each public site. Drafts never surface.
+
+**Phase 2 (SHIPPED same day):** event-scoped messaging + opt-in
+connections. Migration `20260622_event_graph_phase2.sql` (applied
+to prod + tracked): `site_messages` table — one table, two shapes
+(`thread='party'` = the event-wide guest thread, `thread='dm'` =
+host↔guest logistics line), deny-anon RLS, host moderation via
+`hidden_at`. Also enables RLS on `_pearloom_migrations` (Supabase
+advisor finding, owner signed off).
+- `src/lib/people.ts` phase-2 helpers: `resolveGuestToken`
+  (normalizes BOTH guest credentials — guests.passport_token and
+  pearloom_guests.guest_token, email-bridged), opt-in get/set,
+  `familiarFacesForPerson` (mutual opt-in enforced in-query,
+  first names only — unit-tested).
+- Guest APIs: `/api/messages` (token-authed GET/POST, party + DM,
+  rate-limited, DM pings the host's notification bell via
+  notifyHost category 'replies'), `/api/guest/connections`
+  (GET status+faces, POST toggle).
+- Host API: `/api/messages/host` (owner-gated GET grouped
+  party/DMs, POST as host, DELETE = hide/moderate).
+- Guest surfaces on `/g/[token]`: `GuestThreadCard` (tabs: "The
+  thread" / "Hosts", 25s poll, optimistic send, solemn-voice copy
+  for memorials) + `CelebratedTogetherCard` (opt-in toggle,
+  default off, familiar-face first names).
+- Host surface: `/dashboard/messages` (DashMessages) — guest
+  thread with post + hide, DM conversations with inline reply.
+  New "Messages" tab in the Guests sub-nav.
+- Delivery is polling (the BroadcastBar cadence); Supabase
+  Realtime is the named upgrade path.
+
+The decision log: full social network rejected — episodic users,
+cold-start, brand mismatch; the event graph is the social layer.
+
 ### 2026-06-01 — Brief #2 surface-layer port + orphan/stale cleanup
 
 Brief #2 from `ClaudeDesign/` shipped as commit `334f6f19`,

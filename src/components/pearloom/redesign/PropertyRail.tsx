@@ -92,6 +92,7 @@ function writePath(obj: Record<string, unknown>, path: string[], value: string):
   return next;
 }
 import { HeroPanel } from '../editor/panels/HeroPanel';
+import { PrivacyPanel } from '../editor/panels/PrivacyPanel';
 import { StoryPanel } from '../editor/panels/StoryPanel';
 import { DetailsPanel } from '../editor/panels/DetailsPanel';
 import { SchedulePanel } from '../editor/panels/SchedulePanel';
@@ -166,6 +167,7 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
   guests:      { id: 'guests',      label: 'Guests',          desc: 'Your guest list' },
   savetheDate: { id: 'savetheDate', label: 'Save the date',   desc: 'Pre-invite teaser' },
   share:       { id: 'share',       label: 'Share',           desc: 'Link, QR, preview' },
+  privacy:     { id: 'privacy',     label: 'Privacy',         desc: 'Password / public' },
   dayof:       { id: 'dayof',       label: 'Day-of',          desc: 'Live broadcasts' },
   toasts:      { id: 'toasts',      label: 'Toasts & speeches', desc: 'Vows, toasts, eulogies — drafted with Pear' },
   memorial:    { id: 'memorial',    label: 'Memorial',        desc: 'Obituary + program' },
@@ -889,6 +891,7 @@ function renderSectionEditor(
     case 'guests':      return siteSlug ? <GuestsPanel siteSlug={siteSlug} /> : null;
     case 'savetheDate': return siteSlug ? <SaveTheDatePanel manifest={manifest} onChange={onChange} siteSlug={siteSlug} /> : null;
     case 'share':       return siteSlug ? <SharePanel manifest={manifest} siteSlug={siteSlug} /> : null;
+    case 'privacy':     return <PrivacyPanel manifest={manifest} onChange={onChange} />;
     case 'dayof':       return siteSlug ? <DayOfPanel siteSlug={siteSlug} /> : null;
     case 'toasts':      return <ToastsPanel manifest={manifest} names={((manifest as unknown as { names?: [string, string] }).names ?? ['', '']) as [string, string]} onChange={onChange} />;
     case 'memorial':    return <MemorialPanel {...props} />;

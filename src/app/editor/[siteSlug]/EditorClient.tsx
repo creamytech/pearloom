@@ -83,6 +83,11 @@ function EditorCrashFallback({ siteSlug }: { siteSlug: string }) {
 export default function EditorClient({ manifest, siteSlug, names, viewerRole = 'owner', viewerEmail, viewerName }: EditorClientProps) {
   const searchParams = useSearchParams();
   const view = searchParams.get('view');
+  /* `?jump=<section>` — deep-link from dashboard surfaces (the
+     golden-thread "Next up" card, Partner-access → Share, etc.)
+     straight into the right property-rail panel. Validated inside
+     EditorRedesign; unknown values fall back to the hero default. */
+  const jump = searchParams.get('jump');
 
   return (
     <ErrorBoundary fallback={<EditorCrashFallback siteSlug={siteSlug} />}>
@@ -100,6 +105,7 @@ export default function EditorClient({ manifest, siteSlug, names, viewerRole = '
           viewerRole={viewerRole}
           viewerEmail={viewerEmail ?? undefined}
           viewerName={viewerName ?? undefined}
+          initialSection={jump ?? undefined}
         />
       )}
     </ErrorBoundary>

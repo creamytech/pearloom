@@ -32,6 +32,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { parseGuestCsv, dedupeAgainst } from '@/lib/csv/parse-guests';
 import { getPlanWithLimitsForEmail, planLimitResponseBody, isSiteGriefExempt } from '@/lib/plan-gate';
+import { normalizePersonEmail } from '@/lib/people';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -174,6 +175,36 @@ export async function POST(req: NextRequest) {
         }
         inserted += chunk.length;
       }
+
+      // Persistent guest identity — one batched people upsert for
+      // every distinct email in the import, then the SQL linker
+      // stitches person_id across this site's rows. Fire-and-forget:
+      // identity never blocks an import.
+      void (async () => {
+        try {
+          const byEmail = new Map<string, { email: string; display_name: string | null; phone: string | null; dietary: string | null }>();
+          for (const r of rows) {
+            const email = normalizePersonEmail(r.email);
+            if (!email) continue;
+            byEmail.set(email, {
+              email,
+              display_name: r.name ?? null,
+              phone: r.phone ?? null,
+              dietary: r.dietary_restrictions ?? null,
+            });
+          }
+          if (byEmail.size === 0) return;
+          const people = Array.from(byEmail.values());
+          for (let i = 0; i < people.length; i += 200) {
+            await supabase
+              .from('people')
+              .upsert(people.slice(i, i + 200), { onConflict: 'email', ignoreDuplicates: true });
+          }
+          await supabase.rpc('link_guests_to_people', { p_site_id: siteId });
+        } catch (err) {
+          console.warn('[api/guests/import] people link failed (non-fatal):', err);
+        }
+      })();
     }
 
     const warnings = parsed.guests

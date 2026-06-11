@@ -20,6 +20,7 @@ import { FGroup, FInput, SectionPanelShell } from './_section-atoms';
 import { buildSiteUrl, formatSiteDisplayUrl, type SiteOccasion } from '@/lib/site-urls';
 import { BrandedQR, useBrandedQrPng } from './BrandedQR';
 import { deriveInitials } from '../../site/Monogram';
+import { resolveArrivalStyle, type ArrivalStyle } from '../../site/ArrivalReveal';
 import { isSoloSubject } from '@/lib/event-os/solo-occasions';
 import { pearErrorMessage } from '../../redesign/PearAssist';
 import { suiteThemeFromManifest } from '@/lib/suite/theme';
@@ -249,6 +250,15 @@ export function SharePanel({
               </a>
             ))}
           </div>
+        </FGroup>
+
+        {/* Arrival — how the link opens the first time a guest taps
+            it (ArrivalReveal on the published site). */}
+        <FGroup
+          label="Arrival"
+          hint="The first time a guest opens your link, the site can arrive like mail — a sealed envelope they tap open (addressed to them when they use their personal link), or a quiet thread reveal. Once per guest; reduced-motion visitors always skip it."
+        >
+          <ArrivalPicker manifest={manifest} onChange={onChange} />
         </FGroup>
 
         {/* Share kit — pre-sized themed images, drawn locally from
@@ -774,6 +784,61 @@ function defaultBlurb(occasion: string | undefined, headline: string, date: stri
     return `${head} for one last hurrah.${tail ? ` ${tail}.` : ''}`;
   }
   return `${head}${tail ? ` — ${tail}` : ''}.`;
+}
+
+/* Arrival picker — writes manifest.arrival. 'auto' is stored as
+   undefined so untouched manifests stay clean and pick up future
+   occasion-default changes for free. */
+const ARRIVAL_CHOICES: Array<{ id: ArrivalStyle; label: string; desc: string }> = [
+  { id: 'auto',     label: 'Matched',  desc: 'Pear picks for the occasion' },
+  { id: 'envelope', label: 'Envelope', desc: 'Wax seal — tap to open' },
+  { id: 'quiet',    label: 'Quiet',    desc: 'A single thread, a name' },
+  { id: 'off',      label: 'Off',      desc: 'The site opens plain' },
+];
+
+function ArrivalPicker({
+  manifest, onChange,
+}: {
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+}) {
+  const current = ((manifest as unknown as { arrival?: ArrivalStyle }).arrival) ?? 'auto';
+  const autoResolved = resolveArrivalStyle({
+    ...(manifest as unknown as Record<string, unknown>),
+    arrival: 'auto',
+  } as unknown as StoryManifest);
+  const set = (v: ArrivalStyle) => onChange({
+    ...(manifest as unknown as Record<string, unknown>),
+    arrival: v === 'auto' ? undefined : v,
+  } as unknown as StoryManifest);
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+      {ARRIVAL_CHOICES.map((c) => {
+        const on = current === c.id;
+        const desc = c.id === 'auto' ? `${c.desc} (${autoResolved})` : c.desc;
+        return (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => set(c.id)}
+            aria-pressed={on}
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2,
+              padding: '10px 12px', borderRadius: 12, textAlign: 'left',
+              background: on ? 'var(--ink)' : 'var(--cream-2)',
+              color: on ? 'var(--cream)' : 'var(--ink)',
+              border: on ? '1px solid var(--ink)' : '1px solid var(--line)',
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            <span style={{ fontSize: 12, fontWeight: 700 }}>{c.label}</span>
+            <span style={{ fontSize: 10.5, opacity: on ? 0.75 : 0.65, lineHeight: 1.35 }}>{desc}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 export default SharePanel;

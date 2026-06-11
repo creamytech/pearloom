@@ -25,6 +25,10 @@ import { PersonalGuestHero } from '@/components/guest-experience/PersonalGuestHe
 import { VoiceToastRecorder } from '@/components/guest-experience/VoiceToastRecorder';
 import { YourRsvpCard } from '@/components/guest-experience/YourRsvpCard';
 import { YourContributionsCard } from '@/components/guest-experience/YourContributionsCard';
+import { YourCelebrationsCard, type CelebrationEntry } from '@/components/guest-experience/YourCelebrationsCard';
+import { GuestThreadCard, CelebratedTogetherCard } from '@/components/guest-experience/GuestCircleCards';
+import { buildSitePath, normalizeOccasion } from '@/lib/site-urls';
+import { isManifestPublished } from '@/lib/next-step';
 import { GuestPearChat } from '@/components/pearloom/site/GuestPearChat';
 import { BroadcastBar } from '@/components/pearloom/site/BroadcastBar';
 import { DayOfBanner } from '@/components/pearloom/site/DayOfBanner';
@@ -166,6 +170,53 @@ export default async function PersonalGuestPage({
   const songs = ((songsRes.data ?? []) as Array<SongRow & { state?: string }>);
   const capsules = (capsuleRes.data ?? []) as CapsuleRow[];
   const guestbookEntries = (gbRes.data ?? []) as GuestbookRow[];
+
+  // ── Your celebrations — the guest's own event graph ───────
+  // Every OTHER published Pearloom site where this email is a
+  // guest (persistent identity, migration 20260621). This is the
+  // guest's own membership data, gated by their passport token;
+  // it never exposes anyone else's history.
+  let celebrations: CelebrationEntry[] = [];
+  if (guest.email) {
+    try {
+      const { data: otherRows } = await sb()
+        .from('guests')
+        .select('site_id, status')
+        .ilike('email', guest.email) // no wildcards = case-insensitive equality
+        .neq('site_id', site.id)
+        .limit(24);
+      const statusBySite = new Map(
+        (otherRows ?? []).map((r) => [String(r.site_id), (r.status as string | null) ?? null]),
+      );
+      const otherSiteIds = Array.from(statusBySite.keys());
+      if (otherSiteIds.length > 0) {
+        const { data: otherSites } = await sb()
+          .from('sites')
+          .select('id, subdomain, site_config')
+          .in('id', otherSiteIds);
+        celebrations = ((otherSites ?? []) as Array<{
+          id: string;
+          subdomain: string;
+          site_config: { names?: [string, string]; occasion?: string; manifest?: StoryManifest } | null;
+        }>).flatMap((s) => {
+          const m = s.site_config?.manifest;
+          if (!m || !isManifestPublished(m)) return []; // drafts stay private to their hosts
+          const occasion = s.site_config?.occasion ?? (m as { occasion?: string }).occasion ?? null;
+          const names = (s.site_config?.names ?? []).filter(Boolean) as string[];
+          return [{
+            label: names.join(' & ') || s.subdomain,
+            occasion,
+            dateDisplay: m.logistics?.date?.trim() || null,
+            href: buildSitePath(s.subdomain, '', normalizeOccasion(occasion)),
+            status: statusBySite.get(s.id) ?? null,
+          }];
+        });
+      }
+    } catch (err) {
+      // The graph is a nicety — the passport renders without it.
+      console.warn('[guest-experience] celebrations lookup failed:', err);
+    }
+  }
 
   const manifest = (site.site_config as { manifest?: StoryManifest }).manifest;
   if (!manifest) notFound();
@@ -556,6 +607,29 @@ export default async function PersonalGuestPage({
           headingFont={headingFont}
         />
       </section>
+
+      {/* Event-scoped messaging — the guest thread + the private
+          hosts line. Token-authenticated; host-moderated. */}
+      <section style={{ padding: '2rem 1.5rem 0', maxWidth: 720, margin: '0 auto' }}>
+        <GuestThreadCard
+          token={token}
+          accent={accent}
+          headingFont={headingFont}
+          guestName={guest.display_name}
+          solemn={manifest.occasion === 'memorial' || manifest.occasion === 'funeral'}
+        />
+      </section>
+
+      {/* Opt-in connections — mutual, first-names-only, default off. */}
+      <section style={{ padding: '2rem 1.5rem 0', maxWidth: 720, margin: '0 auto' }}>
+        <CelebratedTogetherCard token={token} accent={accent} headingFont={headingFont} />
+      </section>
+
+      {celebrations.length > 0 && (
+        <section style={{ padding: '2rem 1.5rem 0', maxWidth: 720, margin: '0 auto' }}>
+          <YourCelebrationsCard entries={celebrations} accent={accent} headingFont={headingFont} />
+        </section>
+      )}
 
       <section style={{ padding: 'calc(48px * var(--pl-density-scale, 1)) 24px', maxWidth: 760, margin: '0 auto' }}>
         {personalization.chapter_highlights.length > 0 && (

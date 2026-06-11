@@ -26,7 +26,7 @@ const FAQ: FaqEntry[] = [
   { q: 'Can guests leave voice toasts?', a: 'Yes. Add the Guestbook block with voice enabled. Toasts appear in Dashboard → Day-of for you to approve, reject, or feature on the day.', tags: ['guests', 'day-of'] },
   { q: 'How do I publish and share my site?', a: 'In the editor, hit Publish. Your site goes live at pearloom.com/{occasion}/{yourname} (e.g. /wedding/alex-and-jamie) instantly. Attach a custom domain from Dashboard → Profile → Domains.', tags: ['publish', 'domain'] },
   { q: 'What happens after the event?', a: 'Your site stays online forever on every plan, including the free tier. Guests can keep leaving memories, and you can download everything as a keepsake film or zip.', tags: ['after', 'keepsake'] },
-  { q: 'Can I collaborate with a partner or planner?', a: 'Yes. Open Dashboard → Profile → Collaborators and invite them by email. Everyone you invite can edit the site and run day-of ops with you.', tags: ['team', 'collab'] },
+  { q: 'Can I collaborate with a partner or planner?', a: 'Yes. Open your site in the editor and press Share — invite a co-host by email. They get a magic link; editors can change everything except Publish, viewers can only look around.', tags: ['team', 'collab'] },
   { q: 'How do I cancel or change my plan?', a: "Dashboard → Profile → Billing. You keep everything you've created on any tier — no lock-in.", tags: ['billing'] },
 ];
 

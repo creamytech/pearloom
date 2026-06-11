@@ -15,7 +15,7 @@ import { Pear, PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost, btnMini, btnMiniGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PLHead } from '@/components/pearloom/dash/PLChrome';
-import { siteDisplayName, useUserSites, type SiteSummary } from './hooks';
+import { siteDisplayName, useUserSites, resolveStickySite, type SiteSummary } from './hooks';
 
 interface CelebrationRef {
   id: string;
@@ -155,6 +155,20 @@ export function DashConnections() {
           }
           style={{ marginBottom: 24 }}
         />
+        {/* This page links SITES into celebrations — people who
+            arrive looking for the co-host flow (a person, not a
+            site) get pointed at the editor's Share panel. */}
+        {sites && sites.length > 0 && (
+          <p style={{ fontSize: 12.5, color: PD.inkSoft, margin: '-12px 0 24px' }}>
+            Looking to add a co-host who can edit with you? That lives in the editor&rsquo;s Share panel —{' '}
+            <Link
+              href={`/editor/${(resolveStickySite(sites) ?? sites[0]).domain}?jump=share`}
+              style={{ color: PD.olive, fontWeight: 600 }}
+            >
+              invite a co-host →
+            </Link>
+          </p>
+        )}
       </div>
 
       <main

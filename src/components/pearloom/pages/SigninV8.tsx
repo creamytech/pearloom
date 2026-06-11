@@ -173,17 +173,19 @@ export function SigninV8({
   searchParamsPromise: Promise<{ next?: string; error?: string }>;
 }) {
   const params = use(searchParamsPromise);
-  const next = params.next || '/dashboard';
+  /* Default landing is /welcome — the first-run onboarding gate.
+     Finished accounts pass straight through to /dashboard server-
+     side, so returning users never see the flow. Explicit ?next=
+     deep links still win. */
+  const next = params.next || '/welcome';
   const errorKey = params.error;
   const { status } = useSession();
   const router = useRouter();
-  const [keep, setKeep] = useState(true);
   const [showPw, setShowPw] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState<'google' | 'email' | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
-  const [sent, setSent] = useState(false);
 
   // Redirect after render — calling router.replace() during render
   // triggers React's "Cannot update a component while rendering a
@@ -205,6 +207,10 @@ export function SigninV8({
     }
   }
 
+  /* Email + password sign-in against the credentials provider
+     (account_credentials, migration 20260625). The previous
+     handler fired the never-configured EmailProvider and ignored
+     the password field entirely. */
   async function handleEmail(e: FormEvent) {
     e.preventDefault();
     setEmailError(null);
@@ -212,17 +218,19 @@ export function SigninV8({
       setEmailError('Doesn’t look like an email address.');
       return;
     }
+    if (!password) {
+      setEmailError('Enter your password — or use Google above.');
+      return;
+    }
     setBusy('email');
     try {
-      const res = await signIn('email', { email, redirect: false, callbackUrl: next });
+      const res = await signIn('credentials', { email: email.trim(), password, redirect: false });
       if (res?.error) {
-        setEmailError(
-          res.error === 'EmailSignin'
-            ? 'We couldn’t send the magic link. Try again in a moment.'
-            : res.error
-        );
+        setEmailError(res.error === 'CredentialsSignin'
+          ? 'That email and password don’t match our records.'
+          : res.error);
       } else {
-        setSent(true);
+        router.replace(next);
       }
     } catch {
       setEmailError('Something went wrong. Try again.');
@@ -327,25 +335,6 @@ export function SigninV8({
               </div>
             )}
 
-            {sent ? (
-              <div
-                style={{
-                  padding: '18px 16px',
-                  borderRadius: 14,
-                  background: 'var(--sage-tint)',
-                  border: '1px solid rgba(107,122,58,0.25)',
-                  marginBottom: 16,
-                }}
-              >
-                <div className="eyebrow" style={{ color: 'var(--sage-deep)', marginBottom: 6 }}>
-                  Check your inbox
-                </div>
-                <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.5, color: 'var(--ink)' }}>
-                  We sent a link to <strong>{email}</strong>. Open it on this device to finish signing in.
-                </p>
-              </div>
-            ) : (
-              <>
                 <button
                   type="button"
                   onClick={handleGoogle}
@@ -411,7 +400,7 @@ export function SigninV8({
                     <label htmlFor="pl8-password" style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>
                       Password
                     </label>
-                    <Link href="/login?forgot=1" style={{ fontSize: 13, color: 'var(--pl-olive, #5C6B3F)' }}>
+                    <Link href="/forgot" style={{ fontSize: 13, color: 'var(--pl-olive, #5C6B3F)' }}>
                       Forgot password?
                     </Link>
                   </div>
@@ -455,37 +444,6 @@ export function SigninV8({
                     </button>
                   </div>
 
-                  <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      fontSize: 13,
-                      marginBottom: 24,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setKeep((v) => !v)}
-                      aria-pressed={keep}
-                      aria-label="Keep me signed in"
-                      style={{
-                        width: 18,
-                        height: 18,
-                        borderRadius: 5,
-                        background: keep ? 'var(--sage-deep)' : 'var(--card)',
-                        border: `1.5px solid ${keep ? 'var(--sage-deep)' : 'var(--line)'}`,
-                        display: 'grid',
-                        placeItems: 'center',
-                        padding: 0,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {keep && <Icon name="check" size={12} color="#fff" strokeWidth={3} />}
-                    </button>
-                    Keep me signed in
-                  </label>
 
                   {emailError && (
                     <p style={{ margin: '0 0 12px', fontSize: 12.5, color: '#7A2D2D' }}>{emailError}</p>
@@ -493,20 +451,18 @@ export function SigninV8({
 
                   <button
                     type="submit"
-                    disabled={busy !== null || !email.trim()}
+                    disabled={busy !== null || !email.trim() || !password}
                     className="btn btn-primary btn-lg pl-pearl-accent"
-                    style={{ width: '100%', justifyContent: 'center', opacity: !email.trim() ? 0.55 : 1 }}
+                    style={{ width: '100%', justifyContent: 'center', opacity: !email.trim() || !password ? 0.55 : 1 }}
                   >
-                    {busy === 'email' ? 'Sending…' : 'Sign in'}
+                    {busy === 'email' ? 'Signing in…' : 'Sign in'}
                     <Pear size={14} tone="cream" shadow={false} />
                   </button>
                 </form>
-              </>
-            )}
 
             <div style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: 'var(--ink-soft)' }}>
               New to Pearloom?{' '}
-              <Link href="/wizard/new" style={{ color: 'var(--pl-olive, #5C6B3F)', fontWeight: 500 }}>
+              <Link href="/signup" style={{ color: 'var(--pl-olive, #5C6B3F)', fontWeight: 500 }}>
                 Create an account
               </Link>
             </div>

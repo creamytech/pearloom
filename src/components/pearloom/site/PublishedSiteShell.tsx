@@ -18,6 +18,7 @@
 
 import type { StoryManifest } from '@/types';
 import type { SiteBlockKey } from '@/lib/site-mode';
+import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ThemedSiteRenderer } from './ThemedSiteRenderer';
 import { ThemedSite } from '@/components/pearloom/redesign/ThemedSite';
@@ -25,6 +26,7 @@ import { hydrateManifestForRedesign } from '@/components/pearloom/redesign/hydra
 import { GuestRsvpModal } from '@/components/pearloom/site/GuestRsvpModal';
 import { AnalyticsBeacon } from '@/components/analytics/AnalyticsBeacon';
 import { StickyRsvpPill } from '@/components/site/StickyRsvpPill';
+import { ArrivalReveal } from '@/components/pearloom/site/ArrivalReveal';
 import { StoreFonts } from '@/lib/theme-store/fonts';
 import { getTheme } from '@/components/pearloom/site/themes';
 
@@ -87,6 +89,16 @@ function GuestCrashFallback() {
 export function PublishedSiteShell(props: Props) {
   const hydrated = hydrateManifestForRedesign(props.manifest);
 
+  /* Site password (manifest.privacyGate.password, editor Privacy
+     panel). Client-side gate — parity with the legacy PasswordGate:
+     it keeps casual visitors out, not determined ones (the manifest
+     rides the RSC payload either way). Unlock persists per session. */
+  const gatePassword = ((hydrated as unknown as { privacyGate?: { password?: string } }).privacyGate?.password ?? '').trim();
+  /* Starts locked on server + client alike (hydration-safe); the
+     gate itself re-checks sessionStorage on mount and self-clears
+     for returning visitors. */
+  const [unlocked, setUnlocked] = useState<boolean>(!gatePassword);
+
   /* RSVP-preset-aware label for the sticky pill (memorials don't
      say "RSVP", etc.). */
   const rsvpPreset = ((hydrated as unknown as { rsvpConfig?: { preset?: string } }).rsvpConfig?.preset) ?? undefined;
@@ -100,6 +112,18 @@ export function PublishedSiteShell(props: Props) {
   const themeBag = { ...getTheme(looseTheme.themeId).vars, ...(looseTheme.themeVars ?? {}) };
   const pillAccent = themeBag['--t-rsvp'] ?? themeBag['--t-accent'];
   const pillAccentInk = themeBag['--t-rsvp-ink'] ?? themeBag['--t-paper'];
+
+  if (!unlocked) {
+    return (
+      <SiteGate
+        siteSlug={props.siteSlug}
+        names={props.names}
+        password={gatePassword}
+        themeBag={themeBag}
+        onUnlock={() => setUnlocked(true)}
+      />
+    );
+  }
 
   return (
     <ErrorBoundary fallback={<GuestCrashFallback />}>
@@ -126,7 +150,117 @@ export function PublishedSiteShell(props: Props) {
       <StickyRsvpPill rsvpLabel={rsvpLabel} accent={pillAccent} accentInk={pillAccentInk} />
       <AnalyticsBeacon siteId={props.siteSlug} />
       <GuestRsvpModal siteSlug={props.siteSlug} manifest={hydrated} />
+      {/* The Sealed Arrival — envelope-opening first-visit reveal.
+          Home route only (sub-pages of multi-page sites are working
+          surfaces, not arrivals). Client overlay over the already-
+          rendered site; crawlers and reduced-motion are unaffected. */}
+      {(!props.pageFilter || props.pageFilter === 'home') && (
+        <ArrivalReveal
+          manifest={hydrated}
+          names={props.names}
+          siteSlug={props.siteSlug}
+          theme={themeBag}
+          rsvpLabel={rsvpLabel}
+        />
+      )}
     </ErrorBoundary>
+  );
+}
+
+/* ── SiteGate — the password door (manifest.privacyGate) ─────────
+   Themed from the same resolved vars as the site behind it.
+   Session unlock so guests aren't re-asked on every navigation. */
+function SiteGate({
+  siteSlug, names, password, themeBag, onUnlock,
+}: {
+  siteSlug: string;
+  names: [string, string];
+  password: string;
+  themeBag: Record<string, string>;
+  onUnlock: () => void;
+}) {
+  const [attempt, setAttempt] = useState('');
+  const [error, setError] = useState(false);
+  const paper = themeBag['--t-paper'] ?? '#FDFAF0';
+  const ink = themeBag['--t-ink'] ?? '#0E0D0B';
+  const inkSoft = themeBag['--t-ink-soft'] ?? '#3A332C';
+  const accent = themeBag['--t-accent'] ?? '#5C6B3F';
+  const line = themeBag['--t-line'] ?? 'rgba(14,13,11,0.14)';
+  const display = themeBag['--t-display'] ?? '"Fraunces", Georgia, serif';
+
+  /* Returning visitor — already unlocked this session. Mount-time
+     check keeps SSR + hydration in agreement (both render locked,
+     then the effect clears it). */
+  useEffect(() => {
+    try {
+      if (window.sessionStorage.getItem(`pl:gate:${siteSlug}`) === '1') onUnlock();
+    } catch { /* stay locked */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [siteSlug]);
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (attempt.trim() !== password) {
+      setError(true);
+      return;
+    }
+    try { window.sessionStorage.setItem(`pl:gate:${siteSlug}`, '1'); } catch { /* per-page unlock */ }
+    onUnlock();
+  }
+
+  return (
+    <div
+      style={{
+        minHeight: '100dvh', display: 'grid', placeItems: 'center',
+        background: paper, color: ink, padding: 24,
+        fontFamily: themeBag['--t-body'] ?? 'system-ui, sans-serif',
+      }}
+    >
+      <form onSubmit={submit} style={{ maxWidth: 380, width: '100%', textAlign: 'center' }}>
+        <p style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: accent, margin: '0 0 14px' }}>
+          A private celebration
+        </p>
+        <h1 style={{ fontFamily: display, fontStyle: 'italic', fontWeight: 500, fontSize: 'clamp(1.7rem, 5vw, 2.4rem)', lineHeight: 1.1, margin: '0 0 10px' }}>
+          {names.filter(Boolean).join(' & ') || 'This site'} kept this one close.
+        </h1>
+        <p style={{ fontSize: '0.86rem', color: inkSoft, margin: '0 0 22px', lineHeight: 1.55 }}>
+          Enter the password from your invitation to come in.
+        </p>
+        <input
+          type="password"
+          autoFocus
+          value={attempt}
+          onChange={(e) => { setAttempt(e.target.value); setError(false); }}
+          placeholder="Password"
+          aria-label="Site password"
+          style={{
+            width: '100%', padding: '13px 16px', textAlign: 'center',
+            fontSize: '1rem', fontFamily: 'inherit', color: ink,
+            background: themeBag['--t-card'] ?? '#fff',
+            border: `1px solid ${error ? '#A14A2C' : line}`,
+            borderRadius: 12, outline: 'none', marginBottom: 10,
+          }}
+        />
+        {error && (
+          <p role="alert" style={{ fontSize: '0.76rem', color: '#A14A2C', margin: '0 0 10px' }}>
+            That&apos;s not it — check the invitation and try again.
+          </p>
+        )}
+        <button
+          type="submit"
+          disabled={!attempt.trim()}
+          style={{
+            width: '100%', padding: '13px 18px', borderRadius: 999,
+            background: ink, color: paper, border: 'none',
+            fontSize: '0.9rem', fontWeight: 600, fontFamily: 'inherit',
+            cursor: attempt.trim() ? 'pointer' : 'not-allowed',
+            opacity: attempt.trim() ? 1 : 0.55,
+          }}
+        >
+          Come in
+        </button>
+      </form>
+    </div>
   );
 }
 
