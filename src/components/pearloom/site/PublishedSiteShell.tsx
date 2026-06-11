@@ -25,6 +25,7 @@ import { hydrateManifestForRedesign } from '@/components/pearloom/redesign/hydra
 import { GuestRsvpModal } from '@/components/pearloom/site/GuestRsvpModal';
 import { AnalyticsBeacon } from '@/components/analytics/AnalyticsBeacon';
 import { StickyRsvpPill } from '@/components/site/StickyRsvpPill';
+import { ArrivalReveal } from '@/components/pearloom/site/ArrivalReveal';
 import { StoreFonts } from '@/lib/theme-store/fonts';
 import { getTheme } from '@/components/pearloom/site/themes';
 
@@ -126,6 +127,19 @@ export function PublishedSiteShell(props: Props) {
       <StickyRsvpPill rsvpLabel={rsvpLabel} accent={pillAccent} accentInk={pillAccentInk} />
       <AnalyticsBeacon siteId={props.siteSlug} />
       <GuestRsvpModal siteSlug={props.siteSlug} manifest={hydrated} />
+      {/* The Sealed Arrival — envelope-opening first-visit reveal.
+          Home route only (sub-pages of multi-page sites are working
+          surfaces, not arrivals). Client overlay over the already-
+          rendered site; crawlers and reduced-motion are unaffected. */}
+      {(!props.pageFilter || props.pageFilter === 'home') && (
+        <ArrivalReveal
+          manifest={hydrated}
+          names={props.names}
+          siteSlug={props.siteSlug}
+          theme={themeBag}
+          rsvpLabel={rsvpLabel}
+        />
+      )}
     </ErrorBoundary>
   );
 }
