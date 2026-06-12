@@ -238,60 +238,99 @@ export function WizardFittingRoom({
       role="dialog"
       aria-modal="true"
       aria-label="The fitting room — try looks on your live site"
-      style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--cream, #F5EFE2)' }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 200,
+        background: 'var(--cream, #F5EFE2)',
+        /* Flex column with the dock IN FLOW — iOS Safari's dynamic
+           toolbar makes fixed-bottom elements unreliable (the dock
+           vanished under it on iPhone, 2026-06-12). In-flow + 100dvh
+           means the rails are ALWAYS visible above the toolbar. */
+        height: '100dvh',
+        display: 'flex', flexDirection: 'column',
+      }}
     >
-      {/* THE SITE — full bleed, scrollable, real. */}
-      <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
-        <ThemedSite manifest={manifest} names={names} demoCopy />
-        {/* Breathing room so the dock never hides the footer. */}
-        <div style={{ height: 180 }} />
-      </div>
+      {/* THE SITE — fills the space above the dock, scrollable, real. */}
+      <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
+        <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <ThemedSite manifest={manifest} names={names} demoCopy />
+        </div>
 
-      {/* TOP GLASS BAR — title + done. */}
-      <div
-        style={{
-          ...GLASS,
-          position: 'fixed', top: 12, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 210, borderRadius: 999,
-          display: 'flex', alignItems: 'center', gap: 14,
-          padding: '8px 10px 8px 18px',
-          maxWidth: 'calc(100vw - 24px)',
-        }}
-      >
-        <span style={{ fontFamily: 'var(--font-display, Fraunces, serif)', fontStyle: 'italic', fontSize: 15, color: 'var(--ink)', whiteSpace: 'nowrap' }}>
-          The fitting room
-        </span>
-        <span style={{ fontSize: 11, color: 'var(--ink-muted)', whiteSpace: 'nowrap' }} className="pl8-fitting-hint">
-          scroll the site · tap to re-press
-        </span>
-        <button
-          type="button"
-          onClick={onClose}
+        {/* TOP GLASS BAR — title + done. */}
+        <div
           style={{
-            padding: '7px 16px', borderRadius: 999, border: 'none',
-            background: 'var(--ink)', color: 'var(--cream)',
-            fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-            flexShrink: 0,
+            ...GLASS,
+            position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',
+            zIndex: 10, borderRadius: 999,
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '7px 8px 7px 16px',
+            maxWidth: 'calc(100% - 70px)',
           }}
         >
-          Keep it
+          <span style={{ fontFamily: 'var(--font-display, Fraunces, serif)', fontStyle: 'italic', fontSize: 15, color: 'var(--ink)', whiteSpace: 'nowrap' }}>
+            The fitting room
+          </span>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              padding: '7px 16px', borderRadius: 999, border: 'none',
+              background: 'var(--ink)', color: 'var(--cream)',
+              fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              flexShrink: 0,
+            }}
+          >
+            Keep it
+          </button>
+        </div>
+
+        {/* Corner close. */}
+        <button
+          type="button"
+          aria-label="Close the fitting room"
+          onClick={onClose}
+          style={{
+            ...GLASS,
+            position: 'absolute', top: 12, right: 12, zIndex: 11,
+            width: 38, height: 38, borderRadius: 999,
+            display: 'grid', placeItems: 'center', cursor: 'pointer',
+            color: 'var(--ink-soft)',
+          }}
+        >
+          <Icon name="close" size={15} />
         </button>
+
+        {/* Scroll cue — riding the seam just above the dock so the
+            host knows the site continues below the hero. */}
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)',
+            padding: '5px 13px', borderRadius: 999,
+            background: 'var(--pl-glass-light, rgba(251,247,238,0.68))',
+            backdropFilter: 'var(--pl-glass-blur, blur(14px) saturate(1.3))',
+            WebkitBackdropFilter: 'var(--pl-glass-blur, blur(14px) saturate(1.3))',
+            border: '1px solid var(--pl-glass-border)',
+            fontSize: 10.5, fontWeight: 600, color: 'var(--ink-soft)',
+            pointerEvents: 'none', whiteSpace: 'nowrap',
+          }}
+        >
+          scroll — the whole site is here
+        </div>
       </div>
 
-      {/* BOTTOM GLASS DOCK — rail tabs + the active rail's strip. */}
+      {/* THE DOCK — in normal flow, can't be hidden by browser
+          chrome. Rail tabs + the active rail's strip. */}
       <div
         style={{
           ...GLASS,
-          position: 'fixed',
-          left: '50%', transform: 'translateX(-50%)',
-          bottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
-          zIndex: 210, borderRadius: 20,
-          width: 'min(720px, calc(100vw - 20px))',
-          padding: '10px 12px 12px',
-          display: 'flex', flexDirection: 'column', gap: 9,
+          borderLeft: 'none', borderRight: 'none', borderBottom: 'none',
+          borderRadius: 0,
+          padding: '9px 12px calc(10px + env(safe-area-inset-bottom, 0px))',
+          display: 'flex', flexDirection: 'column', gap: 8,
+          flexShrink: 0,
         }}
       >
-        <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: 4, justifyContent: 'center', flexWrap: 'wrap' }}>
           {RAILS.map((r) => {
             const on = rail === r.id;
             return (
@@ -348,29 +387,6 @@ export function WizardFittingRoom({
           )}
         </div>
       </div>
-
-      <style jsx>{`
-        @media (max-width: 560px) {
-          :global(.pl8-fitting-hint) {
-            display: none;
-          }
-        }
-      `}</style>
-      {/* Close affordance for screen readers / corner-tappers. */}
-      <button
-        type="button"
-        aria-label="Close the fitting room"
-        onClick={onClose}
-        style={{
-          ...GLASS,
-          position: 'fixed', top: 12, right: 12, zIndex: 211,
-          width: 38, height: 38, borderRadius: 999,
-          display: 'grid', placeItems: 'center', cursor: 'pointer',
-          color: 'var(--ink-soft)',
-        }}
-      >
-        <Icon name="close" size={15} />
-      </button>
     </div>
   );
 }
