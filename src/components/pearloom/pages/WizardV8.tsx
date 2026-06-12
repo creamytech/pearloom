@@ -23,6 +23,7 @@ import { NumberInput } from '../editor/v8-forms';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 import { WizardLocationAutocomplete } from '../wizard/WizardLocationAutocomplete';
 import { WizardDatePicker } from '../wizard/WizardDatePicker';
+import { WizardTimePicker } from '../wizard/WizardTimePicker';
 import { GeneratingScreen } from '../wizard/GeneratingScreen';
 import { StoryListen } from '../wizard/StoryListen';
 import { AmbientSprig } from '../ambient';
@@ -1086,42 +1087,6 @@ function OccasionPicker({
    ──────────────────────────────────────────────────────────── */
 const KIDS_OPTIONS = ['All ages welcome', 'Adults only', 'Immediate family’s kids only'];
 
-/* Half-hour wall times for the schedule pills. A native <select>
-   gets the platform wheel on phones — the most reliable time
-   picker there is — styled to live inside the pill. */
-const MOMENT_TIMES: string[] = (() => {
-  const out: string[] = [];
-  for (let h = 6; h < 24; h++) {
-    for (const mm of ['00', '30'] as const) {
-      const ampm = h < 12 ? 'am' : 'pm';
-      const h12 = h % 12 === 0 ? 12 : h % 12;
-      out.push(`${h12}:${mm} ${ampm}`);
-    }
-  }
-  return out;
-})();
-
-function MomentTimeSelect({ value, onChange, label }: { value: string; onChange: (t: string) => void; label: string }) {
-  return (
-    <select
-      aria-label={`Time for ${label}`}
-      value={MOMENT_TIMES.includes(value) ? value : '5:00 pm'}
-      onChange={(e) => onChange(e.target.value)}
-      style={{
-        appearance: 'none', WebkitAppearance: 'none',
-        border: 'none', borderLeft: '1px solid color-mix(in srgb, var(--cream, #F5EFE2) 35%, transparent)',
-        background: 'transparent', color: 'inherit',
-        fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
-        padding: '0 14px 0 10px', cursor: 'pointer',
-        textAlign: 'center',
-      }}
-    >
-      {MOMENT_TIMES.map((t) => (
-        <option key={t} value={t} style={{ color: '#0E0D0B', background: '#FBF7EE' }}>{t}</option>
-      ))}
-    </select>
-  );
-}
 
 function GuestsWillAsk({
   st,
@@ -3102,7 +3067,7 @@ export function WizardV8() {
                               }}>
                               {m}
                             </button>
-                            <MomentTimeSelect value={t} onChange={(nt) => setTime(m, nt)} label={m} />
+                            <WizardTimePicker value={t} onChange={(nt) => setTime(m, nt)} label={m} />
                           </span>
                         );
                       })}
