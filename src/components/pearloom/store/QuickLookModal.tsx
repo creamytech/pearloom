@@ -32,6 +32,7 @@ import { createPortal } from 'react-dom';
 import { Icon } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
 import { PackPreview } from './PackPreview';
+import { PackSitePreview } from './PackSitePreview';
 import { useCart } from './CartProvider';
 import {
   collectionName,
@@ -138,71 +139,6 @@ const INCLUDES_META: Record<
 };
 
 /** Schedule sample — three lines themed by the pack's vars. */
-function SchedulePreview({ pack }: { pack: Pack }) {
-  const rows = [
-    { t: '3:30', m: 'pm', l: 'Ceremony', s: 'Clifftop terrace' },
-    { t: '5:00', m: 'pm', l: 'Cocktails', s: 'Sea view' },
-    { t: '7:30', m: 'pm', l: 'Dinner & dancing', s: 'Until late' },
-  ];
-  // Inherit pack's CSS vars by spreading themeRef on the wrapper.
-  return (
-    <div
-      style={{
-        ...(pack.themeRef as Record<string, string>),
-        background: 'var(--t-paper)',
-        color: 'var(--t-ink)',
-        padding: '20px 18px',
-        fontFamily: 'var(--t-body)',
-      }}
-    >
-      <div
-        style={{
-          fontSize: 9.5,
-          fontWeight: 700,
-          letterSpacing: pack.themeRef['--t-eyebrow-ls'] ?? '0.18em',
-          textTransform: 'uppercase',
-          color: 'var(--t-accent-ink)',
-          textAlign: 'center',
-          marginBottom: 14,
-        }}
-      >
-        Schedule · {kitLabel(pack.kit)} kit
-      </div>
-      <div style={{ maxWidth: 480, marginInline: 'auto' }}>
-        {rows.map((r, i) => (
-          <div
-            key={r.l}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '70px 1fr auto',
-              gap: 14,
-              alignItems: 'baseline',
-              padding: '12px 0',
-              borderBottom: i < rows.length - 1 ? '1px solid var(--t-line-soft)' : 'none',
-            }}
-          >
-            <span
-              style={{
-                fontFamily: 'var(--t-display)',
-                fontSize: 20,
-                color: 'var(--t-accent-ink)',
-              }}
-            >
-              {r.t}
-              <span style={{ fontSize: 11, marginLeft: 2, color: 'var(--t-ink-muted)' }}>
-                {r.m}
-              </span>
-            </span>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>{r.l}</div>
-              <div style={{ fontSize: 12, color: 'var(--t-ink-muted)', marginTop: 2 }}>{r.s}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 export function QuickLookModal({
   pack,
@@ -339,6 +275,11 @@ export function QuickLookModal({
             minWidth: 0,
           }}
         >
+          {/* The WHOLE demo site wearing this pack — scrollable,
+              real renderer, the exact applyPackToManifest transform
+              purchasing runs. Replaces the hero-crop vignette +
+              static schedule mock (2026-06-12: "the theme shop
+              should show actual full previews"). */}
           <div
             style={{
               borderRadius: 'var(--pl-radius-xl, 1rem)',
@@ -346,16 +287,7 @@ export function QuickLookModal({
               border: '1px solid var(--pl-divider, #D8CFB8)',
             }}
           >
-            <PackPreview pack={pack} height={250} rich />
-          </div>
-          <div
-            style={{
-              borderRadius: 'var(--pl-radius-xl, 1rem)',
-              overflow: 'hidden',
-              border: '1px solid var(--pl-divider, #D8CFB8)',
-            }}
-          >
-            <SchedulePreview pack={pack} />
+            <PackSitePreview pack={pack} height={520} />
           </div>
         </div>
 

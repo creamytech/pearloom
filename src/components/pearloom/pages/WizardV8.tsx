@@ -1463,6 +1463,123 @@ function TheExtras({
   );
 }
 
+/* ─────────────────────────────────────────────────────────────
+   PEAR'S QUESTIONS — Review-step gap filling, conversationally.
+
+   Pear reads what the wizard collected and asks about what's
+   missing — dress code, where to stay, the story — each with the
+   answer control INLINE so the host never leaves Review. Cards
+   retire as they're answered. Deterministic + occasion-aware
+   (the same suggestion sets and visibility rules the steps use);
+   at most three questions so it reads as care, not homework.
+   ──────────────────────────────────────────────────────────── */
+function PearsQuestions({
+  st,
+  setSt,
+}: {
+  st: WizardState;
+  setSt: (updater: (s: WizardState) => WizardState) => void;
+}) {
+  const [hotelQuery, setHotelQuery] = useState('');
+  const e = getEventType(st.occasion as never);
+  const blocks = [...(e?.defaultBlocks ?? []), ...(e?.optionalBlocks ?? [])] as string[];
+  const q = questionsFor(st.occasion);
+  const solemn = st.occasion === 'memorial' || st.occasion === 'funeral';
+
+  const cards: React.ReactNode[] = [];
+
+  // 1. No story yet — the single highest-value gap.
+  if (!(st.storyText ?? '').trim() && !(st.howWeMet ?? '').trim()) {
+    cards.push(
+      <div key="story">
+        <div style={pearsQLabel}>{q.q1Label}?</div>
+        <textarea
+          className="input"
+          rows={2}
+          value={st.storyText ?? ''}
+          onChange={(ev) => setSt((s) => ({ ...s, storyText: ev.target.value }))}
+          placeholder={q.q1Placeholder}
+          style={{ fontSize: 14, lineHeight: 1.5 }}
+        />
+      </div>,
+    );
+  }
+
+  // 2. No dress code (skip bachelor weekends — anything goes).
+  if (!st.dressCode && !st.occasion.startsWith('bachelor') && cards.length < 3) {
+    const dresses = dressCodeSuggestions(st.occasion).options.slice(0, 5);
+    cards.push(
+      <div key="dress">
+        <div style={pearsQLabel}>What should everyone wear?</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {dresses.map((d) => (
+            <button key={d} type="button"
+              onClick={() => setSt((s) => ({ ...s, dressCode: d }))}
+              style={{
+                padding: '7px 13px', borderRadius: 999, fontSize: 12.5, fontWeight: 600,
+                border: '1.5px solid var(--line)', background: 'var(--card)',
+                color: 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
+      </div>,
+    );
+  }
+
+  // 3. Travel-shaped event, venue known, no hotels yet.
+  if (
+    blocks.includes('travel') && st.location && (st.hotels ?? []).length === 0 && cards.length < 3
+  ) {
+    cards.push(
+      <div key="hotels">
+        <div style={pearsQLabel}>Where should out-of-towners stay?</div>
+        <WizardLocationAutocomplete
+          value={hotelQuery}
+          onChange={setHotelQuery}
+          onSelect={(place) => {
+            const name = place.name || place.address;
+            if (!name) return;
+            setSt((s) => ({ ...s, hotels: [...(s.hotels ?? []), { name, address: place.address ?? '' }] }));
+            setHotelQuery('');
+          }}
+          kind="hotel"
+          near={st.venueLat != null && st.venueLng != null ? { lat: st.venueLat, lng: st.venueLng } : undefined}
+          placeholder="Search a hotel near the venue…"
+        />
+      </div>,
+    );
+  }
+
+  if (cards.length === 0) return null;
+
+  return (
+    <div style={{ marginTop: 18, padding: 16, borderRadius: 14, background: 'var(--sage-tint, rgba(122,138,79,0.10))', border: '1px dashed var(--sage, #7A8A4F)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+        <Pear size={16} tone="sage" shadow={false} />
+        <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>
+          {solemn ? 'A few quiet questions before we press' : 'Pear noticed a few open threads'}
+        </span>
+      </div>
+      <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginBottom: 12 }}>
+        Answer here or skip — everything can be added in the editor.
+      </div>
+      <div style={{ display: 'grid', gap: 14 }}>{cards}</div>
+    </div>
+  );
+}
+
+const pearsQLabel: React.CSSProperties = {
+  fontSize: 13,
+  fontWeight: 700,
+  color: 'var(--ink)',
+  marginBottom: 7,
+  fontFamily: 'var(--font-display, Fraunces, serif)',
+  fontStyle: 'italic',
+};
+
 function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: StepKey[] }) {
   // Map the 8 steps into 4 phases. Hidden-step ranges (template
   // skips Vibe/Palette/Layout) collapse the Look phase down so
@@ -2514,11 +2631,11 @@ export function WizardV8() {
           display: 'flex',
           alignItems: 'center',
           gap: 28,
-          // Theme-aware glass — a hardcoded cream rgba here left a
-          // light band over the editorial-midnight body in dark mode.
-          background: 'color-mix(in srgb, var(--cream, #F8F1E4) 92%, transparent)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
+          // Theme-aware glass — the platform recipe (globals.css
+          // --pl-glass tokens, [data-theme]-paired).
+          background: 'var(--pl-glass)',
+          backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
+          WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
           borderBottom: '1px solid var(--line-soft)',
           position: 'sticky',
           top: 0,
@@ -2535,6 +2652,7 @@ export function WizardV8() {
         <div style={{ display: 'flex', gap: 6, marginLeft: 'auto', alignItems: 'center', flexShrink: 0 }}>
           <Link
             href="/dashboard"
+            title="Your progress saves itself — this thread will be waiting on your dashboard."
             style={{
               padding: '7px 12px',
               fontSize: 12.5,
@@ -3709,48 +3827,7 @@ export function WizardV8() {
                         onChange={(next) => setSt((prev) => ({ ...prev, ...next }))}
                         onExpand={() => setFittingOpen(true)}
                       />
-                      {fittingOpen && (() => {
-                        const fitPalettes: PaletteChoice[] = [];
-                        for (const sp of st.smartPalettes ?? []) {
-                          fitPalettes.push({ id: sp.id, name: sp.name, colors: sp.colors });
-                        }
-                        for (const pp of PALETTES) {
-                          if (!fitPalettes.some((x) => x.id === pp.id)) {
-                            fitPalettes.push({ id: pp.id, name: pp.name, colors: pp.colors });
-                          }
-                        }
-                        if (st.palette && !fitPalettes.some((x) => x.id === st.palette) && st.paletteColors?.length) {
-                          fitPalettes.unshift({ id: st.palette, name: 'Your palette', colors: st.paletteColors });
-                        }
-                        return (
-                          <WizardFittingRoom
-                            occasion={st.occasion}
-                            names={[
-                              lookNames[0] || (lookCouple ? 'Alex' : lookNameSpec.primaryPlaceholder),
-                              lookCouple ? (lookNames[1] || 'Jamie') : '',
-                            ]}
-                            coverPhoto={st.photos.find((ph) => ph.url)?.url}
-                            galleryImages={st.photos.filter((ph) => ph.url).map((ph) => ph.url)}
-                            recipe={lookRecipesFor(st.occasion).find((r) => r.id === (st.lookRecipeId ?? 'match')) ?? null}
-                            palettes={fitPalettes}
-                            activePaletteId={st.palette}
-                            onPalettePick={(c) => {
-                              const smart = (st.smartPalettes ?? []).some((sp) => sp.id === c.id);
-                              const sp = (st.smartPalettes ?? []).find((x) => x.id === c.id);
-                              setSt((s2) => ({
-                                ...s2,
-                                palette: c.id,
-                                paletteColors: c.colors,
-                                suggestedMotif: smart ? sp?.motif : undefined,
-                                suggestedMotifLayout: smart ? sp?.motifLayout : undefined,
-                              }));
-                            }}
-                            picks={{ siteMode: st.siteMode, kitId: st.kitId, texture: st.texture, navVariant: st.navVariant, heroVariant: st.heroVariant }}
-                            onChange={(next) => setSt((prev) => ({ ...prev, ...next }))}
-                            onClose={() => setFittingOpen(false)}
-                          />
-                        );
-                      })()}
+
                       </>
                     );
                   })()}
@@ -3948,6 +4025,21 @@ export function WizardV8() {
                     }
                     if (candidates.length === 0) return null;
                     return (
+                      <>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: -6 }}>
+                        <button
+                          type="button"
+                          onClick={() => setFittingOpen(true)}
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 6,
+                            padding: '7px 14px', borderRadius: 999, cursor: 'pointer',
+                            border: '1.5px solid var(--line)', background: 'var(--card)',
+                            color: 'var(--ink)', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+                          }}
+                        >
+                          The fitting room ⤢
+                        </button>
+                      </div>
                       <WizardLookPreviews
                         names={[st.names[0] ?? '', st.names[1] ?? '']}
                         occasion={st.occasion}
@@ -3977,8 +4069,17 @@ export function WizardV8() {
                           }));
                         }}
                       />
+                      </>
                     );
                   })()}
+
+                  {/* PEAR'S QUESTIONS — the gaps she noticed, asked as
+                      questions with the answer inline. Each card only
+                      renders while its field is EMPTY (answering one
+                      retires it), and every answer lands on the same
+                      wizard state the steps write — no new plumbing,
+                      no model call, occasion-aware by construction. */}
+                  <PearsQuestions st={st} setSt={setSt} />
 
                   {/* Coverage checklist — what arrives woven vs. what
                       the host will add in the editor. Makes skipping a
@@ -4129,6 +4230,51 @@ export function WizardV8() {
         </div>
       </div>
 
+      {fittingOpen && (() => {
+                        const lookNameSpec = nameModeFor(st.occasion);
+                        const lookCouple = lookNameSpec.mode === 'couple';
+                        const lookNames = st.names.filter(Boolean);
+                        const fitPalettes: PaletteChoice[] = [];
+                        for (const sp of st.smartPalettes ?? []) {
+                          fitPalettes.push({ id: sp.id, name: sp.name, colors: sp.colors });
+                        }
+                        for (const pp of PALETTES) {
+                          if (!fitPalettes.some((x) => x.id === pp.id)) {
+                            fitPalettes.push({ id: pp.id, name: pp.name, colors: pp.colors });
+                          }
+                        }
+                        if (st.palette && !fitPalettes.some((x) => x.id === st.palette) && st.paletteColors?.length) {
+                          fitPalettes.unshift({ id: st.palette, name: 'Your palette', colors: st.paletteColors });
+                        }
+                        return (
+                          <WizardFittingRoom
+                            occasion={st.occasion}
+                            names={[
+                              lookNames[0] || (lookCouple ? 'Alex' : lookNameSpec.primaryPlaceholder),
+                              lookCouple ? (lookNames[1] || 'Jamie') : '',
+                            ]}
+                            coverPhoto={st.photos.find((ph) => ph.url)?.url}
+                            galleryImages={st.photos.filter((ph) => ph.url).map((ph) => ph.url)}
+                            recipe={lookRecipesFor(st.occasion).find((r) => r.id === (st.lookRecipeId ?? 'match')) ?? null}
+                            palettes={fitPalettes}
+                            activePaletteId={st.palette}
+                            onPalettePick={(c) => {
+                              const smart = (st.smartPalettes ?? []).some((sp) => sp.id === c.id);
+                              const sp = (st.smartPalettes ?? []).find((x) => x.id === c.id);
+                              setSt((s2) => ({
+                                ...s2,
+                                palette: c.id,
+                                paletteColors: c.colors,
+                                suggestedMotif: smart ? sp?.motif : undefined,
+                                suggestedMotifLayout: smart ? sp?.motifLayout : undefined,
+                              }));
+                            }}
+                            picks={{ siteMode: st.siteMode, kitId: st.kitId, texture: st.texture, navVariant: st.navVariant, heroVariant: st.heroVariant }}
+                            onChange={(next) => setSt((prev) => ({ ...prev, ...next }))}
+                            onClose={() => setFittingOpen(false)}
+                          />
+                        );
+      })()}
       {busy && <GeneratingScreen genStep={genStep} photoCount={st.photos.length} />}
     </div>
   );

@@ -200,7 +200,7 @@ export function WizardStructureSection({
                     real layout height — the window scrolls like a
                     phone. Supported in all evergreen browsers. */}
                 <div style={{ width: SITE_W, zoom: 330 / SITE_W, containerType: 'inline-size', containerName: 'pl-site' } as CSSProperties}>
-                  <ThemedSite manifest={manifest} names={names} forceMobile />
+                  <ThemedSite manifest={manifest} names={names} forceMobile demoCopy />
                 </div>
               </div>
             </div>

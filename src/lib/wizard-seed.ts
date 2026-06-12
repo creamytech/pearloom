@@ -249,6 +249,18 @@ export function seedSectionsFromWizard(
     loose.registry = registry;
   }
 
+  // Monogram — the nav logo + hero watermark wear the host's
+  // initials from day one instead of the Pear glyph placeholder.
+  // Initials auto-derive from manifest.names at render time;
+  // frame matched to the occasion's register. Fill-missing —
+  // a configured crest is never touched.
+  if (!loose.monogram) {
+    const occ = (loose.occasion as string | undefined) ?? '';
+    const solemnOcc = occ === 'memorial' || occ === 'funeral';
+    const coupleArc = ['wedding', 'engagement', 'vow-renewal', 'anniversary'].includes(occ);
+    loose.monogram = { frame: solemnOcc ? 'none' : coupleArc ? 'laurel' : 'ring' };
+  }
+
   // Details cards — dress code / kids / parking, when none exist.
   const cards = (loose.detailsCards as unknown[] | undefined) ?? [];
   if (cards.length === 0) {

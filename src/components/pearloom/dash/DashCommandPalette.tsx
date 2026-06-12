@@ -258,8 +258,10 @@ export function DashCommandPalette() {
       <div
         style={{
           width: 'min(640px, 100%)',
-          background: 'var(--card, #FBF7EE)',
-          border: '1px solid var(--card-ring, #D8CFB8)',
+          background: 'var(--pl-glass)',
+          backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
+          WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
+          border: '1px solid var(--pl-glass-border)',
           borderRadius: 16,
           boxShadow: '0 32px 64px rgba(14,13,11,0.32), 0 8px 16px rgba(14,13,11,0.16)',
           overflow: 'hidden',

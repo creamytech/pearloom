@@ -110,6 +110,36 @@ export function GuestThreadCard({
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages?.length]);
 
+  const [gifOpen, setGifOpen] = useState(false);
+
+  /* A picked GIF sends as a message whose body IS the media URL —
+     the renderer above swaps URL bodies for <img>. Same endpoint,
+     same moderation, same realtime ping as text. */
+  async function sendGif(url: string) {
+    if (sending) return;
+    setSending(true);
+    setError(null);
+    try {
+      const r = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, thread: 'party', body: url }),
+      });
+      const data = (await r.json()) as { ok?: boolean; message?: ThreadMessage; error?: string };
+      if (!r.ok || !data.ok || !data.message) {
+        setError(data.error ?? 'Could not send — try again?');
+        return;
+      }
+      setMessages((prev) => [...(prev ?? []), data.message!]);
+      setGifOpen(false);
+      ping();
+    } catch {
+      setError('Could not send — try again?');
+    } finally {
+      setSending(false);
+    }
+  }
+
   async function send(e: React.FormEvent) {
     e.preventDefault();
     const body = draft.trim();
@@ -208,7 +238,17 @@ export function GuestThreadCard({
                     fontSize: '0.86rem', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                   }}
                 >
-                  {m.body}
+                  {isGifBody(m.body) ? (
+                     
+                    <img
+                      src={m.body}
+                      alt={`GIF from ${m.authorName}`}
+                      loading="lazy"
+                      style={{ display: 'block', maxWidth: 220, width: '100%', borderRadius: 10 }}
+                    />
+                  ) : (
+                    m.body
+                  )}
                 </div>
                 <div style={{ fontSize: '0.62rem', color: 'var(--ink-muted, #6F6557)', marginTop: 3, display: 'flex', gap: 6 }}>
                   <span style={{ fontWeight: 600 }}>{host ? `${m.authorName} · hosts` : m.authorName}</span>
@@ -220,7 +260,28 @@ export function GuestThreadCard({
         )}
       </div>
 
+      {gifOpen && tab === 'party' && !solemn && (
+        <GifPicker token={token} onPick={(url) => { void sendGif(url); }} onClose={() => setGifOpen(false)} />
+      )}
       <form onSubmit={send} style={{ display: 'flex', gap: 8 }}>
+        {tab === 'party' && !solemn && (
+          <button
+            type="button"
+            aria-label="Add a GIF"
+            aria-expanded={gifOpen}
+            onClick={() => setGifOpen((o) => !o)}
+            style={{
+              flexShrink: 0, padding: '0 12px', borderRadius: 999,
+              border: '1px solid var(--line, rgba(14,13,11,0.12))',
+              background: gifOpen ? 'var(--ink, #0E0D0B)' : 'var(--cream-2, rgba(14,13,11,0.03))',
+              color: gifOpen ? 'var(--cream, #FBF7EE)' : 'var(--ink-soft, #3A332C)',
+              fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.08em',
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            GIF
+          </button>
+        )}
         <input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -365,6 +426,96 @@ export function CelebratedTogetherCard({
           </button>
         </>
       )}
+    </div>
+  );
+}
+
+/* ── GIFs in the thread ───────────────────────────────────────
+   A message body that IS a GIPHY media URL renders as the GIF.
+   Strict host allowlist — only giphy media subdomains pass, so
+   pasted arbitrary URLs stay plain text. */
+export function isGifBody(body: string): boolean {
+  return /^https:\/\/media\d*\.giphy\.com\/\S+$/i.test(body.trim());
+}
+
+function GifPicker({ token, onPick, onClose }: { token: string; onPick: (url: string) => void; onClose: () => void }) {
+  const [q, setQ] = useState('');
+  const [gifs, setGifs] = useState<Array<{ id: string; url: string; preview: string }>>([]);
+  const [state, setState] = useState<'idle' | 'loading' | 'unavailable'>('idle');
+
+  useEffect(() => {
+    let cancelled = false;
+    setState('loading');
+    const t = setTimeout(() => {
+      void (async () => {
+        try {
+          const r = await fetch(`/api/giphy/search?token=${encodeURIComponent(token)}&q=${encodeURIComponent(q)}`);
+          const data = (await r.json()) as { ok?: boolean; gifs?: Array<{ id: string; url: string; preview: string }> };
+          if (cancelled) return;
+          if (!data.ok) { setState('unavailable'); return; }
+          setGifs(data.gifs ?? []);
+          setState('idle');
+        } catch {
+          if (!cancelled) setState('unavailable');
+        }
+      })();
+    }, q ? 350 : 0);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [q, token]);
+
+  if (state === 'unavailable') return null; // keyless deploy — quietly absent
+
+  return (
+    <div
+      style={{
+        marginBottom: 8, padding: 10, borderRadius: 14,
+        border: '1px solid var(--line, rgba(14,13,11,0.12))',
+        background: 'var(--cream-2, rgba(14,13,11,0.03))',
+      }}
+    >
+      <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search GIPHY…"
+          autoFocus
+          style={{
+            flex: 1, padding: '8px 12px', borderRadius: 999,
+            border: '1px solid var(--line, rgba(14,13,11,0.12))',
+            background: 'var(--card, #FBF7EE)', fontSize: '0.82rem',
+            fontFamily: 'inherit', color: 'var(--ink, #0E0D0B)', outline: 'none',
+          }}
+        />
+        <button
+          type="button"
+          aria-label="Close GIF picker"
+          onClick={onClose}
+          style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--ink-muted, #6F6557)', fontSize: 15, padding: '0 4px' }}
+        >
+          ×
+        </button>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, maxHeight: 200, overflowY: 'auto' }}>
+        {state === 'loading' && gifs.length === 0 && (
+          <div style={{ gridColumn: '1 / -1', fontSize: '0.72rem', color: 'var(--ink-muted, #6F6557)', textAlign: 'center', padding: 14 }}>
+            Threading…
+          </div>
+        )}
+        {gifs.map((g) => (
+          <button
+            key={g.id}
+            type="button"
+            onClick={() => onPick(g.url)}
+            style={{ padding: 0, border: 'none', borderRadius: 8, overflow: 'hidden', cursor: 'pointer', background: 'var(--card, #FBF7EE)', aspectRatio: '4 / 3' }}
+          >
+            { }
+            <img src={g.preview} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          </button>
+        ))}
+      </div>
+      <div style={{ fontSize: '0.6rem', color: 'var(--ink-muted, #6F6557)', marginTop: 6, textAlign: 'right' }}>
+        Powered by GIPHY
+      </div>
     </div>
   );
 }

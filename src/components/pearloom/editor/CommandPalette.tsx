@@ -148,7 +148,7 @@ export function CommandPalette({
   let idx = -1;
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 120, background: 'rgba(40,40,30,0.4)', backdropFilter: 'blur(5px)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '12vh' } as CSSProperties}>
-      <div onClick={(e) => e.stopPropagation()} onKeyDown={onKey} style={{ width: 'min(580px, 94vw)', background: 'var(--pl-chrome-surface)', borderRadius: 16, boxShadow: '0 30px 80px rgba(40,40,30,0.32)', overflow: 'hidden', border: '1px solid var(--pl-chrome-border)', animation: 'cmd-in 180ms cubic-bezier(0.16,1,0.3,1)' }}>
+      <div onClick={(e) => e.stopPropagation()} onKeyDown={onKey} style={{ width: 'min(580px, 94vw)', background: 'var(--pl-glass)', backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))', WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))', borderRadius: 16, boxShadow: 'var(--pl-glass-shadow-lg)', overflow: 'hidden', border: '1px solid var(--pl-glass-border)', animation: 'cmd-in 180ms cubic-bezier(0.16,1,0.3,1)' }}>
         <style>{`@keyframes cmd-in{from{transform:translateY(-8px) scale(0.99);opacity:0}to{transform:none;opacity:1}}`}</style>
         <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '15px 18px', borderBottom: '1px solid var(--pl-chrome-border)' }}>
           <Icon name="search" size={17} color="var(--pl-chrome-text-muted)"/>

@@ -310,6 +310,7 @@ export function WelcomeHome() {
             <ActivityFeed activity={recentActivity} stage={stage} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <ResumeDraftCard />
             {daysUntil != null && daysUntil < 0 && site?.domain && (
               <RememberingCard domain={site.domain} occasion={occasion} daysSince={-daysUntil} />
             )}
@@ -1405,6 +1406,65 @@ function milestoneDotStyle(status: MilestoneStatus): { bg: string; border: strin
 // ─────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// ResumeDraftCard — the way back into a half-finished wizard run.
+//
+// The wizard auto-persists its state to localStorage on every
+// change ('Save draft' was already honest), but nothing on the
+// dashboard ever said so — a host who stepped away had to KNOW
+// /wizard/new resumes. This card reads the draft client-side and
+// names what's in it. Renders nothing without a meaningful draft.
+// ─────────────────────────────────────────────────────────────
+function ResumeDraftCard() {
+  /* Read after mount via a 0ms timer — SSR + first client paint
+     agree (no card), then the draft pops in. The timer keeps the
+     compiler's setState-in-effect rule happy and avoids the
+     hydration mismatch a lazy localStorage initializer causes. */
+  const [draft, setDraft] = useState<{ occasion?: string; names?: [string, string] } | null>(null);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        const raw = window.localStorage.getItem('pl-wizard-state-v1');
+        if (!raw) return;
+        const parsed = JSON.parse(raw) as { occasion?: string; names?: [string, string] };
+        if (parsed && (parsed.occasion || parsed.names?.[0])) setDraft(parsed);
+      } catch { /* no draft is fine */ }
+    }, 0);
+    return () => clearTimeout(t);
+  }, []);
+  if (!draft) return null;
+  const who = (draft.names ?? []).filter(Boolean).join(' & ');
+  const what = draft.occasion ? draft.occasion.replace(/-/g, ' ') : 'celebration';
+  return (
+    <section
+      style={{
+        background: 'var(--card)',
+        border: '1px dashed var(--pl-olive, #5C6B3F)',
+        borderRadius: 'var(--r-md, 20px)',
+        padding: '16px 18px',
+      }}
+    >
+      <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--pl-olive, #5C6B3F)', marginBottom: 6 }}>
+        A thread in progress
+      </div>
+      <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginBottom: 10 }}>
+        Your {what}{who ? ` for ${who}` : ''} is saved right where you left it.
+      </div>
+      <Link
+        href="/wizard/new"
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          padding: '8px 16px', borderRadius: 999, textDecoration: 'none',
+          background: 'var(--pl-olive, #5C6B3F)', color: 'var(--cream, #F5EFE2)',
+          fontSize: 12.5, fontWeight: 700,
+        }}
+      >
+        Pick the thread back up →
+      </Link>
+    </section>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────
 // RememberingCard — the third act, surfaced.
 //

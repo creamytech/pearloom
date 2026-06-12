@@ -139,6 +139,22 @@ describe('seedSectionsFromWizard — the extras', () => {
   });
 });
 
+describe('seedSectionsFromWizard — monogram', () => {
+  it('seeds an occasion-framed monogram so the nav never defaults to the pear glyph', () => {
+    const wedding = loose(seedSectionsFromWizard(base()));
+    expect((wedding.monogram as { frame: string }).frame).toBe('laurel');
+    const reunion = loose(seedSectionsFromWizard(base({ occasion: 'reunion' })));
+    expect((reunion.monogram as { frame: string }).frame).toBe('ring');
+    const memorial = loose(seedSectionsFromWizard(base({ occasion: 'memorial' })));
+    expect((memorial.monogram as { frame: string }).frame).toBe('none');
+  });
+
+  it('never clobbers a configured crest', () => {
+    const out = loose(seedSectionsFromWizard(base({ monogram: { initials: 'XO', frame: 'diamond' } })));
+    expect((out.monogram as { frame: string }).frame).toBe('diamond');
+  });
+});
+
 describe('suggestRsvpDeadline', () => {
   it('lands ~5 weeks before the date', () => {
     const future = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);

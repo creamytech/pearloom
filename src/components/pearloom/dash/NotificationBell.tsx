@@ -256,10 +256,12 @@ export function NotificationBell() {
             top: 'calc(100% + 8px)',
             right: -shift,
             width: 'min(360px, calc(100vw - 32px))',
-            background: 'var(--card)',
-            border: '1px solid var(--card-ring)',
+            background: 'var(--pl-glass)',
+            backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
+            WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
+            border: '1px solid var(--pl-glass-border)',
             borderRadius: 14,
-            boxShadow: '0 24px 48px rgba(14,13,11,0.20), 0 4px 12px rgba(14,13,11,0.10)',
+            boxShadow: 'var(--pl-glass-shadow-lg)',
             // Bump above the page's card stacking contexts. Cards
             // with position:relative + transitions create their own
             // stacking contexts that were occluding the dropdown
