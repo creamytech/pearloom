@@ -281,6 +281,11 @@ interface WizardState {
   dayEvents?: Array<{ name: string; time: string }>;
   dressCode?: string;
   rsvpDeadline?: string;
+  /** "Guests will ask" quick-collect — seeds Travel / Details /
+   *  FAQ at finish so the editor opens with real answers. */
+  hotels?: Array<{ name: string; address: string }>;
+  kidsPolicy?: string;
+  parkingNote?: string;
   // Occasion-specific details (consumed by /api/generate/stream as eventDetails)
   detailDays?: number;
   detailLivestreamUrl?: string;
@@ -1038,6 +1043,129 @@ function OccasionPicker({
         </div>
       )}
     </>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   GuestsWillAsk — the Day step's quick-collect for the three
+   questions every guest asks: where do I stay, can I bring the
+   kids, where do I park. Each answer seeds the section guests
+   actually read (Travel hotel cards / Details cards / FAQ
+   answers) via seedSectionsFromWizard — thirty seconds here and
+   the editor opens with those sections already true.
+   Occasion-aware: hotels only show when the event type carries a
+   travel block; the kids question skips bachelor weekends.
+   ──────────────────────────────────────────────────────────── */
+const KIDS_OPTIONS = ['All ages welcome', 'Adults only', 'Immediate family\u2019s kids only'];
+
+function GuestsWillAsk({
+  st,
+  setSt,
+}: {
+  st: WizardState;
+  setSt: (updater: (s: WizardState) => WizardState) => void;
+}) {
+  const [hotelQuery, setHotelQuery] = useState('');
+  const e = getEventType(st.occasion as never);
+  const blocks = [...(e?.defaultBlocks ?? []), ...(e?.optionalBlocks ?? [])] as string[];
+  const wantsHotels = blocks.includes('travel');
+  const wantsKids = !st.occasion.startsWith('bachelor');
+  const hotels = st.hotels ?? [];
+
+  if (!wantsHotels && !wantsKids) return null;
+
+  return (
+    <div style={{ marginTop: 18 }}>
+      <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 4 }}>
+        Guests will ask
+      </div>
+      <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 12 }}>
+        Thirty seconds here fills the Travel, Details, and FAQ sections with real answers. All optional.
+      </div>
+      <div style={{ display: 'grid', gap: 14 }}>
+        {wantsHotels && (
+          <div>
+            <label className="field-label">Where should they stay?</label>
+            {hotels.length > 0 && (
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+                {hotels.map((h) => (
+                  <span
+                    key={h.name + h.address}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      padding: '6px 8px 6px 12px', borderRadius: 999, fontSize: 12.5, fontWeight: 600,
+                      background: 'var(--sage-tint, #E3E6C8)', color: 'var(--ink)',
+                    }}
+                  >
+                    {h.name}
+                    <button
+                      type="button"
+                      aria-label={`Remove ${h.name}`}
+                      onClick={() => setSt((s) => ({ ...s, hotels: (s.hotels ?? []).filter((x) => x !== h) }))}
+                      style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--ink-muted)', fontSize: 13, lineHeight: 1, padding: 0 }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            {hotels.length < 3 && (
+              <WizardLocationAutocomplete
+                value={hotelQuery}
+                onChange={setHotelQuery}
+                onSelect={(place) => {
+                  const name = place.name || place.address;
+                  if (!name) return;
+                  setSt((s) => {
+                    const cur = s.hotels ?? [];
+                    if (cur.some((h) => h.name === name)) return s;
+                    return { ...s, hotels: [...cur, { name, address: place.address ?? '' }] };
+                  });
+                  setHotelQuery('');
+                }}
+                placeholder={hotels.length === 0 ? 'Search a hotel near the venue…' : 'Add another…'}
+              />
+            )}
+          </div>
+        )}
+        {wantsKids && (
+          <div>
+            <label className="field-label">Kids?</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+              {KIDS_OPTIONS.map((k) => {
+                const on = st.kidsPolicy === k;
+                return (
+                  <button
+                    key={k}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => setSt((s) => ({ ...s, kidsPolicy: on ? undefined : k }))}
+                    style={{
+                      padding: '8px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
+                      border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
+                      background: on ? 'var(--ink)' : 'var(--card)',
+                      color: on ? 'var(--cream)' : 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    {k}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        <div>
+          <label className="field-label">Parking, in one line (optional)</label>
+          <input
+            className="input"
+            value={st.parkingNote ?? ''}
+            onChange={(ev) => setSt((s) => ({ ...s, parkingNote: ev.target.value }))}
+            placeholder="Free lot behind the venue \u00b7 or \u00b7 street parking only \u2014 rideshare is easiest"
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1844,6 +1972,9 @@ export function WizardV8() {
         events: st.dayEvents,
         dressCode: st.dressCode,
         rsvpDeadline: st.rsvpDeadline,
+        hotels: st.hotels,
+        kidsPolicy: st.kidsPolicy,
+        parkingNote: st.parkingNote,
       }) as unknown as Record<string, unknown>;
 
       // ── Explicit LOOK pick — overwrites the occasion defaults on
@@ -2579,6 +2710,8 @@ export function WizardV8() {
                         );
                       })}
                     </div>
+
+                    <GuestsWillAsk st={st} setSt={setSt} />
 
                     {suggestedDl && (
                       <div style={{ marginTop: 18, padding: '12px 14px', borderRadius: 12, background: 'var(--cream-2)', border: '1px solid var(--line-soft)', fontSize: 13, color: 'var(--ink-soft)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
