@@ -23,6 +23,7 @@ import { NumberInput } from '../editor/v8-forms';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 import { WizardLocationAutocomplete } from '../wizard/WizardLocationAutocomplete';
 import { WizardDatePicker } from '../wizard/WizardDatePicker';
+import { WizardTimePicker } from '../wizard/WizardTimePicker';
 import { GeneratingScreen } from '../wizard/GeneratingScreen';
 import { StoryListen } from '../wizard/StoryListen';
 import { AmbientSprig } from '../ambient';
@@ -36,6 +37,7 @@ import { applyWizardLook } from '@/lib/site-look/wizard-look';
 import { lookRecipesFor, type LookRecipe } from '@/lib/site-look/look-recipes';
 import { WizardLooksSection } from './wizard-looks';
 import { WizardStructureSection } from './wizard-structure';
+import { WizardFittingRoom, type PaletteChoice } from './wizard-fitting-room';
 import { WizardLookPreviews, type LookCandidate } from './WizardLookPreviews';
 import type { StoryManifest } from '@/types';
 
@@ -304,6 +306,10 @@ interface WizardState {
    *  decides (look-recipe / edition defaults ride). Stamped onto
    *  manifest.siteMode + manifest.layouts at finish. */
   siteMode?: 'scroll' | 'multi-page';
+  kitId?: string;
+  /** Explicit paper texture from the fitting room — beats the
+   *  look recipe's texture at finish. */
+  texture?: string;
   navVariant?: string;
   heroVariant?: string;
   /** Plus-ones policy → rsvpConfig.plusOnes + the FAQ answer.
@@ -1085,42 +1091,6 @@ function OccasionPicker({
    ──────────────────────────────────────────────────────────── */
 const KIDS_OPTIONS = ['All ages welcome', 'Adults only', 'Immediate family’s kids only'];
 
-/* Half-hour wall times for the schedule pills. A native <select>
-   gets the platform wheel on phones — the most reliable time
-   picker there is — styled to live inside the pill. */
-const MOMENT_TIMES: string[] = (() => {
-  const out: string[] = [];
-  for (let h = 6; h < 24; h++) {
-    for (const mm of ['00', '30'] as const) {
-      const ampm = h < 12 ? 'am' : 'pm';
-      const h12 = h % 12 === 0 ? 12 : h % 12;
-      out.push(`${h12}:${mm} ${ampm}`);
-    }
-  }
-  return out;
-})();
-
-function MomentTimeSelect({ value, onChange, label }: { value: string; onChange: (t: string) => void; label: string }) {
-  return (
-    <select
-      aria-label={`Time for ${label}`}
-      value={MOMENT_TIMES.includes(value) ? value : '5:00 pm'}
-      onChange={(e) => onChange(e.target.value)}
-      style={{
-        appearance: 'none', WebkitAppearance: 'none',
-        border: 'none', borderLeft: '1px solid color-mix(in srgb, var(--cream, #F5EFE2) 35%, transparent)',
-        background: 'transparent', color: 'inherit',
-        fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
-        padding: '0 14px 0 10px', cursor: 'pointer',
-        textAlign: 'center',
-      }}
-    >
-      {MOMENT_TIMES.map((t) => (
-        <option key={t} value={t} style={{ color: '#0E0D0B', background: '#FBF7EE' }}>{t}</option>
-      ))}
-    </select>
-  );
-}
 
 function GuestsWillAsk({
   st,
@@ -1945,6 +1915,8 @@ export function WizardV8() {
      underlay below). Falls back to the picked look so the dressing
      persists through Review once they choose. */
   const [lookPreview, setLookPreview] = useState<LookRecipe | null>(null);
+  /* Full-screen fitting room (Palette step). */
+  const [fittingOpen, setFittingOpen] = useState(false);
   const [generatedTagline, setGeneratedTagline] = useState<string>('');
   const [taglineState, setTaglineState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
   const step = STEPS[stepIndex];
@@ -2326,10 +2298,12 @@ export function WizardV8() {
           : 'Wedding party',
       }) as unknown as Record<string, unknown>;
 
-      // ── Explicit STRUCTURE picks — siteMode + per-section layout
-      //    variants, exactly the fields the editor's Layout tab and
-      //    SiteModeSection write. Unset = Pear decides (recipe /
-      //    edition defaults ride at read time).
+      // ── Explicit STRUCTURE picks — siteMode + kit + per-section
+      //    layout variants, exactly the fields the editor's Layout
+      //    tab, Theme panel, and SiteModeSection write. Unset =
+      //    Pear decides (recipe / edition defaults ride). The kit
+      //    stamp lands AFTER the look-recipe stamp below would —
+      //    order here is before it, so re-stamp at the end too.
       if (st.siteMode) manifest.siteMode = st.siteMode;
       if (st.navVariant || st.heroVariant) {
         manifest.layouts = {
@@ -2353,6 +2327,10 @@ export function WizardV8() {
           manifest.density = recipe.density;
         }
       }
+      // Explicit kit / texture picks from The Structure + fitting
+      // room beat the recipe's — the host saw them live.
+      if (st.kitId) manifest.kitId = st.kitId;
+      if (st.texture) manifest.texture = st.texture;
 
       // `create: true` — the server guarantees a FREE slug. If the
       // derived one (typed, or names-fallback) is already taken — by
@@ -3096,7 +3074,7 @@ export function WizardV8() {
                               }}>
                               {m}
                             </button>
-                            <MomentTimeSelect value={t} onChange={(nt) => setTime(m, nt)} label={m} />
+                            <WizardTimePicker value={t} onChange={(nt) => setTime(m, nt)} label={m} />
                           </span>
                         );
                       })}
@@ -3718,9 +3696,61 @@ export function WizardV8() {
                         onPreview={setLookPreview}
                       />
                       <WizardStructureSection
-                        picks={{ siteMode: st.siteMode, navVariant: st.navVariant, heroVariant: st.heroVariant }}
+                        occasion={st.occasion}
+                        paletteColors={lookPalette}
+                        names={[
+                          lookNames[0] || (lookCouple ? 'Alex' : lookNameSpec.primaryPlaceholder),
+                          lookCouple ? (lookNames[1] || 'Jamie') : '',
+                        ]}
+                        coverPhoto={st.photos.find((ph) => ph.url)?.url}
+                        galleryImages={st.photos.filter((ph) => ph.url).map((ph) => ph.url)}
+                        recipe={lookRecipesFor(st.occasion).find((r) => r.id === (st.lookRecipeId ?? 'match')) ?? null}
+                        picks={{ siteMode: st.siteMode, kitId: st.kitId, texture: st.texture, navVariant: st.navVariant, heroVariant: st.heroVariant }}
                         onChange={(next) => setSt((prev) => ({ ...prev, ...next }))}
+                        onExpand={() => setFittingOpen(true)}
                       />
+                      {fittingOpen && (() => {
+                        const fitPalettes: PaletteChoice[] = [];
+                        for (const sp of st.smartPalettes ?? []) {
+                          fitPalettes.push({ id: sp.id, name: sp.name, colors: sp.colors });
+                        }
+                        for (const pp of PALETTES) {
+                          if (!fitPalettes.some((x) => x.id === pp.id)) {
+                            fitPalettes.push({ id: pp.id, name: pp.name, colors: pp.colors });
+                          }
+                        }
+                        if (st.palette && !fitPalettes.some((x) => x.id === st.palette) && st.paletteColors?.length) {
+                          fitPalettes.unshift({ id: st.palette, name: 'Your palette', colors: st.paletteColors });
+                        }
+                        return (
+                          <WizardFittingRoom
+                            occasion={st.occasion}
+                            names={[
+                              lookNames[0] || (lookCouple ? 'Alex' : lookNameSpec.primaryPlaceholder),
+                              lookCouple ? (lookNames[1] || 'Jamie') : '',
+                            ]}
+                            coverPhoto={st.photos.find((ph) => ph.url)?.url}
+                            galleryImages={st.photos.filter((ph) => ph.url).map((ph) => ph.url)}
+                            recipe={lookRecipesFor(st.occasion).find((r) => r.id === (st.lookRecipeId ?? 'match')) ?? null}
+                            palettes={fitPalettes}
+                            activePaletteId={st.palette}
+                            onPalettePick={(c) => {
+                              const smart = (st.smartPalettes ?? []).some((sp) => sp.id === c.id);
+                              const sp = (st.smartPalettes ?? []).find((x) => x.id === c.id);
+                              setSt((s2) => ({
+                                ...s2,
+                                palette: c.id,
+                                paletteColors: c.colors,
+                                suggestedMotif: smart ? sp?.motif : undefined,
+                                suggestedMotifLayout: smart ? sp?.motifLayout : undefined,
+                              }));
+                            }}
+                            picks={{ siteMode: st.siteMode, kitId: st.kitId, texture: st.texture, navVariant: st.navVariant, heroVariant: st.heroVariant }}
+                            onChange={(next) => setSt((prev) => ({ ...prev, ...next }))}
+                            onClose={() => setFittingOpen(false)}
+                          />
+                        );
+                      })()}
                       </>
                     );
                   })()}
@@ -3931,6 +3961,7 @@ export function WizardV8() {
                           ...(st.navVariant ? { nav: st.navVariant } : {}),
                           ...(st.heroVariant ? { hero: st.heroVariant } : {}),
                         }}
+                        kitId={st.kitId}
                         candidates={candidates}
                         selectedId={st.palette}
                         onPick={(c) => {

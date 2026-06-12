@@ -3,158 +3,85 @@
 /* ─────────────────────────────────────────────────────────────
    WizardStructureSection — "The structure", on the Palette step.
 
-   The three biggest layout decisions, as tap-able wireframe
-   tiles, so the host walks out of setup with a site that's
-   ARRANGED the way they imagined — not just dressed:
+   v2 (2026-06-12): a LIVE preview, not wireframes. One real
+   ThemedSite render — the host's names, photos, palette, and
+   chosen look — in a scrollable phone-shaped window, re-pressed
+   instantly on every tap. The chip rows beneath choose:
 
-     · How it reads — one page (single scroll) vs magazine
-       (each section its own page) → manifest.siteMode
-     · The nav — five real nav variants → manifest.layouts.nav
-     · The hero — six real hero variants → manifest.layouts.hero
+     · How it reads — one page vs magazine → manifest.siteMode
+     · The component kit — the six construction kits → kitId
+     · The nav — five nav variants → manifest.layouts.nav
+     · The hero — six hero variants → manifest.layouts.hero
 
-   Every row leads with "Pear's pick" (no explicit stamp — the
-   look recipe / edition defaults ride), so skipping the whole
-   thing changes nothing. Explicit picks land on the manifest at
-   finish and win everywhere, exactly like the editor's Layout
-   tab writes them. Tiles are tiny CSS wireframes, not screenshots
-   — they read as ARRANGEMENT, which is the actual decision.
+   Every row leads with "Pear decides" (no stamp — the look
+   recipe / edition defaults ride). Explicit picks land exactly
+   where the editor's Layout tab + Theme panel write them, and
+   the preview IS the proof: scroll it and you're scrolling your
+   site as it will press.
    ───────────────────────────────────────────────────────────── */
 
-import type { CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import type { StoryManifest } from '@/types';
+import { ThemedSite } from '../redesign/ThemedSite';
+import { applyWizardLook } from '@/lib/site-look/wizard-look';
+import type { LookRecipe } from '@/lib/site-look/look-recipes';
 import { Sparkle } from '../motifs';
 
 export interface StructurePicks {
   siteMode?: 'scroll' | 'multi-page';
+  kitId?: string;
+  texture?: string;
   navVariant?: string;
   heroVariant?: string;
 }
 
-/* ── Wireframe atoms ─────────────────────────────────────────── */
+const SITE_W = 430; // phone-width render — the device most guests hold
 
-const FRAME: CSSProperties = {
-  width: '100%',
-  height: 44,
-  borderRadius: 6,
-  background: 'var(--cream-2, #FBF7EE)',
-  border: '1px solid var(--line-soft)',
-  position: 'relative',
-  overflow: 'hidden',
-  display: 'flex',
-  flexDirection: 'column',
-};
+const KIT_TILES = [
+  { id: 'classic', label: 'Classic', sub: 'Calm cards' },
+  { id: 'ticket', label: 'Ticket', sub: 'Perforated stubs' },
+  { id: 'plate', label: 'Plate', sub: 'Triple-inset plates' },
+  { id: 'scrapbook', label: 'Scrapbook', sub: 'Tape + tilt' },
+  { id: 'index', label: 'Index', sub: 'Ruled rows' },
+  { id: 'minimal', label: 'Minimal', sub: 'Hairlines only' },
+];
 
-function Bar({ w, h = 3, style }: { w: number | string; h?: number; style?: CSSProperties }) {
-  return <span aria-hidden style={{ display: 'block', width: w, height: h, borderRadius: 2, background: 'var(--ink-muted)', opacity: 0.55, ...style }} />;
-}
-function Dot({ style }: { style?: CSSProperties }) {
-  return <span aria-hidden style={{ display: 'block', width: 4, height: 4, borderRadius: 99, background: 'var(--pl-olive, #5C6B3F)', ...style }} />;
-}
+const NAV_TILES = [
+  { id: 'centered', label: 'Centered' },
+  { id: 'split', label: 'Split' },
+  { id: 'serif-block', label: 'Serif block' },
+  { id: 'minimal-text', label: 'Minimal' },
+  { id: 'iconic', label: 'Iconic' },
+];
 
-/* Nav wireframes — the bar across the top of the frame. */
-function NavWire({ id }: { id: string }) {
-  const row: CSSProperties = { display: 'flex', alignItems: 'center', gap: 3, padding: '4px 5px', borderBottom: '1px solid var(--line-soft)' };
-  if (id === 'centered') {
-    return <div style={{ ...row, justifyContent: 'center' }}><Bar w={8} /><Bar w={8} /><Dot style={{ margin: '0 4px' }} /><Bar w={8} /><Bar w={8} /></div>;
-  }
-  if (id === 'split') {
-    return <div style={row}><Dot /><span style={{ flex: 1 }} /><Bar w={8} /><Bar w={8} /><Bar w={12} h={5} style={{ background: 'var(--pl-olive, #5C6B3F)', opacity: 0.9 }} /></div>;
-  }
-  if (id === 'serif-block') {
-    return <div style={{ ...row, flexDirection: 'column', alignItems: 'flex-start', gap: 2, padding: '4px 6px' }}><Bar w={26} h={5} style={{ opacity: 0.8 }} /><div style={{ display: 'flex', gap: 3 }}><Bar w={7} h={2} /><Bar w={7} h={2} /><Bar w={7} h={2} /></div></div>;
-  }
-  if (id === 'minimal-text') {
-    return <div style={{ ...row, justifyContent: 'center' }}><Bar w={9} h={2} /><Bar w={9} h={2} /><Bar w={9} h={2} /><Bar w={9} h={2} /></div>;
-  }
-  // iconic
-  return <div style={row}><Dot style={{ width: 6, height: 6 }} /><span style={{ flex: 1 }} /><Bar w={7} h={2} /><Bar w={7} h={2} /><Bar w={7} h={2} /></div>;
-}
+const HERO_TILES = [
+  { id: 'centered', label: 'Centered' },
+  { id: 'split', label: 'Split' },
+  { id: 'fullbleed', label: 'Full-bleed' },
+  { id: 'typographic', label: 'Typographic' },
+  { id: 'postcard', label: 'Postcard' },
+  { id: 'minimal', label: 'Minimal' },
+];
 
-/* Hero wireframes — the body of the frame. */
-function HeroWire({ id }: { id: string }) {
-  const body: CSSProperties = { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 5 };
-  if (id === 'split') {
-    return (
-      <div style={{ ...body, gap: 4 }}>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'flex-start' }}><Bar w="80%" h={5} style={{ opacity: 0.8 }} /><Bar w="55%" h={3} /></div>
-        <div style={{ flex: 1, alignSelf: 'stretch', borderRadius: 3, background: 'var(--pl-olive-mist, #E0DDC9)' }} />
-      </div>
-    );
-  }
-  if (id === 'minimal') {
-    return <div style={{ ...body, flexDirection: 'column', gap: 3, alignItems: 'flex-start' }}><Bar w="60%" h={6} style={{ opacity: 0.8 }} /><Bar w="34%" h={3} /></div>;
-  }
-  if (id === 'fullbleed') {
-    return (
-      <div style={{ ...body, position: 'relative', background: 'var(--pl-olive-mist, #E0DDC9)' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(transparent, rgba(14,13,11,0.35))' }} />
-        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center' }}><Bar w={30} h={5} style={{ background: 'var(--cream, #F5EFE2)', opacity: 0.95 }} /><Bar w={18} h={2} style={{ background: 'var(--cream, #F5EFE2)', opacity: 0.7 }} /></div>
-      </div>
-    );
-  }
-  if (id === 'typographic') {
-    return <div style={{ ...body, flexDirection: 'column', gap: 2, alignItems: 'flex-start' }}><Bar w="92%" h={8} style={{ opacity: 0.85 }} /><Bar w="74%" h={8} style={{ opacity: 0.85 }} /></div>;
-  }
-  if (id === 'postcard') {
-    return (
-      <div style={{ ...body }}>
-        <div style={{ width: '70%', height: '85%', borderRadius: 3, background: 'var(--card, #fff)', border: '1px solid var(--line-soft)', boxShadow: '0 2px 5px rgba(14,13,11,0.12)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
-          <Bar w="55%" h={4} style={{ opacity: 0.8 }} /><Bar w="35%" h={2} />
-        </div>
-      </div>
-    );
-  }
-  // centered
-  return <div style={{ ...body, flexDirection: 'column', gap: 3 }}><Bar w="55%" h={6} style={{ opacity: 0.8 }} /><Bar w="32%" h={3} /><Bar w={16} h={6} style={{ background: 'var(--pl-olive, #5C6B3F)', opacity: 0.9, borderRadius: 99, marginTop: 2 }} /></div>;
-}
-
-/* Site-mode wireframes. */
-function ModeWire({ id }: { id: string }) {
-  if (id === 'multi-page') {
-    return (
-      <div style={{ flex: 1, display: 'flex', gap: 4, alignItems: 'center', justifyContent: 'center', padding: 6 }}>
-        {[0, 1, 2].map((i) => (
-          <div key={i} style={{ width: 20, height: 28, borderRadius: 3, border: '1px solid var(--line)', background: 'var(--card, #fff)', display: 'flex', flexDirection: 'column', gap: 2, padding: 3 }}>
-            <Bar w="100%" h={3} style={{ opacity: 0.7 }} /><Bar w="70%" h={2} /><Bar w="85%" h={2} />
-          </div>
-        ))}
-      </div>
-    );
-  }
-  // scroll
-  return (
-    <div style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '5px 0' }}>
-      <div style={{ width: 26, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Bar w="100%" h={6} style={{ opacity: 0.7 }} />
-        <Bar w="100%" h={4} /><Bar w="80%" h={3} /><Bar w="100%" h={4} /><Bar w="90%" h={3} />
-      </div>
-    </div>
-  );
-}
-
-/* ── Tile + row scaffolding ──────────────────────────────────── */
-
-function Tile({
-  on, label, sub, onClick, children,
-}: {
-  on: boolean; label: string; sub?: string; onClick: () => void; children?: React.ReactNode;
-}) {
+function Chip({ on, label, sub, onClick }: { on: boolean; label: string; sub?: string; onClick: () => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={on}
       style={{
-        display: 'flex', flexDirection: 'column', gap: 5, padding: 6,
-        borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
-        border: on ? '2px solid var(--pl-olive, #5C6B3F)' : '1.5px solid var(--line)',
-        background: on ? 'var(--pl-olive-mist, #E0DDC9)' : 'var(--card)',
-        transition: 'border-color 180ms var(--pl-ease-out, ease), background 180ms var(--pl-ease-out, ease)',
-        minWidth: 0,
+        padding: sub ? '7px 13px 6px' : '8px 14px',
+        borderRadius: 999, fontSize: 12.5, fontWeight: 600,
+        border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
+        background: on ? 'var(--ink)' : 'var(--card)',
+        color: on ? 'var(--cream)' : 'var(--ink-soft)',
+        cursor: 'pointer', fontFamily: 'inherit',
+        display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.2,
+        transition: 'background 160ms var(--pl-ease-out, ease), color 160ms var(--pl-ease-out, ease), border-color 160ms var(--pl-ease-out, ease)',
       }}
     >
-      {children && <span style={FRAME}>{children}</span>}
-      <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink)', lineHeight: 1.2 }}>{label}</span>
-      {sub && <span style={{ fontSize: 9.5, color: 'var(--ink-muted)', lineHeight: 1.3, marginTop: -3 }}>{sub}</span>}
+      <span>{label}</span>
+      {sub && <span style={{ fontSize: 9.5, fontWeight: 500, opacity: 0.75 }}>{sub}</span>}
     </button>
   );
 }
@@ -162,76 +89,191 @@ function Tile({
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)', margin: '14px 0 8px' }}>
+      <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)', margin: '0 0 7px' }}>
         {label}
       </div>
-      <div className="pl8-structure-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(104px, 1fr))', gap: 8 }}>
-        {children}
-      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{children}</div>
     </div>
   );
 }
 
-const NAV_TILES = [
-  { id: 'centered', label: 'Centered', sub: 'Logo center, links flank' },
-  { id: 'split', label: 'Split', sub: 'Logo left, RSVP right' },
-  { id: 'serif-block', label: 'Serif block', sub: 'Display headline' },
-  { id: 'minimal-text', label: 'Minimal', sub: 'Links only' },
-  { id: 'iconic', label: 'Iconic', sub: 'Glyph + thin rail' },
-];
-
-const HERO_TILES = [
-  { id: 'centered', label: 'Centered', sub: 'Classic, all eyes middle' },
-  { id: 'split', label: 'Split', sub: 'Type left, photo right' },
-  { id: 'fullbleed', label: 'Full-bleed', sub: 'Photo behind everything' },
-  { id: 'typographic', label: 'Typographic', sub: 'Huge stacked names' },
-  { id: 'postcard', label: 'Postcard', sub: 'Card on a tinted mat' },
-  { id: 'minimal', label: 'Minimal', sub: 'Quiet, left-aligned' },
-];
-
 export function WizardStructureSection({
+  occasion,
+  paletteColors,
+  names,
+  coverPhoto,
+  galleryImages,
+  recipe,
   picks,
   onChange,
+  onExpand,
 }: {
+  occasion: string;
+  paletteColors: string[] | undefined;
+  names: [string, string];
+  coverPhoto?: string;
+  galleryImages?: string[];
+  /** The chosen look recipe (or Pear's match) — the preview wears
+   *  it so structure choices appear on the construction the host
+   *  already picked. */
+  recipe?: LookRecipe | null;
   picks: StructurePicks;
   onChange: (next: Partial<StructurePicks>) => void;
+  /** Opens the full-screen fitting room. */
+  onExpand?: () => void;
 }) {
+  /* One real manifest, rebuilt on every pick — the same bridge
+     generation uses, so the preview IS the site. */
+  const manifest = useMemo<StoryManifest>(() => {
+    const base = {
+      occasion,
+      coverPhoto,
+      galleryImages,
+    } as unknown as StoryManifest;
+    const dressed = applyWizardLook(base, {
+      selectedPaletteColors: paletteColors,
+      occasion,
+    }) as unknown as Record<string, unknown>;
+    if (recipe) {
+      dressed.kitId = recipe.kitId;
+      dressed.texture = recipe.texture;
+      dressed.textureIntensity = recipe.textureIntensity;
+      dressed.motifLayout = recipe.motifLayout;
+      dressed.density = recipe.density;
+    }
+    if (picks.kitId) dressed.kitId = picks.kitId;
+    if (picks.texture) dressed.texture = picks.texture;
+    const layouts: Record<string, string> = {};
+    if (picks.navVariant) layouts.nav = picks.navVariant;
+    if (picks.heroVariant) layouts.hero = picks.heroVariant;
+    if (Object.keys(layouts).length > 0) dressed.layouts = layouts;
+    return dressed as unknown as StoryManifest;
+  }, [occasion, paletteColors, coverPhoto, galleryImages, recipe, picks.kitId, picks.texture, picks.navVariant, picks.heroVariant]);
+
+  /* Defer the live render one frame so the Palette step paints
+     instantly (same trick the Review pressings use). */
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const t = window.setTimeout(() => setReady(true), 80);
+    return () => window.clearTimeout(t);
+  }, []);
+
+  /* A gentle settle on re-press so taps visibly DO something even
+     when the change is below the fold — the frame re-keys on the
+     picks themselves (no state, no effect; the CSS animation
+     replays whenever the key changes). */
+  const pressKey = `${picks.siteMode ?? ''}|${picks.kitId ?? ''}|${picks.texture ?? ''}|${picks.navVariant ?? ''}|${picks.heroVariant ?? ''}`;
+
+  const frame: CSSProperties = {
+    width: '100%',
+    maxWidth: 340,
+    height: 420,
+    margin: '0 auto',
+    borderRadius: 22,
+    border: '1px solid var(--line)',
+    boxShadow: '0 24px 48px -20px rgba(40,28,12,0.28), inset 0 0 0 5px var(--ink)',
+    overflow: 'hidden',
+    position: 'relative',
+    background: 'var(--cream-2, #FBF7EE)',
+    flexShrink: 0,
+  };
+
   return (
     <div style={{ marginTop: 28 }}>
       <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--pl-olive, #5C6B3F)' }}>
         <Sparkle size={11} color="var(--gold)" /> The structure
       </div>
-      <p style={{ color: 'var(--ink-soft)', fontSize: 13.5, margin: '4px 0 0', lineHeight: 1.5 }}>
-        How the site is arranged — Pear picks well, but it&rsquo;s your house.
-        Tap &ldquo;Pear decides&rdquo; on any row to hand it back.
+      <p style={{ color: 'var(--ink-soft)', fontSize: 13.5, margin: '4px 0 14px', lineHeight: 1.5 }}>
+        This is your site, live — scroll it. Every tap below re-presses it
+        so you see exactly what guests will.
       </p>
 
-      <Row label="How it reads">
-        <Tile on={picks.siteMode === undefined} label="Pear decides" sub="One flowing page"
-          onClick={() => onChange({ siteMode: undefined })} />
-        <Tile on={picks.siteMode === 'scroll'} label="One page" sub="Everything in one scroll"
-          onClick={() => onChange({ siteMode: 'scroll' })}><ModeWire id="scroll" /></Tile>
-        <Tile on={picks.siteMode === 'multi-page'} label="Magazine" sub="Each section its own page"
-          onClick={() => onChange({ siteMode: 'multi-page' })}><ModeWire id="multi-page" /></Tile>
-      </Row>
+      <div className="pl8-structure-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 340px) 1fr', gap: 20, alignItems: 'start' }}>
+        {/* THE LIVE PRESSING — a phone in your hands. Scrollable,
+            real renderer, zoomed so layout (and therefore scroll)
+            stays native. */}
+        <div style={frame} key={pressKey} className="pl8-structure-press">
+          {ready ? (
+            <div style={{ position: 'absolute', inset: 5, borderRadius: 17, overflow: 'hidden' }}>
+              <div style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch' }}>
+                {/* `zoom` (not transform) so the scaled site keeps
+                    real layout height — the window scrolls like a
+                    phone. Supported in all evergreen browsers. */}
+                <div style={{ width: SITE_W, zoom: 330 / SITE_W, containerType: 'inline-size', containerName: 'pl-site' } as CSSProperties}>
+                  <ThemedSite manifest={manifest} names={names} forceMobile />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 11, color: 'var(--ink-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+              Pressing…
+            </div>
+          )}
+          {onExpand && (
+            <button
+              type="button"
+              onClick={onExpand}
+              style={{
+                position: 'absolute', right: 12, bottom: 12, zIndex: 3,
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '8px 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                background: 'color-mix(in srgb, var(--cream, #F5EFE2) 76%, transparent)',
+                backdropFilter: 'blur(14px) saturate(1.3)',
+                WebkitBackdropFilter: 'blur(14px) saturate(1.3)',
+                boxShadow: '0 10px 26px -10px rgba(14,13,11,0.4)',
+                color: 'var(--ink)', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+              }}
+            >
+              The fitting room ⤢
+            </button>
+          )}
+        </div>
 
-      <Row label="The nav">
-        <Tile on={picks.navVariant === undefined} label="Pear decides" sub="Matched to your look"
-          onClick={() => onChange({ navVariant: undefined })} />
-        {NAV_TILES.map((t) => (
-          <Tile key={t.id} on={picks.navVariant === t.id} label={t.label} sub={t.sub}
-            onClick={() => onChange({ navVariant: t.id })}><NavWire id={t.id} /></Tile>
-        ))}
-      </Row>
+        {/* THE CHOICES */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }}>
+          <Row label="How it reads">
+            <Chip on={picks.siteMode === undefined} label="Pear decides" onClick={() => onChange({ siteMode: undefined })} />
+            <Chip on={picks.siteMode === 'scroll'} label="One page" sub="Everything in one scroll" onClick={() => onChange({ siteMode: 'scroll' })} />
+            <Chip on={picks.siteMode === 'multi-page'} label="Magazine" sub="Each section its own page" onClick={() => onChange({ siteMode: 'multi-page' })} />
+          </Row>
+          <Row label="The component kit">
+            <Chip on={picks.kitId === undefined} label="Pear decides" onClick={() => onChange({ kitId: undefined })} />
+            {KIT_TILES.map((t) => (
+              <Chip key={t.id} on={picks.kitId === t.id} label={t.label} sub={t.sub} onClick={() => onChange({ kitId: t.id })} />
+            ))}
+          </Row>
+          <Row label="The nav">
+            <Chip on={picks.navVariant === undefined} label="Pear decides" onClick={() => onChange({ navVariant: undefined })} />
+            {NAV_TILES.map((t) => (
+              <Chip key={t.id} on={picks.navVariant === t.id} label={t.label} onClick={() => onChange({ navVariant: t.id })} />
+            ))}
+          </Row>
+          <Row label="The hero">
+            <Chip on={picks.heroVariant === undefined} label="Pear decides" onClick={() => onChange({ heroVariant: undefined })} />
+            {HERO_TILES.map((t) => (
+              <Chip key={t.id} on={picks.heroVariant === t.id} label={t.label} onClick={() => onChange({ heroVariant: t.id })} />
+            ))}
+          </Row>
+        </div>
+      </div>
 
-      <Row label="The hero">
-        <Tile on={picks.heroVariant === undefined} label="Pear decides" sub="Matched to your look"
-          onClick={() => onChange({ heroVariant: undefined })} />
-        {HERO_TILES.map((t) => (
-          <Tile key={t.id} on={picks.heroVariant === t.id} label={t.label} sub={t.sub}
-            onClick={() => onChange({ heroVariant: t.id })}><HeroWire id={t.id} /></Tile>
-        ))}
-      </Row>
+      <style jsx>{`
+        @media (max-width: 760px) {
+          :global(.pl8-structure-layout) {
+            grid-template-columns: 1fr !important;
+          }
+        }
+        :global(.pl8-structure-press) {
+          animation: pl8-press-settle 360ms var(--pl-ease-out, ease-out);
+        }
+        @keyframes pl8-press-settle {
+          from { opacity: 0.55; transform: translateY(4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          :global(.pl8-structure-press) { animation: none !important; }
+        }
+      `}</style>
     </div>
   );
 }
