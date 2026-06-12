@@ -1,4 +1,4 @@
-/* eslint-disable no-restricted-syntax */
+ 
 /* hydrateManifestForRedesign
    ---------------------------------------------------------------
    The new redesign canvas reads a wider field set than older

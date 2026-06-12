@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* Floating chrome for the redesign editor — Decor Library drawer,
    Theme Shop bottom sheet, Command Palette modal. All listen on
    window events ('pearloom:open-decor-library',

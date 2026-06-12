@@ -1,5 +1,5 @@
 'use client';
-/* eslint-disable no-restricted-syntax */
+ 
 /* Five desktop nav variant components for the canvas. ThemedSite
    dispatches between these (and the mobile drawer variants) based on
    the host's pick + viewport. Each variant takes the same NavProps

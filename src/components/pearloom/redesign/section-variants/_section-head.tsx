@@ -1,5 +1,5 @@
 'use client';
-/* eslint-disable no-restricted-syntax */
+ 
 /* VariantSectionHead — shared head for every section variant. Matches
    ThemedSite's TSectionHead behaviour exactly:
      - Eyebrow as InlineEdit when editable + onEditEyebrow

@@ -26,6 +26,11 @@ export interface Basting {
   /** Canvas section the stitch lands in — the loom FX threads there. */
   section: string;
   apply: (m: StoryManifest) => StoryManifest;
+  /** When set, "Add it" awaits this instead of `apply` — used by the
+   *  story draft, the one basting that needs a model call. Resolves
+   *  to the next manifest, or null when the draft came back empty
+   *  (keyless deploy / model error) so the card can fail quietly. */
+  applyAsync?: (m: StoryManifest) => Promise<StoryManifest | null>;
 }
 
 type Loose = Record<string, unknown>;
@@ -78,6 +83,55 @@ export function deriveBastings(manifest: StoryManifest, slug: string): Basting[]
   const loose = manifest as unknown as Loose;
   const occasion = (loose.occasion as string | undefined);
   const out: Basting[] = [];
+
+  // 0. The host told Pear their story in the wizard but the story
+  //    section is still empty — offer to baste the draft in. This
+  //    is the ONE basting that calls the model: /api/story-draft,
+  //    grounded in the fact sheet (the host's own words). Leads the
+  //    card because it's the highest-value stitch after the instant
+  //    wizard (which no longer drafts story content itself).
+  const storyBody = ((loose.storySection as Loose | undefined)?.body as string | undefined) ?? '';
+  const fs = (loose.factSheet as { howWeMet?: string; why?: string; favorite?: string; story?: string } | undefined) ?? {};
+  const hasFacts = [fs.howWeMet, fs.why, fs.favorite, fs.story].some((v) => typeof v === 'string' && v.trim().length > 0);
+  if (!storyBody.trim() && hasFacts) {
+    out.push({
+      id: 'story-from-facts',
+      label: 'Your story, drafted from your words',
+      detail: 'You told me how it started in the wizard — I can baste a first draft of the story section in from exactly what you said.',
+      section: 'story',
+      apply: (m) => m,
+      applyAsync: async (m) => {
+        const l = m as unknown as Loose;
+        const logistics = (l.logistics as Loose | undefined) ?? {};
+        try {
+          const res = await fetch('/api/story-draft', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              names: l.names,
+              occasion: l.occasion,
+              venue: logistics.venue,
+              place: logistics.place,
+              date: logistics.date,
+              factSheet: l.factSheet,
+              photoCaptions: Object.values((l.galleryCaptions as Record<string, string> | undefined) ?? {}),
+            }),
+          });
+          if (!res.ok) return null;
+          const data = (await res.json()) as { draft?: string };
+          const draft = (data.draft ?? '').trim();
+          if (!draft) return null;
+          const storySection = (l.storySection as Loose | undefined) ?? {};
+          return blockOrderWith(
+            { ...l, storySection: { ...storySection, body: draft } } as unknown as StoryManifest,
+            'story',
+          );
+        } catch {
+          return null;
+        }
+      },
+    });
+  }
 
   // 1. Date is set but there's no countdown section.
   const hasDate = Boolean((loose.logistics as Loose | undefined)?.date);

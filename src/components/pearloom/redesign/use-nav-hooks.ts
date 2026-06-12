@@ -1,38 +1,33 @@
 'use client';
-/* eslint-disable no-restricted-syntax */
+ 
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 
 /**
  * Returns true when the viewport width is at or below `breakpoint` pixels.
- * SSR-safe: returns false on the server / first render, then updates on mount.
+ * SSR-safe: returns false on the server / first render, then updates on
+ * change. Implemented as an external-store subscription (matchMedia IS
+ * the external system) so there's no setState-in-effect cascade.
  */
 export function useIsMobile(breakpoint: number = 760): boolean {
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-
-  useEffect(() => {
+  const subscribe = useCallback((onChange: () => void) => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-      return;
+      return () => {};
     }
-
     const mql = window.matchMedia(`(max-width: ${breakpoint}px)`);
-    setIsMobile(mql.matches);
-
-    const handler = (event: MediaQueryListEvent) => {
-      setIsMobile(event.matches);
-    };
-
     if (typeof mql.addEventListener === 'function') {
-      mql.addEventListener('change', handler);
-      return () => mql.removeEventListener('change', handler);
+      mql.addEventListener('change', onChange);
+      return () => mql.removeEventListener('change', onChange);
     }
-
     // Legacy fallback for older Safari.
-    mql.addListener(handler);
-    return () => mql.removeListener(handler);
+    mql.addListener(onChange);
+    return () => mql.removeListener(onChange);
   }, [breakpoint]);
-
-  return isMobile;
+  const getSnapshot = useCallback(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+    return window.matchMedia(`(max-width: ${breakpoint}px)`).matches;
+  }, [breakpoint]);
+  return useSyncExternalStore(subscribe, getSnapshot, () => false);
 }
 
 /**

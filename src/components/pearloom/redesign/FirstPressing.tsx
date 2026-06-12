@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* =========================================================================
    THE FIRST PRESSING — the reveal moment after Pear weaves a site.
 

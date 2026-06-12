@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/consistent-type-definitions, no-restricted-syntax */
+ 
 /* LITERAL PORT of handoff/shared/themes.jsx THEMES catalog + themeRootStyle.
 
    Per the integration guide §0: this is THE primary visual fix. The

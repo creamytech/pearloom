@@ -148,39 +148,39 @@ export function CommandPalette({
   let idx = -1;
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 120, background: 'rgba(40,40,30,0.4)', backdropFilter: 'blur(5px)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '12vh' } as CSSProperties}>
-      <div onClick={(e) => e.stopPropagation()} onKeyDown={onKey} style={{ width: 'min(580px, 94vw)', background: 'var(--card)', borderRadius: 16, boxShadow: '0 30px 80px rgba(40,40,30,0.32)', overflow: 'hidden', border: '1px solid var(--line-soft)', animation: 'cmd-in 180ms cubic-bezier(0.16,1,0.3,1)' }}>
+      <div onClick={(e) => e.stopPropagation()} onKeyDown={onKey} style={{ width: 'min(580px, 94vw)', background: 'var(--pl-chrome-surface)', borderRadius: 16, boxShadow: '0 30px 80px rgba(40,40,30,0.32)', overflow: 'hidden', border: '1px solid var(--pl-chrome-border)', animation: 'cmd-in 180ms cubic-bezier(0.16,1,0.3,1)' }}>
         <style>{`@keyframes cmd-in{from{transform:translateY(-8px) scale(0.99);opacity:0}to{transform:none;opacity:1}}`}</style>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '15px 18px', borderBottom: '1px solid var(--line-soft)' }}>
-          <Icon name="search" size={17} color="var(--ink-muted)"/>
-          <input ref={inputRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search sections, themes, actions…" style={{ flex: 1, border: 'none', background: 'transparent', fontSize: 15.5, outline: 'none', color: 'var(--ink)', fontFamily: 'inherit' }}/>
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-muted)', background: 'var(--cream-2)', padding: '3px 7px', borderRadius: 6 }}>ESC</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '15px 18px', borderBottom: '1px solid var(--pl-chrome-border)' }}>
+          <Icon name="search" size={17} color="var(--pl-chrome-text-muted)"/>
+          <input ref={inputRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search sections, themes, actions…" style={{ flex: 1, border: 'none', background: 'transparent', fontSize: 15.5, outline: 'none', color: 'var(--pl-chrome-text)', fontFamily: 'inherit' }}/>
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--pl-chrome-text-muted)', background: 'var(--cream-2)', padding: '3px 7px', borderRadius: 6 }}>ESC</span>
         </div>
         <div ref={listRef} style={{ maxHeight: '52vh', overflow: 'auto', padding: 8 }}>
-          {results.length === 0 && <div style={{ padding: '34px 0', textAlign: 'center', color: 'var(--ink-muted)', fontSize: 13.5 }}><Pear size={36} tone="sage" shadow={false}/><div style={{ marginTop: 8 }}>No matches</div></div>}
+          {results.length === 0 && <div style={{ padding: '34px 0', textAlign: 'center', color: 'var(--pl-chrome-text-muted)', fontSize: 13.5 }}><Pear size={36} tone="sage" shadow={false}/><div style={{ marginTop: 8 }}>No matches</div></div>}
           {groups.map(([g, items]) => (
             <div key={g}>
-              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', padding: '10px 12px 5px' }}>{g}</div>
+              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--pl-chrome-text-muted)', padding: '10px 12px 5px' }}>{g}</div>
               {items.map(c => {
                 idx++; const i = idx; const on = i === sel;
                 return (
-                  <button key={c.id || c.label} onMouseEnter={() => setSel(i)} onClick={() => run(c)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 10, textAlign: 'left', background: on ? 'var(--ink)' : 'transparent', color: on ? 'var(--cream)' : 'var(--ink)', cursor: 'pointer' } as CSSProperties}>
+                  <button key={c.id || c.label} onMouseEnter={() => setSel(i)} onClick={() => run(c)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 10, textAlign: 'left', background: on ? 'var(--pl-chrome-text)' : 'transparent', color: on ? 'var(--pl-chrome-bg)' : 'var(--pl-chrome-text)', cursor: 'pointer' } as CSSProperties}>
                     <span style={{ width: 30, height: 30, borderRadius: 8, background: on ? 'rgba(255,255,255,0.14)' : 'var(--cream-2)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-                      {c.swatch ? <span style={{ width: 16, height: 16, borderRadius: '50%', background: c.swatch }}/> : <Icon name={c.icon || 'arrow-right'} size={15} color={on ? 'var(--cream)' : 'var(--ink-soft)'}/>}
+                      {c.swatch ? <span style={{ width: 16, height: 16, borderRadius: '50%', background: c.swatch }}/> : <Icon name={c.icon || 'arrow-right'} size={15} color={on ? 'var(--pl-chrome-bg)' : 'var(--pl-chrome-text-soft)'}/>}
                     </span>
                     <span style={{ flex: 1, minWidth: 0 }}>
                       <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600 }}>{c.label}</span>
-                      {c.hint && <span style={{ display: 'block', fontSize: 11.5, color: on ? 'rgba(248,241,228,0.7)' : 'var(--ink-muted)' }}>{c.hint}</span>}
+                      {c.hint && <span style={{ display: 'block', fontSize: 11.5, color: on ? 'rgba(248,241,228,0.7)' : 'var(--pl-chrome-text-muted)' }}>{c.hint}</span>}
                     </span>
-                    {on && <Icon name="arrow-right" size={13} color="var(--cream)"/>}
+                    {on && <Icon name="arrow-right" size={13} color="var(--pl-chrome-bg)"/>}
                   </button>
                 );
               })}
             </div>
           ))}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '9px 16px', borderTop: '1px solid var(--line-soft)', fontSize: 11, color: 'var(--ink-muted)' }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><b style={{ color: 'var(--ink-soft)' }}>↑↓</b> navigate</span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><b style={{ color: 'var(--ink-soft)' }}>↵</b> select</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '9px 16px', borderTop: '1px solid var(--pl-chrome-border)', fontSize: 11, color: 'var(--pl-chrome-text-muted)' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><b style={{ color: 'var(--pl-chrome-text-soft)' }}>↑↓</b> navigate</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><b style={{ color: 'var(--pl-chrome-text-soft)' }}>↵</b> select</span>
           <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }}><Pear size={14} tone="sage" shadow={false}/> Pearloom</span>
         </div>
       </div>

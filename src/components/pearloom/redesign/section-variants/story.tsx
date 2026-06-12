@@ -1,5 +1,5 @@
 'use client';
-/* eslint-disable no-restricted-syntax */
+ 
 /* Story section variants. Currently exports only StoryZigzag —
    the sidebyside / stacked / quote / timeline / letter variants
    are already shipped inline in ThemedSite.tsx. */

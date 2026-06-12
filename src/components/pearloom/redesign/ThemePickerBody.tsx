@@ -2,7 +2,7 @@
 
 import { pearWorking } from './PearLoomFx';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* LITERAL PORT of handoff/shared/themes.jsx L820-933 ThemePicker body.
 
    The right-rail content when no section is selected. Order:

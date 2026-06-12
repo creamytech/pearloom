@@ -43,7 +43,7 @@ export function AISuggestButton({
           padding: sm ? '7px 12px' : '10px 16px',
           borderRadius: 999,
           background: state === 'done' ? 'var(--sage-tint)' : 'var(--lavender-bg)',
-          color: 'var(--ink)',
+          color: 'var(--pl-chrome-text)',
           border: `1px solid ${state === 'done' ? 'var(--sage-deep)' : 'rgba(107,90,140,0.25)'}`,
           fontSize: sm ? 12 : 13,
           fontWeight: 600,
@@ -132,12 +132,12 @@ export function AIHint({ children }: { children: ReactNode }) {
           display: 'grid',
           placeItems: 'center',
           flexShrink: 0,
-          color: 'var(--cream)',
+          color: 'var(--pl-chrome-bg)',
         }}
       >
         <Icon name="sparkles" size={14} />
       </div>
-      <div style={{ fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.5 }}>{children}</div>
+      <div style={{ fontSize: 12, color: 'var(--pl-chrome-text-soft)', lineHeight: 1.5 }}>{children}</div>
     </div>
   );
 }

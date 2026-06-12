@@ -1,5 +1,5 @@
 'use client';
-/* eslint-disable no-restricted-syntax */
+ 
 
 /* ============================================================
    NAV MOBILE — 4 drawer variants (Round F).

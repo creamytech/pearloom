@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* LITERAL PORT of handoff/pages/editor-redesign.jsx L314-579 FullSite.
 
    This is the IN-EDITOR canvas content — a stylised stand-in for the

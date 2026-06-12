@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* PublishChecklist — topbar pill + popover with two lives:
 
    BEFORE publish — audits the manifest for missing essentials.

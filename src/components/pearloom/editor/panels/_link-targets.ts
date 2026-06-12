@@ -1,4 +1,4 @@
-/* eslint-disable no-restricted-syntax */
+ 
 /* Link-target catalog — shared by every panel that needs a
    "where does this link go?" dropdown. Section ids must match the
    `SectionKind` union in ThemedSite.tsx; the renderer mounts each

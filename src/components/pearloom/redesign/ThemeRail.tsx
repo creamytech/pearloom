@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* LITERAL PORT of handoff/shared/themes.jsx L798-933 ThemePicker.
 
    The right-rail aside when no section is active. Shows:

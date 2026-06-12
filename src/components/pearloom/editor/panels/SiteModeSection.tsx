@@ -76,7 +76,7 @@ export function SiteModeSection({
             ]}
           />
         </Field>
-        <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
+        <div style={{ fontSize: 11.5, color: 'var(--pl-chrome-text-muted)', lineHeight: 1.5 }}>
           {mode === 'scroll' ? (
             <>Every block lives on one long, scrollable home page. Nav links scroll to anchors.</>
           ) : (
@@ -98,9 +98,9 @@ export function SiteModeSection({
                     style={{
                       padding: '10px 12px',
                       borderRadius: 10,
-                      border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
-                      background: on ? 'var(--cream-2)' : 'var(--card)',
-                      color: 'var(--ink)',
+                      border: on ? '1.5px solid var(--pl-chrome-text)' : '1.5px solid var(--pl-chrome-border)',
+                      background: on ? 'var(--cream-2)' : 'var(--pl-chrome-surface)',
+                      color: 'var(--pl-chrome-text)',
                       cursor: 'pointer',
                       textAlign: 'left',
                       fontFamily: 'var(--font-ui)',
@@ -115,12 +115,12 @@ export function SiteModeSection({
                           height: 10,
                           borderRadius: 999,
                           background: on ? 'var(--peach-ink, #C6703D)' : 'transparent',
-                          border: on ? 'none' : '1.5px solid var(--line)',
+                          border: on ? 'none' : '1.5px solid var(--pl-chrome-border)',
                         }}
                       />
-                      <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>{o.label}</span>
+                      <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--pl-chrome-text)' }}>{o.label}</span>
                     </span>
-                    <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', marginTop: 2, marginLeft: 18 }}>
+                    <div style={{ fontSize: 10.5, color: 'var(--pl-chrome-text-muted)', marginTop: 2, marginLeft: 18 }}>
                       {o.hint}
                     </div>
                   </button>
@@ -135,9 +135,9 @@ export function SiteModeSection({
               padding: '10px 12px',
               borderRadius: 10,
               background: 'var(--cream-2)',
-              border: '1px dashed var(--line)',
+              border: '1px dashed var(--pl-chrome-border)',
               fontSize: 11,
-              color: 'var(--ink-muted)',
+              color: 'var(--pl-chrome-text-muted)',
               lineHeight: 1.5,
             }}
           >

@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* =========================================================================
    PEARLOOM — USER SETTINGS MODAL (LITERAL PORT)
    Direct port of ClaudeDesign/pages/user-settings.jsx. Every className +

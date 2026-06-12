@@ -127,7 +127,7 @@ export function PearActionCard({ envelope, siteSlug, onDone, onDismiss }: Props)
           >
             {done ? 'Sent' : 'Pear can do this'}
           </div>
-          <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.4, fontWeight: 500 }}>
+          <div style={{ fontSize: 13, color: 'var(--pl-chrome-text)', lineHeight: 1.4, fontWeight: 500 }}>
             {envelope.summary}
           </div>
         </div>
@@ -142,7 +142,7 @@ export function PearActionCard({ envelope, siteSlug, onDone, onDismiss }: Props)
             border: '1px solid rgba(198,112,61,0.18)',
             borderRadius: 10,
             fontSize: 13,
-            color: 'var(--ink)',
+            color: 'var(--pl-chrome-text)',
             fontStyle: 'italic',
             fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
             lineHeight: 1.5,
@@ -170,9 +170,9 @@ export function PearActionCard({ envelope, siteSlug, onDone, onDismiss }: Props)
               flex: 1,
               padding: '8px 14px',
               borderRadius: 999,
-              border: canRun ? 'none' : '1px solid var(--line)',
+              border: canRun ? 'none' : '1px solid var(--pl-chrome-border)',
               background: canRun ? undefined : 'var(--cream-2)',
-              color: canRun ? undefined : 'var(--ink-muted)',
+              color: canRun ? undefined : 'var(--pl-chrome-text-muted)',
               fontSize: 12.5,
               fontWeight: 700,
               cursor: canRun ? 'pointer' : 'not-allowed',
@@ -188,8 +188,8 @@ export function PearActionCard({ envelope, siteSlug, onDone, onDismiss }: Props)
               padding: '8px 14px',
               borderRadius: 999,
               background: 'transparent',
-              color: 'var(--ink-soft)',
-              border: '1px solid var(--line)',
+              color: 'var(--pl-chrome-text-soft)',
+              border: '1px solid var(--pl-chrome-border)',
               fontSize: 12,
               fontWeight: 600,
               cursor: 'pointer',

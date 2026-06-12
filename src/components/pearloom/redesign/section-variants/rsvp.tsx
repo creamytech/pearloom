@@ -1,5 +1,5 @@
 'use client';
-/* eslint-disable no-restricted-syntax */
+ 
 
 import type { CSSProperties } from 'react';
 import type { RsvpVariantCtx } from './types';

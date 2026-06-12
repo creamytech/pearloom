@@ -9,6 +9,11 @@
 //     place?: string;
 //     date?: string;
 //     chips?: string[];          // host's highlight chips for hints
+//     factSheet?: { howWeMet?, why?, favorite?, story?, anchors? }
+//                                  // the wizard's fact sheet — the richest
+//                                  // source; when present the draft is
+//                                  // GROUNDED in it, never invented
+//     photoCaptions?: string[];   // captions the host wrote on photos
 //     existing?: string;          // current body — if set, the route REwrites
 //                                  it instead of starting from scratch
 //   }
@@ -17,7 +22,9 @@
 // Drafts the "Your story" body from couple context. Used by the
 // StoryPanel "Draft for me" button — wakes up an empty body
 // (or rewrites a stub) into a warm 2-3 sentence story for the
-// site's story section.
+// site's story section. The wizard rides howWeMet / why /
+// favorite / the spoken story onto manifest.factSheet exactly so
+// this pass can use the host's own words.
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -35,6 +42,14 @@ interface Body {
   place?: string;
   date?: string;
   chips?: string[];
+  factSheet?: {
+    howWeMet?: string;
+    why?: string;
+    favorite?: string;
+    story?: string;
+    anchors?: string[];
+  };
+  photoCaptions?: string[];
   existing?: string;
 }
 
@@ -70,12 +85,28 @@ export async function POST(req: NextRequest) {
 
   const names = Array.isArray(body.names) ? body.names.filter(Boolean).join(' & ') : '';
   const chips = Array.isArray(body.chips) ? body.chips.filter(Boolean).slice(0, 6) : [];
+  const fs = body.factSheet ?? {};
+  const clamp = (v: unknown, n: number) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, n) : '');
+  const facts: string[] = [];
+  if (clamp(fs.howWeMet, 500)) facts.push(`How it started (host's words): ${clamp(fs.howWeMet, 500)}`);
+  if (clamp(fs.why, 500)) facts.push(`Why this celebration (host's words): ${clamp(fs.why, 500)}`);
+  if (clamp(fs.favorite, 500)) facts.push(`A favourite memory (host's words): ${clamp(fs.favorite, 500)}`);
+  if (clamp(fs.story, 1200)) facts.push(`The host told the story aloud — transcript: ${clamp(fs.story, 1200)}`);
+  if (Array.isArray(fs.anchors) && fs.anchors.length > 0) {
+    facts.push(`Hard facts that must survive verbatim: ${fs.anchors.filter(Boolean).slice(0, 8).join(' · ')}`);
+  }
+  const captions = Array.isArray(body.photoCaptions)
+    ? body.photoCaptions.filter((c) => typeof c === 'string' && c.trim()).slice(0, 8)
+    : [];
+  const hasFacts = facts.length > 0;
 
   const ctxLines: string[] = [];
   if (names) ctxLines.push(`Subject: ${names}`);
   if (body.occasion) ctxLines.push(`Occasion: ${body.occasion}`);
   if (body.venue || body.place) ctxLines.push(`Where: ${[body.venue, body.place].filter(Boolean).join(', ')}`);
   if (body.date) ctxLines.push(`When: ${body.date}`);
+  if (facts.length > 0) ctxLines.push(...facts);
+  if (captions.length > 0) ctxLines.push(`Photo captions the host wrote: ${captions.join(' · ')}`);
   if (chips.length > 0) ctxLines.push(`Hints from the host: ${chips.join(' · ')}`);
   if (body.existing && body.existing.trim()) ctxLines.push(`Existing draft (refine, don't restart):\n${body.existing.trim().slice(0, 600)}`);
 
@@ -91,7 +122,10 @@ export async function POST(req: NextRequest) {
         'Rules:',
         '- 2 to 3 sentences, 35-90 words total.',
         '- Warm, specific, present-tense or simple past.',
-        '- Anchor in one concrete detail (a place, a year, an object, a moment) — invent if the host gave none.',
+        '- Anchor in one concrete detail (a place, a year, an object, a moment).',
+        hasFacts
+          ? '- The host gave you their own words (fact sheet / transcript / captions). Draft FROM those — every detail must trace back to something they said. Never invent facts when real ones exist.'
+          : '- The host gave no facts — invent gentle, generic anchors that could be true of anyone.',
         '- Use the host\'s hints (chips) as the source of detail when present.',
         '- Never use clichés ("love at first sight", "two halves", "soulmates", "happily ever after", "tying the knot", "two souls").',
         '- Voice: editorial. Quiet, confident. Not breathless.',

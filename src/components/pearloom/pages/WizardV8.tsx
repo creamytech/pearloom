@@ -1425,7 +1425,7 @@ export function WizardV8() {
       })
       .catch(() => { /* prefill is a nicety */ });
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);

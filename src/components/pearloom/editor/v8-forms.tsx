@@ -171,7 +171,7 @@ export function NumberInput({
         }}
       />
       {unit && (
-        <span style={{ fontSize: 10.5, color: 'var(--ink-muted)', paddingRight: 6, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: 10.5, color: 'var(--pl-chrome-text-muted)', paddingRight: 6, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
           {unit}
         </span>
       )}
@@ -340,7 +340,7 @@ export function CustomSelect<T extends string = string>({
           borderRadius: 10,
           cursor: disabled ? 'not-allowed' : 'pointer',
           fontSize: 13,
-          color: 'var(--ink)',
+          color: 'var(--pl-chrome-text)',
           fontFamily: 'inherit',
           textAlign: 'left',
           opacity: disabled ? 0.55 : 1,
@@ -353,7 +353,7 @@ export function CustomSelect<T extends string = string>({
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
-          color: selected ? 'var(--ink)' : 'var(--ink-muted)',
+          color: selected ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-muted)',
         }}>
           {selected?.label ?? placeholder}
         </span>
@@ -406,7 +406,7 @@ export function CustomSelect<T extends string = string>({
                   borderRadius: 8,
                   cursor: 'pointer',
                   background: hover ? 'var(--cream-2, #F3E9D4)' : 'transparent',
-                  color: 'var(--ink)',
+                  color: 'var(--pl-chrome-text)',
                   fontSize: 13,
                 }}
               >
@@ -419,7 +419,7 @@ export function CustomSelect<T extends string = string>({
                 </span>
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ fontWeight: on ? 700 : 500, display: 'block' }}>{opt.label}</span>
-                  {opt.hint && <span style={{ fontSize: 11, color: 'var(--ink-muted)', display: 'block', lineHeight: 1.35 }}>{opt.hint}</span>}
+                  {opt.hint && <span style={{ fontSize: 11, color: 'var(--pl-chrome-text-muted)', display: 'block', lineHeight: 1.35 }}>{opt.hint}</span>}
                 </span>
               </div>
             );
@@ -542,9 +542,9 @@ export function V8Slider({
         />
       </div>
       {showValue && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, fontSize: 11, color: 'var(--ink-muted)', fontVariantNumeric: 'tabular-nums' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, fontSize: 11, color: 'var(--pl-chrome-text-muted)', fontVariantNumeric: 'tabular-nums' }}>
           <span>{min}</span>
-          <span style={{ fontWeight: 700, color: 'var(--ink)' }}>{display}</span>
+          <span style={{ fontWeight: 700, color: 'var(--pl-chrome-text)' }}>{display}</span>
           <span>{max}</span>
         </div>
       )}
@@ -673,7 +673,7 @@ export function Switch({
         gap: 10,
         cursor: disabled ? 'not-allowed' : 'pointer',
         fontSize: 13,
-        color: 'var(--ink)',
+        color: 'var(--pl-chrome-text)',
         ...style,
       }}
     >
@@ -763,11 +763,11 @@ export function DatePicker({
           width: '100%',
           padding: '8px 12px',
           background: 'var(--card, #fff)',
-          border: `1px solid ${open ? 'var(--ink)' : 'var(--line, rgba(61,74,31,0.14))'}`,
+          border: `1px solid ${open ? 'var(--pl-chrome-text)' : 'var(--line, rgba(61,74,31,0.14))'}`,
           borderRadius: 10,
           cursor: disabled ? 'not-allowed' : 'pointer',
           fontSize: 13,
-          color: value ? 'var(--ink)' : 'var(--ink-muted)',
+          color: value ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-muted)',
           fontFamily: 'inherit',
           textAlign: 'left',
           display: 'flex',
@@ -811,7 +811,7 @@ export function DatePicker({
             >
               ‹
             </button>
-            <div style={{ flex: 1, textAlign: 'center', fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>
+            <div style={{ flex: 1, textAlign: 'center', fontSize: 13, fontWeight: 600, color: 'var(--pl-chrome-text)' }}>
               {monthLabel}
             </div>
             <button
@@ -823,7 +823,7 @@ export function DatePicker({
               ›
             </button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, fontSize: 10.5, color: 'var(--ink-muted)', marginBottom: 4 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, fontSize: 10.5, color: 'var(--pl-chrome-text-muted)', marginBottom: 4 }}>
             {['S','M','T','W','T','F','S'].map((d, i) => (
               <div key={i} style={{ textAlign: 'center', padding: '4px 0', letterSpacing: '0.12em', textTransform: 'uppercase' }}>{d}</div>
             ))}
@@ -843,8 +843,8 @@ export function DatePicker({
                     padding: 0,
                     height: 30,
                     borderRadius: 6,
-                    background: on ? 'var(--ink)' : c.isToday ? 'var(--cream-2)' : 'transparent',
-                    color: on ? 'var(--cream)' : dim ? 'var(--ink-muted)' : 'var(--ink)',
+                    background: on ? 'var(--pl-chrome-text)' : c.isToday ? 'var(--cream-2)' : 'transparent',
+                    color: on ? 'var(--pl-chrome-bg)' : dim ? 'var(--pl-chrome-text-muted)' : 'var(--pl-chrome-text)',
                     border: 'none',
                     fontSize: 12,
                     fontVariantNumeric: 'tabular-nums',
@@ -874,7 +874,7 @@ export function DatePicker({
                 padding: '6px 8px',
                 background: 'transparent',
                 border: 'none',
-                color: 'var(--ink-muted)',
+                color: 'var(--pl-chrome-text-muted)',
                 fontSize: 11,
                 cursor: 'pointer',
                 textDecoration: 'underline',
@@ -900,9 +900,9 @@ const NAV_BTN: CSSProperties = {
   width: 26,
   height: 26,
   borderRadius: 6,
-  border: '1px solid var(--line)',
+  border: '1px solid var(--pl-chrome-border)',
   background: 'transparent',
-  color: 'var(--ink-soft)',
+  color: 'var(--pl-chrome-text-soft)',
   cursor: 'pointer',
   fontSize: 14,
   fontFamily: 'inherit',
@@ -1027,11 +1027,11 @@ export function TimePicker({
           width: '100%',
           padding: '8px 12px',
           background: 'var(--card, #fff)',
-          border: `1px solid ${open ? 'var(--ink)' : 'var(--line, rgba(61,74,31,0.14))'}`,
+          border: `1px solid ${open ? 'var(--pl-chrome-text)' : 'var(--line, rgba(61,74,31,0.14))'}`,
           borderRadius: 10,
           cursor: disabled ? 'not-allowed' : 'pointer',
           fontSize: 13,
-          color: value ? 'var(--ink)' : 'var(--ink-muted)',
+          color: value ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-muted)',
           fontFamily: 'inherit',
           textAlign: 'left',
           display: 'flex',
@@ -1091,9 +1091,9 @@ export function TimePicker({
                       style={{
                         flex: 1,
                         borderRadius: 8,
-                        background: on ? 'var(--ink)' : 'var(--card)',
-                        color: on ? 'var(--cream)' : 'var(--ink)',
-                        border: `1px solid ${on ? 'var(--ink)' : 'var(--line)'}`,
+                        background: on ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-surface)',
+                        color: on ? 'var(--pl-chrome-bg)' : 'var(--pl-chrome-text)',
+                        border: `1px solid ${on ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-border)'}`,
                         cursor: 'pointer',
                         fontSize: 12,
                         fontWeight: 700,
@@ -1118,7 +1118,7 @@ export function TimePicker({
                 padding: '6px 8px',
                 background: 'transparent',
                 border: 'none',
-                color: 'var(--ink-muted)',
+                color: 'var(--pl-chrome-text-muted)',
                 fontSize: 11,
                 cursor: 'pointer',
                 textDecoration: 'underline',
@@ -1159,7 +1159,7 @@ function ScrollColumn({
   }, [selected]);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-      <div style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--ink-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', textAlign: 'center', marginBottom: 4 }}>
+      <div style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--pl-chrome-text-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', textAlign: 'center', marginBottom: 4 }}>
         {label}
       </div>
       <div
@@ -1186,8 +1186,8 @@ function ScrollColumn({
               style={{
                 padding: '6px 8px',
                 borderRadius: 6,
-                background: on ? 'var(--ink)' : 'transparent',
-                color: on ? 'var(--cream)' : 'var(--ink)',
+                background: on ? 'var(--pl-chrome-text)' : 'transparent',
+                color: on ? 'var(--pl-chrome-bg)' : 'var(--pl-chrome-text)',
                 border: 'none',
                 fontSize: 13,
                 fontWeight: on ? 700 : 500,

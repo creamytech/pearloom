@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* MusicPanel — Spotify / Apple Music playlist embed + guest song
    submissions. Writes manifest.music = { provider, url, title,
    description }. */

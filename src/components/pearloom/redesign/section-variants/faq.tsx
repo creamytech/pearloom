@@ -1,5 +1,5 @@
 'use client';
-/* eslint-disable no-restricted-syntax */
+ 
 
 import React from 'react';
 import type { CSSProperties } from 'react';

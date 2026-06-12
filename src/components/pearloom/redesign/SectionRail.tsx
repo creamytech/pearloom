@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* LITERAL PORT of handoff/pages/editor-redesign.jsx L137-234 SectionRail. */
 
 import { Fragment, useRef, useState } from 'react';

@@ -223,7 +223,7 @@ export function PhotoPicker({
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'var(--cream)',
+          background: 'var(--pl-chrome-bg)',
           borderRadius: 18,
           width: 'min(1000px, 100%)',
           height: 'min(720px, 92vh)',
@@ -236,7 +236,7 @@ export function PhotoPicker({
         <header
           style={{
             padding: '18px 24px',
-            borderBottom: '1px solid var(--line-soft)',
+            borderBottom: '1px solid var(--pl-chrome-border)',
             display: 'flex',
             alignItems: 'center',
             gap: 14,
@@ -271,7 +271,7 @@ export function PhotoPicker({
               height: 32,
               borderRadius: 8,
               background: 'transparent',
-              border: '1px solid var(--line)',
+              border: '1px solid var(--pl-chrome-border)',
               display: 'grid',
               placeItems: 'center',
               cursor: 'pointer',
@@ -281,14 +281,14 @@ export function PhotoPicker({
           </button>
         </header>
 
-        <div style={{ padding: '14px 24px', borderBottom: '1px solid var(--line-soft)', display: 'flex', gap: 10 }}>
+        <div style={{ padding: '14px 24px', borderBottom: '1px solid var(--pl-chrome-border)', display: 'flex', gap: 10 }}>
           <label
             htmlFor="pl8-picker-input"
             style={{
               padding: '8px 14px',
               borderRadius: 999,
-              background: 'var(--ink)',
-              color: 'var(--cream)',
+              background: 'var(--pl-chrome-text)',
+              color: 'var(--pl-chrome-bg)',
               fontSize: 12,
               fontWeight: 600,
               cursor: uploading ? 'wait' : 'pointer',
@@ -299,7 +299,7 @@ export function PhotoPicker({
               opacity: uploading ? 0.7 : 1,
             }}
           >
-            <Icon name="upload" size={12} color="var(--cream)" /> {uploading ? 'Uploading…' : 'Upload'}
+            <Icon name="upload" size={12} color="var(--pl-chrome-bg)" /> {uploading ? 'Uploading…' : 'Upload'}
           </label>
           <input
             id="pl8-picker-input"
@@ -316,8 +316,8 @@ export function PhotoPicker({
             style={{
               padding: '8px 14px',
               borderRadius: 999,
-              background: 'var(--card)',
-              border: '1px solid var(--line)',
+              background: 'var(--pl-chrome-surface)',
+              border: '1px solid var(--pl-chrome-border)',
               fontSize: 12,
               fontWeight: 600,
               cursor: pickerBusy ? 'wait' : 'pointer',
@@ -336,7 +336,7 @@ export function PhotoPicker({
                 padding: '8px 16px',
                 borderRadius: 999,
                 background: selectedIds.size > 0 ? 'var(--peach-2)' : 'var(--cream-2)',
-                color: selectedIds.size > 0 ? 'var(--ink)' : 'var(--ink-muted)',
+                color: selectedIds.size > 0 ? 'var(--pl-chrome-text)' : 'var(--pl-chrome-text-muted)',
                 border: 'none',
                 fontSize: 12,
                 fontWeight: 600,
@@ -351,9 +351,9 @@ export function PhotoPicker({
 
         <div style={{ flex: 1, overflowY: 'auto', padding: 18 }}>
           {loading ? (
-            <div style={{ color: 'var(--ink-soft)', textAlign: 'center', padding: 40 }}>Threading…</div>
+            <div style={{ color: 'var(--pl-chrome-text-soft)', textAlign: 'center', padding: 40 }}>Threading…</div>
           ) : filtered.length === 0 ? (
-            <div style={{ color: 'var(--ink-soft)', textAlign: 'center', padding: 40 }}>
+            <div style={{ color: 'var(--pl-chrome-text-soft)', textAlign: 'center', padding: 40 }}>
               {query ? 'No matches.' : 'Your library is empty — upload or pick from Google Photos above.'}
             </div>
           ) : (
@@ -396,7 +396,7 @@ export function PhotoPicker({
                           height: 22,
                           borderRadius: '50%',
                           background: 'var(--peach-2)',
-                          color: 'var(--ink)',
+                          color: 'var(--pl-chrome-text)',
                           display: 'grid',
                           placeItems: 'center',
                         }}

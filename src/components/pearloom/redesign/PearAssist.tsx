@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* PearAssist — shared AI primitives across the editor.
 
    Round S consolidated four ad-hoc spinner/chip patterns into:

@@ -1,4 +1,4 @@
-/* eslint-disable no-restricted-syntax */
+ 
 /* Curated suggestion sets for the FSuggest atom across the section
    panels. Each suggestion is a string the host can tap to one-shot
    their input. All inputs still allow free typing — these are

@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* InlineEdit — click-to-edit text primitive used inside the canvas.
 
    Round R wired this into ThemedSite so hosts can edit the

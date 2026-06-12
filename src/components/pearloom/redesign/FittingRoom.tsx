@@ -23,7 +23,7 @@
    other edit.
    ════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { ThemedSite } from './ThemedSite';
 import { fireUndoable } from './UndoToast';
@@ -78,14 +78,18 @@ export function FittingRoom({
     return () => window.removeEventListener(DRAPE_EVENT, onDrape);
   }, []);
 
+  const release = useCallback(() => {
+    setMix(0);
+    window.setTimeout(() => setDrape(null), 380);
+  }, []);
+
   // Esc releases the drape.
   useEffect(() => {
     if (!drape) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') release(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [drape]);
+  }, [drape, release]);
 
   if (!drape) return null;
 
@@ -96,10 +100,6 @@ export function FittingRoom({
     pearWorking('done', undefined, 'theme');
     fireUndoable(`${drape.label} — set`, () => onApplyRef.current(previous));
     setDrape(null);
-  };
-  const release = () => {
-    setMix(0);
-    window.setTimeout(() => setDrape(null), 380);
   };
 
   return (

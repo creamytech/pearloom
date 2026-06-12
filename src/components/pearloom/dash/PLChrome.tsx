@@ -32,7 +32,7 @@ import { parseLocalDate } from '@/lib/date-utils';
 import { Icon, Pear, Sprig } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
 import { useSelectedSite, siteDisplayName } from '@/components/marketing/design/dash/hooks';
-import { ambientFor, AmbientSprig, type AmbientContext } from '../ambient';
+import { AMBIENT_BY_CONTEXT, AmbientSprig, type AmbientContext } from '../ambient';
 import { useIsInsideShell } from './ShellPersistentLayout';
 import { usePlan } from './usePlan';
 
@@ -261,7 +261,7 @@ export function PLAtmosphere({ context }: { context?: AmbientContext } = {}) {
     if (/\/(profile|settings|connections)/.test(p)) return 'settings';
     return 'site';
   })();
-  const Motif = ambientFor(inferred);
+  const Motif = AMBIENT_BY_CONTEXT[inferred] ?? AmbientSprig;
   return (
     <div
       aria-hidden

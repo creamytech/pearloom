@@ -1,4 +1,4 @@
-/* eslint-disable no-restricted-syntax */
+ 
 /* Voice packs — per-occasion copy overrides for panel labels,
    placeholders, and CTAs.
    The editor is otherwise 95% wedding-shaped. This module is a
