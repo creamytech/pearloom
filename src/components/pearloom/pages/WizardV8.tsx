@@ -37,6 +37,7 @@ import { applyWizardLook } from '@/lib/site-look/wizard-look';
 import { lookRecipesFor, type LookRecipe } from '@/lib/site-look/look-recipes';
 import { WizardLooksSection } from './wizard-looks';
 import { WizardStructureSection } from './wizard-structure';
+import { WizardFittingRoom, type PaletteChoice } from './wizard-fitting-room';
 import { WizardLookPreviews, type LookCandidate } from './WizardLookPreviews';
 import type { StoryManifest } from '@/types';
 
@@ -306,6 +307,9 @@ interface WizardState {
    *  manifest.siteMode + manifest.layouts at finish. */
   siteMode?: 'scroll' | 'multi-page';
   kitId?: string;
+  /** Explicit paper texture from the fitting room — beats the
+   *  look recipe's texture at finish. */
+  texture?: string;
   navVariant?: string;
   heroVariant?: string;
   /** Plus-ones policy → rsvpConfig.plusOnes + the FAQ answer.
@@ -1911,6 +1915,8 @@ export function WizardV8() {
      underlay below). Falls back to the picked look so the dressing
      persists through Review once they choose. */
   const [lookPreview, setLookPreview] = useState<LookRecipe | null>(null);
+  /* Full-screen fitting room (Palette step). */
+  const [fittingOpen, setFittingOpen] = useState(false);
   const [generatedTagline, setGeneratedTagline] = useState<string>('');
   const [taglineState, setTaglineState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
   const step = STEPS[stepIndex];
@@ -2321,9 +2327,10 @@ export function WizardV8() {
           manifest.density = recipe.density;
         }
       }
-      // An explicit kit pick from The Structure beats the recipe's
-      // kit — the host saw it live on the preview.
+      // Explicit kit / texture picks from The Structure + fitting
+      // room beat the recipe's — the host saw them live.
       if (st.kitId) manifest.kitId = st.kitId;
+      if (st.texture) manifest.texture = st.texture;
 
       // `create: true` — the server guarantees a FREE slug. If the
       // derived one (typed, or names-fallback) is already taken — by
@@ -3698,9 +3705,52 @@ export function WizardV8() {
                         coverPhoto={st.photos.find((ph) => ph.url)?.url}
                         galleryImages={st.photos.filter((ph) => ph.url).map((ph) => ph.url)}
                         recipe={lookRecipesFor(st.occasion).find((r) => r.id === (st.lookRecipeId ?? 'match')) ?? null}
-                        picks={{ siteMode: st.siteMode, kitId: st.kitId, navVariant: st.navVariant, heroVariant: st.heroVariant }}
+                        picks={{ siteMode: st.siteMode, kitId: st.kitId, texture: st.texture, navVariant: st.navVariant, heroVariant: st.heroVariant }}
                         onChange={(next) => setSt((prev) => ({ ...prev, ...next }))}
+                        onExpand={() => setFittingOpen(true)}
                       />
+                      {fittingOpen && (() => {
+                        const fitPalettes: PaletteChoice[] = [];
+                        for (const sp of st.smartPalettes ?? []) {
+                          fitPalettes.push({ id: sp.id, name: sp.name, colors: sp.colors });
+                        }
+                        for (const pp of PALETTES) {
+                          if (!fitPalettes.some((x) => x.id === pp.id)) {
+                            fitPalettes.push({ id: pp.id, name: pp.name, colors: pp.colors });
+                          }
+                        }
+                        if (st.palette && !fitPalettes.some((x) => x.id === st.palette) && st.paletteColors?.length) {
+                          fitPalettes.unshift({ id: st.palette, name: 'Your palette', colors: st.paletteColors });
+                        }
+                        return (
+                          <WizardFittingRoom
+                            occasion={st.occasion}
+                            names={[
+                              lookNames[0] || (lookCouple ? 'Alex' : lookNameSpec.primaryPlaceholder),
+                              lookCouple ? (lookNames[1] || 'Jamie') : '',
+                            ]}
+                            coverPhoto={st.photos.find((ph) => ph.url)?.url}
+                            galleryImages={st.photos.filter((ph) => ph.url).map((ph) => ph.url)}
+                            recipe={lookRecipesFor(st.occasion).find((r) => r.id === (st.lookRecipeId ?? 'match')) ?? null}
+                            palettes={fitPalettes}
+                            activePaletteId={st.palette}
+                            onPalettePick={(c) => {
+                              const smart = (st.smartPalettes ?? []).some((sp) => sp.id === c.id);
+                              const sp = (st.smartPalettes ?? []).find((x) => x.id === c.id);
+                              setSt((s2) => ({
+                                ...s2,
+                                palette: c.id,
+                                paletteColors: c.colors,
+                                suggestedMotif: smart ? sp?.motif : undefined,
+                                suggestedMotifLayout: smart ? sp?.motifLayout : undefined,
+                              }));
+                            }}
+                            picks={{ siteMode: st.siteMode, kitId: st.kitId, texture: st.texture, navVariant: st.navVariant, heroVariant: st.heroVariant }}
+                            onChange={(next) => setSt((prev) => ({ ...prev, ...next }))}
+                            onClose={() => setFittingOpen(false)}
+                          />
+                        );
+                      })()}
                       </>
                     );
                   })()}

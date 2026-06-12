@@ -30,6 +30,7 @@ import { Sparkle } from '../motifs';
 export interface StructurePicks {
   siteMode?: 'scroll' | 'multi-page';
   kitId?: string;
+  texture?: string;
   navVariant?: string;
   heroVariant?: string;
 }
@@ -105,6 +106,7 @@ export function WizardStructureSection({
   recipe,
   picks,
   onChange,
+  onExpand,
 }: {
   occasion: string;
   paletteColors: string[] | undefined;
@@ -117,6 +119,8 @@ export function WizardStructureSection({
   recipe?: LookRecipe | null;
   picks: StructurePicks;
   onChange: (next: Partial<StructurePicks>) => void;
+  /** Opens the full-screen fitting room. */
+  onExpand?: () => void;
 }) {
   /* One real manifest, rebuilt on every pick — the same bridge
      generation uses, so the preview IS the site. */
@@ -138,12 +142,13 @@ export function WizardStructureSection({
       dressed.density = recipe.density;
     }
     if (picks.kitId) dressed.kitId = picks.kitId;
+    if (picks.texture) dressed.texture = picks.texture;
     const layouts: Record<string, string> = {};
     if (picks.navVariant) layouts.nav = picks.navVariant;
     if (picks.heroVariant) layouts.hero = picks.heroVariant;
     if (Object.keys(layouts).length > 0) dressed.layouts = layouts;
     return dressed as unknown as StoryManifest;
-  }, [occasion, paletteColors, coverPhoto, galleryImages, recipe, picks.kitId, picks.navVariant, picks.heroVariant]);
+  }, [occasion, paletteColors, coverPhoto, galleryImages, recipe, picks.kitId, picks.texture, picks.navVariant, picks.heroVariant]);
 
   /* Defer the live render one frame so the Palette step paints
      instantly (same trick the Review pressings use). */
@@ -157,7 +162,7 @@ export function WizardStructureSection({
      when the change is below the fold — the frame re-keys on the
      picks themselves (no state, no effect; the CSS animation
      replays whenever the key changes). */
-  const pressKey = `${picks.siteMode ?? ''}|${picks.kitId ?? ''}|${picks.navVariant ?? ''}|${picks.heroVariant ?? ''}`;
+  const pressKey = `${picks.siteMode ?? ''}|${picks.kitId ?? ''}|${picks.texture ?? ''}|${picks.navVariant ?? ''}|${picks.heroVariant ?? ''}`;
 
   const frame: CSSProperties = {
     width: '100%',
@@ -203,6 +208,24 @@ export function WizardStructureSection({
             <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 11, color: 'var(--ink-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
               Pressing…
             </div>
+          )}
+          {onExpand && (
+            <button
+              type="button"
+              onClick={onExpand}
+              style={{
+                position: 'absolute', right: 12, bottom: 12, zIndex: 3,
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '8px 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                background: 'color-mix(in srgb, var(--cream, #F5EFE2) 76%, transparent)',
+                backdropFilter: 'blur(14px) saturate(1.3)',
+                WebkitBackdropFilter: 'blur(14px) saturate(1.3)',
+                boxShadow: '0 10px 26px -10px rgba(14,13,11,0.4)',
+                color: 'var(--ink)', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+              }}
+            >
+              The fitting room ⤢
+            </button>
           )}
         </div>
 
