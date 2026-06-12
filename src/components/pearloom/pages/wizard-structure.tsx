@@ -209,6 +209,24 @@ export function WizardStructureSection({
               Pressing…
             </div>
           )}
+          {/* Scroll cue — the hero fills the first screen like a
+              real phone; without this, the preview reads as "just
+              a hero" and the sections below go undiscovered. */}
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute', left: 12, bottom: 12, zIndex: 3,
+              padding: '4px 11px', borderRadius: 999,
+              background: 'var(--pl-glass-light, rgba(251,247,238,0.68))',
+              backdropFilter: 'var(--pl-glass-blur, blur(14px) saturate(1.3))',
+              WebkitBackdropFilter: 'var(--pl-glass-blur, blur(14px) saturate(1.3))',
+              border: '1px solid var(--pl-glass-border)',
+              fontSize: 10, fontWeight: 600, color: 'var(--ink-soft)',
+              pointerEvents: 'none', whiteSpace: 'nowrap',
+            }}
+          >
+            scroll ↓
+          </div>
           {onExpand && (
             <button
               type="button"
