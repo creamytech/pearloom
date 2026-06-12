@@ -17,6 +17,19 @@ export interface SuggestionSet {
   hint?: string;
 }
 
+/* Occasion routing — the wedding sets used to be the catch-all
+   fallback for EVERY unmapped occasion, so reunions saw "Bouquet
+   toss" chips and graduations saw "Honeymoon fund" registries.
+   Wedding-shaped sets now only fire for genuinely wedding-shaped
+   events; everything else routes to a category set or a generic
+   gathering set. */
+const WEDDING_SHAPED = new Set(['wedding', 'vow-renewal']);
+const COUPLE_SHAPED = new Set(['wedding', 'vow-renewal', 'engagement', 'anniversary']);
+const CEREMONY_SHAPED = new Set([
+  'bar-mitzvah', 'bat-mitzvah', 'quinceanera',
+  'baptism', 'first-communion', 'confirmation',
+]);
+
 /* ─── Dress code (Details panel) ─────────────────────────────── */
 
 const DRESS_CODE_WEDDING = [
@@ -47,6 +60,15 @@ const DRESS_CODE_SOLEMN = [
   'No black requested',
 ];
 
+const DRESS_CODE_GENERIC = [
+  'Smart casual',
+  'Cocktail attire',
+  'Festive attire',
+  'Come as you are',
+  'Garden party',
+  'Black tie optional',
+];
+
 export function dressCodeSuggestions(occasion: OccasionKey | undefined): SuggestionSet {
   const occ = (occasion ?? '').toLowerCase();
   if (occ === 'memorial' || occ === 'funeral') return { options: DRESS_CODE_SOLEMN };
@@ -58,7 +80,12 @@ export function dressCodeSuggestions(occasion: OccasionKey | undefined): Suggest
   ) {
     return { options: DRESS_CODE_PLAYFUL };
   }
-  return { options: DRESS_CODE_WEDDING };
+  /* Formal list (black tie, garden formal…) only for events that
+     actually run formal: weddings + cultural ceremonies. */
+  if (WEDDING_SHAPED.has(occ) || CEREMONY_SHAPED.has(occ) || occ === 'rehearsal-dinner' || occ === 'engagement') {
+    return { options: DRESS_CODE_WEDDING };
+  }
+  return { options: DRESS_CODE_GENERIC };
 }
 
 /* ─── Good-to-know card labels (Details panel) ───────────────── */
@@ -135,6 +162,27 @@ const SCHEDULE_SHOWER = [
   'Send-off',
 ];
 
+const SCHEDULE_CEREMONY = [
+  'Guests arrive',
+  'Ceremony',
+  'Photos',
+  'Reception',
+  'Toasts',
+  'Cake',
+  'Dancing',
+  'Send-off',
+];
+
+const SCHEDULE_GATHERING = [
+  'Guests arrive',
+  'Welcome toast',
+  'Dinner',
+  'Toasts',
+  'Cake',
+  'Dancing',
+  'Send-off',
+];
+
 export function scheduleEventSuggestions(occasion: OccasionKey | undefined): SuggestionSet {
   const occ = (occasion ?? '').toLowerCase();
   if (occ.startsWith('bachelor') || occ.startsWith('bachelorette')) {
@@ -147,10 +195,15 @@ export function scheduleEventSuggestions(occasion: OccasionKey | undefined): Sug
   ) {
     return { options: SCHEDULE_BIRTHDAY };
   }
-  if (occ === 'bridal-shower' || occ === 'baby-shower' || occ === 'sip-and-see') {
+  if (occ === 'bridal-shower' || occ === 'baby-shower' || occ === 'sip-and-see' || occ === 'gender-reveal') {
     return { options: SCHEDULE_SHOWER };
   }
-  return { options: SCHEDULE_WEDDING };
+  if (CEREMONY_SHAPED.has(occ)) return { options: SCHEDULE_CEREMONY };
+  if (WEDDING_SHAPED.has(occ)) return { options: SCHEDULE_WEDDING };
+  /* Anniversaries, reunions, engagements, rehearsal dinners,
+     housewarmings, welcome parties… — a dinner-party arc, not a
+     wedding ceremony arc. */
+  return { options: SCHEDULE_GATHERING };
 }
 
 /* ─── Registry store names ───────────────────────────────────── */
@@ -197,14 +250,28 @@ const REGISTRY_MEMORIAL = [
   'Animal rescue',
 ];
 
+const REGISTRY_GENERIC = [
+  'Gift fund',
+  'Experience fund',
+  'Amazon',
+  'Target',
+  'Donation to a cause',
+  'No gifts — just come',
+];
+
 export function registryStoreSuggestions(occasion: OccasionKey | undefined): SuggestionSet {
   const occ = (occasion ?? '').toLowerCase();
-  if (occ === 'baby-shower' || occ === 'sip-and-see' || occ === 'first-birthday') {
+  if (occ === 'baby-shower' || occ === 'sip-and-see' || occ === 'first-birthday' || occ === 'gender-reveal') {
     return { options: REGISTRY_BABY };
   }
   if (occ === 'housewarming') return { options: REGISTRY_HOUSEWARMING };
   if (occ === 'memorial' || occ === 'funeral') return { options: REGISTRY_MEMORIAL };
-  return { options: REGISTRY_WEDDING };
+  /* Honeymoon fund + wedding registries only where they make
+     sense: weddings, engagements, vow renewals. */
+  if (WEDDING_SHAPED.has(occ) || occ === 'engagement' || occ === 'bridal-shower') {
+    return { options: REGISTRY_WEDDING };
+  }
+  return { options: REGISTRY_GENERIC };
 }
 
 /* ─── FAQ question prompts ───────────────────────────────────── */
@@ -241,13 +308,29 @@ const FAQ_MEMORIAL = [
   'How can I share a memory?',
 ];
 
+const FAQ_GENERIC = [
+  'What’s the dress code?',
+  'Is there parking?',
+  'Are kids welcome?',
+  'What time should I arrive?',
+  'Can I bring someone?',
+  'Are gifts expected?',
+  'Will food be served?',
+  'Is there a hashtag?',
+];
+
 export function faqQuestionSuggestions(occasion: OccasionKey | undefined): SuggestionSet {
   const occ = (occasion ?? '').toLowerCase();
   if (occ.startsWith('bachelor') || occ.startsWith('bachelorette')) {
     return { options: FAQ_BACHELOR };
   }
   if (occ === 'memorial' || occ === 'funeral') return { options: FAQ_MEMORIAL };
-  return { options: FAQ_WEDDING };
+  /* Plus-ones, ceremony-outdoors, live-stream questions are
+     couple-event questions — keep them off birthdays + reunions. */
+  if (COUPLE_SHAPED.has(occ) || CEREMONY_SHAPED.has(occ)) {
+    return { options: FAQ_WEDDING };
+  }
+  return { options: FAQ_GENERIC };
 }
 
 /* ─── RSVP meal options ──────────────────────────────────────── */
@@ -318,8 +401,10 @@ export function heroLeadSuggestions(ctx: SmartContext): SuggestionSet {
     base.push('Someone small is on the way', 'Save the date', 'A shower of love');
   } else if (occ.includes('bachelor')) {
     base.push('One last fling', 'The send-off weekend', 'Pack your bags');
-  } else {
+  } else if (occ === 'wedding' || occ === 'engagement' || occ === 'vow-renewal') {
     base.push('Save the date', 'Together, at last', 'We’re getting married');
+  } else {
+    base.push('Save the date', 'Together, at last', 'A day worth gathering for');
   }
   if (at) base.push(`Meet us in ${at}`);
   return { hint: 'The small line above the names — tap one or write your own.', options: base.slice(0, 5) };
@@ -355,6 +440,10 @@ export function typicalTimeFor(eventName: string): string | null {
     [/dinner|feast|reception/, '7:00 pm'],
     [/toast|speech|cake/, '8:30 pm'],
     [/danc|party|dj|band/, '9:00 pm'],
+    [/photo/, '5:00 pm'],
+    [/game/, '2:00 pm'],
+    [/gift/, '3:00 pm'],
+    [/advice/, '3:30 pm'],
     [/afterparty|late/, '11:00 pm'],
     [/arriv|doors|seated/, '4:00 pm'],
     [/send.?off|farewell|sparkler/, '10:30 pm'],
@@ -377,7 +466,7 @@ export function faqAnswerDraftFor(question: string, ctx: SmartContext, manifest?
       ? `${dress}. When in doubt, dress up a notch — you can never be too celebratory.`
       : 'Dress to celebrate — we\u2019ll post the dress code here once it\u2019s settled.';
   }
-  if (/plus.?one|bring a guest|\+1/.test(q)) {
+  if (/plus.?one|bring a guest|bring someone|\+1/.test(q)) {
     return 'Check your invitation — if it includes a guest, the RSVP form will offer a spot for them.';
   }
   if (/kids|children/.test(q)) {

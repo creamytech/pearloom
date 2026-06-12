@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / pearloom/wizard/GeneratingScreen.tsx
 //
-// Full-bleed generating overlay shown while /api/generate/stream
+// Full-bleed generating overlay shown while the wizard presses
 // runs. Matches the v8 paper + motif system instead of the
 // previous grey-scrim modal.
 //
@@ -31,54 +31,10 @@ interface Stage {
   matches: RegExp[];
 }
 
-const STAGES: Stage[] = [
-  {
-    id: 'gather',
-    label: 'Gathering your memories',
-    hint: 'Unpacking your photos into clusters by time and place.',
-    matches: [/gather|cluster|memor/i],
-  },
-  {
-    id: 'story',
-    label: 'Writing the story',
-    hint: 'Drafting one chapter per cluster in your voice.',
-    matches: [/writing.*story|Pass 1|story pass/i],
-  },
-  {
-    id: 'refine',
-    label: 'Refining every word',
-    hint: 'A second pass fixes clichés, tightens rhythm, saves specifics.',
-    matches: [/refin|critique|Pass 1\.2|every word/i],
-  },
-  {
-    id: 'dna',
-    label: 'Learning your DNA',
-    hint: 'Pear maps your pets, places, hobbies — to color everything downstream.',
-    matches: [/dna|couple profile|Pass 1\.5/i],
-  },
-  {
-    id: 'poetry',
-    label: 'Weaving the poetry',
-    hint: 'Hero tagline, closing line, RSVP intro — in your voice.',
-    matches: [/poetry|welcome|tagline|Pass 4/i],
-  },
-  {
-    id: 'design',
-    label: 'Designing your world',
-    hint: 'Palette, typography, motifs, chapter art — composed together.',
-    matches: [/design|vibeskin|palette|motif|chapter icon|Pass 2/i],
-  },
-  {
-    id: 'content',
-    label: 'Final polish',
-    hint: 'Seeding FAQ, registry, travel — so the editor opens full.',
-    matches: [/polish|final|FAQ|registry|travel|Pass 7/i],
-  },
-];
-
-/* The no-photos "make-ready" script — the skeleton path has no AI
-   passes to narrate, so the press itself is the story. Labels are
-   driven by WizardV8's pressScript at a measured cadence. */
+/* The "make-ready" script — both paths build the site locally in
+   about a second, so the press itself is the story. Labels are
+   driven by WizardV8's pressScript at a measured cadence. Photo
+   runs get one extra stage while the cover + gallery are placed. */
 const PRESS_STAGES: Stage[] = [
   {
     id: 'type',
@@ -112,8 +68,21 @@ const PRESS_STAGES: Stage[] = [
   },
 ];
 
+/* Photo runs: same press, one extra stage between palette and kit. */
+const PRESS_STAGES_WITH_PHOTOS: Stage[] = [
+  PRESS_STAGES[0],
+  PRESS_STAGES[1],
+  {
+    id: 'photos',
+    label: 'Placing your photographs',
+    hint: 'Your first photo becomes the cover; the rest fill the gallery.',
+    matches: [/photograph|placing/i],
+  },
+  ...PRESS_STAGES.slice(2),
+];
+
 interface Props {
-  /** Current server-provided label, e.g. "Pear is reading your photos…". */
+  /** Current press label, e.g. "Placing your photographs…". */
   genStep: string;
   /** Whether generation is currently running. Used to freeze the final stage as "done" after it completes. */
   photoCount: number;
@@ -128,9 +97,7 @@ function stageIndexFor(step: string, stages: Stage[]): number {
 }
 
 export function GeneratingScreen({ genStep, photoCount }: Props) {
-  /* Photo runs narrate the real AI passes; no-photo runs get the
-     make-ready script (there's no story pass to describe). */
-  const stages = photoCount > 0 ? STAGES : PRESS_STAGES;
+  const stages = photoCount > 0 ? PRESS_STAGES_WITH_PHOTOS : PRESS_STAGES;
   const stageIdx = useMemo(() => stageIndexFor(genStep, stages), [genStep, stages]);
 
   return (
@@ -205,7 +172,7 @@ export function GeneratingScreen({ genStep, photoCount }: Props) {
                     color: 'var(--ink)',
                   }}
                 >
-                  {STAGES[stageIdx].label}
+                  {stages[stageIdx].label}
                   <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>…</span>
                 </div>
                 <div
@@ -217,7 +184,7 @@ export function GeneratingScreen({ genStep, photoCount }: Props) {
                     maxWidth: 340,
                   }}
                 >
-                  {STAGES[stageIdx].hint}
+                  {stages[stageIdx].hint}
                 </div>
               </div>
             </div>
@@ -258,7 +225,7 @@ export function GeneratingScreen({ genStep, photoCount }: Props) {
               }}
             >
               {photoCount > 0
-                ? `${photoCount} photo${photoCount === 1 ? '' : 's'} · 7 AI passes · usually 30–90s`
+                ? `${photoCount} photo${photoCount === 1 ? '' : 's'} placed · about 10s`
                 : 'Preparing the loom · about 10s'}
             </div>
           </Reveal>
@@ -276,7 +243,7 @@ export function GeneratingScreen({ genStep, photoCount }: Props) {
                 gap: 6,
               }}
             >
-              {STAGES.map((s, i) => {
+              {stages.map((s, i) => {
                 const status: 'done' | 'active' | 'pending' =
                   i < stageIdx ? 'done' : i === stageIdx ? 'active' : 'pending';
                 return (
