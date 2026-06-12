@@ -35,6 +35,13 @@ export interface FittingPicks extends StructurePicks {
   texture?: string;
   motifLayout?: string;
   density?: string;
+  /** Phone menu variant (manifest.layouts.navMobile) — what a
+   *  phone host actually SEES; the desktop nav pick is invisible
+   *  on a phone preview. */
+  navMobile?: string;
+  /** Whole-page feel (manifest.edition) — the coordinated layout
+   *  set: hero default, divider rhythm, section openers. */
+  edition?: string;
 }
 
 export interface PaletteChoice {
@@ -73,13 +80,31 @@ const NAVS = [
   { id: 'iconic', label: 'Iconic' },
 ];
 
+/* The PHONE menu — what a phone host actually sees (the desktop
+   nav options above change nothing on a phone preview). */
+const NAVS_MOBILE = [
+  { id: 'slide-in', label: 'Side drawer' },
+  { id: 'overlay', label: 'Full screen' },
+  { id: 'bottom-sheet', label: 'Bottom sheet' },
+  { id: 'pill', label: 'Floating pill' },
+];
+
 const HEROES = [
   { id: 'centered', label: 'Centered' },
-  { id: 'split', label: 'Split' },
-  { id: 'fullbleed', label: 'Full-bleed' },
-  { id: 'typographic', label: 'Typographic' },
+  { id: 'split', label: 'Photo beside' },
+  { id: 'fullbleed', label: 'Full photo' },
+  { id: 'typographic', label: 'Big type' },
   { id: 'postcard', label: 'Postcard' },
   { id: 'minimal', label: 'Minimal' },
+];
+
+/* Whole-page feel — the Editions (coordinated layout sets). */
+const FEELS = [
+  { id: 'almanac', label: 'Storybook' },
+  { id: 'cinema', label: 'Cinematic' },
+  { id: 'postcard-box', label: 'Postcards' },
+  { id: 'linen-folder', label: 'Formal' },
+  { id: 'quiet', label: 'Quiet' },
 ];
 
 const MOTIFS = [
@@ -99,19 +124,23 @@ const DENSITIES = [
 
 const MODES = [
   { id: 'scroll', label: 'One page' },
-  { id: 'multi-page', label: 'Magazine' },
+  { id: 'multi-page', label: 'Separate pages' },
 ];
 
-type Rail = 'palette' | 'texture' | 'kit' | 'nav' | 'hero' | 'motif' | 'density' | 'reads';
+/* Rail labels are PLAIN words — "Colors", "Menu", "Spacing" — per
+   the terminology rule (BRAND §7): a host shouldn't need to learn
+   our nouns to dress their site. The metaphor lives in prose. */
+type Rail = 'palette' | 'feel' | 'texture' | 'kit' | 'nav' | 'hero' | 'motif' | 'density' | 'reads';
 const RAILS: Array<{ id: Rail; label: string }> = [
-  { id: 'palette', label: 'Palette' },
+  { id: 'palette', label: 'Colors' },
+  { id: 'feel', label: 'Feel' },
   { id: 'texture', label: 'Paper' },
-  { id: 'kit', label: 'Kit' },
-  { id: 'nav', label: 'Nav' },
-  { id: 'hero', label: 'Hero' },
-  { id: 'motif', label: 'Motif' },
-  { id: 'density', label: 'Density' },
-  { id: 'reads', label: 'Reads' },
+  { id: 'kit', label: 'Cards' },
+  { id: 'nav', label: 'Menu' },
+  { id: 'hero', label: 'Opening' },
+  { id: 'motif', label: 'Decor' },
+  { id: 'density', label: 'Spacing' },
+  { id: 'reads', label: 'Pages' },
 ];
 
 /* Where each rail's change LANDS on the site — the preview scrolls
@@ -119,6 +148,7 @@ const RAILS: Array<{ id: Rail; label: string }> = [
    re-pressed. Palette/paper change everything → flash the hero. */
 const RAIL_TARGET: Record<Rail, string> = {
   palette: 'hero',
+  feel: 'hero',
   texture: 'hero',
   kit: 'schedule',
   nav: 'hero',
@@ -157,8 +187,10 @@ export function buildFittingManifest(opts: {
   if (opts.picks.motifLayout) dressed.motifLayout = opts.picks.motifLayout;
   if (opts.picks.density) dressed.density = opts.picks.density;
   if (opts.picks.siteMode) dressed.siteMode = opts.picks.siteMode;
+  if (opts.picks.edition) dressed.edition = opts.picks.edition;
   const layouts: Record<string, string> = {};
   if (opts.picks.navVariant) layouts.nav = opts.picks.navVariant;
+  if (opts.picks.navMobile) layouts.navMobile = opts.picks.navMobile;
   if (opts.picks.heroVariant) layouts.hero = opts.picks.heroVariant;
   if (Object.keys(layouts).length > 0) dressed.layouts = layouts;
   return dressed as unknown as StoryManifest;
@@ -249,6 +281,12 @@ export function WizardFittingRoom({
 }) {
   const [rail, setRail] = useState<Rail>('palette');
   const siteScrollRef = useRef<HTMLDivElement | null>(null);
+  /* Phone viewport → the Menu rail edits the PHONE menu
+     (layouts.navMobile); on desktop it edits the desktop bar.
+     You pick the menu you can see. Lazy init: the room only
+     mounts client-side, and rotating mid-fit is not a case worth
+     a resize listener. */
+  const [phoneView] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 760);
   /* The full-site re-press is the heaviest render in the product;
      marking it a transition keeps the tap responsive on phones —
      the chip answers instantly, the press follows a beat later
@@ -297,7 +335,8 @@ export function WizardFittingRoom({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [occasion, paletteKey, coverPhoto, galleryKey, recipe,
      picks.siteMode, picks.kitId, picks.texture, picks.navVariant,
-     picks.heroVariant, picks.motifLayout, picks.density],
+     picks.navMobile, picks.heroVariant, picks.motifLayout,
+     picks.density, picks.edition],
   );
 
   /* Esc closes; lock body scroll while the room is open. */
@@ -479,11 +518,26 @@ export function WizardFittingRoom({
               ))}
             </>
           )}
-          {rail === 'nav' && (
+          {rail === 'nav' && (phoneView ? (
+            <>
+              <RailChip on={picks.navMobile === undefined} label="Pear decides" onClick={() => pickAndShow('nav', { navMobile: undefined })} />
+              {NAVS_MOBILE.map((t) => (
+                <RailChip key={t.id} on={picks.navMobile === t.id} label={t.label} onClick={() => pickAndShow('nav', { navMobile: t.id })} />
+              ))}
+            </>
+          ) : (
             <>
               <RailChip on={picks.navVariant === undefined} label="Pear decides" onClick={() => pickAndShow('nav', { navVariant: undefined })} />
               {NAVS.map((t) => (
                 <RailChip key={t.id} on={picks.navVariant === t.id} label={t.label} onClick={() => pickAndShow('nav', { navVariant: t.id })} />
+              ))}
+            </>
+          ))}
+          {rail === 'feel' && (
+            <>
+              <RailChip on={picks.edition === undefined} label="Pear decides" onClick={() => pickAndShow('feel', { edition: undefined })} />
+              {FEELS.map((t) => (
+                <RailChip key={t.id} on={picks.edition === t.id} label={t.label} onClick={() => pickAndShow('feel', { edition: t.id })} />
               ))}
             </>
           )}

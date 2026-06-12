@@ -26,7 +26,7 @@ type BlockKey =
 const DEFAULT_PAGES = ['Home', 'Our Story', 'Schedule', 'Registry', 'Gallery', 'RSVP', 'Footer'] as const;
 
 const ALL_BLOCKS: Array<{ key: BlockKey; label: string; icon: string }> = [
-  { key: 'hero', label: 'Hero', icon: 'image' },
+  { key: 'hero', label: 'Opening', icon: 'image' },
   { key: 'story', label: 'Our Story', icon: 'text' },
   { key: 'timeline', label: 'Timeline', icon: 'clock' },
   { key: 'schedule', label: 'Schedule', icon: 'calendar' },

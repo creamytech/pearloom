@@ -39,7 +39,7 @@ interface Props {
 }
 
 const SECTION_PALETTE: { key: string; label: string; description?: string }[] = [
-  { key: 'hero',     label: 'Hero',      description: 'Names, date, cover' },
+  { key: 'hero',     label: 'Opening',   description: 'Names, date, cover' },
   { key: 'story',    label: 'Our story', description: 'How you met' },
   { key: 'details',  label: 'Details',   description: 'Dress code & FAQ-lite' },
   { key: 'schedule', label: 'Schedule',  description: 'Day-of timeline' },

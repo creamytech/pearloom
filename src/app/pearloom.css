@@ -7290,6 +7290,16 @@ html { scroll-behavior: smooth; }
      seams; the panes carry the readability. */
   --t-section: transparent;
 }
+/* Glass is its own material — paper grain over liquid panes
+   reads as a dirty window. A manifest can carry texture+kit
+   independently (packs only override texture when they declare
+   one, so Glasshouse inherited the demo/host linen), so the kit
+   suppresses every texture pseudo at render time. The texture
+   survives untouched if the host switches kits back. */
+.pl8-guest[data-pl-kit="glass"]::before,
+.pl8-guest[data-pl-kit="glass"]::after {
+  content: none !important;
+}
 /* Content rides above the photo-aurora layer (zIndex 0); the
    layer itself opts back down. Mirrors the texture system's
    child z-lift. */

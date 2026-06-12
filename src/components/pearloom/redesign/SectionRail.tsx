@@ -22,7 +22,7 @@ interface SectionDef {
 }
 
 const SECTIONS: SectionDef[] = [
-  { id: 'hero',     label: 'Hero',      icon: 'home',       required: true, desc: 'Names, date, cover photo' },
+  { id: 'hero',     label: 'Opening',   icon: 'home',       required: true, desc: 'Names, date, cover photo' },
   { id: 'story',    label: 'Our story', icon: 'heart-icon', desc: 'How you met' },
   { id: 'details',  label: 'Details',   icon: 'sparkles',   desc: 'Dress code, kids, FAQ-lite' },
   { id: 'schedule', label: 'Schedule',  icon: 'calendar',   desc: 'Day-of timeline' },
@@ -105,7 +105,7 @@ function needsAttention(sectionId: string, manifest: StoryManifest): boolean {
    id lives in manifest.blockOrder and the rail renders it
    alongside the core sections. */
 const OPTIONAL_SECTIONS: SectionDef[] = [
-  { id: 'countdown', label: 'Countdown', icon: 'clock',    desc: 'Stat tiles · stripe · minimal · hero' },
+  { id: 'countdown', label: 'Countdown', icon: 'clock',    desc: 'Stat tiles · stripe · minimal · statement' },
   { id: 'map',       label: 'Map',       icon: 'map',      desc: 'Live embed · pin · static' },
   { id: 'music',     label: 'Music',     icon: 'music',    desc: 'Spotify · Apple · YouTube' },
   /* Event-OS blocks — gated against the EVENT_TYPES registry via

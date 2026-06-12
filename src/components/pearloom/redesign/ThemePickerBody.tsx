@@ -32,6 +32,8 @@ import { getTheme, type Theme } from '../site/themes';
 import { ThemePackPicker } from '../editor/panels/ThemePackPicker';
 import { pearErrorMessage } from './PearAssist';
 import { fireUndoable } from './UndoToast';
+import { PlColorPicker } from './PlColorPicker';
+import { StoreFonts } from '@/lib/theme-store/fonts';
 
 interface Props {
   manifest: StoryManifest;
@@ -87,6 +89,7 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor }:
       <KitPick manifest={manifest} onChange={onChange} />
 
       <ColorsPick theme={theme} manifest={manifest} onChange={onChange} />
+      <FontsPick theme={theme} manifest={manifest} onChange={onChange} />
       <TexturePick theme={theme} manifest={manifest} onChange={onChange} />
 
       <FineTune theme={theme} manifest={manifest} onChange={onChange} />
@@ -526,7 +529,7 @@ function KitPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m
   return (
     <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14 }}>
       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 4 }}>
-        Component kit
+        Card style
       </div>
       <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginBottom: 9 }}>
         How cards, dividers, schedule &amp; badges are drawn.
@@ -631,7 +634,7 @@ function FineTune({ theme, manifest, onChange }: { theme: Theme; manifest: Story
       )}
 
       {theme.motif !== 'none' && (
-        <PickRow label="Motifs">
+        <PickRow label="Decorations">
           <Toggle on={motifsOn} set={setMotifs} />
         </PickRow>
       )}
@@ -914,28 +917,154 @@ function ColorsPick({ theme, manifest, onChange }: { theme: Theme; manifest: Sto
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
         {EDITABLE_COLORS.map(([token, label]) => (
-          <label key={token} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
-            <span
-              style={{
-                position: 'relative', width: '100%', aspectRatio: '1.4/1',
-                borderRadius: 8, border: '1px solid var(--line)',
-                background: resolved(token), overflow: 'hidden', display: 'block',
-              }}
-            >
-              <input
-                type="color"
-                value={resolved(token)}
-                onChange={(e) => setColor(token, e.target.value)}
-                aria-label={`${label} color`}
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
-              />
-            </span>
+          <div key={token} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            {/* Custom picker — the OS color dialog ignored our type
+                and spacing entirely ("we went full custom UI"). */}
+            <PlColorPicker
+              value={resolved(token)}
+              onChange={(hex) => setColor(token, hex)}
+              label={label}
+              swatchStyle={{ width: '100%', aspectRatio: '1.4/1' }}
+            />
             <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--ink-soft)' }}>{label}</span>
-          </label>
+          </div>
         ))}
       </div>
       <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
         Paper, ink and accent re-mix the washes, hairlines and buttons with them — the site stays readable.
+      </div>
+    </div>
+  );
+}
+
+/* ─── FontsPick — type pairings with live hover preview ─────────
+   Writes manifest.themeVars['--t-display' / '--t-body'] — the
+   exact slots Theme Store packs write, so the renderer needs no
+   new read path. HOVERING a pair paints it straight onto the
+   canvas root's CSS vars (imperative, transient — restored on
+   leave); clicking commits. The faces themselves ride the same
+   <StoreFonts /> stylesheet the pack catalog loads. */
+
+const FONT_PAIRS: Array<{ id: string; name: string; sub: string; display: string; body: string }> = [
+  { id: 'fraunces',  name: 'Fraunces',  sub: 'with Inter',      display: "'Fraunces', Georgia, serif",           body: "'Inter', sans-serif" },
+  { id: 'playfair',  name: 'Playfair',  sub: 'with Inter',      display: "'Playfair Display', Georgia, serif",   body: "'Inter', sans-serif" },
+  { id: 'cormorant', name: 'Cormorant', sub: 'with Jost',       display: "'Cormorant Garamond', Georgia, serif", body: "'Jost', sans-serif" },
+  { id: 'italiana',  name: 'Italiana',  sub: 'with Inter',      display: "'Italiana', Georgia, serif",           body: "'Inter', sans-serif" },
+  { id: 'marcellus', name: 'Marcellus', sub: 'with Jost',       display: "'Marcellus', Georgia, serif",          body: "'Jost', sans-serif" },
+  { id: 'ebgaramond', name: 'EB Garamond', sub: 'with DM Sans', display: "'EB Garamond', Georgia, serif",        body: "'DM Sans', sans-serif" },
+  { id: 'bodoni',    name: 'Bodoni',    sub: 'with DM Sans',    display: "'Bodoni Moda', Georgia, serif",        body: "'DM Sans', sans-serif" },
+  { id: 'cinzel',    name: 'Cinzel',    sub: 'with Tenor Sans', display: "'Cinzel', Georgia, serif",             body: "'Tenor Sans', sans-serif" },
+  { id: 'grotesk',   name: 'Grotesk',   sub: 'with Inter',      display: "'Space Grotesk', sans-serif",          body: "'Inter', sans-serif" },
+];
+
+function FontsPick({ theme, manifest, onChange }: { theme: Theme; manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  void theme;
+  const overrides = ((manifest as unknown as { themeVars?: Record<string, string> }).themeVars) ?? {};
+  const activeDisplay = overrides['--t-display'];
+  const hasOverride = !!activeDisplay || !!overrides['--t-body'];
+
+  /* Transient hover preview — painted straight onto the canvas
+     root, snapshot restored on leave. Refs are only touched in
+     event handlers. */
+  const previewRef = useRef<{ el: HTMLElement; display: string; body: string } | null>(null);
+  const startPreview = (display: string, body: string) => {
+    const el = document.querySelector<HTMLElement>('.pl8-guest');
+    if (!el) return;
+    if (!previewRef.current) {
+      previewRef.current = {
+        el,
+        display: el.style.getPropertyValue('--t-display'),
+        body: el.style.getPropertyValue('--t-body'),
+      };
+    }
+    el.style.setProperty('--t-display', display);
+    el.style.setProperty('--t-body', body);
+  };
+  const endPreview = (restore: boolean) => {
+    const p = previewRef.current;
+    previewRef.current = null;
+    if (!p || !restore) return;
+    if (p.display) p.el.style.setProperty('--t-display', p.display); else p.el.style.removeProperty('--t-display');
+    if (p.body) p.el.style.setProperty('--t-body', p.body); else p.el.style.removeProperty('--t-body');
+  };
+
+  const commit = (pair: (typeof FONT_PAIRS)[number]) => {
+    onChange({
+      ...(manifest as unknown as Record<string, unknown>),
+      themeVars: { ...overrides, '--t-display': pair.display, '--t-body': pair.body },
+    } as unknown as StoryManifest);
+    /* The committed manifest re-renders the root with these exact
+       vars — drop the snapshot without restoring. */
+    endPreview(false);
+  };
+  const reset = () => {
+    const next = { ...overrides };
+    delete next['--t-display'];
+    delete next['--t-body'];
+    const loose = { ...(manifest as unknown as Record<string, unknown>) };
+    if (Object.keys(next).length > 0) loose.themeVars = next;
+    else delete loose.themeVars;
+    onChange(loose as unknown as StoryManifest);
+    endPreview(false);
+  };
+
+  return (
+    <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <StoreFonts />
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+          Fonts
+        </div>
+        {hasOverride && (
+          <button
+            type="button"
+            onClick={reset}
+            style={{ border: 'none', background: 'transparent', color: 'var(--ink-muted)', fontSize: 10.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}
+          >
+            Match theme
+          </button>
+        )}
+      </div>
+      <div
+        style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}
+        onMouseLeave={() => endPreview(true)}
+      >
+        {FONT_PAIRS.map((pair) => {
+          const on = activeDisplay === pair.display;
+          return (
+            <button
+              key={pair.id}
+              type="button"
+              aria-pressed={on}
+              onMouseEnter={() => startPreview(pair.display, pair.body)}
+              onFocus={() => startPreview(pair.display, pair.body)}
+              onBlur={() => endPreview(true)}
+              onClick={() => commit(pair)}
+              style={{
+                padding: '9px 6px 7px',
+                borderRadius: 10,
+                border: on ? '1.5px solid var(--ink)' : '1px solid var(--line)',
+                background: on ? 'var(--cream-2)' : 'transparent',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                textAlign: 'center',
+              }}
+            >
+              <span style={{ display: 'block', fontFamily: pair.display, fontSize: 19, lineHeight: 1, color: 'var(--ink)' }}>
+                Aa
+              </span>
+              <span style={{ display: 'block', fontSize: 10.5, fontWeight: 600, color: 'var(--ink)', marginTop: 5 }}>
+                {pair.name}
+              </span>
+              <span style={{ display: 'block', fontFamily: pair.body, fontSize: 9.5, color: 'var(--ink-muted)', marginTop: 1 }}>
+                {pair.sub}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
+        Hover to try a pairing on your live site — click to keep it.
       </div>
     </div>
   );

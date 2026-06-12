@@ -51,6 +51,9 @@ interface RsvpConfig {
   dietary?: boolean;
   songRequest?: boolean;
   plusOne?: boolean;
+  /** Invitation-only replies — /api/rsvp rejects emails that
+   *  aren't already on the guest list. Default off (open RSVP). */
+  guestListOnly?: boolean;
   /** Canonical meal-option list the GuestRsvpModal renders. When
    *  the host hasn't customized it, the guest form falls back to
    *  Chicken / Fish / Vegetarian. */
@@ -103,6 +106,14 @@ export function RsvpPanel({ manifest, onChange, siteSlug }: { manifest: StoryMan
         </FGroup>
         <FGroup label="Button label" hint="Shown on the RSVP CTA.">
           <FInput value={rsvpCta} onChange={setRsvpCta} placeholder="RSVP" />
+        </FGroup>
+        <FGroup label="Who can reply" hint="Off: anyone with the link can RSVP. On: only emails already on your guest list (or personal invite links) get through.">
+          <FToggleStandalone
+            label="Guest list only"
+            sub="Replies must match an invited email"
+            def={!!config.guestListOnly}
+            onChange={(v) => setToggle('guestListOnly', v)}
+          />
         </FGroup>
         <FGroup label="Questions to ask">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

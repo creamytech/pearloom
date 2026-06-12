@@ -13,6 +13,7 @@ import { Panel, SectionTitle, btnInk, btnGhost, btnMini } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { PLAtmosphere } from '@/components/pearloom/dash/PLChrome';
 import { usePlan } from '@/components/pearloom/dash/usePlan';
+import { PlAvatar, PL_AVATARS, useUserAvatar } from '@/components/pearloom/avatars';
 import { useUserPrefs, useUserSites, type AutonomyKey, type PearVoice } from './hooks';
 
 type Section = 'profile' | 'pear' | 'domain' | 'privacy' | 'billing' | 'export' | 'danger';
@@ -56,6 +57,10 @@ export function DashSettings() {
   const firstName =
     prefs.display_name || session?.user?.name?.split(' ')[0] || session?.user?.email?.split('@')[0] || 'Host';
   const fullName = prefs.display_name || session?.user?.name || firstName;
+  /* The orchard mark — same shared cache the profile modal, topbar
+     and sidebar read, so every account face agrees. */
+  const { avatarId, setAvatarId } = useUserAvatar();
+  const initials = fullName.split(/\s+/).filter(Boolean).map((s) => s[0]).slice(0, 2).join('').toUpperCase() || 'P';
 
   const wrap = async (patch: Parameters<typeof save>[0]) => {
     setSaveState('saving');
@@ -197,58 +202,44 @@ export function DashSettings() {
           )}
 
           {section === 'profile' && (
-            <>
-              <Panel
-                bg={PD.paperCard}
-                style={{ padding: 18, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', borderRadius: 16 }}
-              >
-                {session?.user?.image ? (
+            /* One panel, mirroring the profile modal's Account tab
+               exactly (UserSettingsModal AccountTab): 64px face with
+               the mark → photo → initials chain, the "Your mark"
+               orchard picker, then the editable fields. The two
+               surfaces previously disagreed — the modal showed your
+               mark while this page showed the old photo/initial and
+               never offered the picker. */
+            <Panel bg={PD.paperCard} style={{ padding: '20px 22px', borderRadius: 16 }}>
+              {/* Header — face + name + email + chips. */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '0 0 18px', flexWrap: 'wrap' }}>
+                {avatarId ? (
+                  <PlAvatar id={avatarId} size={64} />
+                ) : session?.user?.image ? (
                   <img
                     src={session.user.image}
                     alt={fullName}
-                    style={{ width: 60, height: 60, borderRadius: 999, objectFit: 'cover' }}
+                    style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }}
                   />
                 ) : (
                   <div
                     style={{
-                      width: 60,
-                      height: 60,
-                      borderRadius: 999,
-                      background: `linear-gradient(135deg, ${PD.pear}, ${PD.olive})`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: PD.paper,
-                      fontSize: 24,
-                      fontFamily: '"Fraunces", Georgia, serif',
-                      fontWeight: 600,
+                      width: 64,
+                      height: 64,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, var(--sage-deep), var(--sage))',
+                      color: 'var(--cream)',
+                      display: 'grid',
+                      placeItems: 'center',
+                      fontSize: 26,
+                      fontWeight: 700,
                     }}
                   >
-                    {(fullName[0] || 'P').toUpperCase()}
+                    {initials}
                   </div>
                 )}
                 <div style={{ flex: 1, minWidth: 220 }}>
-                  <div
-                    style={{
-                      ...DISPLAY_STYLE,
-                      fontSize: 24,
-                      lineHeight: 1,
-                      fontWeight: 600,
-                      letterSpacing: '-0.01em',
-                    }}
-                  >
-                    {fullName}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 13,
-                      color: PD.inkSoft,
-                      marginTop: 4,
-                      fontFamily: 'var(--pl-font-body)',
-                    }}
-                  >
-                    {session?.user?.email}
-                  </div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600 }}>{fullName}</div>
+                  <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>{session?.user?.email}</div>
                   <div style={{ display: 'flex', gap: 7, marginTop: 7, flexWrap: 'wrap' }}>
                     <span
                       style={{
@@ -280,67 +271,74 @@ export function DashSettings() {
                     </span>
                   </div>
                 </div>
-              </Panel>
+              </div>
 
-              <Panel
-                bg="var(--peach-bg)"
-                style={{ padding: 22, border: 'none', borderRadius: 16 }}
+              {/* Your mark — same orchard picker as the modal; the
+                  shared useUserAvatar cache keeps the topbar, the
+                  sidebar, the modal, and this page in sync. */}
+              <div style={{ padding: '2px 0 16px', borderBottom: '1px solid var(--line-soft)' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 8 }}>
+                  Your mark
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {PL_AVATARS.map((a) => {
+                    const on = avatarId === a.id;
+                    return (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => setAvatarId(on ? null : a.id)}
+                        aria-pressed={on}
+                        title={a.label}
+                        style={{
+                          width: 48, height: 48, padding: 0,
+                          borderRadius: 14,
+                          border: on ? '2px solid var(--sage-deep, #3D4A1F)' : '2px solid transparent',
+                          background: 'transparent',
+                          cursor: 'pointer',
+                          boxShadow: on ? '0 0 0 2px var(--card), 0 4px 10px rgba(61,74,31,0.16)' : 'none',
+                          transition: 'transform var(--pl-dur-fast, 180ms) var(--pl-ease-spring, ease), box-shadow var(--pl-dur-fast, 180ms) var(--pl-ease-out, ease)',
+                          transform: on ? 'translateY(-1px)' : 'none',
+                        }}
+                      >
+                        <PlAvatar id={a.id} size={44} round={false} />
+                      </button>
+                    );
+                  })}
+                </div>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 8 }}>
+                  {avatarId
+                    ? 'Tap your mark again to go back to your photo or initials.'
+                    : 'Pick a mark, or stay with your sign-in photo.'}
+                </div>
+              </div>
+
+              {/* The fields — display name persists to the same
+                  /api/user/preferences row the modal edits, so the
+                  two surfaces can never disagree. */}
+              <div
+                className="pd-settings-fields"
+                style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, paddingTop: 16 }}
               >
-                <div
-                  style={{
-                    fontSize: 10.5,
-                    fontWeight: 700,
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                    color: 'var(--peach-ink)',
-                    marginBottom: 4,
-                  }}
-                >
-                  The basics
-                </div>
-                <h2
-                  style={{
-                    ...DISPLAY_STYLE,
-                    fontSize: 24,
-                    fontWeight: 600,
-                    margin: '0 0 18px',
-                  }}
-                >
-                  How you{' '}
-                  <span
-                    style={{
-                      fontStyle: 'italic',
-                      fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
-                    }}
-                  >
-                    show up
-                  </span>
-                  .
-                </h2>
-                <div
-                  className="pd-settings-fields"
-                  style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}
-                >
-                  <Field
-                    label="Display name"
-                    value={prefs.display_name ?? firstName}
-                    onSave={(v) => void wrap({ display_name: v || null })}
-                  />
-                  <Field
-                    label="Pronouns"
-                    value={prefs.pronouns ?? ''}
-                    placeholder="she / her"
-                    onSave={(v) => void wrap({ pronouns: v || null })}
-                  />
-                  <Field label="Email" value={session?.user?.email ?? ''} disabled />
-                  <Field
-                    label="Time zone"
-                    value={prefs.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone}
-                    onSave={(v) => void wrap({ timezone: v || null })}
-                  />
-                </div>
-              </Panel>
-            </>
+                <Field
+                  label="Display name"
+                  value={prefs.display_name ?? firstName}
+                  onSave={(v) => void wrap({ display_name: v || null })}
+                />
+                <Field
+                  label="Pronouns"
+                  value={prefs.pronouns ?? ''}
+                  placeholder="she / her"
+                  onSave={(v) => void wrap({ pronouns: v || null })}
+                />
+                <Field label="Email" value={session?.user?.email ?? ''} disabled />
+                <Field
+                  label="Time zone"
+                  value={prefs.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone}
+                  onSave={(v) => void wrap({ timezone: v || null })}
+                />
+              </div>
+            </Panel>
           )}
 
           {section === 'pear' && !loading && (

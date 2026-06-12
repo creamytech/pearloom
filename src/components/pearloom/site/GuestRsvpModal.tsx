@@ -153,6 +153,12 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
   const [query, setQuery] = useState('');
   const [email, setEmail] = useState('');
   const [party, setParty] = useState<Party | null>(null);
+  /* "Find your invitation" typeahead — live name matches from the
+     host's REAL guest list (/api/rsvp/lookup, names only). Picking
+     yourself pins your row id so the reply UPDATES it instead of
+     minting a duplicate — and passes the invitation-only gate. */
+  const [nameMatches, setNameMatches] = useState<Array<{ id: string; name: string; party?: string | null }>>([]);
+  const [matchedGuestId, setMatchedGuestId] = useState<string | null>(null);
   const [resp, setResp] = useState<Record<string, GuestReply>>({});
   const [song, setSong] = useState('');
   const [note, setNote] = useState('');
@@ -227,7 +233,28 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
     setNote('');
     setSubmitError(null);
     setSubmitting(false);
+    setNameMatches([]);
+    setMatchedGuestId(null);
   }, []);
+
+  /* Debounced guest-list lookup while the guest types their name.
+     Old results stay in state below the 2-char floor — the render
+     condition hides them, so no synchronous setState-in-effect. */
+  useEffect(() => {
+    if (!open || step !== 'find') return;
+    const q = query.trim();
+    if (q.length < 2) return;
+    const ctl = new AbortController();
+    const t = window.setTimeout(() => {
+      fetch(`/api/rsvp/lookup?siteId=${encodeURIComponent(siteSlug)}&q=${encodeURIComponent(q)}`, { signal: ctl.signal })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d: { matches?: Array<{ id: string; name: string; party?: string | null }> } | null) => {
+          if (d && Array.isArray(d.matches)) setNameMatches(d.matches);
+        })
+        .catch(() => { /* lookup is best-effort — typing still works */ });
+    }, 220);
+    return () => { window.clearTimeout(t); ctl.abort(); };
+  }, [open, step, query, siteSlug]);
 
   // Listen for the open event globally.
   useEffect(() => {
@@ -269,8 +296,16 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
 
   if (!open) return null;
 
-  const findInvite = () => {
-    const q = query.trim();
+  /* A tapped suggestion proceeds immediately as that guest. */
+  const pickMatch = (m: { id: string; name: string }) => {
+    setQuery(m.name);
+    setMatchedGuestId(m.id);
+    setNameMatches([]);
+    findInvite(m.name);
+  };
+
+  const findInvite = (explicitName?: string) => {
+    const q = (explicitName ?? query).trim();
     if (q.length < 2) return;
     if (parties.length > 0) {
       const found = findPartyByQuery(parties, q);
@@ -330,9 +365,22 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
       for (let i = 0; i < replies.length; i++) {
         const { guestName, reply } = replies[i];
         const guestEmail = i === 0 ? email.trim() : (email.trim() ? `${email.trim().split('@')[0]}+${i}@${email.trim().split('@')[1] ?? 'guests.pearloom.com'}` : '');
+        /* Personal guest-link token (?g= / ?guest=) rides along so
+           invitation-only sites recognize the guest even before
+           their email matches the list. */
+        const urlToken = (() => {
+          try {
+            const sp = new URLSearchParams(window.location.search);
+            return sp.get('g') || sp.get('guest') || undefined;
+          } catch { return undefined; }
+        })();
         const body = {
           siteId: siteSlug,
           guestName,
+          guestToken: urlToken,
+          /* "Found you" — the first reply lands on the picked
+             guest-list row instead of upserting a duplicate. */
+          guestId: i === 0 && matchedGuestId ? matchedGuestId : undefined,
           email: guestEmail || undefined,
           status: reply.attending === 'yes' ? 'attending' : 'declined',
           mealPreference: reply.attending === 'yes' ? reply.meal || null : null,
@@ -487,14 +535,65 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
               <input
                 type="text"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => { setQuery(e.target.value); setMatchedGuestId(null); }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') findInvite();
                 }}
                 placeholder="Start typing your name…"
                 autoFocus
+                autoComplete="off"
                 style={inputStyle()}
               />
+              {/* Live matches from the host's guest list — tap
+                  yourself and your reply lands on YOUR row. */}
+              {query.trim().length >= 2 && !matchedGuestId && nameMatches.length > 0 && (
+                <div
+                  role="listbox"
+                  aria-label="Guests matching your name"
+                  style={{
+                    marginTop: 6,
+                    border: '1px solid var(--line, rgba(14,13,11,0.14))',
+                    borderRadius: 12,
+                    overflow: 'hidden',
+                    background: 'var(--card, var(--pl-cream-card, #FBF7EE))',
+                  }}
+                >
+                  {nameMatches.map((m, i) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      role="option"
+                      aria-selected={false}
+                      onClick={() => pickMatch(m)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'baseline',
+                        gap: 8,
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '10px 13px',
+                        border: 'none',
+                        borderTop: i > 0 ? '1px solid var(--line-soft, rgba(14,13,11,0.08))' : 'none',
+                        background: 'transparent',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink, var(--pl-ink, #0E0D0B))' }}>
+                        {m.name}
+                      </span>
+                      {m.party && (
+                        <span style={{ fontSize: 11, color: 'var(--ink-muted, var(--pl-muted, #6F6557))' }}>
+                          {m.party}
+                        </span>
+                      )}
+                      <span aria-hidden style={{ marginLeft: 'auto', fontSize: 11.5, color: 'var(--pl-olive, #5C6B3F)', fontWeight: 600 }}>
+                        That’s me →
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div style={fieldStyle()}>
               <label style={labelStyle()}>Email (optional)</label>
@@ -507,7 +606,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
               />
             </div>
             <button
-              onClick={findInvite}
+              onClick={() => findInvite()}
               disabled={query.trim().length < 2}
               style={{
                 width: '100%',

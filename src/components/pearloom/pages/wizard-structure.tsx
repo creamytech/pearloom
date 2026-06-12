@@ -121,6 +121,10 @@ export function WizardStructureSection({
     position: 'relative',
     background: 'var(--cream-2, #FBF7EE)',
     flexShrink: 0,
+    /* Containing block for the site's fixed chrome — without it
+       the mobile nav drawer escapes the phone frame and opens
+       over the wizard page (same fix as PackSitePreview). */
+    transform: 'translateZ(0)',
   };
 
   return (

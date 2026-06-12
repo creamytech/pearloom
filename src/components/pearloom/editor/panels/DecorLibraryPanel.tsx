@@ -1010,7 +1010,7 @@ export function DecorLibraryPanel({
             )}
           </div>
           <div style={{ display: 'flex', gap: 6, marginTop: 12, padding: 4, background: 'var(--cream-2, #FBF7EE)', borderRadius: 12 }}>
-            <TabBtn on={tab === 'motifs'} onClick={() => setTab('motifs')} icon="leaf" label="Motifs" />
+            <TabBtn on={tab === 'motifs'} onClick={() => setTab('motifs')} icon="leaf" label="Decorations" />
             <TabBtn on={tab === 'dividers'} onClick={() => setTab('dividers')} icon="minus" label="Dividers" />
             <TabBtn on={tab === 'patterns'} onClick={() => setTab('patterns')} icon="grid" label="Patterns" />
             <TabBtn on={tab === 'monogram'} onClick={() => setTab('monogram')} icon="heart-icon" label="Monogram" />

@@ -10,6 +10,12 @@
 //
 //   - Trigger renders as the inline time text (the caller styles
 //     the pill; this component is the time region + its popover)
+//   - The popover PORTALS to document.body — the moment pills are
+//     overflow-clipped rounded containers, so an absolutely-
+//     positioned child gets cut off inside the pill (no z-index
+//     can fix clipping). Fixed-position panel anchored to the
+//     trigger rect, re-measured on scroll/resize, flips above
+//     when the viewport runs out below.
 //   - Opens a grouped column — Morning / Afternoon / Evening —
 //     gold hairlines between groups, selected row in olive,
 //     auto-scrolled into view
@@ -17,7 +23,8 @@
 //     already stores
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export const WALL_TIMES: string[] = (() => {
   const out: string[] = [];
@@ -37,6 +44,12 @@ const GROUPS: Array<{ label: string; test: (t: string) => boolean }> = [
   { label: 'Evening', test: (t) => t.endsWith('pm') && !['12:', '1:', '2:', '3:', '4:'].some((h) => t.startsWith(h)) },
 ];
 
+const PANEL_W = 168;
+const PANEL_MAX_H = 264;
+const MARGIN = 8;
+
+interface PanelPos { top: number; left: number; maxHeight: number }
+
 export function WizardTimePicker({
   value,
   onChange,
@@ -46,33 +59,61 @@ export function WizardTimePicker({
   onChange: (t: string) => void;
   label: string;
 }) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLSpanElement>(null);
+  // open === non-null position; one state, no drift.
+  const [pos, setPos] = useState<PanelPos | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef<HTMLButtonElement>(null);
+  const open = pos !== null;
+
+  const measure = useCallback((): PanelPos | null => {
+    const r = triggerRef.current?.getBoundingClientRect();
+    if (!r) return null;
+    const left = Math.max(MARGIN, Math.min(r.right - PANEL_W, window.innerWidth - PANEL_W - MARGIN));
+    const roomBelow = window.innerHeight - r.bottom - MARGIN * 2;
+    if (roomBelow >= Math.min(PANEL_MAX_H, 180)) {
+      return { top: r.bottom + MARGIN, left, maxHeight: Math.min(PANEL_MAX_H, roomBelow) };
+    }
+    // Flip above the trigger.
+    const maxHeight = Math.min(PANEL_MAX_H, r.top - MARGIN * 2);
+    return { top: Math.max(MARGIN, r.top - MARGIN - maxHeight), left, maxHeight };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent | TouchEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (!triggerRef.current?.contains(t) && !panelRef.current?.contains(t)) setPos(null);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') setPos(null);
     };
+    // Keep the panel glued to the trigger while the page moves.
+    const onMove = () => setPos(measure());
     document.addEventListener('mousedown', onDown);
     document.addEventListener('touchstart', onDown);
     document.addEventListener('keydown', onKey);
+    window.addEventListener('scroll', onMove, true);
+    window.addEventListener('resize', onMove);
     return () => {
       document.removeEventListener('mousedown', onDown);
       document.removeEventListener('touchstart', onDown);
       document.removeEventListener('keydown', onKey);
+      window.removeEventListener('scroll', onMove, true);
+      window.removeEventListener('resize', onMove);
     };
-  }, [open]);
+  }, [open, measure]);
 
-  /* Land the open panel with the current time centered. */
+  /* Land the open panel with the current time centered — scroll
+     the PANEL's own overflow only (scrollIntoView would also
+     scroll the page toward the portaled panel). */
   useEffect(() => {
     if (!open) return;
     const raf = requestAnimationFrame(() => {
-      selectedRef.current?.scrollIntoView({ block: 'center' });
+      const panel = panelRef.current;
+      const row = selectedRef.current;
+      if (!panel || !row) return;
+      panel.scrollTop = row.offsetTop - panel.clientHeight / 2 + row.clientHeight / 2;
     });
     return () => cancelAnimationFrame(raf);
   }, [open]);
@@ -83,12 +124,13 @@ export function WizardTimePicker({
   );
 
   return (
-    <span ref={rootRef} style={{ position: 'relative', display: 'inline-flex', alignItems: 'stretch' }}>
+    <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'stretch' }}>
       <button
+        ref={triggerRef}
         type="button"
         aria-label={`Time for ${label} — ${value}`}
         aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => setPos((p) => (p ? null : measure()))}
         style={{
           border: 'none',
           borderLeft: '1px solid color-mix(in srgb, var(--cream, #F5EFE2) 35%, transparent)',
@@ -110,17 +152,18 @@ export function WizardTimePicker({
         </svg>
       </button>
 
-      {open && (
+      {pos && typeof document !== 'undefined' && createPortal(
         <div
+          ref={panelRef}
           role="listbox"
           aria-label={`Time for ${label}`}
           style={{
-            position: 'absolute',
-            top: 'calc(100% + 8px)',
-            right: 0,
-            zIndex: 40,
-            width: 168,
-            maxHeight: 264,
+            position: 'fixed',
+            top: pos.top,
+            left: pos.left,
+            zIndex: 300,
+            width: PANEL_W,
+            maxHeight: pos.maxHeight,
             overflowY: 'auto',
             WebkitOverflowScrolling: 'touch',
             background: 'var(--cream)',
@@ -156,7 +199,7 @@ export function WizardTimePicker({
                     type="button"
                     role="option"
                     aria-selected={on}
-                    onClick={() => { onChange(t); setOpen(false); }}
+                    onClick={() => { onChange(t); setPos(null); }}
                     style={{
                       display: 'block',
                       width: '100%',
@@ -187,7 +230,8 @@ export function WizardTimePicker({
               to   { opacity: 1; transform: translateY(0) scale(1); }
             }
           `}</style>
-        </div>
+        </div>,
+        document.body,
       )}
     </span>
   );

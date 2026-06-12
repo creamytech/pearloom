@@ -109,7 +109,7 @@ const INCLUDES_META: Record<
   },
   kit: {
     icon: 'layout',
-    title: () => 'Component kit',
+    title: () => 'Card style',
     subtitle: (p) => `${kitLabel(p.kit)} styling`,
   },
   texture: {
@@ -130,7 +130,7 @@ const INCLUDES_META: Record<
   },
   motifs: {
     icon: 'leaf',
-    title: () => 'Motifs & dividers',
+    title: () => 'Decorations & dividers',
     subtitle: (p) =>
       p.motif === 'none'
         ? 'Clean, no motifs'
@@ -287,7 +287,7 @@ export function QuickLookModal({
               border: '1px solid var(--pl-divider, #D8CFB8)',
             }}
           >
-            <PackSitePreview pack={pack} height={520} />
+            <PackSitePreview pack={pack} height={520} wide={!isNarrow} />
           </div>
         </div>
 

@@ -17,6 +17,7 @@ import type { StudioState, SetStudioField } from './useStudioState';
 import { Pear, Stamp, Squiggle, Icon } from '../motifs';
 import { AssetGlyph } from './StudioAssetGlyph';
 import { PearThinking } from '../pear-thinking';
+import { PlColorPicker } from '../redesign/PlColorPicker';
 
 interface RailProps {
   state: StudioState;
@@ -762,7 +763,7 @@ function RailGroup({ label, sub, children }: { label: string; sub?: string; chil
 function DesignTab({ state, setField, decorAssets }: { state: StudioState; setField: SetStudioField; decorAssets?: Array<{ id: string; url: string; label: string }> }) {
   return (
     <>
-      <RailGroup label="Palette" sub={PALETTES.find(p => p.id === state.palette)?.sub}>
+      <RailGroup label="Colors" sub={PALETTES.find(p => p.id === state.palette)?.sub}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
           {PALETTES.map(p => {
             const on = state.palette === p.id;
@@ -799,15 +800,15 @@ function DesignTab({ state, setField, decorAssets }: { state: StudioState; setFi
               const preset = PALETTES.find(pp => pp.id === state.palette) ?? PALETTES[0];
               const current = state.customColors?.[key] ?? preset[key];
               return (
-                <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: 'var(--ink)', cursor: 'pointer' }}>
-                  <input
-                    type="color"
+                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: 'var(--ink)' }}>
+                  <PlColorPicker
                     value={current}
-                    onChange={(e) => setField('customColors', { ...(state.customColors ?? {}), [key]: e.target.value })}
-                    style={{ width: 26, height: 26, padding: 0, border: '1px solid var(--line)', borderRadius: 7, background: 'transparent', cursor: 'pointer' }}
+                    onChange={(hex) => setField('customColors', { ...(state.customColors ?? {}), [key]: hex })}
+                    label={label}
+                    swatchStyle={{ width: 26, height: 26, borderRadius: 7 }}
                   />
                   {label}
-                </label>
+                </div>
               );
             })}
           </div>
@@ -954,7 +955,7 @@ function DesignTab({ state, setField, decorAssets }: { state: StudioState; setFi
         </div>
       </RailGroup>
 
-      <RailGroup label="Motif">
+      <RailGroup label="Decoration">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
           {MOTIFS.map(m => {
             const on = state.motif === m.id;

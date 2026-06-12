@@ -26,22 +26,36 @@ const h = vi.hoisted(() => {
   type Queued = { value: unknown; isError?: boolean };
   const queues: Record<string, Queued[]> = {};
   const calls: { table: string; method: string; args: unknown[] }[] = [];
+  /* Fallbacks when a queue is empty — the route now resolves the
+     site row (uuid OR slug) before every upsert, so nearly every
+     test needs a sites.maybeSingle answer. The default is an open
+     site (no guestListOnly); gate tests queue their own. */
+  const defaults: Record<string, unknown> = {
+    'sites.maybeSingle': { id: 'demo', ai_manifest: {} },
+  };
 
   function makeChain(table: string) {
     const chain: Record<string, unknown> = {};
-    const verbs = ['from', 'upsert', 'select', 'single'];
-    for (const verb of verbs) {
+    const passVerbs = ['from', 'upsert', 'update', 'select', 'eq', 'ilike'];
+    // Terminal verbs resolve { data, error } from the queue (or the
+    // defaults map): .single() ends the upsert chain, .maybeSingle()
+    // ends the site/token lookups, .limit() ends the email check.
+    const terminalVerbs = ['single', 'maybeSingle', 'limit'];
+    for (const verb of passVerbs) {
       chain[verb] = (...args: unknown[]) => {
         calls.push({ table, method: verb, args });
-        // .upsert(...).select().single() is the terminal chain.
-        // single() resolves with { data, error } from the queue.
-        if (verb === 'single') {
-          const q = queues[`${table}.single`]?.shift();
-          return Promise.resolve(
-            q?.isError ? { data: null, error: q.value } : { data: q?.value ?? null, error: null },
-          );
-        }
         return chain;
+      };
+    }
+    for (const verb of terminalVerbs) {
+      chain[verb] = (...args: unknown[]) => {
+        calls.push({ table, method: verb, args });
+        const key = `${table}.${verb}`;
+        const q = queues[key]?.shift()
+          ?? (key in defaults ? { value: defaults[key] } : undefined);
+        return Promise.resolve(
+          q?.isError ? { data: null, error: q.value } : { data: q?.value ?? null, error: null },
+        );
       };
     }
     return chain;
@@ -312,6 +326,116 @@ describe('POST /api/rsvp', () => {
     expect(blocked.status).toBe(429);
     const json = await blocked.json();
     expect(json.error).toMatch(/too many/i);
+  });
+
+  // ── Invitation-only gate (rsvpConfig.guestListOnly) ──────
+
+  it('403s an unknown email when guestListOnly is on', async () => {
+    h.queue('sites.maybeSingle', { id: 'demo', ai_manifest: { rsvpConfig: { guestListOnly: true } } });
+    // guests.limit default → null → email not found on the list.
+    const res = await POST(makePost({
+      siteId: 'demo',
+      guestName: 'Stranger',
+      email: 'stranger@example.test',
+    }));
+    expect(res.status).toBe(403);
+    const json = await res.json();
+    expect(json.guestListOnly).toBe(true);
+    expect(json.error).toMatch(/invitation/i);
+    // Crucially: NO row was written.
+    expect(h.calls.find((c) => c.method === 'upsert')).toBeUndefined();
+  });
+
+  it('403s when guestListOnly is on and no email or token was given', async () => {
+    h.queue('sites.maybeSingle', { id: 'demo', ai_manifest: { rsvpConfig: { guestListOnly: true } } });
+    const res = await POST(makePost({ siteId: 'demo', guestName: 'Stranger' }));
+    expect(res.status).toBe(403);
+    const json = await res.json();
+    expect(json.error).toMatch(/enter the email/i);
+  });
+
+  it('admits an email that is already on the guest list', async () => {
+    h.queue('sites.maybeSingle', { id: 'demo', ai_manifest: { rsvpConfig: { guestListOnly: true } } });
+    h.queue('guests.limit', [{ id: 'g-existing' }]);
+    h.queue('guests.single', { id: 'g-existing', name: 'Alice' });
+    const res = await POST(makePost({
+      siteId: 'demo',
+      guestName: 'Alice',
+      email: 'alice@example.test',
+    }));
+    expect(res.status).toBe(200);
+  });
+
+  it('admits a personal guest-link token', async () => {
+    h.queue('sites.maybeSingle', { id: 'demo', ai_manifest: { rsvpConfig: { guestListOnly: true } } });
+    h.queue('guests.maybeSingle', { id: 'g-tok' });
+    h.queue('guests.single', { id: 'g-tok', name: 'Alice' });
+    const res = await POST(makePost({
+      siteId: 'demo',
+      guestName: 'Alice',
+      guestToken: 'tok-abc123',
+    }));
+    expect(res.status).toBe(200);
+  });
+
+  it('resolves a slug siteId to the site uuid before the upsert', async () => {
+    h.queue('sites.maybeSingle', { id: '11111111-2222-4333-8444-555555555555', ai_manifest: {} });
+    h.queue('guests.single', { id: 'g1' });
+    const res = await POST(makePost({ siteId: 'emma-and-james', guestName: 'Alice' }));
+    expect(res.status).toBe(200);
+    const payload = h.calls.find((c) => c.method === 'upsert')!.args[0] as { site_id: string };
+    expect(payload.site_id).toBe('11111111-2222-4333-8444-555555555555');
+  });
+
+  it('404s when the site does not exist', async () => {
+    h.queue('sites.maybeSingle', null);
+    const res = await POST(makePost({ siteId: 'no-such-site', guestName: 'Alice' }));
+    expect(res.status).toBe(404);
+  });
+
+  // ── "Found you" (guestId from /api/rsvp/lookup) ──────────
+
+  it('UPDATEs the matched guest row instead of upserting a duplicate', async () => {
+    // guestId row check resolves to the row…
+    h.queue('guests.maybeSingle', { id: '22222222-3333-4444-8555-666666666666' });
+    // …and the update chain's .single() returns it.
+    h.queue('guests.single', { id: '22222222-3333-4444-8555-666666666666', name: 'Alice' });
+    const res = await POST(makePost({
+      siteId: 'demo',
+      guestName: 'Alice',
+      guestId: '22222222-3333-4444-8555-666666666666',
+      status: 'attending',
+    }));
+    expect(res.status).toBe(200);
+    expect(h.calls.find((c) => c.method === 'update')).toBeDefined();
+    expect(h.calls.find((c) => c.method === 'upsert')).toBeUndefined();
+    // No email typed → the stored email must not be clobbered.
+    const payload = h.calls.find((c) => c.method === 'update')!.args[0] as Record<string, unknown>;
+    expect('email' in payload).toBe(false);
+  });
+
+  it('a picked guestId passes the invitation-only gate', async () => {
+    h.queue('sites.maybeSingle', { id: 'demo', ai_manifest: { rsvpConfig: { guestListOnly: true } } });
+    h.queue('guests.maybeSingle', { id: '22222222-3333-4444-8555-666666666666' });
+    h.queue('guests.single', { id: '22222222-3333-4444-8555-666666666666' });
+    const res = await POST(makePost({
+      siteId: 'demo',
+      guestName: 'Alice',
+      guestId: '22222222-3333-4444-8555-666666666666',
+    }));
+    expect(res.status).toBe(200);
+  });
+
+  it('a forged guestId from another site falls back to upsert (and fails the gate)', async () => {
+    h.queue('sites.maybeSingle', { id: 'demo', ai_manifest: { rsvpConfig: { guestListOnly: true } } });
+    // Row check finds nothing for this site.
+    h.queue('guests.maybeSingle', null);
+    const res = await POST(makePost({
+      siteId: 'demo',
+      guestName: 'Alice',
+      guestId: '99999999-9999-4999-8999-999999999999',
+    }));
+    expect(res.status).toBe(403);
   });
 
   // ── Notification email (host-facing, fire-and-forget) ──

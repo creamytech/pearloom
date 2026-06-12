@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Icon, Pear } from '../motifs';
+import { PlAvatar, useUserAvatar } from '../avatars';
 import type { EditorMode } from './EditorRedesign';
 import type { SaveState } from './bridge';
 import type { StoryManifest } from '@/types';
@@ -51,6 +52,11 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
   const userImage = sessionUser?.image ?? null;
   const userLabel = sessionUser?.name || sessionUser?.email || 'Account';
   const userInitials = avatarInitials(sessionUser?.name, sessionUser?.email);
+  /* The orchard mark — same shared cache the dashboard topbar and
+     settings read (mark → photo → initials). The editor previously
+     skipped the chain, so a host with a mark saw a different face
+     here than everywhere else. */
+  const { avatarId } = useUserAvatar();
   const saveLabel = saveState === 'saving' ? 'Saving…'
     : saveState === 'unsaved' ? 'Saving…'
     : saveState === 'error' ? 'Save failed'
@@ -436,9 +442,12 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
           title={userLabel}
           style={{
             width: 30, height: 30, borderRadius: 999,
-            background: userImage
+            padding: 0,
+            background: !avatarId && userImage
               ? `var(--cream-2) center / cover no-repeat url("${userImage.replace(/"/g, '%22')}")`
-              : 'linear-gradient(135deg, var(--lavender-2), var(--peach-2))',
+              : avatarId
+                ? 'transparent'
+                : 'linear-gradient(135deg, var(--lavender-2), var(--peach-2))',
             border: '1px solid var(--line)',
             cursor: 'pointer',
             color: 'var(--ink)', fontSize: 11, fontWeight: 700,
@@ -446,9 +455,12 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
             overflow: 'hidden',
           }}
         >
-          {/* Only show initials when there's no image. Image renders
-              via background. */}
-          {!userImage && <span>{userInitials}</span>}
+          {/* mark → sign-in photo (background) → initials. */}
+          {avatarId ? (
+            <PlAvatar id={avatarId} size={28} />
+          ) : !userImage ? (
+            <span>{userInitials}</span>
+          ) : null}
         </button>
           </>
         )}

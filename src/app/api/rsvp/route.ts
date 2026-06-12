@@ -46,6 +46,13 @@ export async function POST(req: NextRequest) {
       // New: non-wedding RSVP form sends these
       preset,
       answers,
+      // Personal guest-link token (?g=) — lets invited guests pass
+      // the guest-list gate even before their email is typed.
+      guestToken,
+      // "Found you" — the guest picked themselves from the
+      // /api/rsvp/lookup typeahead. Their reply UPDATES that row
+      // instead of upserting a duplicate, and counts as invited.
+      guestId,
     } = body;
 
     if (!siteId || !guestName) {
@@ -57,36 +64,123 @@ export async function POST(req: NextRequest) {
 
     const supabase = getSupabase();
 
-    // Upsert by email+siteId so guests can update their RSVP
-    const { data, error } = await supabase
-      .from('guests')
-      .upsert(
-        {
-          site_id: siteId,
-          name: guestName,
-          email: email || null,
-          status: status || 'attending',
-          plus_one: plusOne || false,
-          plus_one_name: plusOne ? plusOneName : null,
-          meal_preference: mealPreference || null,
-          dietary_restrictions: dietaryRestrictions || null,
-          song_request: songRequest || null,
-          message: message || null,
-          event_ids: selectedEvents || [],
-          mailing_address: mailingAddress || null,
-          // Preset-driven RSVP columns (20260422_rsvp_preset_answers.sql)
-          rsvp_preset: preset || null,
-          rsvp_answers: answers && typeof answers === 'object' ? answers : {},
-          responded_at: new Date().toISOString(),
-          created_at: new Date().toISOString(),
-        },
-        {
-          onConflict: 'site_id,email',
-          ignoreDuplicates: false,
-        }
-      )
-      .select()
-      .single();
+    // ── Resolve the site ONCE (uuid or slug) ──────────────────
+    // Callers send either the site uuid or the public slug
+    // (PublishedSiteShell hands its modal the domain). The upsert
+    // needs the real uuid for the site_id FK, and the invitation
+    // gate needs the manifest — one lookup serves both.
+    const RSVP_UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const siteQuery = supabase.from('sites').select('id, ai_manifest');
+    const { data: siteRow } = await (RSVP_UUID_RX.test(String(siteId))
+      ? siteQuery.eq('id', siteId)
+      : siteQuery.eq('subdomain', siteId)
+    ).maybeSingle();
+    if (!siteRow) {
+      return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    }
+    const resolvedSiteId = String(siteRow.id);
+
+    // ── "Found you" row match — verified against THIS site so a
+    //    forged id can't touch another celebration's rows. ──────
+    let matchedGuestRowId: string | null = null;
+    if (typeof guestId === 'string' && RSVP_UUID_RX.test(guestId)) {
+      const { data: byId } = await supabase
+        .from('guests')
+        .select('id')
+        .eq('site_id', resolvedSiteId)
+        .eq('id', guestId)
+        .maybeSingle();
+      if (byId) matchedGuestRowId = String(byId.id);
+    }
+
+    // ── Invitation-only gate (manifest.rsvpConfig.guestListOnly) ──
+    // When the host flips it on, only people already ON the guest
+    // list may reply: matched by name pick, by email, or by their
+    // personal guest link. Anyone else gets a warm 403 —
+    // not a row on the list.
+    const gateCfg = (siteRow.ai_manifest as { rsvpConfig?: { guestListOnly?: boolean } } | null)?.rsvpConfig;
+    if (gateCfg?.guestListOnly) {
+      let invited = matchedGuestRowId !== null;
+      if (!invited && typeof guestToken === 'string' && guestToken.trim()) {
+        const { data: byToken } = await supabase
+          .from('guests')
+          .select('id')
+          .eq('site_id', resolvedSiteId)
+          .eq('guest_token', guestToken.trim())
+          .maybeSingle();
+        invited = !!byToken;
+      }
+      if (!invited && email) {
+        const { data: byEmail } = await supabase
+          .from('guests')
+          .select('id')
+          .eq('site_id', resolvedSiteId)
+          .ilike('email', String(email).trim())
+          .limit(1);
+        invited = !!byEmail && byEmail.length > 0;
+      }
+      if (!invited) {
+        return NextResponse.json(
+          {
+            error: email
+              ? 'This celebration is replying by invitation — we couldn’t find that email on the guest list. Try the email your invitation was sent to, or reach out to your hosts.'
+              : 'This celebration is replying by invitation — enter the email your invitation was sent to.',
+            guestListOnly: true,
+          },
+          { status: 403 },
+        );
+      }
+    }
+
+    // The reply payload — shared by both write paths below.
+    const replyFields = {
+      name: guestName,
+      status: status || 'attending',
+      plus_one: plusOne || false,
+      plus_one_name: plusOne ? plusOneName : null,
+      meal_preference: mealPreference || null,
+      dietary_restrictions: dietaryRestrictions || null,
+      song_request: songRequest || null,
+      message: message || null,
+      event_ids: selectedEvents || [],
+      mailing_address: mailingAddress || null,
+      // Preset-driven RSVP columns (20260422_rsvp_preset_answers.sql)
+      rsvp_preset: preset || null,
+      rsvp_answers: answers && typeof answers === 'object' ? answers : {},
+      responded_at: new Date().toISOString(),
+    };
+
+    // "Found you" path — UPDATE the matched row. The guest's
+    // stored email survives unless they typed a new one, so the
+    // host's list never gains a duplicate or loses an address.
+    // Otherwise: upsert by email+siteId so guests can update
+    // their RSVP on re-submit.
+    const { data, error } = matchedGuestRowId
+      ? await supabase
+          .from('guests')
+          .update({
+            ...replyFields,
+            ...(email ? { email } : {}),
+          })
+          .eq('id', matchedGuestRowId)
+          .select()
+          .single()
+      : await supabase
+          .from('guests')
+          .upsert(
+            {
+              ...replyFields,
+              site_id: resolvedSiteId,
+              email: email || null,
+              created_at: new Date().toISOString(),
+            },
+            {
+              onConflict: 'site_id,email',
+              ignoreDuplicates: false,
+            }
+          )
+          .select()
+          .single();
 
     if (error) {
       console.error('[RSVP] Upsert failed:', {

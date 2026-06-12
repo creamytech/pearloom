@@ -327,7 +327,13 @@ interface WizardState {
   motifLayoutPick?: string;
   densityPick?: string;
   navVariant?: string;
+  /** Phone menu pick (layouts.navMobile) — set from the fitting
+   *  room on phone viewports, where the desktop nav is invisible. */
+  navMobileVariant?: string;
   heroVariant?: string;
+  /** Whole-page feel (manifest.edition) — the fitting room's
+   *  "Feel" rail. */
+  editionPick?: string;
   /** Plus-ones policy → rsvpConfig.plusOnes + the FAQ answer.
    *  undefined = not asked / host skipped. */
   plusOnes?: boolean;
@@ -1646,7 +1652,9 @@ function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: St
             color: 'var(--ink-muted)',
           }}
         >
-          {phasePosition} · {STEPS[active]}
+          {/* Display name stays plain (BRAND §7 control-label rule);
+              the StepKey ids are untouched. */}
+          {phasePosition} · {STEPS[active] === 'Palette' ? 'Colors' : STEPS[active]}
         </span>
       </div>
       {/* Single thread fills as the user moves through every step
@@ -1714,6 +1722,25 @@ function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: St
  * flow stays intact. Updates as the host picks vibes + palettes — turning
  * the two Look steps into a live design feedback loop.
  */
+/* Relative luminance from a hex color (#rgb / #rrggbb). Returns
+   null for anything unparseable (var() strings, named colors) so
+   callers can keep their defaults. */
+function hexLuminance(hex: string): number | null {
+  const m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return null;
+  let h = m[1];
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+  const chan = (i: number) => {
+    const v = parseInt(h.slice(i, i + 2), 16) / 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * chan(0) + 0.7152 * chan(2) + 0.0722 * chan(4);
+}
+function contrastRatio(a: number, b: number): number {
+  const [hi, lo] = a > b ? [a, b] : [b, a];
+  return (hi + 0.05) / (lo + 0.05);
+}
+
 function WizardLiveVignette({ st }: { st: WizardState }) {
   const names = st.names.filter(Boolean);
   // Solo occasions preview ONE name — no '&', no phantom partner.
@@ -1740,9 +1767,30 @@ function WizardLiveVignette({ st }: { st: WizardState }) {
     st.paletteColors && st.paletteColors.length > 0
       ? st.paletteColors
       : PALETTES.find((p) => p.id === st.palette)?.colors;
-  const accent = paletteColors?.[1] || 'var(--sage-deep, #5C6B3F)';
+  const accentRaw = paletteColors?.[1] || 'var(--sage-deep, #5C6B3F)';
   const ground = paletteColors?.[2] || 'var(--cream-2, #F0E8D6)';
-  const ink = paletteColors?.[3] || 'var(--ink, #2A2A2A)';
+  const inkRaw = paletteColors?.[3] || 'var(--ink, #2A2A2A)';
+
+  /* Contrast guard — palette colors carry no contrast guarantee
+     (a photo palette can hand us cream-on-peach), and the page's
+     own --ink/--ink-muted flip light in dark mode while the card's
+     ground stays a palette color. Every text color inside the card
+     is therefore derived FROM the ground: a warm dark or cream
+     base ink by luminance, the palette ink only when it actually
+     clears the ground, and the accent pulled toward the base ink
+     until it reads. */
+  const groundLum = hexLuminance(ground);
+  const baseInk = groundLum == null
+    ? 'var(--ink, #2A2A2A)'
+    : groundLum > 0.45 ? '#2A2418' : '#F5EFE2';
+  const inkLum = hexLuminance(inkRaw);
+  const ink = groundLum != null && inkLum != null && contrastRatio(inkLum, groundLum) >= 4.5
+    ? inkRaw
+    : baseInk;
+  const accentLum = hexLuminance(accentRaw);
+  const accent = groundLum == null || (accentLum != null && contrastRatio(accentLum, groundLum) >= 3)
+    ? accentRaw
+    : `color-mix(in srgb, ${accentRaw} 45%, ${baseInk})`;
 
   return (
     <div
@@ -1809,12 +1857,15 @@ function WizardLiveVignette({ st }: { st: WizardState }) {
         {dateLabel} · {placeLabel}
       </div>
 
-      {/* Footer hint */}
+      {/* Footer hint — derived from the card's own ground, not the
+          page's --ink-muted (which flips light in dark mode and
+          vanished against light palette grounds). */}
       <div
         style={{
           marginTop: 14,
           fontSize: 11,
-          color: 'var(--ink-muted)',
+          color: ink,
+          opacity: 0.55,
           fontFamily: 'var(--font-mono, ui-monospace, monospace)',
           letterSpacing: '0.06em',
         }}
@@ -2392,10 +2443,12 @@ export function WizardV8() {
       //    stamp lands AFTER the look-recipe stamp below would —
       //    order here is before it, so re-stamp at the end too.
       if (st.siteMode) manifest.siteMode = st.siteMode;
-      if (st.navVariant || st.heroVariant) {
+      if (st.editionPick) manifest.edition = st.editionPick;
+      if (st.navVariant || st.navMobileVariant || st.heroVariant) {
         manifest.layouts = {
           ...((manifest.layouts as Record<string, string> | undefined) ?? {}),
           ...(st.navVariant ? { nav: st.navVariant } : {}),
+          ...(st.navMobileVariant ? { navMobile: st.navMobileVariant } : {}),
           ...(st.heroVariant ? { hero: st.heroVariant } : {}),
         };
       }
@@ -3351,10 +3404,10 @@ export function WizardV8() {
               {step === 'Palette' && (
                 <>
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                    Choose a <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>palette.</span>
+                    Choose your <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>colors.</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 18px' }}>
-                    Pear read your venue and vibes and mixed three palettes just for you — or pick a classic below.
+                    Pear read your venue and vibes and mixed three color sets just for you — or pick a classic below.
                   </p>
                   {/* Live preview — re-renders the moment a palette is
                       tapped so the host sees how their names land in
@@ -3944,7 +3997,7 @@ export function WizardV8() {
                       : 'Bold';
                     const items = [
                       { label: 'Texture', val: tex.charAt(0).toUpperCase() + tex.slice(1) },
-                      { label: 'Kit',     val: ld.kitId.charAt(0).toUpperCase() + ld.kitId.slice(1) },
+                      { label: 'Cards',   val: ld.kitId.charAt(0).toUpperCase() + ld.kitId.slice(1) },
                       { label: 'Spacing', val: ld.density.charAt(0).toUpperCase() + ld.density.slice(1) },
                       { label: 'Voice',   val: voice ? voice.charAt(0).toUpperCase() + voice.slice(1) : 'Celebratory' },
                       { label: 'Grain',   val: intensityLabel },
@@ -4061,8 +4114,8 @@ export function WizardV8() {
                           density: st.densityPick,
                         }}
                         onExpand={() => setFittingOpen(true)}
-                        title="Your pressing"
-                        blurb="Exactly what Pear will press — scroll it. Step into the fitting room to change any of it."
+                        title="Your site"
+                        blurb="Exactly what Pear will build — scroll it. Step into the fitting room to change any of it."
                       />
                     );
                   })()}
@@ -4299,9 +4352,11 @@ export function WizardV8() {
                               kitId: st.kitId,
                               texture: st.texture,
                               navVariant: st.navVariant,
+                              navMobile: st.navMobileVariant,
                               heroVariant: st.heroVariant,
                               motifLayout: st.motifLayoutPick,
                               density: st.densityPick,
+                              edition: st.editionPick,
                             }}
                             onChange={(next) => setSt((prev) => ({
                               ...prev,
@@ -4309,9 +4364,11 @@ export function WizardV8() {
                               ...('kitId' in next ? { kitId: next.kitId } : {}),
                               ...('texture' in next ? { texture: next.texture } : {}),
                               ...('navVariant' in next ? { navVariant: next.navVariant } : {}),
+                              ...('navMobile' in next ? { navMobileVariant: next.navMobile } : {}),
                               ...('heroVariant' in next ? { heroVariant: next.heroVariant } : {}),
                               ...('motifLayout' in next ? { motifLayoutPick: next.motifLayout } : {}),
                               ...('density' in next ? { densityPick: next.density } : {}),
+                              ...('edition' in next ? { editionPick: next.edition } : {}),
                             }))}
                             onClose={() => setFittingOpen(false)}
                           />
