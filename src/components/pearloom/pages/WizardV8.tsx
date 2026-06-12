@@ -2195,7 +2195,10 @@ export function WizardV8() {
             display: none !important;
           }
           .pl8-wizard-canvas {
-            padding: 28px 18px 64px !important;
+            /* Bottom clearance for the floating cook pill + iOS
+               Safari's toolbar so the step's nav buttons never sit
+               behind either. */
+            padding: 28px 18px calc(110px + env(safe-area-inset-bottom, 0px)) !important;
           }
           /* Decorative margin sprigs/sparkle crowd a phone canvas. */
           .pl8-wizard-atmosphere {
@@ -2245,7 +2248,9 @@ export function WizardV8() {
           display: 'flex',
           alignItems: 'center',
           gap: 28,
-          background: 'rgba(248,241,228,0.92)',
+          // Theme-aware glass — a hardcoded cream rgba here left a
+          // light band over the editorial-midnight body in dark mode.
+          background: 'color-mix(in srgb, var(--cream, #F8F1E4) 92%, transparent)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
           borderBottom: '1px solid var(--line-soft)',

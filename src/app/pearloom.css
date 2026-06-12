@@ -1685,7 +1685,13 @@ button.pl8-mobile-only { display: none !important; }
   .pl8 .topnav-inner .btn-ghost.btn-sm { padding: 6px 10px; font-size: 12px; }
   .pl8 .logo { font-size: 20px; gap: 6px; }
   .pl8 .logo-glyph { width: 28px; height: 28px; flex: 0 0 28px; }
-  .pl8 .display, .pl8-guest .display { font-size: clamp(32px, 9vw, 56px) !important; }
+  /* Heading elements only on the chrome side — .pl8 surfaces use
+     small .display divs/spans (14–26px) for editorial labels (the
+     wizard's phase word, dash card titles); a blanket clamp here
+     inflated them to 32px+ on phones. Published-site scope keeps
+     the blanket rule — guest heroes are the rule's real target. */
+  .pl8 h1.display, .pl8 h2.display, .pl8 h3.display,
+  .pl8-guest .display { font-size: clamp(32px, 9vw, 56px) !important; }
 }
 
 /* Container safety net — prevents horizontal scroll from inline
