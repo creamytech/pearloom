@@ -2614,7 +2614,15 @@ function FaqBlock({ ctx }: { ctx: SectionCtx }) {
 
 interface CountdownPieces { d: number; h: number; m: number; s: number; }
 function useCountdownPieces(target: number | null): CountdownPieces {
-  const [now, setNow] = useState<number>(() => (typeof window === 'undefined' ? target ?? 0 : Date.now()));
+  /* Date.now() on BOTH server and client — the old init used
+     `target` on the server (rendering all zeros) and Date.now()
+     on the client (rendering real numbers), so hydration of any
+     published site with a countdown threw a mismatch and React 19
+     crashed the whole tree to the error boundary. The numbers
+     still drift by the seconds between SSR and hydration, so every
+     pieces-derived text node carries suppressHydrationWarning and
+     the 1s interval corrects the display right after mount. */
+  const [now, setNow] = useState<number>(() => Date.now());
   useEffect(() => {
     if (target === null) return;
     /* Tick once per second. setInterval is fine — we tear down on
@@ -2680,7 +2688,7 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
         <div style={{ fontSize: 12, color: 'var(--t-ink-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 }}>
           {eyebrow}
         </div>
-        <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(34px, 6vw, 60px)', color: 'var(--t-ink)', lineHeight: 1.05 }}>
+        <div suppressHydrationWarning style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(34px, 6vw, 60px)', color: 'var(--t-ink)', lineHeight: 1.05 }}>
           {pieces.d > 0 ? `${pieces.d} day${pieces.d === 1 ? '' : 's'} to go` : 'Today is the day.'}
         </div>
       </div>
@@ -2693,18 +2701,18 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
         <div style={{ fontSize: 12, color: 'var(--t-ink-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 18 }}>
           {eyebrow}
         </div>
-        <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(60px, 12vw, 140px)', color: 'var(--t-ink)', lineHeight: 0.92, fontWeight: 500 }}>
+        <div suppressHydrationWarning style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(60px, 12vw, 140px)', color: 'var(--t-ink)', lineHeight: 0.92, fontWeight: 500 }}>
           {String(pieces.d).padStart(2, '0')}
         </div>
         <div style={{ fontSize: 13, color: 'var(--t-ink-soft)', marginTop: 6, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
           days {label.replace(/^until\s*/i, 'until ')}
         </div>
         <div style={{ marginTop: 22, display: 'flex', justifyContent: 'center', gap: 28, color: 'var(--t-ink-soft)', fontFamily: 'var(--t-font-display)', fontSize: 18 }}>
-          <span>{pieces.h} hours</span>
+          <span suppressHydrationWarning>{pieces.h} hours</span>
           <span style={{ opacity: 0.4 }}>·</span>
-          <span>{pieces.m} minutes</span>
+          <span suppressHydrationWarning>{pieces.m} minutes</span>
           <span style={{ opacity: 0.4 }}>·</span>
-          <span>{pieces.s} seconds</span>
+          <span suppressHydrationWarning>{pieces.s} seconds</span>
         </div>
       </div>
     );
@@ -2770,6 +2778,7 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
           {s.split('').map((d, i) => (
             <span
               key={i}
+              suppressHydrationWarning
               style={{
                 position: 'relative',
                 width: 'clamp(38px, 6vw, 58px)',
@@ -2843,7 +2852,7 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
           { n: pieces.s, l: 'Sec' },
         ].map((cell) => (
           <div key={cell.l} className="pl8-countdown-cell pl8-card" style={{ padding: '18px 8px', background: 'var(--t-card)', border: '1px solid var(--t-line-soft)', borderRadius: 'var(--t-radius)', boxShadow: 'var(--t-shadow-sm)' }}>
-            <div style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(28px, 5vw, 48px)', color: 'var(--t-ink)', lineHeight: 1 }}>
+            <div suppressHydrationWarning style={{ fontFamily: 'var(--t-font-display)', fontSize: 'clamp(28px, 5vw, 48px)', color: 'var(--t-ink)', lineHeight: 1 }}>
               {String(cell.n).padStart(2, '0')}
             </div>
             <div style={{ fontSize: 10.5, color: 'var(--t-ink-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 4 }}>
@@ -2859,7 +2868,7 @@ function CountdownBlock({ ctx }: { ctx: SectionCtx }) {
 function CountdownInlineRow({ pieces }: { pieces: CountdownPieces }) {
   const cell = (n: number, l: string) => (
     <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 4 }}>
-      <strong style={{ fontSize: 26, fontWeight: 500 }}>{String(n).padStart(2, '0')}</strong>
+      <strong suppressHydrationWarning style={{ fontSize: 26, fontWeight: 500 }}>{String(n).padStart(2, '0')}</strong>
       <span style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.7 }}>{l}</span>
     </span>
   );

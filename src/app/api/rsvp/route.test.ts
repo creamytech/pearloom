@@ -36,7 +36,7 @@ const h = vi.hoisted(() => {
 
   function makeChain(table: string) {
     const chain: Record<string, unknown> = {};
-    const passVerbs = ['from', 'upsert', 'select', 'eq', 'ilike'];
+    const passVerbs = ['from', 'upsert', 'update', 'select', 'eq', 'ilike'];
     // Terminal verbs resolve { data, error } from the queue (or the
     // defaults map): .single() ends the upsert chain, .maybeSingle()
     // ends the site/token lookups, .limit() ends the email check.
@@ -391,6 +391,51 @@ describe('POST /api/rsvp', () => {
     h.queue('sites.maybeSingle', null);
     const res = await POST(makePost({ siteId: 'no-such-site', guestName: 'Alice' }));
     expect(res.status).toBe(404);
+  });
+
+  // ── "Found you" (guestId from /api/rsvp/lookup) ──────────
+
+  it('UPDATEs the matched guest row instead of upserting a duplicate', async () => {
+    // guestId row check resolves to the row…
+    h.queue('guests.maybeSingle', { id: '22222222-3333-4444-8555-666666666666' });
+    // …and the update chain's .single() returns it.
+    h.queue('guests.single', { id: '22222222-3333-4444-8555-666666666666', name: 'Alice' });
+    const res = await POST(makePost({
+      siteId: 'demo',
+      guestName: 'Alice',
+      guestId: '22222222-3333-4444-8555-666666666666',
+      status: 'attending',
+    }));
+    expect(res.status).toBe(200);
+    expect(h.calls.find((c) => c.method === 'update')).toBeDefined();
+    expect(h.calls.find((c) => c.method === 'upsert')).toBeUndefined();
+    // No email typed → the stored email must not be clobbered.
+    const payload = h.calls.find((c) => c.method === 'update')!.args[0] as Record<string, unknown>;
+    expect('email' in payload).toBe(false);
+  });
+
+  it('a picked guestId passes the invitation-only gate', async () => {
+    h.queue('sites.maybeSingle', { id: 'demo', ai_manifest: { rsvpConfig: { guestListOnly: true } } });
+    h.queue('guests.maybeSingle', { id: '22222222-3333-4444-8555-666666666666' });
+    h.queue('guests.single', { id: '22222222-3333-4444-8555-666666666666' });
+    const res = await POST(makePost({
+      siteId: 'demo',
+      guestName: 'Alice',
+      guestId: '22222222-3333-4444-8555-666666666666',
+    }));
+    expect(res.status).toBe(200);
+  });
+
+  it('a forged guestId from another site falls back to upsert (and fails the gate)', async () => {
+    h.queue('sites.maybeSingle', { id: 'demo', ai_manifest: { rsvpConfig: { guestListOnly: true } } });
+    // Row check finds nothing for this site.
+    h.queue('guests.maybeSingle', null);
+    const res = await POST(makePost({
+      siteId: 'demo',
+      guestName: 'Alice',
+      guestId: '99999999-9999-4999-8999-999999999999',
+    }));
+    expect(res.status).toBe(403);
   });
 
   // ── Notification email (host-facing, fire-and-forget) ──
