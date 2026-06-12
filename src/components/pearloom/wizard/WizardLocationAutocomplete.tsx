@@ -20,6 +20,12 @@ interface Props {
   onChange: (value: string) => void;
   onSelect?: (place: { name: string; address: string; lat?: number; lng?: number }) => void;
   placeholder?: string;
+  /** Restrict results to a Places kind ('hotel' → lodging only,
+   *  'airport') — same param the editor's Travel panel uses. */
+  kind?: 'hotel' | 'airport';
+  /** Bias results toward a point (the picked venue) so "Hilton"
+   *  finds the one guests can actually walk from. */
+  near?: { lat: number; lng: number };
 }
 
 interface Prediction {
@@ -29,7 +35,7 @@ interface Prediction {
   location?: { lat: number; lng: number };
 }
 
-export function WizardLocationAutocomplete({ value, onChange, onSelect, placeholder = 'Search venues or cities…' }: Props) {
+export function WizardLocationAutocomplete({ value, onChange, onSelect, placeholder = 'Search venues or cities…', kind, near }: Props) {
   const [suggestions, setSuggestions] = useState<Prediction[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [activeIdx, setActiveIdx] = useState(-1);
@@ -45,7 +51,10 @@ export function WizardLocationAutocomplete({ value, onChange, onSelect, placehol
     }
     setLoading(true);
     try {
-      const res = await fetch(`/api/venue/search?type=autocomplete&q=${encodeURIComponent(q)}`);
+      const params = new URLSearchParams({ type: 'autocomplete', q });
+      if (kind) params.set('kind', kind);
+      if (near) params.set('near', `${near.lat},${near.lng}`);
+      const res = await fetch(`/api/venue/search?${params.toString()}`);
       if (!res.ok) {
         setSuggestions([]);
         return;
@@ -77,7 +86,7 @@ export function WizardLocationAutocomplete({ value, onChange, onSelect, placehol
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [kind, near]);
 
   const handleChange = (text: string) => {
     onChange(text);

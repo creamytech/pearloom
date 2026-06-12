@@ -286,6 +286,12 @@ interface WizardState {
   hotels?: Array<{ name: string; address: string }>;
   kidsPolicy?: string;
   parkingNote?: string;
+  /** Venue coordinates captured when the host picks a Places
+   *  suggestion in Basics — biases the hotel search to the venue
+   *  and rides logistics.venueLat/Lng so hotel-suggest + maps
+   *  work without re-geocoding. */
+  venueLat?: number;
+  venueLng?: number;
   // Occasion-specific details (consumed by /api/generate/stream as eventDetails)
   detailDays?: number;
   detailLivestreamUrl?: string;
@@ -1056,7 +1062,44 @@ function OccasionPicker({
    Occasion-aware: hotels only show when the event type carries a
    travel block; the kids question skips bachelor weekends.
    ──────────────────────────────────────────────────────────── */
-const KIDS_OPTIONS = ['All ages welcome', 'Adults only', 'Immediate family\u2019s kids only'];
+const KIDS_OPTIONS = ['All ages welcome', 'Adults only', 'Immediate family’s kids only'];
+
+/* Half-hour wall times for the schedule pills. A native <select>
+   gets the platform wheel on phones — the most reliable time
+   picker there is — styled to live inside the pill. */
+const MOMENT_TIMES: string[] = (() => {
+  const out: string[] = [];
+  for (let h = 6; h < 24; h++) {
+    for (const mm of ['00', '30'] as const) {
+      const ampm = h < 12 ? 'am' : 'pm';
+      const h12 = h % 12 === 0 ? 12 : h % 12;
+      out.push(`${h12}:${mm} ${ampm}`);
+    }
+  }
+  return out;
+})();
+
+function MomentTimeSelect({ value, onChange, label }: { value: string; onChange: (t: string) => void; label: string }) {
+  return (
+    <select
+      aria-label={`Time for ${label}`}
+      value={MOMENT_TIMES.includes(value) ? value : '5:00 pm'}
+      onChange={(e) => onChange(e.target.value)}
+      style={{
+        appearance: 'none', WebkitAppearance: 'none',
+        border: 'none', borderLeft: '1px solid color-mix(in srgb, var(--cream, #F5EFE2) 35%, transparent)',
+        background: 'transparent', color: 'inherit',
+        fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
+        padding: '0 14px 0 10px', cursor: 'pointer',
+        textAlign: 'center',
+      }}
+    >
+      {MOMENT_TIMES.map((t) => (
+        <option key={t} value={t} style={{ color: '#0E0D0B', background: '#FBF7EE' }}>{t}</option>
+      ))}
+    </select>
+  );
+}
 
 function GuestsWillAsk({
   st,
@@ -1124,6 +1167,8 @@ function GuestsWillAsk({
                   });
                   setHotelQuery('');
                 }}
+                kind="hotel"
+                near={st.venueLat != null && st.venueLng != null ? { lat: st.venueLat, lng: st.venueLng } : undefined}
                 placeholder={hotels.length === 0 ? 'Search a hotel near the venue…' : 'Add another…'}
               />
             )}
@@ -1161,7 +1206,7 @@ function GuestsWillAsk({
             className="input"
             value={st.parkingNote ?? ''}
             onChange={(ev) => setSt((s) => ({ ...s, parkingNote: ev.target.value }))}
-            placeholder="Free lot behind the venue \u00b7 or \u00b7 street parking only \u2014 rideshare is easiest"
+            placeholder="Free lot behind the venue, or: street parking only — rideshare is easiest"
           />
         </div>
       </div>
@@ -1897,7 +1942,17 @@ export function WizardV8() {
         templateId: st.templateId,
         vibeString: st.vibes.join(', '),
         names: submitNames,
-        logistics: { date: st.eventDate || undefined, venue: st.location || undefined },
+        logistics: {
+          date: st.eventDate || undefined,
+          venue: st.location || undefined,
+          // The host almost always builds from the event's own zone;
+          // stamping it anchors countdowns + date formatting for
+          // guests in other zones (editable in the editor's Hero
+          // panel). Venue coords ride along for hotel-suggest + maps.
+          timezone: typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : undefined,
+          venueLat: st.venueLat,
+          venueLng: st.venueLng,
+        },
         chapters: [],
         layoutFormat: st.layout,
         // The full fact sheet rides the manifest so Pear's editor
@@ -2468,7 +2523,12 @@ export function WizardV8() {
                         value={st.location}
                         onChange={(v) => setSt((s) => ({ ...s, location: v }))}
                         onSelect={(place) =>
-                          setSt((s) => ({ ...s, location: place.name ? `${place.name}${place.address ? ` · ${place.address}` : ''}` : place.address }))
+                          setSt((s) => ({
+                            ...s,
+                            location: place.name ? `${place.name}${place.address ? ` · ${place.address}` : ''}` : place.address,
+                            venueLat: place.lat,
+                            venueLng: place.lng,
+                          }))
                         }
                         placeholder="Madison Square Garden · New York"
                       />
@@ -2686,6 +2746,11 @@ export function WizardV8() {
                   next.sort((a, b) => Date.parse(`2000-01-01 ${a.time}`) - Date.parse(`2000-01-01 ${b.time}`));
                   return { ...s, dayEvents: next };
                 });
+                const setTime = (n: string, time: string) => setSt((s) => {
+                  const next = (s.dayEvents ?? []).map((e) => (e.name === n ? { ...e, time } : e));
+                  next.sort((a, b) => Date.parse(`2000-01-01 ${a.time}`) - Date.parse(`2000-01-01 ${b.time}`));
+                  return { ...s, dayEvents: next };
+                });
                 const dresses = dressCodeSuggestions(st.occasion).options;
                 const suggestedDl = suggestRsvpDeadline(st.eventDate || undefined);
                 return (
@@ -2704,22 +2769,39 @@ export function WizardV8() {
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 8 }}>
                       {moments.map((m) => {
                         const on = has(m);
+                        if (!on) {
+                          return (
+                            <button key={m} type="button" onClick={() => toggle(m)} aria-pressed={false}
+                              style={{
+                                padding: '8px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
+                                border: '1.5px solid var(--line)', background: 'var(--card)',
+                                color: 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
+                              }}>
+                              {m}
+                            </button>
+                          );
+                        }
+                        const t = picked.find((e) => e.name === m)?.time ?? '5:00 pm';
                         return (
-                          <button key={m} type="button" onClick={() => toggle(m)} aria-pressed={on}
-                            style={{
-                              padding: '8px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
-                              border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
-                              background: on ? 'var(--ink)' : 'var(--card)',
-                              color: on ? 'var(--cream)' : 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
-                            }}>
-                            {on ? `${m} · ${picked.find((e) => e.name === m)?.time}` : m}
-                          </button>
+                          <span key={m} style={{
+                            display: 'inline-flex', alignItems: 'stretch', borderRadius: 999, overflow: 'hidden',
+                            border: '1.5px solid var(--ink)', background: 'var(--ink)', color: 'var(--cream)',
+                          }}>
+                            <button type="button" onClick={() => toggle(m)} aria-pressed
+                              style={{
+                                padding: '8px 8px 8px 14px', border: 'none', background: 'transparent',
+                                color: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                              }}>
+                              {m}
+                            </button>
+                            <MomentTimeSelect value={t} onChange={(nt) => setTime(m, nt)} label={m} />
+                          </span>
                         );
                       })}
                     </div>
                     {picked.length > 0 && (
                       <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 18 }}>
-                        {picked.length} {picked.length === 1 ? 'moment' : 'moments'} — they’ll arrive in your Schedule section, in order.
+                        {picked.length} {picked.length === 1 ? 'moment' : 'moments'} — tap a time to change it. They’ll arrive in your Schedule section, in order.
                       </div>
                     )}
 
@@ -3532,6 +3614,9 @@ export function WizardV8() {
                         eventDate={st.eventDate}
                         venue={st.location}
                         layoutFormat={st.layout}
+                        coverPhoto={st.photos.find((ph) => ph.url)?.url}
+                        galleryImages={st.photos.filter((ph) => ph.url).map((ph) => ph.url)}
+                        recipe={lookRecipesFor(st.occasion).find((r) => r.id === (st.lookRecipeId ?? 'match')) ?? null}
                         candidates={candidates}
                         selectedId={st.palette}
                         onPick={(c) => {

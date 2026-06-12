@@ -25,6 +25,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { ThemedSite } from '../redesign/ThemedSite';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
+import type { LookRecipe } from '@/lib/site-look/look-recipes';
 
 export interface LookCandidate {
   id: string;
@@ -40,23 +41,47 @@ export interface LookCandidate {
 }
 
 const SITE_W = 1100;           // ThemedSite desktop layout width
-const WINDOW_H = 172;          // hero crop height per tile
+const WINDOW_H = 216;          // hero crop height per tile
 
-function buildPreviewManifest(
-  c: LookCandidate,
-  opts: { occasion?: string; eventDate?: string; venue?: string; layoutFormat?: string },
-): StoryManifest {
+interface PreviewOpts {
+  occasion?: string;
+  eventDate?: string;
+  venue?: string;
+  layoutFormat?: string;
+  /** The host's real photos — without them the hero renders
+   *  placeholder tone panels and the pressing reads as color
+   *  blobs instead of THEIR site. */
+  coverPhoto?: string;
+  galleryImages?: string[];
+  /** The construction the host chose at the look picker (kit /
+   *  texture / motifs / density). Stamped AFTER applyWizardLook so
+   *  the pressing wears exactly what generation will press. */
+  recipe?: LookRecipe | null;
+}
+
+function buildPreviewManifest(c: LookCandidate, opts: PreviewOpts): StoryManifest {
   const base = {
     occasion: opts.occasion,
     logistics: { date: opts.eventDate, venue: opts.venue },
+    coverPhoto: opts.coverPhoto,
+    galleryImages: opts.galleryImages,
   } as unknown as StoryManifest;
-  return applyWizardLook(base, {
+  const dressed = applyWizardLook(base, {
     selectedPaletteColors: c.colors,
     occasion: opts.occasion,
     layoutFormat: opts.layoutFormat,
     motifKind: c.motifKind,
     motifLayout: c.motifLayout,
   });
+  if (!opts.recipe) return dressed;
+  return {
+    ...(dressed as unknown as Record<string, unknown>),
+    kitId: opts.recipe.kitId,
+    texture: opts.recipe.texture,
+    textureIntensity: opts.recipe.textureIntensity,
+    motifLayout: opts.recipe.motifLayout,
+    density: opts.recipe.density,
+  } as unknown as StoryManifest;
 }
 
 export function WizardLookPreviews({
@@ -65,6 +90,9 @@ export function WizardLookPreviews({
   eventDate,
   venue,
   layoutFormat,
+  coverPhoto,
+  galleryImages,
+  recipe,
   candidates,
   selectedId,
   onPick,
@@ -74,6 +102,9 @@ export function WizardLookPreviews({
   eventDate?: string;
   venue?: string;
   layoutFormat?: string;
+  coverPhoto?: string;
+  galleryImages?: string[];
+  recipe?: LookRecipe | null;
   candidates: LookCandidate[];
   selectedId: string;
   onPick: (c: LookCandidate) => void;
@@ -87,8 +118,8 @@ export function WizardLookPreviews({
   }, []);
 
   const manifests = useMemo(
-    () => candidates.map((c) => buildPreviewManifest(c, { occasion, eventDate, venue, layoutFormat })),
-    [candidates, occasion, eventDate, venue, layoutFormat],
+    () => candidates.map((c) => buildPreviewManifest(c, { occasion, eventDate, venue, layoutFormat, coverPhoto, galleryImages, recipe })),
+    [candidates, occasion, eventDate, venue, layoutFormat, coverPhoto, galleryImages, recipe],
   );
 
   if (candidates.length === 0) return null;
@@ -116,19 +147,20 @@ export function WizardLookPreviews({
               type="button"
               aria-pressed={on}
               onClick={() => onPick(c)}
+              className="wlp-card"
               style={{
                 padding: 0,
                 borderRadius: 14,
                 overflow: 'hidden',
-                border: on ? '2px solid var(--ink)' : '1.5px solid var(--line)',
+                border: on ? '2px solid var(--pl-olive, #5C6B3F)' : '1.5px solid var(--line)',
                 background: 'var(--card)',
                 cursor: 'pointer',
                 textAlign: 'left',
                 display: 'flex',
                 flexDirection: 'column',
                 fontFamily: 'inherit',
-                boxShadow: on ? 'var(--shadow)' : 'none',
-                transition: 'border-color var(--pl-dur-fast) var(--pl-ease-out), box-shadow var(--pl-dur-fast) var(--pl-ease-out)',
+                boxShadow: on ? '0 0 0 3px var(--pl-olive-mist, #E0DDC9), 0 10px 24px rgba(40,28,12,0.10)' : 'none',
+                transition: 'border-color 240ms var(--pl-ease-out), box-shadow 240ms var(--pl-ease-out), transform 320ms var(--pl-ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1))',
               }}
             >
               <div
@@ -198,6 +230,16 @@ export function WizardLookPreviews({
         @media (max-width: 720px) {
           .wlp-grid {
             grid-template-columns: 1fr;
+          }
+        }
+        :global(.wlp-card:hover),
+        :global(.wlp-card:focus-visible) {
+          transform: translateY(-4px) scale(1.01);
+          box-shadow: 0 22px 44px -16px rgba(40, 28, 12, 0.26) !important;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          :global(.wlp-card:hover) {
+            transform: none !important;
           }
         }
       `}</style>
