@@ -2631,11 +2631,11 @@ export function WizardV8() {
           display: 'flex',
           alignItems: 'center',
           gap: 28,
-          // Theme-aware glass — a hardcoded cream rgba here left a
-          // light band over the editorial-midnight body in dark mode.
-          background: 'color-mix(in srgb, var(--cream, #F8F1E4) 92%, transparent)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
+          // Theme-aware glass — the platform recipe (globals.css
+          // --pl-glass tokens, [data-theme]-paired).
+          background: 'var(--pl-glass)',
+          backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
+          WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
           borderBottom: '1px solid var(--line-soft)',
           position: 'sticky',
           top: 0,

@@ -159,7 +159,7 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
     <div style={{ position: 'fixed', inset: 0, zIndex: 85, pointerEvents: open ? 'auto' : 'none' }}>
       <StoreFonts />
       <div onClick={handleClose} style={{ position: 'absolute', inset: 0, background: 'rgba(40,40,30,0.32)', opacity: open ? 1 : 0, transition: 'opacity 280ms ease' }}/>
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '72vh', background: 'var(--card)', borderRadius: '22px 22px 0 0', boxShadow: '0 -20px 60px rgba(40,40,30,0.22)', transform: open ? 'translateY(0)' : 'translateY(100%)', transition: 'transform 380ms cubic-bezier(0.16,1,0.3,1)', display: 'flex', flexDirection: 'column', overflow: 'hidden' } as CSSProperties}>
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '72vh', background: 'var(--pl-glass)', backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))', WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))', borderTop: '1px solid var(--pl-glass-border)', borderRadius: '22px 22px 0 0', boxShadow: '0 -20px 60px rgba(40,40,30,0.22)', transform: open ? 'translateY(0)' : 'translateY(100%)', transition: 'transform 380ms cubic-bezier(0.16,1,0.3,1)', display: 'flex', flexDirection: 'column', overflow: 'hidden' } as CSSProperties}>
         <style>{`
           .shopbtn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:7px 13px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:none;min-height:30px;transition:filter .14s}
           .shopbtn-ink{background:var(--ink);color:var(--cream)} .shopbtn-sage{background:var(--sage-deep);color:var(--cream)} .shopbtn:hover{filter:brightness(1.08)}

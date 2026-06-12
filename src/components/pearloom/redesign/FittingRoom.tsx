@@ -138,9 +138,11 @@ export function FittingRoom({
           gap: 12,
           padding: '10px 14px',
           borderRadius: 999,
-          background: 'var(--card, #FBF7EE)',
-          border: '1px solid var(--line, #D8CFB8)',
-          boxShadow: '0 18px 44px -18px rgba(14,13,11,0.35)',
+          background: 'var(--pl-glass)',
+          backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
+          WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
+          border: '1px solid var(--pl-glass-border)',
+          boxShadow: 'var(--pl-glass-shadow-lg)',
           maxWidth: 'calc(100vw - 32px)',
         }}
       >

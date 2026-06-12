@@ -129,8 +129,15 @@ Every screen is composed of exactly three layers, top-down:
 2. **The paper** — surface color from the cream / ink token family.
 3. **The ink** — type, dividers, controls.
 
-Glass / blur surfaces are reserved for floating chrome (toasts,
-modals, ambient nav). Dashboards and editor panels stay paper.
+Glass is the material of floating chrome — and ONLY floating
+chrome: toasts, command palettes, bottom sheets, popovers, docks
+riding over a live site, the wizard's sticky header. One recipe,
+everywhere: the `--pl-glass*` tokens + `.pl-glass-surface`
+utilities (globals.css), which frost warm cream in light mode and
+editorial midnight in dark. Glass never becomes a SURFACE —
+dashboards, editor panels, and cards stay paper. If a glass
+element stops floating over content, it has stopped being chrome
+and must go back to paper.
 
 ## 10 · Out of scope
 

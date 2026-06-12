@@ -124,11 +124,11 @@ export function buildFittingManifest(opts: {
    host's live site). Theme-correct: mixes from --cream so light
    mode frosts warm paper and dark mode frosts midnight. */
 const GLASS: CSSProperties = {
-  background: 'color-mix(in srgb, var(--cream, #F5EFE2) 72%, transparent)',
-  backdropFilter: 'blur(18px) saturate(1.4)',
-  WebkitBackdropFilter: 'blur(18px) saturate(1.4)',
-  border: '1px solid color-mix(in srgb, var(--ink, #0E0D0B) 12%, transparent)',
-  boxShadow: '0 18px 44px -16px rgba(14,13,11,0.35)',
+  background: 'var(--pl-glass)',
+  backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
+  WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
+  border: '1px solid var(--pl-glass-border)',
+  boxShadow: 'var(--pl-glass-shadow-lg)',
 };
 
 export function WizardFittingRoom({
