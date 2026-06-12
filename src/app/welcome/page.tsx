@@ -54,6 +54,16 @@ export default async function WelcomePage({
         .eq('email', session.user.email)
         .maybeSingle();
       if (data?.onboarded_at) redirect(explicitNext ?? '/dashboard');
+
+      // Grandfather clause — accounts that predate the Welcome flow
+      // have no onboarded_at but already own sites. Without this,
+      // every login funnels them through onboarding and out into
+      // the wizard. Existing hosts go straight to their dashboard.
+      const { count } = await supabase
+        .from('sites')
+        .select('id', { count: 'exact', head: true })
+        .ilike('site_config->>creator_email', session.user.email);
+      if (count && count > 0) redirect(explicitNext ?? '/dashboard');
     } catch (err) {
       // Next's redirect() throws by design — let it through.
       if (err && typeof err === 'object' && 'digest' in err) throw err;

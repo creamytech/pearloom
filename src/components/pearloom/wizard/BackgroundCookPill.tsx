@@ -44,7 +44,9 @@ function BackgroundCookPillInner({ cooking, ready }: { cooking: boolean; ready: 
       style={{
         position: 'fixed',
         left: '50%',
-        bottom: 24,
+        // Clear iOS Safari's bottom toolbar — without the safe-area
+        // inset the pill renders half-hidden behind browser chrome.
+        bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
         transform: 'translateX(-50%)',
         display: 'inline-flex',
         alignItems: 'center',
