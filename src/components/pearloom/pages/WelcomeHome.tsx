@@ -321,7 +321,7 @@ export function WelcomeHome() {
             {rsvpMomentum && nextStep?.id !== 'nudge' && <RsvpMomentumCard momentum={rsvpMomentum} />}
             <GuestPulse counts={guestCounts} domain={site?.domain ?? null} loading={guests === null} />
             <Milestones milestones={milestones} dateShort={eventDateShort} />
-            <SiblingEventsCard occasion={occasion} sites={sites ?? []} />
+            <SiblingEventsCard occasion={occasion} sites={sites ?? []} origin={site ?? null} />
           </div>
         </div>
       </div>
@@ -1557,9 +1557,30 @@ const SIBLING_EVENTS: Record<string, Array<{ occasion: string; label: string; bl
   ],
 };
 
-function SiblingEventsCard({ occasion, sites }: { occasion: string; sites: Array<{ occasion?: string }> }) {
+function SiblingEventsCard({
+  occasion,
+  sites,
+  origin,
+}: {
+  occasion: string;
+  sites: Array<{ occasion?: string }>;
+  origin: { domain?: string; names?: [string, string] | null; manifest?: unknown } | null;
+}) {
   const have = new Set(sites.map((s) => s.occasion).filter(Boolean));
   const suggestions = (SIBLING_EVENTS[occasion] ?? []).filter((e) => !have.has(e.occasion)).slice(0, 3);
+  /* Celebration linkage — the new site should arrive already woven
+     into THIS celebration: same celebration id (reuse the origin's
+     if it has one), shared name, and the LinkedEventsStrip lights
+     up on both sites the moment the sibling presses. */
+  const originCeleb = (origin?.manifest as { celebration?: { id?: string; name?: string } } | undefined)?.celebration;
+  const celebName = originCeleb?.name
+    ?? (origin?.names ?? []).filter(Boolean).join(' & ')
+    ?? '';
+  const linkParams = origin?.domain
+    ? `&from=${encodeURIComponent(origin.domain)}`
+      + (originCeleb?.id ? `&cid=${encodeURIComponent(originCeleb.id)}` : '')
+      + (celebName ? `&cname=${encodeURIComponent(celebName)}` : '')
+    : '';
   if (suggestions.length === 0) return null;
   return (
     <section
@@ -1579,7 +1600,7 @@ function SiblingEventsCard({ occasion, sites }: { occasion: string; sites: Array
         {suggestions.map((e) => (
           <Link
             key={e.occasion}
-            href={`/wizard/new?occasion=${encodeURIComponent(e.occasion)}`}
+            href={`/wizard/new?occasion=${encodeURIComponent(e.occasion)}${linkParams}`}
             style={{
               display: 'flex', alignItems: 'baseline', gap: 8,
               padding: '9px 12px', borderRadius: 12,

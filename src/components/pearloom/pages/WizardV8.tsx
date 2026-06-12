@@ -301,6 +301,17 @@ interface WizardState {
   playlistUrl?: string;
   meals?: string[];
   registryUrl?: string;
+  /** Co-planning — "Planning this with someone?" on Review. At
+   *  finish, fires the existing co-host invite for the new site
+   *  so the partner can edit from minute one. */
+  coHostEmail?: string;
+  /** Celebration linkage — set when the wizard opened from the
+   *  dashboard's sibling-event card (?from=…). At finish, both
+   *  sites get the shared manifest.celebration so they appear on
+   *  each other's LinkedEventsStrip. */
+  linkFromSlug?: string;
+  linkCelebId?: string;
+  linkCelebName?: string;
   /** "The structure" — explicit layout picks. undefined = Pear
    *  decides (look-recipe / edition defaults ride). Stamped onto
    *  manifest.siteMode + manifest.layouts at finish. */
@@ -1897,6 +1908,9 @@ export function WizardV8() {
      occasion (validated against the registry); explicit picks in
      the wizard always win. */
   const occasionParam = searchParams.get('occasion');
+  const linkFromParam = searchParams.get('from');
+  const linkCidParam = searchParams.get('cid');
+  const linkCnameParam = searchParams.get('cname');
   const dialog = useDialog();
   const [stepIndex, setStepIndex] = useState(0);
   // Persist wizard state across refreshes so users don't lose their
@@ -1909,7 +1923,13 @@ export function WizardV8() {
        in-flight draft, which would otherwise resume a different
        celebration entirely. */
     if (occasionParam && getEventType(occasionParam as never)) {
-      return { ...defaultState, occasion: occasionParam } as WizardState;
+      return {
+        ...defaultState,
+        occasion: occasionParam,
+        linkFromSlug: linkFromParam ?? undefined,
+        linkCelebId: linkCidParam ?? undefined,
+        linkCelebName: linkCnameParam ?? undefined,
+      } as WizardState;
     }
     if (typeof window !== 'undefined') {
       try {
@@ -1965,7 +1985,7 @@ export function WizardV8() {
     let cancelled = false;
     fetch('/api/user/preferences', { credentials: 'include' })
       .then((r) => (r.ok ? r.json() : null))
-      .then((d: { intent?: string | null } | null) => {
+      .then((d: { intent?: string | null; display_name?: string | null } | null) => {
         if (cancelled || !d?.intent) return;
         const INTENT_TO_OCCASION: Record<string, string> = {
           wedding: 'wedding',
@@ -1975,6 +1995,13 @@ export function WizardV8() {
           reunion: 'reunion',
           memorial: 'memorial',
         };
+        /* The Welcome flow already asked their name — a host who
+           told Pear "call me Emma" shouldn't retype Emma in
+           Basics. First name only; never clobbers typed input. */
+        const first = (d.display_name ?? '').trim().split(/\s+/)[0] ?? '';
+        if (first) {
+          setSt((prev) => (prev.names[0] ? prev : { ...prev, names: [first, prev.names[1]] }));
+        }
         const occ = INTENT_TO_OCCASION[d.intent];
         if (!occ) return;
         setIntentOccasion(occ);
@@ -2472,6 +2499,54 @@ export function WizardV8() {
       }
       const finalSubdomain: string =
         (typeof resData?.subdomain === 'string' && resData.subdomain) || derivedSubdomain;
+
+      // ── The weaving-in — the answers that connect this site to
+      //    PEOPLE fire now, while the press choreography plays.
+      //    All fire-and-forget: none of these may block or fail
+      //    the site the host just built.
+      void (async () => {
+        // 1. Co-host invite — the partner can edit from minute one.
+        const coHost = (st.coHostEmail ?? '').trim();
+        if (coHost && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(coHost)) {
+          fetch('/api/co-host/invite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ siteSlug: finalSubdomain, email: coHost }),
+          }).catch(() => { /* invite is re-sendable from Settings */ });
+        }
+
+        // 2. Celebration linkage — when this run came from the
+        //    sibling-event card, both sites join one celebration so
+        //    the LinkedEventsStrip lights up on each.
+        if (st.linkFromSlug) {
+          const celebId = st.linkCelebId || crypto.randomUUID();
+          const celebName = (st.linkCelebName || submitNames.filter(Boolean).join(' & ') || 'Our celebration').slice(0, 80);
+          const link = (slug: string) =>
+            fetch('/api/celebrations', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ siteId: slug, celebration: { id: celebId, name: celebName } }),
+            }).catch(() => { /* linkable later from /dashboard/connections */ });
+          void link(finalSubdomain);
+          // Only stamp the origin when it wasn't already in a
+          // celebration — never rename one that exists.
+          if (!st.linkCelebId) void link(st.linkFromSlug);
+        }
+
+        // 3. The honor list is also the first guest list — the
+        //    people standing beside them are obviously invited.
+        const party = (st.partyNames ?? []).map((n) => n.trim()).filter(Boolean).slice(0, 12);
+        for (const name of party) {
+          try {
+            await fetch('/api/guests', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ siteSlug: finalSubdomain, name }),
+            });
+          } catch { /* the roster is editable in Guests */ }
+        }
+      })();
+
       // Invalidate the shared sites cache so the dashboard renders
       // this freshly-created site the next time the user lands on it.
       try {
@@ -4054,6 +4129,37 @@ export function WizardV8() {
                       wizard state the steps write — no new plumbing,
                       no model call, occasion-aware by construction. */}
                   <PearsQuestions st={st} setSt={setSt} />
+
+                  {/* CO-PLANNING — celebrations are almost never
+                      planned alone (the MOH, the partner, a parent).
+                      One email here and they can edit alongside the
+                      host from the moment the site presses — the
+                      same co-host machinery Settings offers, met at
+                      the moment it's actually wanted. */}
+                  <div style={{ marginTop: 18, padding: 16, borderRadius: 14, background: 'var(--cream-2)', border: '1px solid var(--line-soft)' }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>
+                      Planning this with someone?
+                    </div>
+                    <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginBottom: 10 }}>
+                      They&rsquo;ll get an invite to edit alongside you the moment the site presses. Optional — you can add co-hosts later in Settings.
+                    </div>
+                    <input
+                      className="input"
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      value={st.coHostEmail ?? ''}
+                      onChange={(ev) => setSt((s2) => ({ ...s2, coHostEmail: ev.target.value }))}
+                      placeholder="their@email.com"
+                    />
+                  </div>
+
+                  {st.linkFromSlug && (
+                    <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 12, background: 'var(--sage-tint, #E3E6C8)', border: '1px dashed var(--sage, #7A8A4F)', fontSize: 12, color: 'var(--ink-soft)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span aria-hidden style={{ color: 'var(--pl-gold, #C19A4B)' }}>✦</span>
+                      Part of {st.linkCelebName ? <b style={{ color: 'var(--ink)' }}>{st.linkCelebName}&rsquo;s celebration</b> : 'your celebration'} — both sites will link to each other.
+                    </div>
+                  )}
 
                   {/* Coverage checklist — what arrives woven vs. what
                       the host will add in the editor. Makes skipping a
