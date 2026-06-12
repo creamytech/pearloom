@@ -3597,7 +3597,10 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-texture="kraft"]::before,
 .pl8-guest[data-pl-texture="canvas"]::before,
 .pl8-guest[data-pl-texture="marble"]::before,
-.pl8-guest[data-pl-texture="gilded"]::before {
+.pl8-guest[data-pl-texture="gilded"]::before,
+.pl8-guest[data-pl-texture="letterpress"]::before,
+.pl8-guest[data-pl-texture="vellum"]::before,
+.pl8-guest[data-pl-texture="newsprint"]::before {
   content: '';
   /* Was position: fixed which leaked the grain onto the editor's
      sidebars (fixed ignores parent boundaries). Now scoped to
@@ -4001,10 +4004,6 @@ html { scroll-behavior: smooth; }
    Watercolor adds a pill radius only (so even an Edition with
    square buttons reads as soft hand-drawn on watercolor) and
    skips filter + shadow so it doesn't paint over Edition chrome. */
-.pl8-guest[data-pl-texture="watercolor"] button:not([class*="btn-"]):not(.pl-pearl-accent),
-.pl8-guest[data-pl-texture="watercolor"] a.btn:not([class*="btn-"]) {
-  border-radius: 999px !important;
-}
 
 /* ── LINEN ──
    Real twill weave: 45° + -45° diagonal threads with subtle color
@@ -4047,14 +4046,6 @@ html { scroll-behavior: smooth; }
     inset 0 -1px 0 rgba(111,101,87,0.18),
     0 1px 3px rgba(75,65,52,0.12) !important;
 }
-/* Linen-textured buttons only override generic buttons; Edition-
-   styled buttons (btn-primary, btn-outline, pearl-accent) keep
-   their Edition identity. */
-.pl8-guest[data-pl-texture="linen"] button:not([class*="btn-"]):not(.pl-pearl-accent),
-.pl8-guest[data-pl-texture="linen"] a.btn:not([class*="btn-"]) {
-  border-radius: 3px !important;
-  letter-spacing: 0.08em;
-}
 
 /* ── LETTERPRESS ──
    Type and cards genuinely look pressed INTO the paper. Multi-stop
@@ -4089,22 +4080,6 @@ html { scroll-behavior: smooth; }
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,0.40),
     inset 0 -1px 0 rgba(14,13,11,0.10) !important;
-}
-/* Letterpress-textured buttons: shape + tracking on Edition-
-   styled buttons, full press-stamp inset on generic buttons. */
-.pl8-guest[data-pl-texture="letterpress"] button,
-.pl8-guest[data-pl-texture="letterpress"] a.btn {
-  border-radius: 3px !important;
-  letter-spacing: 0.16em;
-  font-weight: 600;
-}
-.pl8-guest[data-pl-texture="letterpress"] button:not([class*="btn-"]):not(.pl-pearl-accent),
-.pl8-guest[data-pl-texture="letterpress"] a.btn:not([class*="btn-"]) {
-  /* Press-stamp: 2-layer inset (top highlight, bottom shadow).
-     Was 4 layers — the blur + drop were redundant. */
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.32),
-    inset 0 -2px 0 rgba(14,13,11,0.22) !important;
 }
 
 /* ── VELLUM ──
@@ -4145,17 +4120,6 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-texture="vellum"] section h2,
 .pl8-guest[data-pl-texture="vellum"] section h3 {
   color: #6B5A2A !important;
-}
-/* Vellum buttons: shape only on Edition-styled buttons; brown
-   waxed-paper button on generic. */
-.pl8-guest[data-pl-texture="vellum"] button,
-.pl8-guest[data-pl-texture="vellum"] a.btn {
-  border-radius: 6px !important;
-}
-.pl8-guest[data-pl-texture="vellum"] button:not([class*="btn-"]):not(.pl-pearl-accent),
-.pl8-guest[data-pl-texture="vellum"] a.btn:not([class*="btn-"]) {
-  background: rgba(75,55,30,0.92) !important;
-  color: #F4E9C8 !important;
 }
 
 /* ── NEWSPRINT ──
@@ -4224,24 +4188,6 @@ html { scroll-behavior: smooth; }
   font-family: var(--pl-font-display, Fraunces, Georgia, serif) !important;
   line-height: 1.5 !important;
   color: #2A241A !important;
-}
-/* Newsprint buttons: editorial type-treatment on all buttons,
-   broadsheet box only on generic buttons (Edition pills keep
-   their gold-on-dark / pearl identity). */
-.pl8-guest[data-pl-texture="newsprint"] button,
-.pl8-guest[data-pl-texture="newsprint"] a.btn {
-  border-radius: 0 !important;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  font-weight: 700;
-  font-family: var(--pl-font-display, Fraunces, Georgia, serif) !important;
-}
-.pl8-guest[data-pl-texture="newsprint"] button:not([class*="btn-"]):not(.pl-pearl-accent),
-.pl8-guest[data-pl-texture="newsprint"] a.btn:not([class*="btn-"]) {
-  border: 2px solid #0E0D0B !important;
-  background: #F2E9D2 !important;
-  color: #0E0D0B !important;
-  box-shadow: 3px 3px 0 rgba(14,13,11,0.85) !important;
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -7244,6 +7190,16 @@ html { scroll-behavior: smooth; }
   .pl8-guest[data-pl-texture="watercolor"]::after {
     filter: none !important;
   }
+  /* Letterpress headings ride filter: url(#lp-text-press) — an
+     SVG reference filter, which iOS blanks ENTIRELY (the whole
+     heading vanished). The text-shadow press (declared with the
+     texture) carries the pressed feel there. */
+  .pl8-guest[data-pl-texture="letterpress"] section h1,
+  .pl8-guest[data-pl-texture="letterpress"] section h2,
+  .pl8-guest[data-pl-texture="letterpress"] section h3,
+  .pl8-guest[data-pl-texture="letterpress"] section .display {
+    filter: none !important;
+  }
   /* Marble loses its wash displacement on iOS — strengthen the
      vein gradients so the slab still reads as stone. */
   .pl8-guest[data-pl-texture="marble"]::before {
@@ -7343,4 +7299,103 @@ html { scroll-behavior: smooth; }
     inset 0 1px 0 rgba(255,255,255,0.35),
     0 0 0 1px color-mix(in srgb, var(--t-paper, #F5EFE2) 50%, transparent),
     0 16px 40px -16px rgba(0,0,0,0.35) !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   PER-KIT BUTTON SYSTEM
+   ═══════════════════════════════════════════════════════════════
+   Buttons belong to the COMPONENT KIT, not the paper (host call,
+   2026-06-12: "button designs are dictated by the paper texture
+   when it should be part of the component kit"). Texture keeps
+   the material — grain, card surfaces, headings; the kit decides
+   what a button IS. Same convention the texture rules used:
+   shape + type apply to every button, fills only to generic
+   buttons (Edition-styled `btn-*` and pearl CTAs keep their
+   identity). Classic has no rules — the theme default IS the
+   classic button. */
+
+/* TICKET — perforated stub. */
+.pl8-guest[data-pl-kit="ticket"] button,
+.pl8-guest[data-pl-kit="ticket"] a.btn {
+  border-radius: 4px !important;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.pl8-guest[data-pl-kit="ticket"] button:not([class*="btn-"]):not(.pl-pearl-accent),
+.pl8-guest[data-pl-kit="ticket"] a.btn:not([class*="btn-"]) {
+  outline: 1.5px dashed color-mix(in srgb, var(--t-ink, #0E0D0B) 40%, transparent);
+  outline-offset: -5px;
+}
+
+/* PLATE — engraved invitation plate: square, tracked, double
+   gold hairline. */
+.pl8-guest[data-pl-kit="plate"] button,
+.pl8-guest[data-pl-kit="plate"] a.btn {
+  border-radius: 0 !important;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.pl8-guest[data-pl-kit="plate"] button:not([class*="btn-"]):not(.pl-pearl-accent),
+.pl8-guest[data-pl-kit="plate"] a.btn:not([class*="btn-"]) {
+  border: 1px solid color-mix(in srgb, var(--t-gold, #C19A4B) 70%, transparent) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--t-gold, #C19A4B) 22%, transparent) !important;
+}
+
+/* SCRAPBOOK — sticker: full pill, fat ink ring, hard offset
+   shadow, the faintest tilt. */
+.pl8-guest[data-pl-kit="scrapbook"] button,
+.pl8-guest[data-pl-kit="scrapbook"] a.btn {
+  border-radius: 999px !important;
+}
+.pl8-guest[data-pl-kit="scrapbook"] button:not([class*="btn-"]):not(.pl-pearl-accent),
+.pl8-guest[data-pl-kit="scrapbook"] a.btn:not([class*="btn-"]) {
+  border: 2px solid var(--t-ink, #0E0D0B) !important;
+  box-shadow: 2.5px 2.5px 0 color-mix(in srgb, var(--t-ink, #0E0D0B) 75%, transparent) !important;
+  transform: rotate(-0.6deg);
+}
+
+/* INDEX — rubber-stamped card label: mono caps, sharp corners. */
+.pl8-guest[data-pl-kit="index"] button,
+.pl8-guest[data-pl-kit="index"] a.btn {
+  border-radius: 2px !important;
+  font-family: var(--pl-font-mono, ui-monospace, monospace) !important;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.pl8-guest[data-pl-kit="index"] button:not([class*="btn-"]):not(.pl-pearl-accent),
+.pl8-guest[data-pl-kit="index"] a.btn:not([class*="btn-"]) {
+  border: 1.5px solid color-mix(in srgb, var(--t-ink, #0E0D0B) 70%, transparent) !important;
+}
+
+/* MINIMAL — hairline restraint. */
+.pl8-guest[data-pl-kit="minimal"] button,
+.pl8-guest[data-pl-kit="minimal"] a.btn {
+  border-radius: 0 !important;
+  letter-spacing: 0.10em;
+}
+.pl8-guest[data-pl-kit="minimal"] button:not([class*="btn-"]):not(.pl-pearl-accent),
+.pl8-guest[data-pl-kit="minimal"] a.btn:not([class*="btn-"]) {
+  background: transparent !important;
+  border: 1px solid color-mix(in srgb, var(--t-ink, #0E0D0B) 35%, transparent) !important;
+  color: var(--t-ink, #0E0D0B) !important;
+  box-shadow: none !important;
+}
+
+/* GLASS — a small liquid pane: translucent paper tint, blur,
+   rim light. Matches the kit's cards. */
+.pl8-guest[data-pl-kit="glass"] button,
+.pl8-guest[data-pl-kit="glass"] a.btn {
+  border-radius: 12px !important;
+}
+.pl8-guest[data-pl-kit="glass"] button:not([class*="btn-"]):not(.pl-pearl-accent),
+.pl8-guest[data-pl-kit="glass"] a.btn:not([class*="btn-"]) {
+  background: color-mix(in srgb, var(--t-paper, #F5EFE2) 34%, transparent) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
+  backdrop-filter: blur(10px) saturate(1.4);
+  border: 1px solid color-mix(in srgb, var(--t-ink, #0E0D0B) 20%, transparent) !important;
+  color: var(--t-ink, #0E0D0B) !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #FFFFFF 30%, transparent) !important;
 }

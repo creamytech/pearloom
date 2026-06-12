@@ -15,6 +15,9 @@ interface AnalyticsBeaconProps {
 export function AnalyticsBeacon({ siteId }: AnalyticsBeaconProps) {
   useEffect(() => {
     if (!siteId) return;
+    /* Analytics must never be the reason a guest sees an error —
+       environments without IntersectionObserver just skip it. */
+    if (typeof IntersectionObserver === 'undefined') return;
 
     const observers: IntersectionObserver[] = [];
 

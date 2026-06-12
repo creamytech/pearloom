@@ -84,7 +84,7 @@ export function StickyRsvpPill({
   // a jump-to-RSVP pill when the form is already in view.
   useEffect(() => {
     const el = document.getElementById(anchorId);
-    if (!el) return;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
     const observer = new IntersectionObserver(
       ([entry]) => setOverRsvp(entry.isIntersecting),
       { threshold: 0.25 },
@@ -99,7 +99,7 @@ export function StickyRsvpPill({
   // redesign renderer doesn't, so we fall back to "within 160px of
   // the document bottom" via the same scroll-listener pattern.
   useEffect(() => {
-    const footer = document.querySelector('footer');
+    const footer = typeof IntersectionObserver === 'undefined' ? null : document.querySelector('footer');
     if (footer) {
       const observer = new IntersectionObserver(
         ([entry]) => setNearFooter(entry.isIntersecting),

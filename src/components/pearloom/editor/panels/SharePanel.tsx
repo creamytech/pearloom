@@ -55,6 +55,12 @@ export function SharePanel({
   const prettyUrl = formatSiteDisplayUrl(siteSlug, '', occasion);
   const [copied, setCopied] = useState<string | null>(null);
   const [coHostEmail, setCoHostEmail] = useState('');
+  /* Phone channel — we mint the key, the host texts it from their
+     own Messages. No SMS provider, nothing to configure; the link
+     is the credential (accept binds to whoever signs in with it). */
+  const [coHostChannel, setCoHostChannel] = useState<'email' | 'sms'>('email');
+  const [coHostPhone, setCoHostPhone] = useState('');
+  const [keyCard, setKeyCard] = useState<{ acceptUrl: string; phone: string } | null>(null);
   const [coHostRole, setCoHostRole] = useState<'editor' | 'guest-manager' | 'viewer'>('editor');
   const [coHostBusy, setCoHostBusy] = useState(false);
   const [coHostMsg, setCoHostMsg] = useState<string | null>(null);
@@ -151,21 +157,32 @@ export function SharePanel({
   ], [composedEnc, headline, siteUrl]);
 
   async function inviteCoHost() {
-    if (!coHostEmail.trim() || coHostBusy) return;
-    setCoHostBusy(true); setCoHostMsg(null);
+    const bySms = coHostChannel === 'sms';
+    if (bySms ? coHostPhone.replace(/\D/g, '').length < 7 : !coHostEmail.trim()) return;
+    if (coHostBusy) return;
+    setCoHostBusy(true); setCoHostMsg(null); setKeyCard(null);
     try {
       const res = await fetch('/api/co-host/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteSlug, email: coHostEmail.trim(), role: coHostRole }),
+        body: JSON.stringify(
+          bySms
+            ? { siteSlug, phone: coHostPhone.trim(), role: coHostRole }
+            : { siteSlug, email: coHostEmail.trim(), role: coHostRole },
+        ),
       });
+      const j = await res.json().catch(() => ({})) as { error?: string; acceptUrl?: string };
       if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
         console.error('[share] co-host invite failed:', res.status);
-        throw new Error((j as { error?: string }).error ?? 'Couldn’t send the invite — try again?');
+        throw new Error(j.error ?? 'Couldn’t send the invite — try again?');
       }
-      setCoHostMsg(`Invite sent to ${coHostEmail.trim()}.`);
-      setCoHostEmail('');
+      if (bySms && j.acceptUrl) {
+        setKeyCard({ acceptUrl: j.acceptUrl, phone: coHostPhone.trim() });
+        setCoHostPhone('');
+      } else {
+        setCoHostMsg(`Invite sent to ${coHostEmail.trim()}.`);
+        setCoHostEmail('');
+      }
       void refreshRoster();
     } catch (e) {
       setCoHostMsg(pearErrorMessage(e, 'Couldn’t send the invite — try again?'));
@@ -173,6 +190,11 @@ export function SharePanel({
       setCoHostBusy(false);
     }
   }
+
+  /* The prewritten text — names the site, hands over the key. */
+  const keySmsBody = keyCard
+    ? `You're invited to help shape ${headline}'s site on Pearloom — here's your key: ${keyCard.acceptUrl}`
+    : '';
 
   return (
     <SectionPanelShell>
@@ -422,16 +444,47 @@ export function SharePanel({
           </a>
         </FGroup>
 
-        {/* Co-host invite — extends edit access. */}
-        <FGroup label="Invite a co-host" hint="They’ll get an email with a magic link. Editors can change everything except Publish; viewers can only look around.">
+        {/* Co-host invite — extends edit access. Email sends a
+            magic link; phone mints "the key" and opens the host's
+            own Messages with it prewritten. */}
+        <FGroup label="Invite a co-host" hint="Email sends them a magic link. Text mints the key and opens your Messages — you send it, they tap it.">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <FInput
-              value={coHostEmail}
-              onChange={setCoHostEmail}
-              icon="mail"
-              type="email"
-              placeholder="partner@example.com"
-            />
+            <div style={{ display: 'flex', gap: 5 }}>
+              {([['email', 'By email'], ['sms', 'By text']] as const).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => { setCoHostChannel(id); setCoHostMsg(null); }}
+                  aria-pressed={coHostChannel === id}
+                  style={{
+                    padding: '4px 12px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                    border: coHostChannel === id ? '1px solid var(--ink)' : '1px solid var(--line)',
+                    background: coHostChannel === id ? 'var(--ink)' : 'transparent',
+                    color: coHostChannel === id ? 'var(--cream)' : 'var(--ink-soft)',
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {coHostChannel === 'email' ? (
+              <FInput
+                value={coHostEmail}
+                onChange={setCoHostEmail}
+                icon="mail"
+                type="email"
+                placeholder="partner@example.com"
+              />
+            ) : (
+              <FInput
+                value={coHostPhone}
+                onChange={setCoHostPhone}
+                icon="phone"
+                type="tel"
+                placeholder="(555) 010-1234"
+              />
+            )}
             <div style={{ display: 'flex', gap: 5 }}>
               {([['editor', 'Co-editor'], ['guest-manager', 'Guest manager'], ['viewer', 'Viewer']] as const).map(([id, label]) => (
                 <button
@@ -451,21 +504,94 @@ export function SharePanel({
                 </button>
               ))}
             </div>
-            <button
-              type="button"
-              onClick={inviteCoHost}
-              disabled={!coHostEmail.trim() || coHostBusy}
-              style={{
-                padding: '8px 14px', borderRadius: 999,
-                background: 'var(--cream-2)', border: '1px solid var(--line)',
-                fontSize: 12, fontWeight: 600, color: 'var(--ink-soft)',
-                cursor: coHostEmail.trim() && !coHostBusy ? 'pointer' : 'not-allowed',
-                opacity: coHostEmail.trim() && !coHostBusy ? 1 : 0.55,
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              }}
-            >
-              {coHostBusy ? 'Threading…' : 'Send invite'}
-            </button>
+            {(() => {
+              const ready = coHostChannel === 'sms'
+                ? coHostPhone.replace(/\D/g, '').length >= 7
+                : !!coHostEmail.trim();
+              return (
+                <button
+                  type="button"
+                  onClick={inviteCoHost}
+                  disabled={!ready || coHostBusy}
+                  style={{
+                    padding: '8px 14px', borderRadius: 999,
+                    background: 'var(--cream-2)', border: '1px solid var(--line)',
+                    fontSize: 12, fontWeight: 600, color: 'var(--ink-soft)',
+                    cursor: ready && !coHostBusy ? 'pointer' : 'not-allowed',
+                    opacity: ready && !coHostBusy ? 1 : 0.55,
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  }}
+                >
+                  {coHostBusy ? 'Threading…' : coHostChannel === 'sms' ? 'Mint the key' : 'Send invite'}
+                </button>
+              );
+            })()}
+            {/* THE KEY — a phone invite's handoff moment. Glass
+                pane with the link + one tap into Messages with the
+                text prewritten. The link expires in 14 days and
+                binds to whoever signs in with it. */}
+            {keyCard && (
+              <div
+                style={{
+                  position: 'relative',
+                  overflow: 'hidden',
+                  borderRadius: 14,
+                  padding: '14px 14px 12px',
+                  background: 'var(--pl-glass)',
+                  backgroundImage: 'var(--pl-glass-sheen)',
+                  backdropFilter: 'var(--pl-glass-blur, blur(16px) saturate(1.4))',
+                  WebkitBackdropFilter: 'var(--pl-glass-blur, blur(16px) saturate(1.4))',
+                  border: '1px solid var(--pl-glass-border)',
+                  boxShadow: 'var(--pl-glass-shadow)',
+                }}
+              >
+                <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 9, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+                  The key · expires in 14 days
+                </div>
+                <div style={{ fontFamily: 'var(--font-display, Fraunces, serif)', fontStyle: 'italic', fontSize: 17, color: 'var(--ink)', margin: '4px 0 2px' }}>
+                  Ready to hand over.
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--ink-soft)', wordBreak: 'break-all', marginBottom: 10 }}>
+                  {keyCard.acceptUrl}
+                </div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  <a
+                    href={`sms:${keyCard.phone.replace(/[^\d+]/g, '')}?&body=${encodeURIComponent(keySmsBody)}`}
+                    style={{
+                      padding: '8px 16px', borderRadius: 999,
+                      background: 'var(--ink)', color: 'var(--cream)',
+                      fontSize: 12, fontWeight: 700, textDecoration: 'none',
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                    }}
+                  >
+                    <Icon name="phone" size={12} color="var(--cream)" /> Text it now
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => copy('cohost-key', keyCard.acceptUrl)}
+                    style={{
+                      padding: '8px 14px', borderRadius: 999,
+                      background: 'transparent', border: '1px solid var(--line)',
+                      fontSize: 12, fontWeight: 600, color: 'var(--ink-soft)',
+                      cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    {copied === 'cohost-key' ? '✓ Copied' : 'Copy link'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setKeyCard(null)}
+                    style={{
+                      padding: '8px 10px', borderRadius: 999, border: 'none',
+                      background: 'transparent', fontSize: 12, fontWeight: 600,
+                      color: 'var(--ink-muted)', cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            )}
             {coHostMsg && (
               <div style={{
                 fontSize: 11, color: 'var(--sage-deep)',

@@ -35,11 +35,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Too many co-host invites recently. Try again in an hour.' }, { status: 429 });
     }
 
-    const body = await req.json() as { siteSlug?: string; email?: string; role?: string };
-    if (!body.siteSlug || !body.email) {
-      return NextResponse.json({ error: 'siteSlug and email required' }, { status: 400 });
+    const body = await req.json() as { siteSlug?: string; email?: string; phone?: string; role?: string };
+    /* Two channels: email (we send the invite) or phone (we mint
+       the key and the HOST texts it from their own Messages — no
+       SMS provider needed; the link is the credential and accept
+       binds to whoever signs in with it). */
+    const phoneDigits = (body.phone ?? '').replace(/[^\d+]/g, '');
+    const byPhone = phoneDigits.replace(/\D/g, '').length >= 7;
+    if (!body.siteSlug || (!body.email && !byPhone)) {
+      return NextResponse.json({ error: 'siteSlug and an email or phone number required' }, { status: 400 });
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
+    if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
       return NextResponse.json({ error: 'That doesn’t look like an email.' }, { status: 400 });
     }
     const role = body.role && ['editor', 'guest-manager', 'viewer'].includes(body.role)
@@ -67,7 +73,12 @@ export async function POST(req: NextRequest) {
     const { error: insertError } = await supabase.from('cohost_invites').insert({
       token,
       site_id: siteRow.id,
-      invited_email: body.email.toLowerCase(),
+      invited_email: body.email ? body.email.toLowerCase() : null,
+      /* Phone invites carry a roster-friendly note — last four
+         digits only, never the full number. */
+      ...(byPhone && !body.email
+        ? { note: `Texted to ···${phoneDigits.replace(/\D/g, '').slice(-4)}` }
+        : {}),
       invited_by: session.user.email.toLowerCase(),
       role,
       created_at: new Date().toISOString(),
@@ -81,11 +92,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const resendKey = process.env.RESEND_API_KEY;
-    if (!resendKey) {
-      return NextResponse.json({ ok: true, note: 'No RESEND_API_KEY — dev mode, email not actually sent.' });
-    }
-
     const [a, b] = siteRow.site_config?.coupleNames ?? ['', ''];
     const coupleDisplay = a && b ? `${a} & ${b}` : (a || b || 'the site');
     /* Accept page lives at the APP route /co-host/<token> — the
@@ -93,6 +99,17 @@ export async function POST(req: NextRequest) {
        produced a published-site sub-path that 404s. */
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
     const acceptUrl = `${baseUrl}/co-host/${token}`;
+
+    /* Phone channel — the host texts the key themselves. No email
+       to send; return the link (it's theirs to deliver). */
+    if (byPhone && !body.email) {
+      return NextResponse.json({ ok: true, acceptUrl, channel: 'sms' });
+    }
+
+    const resendKey = process.env.RESEND_API_KEY;
+    if (!resendKey) {
+      return NextResponse.json({ ok: true, acceptUrl, note: 'No RESEND_API_KEY — dev mode, email not actually sent.' });
+    }
 
     const { subject, html } = buildCoHostInviteEmail({
       coupleDisplay,
@@ -114,7 +131,7 @@ export async function POST(req: NextRequest) {
     if (!res.ok) {
       return NextResponse.json({ error: 'Couldn’t send the invite email.' }, { status: 502 });
     }
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, acceptUrl });
   } catch (err) {
     console.error('[co-host/invite] failed:', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
