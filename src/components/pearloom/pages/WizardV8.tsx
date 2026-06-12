@@ -35,6 +35,7 @@ import { seedSectionsFromWizard, suggestRsvpDeadline } from '@/lib/wizard-seed';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
 import { lookRecipesFor, type LookRecipe } from '@/lib/site-look/look-recipes';
 import { WizardLooksSection } from './wizard-looks';
+import { WizardStructureSection } from './wizard-structure';
 import { WizardLookPreviews, type LookCandidate } from './WizardLookPreviews';
 import type { StoryManifest } from '@/types';
 
@@ -299,6 +300,12 @@ interface WizardState {
   playlistUrl?: string;
   meals?: string[];
   registryUrl?: string;
+  /** "The structure" — explicit layout picks. undefined = Pear
+   *  decides (look-recipe / edition defaults ride). Stamped onto
+   *  manifest.siteMode + manifest.layouts at finish. */
+  siteMode?: 'scroll' | 'multi-page';
+  navVariant?: string;
+  heroVariant?: string;
   /** Plus-ones policy → rsvpConfig.plusOnes + the FAQ answer.
    *  undefined = not asked / host skipped. */
   plusOnes?: boolean;
@@ -2319,6 +2326,19 @@ export function WizardV8() {
           : 'Wedding party',
       }) as unknown as Record<string, unknown>;
 
+      // ── Explicit STRUCTURE picks — siteMode + per-section layout
+      //    variants, exactly the fields the editor's Layout tab and
+      //    SiteModeSection write. Unset = Pear decides (recipe /
+      //    edition defaults ride at read time).
+      if (st.siteMode) manifest.siteMode = st.siteMode;
+      if (st.navVariant || st.heroVariant) {
+        manifest.layouts = {
+          ...((manifest.layouts as Record<string, string> | undefined) ?? {}),
+          ...(st.navVariant ? { nav: st.navVariant } : {}),
+          ...(st.heroVariant ? { hero: st.heroVariant } : {}),
+        };
+      }
+
       // ── Explicit LOOK pick — overwrites the occasion defaults on
       //    both paths (AI + skeleton). The host saw exactly this
       //    construction in the wizard's preview; it must be what
@@ -3685,6 +3705,7 @@ export function WizardV8() {
                       ? st.paletteColors
                       : PALETTES.find((pp) => pp.id === st.palette)?.colors;
                     return (
+                      <>
                       <WizardLooksSection
                         occasion={st.occasion}
                         paletteColors={lookPalette}
@@ -3696,6 +3717,11 @@ export function WizardV8() {
                         onSelect={(id) => setSt((prev) => ({ ...prev, lookRecipeId: id }))}
                         onPreview={setLookPreview}
                       />
+                      <WizardStructureSection
+                        picks={{ siteMode: st.siteMode, navVariant: st.navVariant, heroVariant: st.heroVariant }}
+                        onChange={(next) => setSt((prev) => ({ ...prev, ...next }))}
+                      />
+                      </>
                     );
                   })()}
                 </>
@@ -3901,6 +3927,10 @@ export function WizardV8() {
                         coverPhoto={st.photos.find((ph) => ph.url)?.url}
                         galleryImages={st.photos.filter((ph) => ph.url).map((ph) => ph.url)}
                         recipe={lookRecipesFor(st.occasion).find((r) => r.id === (st.lookRecipeId ?? 'match')) ?? null}
+                        layouts={{
+                          ...(st.navVariant ? { nav: st.navVariant } : {}),
+                          ...(st.heroVariant ? { hero: st.heroVariant } : {}),
+                        }}
                         candidates={candidates}
                         selectedId={st.palette}
                         onPick={(c) => {

@@ -57,6 +57,10 @@ interface PreviewOpts {
    *  texture / motifs / density). Stamped AFTER applyWizardLook so
    *  the pressing wears exactly what generation will press. */
   recipe?: LookRecipe | null;
+  /** Explicit structure picks (nav / hero variants) so the
+   *  pressing is ARRANGED the way the host chose, not just
+   *  dressed. */
+  layouts?: Record<string, string>;
 }
 
 function buildPreviewManifest(c: LookCandidate, opts: PreviewOpts): StoryManifest {
@@ -73,15 +77,18 @@ function buildPreviewManifest(c: LookCandidate, opts: PreviewOpts): StoryManifes
     motifKind: c.motifKind,
     motifLayout: c.motifLayout,
   });
-  if (!opts.recipe) return dressed;
-  return {
-    ...(dressed as unknown as Record<string, unknown>),
-    kitId: opts.recipe.kitId,
-    texture: opts.recipe.texture,
-    textureIntensity: opts.recipe.textureIntensity,
-    motifLayout: opts.recipe.motifLayout,
-    density: opts.recipe.density,
-  } as unknown as StoryManifest;
+  const out = { ...(dressed as unknown as Record<string, unknown>) };
+  if (opts.recipe) {
+    out.kitId = opts.recipe.kitId;
+    out.texture = opts.recipe.texture;
+    out.textureIntensity = opts.recipe.textureIntensity;
+    out.motifLayout = opts.recipe.motifLayout;
+    out.density = opts.recipe.density;
+  }
+  if (opts.layouts && Object.keys(opts.layouts).length > 0) {
+    out.layouts = { ...((out.layouts as Record<string, string> | undefined) ?? {}), ...opts.layouts };
+  }
+  return out as unknown as StoryManifest;
 }
 
 export function WizardLookPreviews({
@@ -93,6 +100,7 @@ export function WizardLookPreviews({
   coverPhoto,
   galleryImages,
   recipe,
+  layouts,
   candidates,
   selectedId,
   onPick,
@@ -105,6 +113,7 @@ export function WizardLookPreviews({
   coverPhoto?: string;
   galleryImages?: string[];
   recipe?: LookRecipe | null;
+  layouts?: Record<string, string>;
   candidates: LookCandidate[];
   selectedId: string;
   onPick: (c: LookCandidate) => void;
@@ -118,8 +127,8 @@ export function WizardLookPreviews({
   }, []);
 
   const manifests = useMemo(
-    () => candidates.map((c) => buildPreviewManifest(c, { occasion, eventDate, venue, layoutFormat, coverPhoto, galleryImages, recipe })),
-    [candidates, occasion, eventDate, venue, layoutFormat, coverPhoto, galleryImages, recipe],
+    () => candidates.map((c) => buildPreviewManifest(c, { occasion, eventDate, venue, layoutFormat, coverPhoto, galleryImages, recipe, layouts })),
+    [candidates, occasion, eventDate, venue, layoutFormat, coverPhoto, galleryImages, recipe, layouts],
   );
 
   if (candidates.length === 0) return null;
