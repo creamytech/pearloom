@@ -38,7 +38,6 @@ import { lookRecipesFor, type LookRecipe } from '@/lib/site-look/look-recipes';
 import { WizardLooksSection } from './wizard-looks';
 import { WizardStructureSection } from './wizard-structure';
 import { WizardFittingRoom, type PaletteChoice } from './wizard-fitting-room';
-import { WizardLookPreviews, type LookCandidate } from './WizardLookPreviews';
 import type { StoryManifest } from '@/types';
 
 // Layout step removed 2026-05-30 — superseded again 2026-06-10:
@@ -310,6 +309,10 @@ interface WizardState {
   /** Explicit paper texture from the fitting room — beats the
    *  look recipe's texture at finish. */
   texture?: string;
+  /** Explicit ornament placement + breathing room from the
+   *  fitting room — same beats-the-recipe contract. */
+  motifLayoutPick?: string;
+  densityPick?: string;
   navVariant?: string;
   heroVariant?: string;
   /** Plus-ones policy → rsvpConfig.plusOnes + the FAQ answer.
@@ -2444,10 +2447,13 @@ export function WizardV8() {
           manifest.density = recipe.density;
         }
       }
-      // Explicit kit / texture picks from The Structure + fitting
-      // room beat the recipe's — the host saw them live.
+      // Explicit kit / texture / motif / density picks from The
+      // Structure + fitting room beat the recipe's — the host saw
+      // them live.
       if (st.kitId) manifest.kitId = st.kitId;
       if (st.texture) manifest.texture = st.texture;
+      if (st.motifLayoutPick) manifest.motifLayout = st.motifLayoutPick;
+      if (st.densityPick) manifest.density = st.densityPick;
 
       // `create: true` — the server guarantees a FREE slug. If the
       // derived one (typed, or names-fallback) is already taken — by
@@ -3823,8 +3829,15 @@ export function WizardV8() {
                         coverPhoto={st.photos.find((ph) => ph.url)?.url}
                         galleryImages={st.photos.filter((ph) => ph.url).map((ph) => ph.url)}
                         recipe={lookRecipesFor(st.occasion).find((r) => r.id === (st.lookRecipeId ?? 'match')) ?? null}
-                        picks={{ siteMode: st.siteMode, kitId: st.kitId, texture: st.texture, navVariant: st.navVariant, heroVariant: st.heroVariant }}
-                        onChange={(next) => setSt((prev) => ({ ...prev, ...next }))}
+                        picks={{
+                          siteMode: st.siteMode,
+                          kitId: st.kitId,
+                          texture: st.texture,
+                          navVariant: st.navVariant,
+                          heroVariant: st.heroVariant,
+                          motifLayout: st.motifLayoutPick,
+                          density: st.densityPick,
+                        }}
                         onExpand={() => setFittingOpen(true)}
                       />
 
@@ -3990,86 +4003,46 @@ export function WizardV8() {
                     );
                   })()}
 
-                  {/* Live look previews — three real miniature sites
-                      pressed from the host's answers (names, date,
-                      venue, palette). Tapping one writes the palette
-                      pick back through the same state the palette
-                      step uses, so the choice flows into generation
-                      untouched. */}
+                  {/* YOUR PRESSING — one live, legible, phone-width
+                      render of the exact site about to press, with
+                      the fitting room as the door to change ANY of
+                      it (palette, paper, kit, nav, hero, motif,
+                      density, reads). Replaced the three desktop-
+                      scaled pressings, which were unreadable at
+                      tile size ("the previews of the 3 still are
+                      shit — maybe we can just use fitting room
+                      instead", 2026-06-12). */}
                   {(() => {
-                    const candidates: LookCandidate[] = [];
-                    const selColors = resolvedPaletteColors;
-                    const selIsSmart = (st.smartPalettes ?? []).some((p) => p.id === st.palette);
-                    if (selColors && selColors.length >= 2) {
-                      candidates.push({
-                        id: st.palette,
-                        label:
-                          st.smartPalettes?.find((p) => p.id === st.palette)?.name
-                          ?? PALETTES.find((p) => p.id === st.palette)?.name
-                          ?? 'Your palette',
-                        colors: selColors,
-                        motifKind: st.suggestedMotif,
-                        motifLayout: st.suggestedMotifLayout,
-                        smart: selIsSmart,
-                      });
-                    }
-                    for (const p of st.smartPalettes ?? []) {
-                      if (candidates.length >= 3) break;
-                      if (p.id === st.palette) continue;
-                      candidates.push({ id: p.id, label: p.name, colors: p.colors, motifKind: p.motif, motifLayout: p.motifLayout, smart: true });
-                    }
-                    for (const p of PALETTES) {
-                      if (candidates.length >= 3) break;
-                      if (p.id === st.palette || candidates.some((c) => c.id === p.id)) continue;
-                      candidates.push({ id: p.id, label: p.name, colors: p.colors, smart: false });
-                    }
-                    if (candidates.length === 0) return null;
+                    const lookNameSpec = nameModeFor(st.occasion);
+                    const lookCouple = lookNameSpec.mode === 'couple';
+                    const lookNames = st.names.filter(Boolean);
+                    const lookPalette = st.paletteColors && st.paletteColors.length > 0
+                      ? st.paletteColors
+                      : PALETTES.find((pp) => pp.id === st.palette)?.colors;
                     return (
-                      <>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: -6 }}>
-                        <button
-                          type="button"
-                          onClick={() => setFittingOpen(true)}
-                          style={{
-                            display: 'inline-flex', alignItems: 'center', gap: 6,
-                            padding: '7px 14px', borderRadius: 999, cursor: 'pointer',
-                            border: '1.5px solid var(--line)', background: 'var(--card)',
-                            color: 'var(--ink)', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
-                          }}
-                        >
-                          The fitting room ⤢
-                        </button>
-                      </div>
-                      <WizardLookPreviews
-                        names={[st.names[0] ?? '', st.names[1] ?? '']}
+                      <WizardStructureSection
                         occasion={st.occasion}
-                        eventDate={st.eventDate}
-                        venue={st.location}
-                        layoutFormat={st.layout}
+                        paletteColors={lookPalette}
+                        names={[
+                          lookNames[0] || (lookCouple ? 'Alex' : lookNameSpec.primaryPlaceholder),
+                          lookCouple ? (lookNames[1] || 'Jamie') : '',
+                        ]}
                         coverPhoto={st.photos.find((ph) => ph.url)?.url}
                         galleryImages={st.photos.filter((ph) => ph.url).map((ph) => ph.url)}
                         recipe={lookRecipesFor(st.occasion).find((r) => r.id === (st.lookRecipeId ?? 'match')) ?? null}
-                        layouts={{
-                          ...(st.navVariant ? { nav: st.navVariant } : {}),
-                          ...(st.heroVariant ? { hero: st.heroVariant } : {}),
+                        picks={{
+                          siteMode: st.siteMode,
+                          kitId: st.kitId,
+                          texture: st.texture,
+                          navVariant: st.navVariant,
+                          heroVariant: st.heroVariant,
+                          motifLayout: st.motifLayoutPick,
+                          density: st.densityPick,
                         }}
-                        kitId={st.kitId}
-                        candidates={candidates}
-                        selectedId={st.palette}
-                        onPick={(c) => {
-                          setSt((s2) => ({
-                            ...s2,
-                            palette: c.id,
-                            paletteColors: c.colors,
-                            // Smart picks carry their paired ornament;
-                            // presets clear it — mirrors the palette
-                            // step's two click handlers.
-                            suggestedMotif: c.smart ? c.motifKind : undefined,
-                            suggestedMotifLayout: c.smart ? c.motifLayout : undefined,
-                          }));
-                        }}
+                        onExpand={() => setFittingOpen(true)}
+                        title="Your pressing"
+                        blurb="Exactly what Pear will press — scroll it. Step into the fitting room to change any of it."
                       />
-                      </>
                     );
                   })()}
 
@@ -4269,8 +4242,25 @@ export function WizardV8() {
                                 suggestedMotifLayout: smart ? sp?.motifLayout : undefined,
                               }));
                             }}
-                            picks={{ siteMode: st.siteMode, kitId: st.kitId, texture: st.texture, navVariant: st.navVariant, heroVariant: st.heroVariant }}
-                            onChange={(next) => setSt((prev) => ({ ...prev, ...next }))}
+                            picks={{
+                              siteMode: st.siteMode,
+                              kitId: st.kitId,
+                              texture: st.texture,
+                              navVariant: st.navVariant,
+                              heroVariant: st.heroVariant,
+                              motifLayout: st.motifLayoutPick,
+                              density: st.densityPick,
+                            }}
+                            onChange={(next) => setSt((prev) => ({
+                              ...prev,
+                              ...('siteMode' in next ? { siteMode: next.siteMode } : {}),
+                              ...('kitId' in next ? { kitId: next.kitId } : {}),
+                              ...('texture' in next ? { texture: next.texture } : {}),
+                              ...('navVariant' in next ? { navVariant: next.navVariant } : {}),
+                              ...('heroVariant' in next ? { heroVariant: next.heroVariant } : {}),
+                              ...('motifLayout' in next ? { motifLayoutPick: next.motifLayout } : {}),
+                              ...('density' in next ? { densityPick: next.density } : {}),
+                            }))}
                             onClose={() => setFittingOpen(false)}
                           />
                         );

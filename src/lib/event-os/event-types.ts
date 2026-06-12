@@ -61,11 +61,13 @@ export type RsvpPreset =
  *  matches the event's emotional register. Users can always override. */
 export type RecommendedTexture =
   | 'smooth'        // modern, clean — fits casual + playful events
+  | 'paper'         // warm default grain — the safe, beautiful baseline
+  | 'kraft'         // brown wrap — fits bachelor weekends, casual trips
   | 'watercolor'    // soft pastel bleeds — fits showers, engagements
   | 'linen'         // formal fabric — fits weddings, graduations
   | 'letterpress'   // pressed book — fits anniversaries, ceremonial
   | 'vellum'        // translucent amber — fits memorials, retirements
-  | 'newsprint';    // broadsheet ink — fits reunions, bachelor parties
+  | 'newsprint';    // broadsheet ink — bold; an explicit pick, never a default
 
 // ── Core interface ───────────────────────────────────────────
 
@@ -860,8 +862,8 @@ export function recommendTextureFor(
     'anniversary': 'letterpress',
     'birthday': 'smooth',
     'story': 'letterpress',
-    'bachelor-party': 'newsprint',
-    'bachelorette-party': 'newsprint',
+    'bachelor-party': 'kraft',
+    'bachelorette-party': 'kraft',
     'bridal-shower': 'watercolor',
     'bridal-luncheon': 'linen',
     'rehearsal-dinner': 'linen',
@@ -872,7 +874,7 @@ export function recommendTextureFor(
     'gender-reveal': 'watercolor',
     'sip-and-see': 'watercolor',
     'housewarming': 'smooth',
-    'reunion': 'newsprint',
+    'reunion': 'paper',
     'milestone-birthday': 'letterpress',
     'first-birthday': 'watercolor',
     'sweet-sixteen': 'smooth',
@@ -894,7 +896,7 @@ export function recommendTextureFor(
     case 'solemn':      return 'vellum';
     case 'ceremonial':  return 'linen';
     case 'intimate':    return 'letterpress';
-    case 'playful':     return 'newsprint';
+    case 'playful':     return 'kraft';
     case 'celebratory': return 'watercolor';
     default:            return 'smooth';
   }
