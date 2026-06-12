@@ -128,7 +128,7 @@ function LookVignette({ recipe, vars, nameA, nameB, dateLabel, placeLabel, expan
         </>
       )}
       {/* Hero */}
-      <div style={{ position: 'relative', zIndex: 2 }}>
+      <div className="lkv-hero" style={{ position: 'relative', zIndex: 2 }}>
         <div style={{ fontSize: expanded ? 9 : 7.5, fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'var(--t-accent-ink, var(--t-accent))' }}>
           We&rsquo;re celebrating
         </div>
@@ -142,7 +142,7 @@ function LookVignette({ recipe, vars, nameA, nameB, dateLabel, placeLabel, expan
         </div>
       </div>
       {/* Divider — the look's seam treatment */}
-      <div aria-hidden style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
+      <div aria-hidden className="lkv-divider" style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
         <span style={{ width: expanded ? 60 : 34, height: 1, background: 'var(--t-line)' }} />
         {recipe.motifLayout === 'dividers' || recipe.motifLayout === 'scattered'
           ? <CornerSprig />
@@ -151,7 +151,11 @@ function LookVignette({ recipe, vars, nameA, nameB, dateLabel, placeLabel, expan
       </div>
       {/* Schedule rows — the kit's real construction */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: recipe.kitId === 'scrapbook' ? 7 : 5, textAlign: 'left', position: 'relative', zIndex: 2 }}>
-        {rows.map(([t, l], i) => <KitRow key={l} kit={recipe.kitId} time={t} label={l} i={i} />)}
+        {rows.map(([t, l], i) => (
+          <div key={l} className="lkv-row">
+            <KitRow kit={recipe.kitId} time={t} label={l} i={i} />
+          </div>
+        ))}
       </div>
       {expanded && (
         <div style={{ textAlign: 'left', fontSize: 10.5, lineHeight: 1.6, color: 'var(--t-ink-soft)', background: 'var(--t-section)', borderRadius: 8, padding: '10px 12px' }}>
@@ -160,7 +164,7 @@ function LookVignette({ recipe, vars, nameA, nameB, dateLabel, placeLabel, expan
         </div>
       )}
       {/* RSVP pill */}
-      <div style={{ marginTop: 'auto', position: 'relative', zIndex: 2 }}>
+      <div className="lkv-rsvp" style={{ marginTop: 'auto', position: 'relative', zIndex: 2 }}>
         <span style={{ display: 'inline-block', padding: expanded ? '9px 22px' : '6px 14px', borderRadius: 999, background: 'var(--t-rsvp)', color: 'var(--t-rsvp-ink)', fontSize: expanded ? 11 : 8.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
           RSVP
         </span>
@@ -172,7 +176,7 @@ function LookVignette({ recipe, vars, nameA, nameB, dateLabel, placeLabel, expan
 /* ── The section ─────────────────────────────────────────────── */
 
 export function WizardLooksSection({
-  occasion, paletteColors, nameA, nameB, dateLabel, placeLabel, selectedId, onSelect,
+  occasion, paletteColors, nameA, nameB, dateLabel, placeLabel, selectedId, onSelect, onPreview,
 }: {
   occasion: string;
   paletteColors: string[] | undefined;
@@ -183,6 +187,9 @@ export function WizardLooksSection({
   /** null = nothing picked yet — Pear's match shows as the default. */
   selectedId: string | null;
   onSelect: (id: string) => void;
+  /** Hover/focus preview — the wizard dresses the whole room in
+   *  the look's paper while the host considers it. null on leave. */
+  onPreview?: (recipe: LookRecipe | null) => void;
 }) {
   const recipes = lookRecipesFor(occasion);
   const vars = (paletteColors && paletteColors.length >= 2 && themeVarsFromPalette(paletteColors)) || FALLBACK_VARS;
@@ -205,25 +212,33 @@ export function WizardLooksSection({
         </div>
       </div>
       <p style={{ color: 'var(--ink-soft)', fontSize: 13.5, margin: '0 0 14px', lineHeight: 1.5 }}>
-        Same palette, three different constructions — component kits, paper textures,
-        ornament. Tap <Icon name='arrow-ur' size={11} /> to see a look full size.
+        Same palette, three different constructions — kits, paper, ornament. Rest on one
+        and the whole room wears it. Tap <Icon name='arrow-ur' size={11} /> for full size.
       </p>
       <div className="pl8-looks-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
         {recipes.map((r) => {
           const on = effective === r.id;
           return (
-            <div key={r.id} style={{ position: 'relative' }}>
+            <div
+              key={r.id}
+              style={{ position: 'relative' }}
+              onPointerEnter={() => onPreview?.(r)}
+              onPointerLeave={() => onPreview?.(null)}
+            >
               <button
                 type="button"
                 onClick={() => onSelect(r.id)}
+                onFocus={() => onPreview?.(r)}
+                onBlur={() => onPreview?.(null)}
                 aria-pressed={on}
+                className="pl-look-card"
                 style={{
                   display: 'block', width: '100%', padding: 0, textAlign: 'left',
                   borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
                   background: 'var(--card, #fff)',
                   border: on ? '2px solid var(--pl-olive, #5C6B3F)' : '1.5px solid var(--line)',
                   boxShadow: on ? '0 0 0 3px var(--pl-olive-mist, #E0DDC9), 0 10px 24px rgba(40,28,12,0.10)' : 'none',
-                  transition: 'box-shadow var(--pl-dur-fast, 180ms) var(--pl-ease-out, ease), border-color var(--pl-dur-fast, 180ms) var(--pl-ease-out, ease)',
+                  transition: 'box-shadow 240ms var(--pl-ease-out, ease), border-color 240ms var(--pl-ease-out, ease), transform 320ms var(--pl-ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1))',
                   overflow: 'hidden',
                 }}
               >
@@ -304,6 +319,64 @@ export function WizardLooksSection({
         @media (max-width: 480px) {
           :global(.pl8-looks-grid) {
             grid-template-columns: 1fr !important;
+          }
+        }
+        /* ── Hover choreography — the look assembles itself ─────
+           Resting cards are complete; on hover the card lifts on
+           the spring ease and the vignette REPLAYS its assembly:
+           hero settles down into the paper, the divider thread
+           draws from center, schedule rows thread in staggered,
+           the RSVP seal presses last. Pure CSS animations keyed
+           on :hover/:focus-visible so it replays per visit and
+           costs nothing at rest. */
+        :global(.pl-look-card:hover),
+        :global(.pl-look-card:focus-visible) {
+          transform: translateY(-5px) scale(1.015);
+          box-shadow: 0 22px 44px -16px rgba(40, 28, 12, 0.28) !important;
+        }
+        :global(.pl-look-card:hover .lkv-hero),
+        :global(.pl-look-card:focus-visible .lkv-hero) {
+          animation: lkv-settle 480ms var(--pl-ease-out, ease-out) both;
+        }
+        :global(.pl-look-card:hover .lkv-divider),
+        :global(.pl-look-card:focus-visible .lkv-divider) {
+          animation: lkv-thread 520ms 120ms var(--pl-ease-out, ease-out) both;
+        }
+        :global(.pl-look-card:hover .lkv-row),
+        :global(.pl-look-card:focus-visible .lkv-row) {
+          animation: lkv-settle 420ms var(--pl-ease-out, ease-out) both;
+        }
+        :global(.pl-look-card:hover .lkv-row:nth-child(1)) { animation-delay: 200ms; }
+        :global(.pl-look-card:hover .lkv-row:nth-child(2)) { animation-delay: 290ms; }
+        :global(.pl-look-card:hover .lkv-row:nth-child(3)) { animation-delay: 380ms; }
+        :global(.pl-look-card:hover .lkv-row:nth-child(4)) { animation-delay: 470ms; }
+        :global(.pl-look-card:hover .lkv-rsvp),
+        :global(.pl-look-card:focus-visible .lkv-rsvp) {
+          animation: lkv-press 360ms 480ms var(--pl-ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) both;
+        }
+        @keyframes lkv-settle {
+          from { opacity: 0; transform: translateY(7px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes lkv-thread {
+          from { transform: scaleX(0); opacity: 0; }
+          to   { transform: scaleX(1); opacity: 1; }
+        }
+        @keyframes lkv-press {
+          0%   { opacity: 0; transform: scale(0.75); }
+          70%  { transform: scale(1.06); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          :global(.pl-look-card),
+          :global(.pl-look-card:hover) {
+            transform: none !important;
+          }
+          :global(.pl-look-card:hover .lkv-hero),
+          :global(.pl-look-card:hover .lkv-divider),
+          :global(.pl-look-card:hover .lkv-row),
+          :global(.pl-look-card:hover .lkv-rsvp) {
+            animation: none !important;
           }
         }
       `}</style>

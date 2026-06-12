@@ -33,7 +33,7 @@ import { useDialog } from '@/components/ui/confirm-dialog';
 import { scheduleEventSuggestions, dressCodeSuggestions, typicalTimeFor } from '@/components/pearloom/editor/panels/_suggestions';
 import { seedSectionsFromWizard, suggestRsvpDeadline } from '@/lib/wizard-seed';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
-import { lookRecipesFor } from '@/lib/site-look/look-recipes';
+import { lookRecipesFor, type LookRecipe } from '@/lib/site-look/look-recipes';
 import { WizardLooksSection } from './wizard-looks';
 import { WizardLookPreviews, type LookCandidate } from './WizardLookPreviews';
 import type { StoryManifest } from '@/types';
@@ -1616,6 +1616,11 @@ export function WizardV8() {
   // slow left to pre-warm. Story drafting lives in the editor,
   // on demand, where Pear already works.
   const [genStep, setGenStep] = useState<string>('');
+  /* The look the host is HOVERING at the end of the wizard — while
+     it's set, the whole room wears that look's paper grain (the
+     underlay below). Falls back to the picked look so the dressing
+     persists through Review once they choose. */
+  const [lookPreview, setLookPreview] = useState<LookRecipe | null>(null);
   const [generatedTagline, setGeneratedTagline] = useState<string>('');
   const [taglineState, setTaglineState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
   const step = STEPS[stepIndex];
@@ -2047,8 +2052,35 @@ export function WizardV8() {
      colors bloom behind the canvas (700ms, honours the cream
      ground). The product wears your choice before the site does. */
   const dye = resolvedPaletteColors;
+  /* The look the room wears: the hovered card wins; once a look is
+     picked it stays on through Review. Only dressed on the steps
+     where the picker exists — earlier steps keep the plain cream. */
+  const pickedLook = st.lookRecipeId
+    ? lookRecipesFor(st.occasion).find((r) => r.id === st.lookRecipeId) ?? null
+    : null;
+  const roomLook = (step === 'Palette' || step === 'Review') ? (lookPreview ?? pickedLook) : null;
   return (
     <div className="pl8" style={{ minHeight: '100vh', background: 'var(--cream)', position: 'relative', overflow: 'hidden' }}>
+      {/* THE ROOM WEARS THE LOOK — hovering a look card at the end
+          dresses the entire wizard in that look's paper grain (the
+          same [data-pl-texture] ::before the published site uses).
+          The grain multiplies onto this layer's own theme-correct
+          cream (the texture system isolates its blend), so light
+          mode gains warm tooth and dark mode keeps its midnight.
+          Painted BENEATH the dye washes so the palette stays vivid
+          on top of the paper. */}
+      <div
+        aria-hidden
+        className="pl8-guest"
+        data-pl-texture={roomLook?.texture ?? 'paper'}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+          ['--pl-texture-intensity' as string]: String((roomLook?.textureIntensity ?? 1) * 1.2),
+          opacity: roomLook ? 0.55 : 0,
+          transition: 'opacity 600ms var(--pl-ease-out, ease-out)',
+          background: 'var(--cream, #F5EFE2)',
+        }}
+      />
       <div
         aria-hidden
         style={{
@@ -3296,6 +3328,7 @@ export function WizardV8() {
                         placeLabel={st.location || 'Your place'}
                         selectedId={st.lookRecipeId ?? null}
                         onSelect={(id) => setSt((prev) => ({ ...prev, lookRecipeId: id }))}
+                        onPreview={setLookPreview}
                       />
                     );
                   })()}
