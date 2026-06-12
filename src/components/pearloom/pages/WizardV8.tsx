@@ -299,6 +299,13 @@ interface WizardState {
   playlistUrl?: string;
   meals?: string[];
   registryUrl?: string;
+  /** Plus-ones policy → rsvpConfig.plusOnes + the FAQ answer.
+   *  undefined = not asked / host skipped. */
+  plusOnes?: boolean;
+  /** The honor list — wedding party / court of honor / candle
+   *  lighters, by name. Becomes manifest.weddingParty + the
+   *  honorList section. */
+  partyNames?: string[];
   // Occasion-specific details (consumed by /api/generate/stream as eventDetails)
   detailDays?: number;
   detailLivestreamUrl?: string;
@@ -1252,7 +1259,25 @@ function TheExtras({
   const showMeals = MEAL_OCCASIONS.has(st.occasion);
   const showRegistry = !bachelor;
   const registryLabel = solemn ? 'Donations in lieu of flowers' : 'A registry';
-  const [open, setOpen] = useState<'playlist' | 'meals' | 'registry' | null>(null);
+  const showPlusOnes = !solemn && !bachelor;
+  /* Honor list — only where the event type carries the
+     weddingParty block (wedding, rehearsal, quinceañera court,
+     bar/bat-mitzvah candle lighters…). */
+  const eventType = getEventType(st.occasion as never);
+  const showParty = [...(eventType?.defaultBlocks ?? []), ...(eventType?.optionalBlocks ?? [])]
+    .includes('weddingParty' as never);
+  const partyLabel = st.occasion === 'quinceanera'
+    ? 'The court of honor'
+    : st.occasion === 'bar-mitzvah' || st.occasion === 'bat-mitzvah'
+      ? 'The candle lighters'
+      : 'The wedding party';
+  const partyRole = st.occasion === 'quinceanera'
+    ? 'Court of honor'
+    : st.occasion === 'bar-mitzvah' || st.occasion === 'bat-mitzvah'
+      ? 'Candle lighter'
+      : 'Wedding party';
+  const [open, setOpen] = useState<'playlist' | 'meals' | 'registry' | 'plusones' | 'party' | null>(null);
+  const [partyDraft, setPartyDraft] = useState('');
 
   const chip = (on: boolean, label: string, onClick: () => void, expandable = false) => (
     <button
@@ -1302,6 +1327,18 @@ function TheExtras({
           () => setOpen(open === 'registry' ? null : 'registry'),
           true,
         )}
+        {showPlusOnes && chip(
+          st.plusOnes !== undefined,
+          st.plusOnes === true ? 'Plus-ones welcome ✓' : st.plusOnes === false ? 'Invited guests only ✓' : 'Plus-ones?',
+          () => setOpen(open === 'plusones' ? null : 'plusones'),
+          true,
+        )}
+        {showParty && chip(
+          (st.partyNames ?? []).length > 0,
+          (st.partyNames ?? []).length > 0 ? `${partyLabel} · ${(st.partyNames ?? []).length}` : partyLabel,
+          () => setOpen(open === 'party' ? null : 'party'),
+          true,
+        )}
       </div>
 
       {open === 'playlist' && (
@@ -1346,6 +1383,84 @@ function TheExtras({
           </div>
           <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 5 }}>
             These appear as the meal question on your RSVP form. Rename or refine them in the editor.
+          </div>
+        </div>
+      )}
+
+      {open === 'plusones' && (
+        <div style={{ marginTop: 10 }}>
+          <label className="field-label">Can guests bring someone?</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+            {([['Plus-ones welcome', true], ['Invited guests only', false]] as const).map(([label, val]) => {
+              const on = st.plusOnes === val;
+              return (
+                <button key={label} type="button" aria-pressed={on}
+                  onClick={() => setSt((s) => ({ ...s, plusOnes: on ? undefined : val }))}
+                  style={{
+                    padding: '7px 13px', borderRadius: 999, fontSize: 12.5, fontWeight: 600,
+                    border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
+                    background: on ? 'var(--ink)' : 'var(--card)',
+                    color: on ? 'var(--cream)' : 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 5 }}>
+            Sets the RSVP form’s +1 behavior and answers the FAQ for you.
+          </div>
+        </div>
+      )}
+
+      {open === 'party' && (
+        <div style={{ marginTop: 10 }}>
+          <label className="field-label">{partyLabel} — first names are plenty</label>
+          {(st.partyNames ?? []).length > 0 && (
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+              {(st.partyNames ?? []).map((n) => (
+                <span key={n} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '6px 8px 6px 12px', borderRadius: 999, fontSize: 12.5, fontWeight: 600,
+                  background: 'var(--sage-tint, #E3E6C8)', color: 'var(--ink)',
+                }}>
+                  {n}
+                  <button type="button" aria-label={`Remove ${n}`}
+                    onClick={() => setSt((s) => ({ ...s, partyNames: (s.partyNames ?? []).filter((x) => x !== n) }))}
+                    style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--ink-muted)', fontSize: 13, lineHeight: 1, padding: 0 }}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <form
+            onSubmit={(ev) => {
+              ev.preventDefault();
+              const name = partyDraft.trim();
+              if (!name) return;
+              setSt((s) => {
+                const cur = s.partyNames ?? [];
+                if (cur.includes(name)) return s;
+                return { ...s, partyNames: [...cur, name] };
+              });
+              setPartyDraft('');
+            }}
+            style={{ display: 'flex', gap: 8 }}
+          >
+            <input
+              className="input"
+              value={partyDraft}
+              onChange={(ev) => setPartyDraft(ev.target.value)}
+              placeholder="Add a name, press return…"
+              style={{ flex: 1 }}
+            />
+            <button type="submit" className="btn btn-ghost" style={{ flexShrink: 0 }}>Add</button>
+          </form>
+          <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 5 }}>
+            They get their own section — add roles, photos, and bios in the editor.
           </div>
         </div>
       )}
@@ -2196,6 +2311,12 @@ export function WizardV8() {
         playlistUrl: st.playlistUrl,
         meals: st.meals,
         registryUrl: st.registryUrl,
+        plusOnes: st.plusOnes,
+        partyNames: st.partyNames,
+        partyRole:
+          st.occasion === 'quinceanera' ? 'Court of honor'
+          : st.occasion === 'bar-mitzvah' || st.occasion === 'bat-mitzvah' ? 'Candle lighter'
+          : 'Wedding party',
       }) as unknown as Record<string, unknown>;
 
       // ── Explicit LOOK pick — overwrites the occasion defaults on

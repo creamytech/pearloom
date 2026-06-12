@@ -104,6 +104,33 @@ describe('seedSectionsFromWizard — the extras', () => {
     expect(opts.map((o) => o.name)).toEqual(['Beef', 'Vegan']);
   });
 
+  it('plus-ones pick lands on rsvpConfig and answers the FAQ', () => {
+    const out = loose(seedSectionsFromWizard(base(), { plusOnes: false }));
+    expect((out.rsvpConfig as { plusOnes: boolean }).plusOnes).toBe(false);
+    const faqs = out.faqs as Array<{ question: string; answer: string }>;
+    const q = faqs.find((f) => /plus.?one|bring (a guest|someone)/i.test(f.question));
+    expect(q?.answer).toContain('invited guests only');
+  });
+
+  it('party names become weddingParty members with the occasion role', () => {
+    const out = loose(
+      seedSectionsFromWizard(base(), { partyNames: ['Maya', 'Jo'], partyRole: 'Court of honor' }),
+    );
+    const wp = out.weddingParty as Array<{ name: string; customRole: string }>;
+    expect(wp.map((m) => m.name)).toEqual(['Maya', 'Jo']);
+    expect(wp[0].customRole).toBe('Court of honor');
+    expect(out.blockOrder).toContain('honorList');
+  });
+
+  it('never clobbers an existing wedding party', () => {
+    const out = loose(
+      seedSectionsFromWizard(base({ weddingParty: [{ id: 'x', name: 'Existing' }] }), {
+        partyNames: ['Maya'],
+      }),
+    );
+    expect((out.weddingParty as Array<{ name: string }>).map((m) => m.name)).toEqual(['Existing']);
+  });
+
   it('registry link becomes a named entry', () => {
     const out = loose(seedSectionsFromWizard(base(), { registryUrl: 'https://www.zola.com/registry/us' }));
     const reg = out.registry as { enabled: boolean; entries: Array<{ name: string; url: string }> };

@@ -46,6 +46,13 @@ export interface DayPicks {
   playlistUrl?: string;
   meals?: string[];
   registryUrl?: string;
+  /** Plus-ones policy → rsvpConfig.plusOnes + the FAQ answer. */
+  plusOnes?: boolean;
+  /** Honor list names → manifest.weddingParty + the honorList
+   *  section. `partyRole` labels them per occasion ("Wedding
+   *  party" / "Court of honor" / "Candle lighter"). */
+  partyNames?: string[];
+  partyRole?: string;
 }
 
 /* Append a block to the manifest's block order without disturbing
@@ -173,6 +180,10 @@ export function seedSectionsFromWizard(
         let answer = '';
         if (picks.kidsPolicy?.trim() && /kids|children/.test(lower)) {
           answer = picks.kidsPolicy.trim();
+        } else if (picks.plusOnes !== undefined && /plus.?one|bring (a guest|someone)/.test(lower)) {
+          answer = picks.plusOnes
+            ? 'Yes — the RSVP form will offer a spot for your guest.'
+            : 'We’re keeping it to invited guests only — thank you for understanding.';
         } else if (hostHotels.length > 0 && /stay|hotel/.test(lower)) {
           answer = `We suggest ${hostHotels.map((h) => h.name.trim()).join(' or ')} — details in the Travel section.`;
         } else if (picks.parkingNote?.trim() && /park/.test(lower)) {
@@ -205,6 +216,27 @@ export function seedSectionsFromWizard(
   if (meals.length > 0 && !Array.isArray(rsvpConfig.mealOptions)) {
     rsvpConfig.mealOptions = meals.map((name, i) => ({ id: `meal-${i}`, name, dietaryTags: [] }));
     loose.rsvpConfig = rsvpConfig;
+  }
+
+  // Plus-ones — the RSVP form's +1 behavior. An explicit pick
+  // always lands (it IS the host's setting, not a derived fill).
+  if (picks.plusOnes !== undefined) {
+    loose.rsvpConfig = { ...((loose.rsvpConfig as Loose | undefined) ?? {}), plusOnes: picks.plusOnes };
+  }
+
+  // The honor list — names become weddingParty members (the field
+  // the honorList section + HonorListPanel read), labeled for the
+  // occasion. Fill-missing.
+  const party = (picks.partyNames ?? []).map((n) => n.trim()).filter(Boolean);
+  if (party.length > 0 && !((loose.weddingParty as unknown[] | undefined)?.length)) {
+    loose.weddingParty = party.map((name, i) => ({
+      id: `wp-seed-${i}`,
+      name,
+      role: 'other',
+      customRole: picks.partyRole ?? 'Wedding party',
+      order: i,
+    }));
+    withBlock(loose, 'honorList');
   }
 
   // Registry link — one real entry, store name derived from the
