@@ -517,6 +517,7 @@ const KITS = [
   { id: 'deco',      label: 'Deco',      blurb: 'Gold frames · geometric' },
   { id: 'gallery',   label: 'Gallery',   blurb: 'Museum mats · exhibit numbers' },
   { id: 'menu',      label: 'Tasting Menu', blurb: 'Gold rules · dotted leaders' },
+  { id: 'glass',     label: 'Glass',     blurb: 'Liquid panes · aurora light' },
 ];
 
 function KitPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {

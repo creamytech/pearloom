@@ -7252,3 +7252,75 @@ html { scroll-behavior: smooth; }
       radial-gradient(42% 30% at 30% 24%, rgba(14,13,11,0.12), transparent 70%);
   }
 }
+
+/* ── GLASS — liquid panes over aurora light ──────────────────
+   The seventh kit (host request, 2026-06-12: "a liquid glass
+   theme for user sites… like the screenshot"). Two halves:
+
+   1. THE AURORA — the site root paints luminous pools of the
+      site's OWN palette (accent / accent-2 / gold via color-mix)
+      over a slightly deepened paper, repeating softly down the
+      page. Glass needs light behind it to read as glass; the
+      aurora is that light, theme-correct on every palette.
+      Section paper goes transparent so the light flows through.
+
+   2. THE PANES — every card/row becomes a liquid-glass pane:
+      translucent paper tint, backdrop blur + saturation, a
+      specular catch on the top edge, a faint diagonal sheen, a
+      paper-tint rim. Same material language as the product's
+      floating chrome, but mixed from --t-* so it belongs to the
+      site's theme, not Pearloom's.
+
+   NOTE (product law, BRAND §9/§10): the glassmorphism ban guards
+   PEARLOOM's chrome and dashboards. A host choosing glass as the
+   MATERIAL of their own celebration site is expression, same as
+   choosing scrapbook tape. */
+.pl8-guest[data-pl-kit="glass"] {
+  position: relative;
+  isolation: isolate;
+  background-color: color-mix(in oklab, var(--t-paper, #F5EFE2) 86%, var(--t-ink, #0E0D0B) 14%);
+  background-image:
+    radial-gradient(46% 34% at 14% 6%,  color-mix(in oklab, var(--t-accent, #5C6B3F) 50%, transparent), transparent 70%),
+    radial-gradient(40% 30% at 88% 18%, color-mix(in oklab, var(--t-accent-2, var(--t-accent, #8A9A60)) 44%, transparent), transparent 70%),
+    radial-gradient(44% 32% at 80% 64%, color-mix(in oklab, var(--t-gold, #C19A4B) 36%, transparent), transparent 72%),
+    radial-gradient(38% 30% at 8% 86%,  color-mix(in oklab, var(--t-accent, #5C6B3F) 30%, transparent), transparent 74%);
+  background-size: 100% 140dvh;
+  background-repeat: repeat-y;
+  /* Section paper steps aside so the aurora shines through the
+     seams; the panes carry the readability. */
+  --t-section: transparent;
+}
+.pl8-guest[data-pl-kit="glass"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="glass"] .pl8-chapter-row,
+.pl8-guest[data-pl-kit="glass"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="glass"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="glass"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="glass"] .pl8-countdown-cell,
+.pl8-guest[data-pl-kit="glass"] .pl8-map-card,
+.pl8-guest[data-pl-kit="glass"] .pl8-music-card {
+  background-color: color-mix(in srgb, var(--t-paper, #F5EFE2) 40%, transparent) !important;
+  background-image: linear-gradient(115deg,
+    rgba(255,255,255,0.30) 0%,
+    rgba(255,255,255,0.07) 28%,
+    transparent 48%,
+    transparent 74%,
+    rgba(255,255,255,0.10) 100%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.6);
+  backdrop-filter: blur(14px) saturate(1.6);
+  border: none !important;
+  border-radius: 16px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.50),
+    inset 0 -1px 0 rgba(255,255,255,0.10),
+    0 0 0 1px color-mix(in srgb, var(--t-paper, #F5EFE2) 55%, transparent),
+    0 16px 40px -16px rgba(0,0,0,0.35) !important;
+}
+/* Gallery tiles stay photographic — a thin glass rim only, so
+   the host's pictures aren't blurred behind their own kit. */
+.pl8-guest[data-pl-kit="glass"] .pl8-gallery-tile {
+  border-radius: 16px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.35),
+    0 0 0 1px color-mix(in srgb, var(--t-paper, #F5EFE2) 50%, transparent),
+    0 16px 40px -16px rgba(0,0,0,0.35) !important;
+}

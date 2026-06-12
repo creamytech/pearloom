@@ -22,7 +22,7 @@ export interface LookRecipe {
   /** Display label — house-style, definite article. */
   label: string;
   blurb: string;
-  kitId: 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal';
+  kitId: 'classic' | 'ticket' | 'plate' | 'scrapbook' | 'index' | 'minimal' | 'glass';
   /** [data-pl-texture] value. */
   texture: string;
   textureIntensity: number;
@@ -38,6 +38,7 @@ const KIT_BLURB: Record<string, string> = {
   scrapbook: 'Tape strips and a hand-placed tilt.',
   index: 'Ruled rows with a red margin line.',
   minimal: 'Hairlines and whitespace, nothing else.',
+  glass: 'Liquid panes over aurora light.',
 };
 
 type RecipeSeed = Omit<LookRecipe, 'id'>;

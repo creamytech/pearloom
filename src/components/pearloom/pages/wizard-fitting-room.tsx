@@ -62,6 +62,7 @@ const KITS = [
   { id: 'scrapbook', label: 'Scrapbook' },
   { id: 'index', label: 'Index' },
   { id: 'minimal', label: 'Minimal' },
+  { id: 'glass', label: 'Glass' },
 ];
 
 const NAVS = [

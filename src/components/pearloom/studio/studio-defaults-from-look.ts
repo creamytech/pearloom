@@ -83,6 +83,8 @@ const KIT_TO_MOTIF: Record<KitId, string> = {
   /* Tasting Menu's fine-dining card carries a crest the way real
      menus do — pair with the monogram cartouche. */
   menu: 'monogram',
+  /* Glass panes carry no paper motif — light is the ornament. */
+  glass: 'none',
 };
 
 /* ── Voice override → Studio CopyTone ──

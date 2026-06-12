@@ -771,7 +771,8 @@ export interface StoryManifest {
     | 'stamp'
     | 'deco'
     | 'gallery'
-    | 'menu';
+    | 'menu'
+    | 'glass';
   /** Toggles for the public RSVP form. Both default ON if absent
    *  (legacy behaviour). plusOnes hides the "+1?" field on the
    *  passport invite link; songRequests hides the SongCard on
