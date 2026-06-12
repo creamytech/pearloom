@@ -71,6 +71,74 @@ describe('seedSectionsFromWizard — guests-will-ask picks', () => {
   });
 });
 
+describe('seedSectionsFromWizard — the extras', () => {
+  it('countdown joins the block order without disturbing an explicit one', () => {
+    const out = loose(seedSectionsFromWizard(base(), { wantsCountdown: true }));
+    expect(out.blockOrder).toContain('countdown');
+    const out2 = loose(
+      seedSectionsFromWizard(base({ blockOrder: ['story', 'countdown', 'rsvp'] }), { wantsCountdown: true }),
+    );
+    expect(out2.blockOrder).toEqual(['story', 'countdown', 'rsvp']);
+  });
+
+  it('playlist becomes the Music embed with a detected provider', () => {
+    const out = loose(
+      seedSectionsFromWizard(base(), { playlistUrl: 'https://open.spotify.com/playlist/abc' }),
+    );
+    expect((out.music as { provider: string; url: string }).provider).toBe('spotify');
+    expect(out.blockOrder).toContain('music');
+  });
+
+  it('never clobbers an existing music embed', () => {
+    const out = loose(
+      seedSectionsFromWizard(base({ music: { provider: 'apple', url: 'https://music.apple.com/x' } }), {
+        playlistUrl: 'https://open.spotify.com/playlist/abc',
+      }),
+    );
+    expect((out.music as { url: string }).url).toBe('https://music.apple.com/x');
+  });
+
+  it('meals become rsvpConfig.mealOptions in the MealOption shape', () => {
+    const out = loose(seedSectionsFromWizard(base(), { meals: ['Beef', 'Vegan'] }));
+    const opts = (out.rsvpConfig as { mealOptions: Array<{ id: string; name: string }> }).mealOptions;
+    expect(opts.map((o) => o.name)).toEqual(['Beef', 'Vegan']);
+  });
+
+  it('plus-ones pick lands on rsvpConfig and answers the FAQ', () => {
+    const out = loose(seedSectionsFromWizard(base(), { plusOnes: false }));
+    expect((out.rsvpConfig as { plusOnes: boolean }).plusOnes).toBe(false);
+    const faqs = out.faqs as Array<{ question: string; answer: string }>;
+    const q = faqs.find((f) => /plus.?one|bring (a guest|someone)/i.test(f.question));
+    expect(q?.answer).toContain('invited guests only');
+  });
+
+  it('party names become weddingParty members with the occasion role', () => {
+    const out = loose(
+      seedSectionsFromWizard(base(), { partyNames: ['Maya', 'Jo'], partyRole: 'Court of honor' }),
+    );
+    const wp = out.weddingParty as Array<{ name: string; customRole: string }>;
+    expect(wp.map((m) => m.name)).toEqual(['Maya', 'Jo']);
+    expect(wp[0].customRole).toBe('Court of honor');
+    expect(out.blockOrder).toContain('honorList');
+  });
+
+  it('never clobbers an existing wedding party', () => {
+    const out = loose(
+      seedSectionsFromWizard(base({ weddingParty: [{ id: 'x', name: 'Existing' }] }), {
+        partyNames: ['Maya'],
+      }),
+    );
+    expect((out.weddingParty as Array<{ name: string }>).map((m) => m.name)).toEqual(['Existing']);
+  });
+
+  it('registry link becomes a named entry', () => {
+    const out = loose(seedSectionsFromWizard(base(), { registryUrl: 'https://www.zola.com/registry/us' }));
+    const reg = out.registry as { enabled: boolean; entries: Array<{ name: string; url: string }> };
+    expect(reg.enabled).toBe(true);
+    expect(reg.entries[0].name).toBe('Zola');
+  });
+});
+
 describe('suggestRsvpDeadline', () => {
   it('lands ~5 weeks before the date', () => {
     const future = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);

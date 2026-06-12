@@ -35,6 +35,7 @@ import { seedSectionsFromWizard, suggestRsvpDeadline } from '@/lib/wizard-seed';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
 import { lookRecipesFor, type LookRecipe } from '@/lib/site-look/look-recipes';
 import { WizardLooksSection } from './wizard-looks';
+import { WizardStructureSection } from './wizard-structure';
 import { WizardLookPreviews, type LookCandidate } from './WizardLookPreviews';
 import type { StoryManifest } from '@/types';
 
@@ -286,6 +287,32 @@ interface WizardState {
   hotels?: Array<{ name: string; address: string }>;
   kidsPolicy?: string;
   parkingNote?: string;
+  /** Venue coordinates captured when the host picks a Places
+   *  suggestion in Basics — biases the hotel search to the venue
+   *  and rides logistics.venueLat/Lng so hotel-suggest + maps
+   *  work without re-geocoding. */
+  venueLat?: number;
+  venueLng?: number;
+  /** "The extras" — component picks that seed real sections:
+   *  countdown block, music embed, RSVP meal choices, registry
+   *  link. All optional, all fill-missing at finish. */
+  wantsCountdown?: boolean;
+  playlistUrl?: string;
+  meals?: string[];
+  registryUrl?: string;
+  /** "The structure" — explicit layout picks. undefined = Pear
+   *  decides (look-recipe / edition defaults ride). Stamped onto
+   *  manifest.siteMode + manifest.layouts at finish. */
+  siteMode?: 'scroll' | 'multi-page';
+  navVariant?: string;
+  heroVariant?: string;
+  /** Plus-ones policy → rsvpConfig.plusOnes + the FAQ answer.
+   *  undefined = not asked / host skipped. */
+  plusOnes?: boolean;
+  /** The honor list — wedding party / court of honor / candle
+   *  lighters, by name. Becomes manifest.weddingParty + the
+   *  honorList section. */
+  partyNames?: string[];
   // Occasion-specific details (consumed by /api/generate/stream as eventDetails)
   detailDays?: number;
   detailLivestreamUrl?: string;
@@ -1056,7 +1083,44 @@ function OccasionPicker({
    Occasion-aware: hotels only show when the event type carries a
    travel block; the kids question skips bachelor weekends.
    ──────────────────────────────────────────────────────────── */
-const KIDS_OPTIONS = ['All ages welcome', 'Adults only', 'Immediate family\u2019s kids only'];
+const KIDS_OPTIONS = ['All ages welcome', 'Adults only', 'Immediate family’s kids only'];
+
+/* Half-hour wall times for the schedule pills. A native <select>
+   gets the platform wheel on phones — the most reliable time
+   picker there is — styled to live inside the pill. */
+const MOMENT_TIMES: string[] = (() => {
+  const out: string[] = [];
+  for (let h = 6; h < 24; h++) {
+    for (const mm of ['00', '30'] as const) {
+      const ampm = h < 12 ? 'am' : 'pm';
+      const h12 = h % 12 === 0 ? 12 : h % 12;
+      out.push(`${h12}:${mm} ${ampm}`);
+    }
+  }
+  return out;
+})();
+
+function MomentTimeSelect({ value, onChange, label }: { value: string; onChange: (t: string) => void; label: string }) {
+  return (
+    <select
+      aria-label={`Time for ${label}`}
+      value={MOMENT_TIMES.includes(value) ? value : '5:00 pm'}
+      onChange={(e) => onChange(e.target.value)}
+      style={{
+        appearance: 'none', WebkitAppearance: 'none',
+        border: 'none', borderLeft: '1px solid color-mix(in srgb, var(--cream, #F5EFE2) 35%, transparent)',
+        background: 'transparent', color: 'inherit',
+        fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
+        padding: '0 14px 0 10px', cursor: 'pointer',
+        textAlign: 'center',
+      }}
+    >
+      {MOMENT_TIMES.map((t) => (
+        <option key={t} value={t} style={{ color: '#0E0D0B', background: '#FBF7EE' }}>{t}</option>
+      ))}
+    </select>
+  );
+}
 
 function GuestsWillAsk({
   st,
@@ -1124,6 +1188,8 @@ function GuestsWillAsk({
                   });
                   setHotelQuery('');
                 }}
+                kind="hotel"
+                near={st.venueLat != null && st.venueLng != null ? { lat: st.venueLat, lng: st.venueLng } : undefined}
                 placeholder={hotels.length === 0 ? 'Search a hotel near the venue…' : 'Add another…'}
               />
             )}
@@ -1161,10 +1227,268 @@ function GuestsWillAsk({
             className="input"
             value={st.parkingNote ?? ''}
             onChange={(ev) => setSt((s) => ({ ...s, parkingNote: ev.target.value }))}
-            placeholder="Free lot behind the venue \u00b7 or \u00b7 street parking only \u2014 rideshare is easiest"
+            placeholder="Free lot behind the venue, or: street parking only — rideshare is easiest"
           />
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   THE EXTRAS — component picks, thirty seconds each.
+
+   "Do you have a playlist? Know your menu? Want a countdown?"
+   Each chip expands an inline mini-form; each answer seeds a
+   REAL section at finish (music embed, RSVP meal choices, the
+   countdown block, a registry card) so the editor opens with
+   those parts of the site already alive. Occasion-aware:
+   memorials don't count down, bachelor weekends don't register,
+   menus only show for sit-down-shaped events.
+   ──────────────────────────────────────────────────────────── */
+const MEAL_CHIP_OPTIONS = ['Beef', 'Chicken', 'Fish', 'Vegetarian', 'Vegan', 'Kid’s plate'];
+const MEAL_OCCASIONS = new Set([
+  'wedding', 'vow-renewal', 'engagement', 'rehearsal-dinner', 'bridal-luncheon',
+  'reunion', 'bar-mitzvah', 'bat-mitzvah', 'quinceanera', 'milestone-birthday',
+  'retirement', 'brunch', 'anniversary',
+]);
+
+function TheExtras({
+  st,
+  setSt,
+}: {
+  st: WizardState;
+  setSt: (updater: (s: WizardState) => WizardState) => void;
+}) {
+  const solemn = st.occasion === 'memorial' || st.occasion === 'funeral';
+  const bachelor = st.occasion.startsWith('bachelor');
+  const showCountdown = !solemn;
+  const showMeals = MEAL_OCCASIONS.has(st.occasion);
+  const showRegistry = !bachelor;
+  const registryLabel = solemn ? 'Donations in lieu of flowers' : 'A registry';
+  const showPlusOnes = !solemn && !bachelor;
+  /* Honor list — only where the event type carries the
+     weddingParty block (wedding, rehearsal, quinceañera court,
+     bar/bat-mitzvah candle lighters…). */
+  const eventType = getEventType(st.occasion as never);
+  const showParty = [...(eventType?.defaultBlocks ?? []), ...(eventType?.optionalBlocks ?? [])]
+    .includes('weddingParty' as never);
+  const partyLabel = st.occasion === 'quinceanera'
+    ? 'The court of honor'
+    : st.occasion === 'bar-mitzvah' || st.occasion === 'bat-mitzvah'
+      ? 'The candle lighters'
+      : 'The wedding party';
+  const partyRole = st.occasion === 'quinceanera'
+    ? 'Court of honor'
+    : st.occasion === 'bar-mitzvah' || st.occasion === 'bat-mitzvah'
+      ? 'Candle lighter'
+      : 'Wedding party';
+  const [open, setOpen] = useState<'playlist' | 'meals' | 'registry' | 'plusones' | 'party' | null>(null);
+  const [partyDraft, setPartyDraft] = useState('');
+
+  const chip = (on: boolean, label: string, onClick: () => void, expandable = false) => (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={on}
+      style={{
+        padding: '8px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
+        border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
+        background: on ? 'var(--ink)' : 'var(--card)',
+        color: on ? 'var(--cream)' : 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
+      }}
+    >
+      {label}{expandable && !on ? ' +' : ''}
+    </button>
+  );
+
+  return (
+    <div style={{ marginTop: 18 }}>
+      <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 4 }}>
+        The extras
+      </div>
+      <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 12 }}>
+        Each one becomes a living part of the site. Skip anything — you can add them all later.
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+        {showCountdown && chip(
+          !!st.wantsCountdown,
+          st.wantsCountdown ? 'Counting down ✓' : 'A countdown to the day',
+          () => setSt((s) => ({ ...s, wantsCountdown: !s.wantsCountdown })),
+        )}
+        {chip(
+          !!st.playlistUrl,
+          st.playlistUrl ? 'Playlist linked ✓' : 'We have a playlist',
+          () => setOpen(open === 'playlist' ? null : 'playlist'),
+          true,
+        )}
+        {showMeals && chip(
+          (st.meals ?? []).length > 0,
+          (st.meals ?? []).length > 0 ? `Menu · ${(st.meals ?? []).length} choices` : 'We know the menu',
+          () => setOpen(open === 'meals' ? null : 'meals'),
+          true,
+        )}
+        {showRegistry && chip(
+          !!st.registryUrl,
+          st.registryUrl ? (solemn ? 'Donations linked ✓' : 'Registry linked ✓') : registryLabel,
+          () => setOpen(open === 'registry' ? null : 'registry'),
+          true,
+        )}
+        {showPlusOnes && chip(
+          st.plusOnes !== undefined,
+          st.plusOnes === true ? 'Plus-ones welcome ✓' : st.plusOnes === false ? 'Invited guests only ✓' : 'Plus-ones?',
+          () => setOpen(open === 'plusones' ? null : 'plusones'),
+          true,
+        )}
+        {showParty && chip(
+          (st.partyNames ?? []).length > 0,
+          (st.partyNames ?? []).length > 0 ? `${partyLabel} · ${(st.partyNames ?? []).length}` : partyLabel,
+          () => setOpen(open === 'party' ? null : 'party'),
+          true,
+        )}
+      </div>
+
+      {open === 'playlist' && (
+        <div style={{ marginTop: 10 }}>
+          <label className="field-label">Playlist link — Spotify, Apple Music, or YouTube</label>
+          <input
+            className="input"
+            inputMode="url"
+            value={st.playlistUrl ?? ''}
+            onChange={(ev) => setSt((s) => ({ ...s, playlistUrl: ev.target.value }))}
+            placeholder="https://open.spotify.com/playlist/…"
+          />
+          <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 5 }}>
+            It embeds as a Music section guests can play right on the site.
+          </div>
+        </div>
+      )}
+
+      {open === 'meals' && (
+        <div style={{ marginTop: 10 }}>
+          <label className="field-label">Meal choices guests pick from when they RSVP</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+            {MEAL_CHIP_OPTIONS.map((m) => {
+              const on = (st.meals ?? []).includes(m);
+              return (
+                <button key={m} type="button" aria-pressed={on}
+                  onClick={() => setSt((s) => {
+                    const cur = s.meals ?? [];
+                    return { ...s, meals: on ? cur.filter((x) => x !== m) : [...cur, m] };
+                  })}
+                  style={{
+                    padding: '7px 13px', borderRadius: 999, fontSize: 12.5, fontWeight: 600,
+                    border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
+                    background: on ? 'var(--ink)' : 'var(--card)',
+                    color: on ? 'var(--cream)' : 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  {m}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 5 }}>
+            These appear as the meal question on your RSVP form. Rename or refine them in the editor.
+          </div>
+        </div>
+      )}
+
+      {open === 'plusones' && (
+        <div style={{ marginTop: 10 }}>
+          <label className="field-label">Can guests bring someone?</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+            {([['Plus-ones welcome', true], ['Invited guests only', false]] as const).map(([label, val]) => {
+              const on = st.plusOnes === val;
+              return (
+                <button key={label} type="button" aria-pressed={on}
+                  onClick={() => setSt((s) => ({ ...s, plusOnes: on ? undefined : val }))}
+                  style={{
+                    padding: '7px 13px', borderRadius: 999, fontSize: 12.5, fontWeight: 600,
+                    border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
+                    background: on ? 'var(--ink)' : 'var(--card)',
+                    color: on ? 'var(--cream)' : 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 5 }}>
+            Sets the RSVP form’s +1 behavior and answers the FAQ for you.
+          </div>
+        </div>
+      )}
+
+      {open === 'party' && (
+        <div style={{ marginTop: 10 }}>
+          <label className="field-label">{partyLabel} — first names are plenty</label>
+          {(st.partyNames ?? []).length > 0 && (
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+              {(st.partyNames ?? []).map((n) => (
+                <span key={n} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '6px 8px 6px 12px', borderRadius: 999, fontSize: 12.5, fontWeight: 600,
+                  background: 'var(--sage-tint, #E3E6C8)', color: 'var(--ink)',
+                }}>
+                  {n}
+                  <button type="button" aria-label={`Remove ${n}`}
+                    onClick={() => setSt((s) => ({ ...s, partyNames: (s.partyNames ?? []).filter((x) => x !== n) }))}
+                    style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--ink-muted)', fontSize: 13, lineHeight: 1, padding: 0 }}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <form
+            onSubmit={(ev) => {
+              ev.preventDefault();
+              const name = partyDraft.trim();
+              if (!name) return;
+              setSt((s) => {
+                const cur = s.partyNames ?? [];
+                if (cur.includes(name)) return s;
+                return { ...s, partyNames: [...cur, name] };
+              });
+              setPartyDraft('');
+            }}
+            style={{ display: 'flex', gap: 8 }}
+          >
+            <input
+              className="input"
+              value={partyDraft}
+              onChange={(ev) => setPartyDraft(ev.target.value)}
+              placeholder="Add a name, press return…"
+              style={{ flex: 1 }}
+            />
+            <button type="submit" className="btn btn-ghost" style={{ flexShrink: 0 }}>Add</button>
+          </form>
+          <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 5 }}>
+            They get their own section — add roles, photos, and bios in the editor.
+          </div>
+        </div>
+      )}
+
+      {open === 'registry' && (
+        <div style={{ marginTop: 10 }}>
+          <label className="field-label">{solemn ? 'Donation link — a charity or fund in their name' : 'Registry link — Zola, Amazon, Babylist, anywhere'}</label>
+          <input
+            className="input"
+            inputMode="url"
+            value={st.registryUrl ?? ''}
+            onChange={(ev) => setSt((s) => ({ ...s, registryUrl: ev.target.value }))}
+            placeholder={solemn ? 'https://gofundme.com/…' : 'https://zola.com/registry/…'}
+          />
+          <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 5 }}>
+            {solemn
+              ? 'It appears as a gentle “in lieu of flowers” card.'
+              : 'It becomes your Registry section — add more links in the editor.'}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1897,7 +2221,17 @@ export function WizardV8() {
         templateId: st.templateId,
         vibeString: st.vibes.join(', '),
         names: submitNames,
-        logistics: { date: st.eventDate || undefined, venue: st.location || undefined },
+        logistics: {
+          date: st.eventDate || undefined,
+          venue: st.location || undefined,
+          // The host almost always builds from the event's own zone;
+          // stamping it anchors countdowns + date formatting for
+          // guests in other zones (editable in the editor's Hero
+          // panel). Venue coords ride along for hotel-suggest + maps.
+          timezone: typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : undefined,
+          venueLat: st.venueLat,
+          venueLng: st.venueLng,
+        },
         chapters: [],
         layoutFormat: st.layout,
         // The full fact sheet rides the manifest so Pear's editor
@@ -1980,7 +2314,30 @@ export function WizardV8() {
         hotels: st.hotels,
         kidsPolicy: st.kidsPolicy,
         parkingNote: st.parkingNote,
+        wantsCountdown: st.wantsCountdown,
+        playlistUrl: st.playlistUrl,
+        meals: st.meals,
+        registryUrl: st.registryUrl,
+        plusOnes: st.plusOnes,
+        partyNames: st.partyNames,
+        partyRole:
+          st.occasion === 'quinceanera' ? 'Court of honor'
+          : st.occasion === 'bar-mitzvah' || st.occasion === 'bat-mitzvah' ? 'Candle lighter'
+          : 'Wedding party',
       }) as unknown as Record<string, unknown>;
+
+      // ── Explicit STRUCTURE picks — siteMode + per-section layout
+      //    variants, exactly the fields the editor's Layout tab and
+      //    SiteModeSection write. Unset = Pear decides (recipe /
+      //    edition defaults ride at read time).
+      if (st.siteMode) manifest.siteMode = st.siteMode;
+      if (st.navVariant || st.heroVariant) {
+        manifest.layouts = {
+          ...((manifest.layouts as Record<string, string> | undefined) ?? {}),
+          ...(st.navVariant ? { nav: st.navVariant } : {}),
+          ...(st.heroVariant ? { hero: st.heroVariant } : {}),
+        };
+      }
 
       // ── Explicit LOOK pick — overwrites the occasion defaults on
       //    both paths (AI + skeleton). The host saw exactly this
@@ -2468,7 +2825,12 @@ export function WizardV8() {
                         value={st.location}
                         onChange={(v) => setSt((s) => ({ ...s, location: v }))}
                         onSelect={(place) =>
-                          setSt((s) => ({ ...s, location: place.name ? `${place.name}${place.address ? ` · ${place.address}` : ''}` : place.address }))
+                          setSt((s) => ({
+                            ...s,
+                            location: place.name ? `${place.name}${place.address ? ` · ${place.address}` : ''}` : place.address,
+                            venueLat: place.lat,
+                            venueLng: place.lng,
+                          }))
                         }
                         placeholder="Madison Square Garden · New York"
                       />
@@ -2686,6 +3048,11 @@ export function WizardV8() {
                   next.sort((a, b) => Date.parse(`2000-01-01 ${a.time}`) - Date.parse(`2000-01-01 ${b.time}`));
                   return { ...s, dayEvents: next };
                 });
+                const setTime = (n: string, time: string) => setSt((s) => {
+                  const next = (s.dayEvents ?? []).map((e) => (e.name === n ? { ...e, time } : e));
+                  next.sort((a, b) => Date.parse(`2000-01-01 ${a.time}`) - Date.parse(`2000-01-01 ${b.time}`));
+                  return { ...s, dayEvents: next };
+                });
                 const dresses = dressCodeSuggestions(st.occasion).options;
                 const suggestedDl = suggestRsvpDeadline(st.eventDate || undefined);
                 return (
@@ -2704,22 +3071,39 @@ export function WizardV8() {
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 8 }}>
                       {moments.map((m) => {
                         const on = has(m);
+                        if (!on) {
+                          return (
+                            <button key={m} type="button" onClick={() => toggle(m)} aria-pressed={false}
+                              style={{
+                                padding: '8px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
+                                border: '1.5px solid var(--line)', background: 'var(--card)',
+                                color: 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
+                              }}>
+                              {m}
+                            </button>
+                          );
+                        }
+                        const t = picked.find((e) => e.name === m)?.time ?? '5:00 pm';
                         return (
-                          <button key={m} type="button" onClick={() => toggle(m)} aria-pressed={on}
-                            style={{
-                              padding: '8px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
-                              border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
-                              background: on ? 'var(--ink)' : 'var(--card)',
-                              color: on ? 'var(--cream)' : 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
-                            }}>
-                            {on ? `${m} · ${picked.find((e) => e.name === m)?.time}` : m}
-                          </button>
+                          <span key={m} style={{
+                            display: 'inline-flex', alignItems: 'stretch', borderRadius: 999, overflow: 'hidden',
+                            border: '1.5px solid var(--ink)', background: 'var(--ink)', color: 'var(--cream)',
+                          }}>
+                            <button type="button" onClick={() => toggle(m)} aria-pressed
+                              style={{
+                                padding: '8px 8px 8px 14px', border: 'none', background: 'transparent',
+                                color: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                              }}>
+                              {m}
+                            </button>
+                            <MomentTimeSelect value={t} onChange={(nt) => setTime(m, nt)} label={m} />
+                          </span>
                         );
                       })}
                     </div>
                     {picked.length > 0 && (
                       <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 18 }}>
-                        {picked.length} {picked.length === 1 ? 'moment' : 'moments'} — they’ll arrive in your Schedule section, in order.
+                        {picked.length} {picked.length === 1 ? 'moment' : 'moments'} — tap a time to change it. They’ll arrive in your Schedule section, in order.
                       </div>
                     )}
 
@@ -2744,6 +3128,8 @@ export function WizardV8() {
                     </div>
 
                     <GuestsWillAsk st={st} setSt={setSt} />
+
+                    <TheExtras st={st} setSt={setSt} />
 
                     {suggestedDl && (
                       <div style={{ marginTop: 18, padding: '12px 14px', borderRadius: 12, background: 'var(--cream-2)', border: '1px solid var(--line-soft)', fontSize: 13, color: 'var(--ink-soft)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
@@ -3319,6 +3705,7 @@ export function WizardV8() {
                       ? st.paletteColors
                       : PALETTES.find((pp) => pp.id === st.palette)?.colors;
                     return (
+                      <>
                       <WizardLooksSection
                         occasion={st.occasion}
                         paletteColors={lookPalette}
@@ -3330,6 +3717,11 @@ export function WizardV8() {
                         onSelect={(id) => setSt((prev) => ({ ...prev, lookRecipeId: id }))}
                         onPreview={setLookPreview}
                       />
+                      <WizardStructureSection
+                        picks={{ siteMode: st.siteMode, navVariant: st.navVariant, heroVariant: st.heroVariant }}
+                        onChange={(next) => setSt((prev) => ({ ...prev, ...next }))}
+                      />
+                      </>
                     );
                   })()}
                 </>
@@ -3532,6 +3924,13 @@ export function WizardV8() {
                         eventDate={st.eventDate}
                         venue={st.location}
                         layoutFormat={st.layout}
+                        coverPhoto={st.photos.find((ph) => ph.url)?.url}
+                        galleryImages={st.photos.filter((ph) => ph.url).map((ph) => ph.url)}
+                        recipe={lookRecipesFor(st.occasion).find((r) => r.id === (st.lookRecipeId ?? 'match')) ?? null}
+                        layouts={{
+                          ...(st.navVariant ? { nav: st.navVariant } : {}),
+                          ...(st.heroVariant ? { hero: st.heroVariant } : {}),
+                        }}
                         candidates={candidates}
                         selectedId={st.palette}
                         onPick={(c) => {
