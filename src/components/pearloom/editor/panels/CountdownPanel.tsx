@@ -2,7 +2,7 @@
 
 /* eslint-disable no-restricted-syntax */
 /* CountdownPanel — host config for the Countdown section.
-   Writes manifest.countdown = { variant, label, showOnHero }.
+   Writes manifest.countdown = { variant, label }.
    The renderer reads manifest.logistics.date as the target; this
    panel only handles presentation. */
 
@@ -15,7 +15,6 @@ import { FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibility
    section uses. */
 interface CountdownData {
   label?: string;
-  showOnHero?: boolean;
 }
 
 export function CountdownPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
@@ -23,7 +22,6 @@ export function CountdownPanel({ manifest, onChange }: { manifest: StoryManifest
   const loose = manifest as unknown as { countdown?: CountdownData };
   const data: CountdownData = loose.countdown ?? {};
   const label = data.label ?? '';
-  const showOnHero = data.showOnHero ?? false;
   const [eyebrow, setEyebrow] = useCopyOverride(manifest, onChange, 'countdownEyebrow');
 
   const patch = (next: Partial<CountdownData>) => onChange({
@@ -55,13 +53,9 @@ export function CountdownPanel({ manifest, onChange }: { manifest: StoryManifest
           <FInput value={label} onChange={(v) => patch({ label: v })} placeholder="Until we say I do" />
         </FGroup>
 
-        <FToggleStandalone
-          label="Also show under the hero"
-          sub="Tucks a compact stripe right under the hero so guests see it without scrolling."
-          def={showOnHero}
-          onChange={(v) => patch({ showOnHero: v })}
-        />
-
+        {/* The "Also show under the hero" toggle is gone — it wrote
+            countdown.showOnHero, which no renderer ever read. Restore
+            only alongside a real hero-stripe implementation. */}
         <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Countdown" />
       </div>
     </SectionPanelShell>

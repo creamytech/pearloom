@@ -13,10 +13,12 @@ import { faqQuestionSuggestions, faqAnswerDraftFor, smartContext } from './_sugg
 import { PearAiChip, PearInlineRewrite, pearErrorMessage } from '../../redesign/PearAssist';
 import { AISource } from '../../ai-source';
 
+/* Wording matches the canvas's DEFAULT_FAQ_QUESTIONS exactly so
+   the panel and the preview never show two different drafts. */
 const DEFAULT_FAQS: FaqItem[] = [
-  { id: 'f-dress', question: 'What is the dress code?', answer: '', order: 0 },
-  { id: 'f-guest', question: 'Can I bring a guest?', answer: '', order: 1 },
-  { id: 'f-kids', question: 'Are children welcome?', answer: '', order: 2 },
+  { id: 'f-dress', question: "What's the dress code, really?", answer: '', order: 0 },
+  { id: 'f-guest', question: 'Can I bring a plus-one?', answer: '', order: 1 },
+  { id: 'f-kids', question: 'Are kids welcome at the ceremony?', answer: '', order: 2 },
   { id: 'f-stay', question: 'Where should we stay?', answer: '', order: 3 },
 ];
 

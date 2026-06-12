@@ -110,7 +110,9 @@ export function RsvpPanel({ manifest, onChange, siteSlug }: { manifest: StoryMan
             <FToggleStandalone label="Dietary restrictions" def={!!config.dietary} onChange={(v) => setToggle('dietary', v)} />
             <FToggleStandalone label="Song request" def={!!config.songRequest} onChange={(v) => setToggle('songRequest', v)} />
             <FToggleStandalone label="Plus-one" def={!!config.plusOne} onChange={(v) => setToggle('plusOne', v)} />
-            <AddCard label="Add a custom question" />
+            {/* "Add a custom question" removed — it had no handler and
+                no data model behind it. Restore with real custom-
+                question support, not before. */}
           </div>
         </FGroup>
         {config.mealChoice && (
@@ -187,17 +189,21 @@ function ReminderCadencePicker({
   onChange: (m: StoryManifest) => void;
 }) {
   const loose = manifest as unknown as { reminderCadence?: string };
-  const value = loose.reminderCadence ?? 'off';
+  /* Unset = the cadence preset as shipped (both reminders) — the
+     old 'off' default lied: the Cadence page showed reminders
+     regardless. Legacy 'firm' (a weekly schedule that never
+     existed) reads as standard. */
+  const raw = loose.reminderCadence;
+  const value = raw === 'firm' || !raw ? 'standard' : raw;
   const setValue = (next: string) => onChange({
     ...(manifest as unknown as Record<string, unknown>),
     reminderCadence: next,
   } as unknown as StoryManifest);
 
   const HINTS: Record<string, string> = {
-    'off':      'No automatic nudges. You can still send manual ones from the Guests panel.',
-    'gentle':   'One reminder, one week before your reply-by date.',
-    'standard': 'Two weeks before · One week before · 72 hours before.',
-    'firm':     'Weekly nudges until each guest replies.',
+    'off':      'No automatic reminder phases. You can still send manual nudges from the Guests panel.',
+    'gentle':   'One reminder phase before your reply-by date.',
+    'standard': 'Both reminder phases — the full cadence.',
   };
 
   return (
@@ -206,15 +212,14 @@ function ReminderCadencePicker({
         value={value}
         onChange={setValue}
         options={[
-          { value: 'off',      label: 'Off — no nudges',          hint: 'Manual sends only' },
-          { value: 'gentle',   label: 'Gentle — 1 reminder',      hint: '1 week before deadline' },
-          { value: 'standard', label: 'Standard — 3 reminders',   hint: '2wk · 1wk · 72h' },
-          { value: 'firm',     label: 'Firm — weekly',            hint: 'Until they reply' },
+          { value: 'off',      label: 'Off — no nudges',        hint: 'Manual sends only' },
+          { value: 'gentle',   label: 'Gentle — 1 reminder',    hint: 'One phase before the deadline' },
+          { value: 'standard', label: 'Standard — 2 reminders', hint: 'The full cadence' },
         ]}
         icon="clock"
       />
       <div style={{ fontSize: 11, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
-        {HINTS[value]}
+        {HINTS[value]} Your pick shapes the phases on the Cadence page.
       </div>
     </div>
   );
@@ -313,7 +318,7 @@ function ShowGoingToggle({
     <FToggleStandalone
       label={current ? 'Showing attendee pile' : 'Hidden — private guest list'}
       sub={current
-        ? `Guests see a small "${defaultEnabled ? 'X going' : 'X going'}" pile under the RSVP button.`
+        ? 'Guests see a small attendee pile + count under the RSVP button — real replies only.'
         : 'Standard for weddings + memorials. Your guest list stays private.'}
       def={current}
       onChange={setVal}

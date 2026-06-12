@@ -323,12 +323,16 @@ export function ThemedSite({
     subjectKindPick === 'solo' ||
     (subjectKindPick !== 'couple' &&
       isSoloOccasion((manifest as unknown as { occasion?: string }).occasion));
-  const nameA = names[0] || (soloSite ? '' : 'Scott');
-  const nameB = soloSite ? (names[1] || '') : (names[1] || 'Shauna');
+  /* Demo identity fallbacks are EDITOR-ONLY — published sites show
+     what the host actually set, never a fabricated date or venue
+     (a guest reading "Monday, April 26, 2027" on a site whose host
+     skipped the date field is worse than an empty line). */
+  const nameA = names[0] || (soloSite || !editable ? '' : 'Scott');
+  const nameB = soloSite ? (names[1] || '') : (names[1] || (editable ? 'Shauna' : ''));
   const rawDate = (manifest as unknown as { logistics?: { date?: string } }).logistics?.date;
-  const date = formatHeroDate(rawDate) || 'Monday, April 26, 2027';
-  const venue = (manifest as unknown as { logistics?: { venue?: string } }).logistics?.venue || 'Casa Chorro';
-  const place = (manifest as unknown as { logistics?: { place?: string } }).logistics?.place || 'Santorini, Greece';
+  const date = formatHeroDate(rawDate) || (editable ? 'Monday, April 26, 2027' : '');
+  const venue = (manifest as unknown as { logistics?: { venue?: string } }).logistics?.venue || (editable ? 'Casa Chorro' : '');
+  const place = (manifest as unknown as { logistics?: { place?: string } }).logistics?.place || (editable ? 'Santorini, Greece' : '');
 
   /* Motif resolution (handoff L116-117):
        host's Decor Library pick wins over theme default; if motifs
@@ -356,7 +360,7 @@ export function ThemedSite({
 
   /* Section copy + content — pulls from manifest with prototype
      fallbacks. Keeps the renderer data-driven per handoff L141-153. */
-  const C = buildCopy(theme, manifest, { nameA, nameB, date, place: `${venue} · ${place}` });
+  const C = buildCopy(theme, manifest, { nameA, nameB, date, place: `${venue} · ${place}`, editable });
   /* Per-section layout variants — manifest.layouts[section] overrides
      the per-section default. PropertyRail's Layout tab writes here. */
   const variants = {
@@ -2363,7 +2367,10 @@ function GoingSocialProof({ ctx }: { ctx: SectionCtx }) {
   const DEMO_GOING = ['Maya', 'Jordan', 'Sam', 'Priya', 'Alex', 'Casey', 'Lin', 'Theo'];
   const liveNames = sp.names.length > 0 ? sp.names : (editable ? DEMO_GOING : []);
   if (liveNames.length === 0) return null;
-  const count = liveNames.length;
+  /* Published sites show the TRUE attending count (goingCount,
+     stamped server-side) — the names are just the first 8. The
+     editor's demo pile counts its demo names. */
+  const count = !editable && typeof sp.count === 'number' && sp.count > 0 ? sp.count : liveNames.length;
   /* First-name initials for the pile. */
   const initials = liveNames.slice(0, 5).map((n) => (n.trim()[0] ?? '?').toUpperCase());
   const TONES = [
@@ -4065,7 +4072,7 @@ interface Copy {
     /** Optional "X going" social proof — shown under the CTA
      *  when manifest.rsvpShowGoing is true (or undefined +
      *  event type defaults to public). */
-    socialProof?: { enabled: boolean; names: string[] };
+    socialProof?: { enabled: boolean; names: string[]; count?: number };
   };
   faq: { eyebrow: string; title: string; italic?: string; questions: string[]; qa?: { q: string; a?: string }[] };
 }
@@ -4319,7 +4326,12 @@ const VOICE_COPY = {
   },
 } as const;
 
-function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string; nameB: string; date: string; place: string }): Copy {
+/* `editable` gates every DEMO content fallback below — the editor
+   canvas previews a fully-dressed site, but published pages render
+   only host-authored content. No fabricated hotels, dates, stores,
+   or questions ever reach a guest. */
+function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string; nameB: string; date: string; place: string; editable?: boolean }): Copy {
+  const demo = args.editable === true;
   void theme;
   /* Loose-typed reads — the right-rail panels write to a wider
      manifest shape than StoryManifest officially declares (tagline,
@@ -4467,7 +4479,9 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
               v: v ?? '',
               icon: ['sparkles', 'users', 'gift'][i] ?? 'sparkles',
             }))
-        : [
+        : !demo
+          ? []
+          : [
             { l: 'Dress code', v: 'Garden formal', icon: 'sparkles' },
             /* Kids card responds to DetailsPanel's binary toggles.
                kidsWelcome=true wins; adultsOnly=true forces an
@@ -4507,7 +4521,9 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
               day: (e as { day?: number }).day,
             }));
           })()
-        : [
+        : !demo
+          ? []
+          : [
             { t: '4:30 pm', l: 'Ceremony', s: 'Olive grove' },
             { t: '5:30 pm', l: 'Cocktails', s: 'Terrace bar' },
             { t: '7:00 pm', l: 'Dinner', s: 'Long table' },
@@ -4574,7 +4590,9 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
           if (!s?.enabled) return undefined;
           return s.note?.trim() || 'Shuttle service from the host hotel to the venue. Details to follow.';
         })(),
-        hotels: mapped.length > 0 ? mapped : [
+        /* Fabricated hotels (with invented star ratings + review
+           counts) must never reach guests — editor preview only. */
+        hotels: mapped.length > 0 ? mapped : !demo ? [] : [
           { name: 'Cosmos Suites', price: '$$$', rating: 4.8, reviews: 412, dist: '8-min walk', tone: 'warm' as PhotoTone, blurb: 'Whitewashed cliffside suites with private plunge pools and sunset terraces.', amenities: ['Caldera view', 'Pool', 'Breakfast'] },
           { name: 'Andronis Boutique', price: '$$$$', rating: 4.9, reviews: 286, dist: '12-min walk', tone: 'lavender' as PhotoTone, blurb: 'A romantic cliff retreat carved into the caldera — a guest favourite.', amenities: ['Spa', 'Infinity pool', 'Fine dining'] },
         ],
@@ -4591,7 +4609,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       body: registryIntro || "If you'd like to celebrate further, we've put a few things together.",
       stores: registryStoresRaw && registryStoresRaw.length > 0
         ? registryStoresRaw.slice(0, 6)
-        : [{ name: 'Honeymoon fund' }, { name: 'Crate & Barrel' }, { name: 'Zola' }],
+        : !demo ? [] : [{ name: 'Honeymoon fund' }, { name: 'Crate & Barrel' }, { name: 'Zola' }],
       fundPct: typeof fundPct === 'number' ? fundPct : undefined,
       fundSub: fundSub && fundSub.trim() ? fundSub : undefined,
       };
@@ -4639,11 +4657,14 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
          edit-mode-only (GoingSocialProof supplies it). Real names
          arrive via manifest.goingPreview when wired. */
       const previewNames = (loose.goingPreview as string[] | undefined) ?? [];
+      const goingCount = (loose.goingCount as number | undefined);
       return {
-      eyebrow: co('rsvpEyebrow', rsvpDeadline ? `RSVP by ${formatHeroDate(rsvpDeadline) || rsvpDeadline}` : 'RSVP by April 28'),
+      eyebrow: co('rsvpEyebrow', rsvpDeadline
+        ? `RSVP by ${formatHeroDate(rsvpDeadline) || rsvpDeadline}`
+        : demo ? 'RSVP by April 28' : 'RSVP'),
       title: t.head,
       body: co('rsvpBody', 'It takes about 90 seconds. Pear will follow up if anyone forgets.'),
-      socialProof: { enabled, names: previewNames },
+      socialProof: { enabled, names: previewNames, count: goingCount },
       };
     })(),
     faq: (() => {
@@ -4654,7 +4675,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
       italic: t.italic,
       questions: faqsRaw.length > 0
         ? faqsRaw.slice(0, 6).map((q) => q.question ?? '').filter(Boolean)
-        : DEFAULT_FAQ_QUESTIONS,
+        : demo ? DEFAULT_FAQ_QUESTIONS : [],
       /* qa[] carries the host-authored answers (FaqPanel writes
          manifest.faqs[].answer). Variants twocol/numbered/cards
          read ctx.C.qa[i].a and fall through to placeholder when
@@ -4674,7 +4695,7 @@ const DEFAULT_FAQ_QUESTIONS = [
   "What's the dress code, really?",
   'Can I bring a plus-one?',
   'Are kids welcome at the ceremony?',
-  'Where should I stay in Santorini?',
+  'Where should we stay?',
 ];
 
 /* Story headline ("How we met") into ["How we", "met"] so the

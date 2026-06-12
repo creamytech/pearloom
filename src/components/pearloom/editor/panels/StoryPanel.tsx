@@ -95,7 +95,10 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
   const story = (manifest as unknown as { storySection?: { headline?: string; body?: string; chips?: string[] } }).storySection ?? {};
   const headline = story.headline ?? '';
   const body = story.body ?? '';
-  const chips = story.chips ?? ['Together since 2017', 'Santorini, Greece', 'Aegean blue'];
+  /* No demo chips — the canvas renders nothing when chips are
+     unset, so the panel showing fake ones misled hosts into
+     thinking they were live. */
+  const chips = story.chips ?? [];
   const [busy, setBusy] = useState<Tone | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [draft, setDraft] = useState('');

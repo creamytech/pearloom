@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { getServerSession } from 'next-auth';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { authOptions } from '@/lib/auth';
 import { getSiteConfig } from '@/lib/db';
 
@@ -31,6 +32,13 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  /* One send burst per host per minute — a double-clicked "Send to
+     N" must not fire N duplicate emails. */
+  const rate = checkRateLimit(`studio-send:${session.user.email}`, { max: 3, windowMs: 60_000 });
+  if (!rate.allowed) {
+    return NextResponse.json({ error: 'That batch just went out — give it a minute before sending again.' }, { status: 429 });
   }
 
   try {
@@ -129,12 +137,15 @@ export async function POST(req: NextRequest) {
 
     let sent = 0;
     let failed = 0;
+    /* Guests with no email aren't failures — the host needs to
+       know to add addresses, not to retry. Counted separately. */
+    let noEmail = 0;
     const tokens: string[] = [];
 
     for (const guest of guests) {
       const guestEmail = (guest as Record<string, unknown>).email as string | undefined;
       if (!guestEmail) {
-        failed++;
+        noEmail++;
         continue;
       }
 
@@ -247,7 +258,7 @@ export async function POST(req: NextRequest) {
         // on the right guests row. The dashboard's tracking pips
         // and "X opened" nudge depend on this match.
         tags: [
-          { name: 'channel', value: 'invite' },
+          { name: 'channel', value: String(cardType ?? 'invite') },
           { name: 'site_id', value: String(siteId) },
           { name: 'guest_id', value: String((guest as Record<string, unknown>).id) },
         ],
@@ -269,7 +280,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ sent, failed, tokens });
+    return NextResponse.json({ sent, failed, noEmail, tokens });
   } catch (err) {
     console.error('[invite/guest] error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

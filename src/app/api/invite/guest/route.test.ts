@@ -124,6 +124,14 @@ vi.mock('@supabase/supabase-js', () => ({
   createClient: () => h.supabaseMock,
 }));
 
+/* The send endpoint rate-limits per session email (3 bursts/min);
+   every test here shares owner@example.test, so the real limiter
+   would 429 from the fourth test on. Always-allow keeps these
+   tests focused on send behavior. */
+vi.mock('@/lib/rate-limit', () => ({
+  checkRateLimit: () => ({ allowed: true }),
+}));
+
 vi.mock('next-auth', () => ({
   getServerSession: vi.fn(async () => h.sessionMock.value),
 }));
@@ -284,7 +292,7 @@ describe('POST /api/invite/guest', () => {
     expect(updateCalls).toHaveLength(0);
   });
 
-  it('skips guests with no email and counts them as failed', async () => {
+  it('skips guests with no email and counts them separately (not as failures)', async () => {
     h.siteConfigMock.value = { manifest: {}, names: ['Alice', 'Bob'] };
     h.queue('sites.maybeSingle', {
       id: 'site-1',
@@ -298,7 +306,8 @@ describe('POST /api/invite/guest', () => {
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.sent).toBe(0);
-    expect(json.failed).toBe(1);
+    expect(json.failed).toBe(0);
+    expect(json.noEmail).toBe(1);
     // Resend was never called.
     expect(h.resendSendMock).not.toHaveBeenCalled();
   });
@@ -316,7 +325,9 @@ describe('POST /api/invite/guest', () => {
     await POST(makePost({ subdomain: 'demo', stationeryType: 'std' }));
     const sendArg = h.resendSendMock.mock.calls[0][0] as { subject: string; tags: { name: string; value: string }[] };
     expect(sendArg.subject).toMatch(/^Save the date/);
-    expect(sendArg.tags.find((t) => t.name === 'channel')?.value).toBe('invite');
+    // The channel tag carries the ACTUAL card type so the Resend
+    // webhook + dashboard distinguish save-the-dates from invites.
+    expect(sendArg.tags.find((t) => t.name === 'channel')?.value).toBe('std');
   });
 
   it('returns 503 when RESEND_API_KEY is not configured', async () => {

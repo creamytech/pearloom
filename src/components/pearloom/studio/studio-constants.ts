@@ -26,6 +26,18 @@ export interface StudioPalette {
   sub: string;
 }
 
+/** Paper textures the card can wear — the same [data-pl-texture]
+ *  grain system the published site uses, so Studio stationery and
+ *  the site share one material vocabulary. */
+export const STUDIO_TEXTURES: ReadonlyArray<{ id: string; name: string }> = [
+  { id: 'linen',  name: 'Linen' },
+  { id: 'paper',  name: 'Paper' },
+  { id: 'kraft',  name: 'Kraft' },
+  { id: 'canvas', name: 'Canvas' },
+  { id: 'marble', name: 'Marble' },
+  { id: 'gilded', name: 'Gilded' },
+];
+
 export interface StudioFontPair {
   id: string;
   name: string;

@@ -10,6 +10,7 @@
 import { useState, type CSSProperties } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear, Sprig } from '@/components/pearloom/motifs';
+import { buildSiteUrl, formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 
 export interface PublishModalProps {
   open: boolean;
@@ -54,35 +55,59 @@ function PubShareCard({ manifest }: { manifest: StoryManifest }) {
 
 export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: PublishModalProps) {
   const [step, setStep] = useState<'review' | 'publishing' | 'live'>('review');
-  const [slug, setSlug] = useState(siteSlug || 'scott-and-shauna');
-  const [privacy, setPrivacy] = useState<'public' | 'password' | 'private'>('public');
+  const [privacy, setPrivacy] = useState<'public' | 'password'>(() =>
+    ((manifest as unknown as { privacyGate?: { password?: string } }).privacyGate?.password ?? '').trim()
+      ? 'password' : 'public');
+  const [gatePw, setGatePw] = useState(
+    ((manifest as unknown as { privacyGate?: { password?: string } }).privacyGate?.password ?? ''),
+  );
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   if (!open) return null;
-  const url = `pearloom.com/${slug}`;
+  /* The slug is the site's identity — it isn't editable here.
+     (The prototype let you retype it past a fake "Available"
+     badge, which forked the site to a second subdomain and
+     showed a URL with no occasion prefix.) */
+  const slug = siteSlug || 'your-site';
+  const occasion = normalizeOccasion((manifest as unknown as { occasion?: string }).occasion);
+  const url = formatSiteDisplayUrl(slug, '', occasion);
+  const fullUrl = buildSiteUrl(slug, '', undefined, occasion);
   const go = async () => {
+    if (step === 'publishing') return;
+    if (privacy === 'password' && !gatePw.trim()) {
+      setError('Set the password guests will use — or switch back to public.');
+      return;
+    }
     setStep('publishing');
     setError(null);
+    /* Privacy ships INSIDE the published manifest so the gate is
+       live from the first request — and the same change lands in
+       the editor's manifest via onChange below. */
+    const next = {
+      ...manifest,
+      published: true,
+      publishedAt: new Date().toISOString(),
+      privacyGate: privacy === 'password' ? { password: gatePw.trim() } : undefined,
+    } as StoryManifest;
     try {
       const res = await fetch('/api/sites/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subdomain: slug, manifest, names: manifest.names ?? [] }),
+        body: JSON.stringify({ subdomain: slug, manifest: next, names: manifest.names ?? [] }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error((body as { error?: string }).error || `Publish failed (${res.status})`);
       }
-      onChange?.({ ...manifest, published: true } as StoryManifest);
-      setTimeout(() => setStep('live'), 1400);
+      onChange?.(next);
+      setStep('live');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Publish failed');
       setStep('review');
     }
   };
   const copy = () => {
-    const target = typeof window !== 'undefined' ? `${window.location.origin}/${slug}` : `https://${url}`;
-    try { navigator.clipboard.writeText(target); } catch { /* noop */ }
+    try { navigator.clipboard.writeText(fullUrl); } catch { /* noop */ }
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   };
@@ -101,21 +126,30 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
             <div style={{ marginBottom: 16, borderRadius: 14, overflow: 'hidden', border: '1px solid var(--line-soft)' }}><PubShareCard manifest={manifest}/></div>
 
             <label style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>Your address</label>
-            <div style={{ display: 'flex', alignItems: 'center', marginTop: 6, borderRadius: 10, border: '1px solid var(--line)', background: 'var(--cream-2)', overflow: 'hidden' }}>
-              <span style={{ padding: '11px 4px 11px 13px', fontSize: 14, color: 'var(--ink-muted)' }}>pearloom.com/</span>
-              <input value={slug} onChange={(e) => setSlug(e.target.value.replace(/[^a-z0-9-]/gi, '').toLowerCase())} style={{ flex: 1, padding: '11px 13px 11px 0', border: 'none', background: 'transparent', fontSize: 14, fontWeight: 600, outline: 'none' } as CSSProperties}/>
-              <span style={{ padding: '0 13px', fontSize: 12, color: 'var(--sage-deep)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Icon name="check" size={12} color="var(--sage-deep)"/> Available</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, padding: '11px 13px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--cream-2)' }}>
+              <Icon name="globe" size={14} color="var(--ink-muted)"/>
+              <span style={{ flex: 1, fontSize: 14, fontWeight: 600 }}>{url}</span>
             </div>
 
             <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--ink-muted)', margin: '16px 0 8px' }}>Who can see it</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {([['public', 'globe', 'Public', 'Anyone with the link'], ['password', 'lock', 'Password protected', 'Guests enter a shared password'], ['private', 'eye-off', 'Private', 'Only you & your partner']] as const).map(([v, ic, t, s]) => (
+              {([['public', 'globe', 'Public', 'Anyone with the link'], ['password', 'lock', 'Password protected', 'Guests enter a shared password']] as const).map(([v, ic, t, s]) => (
                 <button key={v} onClick={() => setPrivacy(v)} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', borderRadius: 11, textAlign: 'left', cursor: 'pointer', background: privacy === v ? 'var(--cream-2)' : 'var(--card)', border: privacy === v ? '2px solid var(--ink)' : '1px solid var(--line)' } as CSSProperties}>
                   <Icon name={ic} size={16} color="var(--ink-soft)"/>
                   <div style={{ flex: 1 }}><div style={{ fontSize: 13.5, fontWeight: 600 }}>{t}</div><div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>{s}</div></div>
                   {privacy === v && <Icon name="check" size={15} color="var(--ink)"/>}
                 </button>
               ))}
+              {privacy === 'password' && (
+                <input
+                  type="text"
+                  value={gatePw}
+                  onChange={(e) => setGatePw(e.target.value)}
+                  placeholder="The password guests will enter"
+                  autoComplete="off"
+                  style={{ padding: '11px 13px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--cream-2)', fontSize: 13.5, fontFamily: 'inherit', outline: 'none' } as CSSProperties}
+                />
+              )}
             </div>
             {error && <div role="alert" style={{ marginTop: 12, padding: '10px 12px', borderRadius: 10, background: 'var(--pl-plum-mist)', border: '1px solid var(--pl-plum)', color: 'var(--pl-plum)', fontSize: 12.5, fontWeight: 600 } as CSSProperties}>{error}</div>}
             <button onClick={go} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 18 }}>Publish to {url} <Icon name="arrow-up" size={13} color="var(--cream)"/></button>
@@ -149,9 +183,11 @@ export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: Pu
             </div>
 
             <div style={{ display: 'flex', gap: 8 }}>
-              {['Email', 'Messages', 'Instagram', 'Download card'].map((s) => (
-                <button key={s} className="btn btn-outline btn-sm" style={{ flex: 1, justifyContent: 'center', fontSize: 11.5 }}>{s}</button>
-              ))}
+              {/* Real share intents — the prototype's four dead buttons
+                  (Instagram / Download had no implementation) are gone. */}
+              <a href={`mailto:?subject=${encodeURIComponent("You're invited")}&body=${encodeURIComponent(fullUrl)}`} className="btn btn-outline btn-sm" style={{ flex: 1, justifyContent: 'center', fontSize: 11.5, textDecoration: 'none' }}>Email</a>
+              <a href={`sms:?&body=${encodeURIComponent(fullUrl)}`} className="btn btn-outline btn-sm" style={{ flex: 1, justifyContent: 'center', fontSize: 11.5, textDecoration: 'none' }}>Messages</a>
+              <a href={fullUrl} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm" style={{ flex: 1, justifyContent: 'center', fontSize: 11.5, textDecoration: 'none' }}>Open site</a>
             </div>
             <button onClick={onClose} style={{ marginTop: 16, fontSize: 13, color: 'var(--ink-soft)', fontWeight: 600 }}>Back to editing</button>
           </div>

@@ -20,9 +20,12 @@ import { pearErrorMessage } from '../../redesign/PearAssist';
 
 const TONE_BY_INDEX: Array<'peach' | 'lavender' | 'sage'> = ['peach', 'lavender', 'sage', 'peach', 'lavender', 'sage'];
 
+/* Starter rows match the canvas's editor demo timeline exactly
+   (the panel used to say 'Clifftop' while the canvas previewed
+   'Olive grove' — two competing fictions). */
 const DEFAULT_EVENTS: WeddingEvent[] = [
-  { id: 'e-ceremony', name: 'Ceremony', type: 'ceremony', date: '', time: '4:30 pm', venue: 'Clifftop', address: '' },
-  { id: 'e-cocktails', name: 'Cocktails', type: 'other', date: '', time: '5:30 pm', venue: 'Caldera terrace', address: '' },
+  { id: 'e-ceremony', name: 'Ceremony', type: 'ceremony', date: '', time: '4:30 pm', venue: 'Olive grove', address: '' },
+  { id: 'e-cocktails', name: 'Cocktails', type: 'other', date: '', time: '5:30 pm', venue: 'Terrace bar', address: '' },
   { id: 'e-dinner', name: 'Dinner', type: 'reception', date: '', time: '7:00 pm', venue: 'Long table', address: '' },
   { id: 'e-dancing', name: 'Dancing', type: 'other', date: '', time: '9:00 pm', venue: 'Until late', address: '' },
 ];

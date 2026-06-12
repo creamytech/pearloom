@@ -285,6 +285,48 @@ export default async function SubdomainSite({
     // honours pageFilter='home' to filter blockOrder accordingly.
     const { readSiteMode } = await import('@/lib/site-mode');
     const siteMode = readSiteMode(manifest);
+
+    /* ── "Who's going" social proof — REAL guests only ──────────
+       The RSVP section's avatar pile never invents names; without
+       this stamp it simply didn't render on published sites. When
+       the pile is enabled (occasion default or explicit
+       rsvpShowGoing), pull attending first names (≤8) + the true
+       count and ride them on the manifest as goingPreview /
+       goingCount. One indexed read, only when enabled. */
+    {
+      const loose = manifest as unknown as { occasion?: string; rsvpShowGoing?: boolean; goingPreview?: string[]; goingCount?: number };
+      const PUBLIC_RSVP_OCCASIONS = new Set([
+        'bachelor-party', 'bachelorette-party', 'bridal-shower', 'baby-shower',
+        'reunion', 'milestone-birthday', 'birthday', 'sweet-sixteen',
+        'engagement', 'housewarming', 'gender-reveal', 'sip-and-see',
+      ]);
+      const pileEnabled = loose.rsvpShowGoing ?? PUBLIC_RSVP_OCCASIONS.has(loose.occasion ?? 'wedding');
+      if (pileEnabled) {
+        try {
+          const { createClient } = await import('@supabase/supabase-js');
+          const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+          const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+          const siteId = (siteConfig as unknown as Record<string, unknown>).id ?? (siteConfig as unknown as Record<string, unknown>).site_id;
+          if (url && key && siteId) {
+            const sb = createClient(url, key);
+            const { data: going, count } = await sb
+              .from('guests')
+              .select('name', { count: 'exact' })
+              .eq('site_id', String(siteId))
+              .eq('status', 'attending')
+              .order('responded_at', { ascending: false })
+              .limit(8);
+            const names8 = (going ?? [])
+              .map((g) => String(g.name ?? '').trim().split(/\s+/)[0])
+              .filter(Boolean);
+            if (names8.length > 0) {
+              loose.goingPreview = names8;
+              loose.goingCount = count ?? names8.length;
+            }
+          }
+        } catch { /* the pile just stays hidden */ }
+      }
+    }
     // ── LCP preload ──────────────────────────────────────────────
     // The hero/cover photo is the largest contentful paint on most
     // sites. Emitting <link rel="preload"> in the initial HTML lets

@@ -40,6 +40,8 @@ import { useDialog } from '@/components/ui/confirm-dialog';
 import { scheduleEventSuggestions, dressCodeSuggestions, typicalTimeFor } from '@/components/pearloom/editor/panels/_suggestions';
 import { seedSectionsFromWizard, suggestRsvpDeadline } from '@/lib/wizard-seed';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
+import { lookRecipesFor } from '@/lib/site-look/look-recipes';
+import { WizardLooksSection } from './wizard-looks';
 import { WizardLookPreviews, type LookCandidate } from './WizardLookPreviews';
 import type { StoryManifest } from '@/types';
 
@@ -152,6 +154,36 @@ const VIBES = [
   { id: 'retro', label: 'Retro', icon: '✶', tone: 'peach' as const },
   { id: 'whimsical', label: 'Whimsical', icon: '✩', tone: 'lavender' as const },
 ];
+
+/* Each chip wears its own vibe — the typography IS the preview.
+   'Elegant' is set in airy italic serif, 'Formal' in letterspaced
+   caps, 'Bold' heavy, so picking a vibe means picking a feeling
+   you can already see, not a word. */
+const VIBE_FACE: Record<string, CSSProperties> = {
+  romantic:    { fontFamily: 'var(--font-display, Georgia, serif)', fontStyle: 'italic', fontWeight: 500, fontSize: 15 },
+  elegant:     { fontFamily: 'var(--font-display, Georgia, serif)', fontStyle: 'italic', fontWeight: 400, letterSpacing: '0.08em', fontSize: 15 },
+  classic:     { fontFamily: 'var(--font-display, Georgia, serif)', fontWeight: 600, fontSize: 14.5 },
+  traditional: { fontFamily: 'var(--font-display, Georgia, serif)', fontWeight: 600, letterSpacing: '0.03em', fontSize: 14.5 },
+  formal:      { textTransform: 'uppercase', letterSpacing: '0.22em', fontSize: 11, fontWeight: 700 },
+  editorial:   { textTransform: 'uppercase', letterSpacing: '0.16em', fontSize: 11.5, fontWeight: 700 },
+  modern:      { letterSpacing: '0.05em', fontWeight: 700 },
+  quiet:       { fontWeight: 400, letterSpacing: '0.14em', fontSize: 13.5 },
+  gentle:      { fontFamily: 'var(--font-display, Georgia, serif)', fontStyle: 'italic', fontWeight: 400, fontSize: 14.5 },
+  reflective:  { fontFamily: 'var(--font-display, Georgia, serif)', fontStyle: 'italic', fontWeight: 400, letterSpacing: '0.04em', fontSize: 14.5 },
+  intimate:    { fontFamily: 'var(--font-display, Georgia, serif)', fontStyle: 'italic', fontWeight: 500, fontSize: 14.5 },
+  bold:        { fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 13 },
+  groovy:      { fontWeight: 800, fontStyle: 'italic', fontSize: 14.5 },
+  retro:       { fontWeight: 800, letterSpacing: '0.1em', fontSize: 13.5 },
+  playful:     { fontWeight: 700, fontSize: 14.5 },
+  whimsical:   { fontFamily: 'var(--font-display, Georgia, serif)', fontStyle: 'italic', fontWeight: 500, fontSize: 14.5 },
+  joyful:      { fontWeight: 700, fontSize: 14.5 },
+  warm:        { fontFamily: 'var(--font-display, Georgia, serif)', fontWeight: 500, fontSize: 14.5 },
+  outdoorsy:   { fontWeight: 600, letterSpacing: '0.03em' },
+};
+/* A hand-placed tilt on the inherently crooked ones. */
+const VIBE_TILT: Record<string, number> = {
+  playful: -1.6, whimsical: 1.6, groovy: -1.1, joyful: 1.1, retro: -0.8,
+};
 
 // Per-voice chip sets (EVENT_TYPES[occasion].voice drives which
 // chips the Vibe step offers). 'Romantic' and 'Playful' have no
@@ -272,6 +304,9 @@ interface WizardState {
    *  when the host picks a preset/photo palette instead. */
   suggestedMotif?: string;
   suggestedMotifLayout?: string;
+  /** Explicit end-of-wizard LOOK pick (look-recipes.ts id). null =
+   *  Pear's match, i.e. exactly what generation stamps anyway. */
+  lookRecipeId?: string | null;
 }
 
 const defaultState: WizardState = {
@@ -734,17 +769,29 @@ const POPULAR_OCCASIONS: string[] = [
 function OccasionPicker({
   selected,
   onPick,
+  intentOccasion,
 }: {
   selected: string;
   onPick: (id: string) => void;
+  /** The occasion mapped from the account's signup intent — its
+   *  tile leads the grid with a "For you" badge. */
+  intentOccasion?: string | null;
 }) {
   const [query, setQuery] = useState('');
   const [showAll, setShowAll] = useState(false);
   const q = query.trim().toLowerCase();
 
-  const popular = POPULAR_OCCASIONS
+  let popular = POPULAR_OCCASIONS
     .map((id) => OCCASIONS.find((o) => o.id === id))
     .filter((o): o is OccasionCard => Boolean(o));
+  /* The signup-intent occasion leads the grid — hoisted to the
+     front (and added if it isn't in the popular set at all). */
+  if (intentOccasion) {
+    const intentCard = OCCASIONS.find((o) => o.id === intentOccasion);
+    if (intentCard) {
+      popular = [intentCard, ...popular.filter((o) => o.id !== intentOccasion)];
+    }
+  }
 
   const filtered = q
     ? OCCASIONS.filter((o) => o.label.toLowerCase().includes(q))
@@ -754,6 +801,7 @@ function OccasionPicker({
 
   const tile = (o: OccasionCard) => {
     const on = selected === o.id;
+    const isIntent = intentOccasion === o.id;
     const glyphColor = TONE_INK[o.tone];
     return (
       <button
@@ -763,6 +811,7 @@ function OccasionPicker({
         // Hover host — bespoke glyph anims fire on parent hover.
         className="pl8-glyph-host"
         style={{
+          position: 'relative',
           padding: 14,
           borderRadius: 14,
           border: on
@@ -802,6 +851,19 @@ function OccasionPicker({
         <div className="display" style={{ fontSize: 14.5 }}>
           {o.label}
         </div>
+        {isIntent && (
+          <span
+            style={{
+              position: 'absolute', top: -8, right: 10,
+              fontSize: 8.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+              color: 'var(--peach-ink, #C6703D)', background: 'var(--peach-bg, #F4E3D3)',
+              border: '1px solid var(--card, #fff)',
+              padding: '2px 8px', borderRadius: 999,
+            }}
+          >
+            ★ For you
+          </span>
+        )}
       </button>
     );
   };
@@ -823,6 +885,11 @@ function OccasionPicker({
         }}
       >
         Pick the closest — you can change it any time. Pearloom supports {OCCASIONS.length} event types.
+        {intentOccasion && (
+          <span style={{ display: 'block', marginTop: 6, fontSize: 13, color: 'var(--peach-ink, #C6703D)', fontWeight: 600 }}>
+            You mentioned this one when you joined — Pear put it up front.
+          </span>
+        )}
       </p>
 
       {/* Search input + popular tiles. The 31-tile directory is the
@@ -1335,11 +1402,14 @@ export function WizardV8() {
     }, 400);
     return () => clearTimeout(t);
   }, [st]);
-  /* Welcome-flow intent → occasion prefill. The onboarding flow
-     stores what brought the user here (user_preferences.intent);
-     when the wizard opens cold — no saved draft, no template seed,
-     nothing picked — that answer preselects the occasion. An
-     explicit pick always wins (functional update re-checks). */
+  /* Welcome-flow intent → occasion prefill + the visible "For you"
+     badge on the Occasion step. The onboarding flow stores what
+     brought the user here (user_preferences.intent); when the
+     wizard opens cold that answer preselects the occasion, and the
+     matching tile leads the grid with a badge so it reads like
+     Pear remembered — because it did. An explicit pick always wins
+     (functional update re-checks). */
+  const [intentOccasion, setIntentOccasion] = useState<string | null>(null);
   useEffect(() => {
     if (typeof window === 'undefined') return;
     let cancelled = false;
@@ -1356,7 +1426,9 @@ export function WizardV8() {
           memorial: 'memorial',
         };
         const occ = INTENT_TO_OCCASION[d.intent];
-        if (occ) setSt((prev) => (prev.occasion ? prev : { ...prev, occasion: occ }));
+        if (!occ) return;
+        setIntentOccasion(occ);
+        setSt((prev) => (prev.occasion ? prev : { ...prev, occasion: occ }));
       })
       .catch(() => { /* prefill is a nicety */ });
     return () => { cancelled = true; };
@@ -1710,6 +1782,24 @@ export function WizardV8() {
     setBusy(true);
     setErr(null);
     setGenStep('starting…');
+    /* ── Make-ready choreography ─────────────────────────────
+       The skeleton (no photos) and pre-warmed-cache paths finish
+       in a couple of seconds — the generating screen flashed and
+       the moment read as cheap after an eight-step investment.
+       Each path now declares a MINIMUM press duration and (for
+       the fast paths) a measured label script; the route to the
+       editor waits for whichever finishes last: the real work or
+       the performance. The AI path is barely affected — its real
+       stream almost always outlasts the floor. */
+    const pressStartedAt = Date.now();
+    let minPressMs = 4500;
+    const scriptTimers: Array<ReturnType<typeof setTimeout>> = [];
+    const pressScript = (labels: string[], dwell = 1300): number => {
+      labels.forEach((label, i) => {
+        scriptTimers.push(setTimeout(() => setGenStep(label), i * dwell));
+      });
+      return labels.length * dwell;
+    };
     try {
       // Belt-and-braces: solo / group occasions carry exactly one
       // name into generation + the saved manifest. Placeholders
@@ -1759,16 +1849,19 @@ export function WizardV8() {
         const liveSig = manifestCookInput ? buildManifestSignature(manifestCookInput.ctx) : null;
         const cachedPrewarm = liveSig ? readCookedManifest(liveSig) : null;
         if (cachedPrewarm) {
-          setGenStep('Pear already prepared this — opening the editor…');
+          /* Pear cooked this in the background while the host
+             finished the steps — honest about the head start, but
+             still a beat of theatre instead of a 50ms flash. */
+          minPressMs = pressScript([
+            'Pear already prepared this one on the bench…',
+            'Unrolling the proof…',
+          ], 1400) + 500;
           // Still fold in any cooked decor that may have arrived
           // separately so the editor opens fully populated.
           if (cookSig) {
             foldCookedDecorInto(cachedPrewarm as unknown as Record<string, unknown>, readCookedDecor(cookSig));
           }
           manifest = cachedPrewarm as unknown as Record<string, unknown>;
-          // Tiny visual settle so the GeneratingScreen doesn't
-          // flash for 50ms — feels like real progress.
-          await new Promise((r) => setTimeout(r, 600));
           // Skip the rest of the pipeline; jump to the publish path.
         } else {
         // Full AI pipeline — stream generate returns a populated
@@ -1907,6 +2000,16 @@ export function WizardV8() {
       } else {
         // Skeleton path — no photos → no AI pass. Seed what we can
         // so the editor opens with enough for the user to write.
+        // The work below takes ~1s; the make-ready script gives the
+        // press its full run (GeneratingScreen's PRESS_STAGES tick
+        // along with these labels).
+        minPressMs = pressScript([
+          'Setting your names in type…',
+          'Mixing the palette…',
+          'Cutting the component kit…',
+          'Laying out the sections…',
+          'Pressing the proof…',
+        ]) + 600;
         const seedTagline = st.templateId ? TEMPLATES_BY_ID[st.templateId]?.tagline : generatedTagline || undefined;
         manifest = {
           occasion: st.occasion,
@@ -1975,6 +2078,21 @@ export function WizardV8() {
         rsvpDeadline: st.rsvpDeadline,
       }) as unknown as Record<string, unknown>;
 
+      // ── Explicit LOOK pick — overwrites the occasion defaults on
+      //    both paths (AI + skeleton). The host saw exactly this
+      //    construction in the wizard's preview; it must be what
+      //    the editor opens on.
+      if (st.lookRecipeId) {
+        const recipe = lookRecipesFor(st.occasion).find((r) => r.id === st.lookRecipeId);
+        if (recipe) {
+          manifest.kitId = recipe.kitId;
+          manifest.texture = recipe.texture;
+          manifest.textureIntensity = recipe.textureIntensity;
+          manifest.motifLayout = recipe.motifLayout;
+          manifest.density = recipe.density;
+        }
+      }
+
       // `create: true` — the server guarantees a FREE slug. If the
       // derived one (typed, or names-fallback) is already taken — by
       // anyone, including this host's own earlier site — the server
@@ -2010,8 +2128,15 @@ export function WizardV8() {
           armFirstPressing(finalSubdomain);
         } catch {}
       }
+      /* Hold the curtain until the press has had its minimum run —
+         whichever finished last, the work or the performance. */
+      const remaining = minPressMs - (Date.now() - pressStartedAt);
+      if (remaining > 0) await new Promise((r) => setTimeout(r, remaining));
       router.push(`/editor/${finalSubdomain}`);
     } catch (e) {
+      // A failed run must not keep narrating the script over the
+      // error state.
+      scriptTimers.forEach(clearTimeout);
       setErr(e instanceof Error ? e.message : 'Something went wrong');
     } finally {
       setBusy(false);
@@ -2298,6 +2423,7 @@ export function WizardV8() {
               {step === 'Occasion' && (
                 <OccasionPicker
                   selected={st.occasion}
+                  intentOccasion={intentOccasion}
                   onPick={(id) => {
                     // Solo / group occasions hide the second name
                     // field — clear any partner name typed under a
@@ -2687,12 +2813,15 @@ export function WizardV8() {
                           RSVP deadline: <b style={{ color: 'var(--ink)' }}>{st.rsvpDeadline ?? suggestedDl}</b>
                           {!st.rsvpDeadline && ' (five weeks out — our suggestion)'}
                         </span>
-                        <input
-                          type="date"
-                          value={st.rsvpDeadline ?? suggestedDl}
-                          onChange={(ev) => setSt((s) => ({ ...s, rsvpDeadline: ev.target.value || undefined }))}
-                          style={{ padding: '5px 9px', borderRadius: 8, border: '1px solid var(--line)', background: 'var(--card)', fontSize: 12.5, fontFamily: 'inherit', color: 'var(--ink)' }}
-                        />
+                        {/* Brand date picker — the native input was
+                            the one OS-chrome control in the flow. */}
+                        <div style={{ minWidth: 180 }}>
+                          <WizardDatePicker
+                            value={st.rsvpDeadline ?? suggestedDl}
+                            onChange={(iso) => setSt((s) => ({ ...s, rsvpDeadline: iso || undefined }))}
+                            placeholder="Pick a deadline"
+                          />
+                        </div>
                       </div>
                     )}
                   </>
@@ -3239,6 +3368,31 @@ export function WizardV8() {
                       );
                     })}
                   </div>
+
+                  {/* ── The look — three real constructions of the
+                      picked palette (kit + texture + ornament), each
+                      expandable to full size. Replaces "three tints
+                      of the same card". */}
+                  {(() => {
+                    const lookNameSpec = nameModeFor(st.occasion);
+                    const lookCouple = lookNameSpec.mode === 'couple';
+                    const lookNames = st.names.filter(Boolean);
+                    const lookPalette = st.paletteColors && st.paletteColors.length > 0
+                      ? st.paletteColors
+                      : PALETTES.find((pp) => pp.id === st.palette)?.colors;
+                    return (
+                      <WizardLooksSection
+                        occasion={st.occasion}
+                        paletteColors={lookPalette}
+                        nameA={lookNames[0] || (lookCouple ? 'Alex' : lookNameSpec.primaryPlaceholder)}
+                        nameB={lookCouple ? (lookNames[1] || 'Jamie') : ''}
+                        dateLabel={parseLocalDate(st.eventDate)?.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) || 'Your date'}
+                        placeLabel={st.location || 'Your place'}
+                        selectedId={st.lookRecipeId ?? null}
+                        onSelect={(id) => setSt((prev) => ({ ...prev, lookRecipeId: id }))}
+                      />
+                    );
+                  })()}
                 </>
               )}
 

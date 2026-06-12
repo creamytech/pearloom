@@ -25,7 +25,7 @@
 import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { getEventType } from '@/lib/event-os/event-types';
-import { readSiteMode } from '@/lib/site-mode';
+import { readSiteMode, type SiteBlockKey } from '@/lib/site-mode';
 import { Icon, Pear } from '../motifs';
 import { useEditorRedesignBridge } from './bridge';
 import { EditorRailLeft } from './SectionRail';
@@ -197,6 +197,12 @@ export default function EditorRedesign({
     onRemoteManifest: (next) => bridge.setManifest(next),
   });
   const [active, setActive] = useState<SectionId>(initialJump ?? 'hero');
+  /* Magazine (multi-page) mode — which page the canvas is focused
+     on. null = the whole site on one canvas (every section stays
+     editable); 'home' or a block key narrows the canvas to that
+     page exactly as guests will see it. Driven by the left rail's
+     Pages tab; ignored entirely in scroll mode. */
+  const [canvasPage, setCanvasPage] = useState<'home' | SiteBlockKey | null>(null);
   const [hover, setHover] = useState<SectionId>(null);
   const [pearOpen, setPearOpen] = useState(false);
   const [pearPrefill, setPearPrefill] = useState<string>('');
@@ -381,6 +387,8 @@ export default function EditorRedesign({
           slug={bridge.prettyUrl}
           manifest={bridge.manifest}
           onChange={bridge.setManifest}
+          canvasPage={canvasPage}
+          setCanvasPage={setCanvasPage}
         />
       )}
 
@@ -402,6 +410,7 @@ export default function EditorRedesign({
         pearOpen={pearOpen || mobileSheet === 'pear' || bastedOpen}
         viewportMobile={viewportMobile}
         usePrototypeCanvas={false}
+        canvasPage={canvasPage}
       />
 
       {!viewportMobile && mode !== 'preview' && (
@@ -467,6 +476,8 @@ export default function EditorRedesign({
               slug={bridge.prettyUrl}
               manifest={bridge.manifest}
               onChange={bridge.setManifest}
+              canvasPage={canvasPage}
+              setCanvasPage={setCanvasPage}
             />
           )}
           {displaySheet === 'theme' && (
@@ -549,7 +560,11 @@ function EditorCanvas({
   mode, manifest, names, siteSlug, onEditField, onEditNames, pearOpen,
   viewportMobile = false,
   usePrototypeCanvas = false,
+  canvasPage = null,
 }: {
+  /** Magazine mode — which page the canvas is focused on (Pages
+   *  tab in the left rail). null = whole site, every section. */
+  canvasPage?: 'home' | SiteBlockKey | null;
   active: SectionId;
   setActive: (id: SectionId) => void;
   /** Fired when an inline-editable field gains focus — selects the
@@ -701,7 +716,9 @@ function EditorCanvas({
              deliberately NOT passed: in-canvas nav clicks must never
              navigate the editor tab to the published site. */
           pageFilter={
-            isPreview && readSiteMode(canvasManifest) === 'multi-page' ? 'home' : undefined
+            readSiteMode(canvasManifest) === 'multi-page'
+              ? (canvasPage ?? (isPreview ? 'home' : undefined))
+              : undefined
           }
         />
         {/* The Fitting Room — drape layer for whole-site AI
