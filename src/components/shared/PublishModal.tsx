@@ -28,18 +28,25 @@ function PubShareCard({ manifest }: { manifest: StoryManifest }) {
   const inkSoft = 'rgba(14,13,11,0.65)';
   const line = 'rgba(14,13,11,0.18)';
   const display = theme?.fonts?.heading || 'var(--t-display, var(--pl-font-display))';
-  const n1 = (manifest.names?.[0] ?? 'Scott').trim() || 'Scott';
-  const n2 = (manifest.names?.[1] ?? 'Shauna').trim() || 'Shauna';
+  /* Real names only — the prototype's hardcoded fallbacks
+     ('Scott' / 'Shauna' / Santorini) leaked onto real hosts'
+     publish cards: a solo site with an empty second name showed a
+     fabricated partner. Solo honorees render one name, no '&'. */
+  const n1 = (manifest.names?.[0] ?? '').trim() || 'Your name';
+  const n2 = (manifest.names?.[1] ?? '').trim();
   const dateLine = manifest.logistics?.date && manifest.logistics?.venue
     ? `${manifest.logistics.date} · ${manifest.logistics.venue}`
-    : (manifest.logistics?.date || 'April 26, 2027 · Santorini');
+    : (manifest.logistics?.date || manifest.logistics?.venue || '');
   return (
     <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', background: paper, aspectRatio: '1200/630', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '20px', border: '1px solid ' + line } as CSSProperties}>
       <div style={{ position: 'absolute', top: 12, left: 14, opacity: 0.5, transform: 'scaleX(-1)' }}><Sprig size={42} color={accent}/></div>
       <div style={{ position: 'absolute', top: 12, right: 14, opacity: 0.5 }}><Sprig size={42} color={accent}/></div>
       <div style={{ position: 'relative', zIndex: 2 }}>
         <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls, 0.22em)', textTransform: 'uppercase', color: accent, marginBottom: 6 } as CSSProperties}>You're invited</div>
-        <div style={{ fontFamily: display, fontWeight: 600, fontSize: 30, lineHeight: 1, color: ink } as CSSProperties}>{n1}<span style={{ fontStyle: 'italic', fontSize: '0.6em', color: inkSoft, margin: '0 0.14em', fontWeight: 400 }}>&amp;</span>{n2}</div>
+        <div style={{ fontFamily: display, fontWeight: 600, fontSize: 30, lineHeight: 1, color: ink } as CSSProperties}>
+          {n1}
+          {n2 && <><span style={{ fontStyle: 'italic', fontSize: '0.6em', color: inkSoft, margin: '0 0.14em', fontWeight: 400 }}>&amp;</span>{n2}</>}
+        </div>
         <div style={{ display: 'flex', justifyContent: 'center', margin: '8px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ width: 38, height: 1, background: line }} />

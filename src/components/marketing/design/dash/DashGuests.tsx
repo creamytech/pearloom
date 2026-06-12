@@ -12,6 +12,7 @@ import { Icon, Sprig } from '@/components/pearloom/motifs';
 import Link from 'next/link';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getEventType } from '@/lib/event-os/event-types';
+import { buildSiteUrl } from '@/lib/site-urls';
 import { GuestImportDialog } from '@/components/dashboard/GuestImportDialog';
 
 // Occasion-aware copy for the guests page. Falls back to wedding-y
@@ -94,6 +95,7 @@ interface ApiGuest {
   id: string;
   name: string;
   email: string | null;
+  phone?: string | null;
   status: string; // 'pending' | 'attending' | 'declined' | 'maybe'
   plusOne: boolean;
   plusOneName: string | null;
@@ -116,6 +118,8 @@ interface Guest {
   id: string;
   n: string;
   em: string;
+  /** Phone, when the import/add captured one — powers "Text invite". */
+  phone: string;
   party: string;
   rsvp: RsvpKey;
   meal: string;
@@ -813,6 +817,7 @@ function shapeGuest(g: ApiGuest): Guest {
     emailOpenedAt: g.emailOpenedAt ?? null,
     emailBouncedAt: g.emailBouncedAt ?? null,
     token: g.guestToken ?? null,
+    phone: g.phone ?? '',
     stale,
     opened,
     eventIds: g.eventIds ?? [],
@@ -963,6 +968,15 @@ export function DashGuests() {
   }
 
   const siteName = siteDisplayName(site);
+  /* "Text invite" — opens the host's own Messages with the guest's
+     personal link prewritten. No SMS provider needed; works the
+     moment a guest has a phone number on file. */
+  const textInviteHref = (g: Guest): string | null => {
+    if (!g.phone || !site?.domain) return null;
+    const url = buildSiteUrl(site.domain, '', undefined, site.occasion) + (g.token ? `?g=${encodeURIComponent(g.token)}` : '');
+    const body = `You're invited! ${siteName || 'Our celebration'} — everything's here, RSVP included: ${url}`;
+    return `sms:${g.phone.replace(/[^\d+]/g, '')}?&body=${encodeURIComponent(body)}`;
+  };
   const capacity = Math.max(rows?.length ?? 0, counts.yes + counts.pending + counts.maybe, 1);
   const hasGuests = (rows?.length ?? 0) > 0;
   const copy = guestCopy(site?.occasion);
@@ -1375,9 +1389,33 @@ export function DashGuests() {
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                               whiteSpace: 'nowrap',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6,
                             }}
                           >
-                            {g.em}
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.em}</span>
+                            {(() => {
+                              const href = textInviteHref(g);
+                              return href ? (
+                                <a
+                                  href={href}
+                                  title={`Text the invite to ${g.phone}`}
+                                  style={{
+                                    flexShrink: 0,
+                                    fontSize: 10,
+                                    fontWeight: 700,
+                                    color: 'var(--sage-deep, #5C6B3F)',
+                                    textDecoration: 'none',
+                                    border: '1px solid rgba(92,107,63,0.35)',
+                                    borderRadius: 999,
+                                    padding: '1px 8px',
+                                  }}
+                                >
+                                  Text invite
+                                </a>
+                              ) : null;
+                            })()}
                           </div>
                           {(g.invitedAt || g.respondedAt) && (
                             <div
