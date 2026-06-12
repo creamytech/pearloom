@@ -1372,14 +1372,36 @@ function HeroCentered({ ctx }: { ctx: SectionCtx }) {
             />
           </TButton>
         </div>
-        <HeroPhotos />
+        <HeroPhotos ctx={ctx} />
       </div>
     </div>
   );
 }
 
-/* HeroPhotos — handoff L601-616 style: 4 large 3:4 cards. */
-function HeroPhotos() {
+/* HeroPhotos — handoff L601-616 style: up to 4 large 3:4 cards.
+   REAL photos first (cover + gallery) — the strip used to be
+   tone-gradient placeholders even when the host had uploaded
+   photos, so the default hero read as "gradient rectangles".
+   With no photos: the editor keeps the placeholder strip as a
+   shape hint; published sites render nothing (no fake content
+   in front of guests — the honesty rule). */
+function HeroPhotos({ ctx }: { ctx: SectionCtx }) {
+  const gallery = ((ctx.manifest as unknown as { galleryImages?: string[] }).galleryImages ?? []).filter(Boolean);
+  const photos = [ctx.coverPhoto, ...gallery]
+    .filter((p, i, a): p is string => !!p && a.indexOf(p) === i)
+    .slice(0, 4);
+  if (photos.length > 0) {
+    return (
+      <div style={{ marginTop: 40, display: 'grid', gridTemplateColumns: `repeat(${Math.min(photos.length, 4)}, minmax(0, 1fr))`, gap: 14, maxWidth: photos.length < 3 ? 620 : 940, marginInline: 'auto' }}>
+        {photos.map((src, i) => (
+          <div key={i} style={{ aspectRatio: '3 / 4', borderRadius: 4, overflow: 'hidden', boxShadow: '0 8px 22px rgba(0,0,0,0.18)' }}>
+            <FadeInImage src={src} eager={i === 0} style={{ width: '100%', height: '100%' }} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (!ctx.editable) return null;
   return (
     <div style={{ marginTop: 40, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 14, maxWidth: 940, marginInline: 'auto' }}>
       {(['warm', 'lavender', 'peach', 'sage'] as PhotoTone[]).map((t, i) => (
@@ -1550,6 +1572,12 @@ function HeroPostcard({ ctx }: { ctx: SectionCtx }) {
       <div style={{ maxWidth: 720, marginInline: 'auto', background: 'var(--t-paper)', borderRadius: 'var(--t-radius-lg)', boxShadow: 'var(--t-shadow)', border: '1px solid var(--t-line)', padding: `${40 * pad}px clamp(16px, 5vw, 40px)`, textAlign: 'center', position: 'relative' }}>
         <div aria-hidden style={{ position: 'absolute', inset: 10, border: '1px solid var(--t-line)', borderRadius: 'var(--t-radius)', pointerEvents: 'none' }} />
         <div style={{ position: 'relative' }}>
+          {/* The postcard's photograph — the host's cover photo
+              inside the frame (it previously ignored photos and
+              rendered as a bare card on a tinted mat). */}
+          {ctx.coverPhoto && (
+            <FadeInImage src={ctx.coverPhoto} eager style={{ aspectRatio: '16/10', borderRadius: 'calc(var(--t-radius) * 0.75)', marginBottom: 18 }} />
+          )}
           <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 8 }} />
           {(C.tagline || editable) && (
             <InlineEdit as="div" value={C.tagline ?? ''} onChange={edit?.tagline} editable={editable && !!edit?.tagline} placeholder="Click to add a tagline" style={{ fontFamily: 'var(--t-display)', fontStyle: isEditorial ? 'normal' : 'italic', fontSize: 19, color: 'var(--t-ink-soft)', marginTop: 8 }} />

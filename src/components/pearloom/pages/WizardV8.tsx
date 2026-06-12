@@ -327,7 +327,13 @@ interface WizardState {
   motifLayoutPick?: string;
   densityPick?: string;
   navVariant?: string;
+  /** Phone menu pick (layouts.navMobile) — set from the fitting
+   *  room on phone viewports, where the desktop nav is invisible. */
+  navMobileVariant?: string;
   heroVariant?: string;
+  /** Whole-page feel (manifest.edition) — the fitting room's
+   *  "Feel" rail. */
+  editionPick?: string;
   /** Plus-ones policy → rsvpConfig.plusOnes + the FAQ answer.
    *  undefined = not asked / host skipped. */
   plusOnes?: boolean;
@@ -2435,10 +2441,12 @@ export function WizardV8() {
       //    stamp lands AFTER the look-recipe stamp below would —
       //    order here is before it, so re-stamp at the end too.
       if (st.siteMode) manifest.siteMode = st.siteMode;
-      if (st.navVariant || st.heroVariant) {
+      if (st.editionPick) manifest.edition = st.editionPick;
+      if (st.navVariant || st.navMobileVariant || st.heroVariant) {
         manifest.layouts = {
           ...((manifest.layouts as Record<string, string> | undefined) ?? {}),
           ...(st.navVariant ? { nav: st.navVariant } : {}),
+          ...(st.navMobileVariant ? { navMobile: st.navMobileVariant } : {}),
           ...(st.heroVariant ? { hero: st.heroVariant } : {}),
         };
       }
@@ -4104,8 +4112,8 @@ export function WizardV8() {
                           density: st.densityPick,
                         }}
                         onExpand={() => setFittingOpen(true)}
-                        title="Your pressing"
-                        blurb="Exactly what Pear will press — scroll it. Step into the fitting room to change any of it."
+                        title="Your site"
+                        blurb="Exactly what Pear will build — scroll it. Step into the fitting room to change any of it."
                       />
                     );
                   })()}
@@ -4342,9 +4350,11 @@ export function WizardV8() {
                               kitId: st.kitId,
                               texture: st.texture,
                               navVariant: st.navVariant,
+                              navMobile: st.navMobileVariant,
                               heroVariant: st.heroVariant,
                               motifLayout: st.motifLayoutPick,
                               density: st.densityPick,
+                              edition: st.editionPick,
                             }}
                             onChange={(next) => setSt((prev) => ({
                               ...prev,
@@ -4352,9 +4362,11 @@ export function WizardV8() {
                               ...('kitId' in next ? { kitId: next.kitId } : {}),
                               ...('texture' in next ? { texture: next.texture } : {}),
                               ...('navVariant' in next ? { navVariant: next.navVariant } : {}),
+                              ...('navMobile' in next ? { navMobileVariant: next.navMobile } : {}),
                               ...('heroVariant' in next ? { heroVariant: next.heroVariant } : {}),
                               ...('motifLayout' in next ? { motifLayoutPick: next.motifLayout } : {}),
                               ...('density' in next ? { densityPick: next.density } : {}),
+                              ...('edition' in next ? { editionPick: next.edition } : {}),
                             }))}
                             onClose={() => setFittingOpen(false)}
                           />

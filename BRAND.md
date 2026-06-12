@@ -103,6 +103,14 @@ Always honour `prefers-reduced-motion`.
 - **Never** say "AI-generated". Say "drafted by Pear".
 - Buttons name the action verb-first, lowercase except first letter.
   ("Begin a thread", not "Get Started Now!").
+- **Control labels are plain words.** Pickers, rails, tabs, and
+  field labels name the thing a first-time host already has a word
+  for: *Colors*, *Menu*, *Spacing*, *Paper*, *Opening*, *Pages* —
+  never *Palette*, *Nav variant*, *Density*, *Hero*, *Kit*,
+  *Edition* as labels. The craft vocabulary lives in prose, blurbs,
+  and moments — not in nouns a host must decode to find the knob
+  they want. (Internal ids and manifest fields keep the precise
+  names; only the label simplifies.)
 
 ## 8 · The brand primitives
 

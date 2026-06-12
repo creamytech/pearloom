@@ -63,7 +63,7 @@ export function SiteModeSection({
   return (
     <PanelSection
       label="Layout mode"
-      hint="Single scroll keeps every section on the home page. Magazine mode promotes each section to its own page."
+      hint="One page keeps every section on the home page. Separate pages gives each section its own page with a menu."
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <Field label="Mode">
@@ -72,7 +72,7 @@ export function SiteModeSection({
             onChange={(v) => setMode(v === 'multi-page' ? 'multi-page' : 'scroll')}
             options={[
               { value: 'scroll', label: 'Single scroll' },
-              { value: 'multi-page', label: 'Magazine' },
+              { value: 'multi-page', label: 'Separate pages' },
             ]}
           />
         </Field>

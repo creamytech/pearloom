@@ -526,7 +526,7 @@ function KitPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m
   return (
     <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14 }}>
       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 4 }}>
-        Component kit
+        Card style
       </div>
       <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginBottom: 9 }}>
         How cards, dividers, schedule &amp; badges are drawn.
@@ -631,7 +631,7 @@ function FineTune({ theme, manifest, onChange }: { theme: Theme; manifest: Story
       )}
 
       {theme.motif !== 'none' && (
-        <PickRow label="Motifs">
+        <PickRow label="Decorations">
           <Toggle on={motifsOn} set={setMotifs} />
         </PickRow>
       )}

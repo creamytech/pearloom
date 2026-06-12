@@ -619,14 +619,14 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
                   manifest={manifest}
                   onChange={onChange}
                   section="nav"
-                  heading="Desktop nav"
+                  heading="Desktop menu"
                   sub="Shown at tablet width and up."
                 />
                 <LayoutPickerGroup
                   manifest={manifest}
                   onChange={onChange}
                   section="navMobile"
-                  heading="Mobile drawer"
+                  heading="Phone menu"
                   sub="Shown on phones — pick the open/close motion."
                 />
               </div>
