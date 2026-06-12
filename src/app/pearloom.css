@@ -7290,6 +7290,16 @@ html { scroll-behavior: smooth; }
      seams; the panes carry the readability. */
   --t-section: transparent;
 }
+/* Content rides above the photo-aurora layer (zIndex 0); the
+   layer itself opts back down. Mirrors the texture system's
+   child z-lift. */
+.pl8-guest[data-pl-kit="glass"] > * {
+  position: relative;
+  z-index: 2;
+}
+.pl8-guest[data-pl-kit="glass"] > .pl8-glass-aurora {
+  z-index: 0;
+}
 .pl8-guest[data-pl-kit="glass"] .pl8-schedule-row,
 .pl8-guest[data-pl-kit="glass"] .pl8-chapter-row,
 .pl8-guest[data-pl-kit="glass"] .pl8-hotel-row,

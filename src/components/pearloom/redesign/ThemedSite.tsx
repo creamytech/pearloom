@@ -412,12 +412,30 @@ export function ThemedSite({
      system hardcoded 17 per-section scatter calls; placement is now
      a first-class axis rendered by every TSection. */
   const kitId = ((manifest as unknown as { kitId?: string }).kitId) ?? 'classic';
+  /* GLASS AURORA, photographed — when the Glass kit has a cover
+     photo, the photo becomes the light behind the panes (the
+     literal liquid-glass-over-imagery effect): a sticky full-
+     viewport layer, dimmed under a paper scrim, that the panes'
+     backdrop blur liquefies. Sticky (not fixed) so it behaves in
+     editor/preview scroll containers AND on iOS, where fixed
+     backgrounds are unreliable. Without a photo, the kit's CSS
+     gradient aurora carries the light alone. */
+  const glassPhotoAurora = kitId === 'glass' && coverPhoto ? (
+    <div aria-hidden className="pl8-glass-aurora" style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+      <div style={{ position: 'sticky', top: 0, height: '100dvh' }}>
+        { }
+        <img src={coverPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.55, filter: 'saturate(1.25)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'color-mix(in srgb, var(--t-paper, #15131C) 42%, transparent)' }} />
+      </div>
+    </div>
+  ) : null;
   const motifLayout: MotifLayout = !motifsOn || motif === 'none'
     ? 'none'
     : (((manifest as unknown as { motifLayout?: MotifLayout }).motifLayout) ?? motifLayoutForKit(kitId));
   const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, motifLayout, textureIntensity, showWashHero, dividerLook, variants, C, manifest, coverPhoto, edit };
   /* Edit-mode-only <style> for empty-value InlineEdit ghosts —
-     mounted next to <TextureFilters /> in every layout branch. */
+     mounted next to <TextureFilters />
+        {glassPhotoAurora} in every layout branch. */
   const ghostStyleEl = editable ? <style>{INLINE_GHOST_CSS}</style> : null;
 
   /* Scroll-rise — guest-facing sections thread into view as the
@@ -690,6 +708,7 @@ export function ThemedSite({
     return (
       <div ref={revealRoot} onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-split">
         <TextureFilters />
+        {glassPhotoAurora}
         {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
@@ -732,6 +751,7 @@ export function ThemedSite({
         className="pl8-guest pl8-guest-boxed"
       >
         <TextureFilters />
+        {glassPhotoAurora}
         {ghostStyleEl}
         <div
           style={{
@@ -769,6 +789,7 @@ export function ThemedSite({
     return (
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-magazine">
         <TextureFilters />
+        {glassPhotoAurora}
         {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
@@ -797,6 +818,7 @@ export function ThemedSite({
     return (
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-zine">
         <TextureFilters />
+        {glassPhotoAurora}
         {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
@@ -836,6 +858,7 @@ export function ThemedSite({
     return (
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-storybook">
         <TextureFilters />
+        {glassPhotoAurora}
         {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
@@ -890,6 +913,7 @@ export function ThemedSite({
     return (
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-gallery">
         <TextureFilters />
+        {glassPhotoAurora}
         {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
@@ -942,6 +966,7 @@ export function ThemedSite({
         className="pl8-guest pl8-guest-postcard"
       >
         <TextureFilters />
+        {glassPhotoAurora}
         {ghostStyleEl}
         <div
           className="pl8-postcard-frame"
@@ -1037,6 +1062,7 @@ export function ThemedSite({
   return (
     <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest">
       <TextureFilters />
+        {glassPhotoAurora}
         {ghostStyleEl}
       {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
       <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
