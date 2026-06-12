@@ -3970,7 +3970,7 @@ type SectionKind = 'hero' | 'story' | 'details' | 'schedule' | 'travel' | 'regis
                  | 'program' | 'livestream' | 'obituary' | 'packingList' | 'honorList';
 
 const SECTION_LABEL: Record<SectionKind, string> = {
-  hero: 'Hero', story: 'Our story', details: 'Details', schedule: 'Schedule',
+  hero: 'Opening', story: 'Our story', details: 'Details', schedule: 'Schedule',
   travel: 'Travel', registry: 'Registry', gallery: 'Gallery', rsvp: 'RSVP', faq: 'FAQ',
   countdown: 'Countdown', map: 'Map', music: 'Music',
   itinerary: 'Itinerary', costSplitter: 'Costs', activityVote: 'Group vote',

@@ -1652,7 +1652,9 @@ function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: St
             color: 'var(--ink-muted)',
           }}
         >
-          {phasePosition} · {STEPS[active]}
+          {/* Display name stays plain (BRAND §7 control-label rule);
+              the StepKey ids are untouched. */}
+          {phasePosition} · {STEPS[active] === 'Palette' ? 'Colors' : STEPS[active]}
         </span>
       </div>
       {/* Single thread fills as the user moves through every step
@@ -3402,10 +3404,10 @@ export function WizardV8() {
               {step === 'Palette' && (
                 <>
                   <h2 className="display" style={{ fontSize: 44, margin: '0 0 6px' }}>
-                    Choose a <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>palette.</span>
+                    Choose your <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>colors.</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 18px' }}>
-                    Pear read your venue and vibes and mixed three palettes just for you — or pick a classic below.
+                    Pear read your venue and vibes and mixed three color sets just for you — or pick a classic below.
                   </p>
                   {/* Live preview — re-renders the moment a palette is
                       tapped so the host sees how their names land in
@@ -3995,7 +3997,7 @@ export function WizardV8() {
                       : 'Bold';
                     const items = [
                       { label: 'Texture', val: tex.charAt(0).toUpperCase() + tex.slice(1) },
-                      { label: 'Kit',     val: ld.kitId.charAt(0).toUpperCase() + ld.kitId.slice(1) },
+                      { label: 'Cards',   val: ld.kitId.charAt(0).toUpperCase() + ld.kitId.slice(1) },
                       { label: 'Spacing', val: ld.density.charAt(0).toUpperCase() + ld.density.slice(1) },
                       { label: 'Voice',   val: voice ? voice.charAt(0).toUpperCase() + voice.slice(1) : 'Celebratory' },
                       { label: 'Grain',   val: intensityLabel },

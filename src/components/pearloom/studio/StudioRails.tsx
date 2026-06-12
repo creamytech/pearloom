@@ -762,7 +762,7 @@ function RailGroup({ label, sub, children }: { label: string; sub?: string; chil
 function DesignTab({ state, setField, decorAssets }: { state: StudioState; setField: SetStudioField; decorAssets?: Array<{ id: string; url: string; label: string }> }) {
   return (
     <>
-      <RailGroup label="Palette" sub={PALETTES.find(p => p.id === state.palette)?.sub}>
+      <RailGroup label="Colors" sub={PALETTES.find(p => p.id === state.palette)?.sub}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
           {PALETTES.map(p => {
             const on = state.palette === p.id;
@@ -954,7 +954,7 @@ function DesignTab({ state, setField, decorAssets }: { state: StudioState; setFi
         </div>
       </RailGroup>
 
-      <RailGroup label="Motif">
+      <RailGroup label="Decoration">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
           {MOTIFS.map(m => {
             const on = state.motif === m.id;

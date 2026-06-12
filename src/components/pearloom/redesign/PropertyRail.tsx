@@ -150,7 +150,7 @@ interface SectionInfo {
 }
 
 const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
-  hero:     { id: 'hero',     label: 'Hero',      desc: 'Names, date, cover photo' },
+  hero:     { id: 'hero',     label: 'Opening',   desc: 'Names, date, cover photo' },
   story:    { id: 'story',    label: 'Our story', desc: 'How you met' },
   details:  { id: 'details',  label: 'Details',   desc: 'Dress code, kids, FAQ-lite' },
   schedule: { id: 'schedule', label: 'Schedule',  desc: 'Day-of timeline' },

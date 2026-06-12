@@ -175,7 +175,7 @@ export function FullSite({ active, hover, setActive, setHover, editable, manifes
       </SectionFrame>
 
       {/* Hero — prototype L350-374, the screenshot-iconic centerpiece. */}
-      <SectionFrame id="hero" label="Hero" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable}>
+      <SectionFrame id="hero" label="Opening" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable}>
         <div
           style={{
             position: 'relative',
