@@ -12,7 +12,7 @@
 //
 // This test isolates the GATING + VALIDATION + URL surface — the
 // pieces that determine whether a publish succeeds and what URL
-// it returns. mirrorManifestPhotos and generateVibeSkin are
+// it returns. mirrorManifestPhotos is
 // mocked to no-ops because they're heavy upstream deps with
 // their own contracts. publishSite (the DB writer) is mocked
 // per-test so we can cover both success + error paths.
@@ -77,11 +77,6 @@ const h = vi.hoisted(() => {
     sessionMock,
     publishSiteMock: vi.fn(async () => ({ success: true, error: null })) as Mock,
     mirrorManifestPhotosMock: vi.fn(async (m: unknown) => m) as Mock,
-    generateVibeSkinMock: vi.fn(async () => ({
-      tone: 'sage',
-      curve: 'gentle',
-      aiGenerated: true,
-    })) as Mock,
     queue(key: string, value: unknown, isError?: boolean) {
       queues[key] = queues[key] || [];
       queues[key].push({ value, isError });
@@ -111,9 +106,6 @@ vi.mock('@/lib/db', () => ({
   publishSite: h.publishSiteMock,
 }));
 
-vi.mock('@/lib/vibe-engine', () => ({
-  generateVibeSkin: h.generateVibeSkinMock,
-}));
 
 vi.mock('@/lib/mirror-photos', () => ({
   mirrorManifestPhotos: h.mirrorManifestPhotosMock,
@@ -130,12 +122,10 @@ function postReq(body: unknown, host = 'pearloom.test'): NextRequest {
   });
 }
 
-// Manifest fixture — vibeSkin already cached so the skin generator
 // is short-circuited unless a test explicitly clears it.
 const fixtureManifest = {
   occasion: 'wedding',
   vibeString: 'sage + olive',
-  vibeSkin: { tone: 'sage', curve: 'gentle', aiGenerated: true },
   chapters: [],
 };
 
@@ -146,7 +136,6 @@ describe('POST /api/sites/publish — auth + validation', () => {
     h.publishSiteMock.mockImplementation(async () => ({ success: true, error: null }));
     h.mirrorManifestPhotosMock.mockClear();
     h.mirrorManifestPhotosMock.mockImplementation(async (m: unknown) => m);
-    h.generateVibeSkinMock.mockClear();
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://supabase.test';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key';
     delete process.env.NEXT_PUBLIC_SITE_URL;
@@ -280,7 +269,6 @@ describe('POST /api/sites/publish — happy path + URL', () => {
     h.publishSiteMock.mockImplementation(async () => ({ success: true, error: null }));
     h.mirrorManifestPhotosMock.mockClear();
     h.mirrorManifestPhotosMock.mockImplementation(async (m: unknown) => m);
-    h.generateVibeSkinMock.mockClear();
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://supabase.test';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key';
     delete process.env.NEXT_PUBLIC_SITE_URL;
@@ -346,26 +334,6 @@ describe('POST /api/sites/publish — happy path + URL', () => {
     }));
     const j2 = await r2.json();
     expect(j2.url).toMatch(/\/anniversary\/ten-years/);
-  });
-
-  it('skips the vibe-skin generator when the manifest already has aiGenerated:true', async () => {
-    h.queue('sites.maybeSingle', null);
-    await POST(postReq({
-      subdomain: 'fresh-cache',
-      manifest: { ...fixtureManifest, vibeSkin: { tone: 'olive', curve: 'gentle', aiGenerated: true } },
-      names: ['A', 'B'],
-    }));
-    expect(h.generateVibeSkinMock).not.toHaveBeenCalled();
-  });
-
-  it('generates a vibe skin when the cached one has aiGenerated:false', async () => {
-    h.queue('sites.maybeSingle', null);
-    await POST(postReq({
-      subdomain: 'stale-skin',
-      manifest: { ...fixtureManifest, vibeSkin: { tone: 'olive', curve: 'gentle', aiGenerated: false } },
-      names: ['A', 'B'],
-    }));
-    expect(h.generateVibeSkinMock).toHaveBeenCalledOnce();
   });
 
   it('mirrors manifest photos when session has an accessToken', async () => {

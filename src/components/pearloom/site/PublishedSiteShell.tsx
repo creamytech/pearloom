@@ -20,7 +20,6 @@ import type { StoryManifest } from '@/types';
 import type { SiteBlockKey } from '@/lib/site-mode';
 import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { ThemedSiteRenderer } from './ThemedSiteRenderer';
 import { ThemedSite } from '@/components/pearloom/redesign/ThemedSite';
 import { hydrateManifestForRedesign } from '@/components/pearloom/redesign/hydrate-manifest';
 import { GuestRsvpModal } from '@/components/pearloom/site/GuestRsvpModal';
@@ -264,19 +263,3 @@ function SiteGate({
   );
 }
 
-/* Legacy fallback — kept so a one-flag rollback to the old
-   canonical is a single import swap above, not a rewrite.
-   `ThemedSiteRenderer` is referenced via the export below so the
-   bundler still tree-shakes the import correctly. */
-export function LegacyThemedSiteRenderer(props: Props) {
-  return (
-    <ErrorBoundary fallback={<GuestCrashFallback />}>
-      <ThemedSiteRenderer
-        manifest={props.manifest}
-        names={props.names}
-        siteSlug={props.siteSlug}
-        pageFilter={props.pageFilter}
-      />
-    </ErrorBoundary>
-  );
-}

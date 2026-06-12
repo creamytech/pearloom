@@ -3,57 +3,9 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getSiteConfig } from '@/lib/db';
 import { buildSiteUrl } from '@/lib/site-urls';
-import { ThemeProvider } from '@/components/theme-provider';
-import { SiteNav } from '@/components/site-nav';
-import { Hero } from '@/components/hero';
-import { StorySection, chapterDateFormatOptions } from '@/components/blocks/StoryLayouts';
-import { sanitizeSvg } from '@/lib/sanitize-svg';
-import { EventLogistics } from '@/components/event-logistics';
-import { ComingSoon } from '@/components/coming-soon';
-import { WeddingEvents } from '@/components/wedding-events';
-import { RegistryShowcase } from '@/components/registry-showcase';
-import { FaqSection } from '@/components/faq-section';
-import { TravelSection } from '@/components/travel-section';
-import { PublicRsvpSection } from '@/components/public-rsvp-section';
-import { getEventType, isSoloOccasion } from '@/lib/event-os/event-types';
-import type { Chapter } from '@/types';
-import { deriveVibeSkin } from '@/lib/vibe-engine';
-import { WaveDivider } from '@/components/vibe/WaveDivider';
-import { SectionDivider } from '@/components/effects/SectionDivider';
-import { PerBlockRevealCSS } from '@/components/effects/ScrollReveal';
-import { SiteClientSections, SiteGallerySection } from '@/components/site/SiteClientSections';
-import { CelebrationOverlay } from '@/components/vibe/CelebrationOverlay';
-import { CountdownBlock } from '@/components/site/CountdownBlock';
-import { SitePasswordWrapper } from '@/components/site/SitePasswordWrapper';
-import { WeddingDayBanner } from '@/components/site/WeddingDayBanner';
-import { WeddingDayTimeline } from '@/components/site/WeddingDayTimeline';
-import { WeddingDayPhotoFeed } from '@/components/site/WeddingDayPhotoFeed';
-import { GuestbookSection } from '@/components/site/GuestbookSection';
-import { GuestPhotoWall } from '@/components/site/GuestPhotoWall';
-import { LiveUpdatesFeed } from '@/components/site/LiveUpdatesFeed';
-import { SpotifySection } from '@/components/site/SpotifySection';
-import { AmbientSpotifyPlayer } from '@/components/site/AmbientSpotifyPlayer';
-import { StickyRsvpPill } from '@/components/site/StickyRsvpPill';
-import { LinkedEventsStrip } from '@/components/site/LinkedEventsStrip';
-import { GrooveSiteHero } from '@/components/site/groove/GrooveSiteHero';
-import { GrooveSiteStory } from '@/components/site/groove/GrooveSiteStory';
-import { GrooveSiteEvents } from '@/components/site/groove/GrooveSiteEvents';
-import { GrooveSiteFooter } from '@/components/site/groove/GrooveSiteFooter';
-import { GrooveSiteCountdown } from '@/components/site/groove/GrooveSiteCountdown';
-import { GrooveSiteFaq } from '@/components/site/groove/GrooveSiteFaq';
-import { GrooveSiteWelcome } from '@/components/site/groove/GrooveSiteWelcome';
-import { GrooveSiteQuote } from '@/components/site/groove/GrooveSiteQuote';
+import { isSoloOccasion } from '@/lib/event-os/event-types';
 import { resolveThemeFamily } from '@/lib/event-os/theme-family';
-import { CoupleQuiz } from '@/components/site/CoupleQuiz';
-import { ShareBar } from '@/components/site/ShareBar';
-import { enforcePaletteContrast } from '@/lib/color-utils';
-import { StickerLayer } from '@/components/site-stickers/StickerLayer';
-import { AnalyticsBeacon } from '@/components/analytics/AnalyticsBeacon';
-import { buildContext, resolveBlockConfig } from '@/lib/block-engine';
-import { getPostEventConfig, getPostEventBanner } from '@/lib/post-event';
-import { generateJsonLd, getTwitterMeta } from '@/lib/guest-services';
 import { suiteThemeFromManifest } from '@/lib/suite/theme';
-import { WeddingPartySection } from '@/components/site/WeddingPartySection';
 
 export const dynamic = 'force-dynamic';
 
@@ -102,12 +54,15 @@ export async function generateMetadata(
     ? `${displayNames}'s love story — ${vibeString.slice(0, 120)}${vibeString.length > 120 ? '...' : ''}`
     : `${displayNames}'s ${occasionDescLabel[occasion] || 'wedding website'}. ${chapterCount} chapters of their story.`;
 
-  // Derive vibeSkin for themed OG image colors & fonts.
-  // Guard against malformed skins missing the palette field so metadata
-  // generation never crashes on "foreground of undefined".
-  const vibeSkin = (manifest?.vibeSkin && manifest.vibeSkin.palette)
-    ? manifest.vibeSkin
-    : deriveVibeSkin(manifest?.vibeString || '');
+  // House-default OG colors. Sites with real theme data get their
+  // exact look from the suite-contract block below; this fallback
+  // only fires for manifests with no theme at all. (vibeSkin —
+  // the old AI design layer — was deleted 2026-06-12; a prod
+  // check found zero rows carrying it.)
+  const ogFallback = {
+    background: '#F5EFE2', foreground: '#0E0D0B', accent: '#5C6B3F',
+    heading: 'Fraunces', symbol: '✦',
+  };
   const tagline = manifest?.poetry?.heroTagline || siteConfig.tagline || vibeString || '';
 
   const siteUrl = buildSiteUrl(domain, '', undefined, manifest?.occasion);
@@ -134,11 +89,11 @@ export async function generateMetadata(
   }
   ogUrl.searchParams.set('date', eventDate || '');
   ogUrl.searchParams.set('tagline', tagline);
-  ogUrl.searchParams.set('bg', vibeSkin.palette.background.replace('#', ''));
-  ogUrl.searchParams.set('fg', vibeSkin.palette.foreground.replace('#', ''));
-  ogUrl.searchParams.set('accent', vibeSkin.palette.accent.replace('#', ''));
-  ogUrl.searchParams.set('heading', vibeSkin.fonts.heading);
-  ogUrl.searchParams.set('symbol', vibeSkin.accentSymbol || '✦');
+  ogUrl.searchParams.set('bg', ogFallback.background.replace('#', ''));
+  ogUrl.searchParams.set('fg', ogFallback.foreground.replace('#', ''));
+  ogUrl.searchParams.set('accent', ogFallback.accent.replace('#', ''));
+  ogUrl.searchParams.set('heading', ogFallback.heading);
+  ogUrl.searchParams.set('symbol', ogFallback.symbol);
   // Include the couple's cover photo so social shares show their face,
   // not just a card. Only forward absolute https URLs (Satori restriction).
   const ogPhotoCandidate = manifest?.coverPhoto || manifest?.chapters?.[0]?.images?.[0]?.url || '';

@@ -49,9 +49,9 @@ function sanitizeCssValue(val: string): string {
 function buildHtml(manifest: StoryManifest, siteId: string): string {
   const chapters = manifest.chapters ?? [];
   const coupleNames = (manifest as unknown as { names?: [string, string] })?.names ?? ['', ''];
-  const headingFont = sanitizeCssValue(manifest.vibeSkin?.fonts?.heading ?? 'Georgia');
-  const bodyFont = sanitizeCssValue(manifest.vibeSkin?.fonts?.body ?? 'Georgia');
-  const accent = sanitizeCssValue(manifest.vibeSkin?.palette?.accent ?? '#6B8F5A');
+  const headingFont = sanitizeCssValue(manifest.theme?.fonts?.heading ?? 'Georgia');
+  const bodyFont = sanitizeCssValue(manifest.theme?.fonts?.body ?? 'Georgia');
+  const accent = sanitizeCssValue(manifest.theme?.colors?.accent ?? '#6B8F5A');
 
   const chaptersHtml = chapters
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
