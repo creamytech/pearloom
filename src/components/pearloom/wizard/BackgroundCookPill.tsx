@@ -41,12 +41,10 @@ function BackgroundCookPillInner({ cooking, ready }: { cooking: boolean; ready: 
     <div
       role="status"
       aria-live="polite"
+      className="pl-cook-pill"
       style={{
         position: 'fixed',
         left: '50%',
-        // Clear iOS Safari's bottom toolbar — without the safe-area
-        // inset the pill renders half-hidden behind browser chrome.
-        bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
         transform: 'translateX(-50%)',
         display: 'inline-flex',
         alignItems: 'center',
@@ -82,6 +80,21 @@ function BackgroundCookPillInner({ cooking, ready }: { cooking: boolean; ready: 
         {cooking ? 'Pear is preparing things in the background…' : 'Ready when you are.'}
       </span>
       <style jsx global>{`
+        /* Bottom offset lives in CSS so phones can ride higher:
+           iOS Safari's floating URL capsule overlays the bottom
+           ~60px of the layout viewport while expanded (and
+           env(safe-area-inset-bottom) reports 0 in that state),
+           which buried the pill behind browser chrome AND the
+           wizard's own Back / Continue footer row. Desktop keeps
+           the original 24px float. */
+        .pl-cook-pill {
+          bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+        }
+        @media (max-width: 760px) {
+          .pl-cook-pill {
+            bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+          }
+        }
         @keyframes pl-cook-pill-rise {
           from { opacity: 0; transform: translate(-50%, 8px); }
           to   { opacity: 1; transform: translate(-50%, 0); }

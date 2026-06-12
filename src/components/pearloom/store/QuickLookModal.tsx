@@ -287,7 +287,7 @@ export function QuickLookModal({
               border: '1px solid var(--pl-divider, #D8CFB8)',
             }}
           >
-            <PackSitePreview pack={pack} height={520} />
+            <PackSitePreview pack={pack} height={520} wide={!isNarrow} />
           </div>
         </div>
 
