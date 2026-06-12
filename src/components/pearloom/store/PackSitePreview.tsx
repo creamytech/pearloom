@@ -69,6 +69,7 @@ export function PackSitePreview({
               position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)',
               padding: '5px 13px', borderRadius: 999,
               background: 'var(--pl-glass)',
+        backgroundImage: 'var(--pl-glass-sheen)',
               backdropFilter: 'var(--pl-glass-blur, blur(14px) saturate(1.3))',
               WebkitBackdropFilter: 'var(--pl-glass-blur, blur(14px) saturate(1.3))',
               border: '1px solid var(--pl-glass-border)',

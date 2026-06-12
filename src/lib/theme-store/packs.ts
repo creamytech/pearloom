@@ -121,7 +121,8 @@ export type Kit =
   | 'stamp'
   | 'deco'
   | 'gallery'
-  | 'menu';
+  | 'menu'
+  | 'glass';
 
 export type CollectionId =
   | 'med'
@@ -373,6 +374,9 @@ export const COLLECTIONS: readonly Collection[] = [
 // ─── Packs (70) — STORE_PACKS port + the 2026-06-09 collections ─
 
 export const PACKS: readonly Pack[] = [
+  // ===== The Glasshouse — liquid glass, signature =====
+  mk({ id: 'glasshouse', name: 'The Glasshouse', collection: 'celestial', blurb: 'Liquid-glass panes floating on aurora light — midnight paper, moonstone ink, your palette glowing through every card.', paper: '#15131C', ink: '#F2EEF8', accent: '#8FA8E8', gold: '#D4B373', section: '#1B1826', card: '#211D2E', inkSoft: '#C9C2DC', inkMuted: '#8E86A6', accent2: '#C490C8', accentBg: '#2A2540', accentInk: '#0E0C14', line: 'rgba(242,238,248,0.16)', display: F.italiana, body: F.inter, radius: 16, wght: '400', ls: '0.10em', heroScale: 1.12, texture: 'none', pattern: 'none', motif: 'none', kit: 'glass', swatches: ['#15131C', '#8FA8E8', '#C490C8', '#D4B373'], price: 24, r: 5.0, s: 'New', tags: ['glass', 'liquid', 'aurora', 'midnight', 'luminous', 'signature'] }),
+
   // ===== Editorial Cream & Quiet =====
   mk({ id: 'modern-editorial', name: 'Modern Editorial', collection: 'modern', blurb: 'Magazine-clean cream, crisp Inter labels, charcoal ink — the masthead of a slow weekend read.', paper: '#F4F3EF', ink: '#1A1A17', accent: '#1A1A17', gold: '#A89578', inkSoft: '#3A3A36', inkMuted: '#6C6B65', accent2: '#5A5A55', line: '#D9D6CE', display: F.inter, body: F.inter, radius: 2, wght: '600', ls: '0.04em', texture: 'paper', pattern: 'none', motif: 'none', kit: 'minimal', swatches: ['#F4F3EF', '#1A1A17', '#A89578', '#5A5A55'], price: 0, r: 4.8, s: '2.4k', tags: ['editorial', 'modern', 'minimal', 'magazine'] }),
   mk({ id: 'noir-matte', name: 'Noir Matte', collection: 'modern', blurb: 'A whisper of warmth under matte black ink — confident, geometric, set in Space Grotesk.', paper: '#F2F1EC', ink: '#141414', accent: '#141414', gold: '#8C8780', inkSoft: '#2E2E2C', inkMuted: '#5E5E59', accent2: '#3D3D3A', line: '#D2CFC7', display: F.space, body: F.dmsans, radius: 0, wght: '500', ls: '0.26em', texture: 'none', pattern: 'none', motif: 'none', kit: 'minimal', swatches: ['#F2F1EC', '#141414', '#8C8780', '#3D3D3A'], price: 16, r: 4.9, s: '1.8k', tags: ['modern', 'noir', 'minimal', 'geometric'] }),

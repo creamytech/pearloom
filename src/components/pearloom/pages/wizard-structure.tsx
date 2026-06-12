@@ -161,7 +161,8 @@ export function WizardStructureSection({
             style={{
               position: 'absolute', left: 12, bottom: 12, zIndex: 3,
               padding: '4px 11px', borderRadius: 999,
-              background: 'var(--pl-glass-light, rgba(251,247,238,0.68))',
+              background: 'var(--pl-glass-light)',
+              backgroundImage: 'var(--pl-glass-sheen)',
               backdropFilter: 'var(--pl-glass-blur, blur(14px) saturate(1.3))',
               WebkitBackdropFilter: 'var(--pl-glass-blur, blur(14px) saturate(1.3))',
               border: '1px solid var(--pl-glass-border)',

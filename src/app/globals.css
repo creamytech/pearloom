@@ -47,16 +47,34 @@
   --pl-success-mist: rgba(92,107,63,0.10);
 
   /* ── Surface utility (used by floating chrome) ── */
-  --pl-glass:             rgba(251,247,238,0.80);
-  --pl-glass-border:      var(--pl-divider);
-  --pl-glass-light:       rgba(251,247,238,0.68);
-  --pl-glass-light-border: var(--pl-divider);
-  --pl-glass-blur:        blur(18px) saturate(1.4);
+  /* Liquid glass — visible THICKNESS, not just frost: a brighter
+     saturated blur behind, a specular catch along the top edge, a
+     warm rim, and a diagonal sheen (the --pl-glass-sheen gradient
+     rides as backgroundImage on glass surfaces). Warm cream light;
+     never neon. */
+  --pl-glass:             rgba(252,248,238,0.62);
+  --pl-glass-border:      rgba(255,252,242,0.55);
+  --pl-glass-light:       rgba(252,248,238,0.48);
+  --pl-glass-light-border: rgba(255,252,242,0.40);
+  --pl-glass-blur:        blur(16px) saturate(1.7) brightness(1.04);
+  --pl-glass-sheen:       linear-gradient(115deg,
+                            rgba(255,255,255,0.36) 0%,
+                            rgba(255,255,255,0.10) 26%,
+                            transparent 44%,
+                            transparent 72%,
+                            rgba(255,255,255,0.14) 100%);
   --pl-glass-heavy:       #FBF7EE;
   --pl-glass-dark:        #0E0D0B;
   --pl-glass-dark-border: rgba(245,239,226,0.10);
-  --pl-glass-shadow:      0 1px 3px rgba(40,28,12,0.06), 0 1px 2px rgba(40,28,12,0.04);
-  --pl-glass-shadow-lg:   0 12px 40px rgba(40,28,12,0.10), 0 24px 60px rgba(40,28,12,0.06);
+  --pl-glass-shadow:      inset 0 1px 0 rgba(255,255,255,0.55),
+                          inset 0 -1px 0 rgba(255,255,255,0.14),
+                          0 8px 24px -8px rgba(40,28,12,0.18);
+  --pl-glass-shadow-lg:   inset 0 1.5px 0 rgba(255,255,255,0.60),
+                          inset 0 -1px 0 rgba(255,255,255,0.16),
+                          inset 1px 0 0 rgba(255,255,255,0.12),
+                          inset -1px 0 0 rgba(255,255,255,0.12),
+                          0 24px 60px -20px rgba(40,28,12,0.35),
+                          0 4px 14px -4px rgba(40,28,12,0.14);
   --pl-glass-blur:        14px;
   --pl-glass-blur-sm:     8px;
   --pl-glass-blur-lg:     20px;
@@ -287,16 +305,29 @@
   --pl-success:      #A4B57A;
   --pl-success-mist: rgba(164,181,122,0.12);
 
-  --pl-glass:             rgba(26,22,16,0.74);
-  --pl-glass-border:      rgba(245,239,226,0.12);
-  --pl-glass-light:       rgba(26,22,16,0.62);
-  --pl-glass-light-border: rgba(245,239,226,0.12);
-  --pl-glass-blur:        blur(18px) saturate(1.3);
+  --pl-glass:             rgba(24,20,14,0.55);
+  --pl-glass-border:      rgba(245,239,226,0.22);
+  --pl-glass-light:       rgba(24,20,14,0.45);
+  --pl-glass-light-border: rgba(245,239,226,0.16);
+  --pl-glass-blur:        blur(16px) saturate(1.5) brightness(1.10);
+  --pl-glass-sheen:       linear-gradient(115deg,
+                            rgba(245,239,226,0.14) 0%,
+                            rgba(245,239,226,0.04) 28%,
+                            transparent 46%,
+                            transparent 74%,
+                            rgba(245,239,226,0.08) 100%);
   --pl-glass-heavy:       #1A1610;
   --pl-glass-dark:        #0D0B07;
   --pl-glass-dark-border: rgba(245,239,226,0.06);
-  --pl-glass-shadow:      0 1px 3px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.30);
-  --pl-glass-shadow-lg:   0 12px 40px rgba(0,0,0,0.55), 0 24px 60px rgba(0,0,0,0.40);
+  --pl-glass-shadow:      inset 0 1px 0 rgba(245,239,226,0.20),
+                          inset 0 -1px 0 rgba(245,239,226,0.06),
+                          0 8px 24px -8px rgba(0,0,0,0.55);
+  --pl-glass-shadow-lg:   inset 0 1.5px 0 rgba(245,239,226,0.24),
+                          inset 0 -1px 0 rgba(245,239,226,0.08),
+                          inset 1px 0 0 rgba(245,239,226,0.06),
+                          inset -1px 0 0 rgba(245,239,226,0.06),
+                          0 24px 60px -20px rgba(0,0,0,0.65),
+                          0 4px 14px -4px rgba(0,0,0,0.40);
 
   --pl-olive-5:   rgba(164,181,122,0.05);
   --pl-olive-8:   rgba(164,181,122,0.08);
@@ -545,7 +576,8 @@ body {
    becomes a SURFACE — dashboards, panels, and cards stay paper;
    only chrome that floats over content wears this. */
 .pl-glass-surface {
-  background: var(--pl-glass);
+  background-color: var(--pl-glass);
+  background-image: var(--pl-glass-sheen);
   -webkit-backdrop-filter: var(--pl-glass-blur, blur(18px) saturate(1.4));
   backdrop-filter: var(--pl-glass-blur, blur(18px) saturate(1.4));
   border: 1px solid var(--pl-glass-border);
@@ -553,7 +585,8 @@ body {
 }
 /* Heavy — full-screen docks, command palettes, bottom sheets. */
 .pl-glass-surface-heavy {
-  background: var(--pl-glass);
+  background-color: var(--pl-glass);
+  background-image: var(--pl-glass-sheen);
   -webkit-backdrop-filter: var(--pl-glass-blur, blur(18px) saturate(1.4));
   backdrop-filter: var(--pl-glass-blur, blur(18px) saturate(1.4));
   border: 1px solid var(--pl-glass-border);
@@ -561,7 +594,8 @@ body {
 }
 /* Lighter wash — hover rails, hint chips riding on previews. */
 .pl-glass-surface-light {
-  background: var(--pl-glass-light);
+  background-color: var(--pl-glass-light);
+  background-image: var(--pl-glass-sheen);
   -webkit-backdrop-filter: var(--pl-glass-blur, blur(14px) saturate(1.3));
   backdrop-filter: var(--pl-glass-blur, blur(14px) saturate(1.3));
   border: 1px solid var(--pl-glass-light-border);

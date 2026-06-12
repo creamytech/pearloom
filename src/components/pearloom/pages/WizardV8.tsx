@@ -2640,6 +2640,7 @@ export function WizardV8() {
           // Theme-aware glass — the platform recipe (globals.css
           // --pl-glass tokens, [data-theme]-paired).
           background: 'var(--pl-glass)',
+        backgroundImage: 'var(--pl-glass-sheen)',
           backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
           WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
           borderBottom: '1px solid var(--line-soft)',
