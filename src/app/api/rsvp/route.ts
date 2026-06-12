@@ -46,6 +46,9 @@ export async function POST(req: NextRequest) {
       // New: non-wedding RSVP form sends these
       preset,
       answers,
+      // Personal guest-link token (?g=) — lets invited guests pass
+      // the guest-list gate even before their email is typed.
+      guestToken,
     } = body;
 
     if (!siteId || !guestName) {
@@ -57,12 +60,67 @@ export async function POST(req: NextRequest) {
 
     const supabase = getSupabase();
 
+    // ── Resolve the site ONCE (uuid or slug) ──────────────────
+    // Callers send either the site uuid or the public slug
+    // (PublishedSiteShell hands its modal the domain). The upsert
+    // needs the real uuid for the site_id FK, and the invitation
+    // gate needs the manifest — one lookup serves both.
+    const RSVP_UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const siteQuery = supabase.from('sites').select('id, ai_manifest');
+    const { data: siteRow } = await (RSVP_UUID_RX.test(String(siteId))
+      ? siteQuery.eq('id', siteId)
+      : siteQuery.eq('subdomain', siteId)
+    ).maybeSingle();
+    if (!siteRow) {
+      return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    }
+    const resolvedSiteId = String(siteRow.id);
+
+    // ── Invitation-only gate (manifest.rsvpConfig.guestListOnly) ──
+    // When the host flips it on, only people already ON the guest
+    // list may reply: matched by email, or by arriving through
+    // their personal guest link. Anyone else gets a warm 403 —
+    // not a row on the list.
+    const gateCfg = (siteRow.ai_manifest as { rsvpConfig?: { guestListOnly?: boolean } } | null)?.rsvpConfig;
+    if (gateCfg?.guestListOnly) {
+      let invited = false;
+      if (typeof guestToken === 'string' && guestToken.trim()) {
+        const { data: byToken } = await supabase
+          .from('guests')
+          .select('id')
+          .eq('site_id', resolvedSiteId)
+          .eq('guest_token', guestToken.trim())
+          .maybeSingle();
+        invited = !!byToken;
+      }
+      if (!invited && email) {
+        const { data: byEmail } = await supabase
+          .from('guests')
+          .select('id')
+          .eq('site_id', resolvedSiteId)
+          .ilike('email', String(email).trim())
+          .limit(1);
+        invited = !!byEmail && byEmail.length > 0;
+      }
+      if (!invited) {
+        return NextResponse.json(
+          {
+            error: email
+              ? 'This celebration is replying by invitation — we couldn’t find that email on the guest list. Try the email your invitation was sent to, or reach out to your hosts.'
+              : 'This celebration is replying by invitation — enter the email your invitation was sent to.',
+            guestListOnly: true,
+          },
+          { status: 403 },
+        );
+      }
+    }
+
     // Upsert by email+siteId so guests can update their RSVP
     const { data, error } = await supabase
       .from('guests')
       .upsert(
         {
-          site_id: siteId,
+          site_id: resolvedSiteId,
           name: guestName,
           email: email || null,
           status: status || 'attending',

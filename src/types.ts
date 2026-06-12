@@ -780,6 +780,11 @@ export interface StoryManifest {
   rsvpConfig?: {
     plusOnes?: boolean;
     songRequests?: boolean;
+    /** Invitation-only replies — when true, /api/rsvp only accepts
+     *  submissions whose email already exists on the guest list (or
+     *  that arrive via a personal guest link). Default false: open
+     *  RSVP is correct for casual / public events. */
+    guestListOnly?: boolean;
   };
   /** Host-controlled RSVP button styling — pearl (default),
    *  pill, hairline, or paper tag — plus pulse + custom label.

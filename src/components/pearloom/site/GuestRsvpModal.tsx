@@ -330,9 +330,19 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
       for (let i = 0; i < replies.length; i++) {
         const { guestName, reply } = replies[i];
         const guestEmail = i === 0 ? email.trim() : (email.trim() ? `${email.trim().split('@')[0]}+${i}@${email.trim().split('@')[1] ?? 'guests.pearloom.com'}` : '');
+        /* Personal guest-link token (?g= / ?guest=) rides along so
+           invitation-only sites recognize the guest even before
+           their email matches the list. */
+        const urlToken = (() => {
+          try {
+            const sp = new URLSearchParams(window.location.search);
+            return sp.get('g') || sp.get('guest') || undefined;
+          } catch { return undefined; }
+        })();
         const body = {
           siteId: siteSlug,
           guestName,
+          guestToken: urlToken,
           email: guestEmail || undefined,
           status: reply.attending === 'yes' ? 'attending' : 'declined',
           mealPreference: reply.attending === 'yes' ? reply.meal || null : null,
