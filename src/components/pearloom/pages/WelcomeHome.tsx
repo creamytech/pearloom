@@ -310,6 +310,9 @@ export function WelcomeHome() {
             <ActivityFeed activity={recentActivity} stage={stage} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {daysUntil != null && daysUntil < 0 && site?.domain && (
+              <RememberingCard domain={site.domain} occasion={occasion} daysSince={-daysUntil} />
+            )}
             {/* One urgent task could shout four times (hero NEXT UP,
                 this card, a Pear todo, a milestone row). When the
                 golden thread already names the nudge, the momentum
@@ -1402,6 +1405,74 @@ function milestoneDotStyle(status: MilestoneStatus): { bg: string; border: strin
 // ─────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// RememberingCard — the third act, surfaced.
+//
+// The Remember loop already runs server-side (day-after recap
+// email, anniversary rebroadcast cron, /sites/{slug}/recap built
+// from guest photos + guestbook + RSVP notes) — but the dashboard
+// never told the host any of it existed. Once the date passes,
+// this card leads the right column. Every link is a real surface.
+// ─────────────────────────────────────────────────────────────
+function RememberingCard({ domain, occasion, daysSince }: { domain: string; occasion: string; daysSince: number }) {
+  const solemn = occasion === 'memorial' || occasion === 'funeral';
+  const recapHref = `/sites/${domain}/recap`;
+  return (
+    <section
+      style={{
+        background: 'var(--card)',
+        border: '1px solid var(--gold-line, #D0B070)',
+        borderRadius: 'var(--r-md, 20px)',
+        padding: '18px 18px 14px',
+      }}
+    >
+      <SectionHeader icon="bookmark">{solemn ? 'The remembering' : 'The remembering begins'}</SectionHeader>
+      <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5, margin: '-6px 0 12px' }}>
+        {daysSince === 1 ? 'Yesterday' : `${daysSince} days ago`} — and the memory book is already weaving
+        itself from your guests&rsquo; photos, signatures, and notes. It grows as more arrives.
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <Link
+          href={recapHref}
+          style={{
+            display: 'flex', alignItems: 'baseline', gap: 8,
+            padding: '9px 12px', borderRadius: 12,
+            border: '1px solid var(--gold-line, #D0B070)', textDecoration: 'none',
+          }}
+        >
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>Open the memory book</span>
+          <span style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>share it with everyone who was there</span>
+          <span aria-hidden style={{ marginLeft: 'auto', color: 'var(--gold, #C19A4B)', fontSize: 13 }}>→</span>
+        </Link>
+        <Link
+          href="/dashboard/memory-book"
+          style={{
+            display: 'flex', alignItems: 'baseline', gap: 8,
+            padding: '9px 12px', borderRadius: 12,
+            border: '1px dashed var(--line)', textDecoration: 'none',
+          }}
+        >
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>Print the keepsake</span>
+          <span aria-hidden style={{ marginLeft: 'auto', color: 'var(--pl-olive, #5C6B3F)', fontSize: 13 }}>→</span>
+        </Link>
+        {!solemn && (
+          <Link
+            href="/dashboard/rsvp"
+            style={{
+              display: 'flex', alignItems: 'baseline', gap: 8,
+              padding: '9px 12px', borderRadius: 12,
+              border: '1px dashed var(--line)', textDecoration: 'none',
+            }}
+          >
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>Send the thank-yous</span>
+            <span aria-hidden style={{ marginLeft: 'auto', color: 'var(--pl-olive, #5C6B3F)', fontSize: 13 }}>→</span>
+          </Link>
+        )}
+      </div>
+    </section>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────
 // SiblingEventsCard — the rest of the weekend.
 //

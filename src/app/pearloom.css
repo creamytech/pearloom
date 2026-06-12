@@ -169,7 +169,7 @@
 .muted { color: var(--ink-muted); }
 .ink-soft { color: var(--ink-soft); }
 .peach-ink { color: var(--peach-ink); }
-.lav-ink { color: var(--lavender-ink); }
+
 
 /* Atmosphere wrappers — unscoped positioning helpers */
 .atmosphere {
@@ -186,11 +186,7 @@
   position: relative;
 }
 .polaroid img { width: 100%; display: block; background: #e8e4d5; }
-.polaroid-caption {
-  position: absolute; bottom: 8px; left: 0; right: 0;
-  text-align: center; font-family: var(--font-script);
-  font-size: 20px; color: var(--ink-soft);
-}
+
 .tape {
   position: absolute;
   width: 70px; height: 22px;
@@ -213,9 +209,9 @@
   text-transform: uppercase;
   box-shadow: var(--shadow);
 }
-.stamp-peach { background: var(--peach); }
-.stamp-sage { background: var(--sage-bg); }
-.stamp-cream { background: var(--cream-2); }
+
+
+
 
 /* Hover lift — unscoped */
 .lift {
@@ -236,13 +232,13 @@
 .bob        { animation: pearloom-bob 4s ease-in-out infinite; }
 
 /* Rotation utilities — unscoped */
-.rot-n3 { transform: rotate(-3deg); }
-.rot-n2 { transform: rotate(-2deg); }
-.rot-2  { transform: rotate(2deg); }
-.rot-3  { transform: rotate(3deg); }
-.rot-5  { transform: rotate(5deg); }
-.rot-8  { transform: rotate(-8deg); }
-.rot-12 { transform: rotate(12deg); }
+
+
+
+
+
+
+
 
 /* Misc — unscoped */
 .heart { color: var(--heart); }
@@ -258,10 +254,7 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
   0%   { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-.pl-pearl-rotate {
-  animation: pl-pearl-rotate 2.4s linear infinite;
-  transform-origin: center;
-}
+
 
 /* Honour reduced motion for the unscoped animation helpers. The
    scoped .pl8 + .pl8-guest blocks below already cover their own
@@ -320,7 +313,7 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 .pl8 .muted { color: var(--ink-muted); }
 .pl8 .ink-soft { color: var(--ink-soft); }
 .pl8 .peach-ink { color: var(--peach-ink); }
-.pl8 .lav-ink { color: var(--lavender-ink); }
+
 
 /* Buttons */
 .pl8 .btn {
@@ -354,8 +347,8 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 .pl8 .btn-outline:hover { background: var(--cream-2); border-color: var(--ink-soft); }
 .pl8 .btn-ghost { color: var(--ink); background: transparent; }
 .pl8 .btn-ghost:hover { background: var(--cream-2); }
-.pl8 .btn-cream { background: var(--cream); color: var(--ink); }
-.pl8 .btn-cream:hover { background: var(--cream-2); }
+
+
 .pl8 .btn-lg { padding: 16px 28px; font-size: 15px; }
 .pl8 .btn-sm { padding: 8px 14px; font-size: 13px; }
 
@@ -366,8 +359,8 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
   border-radius: var(--r-md);
   box-shadow: var(--shadow-sm);
 }
-.pl8 .card-pad { padding: 22px; }
-.pl8 .card-pad-lg { padding: 28px; }
+
+
 
 /* Pills */
 .pl8 .pill {
@@ -378,10 +371,10 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
   color: var(--ink-soft);
 }
 .pl8 .pill-sage { background: var(--sage-tint); color: var(--sage-deep); border-color: transparent; }
-.pl8 .pill-lav, .pl8 .pill-lavender { background: var(--lavender-bg); color: var(--lavender-ink); border-color: transparent; }
+
 .pl8 .pill-peach { background: var(--peach-bg); color: var(--peach-ink); border-color: transparent; }
-.pl8 .pill-cream { background: var(--cream-2); color: var(--ink-soft); border-color: transparent; }
-.pl8 .pill-filled { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+
+
 
 /* Chips */
 .pl8 .chip {
@@ -395,11 +388,11 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 }
 .pl8 .chip:hover { background: var(--cream-2); transform: translate3d(0, -1px, 0); }
 .pl8 .chip:active { transform: translate3d(0, 0, 0) scale(0.98); transition-duration: 120ms; }
-.pl8 .chip-on { background: var(--ink); color: var(--cream); border-color: var(--ink); }
-.pl8 .chip-sage { background: var(--sage-tint); color: var(--sage-deep); border-color: transparent; }
-.pl8 .chip-lavender { background: var(--lavender-bg); color: var(--lavender-ink); border-color: transparent; }
-.pl8 .chip-peach { background: var(--peach-bg); color: var(--peach-ink); border-color: transparent; }
-.pl8 .chip-cream { background: var(--cream-2); color: var(--ink-soft); border-color: transparent; }
+
+
+
+
+
 
 /* Polaroids + tape */
 .pl8 .polaroid {
@@ -409,11 +402,7 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
   position: relative;
 }
 .pl8 .polaroid img { width: 100%; display: block; background: #e8e4d5; }
-.pl8 .polaroid-caption {
-  position: absolute; bottom: 8px; left: 0; right: 0;
-  text-align: center; font-family: var(--font-script);
-  font-size: 20px; color: var(--ink-soft);
-}
+
 .pl8 .tape {
   position: absolute;
   width: 70px; height: 22px;
@@ -466,7 +455,7 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
   font-family: var(--font-display); font-weight: 700;
   font-size: 24px; color: var(--ink);
 }
-.pl8 .logo-glyph { width: 34px; height: 34px; flex: 0 0 34px; }
+
 
 .pl8-topnav-logo {
   transition: transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -697,13 +686,13 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 }
 
 /* Util */
-.pl8 .rot-n3 { transform: rotate(-3deg); }
-.pl8 .rot-n2 { transform: rotate(-2deg); }
-.pl8 .rot-2  { transform: rotate(2deg); }
-.pl8 .rot-3  { transform: rotate(3deg); }
-.pl8 .rot-5  { transform: rotate(5deg); }
-.pl8 .rot-8  { transform: rotate(-8deg); }
-.pl8 .rot-12 { transform: rotate(12deg); }
+
+
+
+
+
+
+
 .pl8 .heart { color: var(--heart); }
 .pl8 .spark { color: var(--gold); }
 .pl8 hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 0; }
@@ -862,15 +851,15 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
   font-size: 13.5px; font-weight: 500;
   background: var(--card); border: 1px solid var(--line); color: var(--ink);
 }
-.pl8-guest .chip-sage { background: var(--sage-tint); color: var(--sage-deep); border-color: transparent; }
-.pl8-guest .chip-lavender { background: var(--lavender-bg); color: var(--lavender-ink); border-color: transparent; }
-.pl8-guest .chip-peach { background: var(--peach-bg); color: var(--peach-ink); border-color: transparent; }
-.pl8-guest .chip-cream { background: var(--cream-2); color: var(--ink-soft); border-color: transparent; }
-.pl8-guest .chip-gold { background: color-mix(in oklab, var(--gold) 20%, var(--cream)); color: var(--ink); border-color: transparent; }
+
+
+
+
+
 .pl8-guest .pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 500; background: var(--card); border: 1px solid var(--line); color: var(--ink-soft); }
 
 .pl8-guest .pl8-cols-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.pl8-guest .pl8-cols-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
 
 @media (max-width: 960px) {
   .pl8-guest .pl8-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
@@ -878,36 +867,36 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
      two large cards to one row at iPad width burns vertical space
      and makes the section feel half-empty. Only drop to 1-col on
      phone (see ≤640px rule below). */
-  .pl8-guest .pl8-site-nav-links { display: none !important; }
-  .pl8-guest .pl8-timeline-thread { display: none !important; }
-  .pl8-guest .pl8-timeline-row { grid-template-columns: 1fr !important; }
-  .pl8-guest .pl8-timeline-row > div:empty { display: none; }
+  
+  
+  
+  
   /* Schedule row at tablet (641-960px): 90px time column (was 70px)
      so the formal "in words" time fits on 1-2 lines instead of 3.
      ≤640px collapses to single column — see dedicated rule below. */
   .pl8-guest .pl8-schedule-row { grid-template-columns: 90px 1fr !important; padding: 18px 22px !important; gap: 18px !important; }
   .pl8-guest .pl8-schedule-row > div:last-child { grid-column: 1 / -1; text-align: left !important; }
   .pl8-guest .pl8-schedule-row > .display { font-size: 17px !important; line-height: 1.25 !important; }
-  .pl8-guest .pl8-hero-strip { grid-template-columns: repeat(3, 1fr) !important; }
-  .pl8-guest .pl8-hero-strip > div { margin-top: 0 !important; }
-  .pl8-guest .pl8-hero-strip > div:nth-child(n+4) { display: none; }
+  
+  
+  
   /* Gallery rows scale with viewport at tablet — 140px fixed was
      drawn for phone but applied at 768-960px too, making each
      tile a stamp-sized square. Use cqw so iPad portrait gets
      proper photo proportions (~240px per tile vs cramped 140px). */
-  .pl8-guest .pl8-gallery-grid { grid-template-columns: repeat(2, 1fr) !important; grid-auto-rows: clamp(140px, 30vw, 260px) !important; }
-  .pl8-guest .pl8-gallery-grid > div { grid-column: auto !important; grid-row: auto !important; }
-  .pl8-guest .pl8-gallery-header { flex-direction: column !important; align-items: flex-start !important; gap: 14px; }
-  .pl8-guest .pl8-site-footer-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
-  .pl8-guest .pl8-hide-mobile { display: none !important; }
+  
+  
+  
+  
+  
 }
 
 @media (max-width: 640px) {
   .pl8-guest .pl8-cols-3 { grid-template-columns: 1fr !important; }
-  .pl8-guest .pl8-cols-2 { grid-template-columns: 1fr !important; }
+  
   /* Phone gallery shrinks rows back to ~180px — half of viewport
      looks better than the 30vw tablet ratio at 360px. */
-  .pl8-guest .pl8-gallery-grid { grid-auto-rows: 180px !important; }
+  
 }
 
 /* ── Schedule rows: stack vertically on phone ──────────────────
@@ -959,10 +948,7 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
   /* Gallery — already drops to 2-col at 960px; on phone go full
      width so each image actually reads. 2-col at 360px makes
      each tile ~157px square, too small for context. */
-  .pl8-guest .pl8-gallery-grid {
-    grid-template-columns: 1fr !important;
-    grid-auto-rows: minmax(200px, auto) !important;
-  }
+  
 
 }
 
@@ -979,33 +965,7 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
    - Nav padding tightens
 
    Result: top reads as "Our celebration · 🌐" — minimal, beautiful. */
-@media (max-width: 640px) {
-  .pl8-guest .pl8-site-nav > div {
-    padding-left: 14px !important;
-    padding-right: 14px !important;
-    gap: 10px !important;
-  }
-  /* In-nav RSVP button — redundant with the sticky bottom CTA
-     on mobile. Hiding it lets the brand breathe. */
-  .pl8-guest .pl8-nav-rsvp {
-    display: none !important;
-  }
-  /* Language pill — icon-only on phone. The label drops out;
-     the globe icon is universally read. Tapping still opens the
-     dropdown menu so multilingual guests aren't stranded. */
-  .pl8-guest .pl8-lang-switcher {
-    padding: 8px 10px !important;
-    font-size: 0 !important; /* drop label width entirely */
-    gap: 0 !important;
-  }
-  .pl8-guest .pl8-lang-switcher > svg {
-    font-size: initial !important; /* icon still renders */
-  }
-  .pl8-guest .pl8-lang-label,
-  .pl8-guest .pl8-lang-dot {
-    display: none !important;
-  }
-}
+
 
 /* ── Short-landscape (phone rotated, foldable open) ─────────────
    When the viewport is <560px tall (phone in landscape, Galaxy
@@ -1014,10 +974,7 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
    hero heights, drop nav padding, and lift sticky bottom chrome
    slightly so it doesn't cover the floating "Begin" CTA. */
 @media (max-height: 560px) and (orientation: landscape) {
-  .pl8-guest .pl8-site-nav > div {
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
-  }
+  
   /* Cap hero vertical heights — the first content card needs to
      be visible without scroll. Targets the published hero
      wrappers used by every variant. */
@@ -1037,11 +994,8 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
   .pl8-guest .pl8-schedule-row {
     padding: 16px 14px !important;
   }
-  .pl8-guest .pl8-hero-strip {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 8px !important;
-  }
-  .pl8-guest .pl8-hero-strip > div:nth-child(n+3) { display: none; }
+  
+  
   /* NO .pl8-hotel-row rules here — a previous block hid the
      row's last child to make room in the old "hotel legend"
      (32px number pin + name + distance). That component is gone,
@@ -1127,26 +1081,13 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
    the existing rule caps at 3, but the photos themselves still
    carry desktop padding. Shrink polaroid borders on phone so the
    strip doesn't blow past the viewport. */
-@media (max-width: 640px) {
-  .pl8-guest .pl8-hero-strip {
-    gap: 6px !important;
-  }
-  .pl8-guest .pl8-hero-strip > div {
-    padding: 4px !important;
-  }
-}
+
 
 /* Hotel card grid — gridTemplateColumns "120px 1fr" is the photo
    + content split. On phone, drop the photo column to 84px so
    the content has more horizontal space without becoming a
    single-column stack (which would lose the photo orientation). */
-@media (max-width: 480px) {
-  .pl8-guest .pl8-hotel-card {
-    grid-template-columns: 84px 1fr !important;
-    gap: 10px !important;
-    padding: 10px !important;
-  }
-}
+
 
 /* Modal full-bleed on phone. Quick Edit modals at 960px are
    useless at 360px — drop the 24px outer padding so the modal
@@ -1247,11 +1188,7 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 
 /* Reading-progress hairline — beef up to 3px on phone so the
    subtle peach line doesn't disappear on 1px-DPR screens. */
-@media (max-width: 640px) {
-  .pl8-reading-progress {
-    height: 3px;
-  }
-}
+
 
 /* ═══════════════════════════════════════════════════════════════
    MARKETING + DASHBOARD MOBILE PASS — scale down hardcoded
@@ -1266,16 +1203,7 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
    it's wading through gutters. Targets `.pl8-marketing` and
    landing-page wrappers; dashboard shell uses its own padding
    tokens already. */
-@media (max-width: 640px) {
-  .pl8-marketing section,
-  .pl8-design-page section,
-  .pl-design-root section {
-    padding-top: clamp(40px, 12vw, 80px) !important;
-    padding-bottom: clamp(40px, 12vw, 80px) !important;
-    padding-left: clamp(16px, 5vw, 24px) !important;
-    padding-right: clamp(16px, 5vw, 24px) !important;
-  }
-}
+
 
 /* Dashboard pages — empty states sometimes set padding: 60px 56px
    which is way too much horizontal on phone. Scope a generic
@@ -1300,29 +1228,14 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
    below the 16px input threshold) so paragraphs read comfortably.
    Display headings + tracked uppercase labels are exempt — they
    carry their own typography. */
-@media (max-width: 640px) {
-  .pl8-marketing p,
-  .pl8-marketing li,
-  .pl8-marketing span:not(.eyebrow),
-  .pl8-design-page p,
-  .pl8-design-page li {
-    font-size: max(14px, 1em);
-    line-height: 1.6;
-  }
-}
+
 
 /* maxWidth containers — many marketing components set
    maxWidth: 1200-1320 + margin: 0 auto without horizontal
    padding. On a 360px phone the container just sits flush to
    the edges, no breathing room. Add a default margin/padding
    pair so any element with maxWidth pulls back from the edge. */
-@media (max-width: 640px) {
-  .pl8-marketing [style*="maxWidth"],
-  .pl8-design-page [style*="maxWidth"] {
-    padding-left: clamp(0px, 4vw, 20px);
-    padding-right: clamp(0px, 4vw, 20px);
-  }
-}
+
 
 /* Sub-375px collapse — older / smaller phones (iPhone SE 1st gen,
    Galaxy Fold cover screen). At < 375px any 2-column grid feels
@@ -1334,12 +1247,8 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
   .pl8-cols-4 {
     grid-template-columns: 1fr !important;
   }
-  .pl8-guest .pl8-hotel-card {
-    grid-template-columns: 1fr !important;
-  }
-  .pl8-guest .pl8-hotel-card > * {
-    width: 100% !important;
-  }
+  
+  
 }
 
 /* Forms — labels often render at 11px. Bump to 13px on phone so
@@ -1396,19 +1305,19 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 /* Two-col layouts that stack on tablet */
 .pl8-split { display: grid; grid-template-columns: 1fr 1.15fr; gap: 40px; align-items: start; }
 .pl8-split-auth { display: grid; grid-template-columns: 1fr 1.1fr; gap: 80px; align-items: center; }
-.pl8-split-wizard { display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start; }
-.pl8-split-dash { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 22px; }
+
+
 
 /* Card grids */
-.pl8-cols-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.pl8-cols-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.pl8-cols-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
-.pl8-cols-5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
 
-.pl8-dash-threecol { display: grid; grid-template-columns: 1.1fr 1.1fr 1.2fr; gap: 16px; }
-.pl8-dash-threecol-b { display: grid; grid-template-columns: 1.4fr 1fr 1.2fr; gap: 16px; }
-.pl8-kickoff { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-@media (max-width: 960px) { .pl8-kickoff { grid-template-columns: 1fr !important; gap: 12px; } }
+.pl8-cols-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+
+
+
+
+
+
+
 
 /* ════════════════════════════════════════════════════════════
    Dashboard motion system v2 — refined entries, hover lifts,
@@ -1551,16 +1460,14 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 
 /* ── Button ripple-ish press ─────────────────────────────────
    Apply on primary CTAs to add a subtle scale-down on tap. */
-.pl8-btn-press {
-  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 220ms ease;
-}
-.pl8-btn-press:active { transform: scale(0.97); transition-duration: 80ms; }
+
+
 
 /* ── Icon tile breathing ─────────────────────────────────────
    Empty-state mascot or tile icon gets a slow breath when its
    parent is hovered, telegraphing interactivity. */
-.pl8-tile-breath { transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1); }
-.pl8-card-lift:hover .pl8-tile-breath { transform: scale(1.06); }
+
+
 
 /* ── Skeleton → content crossfade ────────────────────────────
    When a list mounts content over a previous skeleton row, the
@@ -1603,42 +1510,25 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
    Default Windows scrollbars are 17px chunky and visually clash
    with the editor's understated chrome. macOS auto-hides theirs
    so this is mostly Windows polish. */
-.pl8-editor-outline::-webkit-scrollbar,
-.pl8-editor-inspector::-webkit-scrollbar { width: 8px; }
-.pl8-editor-outline::-webkit-scrollbar-track,
-.pl8-editor-inspector::-webkit-scrollbar-track { background: transparent; }
-.pl8-editor-outline::-webkit-scrollbar-thumb,
-.pl8-editor-inspector::-webkit-scrollbar-thumb {
-  background: var(--line-soft);
-  border-radius: 999px;
-  border: 2px solid var(--cream);
-}
-.pl8-editor-outline:hover::-webkit-scrollbar-thumb,
-.pl8-editor-inspector:hover::-webkit-scrollbar-thumb { background: var(--line); }
-.pl8-editor-outline,
-.pl8-editor-inspector { scrollbar-width: thin; scrollbar-color: var(--line-soft) transparent; }
+
+
+
+
+
 
 /* Invite designer + canvas inspector — collapse the right rail
    into a stacked column on tablet and mobile. The aside has rich
    per-element controls; on small screens it sits below the canvas
    instead of next to it. */
-@media (max-width: 960px) {
-  .pl8-invite-layout { grid-template-columns: 1fr !important; }
-  .pl8-invite-inspector { position: static !important; max-height: none !important; }
-}
+
 
 .pl8-pulse-layout { display: grid; grid-template-columns: 280px 1fr; gap: 28px; align-items: center; }
 @media (max-width: 960px) {
   .pl8-pulse-layout { grid-template-columns: 1fr !important; }
 }
-.pl8-pulse-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
 
-.pl8-footer-strip {
-  display: grid;
-  grid-template-columns: auto 1fr auto auto auto;
-  gap: 22px;
-  align-items: center;
-}
+
+
 
 /* Nav-link visibility */
 .pl8-desktop-only { display: inline-flex; }
@@ -1657,15 +1547,11 @@ button.pl8-mobile-only { display: none !important; }
     gap: 22px;
   }
   .pl8-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  .pl8-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  .pl8-cols-5 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  
+  
   .pl8-pulse-layout { grid-template-columns: 1fr !important; gap: 18px; }
-  .pl8-pulse-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 14px; }
-  .pl8-footer-strip {
-    grid-template-columns: 1fr !important;
-    text-align: center;
-    justify-items: center;
-  }
+  
+  
   .pl8 .nav-links { display: none !important; }
   .pl8 .topnav-inner { padding: 14px 20px; gap: 12px; flex-wrap: wrap; }
   .pl8 .container { padding: 0 20px; }
@@ -1673,18 +1559,18 @@ button.pl8-mobile-only { display: none !important; }
 
 /* Phone breakpoint */
 @media (max-width: 640px) {
-  .pl8-cols-2 { grid-template-columns: 1fr !important; }
+  
   .pl8-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  .pl8-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  .pl8-cols-5 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
-  .pl8-pulse-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  
+  
+  
   .pl8-desktop-only { display: none !important; }
   .pl8-mobile-only { display: inline-flex !important; }
   button.pl8-mobile-only { display: inline-flex !important; }
   .pl8 .topnav-inner .btn-outline.btn-sm,
   .pl8 .topnav-inner .btn-ghost.btn-sm { padding: 6px 10px; font-size: 12px; }
   .pl8 .logo { font-size: 20px; gap: 6px; }
-  .pl8 .logo-glyph { width: 28px; height: 28px; flex: 0 0 28px; }
+  
   /* Heading elements only on the chrome side — .pl8 surfaces use
      small .display divs/spans (14–26px) for editorial labels (the
      wizard's phase word, dash card titles); a blanket clamp here
@@ -1814,10 +1700,10 @@ button.pl8-mobile-only { display: none !important; }
 
 /* Home hero tweaks on mobile */
 @media (max-width: 960px) {
-  .pl8-hero-right { display: none !important; }
-  .pl8-hero-left { padding-top: 0 !important; }
-  .pl8-hero-left > div { padding-left: 0 !important; }
-  .pl8-hero-left div[data-stamp] { position: static !important; transform: rotate(-12deg); margin-bottom: 12px; }
+  
+  
+  
+  
   .pl8 h1.display { font-size: clamp(42px, 12vw, 78px) !important; }
 }
 
@@ -1827,15 +1713,7 @@ button.pl8-mobile-only { display: none !important; }
 }
 
 /* Templates-specific */
-@media (max-width: 960px) {
-  .pl8-templates-hero { padding: 48px 20px 32px !important; }
-  .pl8-templates-hero h1.display { font-size: clamp(44px, 11vw, 72px) !important; }
-  .pl8-filter-bar { padding: 12px 20px !important; }
-  .pl8-pear-offer {
-    grid-template-columns: 1fr !important;
-    padding: 32px 24px !important;
-  }
-}
+
 
 /* Day-of tweaks */
 @media (max-width: 960px) {
@@ -1852,72 +1730,39 @@ button.pl8-mobile-only { display: none !important; }
   .pl8-builder-topbar .btn-outline { padding: 8px 12px; }
   .pl8-builder-outline { width: 220px !important; }
   .pl8-builder-style { width: 260px !important; }
-  .pl8-editor-outline { width: 220px !important; }
-  .pl8-editor-inspector { width: 320px !important; }
+  
+  
 }
 
 /* Rail resize handles — invisible 6px hit strips by default;
    on hover/drag a 1px peach-ink line bleeds through so the host
    has visible feedback they can drag. The 200ms ease keeps it
    subtle so it doesn't compete with content for attention. */
-.pl8-rail-resize-handle {
-  position: relative;
-}
-.pl8-rail-resize-handle::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 1px;
-  height: 100%;
-  background: var(--peach-ink, #C6703D);
-  opacity: 0;
-  transition: opacity 200ms ease;
-  pointer-events: none;
-}
-.pl8-rail-resize-handle:hover::after,
-.pl8-rail-resize-handle:active::after {
-  opacity: 0.6;
-}
+
+
+
 
 /* Editor dropdown menu items — flat by default, light cream-2
    wash on hover/focus so the host has a clear "this is the row
    you're about to pick" affordance. Used by DesignMenu and any
    other inline-styled menuitem buttons that opt in via class. */
-.pl8-menu-item {
-  transition: background 140ms ease;
-}
-.pl8-menu-item:hover,
-.pl8-menu-item:focus-visible {
-  background: var(--cream-2) !important;
-  outline: none;
-}
+
+
 
 /* Editor icon buttons — undo / redo / preview link / kbd hint
    etc. The topbar's iconBtn helper sets visual specs but no
    hover state; this class adds a subtle cream-2 wash and a
    color shift on hover/focus. Disabled icon buttons stay
    static via :not([disabled]). */
-.pl8-icon-btn {
-  transition: background 140ms ease, color 140ms ease;
-}
-.pl8-icon-btn:not([disabled]):hover,
-.pl8-icon-btn:not([disabled]):focus-visible {
-  background: var(--cream-2);
-  color: var(--ink);
-}
+
+
 
 /* Editor ghost buttons — pill-shaped outlined buttons in the
    topbar (Ask Pear, Dashboard) and elsewhere. The inline
    ghostBtn helper declares a transition but defines no hover
    target; this class fills the gap so the buttons actually
    respond to mouse + keyboard. */
-.pl8-ghost-btn:not([disabled]):hover,
-.pl8-ghost-btn:not([disabled]):focus-visible {
-  background: var(--cream-2);
-  color: var(--ink);
-  border-color: var(--line);
-}
+
 
 /* Editor-wide focus ring — a peach hairline + soft halo so
    keyboard hosts can see exactly where they are. Mirrors the
@@ -1927,48 +1772,15 @@ button.pl8-mobile-only { display: none !important; }
    don't accidentally pick up the ring. Inputs/textareas/selects
    already define their own focus state in this stylesheet —
    the :where() selector keeps specificity low so those win. */
-:where(.pl8-editor-v8) a:focus-visible,
-:where(.pl8-editor-v8) button:focus-visible,
-:where(.pl8-editor-v8) [role="button"]:focus-visible,
-:where(.pl8-editor-v8) [role="tab"]:focus-visible,
-:where(.pl8-editor-v8) [role="option"]:focus-visible,
-:where(.pl8-editor-v8) [role="menuitem"]:focus-visible,
-:where(.pl8-editor-v8) [role="separator"]:focus-visible,
-:where(.pl8-editor-v8) select:focus-visible,
-:where(.pl8-editor-v8) summary:focus-visible {
-  outline: 2px solid var(--peach-ink, #C6703D);
-  outline-offset: 2px;
-  border-radius: inherit;
-}
+
 
 /* Skip-to-canvas link — first focusable element in EditorV8.
    Hidden offscreen until focused (the standard a11y pattern), at
    which point it slides into the top-left as a peach pill so the
    keyboard host can choose to bypass the topbar + outline rail and
    land directly inside the canvas content. */
-.pl8-skip-link {
-  position: absolute;
-  top: -40px;
-  left: 12px;
-  z-index: 9999;
-  padding: 8px 14px;
-  background: var(--peach-ink, #C6703D);
-  color: var(--cream, #FBF7EE);
-  font-family: var(--font-ui);
-  font-size: 12.5px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  border-radius: 999px;
-  text-decoration: none;
-  box-shadow: 0 8px 24px rgba(14,13,11,0.32);
-  transition: top 180ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.pl8-skip-link:focus,
-.pl8-skip-link:focus-visible {
-  top: 12px;
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
-}
+
+
 @media (max-width: 900px) {
   .pl8-builder-main { flex-direction: column !important; overflow-y: auto; }
   .pl8-builder-outline,
@@ -1985,73 +1797,22 @@ button.pl8-mobile-only { display: none !important; }
 }
 
 /* Editor v8 mobile — the full-height drawers slide up over the canvas. */
-@keyframes pl8-drawer-up {
-  from { transform: translateY(100%); opacity: 0.6; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
-@media (max-width: 959px) {
-  .pl8-editor-drawer { width: 100% !important; }
-  /* The mobile drawer supersedes the inline outline/inspector panels,
-     which are hidden by the component tree at <960px anyway. */
-}
+
+
 
 /* Marketplace grid + sidebar responsive behavior */
-.pl8-mkt-grid { display: grid; gap: 24px; }
-.pl8-mkt-grid-lg { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.pl8-mkt-grid-md { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
-@media (max-width: 1100px) {
-  .pl8-mkt-layout { grid-template-columns: 1fr !important; }
-  .pl8-mkt-sidebar { position: static !important; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
-  .pl8-mkt-grid-md { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  .pl8-mkt-grid-lg { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-}
+
+
+
+
 /* Mobile-only pagination: hide tiles past the initial 12 at ≤720px */
-.pl8-mkt-show-more { display: none; }
+
 /* Widen the search input on narrow screens so it fills the stack */
-@media (max-width: 720px) {
-  .pl8-mkt-search { width: 100% !important; }
-  .pl8-mkt-search > div { width: 100% !important; }
-}
-@media (max-width: 720px) {
-  .pl8-mkt-tile-hidden-mobile { display: none !important; }
-  /* Reveal the "Show more" button only on narrow screens — desktop
-     sees the full grid at load. */
-  .pl8-mkt-show-more { display: block !important; }
-  /* Collapse the occasion sidebar to a horizontally-scrolling chip
-     rail so the mobile templates page doesn't become 30k pixels
-     tall. Apply to the direct sidebar *container* only; its inner
-     group/occasion lists stay as-is. */
-  .pl8-mkt-sidebar {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    gap: 10px !important;
-    padding: 10px 20px 14px !important;
-    margin: 0 -20px !important;
-    scrollbar-width: thin;
-    -webkit-overflow-scrolling: touch;
-  }
-  .pl8-mkt-sidebar > * {
-    flex: 0 0 auto;
-    min-width: 128px;
-    max-width: 180px;
-  }
-  /* Keep a 2-column grid on mobile — 1 col × 56 tiles makes
-     an endless scroll. 2 tiles fit comfortably at 390px with
-     reduced gap. */
-  .pl8-mkt-grid-md,
-  .pl8-mkt-grid-lg {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 12px !important;
-  }
-  .pl8-mkt-filterbar { grid-template-columns: 1fr !important; }
-}
+
+
 
 /* Invite designer responsive */
-@media (max-width: 1000px) {
-  .pl8-invite-layout { grid-template-columns: 1fr !important; }
-  .pl8-invite-inspector { position: static !important; }
-}
+
 
 /* Keepsakes page grid */
 .pl8-keepsakes-grid {
@@ -2065,27 +1826,10 @@ button.pl8-mobile-only { display: none !important; }
 }
 
 /* Editor inputs in inspector use a more compact look */
-.pl8-editor-inspector input[type="text"],
-.pl8-editor-inspector input[type="email"],
-.pl8-editor-inspector input[type="url"],
-.pl8-editor-inspector input[type="date"],
-.pl8-editor-inspector input[type="time"],
-.pl8-editor-inspector select,
-.pl8-editor-inspector textarea {
-  font-family: var(--font-ui);
-}
-.pl8-editor-inspector .pl8-input:hover {
-  border-color: var(--ink-muted, #6F6557);
-}
-.pl8-editor-inspector .pl8-input:focus {
-  border-color: var(--peach-ink, #C6703D) !important;
-  box-shadow: 0 0 0 3px rgba(198,112,61,0.18);
-  background: var(--card);
-}
-.pl8-editor-inspector .pl8-input::placeholder {
-  color: var(--ink-muted, #6F6557);
-  opacity: 0.6;
-}
+
+
+
+
 
 /* Memory Book + Passport card print mode */
 @media print {
@@ -2126,41 +1870,13 @@ button.pl8-mobile-only { display: none !important; }
 
 /* ── Scroll-spy active state — paints the matching nav link
    when its section is in view (set by GuestKit2 ScrollSpy). ── */
-.pl8-site-nav-links a {
-  position: relative;
-}
-.pl8-site-nav-links a::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -2px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--peach-ink, #C6703D) 0%, var(--gold, #C19A4B) 100%);
-  border-radius: 2px;
-  transform: scaleX(0);
-  transform-origin: center;
-  opacity: 0;
-  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 240ms ease;
-}
-.pl8-site-nav-links a:hover {
-  color: var(--ink) !important;
-}
-.pl8-site-nav-links a:hover::after {
-  transform: scaleX(1);
-  opacity: 0.6;
-}
-.pl8-site-nav-links a[data-pl-scroll-active="1"] {
-  color: var(--ink) !important;
-  font-weight: 600;
-}
-.pl8-site-nav-links a[data-pl-scroll-active="1"]::after {
-  transform: scaleX(1);
-  opacity: 1;
-}
-@media (prefers-reduced-motion: reduce) {
-  .pl8-site-nav-links a::after { transition: none; }
-}
+
+
+
+
+
+
+
 
 /* ──────────────────────────────────────────────────────────────
    pl8 — Per-variant nav polish (2026-06-01)
@@ -2171,64 +1887,42 @@ button.pl8-mobile-only { display: none !important; }
 
 /* Hairline horizontal — pure restraint. The RSVP "button" is
    a 1px outlined chip; on hover it flips ink. */
-.pl8-guest .pl8-nav-hairline { border-bottom: 1px solid var(--nav-divider, rgba(61,74,31,0.10)); }
-.pl8-guest .pl8-nav-rsvp-hairline:hover {
-  background: var(--nav-ink, var(--ink));
-  color: var(--nav-surface-scrolled, var(--cream, #FBF7EE)) !important;
-}
+
+
 
 /* Centered lockup — the tiny gold hairline under the names is
    the brand signature. Subtle width-expand on header hover. */
-.pl8-guest .pl8-nav-centered-lockup { row-gap: 4px; }
+
 
 /* Stacked editorial — editorial mono link row. The thin rule
    between the lockup and links should feel surgical, not heavy. */
-.pl8-guest .pl8-nav-editorial-links a:hover {
-  color: var(--nav-ink, var(--ink)) !important;
-}
-.pl8-guest .pl8-nav-editorial-rule {
-  background: linear-gradient(90deg, transparent 0%, var(--nav-divider, rgba(61,74,31,0.18)) 20%, var(--nav-divider, rgba(61,74,31,0.18)) 80%, transparent 100%);
-}
+
+
 
 /* Folio — page-number rows. Hover lifts the gold dot opacity
    and underlines the label only (the number + dot stay still). */
-.pl8-guest .pl8-nav-folio-link { transition: color var(--pl-dur-fast) var(--pl-ease-out); }
-.pl8-guest .pl8-nav-folio-link:hover { color: var(--nav-ink, var(--ink)) !important; }
+
+
 
 /* Floating pill — lift on header hover, tighter shadow on scroll. */
-.pl8-guest .pl8-nav-floating-pill:hover {
-  box-shadow: 0 14px 28px -14px rgba(40,28,12,0.26);
-}
+
 
 /* ── Mobile nav scaffolding ─────────────────────────────────── */
-.pl8-guest .pl8-mnav-bar { position: relative; }
-.pl8-guest .pl8-mnav-drawer-sheet a:active,
-.pl8-guest .pl8-mnav-hairline-sheet a:active {
-  background: var(--nav-divider, rgba(61,74,31,0.08));
-}
+
+
 
 /* Sticky bottom pill — make sure the drop shadow respects the
    safe-area inset on iPhones. The fixed positioning happens in
    the JSX; we just polish the visual here. */
-.pl8-guest .pl8-mnav-bottom-pill-mount { padding-bottom: max(0px, env(safe-area-inset-bottom)); }
+
 
 /* Folded expand — when the nav is hidden (pre-hero-scroll), pad
    out the editor canvas so the device frame's chrome doesn't
    collapse onto the hero. The transform negative-translate is
    handled inline. */
-@media (max-width: 720px) {
-  .pl8-guest .pl8-site-nav { z-index: 41; }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .pl8-guest .pl8-mnav-drawer-sheet,
-  .pl8-guest .pl8-mnav-hairline-sheet,
-  .pl8-guest .pl8-mnav-folded,
-  .pl8-guest .pl8-nav-floating-pill,
-  .pl8-guest .pl8-mnav-bottom-pill-mount {
-    transition: none !important;
-  }
-}
+
+
 
 
 /* ============================================================
@@ -2445,10 +2139,7 @@ html { scroll-behavior: smooth; }
 
 /* Gallery photo slight parallax — pulls each tile up 20px slower
    than scroll. The transform value is set per tile by JS. */
-.pl8-gallery-grid > * {
-  transition: transform 80ms linear;
-  will-change: transform;
-}
+
 
 /* Section-decor draw-on: applies a stroke-dashoffset animation to
    any inline <path> inside [data-pl-stroke-draw]. Triggers when the
@@ -2473,12 +2164,7 @@ html { scroll-behavior: smooth; }
    Uses 100dvh on supporting browsers so the mobile address bar
    doesn't push the layout taller than the visible area.
    ============================================================ */
-@supports (height: 100dvh) {
-  .pl8-editor-v8 {
-    height: 100dvh !important;
-    max-height: 100dvh !important;
-  }
-}
+
 
 /* ============================================================
    Dashboard navigation — instant, no animation.
@@ -2503,14 +2189,7 @@ html { scroll-behavior: smooth; }
    default — fade in on hover/focus-within so the canvas reads
    as the live site at rest, not as scaffolding. */
 
-[data-pl-block-sortable]:hover > .pl8-canvas-section-menu,
-[data-pl-block-sortable]:focus-within > .pl8-canvas-section-menu,
-.pl8-canvas-section-menu:hover,
-.pl8-canvas-section-menu:focus-within {
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  transform: translateY(0) !important;
-}
+
 
 /* ── Persistent grip handle ─────────────────────────────────
    Always visible on the LEFT edge of every section in edit
@@ -2518,59 +2197,15 @@ html { scroll-behavior: smooth; }
    site content; fully visible on hover. Acts as the drag
    handle for section reordering and as a discoverable
    "this is editable" affordance. */
-.pl8-canvas-grip {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 30;
-  width: 22px;
-  height: 30px;
-  border-radius: 6px;
-  border: none;
-  background: rgba(14, 13, 11, 0.62);
-  color: rgba(243, 233, 212, 0.92);
-  cursor: grab;
-  display: grid;
-  place-items: center;
-  touch-action: none;
-  opacity: 0.34;
-  transition: opacity 180ms cubic-bezier(0.22, 1, 0.36, 1), background-color 180ms ease, transform 180ms ease;
-  padding: 0;
-}
-.pl8-canvas-grip:hover,
-.pl8-canvas-grip:focus-visible {
-  opacity: 1;
-  background: rgba(14, 13, 11, 0.88);
-  outline: none;
-}
-[data-pl-block-sortable]:hover > .pl8-canvas-grip {
-  opacity: 0.86;
-}
-.pl8-canvas-grip:active {
-  cursor: grabbing;
-}
-@media (prefers-reduced-motion: reduce) {
-  .pl8-canvas-grip { transition: none !important; }
-}
-@media (max-width: 720px) {
-  /* On phone preview, the grip moves to the top-left corner
-     and gets larger so touch targets meet 44px. */
-  .pl8-canvas-grip {
-    top: 8px;
-    left: 8px;
-    width: 32px;
-    height: 32px;
-    opacity: 0.74;
-  }
-}
 
-@keyframes pl-bulk-bar-rise {
-  from { opacity: 0; transform: translate(-50%, 12px); }
-  to   { opacity: 1; transform: translate(-50%, 0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .pl8-canvas-bulk-bar { animation: none !important; }
-}
+
+
+
+
+
+
+
+
 
 /* ── Coarse-pointer (touch) overlay reveal ──────────────────
    Hover doesn't exist on touch devices, which leaves every
@@ -2580,35 +2215,11 @@ html { scroll-behavior: smooth; }
    can tap them directly, and they fade fully visible on tap.
    Audit's #5 mobile preview gap.
    ────────────────────────────────────────────────────────── */
-@media (pointer: coarse) {
-  .pl8-canvas-section-menu,
-  .pl8-photo-action-menu,
-  .pl8-divider-edit-chip {
-    opacity: 0.74 !important;
-    pointer-events: auto !important;
-    transform: translateY(0) !important;
-  }
-  .pl8-canvas-section-menu:active,
-  .pl8-photo-action-menu:active,
-  .pl8-divider-edit-chip:active {
-    opacity: 1 !important;
-  }
-  .pl8-canvas-grip {
-    opacity: 0.74;
-  }
-}
+
 /* Same treatment when the editor's frame is in phone preview
    mode — even on a desktop, the host is simulating touch. */
-.pl8-canvas-device-frame[data-device="phone"] .pl8-canvas-section-menu,
-.pl8-canvas-device-frame[data-device="phone"] .pl8-photo-action-menu,
-.pl8-canvas-device-frame[data-device="phone"] .pl8-divider-edit-chip {
-  opacity: 0.74 !important;
-  pointer-events: auto !important;
-  transform: translateY(0) !important;
-}
-.pl8-canvas-device-frame[data-device="phone"] .pl8-canvas-grip {
-  opacity: 0.74;
-}
+
+
 
 /* ── Section hover ring — when the user mouses over a section in
        edit mode, a soft peach hairline frames the section so they
@@ -2621,9 +2232,7 @@ html { scroll-behavior: smooth; }
 [data-pl-block-sortable]:hover {
   box-shadow: inset 0 0 0 1px rgba(198, 112, 61, 0.32);
 }
-[data-pl-block-sortable]:has(.pl8-divider-edit-zone:hover) {
-  box-shadow: none;
-}
+
 
 /* ── Suppress the section chip when a more specific child
        overlay is being interacted with (divider edit zone,
@@ -2631,13 +2240,7 @@ html { scroll-behavior: smooth; }
        section chip + the child overlay both show at once and
        compete for the same hover area, which the audit flagged
        as the canvas's biggest visual-noise issue. ── */
-[data-pl-block-sortable]:has(.pl8-divider-edit-zone:hover) > .pl8-canvas-section-menu,
-[data-pl-block-sortable]:has(.pl8-photo-action-wrap:hover) > .pl8-canvas-section-menu,
-[data-pl-block-sortable]:has([data-pl-decor-edit]:hover) > .pl8-canvas-section-menu {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  transform: translateY(-4px) !important;
-}
+
 /* Same suppression for the inset hover ring — when a child
    overlay is active, the section ring fades so only the child
    reads as "the thing you're touching." */
@@ -2648,30 +2251,11 @@ html { scroll-behavior: smooth; }
 
 /* ── Divider edit chip — visible only when the divider zone is
        hovered. Same fade rhythm as the section chip. ── */
-.pl8-divider-edit-zone:hover > .pl8-divider-edit-chip,
-.pl8-divider-edit-zone:focus-within > .pl8-divider-edit-chip,
-.pl8-divider-edit-chip:hover,
-.pl8-divider-edit-chip:focus-within {
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  transform: translateY(0) !important;
-}
 
-.pl8-photo-action-wrap:hover > .pl8-photo-action-menu,
-.pl8-photo-action-wrap:focus-within > .pl8-photo-action-menu,
-.pl8-photo-action-menu:hover,
-.pl8-photo-action-menu:focus-within {
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  transform: translateY(0) !important;
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .pl8-canvas-section-menu,
-  .pl8-photo-action-menu {
-    transition: none !important;
-  }
-}
+
+
+
 
 /* ── Tab swipe — keyed-on-pathname remount, slide only ──
    Inner content of (shell)/* swipes in horizontally on route
@@ -2684,7 +2268,7 @@ html { scroll-behavior: smooth; }
    switch ("the dashboard just basically be all one page with
    different tabs"). Class kept for any code that still references
    it but the animation is now a no-op. */
-.pl8-tab-swipe { /* no animation — instant tab swap */ }
+
 
 /* ── Belt-and-braces: explicit opt-out of view-transition for the
        dashboard root + neutralize entrance animations on direct
@@ -2700,55 +2284,17 @@ html { scroll-behavior: smooth; }
 
 /* Loading skeleton fade-in — only visible if shell loading lingers
    past 280ms (see (shell)/loading.tsx). Fast clicks never see this. */
-@keyframes pl8-shell-loading-fade-in {
-  to { opacity: 1; }
-}
+
 
 /* Global top-edge progress bar. Mounts in ShellPersistentLayout
    and pulses peach across the top whenever React's useTransition
    reports pending. Indeterminate animation while pending; fades
    out cleanly when navigation lands. */
-.pl8-top-progress {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  z-index: 99;
-  pointer-events: none;
-  background: transparent;
-  overflow: hidden;
-  opacity: 0;
-  transition: opacity 180ms ease;
-}
-.pl8-top-progress[data-pending='1'] {
-  opacity: 1;
-}
-.pl8-top-progress::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 30%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--peach-ink, #C6703D) 40%,
-    var(--gold, #B89244) 70%,
-    transparent 100%
-  );
-  border-radius: 999px;
-  animation: pl8-top-progress-crawl 1100ms cubic-bezier(0.65, 0, 0.35, 1) infinite;
-}
-@keyframes pl8-top-progress-crawl {
-  0%   { transform: translateX(-100%); width: 30%; }
-  50%  { width: 50%; }
-  100% { transform: translateX(330%); width: 30%; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .pl8-top-progress::before { animation: none; }
-}
+
+
+
+
+
 
 /* =========================================================================
    OccasionGlyph hover animations — bespoke per-icon motion. Each glyph
@@ -2772,115 +2318,40 @@ html { scroll-behavior: smooth; }
 }
 
 /* spin — slow rotation for rings + watch */
-@keyframes pl8-glyph-spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-.pl8-glyph-host:hover .pl8-glyph-spin svg,
-.pl8-glyph-spin:hover svg {
-  animation: pl8-glyph-spin 2.4s linear infinite;
-  transform-origin: 50% 55%;
-}
+
+
 
 /* wiggle — small back-and-forth for rattle, compass, glasses */
-@keyframes pl8-glyph-wiggle {
-  0%, 100% { transform: rotate(0deg); }
-  20%      { transform: rotate(-9deg); }
-  60%      { transform: rotate(7deg); }
-  80%      { transform: rotate(-3deg); }
-}
-.pl8-glyph-host:hover .pl8-glyph-wiggle svg,
-.pl8-glyph-wiggle:hover svg {
-  animation: pl8-glyph-wiggle 700ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-  transform-origin: 50% 70%;
-}
+
+
 
 /* bloom — scale + opacity in/out for bouquet, starburst, sparkle */
-@keyframes pl8-glyph-bloom {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(1.16); }
-  100% { transform: scale(1.06); }
-}
-.pl8-glyph-host:hover .pl8-glyph-bloom svg,
-.pl8-glyph-bloom:hover svg {
-  animation: pl8-glyph-bloom 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
+
+
 
 /* flicker — candle flame Y-bob for cake. Targets the inner flame path
    so the cake stays put; only the wick + flame dance. */
-@keyframes pl8-glyph-flicker {
-  0%, 100% { transform: translateY(0) scale(1, 1); opacity: 1; }
-  25%      { transform: translateY(-1px) scale(0.92, 1.06); opacity: 0.92; }
-  50%      { transform: translateY(0) scale(1.04, 0.96); opacity: 1; }
-  75%      { transform: translateY(-1px) scale(0.96, 1.04); opacity: 0.95; }
-}
-.pl8-glyph-host:hover .pl8-glyph-flicker .pl8-glyph-flicker-flame,
-.pl8-glyph-flicker:hover .pl8-glyph-flicker-flame {
-  animation: pl8-glyph-flicker 700ms ease-in-out infinite;
-  transform-origin: 50% 100%;
-  transform-box: fill-box;
-}
+
+
 
 /* draw — stroke-dashoffset reveal for script + book */
-@keyframes pl8-glyph-draw {
-  from { stroke-dashoffset: 80; }
-  to   { stroke-dashoffset: 0; }
-}
-.pl8-glyph-draw .pl8-glyph-draw-path {
-  stroke-dasharray: 80;
-  stroke-dashoffset: 0;
-}
-.pl8-glyph-host:hover .pl8-glyph-draw .pl8-glyph-draw-path,
-.pl8-glyph-draw:hover .pl8-glyph-draw-path {
-  animation: pl8-glyph-draw 800ms cubic-bezier(0.65, 0, 0.35, 1) both;
-}
+
+
+
 
 /* sway — gentle side-to-side for leaf-bough, dove */
-@keyframes pl8-glyph-sway {
-  0%, 100% { transform: rotate(-3deg); }
-  50%      { transform: rotate(3deg); }
-}
-.pl8-glyph-host:hover .pl8-glyph-sway svg,
-.pl8-glyph-sway:hover svg {
-  animation: pl8-glyph-sway 1.4s ease-in-out infinite;
-  transform-origin: 50% 90%;
-}
+
+
 
 /* pop — clean lift for cup, mortarboard, family-circle, home */
-@keyframes pl8-glyph-pop {
-  0%   { transform: translateY(0) scale(1); }
-  40%  { transform: translateY(-3px) scale(1.08); }
-  100% { transform: translateY(-1px) scale(1.04); }
-}
-.pl8-glyph-host:hover .pl8-glyph-pop svg,
-.pl8-glyph-pop:hover svg {
-  animation: pl8-glyph-pop 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
+
+
 
 /* Generic hover-pop for the existing Icon catalogue (use via class). */
-.pl8-icon-hover {
-  transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  transform-origin: center;
-  display: inline-block;
-}
-.pl8-icon-hover:hover,
-.pl8-glyph-host:hover .pl8-icon-hover {
-  transform: scale(1.12) rotate(-3deg);
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .pl8-glyph-host:hover .pl8-glyph-spin svg,
-  .pl8-glyph-host:hover .pl8-glyph-wiggle svg,
-  .pl8-glyph-host:hover .pl8-glyph-bloom svg,
-  .pl8-glyph-host:hover .pl8-glyph-flicker .pl8-glyph-flicker-flame,
-  .pl8-glyph-host:hover .pl8-glyph-draw .pl8-glyph-draw-path,
-  .pl8-glyph-host:hover .pl8-glyph-sway svg,
-  .pl8-glyph-host:hover .pl8-glyph-pop svg,
-  .pl8-icon-hover:hover {
-    animation: none !important;
-    transform: none !important;
-  }
-}
+
+
+
 
 /* ─────────────────────────────────────────────────────────────
    Editorial icon library — animation system
@@ -3038,75 +2509,40 @@ html { scroll-behavior: smooth; }
 }
 
 /* "Live now" pulse on schedule rows during the event window. */
-@keyframes pl8-live-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: 0.55; transform: scale(0.7); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .pl8-live-pill > [aria-hidden] { animation: none !important; }
-}
+
+
 
 /* Edit-mode chrome: hover-reveal × on canvas-edited rows. The
    button is rendered always but starts at opacity 0 so it doesn't
    read as decorative when not hovered. Used by hotels, registry,
    FAQ, schedule, story chapters. */
-.pl8-hotel-card-edit:hover .pl8-hotel-card-remove,
-.pl8-canvas-row:hover .pl8-canvas-remove {
-  opacity: 1 !important;
-}
-.pl8-hotel-card-edit:hover {
-  transform: translateY(-1px);
-}
-.pl8-hotel-card-edit {
-  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
-}
+
+
+
 
 /* Click-to-focus flash — fires on a hotel/registry/faq row in
    the panel when the host clicks the matching card on canvas. */
-@keyframes pl8-canvas-focus-flash {
-  0%   { box-shadow: 0 0 0 0 rgba(198,112,61,0); }
-  20%  { box-shadow: 0 0 0 6px rgba(198,112,61,0.30); }
-  100% { box-shadow: 0 0 0 0 rgba(198,112,61,0); }
-}
-.pl8-canvas-focus-flash {
-  animation: pl8-canvas-focus-flash 1.6s ease-out;
-}
+
+
 
 /* Canvas drag-to-reorder grip. Sits in the same hover-reveal
    bucket as the × remove button — fades in when the parent row
    is hovered, swaps cursor to grabbing while held. */
-.pl8-canvas-row:hover .pl8-canvas-grip,
-.pl8-hotel-card-edit:hover .pl8-canvas-grip {
-  opacity: 1 !important;
-}
-.pl8-canvas-grip:active {
-  cursor: grabbing !important;
-  background: rgba(198,112,61,0.85) !important;
-}
+
+
 
 /* Hero date/venue pills — clickable in edit mode. Resting state
    is invisible chrome so the published-look stays untouched; hover
    reveals a soft cream wash + dashed peach ring so hosts know
    they can click to open the popover. */
-.pl8-hero-field-pill:hover {
-  background: rgba(255, 244, 232, 0.65) !important;
-  border-color: rgba(198, 112, 61, 0.45) !important;
-}
-.pl8-hero-field-pill:focus-visible {
-  background: rgba(255, 244, 232, 0.85) !important;
-  border-color: rgba(198, 112, 61, 0.75) !important;
-  outline: none;
-}
+
+
 
 /* Details-card action chips — Calendar / Directions. Resting
    state is a thin ink ring; hover lifts to a soft cream wash with
    peach edge so the affordance reads at a glance without ever
    feeling shouty on the editorial card. */
-.pl8-details-chip:hover {
-  background: rgba(255, 244, 232, 0.85);
-  border-color: rgba(198, 112, 61, 0.5);
-  color: var(--peach-ink, #C6703D);
-}
+
 
 /* Content-visibility on below-fold sections — tells the browser
    to skip rendering each section until it scrolls near the
@@ -3185,10 +2621,7 @@ html { scroll-behavior: smooth; }
   }
   /* RSVP form on print: hide the form itself, keep the deadline
      blurb so guests still see when they need to respond by. */
-  .pl8-rsvp-form,
-  .pl8-rsvp-cta {
-    display: none !important;
-  }
+  
   /* No more letterpress shadow / scroll animations / hover
      transforms on paper. */
   .pl8-guest * {
@@ -3263,42 +2696,18 @@ html { scroll-behavior: smooth; }
    means the host's coverFocalPoint still anchors the zoom to
    the right part of the photo. Honours prefers-reduced-motion
    (locks to scale 1.02 with no drift). */
-@keyframes pl8-hero-kenburns {
-  0%   { transform: scale(1) translate3d(0, 0, 0); }
-  50%  { transform: scale(1.05) translate3d(-1.4%, 0.4%, 0); }
-  100% { transform: scale(1.06) translate3d(0.6%, -0.6%, 0); }
-}
-.pl8-hero-kenburns {
-  animation: pl8-hero-kenburns 22s ease-in-out infinite alternate;
-  will-change: transform;
-  transform-origin: center;
-}
-@media (prefers-reduced-motion: reduce) {
-  .pl8-hero-kenburns {
-    animation: none;
-    transform: scale(1.02);
-  }
-}
+
+
+
 
 /* Edition-driven photo fallback gradient drift — when a hero variant
    has NO cover photo, the gradient fallback (heroFallbackGradient() in
    parts.tsx) wears this class. A slow hue-rotate (0 → 8deg → 0) gives
    the static gradient enough life to feel intentional without ever
    becoming a focal point. Honours prefers-reduced-motion. */
-@keyframes pl-hero-grad-drift {
-  0%   { filter: hue-rotate(0deg); }
-  50%  { filter: hue-rotate(8deg); }
-  100% { filter: hue-rotate(0deg); }
-}
-.pl-hero-grad-drift {
-  animation: pl-hero-grad-drift 5s ease-in-out infinite;
-  will-change: filter;
-}
-@media (prefers-reduced-motion: reduce) {
-  .pl-hero-grad-drift {
-    animation: none;
-  }
-}
+
+
+
 
 /* Hero kicker entrance — the first time the page paints, the
    "save the date" kicker fades in from below. Subtle, runs
@@ -3307,23 +2716,10 @@ html { scroll-behavior: smooth; }
    The two hairline strokes either side of the kicker animate
    their width 0 → full so they read as threads pulling the text
    into place. */
-@keyframes pl-kicker-rise {
-  0%   { opacity: 0; transform: translateY(8px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-.pl8-hero-kicker-anim {
-  animation: pl-kicker-rise 720ms cubic-bezier(0.22, 1, 0.36, 1) 200ms both;
-}
-.pl8-hero-kicker-anim::before,
-.pl8-hero-kicker-anim::after {
-  /* Reserved for hairline thread expansion if added later. */
-}
-@media (prefers-reduced-motion: reduce) {
-  .pl8-hero-kicker-anim {
-    animation: none;
-    opacity: 1;
-  }
-}
+
+
+
+
 
 /* Card hover lift — applied to every editorial card surface so
    the canvas feels alive without each card reinventing the
@@ -3355,87 +2751,18 @@ html { scroll-behavior: smooth; }
    subtle enough to ignore, distinct enough that returning visitors
    know where they were. The width is driven by an inline
    `--pl-progress` CSS var the React component updates on scroll. */
-.pl8-reading-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 2px;
-  width: 100%;
-  z-index: 60;
-  pointer-events: none;
-  background: rgba(14, 13, 11, 0.04);
-}
-.pl8-reading-progress::after {
-  content: '';
-  display: block;
-  height: 100%;
-  width: var(--pl-progress, 0%);
-  background: linear-gradient(
-    90deg,
-    var(--peach-ink, #C6703D) 0%,
-    var(--gold, #B8935A) 100%
-  );
-  transition: width 80ms linear;
-}
-@media (prefers-reduced-motion: reduce) {
-  .pl8-reading-progress::after {
-    transition: none;
-  }
-}
+
+
+
 
 /* Inline "+ section" affordance between blocks in edit mode.
    A 2px peach hairline appears on hover with a centered plus
    pill — clicking opens the block picker. Resting state is fully
    invisible so the published canvas never sees it. */
-.pl8-block-gap {
-  position: relative;
-  height: 14px;
-  margin: -7px 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 200ms ease;
-  pointer-events: auto;
-}
-.pl8-block-gap:hover,
-.pl8-block-gap:focus-within {
-  opacity: 1;
-}
-.pl8-block-gap::before {
-  content: '';
-  position: absolute;
-  left: 32px;
-  right: 32px;
-  height: 1.5px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--peach-ink, #C6703D) 18%,
-    var(--peach-ink, #C6703D) 82%,
-    transparent 100%
-  );
-  opacity: 0.55;
-}
-.pl8-block-gap-button {
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: var(--ink, #0E0D0B);
-  color: var(--cream, #FBF7EE);
-  border: none;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  font-family: var(--font-ui);
-  box-shadow: 0 6px 18px -4px rgba(14, 13, 11, 0.4);
-}
+
+
+
+
 
 /* ──────────────────────────────────────────────────────────────
    Nav motion variants — driven by data-pl-link-underline /
@@ -3443,61 +2770,19 @@ html { scroll-behavior: smooth; }
    the ThemedSiteRenderer header. ────────────────────────────────── */
 
 /* Link underline */
-.pl8-site-nav[data-pl-link-underline="hover"] .pl8-site-nav-links a::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -2px;
-  width: 100%;
-  height: 1px;
-  background: var(--peach-ink, #C6703D);
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.pl8-site-nav[data-pl-link-underline="hover"] .pl8-site-nav-links a:hover::after {
-  transform: scaleX(1);
-}
-.pl8-site-nav[data-pl-link-underline="active"] .pl8-site-nav-links a {
-  position: relative;
-}
-.pl8-site-nav[data-pl-link-underline="active"] .pl8-site-nav-links a[aria-current="true"]::after,
-.pl8-site-nav[data-pl-link-underline="active"] .pl8-site-nav-links a:hover::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -2px;
-  width: 100%;
-  height: 1px;
-  background: var(--peach-ink, #C6703D);
-}
-.pl8-site-nav[data-pl-link-underline="none"] .pl8-site-nav-links a {
-  text-decoration: none;
-}
-.pl8-site-nav[data-pl-link-underline="none"] .pl8-site-nav-links a::after {
-  display: none;
-}
+
+
+
+
+
+
 
 /* Brand icon hover gestures */
-.pl8-site-nav[data-pl-brand-hover="pulse"] .pl8-site-nav-brand:hover {
-  animation: pl-cta-pulse 1.6s ease-in-out infinite;
-}
-.pl8-site-nav[data-pl-brand-hover="tilt"] .pl8-site-nav-brand {
-  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.pl8-site-nav[data-pl-brand-hover="tilt"] .pl8-site-nav-brand:hover {
-  transform: rotate(-6deg);
-}
-.pl8-site-nav[data-pl-brand-hover="breathe"] .pl8-site-nav-brand {
-  animation: pl-pearl-breathe 4s ease-in-out infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .pl8-site-nav[data-pl-brand-hover] .pl8-site-nav-brand,
-  .pl8-site-nav[data-pl-brand-hover] .pl8-site-nav-brand:hover {
-    animation: none !important;
-    transform: none !important;
-  }
-}
+
+
+
+
+
 
 /* ──────────────────────────────────────────────────────────────
    Editor phone preview parity
@@ -3511,81 +2796,38 @@ html { scroll-behavior: smooth; }
    canvas frame already carries — so phone preview gains parity
    with what real-mobile guests see. Real mobile devices keep
    firing the @media versions; this is purely additive. ────── */
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest section[id] {
-  padding-left: 20px !important;
-  padding-right: 20px !important;
-}
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest li {
-  line-height: 1.65;
-}
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest .pl8-hero-strip {
-  gap: 6px !important;
-}
+
+
+
 /* Hero typography — clamp the display size against the *frame*,
    not the editor window, so 390px-wide preview shows the same
    tight headline a real phone gets. */
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest h1,
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest h2 {
-  font-size: clamp(2rem, 8cqw, 3.4rem) !important;
-  line-height: 1.05 !important;
-  letter-spacing: -0.02em;
-}
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest h3 {
-  font-size: clamp(1.4rem, 5cqw, 1.9rem) !important;
-}
+
+
 /* Multi-column grids → single column at phone width. Uses an
    attribute selector so any inline style="display:grid; grid-
    template-columns:repeat(N,1fr)" collapses cleanly. */
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest [class*="pl8-cols-"] {
-  grid-template-columns: 1fr !important;
-}
+
 /* The bento gallery reads as one tall stack on phones — match
    the site's mobile layout. */
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest .pl8-gallery-grid {
-  grid-template-columns: 1fr !important;
-  grid-auto-rows: 220px !important;
-}
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest .pl8-gallery-grid > * {
-  grid-column: auto !important;
-  grid-row: auto !important;
-}
+
+
 /* Touch-target floor — every interactive element has at least
    44x44px of tap zone, matching real-mobile WCAG guidance. */
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest button,
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest a[role="button"],
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest [role="button"] {
-  min-height: 44px;
-}
+
 /* Sticky RSVP pill anchors lower on phones to clear the system
    gesture bar. */
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest .pl8-sticky-rsvp {
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
-  right: 16px;
-}
+
 /* Reading-progress thread is thicker on phones for visibility. */
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest .pl8-reading-progress {
-  height: 3px;
-}
+
 /* The nav collapses to a drawer below ~640px. Mirror that here. */
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest [data-pl-nav-links] {
-  display: none !important;
-}
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest [data-pl-nav-mobile-trigger] {
-  display: inline-flex !important;
-}
+
+
 /* Any element relying on flex row → wrap or stack on phones.
    Catches travel hotel cards, FAQ pairs, registry cards, etc. */
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest .pl8-flex-row {
-  flex-direction: column !important;
-  gap: 14px !important;
-}
+
 /* Larger tap-friendly form controls. */
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest input,
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest textarea,
-.pl8-canvas-device-frame[data-device="phone"] .pl8-guest select {
-  font-size: 16px !important; /* prevents iOS zoom-in */
-  padding: 12px 14px !important;
-}
+
 
 /* ── Smart-actions overflow fade — only when 4+ chips ──────────
    PanelSmartActions is a horizontal scroller of 2-4 quick-action
@@ -3701,19 +2943,9 @@ html { scroll-behavior: smooth; }
   border: 1px solid rgba(251,247,238,0.32) !important;
 }
 /* Cinema nav (top header) — dark transparent w/ cream type. */
-.pl8-guest[data-pl-edition="cinema"] .pl8-site-nav,
-.pl8-guest[data-pl-edition="cinema"] header.pl8-site-nav {
-  background: rgba(14,13,11,0.92) !important;
-}
-.pl8-guest[data-pl-edition="cinema"] .pl8-site-nav a,
-.pl8-guest[data-pl-edition="cinema"] .pl8-site-nav button,
-.pl8-guest[data-pl-edition="cinema"] .pl8-site-nav .pl8-lang-switcher {
-  color: #FBF7EE !important;
-}
-.pl8-guest[data-pl-edition="cinema"] .pl8-site-nav .pl8-lang-switcher {
-  background: rgba(251,247,238,0.10) !important;
-  border-color: rgba(251,247,238,0.20) !important;
-}
+
+
+
 /* Date / venue pills in the hero — were peach-tinted on cream
    originally; in Cinema's dark mode they need to read as gold
    plaques on the black. */
@@ -3746,12 +2978,8 @@ html { scroll-behavior: smooth; }
   text-transform: uppercase;
   font-size: 12px !important;
 }
-.pl8-guest[data-pl-edition="cinema"] .pl8-gallery-grid {
-  gap: 2px !important;
-}
-.pl8-guest[data-pl-edition="cinema"] .pl8-gallery-grid > div {
-  border-radius: 0 !important;
-}
+
+
 .pl8-guest[data-pl-edition="cinema"] .pl8-chapter-row {
   background: rgba(251,247,238,0.04) !important;
   border-radius: 0 !important;
@@ -3770,11 +2998,7 @@ html { scroll-behavior: smooth; }
 }
 /* Cinema FAQ card: sharp corners + dark border to match the
    film-index aesthetic. */
-.pl8-guest[data-pl-edition="cinema"] .pl8-faq-card {
-  background: rgba(251,247,238,0.04) !important;
-  border-radius: 0 !important;
-  border: 1px solid rgba(184,146,68,0.32) !important;
-}
+
 
 /* ── POSTCARD BOX ── stacked tilted cards on cream-deep paper.
    Cards rotate ±2-3deg, get warm stitch borders + soft drop
@@ -3812,17 +3036,9 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-edition="postcard-box"] .pl8-chapter-row:nth-child(even) {
   transform: rotate(0.5deg);
 }
-.pl8-guest[data-pl-edition="postcard-box"] .pl8-gallery-grid > div {
-  border-radius: 4px !important;
-  border: 6px solid #FBF7EE !important;
-  box-shadow: 0 6px 18px rgba(14,13,11,0.18) !important;
-}
-.pl8-guest[data-pl-edition="postcard-box"] .pl8-gallery-grid > div:nth-child(3n) {
-  transform: rotate(-1.2deg);
-}
-.pl8-guest[data-pl-edition="postcard-box"] .pl8-gallery-grid > div:nth-child(3n+1) {
-  transform: rotate(0.8deg);
-}
+
+
+
 /* Postcard Box hotel/travel rows: same tilted-postcard treatment
    as schedule + chapter. */
 .pl8-guest[data-pl-edition="postcard-box"] .pl8-hotel-row,
@@ -3886,15 +3102,8 @@ html { scroll-behavior: smooth; }
 /* Linen Folder gallery: 3-up grid with thin gold hairlines as
    the frame. Reads as a hotel stationery photo card set, not a
    modern bordered grid. */
-.pl8-guest[data-pl-edition="linen-folder"] .pl8-gallery-grid {
-  gap: 28px !important;
-}
-.pl8-guest[data-pl-edition="linen-folder"] .pl8-gallery-grid > div {
-  border-radius: 0 !important;
-  border: 1px solid rgba(184,146,68,0.30);
-  padding: 6px;
-  background: #FBF7EE;
-}
+
+
 /* Linen Folder hotel/travel rows: same transparent-with-hairline
    treatment as schedule + chapter so the travel section reads as
    a continuation of the formal stationery folder. */
@@ -3913,13 +3122,7 @@ html { scroll-behavior: smooth; }
 }
 /* Linen Folder FAQ: sharp corners + gold hairline + no fill so
    the questions read like an embossed stationery insert. */
-.pl8-guest[data-pl-edition="linen-folder"] .pl8-faq-card {
-  background: transparent !important;
-  border-radius: 0 !important;
-  border: none !important;
-  border-top: 1px solid rgba(184,146,68,0.30) !important;
-  border-bottom: 1px solid rgba(184,146,68,0.30) !important;
-}
+
 
 /* ── QUIET EDITION ── whitespace and restraint.
    Maximum padding, naked paper, centered alignment, hairline
@@ -3958,11 +3161,7 @@ html { scroll-behavior: smooth; }
   padding: 36px 0 !important;
   text-align: center;
 }
-.pl8-guest[data-pl-edition="quiet"] .pl8-gallery-grid {
-  grid-template-columns: 1fr !important;
-  max-width: 540px !important;
-  margin: 0 auto !important;
-}
+
 /* Quiet hotel/travel rows: stripped chrome, centered, hairline
    dividers only — same restraint posture as schedule + chapter. */
 .pl8-guest[data-pl-edition="quiet"] .pl8-hotel-row,
@@ -3982,11 +3181,7 @@ html { scroll-behavior: smooth; }
 /* Quiet FAQ: no card chrome at all — questions float on the page
    with hairline dividers between them via the inner row borders
    that already exist. */
-.pl8-guest[data-pl-edition="quiet"] .pl8-faq-card {
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-}
+
 
 /* ── ALMANAC ── bound book, generous reading rhythm.
    Hairline borders, soft cream cards, drop-cap-friendly type,
@@ -4011,11 +3206,7 @@ html { scroll-behavior: smooth; }
 }
 /* Almanac gallery: soft hairline borders, no shadow — reads as
    an almanac plate page with each photo gently mounted. */
-.pl8-guest[data-pl-edition="almanac"] .pl8-gallery-grid > div {
-  border-radius: 6px !important;
-  border: 1px solid rgba(14,13,11,0.06);
-  box-shadow: 0 1px 2px rgba(14,13,11,0.04);
-}
+
 /* Almanac schedule: bookish table-of-contents feel — cream cards
    with hairline borders, italic Fraunces time pills, generous
    row spacing. Reads as the day's running order in a bound book. */
@@ -4097,9 +3288,7 @@ html { scroll-behavior: smooth; }
   font-size: 13.5px !important;
   letter-spacing: 0.01em;
 }
-.pl8-guest[data-pl-edition="cinema"] .pl8-gallery-grid > div {
-  filter: contrast(1.08) saturate(0.92);
-}
+
 .pl8-guest[data-pl-edition="cinema"] details summary {
   border-bottom: 1px solid rgba(184,146,68,0.45) !important;
   padding-bottom: 12px;
@@ -5266,11 +4455,7 @@ html { scroll-behavior: smooth; }
     inset -1px 0 0 color-mix(in oklab, var(--t-ink, #0E0D0B) 6%, transparent) !important;
   position: relative;
 }
-.pl8-guest[data-pl-kit="ticket"] .pl8-schedule-time,
-.pl8-guest[data-pl-kit="ticket"] .pl8-time-pill {
-  font-family: 'Courier New', ui-monospace, monospace !important;
-  letter-spacing: -0.02em !important;
-}
+
 
 /* ── PLATE ──
    Engraved-frame feel: double 1px stroke around cards, no border-
@@ -5294,11 +4479,7 @@ html { scroll-behavior: smooth; }
     inset 0 0 0 5px color-mix(in oklab, var(--t-ink, var(--pl-ink, #0E0D0B)) 22%, transparent) !important;
   border: none !important;
 }
-.pl8-guest[data-pl-kit="plate"] .pl8-schedule-time {
-  font-style: italic !important;
-  font-family: var(--pl-font-display, Fraunces, serif) !important;
-  font-weight: 600 !important;
-}
+
 
 /* ── SCRAPBOOK ──
    Taped polaroid feel: slight rotation per row (nth-child alternates
@@ -5412,13 +4593,7 @@ html { scroll-behavior: smooth; }
   border-bottom: none !important;
 }
 /* Oversized numerals on schedule time pills */
-.pl8-guest[data-pl-kit="minimal"] .pl8-schedule-time {
-  font-size: clamp(1.6rem, 3vw, 2.4rem) !important;
-  line-height: 0.9 !important;
-  letter-spacing: -0.03em !important;
-  font-family: var(--pl-font-display, Fraunces, serif) !important;
-  font-weight: 500 !important;
-}
+
 
 /* ── ARCH ──
    Arched-top cards: 24px top corners, hairline outline, soft
@@ -5441,10 +4616,7 @@ html { scroll-behavior: smooth; }
   box-shadow: 0 4px 16px rgba(40,28,12,0.06) !important;
 }
 /* Time pill picks up the arched shape — round top, modest bottom */
-.pl8-guest[data-pl-kit="arch"] .pl8-schedule-time,
-.pl8-guest[data-pl-kit="arch"] .pl8-time-pill {
-  border-radius: 999px 999px 6px 6px !important;
-}
+
 
 /* ── STAMP ──
    Postage-stamp frame: 5px solid mat-color frame + 2px dotted
@@ -5474,14 +4646,7 @@ html { scroll-behavior: smooth; }
   --t-ink-muted: #7A7167;
 }
 /* Stamp chip / time pill: inherits the postage frame */
-.pl8-guest[data-pl-kit="stamp"] .pl8-time-pill {
-  background: #FBF7EE !important;
-  border: 3px solid #FBF7EE !important;
-  outline: 1.5px dotted color-mix(in oklab, #0E0D0B 34%, transparent) !important;
-  outline-offset: -6px !important;
-  border-radius: 2px !important;
-  color: #2B2620 !important;
-}
+
 
 /* ── DECO ──
    Gold triple-inset frames + uppercase, geometric. Port of
@@ -5509,18 +4674,7 @@ html { scroll-behavior: smooth; }
     inset 0 0 0 5px color-mix(in oklab, var(--t-gold, var(--pl-gold, #B8935A)) 55%, transparent) !important;
 }
 /* Deco time pills wear the same gold inset + uppercase tracking */
-.pl8-guest[data-pl-kit="deco"] .pl8-time-pill,
-.pl8-guest[data-pl-kit="deco"] .pl8-schedule-time {
-  letter-spacing: 0.08em !important;
-  text-transform: uppercase !important;
-  font-size: 0.74rem !important;
-  font-weight: 600 !important;
-  box-shadow: inset 0 0 0 1px var(--t-gold, var(--pl-gold, #B8935A)) !important;
-  border-radius: 0 !important;
-  background: var(--t-card, var(--pl-cream-card, #FBF7EE)) !important;
-  color: var(--t-ink, var(--pl-ink, #0E0D0B)) !important;
-  border: none !important;
-}
+
 
 /* ── GALLERY ── (added 2026-06-09)
    Museum placard language: flat card, square corners, an ink
@@ -5554,18 +4708,7 @@ html { scroll-behavior: smooth; }
 }
 /* Exhibit-number times — transparent, borderless, mono-ish tracking
    with a single short gold underline via inset box-shadow. */
-.pl8-guest[data-pl-kit="gallery"] .pl8-time-pill,
-.pl8-guest[data-pl-kit="gallery"] .pl8-schedule-time {
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  letter-spacing: 0.16em !important;
-  text-transform: uppercase !important;
-  font-size: 0.68rem !important;
-  font-weight: 600 !important;
-  color: color-mix(in oklab, var(--t-ink, var(--pl-ink, #0E0D0B)) 64%, transparent) !important;
-  box-shadow: inset 0 -1px 0 var(--t-gold, var(--pl-gold, #B8935A)) !important;
-}
+
 
 /* ── MENU ── (added 2026-06-09)
    Tasting-menu card language: quiet card, 2px corners, no side
@@ -5595,20 +4738,7 @@ html { scroll-behavior: smooth; }
 /* Dotted-leader times — uppercase tracking (small-caps via
    text-transform since font-variant: small-caps is unreliable
    across the theme font set), italic off, dotted ink underline. */
-.pl8-guest[data-pl-kit="menu"] .pl8-time-pill,
-.pl8-guest[data-pl-kit="menu"] .pl8-schedule-time {
-  background: transparent !important;
-  border: none !important;
-  border-bottom: 1px dotted color-mix(in oklab, var(--t-ink, var(--pl-ink, #0E0D0B)) 45%, transparent) !important;
-  border-radius: 0 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.14em !important;
-  font-size: 0.7rem !important;
-  font-style: normal !important;
-  font-weight: 600 !important;
-  box-shadow: none !important;
-  color: var(--t-ink, var(--pl-ink, #0E0D0B)) !important;
-}
+
 
 /* ── Per-kit visual cascade — DIVIDERS ──
    The EditionDivider components render with .pl8-divider so each
@@ -5620,130 +4750,32 @@ html { scroll-behavior: smooth; }
    These targets land on the wrapper div the EditionDivider mounts;
    when the kit wants a glyph (plate's diamond), it uses ::before
    on the same wrapper. */
-.pl8-guest[data-pl-kit="ticket"] .pl8-divider {
-  border-top: 2px dashed var(--pl-divider, #D8CFB8) !important;
-  background: transparent !important;
-  background-image: none !important;
-  height: 0 !important;
-  opacity: 1 !important;
-}
-.pl8-guest[data-pl-kit="plate"] .pl8-divider {
-  background: transparent !important;
-  background-image: none !important;
-  height: 0 !important;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  opacity: 1 !important;
-}
-.pl8-guest[data-pl-kit="plate"] .pl8-divider::before {
-  content: "◆";
-  color: var(--pl-gold, #B8935A);
-  font-size: 0.85rem;
-  letter-spacing: 0.6em;
-  padding-left: 0.6em;
-}
-.pl8-guest[data-pl-kit="scrapbook"] .pl8-divider {
-  background: transparent !important;
-  background-image: repeating-linear-gradient(
-    90deg,
-    color-mix(in oklab, var(--pl-gold, #B8935A) 36%, transparent) 0 10px,
-    transparent 10px 20px
-  ) !important;
-  height: 6px !important;
-  opacity: 0.7 !important;
-  border-radius: 1px;
-}
-.pl8-guest[data-pl-kit="index"] .pl8-divider {
-  background: rgba(199, 80, 80, 0.45) !important;
-  background-image: none !important;
-  height: 1.5px !important;
-  width: min(720px, 88%) !important;
-  opacity: 1 !important;
-}
-.pl8-guest[data-pl-kit="minimal"] .pl8-divider {
-  background: transparent !important;
-  background-image: none !important;
-  height: 0 !important;
-  margin-block: clamp(48px, 8vw, 96px) !important;
-}
+
+
+
+
+
+
 
 /* ARCH divider — hairline rule with a small arched dome at the
    center. The dome is painted via ::after as a top-rounded
    border (no bottom edge), accent-colored. Mirrors prototype
    line 64. */
-.pl8-guest[data-pl-kit="arch"] .pl8-divider {
-  background: var(--pl-divider, #D8CFB8) !important;
-  background-image: none !important;
-  height: 1px !important;
-  opacity: 1 !important;
-  position: relative;
-  overflow: visible !important;
-}
-.pl8-guest[data-pl-kit="arch"] .pl8-divider::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -100%);
-  width: 22px;
-  height: 11px;
-  border: 1.5px solid var(--pl-olive, #5C6B3F);
-  border-bottom: none;
-  border-radius: 11px 11px 0 0;
-  background: transparent;
-}
+
+
 
 /* STAMP divider — dotted rule, circular postmark pin centered.
    Mirrors prototype line 66-67. */
-.pl8-guest[data-pl-kit="stamp"] .pl8-divider {
-  background: transparent !important;
-  background-image: none !important;
-  border-top: 2px dotted var(--pl-divider, #D8CFB8) !important;
-  height: 0 !important;
-  opacity: 1 !important;
-  position: relative;
-  overflow: visible !important;
-}
-.pl8-guest[data-pl-kit="stamp"] .pl8-divider::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 0;
-  transform: translate(-50%, -50%);
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  border: 1.5px solid var(--pl-olive, #5C6B3F);
-  background: var(--pl-cream, #F5EFE2);
-}
+
+
 
 /* DECO divider — gold rule on either side of three small rotated
    gold diamonds in the center. Mirrors prototype line 69-70.
    Three diamonds rendered as ◇◇◇ Unicode glyphs in gold; the
    gold rule sits behind them, so they read as a tiny crest in
    the center of a hairline. */
-.pl8-guest[data-pl-kit="deco"] .pl8-divider {
-  background: transparent !important;
-  background-image: none !important;
-  height: 0 !important;
-  border-top: 1px solid var(--pl-gold, #B8935A) !important;
-  opacity: 1 !important;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  overflow: visible !important;
-}
-.pl8-guest[data-pl-kit="deco"] .pl8-divider::before {
-  content: '◇ ◇ ◇';
-  color: var(--pl-gold, #B8935A);
-  font-size: 0.7rem;
-  letter-spacing: 0.18em;
-  background: var(--pl-cream, #F5EFE2);
-  padding: 0 0.5em;
-  line-height: 1;
-  display: inline-block;
-}
+
+
 
 /* ── Edition divider scroll-reveal ──────────────────────────────
    The divider components (edition-dividers/index.tsx) set
@@ -5757,91 +4789,35 @@ html { scroll-behavior: smooth; }
 /* Thread — Almanac: scale-x from center + fade-in. The 1px
    stroke 'draws' from the middle outward by going from
    scaleX(0) to scaleX(1). */
-.pl8-divider[data-pl-divider-style="thread"] {
-  transform: scaleX(0);
-  transform-origin: 50% 50%;
-  opacity: 0;
-  transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1),
-              opacity 600ms ease-out;
-}
-.pl8-divider[data-pl-divider-style="thread"][data-pl-revealed="true"] {
-  transform: scaleX(1);
-  opacity: 0.35;
-}
+
+
 
 /* Sprocket — Cinema: 24 teeth, each pulsing opacity 0→1 with
    an 80ms stagger driven by --pl-sprocket-i. */
-.pl8-divider[data-pl-divider-style="sprocket"] .pl8-divider-sprocket-tooth {
-  opacity: 0;
-  transform: scale(0.6);
-  transition: opacity 380ms ease-out, transform 380ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  transition-delay: calc(var(--pl-sprocket-i, 0) * 80ms);
-}
-.pl8-divider[data-pl-divider-style="sprocket"][data-pl-revealed="true"] .pl8-divider-sprocket-tooth {
-  opacity: 0.32;
-  transform: scale(1);
-}
+
+
 
 /* Stitch — Postcard Box: clip-path wipe from left to right so
    the dashed line self-traces across the section break. */
-.pl8-divider[data-pl-divider-style="stitch"] {
-  clip-path: inset(0 100% 0 0);
-  transition: clip-path 1100ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.pl8-divider[data-pl-divider-style="stitch"][data-pl-revealed="true"] {
-  clip-path: inset(0 0 0 0);
-}
+
+
 
 /* Gold hairline — Linen Folder: scale-x from center, the rule
    blooms outward to its 80px width. */
-.pl8-divider[data-pl-divider-style="gold-hairline"] {
-  transform: scaleX(0);
-  transform-origin: 50% 50%;
-  transition: transform 800ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.pl8-divider[data-pl-divider-style="gold-hairline"][data-pl-revealed="true"] {
-  transform: scaleX(1);
-}
+
+
 
 /* Reduced motion: every divider reveals instantly at its
    resting state. Whitespace was never animated. */
-@media (prefers-reduced-motion: reduce) {
-  .pl8-divider[data-pl-divider-style="thread"],
-  .pl8-divider[data-pl-divider-style="stitch"],
-  .pl8-divider[data-pl-divider-style="gold-hairline"] {
-    transform: none !important;
-    clip-path: none !important;
-    opacity: 0.35 !important;
-    transition: none !important;
-  }
-  .pl8-divider[data-pl-divider-style="sprocket"] .pl8-divider-sprocket-tooth {
-    transform: none !important;
-    opacity: 0.32 !important;
-    transition: none !important;
-  }
-}
+
 
 /* ── RSVP urgency tier — deadline ribbon pulses ───────────────
    Driven by data-pl-rsvp-urgency on the deadline copy.
    muted/normal/soon/urgent map to the four pre-event windows
    (>30d / 7-30d / 3-7d / <3d). 'soon' breathes peach;
    'urgent' throbs plum. */
-@keyframes pl-rsvp-soon-pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 color-mix(in oklab, var(--peach-ink, #C6703D) 35%, transparent);
-  }
-  50% {
-    box-shadow: 0 0 0 6px color-mix(in oklab, var(--peach-ink, #C6703D) 0%, transparent);
-  }
-}
-@keyframes pl-rsvp-urgent-pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 4px color-mix(in oklab, var(--pl-plum, #7A2D2D) 18%, transparent);
-  }
-  50% {
-    box-shadow: 0 0 0 10px color-mix(in oklab, var(--pl-plum, #7A2D2D) 0%, transparent);
-  }
-}
+
+
 @media (prefers-reduced-motion: reduce) {
   [data-pl-rsvp-urgency="soon"],
   [data-pl-rsvp-urgency="urgent"] {
@@ -5917,20 +4893,9 @@ html { scroll-behavior: smooth; }
    pl8-time-pill exists in ThemedSiteRenderer for some block variants;
    apply minimal/index/scrapbook treatments so it stays coherent
    with the kit even where pl8-schedule-time isn't the target. */
-.pl8-guest[data-pl-kit="ticket"] .pl8-time-pill {
-  font-family: var(--pl-font-mono, 'Courier New', monospace) !important;
-  letter-spacing: 0.04em !important;
-}
-.pl8-guest[data-pl-kit="minimal"] .pl8-time-pill {
-  font-size: clamp(1.4rem, 2.6vw, 2rem) !important;
-  font-family: var(--pl-font-display, Fraunces, serif) !important;
-  font-weight: 500 !important;
-  letter-spacing: -0.02em !important;
-}
-.pl8-guest[data-pl-kit="index"] .pl8-time-pill {
-  font-family: var(--pl-font-mono, 'Courier New', monospace) !important;
-  color: rgba(199, 80, 80, 0.85) !important;
-}
+
+
+
 
 /* ── Edit-mode safety: kill scrapbook rotation in the editor ──
    :where() keeps specificity low so per-block overrides still
@@ -6278,13 +5243,7 @@ html { scroll-behavior: smooth; }
    Counter increments via CSS counter; dotted leader fills between
    row label and right-aligned time via a flex spacer with dotted
    background. */
-.pl8-guest[data-pl-kit="plate"] .pl8-schedule-classic-grid {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 12px !important;
-  max-width: 560px !important;
-  counter-reset: plate-roman;
-}
+
 .pl8-guest[data-pl-kit="plate"] .pl8-schedule-row {
   display: grid !important;
   grid-template-columns: 44px 1fr auto !important;
@@ -6315,56 +5274,24 @@ html { scroll-behavior: smooth; }
    has tape strip + rotation from a5890e9d, but the row currently
    sits in a flex-column centered card. Reinforce the centered
    stack so the rotation feels intentional. */
-.pl8-guest[data-pl-kit="scrapbook"] .pl8-schedule-classic-grid {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important;
-  gap: 22px !important;
-  padding-top: 14px !important;
-}
-.pl8-guest[data-pl-kit="scrapbook"] .pl8-schedule-row .pl8-schedule-time {
-  font-family: 'Caveat', cursive, var(--pl-font-display) !important;
-  font-size: 26px !important;
-  color: var(--peach-ink, #C6703D) !important;
-  line-height: 1 !important;
-}
+
+
 
 /* ── INDEX schedule layout — red margin + blue rule lines + tab
    time pill on the left. Time becomes a small floating pill on
    the red margin; content fills the rest. */
-.pl8-guest[data-pl-kit="index"] .pl8-schedule-classic-grid {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 12px !important;
-  max-width: 640px !important;
-}
+
 .pl8-guest[data-pl-kit="index"] .pl8-schedule-row {
   display: block !important;
   text-align: left !important;
   padding: 14px 16px 14px 64px !important;
   position: relative;
 }
-.pl8-guest[data-pl-kit="index"] .pl8-schedule-row .pl8-schedule-time {
-  position: absolute;
-  left: 0;
-  top: 12px;
-  padding: 3px 8px;
-  background: var(--peach-ink, #C6703D);
-  color: #FBF7EE;
-  font-family: 'Courier New', ui-monospace, monospace !important;
-  font-size: 11px !important;
-  font-weight: 700;
-  border-radius: 0 4px 4px 0 !important;
-  letter-spacing: 0;
-}
+
 
 /* ── MINIMAL schedule layout — oversized serif numerals, no card
    chrome, hairline bottom borders. */
-.pl8-guest[data-pl-kit="minimal"] .pl8-schedule-classic-grid {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 0 !important;
-  max-width: 620px !important;
-}
+
 .pl8-guest[data-pl-kit="minimal"] .pl8-schedule-row {
   display: grid !important;
   grid-template-columns: auto 1fr !important;
@@ -6373,13 +5300,7 @@ html { scroll-behavior: smooth; }
   padding: 20px 0 !important;
   text-align: left !important;
 }
-.pl8-guest[data-pl-kit="minimal"] .pl8-schedule-row .pl8-schedule-time {
-  font-family: var(--pl-font-display, Fraunces, serif) !important;
-  font-size: clamp(28px, 4vw, 38px) !important;
-  font-weight: 500 !important;
-  line-height: 0.9 !important;
-  letter-spacing: -0.03em !important;
-}
+
 
 /* ─────────────────────────────────────────────────────────
    Phase 4 — per-kit FAQ row layouts.
@@ -6983,12 +5904,7 @@ html { scroll-behavior: smooth; }
   border: 1px solid var(--line-soft, rgba(14,13,11,0.10));
   border-radius: 4px;
 }
-.pl8-guest[data-pl-page-layout="invitation"] > header.pl8-themed-nav {
-  border-bottom: 1px solid var(--line-soft, rgba(14,13,11,0.10));
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  margin-bottom: 0;
-}
+
 .pl8-guest[data-pl-page-layout="invitation"] > section {
   border-top: 0;
   border-radius: 0;
@@ -7010,31 +5926,9 @@ html { scroll-behavior: smooth; }
     grid-template-columns: 240px 1fr;
     min-height: 100vh;
   }
-  .pl8-guest[data-pl-page-layout="split"] > header.pl8-themed-nav {
-    position: sticky;
-    top: 0;
-    align-self: start;
-    grid-column: 1;
-    grid-row: 1 / -1;
-    flex-direction: column;
-    height: 100vh;
-    background: var(--ink, #0E0D0B);
-    color: var(--cream, #F5EFE2);
-    padding: 32px 24px;
-    border-bottom: 0;
-    border-right: 1px solid rgba(245,239,226,0.10);
-    align-items: flex-start;
-    gap: 24px;
-  }
-  .pl8-guest[data-pl-page-layout="split"] > header.pl8-themed-nav nav {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    justify-content: flex-start;
-  }
-  .pl8-guest[data-pl-page-layout="split"] > header.pl8-themed-nav nav a {
-    color: rgba(245,239,226,0.78);
-  }
+  
+  
+  
   .pl8-guest[data-pl-page-layout="split"] > section,
   .pl8-guest[data-pl-page-layout="split"] > footer {
     grid-column: 2;
@@ -7118,13 +6012,7 @@ html { scroll-behavior: smooth; }
     border-left: 1px solid var(--line, rgba(14,13,11,0.16));
     border-right: 1px solid var(--line, rgba(14,13,11,0.16));
   }
-  .pl8-guest[data-pl-site-layout="boxed"] > header.pl8-themed-nav,
-  .pl8-guest.pl8-layout-boxed > header.pl8-themed-nav {
-    border-top: 1px solid var(--line, rgba(14,13,11,0.16));
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-    box-shadow: 0 -2px 0 transparent, 0 40px 90px rgba(0,0,0,0.22);
-  }
+  
   .pl8-guest[data-pl-site-layout="boxed"] > footer,
   .pl8-guest.pl8-layout-boxed > footer {
     border-bottom: 1px solid var(--line, rgba(14,13,11,0.16));
@@ -7153,34 +6041,9 @@ html { scroll-behavior: smooth; }
     align-items: start;
     min-height: 100vh;
   }
-  .pl8-guest[data-pl-site-layout="split"] > header.pl8-themed-nav,
-  .pl8-guest.pl8-layout-split > header.pl8-themed-nav {
-    position: sticky;
-    top: 0;
-    align-self: start;
-    grid-column: 1;
-    grid-row: 1 / -1;
-    flex-direction: column;
-    height: 100vh;
-    background: var(--ink, #0E0D0B);
-    color: var(--cream, #F5EFE2);
-    padding: 32px 24px;
-    border-bottom: 0;
-    border-right: 1px solid rgba(245,239,226,0.10);
-    align-items: flex-start;
-    gap: 24px;
-  }
-  .pl8-guest[data-pl-site-layout="split"] > header.pl8-themed-nav nav,
-  .pl8-guest.pl8-layout-split > header.pl8-themed-nav nav {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    justify-content: flex-start;
-  }
-  .pl8-guest[data-pl-site-layout="split"] > header.pl8-themed-nav nav a,
-  .pl8-guest.pl8-layout-split > header.pl8-themed-nav nav a {
-    color: rgba(245,239,226,0.78);
-  }
+  
+  
+  
   .pl8-guest[data-pl-site-layout="split"] > section,
   .pl8-guest[data-pl-site-layout="split"] > footer,
   .pl8-guest.pl8-layout-split > section,
@@ -7242,16 +6105,9 @@ html { scroll-behavior: smooth; }
 
 @media (max-width: 720px) {
   /* ── Sub-nav: hide center link list; brand + RSVP pill survive. */
-  .pl8-guest .pl8-themed-nav {
-    padding: 12px 18px !important;
-    gap: 12px !important;
-  }
-  .pl8-guest .pl8-themed-nav nav {
-    display: none !important;
-  }
-  .pl8-guest .pl8-themed-nav > a:first-child > span {
-    font-size: 15px !important;
-  }
+  
+  
+  
 
   /* ── Hero: shrink display name + tighten meta row. */
   .pl8-guest section#top {
@@ -7575,16 +6431,8 @@ html { scroll-behavior: smooth; }
     gap: 12px !important;
   }
   /* Chips wrap to multi-line pill row. */
-  .pl8-registry-chips,
-  .pl8-guest section#registry .pl8-registry-chips {
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-    justify-content: center !important;
-  }
-  .pl8-guest section#registry .pl8-registry-chips > * {
-    flex: 0 0 auto !important;
-    min-width: 0 !important;
-  }
+  
+  
   /* Progress bar registry — the goal bar stays full-width; cap
      the surrounding label row to wrap cleanly. */
   .pl8-guest section#registry [class*="progress"] {
@@ -7605,35 +6453,14 @@ html { scroll-behavior: smooth; }
   /* ── GALLERY mosaic / masonry / polaroid / slideshow / strip. */
   /* Mosaic — the renderer ships 4-col on desktop, no explicit
      mobile rule. Collapse to 2-col so the bento mix still reads. */
-  .pl8-gallery-grid,
-  .pl8-guest section#gallery .pl8-gallery-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    grid-auto-rows: 110px !important;
-    gap: 8px !important;
-  }
+  
   /* Wall — already auto-fit minmax(180px); shrink min to 140px so
      a 320px screen still shows 2 columns. */
-  .pl8-gallery-wall,
-  .pl8-guest section#gallery .pl8-gallery-wall {
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
-    gap: 6px !important;
-  }
+  
   /* Strip — hide the chevron arrows on phone (touch swipe instead). */
-  .pl8-gallery-strip-arrow {
-    display: none !important;
-  }
-  .pl8-gallery-strip {
-    scroll-padding-inline: 20px !important;
-    padding-inline: 16px !important;
-    margin-inline: -16px !important;
-    touch-action: pan-x !important;
-    -webkit-overflow-scrolling: touch;
-  }
-  .pl8-gallery-strip > * {
-    scroll-snap-align: center !important;
-    width: min(280px, 78vw) !important;
-    flex-shrink: 0 !important;
-  }
+  
+  
+  
   /* Polaroid — the renderer scatters tilted polaroids. On phone,
      null the rotation + arrange in a 2-col grid so tilted tiles
      don't overlap the section edge. */
