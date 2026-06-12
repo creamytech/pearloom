@@ -38,6 +38,54 @@ export interface DayPicks {
   hotels?: Array<{ name: string; address: string }>;
   kidsPolicy?: string;
   parkingNote?: string;
+  /** "The extras" — component picks. Countdown joins the block
+   *  order, the playlist becomes the Music embed, meals become
+   *  the RSVP form's meal question, the registry link becomes a
+   *  Registry card. */
+  wantsCountdown?: boolean;
+  playlistUrl?: string;
+  meals?: string[];
+  registryUrl?: string;
+}
+
+/* Append a block to the manifest's block order without disturbing
+   an explicit order the host (or a template) already set. Mirrors
+   redesign/bastings.ts — the core sections are the implicit
+   default when blockOrder is unset. */
+const CORE_ORDER = ['story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
+function withBlock(loose: Loose, section: string): void {
+  const order = Array.isArray(loose.blockOrder) ? (loose.blockOrder as string[]) : CORE_ORDER;
+  if (!order.includes(section)) loose.blockOrder = [...order, section];
+}
+
+/* Provider detection — the same regexes MusicPanel uses. */
+function musicProviderFor(url: string): 'spotify' | 'apple' | 'youtube' | 'custom' {
+  if (/spotify\.com/i.test(url)) return 'spotify';
+  if (/music\.apple\.com/i.test(url)) return 'apple';
+  if (/youtube\.com|youtu\.be/i.test(url)) return 'youtube';
+  return 'custom';
+}
+
+/* A friendly store name from a registry URL's host. */
+const REGISTRY_HOSTS: Array<[RegExp, string]> = [
+  [/zola\.com/i, 'Zola'],
+  [/amazon\./i, 'Amazon'],
+  [/babylist\.com/i, 'Babylist'],
+  [/target\.com/i, 'Target'],
+  [/crateandbarrel\.com/i, 'Crate & Barrel'],
+  [/williams-?sonoma\.com/i, 'Williams Sonoma'],
+  [/myregistry\.com/i, 'MyRegistry'],
+  [/gofundme\.com/i, 'GoFundMe'],
+  [/honeyfund\.com/i, 'Honeyfund'],
+];
+function registryNameFor(url: string): string {
+  for (const [re, name] of REGISTRY_HOSTS) if (re.test(url)) return name;
+  try {
+    const host = new URL(url.startsWith('http') ? url : `https://${url}`).hostname.replace(/^www\./, '');
+    return host.split('.')[0].replace(/^./, (c) => c.toUpperCase());
+  } catch {
+    return 'Our registry';
+  }
 }
 
 /** ~5 weeks before the event date, clamped to tomorrow. */
@@ -136,6 +184,37 @@ export function seedSectionsFromWizard(
       })
       .filter((f) => f.answer); // only ship answered rows
     if (seeded.length > 0) loose.faqs = seeded;
+  }
+
+  // ── The extras ──────────────────────────────────────────────
+  // Countdown — joins the block order (the renderer carries the
+  // CountdownBlock; presence in blockOrder is the switch).
+  if (picks.wantsCountdown) withBlock(loose, 'countdown');
+
+  // Playlist — becomes the Music section embed (fill-missing).
+  const playlist = picks.playlistUrl?.trim();
+  if (playlist && !(loose.music as { url?: string } | undefined)?.url) {
+    loose.music = { provider: musicProviderFor(playlist), url: playlist };
+    withBlock(loose, 'music');
+  }
+
+  // Meals — the RSVP form's meal question, in the MealOption shape
+  // GuestRsvpModal + PresetRsvpForm read (fill-missing).
+  const meals = (picks.meals ?? []).map((m) => m.trim()).filter(Boolean);
+  const rsvpConfig = { ...((loose.rsvpConfig as Loose | undefined) ?? {}) };
+  if (meals.length > 0 && !Array.isArray(rsvpConfig.mealOptions)) {
+    rsvpConfig.mealOptions = meals.map((name, i) => ({ id: `meal-${i}`, name, dietaryTags: [] }));
+    loose.rsvpConfig = rsvpConfig;
+  }
+
+  // Registry link — one real entry, store name derived from the
+  // host's URL (fill-missing).
+  const regUrl = picks.registryUrl?.trim();
+  const registry = { ...((loose.registry as Loose | undefined) ?? {}) };
+  if (regUrl && !((registry.entries as unknown[] | undefined)?.length)) {
+    registry.enabled = true;
+    registry.entries = [{ name: registryNameFor(regUrl), url: regUrl.startsWith('http') ? regUrl : `https://${regUrl}` }];
+    loose.registry = registry;
   }
 
   // Details cards — dress code / kids / parking, when none exist.

@@ -71,6 +71,47 @@ describe('seedSectionsFromWizard — guests-will-ask picks', () => {
   });
 });
 
+describe('seedSectionsFromWizard — the extras', () => {
+  it('countdown joins the block order without disturbing an explicit one', () => {
+    const out = loose(seedSectionsFromWizard(base(), { wantsCountdown: true }));
+    expect(out.blockOrder).toContain('countdown');
+    const out2 = loose(
+      seedSectionsFromWizard(base({ blockOrder: ['story', 'countdown', 'rsvp'] }), { wantsCountdown: true }),
+    );
+    expect(out2.blockOrder).toEqual(['story', 'countdown', 'rsvp']);
+  });
+
+  it('playlist becomes the Music embed with a detected provider', () => {
+    const out = loose(
+      seedSectionsFromWizard(base(), { playlistUrl: 'https://open.spotify.com/playlist/abc' }),
+    );
+    expect((out.music as { provider: string; url: string }).provider).toBe('spotify');
+    expect(out.blockOrder).toContain('music');
+  });
+
+  it('never clobbers an existing music embed', () => {
+    const out = loose(
+      seedSectionsFromWizard(base({ music: { provider: 'apple', url: 'https://music.apple.com/x' } }), {
+        playlistUrl: 'https://open.spotify.com/playlist/abc',
+      }),
+    );
+    expect((out.music as { url: string }).url).toBe('https://music.apple.com/x');
+  });
+
+  it('meals become rsvpConfig.mealOptions in the MealOption shape', () => {
+    const out = loose(seedSectionsFromWizard(base(), { meals: ['Beef', 'Vegan'] }));
+    const opts = (out.rsvpConfig as { mealOptions: Array<{ id: string; name: string }> }).mealOptions;
+    expect(opts.map((o) => o.name)).toEqual(['Beef', 'Vegan']);
+  });
+
+  it('registry link becomes a named entry', () => {
+    const out = loose(seedSectionsFromWizard(base(), { registryUrl: 'https://www.zola.com/registry/us' }));
+    const reg = out.registry as { enabled: boolean; entries: Array<{ name: string; url: string }> };
+    expect(reg.enabled).toBe(true);
+    expect(reg.entries[0].name).toBe('Zola');
+  });
+});
+
 describe('suggestRsvpDeadline', () => {
   it('lands ~5 weeks before the date', () => {
     const future = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);

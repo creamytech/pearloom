@@ -292,6 +292,13 @@ interface WizardState {
    *  work without re-geocoding. */
   venueLat?: number;
   venueLng?: number;
+  /** "The extras" — component picks that seed real sections:
+   *  countdown block, music embed, RSVP meal choices, registry
+   *  link. All optional, all fill-missing at finish. */
+  wantsCountdown?: boolean;
+  playlistUrl?: string;
+  meals?: string[];
+  registryUrl?: string;
   // Occasion-specific details (consumed by /api/generate/stream as eventDetails)
   detailDays?: number;
   detailLivestreamUrl?: string;
@@ -1214,6 +1221,156 @@ function GuestsWillAsk({
   );
 }
 
+/* ─────────────────────────────────────────────────────────────
+   THE EXTRAS — component picks, thirty seconds each.
+
+   "Do you have a playlist? Know your menu? Want a countdown?"
+   Each chip expands an inline mini-form; each answer seeds a
+   REAL section at finish (music embed, RSVP meal choices, the
+   countdown block, a registry card) so the editor opens with
+   those parts of the site already alive. Occasion-aware:
+   memorials don't count down, bachelor weekends don't register,
+   menus only show for sit-down-shaped events.
+   ──────────────────────────────────────────────────────────── */
+const MEAL_CHIP_OPTIONS = ['Beef', 'Chicken', 'Fish', 'Vegetarian', 'Vegan', 'Kid’s plate'];
+const MEAL_OCCASIONS = new Set([
+  'wedding', 'vow-renewal', 'engagement', 'rehearsal-dinner', 'bridal-luncheon',
+  'reunion', 'bar-mitzvah', 'bat-mitzvah', 'quinceanera', 'milestone-birthday',
+  'retirement', 'brunch', 'anniversary',
+]);
+
+function TheExtras({
+  st,
+  setSt,
+}: {
+  st: WizardState;
+  setSt: (updater: (s: WizardState) => WizardState) => void;
+}) {
+  const solemn = st.occasion === 'memorial' || st.occasion === 'funeral';
+  const bachelor = st.occasion.startsWith('bachelor');
+  const showCountdown = !solemn;
+  const showMeals = MEAL_OCCASIONS.has(st.occasion);
+  const showRegistry = !bachelor;
+  const registryLabel = solemn ? 'Donations in lieu of flowers' : 'A registry';
+  const [open, setOpen] = useState<'playlist' | 'meals' | 'registry' | null>(null);
+
+  const chip = (on: boolean, label: string, onClick: () => void, expandable = false) => (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={on}
+      style={{
+        padding: '8px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
+        border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
+        background: on ? 'var(--ink)' : 'var(--card)',
+        color: on ? 'var(--cream)' : 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
+      }}
+    >
+      {label}{expandable && !on ? ' +' : ''}
+    </button>
+  );
+
+  return (
+    <div style={{ marginTop: 18 }}>
+      <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 4 }}>
+        The extras
+      </div>
+      <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 12 }}>
+        Each one becomes a living part of the site. Skip anything — you can add them all later.
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+        {showCountdown && chip(
+          !!st.wantsCountdown,
+          st.wantsCountdown ? 'Counting down ✓' : 'A countdown to the day',
+          () => setSt((s) => ({ ...s, wantsCountdown: !s.wantsCountdown })),
+        )}
+        {chip(
+          !!st.playlistUrl,
+          st.playlistUrl ? 'Playlist linked ✓' : 'We have a playlist',
+          () => setOpen(open === 'playlist' ? null : 'playlist'),
+          true,
+        )}
+        {showMeals && chip(
+          (st.meals ?? []).length > 0,
+          (st.meals ?? []).length > 0 ? `Menu · ${(st.meals ?? []).length} choices` : 'We know the menu',
+          () => setOpen(open === 'meals' ? null : 'meals'),
+          true,
+        )}
+        {showRegistry && chip(
+          !!st.registryUrl,
+          st.registryUrl ? (solemn ? 'Donations linked ✓' : 'Registry linked ✓') : registryLabel,
+          () => setOpen(open === 'registry' ? null : 'registry'),
+          true,
+        )}
+      </div>
+
+      {open === 'playlist' && (
+        <div style={{ marginTop: 10 }}>
+          <label className="field-label">Playlist link — Spotify, Apple Music, or YouTube</label>
+          <input
+            className="input"
+            inputMode="url"
+            value={st.playlistUrl ?? ''}
+            onChange={(ev) => setSt((s) => ({ ...s, playlistUrl: ev.target.value }))}
+            placeholder="https://open.spotify.com/playlist/…"
+          />
+          <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 5 }}>
+            It embeds as a Music section guests can play right on the site.
+          </div>
+        </div>
+      )}
+
+      {open === 'meals' && (
+        <div style={{ marginTop: 10 }}>
+          <label className="field-label">Meal choices guests pick from when they RSVP</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+            {MEAL_CHIP_OPTIONS.map((m) => {
+              const on = (st.meals ?? []).includes(m);
+              return (
+                <button key={m} type="button" aria-pressed={on}
+                  onClick={() => setSt((s) => {
+                    const cur = s.meals ?? [];
+                    return { ...s, meals: on ? cur.filter((x) => x !== m) : [...cur, m] };
+                  })}
+                  style={{
+                    padding: '7px 13px', borderRadius: 999, fontSize: 12.5, fontWeight: 600,
+                    border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
+                    background: on ? 'var(--ink)' : 'var(--card)',
+                    color: on ? 'var(--cream)' : 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  {m}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 5 }}>
+            These appear as the meal question on your RSVP form. Rename or refine them in the editor.
+          </div>
+        </div>
+      )}
+
+      {open === 'registry' && (
+        <div style={{ marginTop: 10 }}>
+          <label className="field-label">{solemn ? 'Donation link — a charity or fund in their name' : 'Registry link — Zola, Amazon, Babylist, anywhere'}</label>
+          <input
+            className="input"
+            inputMode="url"
+            value={st.registryUrl ?? ''}
+            onChange={(ev) => setSt((s) => ({ ...s, registryUrl: ev.target.value }))}
+            placeholder={solemn ? 'https://gofundme.com/…' : 'https://zola.com/registry/…'}
+          />
+          <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 5 }}>
+            {solemn
+              ? 'It appears as a gentle “in lieu of flowers” card.'
+              : 'It becomes your Registry section — add more links in the editor.'}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: StepKey[] }) {
   // Map the 8 steps into 4 phases. Hidden-step ranges (template
   // skips Vibe/Palette/Layout) collapse the Look phase down so
@@ -2035,6 +2192,10 @@ export function WizardV8() {
         hotels: st.hotels,
         kidsPolicy: st.kidsPolicy,
         parkingNote: st.parkingNote,
+        wantsCountdown: st.wantsCountdown,
+        playlistUrl: st.playlistUrl,
+        meals: st.meals,
+        registryUrl: st.registryUrl,
       }) as unknown as Record<string, unknown>;
 
       // ── Explicit LOOK pick — overwrites the occasion defaults on
@@ -2826,6 +2987,8 @@ export function WizardV8() {
                     </div>
 
                     <GuestsWillAsk st={st} setSt={setSt} />
+
+                    <TheExtras st={st} setSt={setSt} />
 
                     {suggestedDl && (
                       <div style={{ marginTop: 18, padding: '12px 14px', borderRadius: 12, background: 'var(--cream-2)', border: '1px solid var(--line-soft)', fontSize: 13, color: 'var(--ink-soft)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
