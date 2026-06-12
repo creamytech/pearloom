@@ -71,7 +71,7 @@ function stageFromDaysUntil(daysUntil: number | null): Stage {
 // WelcomeHome
 // ─────────────────────────────────────────────────────────────
 export function WelcomeHome() {
-  const { site } = useSelectedSite();
+  const { site, sites } = useSelectedSite();
   const { data: session } = useSession();
   const [insights, setInsights] = useState<GuestInsight[] | null>(null);
   const [guests, setGuests] = useState<Guest[] | null>(null);
@@ -317,6 +317,7 @@ export function WelcomeHome() {
             {rsvpMomentum && nextStep?.id !== 'nudge' && <RsvpMomentumCard momentum={rsvpMomentum} />}
             <GuestPulse counts={guestCounts} domain={site?.domain ?? null} loading={guests === null} />
             <Milestones milestones={milestones} dateShort={eventDateShort} />
+            <SiblingEventsCard occasion={occasion} sites={sites ?? []} />
           </div>
         </div>
       </div>
@@ -1401,6 +1402,69 @@ function milestoneDotStyle(status: MilestoneStatus): { bg: string; border: strin
 // ─────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// SiblingEventsCard — the rest of the weekend.
+//
+// A wedding is 3-4 Pearloom sites, not one (rehearsal dinner,
+// bachelor/ette, welcome party, brunch) — each often hosted by a
+// different person. manifest.celebration + the siblings API have
+// existed for a while, but nothing SUGGESTED the adjacent events,
+// so the multi-site funnel sat unwired. This card offers the
+// sibling occasions the host doesn't have a site for yet; each
+// deep-links the wizard with ?occasion= prefilled.
+// ─────────────────────────────────────────────────────────────
+const SIBLING_EVENTS: Record<string, Array<{ occasion: string; label: string; blurb: string }>> = {
+  wedding: [
+    { occasion: 'rehearsal-dinner', label: 'Rehearsal dinner', blurb: 'The night before — toasts, a long table.' },
+    { occasion: 'welcome-party', label: 'Welcome party', blurb: 'For everyone arriving early.' },
+    { occasion: 'bachelorette-party', label: 'Bachelorette weekend', blurb: 'Itinerary, votes, one shared plan.' },
+    { occasion: 'brunch', label: 'Morning-after brunch', blurb: 'Eggs before everyone flies home.' },
+  ],
+  engagement: [
+    { occasion: 'wedding', label: 'The wedding itself', blurb: 'When you’re ready — same names, new thread.' },
+    { occasion: 'bridal-shower', label: 'Bridal shower', blurb: 'Often someone else hosts — send them here.' },
+  ],
+};
+
+function SiblingEventsCard({ occasion, sites }: { occasion: string; sites: Array<{ occasion?: string }> }) {
+  const have = new Set(sites.map((s) => s.occasion).filter(Boolean));
+  const suggestions = (SIBLING_EVENTS[occasion] ?? []).filter((e) => !have.has(e.occasion)).slice(0, 3);
+  if (suggestions.length === 0) return null;
+  return (
+    <section
+      style={{
+        background: 'var(--card)',
+        border: '1px solid var(--line-soft)',
+        borderRadius: 'var(--r-md, 20px)',
+        padding: '18px 18px 14px',
+      }}
+    >
+      <SectionHeader icon="sparkles">Around your day</SectionHeader>
+      <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5, margin: '-6px 0 12px' }}>
+        Most celebrations are a weekend, not a day. Each of these can be its own site —
+        woven to match, with its own guest list.
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {suggestions.map((e) => (
+          <Link
+            key={e.occasion}
+            href={`/wizard/new?occasion=${encodeURIComponent(e.occasion)}`}
+            style={{
+              display: 'flex', alignItems: 'baseline', gap: 8,
+              padding: '9px 12px', borderRadius: 12,
+              border: '1px dashed var(--line)', textDecoration: 'none',
+            }}
+          >
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap' }}>{e.label}</span>
+            <span style={{ fontSize: 11.5, color: 'var(--ink-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.blurb}</span>
+            <span aria-hidden style={{ marginLeft: 'auto', color: 'var(--pl-olive, #5C6B3F)', fontSize: 13 }}>→</span>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function SectionHeader({ icon, children }: { icon: string; children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>

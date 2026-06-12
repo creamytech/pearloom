@@ -1350,6 +1350,11 @@ export function WizardV8() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const templateId = searchParams.get('template');
+  /* ?occasion=rehearsal-dinner — deep link from the dashboard's
+     "around your wedding" sibling-event card. Prefills the
+     occasion (validated against the registry); explicit picks in
+     the wizard always win. */
+  const occasionParam = searchParams.get('occasion');
   const dialog = useDialog();
   const [stepIndex, setStepIndex] = useState(0);
   // Persist wizard state across refreshes so users don't lose their
@@ -1357,6 +1362,13 @@ export function WizardV8() {
   // storage (too big); they'd need to be re-picked.
   const STORAGE_KEY = 'pl-wizard-state-v1';
   const [st, setSt] = useState<WizardState>(() => {
+    /* An explicit ?occasion= deep link means "start a NEW site of
+       this kind" (the sibling-event card) — it wins over any stale
+       in-flight draft, which would otherwise resume a different
+       celebration entirely. */
+    if (occasionParam && getEventType(occasionParam as never)) {
+      return { ...defaultState, occasion: occasionParam } as WizardState;
+    }
     if (typeof window !== 'undefined') {
       try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -1368,17 +1380,20 @@ export function WizardV8() {
         }
       } catch {}
     }
-    if (!templateId) return defaultState;
-    const tpl = TEMPLATES_BY_ID[templateId];
-    if (!tpl) return defaultState;
-    return {
-      ...defaultState,
-      occasion: tpl.occasion,
-      vibes: tpl.vibes.map((v) => v.toLowerCase()),
-      palette: tpl.palette,
-      layout: tpl.layout,
-      templateId,
-    } as WizardState;
+    if (templateId) {
+      const tpl = TEMPLATES_BY_ID[templateId];
+      if (tpl) {
+        return {
+          ...defaultState,
+          occasion: tpl.occasion,
+          vibes: tpl.vibes.map((v) => v.toLowerCase()),
+          palette: tpl.palette,
+          layout: tpl.layout,
+          templateId,
+        } as WizardState;
+      }
+    }
+    return defaultState;
   });
 
   // Debounced persistence — runs on every state change, but throttled
