@@ -22,7 +22,8 @@
    choices, not a separate state machine.
    ───────────────────────────────────────────────────────────── */
 
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import type { StoryManifest } from '@/types';
 import { ThemedSite } from '../redesign/ThemedSite';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
@@ -32,6 +33,8 @@ import type { StructurePicks } from './wizard-structure';
 
 export interface FittingPicks extends StructurePicks {
   texture?: string;
+  motifLayout?: string;
+  density?: string;
 }
 
 export interface PaletteChoice {
@@ -78,14 +81,44 @@ const HEROES = [
   { id: 'minimal', label: 'Minimal' },
 ];
 
-type Rail = 'palette' | 'texture' | 'kit' | 'nav' | 'hero';
+const MOTIFS = [
+  { id: 'scattered', label: 'Scattered' },
+  { id: 'corners', label: 'Corners' },
+  { id: 'margins', label: 'Margins' },
+  { id: 'dividers', label: 'Dividers' },
+  { id: 'crest', label: 'Crest' },
+  { id: 'none', label: 'Off' },
+];
+
+const DENSITIES = [
+  { id: 'cozy', label: 'Cozy' },
+  { id: 'comfortable', label: 'Comfortable' },
+  { id: 'spacious', label: 'Spacious' },
+];
+
+type Rail = 'palette' | 'texture' | 'kit' | 'nav' | 'hero' | 'motif' | 'density';
 const RAILS: Array<{ id: Rail; label: string }> = [
   { id: 'palette', label: 'Palette' },
   { id: 'texture', label: 'Paper' },
   { id: 'kit', label: 'Kit' },
   { id: 'nav', label: 'Nav' },
   { id: 'hero', label: 'Hero' },
+  { id: 'motif', label: 'Motif' },
+  { id: 'density', label: 'Density' },
 ];
+
+/* Where each rail's change LANDS on the site — the preview scrolls
+   there and flashes a ring so the host sees what they just
+   re-pressed. Palette/paper change everything → flash the hero. */
+const RAIL_TARGET: Record<Rail, string> = {
+  palette: 'hero',
+  texture: 'hero',
+  kit: 'schedule',
+  nav: 'hero',
+  hero: 'hero',
+  motif: 'story',
+  density: 'details',
+};
 
 export function buildFittingManifest(opts: {
   occasion: string;
@@ -113,11 +146,57 @@ export function buildFittingManifest(opts: {
   }
   if (opts.picks.kitId) dressed.kitId = opts.picks.kitId;
   if (opts.picks.texture) dressed.texture = opts.picks.texture;
+  if (opts.picks.motifLayout) dressed.motifLayout = opts.picks.motifLayout;
+  if (opts.picks.density) dressed.density = opts.picks.density;
   const layouts: Record<string, string> = {};
   if (opts.picks.navVariant) layouts.nav = opts.picks.navVariant;
   if (opts.picks.heroVariant) layouts.hero = opts.picks.heroVariant;
   if (Object.keys(layouts).length > 0) dressed.layouts = layouts;
   return dressed as unknown as StoryManifest;
+}
+
+function RailChip({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      style={{
+        padding: '9px 16px', borderRadius: 999, fontSize: 13, fontWeight: 600,
+        border: on ? '1.5px solid var(--ink)' : '1.5px solid color-mix(in srgb, var(--ink, #0E0D0B) 18%, transparent)',
+        background: on ? 'var(--ink)' : 'transparent',
+        color: on ? 'var(--cream)' : 'var(--ink)',
+        cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0,
+        transition: 'background 160ms var(--pl-ease-out, ease), color 160ms var(--pl-ease-out, ease)',
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+function PaletteSwatch({ on, palette, onClick }: { on: boolean; palette: PaletteChoice; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+        padding: '8px 10px 7px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+        border: on ? '1.5px solid var(--ink)' : '1.5px solid transparent',
+        background: on ? 'color-mix(in srgb, var(--cream, #F5EFE2) 85%, transparent)' : 'transparent',
+        flexShrink: 0,
+      }}
+    >
+      <span style={{ display: 'inline-flex', gap: 3 }}>
+        {palette.colors.slice(0, 4).map((hex, i) => (
+          <span key={i} style={{ width: 16, height: 16, borderRadius: 999, background: hex, border: '1px solid rgba(14,13,11,0.12)' }} />
+        ))}
+      </span>
+      <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--ink-soft)', whiteSpace: 'nowrap' }}>{palette.name}</span>
+    </button>
+  );
 }
 
 /* Frosted chrome — the ONE place glass belongs (floating over the
@@ -159,6 +238,29 @@ export function WizardFittingRoom({
   onClose: () => void;
 }) {
   const [rail, setRail] = useState<Rail>('palette');
+  const siteScrollRef = useRef<HTMLDivElement | null>(null);
+
+  /* SHOW THE CHANGE — after a pick, scroll the preview to the
+     section that change lands on and flash a ring around it, so
+     the host always sees what they just re-pressed (a kit pick
+     changes schedule rows three screens down; without this it
+     reads as "nothing happened"). */
+  const flashTarget = useCallback((sectionId: string) => {
+    requestAnimationFrame(() => {
+      const root = siteScrollRef.current;
+      if (!root) return;
+      const el = root.querySelector<HTMLElement>(`#${sectionId}`) ?? root.querySelector<HTMLElement>('#hero');
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: sectionId === 'hero' ? 'start' : 'center' });
+      el.style.transition = 'box-shadow 240ms ease';
+      el.style.boxShadow = 'inset 0 0 0 3px var(--pl-gold, #C19A4B)';
+      window.setTimeout(() => { el.style.boxShadow = 'inset 0 0 0 0 transparent'; }, 900);
+    });
+  }, []);
+  const pickAndShow = useCallback((railId: Rail, next: Partial<FittingPicks>) => {
+    onChange(next);
+    flashTarget(RAIL_TARGET[railId]);
+  }, [onChange, flashTarget]);
 
   const activePalette = palettes.find((p) => p.id === activePaletteId) ?? palettes[0];
   const manifest = useMemo(
@@ -185,60 +287,25 @@ export function WizardFittingRoom({
     };
   }, [onClose]);
 
-  const swatch = (p: PaletteChoice) => {
-    const on = p.id === activePaletteId;
-    return (
-      <button
-        key={p.id}
-        type="button"
-        aria-pressed={on}
-        onClick={() => onPalettePick(p)}
-        style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
-          padding: '8px 10px 7px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
-          border: on ? '1.5px solid var(--ink)' : '1.5px solid transparent',
-          background: on ? 'color-mix(in srgb, var(--cream, #F5EFE2) 85%, transparent)' : 'transparent',
-          flexShrink: 0,
-        }}
-      >
-        <span style={{ display: 'inline-flex', gap: 3 }}>
-          {p.colors.slice(0, 4).map((hex, i) => (
-            <span key={i} style={{ width: 16, height: 16, borderRadius: 999, background: hex, border: '1px solid rgba(14,13,11,0.12)' }} />
-          ))}
-        </span>
-        <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--ink-soft)', whiteSpace: 'nowrap' }}>{p.name}</span>
-      </button>
-    );
-  };
+  /* SSR guard for the portal — the room only opens client-side. */
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(t);
+  }, []);
+  if (!mounted) return null;
 
-  const chip = (on: boolean, label: string, onClick: () => void) => (
-    <button
-      key={label}
-      type="button"
-      aria-pressed={on}
-      onClick={onClick}
-      style={{
-        padding: '9px 16px', borderRadius: 999, fontSize: 13, fontWeight: 600,
-        border: on ? '1.5px solid var(--ink)' : '1.5px solid color-mix(in srgb, var(--ink, #0E0D0B) 18%, transparent)',
-        background: on ? 'var(--ink)' : 'transparent',
-        color: on ? 'var(--cream)' : 'var(--ink)',
-        cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0,
-        transition: 'background 160ms var(--pl-ease-out, ease), color 160ms var(--pl-ease-out, ease)',
-      }}
-    >
-      {label}
-    </button>
-  );
-
-  const pearChip = (isUnset: boolean, clear: () => void) =>
-    chip(isUnset, 'Pear decides', clear);
-
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-label="The fitting room — try looks on your live site"
       style={{
+        /* Portaled to <body>: the wizard root's containing-block
+           quirk made this 'fixed' behave like absolute (the room
+           parked at the page top and the host had to scroll up to
+           find it — phone screenshot, 2026-06-12). From <body>,
+           fixed always means the visual viewport. */
         position: 'fixed', inset: 0, zIndex: 200,
         background: 'var(--cream, #F5EFE2)',
         /* Flex column with the dock IN FLOW — iOS Safari's dynamic
@@ -251,7 +318,7 @@ export function WizardFittingRoom({
     >
       {/* THE SITE — fills the space above the dock, scrollable, real. */}
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
-        <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <div ref={siteScrollRef} style={{ position: 'absolute', inset: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <ThemedSite manifest={manifest} names={names} demoCopy />
         </div>
 
@@ -360,33 +427,60 @@ export function WizardFittingRoom({
             paddingBottom: 2, scrollbarWidth: 'none',
           }}
         >
-          {rail === 'palette' && palettes.map(swatch)}
+          {rail === 'palette' && palettes.map((p) => (
+            <PaletteSwatch key={p.id} on={p.id === activePaletteId} palette={p} onClick={() => { onPalettePick(p); flashTarget(RAIL_TARGET.palette); }} />
+          ))}
           {rail === 'texture' && (
             <>
-              {pearChip(picks.texture === undefined, () => onChange({ texture: undefined }))}
-              {TEXTURES.map((t) => chip(picks.texture === t.id, t.label, () => onChange({ texture: t.id })))}
+              <RailChip on={picks.texture === undefined} label="Pear decides" onClick={() => pickAndShow('texture', { texture: undefined })} />
+              {TEXTURES.map((t) => (
+                <RailChip key={t.id} on={picks.texture === t.id} label={t.label} onClick={() => pickAndShow('texture', { texture: t.id })} />
+              ))}
             </>
           )}
           {rail === 'kit' && (
             <>
-              {pearChip(picks.kitId === undefined, () => onChange({ kitId: undefined }))}
-              {KITS.map((t) => chip(picks.kitId === t.id, t.label, () => onChange({ kitId: t.id })))}
+              <RailChip on={picks.kitId === undefined} label="Pear decides" onClick={() => pickAndShow('kit', { kitId: undefined })} />
+              {KITS.map((t) => (
+                <RailChip key={t.id} on={picks.kitId === t.id} label={t.label} onClick={() => pickAndShow('kit', { kitId: t.id })} />
+              ))}
             </>
           )}
           {rail === 'nav' && (
             <>
-              {pearChip(picks.navVariant === undefined, () => onChange({ navVariant: undefined }))}
-              {NAVS.map((t) => chip(picks.navVariant === t.id, t.label, () => onChange({ navVariant: t.id })))}
+              <RailChip on={picks.navVariant === undefined} label="Pear decides" onClick={() => pickAndShow('nav', { navVariant: undefined })} />
+              {NAVS.map((t) => (
+                <RailChip key={t.id} on={picks.navVariant === t.id} label={t.label} onClick={() => pickAndShow('nav', { navVariant: t.id })} />
+              ))}
             </>
           )}
           {rail === 'hero' && (
             <>
-              {pearChip(picks.heroVariant === undefined, () => onChange({ heroVariant: undefined }))}
-              {HEROES.map((t) => chip(picks.heroVariant === t.id, t.label, () => onChange({ heroVariant: t.id })))}
+              <RailChip on={picks.heroVariant === undefined} label="Pear decides" onClick={() => pickAndShow('hero', { heroVariant: undefined })} />
+              {HEROES.map((t) => (
+                <RailChip key={t.id} on={picks.heroVariant === t.id} label={t.label} onClick={() => pickAndShow('hero', { heroVariant: t.id })} />
+              ))}
+            </>
+          )}
+          {rail === 'motif' && (
+            <>
+              <RailChip on={picks.motifLayout === undefined} label="Pear decides" onClick={() => pickAndShow('motif', { motifLayout: undefined })} />
+              {MOTIFS.map((t) => (
+                <RailChip key={t.id} on={picks.motifLayout === t.id} label={t.label} onClick={() => pickAndShow('motif', { motifLayout: t.id })} />
+              ))}
+            </>
+          )}
+          {rail === 'density' && (
+            <>
+              <RailChip on={picks.density === undefined} label="Pear decides" onClick={() => pickAndShow('density', { density: undefined })} />
+              {DENSITIES.map((t) => (
+                <RailChip key={t.id} on={picks.density === t.id} label={t.label} onClick={() => pickAndShow('density', { density: t.id })} />
+              ))}
             </>
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

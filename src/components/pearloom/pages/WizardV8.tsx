@@ -310,6 +310,10 @@ interface WizardState {
   /** Explicit paper texture from the fitting room — beats the
    *  look recipe's texture at finish. */
   texture?: string;
+  /** Explicit ornament placement + breathing room from the
+   *  fitting room — same beats-the-recipe contract. */
+  motifLayoutPick?: string;
+  densityPick?: string;
   navVariant?: string;
   heroVariant?: string;
   /** Plus-ones policy → rsvpConfig.plusOnes + the FAQ answer.
@@ -2444,10 +2448,13 @@ export function WizardV8() {
           manifest.density = recipe.density;
         }
       }
-      // Explicit kit / texture picks from The Structure + fitting
-      // room beat the recipe's — the host saw them live.
+      // Explicit kit / texture / motif / density picks from The
+      // Structure + fitting room beat the recipe's — the host saw
+      // them live.
       if (st.kitId) manifest.kitId = st.kitId;
       if (st.texture) manifest.texture = st.texture;
+      if (st.motifLayoutPick) manifest.motifLayout = st.motifLayoutPick;
+      if (st.densityPick) manifest.density = st.densityPick;
 
       // `create: true` — the server guarantees a FREE slug. If the
       // derived one (typed, or names-fallback) is already taken — by
@@ -4269,8 +4276,25 @@ export function WizardV8() {
                                 suggestedMotifLayout: smart ? sp?.motifLayout : undefined,
                               }));
                             }}
-                            picks={{ siteMode: st.siteMode, kitId: st.kitId, texture: st.texture, navVariant: st.navVariant, heroVariant: st.heroVariant }}
-                            onChange={(next) => setSt((prev) => ({ ...prev, ...next }))}
+                            picks={{
+                              siteMode: st.siteMode,
+                              kitId: st.kitId,
+                              texture: st.texture,
+                              navVariant: st.navVariant,
+                              heroVariant: st.heroVariant,
+                              motifLayout: st.motifLayoutPick,
+                              density: st.densityPick,
+                            }}
+                            onChange={(next) => setSt((prev) => ({
+                              ...prev,
+                              ...('siteMode' in next ? { siteMode: next.siteMode } : {}),
+                              ...('kitId' in next ? { kitId: next.kitId } : {}),
+                              ...('texture' in next ? { texture: next.texture } : {}),
+                              ...('navVariant' in next ? { navVariant: next.navVariant } : {}),
+                              ...('heroVariant' in next ? { heroVariant: next.heroVariant } : {}),
+                              ...('motifLayout' in next ? { motifLayoutPick: next.motifLayout } : {}),
+                              ...('density' in next ? { densityPick: next.density } : {}),
+                            }))}
                             onClose={() => setFittingOpen(false)}
                           />
                         );
