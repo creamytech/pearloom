@@ -2396,7 +2396,7 @@ function RsvpBlock({ ctx }: { ctx: SectionCtx }) {
   if (variants.rsvp === 'banner')  return <RsvpBanner ctx={sub} />;
   if (variants.rsvp === 'minimal') return <RsvpMinimal ctx={sub} />;
   return (
-    <div style={{ padding: `${56 * pad}px clamp(16px, 4vw, 32px)`, textAlign: 'center', background: 'var(--t-rsvp)', color: 'var(--t-rsvp-ink)' }}>
+    <div className="pl8-rsvp-plate" style={{ padding: `${56 * pad}px clamp(16px, 4vw, 32px)`, textAlign: 'center', background: 'var(--t-rsvp)', color: 'var(--t-rsvp-ink)' }}>
       <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', opacity: 0.6, marginBottom: 8, color: 'var(--t-rsvp-ink)' }}>
         {C.rsvp.eyebrow}
       </div>

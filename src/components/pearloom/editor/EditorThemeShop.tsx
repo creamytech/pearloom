@@ -27,6 +27,7 @@ import { StoreFonts } from '@/lib/theme-store/fonts';
 import { PackPreview } from '../store/PackPreview';
 import { Icon, Pear } from '../motifs';
 import { UndoToast, fireUndoable } from '../redesign/UndoToast';
+import { useIsMobile } from '../redesign/use-nav-hooks';
 
 const SHOP_OWNED_KEY = 'pl-store-owned';
 const SHOP_RESUME_KEY = 'pl-shop-resume';
@@ -145,6 +146,9 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [tryingId, setTryingId] = useState<string | null>(null);
+  /* Desktop gets a floating centered panel — a full-width bottom
+     sheet is a phone pattern and read as one on wide screens. */
+  const isNarrow = useIsMobile(760);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 2600); return () => clearTimeout(t); }, [toast]);
 
   /* TRY-ANYTHING-SAFELY — snapshot the manifest the moment the
@@ -263,16 +267,23 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
       <div onClick={handleClose} style={{ position: 'absolute', inset: 0, background: 'rgba(40,40,30,0.32)', opacity: open ? 1 : 0, transition: 'opacity 280ms ease' }} />
       <div
         style={{
-          position: 'absolute', left: 0, right: 0, bottom: 0,
+          position: 'absolute',
+          left: isNarrow ? 0 : '50%',
+          right: isNarrow ? 0 : 'auto',
+          bottom: isNarrow ? 0 : 24,
+          width: isNarrow ? 'auto' : 'min(1100px, calc(100vw - 48px))',
           height: 'min(76vh, 720px)',
           background: 'var(--pl-glass)',
           backgroundImage: 'var(--pl-glass-sheen)',
           backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
           WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
-          borderTop: '1px solid var(--pl-glass-border)',
-          borderRadius: '24px 24px 0 0',
+          border: '1px solid var(--pl-glass-border)',
+          borderBottom: isNarrow ? 'none' : '1px solid var(--pl-glass-border)',
+          borderRadius: isNarrow ? '24px 24px 0 0' : 24,
           boxShadow: 'var(--pl-glass-shadow-lg, 0 -20px 60px rgba(40,40,30,0.22))',
-          transform: open ? 'translateY(0)' : 'translateY(100%)',
+          transform: open
+            ? (isNarrow ? 'translateY(0)' : 'translate(-50%, 0)')
+            : (isNarrow ? 'translateY(100%)' : 'translate(-50%, calc(100% + 32px))'),
           transition: 'transform 380ms cubic-bezier(0.16,1,0.3,1)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         } as CSSProperties}

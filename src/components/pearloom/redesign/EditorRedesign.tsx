@@ -260,15 +260,30 @@ export default function EditorRedesign({
      opens the PropertyRail sheet (tap on canvas or a row in the
      Sections sheet); deselecting from the rail's Theme tab swaps
      to the Theme sheet. Desktop passes straight through. */
+  /* With the see-through half sheet, the edited section must sit
+     in the VISIBLE upper half of the canvas — otherwise the host
+     edits blind anyway. Double-rAF so the scroll lands after the
+     sheet's open render. */
+  const scrollSectionAboveSheet = useCallback((id: string) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document
+        .querySelector<HTMLElement>(`[data-section-id="${id}"]`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }));
+  }, []);
   const selectFromCanvas = useCallback((id: SectionId) => {
     setActive(id);
-    if (viewportMobileRef.current && id) setMobileSheet('props');
-  }, []);
+    if (viewportMobileRef.current && id) {
+      setMobileSheet('props');
+      scrollSectionAboveSheet(id);
+    }
+  }, [scrollSectionAboveSheet]);
   const selectFromRail = useCallback((id: SectionId) => {
     setActive(id);
     if (!viewportMobileRef.current) return;
     setMobileSheet(id ? 'props' : 'theme');
-  }, []);
+    if (id) scrollSectionAboveSheet(id);
+  }, [scrollSectionAboveSheet]);
   /* The First Pressing — the once-per-generation reveal. Armed by
      the wizard via sessionStorage; consumed before first paint so
      a freshly-woven site opens behind the curtain, not in front
@@ -459,7 +474,16 @@ export default function EditorRedesign({
         <MobileSheet
           open={mobileSheet !== null}
           onClose={() => setMobileSheet(null)}
-          height={displaySheet === 'props' ? '80vh' : '75vh'}
+          /* Props + Theme are SEE-THROUGH half sheets — their whole
+             point is watching the canvas repaint as you change
+             things ("you can't see your changes till you put the
+             drawer away", 2026-06-12). Sections + Pear stay modal. */
+          seeThrough={displaySheet === 'props' || displaySheet === 'theme'}
+          height={
+            displaySheet === 'props' || displaySheet === 'theme'
+              ? 'min(48vh, 460px)'
+              : '75vh'
+          }
           label={
             displaySheet === 'sections' ? 'Page sections'
               : displaySheet === 'theme' ? 'Theme'
