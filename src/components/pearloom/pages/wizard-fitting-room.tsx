@@ -96,7 +96,12 @@ const DENSITIES = [
   { id: 'spacious', label: 'Spacious' },
 ];
 
-type Rail = 'palette' | 'texture' | 'kit' | 'nav' | 'hero' | 'motif' | 'density';
+const MODES = [
+  { id: 'scroll', label: 'One page' },
+  { id: 'multi-page', label: 'Magazine' },
+];
+
+type Rail = 'palette' | 'texture' | 'kit' | 'nav' | 'hero' | 'motif' | 'density' | 'reads';
 const RAILS: Array<{ id: Rail; label: string }> = [
   { id: 'palette', label: 'Palette' },
   { id: 'texture', label: 'Paper' },
@@ -105,6 +110,7 @@ const RAILS: Array<{ id: Rail; label: string }> = [
   { id: 'hero', label: 'Hero' },
   { id: 'motif', label: 'Motif' },
   { id: 'density', label: 'Density' },
+  { id: 'reads', label: 'Reads' },
 ];
 
 /* Where each rail's change LANDS on the site — the preview scrolls
@@ -118,6 +124,7 @@ const RAIL_TARGET: Record<Rail, string> = {
   hero: 'hero',
   motif: 'story',
   density: 'details',
+  reads: 'hero',
 };
 
 export function buildFittingManifest(opts: {
@@ -148,6 +155,7 @@ export function buildFittingManifest(opts: {
   if (opts.picks.texture) dressed.texture = opts.picks.texture;
   if (opts.picks.motifLayout) dressed.motifLayout = opts.picks.motifLayout;
   if (opts.picks.density) dressed.density = opts.picks.density;
+  if (opts.picks.siteMode) dressed.siteMode = opts.picks.siteMode;
   const layouts: Record<string, string> = {};
   if (opts.picks.navVariant) layouts.nav = opts.picks.navVariant;
   if (opts.picks.heroVariant) layouts.hero = opts.picks.heroVariant;
@@ -475,6 +483,14 @@ export function WizardFittingRoom({
               <RailChip on={picks.density === undefined} label="Pear decides" onClick={() => pickAndShow('density', { density: undefined })} />
               {DENSITIES.map((t) => (
                 <RailChip key={t.id} on={picks.density === t.id} label={t.label} onClick={() => pickAndShow('density', { density: t.id })} />
+              ))}
+            </>
+          )}
+          {rail === 'reads' && (
+            <>
+              <RailChip on={picks.siteMode === undefined} label="Pear decides" onClick={() => pickAndShow('reads', { siteMode: undefined })} />
+              {MODES.map((t) => (
+                <RailChip key={t.id} on={picks.siteMode === t.id} label={t.label} onClick={() => pickAndShow('reads', { siteMode: t.id as 'scroll' | 'multi-page' })} />
               ))}
             </>
           )}

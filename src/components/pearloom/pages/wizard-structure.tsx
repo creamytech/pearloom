@@ -1,23 +1,16 @@
 'use client';
 
 /* ─────────────────────────────────────────────────────────────
-   WizardStructureSection — "The structure", on the Palette step.
+   WizardStructureSection — "Your pressing", live.
 
-   v2 (2026-06-12): a LIVE preview, not wireframes. One real
-   ThemedSite render — the host's names, photos, palette, and
-   chosen look — in a scrollable phone-shaped window, re-pressed
-   instantly on every tap. The chip rows beneath choose:
-
-     · How it reads — one page vs magazine → manifest.siteMode
-     · The component kit — the six construction kits → kitId
-     · The nav — five nav variants → manifest.layouts.nav
-     · The hero — six hero variants → manifest.layouts.hero
-
-   Every row leads with "Pear decides" (no stamp — the look
-   recipe / edition defaults ride). Explicit picks land exactly
-   where the editor's Layout tab + Theme panel write them, and
-   the preview IS the proof: scroll it and you're scrolling your
-   site as it will press.
+   v3 (2026-06-12): the chip rows moved into the fitting room —
+   ONE place owns every customization axis (palette, paper, kit,
+   nav, hero, motif, density, reads). This section is now the
+   live phone preview of the host's exact current press + the
+   door into the room. Mounted on BOTH the Palette step and
+   Review (it replaced the three unreadable desktop-scaled
+   pressings there — "maybe we can just use fitting room
+   instead", 2026-06-12).
    ───────────────────────────────────────────────────────────── */
 
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
@@ -33,69 +26,11 @@ export interface StructurePicks {
   texture?: string;
   navVariant?: string;
   heroVariant?: string;
+  motifLayout?: string;
+  density?: string;
 }
 
 const SITE_W = 430; // phone-width render — the device most guests hold
-
-const KIT_TILES = [
-  { id: 'classic', label: 'Classic', sub: 'Calm cards' },
-  { id: 'ticket', label: 'Ticket', sub: 'Perforated stubs' },
-  { id: 'plate', label: 'Plate', sub: 'Triple-inset plates' },
-  { id: 'scrapbook', label: 'Scrapbook', sub: 'Tape + tilt' },
-  { id: 'index', label: 'Index', sub: 'Ruled rows' },
-  { id: 'minimal', label: 'Minimal', sub: 'Hairlines only' },
-];
-
-const NAV_TILES = [
-  { id: 'centered', label: 'Centered' },
-  { id: 'split', label: 'Split' },
-  { id: 'serif-block', label: 'Serif block' },
-  { id: 'minimal-text', label: 'Minimal' },
-  { id: 'iconic', label: 'Iconic' },
-];
-
-const HERO_TILES = [
-  { id: 'centered', label: 'Centered' },
-  { id: 'split', label: 'Split' },
-  { id: 'fullbleed', label: 'Full-bleed' },
-  { id: 'typographic', label: 'Typographic' },
-  { id: 'postcard', label: 'Postcard' },
-  { id: 'minimal', label: 'Minimal' },
-];
-
-function Chip({ on, label, sub, onClick }: { on: boolean; label: string; sub?: string; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={on}
-      style={{
-        padding: sub ? '7px 13px 6px' : '8px 14px',
-        borderRadius: 999, fontSize: 12.5, fontWeight: 600,
-        border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
-        background: on ? 'var(--ink)' : 'var(--card)',
-        color: on ? 'var(--cream)' : 'var(--ink-soft)',
-        cursor: 'pointer', fontFamily: 'inherit',
-        display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.2,
-        transition: 'background 160ms var(--pl-ease-out, ease), color 160ms var(--pl-ease-out, ease), border-color 160ms var(--pl-ease-out, ease)',
-      }}
-    >
-      <span>{label}</span>
-      {sub && <span style={{ fontSize: 9.5, fontWeight: 500, opacity: 0.75 }}>{sub}</span>}
-    </button>
-  );
-}
-
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)', margin: '0 0 7px' }}>
-        {label}
-      </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{children}</div>
-    </div>
-  );
-}
 
 export function WizardStructureSection({
   occasion,
@@ -105,8 +40,10 @@ export function WizardStructureSection({
   galleryImages,
   recipe,
   picks,
-  onChange,
+  onChange: _onChange,
   onExpand,
+  title = 'The structure',
+  blurb = 'This is your site, live — scroll it. Step into the fitting room to try every palette, paper, kit, layout, and motif on it in real time.',
 }: {
   occasion: string;
   paletteColors: string[] | undefined;
@@ -118,9 +55,14 @@ export function WizardStructureSection({
    *  already picked. */
   recipe?: LookRecipe | null;
   picks: StructurePicks;
-  onChange: (next: Partial<StructurePicks>) => void;
+  /** Retained for call-site compat — the chip rows moved into the
+   *  fitting room, so this section no longer writes picks itself. */
+  onChange?: (next: Partial<StructurePicks>) => void;
   /** Opens the full-screen fitting room. */
   onExpand?: () => void;
+  /** Header overrides — Review mounts this as "Your pressing". */
+  title?: string;
+  blurb?: string;
 }) {
   /* One real manifest, rebuilt on every pick — the same bridge
      generation uses, so the preview IS the site. */
@@ -143,12 +85,15 @@ export function WizardStructureSection({
     }
     if (picks.kitId) dressed.kitId = picks.kitId;
     if (picks.texture) dressed.texture = picks.texture;
+    if (picks.motifLayout) dressed.motifLayout = picks.motifLayout;
+    if (picks.density) dressed.density = picks.density;
+    if (picks.siteMode) dressed.siteMode = picks.siteMode;
     const layouts: Record<string, string> = {};
     if (picks.navVariant) layouts.nav = picks.navVariant;
     if (picks.heroVariant) layouts.hero = picks.heroVariant;
     if (Object.keys(layouts).length > 0) dressed.layouts = layouts;
     return dressed as unknown as StoryManifest;
-  }, [occasion, paletteColors, coverPhoto, galleryImages, recipe, picks.kitId, picks.texture, picks.navVariant, picks.heroVariant]);
+  }, [occasion, paletteColors, coverPhoto, galleryImages, recipe, picks]);
 
   /* Defer the live render one frame so the Palette step paints
      instantly (same trick the Review pressings use). */
@@ -162,7 +107,7 @@ export function WizardStructureSection({
      when the change is below the fold — the frame re-keys on the
      picks themselves (no state, no effect; the CSS animation
      replays whenever the key changes). */
-  const pressKey = `${picks.siteMode ?? ''}|${picks.kitId ?? ''}|${picks.texture ?? ''}|${picks.navVariant ?? ''}|${picks.heroVariant ?? ''}`;
+  const pressKey = `${picks.siteMode ?? ''}|${picks.kitId ?? ''}|${picks.texture ?? ''}|${picks.navVariant ?? ''}|${picks.heroVariant ?? ''}|${picks.motifLayout ?? ''}|${picks.density ?? ''}`;
 
   const frame: CSSProperties = {
     width: '100%',
@@ -181,14 +126,13 @@ export function WizardStructureSection({
   return (
     <div style={{ marginTop: 28 }}>
       <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--pl-olive, #5C6B3F)' }}>
-        <Sparkle size={11} color="var(--gold)" /> The structure
+        <Sparkle size={11} color="var(--gold)" /> {title}
       </div>
       <p style={{ color: 'var(--ink-soft)', fontSize: 13.5, margin: '4px 0 14px', lineHeight: 1.5 }}>
-        This is your site, live — scroll it. Every tap below re-presses it
-        so you see exactly what guests will.
+        {blurb}
       </p>
 
-      <div className="pl8-structure-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 340px) 1fr', gap: 20, alignItems: 'start' }}>
+      <div className="pl8-structure-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 340px)', justifyContent: 'center', gap: 14 }}>
         {/* THE LIVE PRESSING — a phone in your hands. Scrollable,
             real renderer, zoomed so layout (and therefore scroll)
             stays native. */}
@@ -247,32 +191,16 @@ export function WizardStructureSection({
           )}
         </div>
 
-        {/* THE CHOICES */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }}>
-          <Row label="How it reads">
-            <Chip on={picks.siteMode === undefined} label="Pear decides" onClick={() => onChange({ siteMode: undefined })} />
-            <Chip on={picks.siteMode === 'scroll'} label="One page" sub="Everything in one scroll" onClick={() => onChange({ siteMode: 'scroll' })} />
-            <Chip on={picks.siteMode === 'multi-page'} label="Magazine" sub="Each section its own page" onClick={() => onChange({ siteMode: 'multi-page' })} />
-          </Row>
-          <Row label="The component kit">
-            <Chip on={picks.kitId === undefined} label="Pear decides" onClick={() => onChange({ kitId: undefined })} />
-            {KIT_TILES.map((t) => (
-              <Chip key={t.id} on={picks.kitId === t.id} label={t.label} sub={t.sub} onClick={() => onChange({ kitId: t.id })} />
-            ))}
-          </Row>
-          <Row label="The nav">
-            <Chip on={picks.navVariant === undefined} label="Pear decides" onClick={() => onChange({ navVariant: undefined })} />
-            {NAV_TILES.map((t) => (
-              <Chip key={t.id} on={picks.navVariant === t.id} label={t.label} onClick={() => onChange({ navVariant: t.id })} />
-            ))}
-          </Row>
-          <Row label="The hero">
-            <Chip on={picks.heroVariant === undefined} label="Pear decides" onClick={() => onChange({ heroVariant: undefined })} />
-            {HERO_TILES.map((t) => (
-              <Chip key={t.id} on={picks.heroVariant === t.id} label={t.label} onClick={() => onChange({ heroVariant: t.id })} />
-            ))}
-          </Row>
-        </div>
+        {onExpand && (
+          <button
+            type="button"
+            onClick={onExpand}
+            className="btn btn-primary pl-pearl-accent"
+            style={{ width: '100%', maxWidth: 340, margin: '0 auto', justifyContent: 'center', fontFamily: 'inherit' }}
+          >
+            Step into the fitting room
+          </button>
+        )}
       </div>
 
       <style jsx>{`
