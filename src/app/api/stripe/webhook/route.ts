@@ -134,6 +134,29 @@ async function handleCheckoutCompleted(supabase: Sb, session: Stripe.Checkout.Se
     return;
   }
 
+  // Plan upgrades (Atelier / Legacy) from /api/billing/checkout —
+  // user-keyed like packs, dispatched before the siteId guard.
+  // /api/billing/webhook carries the same grant; handling it here
+  // too means the grant works whichever webhook endpoint the
+  // Stripe account points at.
+  if (meta.kind === 'plan_upgrade' && meta.planId) {
+    const email = session.customer_email || meta.userEmail;
+    if (email) {
+      try {
+        const { updateUserPlan } = await import('@/lib/db');
+        await updateUserPlan(email, {
+          plan: meta.planId,
+          stripeCustomerId: typeof session.customer === 'string' ? session.customer : null,
+          stripeSubscriptionId: null,
+        });
+        console.log('[stripe/webhook] plan upgraded:', email, meta.planId);
+      } catch (err) {
+        console.error('[stripe/webhook] plan grant failed:', err);
+      }
+    }
+    return;
+  }
+
   if (!siteId || !paymentType) {
     console.warn('[stripe/webhook] checkout.session.completed missing metadata', session.id);
     return;

@@ -2,9 +2,9 @@
 
 > **BRAND.md declares *why we exist*. CLAUDE-DESIGN.md documents *what's in the code*. This file documents *what the product does, what it doesn't, and what we're building next*.**
 >
-> Last updated: **2026-06-01**.
+> Last updated: **2026-06-12**.
 
-**Renderer contract (as of 2026-06-01):** ThemedSiteRenderer (`src/components/pearloom/site/ThemedSiteRenderer.tsx`) is THE renderer. There is no dispatch, no fallback, no legacy path. `PublishedSiteShell` and `CanvasStage` mount it directly. V8 is gone — see §10 (2026-06-01 V8-deletion entry).
+**Renderer contract (as of 2026-06-12):** `src/components/pearloom/redesign/ThemedSite.tsx` is THE renderer — one component for both the editor canvas (via `EditorRedesign`) and published sites (via `PublishedSiteShell`); the `editable` prop is the only difference. There is no dispatch, no fallback, no legacy path. Its predecessors (`ThemedSiteRenderer`, `SiteV8Renderer`, the V1 tree) are all deleted — see CLAUDE-DESIGN.md §15 (deleted-architecture ledger).
 
 ---
 
@@ -15,7 +15,7 @@
 - **Section 7 is the roadmap.** Ranked by acquisition impact × effort.
 - **Section 8 is where open decisions live.** If a session proposes a change that breaks an assumption, surface it here rather than shipping silently.
 - **New sessions should read §2 + §7 + §8 first** to know what's in scope.
-- **Renderer work goes into ThemedSiteRenderer.** It is the only renderer — V8 was deleted 2026-06-01. See §10.
+- **Renderer work goes into `redesign/ThemedSite.tsx`.** It is the only renderer. Everything it superseded is in CLAUDE-DESIGN.md §15.
 
 ---
 
@@ -443,6 +443,32 @@ How we actually ship this over many sessions without re-explaining every time.
 ---
 
 ## 10 · Changelog
+
+### 2026-06-12 — Instant wizard, the great deletion, doc re-audit
+
+- **Wizard generation is instant for everyone.** The photo path no
+  longer runs an AI pipeline at "Build my site" — photos become
+  content (cover + gallery from the R2 URLs uploaded during the
+  Photos step) and the manifest is assembled locally in ~1s, same
+  as the no-photos path. Story drafting moves to the editor, on
+  demand, where Pear already works. The background manifest
+  pre-warm (a full Opus pipeline run per photo wizard) is deleted.
+- **De-wedding'd the suggestion fallbacks** — schedule / dress code
+  / registry / FAQ / hero-line chip sets now route by occasion
+  shape; wedding sets only fire for wedding-shaped events. Wizard
+  question packs, name modes, and vibes were already
+  occasion-aware.
+- **~90k lines deleted** after a prod check found zero rows
+  carrying vibeSkin or customPages: the vibeSkin layer, the
+  memory-engine story pipeline + /api/generate routes, the old
+  ThemedSiteRenderer, the V1 site tree, the orphaned /preview
+  surface, and ~40 dead lib modules. Full ledger in
+  CLAUDE-DESIGN.md §15. The publish route no longer fires a
+  Gemini call per publish.
+- **Login lands on the dashboard** — the /welcome gate now
+  grandfathers accounts that already own sites.
+- CLAUDE-DESIGN.md rewritten from a fresh audit; this file's
+  renderer contract updated to `redesign/ThemedSite`.
 
 ### 2026-06-11 — Welcome flow + orchard avatars + site-crest switcher
 

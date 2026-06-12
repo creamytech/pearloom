@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* LITERAL PORT of handoff/pages/themed-site.jsx — the canonical
    handoff canvas. Mounts inside EditorRedesign's canvas in both
    Edit + Preview modes (handoff: same renderer in both).

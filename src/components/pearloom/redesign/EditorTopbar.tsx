@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* LITERAL PORT of handoff/pages/editor-redesign.jsx L56-135 EditorTopbar. */
 
 import Link from 'next/link';

@@ -35,19 +35,17 @@ const isProduction = process.env.NODE_ENV === 'production';
  * Apply security headers to the given response.
  * Skips X-Frame-Options on /preview routes (they render in iframes).
  */
-function applySecurityHeaders(response: NextResponse, pathname: string): void {
+function applySecurityHeaders(response: NextResponse): void {
   response.headers.set('Content-Security-Policy', CSP_HEADER);
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   response.headers.set('X-DNS-Prefetch-Control', 'on');
 
-  // Allow same-origin iframing for editor preview & builder. Published sites
-  // and dashboard pages use SAMEORIGIN so the v8 Builder iframe can load
-  // `/sites/{slug}` and `/dev/site` from inside `/editor/{slug}`.
-  if (!pathname.startsWith('/preview')) {
-    response.headers.set('X-Frame-Options', 'SAMEORIGIN');
-  }
+  // SAMEORIGIN so the editor can iframe `/sites/{slug}` and
+  // `/dev/site` from inside `/editor/{slug}`. (The old /preview
+  // iframe surface was deleted 2026-06-12.)
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
 
   if (isProduction) {
     response.headers.set(
@@ -140,14 +138,14 @@ export async function proxy(req: NextRequest) {
   // Helper: create a NextResponse.next() with security headers applied.
   function next(): NextResponse {
     const res = NextResponse.next();
-    applySecurityHeaders(res, pathname);
+    applySecurityHeaders(res);
     return res;
   }
 
   // Helper: create a NextResponse.rewrite() with security headers applied.
   function rewrite(destination: URL): NextResponse {
     const res = NextResponse.rewrite(destination);
-    applySecurityHeaders(res, pathname);
+    applySecurityHeaders(res);
     return res;
   }
 

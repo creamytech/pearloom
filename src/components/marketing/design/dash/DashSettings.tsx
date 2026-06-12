@@ -660,14 +660,7 @@ export function DashSettings() {
                       ? 'Atelier unlocks every block, the premium theme shelf, and the day-of room for this celebration. Legacy ($129 lifetime) covers every future event and adds the Signature shelf.'
                       : 'Your first site is free forever. Upgrade to Atelier ($19 once per celebration) to unlock every block + the day-of room. Legacy ($129 lifetime) covers every future event.'}
                 </p>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <a
-                    href="/store"
-                    style={{ ...btnInk, background: PD.paper, color: PD.ink, textDecoration: 'none' }}
-                  >
-                    See plans
-                  </a>
-                </div>
+                <PlanUpgradeButtons plan={plan.plan} />
               </Panel>
               <Panel bg={PD.paperDeep} style={{ padding: 26 }}>
                 <SectionTitle
@@ -1052,6 +1045,74 @@ function SegmentedLevels({ level, onChange }: { level: 1 | 2 | 3; onChange: (l: 
           {l}
         </button>
       ))}
+    </div>
+  );
+}
+
+/* ── Plan upgrade buttons — the real till ─────────────────────
+   POSTs /api/billing/checkout and redirects to Stripe. The grant
+   itself lands via webhook (never the redirect); the ?upgraded=
+   return shows a settling note since the webhook can lag the
+   redirect by a few seconds. */
+function PlanUpgradeButtons({ plan }: { plan: 'free' | 'pro' | 'premium' }) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const upgraded =
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('upgraded')
+      : null;
+
+  async function buy(target: 'atelier' | 'legacy') {
+    setBusy(target);
+    setErr(null);
+    try {
+      const res = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: target }),
+      });
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (!res.ok || !data.url) throw new Error(data.error ?? 'Checkout unavailable.');
+      window.location.assign(data.url);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Checkout unavailable.');
+      setBusy(null);
+    }
+  }
+
+  if (upgraded) {
+    return (
+      <p style={{ fontSize: 13.5, color: PD.olive, fontWeight: 600, margin: 0 }}>
+        Thank you — your {upgraded === 'legacy' ? 'Legacy' : 'Atelier'} upgrade is settling in.
+        It can take a minute to appear here.
+      </p>
+    );
+  }
+  if (plan === 'premium') return null;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {plan === 'free' && (
+          <button
+            type="button"
+            onClick={() => { void buy('atelier'); }}
+            disabled={busy != null}
+            style={{ ...btnInk, background: PD.paper, color: PD.ink, cursor: busy ? 'wait' : 'pointer', border: 'none', fontFamily: 'inherit' }}
+          >
+            {busy === 'atelier' ? 'Threading…' : 'Upgrade to Atelier — $19'}
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => { void buy('legacy'); }}
+          disabled={busy != null}
+          style={{ ...btnInk, background: PD.paper, color: PD.ink, cursor: busy ? 'wait' : 'pointer', border: 'none', fontFamily: 'inherit' }}
+        >
+          {busy === 'legacy' ? 'Threading…' : 'Go Legacy — $129 for life'}
+        </button>
+      </div>
+      {err && <p style={{ fontSize: 12.5, color: 'var(--pl-plum, #7A2D2D)', margin: 0 }}>{err}</p>}
     </div>
   );
 }

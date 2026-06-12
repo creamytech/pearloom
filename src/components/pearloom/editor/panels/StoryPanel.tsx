@@ -97,8 +97,11 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
   const body = story.body ?? '';
   /* No demo chips — the canvas renders nothing when chips are
      unset, so the panel showing fake ones misled hosts into
-     thinking they were live. */
-  const chips = story.chips ?? [];
+     thinking they were live. Memoized so the `?? []` fallback
+     doesn't mint a new array per render and thrash the
+     suggestion useMemos below. */
+  const storyChips = story.chips;
+  const chips = useMemo(() => storyChips ?? [], [storyChips]);
   const [busy, setBusy] = useState<Tone | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
@@ -183,6 +186,13 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
           place: logistics.place,
           date: logistics.date,
           chips,
+          // The wizard's fact sheet — howWeMet / why / favorite /
+          // the spoken story — rides the manifest exactly so this
+          // draft can be grounded in the host's own words.
+          factSheet: loose.factSheet,
+          photoCaptions: Object.values(
+            (loose.galleryCaptions as Record<string, string> | undefined) ?? {},
+          ),
           existing: body,
         }),
       });

@@ -2,13 +2,16 @@
 
 /* ========================================================================
    BroadcastBar — slim banner that appears on a published site when the
-   host posts a live update via /api/sites/live-updates. Reads the latest
-   message every 30s while the site is open. Auto-dismisses 4 hours after
-   posting so a stale "Cocktails by the pool" doesn't linger after the
-   event ends.
+   host posts a live update via /api/sites/live-updates. Delivery is a
+   Supabase Realtime ping on `pl-live-${subdomain}` (content-free — the
+   ping means "refetch"; the composer fires it after a successful POST),
+   with a 30s poll as the fallback for keyless deploys. Auto-dismisses 4
+   hours after posting so a stale "Cocktails by the pool" doesn't linger
+   after the event ends.
    ======================================================================== */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useMessagePings } from '@/lib/messages-realtime';
 
 type LiveUpdate = {
   id: string;
@@ -38,29 +41,40 @@ export function BroadcastBar({ subdomain }: Props) {
     }
   });
 
+  const mounted = useRef(true);
   useEffect(() => {
-    let cancel = false;
-    async function fetchLatest() {
-      try {
-        const res = await fetch(`/api/sites/live-updates?subdomain=${encodeURIComponent(subdomain)}`, {
-          cache: 'no-store',
-        });
-        if (!res.ok) return;
-        const data = (await res.json()) as { updates?: LiveUpdate[] };
-        if (cancel) return;
-        const newest = (data.updates ?? [])
-          .filter((u) => Date.now() - new Date(u.created_at).getTime() < STALE_MS)
-          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
-        setLatest(newest ?? null);
-      } catch {}
-    }
-    fetchLatest();
-    const id = setInterval(fetchLatest, POLL_MS);
-    return () => {
-      cancel = true;
-      clearInterval(id);
-    };
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+
+  const fetchLatest = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/sites/live-updates?subdomain=${encodeURIComponent(subdomain)}`, {
+        cache: 'no-store',
+      });
+      if (!res.ok) return;
+      const data = (await res.json()) as { updates?: LiveUpdate[] };
+      if (!mounted.current) return;
+      const newest = (data.updates ?? [])
+        .filter((u) => Date.now() - new Date(u.created_at).getTime() < STALE_MS)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+      setLatest(newest ?? null);
+    } catch {}
   }, [subdomain]);
+
+  useEffect(() => {
+    /* Initial fetch via a 0ms timer — calling the async fetcher
+       synchronously in the effect body trips the compiler's
+       setState-in-effect rule even though the set happens after
+       the await. */
+    const t = setTimeout(() => { void fetchLatest(); }, 0);
+    const id = setInterval(() => { void fetchLatest(); }, POLL_MS);
+    return () => { clearTimeout(t); clearInterval(id); };
+  }, [fetchLatest]);
+
+  /* Instant delivery — a ping on the broadcast channel means a new
+     update landed; refetch through the normal authenticated API. */
+  useMessagePings(`pl-live-${subdomain}`, () => { void fetchLatest(); });
 
   if (!latest) return null;
   if (dismissedIds.has(latest.id)) return null;

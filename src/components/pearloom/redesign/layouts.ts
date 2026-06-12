@@ -1,4 +1,4 @@
-/* eslint-disable no-restricted-syntax */
+ 
 /* LITERAL PORT of handoff/shared/site-config.jsx LAYOUTS map.
 
    Each section has a fixed registry of variant ids; PropertyRail's

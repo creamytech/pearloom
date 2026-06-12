@@ -1,5 +1,5 @@
 'use client';
-/* eslint-disable no-restricted-syntax */
+ 
 /* Per-section layout variants for the Details section. The 'tiles'
    default ships inline in ThemedSite.tsx; this file adds three
    alternatives the canvas dispatches via readVariant(manifest,

@@ -124,7 +124,7 @@ export function PatchProposalCard({
           >
             {applied ? 'Applied by Pear' : 'Pear can apply this'}
           </div>
-          <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.4, fontWeight: 500 }}>
+          <div style={{ fontSize: 13, color: 'var(--pl-chrome-text)', lineHeight: 1.4, fontWeight: 500 }}>
             {envelope.summary}
           </div>
         </div>
@@ -156,9 +156,9 @@ export function PatchProposalCard({
               flex: 1,
               padding: '8px 14px',
               borderRadius: 999,
-              border: canApply && allResolved ? 'none' : '1px solid var(--line)',
+              border: canApply && allResolved ? 'none' : '1px solid var(--pl-chrome-border)',
               background: canApply && allResolved ? undefined : 'var(--cream-2)',
-              color: canApply && allResolved ? undefined : 'var(--ink-muted)',
+              color: canApply && allResolved ? undefined : 'var(--pl-chrome-text-muted)',
               fontSize: 12.5,
               fontWeight: 700,
               cursor: canApply && allResolved ? 'pointer' : 'not-allowed',
@@ -182,8 +182,8 @@ export function PatchProposalCard({
               padding: '8px 14px',
               borderRadius: 999,
               background: 'transparent',
-              color: 'var(--ink-soft)',
-              border: '1px solid var(--line)',
+              color: 'var(--pl-chrome-text-soft)',
+              border: '1px solid var(--pl-chrome-border)',
               fontSize: 12,
               fontWeight: 600,
               cursor: 'pointer',
@@ -325,7 +325,7 @@ function PatchBody({
                         height: 22,
                         borderRadius: 999,
                         background: 'var(--peach-ink, #C6703D)',
-                        color: 'var(--cream)',
+                        color: 'var(--pl-chrome-bg)',
                         display: 'grid',
                         placeItems: 'center',
                         fontSize: 12,
@@ -389,7 +389,7 @@ function PatchBody({
                       {label}
                     </span>
                   )}
-                  <span style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.45 }}>
+                  <span style={{ fontSize: 13, color: 'var(--pl-chrome-text)', lineHeight: 1.45 }}>
                     {String(opt)}
                   </span>
                   {isSelected && (
@@ -530,7 +530,7 @@ function Eyebrow({ children }: { children: ReactNode }) {
         fontWeight: 700,
         letterSpacing: '0.18em',
         textTransform: 'uppercase',
-        color: 'var(--ink-muted)',
+        color: 'var(--pl-chrome-text-muted)',
         fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
       }}
     >
@@ -548,7 +548,7 @@ function BeforeBox({ children }: { children: ReactNode }) {
         border: '1px dashed rgba(14,13,11,0.14)',
         borderRadius: 8,
         fontSize: 12.5,
-        color: 'var(--ink-muted)',
+        color: 'var(--pl-chrome-text-muted)',
         textDecoration: 'line-through',
         textDecorationColor: 'rgba(14,13,11,0.3)',
         lineHeight: 1.5,
@@ -568,7 +568,7 @@ function AfterBox({ children }: { children: ReactNode }) {
         border: '1.5px solid rgba(198,112,61,0.32)',
         borderRadius: 10,
         fontSize: 13,
-        color: 'var(--ink)',
+        color: 'var(--pl-chrome-text)',
         lineHeight: 1.5,
         fontWeight: 500,
         whiteSpace: 'pre-wrap',

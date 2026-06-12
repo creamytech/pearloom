@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* ─────────────────────────────────────────────────────────────
    FloatingPearBubble — the single Pear ENTRY POINT on the canvas.
 

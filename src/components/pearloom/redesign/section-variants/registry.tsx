@@ -1,5 +1,5 @@
 'use client';
-/* eslint-disable no-restricted-syntax */
+ 
 /* Registry section variants — alternatives to the default 'cards'
    layout. Dispatched via readVariant(manifest, 'registry') against
    the LAYOUTS registry.

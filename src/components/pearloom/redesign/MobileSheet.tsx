@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* ─────────────────────────────────────────────────────────────
    MobileSheet + MobileBottomBar — phone chrome for the redesign
    editor. Below 768px the three-column grid collapses to a

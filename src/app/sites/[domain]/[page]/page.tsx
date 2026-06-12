@@ -1,14 +1,8 @@
 import { notFound, redirect } from 'next/navigation';
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { getSiteConfig } from '@/lib/db';
 import { buildSiteUrl, formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { PublishedSiteShell } from '@/components/pearloom/site/PublishedSiteShell';
-import { deriveVibeSkin } from '@/lib/vibe-engine';
-import { WaveDivider } from '@/components/vibe/WaveDivider';
-import { ThemeProvider } from '@/components/theme-provider';
-import { SiteNav } from '@/components/site-nav';
-import { SiteClientSections } from '@/components/site/SiteClientSections';
 import { readSiteMode } from '@/lib/site-mode';
 
 // ─────────────────────────────────────────────────────────────
@@ -30,18 +24,13 @@ import { readSiteMode } from '@/lib/site-mode';
 //
 // Legacy:
 //   /venue → redirected to /travel (v8 merges venue into travel)
-//   custom slugs → preserved through manifest.customPages
+//   custom slugs → 404. The customPages renderer was deleted
+//   2026-06-12 after a production check found zero rows carrying
+//   customPages — nothing can author them anymore either.
 // ─────────────────────────────────────────────────────────────
 
 export const dynamic = 'force-dynamic';
 
-function proxyUrl(rawUrl: string, w: number, h: number): string {
-  if (!rawUrl) return rawUrl;
-  if (rawUrl.includes('googleusercontent.com') || rawUrl.includes('lh3.google')) {
-    return `/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=${w}&h=${h}`;
-  }
-  return rawUrl;
-}
 
 const V8_PAGE_KEYS = ['story', 'schedule', 'travel', 'registry', 'gallery', 'faq', 'rsvp'] as const;
 type V8PageKey = typeof V8_PAGE_KEYS[number];
@@ -136,14 +125,6 @@ export default async function SiteSubPage(
     redirect(target);
   }
 
-  // ── Custom pages (user-created) ──
-  // Render through the legacy custom-page path so existing custom
-  // page URLs continue to work.
-  const customPage = manifest.customPages?.find((p) => p.slug === page && p.visible !== false);
-  if (customPage) {
-    return renderCustomPage({ manifest, customPage, domain, names: siteConfig.names });
-  }
-
   // ── v8 sub-page ──
   if (!isV8PageKey(page)) return notFound();
 
@@ -185,112 +166,5 @@ export default async function SiteSubPage(
       creatorEmail={creatorEmail}
       pageFilter={page}
     />
-  );
-}
-
-// ── Legacy custom-page renderer ──
-// Kept for backward compatibility with user-authored customPages.
-// Lifted from the previous version of this file; uses legacy site
-// chrome (SiteNav + manual cards) since v8 doesn't model these.
-function renderCustomPage({
-  manifest,
-  customPage,
-  domain,
-  names,
-}: {
-  manifest: import('@/types').StoryManifest;
-  customPage: NonNullable<import('@/types').StoryManifest['customPages']>[number];
-  domain: string;
-  names: unknown;
-}) {
-  const safeNames: [string, string] = Array.isArray(names) && names.length >= 2
-    ? [names[0] as string, names[1] as string]
-    : ['Our', 'Story'];
-  const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
-  const bgColor = manifest.theme?.colors?.background || '#F5EFE2';
-  const cardBg = manifest.theme?.colors?.cardBg || '#FBF7EE';
-
-  const hiddenPages = new Set(manifest.hiddenPages || []);
-  const sitePages = [
-    { id: 'home',     slug: '',         label: 'Home',     enabled: true,                                                                               order: 0 },
-    { id: 'schedule', slug: 'schedule', label: 'Schedule', enabled: !!(manifest.events?.length) && !hiddenPages.has('schedule'),                       order: 1 },
-    { id: 'rsvp',     slug: 'rsvp',     label: 'RSVP',     enabled: !!(manifest.events?.length) && !hiddenPages.has('rsvp'),                            order: 2 },
-    { id: 'travel',   slug: 'travel',   label: 'Travel',   enabled: !!(manifest.travelInfo?.hotels?.length || manifest.travelInfo?.airports?.length) && !hiddenPages.has('travel'), order: 3 },
-    { id: 'registry', slug: 'registry', label: 'Registry', enabled: !!(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) && !hiddenPages.has('registry'),       order: 4 },
-    { id: 'faq',      slug: 'faq',      label: 'FAQ',      enabled: !!(manifest.faqs?.length) && !hiddenPages.has('faq'),                              order: 5 },
-  ].filter(p => p.enabled) as import('@/types').SitePage[];
-
-  const basePath = manifest.occasion
-    ? `/${manifest.occasion}/${domain}`
-    : `/sites/${domain}`;
-
-  return (
-    <ThemeProvider theme={manifest.theme || undefined}>
-      <SiteNav names={safeNames} pages={sitePages} currentPage={customPage.slug} logoIcon={manifest.logoIcon} logoSvg={manifest.logoSvg} />
-      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor }}>
-        <div style={{ padding: '5rem 2rem 3rem', background: bgColor, textAlign: 'center', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-          <div style={{ maxWidth: '700px', margin: '0 auto' }}>
-            <nav aria-label="Breadcrumb" style={{ marginBottom: '1.5rem' }}>
-              <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
-                <li>
-                  <Link href={basePath} style={{ color: 'var(--pl-olive)', textDecoration: 'none', fontWeight: 600 }}>
-                    Home
-                  </Link>
-                </li>
-                <li aria-hidden="true" style={{ color: 'var(--pl-muted)', opacity: 0.5 }}>&gt;</li>
-                <li aria-current="page" style={{ color: 'var(--pl-muted)' }}>{customPage.title}</li>
-              </ol>
-            </nav>
-            <h1 style={{
-              fontFamily: 'var(--pl-font-heading)',
-              fontSize: 'clamp(2.5rem, 5vw, 4rem)',
-              fontWeight: 400, letterSpacing: '-0.025em',
-              color: 'var(--pl-ink)', margin: '0 0 1rem',
-            }}>{customPage.title}</h1>
-          </div>
-        </div>
-        <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={50} />
-        <section style={{ padding: '3rem 2rem', background: cardBg }}>
-          <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            {customPage.blocks?.map(block => (
-              <div key={block.id} style={{ padding: '2rem 0' }}>
-                {block.type === 'text' && (
-                  <div style={{ fontFamily: 'var(--pl-font-body)', color: 'var(--pl-ink)', fontSize: '1.05rem', lineHeight: 1.8 }}>
-                    {(block.config?.content as string) || 'Content coming soon...'}
-                  </div>
-                )}
-                {block.type === 'quote' && (
-                  <blockquote style={{
-                    fontFamily: 'var(--pl-font-heading)', fontSize: '1.6rem', fontStyle: 'italic',
-                    color: 'var(--pl-ink)', textAlign: 'center', padding: '2rem',
-                    borderLeft: '3px solid var(--pl-olive)', opacity: 0.9,
-                  }}>
-                    {(block.config?.text as string) || '"..."'}
-                  </blockquote>
-                )}
-                {block.type === 'photos' && (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-                    {((block.config?.urls as string[]) || []).map((url: string, i: number) => (
-                      <div key={i} style={{ borderRadius: '1rem', overflow: 'hidden', aspectRatio: '4/3' }}>
-                        <img src={proxyUrl(url, 800, 600)} alt={'Photo from ' + customPage.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {block.type === 'video' && (block.config?.embedUrl as string) && (
-                  <div style={{ borderRadius: '1rem', overflow: 'hidden', aspectRatio: '16/9' }}>
-                    <iframe src={block.config?.embedUrl as string} width="100%" height="100%" style={{ border: 0 }} allowFullScreen title="Video" />
-                  </div>
-                )}
-                {block.type === 'divider' && (
-                  <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={cardBg} height={50} />
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      </main>
-      <SiteClientSections siteId={domain} coupleNames={safeNames} vibeSkin={vibeSkin} />
-    </ThemeProvider>
   );
 }

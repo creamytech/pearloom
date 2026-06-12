@@ -2,7 +2,6 @@
 // Pearloom / types.ts — canonical type system
 // ─────────────────────────────────────────────────────────────
 
-import type { VibeSkin } from '@/lib/vibe-engine';
 import type { SiteOccasion } from '@/lib/site-urls';
 
 /**
@@ -234,8 +233,6 @@ export interface StoryManifest {
       };
     }>;
   };
-  // AI-generated visual skin — cached on publish so it's not re-generated on every load
-  vibeSkin?: VibeSkin;
   // Multiple wedding events (ceremony, reception, rehearsal dinner, etc.)
   events?: WeddingEvent[];
   // FAQs from the couple

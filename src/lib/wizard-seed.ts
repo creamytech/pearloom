@@ -32,6 +32,12 @@ export interface DayPicks {
   events?: Array<{ name: string; time: string }>;
   dressCode?: string;
   rsvpDeadline?: string; // ISO date
+  /** "Guests will ask" quick-collect — where to stay, kids,
+   *  parking. Each seeds the section guests actually read
+   *  (Travel hotels / Details cards / FAQ answers). */
+  hotels?: Array<{ name: string; address: string }>;
+  kidsPolicy?: string;
+  parkingNote?: string;
 }
 
 /** ~5 weeks before the event date, clamped to tomorrow. */
@@ -85,26 +91,63 @@ export function seedSectionsFromWizard(
     loose.travelInfo = travelInfo;
   }
 
+  // "Where guests stay" — the wizard's hotel picks become real
+  // Travel-section hotel cards (only when the host hasn't already
+  // added hotels some other way).
+  const hostHotels = (picks.hotels ?? []).filter((h) => h.name.trim());
+  const existingHotels = (travelInfo.hotels as unknown[] | undefined) ?? [];
+  if (hostHotels.length > 0 && existingHotels.length === 0) {
+    travelInfo.hotels = hostHotels.map((h, i) => ({
+      id: `h-seed-${i}`,
+      name: h.name.trim(),
+      address: h.address.trim(),
+    }));
+    loose.travelInfo = travelInfo;
+  }
+
+  // Parking — rides the Travel section's parking line.
+  if (picks.parkingNote?.trim() && !(travelInfo.parkingInfo as string | undefined)?.trim()) {
+    travelInfo.parkingInfo = picks.parkingNote.trim();
+    loose.travelInfo = travelInfo;
+  }
+
   // FAQ — seed the occasion's standard questions WITH venue-aware
-  // draft answers (skip questions we can't answer honestly).
+  // draft answers (skip questions we can't answer honestly). The
+  // host's explicit "Guests will ask" answers beat the drafts:
+  // a kids policy answers the kids question in their words, the
+  // first hotel answers "Where should I stay?".
   const existingFaqs = (loose.faqs as Array<{ question?: string }> | undefined) ?? [];
   if (existingFaqs.length === 0) {
     const qs = faqQuestionSuggestions(ctx.occasion).options.slice(0, 4);
     const seeded = qs
-      .map((q, i) => ({
-        id: `f-seed-${i}`,
-        question: q,
-        answer: faqAnswerDraftFor(q, ctx, { ...loose, logistics }) ?? '',
-        order: i,
-      }))
+      .map((q, i) => {
+        const lower = q.toLowerCase();
+        let answer = '';
+        if (picks.kidsPolicy?.trim() && /kids|children/.test(lower)) {
+          answer = picks.kidsPolicy.trim();
+        } else if (hostHotels.length > 0 && /stay|hotel/.test(lower)) {
+          answer = `We suggest ${hostHotels.map((h) => h.name.trim()).join(' or ')} — details in the Travel section.`;
+        } else if (picks.parkingNote?.trim() && /park/.test(lower)) {
+          answer = picks.parkingNote.trim();
+        } else {
+          answer = faqAnswerDraftFor(q, ctx, { ...loose, logistics }) ?? '';
+        }
+        return { id: `f-seed-${i}`, question: q, answer, order: i };
+      })
       .filter((f) => f.answer); // only ship answered rows
     if (seeded.length > 0) loose.faqs = seeded;
   }
 
-  // Details cards — from dress code when none exist.
+  // Details cards — dress code / kids / parking, when none exist.
   const cards = (loose.detailsCards as unknown[] | undefined) ?? [];
-  if (cards.length === 0 && (logistics.dresscode as string | undefined)?.trim()) {
-    loose.detailsCards = [['Dress code', logistics.dresscode as string]];
+  if (cards.length === 0) {
+    const seededCards: Array<[string, string]> = [];
+    if ((logistics.dresscode as string | undefined)?.trim()) {
+      seededCards.push(['Dress code', logistics.dresscode as string]);
+    }
+    if (picks.kidsPolicy?.trim()) seededCards.push(['Kids', picks.kidsPolicy.trim()]);
+    if (picks.parkingNote?.trim()) seededCards.push(['Parking', picks.parkingNote.trim()]);
+    if (seededCards.length > 0) loose.detailsCards = seededCards;
   }
 
   return loose as unknown as StoryManifest;

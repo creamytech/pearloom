@@ -1,5 +1,5 @@
 'use client';
-/* eslint-disable no-restricted-syntax */
+ 
 /* Travel section variants — map / table / carousel.
    The 'rows' default is implemented inline in ThemedSite.
 

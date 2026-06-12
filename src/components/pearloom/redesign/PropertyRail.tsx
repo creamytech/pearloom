@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* LITERAL PORT of handoff/pages/editor-redesign.jsx L668-793 PropertyRail.
 
    Single dedicated section-edit surface — no top-level tab strip.

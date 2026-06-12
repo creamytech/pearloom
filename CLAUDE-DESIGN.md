@@ -3,17 +3,16 @@
 > **BRAND.md is the constitution. This file is the blueprint.**
 > BRAND.md declares what Pearloom *stands for*. This file maps what actually lives in the code so future sessions can navigate without re-auditing.
 >
-> Last full audit: **2026-06-01**. Re-audit before any large refactor.
+> Last full audit: **2026-06-12**, immediately after the great deletion (see §15). Re-audit before any large refactor.
 
 ---
 
 ## 0 · How to use this file
 
 - **Read BRAND.md first.** If a rule here contradicts BRAND.md, BRAND.md wins — flag the drift and update this file.
-- **Every section is concrete.** Token values, file paths, class names, and durations are pasted verbatim. If the code disagrees, the code has drifted.
-- **Section 17 (Known drift) is the active tech-debt list.** Fix from the top.
-- **When making new components, read §9 (Brand primitives) and §6 (Pearshell) first** — extend, don't fork.
-- **Every CTA that matters uses `.pl-pearl-accent`** (see §6). Every primary affordance in the conversion funnel already does.
+- **Every section is concrete.** File paths and class names are pasted verbatim. If the code disagrees, the code has drifted — the code is the final authority.
+- **§15 is the deleted-architecture ledger.** If you're hunting for something this doc used to describe (vibeSkin, SiteV8Renderer, ThemedSiteRenderer, the memory-engine story pipeline, the V1 site tree), check §15 before grepping — it's gone on purpose.
+- **§16 is the active debt list.** Fix from the top.
 
 ---
 
@@ -21,1218 +20,263 @@
 
 | Concern | Canonical file | Notes |
 |---|---|---|
-| CSS variables, keyframes, utilities | `src/app/globals.css` | Primary. All runtime styling descends from here. |
-| Numeric token mirror (light-mode hex, easing arrays, etc.) | `src/lib/design-tokens.ts` | Perfectly aligned with globals.css as of 2026-04-20. Import via `import { colors, text, radius, shadow, ease, sectionPadding, card, layout } from '@/lib/design-tokens'`. |
-| Tailwind CSS var mapping | `tailwind.config.ts` | Thin layer — maps utility classes to CSS vars, no duplicate values. |
-| Theme generation | `src/lib/theme.ts` | `themeToCssBlocks`, `deriveDarkPalette`, `themeToCssVars`. |
-| Theme runtime | `src/components/theme-provider.tsx` | `[data-pl-site-root][data-theme=light\|dark]` scope + localStorage. |
-| Site renderer | `src/components/pearloom/site/ThemedSiteRenderer.tsx` | **The renderer.** Mounted directly by `PublishedSiteShell` + `CanvasStage`. No dispatch, no fallback. V8 deleted 2026-06-01. |
-| Editor state | `src/lib/editor-state.ts` | `useEditor`, `EditorProvider`, 49 `EditorAction` variants, `SaveState`. |
-| URL construction | `src/lib/site-urls.ts` | `buildSiteUrl`, `buildSitePath`, `formatSiteDisplayUrl`. |
-| Gemini client | `src/lib/memory-engine/gemini-client.ts` | Pro / Flash / Lite / Image endpoints. |
-| Claude client | `src/lib/claude/client.ts` | Opus / Sonnet / Haiku with `withRetry` and `cached`. |
-| Rate limit | `src/lib/rate-limit.ts` | `checkRateLimit(key, { max, windowMs })`, `getClientIp`. |
-| R2 / storage | `src/lib/r2.ts` | `uploadToR2(key, body, contentType)`, `uploadSvg`, `getR2Url`. |
+| Published-site + editor-canvas renderer | `src/components/pearloom/redesign/ThemedSite.tsx` | **THE renderer.** One component for both surfaces; `editable` prop is the only difference. |
+| Published-site shell | `src/components/pearloom/site/PublishedSiteShell.tsx` | Mounts ThemedSite + overlays (ArrivalReveal, GuestRsvpModal, StickyRsvpPill, AnalyticsBeacon, SiteGate password gate). |
+| Editor | `src/components/pearloom/redesign/EditorRedesign.tsx` | Mounted by `/editor/[siteSlug]/EditorClient.tsx`. SectionRail + canvas + PropertyRail. |
+| Editor↔server bridge | `src/components/pearloom/redesign/bridge.ts` | Autosave (2s debounce → `POST /api/sites`), undo/redo, publish, `beforeunload` sendBeacon flush, base64 strip. |
+| Manifest backfill | `src/components/pearloom/redesign/hydrate-manifest.ts` | Backfills redesign fields (themeId via nearest-accent match, edition recommendation, themeVars) onto pre-redesign manifests. Idempotent, never mutates input. |
+| Wizard | `src/components/pearloom/pages/WizardV8.tsx` | 8 steps → instant local manifest (~1s, no AI at finish). See §8. |
+| Theme catalog (`--t-*` bag) | `src/components/pearloom/site/themes.ts` | 6 named themes; `getTheme(id)`. See §3.3. |
+| Theme packs / store | `src/lib/theme-store/packs.ts` + `apply.ts`, `src/components/pearloom/store/` | Purchasable packs; `applyPackToManifest`; entitlements via `useEntitlements` (localStorage `pl-store-owned`). |
+| Look fields (kit/texture/density/motifs) | `src/lib/site-look/` | `wizard-look.ts` (applyWizardLook + themeVarsFromPalette), `look-recipes.ts` (wizard's 3 looks), `motif-layouts.ts`. |
+| Site Editions (read-time defaults) | `src/lib/site-editions/` | `recommendEdition` by occasion/voice. Never written to the manifest by the resolver. |
+| Event OS registry | `src/lib/event-os/event-types.ts` | 28 occasions: blocks, voice, RSVP preset, templates, look defaults. Plus `name-mode.ts`, `rsvp-presets.ts`, `wizard-questions.ts`, `solo-occasions.ts`. |
+| Suggestion chips | `src/components/pearloom/editor/panels/_suggestions.ts` | Occasion-shape routed (wedding sets only for wedding-shaped events — de-wedding'd 2026-06-12). |
+| CSS tokens + utilities | `src/app/globals.css` (2.4k lines) + `src/app/pearloom.css` (8.4k lines) | See §3. |
+| Editor state helpers | `src/lib/editor-state.ts` | `stripArtForStorage` (chapter-image base64 strip). |
+| URL construction | `src/lib/site-urls.ts` | `buildSiteUrl`, `buildSitePath`, `formatSiteDisplayUrl`, `normalizeOccasion`. **Never concatenate site URLs.** |
+| Claude client | `src/lib/claude/client.ts` | Opus 4.8 / Sonnet 4.6 / Haiku 4.5 with `withRetry` + `cached`. `structured.ts` forces tool_choice. |
+| Gemini client | `src/lib/memory-engine/gemini-client.ts` | `GEMINI_PRO` (3.1-pro-preview), `GEMINI_FLASH` (3.5-flash) + image gen. |
+| Image routing | `src/lib/memory-engine/image-router.ts` | `openai \| gemini \| auto` per use-case (stylize, decor, QR posters). |
+| Guest identity / event graph | `src/lib/people.ts` | Persistent guest identity, token resolution, opt-in connections. Privacy contract in module header. |
+| Rate limit | `src/lib/rate-limit.ts` (+ `rate-limit-redis.ts`) | `checkRateLimit(key, { max, windowMs })`, `getClientIp`. |
+| R2 / storage | `src/lib/r2.ts` | `uploadToR2`, `getR2Url`. |
+| Auth | `src/lib/auth.ts` + `src/lib/password.ts` | Google OAuth + DB-backed credentials (scrypt `s2$` format), `/welcome` onboarding gate. |
 
 ---
 
-## 2 · Color tokens
-
-All tokens have paired light/dark values unless noted. No orphaned tokens as of last audit.
-
-### 2.1 Surfaces & ink
-
-| Token | Light | Dark | Purpose |
-|---|---|---|---|
-| `--pl-cream` | `#F5EFE2` | `#0D0B07` | Warm paper base |
-| `--pl-cream-deep` | `#EBE3D2` | `#15110A` | Alternating sections |
-| `--pl-cream-card` | `#FBF7EE` | `#1A1610` | Elevated cards |
-| `--pl-ink` | `#0E0D0B` | `#F1EBDC` | Primary text |
-| `--pl-ink-soft` | `#3A332C` | `#D4CDBC` | Secondary text |
-| `--pl-muted` | `#6F6557` | `#8A8275` | Tertiary text (WCAG AA on cream) |
-| `--pl-divider` | `#D8CFB8` | `#2A241A` | Borders, rules |
-| `--pl-divider-soft` | `#E5DCC4` | `#1F1A12` | Near-invisible separators |
-
-### 2.2 Brand
-
-| Token | Light | Dark | Purpose |
-|---|---|---|---|
-| `--pl-olive` | `#5C6B3F` | `#A4B57A` | Primary brand — the editorial olive |
-| `--pl-olive-hover` | `#4A5731` | `#B8C98F` | Hover state |
-| `--pl-olive-deep` | `#363F22` | `#8A9A60` | Darker variant |
-| `--pl-olive-mist` | `#E0DDC9` | `#1F2014` | Wash / background tint |
-| `--pl-gold` | `#B8935A` | `#D4B373` | Accent — **punctuation only, per BRAND.md §5** |
-| `--pl-gold-mist` | `rgba(184,147,90,0.10)` | `rgba(212,179,115,0.10)` | Wash |
-| `--pl-plum` | `#7A2D2D` | `#C46A6A` | Destructive only |
-| `--pl-plum-mist` | `rgba(122,45,45,0.10)` | `rgba(196,106,106,0.10)` | Wash |
-
-**Rule (BRAND.md §5):** Gold is never a background. 1px hairlines or a single glyph. If you're tempted to `background: var(--pl-gold)` you're doing it wrong.
-
-### 2.3 Semantic
-
-| Token | Light | Dark | Purpose |
-|---|---|---|---|
-| `--pl-warning` | `#A14A2C` | `#D67852` | Burnt orange — editorial warning |
-| `--pl-warning-mist` | `rgba(161,74,44,0.10)` | `rgba(214,120,82,0.12)` | Warning wash |
-| `--pl-success` | `#5C6B3F` | `#A4B57A` | Reuses olive — calm success |
-| `--pl-success-mist` | `rgba(92,107,63,0.10)` | `rgba(164,181,122,0.12)` | Success wash |
-
-### 2.4 Opacity scales
-
-- Olive: `--pl-olive-{5,8,10,12,15,20,30,40,50}` (paired light/dark)
-- Neutral black: `--pl-black-{4,6,7,10}` (inverts polarity light↔dark)
-- White: `--pl-white-{20,30,50,70,90}` (inverts polarity light↔dark)
-
-### 2.5 Glass / blur
-
-- `--pl-glass` light `rgba(251,247,238,0.92)` / dark `rgba(26,22,16,0.86)`
-- `--pl-glass-light`, `--pl-glass-heavy`, `--pl-glass-dark` variants
-- `--pl-glass-border`, `--pl-glass-light-border`, `--pl-glass-dark-border`
-- `--pl-glass-blur` = `14px`, `--pl-glass-blur-sm` = `8px`, `--pl-glass-blur-lg` = `20px`
-- `--pl-glass-shadow`, `--pl-glass-shadow-lg` for floating chrome
-
-**Rule (BRAND.md §9):** Glass is reserved for floating chrome (toasts, modals, ambient nav). Dashboards and editor panels stay paper.
-
-### 2.6 Editor chrome (isolated namespace)
-
-The editor has its own palette (`--pl-chrome-*`) that is **deliberately insulated** from the user's site theme. Panels always look the same no matter what theme the edited site is on.
-
-Tokens: `--pl-chrome-bg`, `--pl-chrome-surface`, `--pl-chrome-surface-2`, `--pl-chrome-border`, `--pl-chrome-border-strong`, `--pl-chrome-text`, `--pl-chrome-text-soft`, `--pl-chrome-text-muted`, `--pl-chrome-text-faint`, `--pl-chrome-accent`, `--pl-chrome-accent-soft`, `--pl-chrome-accent-ink`, `--pl-chrome-danger`, `--pl-chrome-success`, `--pl-chrome-focus`, `--pl-chrome-shadow`, `--pl-chrome-rail*` (rail is the dark icon column on the editor's left edge).
-
-**Rule:** Panels should only bind to `--pl-chrome-*` tokens. Not `--pl-cream`, not `--pl-ink`.
-
-### 2.7 P3 wide-gamut boost
-
-`@media (color-gamut: p3)` in `globals.css` promotes olive/gold/plum to `oklch()` values on capable displays. sRGB hex stays as the fallback. Nothing to change in components — the media query rewrites the token at runtime.
-
-### 2.8 Legacy `--eg-*` aliases (DEBT)
-
-The `--eg-*` namespace (roughly 30 tokens: `--eg-bg`, `--eg-fg`, `--eg-accent`, `--eg-gold`, `--eg-plum`, etc.) exists for backward compatibility with pre-v6 editor components. **Do not add new `--eg-*` references.** Migrate usages to `--pl-*` when touching nearby code.
-
-### 2.9 shadcn/ui standard tokens
-
-These are aliased through to `--pl-*` in `globals.css`:
-
-`--background`, `--foreground`, `--card`, `--card-foreground`, `--popover`, `--popover-foreground`, `--primary`, `--primary-foreground`, `--secondary`, `--secondary-foreground`, `--muted`, `--muted-foreground`, `--accent`, `--accent-foreground`, `--destructive`, `--destructive-foreground`, `--border`, `--input`, `--ring`, `--radius`.
-
-Consumers via Tailwind `bg-background`, `text-foreground`, etc., get themed values automatically.
-
----
-
-## 3 · Typography
-
-### 3.1 Font families
-
-| Token | Family | Notes |
-|---|---|---|
-| `--pl-font-display` | Fraunces (italic preferred) | Next.js font var `--font-fraunces` |
-| `--pl-font-heading` | Fraunces (upright OK) | |
-| `--pl-font-body` | Geist | Next.js font var `--font-geist` |
-| `--pl-font-mono` | Geist Mono | Editorial labels — **always uppercase, 0.18–0.28em tracking, 9–11px** |
-
-**Rule (BRAND.md §4):** Sans-serif display headings are out of scope. Fraunces is not optional for display.
-
-### 3.2 Variation axes (Fraunces)
-
-| Role | `opsz` | `SOFT` | `WONK` | `font-style` |
-|---|---|---|---|---|
-| Display | 144 | 50–80 | 0 (upright) / 1 (italic) | as needed |
-| Display italic (signature) | 144 | 80 | 1 | italic |
-| Heading | 96 | 50 | 0 | upright |
-| Body emphasis | 14 | 0 | 0 | upright |
-
-Apply via `font-variation-settings: '"opsz" 144, "SOFT" 80, "WONK" 1'`. The utility classes below wrap these combinations.
-
-### 3.3 Size scale (`--pl-text-*`)
-
-| Token | Value | Use |
-|---|---|---|
-| `--pl-text-2xs` | `0.66rem` | Micro labels |
-| `--pl-text-xs` | `0.74rem` | Tiny hints |
-| `--pl-text-sm` | `0.82rem` | Small labels |
-| `--pl-text-base` | `0.92rem` | Body |
-| `--pl-text-md` | `1rem` | Card titles |
-| `--pl-text-lg` | `1.13rem` | Section headers |
-| `--pl-text-xl` | `1.32rem` | Panel titles |
-| `--pl-text-2xl` | `1.6rem` | Page titles |
-| `--pl-text-3xl` | `clamp(2rem, 4vw, 2.6rem)` | Responsive heading |
-| `--pl-text-display` | `clamp(2.8rem, 6vw, 4.6rem)` | Hero display |
-| `--pl-text-marquee` | `clamp(4rem, 12vw, 9rem)` | Large editorial marquee |
-
-### 3.4 Utility classes
-
-- `.pl-display` — Fraunces, opsz 144, SOFT 50, letter-spacing -0.02em, line-height 0.96
-- `.pl-display-italic` — Fraunces italic, opsz 144, SOFT 80, WONK 1
-- `.pl-overline` — uppercase, `--pl-text-2xs`, 600 weight, 0.22em tracking
-- `.pl-letterpress` — **signature** — Fraunces display with inset shadow that makes glyphs feel pressed into the paper
-- `.pl-dropcap::first-letter` — 4.6em Fraunces italic drop cap
-- `.pl-text-soft` / `.pl-text-crisp` / `.pl-text-display` — font-variation-settings presets
-- `.pl-label` — uppercase muted bold label
-- `.pl-heading` / `.pl-body` / `.pl-muted-text`
-
-**Rule:** Display copy on cream surfaces almost always wears `.pl-letterpress`.
-
-### 3.5 Icon sizes
-
-`--pl-icon-xs 12px` / `sm 14px` / `md 16px` / `lg 20px` / `xl 24px`.
-
----
-
-## 4 · Motion system
-
-### 4.1 Tokens
-
-| Token | Value | Use |
-|---|---|---|
-| `--pl-dur-instant` | `100ms` | Near-instant tap feedback |
-| `--pl-dur-fast` | `180ms` | Standard hover/focus |
-| `--pl-dur-base` | `280ms` | Panel transitions |
-| `--pl-dur-slow` | `480ms` | Modal, reveal |
-| `--pl-dur-glacial` | `800ms` | Hero moments |
-| `--pl-ease-out` | `cubic-bezier(0.22, 1, 0.36, 1)` | Default for chrome |
-| `--pl-ease-in-out` | `cubic-bezier(0.65, 0, 0.35, 1)` | Symmetric motion |
-| `--pl-ease-spring` | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Buttons, primary CTAs, tap |
-
-### 4.2 Signature keyframes
-
-Full catalog is in `globals.css` — below are the ones worth knowing by name:
-
-- **`pl-weave-travel`** — loom shuttle, stroke-dashoffset travel. The brand's literal motion. Used by `<Thread />`, `<WeaveLoader />`, `<WovenDivider />`, `HeroAtmosphere`.
-- **`pl-pearl-drift`** — 24s pearl phase rotation. See §6.
-- **`pl-pearl-scroll`** — scroll-timeline coupled pearl phase. See §6.
-- **`pl-conic-spin`** — generic 360° rotation for conic gradients (Showroom card hover overlay uses this).
-- **`pl-letterpress`** — inset-shadow lift on display copy.
-- **`pl-dot-pulse`** — notification / save-state dot.
-- **`pl-enter-up`**, **`pl-enter-scale-in`**, **`pl-enter-fade-in`** — entrance primitives.
-- **`.pl-rise`** + `.pl-rise-d1`…`.pl-rise-d6` — staggered entrance, delay steps.
-- **`pl-reveal-frame`** — scroll-timeline reveal (fade + translate + blur).
-- **`pl-pear-breathe`** — mascot breathing.
-- **`pl-cta-pulse`** — subtle CTA pulse (superseded by `.pl-pearl-accent` for primary CTAs).
-
-### 4.3 Reduced motion
-
-Every keyframe that actually moves respects `@media (prefers-reduced-motion: reduce)`. Eight such blocks live in `globals.css`. Do not bypass; reuse `.pl-pearl-accent` and the `.pl-enter-*` system which already honour it.
-
-### 4.4 Framer Motion conventions
-
-- `initial / animate / exit` states use arrays from `ease` in `design-tokens.ts` (`[0.22, 1, 0.36, 1]`).
-- `whileHover={{ y: -1 }}` + `whileTap={{ scale: 0.97 }}` is the default micro-interaction pair.
-- Route entrances use `pl-enter` + `pl-rise-dN` classes instead of framer where possible.
-
----
-
-## 5 · Shadows, radius, z-index, spacing, glass
-
-### 5.1 Shadows (`--pl-shadow-*`)
-
-| Token | Light | Dark |
-|---|---|---|
-| `xs` | `0 1px 2px rgba(40,28,12,0.05)` | `0 1px 2px rgba(0,0,0,0.40)` |
-| `sm` | `0 1px 3px ..., 0 1px 2px ...` | same structure, darker RGBA |
-| `md` | `0 4px 16px rgba(40,28,12,0.08), 0 2px 6px ...` | |
-| `lg` | `0 8px 32px ..., 0 4px 12px ...` | |
-| `xl` | `0 16px 48px ..., 0 8px 20px ...` | |
-| `focus` | `0 0 0 3px rgba(92,107,63,0.22)` | `0 0 0 3px rgba(164,181,122,0.32)` |
-
-### 5.2 Border radius (`--pl-radius-*`)
-
-`xs 0.25rem` · `sm 0.375rem` · `md 0.5rem` · `lg 0.75rem` · `xl 1rem` · `2xl 1.5rem` · `full 100px`.
-
-### 5.3 Z-index (`--z-*`)
-
-`dropdown 50` · `sticky 100` · `overlay 200` · `modal 300` · `toast 400` · `max 500`.
-
-**Drift note:** preview/editor chrome sometimes uses raw 9000+ z-indexes intentionally (e.g., `VignetteOverlay`). For consumer-facing pages, always reach for the `--z-*` vars.
-
-### 5.4 Spacing
-
-`--space-{1,2,3,4,5,6,8,10,12,16,20,24}` in 4px increments (4 → 96).
-
-### 5.5 Section / layout constants (`design-tokens.ts`)
-
-- `layout.maxWidth` = `1180px`
-- `layout.narrowWidth` = `720px`
-- `layout.wideWidth` = `1320px`
-- `layout.rail` = `64px`
-- `sectionPadding.y` = `clamp(4rem, 8vw, 8rem)`
-- `sectionPadding.x` = `clamp(1.25rem, 4vw, 2.5rem)`
-
----
-
-## 6 · Pearshell — the iridescent accent layer (v7.2, 2026)
-
-**The screenshot hook.** Pearl is the brand signal that appears on every primary affordance in the conversion funnel. It is a conic tri-stop gradient whose phase is a *registered CSS custom property*, animated on idle and coupled to page scroll on supporting browsers so every pearl on screen drifts in unison.
-
-### 6.1 Tokens
-
-| Token | Light | Dark | Role |
-|---|---|---|---|
-| `--pl-pearl-a` | `#F8F1E6` | `#2A2722` | Cool stop |
-| `--pl-pearl-b` | `#D9E0DD` | `#3C3E3D` | Neutral stop |
-| `--pl-pearl-c` | `#EAD4D6` | `#4A3A3C` | Warm stop |
-| `--pl-pearl-ink` | `#2C1E12` | `#F1EBDC` | Text on pearl |
-| `--pl-rind` | `#E9D9A8` | `#5C4F2E` | Pearl outline / warm |
-| `--pl-bruise` | `#9C6C43` | `#C49A6F` | Pearl shadow / deep |
-
-Designed so the three stops read as **luminance**, not rainbow. It's a sheen, not a holograph.
-
-### 6.2 Registered property
-
-```css
-@property --pl-pearl-phase {
-  syntax: '<angle>';
-  inherits: true;
-  initial-value: 0deg;
-}
+## 2 · Surfaces — what mounts what
+
+```
+/                       → LandingPageWrapper → marketing/design/* (DesignNav, DesignHero, ThreeActsStage, …)
+/login /signup /forgot  → SigninV8 + auth/ManualAuthPages
+/welcome                → WelcomeFlowClient (first-run onboarding; gate passes onboarded + site-owning accounts to /dashboard)
+/wizard/new             → WizardV8
+/editor/[siteSlug]      → EditorRedesign (?view=studio → BuilderV8 quick re-skin)
+/dashboard/**           → DashShell + pearloom/dash/* + per-route pages (pearloom/pages/*)
+/dashboard/invite       → Studio (stationery: save-the-date / invitations / thank-you) — pearloom/studio/*
+/{occasion}/{slug}      → sites/[domain]/page.tsx → PublishedSiteShell → ThemedSite
+/{occasion}/{slug}/{pg} → sites/[domain]/[page]/page.tsx → PublishedSiteShell (pageFilter)
+/g/[token]              → guest passport (RsvpCeremony, GuestThreadCard, YourCelebrationsCard, …)
+/a/[siteSlug]           → address-collection form
+/store                  → ThemeStore (packs, cart, entitlements)
 ```
 
-Registered (not just `--var`) so CSS can interpolate the angle smoothly instead of snapping between keyframe stops.
+**The renderer rule:** every site pixel — editor canvas and published — comes from `redesign/ThemedSite.tsx`. There is no dispatch, no fallback, no legacy path. PublishedSiteShell wraps it in an ErrorBoundary with a calm guest fallback.
 
-### 6.3 Utility classes
+---
 
-| Class | Purpose |
+## 3 · Token system — three layers
+
+### 3.1 `--pl-*` (globals.css) — the brand layer
+
+Canonical brand tokens declared under `[data-theme='light']` / `[data-theme='dark']`. The theme attribute lives on `<html>` — set by an inline script in `src/app/layout.tsx` (localStorage `pl-theme` → `prefers-color-scheme`) and toggled by `src/components/shell/ThemeProvider.tsx`.
+
+Families: `--pl-cream{,-deep,-card}`, `--pl-ink{,-soft}`, `--pl-muted`, `--pl-divider{,-soft}`, `--pl-olive*`, `--pl-gold*`, `--pl-plum*`, semantic warn/success, shadows, radii, z-index, spacing, `--pl-text-*`, `--pl-dur-*` + `--pl-ease-*`, glass. Dark mode is *editorial midnight* (`#0D0B07` base), never OLED black (BRAND §10).
+
+**Pearshell** still lives here: `--pl-pearl-{a,b,c}`, `--pl-rind`, `--pl-bruise`, registered `@property --pl-pearl-phase`, and `.pl-pearl-accent` / `.pl-pearl-border` / `.pl-block-selected` (with `!important` on bg/color/border by design). ~20 call sites; primary CTAs only.
+
+### 3.2 `.pl8` handoff layer (pearloom.css) — the product chrome
+
+`:root` aliases with friendlier names, all pointing at `--pl-*` so theme switching flows through: `--cream`, `--cream-2/3`, `--ink`, `--ink-soft/muted`, `--paper`, `--card`, `--line`, `--line-soft`, `--gold`, plus the accent families `--sage*`, `--peach*`, `--lavender*` (these have their own `[data-theme='dark']` midnight values at pearloom.css:102). Dashboard, editor chrome, wizard, marketing all live in the `.pl8` scope.
+
+Typography classes: `.pl8 .display` (Fraunces), `.display-italic`, `.script` (Caveat), `.eyebrow`. **Mobile caveat:** the ≤640px clamp `font-size: clamp(32px, 9vw, 56px)` applies to `h1/h2/h3.display` on the chrome side only — small `.display` divs/spans keep their inline sizes (fixed 2026-06-12 after it inflated the wizard's phase word).
+
+### 3.3 `--t-*` theme bag — the per-site theme
+
+`src/components/pearloom/site/themes.ts` defines **6 themes** (`santorini`, `tuscan`, `garden`, `editorial`, `midnight`, `coastal`), each a complete `--t-*` var bag: `--t-paper/section/card`, `--t-ink{,-soft,-muted}`, `--t-accent{,-2,-bg,-ink}`, `--t-gold`, `--t-line{,-soft}`, `--t-rsvp{,-ink}`, `--t-display/body/script` font stacks, `--t-radius{,-lg}`, `--t-display-wght`, `--t-hero-scale`, `--t-eyebrow-ls`, `--t-shadow`.
+
+ThemedSite emits the full bag on the `.pl8-guest` root's style attribute, so every `var(--t-*)` inside the site resolves per-site. Resolution chain: `manifest.themeVars` (theme-pack or custom override) → `manifest.themeId` → nearest-accent match from legacy `theme.colors` (hydrate-manifest) → first theme.
+
+### 3.4 Site root data attributes
+
+On `.pl8-guest`: `data-pl-texture` (paper grain variant), `data-pl-kit` (`classic | ticket | plate | scrapbook | index | minimal` — per-kit card/row CSS in pearloom.css), `data-pl-density`, plus `--pl-texture-intensity` / `--pl-density-scale` vars.
+
+### 3.5 Editor chrome insulation
+
+Editor panels bind to `--pl-chrome-*` tokens only (never site-theme vars) so panels don't re-paint when the edited site's theme changes. Enforced by the `no-restricted-syntax` ESLint rule in `eslint.config.mjs` for `pearloom/editor/**`. `atoms.tsx` carries 55 chrome-token references. Known violator: `CommandPalette.tsx` (pre-existing errors — see §16).
+
+---
+
+## 4 · The look system
+
+A site's look = **theme** (§3.3 palette/type bag) + **kit** + **texture** (+ intensity) + **motifs/ornament layout** + **density**, all fields on StoryManifest:
+
+| Field | Values | Reader |
+|---|---|---|
+| `themeId` / `themeVars` | themes.ts ids / `--t-*` record | ThemedSite root |
+| `kitId` | classic, ticket, plate, scrapbook, index, minimal | `[data-pl-kit]` CSS |
+| `texture` + `textureIntensity` | pearloom.css texture set, 0–1.5 | `[data-pl-texture]` + `::before` opacity |
+| `motifLayout` | `src/lib/site-look/motif-layouts.ts` ids | `redesign/MotifLayer.tsx` |
+| `density` | cozy / comfortable / spacious | `--pl-density-scale` |
+| `edition` | `src/lib/site-editions/editions.ts` | read-time defaults only — `recommendEdition(occasion, voice)`; the resolver never writes back |
+
+- **Wizard**: `lookRecipesFor(occasion)` builds three real looks ([0] is always Pear's occasion match; alternates are voice-curated — solemn voices never see scrapbook/ticket). An explicit pick stamps the manifest; otherwise `applyWizardLook` stamps occasion defaults (`lookDefaultsFor` in event-types.ts).
+- **Editor**: ThemePickerBody / ThemeRail / ThemePackPicker + EditorThemeShop (in-canvas pack preview/unlock, shares `pl-store-owned` localStorage with `/store`).
+- **Studio inheritance**: `studio-defaults-from-look.ts` — first Studio open inherits the site look.
+- **From photos**: `src/lib/look-engine/palette-from-photo.ts` (client-side quantize) feeds the wizard's "From your photos" palette + `/api/wizard/smart-palette`.
+
+---
+
+## 5 · Brand primitives (actual)
+
+Under `src/components/brand/`: **`<Thread />`** (dividers), **`<WeaveLoader />`** (every spinner — `Loader2`/`animate-spin` are banned), **`<Folio />`** (edition marks), **`<GooeyText />`** (rotating words), **`<PearloomMark />`** (logo), plus a `groove/` accent set. Shared chrome atoms live in `src/components/shell/` (EmptyState, PageCard, ThemeToggle…). Effects under `src/components/effects/` (GradientMesh, GrainOverlay, TextureOverlay, VignetteOverlay, ScrollReveal, ColorTemperature, CustomCursor).
+
+The motifs/glyph language for product surfaces lives in `src/components/pearloom/motifs.tsx` (Pear, Sparkle, AmbientSprig, PearlDot, PearloomLogo…) and `pearloom/avatars.tsx` (the 12 orchard account marks).
+
+BRAND.md §7 microcopy rules apply everywhere: "Threading…" not "Loading…", "drafted by Pear" not "AI-generated", `<EmptyState />` copy in the "Nothing yet. Begin a thread." key.
+
+---
+
+## 6 · Component inventory (2026-06-12)
+
+~340 TS/TSX files in `src/components`. The map:
+
+| Dir | Files | What |
+|---|---|---|
+| `pearloom/redesign/` | 33 | **The editor + renderer.** ThemedSite, EditorRedesign, SectionRail, PropertyRail, ThemeRail/ThemePickerBody, EditorTopbar, EditorDrawers, MobileSheet, InlineEdit, MotifLayer, PearAssist/FloatingPearBubble, PublishChecklist, UndoToast, FittingRoom, FirstPressing, bridge/hydrate/taste/layouts/bastings, `section-variants/` (per-section variant components: nav, story, schedule, details, travel, registry, gallery, rsvp, faq + `blocks/`). |
+| `pearloom/editor/` | 55 | Panels (24: Hero, Story, Schedule, Details, Travel, Registry, Gallery, Rsvp, Faq, Music, Map, Countdown, Share, Privacy, DayOf, Guests, SaveTheDate, DecorLibrary, ThemePackPicker, Bachelor/Memorial/Toasts occasion panels, SiteModeSection…), `_form-atoms` / `_section-atoms` / `_suggestions`, CommandPalette (⌘K), EditorThemeShop, DesignAdvisor, PhotoPicker, `pear/` (PatchProposalCard, PearActionCard, patch.ts), atoms.tsx (chrome tokens). |
+| `pearloom/pages/` | 19 | Route-level clients: WizardV8 (+ wizard-looks, WizardLookPreviews), WelcomeHome, SigninV8, BuilderV8, DayOfV8, SpeechComposerPage, MemoryBookPage, SeatingArrangerPage, QrPosterPage, PassportCardsPage, KeepsakesPage, WeekendBuilderPage, VendorsPage, LibraryPage, BridgePage, EventIndexPage, LegalPage. |
+| `pearloom/studio/` | 16 | Stationery studio: StudioApp, StudioCard (+ BrandedQR), StudioRails, StudioSendOverlay, StudioProofSheet, StudioPrintPreview, StudioMailFlow, useStudioState, studio-defaults-from-look. |
+| `pearloom/dash/` | 16 | DashShell (SiteCrest switcher), PLChrome, DashSubNav, DashCommandPalette, NotificationBell, UserSettingsModal, BroadcastComposer, TwoTapThanks, ThankYouGenerator, ShellPersistentLayout. |
+| `pearloom/site/` | 13 | Published-site shell + overlays: PublishedSiteShell, ArrivalReveal, GuestRsvpModal, RsvpCeremony, GuestPearChat, DayOfBanner, BroadcastBar, Monogram, MotifScatter, TextureFilters, themes.ts. |
+| `pearloom/wizard/` | 7 | GeneratingScreen (press stages), WizardDatePicker, WizardLocationAutocomplete, StoryListen, BackgroundCookPill, useBackgroundCook (decor pre-cook), usePhotoPalette. |
+| `pearloom/store/` | 8 | ThemeStore, CartProvider/CartDrawer, PackCard/PackPreview/QuickLookModal, useEntitlements. |
+| `marketing/` | 19 | `design/*` is the live landing (DesignNav, DesignHero, WovenDivider, ThreeActsStage, DesignOccasions, DesignPricing, DesignFAQ, DesignTestimonials, DesignCTAFooter) + `design/dash/*` dashboard pages (DashDirector et al). |
+| `brand/`, `shell/`, `effects/` | 24/9/7 | §5. |
+| `guest-experience/`, `invite/`, `passport/` | 6/6/2 | Guest passport cards (GuestCircleCards, YourCelebrationsCard, …), invite reveal. |
+| `seating/`, `registry/`, `venue/`, `live/`, `co-host/` | 4/3/2/2/1 | Feature modules. |
+| `auth/` | 2 | ManualAuthPages (signup/forgot/reset). |
+| root | 3 | ErrorBoundary, auth-provider, theme-provider. |
+
+---
+
+## 7 · Editor architecture
+
+```
+EditorRedesign
+├── EditorTopbar          (save state, publish, device, undo/redo)
+├── SectionRail           (left; tabs: Sections | Pages | Theme)
+│     Pages tab lists real pages in magazine mode → canvasPage filter
+├── canvas: ThemedSite    (editable; InlineEdit text, jump/scroll sync)
+├── PropertyRail          (right; per-section panel dispatch via SECTIONS map,
+│                          live section descriptions — no fake counts)
+├── EditorDrawers / MobileSheet (mobile: props sheet)
+├── CommandPalette (⌘K)   + EditorThemeShop (bottom sheet)
+└── PearAssist / FloatingPearBubble / DesignAdvisor (Pear copilot;
+    pearloom:patch envelopes → PatchProposalCard / PearActionCard)
+```
+
+- **Save**: `bridge.ts` — 2s debounce → `POST /api/sites`; `beforeunload` flushes via sendBeacon; `stripArtForStorage` keeps payloads under request limits. SaveState is binary (`saved | unsaved`).
+- **Deep links**: `/editor/[slug]?jump=<section>` validated against `JUMPABLE_SECTIONS`; on phones the props sheet opens automatically.
+- **Roles**: `viewerRole` (`owner | editor | guest-manager | viewer`) gates publish + locks viewers to preview; `useEditorCollab` drives presence.
+- **Honesty rule (2026-06-12)**: editor canvas previews demo content via `buildCopy(…, { editable })` — `editable === true` is the ONLY gate for demo fallbacks. Published sites render exclusively host-authored content. Never add a fallback string without routing it through this gate.
+
+---
+
+## 8 · Wizard
+
+`WizardV8.tsx` — steps `Occasion → Basics → Details → Day → Photos → Vibe → Palette → Review`, presented as 4 phases (Story / Photos / Look / Review) in the PhaseHeader.
+
+- **Generation is instant and local for everyone** (2026-06-12). No AI call at finish. The manifest is assembled client-side: names/logistics/factSheet/eventDetails + palette → `theme.colors` + `applyWizardLook` + explicit look-recipe stamp + `seedSectionsFromWizard` (schedule picks, dress code, RSVP deadline, occasion-correct FAQ seeds) → `POST /api/sites { create: true }` (server guarantees a free slug) → `/editor/{slug}`.
+- **Photos are content, not story inputs**: they upload to R2 during the Photos step (`/api/photos/upload`); at finish the first becomes `manifest.coverPhoto`, the rest `manifest.galleryImages` (+ index-keyed `galleryCaptions`). Story drafting happens later, in the editor, on demand.
+- **Choreography**: `pressScript` labels + `GeneratingScreen` press stages (photo runs get a "Placing your photographs" beat); minimum press duration so the moment doesn't flash.
+- **Background decor cook** (`useBackgroundCook`): pre-generates the decor library from occasion + palette while the host finishes the steps; folded into the manifest at finish. The BackgroundCookPill narrates it.
+- **Occasion-aware everything**: `nameModeFor` (couple/solo/group name fields), `questionsFor` (per-occasion fact-sheet prompts, all 28 occasions), `vibesForOccasion` (voice-routed vibe chips), suggestion sets (§1 `_suggestions.ts`), onboarding intent prefill ("★ For you" badge on the matching occasion).
+
+---
+
+## 9 · Studio (stationery)
+
+`/dashboard/invite` — save-the-date / invitations / thank-you cards. `useStudioState` persists to `manifest.studio`; first open inherits the site look. Design rail offers palettes + custom colors, paper textures (`STUDIO_TEXTURES`), and the site's decor library; `StudioCard` renders the `pl8-guest`-scoped card with `BrandedQR` (real QR to the site URL). Send: `StudioSendOverlay` → `/api/invite/guest` (per-cardType email tags, no-email counts, 3/60s host rate limit) → `email_sent_at` stamps.
+
+---
+
+## 10 · URL system
+
+Path-based, occasion-prefixed: `pearloom.com/{occasion}/{slug}` — 28 occasions via the Event OS registry. `/sites/{slug}` legacy fallback rewrites in `src/proxy.ts`. **Never construct site URLs by string concatenation** — `buildSiteUrl` / `buildSitePath` / `formatSiteDisplayUrl` only.
+
+---
+
+## 11 · AI model routing (current)
+
+| Need | Use |
 |---|---|
-| `.pl-pearl-accent` | Filled pearl surface. Primary CTAs. `background` / `color` / `border` use `!important` so Tailwind utility overrides don't silently shadow it. |
-| `.pl-pearl-border` | 1px pearl edge on a neutral surface. Selected pills, focus states. |
-| `.pl-block-selected` | Soft pearl glow outline for selected canvas blocks (editor). |
+| Editor copy passes (rewrite, FAQ drafts, thank-yous, speeches, Pear chat) | Claude — `src/lib/claude/client.ts`; tiers `opus = claude-opus-4-8`, `sonnet = claude-sonnet-4-6`, `haiku = claude-haiku-4-5-20251001`. `generateJson` in `structured.ts` always forces `tool_choice`. |
+| Analysis / extraction | `GEMINI_FLASH` (gemini-3.5-flash) or Haiku |
+| Creative long-form | `GEMINI_PRO` (gemini-3.1-pro-preview) or Opus |
+| Image generation / restyle (photo stylize, decor, stickers, QR posters) | `image-router.ts` — `openai \| gemini \| auto` (OpenAI preferred when keyed) |
 
-### 6.4 Animation
-
-- Base: `pl-pearl-drift 24s linear infinite` (advances `--pl-pearl-phase` 0° → 360°).
-- Scroll-coupled (@supports `animation-timeline: scroll()`): adds `pl-pearl-scroll linear` with `animation-timeline: scroll(root block)` so scroll position nudges the phase.
-- Reduced motion: all pearl animations off; phase pinned at `48deg` so the palette still reads correctly.
-
-### 6.5 Where it's wired (current production usage)
-
-| Surface | File:line (approx) |
-|---|---|
-| Marketing nav "Start free" CTA (desktop + mobile) | `src/components/marketing/MarketingNav.tsx:153`, mobile drawer CTA |
-| Marketing hero "Start weaving — free" | `src/components/marketing/EditorialHero.tsx` primary button |
-| Landing footer CTA | `src/components/landing-page.tsx` gold-variant Button |
-| Pricing highlighted tier (Atelier only) | `src/components/marketing/PricingPreview.tsx` tier CTA |
-| Save-the-Date primary Send CTA + selected Photo Style pill | `src/components/editor/SaveTheDatePanel.tsx` |
-| Login "Continue with Google" | `src/app/login/LoginClient.tsx` |
-| Editor "Publish" | `src/components/editor/EditorToolbar.tsx` |
-| Wizard "Next step" + "Set the Layout" | `src/components/wizard/PearSpotlight.tsx` |
-| Showroom card "Open the site" (on hover) | `src/components/marketing/SiteShowroom.tsx` |
-| Testimonial quote medallion (on hover) | `src/components/marketing/Testimonials.tsx` |
-| Selected canvas block outline | `src/components/editor/SiteRenderer.tsx` applies `.pl-block-selected` |
-
-### 6.6 Rules
-
-- Pearl is **only** on interactive affordances. Never on body text, never on flat surfaces, never larger than a CTA pill or card edge.
-- One brand, one phase — all pearl across a page drifts in sync because they all read the same inherited `--pl-pearl-phase`.
-- Tailwind will shadow `.pl-pearl-accent` without `!important`. The class uses `!important` for bg/color/border on purpose.
-- If you compose `.pl-pearl-accent` onto a Button variant, prefer the `gold` variant as the semantic fallback (so removing the class leaves a coherent button).
+AI lives in **on-demand routes** (`/api/pear-chat`, `/api/rewrite-text`, `/api/ai-*`, `/api/decor/*`, `/api/photos/stylize`, `/api/look/from-story`, `/api/wizard/smart-palette`, cadence drafts…), never in the wizard's critical path and never at publish. `src/lib/ai-usage.ts` meters spend. ~199 API routes total under `src/app/api/`.
 
 ---
 
-## 7 · Theme architecture
+## 12 · API + Supabase conventions
 
-### 7.1 Scope
+Unchanged contract: `getServerSession` → `checkRateLimit` → JSON parse in try/catch (400) → validate early → work → `NextResponse.json({ ok, … })`. Status codes 200/400/401/403/429/500/502. Log with a `[route]` prefix. Don't leak membership.
 
-The theme attribute lives on `[data-pl-site-root][data-theme="light" | "dark"]` (see `src/components/theme-provider.tsx:198–200`). **Not on `html`.** This is intentional: published sites never collide with editor chrome's theme state.
-
-### 7.2 Switching
-
-- `<ThemeProvider>` wraps site renders; `<SiteThemeToggle />` is the visitor-facing toggle.
-- Initial mode resolved by `readInitialMode()` (`src/components/theme-provider.tsx:60–70`): localStorage → `prefers-color-scheme: dark` → light.
-- Persistence key: **`pl-site-theme`**.
-- Transition: 700ms `cubic-bezier(0.22, 1, 0.36, 1)` applied site-wide to colour/fill/stroke with explicit exclusions for input:focus, textarea:focus, button:active (so typing and clicking feel instant).
-
-### 7.3 Theme generation
-
-- `themeToCssBlocks(theme)` (`src/lib/theme.ts:178–185`) emits two CSS declaration blocks scoped by `[data-theme=...]`. Injected into `<style>` so the browser variable swap is atomic — no React re-render.
-- `deriveDarkPalette(light)` (lines 90–105) auto-derives a dark palette: preserves hue with `vivify()` saturation boost (0.08), darkens surfaces, flips text contrast.
-- `themeToCssVars(theme, mode?)` flattens to a record — used for wizard + non-switching chrome.
-
-### 7.4 Dark mode character
-
-BRAND.md §10: dark mode is "editorial midnight", not OLED black. The cream family stays warm (`#0D0B07` base, `#1A1610` cards), the olive brightens to read on dark, gold warms slightly. Don't introduce pure black.
+Supabase: migrations in `supabase/migrations/` AND applied to prod (project `vpwnpxowqflajvqpgvyb`) via MCP, tracked in `_pearloom_migrations`. RLS pattern is belt-and-braces restrictive `deny-anon` + service-role client in routes. Key recent tables: `people` (guest identity, lowercase-email keyed), `site_messages` (party thread + host↔guest DMs), `account_credentials` (scrypt), `user_preferences` (avatar, onboarding, intent). Realtime: content-free pings on `pl-msg-${siteId}` broadcast channels (`src/lib/messages-realtime.ts`); refetches stay token-authed.
 
 ---
 
-## 8 · Effects library
+## 13 · Naming + conventions
 
-All in `src/components/effects/`. Use them; don't roll your own.
-
-| Component | File | Purpose |
-|---|---|---|
-| `GradientMesh` | `GradientMesh.tsx` | Paper Design WebGL mesh shader. Presets: `aurora`, `sunset`, `ocean`, `forest`, `rose`, `champagne`, `twilight`, `custom`. Speed: `still`, `slow`, `medium`, `fast`. Fixed-position underlay. |
-| `GrainOverlay` | `GrainOverlay.tsx` | SVG feTurbulence noise overlay. Paired with `.pl-grain` utility. |
-| `VignetteOverlay` | `VignetteOverlay.tsx` | Edge darkening. z-index 9989 intentional. |
-| `TextureOverlay` | `TextureOverlay.tsx` | Paper / linen / concrete / velvet / bokeh patterns. |
-| `ColorTemperature` | `ColorTemperature.tsx` | Warm/cool filter — applies sepia + hue-rotate. |
-| `ScrollReveal` | `ScrollReveal.tsx` | On-view reveal wrapper. Prefer CSS scroll-timeline via `.pl-scroll-*` when possible. |
-| `SectionDivider` | `SectionDivider.tsx` | SVG divider with animation. |
-| `CustomCursor` | `CustomCursor.tsx` | Cursor shape override. Sparingly. |
-
-**Bespoke hero atmosphere:** `src/components/marketing/HeroAtmosphere.tsx` — layered shader mesh + woven threads + cursor-tracked pearl halo + top/bottom feather. Mounted inside `EditorialHero`. Honours reduced motion.
-
-**Woven divider:** `src/components/marketing/WovenDivider.tsx` — 96px band with 9 strands and alternating warp gradients, used between hero and Showroom. Uses the same `pl-weave-travel` keyframe as `<Thread />` and `<WeaveLoader />` so the loom motion is continuous down the page.
-
-**Rule (BRAND.md §3):** paper texture under everything. Apply `.pl-grain` on the section wrapper, not on individual cards.
+- `pl-` prefix for utility classes; `pl8-` for product-chrome scoped classes; `.pl8-guest` is the site scope.
+- `data-pl-*` for site-root attributes. Custom events in the `pearloom:*` namespace (`pearloom:patch`, `pearloom:send-save-the-date`, `pl-open-rsvp`).
+- `@/*` → `src/*`. No relative-up traversals.
+- `*Client.tsx` for `'use client'` route shells; `route.ts(x)` handlers; co-located `*.test.ts` (vitest; `src/test/setup.ts` is wired via vitest.config.ts strings — never "orphan-delete" it).
+- Editor chrome → `--pl-chrome-*` only (ESLint-enforced).
+- React Compiler lint is on: no `Date.now()` in render, no synchronous setState-in-effect (use render-time adjustment or rAF).
 
 ---
 
-## 9 · Brand primitives (canonical)
+## 14 · Validation loop
 
-Under `src/components/brand/`. **Use them. If a surface needs something close, extend — don't fork.** (BRAND.md §8.)
-
-| Primitive | Replaces | Signature props |
-|---|---|---|
-| `<Thread />` | `<hr>`, divider lines | `variant` (`weave`, `straight`, `single`, `bullet`), `animated`, `color`, `color2`, `weight`, `glyph`, `width`, `height` |
-| `<WeaveLoader />` | Every spinner, `Loader2`, `animate-spin` | size, colour defaults to olive+gold |
-| `<Pull />` | Blockquotes | `variant` (`plate`, `inline`), `cite`, `italic`, `color`, `glyphColor`, `size` |
-| `<Folio />` | Page numbers, chapter marks, "Edition 01" | `kicker`, `no`, `label`, `direction`, `ruleColor`, `color`, `rules`, `size` |
-| `<EmptyState />` | "No data" / "Empty list" panels | (see `src/components/shell/EmptyState.tsx`) |
-| `<GooeyText />` | Rotating word UIs | `words[]`, `interval`, `fontSize`, `italic`, `color`, `fontFamily`, `letterSpacing`, `intensity` |
-| `<KineticHeading />` | Scroll-linked display headings | — |
-| `<AmbientNav />` | Marketing + dashboard top chrome | — |
-| `<PearloomMark />` | Logo glyph | `size`, `color`, `color2`, `animated` |
-
-**Drift flag:** `EditorialHero.tsx` currently uses its own `AnimatePresence` + `motion.em` for the rotating occasion word instead of `<GooeyText />`. Restore the primitive when touching that section next.
-
-**Rule:** "Loading…" → `<WeaveLoader />`. "AI-powered" → never write that phrase. See BRAND.md §7 for microcopy rules.
+`npx tsc --noEmit` → `npx eslint <touched files>` → `npx vitest run` (667 tests green as of 2026-06-12) → `npm run build`. Full-repo eslint carries ~106 pre-existing errors (CommandPalette chrome tokens, PLChrome render rule) — your touched files must be clean; the backlog is §16.
 
 ---
 
-## 10 · Component inventory
+## 15 · Deleted-architecture ledger
 
-**368 components across 27 subdirectories** as of last audit. Detailed file lists below.
+If an old doc, comment, or memory references these: **they're gone, on purpose.** Deleted 2026-06-12 (~90k lines) after a production check found zero rows carrying vibeSkin/customPages and the import graph confirmed zero live consumers:
 
-### 10.1 UI primitives — `src/components/ui/*` (32 files)
+- **vibeSkin** — the AI-generated design layer. Field removed from StoryManifest; nothing generates or reads it. OG cards read the suite theme contract (`src/lib/suite/theme.ts`) with house-default fallbacks.
+- **`ThemedSiteRenderer.tsx`** (pearloom/site, 7.7k lines) — the pre-redesign renderer — and **`SiteV8Renderer`** before it (deleted 2026-06-01). Also the old V8 editor canvas (`editor/canvas/CanvasStage` + the EditableText/HoverToolbar canvas-overlay family) and **EditorV8** itself.
+- **The memory-engine story pipeline** — `pipeline.ts`, `claude-passes`, `prompts`, `passes`, `grounding`, `photo-vision`, `image-fetcher`, `motif-picker`, `typography-picker` — and its routes `/api/generate`, `/api/generate/stream`, `/api/generate/art`. (`gemini-client`, `image-router`, `openai-image` survive — live AI routes use them.)
+- **vibe-engine** entirely; the publish route's per-publish Gemini vibeSkin call.
+- **The V1 site component tree** — hero, site-nav, StoryLayouts, guestbook, PasswordGate, wedding-events, the `site/groove/*` set, `site/*Block.tsx` Event-OS blocks, effects/SectionDivider, vibe/WaveDivider… (the published page carried ~46 dead imports keeping these "alive").
+- **The `/preview` + `/preview/[token]` surface** + `/api/preview` + EditBridge (nothing minted tokens; the token pages rendered the V1 tree — a different site than published).
+- **`customPages`** legacy renderer (no writer, zero rows; unknown sub-page slugs now 404).
+- **The shadcn `ui/` kit remainder**, `lib/block-engine`, `lib/intelligence`, `lib/marketplace` (module dir), `lib/design-tokens.ts`, `lib/snapshots`, `manifest-migrations`, and ~40 other zero-importer lib modules.
+- Earlier rounds (see git history): PearSpotlight wizard, HomeV8/DashHomeV8/TemplatesV8, AuthModal, the QuickEditModal family, the MarketingNav/EditorialHero-era marketing tree.
 
-Built on shadcn/ui + Radix, styled via `--pl-*` tokens. All barrel-exported from `src/components/ui/index.ts`.
-
-- **`button.tsx`** — `Button`, `buttonVariants`
-  - Variants: `primary`, `accent`, `secondary`, `ghost`, `gold`, `warning`, `danger`, `darkGhost`, `ink`
-  - Sizes: `xs`, `sm`, `md`, `lg`, `xl`, `icon`, `iconLg`
-  - **Drift flag:** `primary` and `accent` variants are currently identical (`bg-[#18181B]`). Collapse or differentiate.
-  - Variants hardcode `bg-[#18181B]` instead of `bg-ink`. See §17.
-- **`card.tsx`** — `Card`, `CardHeader/Title/Description/Content/Footer`
-  - Variants: `elevated` (glass default), `flat` (cream), `outlined`, `glass` (frosted), `dark`, `bento`
-  - Padding: `none`, `xs`, `sm`, `md`, `lg`, `xl`
-- **Form & input:** `input.tsx`, `textarea.tsx`, `form.tsx` (FormField, FormSection, Select, DateInput, TimeInput), `switch.tsx`, `date-picker.tsx`, `color-picker.tsx`, `file-upload.tsx`, `range-slider.tsx`, `custom-select.tsx`
-- **Feedback:** `badge.tsx`, `Pill.tsx`, `IconCircle.tsx`, `skeleton.tsx` (Skeleton / SkeletonText / SkeletonCircle), `empty-state.tsx`, `animated-number.tsx`, `progress-arc.tsx`, `progress-steps.tsx`
-- **Overlay:** `modal.tsx` (Dialog family), `dropdown.tsx`, `tooltip.tsx`, `confirm-dialog.tsx`
-- **Layout:** `tabs.tsx`, `accordion.tsx`, `separator.tsx`, `marquee.tsx`, `avatar.tsx`, `UpgradeGate.tsx`
-
-### 10.2 Shell — `src/components/shell/*` (11 files, barrel-exported)
-
-App-shell patterns. Consumers import via `@/components/shell` only.
-
-`AppShell`, `ThemeProvider`, `ThemeToggle`, `PageCard`, `EmptyState`, `LoadingSkeleton` (Skeleton / SkeletonStack / SkeletonCard), `SiteSelector` (+ `SiteOption` type), `ResponsiveTable` (+ `Column` type), `Button` (shell-scoped wrapper), `StatTile`.
-
-### 10.3 Brand — `src/components/brand/*` (8)
-
-Covered in §9 above.
-
-### 10.4 Effects — `src/components/effects/*` (8)
-
-Covered in §8 above.
-
-### 10.5 Marketing — `src/components/marketing/*` (20 files)
-
-After this session's cleanup (MarketingHero + EventOSShowcase deleted; HeroAtmosphere + WovenDivider added):
-
-| File | Role |
-|---|---|
-| `EditorialHero.tsx` | Landing hero with editorial grid + product card mock |
-| `HeroAtmosphere.tsx` | Shader mesh + loom threads + cursor halo behind the hero |
-| `WovenDivider.tsx` | Section divider band between hero and showroom |
-| `MarketingNav.tsx` | Top navigation (sticky, scroll-aware, theme toggle) |
-| `MarketingFooter.tsx` | Footer (columns + wired newsletter form + socials) |
-| `SiteShowroom.tsx` | Six real template cards with hover previews in own accent |
-| `EventOSPillars.tsx` | Three pillars (Compose / Conduct / Remember) with active-plate halo |
-| `PricingPreview.tsx` | 3-tier cards (Journal / Atelier / Legacy), highlighted tier gets pearl |
-| `FAQSection.tsx` | Radix Accordion on 10 FAQs |
-| `Testimonials.tsx` | 3 quote cards with pearl medallion on hover |
-| `SocialProofBar.tsx` | 4 animated counters + testimonial marquee |
-| `TheLoomShowcase.tsx` | AI passes pill display + rind palette swatches |
-| `EditorShowcase.tsx` | Typing demo of the editor with animated cursor |
-| `GuestExperience.tsx` | 4 feature groups (Site / Guests / Comms / After) |
-| `HowItWorks.tsx` | Step-by-step |
-| `TrustSignals.tsx` | GDPR / security / CDN / uptime badges |
-| `BlockTypesGrid.tsx` | Feature grid of editor block types |
-| `SiteMockup.tsx` | Device frame mockup |
-| `SectionHeader.tsx` | Reusable section title primitive |
-| `colors.ts` | Marketing-specific palette re-exports |
-
-### 10.6 Dashboard — `src/components/dashboard/*` (31 files)
-
-Top-level:
-
-- Home: `EventHQ.tsx`, `UserSites.tsx`, `DashboardShell.tsx`
-- Navigation: `sidebar.tsx`, `user-nav.tsx`, `MobileBottomNav.tsx`
-- Panels: `RsvpDashboard.tsx`, `TemplateGallery.tsx`, `SiteCompletenessPanel.tsx`, `SiteAnalytics.tsx`, `SiteSharePanel.tsx`, `AnnouncementsPanel.tsx`, `MessagingPanel.tsx`, `CoordinatorPanel.tsx`, `ReferralPanel.tsx`, `VendorBookingsPanel.tsx`, `PhotoModerationPanel.tsx`, `HeirloomArchive.tsx`, `VoiceToastsPanel.tsx`, `CuratorAICard.tsx`, `UpgradePrompt.tsx`, `FontPicker.tsx`
-- Editors: `site-editor.tsx`, `block-editor.tsx`, `guest-manager.tsx`, `photo-browser.tsx`, `local-uploader.tsx`, `cluster-review.tsx`, `generation-progress.tsx`, `vibe-input.tsx`
-
-### 10.7 Editor — `src/components/editor/*` (138 files, hotspot)
-
-**50+ panels:** `DetailsPanel`, `DesignPanel`, `BlockPresetsPanel`, `BlockLibraryDrawer`, `ColorPalettePanel`, `CustomizationPanel`, `SaveTheDatePanel`, `ChapterPanel`, `EventsPanel`, `StoryPanel`, `VendorPanel`, `GuestMessagingPanel`, `ThankYouPanel`, `TimeCapsulePanel`, `VersionHistoryPanel`, `TranslationPanel`, `ThemeSwitcher`, `BlockConfigEditor`, `BlockStyleEditor`, `ArtManager`, `SpotifyPanel`, `AnalyticsDashboardPanel`, `AccessibilityAuditPanel`, `BulkInvitePanel`, `CoordinatorSetup`, `AnniversaryNudgePanel`, `AIBlocksPanel`, `AICommandBar`, `WelcomeOverlay`, `EditorTour`, `DesignAdvisor`, `CommunityMemoryModerate`, `VisualEffectsPanel`, `VoiceTrainerPanel`, `CanvasContextMenu`, `BlockDropZone`, `FloatingToolbar`, `BlockPresetPicker`, `AlternatesCarousel`, `GalleryPicker`, `ConfirmDialog`, `GettingStartedChecklist`, `ComponentLibrary`.
-
-**Frame:** `FullscreenEditor`, `EditorCanvas`, `CanvasEditor`, `EditorToolbar`, `EditorStatusBar`, `EditorSidebar`, `EditorRail`, `EditorBreadcrumb`, `EditorWing`, `DraftBanner`.
-
-**Canvas overlays (`editor/preview/`):** `CanvasHeroEditBar`, `CanvasChapterToolbar`, `CanvasInlineFormatBar`, `BlockConfigPopover`, `AIRewriteButton`, `InlineColorCustomButton`, plus 8 canvas-specific overlays (photo, FAQ, event, registry, section, focal point, context menu, hover bar).
-
-**Panel primitives (`editor/panel/`):** `PanelSection` (+ `PanelRoot`), `PanelField`, `PanelInput`, `PanelTextarea`, `PanelChip` (+ `PanelChipGroup`), `PanelSelect`, `PanelColorPicker`, `PanelDatePicker`, `PanelEmptyState`, `SaveIndicator`, `panel-tokens.ts`.
-
-**Utilities:** `block-presets.ts`, `editor-utils.tsx`, `inline-toolbar-bus.ts`, `EditorIcons.tsx`, `useDragSort`, `useEditorHistory`, `useEditorKeyboard`.
-
-**Refactor candidates (size) — the V8 trio:**
-
-The V8 architecture (mounted at `/dashboard`, `/sites/[domain]`,
-and the wizard flow) replaced the old `wizard/PearSpotlight` +
-`editor/FullscreenEditor` + `site/SiteRenderer` stack. The two
-surviving V8 monoliths live under `src/components/pearloom/`:
-
-- `src/components/pearloom/editor/EditorV8.tsx` — **~161 KB / 4,280 lines**. The full editor shell: rail + left section list + canvas + right rail dispatch. Replaces the old `FullscreenEditor` + `EditorCanvas` + `EditorSidebar` triad.
-- `src/components/pearloom/pages/WizardV8.tsx` — **~111 KB / 2,803 lines**. The wizard (category → occasion → photos → details → generating → review). Replaces `src/components/wizard/PearSpotlight.tsx` entirely.
-
-The third member, `SiteV8Renderer.tsx`, was deleted 2026-06-01 after
-`ThemedSiteRenderer.tsx` reached feature parity. See §19 changelog.
-
-Older monoliths to retire next:
-- `src/components/blocks/StoryLayouts.tsx` — **76 KB**. Extract per-layout files.
-
-### 10.8 Wizard — `src/components/pearloom/pages/` + legacy `src/components/wizard/*`
-
-**Canonical wizard:** `src/components/pearloom/pages/WizardV8.tsx` (see §10.7 trio).
-
-**Legacy `src/components/wizard/*` (14 files, retired but not deleted):**
-`PearSpotlight` (former main — superseded by WizardV8), `PhotoFirstWizard`, `LivingCanvas`, `WizardCards`, `WizardCardsB`, `PearCalendar`, `LocationAutocomplete`, `PhotoDropZone`, `WizardLivePreview`, `WizardBreadcrumb`, `DashboardStep`.
-
-Hooks: `useConfetti`, `useGenerationTicker`, `useSpeechRecognition`, `useTypewriter`.
-
-### 10.9 Site rendering — `src/components/site/*` (31 files) + root-level
-
-Guest-facing components. Highlights: `WeddingDayTimeline`, `WeddingDayPhotoFeed`, `WeddingCoordinator`, `GuestbookSection`, `GuestPhotoWall`, `CoupleQuiz`, `LanguageSwitcher`, `SpotifySection`, `RelationshipGraph`, `LiveUpdatesFeed`, `AnniversaryRecap`, `CommunityMemorySection`, `CountdownBlock`, `RegistrySection`, `LeafletMap`, `VideoChapterPlayer`, `WeddingPartySection`, `SeatFinder`, `PageTransition`, `ThemedLoader`, `StickyRsvpPill`, `ShareBar`, `AmbientSpotifyPlayer`.
-
-Root-level: `landing-page.tsx`, `hero.tsx`, `timeline.tsx`, `event-logistics.tsx`, `photo-gallery.tsx`, `registry-showcase.tsx`, `travel-guide.tsx`, `faq-section.tsx`, `countdown-widget.tsx`, `public-rsvp-section.tsx`, `rsvp-form.tsx`, `guest-dashboard.tsx`, `guestbook.tsx`, `mascot.tsx`, `mood-decorator.tsx`, `ask-couple-chat.tsx`, `coming-soon.tsx`, `ErrorBoundary.tsx`, `VisitTracker.tsx`, `AnalyticsBeacon.tsx`.
-
-### 10.10 Specialized
-
-- `invite/` (4): `InviteReveal`, `GuestPassport`, `InviteRsvpForm`, `InvitePage`
-- `asset-library/` (4): `AssetPicker`, `SvgDividers`, `SvgAccents`, `SvgIllustrations`
-- `co-host/` (1): `CoHostAccept`
-- `icons/` (4): `EditorIcons`, `PearloomIcons`, `PearMascot`, `PearShapes`
-- `seating/` (4): `SeatingCanvas`, `SeatingPanel`, `TableObject`, `GuestChip`
-- `venue/` (2): `VenueProfile`, `VenueSearch`
-- `registry/` (2): `RegistryManager`, `RegistryCard`
-- `live/` (2): `LivePhotoWall`, `LiveQROverlay`
-- `vibe/` (2): `CelebrationOverlay`, `WaveDivider`
-- `shared/` (3): `PublishModal`, `OfflineIndicator`, `ConfettiBurst`
-- `blocks/` (1): `StoryLayouts.tsx` (76KB)
+Before resurrecting anything from git history, ask whether the redesign equivalent already exists — it usually does.
 
 ---
 
-## 11 · URL system
+## 16 · Active debt (2026-06-12)
 
-Canonical URLs are **path-based, occasion-prefixed** — `pearloom.com/{occasion}/{slug}`. Subdomains were rejected deliberately (one cookie jar, one analytics property, cleaner previews, no wildcard DNS).
-
-### 11.1 Supported occasions
-
-`'wedding'` · `'anniversary'` · `'engagement'` · `'birthday'` · `'story'`.
-
-Source: `src/lib/site-urls.ts:26–31`.
-
-### 11.2 API
-
-| Function | Signature | Output example |
-|---|---|---|
-| `buildSiteUrl` | `(slug, path?, origin?, occasion?)` | `https://pearloom.com/wedding/scott/rsvp` |
-| `buildSitePath` | `(slug, path?, occasion?)` | `/wedding/scott/rsvp` |
-| `formatSiteDisplayUrl` | `(slug, path?, occasion?)` | `pearloom.com/wedding/scott` (no scheme, for UI copy) |
-| `normalizeOccasion` | `(unknown) => SiteOccasion` | Defaults to `'wedding'` |
-| `getAppOrigin` | `() => string` | `window.location.origin` (client) or `NEXT_PUBLIC_SITE_URL` env (server) |
-
-### 11.3 Fallback form
-
-`/sites/{slug}` remains supported for legacy shared links. Internal rewrite in `src/proxy.ts`.
-
-### 11.4 Rule
-
-**Never construct URLs with string concatenation.** If you catch `"${slug}.pearloom.com"` in a diff, reject it — route through `buildSiteUrl` / `formatSiteDisplayUrl`.
+1. **CommandPalette chrome-token violations** — ~90 pre-existing `no-restricted-syntax` errors (site-theme vars in editor chrome). Migrate to `--pl-chrome-*`.
+2. **PLChrome.tsx** — "Cannot create components during render" lint error.
+3. **Unused eslint-disable directives** — ~40 warnings repo-wide, mostly stale `no-restricted-syntax` file-top disables; remove when touching those files.
+4. **`pearloom.css` is 8.4k lines** — carries per-kit/texture/edition CSS plus sediment from deleted surfaces. Worth a dead-selector audit now that the V1/V8 trees are gone.
+5. **Story drafting in the editor** — the wizard no longer drafts story content; the editor's "draft my story from these photos/facts" flow is the named successor (the factSheet + eventDetails already ride the manifest for it).
+6. **`user_preferences.intent`** (onboarding) prefills the wizard occasion, but nothing else reads it yet.
 
 ---
 
-## 12 · Editor state architecture
+## 17 · Changelog (condensed)
 
-Source: `src/lib/editor-state.ts`.
+Older entries live in this file's previous revision (git history). The renderer's full lineage: V1 tree → SiteV8Renderer → ThemedSiteRenderer → **redesign/ThemedSite** (current, sole).
 
-### 12.1 Shape
+### 2026-06-12 — The great deletion + doc rewrite
+~90k lines removed (§15). Wizard generation made instant for photo runs (photos = content; story drafting moved to the editor; manifest pre-warm deleted). Suggestion fallbacks de-wedding'd. Wizard mobile/dark fixes (`.display` clamp scoped to headings; theme-aware header glass; safe-area cook pill). `/welcome` gate grandfathers site-owning accounts → `/dashboard`. This document rewritten from a fresh audit.
 
-- **`SaveState`** — `'saved' | 'unsaved'` (binary). Publishing + errors tracked separately.
-- **`EditorState`** — ~40 top-level keys, grouped:
-  - Content: `chapters`, `activeId`
-  - UI: `activeTab`, `device`, `sidebarWidth`, `sidebarCollapsed`, `splitView`, `mobileSheetOpen`, `cmdPaletteOpen`, `showWelcome`, `showHint`
-  - Status: `saveState`, `isDirty`, `iframeReady`, `previewSlow`, `canUndo`, `canRedo`
-  - Rewrite: `rewritingId`, `rewriteError`, `streamingText`, `streamingChapterId`
-  - Publish: `showPublish`, `subdomain`, `isPublishing`, `publishError`, `publishedUrl`
-  - Drag: `canvasDragId`, `canvasDragLabel`
-  - Draft: `draftBanner`
-  - Overrides: `sectionOverridesMap`
-  - Preview: `previewZoom`, `previewPage`
-  - Mobile: `isMobile`, `mobileVisualEdit`, `mobileActionChapterId`
-  - Alternates: `chapterAlternates`, `alternatesLoadingId`
-  - Selection: `selectedBlockIds`
-  - Focus: `contextSection`, `fieldFocus`
-  - History: `undoHistory`, `undoIndex`, `undoTruncated`
-  - Canvas: `canvasWidth`
+### 2026-06-11 — Welcome flow, orchard avatars, event graph
+First-run onboarding at `/welcome`; 12 SVG account marks + SiteCrest switcher; persistent guest identity (`people`), event-scoped messaging (`site_messages`) with Realtime pings, opt-in connections; Sealed Arrival envelope (`ArrivalReveal`); manual accounts (scrypt credentials, verify/reset flows).
 
-### 12.2 Actions (49 `type` literals)
-
-`SET_CHAPTERS`, `SET_ACTIVE_ID`, `SET_ACTIVE_TAB`, `SET_DEVICE`, `SET_SIDEBAR_WIDTH`, `SET_SIDEBAR_COLLAPSED`, `TOGGLE_SIDEBAR_COLLAPSED`, `SET_SPLIT_VIEW`, `TOGGLE_SPLIT_VIEW`, `SET_MOBILE_SHEET`, `SET_CMD_PALETTE`, `TOGGLE_CMD_PALETTE`, `SET_WELCOME`, `SET_HINT`, `SET_SAVE_STATE`, `SET_DIRTY`, `SET_IFRAME_READY`, `SET_PREVIEW_SLOW`, `SET_CAN_UNDO`, `SET_CAN_REDO`, `SET_REWRITING`, `SET_REWRITE_ERROR`, `SET_STREAMING_TEXT`, `SET_SHOW_PUBLISH`, `SET_SUBDOMAIN`, `SET_PUBLISHING`, `SET_PUBLISH_ERROR`, `SET_PUBLISHED_URL`, `SET_CANVAS_DRAG`, `SET_DRAFT_BANNER`, `SET_SECTION_OVERRIDES`, `SET_MOBILE`, `SET_MOBILE_VISUAL_EDIT`, `SET_MOBILE_ACTION_SHEET`, `SET_PREVIEW_ZOOM`, `SET_PREVIEW_PAGE`, `MARK_PUBLISHED`, `OPEN_PUBLISH`, `SET_CHAPTER_ALTERNATES`, `SET_ALTERNATES_LOADING`, `SET_SELECTED_BLOCKS`, `TOGGLE_BLOCK_SELECTION`, `SET_CONTEXT_SECTION`, `SET_FIELD_FOCUS`, `CLEAR_FIELD_FOCUS`, `PUSH_UNDO_ENTRY`, `SET_UNDO_INDEX`, `CLEAR_UNDO_HISTORY`, `CLEAR_REWRITE_ERROR`, `CLEAR_PUBLISH_ERROR`, `SET_CANVAS_WIDTH`.
-
-### 12.3 Undo coalescing
-
-`PUSH_UNDO_ENTRY` accepts an optional `coalesceKey`. Rapid repeats of the same target (slider drags, colour-picker hue changes) collapse into one undo entry within `DESIGN_COALESCE_MS` = **400ms**.
-
-### 12.4 `stripArtForStorage(manifest)`
-
-Strips base64 DataURLs from `vibeSkin` (heroArtDataUrl, ambientArtDataUrl, artStripDataUrl) before sessionStorage / API serialization. Preserves permanent CDN/R2 URLs. Fallback: if quota exceeded, strips chapter image base64 too.
-
-### 12.5 Save safety
-
-- `EditorClient` (`src/app/editor/[siteSlug]/EditorClient.tsx`) debounces to 2s after last change.
-- `beforeunload` handler issues `navigator.sendBeacon('/api/sites', …)` AND sets `e.returnValue = ''` so the browser shows its native "you have unsaved changes" dialog when a save is in-flight.
-- Local draft backup written to `localStorage` key `pearloom:draft:${siteSlug}` on every change. Cleared on successful network save.
-
-### 12.6 Save indicator
-
-`EditorStatusBar.tsx` shows:
-- `Saved` (neutral grey dot)
-- `Saving…` (pulsing gold dot via `pl-dot-pulse`)
-
-Keep semantics binary. If you add `error` or `idle` states, update the `SaveState` type first.
-
-### 12.7 Editor loading screen
-
-`DashboardClient.tsx` wraps `FullscreenEditor` dynamic import with a pearl-accent loading screen so the first click on a site tile never produces a silent gap.
-
----
-
-## 13 · API conventions
-
-All routes under `src/app/api/**/route.ts`. Next 16 App Router — each handler exports `GET`, `POST`, etc.
-
-### 13.1 Shared helpers
-
-| Import | File | Purpose |
-|---|---|---|
-| `getServerSession(authOptions)` | `next-auth` + `@/lib/auth` | Standard auth check |
-| `checkRateLimit(key, { max, windowMs })` | `@/lib/rate-limit` | Sliding-window in-memory rate limit |
-| `getClientIp(req)` | `@/lib/rate-limit` | Extracts X-Forwarded-For / X-Real-IP |
-| `uploadToR2(key, body, contentType)` | `@/lib/r2` | Cloudflare R2 put (S3-compat) |
-
-### 13.2 Status-code conventions
-
-- `200` success
-- `400` validation error
-- `401` unauthenticated
-- `403` forbidden
-- `429` rate limit — returns `{ error }` with human-readable message
-- `500` server error — log + return generic message; never leak stacks
-- `502` upstream model failure (Gemini/Claude down)
-
-### 13.3 Representative routes
-
-| Route | Auth | Rate limit | Notes |
-|---|---|---|---|
-| `POST /api/newsletter/subscribe` | None | 5 / 10min per IP | Degrades gracefully if Supabase not configured. Dedupes by `lower(email)`. |
-| `POST /api/photos/upload` | Session | — | Base64 payload, max 25 photos, max 12MB each. |
-| `POST /api/photos/stylize` | Session | 12 / 5min per user+IP | Calls `geminiGenerateImage` (Nano Banana), uploads result to R2. |
-| `GET /api/sites` | Session | — | Graceful empty list if DB unreachable. |
-| `POST /api/sites` | Session | — | Called by editor autosave + sendBeacon on unload. |
-| `POST /api/invite` | Session | 10 / hour per user | Mints co-host / viewer access token. |
-| `POST /api/rsvp` | Public (site guest) | Per-IP | Surfaces Postgres error codes for duplicate-email UX. |
-| `POST /api/preview` | Session | — | Mints a 24h-expiry preview token + URL. |
-
-### 13.4 Patterns
-
-1. **Parse body in a try/catch** — invalid JSON → 400.
-2. **Validate early** — cheap field checks before any DB / model call.
-3. **Rate limit before external calls** — saves on cost exhaustion.
-4. **Return `{ ok: boolean, ... }` for public endpoints** — easy to branch on in UI.
-5. **Don't leak membership** — newsletter duplicate signup returns 200, not "already subscribed" error.
-6. **Log with route prefix** — `console.error('[newsletter] insert failed:', err)` — makes production logs grep-able.
-
----
-
-## 14 · Supabase schema
-
-Migrations live in `supabase/migrations/YYYYMMDD_name.sql`. Apply via `npm run db:migrate` (`scripts/db-migrate.ts`).
-
-### 14.1 Migration history (as of 2026-04-21)
-
-- `20260328_wedding_os.sql` — core schema (venues, venue_spaces, seating_tables, seats, seating_constraints, …)
-- `20260416_event_os.sql` — event OS extensions
-- `20260417_legacy_bootstrap.sql` — backfill
-- `20260418_cohost.sql` — co-host roles + tokens
-- `20260419_recap_sent.sql` — recap sent-state tracking
-- `20260420_section_comments.sql` — per-block collaborator comments
-- `20260421_newsletter_subscribers.sql` — marketing footer signups (unique lower(email), deny-anon RLS)
-
-### 14.2 Key tables
-
-| Table | Purpose | RLS pattern |
-|---|---|---|
-| `sites` | Published sites | owner-only via `user_id = auth.uid()` |
-| `guests` | RSVP records | site-owner-only |
-| `venues` / `venue_spaces` / `seating_tables` / `seats` | Seating stack | owner-only |
-| `seating_constraints` | must_sit_together / avoid_table rules | owner-only |
-| `section_comments` | Co-host collab | belt-and-braces restrictive deny-anon + service-role API |
-| `newsletter_subscribers` | Footer signups | **restrictive deny-anon** + service-role insert |
-
-### 14.3 RLS pattern
-
-Two layers. The API route uses a service-role Supabase client (so it can insert), and the table has a restrictive `deny-anon` policy so bare anon keys (leaked or misused) cannot read or write. This is belt-and-braces: even if the API route is misconfigured, the table is safe.
-
-```sql
-alter table public.<table> enable row level security;
-
-drop policy if exists "<table>_deny_anon" on public.<table>;
-create policy "<table>_deny_anon"
-  on public.<table>
-  as restrictive
-  for all
-  to anon
-  using (false);
-```
-
----
-
-## 15 · AI model routing
-
-### 15.1 Gemini — `src/lib/memory-engine/gemini-client.ts`
-
-| Constant | Endpoint | Use cases |
-|---|---|---|
-| `GEMINI_PRO` | `gemini-3.1-pro-preview` | Creative passes (story chapters, SVG art, poetry) |
-| `GEMINI_FLASH` | `gemini-3.1-flash-lite-preview` | Analytical passes (critique, scoring, judgment) |
-| `GEMINI_LITE` | `gemini-3.1-flash-lite-preview` | Lightweight extraction (couple DNA, metadata) |
-| `GEMINI_IMAGE` | `gemini-3.1-flash-image-preview` | Image editing / photo-to-style ("Nano Banana") |
-
-`geminiRetryFetch(url, init, maxAttempts=3)` — retries on `503` (UNAVAILABLE) or `429`, honours `Retry-After` header, exponential backoff `2s → 4s → 8s`.
-
-`geminiGenerateImage({ apiKey, prompt, inputImage? })` — photo-to-style helper. Used by `/api/photos/stylize`.
-
-### 15.2 Claude — `src/lib/claude/client.ts`
-
-| Tier | Model ID | Use |
-|---|---|---|
-| `opus` | `claude-opus-4-7` | Top-quality creative, agent loops |
-| `sonnet` | `claude-sonnet-4-6` | Structured planning + critique |
-| `haiku` | `claude-haiku-4-5-20251001` | Fast micro-edits (captions, thank-yous, chat) |
-
-`withRetry(fn)` — 3 attempts, exponential backoff on `429 / 503 / 529 / ≥500`. Anthropic SDK auto-retries 2× on top.
-
-`cached(text, ttl?)` — returns a `TextBlockParam` with `cache_control: { type: 'ephemeral', ttl }` for prompt caching. `ttl` defaults to `'5m'` or `'1h'`.
-
-### 15.3 Picking a model
-
-- Anything user-perceived creative (story, art, tone): **Gemini Pro** or **Claude Opus**.
-- Scoring / judging / extraction / analysis: **Gemini Flash-Lite** or **Claude Haiku**.
-- Image editing / style transfer: **Gemini Image** (no Claude equivalent).
-- If the prompt is >10k tokens and repeated, wrap the system prompt in `cached()`.
-
----
-
-## 16 · File, naming, and prefix conventions
-
-### 16.1 File naming
-
-| Pattern | Applies to | Examples |
-|---|---|---|
-| kebab-case `.ts` / `.tsx` | Utilities, libs, root-level site components | `site-urls.ts`, `editor-state.ts`, `add-to-calendar.tsx`, `coming-soon.tsx` |
-| PascalCase `.tsx` | React components | `FullscreenEditor.tsx`, `ErrorBoundary.tsx`, `AuthModal.tsx`, `SiteRenderer.tsx` |
-| `route.ts` | Next App Router API handler | 48+ in `src/app/api/**/route.ts` |
-| `page.tsx` / `layout.tsx` | Next 16 App Router | Standard |
-| `*Client.tsx` | Explicit `'use client'` shells | `DashboardClient.tsx`, `EditorClient.tsx`, `LoginClient.tsx`, `EventPageClient.tsx`, `AnalyticsClient.tsx`, `DirectorClient.tsx` |
-| `*.test.ts` / `*.test.tsx` | Vitest tests | Co-located in `src/lib/**` (10 files) |
-
-**Next.js 16 caveat (AGENTS.md):** this is *not* the Next.js you know. App Router, Turbopack, React 19. When in doubt, read `node_modules/next/dist/docs/`.
-
-### 16.2 CSS class prefix
-
-All custom utility classes use **`pl-`**. `--eg-*` legacy aliases are deprecated; do not add new references.
-
-### 16.3 Data attribute prefixes
-
-| Prefix | Scope | Examples |
-|---|---|---|
-| `data-pl-*` | Published site roots, structural markers | `data-pl-site-root` (theme anchor), `data-pl-editor` |
-| `data-pe-*` | Preview / editor editable markers | `data-pe-section="hero"`, `data-pe-label="Hero"`, `data-pe-editable="true"`, `data-pe-field="content"` |
-
-### 16.4 Custom events
-
-All use the **`pearloom:*`** namespace, dispatched via `window.dispatchEvent(new CustomEvent('pearloom:xxx', { detail }))`.
-
-Known events:
-- `pearloom:inline-toolbar-activated` — `src/components/editor/inline-toolbar-bus.ts`. Carries `detail: 'rewrite' | 'style' | 'section' | 'multi-select' | 'art'` to enforce mutual exclusion of five canvas-overlay toolbars.
-- `pearloom:send-save-the-date` — dispatched from `SaveTheDatePanel` → consumed by Guests panel to open bulk-send modal with `{ variant, message }`.
-
-### 16.5 Import alias
-
-`@/*` resolves to `src/*` (configured in `tsconfig.json`). Always use it. Never use relative-up traversals (`../../`).
-
----
-
-## 17 · Known drift (design debt)
-
-Catalogued as of 2026-04-20. Re-verified 2026-06-01 — most §18 items
-are now closed (see §18 table for verified status). The drift entries
-below are kept as a historical map of where the codebase started; the
-current active backlog is at the end of this section under "Active debt
-as of 2026-06-01".
-
-### 17.1 Hardcoded hex colours — **347 instances / 45+ files**
-
-Hotspots:
-- `src/components/timeline.tsx` — 72 inline hex values (`#111`, `#ffffff`, `#A3B18A`, etc.)
-- `src/components/rsvp-insights.tsx:225` — meal palette uses legacy colours: `['#A3B18A', '#C4A265', '#8B6F8E', '#6B9BD2', '#D4836D', '#7DB8A5', '#B5A0D1']`
-- `src/components/blocks/StoryLayouts.tsx:2330–2520` — 40+ hex
-- `src/components/dashboard/vibe-input.tsx` — mixed preset palettes
-
-**Critical:** `#A3B18A` is used in **114** light-mode contexts — this is the *dark-theme* value of `--pl-olive`. Smells like pre-v6 palette bleed; audit and replace with `var(--pl-olive)`.
-
-**Ink drift:** `--pl-ink` canonical is `#0E0D0B`. Code uses `#18181B`, `#1A1A1A`, `#2B2B2B` inconsistently.
-**Gold drift:** `--pl-gold` canonical is `#B8935A`. Code uses `#C4A96A`, `#B8860B`, `#DAA520`.
-**Divider drift:** `--pl-divider` canonical is `#D8CFB8`. Code uses `#E4E4E7`, `#E6DFD2`.
-
-### 17.2 Raw transitions / motion — **664 instances**
-
-85% bypass the `--pl-dur-*` + `--pl-ease-*` system. Worst offenders:
-- 141× `'0.2s ease'` → should be `var(--pl-dur-fast) var(--pl-ease-out)` (180ms)
-- 87× `'0.25s ease'` → no matching token
-- 56× `'0.3s ease'` → no 300ms token
-- 43× `'0.15s ease'` → below system minimum
-
-Fix: migrate to the 5 canonical durations (`instant 100`, `fast 180`, `base 280`, `slow 480`, `glacial 800`).
-
-### 17.3 Raw border radius — **127 instances**
-
-Raw `'100px'`, `'16px'`, `'12px'`, `'6px'`, `'4px'`, `'2px'`, `'1px'`, `'20px'`, `'10px'`, `'3px'` in use. System defines 7. Map to `var(--pl-radius-*)`.
-
-### 17.4 Raw z-index — **352 instances**
-
-Preview/editor chrome (9000+) is intentional. Consumer-facing drift:
-- `src/components/rsvp-form.tsx:109` — `zIndex: 9999`
-- `src/components/site-nav.tsx:646,655` — `zIndex: 9999`
-- `src/components/photo-gallery.tsx:309` — `zIndex: 100` (should reference `--z-sticky`)
-- `src/components/timeline.tsx:664` — `zIndex: 10` (below system minimum)
-
-### 17.5 Raw font sizes — **42 outliers**
-
-E.g., `0.72rem`, `0.88rem`, `0.65rem` — between scale steps or below the `0.66rem` (`--pl-text-2xs`) floor. Map to the nearest `--pl-text-*` token.
-
-### 17.6 Tailwind arbitrary values — 21 instances
-
-- `src/components/ui/button.tsx:29–81` — 12 classes with `bg-[#18181B]`, `hover:bg-[#27272A]`, `border-[#E4E4E7]`. Should reference Tailwind tokens that already map to `var(--pl-ink)` etc.
-- `src/components/editor/preview/ChapterHoverBar.tsx:117` — `bg-[#F4F4F5] text-[#18181B]`
-- `src/components/dashboard/generation-progress.tsx:214–216` — macOS traffic-light colours (intentional, leave alone)
-- `src/components/shared/PublishModal.tsx:219` — WhatsApp brand green (intentional, leave alone)
-
-### 17.7 Dark-mode gaps
-
-- `src/components/blocks/StoryLayouts.tsx:2330` — `{ light = '#F5F1E8', dark = '#1A1A1A' }` defaults outside system
-- `src/components/timeline.tsx:502` — hardcoded dark gradient
-- `src/components/coming-soon.tsx:593` — `linear-gradient(135deg, #10b981, #34d399)` (unthemeable green)
-- `src/components/venue/VenueSearch.tsx:208` — inconsistent dark fallback
-
-### 17.8 Button.tsx `primary` === `accent`
-
-Two variants are currently identical (`bg-[#18181B] text-white …`). Probably a merge mistake. Collapse to one, or differentiate (e.g., `primary` → pearl, `accent` → ink).
-
-### 17.9 EditorialHero regression from BRAND primitives
-
-BRAND.md §8 lists `<GooeyText />` as canonical for rotating word UIs. Current `EditorialHero.tsx` rolled its own `AnimatePresence` + `motion.em`. Restore `<GooeyText />` when touching the hero next.
-
-### 17.10 Newsletter visual
-
-Wired end-to-end as of this session; server validates + dedupes + deny-anon RLS. Visual still austere — consider a subtle success animation next time.
-
-### 17.11 File-size hotspots
-
-The V8 trio (see §10.7) replaced the old PearSpotlight monolith
-but introduced three new big files:
-
-- `src/components/pearloom/site/SiteV8Renderer.tsx` — **~411 KB / 10,324 lines**. Largest file in the repo. Extract per-block-type renderers into `src/components/pearloom/site/blocks/<Block>.tsx` so the switch dispatches to standalone files. Estimate: 3–4 sessions with visual-regression coverage.
-- `src/components/pearloom/editor/EditorV8.tsx` — **~161 KB / 4,280 lines**. The full editor shell. Candidate for splitting along rail / canvas / right-rail boundaries.
-- `src/components/pearloom/pages/WizardV8.tsx` — **~111 KB / 2,803 lines**. Step-per-file extraction (same shape as the old PearSpotlight plan).
-- `src/components/blocks/StoryLayouts.tsx` — **76 KB**. Layout-per-file extraction.
-
-Legacy `src/components/wizard/PearSpotlight.tsx` (the 144 KB
-file flagged in 2026-04-20) is **superseded by WizardV8.tsx**
-and can be deleted once a `git grep` confirms no consumer imports
-it. Was deferred for "visual regression risk" — now risk is zero
-because WizardV8 is the canonical wizard.
-
-### 17.12 Active debt as of 2026-06-01
-
-A short list of what's actually left after today's fix-it pass.
-(Long history is preserved in §17.1–.11 above for grep value.)
-
-- **SiteV8Renderer block-switch extraction** (§17.11). Most
-  valuable refactor in the repo. The default case now warns +
-  shows an editor placeholder (2026-06-01), so we can extract
-  one block at a time without breaking the renderer.
-- **`editor/PearSpotlight` deletion** (§17.11). Confirm no
-  imports, delete the 144 KB legacy file.
-- **`blocks/StoryLayouts.tsx` 76 KB** layout-per-file extraction.
-- **Long-tail transition strings** — the systematic codemod in
-  2026-06-01 hit the common compound patterns; some bespoke
-  `'border-color 0.15s, box-shadow 0.15s'` lines remain. Address
-  when touching nearby code.
-- **`timeline.tsx` 72 raw hex values** in a single file. Refactor
-  alongside any content changes to that component.
-
----
-
-## 18 · Cleanup priorities (ranked)
-
-| # | Task | Status |
-|---|---|---|
-| 1 | Replace 114× `#A3B18A` (dark-olive bleed) with `#5C6B3F` — fixes fallbacks and data-context colour literals. | ✅ Done 2026-04-20 (163 replacements, 82 files) |
-| 2 | Collapse `Button` `primary` / `accent` / `ink` duplicate variants; migrate hardcoded `#18181B` / `#E4E4E7` / etc. to token references. | ✅ Done 2026-04-20 |
-| 3 | Codemod raw transition strings to `--pl-dur-*` + `--pl-ease-*`. | ✅ Done 2026-04-20 (top ~30 patterns, 178 files, ~500 lines). Long tail remains. |
-| 4 | Restore `<GooeyText />` on `EditorialHero` rotating noun. | ✅ Already wired (audit was stale) |
-| 5 | Extract `PearSpotlight.tsx` step modules. | ✅ Superseded 2026-06-01 — `pearloom/pages/WizardV8.tsx` is now the canonical wizard. Legacy `wizard/PearSpotlight.tsx` ready to delete pending an import grep. |
-| 6 | Migrate Tailwind arbitrary `bg-[#...]` in `button.tsx` to token utilities. | ✅ Folded into #2 |
-| 7 | Sweep raw `borderRadius: 'N px'` / `borderRadius: N` to `var(--pl-radius-*)`. | ✅ Done 2026-04-20 (250 files, ~1500 lines) |
-| 8 | Migrate consumer-facing `zIndex` to `var(--z-*)` tokens. | ✅ Done 2026-04-20 (35 files, top-level `9999` and `100` values) |
-| 9 | Wire `StoryLayouts.tsx` light/dark defaults to canonical cream/ink values. | ✅ Done 2026-04-20 |
-| 10 | Audit and delete unused keyframes from globals.css. | ✅ Done 2026-04-20 (removed `gentle-bounce`, `pl-shimmer-sweep`, `pl-save-pop`, `pl-pear-celebrate`) |
-| 11 | Editor chrome must bind to `--pl-chrome-*` tokens (CLAUDE-DESIGN.md §2.6) — migrate `atoms.tsx` site-theme references. | ✅ Done 2026-06-01 — 36 references to `--pl-cream` / `--pl-ink` / `--pl-divider` / `--cream` / `--ink` / `--line` etc. migrated to `--pl-chrome-*` in `src/components/pearloom/editor/atoms.tsx`. 45 `--pl-chrome-*` references present today. ESLint guard (`eslint.config.mjs`) added to prevent regression. |
-| 12 | Replace every `<Loader2 className="animate-spin" />` and `animate-spin` with `<WeaveLoader />` (BRAND.md §3). | ✅ Done 2026-06-01 — 29 Loader2 / animate-spin instances migrated. Only the canonical `WeaveLoader` (and `pl-pearl-rotate` for inline indicator dots) remain. Repo-wide grep for `Loader2|animate-spin` returns only the WeaveLoader source itself. |
-| 13 | `generateJson` (Claude structured output) must force `tool_choice` so the model can't free-form away from the schema. | ✅ Done 2026-06-01 — `src/lib/claude/structured.ts` now passes `tool_choice: { type: 'tool', name }`. Three routes converted to forced tool_use: `/api/look/from-story`, `/api/pear/speech`, `/api/voice-dna/analyze`. |
-| 14 | `SiteV8Renderer.renderBlock` default case must be safe — warn loudly + show edit-mode placeholder, return null in published. | ✅ Done 2026-06-01 — `SiteV8Renderer.tsx:7953–7978` warns via `console.warn('[SiteV8] Unimplemented block type: …')`, returns null when `!editMode`, otherwise renders a dashed cream-deep "Block type X is coming soon." placeholder. Unblocks the per-block extraction in §17.11. |
-| 15 | `--eg-*` legacy namespace deprecation. | ✅ Done 2026-06-01 — repo-wide grep for `--eg-` returns only `src/app/globals.css` (25 alias declarations preserved as backstops; no `.ts` / `.tsx` reads). |
-| 16 | StickyMobileCta should be RSVP-preset aware (don't show "RSVP" on memorial sites). | ✅ Done 2026-06-01 — `src/components/site/StickyRsvpPill.tsx` reads `manifest.rsvpConfig.preset` and adjusts the button label / target per preset. |
-| 17 | `.pl-letterpress` on the marketing + landing hero display copy (BRAND.md §3). | ✅ Done 2026-06-01 — applied to 6 hero surfaces (`SiteV8Renderer` themed hero, `LiveNowHero`, `hero-variants/parts`, `design/DesignHero`, marketing landing display words, shell EmptyState heading). |
-| 18 | PearThinking + AISource primitives (`src/components/pearloom/pear-thinking.tsx`, `ai-source.tsx`) rolled across editor surfaces. | ✅ Done 2026-06-01 — 9 editor surfaces now use the shared primitives: `ThemePanel`, `LibraryPanelV2`, `NavPanel`, `StickerTrayPanel`, `decor-shared`, `DecorRecolorModal`, `DesignAdvisor`, `DashHomeV8`, `StudioRails`, `TwoTapThanks`, `QrPosterPage`, plus `GuestPearChat` for the published-site concierge. |
-
-### Remaining tech debt (next session)
-
-- **SiteV8Renderer per-block extraction** — §17.11. Now safe to
-  extract one block at a time thanks to the default-case
-  placeholder. 3–4 sessions of work.
-- **Delete legacy `wizard/PearSpotlight.tsx`** — grep for
-  imports, confirm zero, delete the 144 KB file.
-- **Long-tail transition strings** — top-30 patterns are done;
-  bespoke compounds (`'border-color 0.15s, box-shadow 0.15s'`)
-  remain. Touch when nearby.
-- **Unused `timeline.tsx` hex** — 72 raw hex values in one file.
-
----
-
-## 19 · Changelog
-
-### 2026-06-01 — Renderer consolidation complete (Phase 4)
-
-`SiteV8Renderer.tsx` deleted (was 10,324 lines / ~411 KB —
-formerly the largest file in the repo). `ThemedSiteRenderer.tsx`
-(`src/components/pearloom/site/ThemedSiteRenderer.tsx`) is now the
-sole renderer.
-
-- `StoryManifest.renderer` field removed from `src/types.ts`.
-- Look Engine renderer toggle removed from
-  `src/components/pearloom/editor/panels/LookEnginePanel.tsx`.
-- `PublishedSiteShell` (`src/components/pearloom/site/PublishedSiteShell.tsx`)
-  + `CanvasStage` (`src/components/pearloom/editor/CanvasStage.tsx`)
-  hardcoded to mount `ThemedSiteRenderer` directly — no dispatch,
-  no fallback.
-- Supabase migration
-  `supabase/migrations/20260617_drop_manifest_renderer.sql`
-  drops the `renderer` key from existing rows' `manifest` JSONB.
-
-The §1 source-of-truth map collapses the two renderer rows into
-one. §10.7 drops the V8 size description. See CLAUDE-PRODUCT.md
-§10 (2026-06-01 V8-deletion entry) for the product-side recap.
-
-### 2026-06-01 — Renderer consolidation kickoff
-
-`ThemedSiteRenderer` (`src/components/pearloom/site/ThemedSiteRenderer.tsx`,
-~5,152 lines / ~203 KB) is now designated the canonical published-site
-renderer. `SiteV8Renderer` (~411 KB / 10,324 lines) is marked
-legacy and will be phased out as ThemedSiteRenderer absorbs its
-product features over the next few sessions. New site surfaces
-should bind to ThemedSiteRenderer; legacy SiteV8 block cases
-keep working in parallel until each is migrated. See
-CLAUDE-PRODUCT.md §10 for the phased plan and per-section
-migration order.
-
-### 2026-06-01 — Status-audit fix-it pass (V8 architecture re-audit)
-
-A focused sweep against the V8 trio that landed during the Look
-Engine + ThemedSiteRenderer work over the last week. The audit
-took the form: "list every item that's silently broken or off-
-brand in the editor + AI + published-site surfaces, fix top-down,
-and re-document the surface area in CLAUDE-DESIGN.md." Eighteen
-items shipped, then this doc updated. All type-check clean.
-
-**AI surfaces — shared primitives + extended thinking + forced
-tool_use:**
-
-- Two new shared primitives mounted at `src/components/pearloom/`:
-  - `pear-thinking.tsx` — the inline "Pear is thinking…" pulse
-    used wherever a Claude call is in flight.
-  - `ai-source.tsx` — the model-attribution stamp ("Drafted by
-    Pear · Sonnet 4.6") shown on AI-generated content blocks.
-- Rolled across 9 editor surfaces + the published-site
-  concierge: `ThemePanel`, `LibraryPanelV2`, `NavPanel`,
-  `StickerTrayPanel`, `decor-shared`, `DecorRecolorModal`,
-  `DesignAdvisor`, `DashHomeV8`, `StudioRails`, `TwoTapThanks`,
-  `QrPosterPage`, and `GuestPearChat` (published-site concierge).
-- `GuestPearChat` now streams with a typewriter caret +
-  passport-aware error handling (auth failures surface a clear
-  "your guest link looks expired" instead of a generic 500).
-- Three routes converted to forced `tool_use` so Claude can't
-  free-form past the schema:
-  - `src/app/api/look/from-story/route.ts`
-  - `src/app/api/pear/speech/route.ts`
-  - `src/app/api/voice-dna/analyze/route.ts`
-- `src/lib/claude/structured.ts` now forces
-  `tool_choice: { type: 'tool', name }` inside `generateJson()` —
-  every existing call site picks up the guarantee for free.
-
-**Brand-primitive sweep — Loader2 / animate-spin → `<WeaveLoader />`:**
-
-- 29 Loader2 / `animate-spin` instances migrated to
-  `<WeaveLoader />` (BRAND.md §3). Repo-wide grep for
-  `Loader2|animate-spin` now returns only the `WeaveLoader`
-  source itself (`src/components/brand/WeaveLoader.tsx`) and the
-  one `pl-pearl-rotate` inline indicator-dot keyframe in
-  `globals.css` (intentional — that's a tiny dot, not a spinner).
-
-**Editor chrome insulation — `--pl-chrome-*` enforcement:**
-
-- 36 site-theme token references in
-  `src/components/pearloom/editor/atoms.tsx` migrated to
-  `--pl-chrome-*` so editor panels never inherit user-theme
-  swaps. The file now has 45 `--pl-chrome-*` references and
-  0 site-theme reads.
-- ESLint rule added in `eslint.config.mjs` (lines 16–30) that
-  bans `var(--cream)` / `var(--ink)` / `var(--line)` /
-  `var(--pl-cream)` / `var(--pl-ink)` / `var(--pl-divider)` etc.
-  from any file under `src/components/pearloom/editor/**`. The
-  selector matches both `Literal` and `TemplateElement` AST
-  nodes so template-string drift can't slip through. Future
-  chrome regressions fail CI.
-
-**Site renderer — safe default case:**
-
-- `src/components/pearloom/site/SiteV8Renderer.tsx:7953–7978`
-  default case now:
-  1. Logs `console.warn('[SiteV8] Unimplemented block type: …')`
-     so Sentry catches new BlockType union members that don't
-     have a renderer.
-  2. Returns `null` in published view (guests never see a
-     half-built block).
-  3. In `editMode`, renders a dashed cream-deep "Block type X
-     is coming soon." placeholder so the host knows the block
-     is real but not yet shipped.
-- This unblocks the per-block-type extraction in §17.11 — we
-  can pull one case at a time out of the 10,324-line switch
-  without risking a runtime crash.
-
-**Microcopy + brand polish:**
-
-- `.pl-letterpress` applied to the 6 hero display surfaces:
-  themed SiteV8 hero (`hero-variants/parts.tsx`), `LiveNowHero`,
-  marketing `design/DesignHero`, the landing-page display word,
-  shell `EmptyState` heading, and `pearloom.css` / `globals.css`
-  font-variation utility classes. Display copy on cream now
-  reads pressed-into-paper everywhere it should.
-- `StickyRsvpPill` (`src/components/site/StickyRsvpPill.tsx`) is
-  now RSVP-preset aware — reads `manifest.rsvpConfig.preset` and
-  adjusts the button label per preset (memorial sites no longer
-  say "RSVP").
-
-**Cleanup sweep:**
-
-- `--eg-*` legacy namespace deprecation: repo-wide grep for
-  `--eg-` returns only `src/app/globals.css` (25 alias
-  declarations preserved as backstops; zero TS/TSX reads).
-- Long-tail transition codemod — second pass on the residue
-  from 2026-04-20. Common compound patterns (
-  `'border-color 0.15s, box-shadow 0.15s ease'` and friends)
-  migrated to `var(--pl-dur-fast) var(--pl-ease-out)`. Some
-  one-off bespoke patterns remain; address when nearby.
-
-**Doc + architecture refresh:**
-
-- This file (`CLAUDE-DESIGN.md`):
-  - §0 last-full-audit bumped to 2026-06-01.
-  - §10.7 + §10.8 rewritten around the V8 trio
-    (`pearloom/editor/EditorV8.tsx` ~161 KB,
-    `pearloom/pages/WizardV8.tsx` ~111 KB,
-    `pearloom/site/SiteV8Renderer.tsx` ~411 KB / 10,324 lines).
-  - §17.11 file-size hotspots restructured: V8 trio replaces
-    the old PearSpotlight monolith reference. Legacy
-    `wizard/PearSpotlight.tsx` flagged as ready-to-delete.
-  - §17.12 new "Active debt as of 2026-06-01" section so future
-    sessions can read the current backlog without reverse-
-    engineering closed items.
-  - §18 cleanup-priorities table gained rows 11–18 covering
-    today's wins. Row 5 (PearSpotlight refactor) flipped to
-    ✅ via WizardV8 supersession.
-
-### 2026-05-31 — Look Engine system (Editor Redesign brief port)
-
-Ported the Editor Redesign prototype's "Look Engine" right-rail into Pearloom's editor. **Ten commits**, all interlocking. Adds three new manifest axes + two CSS vars + two data attributes + two editor panels + two lib modules + one Studio bridge. Type-check + tests + 41/41 Studio e2e green throughout.
-
-**New manifest fields** (`src/types.ts`):
-
-| Field | Shape | Purpose |
-|---|---|---|
-| `manifest.textureIntensity` | `number` (0–1.5, default 1) | Multiplier on per-texture grain `::before` opacities. 0 = no grain. 1.5 = exaggerated. |
-| `manifest.density` | `'cozy' \| 'comfortable' \| 'spacious'` | Section vertical rhythm. Cozy compresses, spacious opens. Bound to `--pl-density-scale`. |
-| `manifest.voiceOverride` | `'classic' \| 'playful' \| 'poetic'` | Manual AI-drafting voice override. Maps to PoetryVoice (classic→celebratory, playful→playful, poetic→intimate). Read by all 4 Claude passes. |
-| `manifest.kitId` | `'classic' \| 'ticket' \| 'plate' \| 'scrapbook' \| 'index' \| 'minimal'` | Component design language. Restyles cards/dividers/chips via `[data-pl-kit]` scoped CSS. |
-| `manifest.edition` | (existing) | Already in the schema; Look Engine added new wiring to KitPicker + Studio bridge. |
-
-**New CSS vars** (rendered into `.pl8-guest` style attr):
-- `--pl-density-scale`: `0.7` (cozy) / `1` (comfortable) / `1.3` (spacious).
-- `--pl-texture-intensity`: 0–1.5 multiplier on all `[data-pl-texture]` `::before` opacities (and the newsprint `::after` halftone).
-
-**New root data attributes** on `.pl8-guest`:
-- `data-pl-density="..."` — drives margin-block on `section[id]` (cozy: -14px, spacious: +24px).
-- `data-pl-kit="..."` — drives per-kit card/divider/chip CSS treatments.
-
-**Per-event defaults** (`src/lib/event-os/event-types.ts`):
-
-`lookDefaultsFor(occasion)` returns `{ density, textureIntensity, kitId }` derived from EventType.voice:
-
-| Voice | Density | Intensity | Kit |
-|---|---|---|---|
-| solemn | spacious | 0.6 | index |
-| playful | cozy | 1.3 | scrapbook |
-| intimate | comfortable | 0.8 | minimal |
-| ceremonial | spacious | 1.0 | plate |
-| celebratory (+ default) | comfortable | 1.0 | classic |
-
-The renderer reads these as fallback when the manifest doesn't carry an explicit pick. Hosts who pick in the editor always win.
-
-**New editor panels** (`src/components/pearloom/editor/panels/`):
-- `LookEnginePanel.tsx` — Fine-tune dials: Generate-from-story peach pill + Shuffle button + Voice / Spacing / Texture-intensity segments + Legibility note + Match-my-photos file picker + Saved Looks (6-slot localStorage) + Matching Save-the-Date CTA.
-- `KitPicker.tsx` — 6 kit tiles in 2-col grid with inline-SVG previews. "★ Match" pill on the event-default tile when no explicit pick. "↺ Match event (...)" reset pill above the grid when an explicit pick is set.
-
-**New lib modules** (`src/lib/look-engine/`):
-- `palette-from-photo.ts` — Canvas 48×48 bucket-quantize + HSL-derived accent / accentLight / accentInk / accentBg / gold. Used by Match-my-photos.
-- `generate-from-story.ts` — Deterministic keyword matcher returning `SuggestedLook { occasion, edition, texture, voiceOverride, density, textureIntensity, rationale }`. Place/material keywords beat occasion fallbacks; somber occasions force classic voice. 14 unit tests.
-
-**Studio bridge** (`src/components/pearloom/studio/studio-defaults-from-look.ts`):
-- First-time Studio open inherits the host's Site Look (Edition → layout, Kit → motif, theme.colors.accent → Studio palette via nearest-HSL-neighbor, voice → tone).
-- Subsequent opens read persisted `manifest.studio` as before. 10 unit tests + 41/41 Studio e2e green.
-
-**Per-kit CSS in `pearloom.css`** (~150 lines):
-- `[data-pl-kit="ticket"]` rows: dashed 1.5px border + monospace time pills.
-- `[data-pl-kit="plate"]` rows: triple-inset shadow ring + italic display.
-- `[data-pl-kit="scrapbook"]` rows: ::before tape strip + alternating ±1.4° rotation via nth-child.
-- `[data-pl-kit="index"]` rows: red 2px left margin + 22px repeating blue rule lines.
-- `[data-pl-kit="minimal"]` rows: borderless + bottom hairline + oversized serif numerals on time pills.
-
-**Voice override → AI passes** (`src/lib/memory-engine/pipeline.ts`):
-- `generateStoryManifest()` takes new optional 13th param `voiceOverride`.
-- Internal `resolveVoice()` maps the prototype's 3-voice to production's PoetryVoice + replaces all 4 read sites (corePass / critiqueChapters / poetryPass / generateThemeFromVibe).
-- `/api/generate/stream` + `/api/generate` both forward `body.voiceOverride` through; stream route also stamps `manifest.voiceOverride` on the result.
-
-**Phase 4 deferred** (named in types.ts + this changelog): The prototype's 6 kits are WHOLE-COMPONENT alternative renderers (KSchedule has 6 totally different layouts: perforated stub grid, Roman-numeral dotted-leader list, tilted polaroid grid, etc.). Today's MVP gets the personality across via CSS overrides on existing row components. The full per-kit SECTION renderers in SiteV8Renderer (KSchedule / KDetails / KFaq / KGallery) — see CLAUDE-PRODUCT.md §10 (2026-05-30 entry).
-
-**Brief item #7 (architectural)**: The prototype's three-pane editor shell restructure (left rail = section list, canvas, right rail = LookEngine when no section selected / PropertyRail when selected) is deliberately deferred — requires editor IA refactor with explicit user sign-off.
-
-### 2026-04-20 — Design-debt cleanup sweep
-
-- **Olive hex fix**: 163 replacements of `#A3B18A` → `#5C6B3F` across 82 files.
-- **Button tokenization**: `primary`/`accent`/`ink` variants collapsed to shared `INK_FILLED` constant; all hardcoded neutrals migrated to `var(--pl-*)` tokens; hover via `opacity-90` for automatic dark-mode correctness.
-- **Motion codemod**: ~30 most common raw `transition` patterns (178 files, ~500 lines) migrated to `var(--pl-dur-*)` + `var(--pl-ease-*)`.
-- **Border-radius codemod**: 250 files, ~1500 lines migrated from raw px values (`'8px'`, `12`, `'100px'`, etc.) to `var(--pl-radius-{xs,sm,md,lg,xl,2xl,full})`.
-- **Z-index**: `9999` → `var(--z-max)` and `100` → `var(--z-sticky)` on 35 files (consumer-facing only; preview/editor chrome kept intentional high values).
-- **StoryLayouts**: light/dark defaults fixed to canonical `#F5EFE2` / `#0E0D0B`.
-- **Dead keyframes removed** from globals.css: `gentle-bounce`, `pl-shimmer-sweep`, `pl-save-pop`, `pl-pear-celebrate`.
-
-### 2026-04-20 — Pearshell v7.2 + retention polish + comprehensive audit
-
-- **Pearshell v7.2** introduced. New tokens (`--pl-pearl-{a,b,c}`, `--pl-pearl-ink`, `--pl-rind`, `--pl-bruise`), registered `@property --pl-pearl-phase`, utility classes `.pl-pearl-accent` / `.pl-pearl-border` / `.pl-block-selected`. Scroll-timeline coupling via `@supports (animation-timeline: scroll())`.
-- **Pearshell wired into 11 primary CTAs** across marketing nav (desktop + mobile), hero, footer, pricing highlighted tier, Save-the-Date send + photo-style, login Google, editor Publish, wizard Next + Layout, showroom card CTAs, testimonial medallions, selected canvas blocks.
-- **Marketing hero upgrade** — `HeroAtmosphere.tsx` (shader mesh + loom threads + cursor halo + feather), `WovenDivider.tsx` between hero and showroom.
-- **Save-the-Date stylize** — `/api/photos/stylize` route + Gemini image helper; 4 preset styles (paper-craft / watercolor / embroidery / botanical).
-- **URL sweep** — subdomain-format strings replaced with `buildSiteUrl` / `formatSiteDisplayUrl` across dashboard (EventHQ, EventPageClient, HelpClient FAQ, SaveTheDate footer).
-- **Retention fixes** — EditorStatusBar `Saving…` pulsing dot, `beforeunload` native confirm on unsaved changes, `EditorLoadingScreen` with pearl avatar between dashboard click and editor mount.
-- **Newsletter wired end-to-end** — migration `20260421_newsletter_subscribers.sql` (unique lower(email) + deny-anon RLS), `POST /api/newsletter/subscribe` (rate-limited, graceful degrade), MarketingFooter form controlled state.
-- **Dead code removal** — `MarketingHero.tsx`, `EventOSShowcase.tsx` deleted (duplicate `#event-os` anchor resolved).
-- **`.pl-pearl-accent` `!important`** added on bg/color/border so Tailwind utility composition doesn't silently shadow the class.
-- **Initial comprehensive design-system audit** that produced this file.
-
----
-
-## 20 · When in doubt — cheatsheet
-
-### Add a primary CTA
-```tsx
-<button
-  onClick={...}
-  className="pl-pearl-accent"
-  style={{ padding: '11px 18px', borderRadius: 'var(--pl-radius-full)',
-           fontWeight: 600, cursor: 'pointer' }}
->
-  Start weaving — free
-</button>
-```
-
-### Add a colour token
-1. Add light + dark values to both `[data-theme='light']` and `[data-theme='dark']` blocks in `src/app/globals.css`.
-2. Mirror the light value in `src/lib/design-tokens.ts` if other components will import it.
-3. If it's a brand colour, add the Tailwind mapping in `tailwind.config.ts` so `bg-foo` / `text-foo` work.
-
-### Add a page (Next 16 App Router)
-```
-src/app/<route>/
-  page.tsx      (server component by default)
-  layout.tsx    (optional)
-  <Name>Client.tsx  (if 'use client' needed)
-```
-
-### Add an API route
-```
-src/app/api/<route>/route.ts
-```
-Inside: `getServerSession` → `checkRateLimit` → JSON parse (try/catch → 400) → validate → do work → return `NextResponse.json({ ok: true, ... })`.
-
-### Add a Supabase table
-1. `supabase/migrations/YYYYMMDD_name.sql` with `create table`, indexes, RLS enable, restrictive `deny-anon` policy.
-2. Service-role client in the API route for writes.
-3. `npm run db:migrate`.
-
-### Add a motion
-1. Use existing keyframe if possible (`pl-weave-travel`, `pl-rise`, `pl-dot-pulse`).
-2. New keyframe → define in `src/app/globals.css` under the motion block, not inline.
-3. `prefers-reduced-motion` block to turn it off.
-4. Never write `transition: '0.2s ease'`. Use `var(--pl-dur-fast) var(--pl-ease-out)`.
-
-### Add a brand-fit loader
-`<WeaveLoader />` — never `<Loader2 className="animate-spin" />`, never a raw spinner.
-
-### Add an empty state
-`<EmptyState />`. Copy verb-first lowercase-first. "Nothing yet. Begin a thread."
-
-### Tracking the microcopy rules (from BRAND.md §7)
-- "Loading…" → "Threading…"
-- "Generated" → "drafted"
-- "AI-powered" → never
-- "No data" → "Nothing yet. Begin a thread."
-
-### Add a Look-Engine axis
-1. New field on `StoryManifest` in `src/types.ts` with a tight string union + JSDoc explaining what reads it.
-2. Default fallback in `lookDefaultsFor(occasion)` (`src/lib/event-os/event-types.ts`) so every event has a coherent starting value.
-3. Renderer wiring in `SiteV8Renderer.tsx`: read as `manifest.foo ?? lookDefaults.foo`, set `data-pl-foo` on `.pl8-guest`, push `--pl-foo` into the style attr via `lookEngineVars`.
-4. CSS treatment in `src/app/pearloom.css`: scoped `[data-pl-foo="..."]` blocks or `calc(<base> * var(--pl-foo, 1))` on existing rules.
-5. Editor surface in `LookEnginePanel.tsx` (or a new sibling panel like `KitPicker.tsx`): the picker should distinguish `explicitPick` from `eventDefault` so the "★ Match" pill shows when the host hasn't chosen.
-6. If the new axis affects AI generation, thread it through `generateStoryManifest()` in `pipeline.ts` + parse it from the body in `/api/generate/stream/route.ts`.
-7. If the new axis should bleed into stationery, extend `studioDefaultsFromLook()` in `src/components/pearloom/studio/`.
-8. Document it in CLAUDE-DESIGN.md §19 changelog + the field table.
+### 2026-06-01 → 06-10 — Redesign consolidation
+`redesign/ThemedSite` + `EditorRedesign` became the only renderer/editor; section-variant registry; theme packs + store; look fields (kit/texture/density/motifs); Editions as read-time defaults; honesty sweep (every demo gated by `editable`, every panel control wired).
 
 ---
 

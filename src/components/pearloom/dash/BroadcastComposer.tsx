@@ -13,6 +13,7 @@ import { Icon } from '../motifs';
 
 import { useEffect, useState } from 'react';
 import { useDialog } from '@/components/ui/confirm-dialog';
+import { useMessagePings } from '@/lib/messages-realtime';
 
 type LiveUpdate = {
   id: string;
@@ -46,6 +47,12 @@ export function BroadcastComposer({ subdomain }: Props) {
   const [alsoEmail, setAlsoEmail] = useState(false);
   const [lastEmailSummary, setLastEmailSummary] = useState<string | null>(null);
   const dialog = useDialog();
+  /* Realtime ping channel — guests' BroadcastBars subscribe to
+     `pl-live-${subdomain}` and refetch on ping, so an update lands
+     on open sites instantly instead of on the next 30s poll. The
+     subscription side keeps this composer's history fresh when a
+     co-host posts. */
+  const pingLive = useMessagePings(`pl-live-${subdomain}`, () => { void refresh(); });
 
   async function refresh() {
     try {
@@ -108,6 +115,7 @@ export function BroadcastComposer({ subdomain }: Props) {
         }
       }
       setDraft('');
+      pingLive();
       // Reset email toggle so a follow-up post doesn't accidentally
       // re-email when the host meant "just on-site".
       setAlsoEmail(false);

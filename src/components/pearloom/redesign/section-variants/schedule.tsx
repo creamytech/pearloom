@@ -1,5 +1,5 @@
 'use client';
-/* eslint-disable no-restricted-syntax */
+ 
 
 /* Schedule section variants — timeline / stepper / numbered.
    The 'cards' default lives inline in ThemedSite. Each variant

@@ -5,7 +5,6 @@ import { authOptions } from '@/lib/auth';
 import { ownerEmailOf } from '@/lib/cohost-access';
 import { createClient } from '@supabase/supabase-js';
 import type { StoryManifest } from '@/types';
-import { generateVibeSkin } from '@/lib/vibe-engine';
 import { mirrorManifestPhotos } from '@/lib/mirror-photos';
 import { buildSiteUrl } from '@/lib/site-urls';
 
@@ -95,20 +94,6 @@ export async function POST(req: NextRequest) {
         session.accessToken as string,
         cleanSubdomain,
       );
-    }
-
-    // Generate AI vibe skin (unless already cached)
-    if (!persistManifest.vibeSkin || !persistManifest.vibeSkin.aiGenerated) {
-      console.log('[Publish API] Generating AI vibe skin...');
-      const vibeSkin = await generateVibeSkin(
-        persistManifest.vibeString,
-        process.env.GEMINI_API_KEY,
-        names as [string, string],
-        undefined,
-        persistManifest.occasion
-      );
-      persistManifest = { ...persistManifest, vibeSkin };
-      console.log(`[Publish API] Vibe skin generated: ${vibeSkin.tone} / ${vibeSkin.curve} / aiGenerated=${vibeSkin.aiGenerated}`);
     }
 
     // Pass the tuple of names to the DB upsert

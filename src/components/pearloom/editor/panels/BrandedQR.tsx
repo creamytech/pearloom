@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* BrandedQR — Pearloom-styled QR code that replaces the generic
    black-and-white square grid with:
      • Rounded-dot modules — soft circular fill in the host's theme
@@ -211,7 +211,6 @@ export function useBrandedQrPng(svgRef: React.RefObject<SVGSVGElement | null>, s
 } {
   const [pending, setPending] = useState(false);
   const ref = useRef(svgRef);
-  ref.current = svgRef;
   useEffect(() => { ref.current = svgRef; }, [svgRef]);
 
   function download(filename: string) {

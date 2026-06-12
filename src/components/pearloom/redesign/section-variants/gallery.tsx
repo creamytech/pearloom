@@ -1,5 +1,5 @@
 'use client';
-/* eslint-disable no-restricted-syntax */
+ 
 /* Gallery section layout variants for ThemedSite. The 'grid' default
    lives in ThemedSite.tsx; these are the alternative layouts the
    LAYOUTS registry can dispatch into. */

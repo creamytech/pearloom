@@ -3,21 +3,30 @@
 /* ════════════════════════════════════════════════════════════════
    STORY LISTEN — the wizard's "tell me about it" surface.
 
-   One big field (typed, or spoken via hold-to-talk where the
-   browser supports it). "Pear, listen" runs one extraction pass
-   (/api/wizard/listen) and plays back what she caught: names /
-   date / place quietly prefill the Basics step, mood words ride
-   the vibeString, and the ANCHORS — the named personal specifics
-   — surface as removable stitches the generation passes are
-   required to spend. Keyless deploys degrade to "just keep
-   typing": the raw story still rides the factSheet verbatim, so
-   the site is themed to them either way.
+   One big typed field. Pear listens AUTOMATICALLY: when the host
+   pauses typing (2.5s idle, enough new words since the last pass)
+   an extraction run (/api/wizard/listen) plays back what she
+   caught — names / date / place quietly prefill the Basics step,
+   mood words ride the vibeString, and the ANCHORS (the named
+   personal specifics) surface as removable stitches the story
+   draft is required to spend.
+
+   The old in-page microphone is gone (2026-06-12): it rode the
+   browser SpeechRecognition API, which captures a single phrase
+   then stops, needs Google's servers on Chrome, and is broken
+   on iOS Safari — "speaking to Pear" felt dead. Every phone
+   keyboard ships system dictation that works perfectly with a
+   plain textarea, so the field hints at that instead.
+
+   Keyless deploys degrade to "just keep typing": the raw story
+   still rides the factSheet verbatim, so the site is themed to
+   them either way.
    ════════════════════════════════════════════════════════════════ */
 
-import { useState } from 'react';
-import { Icon, Pear } from '../motifs';
+import { useEffect, useRef, useState } from 'react';
+import { Icon } from '../motifs';
 import { PearThinking } from '../pear-thinking';
-import { speechAvailable, startListening } from '../redesign/PearAssist';
+import { questionsFor } from '@/lib/event-os/wizard-questions';
 
 /* Structural slice of WizardState this component touches — keeps
    the giant wizard type internal to WizardV8. */
@@ -40,6 +49,11 @@ interface Caught {
 }
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+/* Auto-listen tuning: wait for a real pause, require real new
+   material, and never burn more than a few passes per visit. */
+const IDLE_MS = 2500;
+const MIN_NEW_CHARS = 30;
+const MAX_AUTO_RUNS = 3;
 
 export function StoryListen<S extends StorySlice>({
   st,
@@ -49,15 +63,25 @@ export function StoryListen<S extends StorySlice>({
   setSt: (updater: (s: S) => S) => void;
 }) {
   const [busy, setBusy] = useState(false);
-  const [listening, setListening] = useState(false);
   const [caught, setCaught] = useState<Caught | null>(null);
   const [note, setNote] = useState<string | null>(null);
 
   const story = st.storyText ?? '';
+  const q = questionsFor(st.occasion);
 
-  async function listen() {
-    const text = story.trim();
-    if (text.length < 12 || busy) return;
+  /* Auto-listen bookkeeping — refs, not state: none of it renders. */
+  const lastListenedText = useRef('');
+  const autoRuns = useRef(0);
+  const storyRef = useRef(story);
+  storyRef.current = story;
+
+  async function listen(auto: boolean) {
+    const text = storyRef.current.trim();
+    if (text.length < 20 || busy) return;
+    if (auto && Math.abs(text.length - lastListenedText.current.length) < MIN_NEW_CHARS) return;
+    if (auto && autoRuns.current >= MAX_AUTO_RUNS) return;
+    if (auto) autoRuns.current += 1;
+    lastListenedText.current = text;
     setBusy(true); setNote(null);
     try {
       const res = await fetch('/api/wizard/listen', {
@@ -67,13 +91,13 @@ export function StoryListen<S extends StorySlice>({
       });
       const data = await res.json().catch(() => null) as (Caught & { ok?: boolean; error?: string }) | null;
       if (!res.ok) {
-        setNote(data?.error ?? 'Pear lost the thread — try again?');
+        if (!auto) setNote(data?.error ?? 'Pear lost the thread — try again?');
         return;
       }
       if (!data?.ok) {
         // Keyless / model-down — the story itself still grounds the
         // generation, so this is a soft note, not a failure.
-        setNote('Pear will read this while she weaves — every word of it counts.');
+        if (!auto) setNote('Pear will read this while she weaves — every word of it counts.');
         return;
       }
       setCaught(data);
@@ -98,11 +122,32 @@ export function StoryListen<S extends StorySlice>({
         return next;
       });
     } catch {
-      setNote('Pear lost the thread — try again?');
+      if (!auto) setNote('Pear lost the thread — try again?');
     } finally {
       setBusy(false);
     }
   }
+
+  /* Auto-listen: a quiet pass when the host stops typing. */
+  useEffect(() => {
+    if (story.trim().length < 20) return;
+    const t = setTimeout(() => { void listen(true); }, IDLE_MS);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [story]);
+
+  /* Prompt chips — the occasion's three fact-sheet questions as
+     tappable starters. Tapping appends the label as a lead-in so
+     the host answers in their own words right after it. */
+  const prompts = [q.q1Label, q.q2Label, q.q3Label.replace(/\s*\(optional\)\s*/i, '')];
+  const addPrompt = (label: string) => {
+    setSt((s) => {
+      const cur = (s.storyText ?? '').trimEnd();
+      const lead = `${label}: `;
+      if (cur.includes(lead)) return s;
+      return { ...s, storyText: cur ? `${cur}\n\n${lead}` : lead } as S;
+    });
+  };
 
   const removeAnchor = (a: string) => {
     setSt((s) => ({ ...s, anchors: (s.anchors ?? []).filter((x) => x !== a) }) as S);
@@ -111,53 +156,46 @@ export function StoryListen<S extends StorySlice>({
   const anchors = st.anchors ?? [];
 
   return (
-    <div style={{ display: 'grid', gap: 12 }}>
-      <div style={{ position: 'relative' }}>
-        <textarea
-          className="input"
-          rows={6}
-          value={story}
-          onChange={(ev) => setSt((s) => ({ ...s, storyText: ev.target.value }) as S)}
-          placeholder={st.occasion === 'memorial' || st.occasion === 'funeral'
-            ? 'Tell Pear about them — who they were, what they loved, how you want the day to feel…'
-            : 'We met at a tiny bar in Lisbon, our dog Biscuit is coming, it’s at her grandmother’s farm next June and everyone’s flying in…'}
-          style={{ fontSize: 15, lineHeight: 1.6, resize: 'vertical' }}
-        />
-        {speechAvailable() && (
+    <div style={{ display: 'grid', gap: 10 }}>
+      {/* Tappable starters — answer any, in any order, in your words. */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {prompts.map((p) => (
           <button
+            key={p}
             type="button"
-            aria-label={listening ? 'Stop listening' : 'Speak instead'}
-            onClick={() => startListening(
-              (updater) => setSt((s) => ({ ...s, storyText: updater(s.storyText ?? '') }) as S),
-              setListening,
-              listening,
-            )}
+            onClick={() => addPrompt(p)}
             style={{
-              position: 'absolute', right: 10, bottom: 10,
-              width: 34, height: 34, borderRadius: 999,
-              border: '1px solid var(--line, #D8CFB8)',
-              background: listening ? 'var(--sage-tint, rgba(122,138,79,0.18))' : 'var(--card, #FBF7EE)',
-              cursor: 'pointer', fontSize: 14,
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              padding: '6px 12px', borderRadius: 999, fontSize: 12, fontWeight: 600,
+              border: '1px dashed var(--line, #D8CFB8)', background: 'transparent',
+              color: 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
             }}
           >
-            {listening ? <span aria-hidden style={{ width: 8, height: 8, borderRadius: 999, background: 'var(--sage-deep, #5C6B3F)' }} /> : <Icon name="mic" size={15} />}
+            + {p}
           </button>
-        )}
+        ))}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => void listen()}
-          disabled={busy || story.trim().length < 12}
-          style={{ opacity: story.trim().length < 12 ? 0.55 : 1 }}
-        >
-          <Pear size={15} tone="cream" shadow={false} />
-          {busy ? 'Pear is listening…' : caught ? 'Listen again' : 'Pear, listen'}
-        </button>
-        {busy && <PearThinking label="finding the gold" />}
+      <textarea
+        className="input"
+        rows={6}
+        value={story}
+        onChange={(ev) => setSt((s) => ({ ...s, storyText: ev.target.value }) as S)}
+        placeholder={st.occasion === 'memorial' || st.occasion === 'funeral'
+          ? 'Tell Pear about them — who they were, what they loved, how you want the day to feel…'
+          : q.q1Placeholder}
+        style={{ fontSize: 15, lineHeight: 1.6, resize: 'vertical' }}
+      />
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', minHeight: 20 }}>
+        {busy ? (
+          <PearThinking label="Pear is listening" />
+        ) : (
+          <span style={{ fontSize: 11.5, color: 'var(--ink-muted)', fontStyle: 'italic' }}>
+            {story.trim().length >= 20
+              ? 'Pear listens as you write — pause and she’ll pick out the gold.'
+              : 'Type it like a text to a friend. (Your keyboard’s mic works great here.)'}
+          </span>
+        )}
         {note && <span style={{ fontSize: 12, color: 'var(--ink-soft)', fontStyle: 'italic' }}>{note}</span>}
       </div>
 

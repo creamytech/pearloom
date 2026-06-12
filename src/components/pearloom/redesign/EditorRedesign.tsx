@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* =========================================================================
    PEARLOOM EDITOR — REDESIGN
    Literal port of handoff/pages/editor-redesign.jsx into production TSX.

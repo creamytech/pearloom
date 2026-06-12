@@ -27,20 +27,13 @@ import { GeneratingScreen } from '../wizard/GeneratingScreen';
 import { StoryListen } from '../wizard/StoryListen';
 import { AmbientSprig } from '../ambient';
 import { useBackgroundCook, readCookedDecor } from '../wizard/useBackgroundCook';
-import {
-  useBackgroundManifest,
-  buildManifestSignature,
-  readCookedManifest,
-  type ManifestCookContext,
-  type ManifestCookBody,
-} from '../wizard/useBackgroundManifest';
 import { BackgroundCookPill } from '../wizard/BackgroundCookPill';
 import { usePhotoPalette } from '../wizard/usePhotoPalette';
 import { useDialog } from '@/components/ui/confirm-dialog';
 import { scheduleEventSuggestions, dressCodeSuggestions, typicalTimeFor } from '@/components/pearloom/editor/panels/_suggestions';
 import { seedSectionsFromWizard, suggestRsvpDeadline } from '@/lib/wizard-seed';
 import { applyWizardLook } from '@/lib/site-look/wizard-look';
-import { lookRecipesFor } from '@/lib/site-look/look-recipes';
+import { lookRecipesFor, type LookRecipe } from '@/lib/site-look/look-recipes';
 import { WizardLooksSection } from './wizard-looks';
 import { WizardLookPreviews, type LookCandidate } from './WizardLookPreviews';
 import type { StoryManifest } from '@/types';
@@ -288,6 +281,11 @@ interface WizardState {
   dayEvents?: Array<{ name: string; time: string }>;
   dressCode?: string;
   rsvpDeadline?: string;
+  /** "Guests will ask" quick-collect — seeds Travel / Details /
+   *  FAQ at finish so the editor opens with real answers. */
+  hotels?: Array<{ name: string; address: string }>;
+  kidsPolicy?: string;
+  parkingNote?: string;
   // Occasion-specific details (consumed by /api/generate/stream as eventDetails)
   detailDays?: number;
   detailLivestreamUrl?: string;
@@ -1048,6 +1046,129 @@ function OccasionPicker({
   );
 }
 
+/* ─────────────────────────────────────────────────────────────
+   GuestsWillAsk — the Day step's quick-collect for the three
+   questions every guest asks: where do I stay, can I bring the
+   kids, where do I park. Each answer seeds the section guests
+   actually read (Travel hotel cards / Details cards / FAQ
+   answers) via seedSectionsFromWizard — thirty seconds here and
+   the editor opens with those sections already true.
+   Occasion-aware: hotels only show when the event type carries a
+   travel block; the kids question skips bachelor weekends.
+   ──────────────────────────────────────────────────────────── */
+const KIDS_OPTIONS = ['All ages welcome', 'Adults only', 'Immediate family\u2019s kids only'];
+
+function GuestsWillAsk({
+  st,
+  setSt,
+}: {
+  st: WizardState;
+  setSt: (updater: (s: WizardState) => WizardState) => void;
+}) {
+  const [hotelQuery, setHotelQuery] = useState('');
+  const e = getEventType(st.occasion as never);
+  const blocks = [...(e?.defaultBlocks ?? []), ...(e?.optionalBlocks ?? [])] as string[];
+  const wantsHotels = blocks.includes('travel');
+  const wantsKids = !st.occasion.startsWith('bachelor');
+  const hotels = st.hotels ?? [];
+
+  if (!wantsHotels && !wantsKids) return null;
+
+  return (
+    <div style={{ marginTop: 18 }}>
+      <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 4 }}>
+        Guests will ask
+      </div>
+      <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 12 }}>
+        Thirty seconds here fills the Travel, Details, and FAQ sections with real answers. All optional.
+      </div>
+      <div style={{ display: 'grid', gap: 14 }}>
+        {wantsHotels && (
+          <div>
+            <label className="field-label">Where should they stay?</label>
+            {hotels.length > 0 && (
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+                {hotels.map((h) => (
+                  <span
+                    key={h.name + h.address}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      padding: '6px 8px 6px 12px', borderRadius: 999, fontSize: 12.5, fontWeight: 600,
+                      background: 'var(--sage-tint, #E3E6C8)', color: 'var(--ink)',
+                    }}
+                  >
+                    {h.name}
+                    <button
+                      type="button"
+                      aria-label={`Remove ${h.name}`}
+                      onClick={() => setSt((s) => ({ ...s, hotels: (s.hotels ?? []).filter((x) => x !== h) }))}
+                      style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--ink-muted)', fontSize: 13, lineHeight: 1, padding: 0 }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            {hotels.length < 3 && (
+              <WizardLocationAutocomplete
+                value={hotelQuery}
+                onChange={setHotelQuery}
+                onSelect={(place) => {
+                  const name = place.name || place.address;
+                  if (!name) return;
+                  setSt((s) => {
+                    const cur = s.hotels ?? [];
+                    if (cur.some((h) => h.name === name)) return s;
+                    return { ...s, hotels: [...cur, { name, address: place.address ?? '' }] };
+                  });
+                  setHotelQuery('');
+                }}
+                placeholder={hotels.length === 0 ? 'Search a hotel near the venue…' : 'Add another…'}
+              />
+            )}
+          </div>
+        )}
+        {wantsKids && (
+          <div>
+            <label className="field-label">Kids?</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+              {KIDS_OPTIONS.map((k) => {
+                const on = st.kidsPolicy === k;
+                return (
+                  <button
+                    key={k}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => setSt((s) => ({ ...s, kidsPolicy: on ? undefined : k }))}
+                    style={{
+                      padding: '8px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
+                      border: on ? '1.5px solid var(--ink)' : '1.5px solid var(--line)',
+                      background: on ? 'var(--ink)' : 'var(--card)',
+                      color: on ? 'var(--cream)' : 'var(--ink-soft)', cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    {k}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        <div>
+          <label className="field-label">Parking, in one line (optional)</label>
+          <input
+            className="input"
+            value={st.parkingNote ?? ''}
+            onChange={(ev) => setSt((s) => ({ ...s, parkingNote: ev.target.value }))}
+            placeholder="Free lot behind the venue \u00b7 or \u00b7 street parking only \u2014 rideshare is easiest"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: StepKey[] }) {
   // Map the 8 steps into 4 phases. Hidden-step ranges (template
   // skips Vibe/Palette/Layout) collapse the Look phase down so
@@ -1357,6 +1478,11 @@ export function WizardV8() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const templateId = searchParams.get('template');
+  /* ?occasion=rehearsal-dinner — deep link from the dashboard's
+     "around your wedding" sibling-event card. Prefills the
+     occasion (validated against the registry); explicit picks in
+     the wizard always win. */
+  const occasionParam = searchParams.get('occasion');
   const dialog = useDialog();
   const [stepIndex, setStepIndex] = useState(0);
   // Persist wizard state across refreshes so users don't lose their
@@ -1364,6 +1490,13 @@ export function WizardV8() {
   // storage (too big); they'd need to be re-picked.
   const STORAGE_KEY = 'pl-wizard-state-v1';
   const [st, setSt] = useState<WizardState>(() => {
+    /* An explicit ?occasion= deep link means "start a NEW site of
+       this kind" (the sibling-event card) — it wins over any stale
+       in-flight draft, which would otherwise resume a different
+       celebration entirely. */
+    if (occasionParam && getEventType(occasionParam as never)) {
+      return { ...defaultState, occasion: occasionParam } as WizardState;
+    }
     if (typeof window !== 'undefined') {
       try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -1375,17 +1508,20 @@ export function WizardV8() {
         }
       } catch {}
     }
-    if (!templateId) return defaultState;
-    const tpl = TEMPLATES_BY_ID[templateId];
-    if (!tpl) return defaultState;
-    return {
-      ...defaultState,
-      occasion: tpl.occasion,
-      vibes: tpl.vibes.map((v) => v.toLowerCase()),
-      palette: tpl.palette,
-      layout: tpl.layout,
-      templateId,
-    } as WizardState;
+    if (templateId) {
+      const tpl = TEMPLATES_BY_ID[templateId];
+      if (tpl) {
+        return {
+          ...defaultState,
+          occasion: tpl.occasion,
+          vibes: tpl.vibes.map((v) => v.toLowerCase()),
+          palette: tpl.palette,
+          layout: tpl.layout,
+          templateId,
+        } as WizardState;
+      }
+    }
+    return defaultState;
   });
 
   // Debounced persistence — runs on every state change, but throttled
@@ -1432,7 +1568,7 @@ export function WizardV8() {
       })
       .catch(() => { /* prefill is a nicety */ });
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -1473,118 +1609,18 @@ export function WizardV8() {
       : null;
   const cookStatus = useBackgroundCook(cookSig);
 
-  // Speculative manifest pre-warm — kicks the full /api/generate
-  // /stream pipeline once the host has all the required inputs
-  // (photos + names + occasion + vibes + palette). The cooked
-  // manifest lands in sessionStorage; if the host doesn't change
-  // inputs before tapping Generate, we skip the foreground fetch
-  // entirely and land in the editor instantly.
-  const readyPhotosForCook = useMemo(
-    () => st.photos.filter((p) => p.url && !p.uploading),
-    [st.photos],
-  );
-  const manifestCookInput = useMemo<ManifestCookBody | null>(() => {
-    if (
-      readyPhotosForCook.length === 0 ||
-      !st.names[0] ||
-      !st.occasion ||
-      !st.vibes.length ||
-      !resolvedPaletteColors ||
-      resolvedPaletteColors.length === 0
-    ) {
-      return null;
-    }
-    const photosPayload = readyPhotosForCook.map((p) => ({
-      mediaId: p.id,
-      baseUrl: p.url,
-      filename: p.name ?? p.id,
-      mimeType: p.mimeType ?? 'image/jpeg',
-      width: p.width ?? 1200,
-      height: p.height ?? 1200,
-      creationTime: p.takenAt,
-      description: p.caption,
-    }));
-    const clusters = [
-      {
-        id: 'c-all',
-        photos: photosPayload,
-        timeRange: st.eventDate || new Date().toISOString(),
-        locationLabel: st.location || undefined,
-      },
-    ];
-    const vibeString = [...st.vibes, ...(st.heardVibes ?? [])].filter(Boolean).join(', ') || 'warm, celebratory';
-    const e = getEventType(st.occasion as never);
-    const category = e?.category;
-    const ctx: ManifestCookContext = {
-      photoIds: readyPhotosForCook.map((p) => p.id),
-      names: st.names,
-      occasion: st.occasion,
-      category,
-      vibes: st.vibes,
-      paletteColors: resolvedPaletteColors,
-      templateId: st.templateId,
-      layout: st.layout,
-      eventDate: st.eventDate,
-      eventVenue: st.location,
-    };
-    return {
-      ctx,
-      body: {
-        photos: photosPayload,
-        clusters,
-        vibeString,
-        vibeName: vibeString,
-        names: st.names,
-        occasion: st.occasion,
-        category,
-        eventDate: st.eventDate || undefined,
-        eventVenue: st.location || undefined,
-        hostRole: 'principal',
-        factSheet: {
-          howWeMet: st.howWeMet,
-          why: st.whyCelebrate,
-          favorite: st.favoriteMemory,
-          anchors: st.anchors,
-          story: st.storyText,
-        },
-        eventDetails: {
-          days: st.detailDays,
-          livestreamUrl: st.detailLivestreamUrl,
-          inMemoryOf: st.detailInMemoryOf,
-          school: st.detailSchool,
-        },
-        layoutFormat: st.layout,
-        templateId: st.templateId,
-        selectedPaletteColors: resolvedPaletteColors,
-        motifKind: st.suggestedMotif,
-        motifLayout: st.suggestedMotifLayout,
-      },
-    };
-  }, [
-    readyPhotosForCook,
-    st.names,
-    st.occasion,
-    st.vibes,
-    resolvedPaletteColors,
-    st.suggestedMotif,
-    st.suggestedMotifLayout,
-    st.templateId,
-    st.layout,
-    st.eventDate,
-    st.location,
-    st.howWeMet,
-    st.whyCelebrate,
-    st.favoriteMemory,
-    st.storyText,
-    st.anchors,
-    st.heardVibes,
-    st.detailDays,
-    st.detailLivestreamUrl,
-    st.detailInMemoryOf,
-    st.detailSchool,
-  ]);
-  const manifestStatus = useBackgroundManifest(manifestCookInput);
+  // The speculative manifest pre-warm (background /api/generate
+  // runs while the host finished the steps) was removed 2026-06-12
+  // along with the synchronous AI pipeline — photos are content
+  // now (cover + gallery), not story inputs, so there is nothing
+  // slow left to pre-warm. Story drafting lives in the editor,
+  // on demand, where Pear already works.
   const [genStep, setGenStep] = useState<string>('');
+  /* The look the host is HOVERING at the end of the wizard — while
+     it's set, the whole room wears that look's paper grain (the
+     underlay below). Falls back to the picked look so the dressing
+     persists through Review once they choose. */
+  const [lookPreview, setLookPreview] = useState<LookRecipe | null>(null);
   const [generatedTagline, setGeneratedTagline] = useState<string>('');
   const [taglineState, setTaglineState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
   const step = STEPS[stepIndex];
@@ -1835,236 +1871,101 @@ export function WizardV8() {
       // Uploads that failed (or timed out above) are dropped here.
       const readyPhotos = stRef.current.photos.filter((p) => p.url && !p.uploading);
       const hasPhotos = readyPhotos.length > 0;
-      const e = getEventType(st.occasion as never);
-      const category = e?.category;
 
       let manifest: Record<string, unknown>;
 
+      // ── One fast path for everyone (2026-06-12) ─────────────
+      // The synchronous AI pipeline (vision tagging → Opus story
+      // passes → grounding → critique → poetry → vibeSkin) made
+      // the photo path take minutes while the no-photos skeleton
+      // took a second. Photos are CONTENT now — cover + gallery,
+      // stamped from the R2 URLs that uploaded during the Photos
+      // step — not story inputs. Story drafting lives in the
+      // editor, on demand, where the host can see and steer it.
+      minPressMs = pressScript([
+        'Setting your names in type…',
+        'Mixing the palette…',
+        ...(hasPhotos ? ['Placing your photographs…'] : []),
+        'Cutting the component kit…',
+        'Laying out the sections…',
+        'Pressing the proof…',
+      ]) + 600;
+      const seedTagline = st.templateId ? TEMPLATES_BY_ID[st.templateId]?.tagline : generatedTagline || undefined;
+      manifest = {
+        occasion: st.occasion,
+        themeFamily: 'v8',
+        templateId: st.templateId,
+        vibeString: st.vibes.join(', '),
+        names: submitNames,
+        logistics: { date: st.eventDate || undefined, venue: st.location || undefined },
+        chapters: [],
+        layoutFormat: st.layout,
+        // The full fact sheet rides the manifest so Pear's editor
+        // drafting (story rewrite, FAQ answers, speeches) can use
+        // every word the host gave the wizard.
+        factSheet: {
+          howWeMet: st.howWeMet,
+          why: st.whyCelebrate,
+          favorite: st.favoriteMemory,
+          anchors: st.anchors,
+          story: st.storyText,
+        },
+        eventDetails: {
+          days: st.detailDays,
+          livestreamUrl: st.detailLivestreamUrl,
+          inMemoryOf: st.detailInMemoryOf,
+          school: st.detailSchool,
+        },
+        ...(seedTagline ? { poetry: { heroTagline: seedTagline } } : {}),
+      };
+
+      // Stamp the host's picked palette on the legacy theme.colors
+      // contract so surfaces that still read theme.colors (hero
+      // atmosphere accent, hydration fallback) see the pick too.
+      if (resolvedPaletteColors && resolvedPaletteColors.length >= 3) {
+        manifest.theme = {
+          colors: {
+            background: resolvedPaletteColors[0] ?? '#F5EFE2',
+            foreground: resolvedPaletteColors[3] ?? '#0E0D0B',
+            accent: resolvedPaletteColors[1] ?? '#5C6B3F',
+            accentLight: resolvedPaletteColors[2] ?? '#E0DDC9',
+            muted: resolvedPaletteColors[4] ?? '#6F6557',
+            cardBg: resolvedPaletteColors[0] ?? '#F5EFE2',
+          },
+        };
+      }
+
+      // Canonical look wiring — themeVars / texture / kit / density
+      // / motif / layout variants. Without this the editor opens on
+      // the default theme and every wizard pick evaporates.
+      manifest = applyWizardLook(manifest as unknown as StoryManifest, {
+        selectedPaletteColors: resolvedPaletteColors,
+        layoutFormat: st.layout,
+        occasion: st.occasion,
+        motifKind: st.suggestedMotif,
+        motifLayout: st.suggestedMotifLayout,
+      }) as unknown as Record<string, unknown>;
+
+      // Photos as content — the renderer reads manifest.coverPhoto
+      // for the hero and manifest.galleryImages (+ index-keyed
+      // galleryCaptions) for the gallery. URLs are already durable:
+      // /api/photos/upload mirrored them to R2 during the Photos
+      // step.
       if (hasPhotos) {
-        // Speculative manifest pre-warm — if the background hook
-        // already cooked a manifest for the same signature, skip
-        // the foreground fetch entirely. The 1-2 minute generation
-        // wait collapses to ~600ms because we just hand the cached
-        // result to the editor.
-        const liveSig = manifestCookInput ? buildManifestSignature(manifestCookInput.ctx) : null;
-        const cachedPrewarm = liveSig ? readCookedManifest(liveSig) : null;
-        if (cachedPrewarm) {
-          /* Pear cooked this in the background while the host
-             finished the steps — honest about the head start, but
-             still a beat of theatre instead of a 50ms flash. */
-          minPressMs = pressScript([
-            'Pear already prepared this one on the bench…',
-            'Unrolling the proof…',
-          ], 1400) + 500;
-          // Still fold in any cooked decor that may have arrived
-          // separately so the editor opens fully populated.
-          if (cookSig) {
-            foldCookedDecorInto(cachedPrewarm as unknown as Record<string, unknown>, readCookedDecor(cookSig));
-          }
-          manifest = cachedPrewarm as unknown as Record<string, unknown>;
-          // Skip the rest of the pipeline; jump to the publish path.
-        } else {
-        // Full AI pipeline — stream generate returns a populated
-        // manifest with chapters, story, logistics, poetry, etc.
-        const photosPayload = readyPhotos.map((p) => ({
-          mediaId: p.id,
-          baseUrl: p.url,
-          filename: p.name ?? p.id,
-          mimeType: p.mimeType ?? 'image/jpeg',
-          width: p.width ?? 1200,
-          height: p.height ?? 1200,
-          creationTime: p.takenAt,
-          description: p.caption,
-        }));
-        const clusters = [
-          {
-            id: 'c-all',
-            photos: photosPayload,
-            timeRange: st.eventDate || new Date().toISOString(),
-            locationLabel: st.location || undefined,
-          },
-        ];
-        const vibeString = [...st.vibes, ...(st.heardVibes ?? [])].filter(Boolean).join(', ') || 'warm, celebratory';
-        const body = {
-          photos: photosPayload,
-          clusters,
-          vibeString,
-          vibeName: vibeString,
-          names: submitNames,
-          occasion: st.occasion,
-          category,
-          eventDate: st.eventDate || undefined,
-          eventVenue: st.location || undefined,
-          hostRole: 'principal',
-          factSheet: {
-            howWeMet: st.howWeMet,
-            why: st.whyCelebrate,
-            favorite: st.favoriteMemory,
-          },
-          eventDetails: {
-            days: st.detailDays,
-            livestreamUrl: st.detailLivestreamUrl,
-            inMemoryOf: st.detailInMemoryOf,
-            school: st.detailSchool,
-          },
-          layoutFormat: st.layout,
-          templateId: st.templateId,
-          selectedPaletteColors: resolvedPaletteColors,
-          motifKind: st.suggestedMotif,
-          motifLayout: st.suggestedMotifLayout,
-          // Speculative decor library, baked while the wizard
-          // ran. The generate route can fold this into the new
-          // manifest so the editor opens with decor already
-          // populated — no on-demand generation needed. Server
-          // ignores the field if the shape doesn't match.
-          prebuiltDecor: cookSig ? readCookedDecor(cookSig) : null,
-        };
-        setGenStep('Pear is reading your photos…');
-        const res = await fetch('/api/generate/stream', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
+        manifest.coverPhoto = readyPhotos[0].url;
+        manifest.galleryImages = readyPhotos.map((p) => p.url);
+        const captions: Record<string, string> = {};
+        readyPhotos.forEach((p, i) => {
+          const c = p.caption?.trim();
+          if (c) captions[String(i)] = c;
         });
-        if (!res.ok) {
-          const data = await res.json().catch(() => null);
-          throw new Error(data?.error ?? `Generation failed (${res.status})`);
-        }
-        // Consume the SSE stream, looking for `type: 'complete'`.
-        const reader = res.body?.getReader();
-        if (!reader) throw new Error('Stream unavailable');
-        const decoder = new TextDecoder();
-        let buffer = '';
-        let finalManifest: Record<string, unknown> | null = null;
-        let streamError: string | null = null;
+        if (Object.keys(captions).length > 0) manifest.galleryCaptions = captions;
+      }
 
-        const processFrame = (part: string) => {
-          const line = part.split('\n').find((l) => l.startsWith('data: '));
-          if (!line) return;
-          let ev: Record<string, unknown> | null = null;
-          try {
-            ev = JSON.parse(line.slice(6));
-          } catch {
-            // Truly partial / malformed frame — drop it.
-            return;
-          }
-          if (!ev) return;
-          // NOTE: don't put an ev.type === 'error' throw inside a
-          // try/catch — the surrounding "ignore parse errors"
-          // guard used to swallow the real server error and
-          // bubble up a misleading "No manifest received".
-          if (ev.type === 'progress') {
-            const label = (ev.label ?? ev.message) as string | undefined;
-            if (label) setGenStep(label);
-          } else if (ev.type === 'pass' && typeof ev.message === 'string') {
-            setGenStep(ev.message);
-          } else if (ev.type === 'complete' && ev.manifest) {
-            finalManifest = ev.manifest as Record<string, unknown>;
-          } else if (ev.type === 'error') {
-            streamError = (ev.message as string) ?? 'Generation failed';
-          }
-        };
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const parts = buffer.split('\n\n');
-          buffer = parts.pop() ?? '';
-          for (const part of parts) processFrame(part);
-          if (streamError) break;
-        }
-        // Flush: the final frame may live in `buffer` if the server
-        // closed before writing the trailing blank line. Replay it
-        // through the same parser so `complete` isn't lost.
-        buffer += decoder.decode();
-        if (buffer.trim()) {
-          for (const part of buffer.split('\n\n')) processFrame(part);
-        }
-        if (streamError) throw new Error(streamError);
-        // Capture the closure-assigned value into a local so TS can
-        // narrow it — `finalManifest` is referenced by `processFrame`
-        // so the compiler keeps it as `Record<string, unknown> | null`
-        // even after a null guard.
-        const resolvedManifest = finalManifest as Record<string, unknown> | null;
-        if (!resolvedManifest) {
-          throw new Error(
-            'Pear finished without sending your manifest — try again in a minute, or contact support if this keeps happening.',
-          );
-        }
-        manifest = {
-          ...resolvedManifest,
-          themeFamily: (resolvedManifest as { themeFamily?: string }).themeFamily ?? 'v8',
-          templateId: st.templateId,
-        };
-        } // end "no cached pre-warm — full pipeline" branch
-      } else {
-        // Skeleton path — no photos → no AI pass. Seed what we can
-        // so the editor opens with enough for the user to write.
-        // The work below takes ~1s; the make-ready script gives the
-        // press its full run (GeneratingScreen's PRESS_STAGES tick
-        // along with these labels).
-        minPressMs = pressScript([
-          'Setting your names in type…',
-          'Mixing the palette…',
-          'Cutting the component kit…',
-          'Laying out the sections…',
-          'Pressing the proof…',
-        ]) + 600;
-        const seedTagline = st.templateId ? TEMPLATES_BY_ID[st.templateId]?.tagline : generatedTagline || undefined;
-        manifest = {
-          occasion: st.occasion,
-          themeFamily: 'v8',
-          templateId: st.templateId,
-          vibeString: st.vibes.join(', '),
-          names: submitNames,
-          logistics: { date: st.eventDate || undefined, venue: st.location || undefined },
-          chapters: [],
-          layoutFormat: st.layout,
-          factSheet: {
-            howWeMet: st.howWeMet,
-            why: st.whyCelebrate,
-            favorite: st.favoriteMemory,
-          },
-          ...(seedTagline ? { poetry: { heroTagline: seedTagline } } : {}),
-        };
-
-        // Stamp the host's picked palette on the legacy theme.colors
-        // contract — same mapping /api/generate/stream uses — so
-        // surfaces that still read theme.colors (hero atmosphere
-        // accent, hydration fallback) see the pick too.
-        if (resolvedPaletteColors && resolvedPaletteColors.length >= 3) {
-          manifest.theme = {
-            colors: {
-              background: resolvedPaletteColors[0] ?? '#F5EFE2',
-              foreground: resolvedPaletteColors[3] ?? '#0E0D0B',
-              accent: resolvedPaletteColors[1] ?? '#5C6B3F',
-              accentLight: resolvedPaletteColors[2] ?? '#E0DDC9',
-              muted: resolvedPaletteColors[4] ?? '#6F6557',
-              cardBg: resolvedPaletteColors[0] ?? '#F5EFE2',
-            },
-          };
-        }
-
-        // Canonical look wiring — themeVars / texture / kit /
-        // density / motif / layout variants, exactly like the AI
-        // path gets server-side. Without this the no-photos path
-        // saved a bare manifest and the editor opened on the
-        // default theme: every wizard pick (palette, pattern,
-        // component kit) silently evaporated and only the tagline
-        // survived.
-        manifest = applyWizardLook(manifest as unknown as StoryManifest, {
-          selectedPaletteColors: resolvedPaletteColors,
-          layoutFormat: st.layout,
-          occasion: st.occasion,
-          motifKind: st.suggestedMotif,
-          motifLayout: st.suggestedMotifLayout,
-        }) as unknown as Record<string, unknown>;
-
-        // Fold in any background-cooked decor (the cook only needs
-        // occasion + palette, so it runs even without photos).
-        if (cookSig) {
-          foldCookedDecorInto(manifest, readCookedDecor(cookSig));
-        }
+      // Fold in any background-cooked decor (the cook only needs
+      // occasion + palette, so it runs with or without photos).
+      if (cookSig) {
+        foldCookedDecorInto(manifest, readCookedDecor(cookSig));
       }
 
       // ── Section seeding — stamp "The Day" picks (always win) and
@@ -2076,6 +1977,9 @@ export function WizardV8() {
         events: st.dayEvents,
         dressCode: st.dressCode,
         rsvpDeadline: st.rsvpDeadline,
+        hotels: st.hotels,
+        kidsPolicy: st.kidsPolicy,
+        parkingNote: st.parkingNote,
       }) as unknown as Record<string, unknown>;
 
       // ── Explicit LOOK pick — overwrites the occasion defaults on
@@ -2148,8 +2052,35 @@ export function WizardV8() {
      colors bloom behind the canvas (700ms, honours the cream
      ground). The product wears your choice before the site does. */
   const dye = resolvedPaletteColors;
+  /* The look the room wears: the hovered card wins; once a look is
+     picked it stays on through Review. Only dressed on the steps
+     where the picker exists — earlier steps keep the plain cream. */
+  const pickedLook = st.lookRecipeId
+    ? lookRecipesFor(st.occasion).find((r) => r.id === st.lookRecipeId) ?? null
+    : null;
+  const roomLook = (step === 'Palette' || step === 'Review') ? (lookPreview ?? pickedLook) : null;
   return (
     <div className="pl8" style={{ minHeight: '100vh', background: 'var(--cream)', position: 'relative', overflow: 'hidden' }}>
+      {/* THE ROOM WEARS THE LOOK — hovering a look card at the end
+          dresses the entire wizard in that look's paper grain (the
+          same [data-pl-texture] ::before the published site uses).
+          The grain multiplies onto this layer's own theme-correct
+          cream (the texture system isolates its blend), so light
+          mode gains warm tooth and dark mode keeps its midnight.
+          Painted BENEATH the dye washes so the palette stays vivid
+          on top of the paper. */}
+      <div
+        aria-hidden
+        className="pl8-guest"
+        data-pl-texture={roomLook?.texture ?? 'paper'}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+          ['--pl-texture-intensity' as string]: String((roomLook?.textureIntensity ?? 1) * 1.2),
+          opacity: roomLook ? 0.55 : 0,
+          transition: 'opacity 600ms var(--pl-ease-out, ease-out)',
+          background: 'var(--cream, #F5EFE2)',
+        }}
+      />
       <div
         aria-hidden
         style={{
@@ -2812,6 +2743,8 @@ export function WizardV8() {
                       })}
                     </div>
 
+                    <GuestsWillAsk st={st} setSt={setSt} />
+
                     {suggestedDl && (
                       <div style={{ marginTop: 18, padding: '12px 14px', borderRadius: 12, background: 'var(--cream-2)', border: '1px solid var(--line-soft)', fontSize: 13, color: 'var(--ink-soft)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                         <span>
@@ -2839,8 +2772,8 @@ export function WizardV8() {
                     Give Pear <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>something to see.</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 22px' }}>
-                    Add 6–20 favourite photos. Pear looks at them — scenes, people, light — and writes each chapter
-                    from what&apos;s actually in the frame. Skip this step if you want a blank canvas.
+                    Add a few favourite photos — the first becomes your cover, the rest fill the gallery,
+                    and your palette can be pulled straight from them. Skip this if you&apos;d rather add them later.
                   </p>
                   <WizardPhotoUpload
                     photos={st.photos}
@@ -3395,6 +3328,7 @@ export function WizardV8() {
                         placeLabel={st.location || 'Your place'}
                         selectedId={st.lookRecipeId ?? null}
                         onSelect={(id) => setSt((prev) => ({ ...prev, lookRecipeId: id }))}
+                        onPreview={setLookPreview}
                       />
                     );
                   })()}
@@ -3621,7 +3555,7 @@ export function WizardV8() {
                       conscious choice instead of a surprise. */}
                   {(() => {
                     const rows: Array<[string, boolean]> = [
-                      ['Story & photos', st.photos.length > 0],
+                      ['Cover & gallery photos', st.photos.length > 0],
                       ['Schedule', (st.dayEvents?.length ?? 0) > 0],
                       ['Details · dress code', !!st.dressCode],
                       ['RSVP deadline', !!(st.rsvpDeadline || st.eventDate)],

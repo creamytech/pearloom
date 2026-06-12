@@ -550,17 +550,10 @@ export function stripArtForStorage(manifest: StoryManifest): StoryManifest {
   const loose = manifest as unknown as Record<string, unknown>;
   const out: Record<string, unknown> = { ...loose };
 
-  // 1. vibeSkin (heroArtDataUrl / ambientArtDataUrl / artStripDataUrl)
-  if (manifest.vibeSkin) {
-    out.vibeSkin = {
-      ...manifest.vibeSkin,
-      heroArtDataUrl: isBase64Url(manifest.vibeSkin.heroArtDataUrl) ? undefined : manifest.vibeSkin.heroArtDataUrl,
-      ambientArtDataUrl: isBase64Url(manifest.vibeSkin.ambientArtDataUrl) ? undefined : manifest.vibeSkin.ambientArtDataUrl,
-      artStripDataUrl: isBase64Url(manifest.vibeSkin.artStripDataUrl) ? undefined : manifest.vibeSkin.artStripDataUrl,
-    };
-  }
-
-  // 2. Chapter images — strip base64 from each image url + thumb.
+  // Chapter images — strip base64 from each image url + thumb.
+  // (The old step 1 — vibeSkin art stripping — was removed
+  // 2026-06-12 with the vibeSkin field itself; zero prod rows
+  // carried it.)
   if (Array.isArray(manifest.chapters)) {
     out.chapters = manifest.chapters.map((c) => {
       if (!Array.isArray(c.images)) return c;

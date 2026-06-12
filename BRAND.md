@@ -106,20 +106,19 @@ Always honour `prefers-reduced-motion`.
 
 ## 8 · The brand primitives
 
-These live under `src/components/brand/`. Use them. If a surface needs
+These live under `src/components/brand/` (and the shared chrome
+atoms under `src/components/shell/`). Use them. If a surface needs
 something close to them, extend them — don't fork.
 
-| Primitive         | Replaces                                       |
-|-------------------|------------------------------------------------|
-| `<Thread />`      | `<hr>`, divider lines, rule strokes            |
-| `<WeaveLoader />` | Every spinner / `Loader2` / `animate-spin`     |
-| `<Pull />`        | Hand-styled blockquotes                        |
-| `<Folio />`       | Page numbers, chapter marks, "Edition 01"       |
-| `<EmptyState />`  | "No data" / "Empty list" panels                |
-| `<GooeyText />`   | Rotating word UIs                              |
-| `<KineticHeading/>`| Scroll-linked display headings                |
-| `<AmbientNav />`  | Marketing + dashboard top chrome               |
-| `<PearloomMark />`| Logo glyph                                     |
+| Primitive         | Lives at        | Replaces                                   |
+|-------------------|-----------------|--------------------------------------------|
+| `<Thread />`      | brand/          | `<hr>`, divider lines, rule strokes        |
+| `<WeaveLoader />` | brand/          | Every spinner / `Loader2` / `animate-spin` |
+| `<Folio />`       | brand/          | Page numbers, chapter marks, "Edition 01"   |
+| `<GooeyText />`   | brand/          | Rotating word UIs                          |
+| `<PearloomMark />`| brand/          | Logo glyph                                 |
+| `<EmptyState />`  | shell/          | "No data" / "Empty list" panels            |
+| Pear glyph set    | pearloom/motifs | Mascot, sparkles, sprigs, pearl dots       |
 
 ## 9 · The layered chrome rule
 

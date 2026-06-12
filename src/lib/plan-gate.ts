@@ -269,21 +269,32 @@ export function isGriefExempt(occasion: string | null | undefined): boolean {
  * DB hiccup can't open a billing hole; the named-occasion overload
  * above is the fast path when the caller already knows the occasion.
  */
+interface SiteLookupClient {
+  from: (t: string) => {
+    select: (cols: string) => {
+      eq: (col: string, v: string) => {
+        maybeSingle: () => PromiseLike<{ data: unknown }>;
+      };
+    };
+  };
+}
+
 export async function isSiteGriefExempt(
-  db: { from: (t: string) => any } | null,
+  /** A Supabase client (typed loosely — structurally checking the
+   *  full SupabaseClient generic here trips TS2589 at call sites). */
+  db: unknown,
   siteId: string | null | undefined,
 ): Promise<boolean> {
   if (!db || !siteId) return false;
   try {
-    const { data } = await db
+    const { data } = await (db as SiteLookupClient)
       .from('sites')
       .select('manifest, site_config')
       .eq('id', siteId)
       .maybeSingle();
     if (!data) return false;
-    const m = data.manifest as { occasion?: string } | null;
-    const c = data.site_config as { occasion?: string } | null;
-    return isGriefExempt(m?.occasion ?? c?.occasion);
+    const row = data as { manifest?: { occasion?: string } | null; site_config?: { occasion?: string } | null };
+    return isGriefExempt(row.manifest?.occasion ?? row.site_config?.occasion);
   } catch {
     return false;
   }

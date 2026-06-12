@@ -63,22 +63,22 @@ export function usePhotoPalette(
   sourceUrl: string | undefined,
   enabled: boolean,
 ): ExtractedPalette | null {
-  const [palette, setPalette] = useState<ExtractedPalette | null>(null);
-  // One-slot cache keyed by source URL — revisiting the Palette step
-  // with the same photo never recomputes.
-  const cacheRef = useRef<{ url: string; palette: ExtractedPalette | null } | null>(null);
+  /* One-slot cache keyed by source URL. The cache entry lives in
+     STATE so the render-time "is this palette for the current
+     photo?" check reads state, not a ref; the effect mirrors it
+     into a ref so the cache-hit check doesn't need a state read
+     (which would be a sync setState-in-effect dance). */
+  const [entry, setEntry] = useState<{ url: string; palette: ExtractedPalette | null } | null>(null);
+  const entryRef = useRef(entry);
+  useEffect(() => { entryRef.current = entry; }, [entry]);
 
   useEffect(() => {
     if (!enabled || !sourceUrl) return;
-    if (cacheRef.current?.url === sourceUrl) {
-      setPalette(cacheRef.current.palette);
-      return;
-    }
+    if (entryRef.current?.url === sourceUrl) return; // cache hit — nothing to do
     let cancelled = false;
     void paletteFromImageUrl(sourceUrl).then((p) => {
       if (cancelled) return;
-      cacheRef.current = { url: sourceUrl, palette: p };
-      setPalette(p);
+      setEntry({ url: sourceUrl, palette: p });
     });
     return () => {
       cancelled = true;
@@ -86,6 +86,6 @@ export function usePhotoPalette(
   }, [sourceUrl, enabled]);
 
   // Never surface a palette computed for a different (or removed) photo.
-  if (!sourceUrl || cacheRef.current?.url !== sourceUrl) return null;
-  return palette;
+  if (!sourceUrl || entry?.url !== sourceUrl) return null;
+  return entry.palette;
 }

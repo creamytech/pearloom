@@ -1060,8 +1060,8 @@ export function DecorLibraryPanel({
                         fontFamily: 'inherit',
                       }}
                     >
-                      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>{l.label}</div>
-                      <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', lineHeight: 1.35 }}>{l.sub}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--pl-chrome-text)' }}>{l.label}</div>
+                      <div style={{ fontSize: 10.5, color: 'var(--pl-chrome-text-muted)', lineHeight: 1.35 }}>{l.sub}</div>
                     </button>
                   );
                 })}

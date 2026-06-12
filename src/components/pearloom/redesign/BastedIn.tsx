@@ -43,6 +43,10 @@ export function BastedIn({
   const derived = useMemo(() => deriveBastings(initial, siteSlug), [initial, siteSlug]);
   const [open, setOpen] = useState(true);
   const [items, setItems] = useState<Basting[]>(derived);
+  /* The story basting awaits a model call — track which stitch is
+     in flight so its button can read "Threading…" instead of
+     freezing silently. */
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   /* Gentle entrance after the editor settles. */
   const [entered, setEntered] = useState(false);
@@ -79,9 +83,25 @@ export function BastedIn({
 
   if (!visible) return null;
 
-  const set = (b: Basting) => {
+  const set = async (b: Basting) => {
     const before = manifest;
-    onApply(b.apply(manifest));
+    let next: StoryManifest | null;
+    if (b.applyAsync) {
+      setBusyId(b.id);
+      try {
+        next = await b.applyAsync(manifest);
+      } finally {
+        setBusyId(null);
+      }
+      if (!next) {
+        /* Draft came back empty (keyless deploy / model hiccup) —
+           leave the card up so the host can retry or pull it. */
+        return;
+      }
+    } else {
+      next = b.apply(manifest);
+    }
+    onApply(next);
     pearWorking('done', b.section);
     fireUndoable(`${b.label} — added`, () => onApply(before));
     pullThread(siteSlug, b.id); // set stitches don't re-offer
@@ -164,14 +184,16 @@ export function BastedIn({
             <div style={{ display: 'flex', gap: 6 }}>
               <button
                 type="button"
-                onClick={() => set(b)}
+                onClick={() => { void set(b); }}
+                disabled={busyId === b.id}
                 style={{
                   padding: '4px 12px', borderRadius: 999, border: 'none',
                   background: 'var(--sage-deep, #5C6B3F)', color: 'var(--cream, #F5EFE2)',
-                  fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                  fontSize: 11, fontWeight: 700, cursor: busyId === b.id ? 'wait' : 'pointer', fontFamily: 'inherit',
+                  opacity: busyId === b.id ? 0.7 : 1,
                 }}
               >
-                Add it
+                {busyId === b.id ? 'Threading…' : 'Add it'}
               </button>
               <button
                 type="button"

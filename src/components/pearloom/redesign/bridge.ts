@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
+ 
 /* Bridge: production manifest state → prototype-style locals.
    Keeps the shell pure prototype shape while autosave + undo + publish
    live behind a stable interface. */
@@ -81,7 +81,10 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
      pushes a snapshot; undo rewinds the cursor. Capped at 50 to keep
      memory in check. */
   const history = useRef<{ stack: StoryManifest[]; cursor: number }>({ stack: [initialManifest], cursor: 0 });
-  const [historyTick, setHistoryTick] = useState(0);
+  /* cursor + length mirrored into STATE so canUndo/canRedo derive
+     from state at render time (reading history.current during
+     render trips the React Compiler's ref rule and can go stale). */
+  const [historyMeta, setHistoryMeta] = useState({ cursor: 0, length: 1 });
   const pushHistory = useCallback((m: StoryManifest) => {
     const { stack, cursor } = history.current;
     /* Slice off forward history once the user edits after an undo. */
@@ -89,11 +92,10 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
     head.push(m);
     const next = head.length > 50 ? head.slice(head.length - 50) : head;
     history.current = { stack: next, cursor: next.length - 1 };
-    setHistoryTick((t) => t + 1);
+    setHistoryMeta({ cursor: next.length - 1, length: next.length });
   }, []);
-  const canUndo = history.current.cursor > 0;
-  const canRedo = history.current.cursor < history.current.stack.length - 1;
-  void historyTick;
+  const canUndo = historyMeta.cursor > 0;
+  const canRedo = historyMeta.cursor < historyMeta.length - 1;
 
   const occasion = normalizeOccasion((manifest as unknown as { occasion?: string }).occasion);
   const prettyPath = buildSitePath(siteSlug, '', occasion);
@@ -125,6 +127,7 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
   /* fireSave — the actual POST, factored out so the in-flight
      guard + retry timer can re-enter without re-arming the
      debounce. Returns nothing; updates saveState as it progresses. */
+  const fireSaveRef = useRef<(() => void) | null>(null);
   const fireSave = useCallback(() => {
     if (typeof window === 'undefined') return;
     if (saveInFlight.current) {
@@ -162,7 +165,9 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
           if (retryAttempt.current < 3) {
             retryAttempt.current += 1;
             const wait = [2000, 6000, 18000][retryAttempt.current - 1] ?? 18000;
-            setTimeout(fireSave, wait);
+            // Re-enter through the ref — fireSave can't reference
+            // itself before its useCallback declaration completes.
+            setTimeout(() => fireSaveRef.current?.(), wait);
             setSaveState('unsaved');
             return;
           }
@@ -177,7 +182,7 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
          flight; fire one more save with the newest payload. */
       if (pendingFollowup.current) {
         pendingFollowup.current = false;
-        fireSave();
+        fireSaveRef.current?.();
       }
     }).catch((err) => {
       saveInFlight.current = false;
@@ -185,13 +190,14 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
       if (retryAttempt.current < 3) {
         retryAttempt.current += 1;
         const wait = [2000, 6000, 18000][retryAttempt.current - 1] ?? 18000;
-        setTimeout(fireSave, wait);
+        setTimeout(() => fireSaveRef.current?.(), wait);
         setSaveState('unsaved');
         return;
       }
       setSaveState('error');
     });
   }, [siteSlug]);
+  useEffect(() => { fireSaveRef.current = fireSave; }, [fireSave]);
 
   const persist = useCallback(
     (m: StoryManifest, n: [string, string]) => {
@@ -252,7 +258,7 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
     const prev = history.current.stack[history.current.cursor];
     setManifestState(prev);
     persist(prev, names);
-    setHistoryTick((t) => t + 1);
+    setHistoryMeta({ cursor: history.current.cursor, length: history.current.stack.length });
   }, [persist, names]);
 
   const redo = useCallback(() => {
@@ -261,7 +267,7 @@ export function useEditorRedesignBridge({ initialManifest, initialNames, siteSlu
     const next = history.current.stack[history.current.cursor];
     setManifestState(next);
     persist(next, names);
-    setHistoryTick((t) => t + 1);
+    setHistoryMeta({ cursor: history.current.cursor, length: history.current.stack.length });
   }, [persist, names]);
 
   /* Keyboard shortcuts — Cmd/Ctrl+Z (+Shift = redo), Cmd+S

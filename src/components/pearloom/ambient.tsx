@@ -162,13 +162,18 @@ export function AmbientKeepsake({ color = 'var(--sage-deep, #5C6B3F)', accent = 
 
 export type AmbientContext = 'site' | 'guests' | 'day' | 'studio' | 'memory' | 'settings';
 
+/* Static map — components resolved by plain index lookup so render
+   sites stay legible to the React Compiler (a function call that
+   returns a component reads as component-creation-in-render). */
+export const AMBIENT_BY_CONTEXT = {
+  guests: AmbientGathering,
+  day: AmbientHour,
+  studio: AmbientEnvelope,
+  memory: AmbientKeepsake,
+  settings: AmbientThread,
+  site: AmbientSprig,
+} as const;
+
 export function ambientFor(context: AmbientContext) {
-  switch (context) {
-    case 'guests': return AmbientGathering;
-    case 'day': return AmbientHour;
-    case 'studio': return AmbientEnvelope;
-    case 'memory': return AmbientKeepsake;
-    case 'settings': return AmbientThread;
-    default: return AmbientSprig;
-  }
+  return AMBIENT_BY_CONTEXT[context] ?? AmbientSprig;
 }

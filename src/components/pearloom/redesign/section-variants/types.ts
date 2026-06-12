@@ -1,4 +1,4 @@
-/* eslint-disable no-restricted-syntax */
+ 
 /* Shared types for the per-section layout variant components in
    src/components/pearloom/redesign/section-variants/*.tsx.
 
