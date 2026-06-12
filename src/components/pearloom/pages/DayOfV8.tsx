@@ -597,7 +597,7 @@ function RequestsCard({ siteDomain, occasion }: { siteDomain?: string | null; oc
   );
 }
 
-type GuestRow = { status?: string; attending?: boolean | null };
+type GuestRow = { status?: string; attending?: boolean | null; mealPreference?: string | null };
 
 function useGuestRollup(siteId?: string | null) {
   const [rows, setRows] = useState<GuestRow[]>([]);
@@ -647,6 +647,19 @@ function AttendanceCard({ siteId, occasion, siteDomain }: { siteId?: string | nu
       { group: 'Pending', count: pending, total, tone: 'lavender' },
       { group: 'Declined', count: no, total, tone: 'cream' },
     ];
+  }, [rows]);
+
+  // Kitchen line — RSVP meal answers among attending guests, the
+  // count a caterer asks for on the morning of. Hidden when the
+  // event never asked a meal question.
+  const meals = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const g of rows) {
+      const coming = g.status === 'attending' || g.attending === true;
+      const meal = (g.mealPreference ?? '').trim();
+      if (coming && meal) m.set(meal, (m.get(meal) ?? 0) + 1);
+    }
+    return [...m.entries()].sort((a, b) => b[1] - a[1]);
   }, [rows]);
 
   return (
@@ -713,6 +726,25 @@ function AttendanceCard({ siteId, occasion, siteDomain }: { siteId?: string | nu
               </div>
             );
           })}
+          {meals.length > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: 8,
+                flexWrap: 'wrap',
+                paddingTop: 12,
+                borderTop: '1px solid var(--line-soft)',
+              }}
+            >
+              <span style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 9.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+                Kitchen
+              </span>
+              <span style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
+                {meals.map(([meal, n]) => `${meal} ${n}`).join(' · ')}
+              </span>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -152,8 +152,46 @@ function HotelCard({ h, style, idx, ctx }: { h: Hotel; style?: CSSProperties; id
 }
 
 /* ─── TravelMap ─── */
+
+/** Project venue + hotel coordinates onto the stylized map panel.
+ *  Real geometry, editorial rendering: equirectangular projection
+ *  (lng scaled by cos(lat) so distances read true), normalized to
+ *  the panel with a comfortable margin. Needs the venue pin OR
+ *  ≥2 hotel coords to be meaningful; otherwise returns null and
+ *  the decorative three-dot map renders as before. */
+function projectPins(C: TravelVariantCtxEditable['C']): {
+  venue?: { x: number; y: number; name: string };
+  hotels: Array<{ x: number; y: number; idx: number }>;
+} | null {
+  const pts: Array<{ lat: number; lng: number }> = [];
+  if (C.venuePin) pts.push(C.venuePin);
+  const hotelPts = C.hotels
+    .map((h, idx) => (typeof h.lat === 'number' && typeof h.lng === 'number' ? { lat: h.lat, lng: h.lng, idx } : null))
+    .filter((p): p is { lat: number; lng: number; idx: number } => p !== null);
+  pts.push(...hotelPts);
+  if (pts.length < 2) return null;
+
+  const meanLat = pts.reduce((s, p) => s + p.lat, 0) / pts.length;
+  const kx = Math.cos((meanLat * Math.PI) / 180);
+  const xs = pts.map((p) => p.lng * kx);
+  const ys = pts.map((p) => p.lat);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const spanX = Math.max(maxX - minX, 1e-6);
+  const spanY = Math.max(maxY - minY, 1e-6);
+  /* 14–86% keeps pins clear of the panel edges; north is up. */
+  const px = (lng: number) => 14 + (((lng * kx) - minX) / spanX) * 72;
+  const py = (lat: number) => 86 - ((lat - minY) / spanY) * 72;
+
+  return {
+    venue: C.venuePin ? { x: px(C.venuePin.lng), y: py(C.venuePin.lat), name: C.venuePin.name } : undefined,
+    hotels: hotelPts.map((p) => ({ x: px(p.lng), y: py(p.lat), idx: p.idx })),
+  };
+}
+
 export function TravelMap({ ctx }: { ctx: TravelVariantCtxEditable }) {
   const { C } = ctx;
+  const pins = projectPins(C);
   return (
     <>
       <VariantSectionHead {...headProps(ctx)} />
@@ -161,7 +199,7 @@ export function TravelMap({ ctx }: { ctx: TravelVariantCtxEditable }) {
         aria-hidden
         style={{
           position: 'relative',
-          height: 150,
+          height: pins ? 190 : 150,
           maxWidth: 820,
           margin: '0 auto 22px',
           background: 'linear-gradient(135deg, #e8e0d0 0%, #d4c8b0 100%)',
@@ -176,23 +214,107 @@ export function TravelMap({ ctx }: { ctx: TravelVariantCtxEditable }) {
               'repeating-linear-gradient(0deg, rgba(0,0,0,0.06) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(0,0,0,0.06) 0 1px, transparent 1px 22px)',
           }}
         />
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            style={{
-              position: 'absolute',
-              left: `${[18, 52, 74][i]}%`,
-              top: `${[32, 64, 28][i]}%`,
-              width: 16, height: 16, borderRadius: '50%',
-              background: 'var(--t-accent)',
-              transform: 'translate(-50%, -50%)',
-              border: '2px solid var(--t-paper)',
-            }}
-          />
-        ))}
+        {pins ? (
+          <>
+            {/* The venue — a gold-ringed home pin with its name. */}
+            {pins.venue && (
+              <span
+                style={{
+                  position: 'absolute',
+                  left: `${pins.venue.x}%`,
+                  top: `${pins.venue.y}%`,
+                  transform: 'translate(-50%, -50%)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  zIndex: 2,
+                }}
+              >
+                <span
+                  style={{
+                    width: 18, height: 18, borderRadius: '50%',
+                    background: 'var(--t-gold)',
+                    border: '2.5px solid var(--t-paper)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.22)',
+                    flexShrink: 0,
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: 10.5, fontWeight: 700, color: 'var(--t-ink)',
+                    background: 'var(--t-paper)',
+                    padding: '2px 8px', borderRadius: 999,
+                    border: '1px solid var(--t-line)',
+                    whiteSpace: 'nowrap', maxWidth: 150,
+                    overflow: 'hidden', textOverflow: 'ellipsis',
+                  }}
+                >
+                  {pins.venue.name}
+                </span>
+              </span>
+            )}
+            {/* Hotel pins — numbered to match the cards below. */}
+            {pins.hotels.map((p) => (
+              <span
+                key={p.idx}
+                style={{
+                  position: 'absolute',
+                  left: `${p.x}%`,
+                  top: `${p.y}%`,
+                  width: 20, height: 20, borderRadius: '50%',
+                  background: 'var(--t-accent)',
+                  border: '2px solid var(--t-paper)',
+                  transform: 'translate(-50%, -50%)',
+                  display: 'grid', placeItems: 'center',
+                  fontSize: 10, fontWeight: 700, color: 'var(--t-paper)',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.18)',
+                  zIndex: 1,
+                }}
+              >
+                {p.idx + 1}
+              </span>
+            ))}
+          </>
+        ) : (
+          [0, 1, 2].map((i) => (
+            <span
+              key={i}
+              style={{
+                position: 'absolute',
+                left: `${[18, 52, 74][i]}%`,
+                top: `${[32, 64, 28][i]}%`,
+                width: 16, height: 16, borderRadius: '50%',
+                background: 'var(--t-accent)',
+                transform: 'translate(-50%, -50%)',
+                border: '2px solid var(--t-paper)',
+              }}
+            />
+          ))
+        )}
       </div>
       <div style={{ maxWidth: 820, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-        {C.hotels.map((h, i) => <HotelCard key={i} h={h} idx={i} ctx={ctx} />)}
+        {C.hotels.map((h, i) => (
+          <div key={i} style={{ position: 'relative' }}>
+            {/* Number badge tying the card to its map pin. */}
+            {pins?.hotels.some((p) => p.idx === i) && (
+              <span
+                aria-hidden
+                style={{
+                  position: 'absolute', top: -8, left: -8, zIndex: 1,
+                  width: 22, height: 22, borderRadius: '50%',
+                  background: 'var(--t-accent)', color: 'var(--t-paper)',
+                  border: '2px solid var(--t-paper)',
+                  display: 'grid', placeItems: 'center',
+                  fontSize: 10.5, fontWeight: 700,
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.16)',
+                }}
+              >
+                {i + 1}
+              </span>
+            )}
+            <HotelCard h={h} idx={i} ctx={ctx} />
+          </div>
+        ))}
       </div>
     </>
   );

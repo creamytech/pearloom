@@ -96,6 +96,21 @@ export function SeatingArrangerPage() {
     return map;
   }, [guests, tables]);
 
+  // Kitchen count — RSVP meal answers rolled up across everyone
+  // who's coming. This is the number caterers actually ask for;
+  // hosts shouldn't have to re-derive it from the guest list.
+  const mealCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    let unstated = 0;
+    for (const g of guests) {
+      if (g.attending === 'no') continue;
+      const meal = (g.meal ?? '').trim();
+      if (meal) counts.set(meal, (counts.get(meal) ?? 0) + 1);
+      else unstated += 1;
+    }
+    return { entries: [...counts.entries()].sort((a, b) => b[1] - a[1]), unstated };
+  }, [guests]);
+
   function addTable() {
     const n = tables.length + 1;
     setTables([...tables, { id: `t-${Date.now().toString(36)}`, name: `Table ${n}`, capacity: 8 }]);
@@ -210,6 +225,47 @@ export function SeatingArrangerPage() {
           <span>{guests.length} guests · {tables.length} tables · {unseated.length} unseated</span>
         </div>
 
+        {/* Kitchen count — only when at least one meal answer
+            exists, so wedding-shaped events get it and events
+            without a meal question never see an empty strip. */}
+        {mealCounts.entries.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              flexWrap: 'wrap',
+              marginBottom: 18,
+              padding: '10px 14px',
+              background: 'var(--card)',
+              border: '1px solid var(--card-ring)',
+              borderRadius: 12,
+            }}
+          >
+            <span style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 9.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+              Kitchen count
+            </span>
+            {mealCounts.entries.map(([meal, n]) => (
+              <span
+                key={meal}
+                style={{
+                  fontSize: 12, fontWeight: 600, color: 'var(--ink)',
+                  background: 'var(--sage-tint, rgba(122,138,79,0.12))',
+                  border: '1px solid var(--line-soft)',
+                  borderRadius: 999, padding: '4px 11px',
+                }}
+              >
+                {meal} · {n}
+              </span>
+            ))}
+            {mealCounts.unstated > 0 && (
+              <span style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>
+                {mealCounts.unstated} not stated yet
+              </span>
+            )}
+          </div>
+        )}
+
         <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 22 }} className="pl8-seating-grid">
           {/* Unseated panel */}
           <div
@@ -251,6 +307,15 @@ export function SeatingArrangerPage() {
             {tables.map((t) => {
               const seated = byTable[t.id] ?? [];
               const full = seated.length >= t.capacity;
+              // Per-table kitchen line — "Chicken ×4 · Fish ×2".
+              const tableMeals = (() => {
+                const m = new Map<string, number>();
+                for (const g of seated) {
+                  const meal = (g.meal ?? '').trim();
+                  if (meal) m.set(meal, (m.get(meal) ?? 0) + 1);
+                }
+                return [...m.entries()].sort((a, b) => b[1] - a[1]);
+              })();
               return (
                 <div
                   key={t.id}
@@ -315,6 +380,11 @@ export function SeatingArrangerPage() {
                     />
                     <span>seats</span>
                   </div>
+                  {tableMeals.length > 0 && (
+                    <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', marginBottom: 8 }}>
+                      {tableMeals.map(([meal, n]) => `${meal} ×${n}`).join(' · ')}
+                    </div>
+                  )}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {seated.map((g) => (
                       <GuestChip key={g.id} guest={g} onDragStart={() => setDraggingId(g.id)} onDragEnd={() => setDraggingId(null)} />

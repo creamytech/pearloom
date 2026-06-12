@@ -4608,7 +4608,16 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
           : [],
         photoUrl: h.photoUrl || h.photoUrls?.[0],
         bookingUrl: h.bookingUrl,
+        lat: typeof h.lat === 'number' ? h.lat : undefined,
+        lng: typeof h.lng === 'number' ? h.lng : undefined,
       }));
+      /* Venue coordinates (wizard autocomplete stamps these on
+         logistics) anchor TravelMap's real-geometry pin layout. */
+      const venuePin = (() => {
+        const lg = manifest.logistics as { venue?: string; venueLat?: number; venueLng?: number } | undefined;
+        if (typeof lg?.venueLat !== 'number' || typeof lg?.venueLng !== 'number') return undefined;
+        return { name: lg.venue || 'The venue', lat: lg.venueLat, lng: lg.venueLng };
+      })();
       const t = coTitle('travelTitle', 'Where to', 'stay');
       return {
         eyebrow: co('travelEyebrow', 'Getting there'),
@@ -4624,6 +4633,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
           if (!s?.enabled) return undefined;
           return s.note?.trim() || 'Shuttle service from the host hotel to the venue. Details to follow.';
         })(),
+        venuePin,
         /* Fabricated hotels (with invented star ratings + review
            counts) must never reach guests — editor preview only. */
         hotels: mapped.length > 0 ? mapped : !demo ? [] : [
