@@ -242,7 +242,7 @@ export function WizardFittingRoom({
     >
       {/* THE SITE — full bleed, scrollable, real. */}
       <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
-        <ThemedSite manifest={manifest} names={names} />
+        <ThemedSite manifest={manifest} names={names} demoCopy />
         {/* Breathing room so the dock never hides the footer. */}
         <div style={{ height: 180 }} />
       </div>

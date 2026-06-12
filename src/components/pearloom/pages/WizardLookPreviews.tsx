@@ -283,7 +283,7 @@ function MiniSite({ manifest, names }: { manifest: StoryManifest; names: [string
             containerName: 'pl-site',
           }}
         >
-          <ThemedSite manifest={manifest} names={names} />
+          <ThemedSite manifest={manifest} names={names} demoCopy />
         </div>
       )}
     </div>

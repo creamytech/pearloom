@@ -96,6 +96,13 @@ interface Props {
   setActive?: (id: SectionId) => void;
   setHover?: (id: SectionId) => void;
   editable?: boolean;
+  /* Wizard previews (the pressings, the structure phone, the
+     fitting room) — host-facing surfaces that deserve the same
+     demo dressing the editor canvas gets, WITHOUT the edit
+     affordances. Turns on buildCopy's demo fallbacks only.
+     Published sites never pass this; the honesty rule (demo
+     content never reaches guests) is untouched. */
+  demoCopy?: boolean;
   manifest: StoryManifest;
   names: [string, string];
   /* Editor "mobile preview" pill renders the canvas inside a
@@ -155,6 +162,7 @@ export function ThemedSite({
   setActive = noop,
   setHover = noop,
   editable = false,
+  demoCopy = false,
   manifest,
   names,
   forceMobile = false,
@@ -360,7 +368,7 @@ export function ThemedSite({
 
   /* Section copy + content — pulls from manifest with prototype
      fallbacks. Keeps the renderer data-driven per handoff L141-153. */
-  const C = buildCopy(theme, manifest, { nameA, nameB, date, place: `${venue} · ${place}`, editable });
+  const C = buildCopy(theme, manifest, { nameA, nameB, date, place: `${venue} · ${place}`, editable, demoCopy });
   /* Per-section layout variants — manifest.layouts[section] overrides
      the per-section default. PropertyRail's Layout tab writes here. */
   const variants = {
@@ -4330,8 +4338,8 @@ const VOICE_COPY = {
    canvas previews a fully-dressed site, but published pages render
    only host-authored content. No fabricated hotels, dates, stores,
    or questions ever reach a guest. */
-function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string; nameB: string; date: string; place: string; editable?: boolean }): Copy {
-  const demo = args.editable === true;
+function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string; nameB: string; date: string; place: string; editable?: boolean; demoCopy?: boolean }): Copy {
+  const demo = args.editable === true || args.demoCopy === true;
   void theme;
   /* Loose-typed reads — the right-rail panels write to a wider
      manifest shape than StoryManifest officially declares (tagline,
