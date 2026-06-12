@@ -22,7 +22,7 @@
    choices, not a separate state machine.
    ───────────────────────────────────────────────────────────── */
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import type { StoryManifest } from '@/types';
 import { ThemedSite } from '../redesign/ThemedSite';
@@ -247,6 +247,11 @@ export function WizardFittingRoom({
 }) {
   const [rail, setRail] = useState<Rail>('palette');
   const siteScrollRef = useRef<HTMLDivElement | null>(null);
+  /* The full-site re-press is the heaviest render in the product;
+     marking it a transition keeps the tap responsive on phones —
+     the chip answers instantly, the press follows a beat later
+     (with a soft dim so the beat reads as work, not jank). */
+  const [isPending, startTransition] = useTransition();
 
   /* SHOW THE CHANGE — after a pick, scroll the preview to the
      section that change lands on and flash a ring around it, so
@@ -266,11 +271,15 @@ export function WizardFittingRoom({
     });
   }, []);
   const pickAndShow = useCallback((railId: Rail, next: Partial<FittingPicks>) => {
-    onChange(next);
+    startTransition(() => {
+      onChange(next);
+    });
     flashTarget(RAIL_TARGET[railId]);
   }, [onChange, flashTarget]);
 
   const activePalette = palettes.find((p) => p.id === activePaletteId) ?? palettes[0];
+  const galleryKey = (galleryImages ?? []).join('|');
+  const paletteKey = (activePalette?.colors ?? []).join('|');
   const manifest = useMemo(
     () => buildFittingManifest({
       occasion,
@@ -280,7 +289,13 @@ export function WizardFittingRoom({
       recipe,
       picks,
     }),
-    [occasion, activePalette, coverPhoto, galleryImages, recipe, picks],
+    /* Primitive deps — the parent recreates `picks` + the gallery
+       array every render, which made this rebuild (and the whole
+       site re-render) on every parent render. */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [occasion, paletteKey, coverPhoto, galleryKey, recipe,
+     picks.siteMode, picks.kitId, picks.texture, picks.navVariant,
+     picks.heroVariant, picks.motifLayout, picks.density],
   );
 
   /* Esc closes; lock body scroll while the room is open. */
@@ -326,7 +341,14 @@ export function WizardFittingRoom({
     >
       {/* THE SITE — fills the space above the dock, scrollable, real. */}
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
-        <div ref={siteScrollRef} style={{ position: 'absolute', inset: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <div
+          ref={siteScrollRef}
+          style={{
+            position: 'absolute', inset: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch',
+            opacity: isPending ? 0.55 : 1,
+            transition: 'opacity 160ms var(--pl-ease-out, ease)',
+          }}
+        >
           <ThemedSite manifest={manifest} names={names} demoCopy />
         </div>
 

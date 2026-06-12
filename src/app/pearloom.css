@@ -7215,3 +7215,40 @@ html { scroll-behavior: smooth; }
     0 1px 1px rgba(0, 0, 0, 0.45),
     0 -1px 1px rgba(241, 235, 220, 0.10);
 }
+
+/* ── iOS Safari guard — SVG reference filters on HTML ─────────
+   filter: url(#t-…) on the texture pseudo-layers is unreliable
+   in iOS WebKit: a failing reference blanks the LAYER entirely
+   (marble — whose every layer is filtered — vanished outright,
+   2026-06-12). -webkit-touch-callout only exists on iOS, so this
+   strips the displacement filters there; the gradient + noise
+   backgrounds still carry each material, just without the
+   displaced-stroke nicety desktop keeps. Newsprint's contrast()
+   halftone is a plain filter and stays untouched. */
+@supports (-webkit-touch-callout: none) {
+  .pl8-guest[data-pl-texture="paper"]::before,
+  .pl8-guest[data-pl-texture="paper"]::after,
+  .pl8-guest[data-pl-texture="linen"]::before,
+  .pl8-guest[data-pl-texture="linen"]::after,
+  .pl8-guest[data-pl-texture="cotton"]::before,
+  .pl8-guest[data-pl-texture="cotton"]::after,
+  .pl8-guest[data-pl-texture="kraft"]::before,
+  .pl8-guest[data-pl-texture="kraft"]::after,
+  .pl8-guest[data-pl-texture="canvas"]::before,
+  .pl8-guest[data-pl-texture="canvas"]::after,
+  .pl8-guest[data-pl-texture="velvet"]::before,
+  .pl8-guest[data-pl-texture="velvet"]::after,
+  .pl8-guest[data-pl-texture="marble"]::before,
+  .pl8-guest[data-pl-texture="marble"]::after,
+  .pl8-guest[data-pl-texture="watercolor"]::before,
+  .pl8-guest[data-pl-texture="watercolor"]::after {
+    filter: none !important;
+  }
+  /* Marble loses its wash displacement on iOS — strengthen the
+     vein gradients so the slab still reads as stone. */
+  .pl8-guest[data-pl-texture="marble"]::before {
+    background:
+      repeating-linear-gradient(58deg, transparent 0 26px, rgba(14,13,11,0.16) 26px 27.5px, transparent 27.5px 62px),
+      radial-gradient(42% 30% at 30% 24%, rgba(14,13,11,0.12), transparent 70%);
+  }
+}
