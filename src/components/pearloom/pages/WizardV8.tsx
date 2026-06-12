@@ -30,6 +30,7 @@ import { AmbientSprig } from '../ambient';
 import { useBackgroundCook, readCookedDecor } from '../wizard/useBackgroundCook';
 import { BackgroundCookPill } from '../wizard/BackgroundCookPill';
 import { usePhotoPalette } from '../wizard/usePhotoPalette';
+import { WizardMomentCard } from '../wizard/WizardMomentCard';
 import { useDialog } from '@/components/ui/confirm-dialog';
 import { scheduleEventSuggestions, dressCodeSuggestions, typicalTimeFor } from '@/components/pearloom/editor/panels/_suggestions';
 import { seedSectionsFromWizard, suggestRsvpDeadline } from '@/lib/wizard-seed';
@@ -284,8 +285,9 @@ interface WizardState {
   dressCode?: string;
   rsvpDeadline?: string;
   /** "Guests will ask" quick-collect — seeds Travel / Details /
-   *  FAQ at finish so the editor opens with real answers. */
-  hotels?: Array<{ name: string; address: string }>;
+   *  FAQ at finish so the editor opens with real answers. Lat/lng
+   *  ride along from the autocomplete → Travel map pins. */
+  hotels?: Array<{ name: string; address: string; lat?: number; lng?: number }>;
   kidsPolicy?: string;
   parkingNote?: string;
   /** Venue coordinates captured when the host picks a Places
@@ -1168,7 +1170,7 @@ function GuestsWillAsk({
                   setSt((s) => {
                     const cur = s.hotels ?? [];
                     if (cur.some((h) => h.name === name)) return s;
-                    return { ...s, hotels: [...cur, { name, address: place.address ?? '' }] };
+                    return { ...s, hotels: [...cur, { name, address: place.address ?? '', lat: place.lat, lng: place.lng }] };
                   });
                   setHotelQuery('');
                 }}
@@ -1556,7 +1558,7 @@ function PearsQuestions({
           onSelect={(place) => {
             const name = place.name || place.address;
             if (!name) return;
-            setSt((s) => ({ ...s, hotels: [...(s.hotels ?? []), { name, address: place.address ?? '' }] }));
+            setSt((s) => ({ ...s, hotels: [...(s.hotels ?? []), { name, address: place.address ?? '', lat: place.lat, lng: place.lng }] }));
             setHotelQuery('');
           }}
           kind="hotel"
@@ -1701,68 +1703,6 @@ function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: St
           );
         })}
       </div>
-    </div>
-  );
-}
-
-function ContextChips({ st }: { st: WizardState }) {
-  const occ = OCCASIONS.find((o) => o.id === st.occasion)?.label ?? 'Not set';
-  const namesVal = st.names.filter(Boolean).join(' & ') || 'Add names';
-  const dateVal = parseLocalDate(st.eventDate)?.toLocaleDateString() ?? 'Set date';
-  const locVal = st.location || 'Add location';
-  const chips = [
-    { icon: '♥', tone: 'peach' as const, label: 'Occasion', val: occ },
-    { icon: '✦', tone: 'lavender' as const, label: 'Names', val: namesVal },
-    { icon: <Icon name="calendar" size={13} />, tone: 'sage' as const, label: 'Date', val: dateVal },
-    { icon: <Icon name="pin" size={13} />, tone: 'peach' as const, label: 'Location', val: locVal },
-  ];
-  return (
-    <div
-      className="pl8-context-chips"
-      style={{
-        display: 'flex',
-        gap: 10,
-        padding: '10px 14px',
-        background: 'var(--card)',
-        borderRadius: 16,
-        border: '1px solid var(--card-ring)',
-        alignItems: 'center',
-      }}
-    >
-      {chips.map((c) => (
-        <div key={c.label} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              background: TONE_BG[c.tone],
-              display: 'grid',
-              placeItems: 'center',
-              fontSize: 13,
-              flexShrink: 0,
-            }}
-          >
-            {c.icon}
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <div
-              style={{
-                fontSize: 10.5,
-                color: 'var(--ink-muted)',
-                fontWeight: 600,
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-              }}
-            >
-              {c.label}
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {c.val}
-            </div>
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
@@ -2850,7 +2790,12 @@ export function WizardV8() {
 
           {stepIndex > 0 && (
             <div style={{ marginBottom: 16 }}>
-              <ContextChips st={st} />
+              <WizardMomentCard
+                occasion={st.occasion}
+                names={st.names}
+                eventDate={st.eventDate}
+                location={st.location}
+              />
             </div>
           )}
 

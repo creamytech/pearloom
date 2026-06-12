@@ -399,6 +399,17 @@ function LiveHandoff({ manifest, onClose }: { manifest: StoryManifest; onClose: 
             <Icon name="arrow-right" size={11} color="var(--ink-muted)" />
           </button>
         )}
+        {/* The handoff hosts actually need next: a live site with
+            nobody invited is a stage with no audience. Lands on
+            the Guests dashboard (import CSV / add by hand / copy
+            from a sibling event) with this site preselected. */}
+        {slug && (
+          <a href={`/dashboard/rsvp?site=${encodeURIComponent(slug)}`} style={ctaStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff}>
+            <Icon name="users" size={13} color="var(--ink-soft)" />
+            <span style={{ flex: 1 }}>Bring in your guest list</span>
+            <Icon name="arrow-right" size={11} color="var(--ink-muted)" />
+          </a>
+        )}
         {liveUrl && (
           <a href={liveUrl} target="_blank" rel="noreferrer" style={ctaStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff}>
             <Icon name="globe" size={13} color="var(--ink-soft)" />

@@ -160,19 +160,200 @@ function isStale(invitedAtIso: string | null | undefined, status: RsvpKey, now =
   return now - t > STALE_MS;
 }
 
-/** Nudge strip + Pear-drafted composer modal. */
+/** Copy the guest list from another of the host's sites — the
+ *  sibling-event handoff. The bachelorette host shouldn't re-type
+ *  the 15 people who already RSVP'd to the wedding. Sites sharing
+ *  the destination's celebration id sort first; person-stable
+ *  facts copy, per-event answers (status, meal) reset. */
+function CopyGuestsDialog({
+  destId,
+  destCelebrationId,
+  sites,
+  onClose,
+  onCopied,
+}: {
+  destId: string;
+  destCelebrationId: string | null;
+  sites: Array<{ id: string; domain: string; names: [string, string] | null; occasion?: string; manifest: unknown }>;
+  onClose: () => void;
+  onCopied: () => void;
+}) {
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [results, setResults] = useState<Record<string, string>>({});
+
+  const sources = useMemo(() => {
+    const celebOf = (m: unknown) =>
+      (m as { celebration?: { id?: string } } | null)?.celebration?.id ?? null;
+    return sites
+      .filter((s) => s.id !== destId)
+      .sort((a, b) => {
+        const aSib = destCelebrationId != null && celebOf(a.manifest) === destCelebrationId ? 0 : 1;
+        const bSib = destCelebrationId != null && celebOf(b.manifest) === destCelebrationId ? 0 : 1;
+        return aSib - bSib;
+      })
+      .map((s) => ({
+        ...s,
+        sibling: destCelebrationId != null && celebOf(s.manifest) === destCelebrationId,
+      }));
+  }, [sites, destId, destCelebrationId]);
+
+  async function copyFrom(fromSiteId: string) {
+    if (busyId) return;
+    setBusyId(fromSiteId);
+    try {
+      const r = await fetch('/api/guests/copy-from', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId: destId, fromSiteId }),
+      });
+      const data = (await r.json()) as { inserted?: number; skipped?: number; error?: string };
+      if (!r.ok) throw new Error(data.error ?? `Failed (${r.status})`);
+      const inserted = data.inserted ?? 0;
+      const skipped = data.skipped ?? 0;
+      setResults((m) => ({
+        ...m,
+        [fromSiteId]: inserted === 0
+          ? (skipped > 0 ? 'Everyone is already here.' : 'No guests on that site yet.')
+          : `✓ ${inserted} brought in${skipped > 0 ? ` · ${skipped} already here` : ''}`,
+      }));
+      if (inserted > 0) onCopied();
+    } catch (err) {
+      setResults((m) => ({ ...m, [fromSiteId]: err instanceof Error ? err.message : 'Copy failed.' }));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Copy guests from another event"
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(14,13,11,0.5)',
+        backdropFilter: 'blur(8px)',
+        zIndex: 360,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 20,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 'min(480px, 100%)',
+          background: 'var(--card, #FBF7EE)',
+          borderRadius: 18,
+          padding: 24,
+          boxShadow: '0 32px 60px rgba(14,13,11,0.4)',
+          display: 'flex', flexDirection: 'column', gap: 14,
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--peach-ink, #C6703D)' }}>
+            One guest list, many events
+          </div>
+          <h3
+            style={{
+              fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+              fontStyle: 'italic',
+              fontSize: 22,
+              margin: '4px 0 0',
+              color: 'var(--ink, #0E0D0B)',
+              lineHeight: 1.2,
+            }}
+          >
+            Copy guests from another event
+          </h3>
+          <p style={{ fontSize: 12.5, color: 'var(--ink-soft, #3A332C)', margin: '6px 0 0', lineHeight: 1.5 }}>
+            Names, emails, and addresses come over. Replies don&apos;t — everyone starts pending here, because this is a different invitation.
+          </p>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 320, overflowY: 'auto' }}>
+          {sources.map((s) => (
+            <div
+              key={s.id}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '10px 12px',
+                background: 'var(--paper, #FBF7EE)',
+                border: '1px solid var(--line, rgba(14,13,11,0.14))',
+                borderRadius: 10,
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink, #0E0D0B)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {(s.names ?? []).filter(Boolean).join(' & ') || s.domain}
+                  {s.sibling && (
+                    <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, color: 'var(--peach-ink, #C6703D)', letterSpacing: '0.06em' }}>
+                      SAME CELEBRATION
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--ink-muted, #6F6557)' }}>
+                  {results[s.id] ?? (s.occasion ? s.occasion.replace(/-/g, ' ') : s.domain)}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => copyFrom(s.id)}
+                disabled={busyId !== null || results[s.id]?.startsWith('✓')}
+                style={{
+                  padding: '6px 14px', borderRadius: 999, border: 'none',
+                  background: results[s.id]?.startsWith('✓') ? 'var(--cream-2, #F5EFE2)' : 'var(--ink, #0E0D0B)',
+                  color: results[s.id]?.startsWith('✓') ? 'var(--ink-muted, #6F6557)' : 'var(--cream, #FBF7EE)',
+                  fontSize: 12, fontWeight: 700,
+                  cursor: busyId ? 'wait' : 'pointer',
+                  fontFamily: 'inherit', flexShrink: 0,
+                }}
+              >
+                {busyId === s.id ? 'Copying…' : results[s.id]?.startsWith('✓') ? 'Done' : 'Copy'}
+              </button>
+            </div>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          style={{
+            padding: '10px 16px', borderRadius: 999,
+            background: 'transparent', color: 'var(--ink-soft, #3A332C)',
+            border: '1px solid var(--line, rgba(14,13,11,0.14))',
+            fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+          }}
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Nudge strip + Pear-drafted composer modal. Two voices: the
+ *  opened-but-quiet funnel line, and — when the host set an RSVP
+ *  deadline that's now inside two weeks — the deadline line,
+ *  which widens recipients to EVERY pending guest. */
 function NudgeStrip({
   count,
   recipients,
   siteId,
   onSeePending,
+  deadline,
 }: {
   count: number;
   recipients: Guest[];
   siteId: string;
   onSeePending: () => void;
+  /** Set when the manifest's RSVP deadline is near. */
+  deadline?: { label: string; daysLeft: number };
 }) {
   const [open, setOpen] = useState(false);
+  const deadlineWhen = deadline
+    ? deadline.daysLeft === 0 ? 'today'
+    : deadline.daysLeft === 1 ? 'tomorrow'
+    : `in ${deadline.daysLeft} days`
+    : null;
   return (
     <>
       <div
@@ -197,9 +378,19 @@ function NudgeStrip({
           }}
         />
         <span style={{ fontSize: 12.5, color: 'var(--ink, #0E0D0B)', flex: 1 }}>
-          <strong style={{ fontWeight: 700 }}>{count}</strong>
-          {' '}
-          {count === 1 ? 'guest opened' : 'guests opened'} the invite but haven&apos;t replied. Ready for a nudge.
+          {deadline ? (
+            <>
+              Your RSVP deadline ({deadline.label}) is <strong style={{ fontWeight: 700 }}>{deadlineWhen}</strong>
+              {' — '}
+              <strong style={{ fontWeight: 700 }}>{count}</strong> {count === 1 ? 'guest hasn’t' : 'guests haven’t'} replied.
+            </>
+          ) : (
+            <>
+              <strong style={{ fontWeight: 700 }}>{count}</strong>
+              {' '}
+              {count === 1 ? 'guest opened' : 'guests opened'} the invite but haven&apos;t replied. Ready for a nudge.
+            </>
+          )}
         </span>
         <button
           type="button"
@@ -645,6 +836,7 @@ export function DashGuests() {
   const [filter, setFilter] = useState<RsvpKey | 'all' | 'stale'>('all');
   const [q, setQ] = useState('');
   const [importOpen, setImportOpen] = useState(false);
+  const [copyOpen, setCopyOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -702,6 +894,25 @@ export function DashGuests() {
     const m = site?.manifest as { events?: ManifestEvent[] } | undefined | null;
     return Array.isArray(m?.events) ? m!.events : [];
   }, [site?.manifest]);
+
+  // RSVP-deadline awareness — the wizard/editor stamp
+  // logistics.rsvpDeadline; once it's inside two weeks the nudge
+  // strip switches to deadline voice and widens its recipients
+  // from "opened but quiet" to every pending guest with an email.
+  // Lazy-init timestamp: render-pure, fresh enough for day math.
+  const [nowTs] = useState(() => Date.now());
+  const rsvpDeadline = useMemo(() => {
+    const m = site?.manifest as { logistics?: { rsvpDeadline?: string } } | undefined | null;
+    const iso = m?.logistics?.rsvpDeadline;
+    const match = iso ? /^(\d{4})-(\d{2})-(\d{2})/.exec(iso) : null;
+    if (!match) return null;
+    const d = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    if (Number.isNaN(d.getTime())) return null;
+    return {
+      daysLeft: Math.round((d.getTime() - nowTs) / 86_400_000),
+      label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    };
+  }, [site?.manifest, nowTs]);
   const showPerEvent = events.length > 1;
   // For each event, count how many "yes" guests have it on their
   // selected list. Only attending guests count — declined guests
@@ -798,6 +1009,11 @@ export function DashGuests() {
           <Link href="/dashboard/guest-review" style={{ ...btnGhost, textDecoration: 'none' }}>
             Pear&rsquo;s review
           </Link>
+          {(sites?.length ?? 0) >= 2 && (
+            <button style={btnGhost} onClick={() => setCopyOpen(true)} disabled={!site?.id}>
+              Copy from another event
+            </button>
+          )}
           <button style={btnGhost} onClick={() => setImportOpen(true)}>Import CSV</button>
           <button style={btnInk} onClick={() => setAddOpen(true)} disabled={!site?.id}>
             ✦ Add a guest
@@ -941,14 +1157,34 @@ export function DashGuests() {
               pre-loaded and the recipient list set to those guests.
               "See pending" still filters the table for hosts who
               prefer to handle each one manually. */}
-          {counts.opened > 0 && rows && (
-            <NudgeStrip
-              count={counts.opened}
-              recipients={rows.filter((g) => g.opened)}
-              siteId={site?.id ?? site?.domain ?? ''}
-              onSeePending={() => setFilter('pending')}
-            />
-          )}
+          {rows && (() => {
+            const deadlineSoon = rsvpDeadline != null && rsvpDeadline.daysLeft >= 0 && rsvpDeadline.daysLeft <= 14;
+            if (deadlineSoon && counts.pending > 0) {
+              const pendingWithEmail = rows.filter((g) => g.rsvp === 'pending' && g.em);
+              if (pendingWithEmail.length > 0) {
+                return (
+                  <NudgeStrip
+                    count={pendingWithEmail.length}
+                    recipients={pendingWithEmail}
+                    deadline={rsvpDeadline}
+                    siteId={site?.id ?? site?.domain ?? ''}
+                    onSeePending={() => setFilter('pending')}
+                  />
+                );
+              }
+            }
+            if (counts.opened > 0) {
+              return (
+                <NudgeStrip
+                  count={counts.opened}
+                  recipients={rows.filter((g) => g.opened)}
+                  siteId={site?.id ?? site?.domain ?? ''}
+                  onSeePending={() => setFilter('pending')}
+                />
+              );
+            }
+            return null;
+          })()}
 
           {/* TABLE */}
           <Panel bg={PD.paper} padding={0} style={{ overflow: 'hidden' }}>
@@ -1480,6 +1716,23 @@ export function DashGuests() {
             setAddOpen(false);
             setRefreshKey((k) => k + 1);
           }}
+        />
+      )}
+      {copyOpen && site?.id && (
+        <CopyGuestsDialog
+          destId={site.id}
+          destCelebrationId={
+            (site.manifest as { celebration?: { id?: string } } | null)?.celebration?.id ?? null
+          }
+          sites={(sites ?? []).map((s) => ({
+            id: s.id,
+            domain: s.domain,
+            names: s.names ?? null,
+            occasion: s.occasion,
+            manifest: s.manifest,
+          }))}
+          onClose={() => setCopyOpen(false)}
+          onCopied={() => setRefreshKey((k) => k + 1)}
         />
       )}
     </DashLayout>

@@ -53,6 +53,11 @@ export interface Hotel {
   /** Click-through booking link. When set, variants wrap the
    *  card in <a href>. */
   bookingUrl?: string;
+  /** Real coordinates (Google Places / wizard autocomplete).
+   *  When ≥2 points carry coords, TravelMap plots them at their
+   *  true relative positions instead of the decorative pins. */
+  lat?: number;
+  lng?: number;
 }
 export interface TravelCopy {
   eyebrow: string; title: string; italic?: string;
@@ -61,6 +66,10 @@ export interface TravelCopy {
    *  list. Variants that don't display it ignore the field. */
   intro?: string;
   hotels: Hotel[];
+  /** The venue's pin (manifest.logistics.venueLat/venueLng) —
+   *  anchors the TravelMap projection so hotel pins read as
+   *  "near the venue", not floating in abstract space. */
+  venuePin?: { name: string; lat: number; lng: number };
 }
 
 export interface RegistryStore { name: string; url?: string }

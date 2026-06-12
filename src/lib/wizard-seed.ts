@@ -34,8 +34,9 @@ export interface DayPicks {
   rsvpDeadline?: string; // ISO date
   /** "Guests will ask" quick-collect — where to stay, kids,
    *  parking. Each seeds the section guests actually read
-   *  (Travel hotels / Details cards / FAQ answers). */
-  hotels?: Array<{ name: string; address: string }>;
+   *  (Travel hotels / Details cards / FAQ answers). Lat/lng ride
+   *  along from the autocomplete so the Travel map can pin them. */
+  hotels?: Array<{ name: string; address: string; lat?: number; lng?: number }>;
   kidsPolicy?: string;
   parkingNote?: string;
   /** "The extras" — component picks. Countdown joins the block
@@ -156,6 +157,9 @@ export function seedSectionsFromWizard(
       id: `h-seed-${i}`,
       name: h.name.trim(),
       address: h.address.trim(),
+      ...(typeof h.lat === 'number' && typeof h.lng === 'number'
+        ? { lat: h.lat, lng: h.lng }
+        : {}),
     }));
     loose.travelInfo = travelInfo;
   }

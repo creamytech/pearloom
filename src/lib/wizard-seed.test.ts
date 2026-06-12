@@ -28,6 +28,21 @@ describe('seedSectionsFromWizard — guests-will-ask picks', () => {
     expect(ti.hotels?.[0].address).toBe('1150 Queen St W');
   });
 
+  it('carries hotel lat/lng from the autocomplete onto the seeded card', () => {
+    const out = loose(
+      seedSectionsFromWizard(base(), {
+        hotels: [
+          { name: 'The Drake', address: '1150 Queen St W', lat: 43.6432, lng: -79.4248 },
+          { name: 'No Coords Inn', address: '2 Side St' },
+        ],
+      }),
+    );
+    const ti = out.travelInfo as { hotels?: Array<{ name: string; lat?: number; lng?: number }> };
+    expect(ti.hotels?.[0].lat).toBe(43.6432);
+    expect(ti.hotels?.[0].lng).toBe(-79.4248);
+    expect(ti.hotels?.[1].lat).toBeUndefined();
+  });
+
   it('never clobbers hotels that already exist', () => {
     const out = loose(
       seedSectionsFromWizard(

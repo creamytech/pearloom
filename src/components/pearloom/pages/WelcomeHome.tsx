@@ -115,9 +115,15 @@ export function WelcomeHome() {
     const id = setInterval(() => setNow(Date.now()), 60 * 60 * 1000);
     return () => clearInterval(id);
   }, []);
-  const daysUntil = eventDate
-    ? Math.max(0, Math.round((eventDate.getTime() - now) / 86_400_000))
+  /* rawDaysUntil goes negative after the event — the post-event
+     cards key off it. (The old `daysUntil < 0` checks could never
+     fire because of the Math.max clamp; the RememberingCard had
+     been dead code since it shipped.) `daysUntil` stays clamped
+     for the countdown/stage math that expects ≥ 0. */
+  const rawDaysUntil = eventDate
+    ? Math.round((eventDate.getTime() - now) / 86_400_000)
     : null;
+  const daysUntil = rawDaysUntil != null ? Math.max(0, rawDaysUntil) : null;
   const eventDateLabel = eventDate
     ? eventDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
     : null;
@@ -311,8 +317,20 @@ export function WelcomeHome() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <ResumeDraftCard />
-            {daysUntil != null && daysUntil < 0 && site?.domain && (
-              <RememberingCard domain={site.domain} occasion={occasion} daysSince={-daysUntil} />
+            {rawDaysUntil != null && rawDaysUntil < 0 && site?.domain && (
+              <RememberingCard domain={site.domain} occasion={occasion} daysSince={-rawDaysUntil} />
+            )}
+            {/* The anniversary window — roughly 320–430 days after a
+                couple-arc event, offer the anniversary edition: a new
+                sibling site woven into the same celebration, carrying
+                the rebroadcast + a year of photographs. */}
+            {rawDaysUntil != null
+              && rawDaysUntil <= -320
+              && rawDaysUntil >= -430
+              && (occasion === 'wedding' || occasion === 'vow-renewal' || occasion === 'anniversary')
+              && !(sites ?? []).some((s) => s.occasion === 'anniversary' && s.domain !== site?.domain)
+              && site?.domain && (
+              <AnniversaryCard daysSince={-rawDaysUntil} origin={site} />
             )}
             {/* One urgent task could shout four times (hero NEXT UP,
                 this card, a Pear todo, a milestone row). When the
@@ -1529,6 +1547,67 @@ function RememberingCard({ domain, occasion, daysSince }: { domain: string; occa
           </Link>
         )}
       </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// AnniversaryCard — one year, woven.
+//
+// The anniversary occasion + the rebroadcast existed, but nothing
+// ever NUDGED a host toward them — a feature with no entry point.
+// Around the first anniversary this card offers to begin the
+// anniversary edition as a sibling site (same celebration id via
+// the wizard's ?from= linkage), so both sites cross-reference.
+// ─────────────────────────────────────────────────────────────
+function AnniversaryCard({
+  daysSince,
+  origin,
+}: {
+  daysSince: number;
+  origin: { domain?: string; names?: [string, string] | null; manifest?: unknown };
+}) {
+  const daysToAnniversary = 365 - daysSince;
+  const when =
+    daysToAnniversary > 1 ? `${daysToAnniversary} days from now`
+    : daysToAnniversary === 1 ? 'tomorrow'
+    : daysToAnniversary === 0 ? 'today'
+    : `${-daysToAnniversary} days ago`;
+  const originCeleb = (origin.manifest as { celebration?: { id?: string; name?: string } } | undefined)?.celebration;
+  const celebName = originCeleb?.name
+    ?? (origin.names ?? []).filter(Boolean).join(' & ')
+    ?? '';
+  const linkParams = origin.domain
+    ? `&from=${encodeURIComponent(origin.domain)}`
+      + (originCeleb?.id ? `&cid=${encodeURIComponent(originCeleb.id)}` : '')
+      + (celebName ? `&cname=${encodeURIComponent(celebName)}` : '')
+    : '';
+  return (
+    <section
+      style={{
+        background: 'var(--card)',
+        border: '1px solid var(--gold-line, #D0B070)',
+        borderRadius: 'var(--r-md, 20px)',
+        padding: '18px 18px 14px',
+      }}
+    >
+      <SectionHeader icon="sparkles">One year, woven</SectionHeader>
+      <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5, margin: '-6px 0 12px' }}>
+        Your first anniversary is {when}. Pear can weave an anniversary edition —
+        the rebroadcast, a year of photographs, the story one chapter longer.
+      </p>
+      <Link
+        href={`/wizard/new?occasion=anniversary${linkParams}`}
+        style={{
+          display: 'flex', alignItems: 'baseline', gap: 8,
+          padding: '9px 12px', borderRadius: 12,
+          border: '1px solid var(--gold-line, #D0B070)', textDecoration: 'none',
+        }}
+      >
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>Begin the anniversary edition</span>
+        <span style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>woven into the same celebration</span>
+        <span aria-hidden style={{ marginLeft: 'auto', color: 'var(--gold, #C19A4B)', fontSize: 13 }}>→</span>
+      </Link>
     </section>
   );
 }
