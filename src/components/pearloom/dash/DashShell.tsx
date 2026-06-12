@@ -414,6 +414,7 @@ function UserMenu({ name, email, initial }: { name: string; email: string; initi
             left: 0,
             right: 0,
             background: 'var(--pl-glass)',
+        backgroundImage: 'var(--pl-glass-sheen)',
             backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
             WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
             border: '1px solid var(--pl-glass-border)',

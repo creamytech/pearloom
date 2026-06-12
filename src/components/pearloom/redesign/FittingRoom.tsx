@@ -139,6 +139,7 @@ export function FittingRoom({
           padding: '10px 14px',
           borderRadius: 999,
           background: 'var(--pl-glass)',
+        backgroundImage: 'var(--pl-glass-sheen)',
           backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
           WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
           border: '1px solid var(--pl-glass-border)',

@@ -212,6 +212,7 @@ function PaletteSwatch({ on, palette, onClick }: { on: boolean; palette: Palette
    mode frosts warm paper and dark mode frosts midnight. */
 const GLASS: CSSProperties = {
   background: 'var(--pl-glass)',
+        backgroundImage: 'var(--pl-glass-sheen)',
   backdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
   WebkitBackdropFilter: 'var(--pl-glass-blur, blur(18px) saturate(1.4))',
   border: '1px solid var(--pl-glass-border)',
@@ -403,7 +404,8 @@ export function WizardFittingRoom({
           style={{
             position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)',
             padding: '5px 13px', borderRadius: 999,
-            background: 'var(--pl-glass-light, rgba(251,247,238,0.68))',
+            background: 'var(--pl-glass-light)',
+              backgroundImage: 'var(--pl-glass-sheen)',
             backdropFilter: 'var(--pl-glass-blur, blur(14px) saturate(1.3))',
             WebkitBackdropFilter: 'var(--pl-glass-blur, blur(14px) saturate(1.3))',
             border: '1px solid var(--pl-glass-border)',
