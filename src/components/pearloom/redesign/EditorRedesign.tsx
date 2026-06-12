@@ -731,14 +731,14 @@ function EditorCanvas({
           onApply={(next) => onEditField(() => next)}
         />
         {/* GuestRsvpModal mount — same modal PublishedSiteShell
-            shows guests, mounted so the host can TEST the RSVP
-            flow from Preview / Mobile-preview. Deliberately NOT
-            mounted in Edit mode: the canvas CTAs there select the
-            RSVP section instead (a guest modal opening over the
-            editor blurred the whole shell and trapped the host). */}
-        {isPreview || mode === 'mobile' ? (
-          <EditorCanvasRsvpModal siteSlug={siteSlug} manifest={manifest} />
-        ) : null}
+            shows guests, so the host can TEST the real RSVP flow.
+            Mounted in ALL modes: in Edit, the canvas CTA selects
+            the RSVP section instead of firing pl-open-rsvp (see
+            ThemedSite's onCtaClick), so the only thing that opens
+            it there is the RSVP panel's explicit "Preview as a
+            guest" button — which was dead while this mount was
+            Preview-only. */}
+        <EditorCanvasRsvpModal siteSlug={siteSlug} manifest={manifest} />
       </div>
 
       {/* One Pear, one entry point — the pill only OPENS the

@@ -304,6 +304,7 @@ interface WizardState {
    *  decides (look-recipe / edition defaults ride). Stamped onto
    *  manifest.siteMode + manifest.layouts at finish. */
   siteMode?: 'scroll' | 'multi-page';
+  kitId?: string;
   navVariant?: string;
   heroVariant?: string;
   /** Plus-ones policy → rsvpConfig.plusOnes + the FAQ answer.
@@ -2326,10 +2327,12 @@ export function WizardV8() {
           : 'Wedding party',
       }) as unknown as Record<string, unknown>;
 
-      // ── Explicit STRUCTURE picks — siteMode + per-section layout
-      //    variants, exactly the fields the editor's Layout tab and
-      //    SiteModeSection write. Unset = Pear decides (recipe /
-      //    edition defaults ride at read time).
+      // ── Explicit STRUCTURE picks — siteMode + kit + per-section
+      //    layout variants, exactly the fields the editor's Layout
+      //    tab, Theme panel, and SiteModeSection write. Unset =
+      //    Pear decides (recipe / edition defaults ride). The kit
+      //    stamp lands AFTER the look-recipe stamp below would —
+      //    order here is before it, so re-stamp at the end too.
       if (st.siteMode) manifest.siteMode = st.siteMode;
       if (st.navVariant || st.heroVariant) {
         manifest.layouts = {
@@ -2353,6 +2356,9 @@ export function WizardV8() {
           manifest.density = recipe.density;
         }
       }
+      // An explicit kit pick from The Structure beats the recipe's
+      // kit — the host saw it live on the preview.
+      if (st.kitId) manifest.kitId = st.kitId;
 
       // `create: true` — the server guarantees a FREE slug. If the
       // derived one (typed, or names-fallback) is already taken — by
@@ -3718,7 +3724,16 @@ export function WizardV8() {
                         onPreview={setLookPreview}
                       />
                       <WizardStructureSection
-                        picks={{ siteMode: st.siteMode, navVariant: st.navVariant, heroVariant: st.heroVariant }}
+                        occasion={st.occasion}
+                        paletteColors={lookPalette}
+                        names={[
+                          lookNames[0] || (lookCouple ? 'Alex' : lookNameSpec.primaryPlaceholder),
+                          lookCouple ? (lookNames[1] || 'Jamie') : '',
+                        ]}
+                        coverPhoto={st.photos.find((ph) => ph.url)?.url}
+                        galleryImages={st.photos.filter((ph) => ph.url).map((ph) => ph.url)}
+                        recipe={lookRecipesFor(st.occasion).find((r) => r.id === (st.lookRecipeId ?? 'match')) ?? null}
+                        picks={{ siteMode: st.siteMode, kitId: st.kitId, navVariant: st.navVariant, heroVariant: st.heroVariant }}
                         onChange={(next) => setSt((prev) => ({ ...prev, ...next }))}
                       />
                       </>
@@ -3931,6 +3946,7 @@ export function WizardV8() {
                           ...(st.navVariant ? { nav: st.navVariant } : {}),
                           ...(st.heroVariant ? { hero: st.heroVariant } : {}),
                         }}
+                        kitId={st.kitId}
                         candidates={candidates}
                         selectedId={st.palette}
                         onPick={(c) => {

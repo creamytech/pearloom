@@ -57,10 +57,11 @@ interface PreviewOpts {
    *  texture / motifs / density). Stamped AFTER applyWizardLook so
    *  the pressing wears exactly what generation will press. */
   recipe?: LookRecipe | null;
-  /** Explicit structure picks (nav / hero variants) so the
+  /** Explicit structure picks (nav / hero variants + kit) so the
    *  pressing is ARRANGED the way the host chose, not just
    *  dressed. */
   layouts?: Record<string, string>;
+  kitId?: string;
 }
 
 function buildPreviewManifest(c: LookCandidate, opts: PreviewOpts): StoryManifest {
@@ -85,6 +86,7 @@ function buildPreviewManifest(c: LookCandidate, opts: PreviewOpts): StoryManifes
     out.motifLayout = opts.recipe.motifLayout;
     out.density = opts.recipe.density;
   }
+  if (opts.kitId) out.kitId = opts.kitId;
   if (opts.layouts && Object.keys(opts.layouts).length > 0) {
     out.layouts = { ...((out.layouts as Record<string, string> | undefined) ?? {}), ...opts.layouts };
   }
@@ -101,6 +103,7 @@ export function WizardLookPreviews({
   galleryImages,
   recipe,
   layouts,
+  kitId,
   candidates,
   selectedId,
   onPick,
@@ -114,6 +117,7 @@ export function WizardLookPreviews({
   galleryImages?: string[];
   recipe?: LookRecipe | null;
   layouts?: Record<string, string>;
+  kitId?: string;
   candidates: LookCandidate[];
   selectedId: string;
   onPick: (c: LookCandidate) => void;
@@ -127,8 +131,8 @@ export function WizardLookPreviews({
   }, []);
 
   const manifests = useMemo(
-    () => candidates.map((c) => buildPreviewManifest(c, { occasion, eventDate, venue, layoutFormat, coverPhoto, galleryImages, recipe, layouts })),
-    [candidates, occasion, eventDate, venue, layoutFormat, coverPhoto, galleryImages, recipe, layouts],
+    () => candidates.map((c) => buildPreviewManifest(c, { occasion, eventDate, venue, layoutFormat, coverPhoto, galleryImages, recipe, layouts, kitId })),
+    [candidates, occasion, eventDate, venue, layoutFormat, coverPhoto, galleryImages, recipe, layouts, kitId],
   );
 
   if (candidates.length === 0) return null;
