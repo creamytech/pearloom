@@ -122,12 +122,16 @@ describe('applyPackToManifest', () => {
     expect(next.theme.cardRadius).toBe('lg');
   });
 
-  it('does not stamp pack.id onto the manifest', () => {
+  it('stamps appliedPackId onto the manifest (the publish paywall reads it)', () => {
+    // Reversed 2026-06-13: try-before-you-buy needs the receipt.
+    // The editor applies any pack freely; /api/sites/publish gates
+    // on ownership of manifest.appliedPackId. Without the stamp the
+    // gate can't tell which pack a draft is wearing.
     const pack = PACKS[0]!;
     const next = applyPackToManifest(pack, baseManifest) as unknown as Record<
       string,
       unknown
     >;
-    expect(next.appliedPackId).toBeUndefined();
+    expect(next.appliedPackId).toBe(pack.id);
   });
 });
