@@ -842,6 +842,11 @@ export function DashGuests() {
   const [q, setQ] = useState('');
   const [importOpen, setImportOpen] = useState(false);
   const [copyOpen, setCopyOpen] = useState(false);
+  /* Bulk SMS invites (Twilio server-side). Arm-then-confirm in
+     the button itself; 503 from the route = Twilio not configured
+     yet, surfaced as a plain sentence. */
+  const [smsState, setSmsState] = useState<'idle' | 'armed' | 'sending'>('idle');
+  const [smsNote, setSmsNote] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -968,6 +973,31 @@ export function DashGuests() {
   }
 
   const siteName = siteDisplayName(site);
+  const phoneCount = (rows ?? []).filter((g) => g.phone).length;
+  const sendTextInvites = async () => {
+    if (!site?.id || smsState === 'sending') return;
+    setSmsState('sending');
+    setSmsNote(null);
+    try {
+      const r = await fetch('/api/guests/text-invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId: site.id }),
+      });
+      const data = await r.json().catch(() => ({})) as { sent?: number; failed?: number; error?: string; note?: string };
+      if (!r.ok) throw new Error(data.error ?? `Failed (${r.status})`);
+      setSmsNote(
+        (data.sent ?? 0) > 0
+          ? `✓ Texted ${data.sent} ${data.sent === 1 ? 'guest' : 'guests'}${data.failed ? ` · ${data.failed} failed` : ''}`
+          : (data.note ?? 'Everyone with a phone has already been texted.'),
+      );
+      setRefreshKey((k) => k + 1);
+    } catch (err) {
+      setSmsNote(err instanceof Error ? err.message : 'Texting failed.');
+    } finally {
+      setSmsState('idle');
+    }
+  };
   /* "Text invite" — opens the host's own Messages with the guest's
      personal link prewritten. No SMS provider needed; works the
      moment a guest has a phone number on file. */
@@ -1023,6 +1053,20 @@ export function DashGuests() {
           <Link href="/dashboard/guest-review" style={{ ...btnGhost, textDecoration: 'none' }}>
             Pear&rsquo;s review
           </Link>
+          {phoneCount > 0 && (
+            <button
+              style={btnGhost}
+              disabled={smsState === 'sending'}
+              onClick={() => {
+                if (smsState === 'armed') { setSmsState('idle'); void sendTextInvites(); }
+                else { setSmsState('armed'); setSmsNote(null); window.setTimeout(() => setSmsState((cur) => (cur === 'armed' ? 'idle' : cur)), 4000); }
+              }}
+            >
+              {smsState === 'sending' ? 'Texting…'
+                : smsState === 'armed' ? `Text ${phoneCount} ${phoneCount === 1 ? 'guest' : 'guests'}?`
+                : 'Text invites'}
+            </button>
+          )}
           {(sites?.length ?? 0) >= 2 && (
             <button style={btnGhost} onClick={() => setCopyOpen(true)} disabled={!site?.id}>
               Copy from another event
@@ -1171,6 +1215,20 @@ export function DashGuests() {
               pre-loaded and the recipient list set to those guests.
               "See pending" still filters the table for hosts who
               prefer to handle each one manually. */}
+          {smsNote && (
+            <div
+              style={{
+                padding: '9px 14px',
+                borderRadius: 12,
+                background: 'var(--sage-tint, rgba(122,138,79,0.12))',
+                border: '1px solid rgba(92,107,63,0.25)',
+                fontSize: 12.5,
+                color: 'var(--ink, #0E0D0B)',
+              }}
+            >
+              {smsNote}
+            </div>
+          )}
           {rows && (() => {
             const deadlineSoon = rsvpDeadline != null && rsvpDeadline.daysLeft >= 0 && rsvpDeadline.daysLeft <= 14;
             if (deadlineSoon && counts.pending > 0) {

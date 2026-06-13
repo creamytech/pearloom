@@ -100,10 +100,25 @@ export async function POST(req: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
     const acceptUrl = `${baseUrl}/co-host/${token}`;
 
-    /* Phone channel — the host texts the key themselves. No email
-       to send; return the link (it's theirs to deliver). */
+    /* Phone channel — Twilio sends the key when configured;
+       otherwise the host texts it from their own Messages (the
+       link is the credential either way; accept binds to whoever
+       signs in with it). */
     if (byPhone && !body.email) {
-      return NextResponse.json({ ok: true, acceptUrl, channel: 'sms' });
+      const { isSmsConfigured, sendSms } = await import('@/lib/sms');
+      if (isSmsConfigured()) {
+        const inviter = session.user.name?.split(/\s+/)[0] || 'Your co-host';
+        const res = await sendSms({
+          to: phoneDigits,
+          body: `${inviter} invited you to help shape ${coupleDisplay}'s site on Pearloom — here's your key (works for 14 days): ${acceptUrl}`,
+        });
+        if (res.ok) {
+          return NextResponse.json({ ok: true, acceptUrl, channel: 'sms', sent: true });
+        }
+        /* Twilio hiccup → fall back to the manual hand-off. */
+        console.warn('[co-host/invite] sms send failed, falling back to manual:', res.error);
+      }
+      return NextResponse.json({ ok: true, acceptUrl, channel: 'sms', sent: false });
     }
 
     const resendKey = process.env.RESEND_API_KEY;
