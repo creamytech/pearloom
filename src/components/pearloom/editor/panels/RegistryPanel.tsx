@@ -31,7 +31,7 @@ const MODE_LABELS: Record<RegistryMode, { section: string; intro: string; add: s
 
 const TONES: Array<'peach' | 'sage' | 'lavender'> = ['peach', 'sage', 'lavender'];
 
-interface StoreEntry { name: string; url?: string }
+interface StoreEntry { name: string; url?: string; note?: string }
 
 const DEFAULT_STORES: StoreEntry[] = [
   { name: 'Honeymoon fund' },
@@ -191,6 +191,11 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
                         type="url"
                         icon="link"
                         placeholder={isCustom ? 'https://your-registry.com' : 'Add your registry link'}
+                      />
+                      <FInput
+                        value={(s as { note?: string }).note ?? ''}
+                        onChange={(v) => patchStore(i, { note: v || undefined } as Partial<StoreEntry>)}
+                        placeholder="A note under it — 'for the honeymoon' (optional)"
                       />
                     </div>
                     <button

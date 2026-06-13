@@ -864,7 +864,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     rows={2}
-                    placeholder="Optional — say hello"
+                    placeholder={anyYes ? 'Optional — say hello' : 'We\u2019ll miss you — send your love along (optional)'}
                     style={{
                       ...inputStyle(),
                       padding: '11px 13px',

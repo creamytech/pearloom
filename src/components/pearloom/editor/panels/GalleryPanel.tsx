@@ -149,6 +149,14 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
           def={guestUploads}
           onChange={setGuestUploads}
         />
+        <FGroup label="Guest photos" hint="A 'Share your photos' link under the gallery — guests upload straight to your library.">
+          <FToggleStandalone
+            label="Invite guest photos"
+            sub="Links the upload page under the gallery"
+            def={((manifest as unknown as { galleryUploads?: boolean }).galleryUploads) !== false}
+            onChange={(v) => onChange({ ...(manifest as unknown as Record<string, unknown>), galleryUploads: v } as unknown as StoryManifest)}
+          />
+        </FGroup>
         <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Gallery" />
       </div>
     </SectionPanelShell>

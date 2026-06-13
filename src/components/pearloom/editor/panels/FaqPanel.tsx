@@ -8,7 +8,7 @@
 import { useRef, useState } from 'react';
 import type { FaqItem, StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { AddCard, FGroup, FInput, FSuggest, PearChip, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
+import { AddCard, FGroup, FInput, FSuggest, FToggleStandalone, PearChip, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { faqQuestionSuggestions, faqAnswerDraftFor, smartContext } from './_suggestions';
 import { PearAiChip, PearInlineRewrite, pearErrorMessage } from '../../redesign/PearAssist';
 import { AISource } from '../../ai-source';
@@ -259,6 +259,17 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
             </div>
           </FGroup>
         )}
+        <FGroup label="Guest questions" hint="A small 'Ask us anything' box under the FAQ. Questions land in your Submissions dashboard — guests never see each other's.">
+          <FToggleStandalone
+            label="Let guests ask a question"
+            sub="Off by default — flip it on when you're ready"
+            def={((manifest as unknown as { faqConfig?: { allowQuestions?: boolean } }).faqConfig?.allowQuestions) === true}
+            onChange={(v) => onChange({
+              ...(manifest as unknown as Record<string, unknown>),
+              faqConfig: { ...((manifest as unknown as { faqConfig?: Record<string, unknown> }).faqConfig ?? {}), allowQuestions: v },
+            } as unknown as StoryManifest)}
+          />
+        </FGroup>
         <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="FAQ" />
       </div>
     </SectionPanelShell>

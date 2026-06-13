@@ -37,7 +37,11 @@ export interface DetailsCopy {
   items: DetailsItem[];
 }
 
-export interface ScheduleRow { t: string; l: string; s: string; m?: string; day?: number }
+export interface ScheduleRow {
+  t: string; l: string; s: string; m?: string; day?: number;
+  /** Street address → the "Directions" link on the row. */
+  addr?: string;
+}
 export interface ScheduleCopy {
   eyebrow: string; title: string; italic?: string;
   rows: ScheduleRow[];
@@ -73,7 +77,11 @@ export interface TravelCopy {
   venuePin?: { name: string; lat: number; lng: number };
 }
 
-export interface RegistryStore { name: string; url?: string }
+export interface RegistryStore {
+  name: string; url?: string;
+  /** Host note under the store ("for the honeymoon fund"). */
+  note?: string;
+}
 export interface RegistryCopy {
   eyebrow: string; title: string; italic?: string;
   body: string; stores: RegistryStore[];
