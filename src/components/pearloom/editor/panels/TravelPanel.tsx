@@ -253,6 +253,11 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
     patchTravel({ hotels: next });
   }
 
+  /** Per-stay field writer — booking link, group code, guest note. */
+  function updateHotel(key: string, patch: Partial<HotelBlock>) {
+    patchTravel({ hotels: hotels.map((h, i) => (hotelKey(h, i) === key ? { ...h, ...patch } : h)) });
+  }
+
   const placeholder = venueAddress
     ? `Hotels near ${venueAddress.split(',')[0].trim()}…`
     : 'Search hotels & venues…';
@@ -425,6 +430,37 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
                         )}
                       </div>
                     )}
+                    {/* Stay details — the fields guests actually need
+                        (host request 2026-06-13): a real Book-now
+                        button, the room-block code, a note in the
+                        host's words. Open by default when the host
+                        already filled something in. */}
+                    <details
+                      open={Boolean(h.bookingUrl || h.groupRate)}
+                      style={{ borderTop: '1px solid var(--line-soft)' }}
+                    >
+                      <summary style={{ padding: '8px 10px', fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', cursor: 'pointer', userSelect: 'none', listStyle: 'none' }}>
+                        Booking & details {h.bookingUrl || h.groupRate ? '· set' : ''}
+                      </summary>
+                      <div style={{ padding: '0 10px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <FInput
+                          value={h.bookingUrl ?? ''}
+                          onChange={(v) => updateHotel(key, { bookingUrl: v || undefined })}
+                          placeholder="Booking link — adds a Book now button"
+                          type="url"
+                        />
+                        <FInput
+                          value={h.groupRate ?? ''}
+                          onChange={(v) => updateHotel(key, { groupRate: v || undefined })}
+                          placeholder="Group code — e.g. SCOTT2026 (tap-to-copy chip)"
+                        />
+                        <FInput
+                          value={h.description ?? ''}
+                          onChange={(v) => updateHotel(key, { description: v || undefined })}
+                          placeholder="A note for guests — '10 min walk, mention our block'"
+                        />
+                      </div>
+                    </details>
                   </div>
                 );
               })}

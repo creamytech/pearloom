@@ -13,7 +13,7 @@
      painted text in --t-ink on a section that bled through with
      no row surface, which read as gold-on-dark on certain themes. */
 
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
 import type { Hotel, TravelVariantCtx } from './types';
 import { VariantSectionHead } from './_section-head';
 import { InlineEdit } from '../InlineEdit';
@@ -60,13 +60,13 @@ function HotelPhoto({ h, style }: { h: Hotel; style?: CSSProperties }) {
   return <div style={{ background, ...style }} />;
 }
 
-/** Wrap a card in <a href> when bookingUrl is present, plain
- *  <div> otherwise. Keeps styling consistent across modes.
- *  `disableLink` (set in edit mode when the blurb is inline-
- *  editable) forces the <div> form — otherwise clicking into the
- *  contentEditable blurb would trigger the anchor's navigation
- *  (stopPropagation can't cancel an ancestor <a>'s default). */
-function HotelWrap({ h, children, style, disableLink }: { h: Hotel; children: React.ReactNode; style: CSSProperties; disableLink?: boolean }) {
+/** Card shell. Used to wrap the whole card in <a href> when a
+ *  bookingUrl existed — replaced by the explicit StayActions
+ *  "Book now" button (host request 2026-06-13): a silent
+ *  card-link was undiscoverable, and a visible button can't nest
+ *  inside another anchor. `disableLink` kept for call-site
+ *  compatibility; it no longer changes anything. */
+function HotelWrap({ children, style }: { h: Hotel; children: React.ReactNode; style: CSSProperties; disableLink?: boolean }) {
   const merged: CSSProperties = {
     ...style,
     textDecoration: 'none',
@@ -74,14 +74,63 @@ function HotelWrap({ h, children, style, disableLink }: { h: Hotel; children: Re
     transition: 'transform var(--pl-dur-fast) var(--pl-ease-emphasis), border-color var(--pl-dur-fast), box-shadow var(--pl-dur-fast)',
     display: 'block',
   };
-  if (h.bookingUrl && !disableLink) {
-    return (
-      <a href={h.bookingUrl} target="_blank" rel="noopener noreferrer" style={merged}>
-        {children}
-      </a>
-    );
-  }
   return <div style={merged}>{children}</div>;
+}
+
+/** Book now + group code — the actions a stay actually needs.
+ *  Group code is tap-to-copy (guests paste it into the hotel's
+ *  booking form). Renders nothing when the host set neither. */
+export function StayActions({ h, compact }: { h: Hotel; compact?: boolean }) {
+  const [copied, setCopied] = useState(false);
+  if (!h.bookingUrl && !h.groupRate) return null;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: compact ? 8 : 12 }}>
+      {h.bookingUrl && (
+        <a
+          href={h.bookingUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: compact ? '6px 13px' : '8px 16px',
+            borderRadius: 999,
+            background: 'var(--t-rsvp, var(--t-ink))',
+            color: 'var(--t-rsvp-ink, var(--t-paper))',
+            fontSize: compact ? 11.5 : 12.5, fontWeight: 700,
+            textDecoration: 'none',
+          }}
+        >
+          Book now →
+        </a>
+      )}
+      {h.groupRate && (
+        <button
+          type="button"
+          onClick={() => {
+            try {
+              void navigator.clipboard?.writeText(h.groupRate ?? '');
+              setCopied(true);
+              window.setTimeout(() => setCopied(false), 1600);
+            } catch { /* clipboard denied — the code is still readable */ }
+          }}
+          title="Tap to copy the group code"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            padding: compact ? '5px 11px' : '7px 13px',
+            borderRadius: 999,
+            border: '1.5px dashed var(--t-gold, #C19A4B)',
+            background: 'transparent',
+            color: 'var(--t-ink)',
+            fontSize: compact ? 11 : 11.5, fontWeight: 700,
+            letterSpacing: '0.04em',
+            cursor: 'pointer', fontFamily: 'inherit',
+          }}
+        >
+          {copied ? '✓ Copied' : <>Group code · {h.groupRate}</>}
+        </button>
+      )}
+    </div>
+  );
 }
 
 /* ─── shared hotel card (used by map + carousel) ─── */
@@ -147,6 +196,7 @@ function HotelCard({ h, style, idx, ctx }: { h: Hotel; style?: CSSProperties; id
           ))}
         </div>
       )}
+      <StayActions h={h} />
     </HotelWrap>
   );
 }
@@ -386,6 +436,7 @@ export function TravelTable({ ctx }: { ctx: TravelVariantCtxEditable }) {
                     {h.dist}
                   </div>
                 )}
+                <StayActions h={h} compact />
               </div>
               <div className="pl8-hotel-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, minWidth: 70 }}>
                 {h.rating > 0 && (

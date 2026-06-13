@@ -44,7 +44,7 @@ import { DetailsIconRow, DetailsAccordion, DetailsBento } from './section-varian
 import { ScheduleTimeline, ScheduleStepper, ScheduleNumbered } from './section-variants/schedule';
 import { GalleryMasonry, GallerySlideshow, GalleryPolaroid } from './section-variants/gallery';
 import { FaqTwocol, FaqNumbered, FaqCards } from './section-variants/faq';
-import { TravelMap, TravelTable, TravelCarousel } from './section-variants/travel';
+import { TravelMap, TravelTable, TravelCarousel, StayActions } from './section-variants/travel';
 import { RegistryChips, RegistryProgress, RegistryLogoWall } from './section-variants/registry';
 import { StoryZigzag } from './section-variants/story';
 import {
@@ -432,7 +432,10 @@ export function ThemedSite({
   const motifLayout: MotifLayout = !motifsOn || motif === 'none'
     ? 'none'
     : (((manifest as unknown as { motifLayout?: MotifLayout }).motifLayout) ?? motifLayoutForKit(kitId));
-  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, motifLayout, textureIntensity, showWashHero, dividerLook, variants, C, manifest, coverPhoto, edit };
+  const icsHref = siteSlug && manifest.logistics?.date
+    ? buildSitePath(siteSlug, '/event.ics', (manifest as unknown as { occasion?: string }).occasion)
+    : undefined;
+  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, motifLayout, textureIntensity, showWashHero, dividerLook, variants, C, manifest, coverPhoto, edit, icsHref };
   /* Edit-mode-only <style> for empty-value InlineEdit ghosts —
      mounted next to <TextureFilters />
         {glassPhotoAurora} in every layout branch. */
@@ -1230,7 +1233,7 @@ function renderKind(kind: SectionKind, ctx: SectionCtx): ReactNode {
     case 'hero':     return <HeroBlock ctx={ctx} />;
     case 'story':    return <StoryBlock ctx={ctx} />;
     case 'details':  return <DetailsBlock ctx={ctx} />;
-    case 'schedule': return <ScheduleBlock ctx={ctx} />;
+    case 'schedule': return <><ScheduleBlock ctx={ctx} /><CalendarChipStrip ctx={ctx} /></>;
     case 'travel':   return <TravelBlock ctx={ctx} />;
     case 'registry': return <RegistryBlock ctx={ctx} />;
     case 'gallery':  return <GalleryBlock ctx={ctx} />;
@@ -1972,6 +1975,31 @@ function DetailsBlock({ ctx }: { ctx: SectionCtx }) {
 
 /* ─── ScheduleBlock — handoff L511-565 cards default. ────────── */
 
+/* "Add to your calendar" — the .ics the site has served all along
+   (/sites/[domain]/event.ics) finally gets a link where guests
+   look for times. Rides the schedule section on every variant;
+   same paper so it reads as the section's footer line. */
+function CalendarChipStrip({ ctx }: { ctx: SectionCtx }) {
+  if (!ctx.icsHref) return null;
+  return (
+    <div style={{ background: 'var(--t-paper)', padding: '0 24px 40px', textAlign: 'center' }}>
+      <a
+        href={ctx.icsHref}
+        download
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          padding: '9px 18px', borderRadius: 999,
+          border: '1px solid var(--t-line)',
+          color: 'var(--t-ink-soft)',
+          fontSize: 12.5, fontWeight: 600, textDecoration: 'none',
+        }}
+      >
+        <Icon name="calendar" size={13} color="var(--t-accent)" /> Add to your calendar
+      </a>
+    </div>
+  );
+}
+
 function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
   const { pad, C, editable, variants } = ctx;
   const sub = {
@@ -2211,6 +2239,7 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
                     </span>
                   ))}
                 </div>
+                <StayActions h={h} />
               </div>
             </div>
           ))}
@@ -3989,6 +4018,10 @@ const SECTION_LABEL: Record<SectionKind, string> = {
 };
 
 interface SectionCtx {
+  /** Published-only "Add to your calendar" link (the .ics route
+   *  the site already serves). Undefined in the editor canvas
+   *  (no siteSlug) and when no event date is set. */
+  icsHref?: string;
   theme: Theme;
   pad: number;
   editable: boolean;
@@ -4645,6 +4678,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
           : [],
         photoUrl: h.photoUrl || h.photoUrls?.[0],
         bookingUrl: h.bookingUrl,
+        groupRate: (h.groupRate ?? '').trim() || undefined,
         lat: typeof h.lat === 'number' ? h.lat : undefined,
         lng: typeof h.lng === 'number' ? h.lng : undefined,
       }));
