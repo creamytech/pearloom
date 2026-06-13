@@ -5,7 +5,13 @@
 
 export const dynamic = 'force-dynamic';
 
+import type { Metadata } from 'next';
 import { CapsuleReveal } from './CapsuleReveal';
+
+export const metadata: Metadata = {
+  title: 'Time Capsule | Pearloom',
+  description: 'Unlock your love letter time capsule.',
+};
 import { parseLocalDate } from '@/lib/date';
 
 interface CapsuleData {
@@ -81,7 +87,7 @@ export default async function TimeCapsulePage({
     return (
       <div style={sealedStyles.page}>
         <div style={sealedStyles.card}>
-          <div style={sealedStyles.lockIcon}>🔒</div>
+          <div style={sealedStyles.lockIcon}><svg viewBox="0 0 24 24" width={34} height={34} aria-hidden style={{ display: 'block', margin: '0 auto' }}><g fill="none" stroke="#5C6B3F" strokeWidth="1.6" strokeLinecap="round"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11 V 8 a4 4 0 0 1 8 0 v 3" /><circle cx="12" cy="15.5" r="1.4" /></g></svg></div>
           <h1 style={sealedStyles.heading}>This Letter Is Still Sealed</h1>
           <p style={sealedStyles.body}>
             This love letter will open on{' '}
@@ -149,7 +155,7 @@ const sealedStyles: Record<string, React.CSSProperties> = {
   card: {
     background: 'rgba(214,198,168,0.06)',
     border: '1px solid rgba(214,198,168,0.18)',
-    borderRadius: '16px',
+    borderRadius: 'var(--pl-radius-xl)',
     padding: '48px 40px',
     maxWidth: '440px',
     width: '100%',
@@ -163,7 +169,7 @@ const sealedStyles: Record<string, React.CSSProperties> = {
     margin: '0 0 16px 0',
     fontSize: '22px',
     fontWeight: 600,
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
     lineHeight: 1.3,
   },
   body: {
@@ -178,15 +184,15 @@ const sealedStyles: Record<string, React.CSSProperties> = {
     margin: '0 0 28px 0',
   },
   highlight: {
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
     fontWeight: 600,
   },
   calBtn: {
     display: 'inline-block',
     background: 'rgba(214,198,168,0.1)',
     border: '1px solid rgba(214,198,168,0.25)',
-    borderRadius: '8px',
-    color: '#D6C6A8',
+    borderRadius: 'var(--pl-radius-md)',
+    color: 'var(--pl-muted)',
     textDecoration: 'none',
     fontSize: '14px',
     fontWeight: 500,

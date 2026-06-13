@@ -9,7 +9,7 @@ describe('sanitizeSvg', () => {
   });
 
   it('preserves safe SVG markup', () => {
-    const safe = '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#A3B18A"/></svg>';
+    const safe = '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#5C6B3F"/></svg>';
     expect(sanitizeSvg(safe)).toBe(safe);
   });
 

@@ -2,7 +2,6 @@
 
 import { use, useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { SiteNav } from '@/components/site-nav';
 import { ThemeProvider } from '@/components/theme-provider';
 import {
   CheckCircle2,
@@ -12,9 +11,16 @@ import {
   Download,
   ArrowLeft,
   Music,
+  X,
+  Mail,
+  Calendar,
 } from 'lucide-react';
 import { LoomThreadIcon } from '@/components/icons/PearloomIcons';
 import Link from 'next/link';
+import { formatSiteDisplayUrl } from '@/lib/site-urls';
+import { BlurFade } from '@/components/brand/groove';
+import { DashLayout } from '@/components/pearloom/dash/DashShell';
+import { PLAtmosphere } from '@/components/pearloom/dash/PLChrome';
 
 // Force dynamic since we pull live RSVP data
 export const dynamic = 'force-dynamic';
@@ -34,6 +40,8 @@ interface Guest {
   message: string | null;
   responded_at: string | null;
   created_at: string | null;
+  rsvp_preset: string | null;
+  rsvp_answers: Record<string, string> | null;
 }
 
 type SortKey = 'name' | 'status' | 'responded_at';
@@ -55,10 +63,11 @@ function StatCard({
   return (
     <div
       style={{
-        background: '#ffffff',
-        borderRadius: '1rem',
+        background: 'var(--card, var(--cream-2))',
+        border: '1px solid var(--line-soft)',
+        borderRadius: 16,
         padding: '1.5rem',
-        boxShadow: '0 2px 8px rgba(43,43,43,0.07)',
+        boxShadow: 'var(--pl-shadow-sm, 0 1px 3px rgba(40,28,12,0.06))',
         display: 'flex',
         alignItems: 'center',
         gap: '1rem',
@@ -69,12 +78,12 @@ function StatCard({
         <p
           style={{
             fontSize: '0.72rem',
-            fontWeight: 600,
-            letterSpacing: '0.06em',
+            fontWeight: 700,
+            letterSpacing: '0.18em',
             textTransform: 'uppercase',
-            color: 'var(--eg-muted)',
-            fontFamily: 'var(--eg-font-body)',
-            marginBottom: '0.25rem',
+            color: 'var(--peach-ink, #C6703D)',
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            marginBottom: '0.35rem',
           }}
         >
           {label}
@@ -82,10 +91,11 @@ function StatCard({
         <p
           style={{
             fontSize: '2rem',
-            fontWeight: 700,
-            fontFamily: 'var(--eg-font-heading)',
+            fontWeight: 600,
+            fontFamily: 'var(--font-display, var(--pl-font-heading))',
             color: valueColor,
             lineHeight: 1,
+            letterSpacing: '-0.01em',
           }}
         >
           {value}
@@ -131,13 +141,13 @@ function StatusBadge({ status }: { status: Guest['status'] }) {
         alignItems: 'center',
         gap: '0.3rem',
         padding: '0.25rem 0.65rem',
-        borderRadius: '999px',
+        borderRadius: 'var(--pl-radius-full)',
         background: s.bg,
         color: s.color,
         fontSize: '0.72rem',
         fontWeight: 600,
         letterSpacing: '0.03em',
-        fontFamily: 'var(--eg-font-body)',
+        fontFamily: 'var(--pl-font-body)',
       }}
     >
       {s.icon}
@@ -195,6 +205,7 @@ function exportCsv(guests: Guest[], domain: string) {
 function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
   const [sortKey, setSortKey] = useState<SortKey>('responded_at');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
 
   const handleSort = useCallback(
     (key: SortKey) => {
@@ -230,11 +241,11 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
     fontWeight: 700,
     textTransform: 'uppercase',
     letterSpacing: '0.06em',
-    color: sortKey === key ? 'var(--eg-accent)' : 'var(--eg-muted)',
+    color: sortKey === key ? 'var(--sage-deep)' : 'var(--ink-muted)',
     cursor: 'pointer',
     userSelect: 'none',
     whiteSpace: 'nowrap',
-    fontFamily: 'var(--eg-font-body)',
+    fontFamily: 'var(--pl-font-body)',
     background: 'transparent',
     border: 'none',
     textAlign: 'left',
@@ -248,8 +259,8 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
     fontWeight: 700,
     textTransform: 'uppercase',
     letterSpacing: '0.06em',
-    color: 'var(--eg-muted)',
-    fontFamily: 'var(--eg-font-body)',
+    color: 'var(--ink-muted)',
+    fontFamily: 'var(--pl-font-body)',
   };
 
   const arrow = (key: SortKey) =>
@@ -259,10 +270,11 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
     <>
       <div
         style={{
-          background: '#ffffff',
-          borderRadius: '1rem',
+          background: 'var(--card, var(--cream-2))',
+          border: '1px solid var(--line-soft)',
+          borderRadius: 16,
           overflow: 'hidden',
-          boxShadow: '0 2px 8px rgba(43,43,43,0.07)',
+          boxShadow: 'var(--pl-shadow-sm, 0 1px 3px rgba(40,28,12,0.06))',
         }}
       >
         <div
@@ -271,18 +283,19 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '1.25rem 1.5rem',
-            borderBottom: '1px solid rgba(0,0,0,0.05)',
+            borderBottom: '1px solid var(--line-soft)',
           }}
         >
           <p
             style={{
-              fontFamily: 'var(--eg-font-heading)',
-              fontSize: '1.1rem',
+              fontFamily: 'var(--font-display, var(--pl-font-heading))',
+              fontSize: '1.15rem',
               fontWeight: 600,
-              color: 'var(--eg-fg)',
+              color: 'var(--ink)',
+              letterSpacing: '-0.005em',
             }}
           >
-            Guest List
+            Guest list
           </p>
           <button
             onClick={() => exportCsv(guests, domain)}
@@ -292,11 +305,11 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
               gap: '0.4rem',
               padding: '0.5rem 1rem',
               borderRadius: '0.5rem',
-              background: 'var(--eg-fg)',
+              background: 'var(--ink)',
               color: '#ffffff',
               fontSize: '0.8rem',
               fontWeight: 500,
-              fontFamily: 'var(--eg-font-body)',
+              fontFamily: 'var(--pl-font-body)',
               border: 'none',
               cursor: 'pointer',
             }}
@@ -314,8 +327,8 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
             <thead>
               <tr
                 style={{
-                  borderBottom: '1px solid rgba(0,0,0,0.05)',
-                  background: '#F5F1E8',
+                  borderBottom: '1px solid var(--line-soft)',
+                  background: 'var(--cream-2, #F5EFE2)',
                 }}
               >
                 <th style={{ padding: 0 }}>
@@ -352,20 +365,25 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
               {sorted.map((g, i) => (
                 <tr
                   key={g.id}
+                  onClick={() => setSelectedGuest(g)}
                   style={{
                     borderBottom:
                       i < sorted.length - 1
                         ? '1px solid rgba(0,0,0,0.04)'
                         : 'none',
+                    cursor: 'pointer',
+                    transition: 'background var(--pl-dur-fast) var(--pl-ease-out)',
                   }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'color-mix(in oklab, var(--sage-deep) 4%, transparent)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = ''; }}
                 >
                   <td
                     style={{
                       padding: '0.9rem 1rem',
                       fontWeight: 600,
                       fontSize: '0.9rem',
-                      color: 'var(--eg-fg)',
-                      fontFamily: 'var(--eg-font-body)',
+                      color: 'var(--ink)',
+                      fontFamily: 'var(--pl-font-body)',
                     }}
                   >
                     {g.name}
@@ -374,8 +392,8 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     style={{
                       padding: '0.9rem 1rem',
                       fontSize: '0.82rem',
-                      color: 'var(--eg-muted)',
-                      fontFamily: 'var(--eg-font-body)',
+                      color: 'var(--ink-muted)',
+                      fontFamily: 'var(--pl-font-body)',
                       maxWidth: '180px',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -391,12 +409,12 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     style={{
                       padding: '0.9rem 1rem',
                       fontSize: '0.82rem',
-                      color: 'var(--eg-muted)',
-                      fontFamily: 'var(--eg-font-body)',
+                      color: 'var(--ink-muted)',
+                      fontFamily: 'var(--pl-font-body)',
                     }}
                   >
                     {g.plus_one ? (
-                      <span style={{ color: 'var(--eg-fg)', fontWeight: 500 }}>
+                      <span style={{ color: 'var(--ink)', fontWeight: 500 }}>
                         {g.plus_one_name ? g.plus_one_name : 'Yes'}
                       </span>
                     ) : (
@@ -407,8 +425,8 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     style={{
                       padding: '0.9rem 1rem',
                       fontSize: '0.82rem',
-                      color: 'var(--eg-muted)',
-                      fontFamily: 'var(--eg-font-body)',
+                      color: 'var(--ink-muted)',
+                      fontFamily: 'var(--pl-font-body)',
                     }}
                   >
                     {g.meal_preference ?? (
@@ -419,8 +437,8 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     style={{
                       padding: '0.9rem 1rem',
                       fontSize: '0.82rem',
-                      color: 'var(--eg-muted)',
-                      fontFamily: 'var(--eg-font-body)',
+                      color: 'var(--ink-muted)',
+                      fontFamily: 'var(--pl-font-body)',
                       maxWidth: '160px',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -430,13 +448,14 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     {g.song_request ?? (
                       <span style={{ opacity: 0.3 }}>—</span>
                     )}
+                    <PresetAnswerChips guest={g} />
                   </td>
                   <td
                     style={{
                       padding: '0.9rem 1rem',
                       fontSize: '0.78rem',
-                      color: 'var(--eg-muted)',
-                      fontFamily: 'var(--eg-font-body)',
+                      color: 'var(--ink-muted)',
+                      fontFamily: 'var(--pl-font-body)',
                       whiteSpace: 'nowrap',
                     }}
                   >
@@ -461,9 +480,11 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
           {sorted.map((g) => (
             <div
               key={g.id}
+              onClick={() => setSelectedGuest(g)}
               style={{
                 padding: '1rem 1.25rem',
                 borderBottom: '1px solid rgba(0,0,0,0.05)',
+                cursor: 'pointer',
               }}
             >
               <div
@@ -478,8 +499,8 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                   style={{
                     fontWeight: 600,
                     fontSize: '0.95rem',
-                    color: 'var(--eg-fg)',
-                    fontFamily: 'var(--eg-font-body)',
+                    color: 'var(--ink)',
+                    fontFamily: 'var(--pl-font-body)',
                   }}
                 >
                   {g.name}
@@ -490,8 +511,8 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                 <p
                   style={{
                     fontSize: '0.8rem',
-                    color: 'var(--eg-muted)',
-                    fontFamily: 'var(--eg-font-body)',
+                    color: 'var(--ink-muted)',
+                    fontFamily: 'var(--pl-font-body)',
                     marginBottom: '0.35rem',
                   }}
                 >
@@ -510,11 +531,11 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                   <span
                     style={{
                       fontSize: '0.72rem',
-                      color: 'var(--eg-muted)',
+                      color: 'var(--ink-muted)',
                       background: 'rgba(0,0,0,0.04)',
-                      borderRadius: '999px',
+                      borderRadius: 'var(--pl-radius-full)',
                       padding: '0.15rem 0.6rem',
-                      fontFamily: 'var(--eg-font-body)',
+                      fontFamily: 'var(--pl-font-body)',
                     }}
                   >
                     +1{g.plus_one_name ? ` ${g.plus_one_name}` : ''}
@@ -524,11 +545,11 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                   <span
                     style={{
                       fontSize: '0.72rem',
-                      color: 'var(--eg-muted)',
+                      color: 'var(--ink-muted)',
                       background: 'rgba(0,0,0,0.04)',
-                      borderRadius: '999px',
+                      borderRadius: 'var(--pl-radius-full)',
                       padding: '0.15rem 0.6rem',
-                      fontFamily: 'var(--eg-font-body)',
+                      fontFamily: 'var(--pl-font-body)',
                     }}
                   >
                     {g.meal_preference}
@@ -538,11 +559,11 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                   <span
                     style={{
                       fontSize: '0.72rem',
-                      color: 'var(--eg-muted)',
+                      color: 'var(--ink-muted)',
                       background: 'rgba(163,177,138,0.12)',
-                      borderRadius: '999px',
+                      borderRadius: 'var(--pl-radius-full)',
                       padding: '0.15rem 0.6rem',
-                      fontFamily: 'var(--eg-font-body)',
+                      fontFamily: 'var(--pl-font-body)',
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '0.25rem',
@@ -553,14 +574,15 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                   </span>
                 )}
               </div>
+              <PresetAnswerChips guest={g} />
               {g.responded_at && (
                 <p
                   style={{
                     fontSize: '0.72rem',
-                    color: 'var(--eg-muted)',
+                    color: 'var(--ink-muted)',
                     opacity: 0.6,
                     marginTop: '0.5rem',
-                    fontFamily: 'var(--eg-font-body)',
+                    fontFamily: 'var(--pl-font-body)',
                   }}
                 >
                   {new Date(g.responded_at).toLocaleDateString(undefined, {
@@ -583,11 +605,379 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
           .rsvp-mobile-cards  { display: block; }
         }
       `}</style>
+
+      {selectedGuest && (
+        <GuestDetailDrawer
+          guest={selectedGuest}
+          onClose={() => setSelectedGuest(null)}
+        />
+      )}
     </>
   );
 }
 
+// ─── Guest Detail Drawer ──────────────────────────────────────
+// Opens when a host clicks a row. Shows every field Pearloom has
+// recorded for this guest: legacy wedding columns, preset
+// answers, contact, and timeline.
+
+function GuestDetailDrawer({
+  guest,
+  onClose,
+}: {
+  guest: Guest;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
+
+  // Merge legacy columns + preset answers into one ordered list.
+  const rows: { label: string; value: React.ReactNode; mono?: boolean }[] = [];
+  if (guest.plus_one) {
+    rows.push({
+      label: 'Plus one',
+      value: guest.plus_one_name ? guest.plus_one_name : 'Yes',
+    });
+  }
+  if (guest.meal_preference) rows.push({ label: 'Meal', value: guest.meal_preference });
+  if (guest.dietary_restrictions) rows.push({ label: 'Dietary', value: guest.dietary_restrictions });
+  if (guest.song_request) rows.push({ label: 'Song request', value: guest.song_request });
+  if (guest.message) rows.push({ label: 'Message', value: guest.message });
+
+  // Preset answers not already covered by legacy columns.
+  const answers = guest.rsvp_answers;
+  if (answers && typeof answers === 'object') {
+    for (const [kind, value] of Object.entries(answers)) {
+      if (typeof value !== 'string' || !value.trim()) continue;
+      if (['meal', 'dietary', 'song-request', 'comments'].includes(kind)) continue;
+      rows.push({
+        label: PRESET_LABEL[kind] ?? kind,
+        value: humanizeAnswer(kind, value),
+      });
+    }
+  }
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 'var(--z-modal)',
+        background: 'rgba(14,13,11,0.42)',
+        backdropFilter: 'blur(2px)',
+        display: 'flex',
+        justifyContent: 'flex-end',
+        animation: 'pl-enter-fade-in var(--pl-dur-base) var(--pl-ease-out)',
+      }}
+    >
+      <aside
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Details for ${guest.name}`}
+        style={{
+          width: 'min(440px, 100%)',
+          height: '100%',
+          background: 'var(--cream)',
+          borderLeft: '1px solid var(--line)',
+          overflowY: 'auto',
+          padding: '32px 28px 48px',
+          boxShadow: 'var(--pl-shadow-xl)',
+        }}
+      >
+        {/* Close */}
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          style={{
+            position: 'absolute',
+            top: 18,
+            right: 18,
+            width: 32,
+            height: 32,
+            borderRadius: 'var(--pl-radius-full)',
+            border: '1px solid var(--line)',
+            background: 'var(--card)',
+            color: 'var(--ink)',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <X size={14} />
+        </button>
+
+        {/* Header */}
+        <div style={{ marginBottom: 24 }}>
+          <div
+            className="pl-overline"
+            style={{ color: 'var(--sage-deep)', marginBottom: 8 }}
+          >
+            Guest response
+          </div>
+          <h2
+            className="pl-display"
+            style={{
+              margin: 0,
+              fontStyle: 'italic',
+              fontSize: 'clamp(1.6rem, 3vw, 2rem)',
+              color: 'var(--ink)',
+              lineHeight: 1.05,
+            }}
+          >
+            {guest.name}
+          </h2>
+          <div style={{ marginTop: 12 }}>
+            <StatusBadge status={guest.status ?? 'pending'} />
+          </div>
+        </div>
+
+        {/* Contact */}
+        {guest.email && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '10px 14px',
+              borderRadius: '10px',
+              background: 'var(--card)',
+              border: '1px solid var(--line)',
+              marginBottom: 12,
+              fontSize: '0.88rem',
+              color: 'var(--ink)',
+              wordBreak: 'break-all',
+            }}
+          >
+            <Mail size={13} color="var(--ink-muted)" />
+            <a
+              href={`mailto:${guest.email}`}
+              style={{ color: 'inherit', textDecoration: 'none' }}
+            >
+              {guest.email}
+            </a>
+          </div>
+        )}
+
+        {/* Timeline */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '10px 14px',
+            borderRadius: '10px',
+            background: 'var(--card)',
+            border: '1px solid var(--line)',
+            marginBottom: 24,
+            fontSize: '0.82rem',
+            color: 'var(--ink-muted)',
+          }}
+        >
+          <Calendar size={13} color="var(--ink-muted)" />
+          {guest.responded_at ? (
+            <>
+              Replied{' '}
+              <span style={{ color: 'var(--ink)', fontWeight: 500 }}>
+                {new Date(guest.responded_at).toLocaleString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                })}
+              </span>
+            </>
+          ) : guest.created_at ? (
+            <>
+              Invited{' '}
+              <span style={{ color: 'var(--ink)', fontWeight: 500 }}>
+                {new Date(guest.created_at).toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </span>{' '}
+              · awaiting reply
+            </>
+          ) : (
+            <>No timestamp on record</>
+          )}
+        </div>
+
+        {/* Preset label */}
+        {guest.rsvp_preset && (
+          <div
+            style={{
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.62rem',
+              fontWeight: 700,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: 'var(--sage-deep)',
+              marginBottom: 10,
+            }}
+          >
+            {guest.rsvp_preset} preset
+          </div>
+        )}
+
+        {/* Answers */}
+        {rows.length === 0 ? (
+          <div
+            style={{
+              padding: '32px 16px',
+              textAlign: 'center',
+              color: 'var(--ink-muted)',
+              fontStyle: 'italic',
+              border: '1px dashed var(--line)',
+              borderRadius: '20px',
+              background: 'var(--card)',
+            }}
+          >
+            Nothing beyond status recorded yet.
+          </div>
+        ) : (
+          <dl style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {rows.map((row, i) => (
+              <div
+                key={i}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4,
+                  padding: '12px 14px',
+                  borderRadius: '10px',
+                  background: 'var(--card)',
+                  border: '1px solid var(--line)',
+                }}
+              >
+                <dt
+                  style={{
+                    fontFamily: 'var(--pl-font-mono)',
+                    fontSize: '0.58rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.2em',
+                    textTransform: 'uppercase',
+                    color: 'var(--sage-deep)',
+                  }}
+                >
+                  {row.label}
+                </dt>
+                <dd
+                  style={{
+                    margin: 0,
+                    color: 'var(--ink)',
+                    fontSize: '0.95rem',
+                    lineHeight: 1.5,
+                    whiteSpace: 'pre-wrap',
+                  }}
+                >
+                  {row.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </aside>
+    </div>
+  );
+}
+
 // ─── Meal Summary ─────────────────────────────────────────────
+
+// ─── Preset answer chips ─────────────────────────────────────
+// Renders readable labels + values for the non-wedding RSVP
+// presets (bachelor, shower, memorial, reunion, milestone,
+// cultural, casual). Legacy wedding columns render elsewhere;
+// this surfaces everything that lives in rsvp_answers JSONB.
+
+const PRESET_LABEL: Record<string, string> = {
+  'cost-acknowledge': 'Cost OK',
+  'bed-preference':   'Bed',
+  'room-preference':  'Room',
+  'attending-days':   'Days',
+  'allergies-med':    'Allergies / meds',
+  'gift-status':      'Gift',
+  'advice':           'Advice',
+  'memory-share':     'Memory',
+  'tshirt-size':      'T-shirt',
+  'photo-upload':     'Photo',
+  'plus-one':         'Plus one',
+  'dietary':          'Dietary',
+  'song-request':     'Song',
+  'comments':         'Note',
+  'meal':             'Meal',
+  'attending':        'Attending',
+};
+
+function humanizeAnswer(kind: string, value: string): string {
+  if (kind === 'cost-acknowledge') return value === 'yes' ? 'Yes' : '—';
+  if (kind === 'attending-days') return value.split(',').filter(Boolean).join(' · ');
+  if (value.length > 60) return value.slice(0, 57) + '…';
+  return value;
+}
+
+function PresetAnswerChips({ guest }: { guest: Guest }) {
+  // Only render when there are preset answers beyond the legacy columns.
+  const answers = guest.rsvp_answers;
+  if (!answers || typeof answers !== 'object') return null;
+  const entries = Object.entries(answers).filter(
+    ([kind, value]) =>
+      typeof value === 'string' &&
+      value.trim().length > 0 &&
+      // Don't duplicate the chips already rendered from legacy columns.
+      !['meal', 'dietary', 'song-request', 'comments'].includes(kind),
+  );
+  if (entries.length === 0) return null;
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.4rem' }}>
+      {entries.map(([kind, value]) => (
+        <span
+          key={kind}
+          title={`${PRESET_LABEL[kind] ?? kind}: ${value}`}
+          style={{
+            fontSize: '0.7rem',
+            color: 'var(--ink-soft)',
+            background: 'color-mix(in oklab, var(--sage-deep) 10%, transparent)',
+            border: '1px solid color-mix(in oklab, var(--sage-deep) 22%, transparent)',
+            borderRadius: 'var(--pl-radius-full)',
+            padding: '0.1rem 0.55rem',
+            fontFamily: 'var(--pl-font-body)',
+            display: 'inline-flex',
+            alignItems: 'baseline',
+            gap: 6,
+          }}
+        >
+          <span
+            style={{
+              fontFamily: 'var(--pl-font-mono)',
+              fontSize: '0.58rem',
+              fontWeight: 700,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'var(--sage-deep)',
+            }}
+          >
+            {PRESET_LABEL[kind] ?? kind}
+          </span>
+          <span>{humanizeAnswer(kind, value as string)}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
 
 function MealSummary({ guests }: { guests: Guest[] }) {
   const counts: Record<string, number> = {};
@@ -602,10 +992,11 @@ function MealSummary({ guests }: { guests: Guest[] }) {
   return (
     <div
       style={{
-        background: '#ffffff',
-        borderRadius: '1rem',
+        background: 'var(--card, var(--cream-2))',
+        border: '1px solid var(--line-soft)',
+        borderRadius: 16,
         padding: '1.25rem 1.5rem',
-        boxShadow: '0 2px 8px rgba(43,43,43,0.07)',
+        boxShadow: 'var(--pl-shadow-sm, 0 1px 3px rgba(40,28,12,0.06))',
         display: 'flex',
         alignItems: 'center',
         flexWrap: 'wrap',
@@ -614,31 +1005,31 @@ function MealSummary({ guests }: { guests: Guest[] }) {
     >
       <p
         style={{
-          fontSize: '0.72rem',
+          fontSize: '0.7rem',
           fontWeight: 700,
           textTransform: 'uppercase',
-          letterSpacing: '0.06em',
-          color: 'var(--eg-muted)',
-          fontFamily: 'var(--eg-font-body)',
-          marginRight: '0.25rem',
+          letterSpacing: '0.18em',
+          color: 'var(--peach-ink, #C6703D)',
+          fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+          marginRight: '0.5rem',
           flexShrink: 0,
         }}
       >
-        Meal Preferences
+        Meal preferences
       </p>
       {entries.map(([label, count], i) => (
         <span
           key={label}
           style={{
             fontSize: '0.85rem',
-            color: 'var(--eg-fg)',
-            fontFamily: 'var(--eg-font-body)',
+            color: 'var(--ink)',
+            fontFamily: 'var(--pl-font-body)',
           }}
         >
           <strong style={{ fontWeight: 600 }}>{label}</strong>{' '}
-          <span style={{ color: 'var(--eg-muted)' }}>{count}</span>
+          <span style={{ color: 'var(--ink-muted)' }}>{count}</span>
           {i < entries.length - 1 && (
-            <span style={{ color: 'var(--eg-divider)', margin: '0 0.4rem' }}>·</span>
+            <span style={{ color: 'var(--line)', margin: '0 0.4rem' }}>·</span>
           )}
         </span>
       ))}
@@ -658,10 +1049,11 @@ function SongPlaylist({ guests }: { guests: Guest[] }) {
   return (
     <div
       style={{
-        background: '#ffffff',
-        borderRadius: '1rem',
+        background: 'var(--card, var(--cream-2))',
+        border: '1px solid var(--line-soft)',
+        borderRadius: 16,
         padding: '1.5rem',
-        boxShadow: '0 2px 8px rgba(43,43,43,0.07)',
+        boxShadow: 'var(--pl-shadow-sm, 0 1px 3px rgba(40,28,12,0.06))',
       }}
     >
       <div
@@ -672,25 +1064,26 @@ function SongPlaylist({ guests }: { guests: Guest[] }) {
           marginBottom: '1rem',
         }}
       >
-        <LoomThreadIcon size={20} color="var(--eg-accent)" />
+        <LoomThreadIcon size={20} color="var(--sage-deep)" />
         <h2
           style={{
-            fontFamily: 'var(--eg-font-heading)',
-            fontSize: '1.15rem',
+            fontFamily: 'var(--font-display, var(--pl-font-heading))',
+            fontSize: '1.2rem',
             fontWeight: 600,
-            color: 'var(--eg-fg)',
+            color: 'var(--ink)',
+            letterSpacing: '-0.005em',
           }}
         >
-          Your Playlist
+          Your playlist
         </h2>
         <span
           style={{
             fontSize: '0.72rem',
-            color: 'var(--eg-muted)',
+            color: 'var(--ink-muted)',
             background: 'rgba(0,0,0,0.04)',
-            borderRadius: '999px',
+            borderRadius: 'var(--pl-radius-full)',
             padding: '0.15rem 0.6rem',
-            fontFamily: 'var(--eg-font-body)',
+            fontFamily: 'var(--pl-font-body)',
           }}
         >
           {songs.length} {songs.length === 1 ? 'song' : 'songs'}
@@ -705,15 +1098,15 @@ function SongPlaylist({ guests }: { guests: Guest[] }) {
               alignItems: 'center',
               gap: '0.35rem',
               padding: '0.35rem 0.85rem',
-              borderRadius: '999px',
+              borderRadius: 'var(--pl-radius-full)',
               background: 'rgba(163,177,138,0.12)',
               border: '1px solid rgba(163,177,138,0.25)',
-              color: 'var(--eg-fg)',
+              color: 'var(--ink)',
               fontSize: '0.82rem',
-              fontFamily: 'var(--eg-font-body)',
+              fontFamily: 'var(--pl-font-body)',
             }}
           >
-            <Music size={12} color="var(--eg-accent)" />
+            <Music size={12} color="var(--sage-deep)" />
             {song}
           </span>
         ))}
@@ -728,10 +1121,14 @@ function CopyLink({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);
 
   const copy = () => {
-    navigator.clipboard.writeText(url).then(() => {
+    // Clipboard API rejects in insecure contexts / iframes /
+    // some embedded webviews. Treat the rejection as a silent
+    // no-op — surfacing a toast would be louder than the
+    // affordance is worth.
+    navigator.clipboard?.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    });
+    }).catch(() => { /* ignore */ });
   };
 
   return (
@@ -751,7 +1148,7 @@ function CopyLink({ url }: { url: string }) {
           background: 'rgba(0,0,0,0.05)',
           padding: '0.3rem 0.75rem',
           borderRadius: '0.5rem',
-          color: 'var(--eg-fg)',
+          color: 'var(--ink)',
           fontFamily: 'monospace',
         }}
       >
@@ -762,11 +1159,11 @@ function CopyLink({ url }: { url: string }) {
         style={{
           padding: '0.3rem 0.75rem',
           borderRadius: '0.5rem',
-          background: copied ? 'var(--eg-accent)' : 'var(--eg-fg)',
+          background: copied ? 'var(--sage-deep)' : 'var(--ink)',
           color: '#ffffff',
           fontSize: '0.78rem',
           fontWeight: 500,
-          fontFamily: 'var(--eg-font-body)',
+          fontFamily: 'var(--pl-font-body)',
           border: 'none',
           cursor: 'pointer',
           transition: 'background 0.2s ease',
@@ -807,7 +1204,9 @@ function RsvpPageContent({ domain }: { domain: string }) {
       });
   }, [domain]);
 
-  const siteUrl = `${domain}.pearloom.com`;
+  // We don't have the manifest here, so emit the legacy `/sites/{domain}`
+  // URL. The proxy rewrites either form transparently.
+  const siteUrl = formatSiteDisplayUrl(domain);
   const list = guests ?? [];
 
   const attending = list.filter((r) => r.status === 'attending');
@@ -822,24 +1221,30 @@ function RsvpPageContent({ domain }: { domain: string }) {
   return (
     <main
       style={{
-        maxWidth: '1000px',
+        maxWidth: '1180px',
         margin: '0 auto',
-        paddingTop: '8rem',
+        paddingTop: '2rem',
         paddingBottom: '4rem',
-        paddingLeft: '1.5rem',
-        paddingRight: '1.5rem',
-        fontFamily: 'var(--eg-font-body)',
+        paddingLeft: 'clamp(20px, 4vw, 40px)',
+        paddingRight: 'clamp(20px, 4vw, 40px)',
+        fontFamily: 'var(--font-ui, var(--pl-font-body))',
+        position: 'relative',
+        zIndex: 1,
       }}
     >
+      <PLAtmosphere />
+
       {/* ── Header row ── */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: '2rem',
+          marginBottom: '1.5rem',
           flexWrap: 'wrap',
           gap: '0.75rem',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <Link
@@ -848,11 +1253,11 @@ function RsvpPageContent({ domain }: { domain: string }) {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.4rem',
-            color: 'var(--eg-muted)',
+            color: 'var(--ink-soft)',
             fontSize: '0.88rem',
-            fontFamily: 'var(--eg-font-body)',
+            fontFamily: 'var(--font-ui, var(--pl-font-body))',
             textDecoration: 'none',
-            fontWeight: 500,
+            fontWeight: 600,
           }}
         >
           <ArrowLeft size={15} />
@@ -863,14 +1268,15 @@ function RsvpPageContent({ domain }: { domain: string }) {
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            padding: '0.3rem 0.9rem',
-            borderRadius: '999px',
-            background: 'rgba(163,177,138,0.12)',
-            border: '1px solid rgba(163,177,138,0.25)',
+            padding: '0.35rem 0.9rem',
+            borderRadius: 'var(--pl-radius-full)',
+            background: 'var(--sage-tint)',
+            border: '1px solid var(--line-soft)',
             fontSize: '0.78rem',
-            color: 'var(--eg-muted)',
-            fontFamily: 'var(--eg-font-body)',
-            letterSpacing: '0.02em',
+            color: 'var(--sage-deep)',
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            letterSpacing: '0.04em',
+            fontWeight: 600,
           }}
         >
           {siteUrl}
@@ -882,13 +1288,13 @@ function RsvpPageContent({ domain }: { domain: string }) {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.4rem',
-            padding: '0.5rem 1rem',
-            borderRadius: '0.5rem',
-            background: 'var(--eg-fg)',
-            color: '#ffffff',
+            padding: '0.55rem 1.1rem',
+            borderRadius: 'var(--pl-radius-full)',
+            background: 'var(--ink)',
+            color: 'var(--cream)',
             fontSize: '0.82rem',
-            fontWeight: 500,
-            fontFamily: 'var(--eg-font-body)',
+            fontWeight: 600,
+            fontFamily: 'var(--font-ui, var(--pl-font-body))',
             border: 'none',
             cursor: 'pointer',
           }}
@@ -898,18 +1304,55 @@ function RsvpPageContent({ domain }: { domain: string }) {
         </button>
       </div>
 
-      <h1
-        style={{
-          fontFamily: 'var(--eg-font-heading)',
-          fontSize: 'clamp(1.8rem, 4vw, 2.5rem)',
-          fontWeight: 700,
-          color: 'var(--eg-fg)',
-          marginBottom: '2rem',
-          letterSpacing: '-0.02em',
-        }}
-      >
-        Guest RSVPs
-      </h1>
+      {/* PLHead-style editorial header */}
+      <BlurFade>
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--peach-ink, #C6703D)',
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            marginBottom: 8,
+          }}
+        >
+          Your loom · Guests
+        </div>
+        <h1
+          style={{
+            fontFamily: 'var(--font-display, var(--pl-font-heading))',
+            fontSize: 'clamp(2rem, 4.5vw, 2.8rem)',
+            fontWeight: 600,
+            color: 'var(--ink)',
+            marginBottom: '0.4rem',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          The{' '}
+          <span
+            style={{
+              fontStyle: 'italic',
+              color: 'var(--lavender-ink)',
+              fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+            }}
+          >
+            guest list
+          </span>
+          .
+        </h1>
+        <div
+          style={{
+            fontSize: 13.5,
+            color: 'var(--ink-soft)',
+            marginBottom: '2rem',
+            maxWidth: 520,
+            lineHeight: 1.55,
+          }}
+        >
+          Every RSVP, meal note, song pick, and message — gathered in one place.
+        </div>
+      </BlurFade>
 
       {/* ── Stats row ── */}
       <div
@@ -924,8 +1367,8 @@ function RsvpPageContent({ domain }: { domain: string }) {
         <StatCard
           label="Total Invited"
           value={list.length}
-          icon={<Users size={28} color="var(--eg-muted)" />}
-          valueColor="var(--eg-fg)"
+          icon={<Users size={28} color="var(--ink-muted)" />}
+          valueColor="var(--ink)"
         />
         <StatCard
           label="Attending"
@@ -973,39 +1416,43 @@ function RsvpPageContent({ domain }: { domain: string }) {
         /* Loading skeleton */
         <div
           style={{
-            background: '#ffffff',
-            borderRadius: '1rem',
+            background: 'var(--card, var(--cream-2))',
+            border: '1px solid var(--line-soft)',
+            borderRadius: 16,
             padding: '3rem 2rem',
             textAlign: 'center',
-            boxShadow: '0 2px 8px rgba(43,43,43,0.07)',
+            boxShadow: 'var(--pl-shadow-sm, 0 1px 3px rgba(40,28,12,0.06))',
             marginBottom: '1.5rem',
-            color: 'var(--eg-muted)',
-            fontFamily: 'var(--eg-font-body)',
-            fontSize: '0.9rem',
+            color: 'var(--ink-soft)',
+            fontFamily: 'var(--font-display, var(--pl-font-heading))',
+            fontStyle: 'italic',
+            fontSize: '1.1rem',
+            fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
           }}
         >
-          Loading guests...
+          Threading…
         </div>
       ) : list.length === 0 ? (
         <div
           style={{
-            background: '#ffffff',
-            borderRadius: '1rem',
+            background: 'var(--card, var(--cream-2))',
+            border: '1px solid var(--line-soft)',
+            borderRadius: 16,
             padding: '4rem 2rem',
             textAlign: 'center',
-            boxShadow: '0 2px 8px rgba(43,43,43,0.07)',
+            boxShadow: 'var(--pl-shadow-sm, 0 1px 3px rgba(40,28,12,0.06))',
             marginBottom: '1.5rem',
           }}
         >
           <Users
             size={48}
-            color="var(--eg-muted)"
+            color="var(--ink-muted)"
             style={{ margin: '0 auto 1rem', opacity: 0.3, display: 'block' }}
           />
           <p
             style={{
-              color: 'var(--eg-muted)',
-              fontFamily: 'var(--eg-font-body)',
+              color: 'var(--ink-muted)',
+              fontFamily: 'var(--pl-font-body)',
               fontSize: '1rem',
               marginBottom: '0.25rem',
             }}
@@ -1038,42 +1485,75 @@ export default function RsvpManagementPage({
 
   if (!domain) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: '#F5F1E8',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <p
-          style={{ color: 'var(--eg-muted)', fontFamily: 'var(--eg-font-body)' }}
+      <DashLayout active="guests" hideTopbar>
+        <PLAtmosphere />
+        <div
+          style={{
+            padding: '80px 32px',
+            textAlign: 'center',
+            color: 'var(--ink-soft)',
+            fontFamily: 'var(--font-ui, var(--pl-font-body))',
+            position: 'relative',
+            zIndex: 1,
+            maxWidth: 520,
+            margin: '0 auto',
+          }}
         >
-          No domain provided. Go back to your dashboard to view RSVPs.
-        </p>
-      </div>
+          <div
+            style={{
+              fontFamily: 'var(--font-display, var(--pl-font-heading))',
+              fontStyle: 'italic',
+              fontSize: 24,
+              color: 'var(--sage-deep)',
+              marginBottom: 12,
+              fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+            }}
+          >
+            Nothing yet.
+          </div>
+          <p style={{ marginBottom: 18 }}>Pick a celebration from your dashboard to see its RSVPs.</p>
+          <Link
+            href="/dashboard"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '0.55rem 1.1rem',
+              borderRadius: 'var(--pl-radius-full)',
+              background: 'var(--ink)',
+              color: 'var(--cream)',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            <ArrowLeft size={15} />
+            Back to dashboard
+          </Link>
+        </div>
+      </DashLayout>
     );
   }
 
   return (
-    <ThemeProvider
-      theme={{
-        name: 'pearloom-ivory',
-        fonts: { heading: 'Playfair Display', body: 'Inter' },
-        colors: {
-          background: '#F5F1E8',
-          foreground: '#2B2B2B',
-          accent: '#A3B18A',
-          accentLight: '#EEE8DC',
-          muted: '#9A9488',
-          cardBg: '#ffffff',
-        },
-        borderRadius: '1rem',
-      }}
-    >
-      <SiteNav names={['Pearloom', 'Dashboard']} pages={[]} />
-      <RsvpPageContent domain={domain} />
-    </ThemeProvider>
+    <DashLayout active="guests" hideTopbar>
+      <ThemeProvider
+        theme={{
+          name: 'pearloom-ivory',
+          fonts: { heading: 'Fraunces', body: 'Inter' },
+          colors: {
+            background: 'var(--cream)',
+            foreground: 'var(--ink)',
+            accent: 'var(--sage-deep)',
+            accentLight: 'var(--sage-tint)',
+            muted: 'var(--ink-muted)',
+            cardBg: 'var(--card)',
+          },
+          borderRadius: '1rem',
+        }}
+      >
+        <RsvpPageContent domain={domain} />
+      </ThemeProvider>
+    </DashLayout>
   );
 }

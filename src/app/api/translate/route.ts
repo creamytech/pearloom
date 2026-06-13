@@ -13,7 +13,7 @@ import type { Chapter } from '@/types';
 export const dynamic = 'force-dynamic';
 
 const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
 
 export interface ChapterTranslation {
   title: string;
@@ -53,18 +53,46 @@ async function callGemini(prompt: string, apiKey: string): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
     return Response.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
   }
 
   try {
     const body = await req.json();
+
+    // Mode A: arbitrary string segments (used by the live page language switcher — public).
+    if (Array.isArray(body.segments) && body.segments.length > 0) {
+      if (body.segments.length > 400) {
+        return Response.json({ error: 'Too many segments' }, { status: 413 });
+      }
+      const target: string = body.target ?? body.targetLocale ?? 'en';
+      const languageName = LOCALE_NAMES[target] || target;
+      const segments: string[] = body.segments.map((s: unknown) => String(s ?? ''));
+      const prompt = `Translate each string in the JSON array below to ${languageName}.
+Keep proper nouns, place names, times (e.g. "4:00"), and short numeric tokens unchanged.
+Preserve punctuation and capitalization style.
+Return ONLY a valid JSON array of strings, same length (${segments.length}), no markdown.
+
+Input:
+${JSON.stringify(segments)}`;
+
+      try {
+        const raw = await callGemini(prompt, apiKey);
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) throw new Error('Not an array');
+        const out = parsed.map((v) => (typeof v === 'string' ? v : String(v ?? '')));
+        return Response.json({ segments: out });
+      } catch {
+        return Response.json({ error: 'AI translation failed — try again' }, { status: 502 });
+      }
+    }
+
+    // Mode B: chapter objects (legacy, auth-gated).
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const chapters: Chapter[] = body.chapters;
     const targetLocale: string = body.targetLocale;
     const coupleNames: [string, string] = body.coupleNames;

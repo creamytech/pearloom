@@ -1,225 +1,283 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Globe, ArrowRight, Check } from 'lucide-react';
-import { Modal, Button, Input } from '@/components/ui';
-import type { StoryManifest } from '@/types';
+/* =========================================================================
+   PEARLOOM — PUBLISH & SHARE
+   Literal port of ClaudeDesign/pages/publish-flow.jsx. A go-live flow:
+   claim a pearloom.com address, set visibility, then a celebratory
+   "you're live" with a themed share card + copy/social links.
+   ========================================================================= */
 
-function CopyUrlButton({ url }: { url: string }) {
-  const [copied, setCopied] = useState(false);
+import { useState, type CSSProperties } from 'react';
+import type { StoryManifest } from '@/types';
+import { getPackById } from '@/lib/theme-store/packs';
+import { Icon, Pear, Sprig } from '@/components/pearloom/motifs';
+import { buildSiteUrl, formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
+
+export interface PublishModalProps {
+  open: boolean;
+  onClose: () => void;
+  manifest: StoryManifest;
+  onChange?: (m: StoryManifest) => void;
+  siteSlug?: string;
+}
+
+function PubShareCard({ manifest }: { manifest: StoryManifest }) {
+  const theme = manifest.theme;
+  const accent = theme?.colors?.accent || '#5C6B3F';
+  const ink = theme?.colors?.foreground || '#0E0D0B';
+  const paper = theme?.colors?.background || '#F5EFE2';
+  const inkSoft = 'rgba(14,13,11,0.65)';
+  const line = 'rgba(14,13,11,0.18)';
+  const display = theme?.fonts?.heading || 'var(--t-display, var(--pl-font-display))';
+  /* Real names only — the prototype's hardcoded fallbacks
+     ('Scott' / 'Shauna' / Santorini) leaked onto real hosts'
+     publish cards: a solo site with an empty second name showed a
+     fabricated partner. Solo honorees render one name, no '&'. */
+  const n1 = (manifest.names?.[0] ?? '').trim() || 'Your name';
+  const n2 = (manifest.names?.[1] ?? '').trim();
+  const dateLine = manifest.logistics?.date && manifest.logistics?.venue
+    ? `${manifest.logistics.date} · ${manifest.logistics.venue}`
+    : (manifest.logistics?.date || manifest.logistics?.venue || '');
   return (
-    <button
-      onClick={async () => {
-        try { await navigator.clipboard.writeText(url); } catch {}
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }}
-      className={`px-4 py-3 border-l border-l-[var(--pl-gold)] border-0 flex-shrink-0 cursor-pointer text-[0.75rem] font-bold tracking-[0.06em] uppercase whitespace-nowrap transition-all duration-200 ${
-        copied
-          ? 'bg-[var(--pl-olive-mist)] text-[var(--pl-olive)]'
-          : 'bg-transparent text-[var(--pl-muted)] hover:text-[var(--pl-ink)]'
-      }`}
-    >
-      {copied ? '✓ Copied' : 'Copy'}
-    </button>
+    <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', background: paper, aspectRatio: '1200/630', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '20px', border: '1px solid ' + line } as CSSProperties}>
+      <div style={{ position: 'absolute', top: 12, left: 14, opacity: 0.5, transform: 'scaleX(-1)' }}><Sprig size={42} color={accent}/></div>
+      <div style={{ position: 'absolute', top: 12, right: 14, opacity: 0.5 }}><Sprig size={42} color={accent}/></div>
+      <div style={{ position: 'relative', zIndex: 2 }}>
+        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls, 0.22em)', textTransform: 'uppercase', color: accent, marginBottom: 6 } as CSSProperties}>You're invited</div>
+        <div style={{ fontFamily: display, fontWeight: 600, fontSize: 30, lineHeight: 1, color: ink } as CSSProperties}>
+          {n1}
+          {n2 && <><span style={{ fontStyle: 'italic', fontSize: '0.6em', color: inkSoft, margin: '0 0.14em', fontWeight: 400 }}>&amp;</span>{n2}</>}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', margin: '8px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ width: 38, height: 1, background: line }} />
+            <Sprig size={20} color={accent} />
+            <span style={{ width: 38, height: 1, background: line }} />
+          </div>
+        </div>
+        <div style={{ fontSize: 10.5, color: inkSoft }}>{dateLine}</div>
+      </div>
+    </div>
   );
 }
 
-interface PublishModalProps {
-  open: boolean;
-  onClose: () => void;
-  manifest: StoryManifest | null;
-  coupleNames: [string, string];
-  initialSubdomain: string;
-  onSubdomainChange?: (subdomain: string) => void;
-  /** Called after successful publish — receives the live URL */
-  onPublished?: (url: string) => void;
-}
-
-export function PublishModal({
-  open,
-  onClose,
-  manifest,
-  coupleNames,
-  initialSubdomain,
-  onSubdomainChange,
-  onPublished,
-}: PublishModalProps) {
-  const [subdomain, setSubdomain] = useState(initialSubdomain);
-  const [isPublishing, setIsPublishing] = useState(false);
+export function PublishModal({ open, onClose, manifest, onChange, siteSlug }: PublishModalProps) {
+  const [step, setStep] = useState<'review' | 'publishing' | 'live'>('review');
+  const [privacy, setPrivacy] = useState<'public' | 'password'>(() =>
+    ((manifest as unknown as { privacyGate?: { password?: string } }).privacyGate?.password ?? '').trim()
+      ? 'password' : 'public');
+  const [gatePw, setGatePw] = useState(
+    ((manifest as unknown as { privacyGate?: { password?: string } }).privacyGate?.password ?? ''),
+  );
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
-
-  const handleSubdomainChange = (val: string) => {
-    const clean = val.toLowerCase().replace(/[^a-z0-9-]/g, '');
-    setSubdomain(clean);
-    onSubdomainChange?.(clean);
+  const [unlockBusy, setUnlockBusy] = useState(false);
+  if (!open) return null;
+  /* ── Pack paywall (client half) — the site is wearing a paid
+     pack the host hasn't unlocked. Try-before-you-buy: they could
+     APPLY it freely; publishing is the moment it's bought. The
+     server gates too (/api/sites/publish 402) — this is the warm
+     version. Ownership reads the shared 'pl-store-owned' key the
+     store + webhook success page maintain. */
+  const wornPack = (() => {
+    const id = (manifest as unknown as { appliedPackId?: string }).appliedPackId;
+    if (!id) return null;
+    const pack = getPackById(id);
+    if (!pack || pack.priceCents === 0) return null;
+    try {
+      const owned = new Set(JSON.parse(localStorage.getItem('pl-store-owned') || '[]'));
+      if (owned.has(pack.id)) return null;
+    } catch { /* private mode → trust the server gate */ }
+    return pack;
+  })();
+  const unlockWornPack = async () => {
+    if (!wornPack || unlockBusy) return;
+    setUnlockBusy(true);
+    try {
+      const res = await fetch('/api/store/checkout', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ packIds: [wornPack.id] }),
+      });
+      const { url: checkoutUrl } = (await res.json()) as { url?: string };
+      if (res.ok && checkoutUrl) {
+        try { sessionStorage.setItem('pl-shop-resume', wornPack.id); } catch { /* nicety */ }
+        window.location.assign(checkoutUrl);
+        return;
+      }
+      setError('Couldn’t start checkout — try again?');
+    } catch {
+      setError('Couldn’t start checkout — try again?');
+    } finally {
+      setUnlockBusy(false);
+    }
   };
-
-  const handlePublish = async () => {
-    const target = subdomain.trim();
-    if (!target) return setError('Please enter a subdomain.');
-    if (!manifest) return setError('No manifest to publish. Please generate a site first.');
+  /* The slug is the site's identity — it isn't editable here.
+     (The prototype let you retype it past a fake "Available"
+     badge, which forked the site to a second subdomain and
+     showed a URL with no occasion prefix.) */
+  const slug = siteSlug || 'your-site';
+  const occasion = normalizeOccasion((manifest as unknown as { occasion?: string }).occasion);
+  const url = formatSiteDisplayUrl(slug, '', occasion);
+  const fullUrl = buildSiteUrl(slug, '', undefined, occasion);
+  const go = async () => {
+    if (step === 'publishing' || wornPack) return;
+    if (privacy === 'password' && !gatePw.trim()) {
+      setError('Set the password guests will use — or switch back to public.');
+      return;
+    }
+    setStep('publishing');
     setError(null);
-    setIsPublishing(true);
-
+    /* Privacy ships INSIDE the published manifest so the gate is
+       live from the first request — and the same change lands in
+       the editor's manifest via onChange below. */
+    const next = {
+      ...manifest,
+      published: true,
+      publishedAt: new Date().toISOString(),
+      privacyGate: privacy === 'password' ? { password: gatePw.trim() } : undefined,
+    } as StoryManifest;
     try {
       const res = await fetch('/api/sites/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subdomain: target, manifest, names: coupleNames }),
+        body: JSON.stringify({ subdomain: slug, manifest: next, names: manifest.names ?? [] }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to publish');
-
-      setPublishedUrl(data.url);
-      onPublished?.(data.url);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setIsPublishing(false);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error || `Publish failed (${res.status})`);
+      }
+      onChange?.(next);
+      setStep('live');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Publish failed');
+      setStep('review');
     }
   };
-
-  const handleClose = () => {
-    setPublishedUrl(null);
-    setError(null);
-    onClose();
+  const copy = () => {
+    try { navigator.clipboard.writeText(fullUrl); } catch { /* noop */ }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1600);
   };
+  const ogSrc = `/api/og?slug=${encodeURIComponent(slug)}`;
 
   return (
-    <Modal open={open} onClose={handleClose} showClose={!publishedUrl}>
-      {publishedUrl ? (
-        /* ── Success state ── */
-        <div className="flex flex-col items-center gap-5 relative overflow-hidden text-center">
-          {/* Celebration rings */}
-          <div className="relative mb-1">
-            {[1, 2, 3].map((i) => (
-              <motion.div
-                key={i}
-                initial={{ scale: 0.6, opacity: 0.6 }}
-                animate={{ scale: 1 + i * 0.45, opacity: 0 }}
-                transition={{ duration: 1.8, delay: i * 0.25, repeat: Infinity, ease: 'easeOut' }}
-                className="absolute inset-0 rounded-full border-2 border-[var(--pl-olive)] pointer-events-none"
-              />
-            ))}
-            <motion.div
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-              className="w-20 h-20 rounded-full flex items-center justify-center text-white relative z-[1] bg-[var(--pl-olive)] shadow-[0_12px_40px_rgba(163,177,138,0.45)]"
-            >
-              <Check size={28} strokeWidth={2.5} />
-            </motion.div>
-          </div>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 95, background: 'rgba(40,40,30,0.5)', backdropFilter: 'blur(6px)', display: 'grid', placeItems: 'center', padding: 22 } as CSSProperties}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: 'min(520px, 96vw)', maxHeight: '92vh', overflow: 'auto', background: 'var(--card)', borderRadius: 22, position: 'relative', boxShadow: 'var(--shadow-lg)', animation: 'us-in 240ms cubic-bezier(0.16,1,0.3,1)' } as CSSProperties}>
+        <style>{`@keyframes us-in{from{transform:scale(0.97);opacity:0}to{transform:none;opacity:1}}@keyframes pub-spin{to{transform:rotate(360deg)}}`}</style>
+        <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, width: 30, height: 30, borderRadius: 8, display: 'grid', placeItems: 'center', background: 'var(--cream-2)', zIndex: 3 } as CSSProperties}><Icon name="close" size={15} color="var(--ink-soft)"/></button>
 
-          <motion.h2
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-[2.25rem] font-normal tracking-tight leading-tight font-heading"
-          >
-            Your Story is Live
-          </motion.h2>
+        {step === 'review' && (
+          <div style={{ padding: '28px 28px 24px' }}>
+            <div className="eyebrow" style={{ color: 'var(--lavender-ink)' }}>GO LIVE</div>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 600, margin: '4px 0 16px' }}>Publish your site</h2>
+            <div style={{ marginBottom: 16, borderRadius: 14, overflow: 'hidden', border: '1px solid var(--line-soft)' }}><PubShareCard manifest={manifest}/></div>
+            {wornPack && (
+              <div
+                style={{
+                  marginBottom: 16, padding: '14px 16px', borderRadius: 14,
+                  background: 'var(--pl-glass)',
+                  backgroundImage: 'var(--pl-glass-sheen)',
+                  backdropFilter: 'var(--pl-glass-blur, blur(14px) saturate(1.3))',
+                  WebkitBackdropFilter: 'var(--pl-glass-blur, blur(14px) saturate(1.3))',
+                  border: '1px solid var(--pl-glass-border)',
+                } as CSSProperties}
+              >
+                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--lavender-ink)' }}>
+                  Wearing {wornPack.name}
+                </div>
+                <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 18, color: 'var(--ink)', margin: '4px 0 6px' }}>
+                  Make it yours to go live.
+                </div>
+                <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginBottom: 12 }}>
+                  You&rsquo;ve been trying this pack on — it looks like it fits. Unlock it once and publish,
+                  or switch back to a free look in the Theme panel.
+                </div>
+                <button
+                  type="button"
+                  onClick={unlockWornPack}
+                  disabled={unlockBusy}
+                  style={{
+                    padding: '10px 22px', borderRadius: 999, border: 'none',
+                    background: 'var(--ink)', color: 'var(--cream)',
+                    fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                  } as CSSProperties}
+                >
+                  {unlockBusy ? 'Threading…' : `Unlock ${wornPack.name} · $${wornPack.priceCents / 100}`}
+                </button>
+              </div>
+            )}
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.45 }}
-            className="text-[var(--pl-muted)] text-[0.95rem]"
-          >
-            Share this link with your guests
-          </motion.p>
-
-          {/* URL display with copy */}
-          <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.55 }}
-            className="w-full flex items-center rounded-[var(--pl-radius-md)] overflow-hidden bg-[var(--pl-cream)] border border-[var(--pl-gold)]"
-          >
-            <Globe size={15} className="ml-4 flex-shrink-0 text-[var(--pl-olive)]" />
-            <span className="flex-1 py-3.5 px-3 text-[0.9rem] text-[var(--pl-ink)] font-medium tracking-tight break-all">
-              {publishedUrl.replace(/^https?:\/\//, '')}
-            </span>
-            <CopyUrlButton url={publishedUrl} />
-          </motion.div>
-
-          <motion.a
-            href={publishedUrl}
-            target="_blank"
-            rel="noreferrer"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.65 }}
-            className="w-full flex items-center justify-center gap-2.5 py-4 rounded-[var(--pl-radius-md)] text-white no-underline font-semibold text-[1rem] bg-[var(--pl-olive)] shadow-[0_8px_30px_rgba(163,177,138,0.4)] hover:bg-[var(--pl-olive-hover)] transition-colors"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            Open Your Site <ArrowRight size={16} />
-          </motion.a>
-
-          <div className="flex gap-3 w-full">
-            <a
-              href={`/rsvps?domain=${subdomain}`}
-              className="flex-1 flex items-center justify-center py-3.5 rounded-[var(--pl-radius-md)] no-underline font-medium text-[0.9rem] text-[var(--pl-ink)] border border-[var(--pl-divider)] hover:bg-[var(--pl-cream)] transition-colors"
-            >
-              Manage RSVPs
-            </a>
-            <button
-              onClick={handleClose}
-              className="flex-1 bg-transparent cursor-pointer font-medium text-[0.9rem] text-[var(--pl-muted)] rounded-[var(--pl-radius-md)] border border-[var(--pl-divider)] hover:bg-[var(--pl-cream)] hover:text-[var(--pl-ink)] transition-colors"
-            >
-              Dashboard
-            </button>
-          </div>
-        </div>
-      ) : (
-        /* ── URL input state ── */
-        <>
-          <h2 className="text-[2rem] mb-2 font-heading font-normal">
-            Choose your URL
-          </h2>
-          <p className="text-[var(--pl-muted)] mb-1">
-            We&apos;ve pre-filled a unique URL — customize it below.
-          </p>
-          <p className="text-[var(--pl-muted)] text-[0.78rem] mb-8 opacity-70">
-            You can upgrade to a full custom domain later.
-          </p>
-
-          {error && (
-            <div className="text-red-600 bg-red-50 p-3 rounded-lg mb-6 text-[0.9rem]">
-              {error}
+            <label style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>Your address</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, padding: '11px 13px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--cream-2)' }}>
+              <Icon name="globe" size={14} color="var(--ink-muted)"/>
+              <span style={{ flex: 1, fontSize: 14, fontWeight: 600 }}>{url}</span>
             </div>
-          )}
 
-          <Input
-            value={subdomain}
-            onChange={(e) => handleSubdomainChange(e.target.value)}
-            placeholder="ben-and-shauna"
-            disabled={isPublishing}
-            suffix=".pearloom.com"
-          />
-
-          <div className="flex gap-4 mt-8">
-            <Button variant="secondary" size="lg" onClick={handleClose} disabled={isPublishing} className="flex-1">
-              Cancel
-            </Button>
-            <Button
-              variant="accent"
-              size="lg"
-              onClick={handlePublish}
-              disabled={isPublishing || !subdomain}
-              loading={isPublishing}
-              icon={!isPublishing ? <Globe size={16} /> : undefined}
-              className="flex-[2]"
-            >
-              Publish Site
-            </Button>
+            <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--ink-muted)', margin: '16px 0 8px' }}>Who can see it</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {([['public', 'globe', 'Public', 'Anyone with the link'], ['password', 'lock', 'Password protected', 'Guests enter a shared password']] as const).map(([v, ic, t, s]) => (
+                <button key={v} onClick={() => setPrivacy(v)} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', borderRadius: 11, textAlign: 'left', cursor: 'pointer', background: privacy === v ? 'var(--cream-2)' : 'var(--card)', border: privacy === v ? '2px solid var(--ink)' : '1px solid var(--line)' } as CSSProperties}>
+                  <Icon name={ic} size={16} color="var(--ink-soft)"/>
+                  <div style={{ flex: 1 }}><div style={{ fontSize: 13.5, fontWeight: 600 }}>{t}</div><div style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>{s}</div></div>
+                  {privacy === v && <Icon name="check" size={15} color="var(--ink)"/>}
+                </button>
+              ))}
+              {privacy === 'password' && (
+                <input
+                  type="text"
+                  value={gatePw}
+                  onChange={(e) => setGatePw(e.target.value)}
+                  placeholder="The password guests will enter"
+                  autoComplete="off"
+                  style={{ padding: '11px 13px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--cream-2)', fontSize: 13.5, fontFamily: 'inherit', outline: 'none' } as CSSProperties}
+                />
+              )}
+            </div>
+            {error && <div role="alert" style={{ marginTop: 12, padding: '10px 12px', borderRadius: 10, background: 'var(--pl-plum-mist)', border: '1px solid var(--pl-plum)', color: 'var(--pl-plum)', fontSize: 12.5, fontWeight: 600 } as CSSProperties}>{error}</div>}
+            <button onClick={go} disabled={!!wornPack} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 18, opacity: wornPack ? 0.5 : 1, cursor: wornPack ? 'not-allowed' : 'pointer' } as CSSProperties}>{wornPack ? <>Unlock {wornPack.name} to publish</> : <>Publish to {url} <Icon name="arrow-up" size={13} color="var(--cream)"/></>}</button>
           </div>
-        </>
-      )}
-    </Modal>
+        )}
+
+        {step === 'publishing' && (
+          <div style={{ padding: '70px 28px', textAlign: 'center' }}>
+            <div style={{ width: 44, height: 44, borderRadius: '50%', border: '3px solid var(--cream-3)', borderTopColor: 'var(--sage-deep)', marginInline: 'auto', animation: 'pub-spin 0.8s linear infinite' } as CSSProperties}/>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, marginTop: 18 }}>Going live…</div>
+            <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 4 }}>Securing {url} and generating share cards.</div>
+          </div>
+        )}
+
+        {step === 'live' && (
+          <div style={{ padding: '30px 28px 24px', textAlign: 'center' }}>
+            <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--sage-tint)', display: 'grid', placeItems: 'center', marginInline: 'auto' } as CSSProperties}><Pear size={32} tone="sage" sparkle shadow={false}/></div>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 600, margin: '14px 0 4px' }}>You{'’'}re live.</h2>
+            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 16 }}>Your site is published. Share this link — it unfurls into the card below.</p>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 10, background: 'var(--cream-2)', border: '1px solid var(--line)', marginBottom: 14 }}>
+              <Icon name="globe" size={15} color="var(--ink-soft)"/>
+              <span style={{ flex: 1, fontSize: 14, fontWeight: 600, textAlign: 'left' }}>{url}</span>
+              <button onClick={copy} className="btn btn-primary btn-sm">{copied ? <><Icon name="check" size={12} color="var(--cream)"/> Copied</> : <><Icon name="copy" size={12} color="var(--cream)"/> Copy</>}</button>
+            </div>
+
+            <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--line-soft)', marginBottom: 14, background: 'var(--cream-2)' }}>
+              {/* Real /api/og unfurl preview — falls back to the inline PubShareCard if the image fails. */}
+              <img src={ogSrc} alt="Share card preview" style={{ display: 'block', width: '100%', height: 'auto', aspectRatio: '1200/630', objectFit: 'cover' } as CSSProperties} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}/>
+              <PubShareCard manifest={manifest}/>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8 }}>
+              {/* Real share intents — the prototype's four dead buttons
+                  (Instagram / Download had no implementation) are gone. */}
+              <a href={`mailto:?subject=${encodeURIComponent("You're invited")}&body=${encodeURIComponent(fullUrl)}`} className="btn btn-outline btn-sm" style={{ flex: 1, justifyContent: 'center', fontSize: 11.5, textDecoration: 'none' }}>Email</a>
+              <a href={`sms:?&body=${encodeURIComponent(fullUrl)}`} className="btn btn-outline btn-sm" style={{ flex: 1, justifyContent: 'center', fontSize: 11.5, textDecoration: 'none' }}>Messages</a>
+              <a href={fullUrl} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm" style={{ flex: 1, justifyContent: 'center', fontSize: 11.5, textDecoration: 'none' }}>Open site</a>
+            </div>
+            <button onClick={onClose} style={{ marginTop: 16, fontSize: 13, color: 'var(--ink-soft)', fontWeight: 600 }}>Back to editing</button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
+
+export default PublishModal;

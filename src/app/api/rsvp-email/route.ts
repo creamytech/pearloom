@@ -8,6 +8,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { suiteThemeFromManifest } from '@/lib/suite/theme';
+import { emailThemeFromSuite, emailLayout, button } from '@/lib/email-sequences';
+import { buildSiteUrl } from '@/lib/site-urls';
+import type { StoryManifest } from '@/types';
+
+const esc = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 export const dynamic = 'force-dynamic';
 
@@ -25,7 +32,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   const resendKey = process.env.RESEND_API_KEY;
   if (!apiKey || !resendKey) {
     return NextResponse.json({ error: 'Email service not configured' }, { status: 500 });
@@ -44,11 +51,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Fetch site manifest for couple context
+    // Fetch site manifest for couple context.
+    // NB: the column is `ai_manifest` and names live in `site_config`
+    // (see 20260617_drop_manifest_renderer.sql schema note) — the old
+    // `manifest, names` select errored and silently 404'd every send.
     const supabase = getSupabase();
     const { data: site } = await supabase
       .from('sites')
-      .select('manifest, names, subdomain')
+      .select('ai_manifest, site_config, subdomain')
       .eq('subdomain', siteId)
       .single();
 
@@ -56,8 +66,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    const manifest = (site.manifest || {}) as Record<string, unknown>;
-    const names = Array.isArray(site.names) ? site.names : ['Us', 'Together'];
+    const manifest = (site.ai_manifest || {}) as Record<string, unknown>;
+    const siteConfig = (site.site_config || {}) as {
+      names?: string[]; coupleNames?: [string, string];
+    };
+    const names = Array.isArray(siteConfig.names) && siteConfig.names.length
+      ? siteConfig.names
+      : Array.isArray(siteConfig.coupleNames) && siteConfig.coupleNames.length
+        ? siteConfig.coupleNames
+        : ['Us', 'Together'];
     const [name1, name2] = names;
     const logistics = manifest.logistics as Record<string, unknown> | undefined;
     const vibeString = (manifest.vibeString as string) || '';
@@ -85,7 +102,7 @@ RULES:
 Just write the body paragraph(s).`;
 
     const aiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -107,30 +124,69 @@ Just write the body paragraph(s).`;
       if (generated) bodyText = generated;
     }
 
-    // Build and send the email
+    // Build and send the email — themed through the SuiteTheme
+    // contract so the confirmation wears the couple's exact look
+    // (email-safe palette + display face + monogrammed hairline).
     const resend = new Resend(resendKey);
     const subject = status === 'attending'
       ? `We can't wait to celebrate with you! - ${name1} & ${name2}`
       : `Thanks for letting us know - ${name1} & ${name2}`;
 
-    const htmlBody = `
-      <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; padding: 2rem; color: #2B2B2B;">
-        <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">Dear ${guestName},</p>
-        <p style="font-size: 1rem; line-height: 1.7; color: #444;">${bodyText.replace(/\n/g, '<br/>')}</p>
-        <p style="margin-top: 1.5rem; font-size: 1rem;">
-          With love,<br/>
-          <strong>${name1} & ${name2}</strong>
-        </p>
-        ${logistics?.date ? `<p style="font-size: 0.85rem; color: #9A9488; margin-top: 2rem; border-top: 1px solid #E6DFD2; padding-top: 1rem;">${logistics.date}${logistics.venue ? ` at ${logistics.venue}` : ''}</p>` : ''}
-        <p style="font-size: 0.72rem; color: #B5AFA5; margin-top: 1rem;">Sent via <a href="https://pearloom.com" style="color: #A3B18A;">Pearloom</a></p>
-      </div>
-    `;
+    const suite = suiteThemeFromManifest(
+      manifest as unknown as StoryManifest,
+      [String(name1 ?? ''), String(name2 ?? '')],
+    );
+    const t = emailThemeFromSuite(suite);
+    const headingStack = `'${t.headingFont}',Georgia,serif`;
+    const bodyStack = `'${t.bodyFont}',Georgia,serif`;
+    const safeBody = esc(bodyText).replace(/\n/g, '<br/>');
+    const coupleSig = `${esc(String(name1))} &amp; ${esc(String(name2))}`;
+    const headline = status === 'attending'
+      ? `We're thrilled you'll be there!`
+      : status === 'declined'
+        ? `We'll miss you.`
+        : `Thank you for responding.`;
+    const siteUrl = buildSiteUrl(String(site.subdomain), '', undefined, suite.occasion);
+
+    const dateVenueBlock = (logistics?.date || logistics?.venue)
+      ? `<tr><td style="padding:0 36px 8px">
+          <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:${t.accentLight};border-radius:12px">
+            <tr><td style="padding:18px 24px;text-align:center">
+              ${logistics?.date ? `<p style="font-size:15px;color:${t.foreground};margin:0 0 4px;font-weight:600;font-family:${headingStack};font-style:italic">${esc(String(logistics.date))}</p>` : ''}
+              ${logistics?.venue ? `<p style="font-size:13px;color:${t.muted};margin:0;font-family:${bodyStack}">${esc(String(logistics.venue))}</p>` : ''}
+            </td></tr>
+          </table>
+        </td></tr>`
+      : '';
+
+    const htmlBody = emailLayout(`
+      <tr><td style="padding:44px 36px 8px;text-align:center">
+        <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:${t.accent};margin:0 0 16px;font-family:${bodyStack}">RSVP ${status === 'attending' ? 'Confirmed' : 'Received'}</p>
+        <h1 style="font-family:${headingStack};font-size:28px;font-weight:400;font-style:italic;color:${t.foreground};margin:0 0 8px;line-height:1.3">${headline}</h1>
+        <div style="width:48px;height:1px;background-color:${t.accent};opacity:0.6;margin:18px auto"></div>
+      </td></tr>
+      <tr><td style="padding:4px 36px 20px;text-align:center">
+        <p style="font-size:14px;color:${t.foreground};line-height:1.7;margin:0 0 12px">Dear ${esc(guestName)},</p>
+        <p style="font-size:14px;color:${t.foreground};line-height:1.7;margin:0">${safeBody}</p>
+        <p style="font-size:14px;color:${t.foreground};font-style:italic;margin:20px 0 0;line-height:1.6;font-family:${headingStack}">With love,<br><strong>${coupleSig}</strong></p>
+      </td></tr>
+      ${dateVenueBlock}
+      <tr><td style="padding:14px 36px 40px;text-align:center">
+        ${button('View the site', siteUrl, t)}
+      </td></tr>
+    `, t);
 
     await resend.emails.send({
       from: 'Pearloom <noreply@pearloom.com>',
       to: guestEmail,
       subject,
       html: htmlBody,
+      tags: [
+        { name: 'channel', value: 'rsvp-confirmation' },
+        { name: 'site_id', value: String(siteId) },
+        // No guest_id here — this endpoint is fire-and-forget after
+        // an RSVP submit and the webhook can match by (site,email).
+      ],
     });
 
     return NextResponse.json({ sent: true });

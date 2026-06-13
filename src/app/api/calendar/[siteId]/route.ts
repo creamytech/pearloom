@@ -6,6 +6,7 @@
 import { getSiteConfig } from '@/lib/db';
 import { generateMultiICS } from '@/lib/calendar';
 import type { CalendarEvent } from '@/lib/calendar';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,6 +14,13 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ siteId: string }> },
 ) {
+  const ip = getClientIp(_req);
+  const rl = checkRateLimit(`calendar:${ip}`, { max: 20, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return new Response(JSON.stringify({ error: 'Too many requests' }), { status: 429 });
+  }
+
+  try {
   const { siteId } = await params;
 
   const siteConfig = await getSiteConfig(siteId);
@@ -90,4 +98,8 @@ export async function GET(
       'Cache-Control': 'no-store',
     },
   });
+  } catch (err) {
+    console.error('[api/calendar]', err);
+    return new Response(JSON.stringify({ error: 'Internal error' }), { status: 500 });
+  }
 }

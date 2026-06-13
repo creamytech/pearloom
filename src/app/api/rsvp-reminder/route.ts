@@ -13,7 +13,7 @@ import { checkRateLimit } from '@/lib/rate-limit';
 export const dynamic = 'force-dynamic';
 
 const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
 
 const RATE_LIMIT_REMINDER = { max: 5, windowMs: 60 * 60 * 1000 };
 
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'siteId is required' }, { status: 400 });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
     }
@@ -80,7 +80,10 @@ export async function POST(req: NextRequest) {
     if (siteError || !site) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
-    if (site.creator_email !== session.user.email) {
+    // Case-insensitive owner check — IdP casing variance otherwise
+    // 403s the legitimate owner. Matches /api/sites/[domain].
+    if (String(site.creator_email ?? '').toLowerCase().trim()
+      !== session.user.email.toLowerCase().trim()) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

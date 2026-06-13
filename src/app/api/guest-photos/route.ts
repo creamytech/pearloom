@@ -56,6 +56,12 @@ export async function POST(req: NextRequest) {
     const siteId = formData.get('siteId') as string | null;
     const uploaderName = formData.get('uploaderName') as string | null;
     const caption = formData.get('caption') as string | null;
+    // Optional guest token from /sites/[domain]/upload?t=<token>.
+    // When present, we look up the pearloom_guests row and stamp
+    // guest_id on the photo so /g/[token] can surface it as "your
+    // contribution." Bad tokens fall through silently — the
+    // upload still works, attribution just doesn't link.
+    const guestToken = formData.get('guestToken') as string | null;
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -75,6 +81,35 @@ export async function POST(req: NextRequest) {
 
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
       return NextResponse.json({ error: `File too large (max ${MAX_SIZE_MB}MB)` }, { status: 413 });
+    }
+
+    // Host's "Guest uploads" switch (GalleryPanel → manifest.guestUploads,
+    // default ON). Server-side enforcement of the same flag the
+    // /sites/[domain]/upload page checks — fails OPEN on lookup
+    // errors so a DB blip never blocks guests mid-reception.
+    try {
+      if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        const { createClient } = await import('@supabase/supabase-js');
+        const gateDb = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+          process.env.SUPABASE_SERVICE_ROLE_KEY,
+        );
+        const { data: siteRow } = await gateDb
+          .from('sites')
+          .select('ai_manifest')
+          .eq('subdomain', siteId)
+          .maybeSingle();
+        const uploadsOpen =
+          ((siteRow?.ai_manifest as { guestUploads?: boolean } | null)?.guestUploads) !== false;
+        if (siteRow && !uploadsOpen) {
+          return NextResponse.json(
+            { error: 'The hosts have closed photo uploads for this celebration.' },
+            { status: 403 },
+          );
+        }
+      }
+    } catch (gateErr) {
+      console.warn('[guest-photos] uploads-open gate failed (failing open):', gateErr);
     }
 
     let ext = rawExt || 'jpg';
@@ -130,9 +165,28 @@ export async function POST(req: NextRequest) {
       publicUrl = supabaseUrl;
     }
 
+    // Resolve guest_id from token (if provided) — best-effort.
+    let resolvedGuestId: string | null = null;
+    if (guestToken && guestToken.trim().length >= 6) {
+      try {
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        );
+        const { data: guestRow } = await supabase
+          .from('pearloom_guests')
+          .select('id')
+          .eq('guest_token', guestToken.trim())
+          .maybeSingle();
+        resolvedGuestId = (guestRow as { id?: string } | null)?.id ?? null;
+      } catch { /* silent — attribution is nice-to-have */ }
+    }
+
     const photo = await addGuestPhoto({
       siteId,
       uploaderName: uploaderName.trim(),
+      guestId: resolvedGuestId,
       url: publicUrl,
       thumbnailUrl: undefined,
       caption: caption?.trim() || undefined,
