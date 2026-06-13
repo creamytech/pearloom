@@ -3570,7 +3570,12 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-texture="gilded"],
 .pl8-guest[data-pl-texture="letterpress"],
 .pl8-guest[data-pl-texture="vellum"],
-.pl8-guest[data-pl-texture="newsprint"] {
+.pl8-guest[data-pl-texture="newsprint"],
+.pl8-guest[data-pl-texture="silk"],
+.pl8-guest[data-pl-texture="flecked"],
+.pl8-guest[data-pl-texture="washi"],
+.pl8-guest[data-pl-texture="slate"],
+.pl8-guest[data-pl-texture="tweed"] {
   position: relative;
   isolation: isolate;
 }
@@ -3585,7 +3590,12 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-texture="gilded"] > *,
 .pl8-guest[data-pl-texture="letterpress"] > *,
 .pl8-guest[data-pl-texture="vellum"] > *,
-.pl8-guest[data-pl-texture="newsprint"] > * {
+.pl8-guest[data-pl-texture="newsprint"] > *,
+.pl8-guest[data-pl-texture="silk"] > *,
+.pl8-guest[data-pl-texture="flecked"] > *,
+.pl8-guest[data-pl-texture="washi"] > *,
+.pl8-guest[data-pl-texture="slate"] > *,
+.pl8-guest[data-pl-texture="tweed"] > * {
   position: relative;
   z-index: 2;
 }
@@ -3600,7 +3610,12 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-texture="gilded"]::before,
 .pl8-guest[data-pl-texture="letterpress"]::before,
 .pl8-guest[data-pl-texture="vellum"]::before,
-.pl8-guest[data-pl-texture="newsprint"]::before {
+.pl8-guest[data-pl-texture="newsprint"]::before,
+.pl8-guest[data-pl-texture="silk"]::before,
+.pl8-guest[data-pl-texture="flecked"]::before,
+.pl8-guest[data-pl-texture="washi"]::before,
+.pl8-guest[data-pl-texture="slate"]::before,
+.pl8-guest[data-pl-texture="tweed"]::before {
   content: '';
   /* Was position: fixed which leaked the grain onto the editor's
      sidebars (fixed ignores parent boundaries). Now scoped to
@@ -7602,4 +7617,126 @@ html { scroll-behavior: smooth; }
 .pl8-guest[data-pl-kit="noir"] a.btn:not([class*="btn-"]) {
   border: 2px solid var(--t-ink, #0E0D0B) !important;
   box-shadow: 4px 4px 0 color-mix(in srgb, var(--t-gold, #C19A4B) 80%, transparent) !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   PACK-EXCLUSIVE TEXTURES + PATTERNS (2026-06-13)
+   ═══════════════════════════════════════════════════════════════
+   Materials and surface patterns no picker offers — they apply
+   only through Theme-Store packs. Same architecture as the public
+   set; data-URI SVG noise only (no CSS reference filters — the
+   iOS guard stays irrelevant here). */
+
+/* SILK — moiré interference sheen. Two near-parallel hairline
+   sets at a fraction of a degree apart create the watered-silk
+   bloom as they beat against each other. */
+.pl8-guest[data-pl-texture="silk"] {
+  background-color: #F4F0E8;
+  background-image:
+    repeating-linear-gradient(86deg, rgba(255,255,255,0.5) 0 1px, transparent 1px 6px),
+    repeating-linear-gradient(88.5deg, rgba(120,108,92,0.16) 0 1px, transparent 1px 7px),
+    linear-gradient(160deg, rgba(255,255,255,0.25) 0%, transparent 40%, rgba(120,108,92,0.07) 100%);
+}
+.pl8-guest[data-pl-texture="silk"]::before {
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'%3E%3Cfilter id='sk'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.38 0 0 0 0 0.30 0 0 0 0.10 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23sk)'/%3E%3C/svg%3E");
+  background-size: 300px 300px;
+  opacity: calc(0.5 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: multiply;
+}
+
+/* FLECKED — gold-leaf flecks drifting on warm bond. */
+.pl8-guest[data-pl-texture="flecked"] {
+  background-color: #F6F1E4;
+}
+.pl8-guest[data-pl-texture="flecked"]::before {
+  background-image:
+    radial-gradient(circle 1.6px at 23% 18%, rgba(193,154,75,0.85) 98%, transparent),
+    radial-gradient(circle 1px   at 67% 9%,  rgba(193,154,75,0.6) 98%, transparent),
+    radial-gradient(circle 2.2px at 84% 41%, rgba(170,128,52,0.7) 98%, transparent),
+    radial-gradient(circle 1.2px at 40% 56%, rgba(193,154,75,0.65) 98%, transparent),
+    radial-gradient(circle 1.8px at 10% 76%, rgba(212,179,115,0.8) 98%, transparent),
+    radial-gradient(circle 1px   at 58% 88%, rgba(170,128,52,0.6) 98%, transparent),
+    radial-gradient(circle 1.4px at 91% 79%, rgba(193,154,75,0.7) 98%, transparent),
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Cfilter id='fk'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.40 0 0 0 0 0.34 0 0 0 0 0.24 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23fk)'/%3E%3C/svg%3E");
+  background-size: 137px 149px, 211px 173px, 179px 197px, 157px 167px, 191px 181px, 167px 159px, 203px 191px, 240px 240px;
+  opacity: calc(0.85 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: multiply;
+}
+
+/* WASHI — fibrous rice paper: long soft strands in the pulp. */
+.pl8-guest[data-pl-texture="washi"] {
+  background-color: #F8F4EA;
+}
+.pl8-guest[data-pl-texture="washi"]::before {
+  background-image:
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'%3E%3Cfilter id='wa'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.012 0.18' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.55 0 0 0 0 0.50 0 0 0 0 0.40 0 0 0 0.16 0'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23wa)'/%3E%3C/svg%3E");
+  background-size: 320px 320px;
+  opacity: calc(0.6 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: multiply;
+}
+
+/* SLATE — honed dark stone: cool mineral wash + fine grain.
+   Designed for dark-paper packs; multiply stays subtle on light. */
+.pl8-guest[data-pl-texture="slate"]::before {
+  background-image:
+    radial-gradient(80% 60% at 20% 15%, rgba(255,255,255,0.05) 0%, transparent 60%),
+    radial-gradient(70% 50% at 85% 80%, rgba(0,0,0,0.18) 0%, transparent 65%),
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 280'%3E%3Cfilter id='sl'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='4' seed='8' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.17 0 0 0 0 0.19 0 0 0 0.30 0'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23sl)'/%3E%3C/svg%3E");
+  background-size: 100% 100%, 100% 100%, 280px 280px;
+  opacity: calc(0.55 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: multiply;
+}
+
+/* TWEED — woven flecked wool: tight diagonal weave + nubs. */
+.pl8-guest[data-pl-texture="tweed"] {
+  background-color: #EFE9DB;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(110,98,82,0.18) 0 1.5px, transparent 1.5px 4px),
+    repeating-linear-gradient(-45deg, rgba(255,255,255,0.30) 0 1.5px, transparent 1.5px 4px);
+}
+.pl8-guest[data-pl-texture="tweed"]::before {
+  background-image:
+    radial-gradient(circle 1.4px at 31% 22%, rgba(122,93,42,0.55) 98%, transparent),
+    radial-gradient(circle 1.2px at 72% 61%, rgba(92,107,63,0.5) 98%, transparent),
+    radial-gradient(circle 1.6px at 14% 83%, rgba(110,98,82,0.5) 98%, transparent),
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='tw'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='2' seed='6' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.36 0 0 0 0 0.32 0 0 0 0 0.26 0 0 0 0.14 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23tw)'/%3E%3C/svg%3E");
+  background-size: 113px 127px, 149px 137px, 131px 143px, 200px 200px;
+  opacity: calc(0.7 * var(--pl-texture-intensity, 1));
+  mix-blend-mode: multiply;
+}
+
+/* ── EXCLUSIVE PATTERNS — same .pl8-pattern-layer contract. ── */
+
+/* TRELLIS — garden lattice diamonds. */
+.pl8-pattern-layer[data-pl-pattern="trellis"] {
+  background-image:
+    repeating-linear-gradient(45deg, color-mix(in srgb, var(--t-accent, #5C6B3F) 14%, transparent) 0 1.5px, transparent 1.5px 26px),
+    repeating-linear-gradient(-45deg, color-mix(in srgb, var(--t-accent, #5C6B3F) 14%, transparent) 0 1.5px, transparent 1.5px 26px);
+}
+
+/* SWISS DOT — tiny embroidered dots on a wide grid. */
+.pl8-pattern-layer[data-pl-pattern="swiss-dot"] {
+  background-image:
+    radial-gradient(circle 1.8px at 11px 11px, color-mix(in srgb, var(--t-accent, #5C6B3F) 30%, transparent) 98%, transparent),
+    radial-gradient(circle 1.8px at 25px 25px, color-mix(in srgb, var(--t-gold, #C19A4B) 26%, transparent) 98%, transparent);
+  background-size: 28px 28px;
+}
+
+/* HERRINGBONE — woven chevron columns. */
+.pl8-pattern-layer[data-pl-pattern="herringbone"] {
+  background-image:
+    repeating-linear-gradient(55deg, color-mix(in srgb, var(--t-ink, #0E0D0B) 8%, transparent) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(-55deg, color-mix(in srgb, var(--t-ink, #0E0D0B) 8%, transparent) 0 2px, transparent 2px 9px);
+  background-size: 26px 100%, 26px 100%;
+  background-position: 0 0, 13px 0;
+}
+
+/* SUNRAY — deco sunrise radiating from the page foot. */
+.pl8-pattern-layer[data-pl-pattern="sunray"] {
+  background-image: repeating-conic-gradient(
+    from -90deg at 50% 115%,
+    color-mix(in srgb, var(--t-gold, #C19A4B) 12%, transparent) 0deg 4deg,
+    transparent 4deg 12deg
+  );
 }

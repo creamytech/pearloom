@@ -429,6 +429,16 @@ export function ThemedSite({
       </div>
     </div>
   ) : null;
+  /* SURFACE PATTERN (manifest.pattern ← theme packs). The CSS has
+     existed since the pattern system shipped — but only the store
+     thumbnails ever mounted .pl8-pattern-layer, so a purchased
+     gingham/celestial/deco pattern never reached the actual site
+     (2026-06-13 audit). Direct child of .pl8-guest: the :has()
+     rules lift content above it. */
+  const patternId = ((manifest as unknown as { pattern?: string }).pattern) ?? 'none';
+  const patternLayer = patternId !== 'none' ? (
+    <div className="pl8-pattern-layer" data-pl-pattern={patternId} aria-hidden="true" />
+  ) : null;
   const motifLayout: MotifLayout = !motifsOn || motif === 'none'
     ? 'none'
     : (((manifest as unknown as { motifLayout?: MotifLayout }).motifLayout) ?? motifLayoutForKit(kitId));
@@ -438,7 +448,8 @@ export function ThemedSite({
   const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, motifLayout, textureIntensity, showWashHero, dividerLook, variants, C, manifest, coverPhoto, edit, icsHref, siteSlug };
   /* Edit-mode-only <style> for empty-value InlineEdit ghosts —
      mounted next to <TextureFilters />
-        {glassPhotoAurora} in every layout branch. */
+        {glassPhotoAurora}
+        {patternLayer} in every layout branch. */
   const ghostStyleEl = editable ? <style>{INLINE_GHOST_CSS}</style> : null;
 
   /* Scroll-rise — guest-facing sections thread into view as the
@@ -712,6 +723,7 @@ export function ThemedSite({
       <div ref={revealRoot} onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-split">
         <TextureFilters />
         {glassPhotoAurora}
+        {patternLayer}
         {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
@@ -755,6 +767,7 @@ export function ThemedSite({
       >
         <TextureFilters />
         {glassPhotoAurora}
+        {patternLayer}
         {ghostStyleEl}
         <div
           style={{
@@ -793,6 +806,7 @@ export function ThemedSite({
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-magazine">
         <TextureFilters />
         {glassPhotoAurora}
+        {patternLayer}
         {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
@@ -822,6 +836,7 @@ export function ThemedSite({
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-zine">
         <TextureFilters />
         {glassPhotoAurora}
+        {patternLayer}
         {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
@@ -862,6 +877,7 @@ export function ThemedSite({
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-storybook">
         <TextureFilters />
         {glassPhotoAurora}
+        {patternLayer}
         {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
@@ -917,6 +933,7 @@ export function ThemedSite({
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-gallery">
         <TextureFilters />
         {glassPhotoAurora}
+        {patternLayer}
         {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
@@ -970,6 +987,7 @@ export function ThemedSite({
       >
         <TextureFilters />
         {glassPhotoAurora}
+        {patternLayer}
         {ghostStyleEl}
         <div
           className="pl8-postcard-frame"
@@ -1066,6 +1084,7 @@ export function ThemedSite({
     <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest">
       <TextureFilters />
         {glassPhotoAurora}
+        {patternLayer}
         {ghostStyleEl}
       {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
       <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
