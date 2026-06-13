@@ -432,6 +432,14 @@ function ScheduleRow({
           onChange={(v) => onPatch({ description: v })}
           placeholder="A note for guests — “unplugged ceremony”, “cash bar”… (optional)"
         />
+        {/* Street address → a "Directions" link on the published
+            row. Venue above is the display name; this is the part
+            Maps can route to. */}
+        <FInput
+          value={e.address ?? ''}
+          onChange={(v) => onPatch({ address: v })}
+          placeholder="Address — adds a Directions link (optional)"
+        />
       </div>
       <button
         type="button"

@@ -44,7 +44,7 @@ import { DetailsIconRow, DetailsAccordion, DetailsBento } from './section-varian
 import { ScheduleTimeline, ScheduleStepper, ScheduleNumbered } from './section-variants/schedule';
 import { GalleryMasonry, GallerySlideshow, GalleryPolaroid } from './section-variants/gallery';
 import { FaqTwocol, FaqNumbered, FaqCards } from './section-variants/faq';
-import { TravelMap, TravelTable, TravelCarousel } from './section-variants/travel';
+import { TravelMap, TravelTable, TravelCarousel, StayActions } from './section-variants/travel';
 import { RegistryChips, RegistryProgress, RegistryLogoWall } from './section-variants/registry';
 import { StoryZigzag } from './section-variants/story';
 import {
@@ -429,13 +429,27 @@ export function ThemedSite({
       </div>
     </div>
   ) : null;
+  /* SURFACE PATTERN (manifest.pattern ← theme packs). The CSS has
+     existed since the pattern system shipped — but only the store
+     thumbnails ever mounted .pl8-pattern-layer, so a purchased
+     gingham/celestial/deco pattern never reached the actual site
+     (2026-06-13 audit). Direct child of .pl8-guest: the :has()
+     rules lift content above it. */
+  const patternId = ((manifest as unknown as { pattern?: string }).pattern) ?? 'none';
+  const patternLayer = patternId !== 'none' ? (
+    <div className="pl8-pattern-layer" data-pl-pattern={patternId} aria-hidden="true" />
+  ) : null;
   const motifLayout: MotifLayout = !motifsOn || motif === 'none'
     ? 'none'
     : (((manifest as unknown as { motifLayout?: MotifLayout }).motifLayout) ?? motifLayoutForKit(kitId));
-  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, motifLayout, textureIntensity, showWashHero, dividerLook, variants, C, manifest, coverPhoto, edit };
+  const icsHref = siteSlug && manifest.logistics?.date
+    ? buildSitePath(siteSlug, '/event.ics', (manifest as unknown as { occasion?: string }).occasion)
+    : undefined;
+  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, motifLayout, textureIntensity, showWashHero, dividerLook, variants, C, manifest, coverPhoto, edit, icsHref, siteSlug };
   /* Edit-mode-only <style> for empty-value InlineEdit ghosts —
      mounted next to <TextureFilters />
-        {glassPhotoAurora} in every layout branch. */
+        {glassPhotoAurora}
+        {patternLayer} in every layout branch. */
   const ghostStyleEl = editable ? <style>{INLINE_GHOST_CSS}</style> : null;
 
   /* Scroll-rise — guest-facing sections thread into view as the
@@ -709,6 +723,7 @@ export function ThemedSite({
       <div ref={revealRoot} onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-split">
         <TextureFilters />
         {glassPhotoAurora}
+        {patternLayer}
         {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
@@ -752,6 +767,7 @@ export function ThemedSite({
       >
         <TextureFilters />
         {glassPhotoAurora}
+        {patternLayer}
         {ghostStyleEl}
         <div
           style={{
@@ -790,6 +806,7 @@ export function ThemedSite({
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-magazine">
         <TextureFilters />
         {glassPhotoAurora}
+        {patternLayer}
         {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
@@ -819,6 +836,7 @@ export function ThemedSite({
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-zine">
         <TextureFilters />
         {glassPhotoAurora}
+        {patternLayer}
         {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
@@ -859,6 +877,7 @@ export function ThemedSite({
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-storybook">
         <TextureFilters />
         {glassPhotoAurora}
+        {patternLayer}
         {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
@@ -914,6 +933,7 @@ export function ThemedSite({
       <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-gallery">
         <TextureFilters />
         {glassPhotoAurora}
+        {patternLayer}
         {ghostStyleEl}
         {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
         <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
@@ -967,6 +987,7 @@ export function ThemedSite({
       >
         <TextureFilters />
         {glassPhotoAurora}
+        {patternLayer}
         {ghostStyleEl}
         <div
           className="pl8-postcard-frame"
@@ -1063,6 +1084,7 @@ export function ThemedSite({
     <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest">
       <TextureFilters />
         {glassPhotoAurora}
+        {patternLayer}
         {ghostStyleEl}
       {decor.pattern && decor.pattern !== 'none' && <PatternLayer pattern={decor.pattern} intensity={patternIntensity} />}
       <TextureLayer texture={textureIntensity > 0 ? effectiveTexture : "none"} intensity={textureIntensity} />
@@ -1229,13 +1251,13 @@ function renderKind(kind: SectionKind, ctx: SectionCtx): ReactNode {
   switch (kind) {
     case 'hero':     return <HeroBlock ctx={ctx} />;
     case 'story':    return <StoryBlock ctx={ctx} />;
-    case 'details':  return <DetailsBlock ctx={ctx} />;
-    case 'schedule': return <ScheduleBlock ctx={ctx} />;
+    case 'details':  return <><DetailsBlock ctx={ctx} /><HostContactStrip ctx={ctx} /></>;
+    case 'schedule': return <><ScheduleBlock ctx={ctx} /><CalendarChipStrip ctx={ctx} /></>;
     case 'travel':   return <TravelBlock ctx={ctx} />;
     case 'registry': return <RegistryBlock ctx={ctx} />;
-    case 'gallery':  return <GalleryBlock ctx={ctx} />;
+    case 'gallery':  return <><GalleryBlock ctx={ctx} /><GalleryShareStrip ctx={ctx} /></>;
     case 'rsvp':     return <RsvpBlock ctx={ctx} />;
-    case 'faq':      return <FaqBlock ctx={ctx} />;
+    case 'faq':      return <><FaqBlock ctx={ctx} /><FaqAskStrip ctx={ctx} /></>;
     case 'countdown':return <CountdownBlock ctx={ctx} />;
     case 'map':      return <MapBlock ctx={ctx} />;
     case 'music':    return <MusicBlock ctx={ctx} />;
@@ -1972,6 +1994,174 @@ function DetailsBlock({ ctx }: { ctx: SectionCtx }) {
 
 /* ─── ScheduleBlock — handoff L511-565 cards default. ────────── */
 
+/* "Add to your calendar" — the .ics the site has served all along
+   (/sites/[domain]/event.ics) finally gets a link where guests
+   look for times. Rides the schedule section on every variant;
+   same paper so it reads as the section's footer line. */
+function CalendarChipStrip({ ctx }: { ctx: SectionCtx }) {
+  if (!ctx.icsHref) return null;
+  return (
+    <div style={{ background: 'var(--t-paper)', padding: '0 24px 40px', textAlign: 'center' }}>
+      <a
+        href={ctx.icsHref}
+        download
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          padding: '9px 18px', borderRadius: 999,
+          border: '1px solid var(--t-line)',
+          color: 'var(--t-ink-soft)',
+          fontSize: 12.5, fontWeight: 600, textDecoration: 'none',
+        }}
+      >
+        <Icon name="calendar" size={13} color="var(--t-accent)" /> Add to your calendar
+      </a>
+    </div>
+  );
+}
+
+/* ── Guest-facing section strips (2026-06-13 settings round) ──
+   Each rides its section through the dispatch, wears the
+   section's paper, and renders nothing until the host (or the
+   data) turns it on. */
+
+/* "Share your photos" — the guest-upload page has existed at
+   /[site]/upload with no link on the published site. Host can
+   hide it via manifest.galleryUploads=false (GalleryPanel). */
+function GalleryShareStrip({ ctx }: { ctx: SectionCtx }) {
+  const enabled = ((ctx.manifest as unknown as { galleryUploads?: boolean }).galleryUploads) !== false;
+  if (!ctx.siteSlug || !enabled) return null;
+  const href = buildSitePath(ctx.siteSlug, '/upload', (ctx.manifest as unknown as { occasion?: string }).occasion);
+  return (
+    <div style={{ background: 'var(--t-section)', padding: '0 24px 36px', textAlign: 'center' }}>
+      <a
+        href={href}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          padding: '9px 18px', borderRadius: 999,
+          border: '1px solid var(--t-line)',
+          color: 'var(--t-ink-soft)',
+          fontSize: 12.5, fontWeight: 600, textDecoration: 'none',
+        }}
+      >
+        <Icon name="camera" size={13} color="var(--t-accent)" /> Share your photos with us
+      </a>
+    </div>
+  );
+}
+
+/* "Questions? Text the host" — manifest.hostContact { name, phone }
+   from the Details panel. sms: opens the guest's Messages with the
+   host's number; renders nowhere until a phone is set. */
+function HostContactStrip({ ctx }: { ctx: SectionCtx }) {
+  const hc = (ctx.manifest as unknown as { hostContact?: { name?: string; phone?: string } }).hostContact;
+  const phone = (hc?.phone ?? '').replace(/[^\d+]/g, '');
+  if (phone.replace(/\D/g, '').length < 7) return null;
+  const who = (hc?.name ?? '').trim();
+  return (
+    <div style={{ background: 'var(--t-paper)', padding: '0 24px 40px', textAlign: 'center' }}>
+      <a
+        href={`sms:${phone}`}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          padding: '10px 20px', borderRadius: 999,
+          background: 'var(--t-card)',
+          border: '1px solid var(--t-line)',
+          color: 'var(--t-ink)',
+          fontSize: 13, fontWeight: 600, textDecoration: 'none',
+        }}
+      >
+        <Icon name="phone" size={13} color="var(--t-accent)" />
+        Questions? Text {who || 'the hosts'}
+      </a>
+    </div>
+  );
+}
+
+/* "Ask us anything" — a tiny composer under the FAQ that lands in
+   the host's Submissions dashboard (the existing public
+   /api/event-os/submissions route, blockId 'faq-questions').
+   OFF by default; FaqPanel's "Let guests ask a question" toggle
+   (manifest.faqConfig.allowQuestions) turns it on. */
+function FaqAskStrip({ ctx }: { ctx: SectionCtx }) {
+  const allow = ((ctx.manifest as unknown as { faqConfig?: { allowQuestions?: boolean } }).faqConfig?.allowQuestions) === true;
+  const [name, setName] = useState('');
+  const [q, setQ] = useState('');
+  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  if (!ctx.siteSlug || !allow) return null;
+  const send = async () => {
+    if (state === 'sending' || q.trim().length < 4) return;
+    setState('sending');
+    try {
+      const r = await fetch('/api/event-os/submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId: ctx.siteSlug,
+          blockId: 'faq-questions',
+          from: name.trim() || 'A guest',
+          body: q.trim(),
+        }),
+      });
+      if (!r.ok) throw new Error(String(r.status));
+      setState('sent');
+    } catch {
+      setState('error');
+    }
+  };
+  return (
+    <div style={{ background: 'var(--t-paper)', padding: '0 24px 44px' }}>
+      <div style={{ maxWidth: 460, margin: '0 auto', textAlign: 'center' }}>
+        {state === 'sent' ? (
+          <div style={{ fontSize: 13.5, color: 'var(--t-ink-soft)' }}>
+            Sent — your hosts will see it. ✓
+          </div>
+        ) : (
+          <>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'var(--t-ink-muted)', marginBottom: 10 }}>
+              Didn&rsquo;t find your answer?
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name (optional)"
+                style={{ padding: '10px 14px', borderRadius: 'var(--t-radius)', border: '1px solid var(--t-line)', background: 'var(--t-card)', color: 'var(--t-ink)', fontSize: 13.5, outline: 'none', fontFamily: 'inherit' }}
+              />
+              <textarea
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                rows={2}
+                maxLength={2000}
+                placeholder="Ask the hosts anything…"
+                style={{ padding: '10px 14px', borderRadius: 'var(--t-radius)', border: '1px solid var(--t-line)', background: 'var(--t-card)', color: 'var(--t-ink)', fontSize: 13.5, outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
+              />
+              <button
+                type="button"
+                onClick={send}
+                disabled={state === 'sending' || q.trim().length < 4}
+                style={{
+                  alignSelf: 'center',
+                  padding: '9px 22px', borderRadius: 999, border: 'none',
+                  background: 'var(--t-rsvp, var(--t-ink))', color: 'var(--t-rsvp-ink, var(--t-paper))',
+                  fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                  opacity: state === 'sending' || q.trim().length < 4 ? 0.6 : 1,
+                }}
+              >
+                {state === 'sending' ? 'Sending…' : 'Send your question'}
+              </button>
+              {state === 'error' && (
+                <div style={{ fontSize: 12, color: 'var(--t-ink-soft)' }}>
+                  Couldn&rsquo;t send — try again in a moment.
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
   const { pad, C, editable, variants } = ctx;
   const sub = {
@@ -2049,6 +2239,16 @@ function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
                             the variant layouts. SchedulePanel covers
                             multi-day edits. */}
                         {r.d && <div style={SCHEDULE_NOTE_STYLE}>{r.d}</div>}
+                        {r.addr && (
+                          <a
+                            href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(r.addr)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 11, fontWeight: 700, color: 'var(--t-accent-ink)', textDecoration: 'none' }}
+                          >
+                            <Icon name="pin" size={10} color="var(--t-accent)" /> Directions
+                          </a>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -2106,6 +2306,16 @@ function ScheduleBlock({ ctx }: { ctx: SectionCtx }) {
             ) : r.d ? (
               <div style={SCHEDULE_NOTE_STYLE}>{r.d}</div>
             ) : null}
+            {r.addr && (
+              <a
+                href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(r.addr)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 11, fontWeight: 700, color: 'var(--t-accent-ink)', textDecoration: 'none' }}
+              >
+                <Icon name="pin" size={10} color="var(--t-accent)" /> Directions
+              </a>
+            )}
           </div>
         ))}
       </div>
@@ -2211,6 +2421,7 @@ function TravelBlock({ ctx }: { ctx: SectionCtx }) {
                     </span>
                   ))}
                 </div>
+                <StayActions h={h} />
               </div>
             </div>
           ))}
@@ -2283,20 +2494,33 @@ function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
             padding: '12px 22px', borderRadius: 'var(--t-radius)',
             background: 'var(--t-card)', border: '1px solid var(--t-line)',
             fontSize: 13, fontWeight: 600, color: 'var(--t-ink)',
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            textDecoration: 'none',
+            display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+            textDecoration: 'none', maxWidth: 260,
             transition: 'transform var(--pl-dur-fast) var(--pl-ease-emphasis), border-color var(--pl-dur-fast)',
           };
+          const inner = (
+            <>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                {s.name} <Icon name="arrow-ur" size={12} color="var(--t-accent-ink)" />
+              </span>
+              {/* Host note — "for the honeymoon fund", "home goods". */}
+              {s.note && (
+                <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--t-ink-soft)', lineHeight: 1.4 }}>
+                  {s.note}
+                </span>
+              )}
+            </>
+          );
           if (s.url) {
             return (
               <a key={`${s.name}-${i}`} href={s.url} target="_blank" rel="noopener noreferrer" style={pillStyle}>
-                {s.name} <Icon name="arrow-ur" size={12} color="var(--t-accent-ink)" />
+                {inner}
               </a>
             );
           }
           return (
             <span key={`${s.name}-${i}`} style={pillStyle}>
-              {s.name} <Icon name="arrow-ur" size={12} color="var(--t-accent-ink)" />
+              {inner}
             </span>
           );
         })}
@@ -3785,6 +4009,106 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
       </div>
     );
   }
+  /* ── PACK-EXCLUSIVE divider looks (2026-06-13) — never offered
+     by the Decor library's divider picker; a Theme-Store pack's
+     explicit `divider` field is the only writer. */
+  if (look === 'gilt-chain') {
+    /* Linked gold ovals — a fine jewelry chain. */
+    const links = Math.max(5, Math.round(width / 18));
+    return (
+      <div style={wrap}>
+        <svg width={width} height="10" viewBox={`0 0 ${width} 10`} aria-hidden>
+          {Array.from({ length: links }).map((_, i) => (
+            <ellipse
+              key={i}
+              cx={(i + 0.5) * (width / links)}
+              cy="5"
+              rx={width / links / 2 + 1.5}
+              ry="3.2"
+              fill="none"
+              stroke="var(--t-gold, var(--gold, #C19A4B))"
+              strokeWidth="1.1"
+              opacity={i % 2 === 0 ? 0.9 : 0.55}
+            />
+          ))}
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'stitch-seam') {
+    /* Couture running stitch with a thread tail. */
+    const stitches = Math.max(6, Math.round(width / 14));
+    return (
+      <div style={wrap}>
+        <svg width={width} height="10" viewBox={`0 0 ${width} 10`} aria-hidden>
+          {Array.from({ length: stitches }).map((_, i) => (
+            <line
+              key={i}
+              x1={(i + 0.18) * (width / stitches)}
+              y1={i % 2 === 0 ? 6.5 : 3.5}
+              x2={(i + 0.82) * (width / stitches)}
+              y2={i % 2 === 0 ? 3.5 : 6.5}
+              stroke="var(--t-accent)"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+              opacity="0.8"
+            />
+          ))}
+          <circle cx={width - 2} cy="5" r="1.8" fill="var(--t-gold, var(--gold, #C19A4B))" />
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'marquee-bulbs') {
+    /* A run of theatre bulbs, center bulb lit largest. */
+    const bulbs = Math.max(7, Math.round(width / 16)) | 1;
+    return (
+      <div style={wrap}>
+        <svg width={width} height="10" viewBox={`0 0 ${width} 10`} aria-hidden>
+          {Array.from({ length: bulbs }).map((_, i) => {
+            const center = Math.abs(i - (bulbs - 1) / 2) < 0.6;
+            return (
+              <circle
+                key={i}
+                cx={(i + 0.5) * (width / bulbs)}
+                cy="5"
+                r={center ? 2.6 : 1.6}
+                fill={center ? 'var(--t-gold, var(--gold, #C19A4B))' : 'var(--t-accent)'}
+                opacity={center ? 1 : 0.45 + 0.5 * (1 - Math.abs(i - (bulbs - 1) / 2) / ((bulbs - 1) / 2))}
+              />
+            );
+          })}
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'crystal-drops') {
+    /* Hanging chandelier crystals from a hairline rail. */
+    const drops = Math.max(5, Math.round(width / 26));
+    return (
+      <div style={wrap}>
+        <svg width={width} height="16" viewBox={`0 0 ${width} 16`} aria-hidden>
+          <line x1="0" y1="1.5" x2={width} y2="1.5" stroke="var(--t-line)" strokeWidth="1" />
+          {Array.from({ length: drops }).map((_, i) => {
+            const x = (i + 0.5) * (width / drops);
+            const long = i % 2 === 0;
+            return (
+              <g key={i}>
+                <line x1={x} y1="1.5" x2={x} y2={long ? 8 : 5.5} stroke="var(--t-accent)" strokeWidth="1" opacity="0.6" />
+                <path
+                  d={`M ${x} ${long ? 8 : 5.5} l 2.2 3 l -2.2 3 l -2.2 -3 Z`}
+                  fill="none"
+                  stroke={long ? 'var(--t-gold, var(--gold, #C19A4B))' : 'var(--t-accent)'}
+                  strokeWidth="1.1"
+                  opacity={long ? 0.95 : 0.6}
+                />
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+    );
+  }
   /* rule (default) */
   return (
     <div style={wrap}>
@@ -3989,6 +4313,13 @@ const SECTION_LABEL: Record<SectionKind, string> = {
 };
 
 interface SectionCtx {
+  /** Published-only "Add to your calendar" link (the .ics route
+   *  the site already serves). Undefined in the editor canvas
+   *  (no siteSlug) and when no event date is set. */
+  icsHref?: string;
+  /** The published slug — undefined on the editor canvas. Gates
+   *  the guest-facing strips (photo uploads, ask-a-question). */
+  siteSlug?: string;
   theme: Theme;
   pad: number;
   editable: boolean;
@@ -4108,7 +4439,7 @@ interface Copy {
   details: { eyebrow: string; title: string; italic?: string; items: { l: string; v: string; icon: string }[] };
   /** Schedule rows — t(ime) / l(abel) / s(ubtitle = venue) / d(escription,
    *  the optional quiet note under the venue line) / day. */
-  schedule: { eyebrow: string; title: string; italic?: string; rows: { t: string; l: string; s: string; d?: string; day?: number }[] };
+  schedule: { eyebrow: string; title: string; italic?: string; rows: { t: string; l: string; s: string; d?: string; addr?: string; day?: number }[] };
   travel: { eyebrow: string; title: string; italic?: string; intro?: string; hotels: { name: string; price: string; rating: number; reviews: number; dist: string; tone: PhotoTone; blurb: string; amenities: string[]; photoUrl?: string; bookingUrl?: string }[]; shuttle?: string };
   registry: {
     eyebrow: string; title: string; italic?: string; body: string;
@@ -4116,7 +4447,7 @@ interface Copy {
      *  wraps each in <a href> when a URL is present, otherwise
      *  shows a plain pill. Legacy string[] entries from old
      *  manifests are normalized to { name } in buildCopy. */
-    stores: { name: string; url?: string }[];
+    stores: { name: string; url?: string; note?: string }[];
     /** Honeymoon-fund progress (0–100). Only consumed by the
      *  RegistryProgress variant. */
     fundPct?: number;
@@ -4412,7 +4743,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
   const storySection = (loose.storySection as { headline?: string; body?: string; chips?: string[] } | undefined) ?? {};
   const galleryTones = (loose.galleryTones as PhotoTone[] | undefined);
   const detailsCards = (loose.detailsCards as Array<[string, string]> | undefined) ?? [];
-  const eventsRaw = (loose.events as Array<{ time?: string; name?: string; venue?: string; description?: string }> | undefined) ?? [];
+  const eventsRaw = (loose.events as Array<{ time?: string; name?: string; venue?: string; address?: string; description?: string }> | undefined) ?? [];
   const faqsRaw = (loose.faqs as Array<{ question?: string; answer?: string }> | undefined) ?? [];
   /* manifest.registryStores may be legacy string[] OR new
      { name, url? }[]. Normalize to the rich shape for buildCopy. */
@@ -4589,6 +4920,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
                  line) so no content disappears. */
               s: e.venue ?? '',
               d: (e.description ?? '').trim() || undefined,
+              addr: (e.address ?? '').trim() || undefined,
               day: (e as { day?: number }).day,
             }));
           })()
@@ -4645,6 +4977,7 @@ function buildCopy(theme: Theme, manifest: StoryManifest, args: { nameA: string;
           : [],
         photoUrl: h.photoUrl || h.photoUrls?.[0],
         bookingUrl: h.bookingUrl,
+        groupRate: (h.groupRate ?? '').trim() || undefined,
         lat: typeof h.lat === 'number' ? h.lat : undefined,
         lng: typeof h.lng === 'number' ? h.lng : undefined,
       }));

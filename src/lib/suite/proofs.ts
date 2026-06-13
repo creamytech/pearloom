@@ -137,6 +137,8 @@ const MONOGRAM_FRAMES = [
   'ring', 'diamond', 'laurel', 'none', 'shield', 'oval', 'arch', 'sprig',
   'seal', 'banner', 'stitch', 'pearls', 'fan', 'garland', 'lozenge',
   'corners', 'wreath', 'gate', 'halo', 'tag',
+  /* Pack-exclusive frames (2026-06-13). */
+  'gilt', 'bow-crest', 'marquee',
 ] as const satisfies readonly MonogramFrame[];
 const MONOGRAM_FRAME_SET: ReadonlySet<string> = new Set(MONOGRAM_FRAMES);
 
@@ -150,6 +152,8 @@ const MOTIFKIND_TO_STUDIO_MOTIF: Record<MotifKind, string> = {
   magnolia: 'leaves', gingko: 'leaves', peony: 'leaves', vine: 'leaves',
   holly: 'leaves', 'cherry-blossom': 'leaves', monstera: 'leaves', orchid: 'leaves',
   lemon: 'stamp', citrus: 'stamp', shell: 'stamp', mountain: 'stamp',
+  /* Pack-exclusive glyphs (2026-06-13). */
+  chandelier: 'stamp', bow: 'leaves', sparkler: 'stamp',
   compass: 'stamp', anchor: 'stamp', lantern: 'stamp', pinecone: 'stamp',
   crescent: 'stamp', dove: 'stamp',
   sun: 'doodle', starburst: 'doodle', disco: 'doodle', butterfly: 'doodle',

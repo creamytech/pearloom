@@ -175,6 +175,27 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
             {cards.length < 3 && <AddCard label="Add a detail" onClick={addCard} />}
           </div>
         </FGroup>
+        <FGroup label="Contact a host" hint="Adds a 'Questions? Text us' button under the details — guests tap it and their Messages opens with your number.">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <FInput
+              value={((manifest as unknown as { hostContact?: { name?: string } }).hostContact?.name) ?? ''}
+              onChange={(v) => onChange({
+                ...(manifest as unknown as Record<string, unknown>),
+                hostContact: { ...((manifest as unknown as { hostContact?: Record<string, unknown> }).hostContact ?? {}), name: v || undefined },
+              } as unknown as StoryManifest)}
+              placeholder="Who answers — 'Emma', 'the best man'…"
+            />
+            <FInput
+              value={((manifest as unknown as { hostContact?: { phone?: string } }).hostContact?.phone) ?? ''}
+              onChange={(v) => onChange({
+                ...(manifest as unknown as Record<string, unknown>),
+                hostContact: { ...((manifest as unknown as { hostContact?: Record<string, unknown> }).hostContact ?? {}), phone: v || undefined },
+              } as unknown as StoryManifest)}
+              type="tel"
+              placeholder="(555) 010-1234 — leave empty to hide the button"
+            />
+          </div>
+        </FGroup>
         <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Details" />
       </div>
     </SectionPanelShell>

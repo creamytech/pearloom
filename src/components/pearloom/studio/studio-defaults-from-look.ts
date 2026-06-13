@@ -62,6 +62,13 @@ const EDITION_TO_FONT_PAIR: Record<EditionId, string> = {
    Each Kit has a signature decorative element. Map to the
    closest Studio motif. */
 const KIT_TO_MOTIF: Record<KitId, string> = {
+  /* Pack-exclusive kits (2026-06-13) — Studio's coarse motif
+     vocabulary maps each to its nearest sibling. */
+  gilt: 'monogram',
+  atelier: 'tape',
+  cabinet: 'monogram',
+  scallop: 'stamp',
+  noir: 'none',
   classic: 'stamp',
   ticket: 'stamp',
   plate: 'monogram',

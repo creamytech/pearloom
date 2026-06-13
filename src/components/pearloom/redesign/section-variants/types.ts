@@ -37,7 +37,11 @@ export interface DetailsCopy {
   items: DetailsItem[];
 }
 
-export interface ScheduleRow { t: string; l: string; s: string; m?: string; day?: number }
+export interface ScheduleRow {
+  t: string; l: string; s: string; m?: string; day?: number;
+  /** Street address → the "Directions" link on the row. */
+  addr?: string;
+}
 export interface ScheduleCopy {
   eyebrow: string; title: string; italic?: string;
   rows: ScheduleRow[];
@@ -50,9 +54,10 @@ export interface Hotel {
    *  When present, variants render this instead of the tone
    *  gradient placeholder. */
   photoUrl?: string;
-  /** Click-through booking link. When set, variants wrap the
-   *  card in <a href>. */
+  /** Booking link → the explicit "Book now" button. */
   bookingUrl?: string;
+  /** Group/room-block code — rendered as a tap-to-copy chip. */
+  groupRate?: string;
   /** Real coordinates (Google Places / wizard autocomplete).
    *  When ≥2 points carry coords, TravelMap plots them at their
    *  true relative positions instead of the decorative pins. */
@@ -72,7 +77,11 @@ export interface TravelCopy {
   venuePin?: { name: string; lat: number; lng: number };
 }
 
-export interface RegistryStore { name: string; url?: string }
+export interface RegistryStore {
+  name: string; url?: string;
+  /** Host note under the store ("for the honeymoon fund"). */
+  note?: string;
+}
 export interface RegistryCopy {
   eyebrow: string; title: string; italic?: string;
   body: string; stores: RegistryStore[];
