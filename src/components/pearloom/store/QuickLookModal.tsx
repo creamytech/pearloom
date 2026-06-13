@@ -41,6 +41,7 @@ import {
   priceLabel,
   tierLabel,
 } from './utils';
+import { EXCLUSIVE_KITS } from '@/lib/theme-store/packs';
 import type { Pack, Tier, Includes } from '@/lib/theme-store/packs';
 
 interface QuickLookModalProps {
@@ -110,7 +111,9 @@ const INCLUDES_META: Record<
   kit: {
     icon: 'layout',
     title: () => 'Card style',
-    subtitle: (p) => `${kitLabel(p.kit)} styling`,
+    subtitle: (p) => EXCLUSIVE_KITS.has(p.kit)
+      ? `${kitLabel(p.kit)} — only with this pack`
+      : `${kitLabel(p.kit)} styling`,
   },
   texture: {
     icon: 'sparkles',
@@ -134,7 +137,9 @@ const INCLUDES_META: Record<
     subtitle: (p) =>
       p.motif === 'none'
         ? 'Clean, no motifs'
-        : `${p.motif[0].toUpperCase() + p.motif.slice(1)} artwork`,
+        : ['chandelier', 'bow', 'sparkler'].includes(p.motif)
+          ? `${p.motif[0].toUpperCase() + p.motif.slice(1)} artwork — only with this pack`
+          : `${p.motif[0].toUpperCase() + p.motif.slice(1)} artwork`,
   },
 };
 

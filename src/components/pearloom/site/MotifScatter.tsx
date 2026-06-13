@@ -80,6 +80,14 @@ export type MotifKind =
      nautical, and the party wall. Same contract throughout. */
   | 'orchid'         // phalaenopsis in profile — luxe, formal
   | 'monstera'       // split monstera leaf — modern tropical
+  /* ── PACK-EXCLUSIVE glyphs (2026-06-13) — deliberately ABSENT
+     from MOTIF_KINDS so no free picker offers them; they apply
+     only through a Theme-Store pack (the pack IS the way to get
+     them). Same hairline language: 60×60, 1.4 strokes, one gold
+     grace note. */
+  | 'chandelier'     // crystal chandelier — gilt formal packs
+  | 'bow'            // ribbon bow — coquette / bridal packs
+  | 'sparkler'       // hand-held sparkler — fête / marquee packs
   | 'holly'          // crossed holly leaves + gold berries — winter, Noël
   | 'cherry-blossom' // sakura branch fragment — spring
   | 'anchor'         // classic anchor + rope — nautical, coastal
@@ -98,6 +106,12 @@ export const MOTIF_KINDS = [
   'champagne', 'lantern', 'compass', 'peony', 'vine', 'starburst', 'ribbon',
   'hummingbird', 'orchid', 'monstera', 'holly', 'cherry-blossom', 'anchor',
   'disco',
+] as const satisfies readonly MotifKind[];
+
+/** Pack-exclusive glyphs — rendered like any MotifKind but never
+ *  listed by the free pickers (which iterate MOTIF_KINDS). */
+export const PACK_MOTIF_KINDS = [
+  'chandelier', 'bow', 'sparkler',
 ] as const satisfies readonly MotifKind[];
 
 /** Theme-aware default stroke/fill for the new prototype motifs.
@@ -1101,6 +1115,12 @@ export function Motif({ kind, size, style }: { kind: MotifKind; size?: number; s
       return <VineMotif size={size} style={style} />;
     case 'starburst':
       return <StarburstMotif size={size} style={style} />;
+    case 'chandelier':
+      return <ChandelierMotif size={size} style={style} />;
+    case 'bow':
+      return <BowMotif size={size} style={style} />;
+    case 'sparkler':
+      return <SparklerMotif size={size} style={style} />;
     case 'ribbon':
       return <RibbonMotif size={size} style={style} />;
     case 'hummingbird':
@@ -1172,3 +1192,88 @@ export function MotifScatter({ motif = 'none', density = 'sparse' }: MotifScatte
     </div>
   );
 }
+
+/* ── Pack-exclusive glyph drawings (2026-06-13) ────────────── */
+
+export function ChandelierMotif({ size = 28, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
+      <g stroke={color} strokeWidth="1.4" strokeLinecap="round" fill="none">
+        {/* Ceiling stem + crown */}
+        <line x1="30" y1="6" x2="30" y2="14" />
+        {/* Arms — three swooping candle arms each side */}
+        <path d="M30 16 C 18 16, 12 24, 12 32" />
+        <path d="M30 16 C 42 16, 48 24, 48 32" />
+        <path d="M30 18 C 23 19, 20 25, 20 31" />
+        <path d="M30 18 C 37 19, 40 25, 40 31" />
+        <line x1="30" y1="16" x2="30" y2="33" />
+        {/* Candle cups */}
+        <path d="M9 32 h6 M17 31 h6 M27 33 h6 M37 31 h6 M45 32 h6" />
+        {/* Hanging crystals */}
+        <line x1="12" y1="34" x2="12" y2="40" opacity="0.65" />
+        <line x1="30" y1="35" x2="30" y2="43" opacity="0.65" />
+        <line x1="48" y1="34" x2="48" y2="40" opacity="0.65" />
+        <line x1="20" y1="33" x2="20" y2="38" opacity="0.5" />
+        <line x1="40" y1="33" x2="40" y2="38" opacity="0.5" />
+      </g>
+      {/* Candle flames — the gold grace notes */}
+      <circle cx="12" cy="29.5" r="1.6" fill={gold} />
+      <circle cx="30" cy="30.5" r="1.6" fill={gold} />
+      <circle cx="48" cy="29.5" r="1.6" fill={gold} />
+      <circle cx="30" cy="46" r="2" fill={gold} opacity="0.85" />
+    </svg>
+  );
+}
+
+export function BowMotif({ size = 28, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
+      <g stroke={color} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none">
+        {/* Loops */}
+        <path d="M28 30 C 16 18, 6 22, 9 31 C 11 38, 22 36, 28 30 Z" />
+        <path d="M32 30 C 44 18, 54 22, 51 31 C 49 38, 38 36, 32 30 Z" />
+        {/* Tails */}
+        <path d="M28 32 C 24 40, 25 46, 21 52" />
+        <path d="M32 32 C 36 40, 35 46, 39 52" />
+        {/* Loop creases */}
+        <path d="M27 29 C 20 25, 14 26, 12 30" opacity="0.45" />
+        <path d="M33 29 C 40 25, 46 26, 48 30" opacity="0.45" />
+      </g>
+      {/* Knot — the gold grace note */}
+      <rect x="26.6" y="26.6" width="6.8" height="6.8" rx="2.2" fill={gold} />
+    </svg>
+  );
+}
+
+export function SparklerMotif({ size = 28, color = MOTIF_COLOR, gold = 'var(--t-gold, var(--gold, #C19A4B))', style }: { size?: number; color?: string; gold?: string; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 60 60" width={size} height={size} style={style} aria-hidden="true">
+      <g stroke={color} strokeWidth="1.4" strokeLinecap="round">
+        {/* Stick */}
+        <line x1="34" y1="34" x2="46" y2="54" />
+        {/* Burst rays around the tip */}
+        {Array.from({ length: 10 }).map((_, i) => {
+          const a = (i / 10) * Math.PI * 2;
+          const long = i % 2 === 0;
+          const r1 = 4.5;
+          const r2 = long ? 15 : 9;
+          return (
+            <line
+              key={i}
+              x1={30 + Math.cos(a) * r1}
+              y1={24 + Math.sin(a) * r1}
+              x2={30 + Math.cos(a) * r2}
+              y2={24 + Math.sin(a) * r2}
+              opacity={long ? 0.95 : 0.55}
+            />
+          );
+        })}
+      </g>
+      {/* Hot core + drifting sparks — the gold grace notes */}
+      <circle cx="30" cy="24" r="2.4" fill={gold} />
+      <circle cx="44" cy="14" r="1.2" fill={gold} opacity="0.8" />
+      <circle cx="15" cy="11" r="1" fill={gold} opacity="0.6" />
+    </svg>
+  );
+}
+

@@ -61,6 +61,16 @@ export function dividerForMotif(motif: Pack['motif']): DividerStyle {
 /** Map a Pack's kit to a human-readable label for the QuickLook strip. */
 export function kitLabel(kit: Pack['kit']): string {
   switch (kit) {
+    case 'gilt':
+      return 'Gilt';
+    case 'atelier':
+      return 'Atelier';
+    case 'cabinet':
+      return 'Cabinet';
+    case 'scallop':
+      return 'Scallop';
+    case 'noir':
+      return 'Noir';
     case 'classic':
       return 'Classic';
     case 'plate':

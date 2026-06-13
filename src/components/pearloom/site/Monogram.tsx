@@ -45,7 +45,13 @@ export type MonogramFrame =
   | 'wreath'    // full circular laurel ring, gold berry pair at the foot
   | 'gate'      // art-deco stepped frame with inner hairline echo
   | 'halo'      // double-exposure offset circles + gold pearl
-  | 'tag';      // luggage tag with gold eyelet + trailing string
+  | 'tag'       // luggage tag with gold eyelet + trailing string
+  /* ── PACK-EXCLUSIVE frames (2026-06-13) — absent from the
+     editor's frame picker (DecorLibraryPanel's hardcoded list);
+     they arrive only via a Theme-Store pack. */
+  | 'gilt'      // double engraved frame, gold corner ticks
+  | 'bow-crest' // ribbon bow perched on a hairline ring
+  | 'marquee';  // theatre plate ringed in gold bulbs
 
 interface MonogramProps {
   /** 1–3 characters. Typically two initials joined by '&' or space. */
@@ -224,6 +230,56 @@ export function Monogram({
       }}
     >
       {/* Frame layer */}
+      {frame === 'gilt' && (
+        <span aria-hidden="true" style={{ position: 'absolute', width: ringSize * 1.06, height: ringSize * 1.06, pointerEvents: 'none' }}>
+          {/* Outer engraved frame + inner gold echo. */}
+          <span style={{ position: 'absolute', inset: 0, border: `1.5px solid ${accent}` }} />
+          <span style={{ position: 'absolute', inset: 5, border: '1px solid var(--t-gold, var(--pl-gold, #C19A4B))', opacity: 0.85 }} />
+          {/* Corner ticks — the gilded touch. */}
+          {([['top', 'left'], ['top', 'right'], ['bottom', 'left'], ['bottom', 'right']] as const).map(([v, h]) => (
+            <span
+              key={`${v}-${h}`}
+              style={{
+                position: 'absolute', [v]: -2.5, [h]: -2.5,
+                width: 5, height: 5,
+                background: 'var(--t-gold, var(--pl-gold, #C19A4B))',
+                transform: 'rotate(45deg)',
+              }}
+            />
+          ))}
+        </span>
+      )}
+      {frame === 'bow-crest' && (
+        <span aria-hidden="true" style={{ position: 'absolute', width: ringSize, height: ringSize, pointerEvents: 'none' }}>
+          <span
+            style={{
+              position: 'absolute', inset: 0, borderRadius: '50%',
+              border: `1.5px solid ${accent}`,
+            }}
+          />
+          {/* The bow perched at twelve o'clock. */}
+          <svg viewBox="0 0 60 30" style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', width: ringSize * 0.52 }}>
+            <g stroke={accent} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="var(--t-paper, var(--pl-cream, #F5EFE2))">
+              <path d="M27 15 C 17 6, 8 9, 10 16 C 11 21, 21 20, 27 15 Z" />
+              <path d="M33 15 C 43 6, 52 9, 50 16 C 49 21, 39 20, 33 15 Z" />
+            </g>
+            <rect x="26" y="11.5" width="8" height="8" rx="2.4" fill="var(--t-gold, var(--pl-gold, #C19A4B))" />
+          </svg>
+        </span>
+      )}
+      {frame === 'marquee' && (
+        <span aria-hidden="true" style={{ position: 'absolute', width: ringSize * 1.18, height: ringSize * 0.84, pointerEvents: 'none' }}>
+          <span style={{ position: 'absolute', inset: 0, borderRadius: 10, border: `1.5px solid ${accent}` }} />
+          {/* The bulbs — gold dotted ring just inside the plate. */}
+          <span
+            style={{
+              position: 'absolute', inset: 4, borderRadius: 7,
+              border: '2.5px dotted var(--t-gold, var(--pl-gold, #C19A4B))',
+              opacity: 0.9,
+            }}
+          />
+        </span>
+      )}
       {frame === 'ring' && (
         <span
           aria-hidden="true"

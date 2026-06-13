@@ -772,7 +772,13 @@ export interface StoryManifest {
     | 'deco'
     | 'gallery'
     | 'menu'
-    | 'glass';
+    | 'glass'
+    /* Pack-exclusive kits — applied only via Theme-Store packs. */
+    | 'gilt'
+    | 'atelier'
+    | 'cabinet'
+    | 'scallop'
+    | 'noir';
   /** Toggles for the public RSVP form. Both default ON if absent
    *  (legacy behaviour). plusOnes hides the "+1?" field on the
    *  passport invite link; songRequests hides the SongCard on

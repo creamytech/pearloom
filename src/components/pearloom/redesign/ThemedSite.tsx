@@ -3990,6 +3990,106 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
       </div>
     );
   }
+  /* ── PACK-EXCLUSIVE divider looks (2026-06-13) — never offered
+     by the Decor library's divider picker; a Theme-Store pack's
+     explicit `divider` field is the only writer. */
+  if (look === 'gilt-chain') {
+    /* Linked gold ovals — a fine jewelry chain. */
+    const links = Math.max(5, Math.round(width / 18));
+    return (
+      <div style={wrap}>
+        <svg width={width} height="10" viewBox={`0 0 ${width} 10`} aria-hidden>
+          {Array.from({ length: links }).map((_, i) => (
+            <ellipse
+              key={i}
+              cx={(i + 0.5) * (width / links)}
+              cy="5"
+              rx={width / links / 2 + 1.5}
+              ry="3.2"
+              fill="none"
+              stroke="var(--t-gold, var(--gold, #C19A4B))"
+              strokeWidth="1.1"
+              opacity={i % 2 === 0 ? 0.9 : 0.55}
+            />
+          ))}
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'stitch-seam') {
+    /* Couture running stitch with a thread tail. */
+    const stitches = Math.max(6, Math.round(width / 14));
+    return (
+      <div style={wrap}>
+        <svg width={width} height="10" viewBox={`0 0 ${width} 10`} aria-hidden>
+          {Array.from({ length: stitches }).map((_, i) => (
+            <line
+              key={i}
+              x1={(i + 0.18) * (width / stitches)}
+              y1={i % 2 === 0 ? 6.5 : 3.5}
+              x2={(i + 0.82) * (width / stitches)}
+              y2={i % 2 === 0 ? 3.5 : 6.5}
+              stroke="var(--t-accent)"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+              opacity="0.8"
+            />
+          ))}
+          <circle cx={width - 2} cy="5" r="1.8" fill="var(--t-gold, var(--gold, #C19A4B))" />
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'marquee-bulbs') {
+    /* A run of theatre bulbs, center bulb lit largest. */
+    const bulbs = Math.max(7, Math.round(width / 16)) | 1;
+    return (
+      <div style={wrap}>
+        <svg width={width} height="10" viewBox={`0 0 ${width} 10`} aria-hidden>
+          {Array.from({ length: bulbs }).map((_, i) => {
+            const center = Math.abs(i - (bulbs - 1) / 2) < 0.6;
+            return (
+              <circle
+                key={i}
+                cx={(i + 0.5) * (width / bulbs)}
+                cy="5"
+                r={center ? 2.6 : 1.6}
+                fill={center ? 'var(--t-gold, var(--gold, #C19A4B))' : 'var(--t-accent)'}
+                opacity={center ? 1 : 0.45 + 0.5 * (1 - Math.abs(i - (bulbs - 1) / 2) / ((bulbs - 1) / 2))}
+              />
+            );
+          })}
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'crystal-drops') {
+    /* Hanging chandelier crystals from a hairline rail. */
+    const drops = Math.max(5, Math.round(width / 26));
+    return (
+      <div style={wrap}>
+        <svg width={width} height="16" viewBox={`0 0 ${width} 16`} aria-hidden>
+          <line x1="0" y1="1.5" x2={width} y2="1.5" stroke="var(--t-line)" strokeWidth="1" />
+          {Array.from({ length: drops }).map((_, i) => {
+            const x = (i + 0.5) * (width / drops);
+            const long = i % 2 === 0;
+            return (
+              <g key={i}>
+                <line x1={x} y1="1.5" x2={x} y2={long ? 8 : 5.5} stroke="var(--t-accent)" strokeWidth="1" opacity="0.6" />
+                <path
+                  d={`M ${x} ${long ? 8 : 5.5} l 2.2 3 l -2.2 3 l -2.2 -3 Z`}
+                  fill="none"
+                  stroke={long ? 'var(--t-gold, var(--gold, #C19A4B))' : 'var(--t-accent)'}
+                  strokeWidth="1.1"
+                  opacity={long ? 0.95 : 0.6}
+                />
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+    );
+  }
   /* rule (default) */
   return (
     <div style={wrap}>

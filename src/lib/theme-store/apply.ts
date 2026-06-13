@@ -204,6 +204,16 @@ export function applyPackToManifest(pack: Pack, manifest: StoryManifest): StoryM
        in lockstep with the motif glyphs. */
     next.dividerLook = dividerForMotif(pack.motif);
   }
+  /* Pack-exclusive treatments — an explicit divider beats the
+     motif-derived one, and an exclusive monogram frame dresses
+     the host's existing initials (never invents them). */
+  if (pack.divider) {
+    next.dividerLook = pack.divider;
+  }
+  if (pack.monogramFrame) {
+    const mono = (next.monogram as { initials?: string; frame?: string } | undefined) ?? {};
+    next.monogram = { ...mono, frame: pack.monogramFrame };
+  }
   if (pack.foil) {
     next.foil = true;
   }
