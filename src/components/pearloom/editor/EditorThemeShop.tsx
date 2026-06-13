@@ -87,7 +87,9 @@ function ShopCard({ pack, owned, isTrying, onTry, onApply }: {
           style={{
             position: 'absolute', top: 8, right: 8,
             padding: '3px 9px', borderRadius: 999,
-            background: 'rgba(251,247,238,0.92)', color: 'var(--pl-ink, #0E0D0B)',
+            /* Fixed light pill → fixed dark ink. The themed var
+               flips light in dark mode and vanished on this pill. */
+            background: 'rgba(251,247,238,0.92)', color: '#0E0D0B',
             fontSize: 10.5, fontWeight: 800,
           }}
         >
@@ -294,7 +296,7 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
           .shop-spin{width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;animation:shop-spin .7s linear infinite;display:inline-block}
           @keyframes shop-spin{to{transform:rotate(360deg)}}
           @keyframes shop-bar-in{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
-          .shop-chip{white-space:nowrap;padding:6px 13px;border-radius:999px;font-family:var(--font-mono,ui-monospace,monospace);font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:background .14s,color .14s}
+          .shop-chip{flex:0 0 auto;white-space:nowrap;padding:6px 13px;border-radius:999px;font-family:var(--font-mono,ui-monospace,monospace);font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;transition:background .14s,color .14s}
         `}</style>
 
         {/* ── Header — handle, title, search, close. ── */}

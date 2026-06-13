@@ -60,7 +60,7 @@ export function SharePanel({
      is the credential (accept binds to whoever signs in with it). */
   const [coHostChannel, setCoHostChannel] = useState<'email' | 'sms'>('email');
   const [coHostPhone, setCoHostPhone] = useState('');
-  const [keyCard, setKeyCard] = useState<{ acceptUrl: string; phone: string } | null>(null);
+  const [keyCard, setKeyCard] = useState<{ acceptUrl: string; phone: string; sent: boolean } | null>(null);
   const [coHostRole, setCoHostRole] = useState<'editor' | 'guest-manager' | 'viewer'>('editor');
   const [coHostBusy, setCoHostBusy] = useState(false);
   const [coHostMsg, setCoHostMsg] = useState<string | null>(null);
@@ -171,13 +171,13 @@ export function SharePanel({
             : { siteSlug, email: coHostEmail.trim(), role: coHostRole },
         ),
       });
-      const j = await res.json().catch(() => ({})) as { error?: string; acceptUrl?: string };
+      const j = await res.json().catch(() => ({})) as { error?: string; acceptUrl?: string; sent?: boolean };
       if (!res.ok) {
         console.error('[share] co-host invite failed:', res.status);
         throw new Error(j.error ?? 'Couldn’t send the invite — try again?');
       }
       if (bySms && j.acceptUrl) {
-        setKeyCard({ acceptUrl: j.acceptUrl, phone: coHostPhone.trim() });
+        setKeyCard({ acceptUrl: j.acceptUrl, phone: coHostPhone.trim(), sent: !!j.sent });
         setCoHostPhone('');
       } else {
         setCoHostMsg(`Invite sent to ${coHostEmail.trim()}.`);
@@ -549,8 +549,13 @@ export function SharePanel({
                   The key · expires in 14 days
                 </div>
                 <div style={{ fontFamily: 'var(--font-display, Fraunces, serif)', fontStyle: 'italic', fontSize: 17, color: 'var(--ink)', margin: '4px 0 2px' }}>
-                  Ready to hand over.
+                  {keyCard.sent ? 'Sent — it’s in their messages.' : 'Ready to hand over.'}
                 </div>
+                {keyCard.sent && (
+                  <div style={{ fontSize: 11.5, color: 'var(--sage-deep)', marginBottom: 2 }}>
+                    ✓ Texted to {keyCard.phone} — the buttons below are your backup.
+                  </div>
+                )}
                 <div style={{ fontSize: 11, color: 'var(--ink-soft)', wordBreak: 'break-all', marginBottom: 10 }}>
                   {keyCard.acceptUrl}
                 </div>
