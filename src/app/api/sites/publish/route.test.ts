@@ -104,6 +104,10 @@ vi.mock('@/lib/auth', () => ({ authOptions: {} }));
 
 vi.mock('@/lib/db', () => ({
   publishSite: h.publishSiteMock,
+  // Pack gate's userOwnsPack() reads the plan first; null = no
+  // plan grants, so ownership falls to the purchase-row query
+  // (which returns null from the supabase mock → unowned).
+  getUserPlan: vi.fn(async () => null),
 }));
 
 
@@ -255,6 +259,57 @@ describe('POST /api/sites/publish — ownership gate', () => {
     const res = await POST(postReq({
       subdomain: 'no-sb',
       manifest: fixtureManifest,
+      names: ['A', 'B'],
+    }));
+    expect(res.status).toBe(200);
+    expect(h.publishSiteMock).toHaveBeenCalledOnce();
+  });
+});
+
+describe('POST /api/sites/publish — pack paywall', () => {
+  beforeEach(() => {
+    h.reset();
+    h.publishSiteMock.mockClear();
+    h.publishSiteMock.mockImplementation(async () => ({ success: true, error: null }));
+    h.mirrorManifestPhotosMock.mockClear();
+    h.mirrorManifestPhotosMock.mockImplementation(async (m: unknown) => m);
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://supabase.test';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key';
+  });
+
+  it('402 when publishing a site wearing an unowned paid pack — and publishSite is NOT called', async () => {
+    h.queue('sites.maybeSingle', null); // fresh slug, ownership ok
+    // theme_pack_purchases.maybeSingle returns null (nothing queued)
+    // → the host doesn't own the pack.
+    const res = await POST(postReq({
+      subdomain: 'wearing-velvet',
+      manifest: { ...fixtureManifest, appliedPackId: 'midnight-velvet' },
+      names: ['A', 'B'],
+    }));
+    expect(res.status).toBe(402);
+    const json = await res.json();
+    expect(json.packGate?.id).toBe('midnight-velvet');
+    // The whole point: the paywall stops the write.
+    expect(h.publishSiteMock).not.toHaveBeenCalled();
+  });
+
+  it('200 when the worn paid pack is owned (purchase row present)', async () => {
+    h.queue('sites.maybeSingle', null);
+    h.queue('theme_pack_purchases.maybeSingle', { id: 'purchase-1' });
+    const res = await POST(postReq({
+      subdomain: 'owns-velvet',
+      manifest: { ...fixtureManifest, appliedPackId: 'midnight-velvet' },
+      names: ['A', 'B'],
+    }));
+    expect(res.status).toBe(200);
+    expect(h.publishSiteMock).toHaveBeenCalledOnce();
+  });
+
+  it('200 when the worn pack is free — no gate', async () => {
+    h.queue('sites.maybeSingle', null);
+    const res = await POST(postReq({
+      subdomain: 'free-look',
+      manifest: { ...fixtureManifest, appliedPackId: 'first-thread' },
       names: ['A', 'B'],
     }));
     expect(res.status).toBe(200);

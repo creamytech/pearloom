@@ -760,6 +760,10 @@ export interface StoryManifest {
    *    menu    — tasting-menu card: top + bottom gold rules only,
    *              dotted-leader uppercase times
    */
+  /** The Theme-Store pack this look came from (applyPackToManifest
+   *  stamps it). Try-before-you-buy: unowned paid packs can be worn
+   *  in the editor but the publish flow gates on ownership. */
+  appliedPackId?: string;
   kitId?:
     | 'classic'
     | 'ticket'

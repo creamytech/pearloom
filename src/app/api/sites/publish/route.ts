@@ -86,7 +86,31 @@ export async function POST(req: NextRequest) {
     // to permanent storage before persisting. `mirrorManifestPhotos`
     // also transparently unwraps any `/api/photos/proxy?url=…`
     // wrappers that were kept in the draft during the editing session.
-    let persistManifest: StoryManifest = manifest;
+    // ── Pack paywall — try-before-you-buy's other half. Unowned
+    //    paid packs may be worn on drafts; PUBLISH is the gate.
+    //    Fails open on lookup errors (publishing is never lost to
+    //    a flaky gate query; the client gate still stands).
+    try {
+      const packId = (manifest as { appliedPackId?: string }).appliedPackId ?? null;
+      if (packId) {
+        const { getPackById } = await import('@/lib/theme-store/packs');
+        const pack = getPackById(packId);
+        if (pack && pack.priceCents > 0) {
+          const { userOwnsPack } = await import('@/lib/theme-store/entitlements');
+          const owns = await userOwnsPack(session.user.email, packId);
+          if (!owns) {
+            return NextResponse.json({
+              error: `This site is wearing ${pack.name} — unlock it to publish, or switch to a free look in the Theme panel.`,
+              packGate: { id: pack.id, name: pack.name, priceCents: pack.priceCents },
+            }, { status: 402 });
+          }
+        }
+      }
+    } catch (packGateErr) {
+      console.warn('[publish] pack gate check failed (failing open):', packGateErr);
+    }
+
+        let persistManifest: StoryManifest = manifest;
     if (session.accessToken) {
       console.log('[Publish API] Mirroring photos to permanent storage...');
       persistManifest = await mirrorManifestPhotos(

@@ -214,6 +214,10 @@ export function applyPackToManifest(pack: Pack, manifest: StoryManifest): StoryM
     const mono = (next.monogram as { initials?: string; frame?: string } | undefined) ?? {};
     next.monogram = { ...mono, frame: pack.monogramFrame };
   }
+  /* The receipt — which pack this look came from. The publish
+     gate reads it: unowned paid packs can be WORN in the editor
+     (try-before-you-buy) but not published. */
+  next.appliedPackId = pack.id;
   if (pack.foil) {
     next.foil = true;
   }

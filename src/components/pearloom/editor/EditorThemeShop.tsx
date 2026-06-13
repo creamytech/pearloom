@@ -120,15 +120,13 @@ function ShopCard({ pack, owned, isTrying, onTry, onApply }: {
             ))}
           </div>
         </div>
-        {(owned || price === 0) && (
-          <span
-            role="button"
-            onClick={(e) => { e.stopPropagation(); onApply(pack); }}
-            className="shopbtn shopbtn-ink"
-          >
-            Apply
-          </span>
-        )}
+        <span
+          role="button"
+          onClick={(e) => { e.stopPropagation(); onApply(pack); }}
+          className="shopbtn shopbtn-ink"
+        >
+          {owned || price === 0 ? 'Apply' : 'Try it'}
+        </span>
       </div>
     </button>
   );
@@ -211,14 +209,27 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
     onChange(applyPackToManifest(pack, openSnapshotRef.current ?? manifest));
   };
   const onApply = (pack: Pack) => {
-    /* Owned + free packs only — paid unowned packs go through
-       unlock(); the card never offers Apply for them. */
-    if (!owned.has(pack.id) && pack.priceCents > 0) return;
+    const isLocked = !owned.has(pack.id) && pack.priceCents > 0;
+    /* TRY-BEFORE-YOU-BUY: an unowned paid pack can be APPLIED and
+       edited with on a draft — the publish flow is the paywall
+       (client gate in PublishModal + server gate in /api/sites).
+       LIVE sites can't wear unowned packs (their autosaves would
+       put a paid look in front of guests), so those still unlock
+       first. */
+    if (isLocked && Boolean((manifest as unknown as { published?: boolean }).published)) {
+      setToast('This site is live — unlock the pack to wear it');
+      return;
+    }
     const prior = openSnapshotRef.current ?? manifest;
     onChange(applyPackToManifest(pack, prior));
     appliedRef.current = true;
     setTryingId(null);
-    fireUndoable(`${pack.name} applied — your old look is one tap away`, () => onChange(prior));
+    fireUndoable(
+      isLocked
+        ? `Wearing ${pack.name} to try — unlock it when you publish`
+        : `${pack.name} applied — your old look is one tap away`,
+      () => onChange(prior),
+    );
   };
 
   /* Close = discard any un-applied preview. */
@@ -391,6 +402,13 @@ export function EditorThemeShop({ open, onClose, manifest, onChange }: EditorThe
                   style={{ background: 'transparent', color: 'inherit', border: '1px solid currentColor' }}
                 >
                   Take it off
+                </button>
+                <button
+                  onClick={() => onApply(tryingPack)}
+                  className="shopbtn"
+                  style={{ background: 'transparent', color: 'inherit', border: '1px solid currentColor' }}
+                >
+                  Wear it for now
                 </button>
                 <button
                   onClick={() => unlock(tryingPack)}
