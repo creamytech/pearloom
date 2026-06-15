@@ -29,9 +29,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { DashLayout, TopbarAvatarButton } from '../dash/DashShell';
-import { NotificationBell } from '../dash/NotificationBell';
-import { ThemeToggle } from '@/components/shell/ThemeToggle';
+import { DashLayout } from '../dash/DashShell';
 import { Icon, Pear } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
@@ -246,10 +244,10 @@ export function WelcomeHome() {
           <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold, #C19A4B)' }} />
           {greeting}, {firstName}
         </span>
+        {/* The global controls (theme · bell · account) moved to the
+            shell's persistent DashUtilityBar — this header keeps only
+            the home-specific actions. */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <ThemeToggle size="md" />
-          <NotificationBell />
-          <TopbarAvatarButton />
           {site?.domain && (
             <a
               href={liveHref}

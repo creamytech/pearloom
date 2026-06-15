@@ -231,9 +231,9 @@ export function CartDrawer({ open, onClose, onCheckout }: CartDrawerProps) {
             onClick={onClose}
             aria-label="Close cart"
             style={{
-              width: 30,
-              height: 30,
-              borderRadius: 8,
+              width: 40,
+              height: 40,
+              borderRadius: 10,
               display: 'grid',
               placeItems: 'center',
               background: 'var(--pl-cream-deep, #EBE3D2)',
@@ -351,9 +351,9 @@ export function CartDrawer({ open, onClose, onCheckout }: CartDrawerProps) {
                   onClick={() => removeFromCart(p.id)}
                   aria-label={`Remove ${p.name} from cart`}
                   style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: 6,
+                    width: 34,
+                    height: 34,
+                    borderRadius: 8,
                     display: 'grid',
                     placeItems: 'center',
                     background: 'transparent',

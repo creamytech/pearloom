@@ -186,6 +186,7 @@ function PulseBar({
           </div>
         </div>
         <div
+          className="pl8-pulse-stats"
           style={{
             flex: 1,
             display: 'grid',
@@ -369,7 +370,7 @@ function MomentTimeline({
                     width: 32,
                     height: 32,
                     borderRadius: '50%',
-                    background: isNow ? 'var(--peach-2)' : isDone ? 'var(--sage-2)' : '#fff',
+                    background: isNow ? 'var(--peach-2)' : isDone ? 'var(--sage-2)' : 'var(--card, #fff)',
                     border: isDone || isNow ? 'none' : '2px solid var(--line)',
                     display: 'grid',
                     placeItems: 'center',

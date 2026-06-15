@@ -20,7 +20,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { StoryManifest } from '@/types';
-import { deriveInitials } from '@/components/pearloom/site/Monogram';
+import { deriveInitials } from '@/lib/monogram';
 import { isSoloSubject } from '@/lib/event-os/solo-occasions';
 
 export interface SuitePalette {

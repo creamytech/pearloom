@@ -1526,6 +1526,13 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 @media (max-width: 960px) {
   .pl8-pulse-layout { grid-template-columns: 1fr !important; }
 }
+/* Day-of stat strip: 4-up overflows the dark hero card on phones —
+   the "Registry clicks" column clipped past the right edge. Drop to
+   2×2 below 520px. !important because the grid sets its columns
+   inline. */
+@media (max-width: 520px) {
+  .pl8-pulse-stats { grid-template-columns: repeat(2, 1fr) !important; min-width: 0 !important; row-gap: 16px; }
+}
 
 
 
@@ -1603,6 +1610,30 @@ button.pl8-mobile-only { display: none !important; }
 .pl8-dashshell > main { flex: 1; min-width: 0; position: relative; }
 /* Mobile-only — revealed inside the 960px drawer media block. */
 .pl8-dash-mobilebar { display: none; }
+
+/* Persistent global control cluster (theme · notifications ·
+   account). Sticky to the viewport top of the content column,
+   right-aligned over a hairline glass strip so it reads as chrome.
+   Desktop only — phones get the same controls in DashMobileBar. */
+.pl8-dash-utilitybar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 9px clamp(20px, 4vw, 40px);
+  background: var(--pl-glass, color-mix(in srgb, var(--cream, #FBF7EE) 78%, transparent));
+  -webkit-backdrop-filter: var(--pl-glass-blur, blur(14px) saturate(1.3));
+  backdrop-filter: var(--pl-glass-blur, blur(14px) saturate(1.3));
+  border-bottom: 1px solid var(--line-soft);
+}
+@media (max-width: 960px) {
+  /* Phones use DashMobileBar (which now carries these controls);
+     hide the desktop strip so they're not doubled. */
+  .pl8-dash-utilitybar { display: none; }
+}
 
 @media (max-width: 960px) {
   /* Mobile dashboard — sidebar becomes a real drawer, not a

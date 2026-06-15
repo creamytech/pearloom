@@ -1,6 +1,5 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
 /* HonorListPanel — Content tab for the Honor list section (the
    generalized weddingParty: wedding party / court of honor /
    candle-lighters). Edits manifest.weddingParty[] — the EXISTING
@@ -16,6 +15,7 @@
 
 import type { StoryManifest, WeddingPartyMember } from '@/types';
 import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { FSelect } from '../_form-atoms';
 import { PhotoUploadSlot, collectPhotoPool } from '../_photo-upload';
 import { mkId, RemoveButton, RowCard, type BlockPanelProps } from './_shared';
 
@@ -34,22 +34,16 @@ const ROLE_OPTIONS: Array<{ value: WeddingPartyMember['role']; label: string }> 
   { value: 'grandparent', label: 'Grandparent' },
 ];
 
+/* Custom dropdown (was a native <select> — banned). FSelect is the
+   house dropdown used by every other panel. */
 function RoleSelect({ value, onChange }: { value: WeddingPartyMember['role']; onChange: (v: WeddingPartyMember['role']) => void }) {
   return (
-    <select
+    <FSelect
       value={value}
-      onChange={(e) => onChange(e.target.value as WeddingPartyMember['role'])}
-      style={{
-        width: '100%', padding: '9px 10px', borderRadius: 10,
-        border: '1px solid var(--line)', background: 'var(--cream-2)',
-        fontSize: 13, color: 'var(--ink)', fontFamily: 'var(--font-ui)',
-        outline: 'none', cursor: 'pointer',
-      }}
-    >
-      {ROLE_OPTIONS.map((o) => (
-        <option key={o.value} value={o.value}>{o.label}</option>
-      ))}
-    </select>
+      onChange={(v) => onChange(v as WeddingPartyMember['role'])}
+      options={ROLE_OPTIONS}
+      placeholder="Pick a role"
+    />
   );
 }
 

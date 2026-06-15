@@ -481,11 +481,11 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
           aria-label="Close RSVP"
           style={{
             position: 'absolute',
-            top: 16,
-            right: 16,
-            width: 30,
-            height: 30,
-            borderRadius: 8,
+            top: 12,
+            right: 12,
+            width: 44,
+            height: 44,
+            borderRadius: 10,
             display: 'grid',
             placeItems: 'center',
             background: 'var(--cream-2, var(--pl-cream-deep, #EBE3D2))',

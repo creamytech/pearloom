@@ -444,7 +444,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
               disabled={!canHide}
               aria-pressed={isHidden}
               style={{
-                width: 26, height: 26, borderRadius: 6,
+                width: 32, height: 32, borderRadius: 8,
                 background: isHidden ? 'var(--peach-bg)' : 'var(--cream-2)',
                 border: isHidden ? '1px solid var(--peach-ink)' : 'none',
                 display: 'grid', placeItems: 'center',
@@ -466,7 +466,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
               aria-haspopup="menu"
               aria-expanded={optionsOpen}
               style={{
-                width: 26, height: 26, borderRadius: 6,
+                width: 32, height: 32, borderRadius: 8,
                 background: optionsOpen ? 'var(--cream-3)' : 'var(--cream-2)',
                 display: 'grid', placeItems: 'center', border: 'none', cursor: 'pointer',
                 transition: 'background var(--pl-dur-quick)',
