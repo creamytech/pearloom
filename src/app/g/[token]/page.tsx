@@ -40,7 +40,7 @@ import { familyFromStack, googleFontsHrefFor } from '@/lib/suite/theme';
 import { resolveEdition } from '@/lib/site-editions/resolve';
 import { getEventType } from '@/lib/event-os/event-types';
 import { isSoloSubject } from '@/lib/event-os/solo-occasions';
-import { deriveInitials } from '@/components/pearloom/site/Monogram';
+import { deriveInitials } from '@/lib/monogram';
 
 export const metadata: Metadata = {
   title: "You're Invited | Pearloom",
