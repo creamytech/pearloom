@@ -286,7 +286,7 @@ export function SigninV8({
                 letterSpacing: '-0.02em',
               }}
             >
-              Welcome back,
+              Welcome
             </h1>
             <h1
               className="display-italic"
@@ -303,7 +303,7 @@ export function SigninV8({
                 gap: 10,
               }}
             >
-              beautiful soul. <PearlDot size={13} style={{ marginLeft: 2 }} />
+              back to the loom. <PearlDot size={13} style={{ marginLeft: 2 }} />
             </h1>
             <p
               style={{
