@@ -46,7 +46,6 @@ import {
   AnimatePresence,
   useMotionValue,
   useTransform,
-  useMotionTemplate,
   useReducedMotion,
 } from 'framer-motion';
 import type { StoryManifest } from '@/types';
@@ -343,24 +342,24 @@ function EnvelopeArrival({
      from the same cloth as the site. Falls back to no motif. */
   const motifKind = MOTIF_KINDS.has(String(loose.motifKind)) ? (loose.motifKind as MotifKind) : null;
 
-  /* Themed paper + wax tones derived from the site accent/section. */
+  /* Themed paper tones derived from the site palette. The seal is a
+     blind-embossed paper medallion (BRAND §5: gold is a hairline, not
+     a fill), so it reads editorial — not a glossy bead. */
+  const accentInk = theme['--t-accent-ink'] ?? ink;
   const bodyTop = shade(card, 0.04);
   const bodyBottom = shade(section, -0.04);
-  const waxLight = shade(accent, 0.34);
-  const waxDark = shade(accent, -0.28);
   const flapBottom = shade(section, -0.02);
+  const sealFace = card;
+  const sealGhost = shade(card, -0.05);
 
   useBodyScrollLock(phase !== 'done');
 
-  /* Seal sheen + envelope tilt — pointer-driven motion values, no
-     re-renders. Touch movement on phones drives the same values. */
+  /* Envelope tilt — pointer-driven motion values, no re-renders.
+     Touch movement on phones drives the same values. */
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
   const rotateY = useTransform(mx, [-1, 1], [-7, 7]);
   const rotateX = useTransform(my, [-1, 1], [6, -6]);
-  const glossX = useTransform(mx, [-1, 1], [32, 68]);
-  const glossY = useTransform(my, [-1, 1], [30, 64]);
-  const gloss = useMotionTemplate`radial-gradient(circle at ${glossX}% ${glossY}%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.12) 32%, transparent 58%)`;
   const onPointerMove = (e: React.PointerEvent) => {
     const w = window.innerWidth || 1;
     const h = window.innerHeight || 1;
@@ -649,8 +648,8 @@ function EnvelopeArrival({
                 <path d="M 36 50 L 150 120 L 264 50" fill="none" stroke={accent} strokeOpacity="0.22" strokeWidth="1" />
               </motion.svg>
 
-              {/* Wax seal + pointer-tracked gloss. Presses (a small
-                  pulse) the moment the page beneath is ready. */}
+              {/* The seal medallion. Presses (a small pulse) the
+                  moment the page beneath is ready. */}
               <motion.div
                 style={{ position: 'absolute', left: '50%', top: 128, marginLeft: -42, marginTop: -42 }}
                 initial={false}
@@ -664,38 +663,23 @@ function EnvelopeArrival({
                 transition={opening ? { duration: 0.45, ease: EASE } : { duration: 0.5, ease: EASE }}
               >
                 <div style={{ position: 'relative', width: 84, height: 84 }}>
-                  <svg viewBox="0 0 84 84" width="84" height="84" style={{ display: 'block', filter: 'drop-shadow(0 3px 5px rgba(14,13,11,0.32))' }}>
-                    <defs>
-                      <radialGradient id="pl-wax" cx="38%" cy="32%" r="72%">
-                        <stop offset="0" stopColor={waxLight} />
-                        <stop offset="58%" stopColor={accent} />
-                        <stop offset="100%" stopColor={waxDark} />
-                      </radialGradient>
-                    </defs>
-                    {/* wax disc — scalloped via a dashed thick ring read as a pressed edge */}
-                    <circle cx="42" cy="42" r="38" fill="url(#pl-wax)" />
-                    <circle cx="42" cy="42" r="33" fill="none" stroke={waxDark} strokeOpacity="0.45" strokeWidth="1" />
-                    <circle cx="42" cy="42" r="35.5" fill="none" stroke={waxLight} strokeOpacity="0.4" strokeWidth="0.75" />
-                    {/* embossed monogram — highlight ghost above the pressed dark glyph */}
-                    <text x="42" y="50.5" textAnchor="middle" fill={waxLight} fillOpacity="0.55"
-                      fontSize="26" fontStyle="italic" fontWeight={600}
+                  <svg viewBox="0 0 84 84" width="84" height="84" style={{ display: 'block', filter: 'drop-shadow(0 2px 5px rgba(14,13,11,0.16))' }}>
+                    {/* cream wafer + gold hairline rings + a gold pearl at the crown */}
+                    <circle cx="42" cy="42" r="38" fill={sealFace} stroke={gold} strokeWidth="1" />
+                    <circle cx="42" cy="42" r="32.5" fill="none" stroke={gold} strokeOpacity="0.5" strokeWidth="0.75" />
+                    <circle cx="42" cy="6.5" r="2.4" fill={gold} />
+                    {/* monogram pressed into the paper: a light ghost below the inked glyph */}
+                    <text x="42" y={initB ? 50.4 : 52} textAnchor="middle" fill={sealGhost}
+                      fontSize={initB ? 23 : 32} fontStyle="italic" fontWeight={600}
                       style={{ fontFamily: fontDisplay }}>
                       {initB ? `${initA} & ${initB}` : initA}
                     </text>
-                    <text x="42" y="49.5" textAnchor="middle" fill={waxDark}
-                      fontSize="26" fontStyle="italic" fontWeight={600}
+                    <text x="42" y={initB ? 49.6 : 51.2} textAnchor="middle" fill={accentInk}
+                      fontSize={initB ? 23 : 32} fontStyle="italic" fontWeight={600}
                       style={{ fontFamily: fontDisplay }}>
                       {initB ? `${initA} & ${initB}` : initA}
                     </text>
                   </svg>
-                  <motion.div
-                    aria-hidden
-                    style={{
-                      position: 'absolute', inset: 5, borderRadius: '50%',
-                      background: gloss, mixBlendMode: 'screen', pointerEvents: 'none',
-                      opacity: 0.5,
-                    }}
-                  />
                 </div>
               </motion.div>
             </motion.div>
