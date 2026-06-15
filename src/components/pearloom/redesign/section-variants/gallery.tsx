@@ -210,7 +210,7 @@ export function GalleryPolaroid({ ctx }: { ctx: GalleryVariantCtxEditable }) {
                     fontStyle: 'italic',
                     fontSize: 13,
                     lineHeight: 1.3,
-                    color: '#54493a',
+                    color: 'var(--t-ink-soft, #54493a)',
                     textAlign: 'center',
                   }}
                 />

@@ -549,7 +549,7 @@ function GoLiveBadge({ manifest }: { manifest: StoryManifest }) {
         padding: '4px 10px',
         borderRadius: 999,
         background: isLive ? 'var(--pl-chrome-danger, #A14A2C)' : 'var(--peach-bg)',
-        color: isLive ? '#fff' : 'var(--peach-ink)',
+        color: isLive ? 'var(--cream)' : 'var(--peach-ink)',
         border: isLive ? 'none' : '1px solid rgba(198,112,61,0.18)',
         fontSize: 11.5, fontWeight: 700,
         cursor: 'pointer',

@@ -847,7 +847,7 @@ export function DashSettings() {
                           border: '1px solid rgba(31,36,24,0.2)',
                           fontSize: 14,
                           fontFamily: 'var(--pl-font-body)',
-                          background: '#FFF',
+                          background: 'var(--paper, #FFF)',
                           color: PD.ink,
                         }}
                       />

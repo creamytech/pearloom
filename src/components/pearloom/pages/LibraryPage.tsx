@@ -390,7 +390,7 @@ export function LibraryPage() {
                   position: 'relative',
                   borderRadius: 12,
                   overflow: 'hidden',
-                  background: '#000',
+                  background: 'var(--ink, #000)',
                   cursor: 'pointer',
                 }}
                 onClick={() => setSelected(m)}
@@ -468,7 +468,7 @@ export function LibraryPage() {
                 gap: 0,
               }}
             >
-              <div style={{ background: '#000', display: 'grid', placeItems: 'center' }}>
+              <div style={{ background: 'var(--ink, #000)', display: 'grid', placeItems: 'center' }}>
                 <img src={selected.url} alt="" style={{ maxWidth: '100%', maxHeight: '80vh', display: 'block' }} />
               </div>
               <div style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>

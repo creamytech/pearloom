@@ -1248,8 +1248,32 @@ export function DashMobileBar() {
       <Link href="/dashboard" aria-label="Dashboard home" style={{ display: 'flex', alignItems: 'center', color: 'var(--ink)' }}>
         <PearloomLogo size={24} />
       </Link>
-      {/* Tap your face for account — same settings modal as the
-          desktop sidebar; sign out lives on its account tab. */}
+      {/* Account · notifications · theme — the global controls, on
+          mobile. Previously the mobile bar carried only the avatar,
+          so phones had no bell or theme toggle at all. The cluster
+          is pushed right; the avatar opens the settings modal. */}
+      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <ThemeToggle size="md" />
+        <NotificationBell />
+        <TopbarAvatarButton />
+      </div>
+    </div>
+  );
+}
+
+/* ── DashUtilityBar — the persistent top-right control cluster ──
+   The global chrome (theme · notifications · account) lives HERE,
+   mounted once by the shell, instead of being re-implemented in
+   every page's topbar (DashTopbar) and again inline (WelcomeHome).
+   Pages that hide their topbar or use PLHead now still get the
+   controls. Sticky to the viewport top; desktop only — phones use
+   DashMobileBar above. Right-aligned over a hairline glass strip
+   so it reads as chrome, not content. */
+export function DashUtilityBar() {
+  return (
+    <div className="pl8-dash-utilitybar" data-utilitybar>
+      <ThemeToggle size="md" />
+      <NotificationBell />
       <TopbarAvatarButton />
     </div>
   );
@@ -1385,6 +1409,10 @@ export function DashTopbar({
         </div>
       )}
       </div>
+      {/* The global controls (theme · bell · account) used to live
+          here, duplicated on every page. They're now mounted once
+          by the shell's DashUtilityBar, so this row carries only
+          the page's own actions + CTA. */}
       <div
         style={{
           display: 'flex',
@@ -1394,12 +1422,6 @@ export function DashTopbar({
           flexShrink: 0,
         }}
       >
-        {/* Aggregated activity bell — always present in the
-            topbar so the host doesn't have to scan multiple
-            widgets to see what's new. Polls every 60s. */}
-        <ThemeToggle size="md" />
-        <NotificationBell />
-        <TopbarAvatarButton />
         {actions}
         {ctaText && ctaHref && (
           <Link
@@ -1481,6 +1503,10 @@ export function DashLayout({
     <div className="pl8 pl8-dashshell">
       <DashSidebar active={active} />
       <main style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+        <DashMobileBar />
+        {/* Global controls (theme · notifications · account), mounted
+            once — matches the persistent-shell path. */}
+        <DashUtilityBar />
         {/* Paper grain — the brand's fixed warm underlay (BRAND.md §3),
             previously missing from the dashboard entirely. Wrapper
             opacity halves the utility's 0.35 so the work surface

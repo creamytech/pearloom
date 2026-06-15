@@ -87,7 +87,7 @@ export function StudioPrintPreview({
         position: 'fixed',
         inset: 0,
         zIndex: 50,
-        background: '#E7E2D6',
+        background: 'var(--cream-2, #E7E2D6)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',

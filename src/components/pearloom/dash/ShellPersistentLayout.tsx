@@ -13,7 +13,7 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { Blob } from '../motifs';
-import { DashSidebar, DashMobileBar } from './DashShell';
+import { DashSidebar, DashMobileBar, DashUtilityBar } from './DashShell';
 import { DashSubNav } from './DashSubNav';
 import { DashCommandPalette } from './DashCommandPalette';
 import { UserSettingsProvider } from './UserSettingsModal';
@@ -39,6 +39,10 @@ export function ShellPersistentLayout({ children }: { children: ReactNode }) {
               Without it, pages on the PLChrome chrome had no drawer
               trigger on phones — no section nav, no sign-out. */}
           <DashMobileBar />
+          {/* Global control cluster (theme · notifications · account)
+              — mounted once here so every dashboard page has it,
+              desktop-only (mobile uses DashMobileBar above). */}
+          <DashUtilityBar />
           {/* Paper grain — BRAND.md §3's fixed warm underlay, shared
               with DashLayout's standalone shell. */}
           <div aria-hidden className="pl-grain" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, opacity: 0.5 }} />

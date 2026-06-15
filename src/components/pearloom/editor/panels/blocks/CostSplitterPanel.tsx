@@ -1,6 +1,5 @@
 'use client';
 
-/* eslint-disable no-restricted-syntax */
 /* CostSplitterPanel — Content tab for the Cost splitter section.
    THIN editor over manifest.bachelor.costs[] — the SAME field the
    Weekend planner tool (BachelorPanel) owns. No duplicate store:
@@ -20,13 +19,15 @@
 import { useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
+import { FSelect } from '../_form-atoms';
 import { isBachelorOccasion, mkId, readOccasion, RemoveButton, RowCard, ToolPointerCard, type BlockPanelProps } from './_shared';
 
 interface CostRow { id: string; label: string; amount: string; paidBy?: string }
 
-/* Who-paid select — native <select> over the names already used,
-   falling back to a free-text input when there's nobody to pick yet
-   (or when the host chooses "Someone new…"). */
+/* Who-paid picker — was a native <select> (banned). Uses the house
+   FSelect over the names already used, falling back to a free-text
+   input when there's nobody to pick yet (or when the host chooses
+   "Someone new…"). */
 function WhoPaidField({ value, payers, onChange }: { value: string; payers: string[]; onChange: (v: string) => void }) {
   const [typing, setTyping] = useState(false);
   const options = payers.filter((p) => p && p !== value);
@@ -41,25 +42,20 @@ function WhoPaidField({ value, payers, onChange }: { value: string; payers: stri
     );
   }
   return (
-    <select
+    <FSelect
       value={value}
-      onChange={(e) => {
-        if (e.target.value === '__new') { setTyping(true); onChange(''); return; }
-        onChange(e.target.value);
+      onChange={(v) => {
+        if (v === '__new') { setTyping(true); onChange(''); return; }
+        onChange(v);
       }}
-      aria-label="Who paid"
-      style={{
-        width: '100%', padding: '10px 12px', borderRadius: 10,
-        border: '1px solid var(--line)', background: 'var(--cream-2)',
-        fontSize: 13, color: value ? 'var(--ink)' : 'var(--ink-muted)',
-        fontFamily: 'inherit', outline: 'none', cursor: 'pointer',
-      }}
-    >
-      <option value="">Who paid? (optional)</option>
-      {value && <option value={value}>{value}</option>}
-      {options.map((p) => <option key={p} value={p}>{p}</option>)}
-      <option value="__new">+ Someone new…</option>
-    </select>
+      placeholder="Who paid? (optional)"
+      icon="user"
+      options={[
+        ...(value ? [{ value, label: value }] : []),
+        ...options.map((p) => ({ value: p, label: p })),
+        { value: '__new', label: '+ Someone new…' },
+      ]}
+    />
   );
 }
 

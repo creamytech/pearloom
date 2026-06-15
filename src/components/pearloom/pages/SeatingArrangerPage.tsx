@@ -57,6 +57,11 @@ export function SeatingArrangerPage() {
   const [tables, setTables] = useState<Table[]>(DEFAULT_TABLES);
   const [constraints, setConstraints] = useState<Constraint[]>([]);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  /* Tap-to-seat — the touch path. HTML5 drag never fires on
+     phones/tablets, so seating was impossible there. Tap a guest
+     to arm them, then tap a table (or the unseated panel) to
+     place. Desktop keeps drag; this rides alongside. */
+  const [armedId, setArmedId] = useState<string | null>(null);
 
   // Pull guests via /api/rsvp (already exists for the dashboard).
   useEffect(() => {
@@ -129,6 +134,23 @@ export function SeatingArrangerPage() {
 
   function assign(guestId: string, tableId: string) {
     setGuests((gs) => gs.map((g) => (g.id === guestId ? { ...g, table_id: tableId } : g)));
+  }
+
+  /* Tap path: tapping a chip arms/disarms it; tapping a table (or
+     the unseated panel) places the armed guest there. A table at
+     capacity won't accept (mirrors the drop guard). */
+  function tapGuest(id: string) {
+    setArmedId((cur) => (cur === id ? null : id));
+  }
+  function tapTarget(tableId: string) {
+    if (!armedId) return;
+    if (tableId) {
+      const seated = guests.filter((g) => g.table_id === tableId).length;
+      const cap = tables.find((t) => t.id === tableId)?.capacity ?? Infinity;
+      if (seated >= cap) return;
+    }
+    assign(armedId, tableId);
+    setArmedId(null);
   }
 
   function autoSolve() {
@@ -285,19 +307,27 @@ export function SeatingArrangerPage() {
               if (id) assign(id, '');
               setDraggingId(null);
             }}
+            onClick={() => tapTarget('')}
           >
             <div style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--peach-ink)', marginBottom: 10 }}>
               Unseated · {unseated.length}
             </div>
+            {/* Tap-to-seat hint — appears while a guest is armed, the
+                touch path's only affordance. */}
+            {armedId && (
+              <div style={{ fontSize: 11.5, color: 'var(--sage-deep)', background: 'var(--sage-tint, rgba(122,138,79,0.12))', borderRadius: 8, padding: '7px 10px', marginBottom: 8, lineHeight: 1.4 }}>
+                Tap a table to seat {guests.find((g) => g.id === armedId)?.name ?? 'them'} — or tap their name again to cancel.
+              </div>
+            )}
             {loading && <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>Loading guests…</div>}
             {!loading && unseated.length === 0 && (
               <div style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
-                Everyone seated. Drag a name out to unseat.
+                Everyone seated. Tap or drag a name out to unseat.
               </div>
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {unseated.map((g) => (
-                <GuestChip key={g.id} guest={g} onDragStart={() => setDraggingId(g.id)} onDragEnd={() => setDraggingId(null)} />
+                <GuestChip key={g.id} guest={g} armed={armedId === g.id} onTap={() => tapGuest(g.id)} onDragStart={() => setDraggingId(g.id)} onDragEnd={() => setDraggingId(null)} />
               ))}
             </div>
           </div>
@@ -321,11 +351,14 @@ export function SeatingArrangerPage() {
                   key={t.id}
                   style={{
                     background: 'var(--cream-2)',
-                    border: `1.5px ${draggingId ? 'dashed' : 'solid'} ${full ? '#7A2D2D' : 'var(--line)'}`,
+                    // Armed (tap mode) or dragging both light up open
+                    // tables as drop targets.
+                    border: `1.5px ${(draggingId || armedId) && !full ? 'dashed' : 'solid'} ${full ? '#7A2D2D' : ((draggingId || armedId) ? 'var(--sage-deep)' : 'var(--line)')}`,
                     borderRadius: 14,
                     padding: 12,
                     minHeight: 180,
                     transition: 'border-color 220ms',
+                    cursor: armedId && !full ? 'pointer' : 'default',
                   }}
                   onDragOver={(e) => {
                     if (full) return;
@@ -342,6 +375,7 @@ export function SeatingArrangerPage() {
                     if (id && !full) assign(id, t.id);
                     setDraggingId(null);
                   }}
+                  onClick={() => tapTarget(t.id)}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                     <input
@@ -387,7 +421,7 @@ export function SeatingArrangerPage() {
                   )}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {seated.map((g) => (
-                      <GuestChip key={g.id} guest={g} onDragStart={() => setDraggingId(g.id)} onDragEnd={() => setDraggingId(null)} />
+                      <GuestChip key={g.id} guest={g} armed={armedId === g.id} onTap={() => tapGuest(g.id)} onDragStart={() => setDraggingId(g.id)} onDragEnd={() => setDraggingId(null)} />
                     ))}
                   </div>
                 </div>
@@ -408,10 +442,15 @@ export function SeatingArrangerPage() {
   );
 }
 
-function GuestChip({ guest, onDragStart, onDragEnd }: { guest: Guest; onDragStart: () => void; onDragEnd: () => void }) {
+function GuestChip({ guest, armed, onTap, onDragStart, onDragEnd }: { guest: Guest; armed?: boolean; onTap?: () => void; onDragStart: () => void; onDragEnd: () => void }) {
   return (
     <div
       draggable
+      role="button"
+      tabIndex={0}
+      aria-pressed={armed}
+      onClick={(e) => { e.stopPropagation(); onTap?.(); }}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTap?.(); } }}
       onDragStart={(e) => {
         e.dataTransfer.setData('text/plain', guest.id);
         e.dataTransfer.effectAllowed = 'move';
@@ -419,22 +458,24 @@ function GuestChip({ guest, onDragStart, onDragEnd }: { guest: Guest; onDragStar
       }}
       onDragEnd={onDragEnd}
       style={{
-        padding: '6px 10px',
+        padding: '8px 10px',
         borderRadius: 8,
-        background: 'var(--card)',
-        border: '1px solid var(--line)',
+        background: armed ? 'var(--sage-deep)' : 'var(--card)',
+        border: `1.5px solid ${armed ? 'var(--sage-deep)' : 'var(--line)'}`,
         fontSize: 12.5,
-        color: 'var(--ink)',
+        color: armed ? 'var(--cream)' : 'var(--ink)',
         cursor: 'grab',
         userSelect: 'none',
         display: 'flex',
         justifyContent: 'space-between',
         gap: 8,
+        minHeight: 36,
+        alignItems: 'center',
       }}
-      title={guest.email ?? ''}
+      title={armed ? 'Tap a table to seat — or tap again to cancel' : (guest.email ?? '')}
     >
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{guest.name}</span>
-      {guest.meal && <span style={{ fontSize: 10, color: 'var(--ink-muted)' }}>{guest.meal[0]?.toUpperCase()}</span>}
+      {guest.meal && <span style={{ fontSize: 10, color: armed ? 'rgba(255,255,255,0.7)' : 'var(--ink-muted)' }}>{guest.meal[0]?.toUpperCase()}</span>}
     </div>
   );
 }

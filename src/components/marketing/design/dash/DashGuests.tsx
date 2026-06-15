@@ -1786,12 +1786,22 @@ export function DashGuests() {
           :global(.pd-guests-stats) {
             grid-template-columns: 1fr 1fr !important;
           }
+          /* Phones keep Guest (name + email + Text-invite) and the
+             RSVP STATUS — the two columns that answer "who's coming".
+             Previously this kept Guest + Party and hid RSVP (col 3),
+             so the status — the whole point — was invisible on a
+             phone. Now hide Party (2), Note (4) and the 5th column;
+             RSVP (3) sits at auto width beside the name. */
           :global(.pd-guests-head),
           :global(.pd-guests-row) {
-            grid-template-columns: 1fr 0.6fr !important;
+            grid-template-columns: 1fr auto !important;
           }
-          :global(.pd-guests-head) > *:nth-child(n + 3),
-          :global(.pd-guests-row) > *:nth-child(n + 3) {
+          :global(.pd-guests-head) > *:nth-child(2),
+          :global(.pd-guests-row) > *:nth-child(2),
+          :global(.pd-guests-head) > *:nth-child(4),
+          :global(.pd-guests-row) > *:nth-child(4),
+          :global(.pd-guests-head) > *:nth-child(5),
+          :global(.pd-guests-row) > *:nth-child(5) {
             display: none;
           }
         }

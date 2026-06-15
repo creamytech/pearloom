@@ -446,7 +446,7 @@ export function SigninV8({
 
 
                   {emailError && (
-                    <p style={{ margin: '0 0 12px', fontSize: 12.5, color: '#7A2D2D' }}>{emailError}</p>
+                    <p style={{ margin: '0 0 12px', fontSize: 12.5, color: 'var(--pl-plum, #7A2D2D)' }}>{emailError}</p>
                   )}
 
                   <button

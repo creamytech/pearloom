@@ -680,7 +680,7 @@ function WizardPhotoUpload({
       </div>
 
       {picker.error && (
-        <div style={{ fontSize: 12, color: '#7A2D2D', marginBottom: 10 }}>{picker.error}</div>
+        <div style={{ fontSize: 12, color: 'var(--pl-warning, #A14A2C)', marginBottom: 10 }}>{picker.error}</div>
       )}
 
       {photos.length > 0 && (
