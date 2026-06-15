@@ -40,6 +40,7 @@ import { InlineEdit } from './InlineEdit';
    'centered', 'accordion', 'grid', 'rows', 'sidebyside') stays
    baked into the block below. */
 import { RsvpSplit, RsvpBanner, RsvpMinimal } from './section-variants/rsvp';
+import { requestRsvp } from '../site/rsvp-bus';
 import { DetailsIconRow, DetailsAccordion, DetailsBento } from './section-variants/details';
 import { ScheduleTimeline, ScheduleStepper, ScheduleNumbered } from './section-variants/schedule';
 import { GalleryMasonry, GallerySlideshow, GalleryPolaroid } from './section-variants/gallery';
@@ -2630,9 +2631,18 @@ function RsvpBlock({ ctx }: { ctx: SectionCtx }) {
       <div style={{ fontSize: 13.5, opacity: 0.7, marginBottom: 18, color: 'var(--t-rsvp-ink)' }}>
         {C.rsvp.body}
       </div>
-      <span style={{ display: 'inline-block', padding: '12px 28px', borderRadius: 999, background: 'var(--t-rsvp-ink)', color: 'var(--t-rsvp)', fontSize: 14, fontWeight: 700 }}>
+      {/* Real button, not a <span> — this default ("plate") RSVP
+          variant is the fallback for most sites, and on mobile the
+          nav RSVP is just a #rsvp anchor that scrolls here, so this
+          IS the only way to open the RSVP modal. A non-interactive
+          span made the RSVP tap do nothing (esp. on phones). */}
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); if (!editable) requestRsvp(); }}
+        style={{ display: 'inline-block', padding: '13px 30px', minHeight: 44, borderRadius: 999, border: 'none', background: 'var(--t-rsvp-ink)', color: 'var(--t-rsvp)', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--t-body)' }}
+      >
         {C.cta} →
-      </span>
+      </button>
       <GoingSocialProof ctx={ctx} />
     </div>
   );

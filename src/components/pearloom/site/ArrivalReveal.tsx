@@ -46,15 +46,39 @@ import {
   AnimatePresence,
   useMotionValue,
   useTransform,
-  useMotionTemplate,
   useReducedMotion,
 } from 'framer-motion';
 import type { StoryManifest } from '@/types';
 import { getEventType } from '@/lib/event-os/event-types';
 import { rsvpReplyBy } from '@/lib/next-step';
-import { Monogram } from './Monogram';
+import { Motif, type MotifKind } from './MotifScatter';
+import { deriveInitials } from '@/lib/monogram';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
+/* ── Tiny hex shade helpers (the envelope wax + paper want a
+   lighter/darker tone of the site accent; pure, no deps). Pass-
+   through for non-hex values (color-mix / var soup) so we never
+   produce an invalid color. */
+function clamp8(n: number) { return Math.max(0, Math.min(255, Math.round(n))); }
+function parseHex(hex: string): [number, number, number] | null {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return null;
+  const n = parseInt(m[1], 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function shade(hex: string, amt: number): string {
+  const rgb = parseHex(hex);
+  if (!rgb) return hex;
+  const f = amt < 0 ? 0 : 255;
+  const t = Math.abs(amt);
+  const [r, g, b] = rgb.map((c) => clamp8(c + (f - c) * t));
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
+const MOTIF_KINDS = new Set<string>([
+  'olive','bloom','pressed','lemon','sun','wheat','fern','shell','citrus','laurel',
+  'deco-fan','palm','mountain','wave-curl','rose','crescent','dove','arrows','pinecone',
+]);
 
 export type ArrivalStyle = 'auto' | 'envelope' | 'quiet' | 'off';
 
@@ -91,21 +115,6 @@ const flourishKey = (slug: string) => `pl:arrival-flourish:${slug}`;
 function firstNameOf(full: string | null): string | null {
   const f = (full ?? '').trim().split(/\s+/)[0];
   return f || null;
-}
-
-/** "JUN 14" + "2026" for the postmark; null for free-text dates. */
-function postmarkDate(raw?: string): { line: string; year: string } | null {
-  const trimmed = (raw ?? '').trim();
-  if (!trimmed) return null;
-  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(trimmed);
-  const d = iso
-    ? new Date(+iso[1], +iso[2] - 1, +iso[3])
-    : new Date(Date.parse(trimmed));
-  if (Number.isNaN(d.getTime())) return null;
-  return {
-    line: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase(),
-    year: String(d.getFullYear()),
-  };
 }
 
 function formatReplyBy(d: Date): string {
@@ -308,6 +317,7 @@ function EnvelopeArrival({
     coverPhoto?: string;
     monogram?: { initials?: string };
     logistics?: { date?: string; venue?: string };
+    motifKind?: string;
   };
 
   const paper = theme['--t-paper'] ?? '#FDFAF0';
@@ -324,20 +334,32 @@ function EnvelopeArrival({
 
   const displayNames = names.filter(Boolean);
   const initials = loose.monogram?.initials || displayNames.join(' & ') || 'P';
-  const postmark = postmarkDate(loose.logistics?.date);
+  const { initA, initB } = deriveInitials(initials);
   const replyBy = useMemo(() => rsvpReplyBy(manifest), [manifest]);
+
+  /* The site's motif (deco-fan, palm, rose, …) tints the flap liner
+     and scatters faintly behind the envelope, so the seal feels cut
+     from the same cloth as the site. Falls back to no motif. */
+  const motifKind = MOTIF_KINDS.has(String(loose.motifKind)) ? (loose.motifKind as MotifKind) : null;
+
+  /* Themed paper tones derived from the site palette. The seal is a
+     blind-embossed paper medallion (BRAND §5: gold is a hairline, not
+     a fill), so it reads editorial — not a glossy bead. */
+  const accentInk = theme['--t-accent-ink'] ?? ink;
+  const bodyTop = shade(card, 0.04);
+  const bodyBottom = shade(section, -0.04);
+  const flapBottom = shade(section, -0.02);
+  const sealFace = card;
+  const sealGhost = shade(card, -0.05);
 
   useBodyScrollLock(phase !== 'done');
 
-  /* Seal sheen + envelope tilt — pointer-driven motion values, no
-     re-renders. Touch movement on phones drives the same values. */
+  /* Envelope tilt — pointer-driven motion values, no re-renders.
+     Touch movement on phones drives the same values. */
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
   const rotateY = useTransform(mx, [-1, 1], [-7, 7]);
   const rotateX = useTransform(my, [-1, 1], [6, -6]);
-  const glossX = useTransform(mx, [-1, 1], [32, 68]);
-  const glossY = useTransform(my, [-1, 1], [30, 64]);
-  const gloss = useMotionTemplate`radial-gradient(circle at ${glossX}% ${glossY}%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.12) 32%, transparent 58%)`;
   const onPointerMove = (e: React.PointerEvent) => {
     const w = window.innerWidth || 1;
     const h = window.innerHeight || 1;
@@ -496,6 +518,48 @@ function EnvelopeArrival({
               perspective: '1200px', padding: 24,
             }}
           >
+            {/* Warm glow + the site's own motif, faint, behind the
+                envelope — so the arrival is cut from the same cloth as
+                the site. Decorative, non-interactive. */}
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden',
+                // expose the site accent to <Motif>, which binds to --t-motif/--t-accent.
+                ['--t-accent' as string]: accent,
+                ['--t-motif' as string]: accent,
+              }}
+            >
+              <div
+                style={{
+                  position: 'absolute', left: '50%', top: '50%', width: 520, height: 520,
+                  transform: 'translate(-50%, -50%)',
+                  background: `radial-gradient(circle, ${shade(accent, 0.6)} 0%, transparent 62%)`,
+                  opacity: 0.18,
+                }}
+              />
+              {motifKind && (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 0.1, scale: 1 }}
+                    transition={{ duration: 1.1, delay: 0.3, ease: EASE }}
+                    style={{ position: 'absolute', left: '8%', top: '18%', transform: 'rotate(-12deg)' }}
+                  >
+                    <Motif kind={motifKind} size={92} />
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 0.1, scale: 1 }}
+                    transition={{ duration: 1.1, delay: 0.5, ease: EASE }}
+                    style={{ position: 'absolute', right: '9%', bottom: '16%', transform: 'rotate(14deg)' }}
+                  >
+                    <Motif kind={motifKind} size={108} />
+                  </motion.div>
+                </>
+              )}
+            </div>
+
             <motion.p
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
@@ -503,7 +567,7 @@ function EnvelopeArrival({
               style={{
                 fontFamily: mono, fontSize: '0.6rem',
                 letterSpacing: '0.28em', textTransform: 'uppercase',
-                color: inkSoft, margin: 0,
+                color: inkSoft, margin: 0, position: 'relative',
               }}
             >
               Sealed for {guestFirst ?? 'you'}
@@ -512,49 +576,47 @@ function EnvelopeArrival({
             {/* The envelope — tilt-tracked, floating. */}
             <motion.div
               style={{
-                position: 'relative', width: 290, height: 192,
+                position: 'relative', width: 300, height: 206,
                 transformStyle: 'preserve-3d', rotateX, rotateY,
               }}
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: [0, -4, 0], opacity: 1 }}
               transition={{ y: { duration: 2.6, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.6, delay: 0.15 } }}
             >
-              {/* Back + pocket */}
-              <svg viewBox="0 0 290 192" width="100%" height="100%" style={{ position: 'absolute', inset: 0 }}>
-                <rect x="2" y="46" width="286" height="144" rx="3" fill={card} stroke={gold} strokeWidth="1" />
-                <path d="M 2 46 L 145 136 L 288 46" fill="none" stroke={line} strokeWidth="1" />
+              {/* Cast shadow — grounds the envelope so it reads as a
+                  real object, not a wireframe. */}
+              <div
+                aria-hidden
+                style={{
+                  position: 'absolute', left: '50%', bottom: -16, width: 244, height: 30,
+                  transform: 'translateX(-50%)', borderRadius: '50%',
+                  background: 'radial-gradient(ellipse, rgba(14,13,11,0.26), transparent 72%)',
+                  filter: 'blur(7px)', opacity: 0.5,
+                }}
+              />
+
+              {/* Envelope body — the back panel + the two lower front
+                  flaps meeting at the centre seam. Paper gradient,
+                  gold edge. */}
+              <svg viewBox="0 0 300 206" width="100%" height="100%" style={{ position: 'absolute', inset: 0, overflow: 'visible' }}>
+                <defs>
+                  <linearGradient id="pl-env-body" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stopColor={bodyTop} />
+                    <stop offset="1" stopColor={bodyBottom} />
+                  </linearGradient>
+                  <linearGradient id="pl-env-flap" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stopColor={shade(card, 0.05)} />
+                    <stop offset="1" stopColor={flapBottom} />
+                  </linearGradient>
+                </defs>
+                {/* body */}
+                <rect x="14" y="44" width="272" height="150" rx="9" fill="url(#pl-env-body)" stroke={gold} strokeWidth="1.25" />
+                {/* the two lower front flaps rising to the centre seam */}
+                <path d="M 14 194 L 150 126 L 286 194" fill="none" stroke={line} strokeWidth="1" />
               </svg>
 
-              {/* Return-address corner — the hosts' names. */}
-              <div
-                style={{
-                  position: 'absolute', left: 14, top: 56,
-                  fontFamily: mono, fontSize: '0.5rem',
-                  letterSpacing: '0.18em', textTransform: 'uppercase',
-                  color: inkSoft, opacity: 0.75, maxWidth: 130,
-                  textAlign: 'left', lineHeight: 1.5,
-                }}
-              >
-                {displayNames.join(' & ')}
-              </div>
-
-              {/* Postmark — stamped with the event date. */}
-              {postmark && (
-                <div aria-hidden style={{ position: 'absolute', right: 8, top: 50, transform: 'rotate(-8deg)', opacity: 0.85 }}>
-                  <svg width="64" height="64" viewBox="0 0 64 64">
-                    <circle cx="32" cy="32" r="29" fill="none" stroke={accent} strokeOpacity="0.55" strokeWidth="1" strokeDasharray="3 4" />
-                    <circle cx="32" cy="32" r="22" fill="none" stroke={accent} strokeOpacity="0.3" strokeWidth="1" />
-                    <text x="32" y="30" textAnchor="middle" fill={accent} fontSize="9" fontWeight="700" letterSpacing="1.5" style={{ fontFamily: 'ui-monospace, monospace' }}>
-                      {postmark.line}
-                    </text>
-                    <text x="32" y="42" textAnchor="middle" fill={accent} fillOpacity="0.8" fontSize="8" letterSpacing="2" style={{ fontFamily: 'ui-monospace, monospace' }}>
-                      {postmark.year}
-                    </text>
-                  </svg>
-                </div>
-              )}
-
-              {/* Addressed to the guest — calligraphy line on the card. */}
+              {/* Addressed to the guest — on the lower front face,
+                  below the flap point. */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -563,38 +625,33 @@ function EnvelopeArrival({
                   position: 'absolute', left: 0, right: 0, bottom: 26,
                   textAlign: 'center',
                   fontFamily: fontDisplay, fontStyle: 'italic',
-                  fontSize: '1.05rem', color: ink,
+                  fontSize: '1.12rem', color: ink,
                 }}
               >
                 For {guestFirst ?? 'you'}
               </motion.div>
 
-              {/* Tucked card edge above the fold line. */}
-              <div
-                aria-hidden
-                style={{
-                  position: 'absolute', left: 24, right: 24, top: 60, height: 36,
-                  background: section, border: `1px solid ${line}`, borderRadius: 2,
-                  boxShadow: '0 2px 6px rgba(14,13,11,0.06)',
-                }}
-              />
-
-              {/* Flap — pivots open as the seal breaks. */}
+              {/* The flap — folded DOWN over the top, its point at the
+                  centre where the wax seal presses. Hinged along the
+                  top edge; lifts up and back as the seal breaks. */}
               <motion.svg
-                viewBox="0 0 290 102"
+                viewBox="0 0 300 206"
                 width="100%"
-                style={{ position: 'absolute', left: 0, top: 0, transformOrigin: '50% 100%' }}
+                height="100%"
+                style={{ position: 'absolute', inset: 0, transformOrigin: '50% 21.4%', overflow: 'visible' }}
                 initial={false}
-                animate={opening ? { rotateX: -180 } : { rotateX: 0 }}
+                animate={opening ? { rotateX: -158 } : { rotateX: 0 }}
                 transition={{ duration: 0.85, ease: EASE }}
               >
-                <path d="M 2 102 L 145 4 L 288 102 Z" fill={card} stroke={gold} strokeWidth="1" />
+                <path d="M 14 44 L 286 44 L 150 128 Z" fill="url(#pl-env-flap)" stroke={gold} strokeWidth="1.25" strokeLinejoin="round" />
+                {/* hairline liner just inside the flap edges */}
+                <path d="M 36 50 L 150 120 L 264 50" fill="none" stroke={accent} strokeOpacity="0.22" strokeWidth="1" />
               </motion.svg>
 
-              {/* Wax seal + pointer-tracked gloss. Presses (a small
-                  pulse) the moment the page beneath is ready. */}
+              {/* The seal medallion. Presses (a small pulse) the
+                  moment the page beneath is ready. */}
               <motion.div
-                style={{ position: 'absolute', left: '50%', top: 102, marginLeft: -40, marginTop: -40 }}
+                style={{ position: 'absolute', left: '50%', top: 128, marginLeft: -42, marginTop: -42 }}
                 initial={false}
                 animate={
                   opening
@@ -605,15 +662,24 @@ function EnvelopeArrival({
                 }
                 transition={opening ? { duration: 0.45, ease: EASE } : { duration: 0.5, ease: EASE }}
               >
-                <div style={{ position: 'relative', width: 80, height: 80 }}>
-                  <Monogram initials={initials} frame="seal" size={80} color={accent} withCard={false} ariaHidden />
-                  <motion.div
-                    aria-hidden
-                    style={{
-                      position: 'absolute', inset: 6, borderRadius: '50%',
-                      background: gloss, mixBlendMode: 'screen', pointerEvents: 'none',
-                    }}
-                  />
+                <div style={{ position: 'relative', width: 84, height: 84 }}>
+                  <svg viewBox="0 0 84 84" width="84" height="84" style={{ display: 'block', filter: 'drop-shadow(0 2px 5px rgba(14,13,11,0.16))' }}>
+                    {/* cream wafer + gold hairline rings + a gold pearl at the crown */}
+                    <circle cx="42" cy="42" r="38" fill={sealFace} stroke={gold} strokeWidth="1" />
+                    <circle cx="42" cy="42" r="32.5" fill="none" stroke={gold} strokeOpacity="0.5" strokeWidth="0.75" />
+                    <circle cx="42" cy="6.5" r="2.4" fill={gold} />
+                    {/* monogram pressed into the paper: a light ghost below the inked glyph */}
+                    <text x="42" y={initB ? 50.4 : 52} textAnchor="middle" fill={sealGhost}
+                      fontSize={initB ? 23 : 32} fontStyle="italic" fontWeight={600}
+                      style={{ fontFamily: fontDisplay }}>
+                      {initB ? `${initA} & ${initB}` : initA}
+                    </text>
+                    <text x="42" y={initB ? 49.6 : 51.2} textAnchor="middle" fill={accentInk}
+                      fontSize={initB ? 23 : 32} fontStyle="italic" fontWeight={600}
+                      style={{ fontFamily: fontDisplay }}>
+                      {initB ? `${initA} & ${initB}` : initA}
+                    </text>
+                  </svg>
                 </div>
               </motion.div>
             </motion.div>
