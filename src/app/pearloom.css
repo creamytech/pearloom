@@ -1526,6 +1526,13 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 @media (max-width: 960px) {
   .pl8-pulse-layout { grid-template-columns: 1fr !important; }
 }
+/* Day-of stat strip: 4-up overflows the dark hero card on phones —
+   the "Registry clicks" column clipped past the right edge. Drop to
+   2×2 below 520px. !important because the grid sets its columns
+   inline. */
+@media (max-width: 520px) {
+  .pl8-pulse-stats { grid-template-columns: repeat(2, 1fr) !important; min-width: 0 !important; row-gap: 16px; }
+}
 
 
 

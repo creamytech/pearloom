@@ -186,6 +186,7 @@ function PulseBar({
           </div>
         </div>
         <div
+          className="pl8-pulse-stats"
           style={{
             flex: 1,
             display: 'grid',
