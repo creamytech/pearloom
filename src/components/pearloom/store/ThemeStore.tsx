@@ -752,29 +752,64 @@ function StoreInner() {
               Nothing yet. Begin a thread — try another search.
             </div>
           </div>
-        ) : (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
-              gap: 20,
-            }}
-          >
-            {filtered.map((p, i) => (
-              <PackCard
-                key={p.id}
-                pack={p}
-                idx={i}
-                owned={ownedSet.has(p.id)}
-                inCart={hasItem(p.id)}
-                onOpen={handleOpen}
-                onAdd={handleAdd}
-                onGetFree={handleGetFree}
-                onApply={handleApply}
-              />
-            ))}
-          </div>
-        )}
+        ) : (() => {
+          const gridStyle = {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
+            gap: 20,
+          } as const;
+          const card = (p: Pack, i: number) => (
+            <PackCard
+              key={p.id}
+              pack={p}
+              idx={i}
+              owned={ownedSet.has(p.id)}
+              inCart={hasItem(p.id)}
+              onOpen={handleOpen}
+              onAdd={handleAdd}
+              onGetFree={handleGetFree}
+              onApply={handleApply}
+            />
+          );
+          /* Browsing everything (no filter, no search) → break the
+             ~80-pack wall into collection SECTIONS with editorial
+             headers, so the store reads as a curated craft house
+             instead of an endless grid. Any active filter/search
+             keeps the flat grid (the result set is already small
+             and the grouping would just add empty headers). */
+          const grouped = chip === 'all' && !q.trim();
+          if (!grouped) {
+            return <div style={gridStyle}>{filtered.map(card)}</div>;
+          }
+          let idx = 0;
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
+              {COLLECTIONS.map((col) => {
+                const inCol = filtered.filter((p) => p.collection === col.id);
+                if (inCol.length === 0) return null;
+                return (
+                  <section key={col.id}>
+                    <header
+                      style={{
+                        display: 'flex', alignItems: 'baseline', gap: 10,
+                        margin: '0 2px 14px', paddingBottom: 8,
+                        borderBottom: '1px solid var(--pl-divider-soft, rgba(40,28,12,0.08))',
+                      }}
+                    >
+                      <h2 style={{ fontFamily: 'var(--pl-font-display, Fraunces, Georgia, serif)', fontSize: 22, fontWeight: 600, margin: 0, color: 'var(--pl-ink, #0E0D0B)' }}>
+                        {collectionName(col.id)}
+                      </h2>
+                      <span style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--pl-muted, #6F6557)' }}>
+                        {inCol.length}
+                      </span>
+                    </header>
+                    <div style={gridStyle}>{inCol.map((p) => card(p, idx++))}</div>
+                  </section>
+                );
+              })}
+            </div>
+          );
+        })()}
       </main>
 
       {/* QuickLook + Cart overlays */}
