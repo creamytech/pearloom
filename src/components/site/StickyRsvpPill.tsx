@@ -29,6 +29,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, X } from 'lucide-react';
+import { requestRsvp } from '@/components/pearloom/site/rsvp-bus';
 
 interface Props {
   accent?: string;
@@ -170,6 +171,17 @@ export function StickyRsvpPill({
     }
   }
 
+  /* The pill is an #rsvp anchor. When the host hasn't placed an
+     RSVP section, that anchor is a dead link — the tap would do
+     nothing. Fall back to the standalone RSVP modal (which works
+     without a section), or a calm toast if it isn't available. */
+  function handleClick(e: React.MouseEvent) {
+    if (typeof document !== 'undefined' && !document.getElementById(anchorId)) {
+      e.preventDefault();
+      requestRsvp();
+    }
+  }
+
   const visible =
     show && !dismissed && !overRsvp && !nearFooter && !scrollingDown &&
     !(dockOpen && smallViewport);
@@ -179,6 +191,7 @@ export function StickyRsvpPill({
       {visible && (
         <motion.a
           href={`#${anchorId}`}
+          onClick={handleClick}
           key="sticky-rsvp"
           initial={{ opacity: 0, y: 20, scale: 0.94 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}

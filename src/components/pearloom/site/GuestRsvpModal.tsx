@@ -34,6 +34,7 @@ import type { StoryManifest } from '@/types';
 import { getEventType, type RsvpPreset } from '@/lib/event-os/event-types';
 import { RsvpCeremony } from './RsvpCeremony';
 import { getTheme, themeRootStyle } from './themes';
+import { markRsvpReady, markRsvpUnready, siteToast } from './rsvp-bus';
 
 const DEFAULT_MEAL_OPTIONS = ['Chicken', 'Fish', 'Vegetarian', 'Kids meal'];
 
@@ -256,14 +257,22 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
     return () => { window.clearTimeout(t); ctl.abort(); };
   }, [open, step, query, siteSlug]);
 
-  // Listen for the open event globally.
+  // Listen for the open event globally. Also register with the
+  // RSVP bus so the sticky pill / nav links can route here even
+  // when the host hasn't placed an RSVP section (no #rsvp anchor):
+  // markRsvpReady() returns true when a tap was queued before we
+  // mounted, so we honour it immediately.
   useEffect(() => {
     const handler = () => {
       resetState();
       setOpen(true);
     };
     window.addEventListener('pl-open-rsvp', handler);
-    return () => window.removeEventListener('pl-open-rsvp', handler);
+    if (markRsvpReady()) handler();
+    return () => {
+      window.removeEventListener('pl-open-rsvp', handler);
+      markRsvpUnready();
+    };
   }, [resetState]);
 
   // Escape to close, focus management.
@@ -406,6 +415,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
       }
       if (errs.length > 0) {
         setSubmitError(errs[0]);
+        siteToast(errs[0]);
         setSubmitting(false);
         return;
       }
@@ -419,6 +429,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
       setSubmitting(false);
     } catch {
       setSubmitError('Couldn’t reach the server. Try again.');
+      siteToast('Couldn’t reach the server — please try again.');
       setSubmitting(false);
     }
   };
