@@ -118,21 +118,6 @@ function firstNameOf(full: string | null): string | null {
   return f || null;
 }
 
-/** "JUN 14" + "2026" for the postmark; null for free-text dates. */
-function postmarkDate(raw?: string): { line: string; year: string } | null {
-  const trimmed = (raw ?? '').trim();
-  if (!trimmed) return null;
-  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(trimmed);
-  const d = iso
-    ? new Date(+iso[1], +iso[2] - 1, +iso[3])
-    : new Date(Date.parse(trimmed));
-  if (Number.isNaN(d.getTime())) return null;
-  return {
-    line: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase(),
-    year: String(d.getFullYear()),
-  };
-}
-
 function formatReplyBy(d: Date): string {
   return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
 }
@@ -351,7 +336,6 @@ function EnvelopeArrival({
   const displayNames = names.filter(Boolean);
   const initials = loose.monogram?.initials || displayNames.join(' & ') || 'P';
   const { initA, initB } = deriveInitials(initials);
-  const postmark = postmarkDate(loose.logistics?.date);
   const replyBy = useMemo(() => rsvpReplyBy(manifest), [manifest]);
 
   /* The site's motif (deco-fan, palm, rose, …) tints the flap liner
@@ -360,12 +344,10 @@ function EnvelopeArrival({
   const motifKind = MOTIF_KINDS.has(String(loose.motifKind)) ? (loose.motifKind as MotifKind) : null;
 
   /* Themed paper + wax tones derived from the site accent/section. */
-  const liner = shade(accent, 0.78);          // pale accent — flap lining
   const bodyTop = shade(card, 0.04);
   const bodyBottom = shade(section, -0.04);
   const waxLight = shade(accent, 0.34);
   const waxDark = shade(accent, -0.28);
-  const flapTop = card;
   const flapBottom = shade(section, -0.02);
 
   useBodyScrollLock(phase !== 'done');
@@ -614,8 +596,9 @@ function EnvelopeArrival({
                 }}
               />
 
-              {/* Body — paper gradient, gold edge, tinted liner showing
-                  through the pocket V. */}
+              {/* Envelope body — the back panel + the two lower front
+                  flaps meeting at the centre seam. Paper gradient,
+                  gold edge. */}
               <svg viewBox="0 0 300 206" width="100%" height="100%" style={{ position: 'absolute', inset: 0, overflow: 'visible' }}>
                 <defs>
                   <linearGradient id="pl-env-body" x1="0" y1="0" x2="0" y2="1">
@@ -623,55 +606,24 @@ function EnvelopeArrival({
                     <stop offset="1" stopColor={bodyBottom} />
                   </linearGradient>
                   <linearGradient id="pl-env-flap" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stopColor={flapTop} />
+                    <stop offset="0" stopColor={shade(card, 0.05)} />
                     <stop offset="1" stopColor={flapBottom} />
                   </linearGradient>
                 </defs>
-                {/* envelope body */}
-                <rect x="3" y="52" width="294" height="150" rx="7" fill="url(#pl-env-body)" stroke={gold} strokeWidth="1.25" />
-                {/* liner — the accent-tinted inside, revealed in the V */}
-                <path d="M 4 53 L 150 150 L 296 53 L 296 70 L 150 162 L 4 70 Z" fill={liner} fillOpacity="0.5" />
-                {/* pocket fold (bottom V) + side seams */}
-                <path d="M 4 201 L 150 120 L 296 201" fill="none" stroke={line} strokeWidth="1" />
-                <path d="M 4 53 L 150 150 L 296 53" fill="none" stroke={line} strokeWidth="1" strokeOpacity="0.7" />
+                {/* body */}
+                <rect x="14" y="44" width="272" height="150" rx="9" fill="url(#pl-env-body)" stroke={gold} strokeWidth="1.25" />
+                {/* the two lower front flaps rising to the centre seam */}
+                <path d="M 14 194 L 150 126 L 286 194" fill="none" stroke={line} strokeWidth="1" />
               </svg>
 
-              {/* Return-address corner — the hosts' names. */}
-              <div
-                style={{
-                  position: 'absolute', left: 16, top: 62,
-                  fontFamily: mono, fontSize: '0.5rem',
-                  letterSpacing: '0.18em', textTransform: 'uppercase',
-                  color: inkSoft, opacity: 0.7, maxWidth: 120,
-                  textAlign: 'left', lineHeight: 1.5,
-                }}
-              >
-                {displayNames.join(' & ')}
-              </div>
-
-              {/* Postmark — stamped with the event date. */}
-              {postmark && (
-                <div aria-hidden style={{ position: 'absolute', right: 10, top: 56, transform: 'rotate(-8deg)', opacity: 0.85 }}>
-                  <svg width="62" height="62" viewBox="0 0 64 64">
-                    <circle cx="32" cy="32" r="29" fill="none" stroke={accent} strokeOpacity="0.5" strokeWidth="1" strokeDasharray="3 4" />
-                    <circle cx="32" cy="32" r="22" fill="none" stroke={accent} strokeOpacity="0.28" strokeWidth="1" />
-                    <text x="32" y="30" textAnchor="middle" fill={accent} fontSize="9" fontWeight="700" letterSpacing="1.5" style={{ fontFamily: 'ui-monospace, monospace' }}>
-                      {postmark.line}
-                    </text>
-                    <text x="32" y="42" textAnchor="middle" fill={accent} fillOpacity="0.8" fontSize="8" letterSpacing="2" style={{ fontFamily: 'ui-monospace, monospace' }}>
-                      {postmark.year}
-                    </text>
-                  </svg>
-                </div>
-              )}
-
-              {/* Addressed to the guest — calligraphy on the card. */}
+              {/* Addressed to the guest — on the lower front face,
+                  below the flap point. */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
                 style={{
-                  position: 'absolute', left: 0, right: 0, bottom: 30,
+                  position: 'absolute', left: 0, right: 0, bottom: 26,
                   textAlign: 'center',
                   fontFamily: fontDisplay, fontStyle: 'italic',
                   fontSize: '1.12rem', color: ink,
@@ -680,35 +632,27 @@ function EnvelopeArrival({
                 For {guestFirst ?? 'you'}
               </motion.div>
 
-              {/* Tucked card edge above the fold line. */}
-              <div
-                aria-hidden
-                style={{
-                  position: 'absolute', left: 26, right: 26, top: 66, height: 38,
-                  background: card, border: `1px solid ${line}`, borderRadius: 3,
-                  boxShadow: '0 3px 8px rgba(14,13,11,0.07)',
-                }}
-              />
-
-              {/* Flap — gradient fill + a hairline liner edge; pivots
-                  open as the seal breaks. */}
+              {/* The flap — folded DOWN over the top, its point at the
+                  centre where the wax seal presses. Hinged along the
+                  top edge; lifts up and back as the seal breaks. */}
               <motion.svg
-                viewBox="0 0 300 110"
+                viewBox="0 0 300 206"
                 width="100%"
-                style={{ position: 'absolute', left: 0, top: 0, transformOrigin: '50% 100%' }}
+                height="100%"
+                style={{ position: 'absolute', inset: 0, transformOrigin: '50% 21.4%', overflow: 'visible' }}
                 initial={false}
-                animate={opening ? { rotateX: -180 } : { rotateX: 0 }}
+                animate={opening ? { rotateX: -158 } : { rotateX: 0 }}
                 transition={{ duration: 0.85, ease: EASE }}
               >
-                <path d="M 3 108 L 150 6 L 297 108 Z" fill="url(#pl-env-flap)" stroke={gold} strokeWidth="1.25" strokeLinejoin="round" />
-                {/* inner liner hairline, just below the fold */}
-                <path d="M 26 92 L 150 30 L 274 92" fill="none" stroke={accent} strokeOpacity="0.28" strokeWidth="1" />
+                <path d="M 14 44 L 286 44 L 150 128 Z" fill="url(#pl-env-flap)" stroke={gold} strokeWidth="1.25" strokeLinejoin="round" />
+                {/* hairline liner just inside the flap edges */}
+                <path d="M 36 50 L 150 120 L 264 50" fill="none" stroke={accent} strokeOpacity="0.22" strokeWidth="1" />
               </motion.svg>
 
               {/* Wax seal + pointer-tracked gloss. Presses (a small
                   pulse) the moment the page beneath is ready. */}
               <motion.div
-                style={{ position: 'absolute', left: '50%', top: 108, marginLeft: -42, marginTop: -42 }}
+                style={{ position: 'absolute', left: '50%', top: 128, marginLeft: -42, marginTop: -42 }}
                 initial={false}
                 animate={
                   opening
