@@ -6,7 +6,7 @@
    violations (must-sit-together, must-not-sit-together, table-size).
    ======================================================================== */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DashLayout } from '../dash/DashShell';
 import { PLHead } from '../dash/PLChrome';
 import { Icon, Pear } from '../motifs';
@@ -37,12 +37,21 @@ interface Constraint {
   guestIds: string[];
 }
 
+// Neutral starter tables — no wedding-shaped "family/friends" group
+// tags (meaningless for a reunion, retirement, or memorial). The
+// host renames/regroups as they like; the plan persists to the
+// manifest so it survives reloads.
 const DEFAULT_TABLES: Table[] = [
-  { id: 't-1', name: 'Table 1', capacity: 8, group: 'family' },
-  { id: 't-2', name: 'Table 2', capacity: 8, group: 'family' },
-  { id: 't-3', name: 'Table 3', capacity: 8, group: 'friends' },
-  { id: 't-4', name: 'Table 4', capacity: 8, group: 'friends' },
+  { id: 't-1', name: 'Table 1', capacity: 8 },
+  { id: 't-2', name: 'Table 2', capacity: 8 },
+  { id: 't-3', name: 'Table 3', capacity: 8 },
+  { id: 't-4', name: 'Table 4', capacity: 8 },
 ];
+
+interface SeatingPlan {
+  tables?: Table[];
+  assignments?: Record<string, string>;
+}
 
 export function SeatingArrangerPage() {
   const { site } = useSelectedSite();
@@ -62,32 +71,81 @@ export function SeatingArrangerPage() {
      to arm them, then tap a table (or the unseated panel) to
      place. Desktop keeps drag; this rides alongside. */
   const [armedId, setArmedId] = useState<string | null>(null);
+  // Persistence — the plan (tables + assignments) saves to the site
+  // manifest (manifest.seatingPlan) so it survives reloads. `hydrated`
+  // gates the save effect so loading a site never triggers a write;
+  // `lastSaved` dedupes so we only PATCH on a real change.
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const hydratedRef = useRef(false);
+  const lastSavedRef = useRef('');
 
-  // Pull guests via /api/rsvp (already exists for the dashboard).
+  // Pull guests via /api/rsvp, then overlay the saved seating plan
+  // (tables + assignments) from the site manifest. One effect so the
+  // hydration snapshot is consistent and we can seed lastSaved.
   useEffect(() => {
     if (!site?.id) return;
     let cancelled = false;
     const currentSiteId = site.id;
+    hydratedRef.current = false;
+    const plan = (site.manifest as { seatingPlan?: SeatingPlan } | null)?.seatingPlan;
+    const savedTables = Array.isArray(plan?.tables) && plan!.tables!.length > 0 ? plan!.tables! : DEFAULT_TABLES;
+    const savedAssignments = plan?.assignments && typeof plan.assignments === 'object' ? plan.assignments : {};
     fetch(`/api/rsvp?siteId=${encodeURIComponent(currentSiteId)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data: { guests?: Array<Record<string, unknown>> } | null) => {
         if (cancelled) return;
         const next = !data || !Array.isArray(data.guests)
           ? []
-          : data.guests.map((g, i): Guest => ({
-              id: String(g.id ?? `g-${i}`),
-              name: String(g.name ?? g.full_name ?? 'Unnamed'),
-              email: typeof g.email === 'string' ? g.email : null,
-              attending: typeof g.attending === 'string' ? (g.attending as Guest['attending']) : null,
-              meal: typeof g.meal_preference === 'string' ? g.meal_preference : null,
-              table_id: typeof g.table_id === 'string' ? g.table_id : '',
-            }));
+          : data.guests.map((g, i): Guest => {
+              const id = String(g.id ?? `g-${i}`);
+              // Saved assignment wins; fall back to any legacy table_id
+              // the RSVP row carried.
+              const savedTable = savedAssignments[id];
+              return {
+                id,
+                name: String(g.name ?? g.full_name ?? 'Unnamed'),
+                email: typeof g.email === 'string' ? g.email : null,
+                attending: typeof g.attending === 'string' ? (g.attending as Guest['attending']) : null,
+                meal: typeof g.meal_preference === 'string' ? g.meal_preference : null,
+                table_id: savedTable ?? (typeof g.table_id === 'string' ? g.table_id : ''),
+              };
+            });
+        setTables(savedTables);
         setGuests(next);
         setFetchedSiteId(currentSiteId);
+        // Seed lastSaved with the exact hydrated plan so the save
+        // effect doesn't immediately re-write what we just loaded.
+        const assignments: Record<string, string> = {};
+        for (const g of next) if (g.table_id) assignments[g.id] = g.table_id;
+        lastSavedRef.current = JSON.stringify({ tables: savedTables, assignments });
+        hydratedRef.current = true;
       })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, [site?.id]);
+  }, [site?.id, site?.manifest]);
+
+  // Debounced save of the plan to the manifest. Skips until hydrated
+  // and only fires when the plan actually changed.
+  useEffect(() => {
+    if (!hydratedRef.current || !site?.id) return;
+    const assignments: Record<string, string> = {};
+    for (const g of guests) if (g.table_id) assignments[g.id] = g.table_id;
+    const snapshot = JSON.stringify({ tables, assignments });
+    if (snapshot === lastSavedRef.current) return;
+    const currentSiteId = site.id;
+    const t = window.setTimeout(() => {
+      lastSavedRef.current = snapshot;
+      setSaveState('saving');
+      fetch('/api/sites/seating', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId: currentSiteId, seatingPlan: { tables, assignments } }),
+      })
+        .then((r) => setSaveState(r.ok ? 'saved' : 'idle'))
+        .catch(() => setSaveState('idle'));
+    }, 900);
+    return () => window.clearTimeout(t);
+  }, [tables, guests, site?.id]);
 
   const loading = !!site?.id && fetchedSiteId !== site.id;
 
@@ -245,6 +303,9 @@ export function SeatingArrangerPage() {
           color: 'var(--ink-muted)',
         }}>
           <span>{guests.length} guests · {tables.length} tables · {unseated.length} unseated</span>
+          <span aria-live="polite" style={{ color: saveState === 'saving' ? 'var(--ink-muted)' : 'var(--sage-deep)', fontWeight: 700 }}>
+            {saveState === 'saving' ? '· Saving…' : saveState === 'saved' ? '· Saved' : ''}
+          </span>
         </div>
 
         {/* Kitchen count — only when at least one meal answer

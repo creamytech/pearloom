@@ -19,6 +19,7 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { Icon } from '../motifs';
 import { PLChrome, PLHead } from '../dash/PLChrome';
+import { getRememberHeadline, occasionLabel } from '@/lib/event-os/dashboard-presets';
 
 type Chapter = { id?: string; title: string; subtitle?: string; description: string };
 type Memory = { guest_name: string; prompt: string; response: string };
@@ -261,7 +262,13 @@ export function MemoryBookPage() {
   }
 
   const names = data?.site?.names?.filter(Boolean).join(' & ') ?? '';
-  const subtitle = data?.site ? `${data.site.occasion ?? 'Celebration'}${data.site.venue ? ` · ${data.site.venue}` : ''}` : '';
+  // Human occasion label (not the raw hyphenated id) + venue.
+  const subtitle = data?.site
+    ? `${data.site.occasion ? occasionLabel(data.site.occasion) : 'Celebration'}${data.site.venue ? ` · ${data.site.venue}` : ''}`
+    : '';
+  // Occasion-aware headline — a memorial gets "A lasting keepsake",
+  // a reunion "The yearbook", etc., instead of the wedding default.
+  const headline = getRememberHeadline(data?.site?.occasion);
 
   // Pair photos with memories where available — first N memories get
   // photo accompaniment, rest run as text-only. Keeps the visual
@@ -287,9 +294,9 @@ export function MemoryBookPage() {
         <PLHead
           align="center"
           pre="The memory book"
-          title="Everything they wrote,"
-          italic="one keepsake."
-          sub="Chapters, memories, whispers, tributes, songs — gathered for the printer. Save as PDF, send to your letterpress, or order a printed edition from Pearloom."
+          title={headline.title}
+          italic={headline.italic}
+          sub="Chapters, memories, tributes, songs — gathered for the printer. Save as PDF, send to your letterpress, or order a printed edition from Pearloom."
           actions={
             <>
               <button
