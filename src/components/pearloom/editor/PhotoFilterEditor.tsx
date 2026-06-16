@@ -44,9 +44,12 @@ export function PhotoFilterEditor({
   onCancel: () => void;
 }) {
   const [preset, setPreset] = useState<FilterPreset>(FILTER_PRESETS[0]);
+  const [intensity, setIntensity] = useState(1); // 0..1 — filter strength
+  const [rotation, setRotation] = useState(0); // 0 | 90 | 180 | 270
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
+  const touched = preset.filter !== '' || rotation !== 0;
 
   // Probe whether we can draw this source to a canvas (some remote
   // hosts taint it). If not, we still let the host preview but warn
@@ -64,15 +67,15 @@ export function PhotoFilterEditor({
 
   async function apply() {
     if (busy) return;
-    // Original chosen, or we can't bake → just use the source URL.
-    if (preset.filter === '' || !canBake) {
+    // Nothing changed, or we can't bake → just use the source URL.
+    if (!touched || !canBake) {
       onApplied(url);
       return;
     }
     setBusy(true);
     setNote(null);
     try {
-      const dataUrl = await bakeFilter(url, preset.filter);
+      const dataUrl = await bakeFilter(url, preset.filter, intensity, rotation);
       const r = await fetch('/api/photos/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -138,17 +141,56 @@ export function PhotoFilterEditor({
         </header>
 
         <div style={{ padding: 18, overflowY: 'auto' }}>
-          <div style={{ borderRadius: 12, overflow: 'hidden', background: '#000', display: 'grid', placeItems: 'center', maxHeight: '46vh' }}>
-            {/* Live preview via CSS filter — instant, no canvas. */}
-            <img
-              ref={imgRef}
-              src={url}
-              alt="Preview"
-              style={{ maxWidth: '100%', maxHeight: '46vh', objectFit: 'contain', filter: preset.filter || 'none', display: 'block' }}
-            />
+          <div style={{ borderRadius: 12, overflow: 'hidden', background: '#000', display: 'grid', placeItems: 'center', maxHeight: '44vh' }}>
+            {/* Live preview — the filtered layer rides over the
+                original at `intensity` opacity so the slider blends
+                strength; the whole stack rotates. Baking reproduces
+                exactly this on a canvas. */}
+            <div style={{ position: 'relative', lineHeight: 0, transform: `rotate(${rotation}deg)`, transition: 'transform 220ms ease' }}>
+              <img
+                ref={imgRef}
+                src={url}
+                alt="Preview"
+                style={{ maxWidth: '100%', maxHeight: '40vh', objectFit: 'contain', display: 'block' }}
+              />
+              {preset.filter !== '' && (
+                <img
+                  src={url}
+                  alt=""
+                  aria-hidden
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', filter: preset.filter, opacity: intensity }}
+                />
+              )}
+            </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+          {/* Rotate + (when a filter is on) intensity. */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 14, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => setRotation((r) => (r + 90) % 360)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 13px', borderRadius: 999, border: '1px solid var(--pl-chrome-border)', background: 'transparent', color: 'var(--pl-chrome-text)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-ui)' }}
+            >
+              <Icon name="rotate" size={13} /> Rotate
+            </button>
+            {preset.filter !== '' && (
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 160, fontSize: 11.5, color: 'var(--pl-chrome-text-muted, #6F6557)' }}>
+                Strength
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={Math.round(intensity * 100)}
+                  onChange={(e) => setIntensity(Number(e.target.value) / 100)}
+                  className="pl-native-control"
+                  style={{ flex: 1, accentColor: 'var(--peach-ink, #C6703D)' }}
+                />
+                <span style={{ width: 34, textAlign: 'right' }}>{Math.round(intensity * 100)}%</span>
+              </label>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
             {FILTER_PRESETS.map((p) => {
               const on = p.id === preset.id;
               return (
@@ -171,9 +213,9 @@ export function PhotoFilterEditor({
             })}
           </div>
 
-          {!canBake && preset.filter !== '' && (
+          {!canBake && touched && (
             <div style={{ marginTop: 10, fontSize: 11.5, color: 'var(--pl-chrome-text-muted, #6F6557)' }}>
-              This photo can&rsquo;t be re-saved with a filter (it&rsquo;s hosted elsewhere) — it&rsquo;ll be used as-is.
+              This photo can&rsquo;t be re-saved with edits (it&rsquo;s hosted elsewhere) — it&rsquo;ll be used as-is.
             </div>
           )}
           {note && (
@@ -196,7 +238,7 @@ export function PhotoFilterEditor({
             disabled={busy}
             style={{ padding: '9px 18px', borderRadius: 999, background: 'var(--pl-chrome-text)', color: 'var(--pl-chrome-bg)', border: 'none', fontSize: 12.5, fontWeight: 700, cursor: busy ? 'wait' : 'pointer', fontFamily: 'var(--font-ui)', opacity: busy ? 0.7 : 1 }}
           >
-            {busy ? 'Applying…' : preset.filter === '' ? 'Use photo' : 'Apply filter'}
+            {busy ? 'Applying…' : touched ? 'Apply edits' : 'Use photo'}
           </button>
         </footer>
       </div>
@@ -204,20 +246,38 @@ export function PhotoFilterEditor({
   );
 }
 
-/** Draw the image through a canvas with the given CSS filter and
- *  return a JPEG data URL. Throws if the source taints the canvas. */
-async function bakeFilter(src: string, filter: string): Promise<string> {
+/** Bake the filter (at `intensity`) + `rotation` onto a canvas and
+ *  return a JPEG data URL. The filtered layer is drawn over the
+ *  original at `intensity` alpha — matching the live preview.
+ *  Throws if the source taints the canvas. */
+async function bakeFilter(src: string, filter: string, intensity: number, rotation: number): Promise<string> {
   const img = await loadImage(src);
-  const canvas = document.createElement('canvas');
-  // Cap the long edge so the re-encode stays a reasonable size.
   const MAX = 2000;
   const scale = Math.min(1, MAX / Math.max(img.naturalWidth, img.naturalHeight));
-  canvas.width = Math.round(img.naturalWidth * scale);
-  canvas.height = Math.round(img.naturalHeight * scale);
+  const w = Math.round(img.naturalWidth * scale);
+  const h = Math.round(img.naturalHeight * scale);
+  const rot = ((rotation % 360) + 360) % 360;
+  const swap = rot === 90 || rot === 270;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = swap ? h : w;
+  canvas.height = swap ? w : h;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('no 2d context');
-  ctx.filter = filter;
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.rotate((rot * Math.PI) / 180);
+  // Base — the unfiltered image.
+  ctx.filter = 'none';
+  ctx.drawImage(img, -w / 2, -h / 2, w, h);
+  // Filtered layer over the base at `intensity`.
+  if (filter && intensity > 0) {
+    ctx.globalAlpha = Math.min(1, Math.max(0, intensity));
+    ctx.filter = filter;
+    ctx.drawImage(img, -w / 2, -h / 2, w, h);
+  }
+  ctx.restore();
   return canvas.toDataURL('image/jpeg', 0.9);
 }
 
