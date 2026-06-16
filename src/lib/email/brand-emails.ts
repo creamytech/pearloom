@@ -158,7 +158,7 @@ export function buildCoHostInviteEmail(opts: {
   const role = COHOST_ROLE_COPY[opts.role] ?? COHOST_ROLE_COPY.editor;
   const couple = esc(opts.coupleDisplay);
   const html = emailLayout(frame(`
-    ${eyebrow('You&rsquo;re invited to co-host', t)}
+    ${eyebrow('You’re invited to co-host', t)}
     ${heading(`${couple} would like your hands on the loom.`, t)}
     ${para(`${opts.invitedBy ? esc(opts.invitedBy) : 'They'} invited you to help with their Pearloom site as a <strong>${role.label}</strong>.`, t)}
     ${para(role.line, t)}
@@ -180,10 +180,10 @@ export function buildGuestInviteEmail(opts: {
   const couple = esc(opts.coupleDisplay);
   const first = (opts.guestName ?? '').trim().split(/\s+/)[0];
   const html = emailLayout(frame(`
-    ${eyebrow('You&rsquo;re invited', t)}
+    ${eyebrow('You’re invited', t)}
     ${heading(`${couple} would love for you to join them.`, t)}
     ${para(`${first ? esc(first) + ', everything' : 'Everything'} about the celebration lives here — and you can RSVP right from your page.`, t)}
-    ${ctaBlock('View the invitation &amp; RSVP', opts.personalUrl, t)}
+    ${ctaBlock('View the invitation & RSVP', opts.personalUrl, t)}
     ${fine('This link is yours — it opens your own page and remembers your reply.', t)}
   `, t), t);
   return { subject: `You're invited — ${opts.coupleDisplay}`, html };
@@ -336,7 +336,7 @@ export function buildBroadcastEmail(opts: {
 }): { html: string } {
   const t = opts.theme ?? BRAND_EMAIL_THEME;
   const html = emailLayout(frame(`
-    ${eyebrow(`Live from ${opts.couple}&rsquo;s day`, t)}
+    ${eyebrow(`Live from ${opts.couple}’s day`, t)}
     ${heading('A quick update.', t)}
     ${pull(esc(opts.message).replace(/\n/g, '<br>'), t)}
     ${ctaBlock('Open the site', opts.ctaUrl, t)}
