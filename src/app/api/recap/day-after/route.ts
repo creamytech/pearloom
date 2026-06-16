@@ -14,6 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -199,6 +200,8 @@ async function runDayAfter(force?: string) {
           to: emails,
           subject: `${coupleDisplay} · your memory book is ready`,
           html,
+          text: htmlToText(html),
+          headers: listUnsubHeaders(),
         });
       } catch (err) {
         console.error('[recap] send failed:', err);

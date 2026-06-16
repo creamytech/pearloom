@@ -15,6 +15,7 @@ import { Resend } from 'resend';
 import { getServerSession } from 'next-auth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { authOptions } from '@/lib/auth';
+import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
 import { getSiteConfig } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -253,6 +254,8 @@ export async function POST(req: NextRequest) {
         to: guestEmail,
         subject,
         html,
+        text: htmlToText(html),
+        headers: listUnsubHeaders(),
         // Tag with site_id + guest_id so the Resend webhook
         // (/api/webhooks/resend) lands delivered/opened events
         // on the right guests row. The dashboard's tracking pips
