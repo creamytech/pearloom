@@ -93,23 +93,37 @@ export async function POST(req: NextRequest) {
       if (byId) matchedGuestRowId = String(byId.id);
     }
 
-    // ── Invitation-only gate (manifest.rsvpConfig.guestListOnly) ──
-    // When the host flips it on, only people already ON the guest
-    // list may reply: matched by name pick, by email, or by their
-    // personal guest link. Anyone else gets a warm 403 —
-    // not a row on the list.
-    const gateCfg = (siteRow.ai_manifest as { rsvpConfig?: { guestListOnly?: boolean } } | null)?.rsvpConfig;
-    if (gateCfg?.guestListOnly) {
-      let invited = matchedGuestRowId !== null;
-      if (!invited && typeof guestToken === 'string' && guestToken.trim()) {
-        const { data: byToken } = await supabase
+    // ── Personal-link match — a guest who arrived via their ?g=
+    //    link reuses that exact row (no duplicate) and counts as
+    //    invited. Resolves via either token column (guest_token or
+    //    the legacy passport_token). Verified against THIS site.
+    if (!matchedGuestRowId && typeof guestToken === 'string' && guestToken.trim()) {
+      const tok = guestToken.trim();
+      let { data: byToken } = await supabase
+        .from('guests')
+        .select('id')
+        .eq('site_id', resolvedSiteId)
+        .eq('guest_token', tok)
+        .maybeSingle();
+      if (!byToken) {
+        ({ data: byToken } = await supabase
           .from('guests')
           .select('id')
           .eq('site_id', resolvedSiteId)
-          .eq('guest_token', guestToken.trim())
-          .maybeSingle();
-        invited = !!byToken;
+          .eq('passport_token', tok)
+          .maybeSingle());
       }
+      if (byToken) matchedGuestRowId = String(byToken.id);
+    }
+
+    // ── Invitation-only gate (manifest.rsvpConfig.guestListOnly) ──
+    // When the host flips it on, only people already ON the guest
+    // list may reply: matched by name pick / personal link (both
+    // fold into matchedGuestRowId above) or by an email already on
+    // the list. Anyone else gets a warm 403 — not a row on the list.
+    const gateCfg = (siteRow.ai_manifest as { rsvpConfig?: { guestListOnly?: boolean } } | null)?.rsvpConfig;
+    if (gateCfg?.guestListOnly) {
+      let invited = matchedGuestRowId !== null;
       if (!invited && email) {
         const { data: byEmail } = await supabase
           .from('guests')
@@ -122,9 +136,7 @@ export async function POST(req: NextRequest) {
       if (!invited) {
         return NextResponse.json(
           {
-            error: email
-              ? 'This celebration is replying by invitation — we couldn’t find that email on the guest list. Try the email your invitation was sent to, or reach out to your hosts.'
-              : 'This celebration is replying by invitation — enter the email your invitation was sent to.',
+            error: 'This celebration is replying by invitation — please find and pick your name on the guest list. If you can’t find it, reach out to your hosts.',
             guestListOnly: true,
           },
           { status: 403 },

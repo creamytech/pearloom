@@ -33,6 +33,7 @@ import { authOptions } from '@/lib/auth';
 import { parseGuestCsv, dedupeAgainst } from '@/lib/csv/parse-guests';
 import { getPlanWithLimitsForEmail, planLimitResponseBody, isSiteGriefExempt } from '@/lib/plan-gate';
 import { normalizePersonEmail } from '@/lib/people';
+import { guestTokenColumns } from '@/lib/guest-tokens';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -156,6 +157,9 @@ export async function POST(req: NextRequest) {
       meal_preference: g.meal_preference,
       dietary_restrictions: g.dietary_restrictions,
       status: 'pending',
+      // Personal-link token per row (envelope + auto-recognition +
+      // gate). Each guest gets their own unique ?g= link.
+      ...guestTokenColumns(),
       imported_at: importedAt,
       import_batch_id: batchId,
     }));

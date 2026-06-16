@@ -212,6 +212,19 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
   }, [manifest]);
   void questionGates.plusOne; /* plusOne handled via existing guest-list passport flow upstream. */
 
+  /* Invitation-only — when the host turns on "Invited only" in the
+     editor / guests dashboard, a reply must land on a real guest-
+     list row. The modal mirrors the server gate (/api/rsvp): the
+     guest has to FIND THEIR NAME (the typeahead queries the host's
+     real list) and pick it. A free-typed name we can't verify goes
+     to "we couldn't find you" with no continue-anyway escape. */
+  const guestListOnly = useMemo(
+    () => Boolean((manifest as unknown as {
+      rsvpConfig?: { guestListOnly?: boolean };
+    }).rsvpConfig?.guestListOnly),
+    [manifest],
+  );
+
   /* Theme stamp — on the published path (PublishedSiteShell) this
      modal mounts as a SIBLING of the themed site root, so the
      --t-* vars are NOT inherited from `.pl8-guest`. Re-derive the
@@ -264,6 +277,38 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
     }, 220);
     return () => { window.clearTimeout(t); ctl.abort(); };
   }, [open, step, query, siteSlug]);
+
+  /* Auto-recognition — a guest who arrived via their personal link
+     (?g=<token>) is resolved by name and dropped straight onto the
+     reply step, no searching. The token rides along at submit so the
+     server lands the reply on their exact row and passes the gate.
+     Best-effort: if the token doesn't resolve, the manual find step
+     stays. */
+  useEffect(() => {
+    if (!open || step !== 'find' || party) return;
+    let token: string | null = null;
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      token = sp.get('g') || sp.get('guest');
+    } catch { /* ignore */ }
+    if (!token) return;
+    const ctl = new AbortController();
+    fetch(`/api/sites/guest-passport?siteSlug=${encodeURIComponent(siteSlug)}&token=${encodeURIComponent(token)}`, { signal: ctl.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { guest?: { name?: string } } | null) => {
+        const name = d?.guest?.name;
+        if (typeof name === 'string' && name.trim()) {
+          const ad = makeAdHocParty(name.trim());
+          setQuery(name.trim());
+          setMatchedFromList(true);
+          setParty(ad);
+          setResp({ [ad.guests[0]]: { attending: 'yes', meal: mealOptions[0] ?? 'Chicken', dietary: '' } });
+          setStep('respond');
+        }
+      })
+      .catch(() => { /* fall back to the manual find step */ });
+    return () => ctl.abort();
+  }, [open, step, party, siteSlug, mealOptions]);
 
   // Listen for the open event globally. Also register with the
   // RSVP bus so the sticky pill / nav links can route here even
@@ -339,19 +384,31 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
       setStep('respond');
       return;
     }
-    // Host has a manifest passport list, the typed name didn't match
-    // it, and this isn't a trusted typeahead pick → offer "not found"
-    // with a continue-anyway escape so a spelling mismatch never locks
-    // a real guest out.
-    if (parties.length > 0 && !fromMatch) {
-      setStep('notfound');
-      return;
+    // A trusted typeahead pick (fromMatch) always proceeds — the
+    // guest tapped a real row from the host's live list, which the
+    // server gate also honours.
+    if (!fromMatch) {
+      // Invitation-only: an unverified, free-typed name can't reply.
+      // Send them to "we couldn't find you" — no continue-anyway, so
+      // the UI matches the server gate instead of teasing a form that
+      // would 403 on submit.
+      if (guestListOnly) {
+        setStep('notfound');
+        return;
+      }
+      // Open RSVP, host has a manifest passport list but the name
+      // didn't match it → offer "not found" with a continue-anyway
+      // escape so a spelling mismatch never locks a real guest out.
+      if (parties.length > 0) {
+        setStep('notfound');
+        return;
+      }
     }
-    // Either no manifest passport list, OR the guest tapped a real
-    // typeahead row (fromMatch) that just isn't in the manifest party
-    // list (the live DB list can differ). A trusted pick keeps the
-    // "you're on the guest list" confirmation; a bare typed name stays
-    // unverified.
+    // Either no manifest passport list (open RSVP), OR the guest
+    // tapped a real typeahead row (fromMatch) that just isn't in the
+    // manifest party list (the live DB list can differ). A trusted
+    // pick keeps the "you're on the guest list" confirmation; a bare
+    // typed name on an open site stays unverified.
     setMatchedFromList(fromMatch);
     const ad = makeAdHocParty(q);
     setParty(ad);
@@ -558,7 +615,9 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                 lineHeight: 1.5,
               }}
             >
-              Find your invitation to reply. Type the name on your invite.
+              {guestListOnly
+                ? 'Replying by invitation — start typing your name and pick it from the list.'
+                : 'Find your invitation to reply. Type the name on your invite.'}
             </p>
             <div style={fieldStyle()}>
               <label style={labelStyle()}>Your name or party</label>
@@ -698,7 +757,9 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                 lineHeight: 1.5,
               }}
             >
-              Check the spelling, or continue with the name you entered.
+              {guestListOnly
+                ? 'This celebration is replying by invitation. Try a different spelling of your name — if you still can’t find it, reach out to your hosts.'
+                : 'Check the spelling, or continue with the name you entered.'}
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button
@@ -707,32 +768,39 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                   flex: 1,
                   padding: '11px 16px',
                   borderRadius: 999,
-                  background: 'transparent',
-                  border: '1px solid var(--line, rgba(14,13,11,0.16))',
-                  color: 'var(--ink, var(--pl-ink, #0E0D0B))',
+                  background: guestListOnly ? 'var(--ink, var(--pl-ink, #0E0D0B))' : 'transparent',
+                  border: guestListOnly ? 'none' : '1px solid var(--line, rgba(14,13,11,0.16))',
+                  color: guestListOnly
+                    ? 'var(--cream, var(--pl-cream, #F5EFE2))'
+                    : 'var(--ink, var(--pl-ink, #0E0D0B))',
                   fontSize: 12,
-                  fontWeight: 600,
+                  fontWeight: guestListOnly ? 700 : 600,
                   cursor: 'pointer',
                 }}
               >
-                Try again
+                {guestListOnly ? 'Search again' : 'Try again'}
               </button>
-              <button
-                onClick={continueAnyway}
-                style={{
-                  flex: 1,
-                  padding: '11px 16px',
-                  borderRadius: 999,
-                  background: 'var(--ink, var(--pl-ink, #0E0D0B))',
-                  color: 'var(--cream, var(--pl-cream, #F5EFE2))',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                Continue with &ldquo;{query.trim()}&rdquo;
-              </button>
+              {/* Continue-anyway is ONLY offered on open RSVPs. An
+                  invitation-only site never lets an unverified name
+                  through here — that's the whole point of the gate. */}
+              {!guestListOnly && (
+                <button
+                  onClick={continueAnyway}
+                  style={{
+                    flex: 1,
+                    padding: '11px 16px',
+                    borderRadius: 999,
+                    background: 'var(--ink, var(--pl-ink, #0E0D0B))',
+                    color: 'var(--cream, var(--pl-cream, #F5EFE2))',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Continue with &ldquo;{query.trim()}&rdquo;
+                </button>
+              )}
             </div>
           </div>
         )}
