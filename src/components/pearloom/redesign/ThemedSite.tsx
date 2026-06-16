@@ -2606,17 +2606,22 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
   // Published-only full-screen viewer. The editor canvas keeps
   // click-to-edit-caption, so the lightbox is gated on !editable.
   const [lightbox, setLightbox] = useState<LightboxState | null>(null);
+  const openLightbox = !editable
+    ? (idx: number) => setLightbox({ photos: galleryC.photos ?? [], captions: galleryC.captions, index: idx })
+    : undefined;
+  const lightboxEl = <PhotoLightbox state={lightbox} onClose={() => setLightbox(null)} />;
   const sub = {
     C: galleryC, pad, editable, cta: C.cta,
     onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('galleryEyebrow', v) : undefined,
     onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('galleryTitle', v) : undefined,
     onEditCaption: ctx.edit?.galleryCaption,
+    onPhotoClick: openLightbox,
     eyebrowPlaceholder: 'Gallery',
     titlePlaceholder: 'A few favorites',
   };
-  if (variants.gallery === 'masonry')   return <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}><GalleryMasonry ctx={sub} /></div>;
-  if (variants.gallery === 'slideshow') return <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}><GallerySlideshow ctx={sub} /></div>;
-  if (variants.gallery === 'polaroid')  return <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}><GalleryPolaroid ctx={sub} /></div>;
+  if (variants.gallery === 'masonry')   return <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}><GalleryMasonry ctx={sub} />{lightboxEl}</div>;
+  if (variants.gallery === 'slideshow') return <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}><GallerySlideshow ctx={sub} />{lightboxEl}</div>;
+  if (variants.gallery === 'polaroid')  return <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}><GalleryPolaroid ctx={sub} />{lightboxEl}</div>;
   return (
     <div style={{ padding: `${36 * pad}px clamp(16px, 4vw, 32px)`, background: 'var(--t-section)' }}>
       <TSectionHead

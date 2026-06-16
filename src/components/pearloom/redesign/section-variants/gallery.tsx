@@ -17,6 +17,9 @@ import { InlineEdit } from '../InlineEdit';
 export interface GalleryVariantCtxEditable extends Omit<GalleryVariantCtx, 'C'> {
   C: GalleryVariantCtx['C'] & { captions?: (string | undefined)[] };
   onEditCaption?: (idx: number, v: string) => void;
+  /** Published-only: open the full-screen lightbox at this photo
+   *  index (index into C.photos). Undefined in the editor. */
+  onPhotoClick?: (index: number) => void;
 }
 
 /** Caption slot in the variant's own voice — pass `style` for the
@@ -94,12 +97,16 @@ export function GalleryMasonry({ ctx }: { ctx: GalleryVariantCtxEditable }) {
         {items.map((it, i) => (
           <div key={i} style={{ breakInside: 'avoid', marginBottom: 9 }}>
             <div
+              onClick={it.kind === 'photo' && ctx.onPhotoClick ? () => ctx.onPhotoClick!(i) : undefined}
+              role={it.kind === 'photo' && ctx.onPhotoClick ? 'button' : undefined}
+              aria-label={it.kind === 'photo' && ctx.onPhotoClick ? 'Open photo' : undefined}
               style={{
                 background: it.kind === 'photo'
                   ? `var(--t-section) center / cover no-repeat url("${it.url.replace(/"/g, '%22')}")`
                   : TONE_BG[it.tone],
                 aspectRatio: ratios[i % ratios.length],
                 borderRadius: 'var(--t-radius)',
+                cursor: it.kind === 'photo' && ctx.onPhotoClick ? 'zoom-in' : undefined,
               }}
             />
             {it.kind === 'photo' && (
@@ -130,12 +137,16 @@ export function GallerySlideshow({ ctx }: { ctx: GalleryVariantCtxEditable }) {
     <>
       <VariantSectionHead {...headProps(ctx)} />
       <div
+        onClick={hasPhotos && ctx.onPhotoClick ? () => ctx.onPhotoClick!(0) : undefined}
+        role={hasPhotos && ctx.onPhotoClick ? 'button' : undefined}
+        aria-label={hasPhotos && ctx.onPhotoClick ? 'Open photo' : undefined}
         style={{
           aspectRatio: '16/9',
           maxWidth: 760,
           margin: '0 auto',
           borderRadius: 'var(--t-radius)',
           background: heroBg,
+          cursor: hasPhotos && ctx.onPhotoClick ? 'zoom-in' : undefined,
         }}
       />
       {/* Caption for the stage photo (photos[0]) — under the stage,
@@ -153,12 +164,16 @@ export function GallerySlideshow({ ctx }: { ctx: GalleryVariantCtxEditable }) {
         {thumbs.map((item, i) => (
           <div
             key={i}
+            onClick={hasPhotos && ctx.onPhotoClick ? () => ctx.onPhotoClick!(i + 1) : undefined}
+            role={hasPhotos && ctx.onPhotoClick ? 'button' : undefined}
+            aria-label={hasPhotos && ctx.onPhotoClick ? 'Open photo' : undefined}
             style={{
               aspectRatio: '1',
               background: hasPhotos
                 ? `var(--t-section) center / cover no-repeat url("${(item as string).replace(/"/g, '%22')}")`
                 : TONE_BG[item as PhotoTone],
               borderRadius: 'var(--t-radius)',
+              cursor: hasPhotos && ctx.onPhotoClick ? 'zoom-in' : undefined,
             }}
           />
         ))}
@@ -197,7 +212,12 @@ export function GalleryPolaroid({ ctx }: { ctx: GalleryVariantCtxEditable }) {
               transform: `rotate(${rotations[i % rotations.length]}deg)`,
             }}
           >
-            <div style={{ aspectRatio: '1', background: it.bg }} />
+            <div
+              onClick={hasPhotos && ctx.onPhotoClick ? () => ctx.onPhotoClick!(i) : undefined}
+              role={hasPhotos && ctx.onPhotoClick ? 'button' : undefined}
+              aria-label={hasPhotos && ctx.onPhotoClick ? 'Open photo' : undefined}
+              style={{ aspectRatio: '1', background: it.bg, cursor: hasPhotos && ctx.onPhotoClick ? 'zoom-in' : undefined }}
+            />
             {/* Label band — always present so blank polaroids keep
                 the classic empty-bottom proportions. */}
             <div style={{ minHeight: 18, marginTop: 4 }}>
