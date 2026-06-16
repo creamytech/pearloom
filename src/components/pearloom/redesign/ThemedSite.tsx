@@ -74,6 +74,7 @@ import { AdviceWallSection } from './section-variants/blocks/advice-wall';
 import { ProgramSection } from './section-variants/blocks/program';
 import { LivestreamSection } from './section-variants/blocks/livestream';
 import { GuestbookSection } from './GuestbookSection';
+import { PhotoLightbox, type LightboxState } from './PhotoLightbox';
 import { ObituarySection } from './section-variants/blocks/obituary';
 import { PackingListSection } from './section-variants/blocks/packing-list';
 import { HonorListSection } from './section-variants/blocks/honor-list';
@@ -2602,6 +2603,9 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
     ? [...hostPhotos, ...guestPhotos.filter((u) => !hostPhotos.includes(u))]
     : hostPhotos;
   const galleryC = mergedPhotos === hostPhotos ? C.gallery : { ...C.gallery, photos: mergedPhotos };
+  // Published-only full-screen viewer. The editor canvas keeps
+  // click-to-edit-caption, so the lightbox is gated on !editable.
+  const [lightbox, setLightbox] = useState<LightboxState | null>(null);
   const sub = {
     C: galleryC, pad, editable, cta: C.cta,
     onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('galleryEyebrow', v) : undefined,
@@ -2638,7 +2642,14 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
               const caption = galleryC.captions?.[i];
               return (
                 <div key={i}>
-                  <FadeInImage src={url} style={{ aspectRatio: '1/1', borderRadius: 8 }} />
+                  <div
+                    onClick={!editable ? () => setLightbox({ photos: galleryC.photos ?? [], captions: galleryC.captions, index: i }) : undefined}
+                    style={{ cursor: !editable ? 'zoom-in' : 'default' }}
+                    role={!editable ? 'button' : undefined}
+                    aria-label={!editable ? 'Open photo' : undefined}
+                  >
+                    <FadeInImage src={url} style={{ aspectRatio: '1/1', borderRadius: 8 }} />
+                  </div>
                   {editable && ctx.edit?.galleryCaption ? (
                     <InlineEdit
                       as="div"
@@ -2659,6 +2670,7 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
               <PhotoPlaceholder key={i} tone={t} aspect="1/1" style={{ borderRadius: 8 }} />
             ))}
       </div>
+      <PhotoLightbox state={lightbox} onClose={() => setLightbox(null)} />
     </div>
   );
 }
