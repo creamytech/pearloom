@@ -40,21 +40,7 @@ export function DashSubNav({ section }: Props) {
   );
 
   return (
-    <nav
-      aria-label={`${meta.label} sub-navigation`}
-      style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: 6,
-        padding: '14px clamp(20px, 4vw, 40px) 4px',
-        maxWidth: 1240,
-        margin: '0 auto',
-        // Gold hairline — the brand's punctuation (BRAND.md §5):
-        // a 1px rule tinted toward gold instead of a plain gray border.
-        borderBottom: '1px solid color-mix(in oklab, var(--gold, #C19A4B) 30%, var(--line-soft))',
-        marginBottom: 8,
-      }}
-    >
+    <nav aria-label={`${meta.label} sub-navigation`} className="pl-subnav">
       {tabs.map((tab) => {
         const on = pathname === tab.href;
         return (
@@ -62,24 +48,94 @@ export function DashSubNav({ section }: Props) {
             key={tab.id}
             href={tab.href}
             prefetch
-            className="pl8-chip-pop"
-            style={{
-              padding: '8px 16px',
-              borderRadius: 999,
-              fontSize: 13,
-              fontWeight: 600,
-              textDecoration: 'none',
-              fontFamily: 'var(--font-ui)',
-              background: on ? 'var(--ink)' : 'transparent',
-              color: on ? 'var(--cream)' : 'var(--ink-soft)',
-              border: on ? '1.5px solid var(--ink)' : '1.5px solid transparent',
-              transition: 'background var(--pl-dur-fast) var(--pl-ease-out), color var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
-            }}
+            aria-current={on ? 'page' : undefined}
+            className={`pl-subtab${on ? ' is-on' : ''}`}
           >
             {tab.label}
           </Link>
         );
       })}
+      <style jsx>{`
+        /* Editorial underline tabs. The active tab is anchored to the
+           baseline hairline by a two-strand olive + gold thread —
+           the brand's visual atom (BRAND §3/§5) — instead of a heavy
+           filled pill floating above a disconnected rule. */
+        .pl-subnav {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: flex-end;
+          gap: clamp(10px, 2.4vw, 26px);
+          padding: 16px clamp(20px, 4vw, 40px) 0;
+          max-width: 1240px;
+          margin: 0 auto 16px;
+          border-bottom: 1px solid var(--line-soft, rgba(14, 13, 11, 0.08));
+        }
+        .pl-subtab {
+          position: relative;
+          padding: 4px 1px 12px;
+          font-family: var(--font-ui);
+          font-size: 13.5px;
+          font-weight: 500;
+          letter-spacing: 0.01em;
+          color: var(--ink-muted, #8a8472);
+          text-decoration: none;
+          white-space: nowrap;
+          transition: color var(--pl-dur-fast, 160ms) var(--pl-ease-out);
+        }
+        .pl-subtab:hover {
+          color: var(--ink, #0e0d0b);
+        }
+        .pl-subtab.is-on {
+          color: var(--ink, #0e0d0b);
+          font-weight: 700;
+        }
+        /* Active: two strands riding the baseline — 2px olive over a
+           1px gold hairline. */
+        .pl-subtab.is-on::before,
+        .pl-subtab.is-on::after {
+          content: '';
+          position: absolute;
+          left: 0;
+          right: 0;
+          border-radius: 2px;
+          pointer-events: none;
+        }
+        .pl-subtab.is-on::before {
+          bottom: -1px;
+          height: 2px;
+          background: var(--sage-deep, var(--pl-olive, #5c6b3f));
+        }
+        .pl-subtab.is-on::after {
+          bottom: -4px;
+          left: 2px;
+          right: 2px;
+          height: 1px;
+          background: var(--gold, #c19a4b);
+          opacity: 0.65;
+        }
+        /* Inactive: a faint olive underline grows in on hover. */
+        .pl-subtab:not(.is-on)::after {
+          content: '';
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: -1px;
+          height: 2px;
+          border-radius: 2px;
+          background: var(--sage-deep, var(--pl-olive, #5c6b3f));
+          opacity: 0;
+          transition: opacity var(--pl-dur-fast, 160ms) var(--pl-ease-out);
+        }
+        .pl-subtab:not(.is-on):hover::after {
+          opacity: 0.22;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .pl-subtab,
+          .pl-subtab::after {
+            transition: none;
+          }
+        }
+      `}</style>
     </nav>
   );
 }
