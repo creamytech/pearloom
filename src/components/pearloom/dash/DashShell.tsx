@@ -46,6 +46,7 @@ const DASH_NAV_GROUPS: DashNavGroup[] = [
       { id: 'guests',  label: 'Guests',   icon: 'users',    href: '/dashboard/rsvp' },
       { id: 'day',     label: 'Day',      icon: 'clock',    href: '/dashboard/day-of' },
       { id: 'studio',  label: 'Studio',   icon: 'sparkles', href: '/dashboard/invite' },
+      { id: 'gallery', label: 'Gallery',  icon: 'image',    href: '/dashboard/gallery' },
       { id: 'memory',  label: 'Memory',   icon: 'heart-icon', href: '/dashboard/keepsakes' },
       { id: 'settings', label: 'Settings', icon: 'settings', href: '/dashboard/profile' },
     ],
