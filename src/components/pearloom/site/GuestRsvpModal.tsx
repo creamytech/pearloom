@@ -162,8 +162,12 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
      host's REAL guest list (/api/rsvp/lookup, names only). Picking
      yourself pins your row id so the reply UPDATES it instead of
      minting a duplicate — and passes the invitation-only gate. */
-  const [nameMatches, setNameMatches] = useState<Array<{ id: string; name: string; party?: string | null }>>([]);
+  const [nameMatches, setNameMatches] = useState<Array<{ id: string; name: string; party?: string | null; plusOneAllowed?: boolean }>>([]);
   const [matchedGuestId, setMatchedGuestId] = useState<string | null>(null);
+  /* Host's per-guest plus-one grant for the matched guest. Combined
+     with the site-wide rsvpConfig.plusOne to decide whether the
+     "Bringing a guest?" field shows. */
+  const [matchedAllowsPlus, setMatchedAllowsPlus] = useState(false);
   /* True once the guest is confirmed ON the host's list — either
      they tapped a typeahead match (their real row) or their typed
      name matched a manifest party. Drives the "You're on the guest
@@ -215,6 +219,10 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
     };
   }, [manifest]);
 
+  /* The "Bringing a guest?" field shows when the host allows plus-
+     ones site-wide OR granted this specific guest one. */
+  const plusOneVisible = questionGates.plusOne || matchedAllowsPlus;
+
   /* Invitation-only — when the host turns on "Invited only" in the
      editor / guests dashboard, a reply must land on a real guest-
      list row. The modal mirrors the server gate (/api/rsvp): the
@@ -260,6 +268,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
     setNameMatches([]);
     setMatchedGuestId(null);
     setMatchedFromList(false);
+    setMatchedAllowsPlus(false);
   }, []);
 
   /* Debounced guest-list lookup while the guest types their name.
@@ -298,12 +307,13 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
     const ctl = new AbortController();
     fetch(`/api/sites/guest-passport?siteSlug=${encodeURIComponent(siteSlug)}&token=${encodeURIComponent(token)}`, { signal: ctl.signal })
       .then((r) => (r.ok ? r.json() : null))
-      .then((d: { guest?: { name?: string } } | null) => {
+      .then((d: { guest?: { name?: string; plusOneAllowed?: boolean } } | null) => {
         const name = d?.guest?.name;
         if (typeof name === 'string' && name.trim()) {
           const ad = makeAdHocParty(name.trim());
           setQuery(name.trim());
           setMatchedFromList(true);
+          setMatchedAllowsPlus(!!d?.guest?.plusOneAllowed);
           setParty(ad);
           setResp({ [ad.guests[0]]: { attending: 'yes', meal: mealOptions[0] ?? 'Chicken', dietary: '' } });
           setStep('respond');
@@ -362,10 +372,11 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
   if (!open) return null;
 
   /* A tapped suggestion proceeds immediately as that guest. */
-  const pickMatch = (m: { id: string; name: string }) => {
+  const pickMatch = (m: { id: string; name: string; plusOneAllowed?: boolean }) => {
     setQuery(m.name);
     setMatchedGuestId(m.id);
     setMatchedFromList(true);
+    setMatchedAllowsPlus(!!m.plusOneAllowed);
     setNameMatches([]);
     findInvite(m.name, true);
   };
@@ -473,9 +484,9 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
           status: reply.attending === 'yes' ? 'attending' : 'declined',
           mealPreference: reply.attending === 'yes' ? reply.meal || null : null,
           dietaryRestrictions: reply.attending === 'yes' ? reply.dietary || null : null,
-          plusOne: reply.attending === 'yes' && questionGates.plusOne ? !!reply.plusOne : false,
+          plusOne: reply.attending === 'yes' && plusOneVisible ? !!reply.plusOne : false,
           plusOneName:
-            reply.attending === 'yes' && questionGates.plusOne && reply.plusOne
+            reply.attending === 'yes' && plusOneVisible && reply.plusOne
               ? (reply.plusOneName ?? '').trim() || null
               : null,
           songRequest: i === 0 && anyYes ? song.trim() || null : null,
@@ -484,7 +495,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
           answers: {
             meal: reply.attending === 'yes' ? reply.meal : undefined,
             dietary: reply.attending === 'yes' ? reply.dietary : undefined,
-            ...(reply.attending === 'yes' && questionGates.plusOne && reply.plusOne
+            ...(reply.attending === 'yes' && plusOneVisible && reply.plusOne
               ? { 'plus-one': (reply.plusOneName ?? '').trim() || 'Yes' }
               : {}),
             ...(i === 0 ? { 'song-request': song.trim() || undefined, comments: note.trim() || undefined } : {}),
@@ -942,7 +953,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                         })}
                       </div>
                     </div>
-                    {r.attending === 'yes' && (questionGates.mealChoice || questionGates.dietary || questionGates.plusOne) && (
+                    {r.attending === 'yes' && (questionGates.mealChoice || questionGates.dietary || plusOneVisible) && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                         {questionGates.mealChoice && (
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -986,7 +997,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                           style={{ ...inputStyle(), padding: '9px 11px', fontSize: 13 }}
                         />
                         )}
-                        {questionGates.plusOne && (
+                        {plusOneVisible && (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                             <label
                               style={{

@@ -101,6 +101,8 @@ interface ApiGuest {
   status: string; // 'pending' | 'attending' | 'declined' | 'maybe'
   plusOne: boolean;
   plusOneName: string | null;
+  /** Host granted this guest a plus-one. */
+  plusOneAllowed?: boolean;
   mealPreference: string | null;
   dietaryRestrictions: string | null;
   message: string | null;
@@ -136,6 +138,8 @@ interface Guest {
   emailDeliveredAt: string | null;
   emailOpenedAt: string | null;
   emailBouncedAt: string | null;
+  /** Host granted this guest a plus-one (they may bring someone). */
+  plusOneAllowed: boolean;
   /** Per-guest token, used to deep-link to /g/[token]. */
   token: string | null;
   /** True when invited >7 days ago and still pending. */
@@ -818,6 +822,7 @@ function shapeGuest(g: ApiGuest): Guest {
     emailDeliveredAt: g.emailDeliveredAt ?? null,
     emailOpenedAt: g.emailOpenedAt ?? null,
     emailBouncedAt: g.emailBouncedAt ?? null,
+    plusOneAllowed: !!g.plusOneAllowed,
     token: g.guestToken ?? null,
     phone: g.phone ?? '',
     stale,
@@ -2004,6 +2009,29 @@ function GuestRowActions({
   const [resend, setResend] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [removeArmed, setRemoveArmed] = useState(false);
   const [removing, setRemoving] = useState(false);
+  // Optimistic local mirror of the host's plus-one grant.
+  const [plusAllowed, setPlusAllowed] = useState(guest.plusOneAllowed);
+  const [plusBusy, setPlusBusy] = useState(false);
+
+  async function togglePlus() {
+    if (plusBusy) return;
+    const next = !plusAllowed;
+    setPlusBusy(true);
+    setPlusAllowed(next); // optimistic
+    try {
+      const res = await fetch('/api/guests', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: guest.id, plusOneAllowed: next }),
+      });
+      if (!res.ok) setPlusAllowed(!next); // revert on failure
+      else onChanged();
+    } catch {
+      setPlusAllowed(!next);
+    } finally {
+      setPlusBusy(false);
+    }
+  }
 
   async function doResend() {
     if (resend === 'sending' || !hasEmail) return;
@@ -2047,6 +2075,22 @@ function GuestRowActions({
 
   return (
     <>
+      <button
+        type="button"
+        onClick={togglePlus}
+        disabled={plusBusy}
+        aria-pressed={plusAllowed}
+        title={plusAllowed ? 'This guest may bring a plus-one — tap to revoke' : 'Allow this guest to bring a plus-one'}
+        style={{
+          ...pill,
+          color: plusAllowed ? '#fff' : 'var(--ink-soft, #3A332C)',
+          background: plusAllowed ? 'var(--sage-deep, #5C6B3F)' : 'transparent',
+          border: `1px solid ${plusAllowed ? 'var(--sage-deep, #5C6B3F)' : 'var(--line, rgba(14,13,11,0.18))'}`,
+          opacity: plusBusy ? 0.6 : 1,
+        }}
+      >
+        {plusAllowed ? '+1 ✓' : '+1'}
+      </button>
       {hasEmail && (
         <button
           type="button"
