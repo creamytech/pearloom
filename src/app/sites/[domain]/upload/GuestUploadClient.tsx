@@ -48,15 +48,19 @@ export function GuestUploadClient({ siteId, couple, guestToken, prefillName }: P
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [count, setCount] = useState(0);
-  const fileRef = useRef<HTMLInputElement | null>(null);
+  // Two inputs: the camera input carries capture="environment" (opens
+  // the rear camera on phones); the library input omits it so the OS
+  // shows the photo roll / file picker. Guests choose either.
+  const cameraRef = useRef<HTMLInputElement | null>(null);
+  const libraryRef = useRef<HTMLInputElement | null>(null);
 
-  function pickFile() {
+  function pick(source: 'camera' | 'library') {
     if (!name.trim()) {
       setError('Add your name first — the couple wants to know who.');
       return;
     }
     setError(null);
-    fileRef.current?.click();
+    (source === 'camera' ? cameraRef : libraryRef).current?.click();
   }
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -191,7 +195,7 @@ export function GuestUploadClient({ siteId, couple, guestToken, prefillName }: P
               </Field>
               <button
                 type="button"
-                onClick={pickFile}
+                onClick={() => pick('camera')}
                 style={{
                   marginTop: 4,
                   padding: '14px 18px',
@@ -208,11 +212,35 @@ export function GuestUploadClient({ siteId, couple, guestToken, prefillName }: P
               >
                 ✦ Take a photo
               </button>
+              <button
+                type="button"
+                onClick={() => pick('library')}
+                style={{
+                  padding: '12px 18px',
+                  borderRadius: 999,
+                  background: 'transparent',
+                  color: '#C6703D',
+                  border: '1.5px solid rgba(198,112,61,0.5)',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  letterSpacing: '0.02em',
+                  cursor: 'pointer',
+                }}
+              >
+                Choose from library
+              </button>
               <input
-                ref={fileRef}
+                ref={cameraRef}
                 type="file"
                 accept="image/*"
                 capture="environment"
+                onChange={onFile}
+                style={{ display: 'none' }}
+              />
+              <input
+                ref={libraryRef}
+                type="file"
+                accept="image/*"
                 onChange={onFile}
                 style={{ display: 'none' }}
               />
