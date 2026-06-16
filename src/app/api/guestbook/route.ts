@@ -110,6 +110,38 @@ export async function POST(req: NextRequest) {
       void reHighlight(siteId);
     }
 
+    // Tell the host someone signed the guestbook (category 'content').
+    // Fire-and-forget; siteId is the site uuid.
+    void (async () => {
+      try {
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
+        const { createClient } = await import('@supabase/supabase-js');
+        const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+        const { data: site } = await sb
+          .from('sites')
+          .select('id, subdomain, creator_email, site_config')
+          .eq('id', siteId)
+          .maybeSingle();
+        const cfg = (site as { site_config?: { creator_email?: string; names?: [string, string] } } | null)?.site_config;
+        const ownerEmail = String((site as { creator_email?: string } | null)?.creator_email ?? cfg?.creator_email ?? '');
+        if (!site || !ownerEmail) return;
+        const names = (cfg?.names ?? []).filter(Boolean);
+        const siteLabel = names.length >= 2 ? `${names[0]} & ${names[1]}` : ((site as { subdomain?: string }).subdomain ?? 'your site');
+        const who = String(guestName ?? '').split(/\s+/)[0] || 'A guest';
+        const { notifyHost } = await import('@/lib/notifications/notify');
+        await notifyHost(sb, {
+          siteId,
+          siteLabel,
+          ownerEmail,
+          category: 'content',
+          title: `${who} signed the guestbook`,
+          body: String(message ?? '').slice(0, 200),
+          href: '/dashboard',
+          dedupeKey: `guestbook:${data.id}`,
+        });
+      } catch (e) { console.warn('[Guestbook] notifyHost failed (non-fatal):', e); }
+    })();
+
     return NextResponse.json({ success: true, id: data.id });
   } catch (err) {
     console.error('[Guestbook] Error:', err);

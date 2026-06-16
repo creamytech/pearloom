@@ -197,6 +197,38 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to save photo metadata' }, { status: 500 });
     }
 
+    // Tell the host a new photo arrived (category 'content' —
+    // instant or digest per their prefs). Fire-and-forget; never
+    // blocks the upload. siteId here is the subdomain.
+    void (async () => {
+      try {
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
+        const { createClient } = await import('@supabase/supabase-js');
+        const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+        const { data: site } = await sb
+          .from('sites')
+          .select('id, subdomain, creator_email, site_config')
+          .eq('subdomain', siteId)
+          .maybeSingle();
+        const cfg = (site as { site_config?: { creator_email?: string; names?: [string, string] } } | null)?.site_config;
+        const ownerEmail = String((site as { creator_email?: string } | null)?.creator_email ?? cfg?.creator_email ?? '');
+        if (!site || !ownerEmail) return;
+        const names = (cfg?.names ?? []).filter(Boolean);
+        const siteLabel = names.length >= 2 ? `${names[0]} & ${names[1]}` : ((site as { subdomain?: string }).subdomain ?? 'your site');
+        const who = uploaderName.trim().split(/\s+/)[0] || 'A guest';
+        const { notifyHost } = await import('@/lib/notifications/notify');
+        await notifyHost(sb, {
+          siteId: String((site as { id: string }).id),
+          siteLabel,
+          ownerEmail,
+          category: 'content',
+          title: `${who} added a photo`,
+          href: '/dashboard/gallery',
+          dedupeKey: `photo:${(photo as { id?: string }).id ?? Date.now()}`,
+        });
+      } catch (e) { console.warn('[guest-photos] notifyHost failed (non-fatal):', e); }
+    })();
+
     return NextResponse.json({ success: true, photo });
   } catch (err) {
     console.error('[guest-photos] Unexpected error:', err);
