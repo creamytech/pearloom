@@ -154,11 +154,6 @@ function SiteCard({
               <Icon name="brush" size={12} /> Edit
             </Link>
           )}
-          {!pickHref && (
-            <Link href={`/dashboard/event/${encodeURIComponent(site.id)}`} className="btn btn-outline btn-sm">
-              <Icon name="layout" size={12} /> Open HQ
-            </Link>
-          )}
           <a
             href={`https://${url}`}
             target="_blank"
@@ -319,14 +314,6 @@ function SiteCardMenu({ site, onDeleted }: { site: SiteSummary; onDeleted: () =>
           >
             <Icon name="arrow-ur" size={13} /> View live
           </a>
-          <Link
-            href={`/dashboard/event/${encodeURIComponent(site.id)}`}
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            style={menuItemStyle}
-          >
-            <Icon name="layout" size={13} /> Open HQ
-          </Link>
           <div style={{ height: 1, background: 'var(--line-soft)', margin: '4px 6px' }} />
           <button
             type="button"
