@@ -160,6 +160,13 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
      minting a duplicate — and passes the invitation-only gate. */
   const [nameMatches, setNameMatches] = useState<Array<{ id: string; name: string; party?: string | null }>>([]);
   const [matchedGuestId, setMatchedGuestId] = useState<string | null>(null);
+  /* True once the guest is confirmed ON the host's list — either
+     they tapped a typeahead match (their real row) or their typed
+     name matched a manifest party. Drives the "You're on the guest
+     list" confirmation on the reply step so a recognized guest sees
+     they were found, not just dropped into a form. An ad-hoc /
+     "continue anyway" reply leaves this false. */
+  const [matchedFromList, setMatchedFromList] = useState(false);
   const [resp, setResp] = useState<Record<string, GuestReply>>({});
   const [song, setSong] = useState('');
   const [note, setNote] = useState('');
@@ -236,6 +243,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
     setSubmitting(false);
     setNameMatches([]);
     setMatchedGuestId(null);
+    setMatchedFromList(false);
   }, []);
 
   /* Debounced guest-list lookup while the guest types their name.
@@ -309,32 +317,42 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
   const pickMatch = (m: { id: string; name: string }) => {
     setQuery(m.name);
     setMatchedGuestId(m.id);
+    setMatchedFromList(true);
     setNameMatches([]);
-    findInvite(m.name);
+    findInvite(m.name, true);
   };
 
-  const findInvite = (explicitName?: string) => {
+  const findInvite = (explicitName?: string, fromMatch = false) => {
     const q = (explicitName ?? query).trim();
     if (q.length < 2) return;
-    if (parties.length > 0) {
-      const found = findPartyByQuery(parties, q);
-      if (found) {
-        setParty(found);
-        const initial: Record<string, GuestReply> = {};
-        for (const g of found.guests) {
-          initial[g] = { attending: 'yes', meal: mealOptions[0] ?? 'Chicken', dietary: '' };
-        }
-        setResp(initial);
-        setStep('respond');
-        return;
+    // A manifest passport party lets the whole party reply together.
+    const found = parties.length > 0 ? findPartyByQuery(parties, q) : null;
+    if (found) {
+      // Matched against the host's manifest guest list — confirm it.
+      setMatchedFromList(true);
+      setParty(found);
+      const initial: Record<string, GuestReply> = {};
+      for (const g of found.guests) {
+        initial[g] = { attending: 'yes', meal: mealOptions[0] ?? 'Chicken', dietary: '' };
       }
-      // Production host has a passport list but no match — show notfound,
-      // with a "continue anyway" affordance so we don't lock a real guest
-      // out due to a name-spelling mismatch.
+      setResp(initial);
+      setStep('respond');
+      return;
+    }
+    // Host has a manifest passport list, the typed name didn't match
+    // it, and this isn't a trusted typeahead pick → offer "not found"
+    // with a continue-anyway escape so a spelling mismatch never locks
+    // a real guest out.
+    if (parties.length > 0 && !fromMatch) {
       setStep('notfound');
       return;
     }
-    // No passport configured — accept the name as-is.
+    // Either no manifest passport list, OR the guest tapped a real
+    // typeahead row (fromMatch) that just isn't in the manifest party
+    // list (the live DB list can differ). A trusted pick keeps the
+    // "you're on the guest list" confirmation; a bare typed name stays
+    // unverified.
+    setMatchedFromList(fromMatch);
     const ad = makeAdHocParty(q);
     setParty(ad);
     setResp({
@@ -344,6 +362,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
   };
 
   const continueAnyway = () => {
+    setMatchedFromList(false);
     const ad = makeAdHocParty(query);
     setParty(ad);
     setResp({
@@ -546,7 +565,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
               <input
                 type="text"
                 value={query}
-                onChange={(e) => { setQuery(e.target.value); setMatchedGuestId(null); }}
+                onChange={(e) => { setQuery(e.target.value); setMatchedGuestId(null); setMatchedFromList(false); }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') findInvite();
                 }}
@@ -720,6 +739,46 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
 
         {step === 'respond' && party && (
           <div style={{ padding: '28px 26px' }}>
+            {/* "We found you" — when the guest matched the host's
+                real list (tapped a typeahead row or matched a
+                manifest party), confirm it so a recognized guest
+                sees they're expected, not just dropped into a form. */}
+            {matchedFromList && (
+              <div
+                role="status"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 9,
+                  padding: '9px 12px',
+                  marginBottom: 14,
+                  borderRadius: 12,
+                  background: 'var(--sage-bg, color-mix(in oklab, var(--pl-olive, #5C6B3F) 12%, transparent))',
+                  border: '1px solid color-mix(in oklab, var(--pl-olive, #5C6B3F) 30%, transparent)',
+                }}
+              >
+                <span
+                  aria-hidden
+                  style={{
+                    flexShrink: 0,
+                    width: 22,
+                    height: 22,
+                    borderRadius: '50%',
+                    display: 'grid',
+                    placeItems: 'center',
+                    background: 'var(--sage-deep, var(--pl-olive-deep, #363F22))',
+                    color: 'var(--cream, var(--pl-cream, #F5EFE2))',
+                    fontSize: 13,
+                    fontWeight: 700,
+                  }}
+                >
+                  ✓
+                </span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--sage-deep, var(--pl-olive-deep, #363F22))', lineHeight: 1.35 }}>
+                  Found you — you&rsquo;re on the guest list.
+                </span>
+              </div>
+            )}
             <div
               style={{
                 fontSize: 11.5,
