@@ -222,26 +222,52 @@ export async function POST(req: NextRequest) {
     try {
       const { data: site } = await sb
         .from('sites')
-        .select('id, subdomain, creator_email, site_config')
+        .select('id, subdomain, occasion, creator_email, site_config')
         .eq('id', siteUuid)
         .maybeSingle();
       const cfg = (site as { site_config?: { creator_email?: string; names?: [string, string] } } | null)?.site_config;
       const ownerEmail = String((site as { creator_email?: string } | null)?.creator_email ?? cfg?.creator_email ?? '');
-      if (!ownerEmail) return;
       const names = (cfg?.names ?? []).filter(Boolean);
       const siteLabel = names.length >= 2 ? `${names[0]} & ${names[1]}` : ((site as { subdomain?: string } | null)?.subdomain ?? 'your site');
       const who = (claimerName ?? '').split(/\s+/)[0] || 'A guest';
-      const { notifyHost } = await import('@/lib/notifications/notify');
-      await notifyHost(sb, {
-        siteId: siteUuid,
-        siteLabel,
-        ownerEmail,
-        category: 'gifts',
-        title: `${who} claimed a registry gift`,
-        body: message ? String(message).slice(0, 200) : undefined,
-        href: '/dashboard/registry',
-        dedupeKey: `claim:${data.id}`,
-      });
+      if (ownerEmail) {
+        const { notifyHost } = await import('@/lib/notifications/notify');
+        await notifyHost(sb, {
+          siteId: siteUuid,
+          siteLabel,
+          ownerEmail,
+          category: 'gifts',
+          title: `${who} claimed a registry gift`,
+          body: message ? String(message).slice(0, 200) : undefined,
+          href: '/dashboard/registry',
+          dedupeKey: `claim:${data.id}`,
+        });
+      }
+
+      // Thank the gift-giver — fire-and-forget, key-gated.
+      const resendKey = process.env.RESEND_API_KEY;
+      if (resendKey && claimerEmail) {
+        const subdomain = (site as { subdomain?: string } | null)?.subdomain;
+        const occasion = (site as { occasion?: string } | null)?.occasion;
+        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
+        const fromEmail = process.env.EMAIL_FROM || 'Pearloom <noreply@pearloom.com>';
+        const { buildSiteUrl } = await import('@/lib/site-urls');
+        const siteUrl = subdomain ? buildSiteUrl(subdomain, '', baseUrl, occasion) : baseUrl;
+        const { buildRegistryClaimThankYouEmail } = await import('@/lib/email/brand-emails');
+        const { subject, html } = buildRegistryClaimThankYouEmail({
+          guestName: claimerName,
+          coupleDisplay: siteLabel,
+          // Link-out claims carry only the entry URL, not a tidy
+          // item name — leave it null so the copy reads "your gift".
+          itemName: null,
+          siteUrl,
+        });
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ from: fromEmail, to: [claimerEmail], subject, html }),
+        }).catch((e) => console.warn('[registry-link-claims] thank-you email failed (non-fatal):', e));
+      }
     } catch (err) {
       console.warn('[registry-link-claims] owner notify failed (non-fatal):', err);
     }

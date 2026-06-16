@@ -119,6 +119,7 @@ export async function POST(req: NextRequest) {
 
     // Tell the owner their invite landed — instant by default
     // (collaboration events are rare + high-signal). Fire-and-forget.
+    // In the same pass, welcome the accepting co-host to their seat.
     void (async () => {
       try {
         const { data: site } = await supabase
@@ -128,20 +129,41 @@ export async function POST(req: NextRequest) {
           .maybeSingle();
         const cfg = (site as { site_config?: { creator_email?: string; names?: [string, string] } } | null)?.site_config;
         const ownerEmail = String((site as { creator_email?: string } | null)?.creator_email ?? cfg?.creator_email ?? '');
-        if (!ownerEmail || ownerEmail.toLowerCase() === acceptedEmail) return;
         const names = (cfg?.names ?? []).filter(Boolean);
         const siteLabel = names.length >= 2 ? `${names[0]} & ${names[1]}` : ((site as { subdomain?: string } | null)?.subdomain ?? 'your site');
         const roleLabel = inv.role === 'guest-manager' ? 'guest manager' : inv.role === 'viewer' ? 'viewer' : 'co-editor';
-        const { notifyHost } = await import('@/lib/notifications/notify');
-        await notifyHost(supabase, {
-          siteId: String(inv.site_id),
-          siteLabel,
-          ownerEmail,
-          category: 'cohost',
-          title: `${acceptedEmail} joined as ${roleLabel}`,
-          href: '/dashboard',
-          dedupeKey: `cohost-accept:${body.acceptToken}`,
-        });
+
+        if (ownerEmail && ownerEmail.toLowerCase() !== acceptedEmail) {
+          const { notifyHost } = await import('@/lib/notifications/notify');
+          await notifyHost(supabase, {
+            siteId: String(inv.site_id),
+            siteLabel,
+            ownerEmail,
+            category: 'cohost',
+            title: `${acceptedEmail} joined as ${roleLabel}`,
+            href: '/dashboard',
+            dedupeKey: `cohost-accept:${body.acceptToken}`,
+          });
+        }
+
+        // Welcome the co-host themselves — fire-and-forget, key-gated.
+        const resendKey = process.env.RESEND_API_KEY;
+        if (resendKey) {
+          const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
+          const fromEmail = process.env.EMAIL_FROM || 'Pearloom <noreply@pearloom.com>';
+          const { buildCoHostWelcomeEmail } = await import('@/lib/email/brand-emails');
+          const { subject, html } = buildCoHostWelcomeEmail({
+            name: null,
+            coupleDisplay: siteLabel,
+            role: inv.role,
+            dashboardUrl: `${baseUrl}/dashboard`,
+          });
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ from: fromEmail, to: [acceptedEmail], subject, html }),
+          }).catch((e) => console.warn('[co-host accept] welcome email failed (non-fatal):', e));
+        }
       } catch (err) {
         console.warn('[co-host accept] owner notify failed (non-fatal):', err);
       }
