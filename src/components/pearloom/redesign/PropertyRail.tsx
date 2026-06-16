@@ -184,6 +184,7 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
   guests:      { id: 'guests',      label: 'Guests',          desc: 'Your guest list' },
   savetheDate: { id: 'savetheDate', label: 'Save the date',   desc: 'Pre-invite teaser' },
   share:       { id: 'share',       label: 'Share',           desc: 'Link, QR, preview' },
+  cohost:      { id: 'cohost',      label: 'Co-hosts',        desc: 'Invite a partner to edit' },
   privacy:     { id: 'privacy',     label: 'Privacy',         desc: 'Password / public' },
   dayof:       { id: 'dayof',       label: 'Day-of',          desc: 'Live broadcasts' },
   toasts:      { id: 'toasts',      label: 'Toasts & speeches', desc: 'Vows, toasts, eulogies — drafted with Pear' },
@@ -211,7 +212,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
      workspaces — they don't render a canvas section, so Layout +
      Style tabs would be meaningless there. Hide the tab strip
      and force content-mode on tools. */
-  const TOOL_PANEL_KEYS = ['guests', 'savetheDate', 'share', 'dayof', 'memorial', 'bachelor', 'toasts'] as const;
+  const TOOL_PANEL_KEYS = ['guests', 'savetheDate', 'share', 'cohost', 'dayof', 'memorial', 'bachelor', 'toasts'] as const;
   const isToolPanel = (TOOL_PANEL_KEYS as readonly string[]).includes(active);
   const effectiveTab = isToolPanel ? 'content' : tab;
   const [pearBusy, setPearBusy] = useState<string | null>(null);
@@ -908,6 +909,7 @@ function renderSectionEditor(
     case 'guests':      return siteSlug ? <GuestsPanel siteSlug={siteSlug} /> : null;
     case 'savetheDate': return siteSlug ? <SaveTheDatePanel manifest={manifest} onChange={onChange} siteSlug={siteSlug} /> : null;
     case 'share':       return siteSlug ? <SharePanel manifest={manifest} siteSlug={siteSlug} /> : null;
+    case 'cohost':      return siteSlug ? <SharePanel manifest={manifest} siteSlug={siteSlug} focus="cohost" /> : null;
     case 'privacy':     return <PrivacyPanel manifest={manifest} onChange={onChange} />;
     case 'dayof':       return siteSlug ? <DayOfPanel siteSlug={siteSlug} /> : null;
     case 'toasts':      return <ToastsPanel manifest={manifest} names={((manifest as unknown as { names?: [string, string] }).names ?? ['', '']) as [string, string]} onChange={onChange} />;

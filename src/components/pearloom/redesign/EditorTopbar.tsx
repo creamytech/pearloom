@@ -36,7 +36,7 @@ interface Props {
   /** Owner-only Publish — co-hosts can edit but not press. */
   canPublish?: boolean;
   /** Realtime presence — other people with this editor open now. */
-  peers?: Array<{ key: string; name: string; email: string; color: string; section?: string | null }>;
+  peers?: Array<{ key: string; name: string; email: string; color: string; avatar?: string | null; section?: string | null }>;
 }
 
 export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPublish, pearOpen, setPearOpen, onOpenSettings, displayNames, manifest, compact = false, canPublish = true, peers = [] }: Props) {
@@ -96,6 +96,10 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
   function shareSite() {
     if (typeof window === 'undefined') return;
     window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { block: 'share' } }));
+  }
+  function inviteCohost() {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('pearloom:design-jump', { detail: { block: 'cohost' } }));
   }
   function openThemeRail() {
     if (typeof window === 'undefined') return;
@@ -241,6 +245,21 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         {/* Realtime presence — one initial-dot per collaborator
             currently in this editor. Live manifest sync means
             their edits re-weave the canvas as they type. */}
+        <button
+          type="button"
+          onClick={inviteCohost}
+          title="Invite a co-host to edit with you"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            padding: compact ? '5px 7px' : '5px 11px', borderRadius: 999,
+            background: 'transparent', border: '1px solid var(--line)',
+            color: 'var(--ink-soft)', fontSize: 11.5, fontWeight: 600,
+            cursor: 'pointer', fontFamily: 'inherit',
+          }}
+        >
+          <Icon name="users" size={13} />
+          {!compact && (peers.length > 0 ? 'Invite' : 'Invite a co-host')}
+        </button>
         {peers.length > 0 && (
           <div
             aria-label={`Editing together: ${peers.map((p) => p.name).join(', ')}`}
@@ -261,18 +280,21 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
               {peers.slice(0, 4).map((p, i) => (
                 <span
                   key={p.key}
-                  aria-hidden
                   title={p.name + (p.section ? ` · editing ${p.section}` : '')}
                   style={{
-                    width: 22, height: 22, borderRadius: '50%',
-                    background: p.color, color: 'var(--cream, #F5EFE2)',
+                    width: 24, height: 24, borderRadius: '50%',
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    overflow: 'hidden',
+                    background: p.avatar ? 'var(--cream-2, #F5EFE2)' : p.color,
+                    color: 'var(--cream, #F5EFE2)',
                     fontSize: 10.5, fontWeight: 700,
                     border: '2px solid var(--card, #FBF7EE)',
                     marginLeft: i === 0 ? 0 : -7,
                   }}
                 >
-                  {(p.name || p.email).charAt(0).toUpperCase()}
+                  {p.avatar
+                    ? <PlAvatar id={p.avatar} size={20} />
+                    : (p.name || p.email).charAt(0).toUpperCase()}
                 </span>
               ))}
             </span>

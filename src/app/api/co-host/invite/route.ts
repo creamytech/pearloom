@@ -65,6 +65,41 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    /* One invite per email — don't let a host mint duplicate keys
+       for the same person. If that email is already an active
+       co-host, or already has a live (pending, unexpired) invite on
+       this site, stop here with a friendly note. Email-channel only;
+       phone invites carry no email to dedupe against. */
+    if (body.email) {
+      const dedupeEmail = body.email.toLowerCase().trim();
+      const { data: alreadyCohost } = await supabase
+        .from('cohosts')
+        .select('email')
+        .eq('site_id', siteRow.id)
+        .ilike('email', dedupeEmail)
+        .maybeSingle();
+      if (alreadyCohost) {
+        return NextResponse.json(
+          { error: 'They’re already a co-host on this site.', already: 'cohost' },
+          { status: 409 },
+        );
+      }
+      const { data: pendingInvite } = await supabase
+        .from('cohost_invites')
+        .select('token')
+        .eq('site_id', siteRow.id)
+        .ilike('invited_email', dedupeEmail)
+        .is('accepted_at', null)
+        .gt('expires_at', new Date().toISOString())
+        .maybeSingle();
+      if (pendingInvite) {
+        return NextResponse.json(
+          { error: 'You’ve already invited that email — they have a pending invite.', already: 'pending' },
+          { status: 409 },
+        );
+      }
+    }
+
     /* Mint the invite token. The insert is error-CHECKED — the
        previous version wrote a column that didn't exist and
        ignored the failure, so the email shipped a token that was
