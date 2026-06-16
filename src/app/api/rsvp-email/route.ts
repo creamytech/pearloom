@@ -59,13 +59,30 @@ export async function POST(req: NextRequest) {
     const supabase = getSupabase();
     const { data: site } = await supabase
       .from('sites')
-      .select('ai_manifest, site_config, subdomain')
+      .select('id, ai_manifest, site_config, subdomain')
       .eq('subdomain', siteId)
       .single();
 
     if (!site) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
+
+    // The guest's personal link — their /g/[token] page lets them
+    // view or CHANGE this RSVP (YourRsvpCard). Look up the token by
+    // (site, email) so the confirmation can send them straight back
+    // to it. Best-effort: no token → we just link the public site.
+    let manageToken: string | null = null;
+    try {
+      const { data: g } = await supabase
+        .from('guests')
+        .select('passport_token, guest_token')
+        .eq('site_id', (site as { id: string }).id)
+        .ilike('email', String(guestEmail).trim())
+        .maybeSingle();
+      manageToken = (g as { passport_token?: string; guest_token?: string } | null)?.passport_token
+        ?? (g as { guest_token?: string } | null)?.guest_token
+        ?? null;
+    } catch { /* link the site instead */ }
 
     const manifest = (site.ai_manifest || {}) as Record<string, unknown>;
     const siteConfig = (site.site_config || {}) as {
@@ -172,9 +189,14 @@ Just write the body paragraph(s).`;
         <p style="font-size:14px;color:${t.foreground};font-style:italic;margin:20px 0 0;line-height:1.6;font-family:${headingStack}">With love,<br><strong>${coupleSig}</strong></p>
       </td></tr>
       ${dateVenueBlock}
-      <tr><td style="padding:14px 36px 40px;text-align:center">
-        ${button('View the site', siteUrl, t)}
+      <tr><td style="padding:14px 36px ${manageToken ? 8 : 40}px;text-align:center">
+        ${manageToken
+          ? button('View or change your RSVP', `${process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com'}/g/${manageToken}`, t)
+          : button('View the site', siteUrl, t)}
       </td></tr>
+      ${manageToken ? `<tr><td style="padding:0 36px 36px;text-align:center">
+        <a href="${siteUrl}" style="font-size:12px;color:${t.muted};text-decoration:underline;font-family:${bodyStack}">Or view the site</a>
+      </td></tr>` : ''}
     `, t);
 
     await resend.emails.send({
