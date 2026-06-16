@@ -94,6 +94,7 @@ export const DASH_SECTIONS: Record<string, { label: string; tabs: Array<{ id: st
     tabs: [
       { id: 'invite',  label: 'Invites', href: '/dashboard/invite' },
       { id: 'library', label: 'Photos',  href: '/dashboard/library' },
+      { id: 'gallery', label: 'The Reel', href: '/dashboard/gallery' },
       { id: 'speech',  label: 'Speech',  href: '/dashboard/speech' },
     ],
   },
