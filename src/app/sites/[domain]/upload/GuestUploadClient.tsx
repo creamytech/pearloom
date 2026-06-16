@@ -13,6 +13,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useRef, useState } from 'react';
+import { FILTER_PRESETS, bakeFileToFile } from '@/lib/photo-filters';
 
 interface Props {
   siteId: string; // subdomain — guest-photos API accepts this
@@ -26,7 +27,7 @@ interface Props {
   prefillName: string | null;
 }
 
-type Stage = 'idle' | 'uploading' | 'sent' | 'error';
+type Stage = 'idle' | 'filter' | 'uploading' | 'sent' | 'error';
 
 export function GuestUploadClient({ siteId, couple, guestToken, prefillName }: Props) {
   const [stage, setStage] = useState<Stage>('idle');
@@ -48,6 +49,10 @@ export function GuestUploadClient({ siteId, couple, guestToken, prefillName }: P
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [count, setCount] = useState(0);
+  // The picked file waits in the 'filter' stage until the guest taps
+  // Send — then we bake the chosen filter onto it and upload.
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [filterId, setFilterId] = useState('none');
   // Two inputs: the camera input carries capture="environment" (opens
   // the rear camera on phones); the library input omits it so the OS
   // shows the photo roll / file picker. Guests choose either.
@@ -63,19 +68,27 @@ export function GuestUploadClient({ siteId, couple, guestToken, prefillName }: P
     (source === 'camera' ? cameraRef : libraryRef).current?.click();
   }
 
-  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+  function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    e.target.value = ''; // allow same-file re-upload
+    e.target.value = ''; // allow same-file re-pick
     if (!file) return;
 
     if (typeof window !== 'undefined') {
       try { sessionStorage.setItem('pl-upload-name', name.trim()); } catch { /* ignore */ }
     }
 
+    // Hold the file in the filter step — the guest can add a look (or
+    // keep it as-is) before sending.
+    setPendingFile(file);
+    setFilterId('none');
     setPreviewUrl(URL.createObjectURL(file));
+    setError(null);
+    setStage('filter');
+  }
+
+  async function doUpload(file: File) {
     setStage('uploading');
     setError(null);
-
     try {
       const fd = new FormData();
       fd.append('file', file);
@@ -91,15 +104,28 @@ export function GuestUploadClient({ siteId, couple, guestToken, prefillName }: P
       setStage('sent');
       setCount((c) => c + 1);
       setCaption('');
+      setPendingFile(null);
     } catch (err) {
       setStage('error');
       setError(err instanceof Error ? err.message : 'Upload failed.');
     }
   }
 
+  async function sendWithFilter() {
+    if (!pendingFile) return;
+    const preset = FILTER_PRESETS.find((p) => p.id === filterId) ?? FILTER_PRESETS[0];
+    setStage('uploading');
+    // Bake the chosen look onto the file (no-op for Original); bake
+    // failures fall back to the original file inside the helper.
+    const baked = await bakeFileToFile(pendingFile, { filter: preset.filter });
+    await doUpload(baked);
+  }
+
   function reset() {
     setStage('idle');
     setPreviewUrl(null);
+    setPendingFile(null);
+    setFilterId('none');
     setError(null);
   }
 
@@ -244,6 +270,91 @@ export function GuestUploadClient({ siteId, couple, guestToken, prefillName }: P
                 onChange={onFile}
                 style={{ display: 'none' }}
               />
+            </>
+          )}
+
+          {stage === 'filter' && previewUrl && (
+            <>
+              <div
+                style={{
+                  width: '100%',
+                  aspectRatio: '4/3',
+                  borderRadius: 12,
+                  overflow: 'hidden',
+                  background: '#F5EFE2',
+                }}
+              >
+                <img
+                  src={previewUrl}
+                  alt="Your photo"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    display: 'block',
+                    filter: (FILTER_PRESETS.find((p) => p.id === filterId)?.filter) || 'none',
+                  }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2, margin: '0 -2px' }}>
+                {FILTER_PRESETS.map((p) => {
+                  const on = p.id === filterId;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setFilterId(p.id)}
+                      aria-pressed={on}
+                      style={{
+                        flexShrink: 0,
+                        padding: '7px 13px',
+                        borderRadius: 999,
+                        border: on ? '1.5px solid #C6703D' : '1px solid rgba(14,13,11,0.16)',
+                        background: on ? 'rgba(198,112,61,0.12)' : 'transparent',
+                        color: '#3A332C',
+                        fontSize: 12.5,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                onClick={() => void sendWithFilter()}
+                style={{
+                  padding: '14px 18px',
+                  borderRadius: 999,
+                  background: 'linear-gradient(135deg, #C6703D 0%, #E8A07A 100%)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  fontSize: 15,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 12px 30px rgba(198,112,61,0.35)',
+                }}
+              >
+                ✦ Send photo
+              </button>
+              <button
+                type="button"
+                onClick={reset}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: 999,
+                  background: 'transparent',
+                  color: '#6F6557',
+                  border: '1px solid rgba(14,13,11,0.16)',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Choose another
+              </button>
             </>
           )}
 
