@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth';
 import { getPlanWithLimitsForEmail, planLimitResponseBody, isSiteGriefExempt } from '@/lib/plan-gate';
 import { linkGuestRowToPerson } from '@/lib/people';
 import { guestTokenColumns } from '@/lib/guest-tokens';
+import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
 
 export const dynamic = 'force-dynamic';
 
@@ -251,6 +252,8 @@ export async function POST(req: NextRequest) {
             to: String(data.email),
             subject,
             html,
+            text: htmlToText(html),
+            headers: listUnsubHeaders(),
             tags: [{ name: 'channel', value: 'guest-invite' }, { name: 'site_id', value: String(siteId) }],
           });
           await supabase.from('guests').update({ email_sent_at: new Date().toISOString() }).eq('id', data.id);

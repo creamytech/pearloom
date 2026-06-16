@@ -13,6 +13,7 @@ import { authOptions } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { ownerEmailOf } from '@/lib/cohost-access';
 import { buildCoHostInviteEmail } from '@/lib/email/brand-emails';
+import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
 import crypto from 'node:crypto';
 
 export const dynamic = 'force-dynamic';
@@ -176,6 +177,8 @@ export async function POST(req: NextRequest) {
         to: [body.email],
         subject,
         html,
+        text: htmlToText(html),
+        headers: listUnsubHeaders(),
       }),
     });
     if (!res.ok) {

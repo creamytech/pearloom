@@ -1586,6 +1586,11 @@ export function DashGuests() {
                                 Invite ↗
                               </button>
                             )}
+                            <GuestRowActions
+                              siteId={site.id}
+                              guest={g}
+                              onChanged={() => setRefreshKey((k) => k + 1)}
+                            />
                           </div>
                           {(g.invitedAt || g.respondedAt) && (
                             <div
@@ -1977,6 +1982,95 @@ export function DashGuests() {
         />
       )}
     </DashLayout>
+  );
+}
+
+// ── GuestRowActions ───────────────────────────────────────────
+// Per-row "Resend invite" (re-emails the personal link) + "Remove"
+// (arm-then-confirm delete). Small, quiet, lives next to the
+// per-guest Invite button.
+function GuestRowActions({
+  siteId,
+  guest,
+  onChanged,
+}: {
+  siteId: string;
+  guest: Guest;
+  onChanged: () => void;
+}) {
+  const hasEmail = !!guest.em && guest.em !== '—';
+  const [resend, setResend] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [removeArmed, setRemoveArmed] = useState(false);
+  const [removing, setRemoving] = useState(false);
+
+  async function doResend() {
+    if (resend === 'sending' || !hasEmail) return;
+    setResend('sending');
+    try {
+      const res = await fetch('/api/guests/resend-invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId, guestId: guest.id }),
+      });
+      const d = (await res.json().catch(() => ({}))) as { ok?: boolean; sent?: boolean; error?: string };
+      setResend(res.ok && d.ok !== false ? 'sent' : 'error');
+      window.setTimeout(() => setResend('idle'), 2600);
+    } catch {
+      setResend('error');
+      window.setTimeout(() => setResend('idle'), 2600);
+    }
+  }
+
+  async function doRemove() {
+    if (removing) return;
+    if (!removeArmed) {
+      setRemoveArmed(true);
+      window.setTimeout(() => setRemoveArmed((a) => (a ? false : a)), 4000);
+      return;
+    }
+    setRemoving(true);
+    try {
+      await fetch(`/api/guests?id=${encodeURIComponent(guest.id)}`, { method: 'DELETE' });
+      onChanged();
+    } catch {
+      setRemoving(false);
+      setRemoveArmed(false);
+    }
+  }
+
+  const pill: CSSProperties = {
+    flexShrink: 0, fontSize: 10, fontWeight: 700, background: 'transparent',
+    cursor: 'pointer', fontFamily: 'inherit', borderRadius: 999, padding: '1px 8px',
+  };
+
+  return (
+    <>
+      {hasEmail && (
+        <button
+          type="button"
+          onClick={doResend}
+          disabled={resend === 'sending'}
+          title="Email this guest their personal invite again"
+          style={{ ...pill, color: 'var(--ink-soft, #3A332C)', border: '1px solid var(--line, rgba(14,13,11,0.18))' }}
+        >
+          {resend === 'sending' ? 'Sending…' : resend === 'sent' ? 'Sent ✓' : resend === 'error' ? 'Failed' : 'Resend'}
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={doRemove}
+        disabled={removing}
+        title="Remove this guest"
+        style={{
+          ...pill,
+          color: removeArmed ? '#fff' : 'var(--ink-muted, #6F6557)',
+          background: removeArmed ? '#7A2D2D' : 'transparent',
+          border: `1px solid ${removeArmed ? '#7A2D2D' : 'var(--line, rgba(14,13,11,0.18))'}`,
+        }}
+      >
+        {removing ? 'Removing…' : removeArmed ? 'Confirm?' : 'Remove'}
+      </button>
+    </>
   );
 }
 

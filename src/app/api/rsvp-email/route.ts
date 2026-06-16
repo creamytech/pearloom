@@ -10,6 +10,7 @@ import { Resend } from 'resend';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { suiteThemeFromManifest } from '@/lib/suite/theme';
 import { emailThemeFromSuite, emailLayout, button } from '@/lib/email-sequences';
+import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
 import { buildSiteUrl } from '@/lib/site-urls';
 import type { StoryManifest } from '@/types';
 
@@ -181,6 +182,8 @@ Just write the body paragraph(s).`;
       to: guestEmail,
       subject,
       html: htmlBody,
+      text: htmlToText(htmlBody),
+      headers: listUnsubHeaders(),
       tags: [
         { name: 'channel', value: 'rsvp-confirmation' },
         { name: 'site_id', value: String(siteId) },

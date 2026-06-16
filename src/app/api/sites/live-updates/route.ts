@@ -20,6 +20,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { Resend } from 'resend';
 import { buildBroadcastEmail } from '@/lib/email/brand-emails';
+import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
 import { emailThemeFromSuite } from '@/lib/email-sequences';
 import { suiteThemeFromManifest } from '@/lib/suite/theme';
 import type { StoryManifest } from '@/types';
@@ -285,6 +286,8 @@ async function emailBroadcastToGuests({
           to: r.email,
           subject: `${couple} — quick update`,
           html,
+          text: htmlToText(html),
+          headers: listUnsubHeaders(),
           tags: [
             { name: 'channel', value: 'broadcast' },
             { name: 'site_id', value: siteId },

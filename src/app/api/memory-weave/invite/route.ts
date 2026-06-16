@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { buildMemoryPromptEmail } from '@/lib/email/brand-emails';
+import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
 import { emailThemeFromSuite } from '@/lib/email-sequences';
 import { suiteThemeFromManifest } from '@/lib/suite/theme';
 import type { StoryManifest } from '@/types';
@@ -86,11 +87,14 @@ export async function POST(req: NextRequest) {
     const first = (p.guest_name ?? '').split(/\s+/)[0] ?? 'Friend';
     const passportUrl = `${appOrigin()}/g/${guest.guest_token}`;
     try {
+      const html = buildMemoryPromptEmail({ guestFirstName: first, names, prompt: p.prompt, passportUrl, theme: emailTheme }).html;
       await resend.emails.send({
         from,
         to: guest.email,
         subject: `A memory for ${names}`,
-        html: buildMemoryPromptEmail({ guestFirstName: first, names, prompt: p.prompt, passportUrl, theme: emailTheme }).html,
+        html,
+        text: htmlToText(html),
+        headers: listUnsubHeaders(),
       });
       sent += 1;
     } catch (err) {

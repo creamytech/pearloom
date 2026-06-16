@@ -20,6 +20,7 @@ import { checkRateLimit } from '@/lib/rate-limit';
 import { getAppOrigin } from '@/lib/site-urls';
 import { suiteThemeFromManifest } from '@/lib/suite/theme';
 import { emailThemeFromSuite, buildSaveTheDateEmail } from '@/lib/email-sequences';
+import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
 import type { StoryManifest } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -159,6 +160,8 @@ export async function POST(req: NextRequest) {
               to: [g.email],
               subject,
               html,
+              text: htmlToText(html),
+              headers: listUnsubHeaders(),
             }),
           });
           if (res.ok) sent++; else failed++;
