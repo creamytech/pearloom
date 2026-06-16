@@ -197,6 +197,51 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function DELETE(req: NextRequest) {
+  // Only the authenticated site owner can remove a broadcast.
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get('id');
+  const subdomain = searchParams.get('subdomain');
+  if (!id || !subdomain) {
+    return NextResponse.json({ error: 'Missing id or subdomain' }, { status: 400 });
+  }
+
+  const supabase = getSupabase();
+  if (!supabase) return NextResponse.json({ success: true, mock: true });
+
+  // Verify ownership of the site the broadcast belongs to.
+  const { data: site, error: siteError } = await supabase
+    .from('sites')
+    .select('creator_email')
+    .eq('subdomain', subdomain)
+    .single();
+  if (siteError || !site) {
+    return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+  }
+  if (String(site.creator_email ?? '').toLowerCase().trim()
+    !== session.user.email.toLowerCase().trim()) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  // Scope the delete to the site too, so an id alone can't reach
+  // another site's row.
+  const { error } = await supabase
+    .from('live_updates')
+    .delete()
+    .eq('id', id)
+    .eq('subdomain', subdomain);
+  if (error) {
+    console.error('[live-updates DELETE] Supabase error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  return NextResponse.json({ success: true });
+}
+
 // ─────────────────────────────────────────────────────────────
 // emailBroadcastToGuests — fan out a live update to every
 // attending guest with an email address. Returns the count sent

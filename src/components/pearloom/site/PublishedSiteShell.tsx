@@ -26,6 +26,7 @@ import { GuestRsvpModal } from '@/components/pearloom/site/GuestRsvpModal';
 import { AnalyticsBeacon } from '@/components/analytics/AnalyticsBeacon';
 import { StickyRsvpPill } from '@/components/site/StickyRsvpPill';
 import { ArrivalReveal } from '@/components/pearloom/site/ArrivalReveal';
+import { BroadcastBar } from '@/components/pearloom/site/BroadcastBar';
 import { SiteToast } from '@/components/pearloom/site/SiteToast';
 import { StoreFonts } from '@/lib/theme-store/fonts';
 import { getTheme } from '@/components/pearloom/site/themes';
@@ -130,6 +131,11 @@ export function PublishedSiteShell(props: Props) {
       {/* Pack typography — without this, store-pack display faces
           (Cormorant, Playfair, Bodoni, …) fall back to Georgia. */}
       <StoreFonts />
+      {/* Day-of live broadcast banner — sticks to the top of the
+          published site the moment a host posts an update. Lives
+          here (not just on /g/[token]) so EVERY guest sees it, which
+          is what the composer promises. */}
+      <BroadcastBar subdomain={props.siteSlug} />
       <ThemedSite
         manifest={hydrated}
         names={props.names}
