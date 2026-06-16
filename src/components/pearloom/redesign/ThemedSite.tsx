@@ -73,6 +73,7 @@ import { ToastSignupSection } from './section-variants/blocks/toast-signup';
 import { AdviceWallSection } from './section-variants/blocks/advice-wall';
 import { ProgramSection } from './section-variants/blocks/program';
 import { LivestreamSection } from './section-variants/blocks/livestream';
+import { GuestbookSection } from './GuestbookSection';
 import { ObituarySection } from './section-variants/blocks/obituary';
 import { PackingListSection } from './section-variants/blocks/packing-list';
 import { HonorListSection } from './section-variants/blocks/honor-list';
@@ -530,7 +531,7 @@ export function ThemedSite({
   const siteMode = readSiteMode(manifest);
   const homeBlockSet = new Set<string>([...readHomePageBlocks(manifest), 'details']);
   const multiPageSet = new Set<string>(MULTI_PAGE_BLOCKS);
-  const sections: SectionKind[] = (() => {
+  const baseSections: SectionKind[] = (() => {
     if (!pageFilter) return allSections;
     if (pageFilter === 'home') {
       return allSections.filter(
@@ -539,6 +540,15 @@ export function ThemedSite({
     }
     return allSections.filter((s) => s === pageFilter);
   })();
+  /* Guestbook — opt-in (manifest.features.guestbook). A virtual
+     section appended after the real ones; on multi-page sites it
+     rides the home page only. Never mutate baseSections/allSections
+     in place (they back the nav). */
+  const guestbookOn = ((manifest as unknown as { features?: { guestbook?: boolean } }).features?.guestbook) === true;
+  const sections: (SectionKind | 'guestbook')[] =
+    guestbookOn && (!pageFilter || pageFilter === 'home')
+      ? [...baseSections, 'guestbook']
+      : baseSections;
   /* navItems carry section id + label so the nav can render real
      anchors that scroll to the right block. Excludes 'hero' and
      'rsvp' from the link list (hero is the top of the page, rsvp
@@ -686,7 +696,13 @@ export function ThemedSite({
     </TSection>
   );
 
-  const sectionEl = (kind: SectionKind) => {
+  const sectionEl = (kind: SectionKind | 'guestbook') => {
+    /* Guestbook is a virtual section (not host-editable content) —
+       render the live wall + sign form directly, no TSection chrome.
+       In the editor canvas (no siteSlug) it shows a preview. */
+    if (kind === 'guestbook') {
+      return <GuestbookSection key="guestbook" siteSlug={siteSlug} preview={editable && !siteSlug} />;
+    }
     /* Magazine (multi-page) mode in the editor — every section still
        renders on the canvas so it stays editable, but sections that
        live on their own page get flagged in the selection handle so
