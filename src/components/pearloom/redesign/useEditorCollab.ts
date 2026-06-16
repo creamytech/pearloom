@@ -33,6 +33,8 @@ export interface CollabPeer {
   email: string;
   name: string;
   color: string;
+  /** The peer's chosen orchard avatar id (PlAvatar), null = none. */
+  avatar: string | null;
   /** Section id this peer currently has open in the editor (for
    *  the "Maya is editing Travel" per-section presence cue). */
   section: string | null;
@@ -51,11 +53,21 @@ function colorFor(email: string): string {
 const LOCAL_TYPING_GRACE_MS = 1600;
 /** Debounce for outgoing broadcasts — coalesces keystroke bursts. */
 const BROADCAST_DEBOUNCE_MS = 700;
+/** Supabase Realtime drops broadcast payloads over ~256KB silently.
+ *  A rich manifest (gallery URLs, chapters, theme bag) can exceed
+ *  that — which is exactly why "live edits" looked dead while the
+ *  tiny presence payload worked. Above this size we send a content-
+ *  free pulse instead and the receiver refetches the saved manifest. */
+const MAX_BROADCAST_BYTES = 180_000;
+/** After a pulse, wait for the sender's autosave (~2s debounce) to
+ *  land before refetching, so we pull their latest, not stale, work. */
+const PULSE_REFETCH_DELAY_MS = 2200;
 
 export function useEditorCollab({
   siteSlug,
   email,
   name,
+  avatar = null,
   manifest,
   enabled = true,
   activeSection = null,
@@ -64,6 +76,8 @@ export function useEditorCollab({
   siteSlug: string;
   email?: string;
   name?: string;
+  /** The local user's orchard avatar id, shared via presence. */
+  avatar?: string | null;
   manifest: StoryManifest;
   enabled?: boolean;
   /** The section the local host currently has open — broadcast via
@@ -74,6 +88,8 @@ export function useEditorCollab({
   const [peers, setPeers] = useState<CollabPeer[]>([]);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const activeSectionRef = useRef(activeSection);
+  const avatarRef = useRef(avatar);
+  const pulseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   /* Stable per-tab client id — lazy useState initializer keeps the
      impure randomUUID call out of the render body proper. */
   const [clientId] = useState(() =>
@@ -96,10 +112,11 @@ export function useEditorCollab({
      below does the initial track on subscribe. */
   useEffect(() => {
     activeSectionRef.current = activeSection;
+    avatarRef.current = avatar;
     const ch = channelRef.current;
     if (!ch || !email) return;
-    try { void ch.track({ email, name: name || email, section: activeSection ?? null }); } catch { /* noop */ }
-  }, [activeSection, email, name]);
+    try { void ch.track({ email, name: name || email, avatar: avatar ?? null, section: activeSection ?? null }); } catch { /* noop */ }
+  }, [activeSection, avatar, email, name]);
 
   /* Outgoing — broadcast local manifest changes (debounced). Remote
      applies set applyingRemote so their own commit doesn't echo. */
@@ -116,16 +133,18 @@ export function useEditorCollab({
     if (sendTimer.current) clearTimeout(sendTimer.current);
     sendTimer.current = setTimeout(() => {
       try {
-        void ch.send({
-          type: 'broadcast',
-          event: 'manifest',
-          payload: {
-            from: clientIdRef.current,
-            fromName: name || email || 'A co-host',
-            at: Date.now(),
-            manifest: stripArtForStorage(manifestRef.current),
-          },
-        });
+        const stripped = stripArtForStorage(manifestRef.current);
+        let size = 0;
+        try { size = JSON.stringify(stripped).length; } catch { size = Infinity; }
+        const base = { from: clientIdRef.current, fromName: name || email || 'A co-host', at: Date.now() };
+        if (size <= MAX_BROADCAST_BYTES) {
+          // Small enough to ship inline — instant sync.
+          void ch.send({ type: 'broadcast', event: 'manifest', payload: { ...base, manifest: stripped } });
+        } else {
+          // Too large for a reliable Realtime broadcast — pulse and
+          // let the peer refetch the saved manifest instead.
+          void ch.send({ type: 'broadcast', event: 'pulse', payload: base });
+        }
       } catch { /* collab must never break editing */ }
     }, BROADCAST_DEBOUNCE_MS);
   }, [manifest, name, email]);
@@ -134,7 +153,8 @@ export function useEditorCollab({
   useEffect(() => {
     if (!enabled || !email || typeof window === 'undefined') return;
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anon = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+    const anon = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+      || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (!url || !anon) return;
 
     let cancelled = false;
@@ -157,7 +177,7 @@ export function useEditorCollab({
         });
 
         ch.on('presence', { event: 'sync' }, () => {
-          const state = ch.presenceState<{ email: string; name: string; section?: string | null }>();
+          const state = ch.presenceState<{ email: string; name: string; avatar?: string | null; section?: string | null }>();
           const next: CollabPeer[] = [];
           for (const [key, metas] of Object.entries(state)) {
             if (key === clientIdRef.current) continue;
@@ -168,6 +188,7 @@ export function useEditorCollab({
               email: meta.email,
               name: meta.name || meta.email,
               color: colorFor(meta.email || key),
+              avatar: meta.avatar ?? null,
               section: meta.section ?? null,
             });
           }
@@ -180,9 +201,26 @@ export function useEditorCollab({
           pendingRemote.current = { m: p.manifest, from: p.fromName || 'A co-host' };
         });
 
+        /* Pulse — a peer's edit was too large to ship inline. Refetch
+           the saved manifest (after their autosave lands) and queue it
+           through the same drain path so the typing-grace still holds. */
+        ch.on('broadcast', { event: 'pulse' }, ({ payload }) => {
+          const p = payload as { from?: string; fromName?: string };
+          if (p.from === clientIdRef.current) return;
+          if (pulseTimer.current) clearTimeout(pulseTimer.current);
+          pulseTimer.current = setTimeout(() => {
+            fetch(`/api/sites/${encodeURIComponent(siteSlug)}`, { cache: 'no-store' })
+              .then((r) => (r.ok ? r.json() : null))
+              .then((d: { manifest?: StoryManifest } | null) => {
+                if (d?.manifest) pendingRemote.current = { m: d.manifest, from: p.fromName || 'A co-host' };
+              })
+              .catch(() => { /* next pulse retries */ });
+          }, PULSE_REFETCH_DELAY_MS);
+        });
+
         ch.subscribe((status) => {
           if (status === 'SUBSCRIBED') {
-            void ch.track({ email, name: name || email, section: activeSectionRef.current ?? null });
+            void ch.track({ email, name: name || email, avatar: avatarRef.current ?? null, section: activeSectionRef.current ?? null });
           }
         });
         channelRef.current = ch;
@@ -204,6 +242,7 @@ export function useEditorCollab({
       cancelled = true;
       if (drainTimer) clearInterval(drainTimer);
       if (sendTimer.current) clearTimeout(sendTimer.current);
+      if (pulseTimer.current) clearTimeout(pulseTimer.current);
       try { channelRef.current?.unsubscribe(); } catch { /* noop */ }
       channelRef.current = null;
       try { void client?.removeAllChannels(); } catch { /* noop */ }

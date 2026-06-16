@@ -44,6 +44,7 @@ import { FirstPressing, shouldPlayFirstPressing } from './FirstPressing';
 import { MobileSheet, MobileBottomBar, type MobileSheetId } from './MobileSheet';
 import { useMobileViewport } from './use-mobile-viewport';
 import { useEditorCollab } from './useEditorCollab';
+import { useUserAvatar } from '../avatars';
 import './animations.css';
 
 interface Props {
@@ -84,7 +85,7 @@ export type SectionId =
      mount through the same PropertyRail dispatch so the editor's
      state machine stays simple. */
   | 'guests' | 'savetheDate' | 'share' | 'dayof' | 'memorial' | 'bachelor'
-  | 'toasts' | 'privacy'
+  | 'toasts' | 'privacy' | 'cohost'
   | null;
 
 /* Occasion → which optional canvas sections fit. Countdown reads
@@ -146,7 +147,7 @@ const JUMPABLE_SECTIONS: ReadonlySet<string> = new Set([
   'countdown', 'map', 'music',
   ...BLOCK_SECTION_IDS,
   'guests', 'savetheDate', 'share', 'dayof', 'memorial', 'bachelor',
-  'toasts', 'privacy',
+  'toasts', 'privacy', 'cohost',
 ]);
 
 /* Occasion → which tool panels are applicable. Memorial only on
@@ -190,10 +191,12 @@ export default function EditorRedesign({
      Remote applies ride the normal setManifest path so they land
      in the undo stack and the canvas re-weaves in place. */
   const [active, setActive] = useState<SectionId>(initialJump ?? 'hero');
+  const { avatarId } = useUserAvatar();
   const { peers } = useEditorCollab({
     siteSlug,
     email: viewerEmail,
     name: viewerName,
+    avatar: avatarId ?? null,
     manifest: bridge.manifest,
     activeSection: active,
     onRemoteManifest: (next) => bridge.setManifest(next),
