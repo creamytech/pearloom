@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Icon } from '../motifs';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
+import { PhotoFilterEditor } from './PhotoFilterEditor';
 
 export interface LibraryPhoto {
   id: string;
@@ -44,6 +45,9 @@ export function PhotoPicker({
   const [query, setQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [uploading, setUploading] = useState(false);
+  // Single-pick selections route through the filter editor first
+  // (the host can tweak or keep the original). Multi-pick skips it.
+  const [editing, setEditing] = useState<string | null>(null);
   const picker = useGooglePhotosPicker();
 
   const load = useCallback(async () => {
@@ -120,8 +124,7 @@ export function PhotoPicker({
 
   function toggleSelect(m: LibraryPhoto) {
     if (accept === 'single') {
-      onPick(m.url);
-      onClose();
+      setEditing(m.url);
       return;
     }
     setSelectedIds((s) => {
@@ -171,8 +174,7 @@ export function PhotoPicker({
       if (r.ok && data?.photos && data.photos.length > 0) {
         // Single-pick: pick the first uploaded photo immediately.
         if (accept === 'single' && data.photos[0]?.baseUrl) {
-          onPick(data.photos[0].baseUrl);
-          onClose();
+          setEditing(data.photos[0].baseUrl);
           return;
         }
       }
@@ -192,8 +194,7 @@ export function PhotoPicker({
         await new Promise((r) => setTimeout(r, 400));
         await load();
         if (accept === 'single' && photos[0]?.baseUrl) {
-          onPick(photos[0].baseUrl);
-          onClose();
+          setEditing(photos[0].baseUrl);
         }
       })();
     });
@@ -202,6 +203,18 @@ export function PhotoPicker({
   if (!open) return null;
 
   const pickerBusy = picker.state === 'creating' || picker.state === 'waiting' || picker.state === 'fetching';
+
+  // Filter step for a single pick — overlays the picker. Applying
+  // returns the (possibly filtered) URL and closes the whole picker.
+  if (editing) {
+    return (
+      <PhotoFilterEditor
+        url={editing}
+        onApplied={(finalUrl) => { setEditing(null); onPick(finalUrl); onClose(); }}
+        onCancel={() => setEditing(null)}
+      />
+    );
+  }
 
   return (
     <div
