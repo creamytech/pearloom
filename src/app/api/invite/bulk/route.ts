@@ -20,6 +20,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { buildSiteUrl } from '@/lib/site-urls';
+import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
 
 export const dynamic = 'force-dynamic';
 
@@ -401,6 +402,8 @@ export async function POST(req: NextRequest) {
               to: [guest.email],
               subject: `You are invited — ${coupleDisplay}`,
               html,
+              text: htmlToText(html),
+              headers: listUnsubHeaders(),
             }),
           });
           if (res.ok) sent++;
