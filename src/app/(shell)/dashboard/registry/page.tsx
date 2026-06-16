@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { RegistryDashboardClient } from './RegistryDashboardClient';
+import { DashSurfaceGate } from '@/components/pearloom/dash/DashSurfaceGate';
 
 export const metadata: Metadata = {
   title: 'Registry · Pearloom',
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function RegistryPage() {
-  return <RegistryDashboardClient />;
+  return (
+    <DashSurfaceGate surface="registry" active="registry" title="Registry">
+      <RegistryDashboardClient />
+    </DashSurfaceGate>
+  );
 }

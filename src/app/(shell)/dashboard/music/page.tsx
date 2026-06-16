@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { MusicDashboardClient } from './MusicDashboardClient';
+import { DashSurfaceGate } from '@/components/pearloom/dash/DashSurfaceGate';
 
 export const metadata: Metadata = {
   title: 'Music · Pearloom',
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function MusicPage() {
-  return <MusicDashboardClient />;
+  return (
+    <DashSurfaceGate surface="music" active="music" title="Music">
+      <MusicDashboardClient />
+    </DashSurfaceGate>
+  );
 }

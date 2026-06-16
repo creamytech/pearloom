@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { WeekendBuilderPage } from '@/components/pearloom/pages/WeekendBuilderPage';
+import { DashSurfaceGate } from '@/components/pearloom/dash/DashSurfaceGate';
 
 export const metadata: Metadata = {
   title: 'Weekend builder · Pearloom',
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <WeekendBuilderPage />;
+  return (
+    <DashSurfaceGate surface="weekend" active="weekend" title="Weekend builder">
+      <WeekendBuilderPage />
+    </DashSurfaceGate>
+  );
 }
