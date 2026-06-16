@@ -113,9 +113,8 @@ export async function DELETE(
     console.log('[Delete] Attempting delete:', { domain, userEmail });
 
     // Fetch the row — use service role so RLS doesn't block the read.
-    // Accept either UUID or subdomain so the dashboard's UUID-keyed
-    // routes (/dashboard/event/[id]) can call DELETE without an
-    // extra lookup hop.
+    // Accept either UUID or subdomain so UUID-keyed dashboard callers
+    // can resolve a site without an extra lookup hop.
     const lookupColumn = UUID_RE.test(domain) ? 'id' : 'subdomain';
     const { data: site, error: fetchErr } = await supabase
       .from('sites')
