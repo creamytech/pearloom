@@ -33,6 +33,9 @@ export interface CollabPeer {
   email: string;
   name: string;
   color: string;
+  /** Section id this peer currently has open in the editor (for
+   *  the "Maya is editing Travel" per-section presence cue). */
+  section: string | null;
 }
 
 const PEER_COLORS = ['#5C6B3F', '#C6703D', '#3F6E92', '#7A5A8C', '#B8935A', '#7A2D2D'];
@@ -55,6 +58,7 @@ export function useEditorCollab({
   name,
   manifest,
   enabled = true,
+  activeSection = null,
   onRemoteManifest,
 }: {
   siteSlug: string;
@@ -62,10 +66,14 @@ export function useEditorCollab({
   name?: string;
   manifest: StoryManifest;
   enabled?: boolean;
+  /** The section the local host currently has open — broadcast via
+   *  presence so peers can show "X is editing this section". */
+  activeSection?: string | null;
   onRemoteManifest: (next: StoryManifest, fromName: string) => void;
 }): { peers: CollabPeer[] } {
   const [peers, setPeers] = useState<CollabPeer[]>([]);
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const activeSectionRef = useRef(activeSection);
   /* Stable per-tab client id — lazy useState initializer keeps the
      impure randomUUID call out of the render body proper. */
   const [clientId] = useState(() =>
@@ -82,6 +90,16 @@ export function useEditorCollab({
   const sendTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => { onRemoteRef.current = onRemoteManifest; }, [onRemoteManifest]);
+
+  /* Re-broadcast presence when the local host moves to another
+     section. Cheap (presence-only re-track); the channel effect
+     below does the initial track on subscribe. */
+  useEffect(() => {
+    activeSectionRef.current = activeSection;
+    const ch = channelRef.current;
+    if (!ch || !email) return;
+    try { void ch.track({ email, name: name || email, section: activeSection ?? null }); } catch { /* noop */ }
+  }, [activeSection, email, name]);
 
   /* Outgoing — broadcast local manifest changes (debounced). Remote
      applies set applyingRemote so their own commit doesn't echo. */
@@ -139,7 +157,7 @@ export function useEditorCollab({
         });
 
         ch.on('presence', { event: 'sync' }, () => {
-          const state = ch.presenceState<{ email: string; name: string }>();
+          const state = ch.presenceState<{ email: string; name: string; section?: string | null }>();
           const next: CollabPeer[] = [];
           for (const [key, metas] of Object.entries(state)) {
             if (key === clientIdRef.current) continue;
@@ -150,6 +168,7 @@ export function useEditorCollab({
               email: meta.email,
               name: meta.name || meta.email,
               color: colorFor(meta.email || key),
+              section: meta.section ?? null,
             });
           }
           setPeers(next);
@@ -163,7 +182,7 @@ export function useEditorCollab({
 
         ch.subscribe((status) => {
           if (status === 'SUBSCRIBED') {
-            void ch.track({ email, name: name || email });
+            void ch.track({ email, name: name || email, section: activeSectionRef.current ?? null });
           }
         });
         channelRef.current = ch;

@@ -189,14 +189,15 @@ export default function EditorRedesign({
      across everyone with this editor open (owner + co-hosts).
      Remote applies ride the normal setManifest path so they land
      in the undo stack and the canvas re-weaves in place. */
+  const [active, setActive] = useState<SectionId>(initialJump ?? 'hero');
   const { peers } = useEditorCollab({
     siteSlug,
     email: viewerEmail,
     name: viewerName,
     manifest: bridge.manifest,
+    activeSection: active,
     onRemoteManifest: (next) => bridge.setManifest(next),
   });
-  const [active, setActive] = useState<SectionId>(initialJump ?? 'hero');
   /* Magazine (multi-page) mode — which page the canvas is focused
      on. null = the whole site on one canvas (every section stays
      editable); 'home' or a block key narrows the canvas to that
@@ -404,6 +405,7 @@ export default function EditorRedesign({
           onChange={bridge.setManifest}
           canvasPage={canvasPage}
           setCanvasPage={setCanvasPage}
+          peers={peers}
         />
       )}
 
@@ -502,6 +504,7 @@ export default function EditorRedesign({
               onChange={bridge.setManifest}
               canvasPage={canvasPage}
               setCanvasPage={setCanvasPage}
+              peers={peers}
             />
           )}
           {displaySheet === 'theme' && (
