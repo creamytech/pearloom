@@ -178,6 +178,18 @@ export function buildTypeContent(args: {
   siteUrl: string;         // 'pearloom.com/<slug>'
 }): StudioContent {
   const { type, nameA, nameB, dateLong, venue, place, siteUrl } = args;
+  // Venue + place, de-duplicated: `place` falls back to `venue` when
+  // there's no separate address, which doubled the line ("Madison
+  // Square Garden · NY · Madison Square Garden · NY"). Collapse when
+  // they're equal or one contains the other.
+  const locationLine = (() => {
+    const a = (venue || '').trim();
+    const b = (place || '').trim();
+    if (!a) return b;
+    if (!b) return a;
+    if (a === b || a.includes(b) || b.includes(a)) return a.length >= b.length ? a : b;
+    return `${a} · ${b}`;
+  })();
   if (type === 'std') {
     return {
       eyebrow: 'Save the date',
@@ -205,7 +217,7 @@ export function buildTypeContent(args: {
       headline: `${nameA} & ${nameB}`,
       line2: 'request the pleasure of your company',
       line3: dateLong,
-      line4: `${venue} · ${place}`,
+      line4: locationLine,
       cta: 'Kindly respond by the date on your card',
       stamp: "YOU’RE INVITED",
       drafts: [

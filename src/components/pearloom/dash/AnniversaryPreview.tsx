@@ -23,10 +23,15 @@ function nextAnniversary(iso?: string | null): { date: Date; years: number } | n
   const wedding = new Date(iso);
   if (Number.isNaN(wedding.getTime())) return null;
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  // An anniversary only exists once the day has actually happened —
+  // a wedding 10 days out has no "0th anniversary". Suppress until
+  // the event is in the past.
+  if (wedding.getTime() > today.getTime()) return null;
   const year = today.getFullYear();
   const thisYear = new Date(year, wedding.getMonth(), wedding.getDate());
   const target = thisYear < today ? new Date(year + 1, wedding.getMonth(), wedding.getDate()) : thisYear;
-  const years = target.getFullYear() - wedding.getFullYear();
+  const years = Math.max(1, target.getFullYear() - wedding.getFullYear());
   return { date: target, years };
 }
 
@@ -146,7 +151,11 @@ export function AnniversaryPreview() {
           </div>
         </div>
       ) : (
-        <AIHint>Set your event date in the site editor to see your next anniversary here.</AIHint>
+        <AIHint>
+          {weddingIso
+            ? 'After the day, Pear drafts a new chapter each year on the anniversary — your first will be ready then.'
+            : 'Set your event date in the site editor to see your next anniversary here.'}
+        </AIHint>
       )}
 
       <AIHint>

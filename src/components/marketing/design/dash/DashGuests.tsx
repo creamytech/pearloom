@@ -1787,7 +1787,7 @@ export function DashGuests() {
                 }}
               >
                 {counts.pending > 0
-                  ? `${counts.pending} guests haven’t replied. Want me to send a gentle nudge?`
+                  ? `${counts.pending} ${counts.pending === 1 ? 'guest hasn’t' : 'guests haven’t'} replied. Want me to send a gentle nudge?`
                   : counts.yes === 0
                   ? 'No RSVPs yet. Want me to send the invitation?'
                   : 'Everyone accounted for. Nice.'}
