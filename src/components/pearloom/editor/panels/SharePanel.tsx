@@ -41,10 +41,14 @@ const QR_TONES: Array<{ id: QrTone; label: string; dark: string; accent: string 
 ];
 
 export function SharePanel({
-  manifest, siteSlug,
+  manifest, siteSlug, focus,
 }: {
   manifest: StoryManifest;
   siteSlug: string;
+  /** 'cohost' renders ONLY the co-host manager (its own rail tool);
+   *  undefined renders the share workspace WITHOUT co-host (it lives
+   *  in its own tool now). */
+  focus?: 'cohost';
 }) {
   const occasion = ((manifest as unknown as { occasion?: SiteOccasion }).occasion);
   /* buildSiteUrl's 3rd param is ORIGIN, occasion is 4th — passing
@@ -225,6 +229,7 @@ export function SharePanel({
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+        {focus !== 'cohost' && (<>
         {/* Share card preview — inline mock that always renders.
             Replaces the broken /api/og <img> from the previous
             version. Looks like the real link unfurl in iMessage /
@@ -473,6 +478,8 @@ export function SharePanel({
         {/* Co-host invite — extends edit access. Email sends a
             magic link; phone mints "the key" and opens the host's
             own Messages with it prewritten. */}
+        </>)}
+        {focus === 'cohost' && (<>
         <FGroup label="Invite a co-host" hint="Email sends them a magic link. Text mints the key and opens your Messages — you send it, they tap it.">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{ display: 'flex', gap: 5 }}>
@@ -690,6 +697,7 @@ export function SharePanel({
             )}
           </div>
         </FGroup>
+        </>)}
       </div>
     </SectionPanelShell>
   );

@@ -5,6 +5,7 @@
 
 import { Fragment, useRef, useState } from 'react';
 import { Icon } from '../motifs';
+import { PlAvatar } from '../avatars';
 import type { StoryManifest } from '@/types';
 import { getEventType } from '@/lib/event-os/event-types';
 import { type SectionId, type BlockSectionId, BLOCK_SECTION_IDS, isToolPanelApplicable, isOptionalSectionApplicable, isBlockApplicable } from './EditorRedesign';
@@ -145,6 +146,7 @@ const TOOLS: SectionDef[] = [
   { id: 'guests',      label: 'Guests',           icon: 'user',       desc: 'Your guest list' },
   { id: 'savetheDate', label: 'Save the date',    icon: 'calendar',   desc: 'Pre-invite teaser' },
   { id: 'share',       label: 'Share',            icon: 'link',       desc: 'Link, QR, preview' },
+  { id: 'cohost',      label: 'Co-hosts',         icon: 'users',      desc: 'Invite a partner to edit' },
   { id: 'privacy',     label: 'Privacy',          icon: 'lock',       desc: 'Password / public' },
   { id: 'dayof',       label: 'Day-of',           icon: 'sparkles',   desc: 'Live broadcasts' },
   { id: 'toasts',      label: 'Toasts & speeches', icon: 'mic',       desc: 'Drafted with Pear' },
@@ -169,7 +171,7 @@ interface Props {
   setCanvasPage?: (page: 'home' | SiteBlockKey | null) => void;
   /** Live co-editors, for per-section presence ("Maya is editing
    *  this section"). Each carries the section id they're focused on. */
-  peers?: Array<{ key: string; name: string; email: string; color: string; section?: string | null }>;
+  peers?: Array<{ key: string; name: string; email: string; color: string; avatar?: string | null; section?: string | null }>;
 }
 
 export function EditorRailLeft({ active, setActive, completion, title, slug, manifest, onChange, canvasPage = null, setCanvasPage, peers = [] }: Props) {
@@ -766,15 +768,19 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
                       title={`${p.name} is editing this section`}
                       aria-label={`${p.name} is editing this section`}
                       style={{
-                        width: 16, height: 16, borderRadius: '50%',
-                        background: p.color, color: '#fff',
+                        width: 17, height: 17, borderRadius: '50%',
+                        background: p.avatar ? 'var(--cream-2)' : p.color,
+                        color: '#fff',
                         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        overflow: 'hidden',
                         fontSize: 8.5, fontWeight: 700, flexShrink: 0,
                         border: `1.5px solid ${on ? 'var(--ink)' : 'var(--cream)'}`,
                         marginLeft: pi === 0 ? 0 : -5,
                       }}
                     >
-                      {(p.name || p.email).charAt(0).toUpperCase()}
+                      {p.avatar
+                        ? <PlAvatar id={p.avatar} size={14} />
+                        : (p.name || p.email).charAt(0).toUpperCase()}
                     </span>
                   ))}
                   {/* Quiet attention dot — this section is effectively
