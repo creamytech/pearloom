@@ -20,6 +20,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { buildNudgeEmail } from '@/lib/email/brand-emails';
+import { htmlToText, listUnsubHeaders } from '@/lib/email/deliverability';
 import { emailThemeFromSuite } from '@/lib/email-sequences';
 import { suiteThemeFromManifest } from '@/lib/suite/theme';
 import type { StoryManifest } from '@/types';
@@ -138,6 +139,8 @@ export async function POST(req: NextRequest) {
           to: r.email,
           subject: subjectLine,
           html,
+          text: htmlToText(html),
+          headers: listUnsubHeaders(),
           tags: [
             { name: 'channel', value: 'rsvp-nudge' },
             { name: 'site_id', value: site.id },
