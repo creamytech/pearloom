@@ -90,6 +90,34 @@ export async function POST(
       .update({ response: text, responded_at: new Date().toISOString() })
       .eq('id', prompt.id);
     if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 });
+    // Tell the host their guest answered the memory prompt
+    // (category 'content'). Fire-and-forget.
+    void (async () => {
+      try {
+        const { data: site } = await supabase
+          .from('sites')
+          .select('id, subdomain, creator_email, site_config')
+          .eq('id', guest.site_id)
+          .maybeSingle();
+        const cfg = (site as { site_config?: { creator_email?: string; names?: [string, string] } } | null)?.site_config;
+        const ownerEmail = String((site as { creator_email?: string } | null)?.creator_email ?? cfg?.creator_email ?? '');
+        if (!site || !ownerEmail) return;
+        const names = (cfg?.names ?? []).filter(Boolean);
+        const siteLabel = names.length >= 2 ? `${names[0]} & ${names[1]}` : ((site as { subdomain?: string }).subdomain ?? 'your site');
+        const who = String(guestName ?? '').split(/\s+/)[0] || 'A guest';
+        const { notifyHost } = await import('@/lib/notifications/notify');
+        await notifyHost(supabase, {
+          siteId: String(guest.site_id),
+          siteLabel,
+          ownerEmail,
+          category: 'content',
+          title: `${who} answered a memory prompt`,
+          body: text.slice(0, 200),
+          href: '/dashboard/memory-book',
+          dedupeKey: `memory:${prompt.id}`,
+        });
+      } catch (e) { console.warn('[passport/submit] notifyHost failed (non-fatal):', e); }
+    })();
     return NextResponse.json({ ok: true });
   }
 

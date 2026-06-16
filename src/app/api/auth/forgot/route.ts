@@ -70,30 +70,12 @@ export async function POST(req: NextRequest) {
 
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
     const resetUrl = `${baseUrl}/reset/${token}`;
-    const firstName = ((row.display_name as string | null) ?? '').trim().split(/\s+/)[0] || 'there';
     const fromEmail = process.env.EMAIL_FROM || 'noreply@pearloom.com';
 
+    const { buildPasswordResetEmail } = await import('@/lib/email/brand-emails');
+    const { subject, html } = buildPasswordResetEmail({ resetUrl });
     const resend = new Resend(resendKey);
-    await resend.emails.send({
-      from: fromEmail,
-      to: email,
-      subject: 'Reset your Pearloom password',
-      html: `
-        <div style="font-family: Georgia, serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #0E0D0B; background: #F5EFE2;">
-          <p style="font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: #5C6B3F; margin: 0 0 16px;">Pearloom</p>
-          <h1 style="font-style: italic; font-weight: 500; font-size: 26px; margin: 0 0 14px;">A fresh thread, ${firstName}.</h1>
-          <p style="font-size: 14px; line-height: 1.6; color: #3A332C; margin: 0 0 22px;">
-            Someone asked to reset the password for this account. If that was you,
-            the link below works once and expires in an hour. If it wasn't, ignore
-            this and nothing changes.
-          </p>
-          <p style="margin: 0 0 26px;">
-            <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background: #0E0D0B; color: #F5EFE2; text-decoration: none; border-radius: 100px; font-size: 14px; font-weight: 600;">Choose a new password</a>
-          </p>
-          <p style="font-size: 11px; color: #6F6557; margin: 0;">Sent with care · Made with Pearloom</p>
-        </div>
-      `,
-    });
+    await resend.emails.send({ from: fromEmail, to: email, subject, html });
 
     return NextResponse.json({ ok: true });
   } catch (err) {

@@ -168,6 +168,101 @@ export function buildCoHostInviteEmail(opts: {
   return { subject: `${opts.coupleDisplay} invited you to co-host`, html };
 }
 
+/* ── 2b · Co-host welcome — sent right after they accept ────── */
+
+const COHOST_WELCOME_ROLE_COPY: Record<string, { label: string; line: string }> = {
+  'editor': {
+    label: 'Co-editor',
+    line: 'You can edit everything on the site — words, photos, the look. Publishing and billing stay with the owner.',
+  },
+  'guest-manager': {
+    label: 'Guest manager',
+    line: 'You can manage the guest list and RSVPs. The site design stays in the owner&rsquo;s hands.',
+  },
+  'viewer': {
+    label: 'Viewer',
+    line: 'You can look around the site as it takes shape — view only, a front-row seat.',
+  },
+};
+
+export function buildCoHostWelcomeEmail(opts: {
+  name?: string | null;
+  coupleDisplay: string;
+  role: string;
+  dashboardUrl: string;
+}): { subject: string; html: string } {
+  const t = BRAND_EMAIL_THEME;
+  const first = (opts.name ?? '').trim().split(/\s+/)[0] || '';
+  const hello = first ? `${esc(first)} — you&rsquo;re in.` : 'You&rsquo;re in.';
+  const role = COHOST_WELCOME_ROLE_COPY[opts.role] ?? COHOST_WELCOME_ROLE_COPY.editor;
+  const couple = esc(opts.coupleDisplay);
+  const html = emailLayout(frame(`
+    ${eyebrow('A seat at the loom', t)}
+    ${heading(hello, t)}
+    ${para(`You&rsquo;ve joined ${couple}&rsquo;s Pearloom site as a <strong>${role.label}</strong>.`, t)}
+    ${para(role.line, t)}
+    ${ctaBlock('Open the dashboard', opts.dashboardUrl, t)}
+    ${fine('You can leave the site any time from the dashboard. Questions? Just reply.', t)}
+  `, t), t);
+  return { subject: `You’re a co-host on ${opts.coupleDisplay}’s Pearloom site`, html };
+}
+
+/* ── 2c · Registry claim thank-you — sent to the gift-giver ──── */
+
+export function buildRegistryClaimThankYouEmail(opts: {
+  guestName?: string | null;
+  coupleDisplay: string;
+  itemName?: string | null;
+  siteUrl: string;
+}): { subject: string; html: string } {
+  const t = BRAND_EMAIL_THEME;
+  const first = (opts.guestName ?? '').trim().split(/\s+/)[0] || '';
+  const hello = first ? `${esc(first)} — thank you.` : 'Thank you.';
+  const couple = esc(opts.coupleDisplay);
+  const item = (opts.itemName ?? '').trim();
+  const itemLine = item
+    ? `${couple} will know the <strong>${esc(item)}</strong> is spoken for, thanks to you.`
+    : `${couple} will know your gift is spoken for, thanks to you.`;
+  const html = emailLayout(frame(`
+    ${eyebrow(`A gift for ${couple}`, t)}
+    ${heading(hello, t)}
+    ${para(`Your claim is noted. ${itemLine}`, t)}
+    ${goldRule()}
+    ${para('There&rsquo;s no rush — claim now, give when you&rsquo;re ready. Their site is always here when you want to leave a note or look back at the day.', t)}
+    ${ctaBlock('Back to their site', opts.siteUrl, t)}
+    ${fine('Sent because you claimed a gift on their registry. Nothing else is needed from you.', t)}
+  `, t), t);
+  return { subject: `Thank you for your gift to ${opts.coupleDisplay}`, html };
+}
+
+/* ── 2d · Password reset — branded replacement ──────────────── */
+
+export function buildPasswordResetEmail(opts: { resetUrl: string }): { subject: string; html: string } {
+  const t = BRAND_EMAIL_THEME;
+  const html = emailLayout(frame(`
+    ${eyebrow('A fresh thread', t)}
+    ${heading('Reset your password.', t)}
+    ${para('Someone asked to reset the password for this account. If that was you, pull the thread below — it works once and expires in an hour.', t)}
+    ${ctaBlock('Reset your password', opts.resetUrl, t)}
+    ${fine('If you didn&rsquo;t request this, ignore this email and nothing changes — your password stays exactly as it was.', t)}
+  `, t), t);
+  return { subject: 'Reset your Pearloom password', html };
+}
+
+/* ── 2e · Email verification — branded replacement ──────────── */
+
+export function buildEmailVerificationEmail(opts: { verifyUrl: string }): { subject: string; html: string } {
+  const t = BRAND_EMAIL_THEME;
+  const html = emailLayout(frame(`
+    ${eyebrow('One small knot', t)}
+    ${heading('Confirm your email.', t)}
+    ${para('Confirm this is your email and your account is tied off properly. Nothing is blocked in the meantime — this just makes recovery and guest features work without a hitch.', t)}
+    ${ctaBlock('Confirm your email', opts.verifyUrl, t)}
+    ${fine('If you didn&rsquo;t create a Pearloom account, you can safely ignore this email.', t)}
+  `, t), t);
+  return { subject: 'Confirm your Pearloom email', html };
+}
+
 /* ── 3 · Coordinator / viewer invite — dashboard ────────────── */
 
 export function buildCoordinatorInviteEmail(opts: {
