@@ -439,7 +439,85 @@ export function DashSubmissions() {
             ))}
           </div>
         )}
+
+        <GuestbookModeration siteId={site.id} />
       </main>
     </DashLayout>
+  );
+}
+
+// ── Guestbook moderation ────────────────────────────────────────
+// The guestbook is a separate store (public.guestbook) from the
+// event-os submissions above. Hosts review + remove wishes here.
+interface Wish { id: string; guestName: string; message: string; createdAt?: string }
+
+function GuestbookModeration({ siteId }: { siteId: string }) {
+  const [wishes, setWishes] = useState<Wish[] | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const r = await fetch(`/api/guestbook?siteId=${encodeURIComponent(siteId)}`, { cache: 'no-store' });
+      const d = (await r.json()) as { wishes?: Wish[] };
+      setWishes(d.wishes ?? []);
+    } catch {
+      setWishes([]);
+    }
+  }, [siteId]);
+
+  useEffect(() => { void load(); }, [load]);
+
+  const remove = async (id: string) => {
+    if (busy) return;
+    setBusy(id);
+    setWishes((prev) => (prev ?? []).filter((w) => w.id !== id)); // optimistic
+    try {
+      await fetch(`/api/guestbook?id=${encodeURIComponent(id)}&siteId=${encodeURIComponent(siteId)}`, { method: 'DELETE' });
+    } catch {
+      void load(); // reconcile on failure
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  if (!wishes || wishes.length === 0) return null;
+
+  return (
+    <div style={{ marginTop: 36 }}>
+      <div style={{ ...MONO_STYLE, fontSize: 10, color: PD.olive, marginBottom: 12 }}>
+        GUESTBOOK · {wishes.length}
+      </div>
+      <div
+        style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}
+      >
+        {wishes.map((w) => (
+          <Panel key={w.id} bg={PD.paperCard} style={{ padding: 18 }}>
+            <div
+              style={{
+                fontSize: 14.5,
+                color: PD.ink,
+                lineHeight: 1.55,
+                fontFamily: '"Fraunces", Georgia, serif',
+                fontStyle: 'italic',
+                marginBottom: 10,
+              }}
+            >
+              “{w.message}”
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: PD.inkSoft }}>— {w.guestName}</span>
+              <button
+                type="button"
+                disabled={busy === w.id}
+                onClick={() => void remove(w.id)}
+                style={{ ...btnMiniGhost, opacity: busy === w.id ? 0.5 : 1 }}
+              >
+                Remove
+              </button>
+            </div>
+          </Panel>
+        ))}
+      </div>
+    </div>
   );
 }

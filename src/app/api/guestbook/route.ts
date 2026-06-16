@@ -6,6 +6,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
@@ -168,6 +170,49 @@ export async function POST(req: NextRequest) {
     console.error('[Guestbook] Error:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
+}
+
+// DELETE /api/guestbook?id=&siteId= — host removes a wish.
+// Owner-gated: the wish's site must belong to the session user.
+export async function DELETE(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  const id = req.nextUrl.searchParams.get('id');
+  const siteId = req.nextUrl.searchParams.get('siteId');
+  if (!id || !siteId) {
+    return NextResponse.json({ error: 'Missing id or siteId' }, { status: 400 });
+  }
+
+  const supabase = getSupabase();
+  const siteUuid = await resolveSiteUuid(supabase, siteId);
+  if (!siteUuid) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+
+  const { data: site } = await supabase
+    .from('sites')
+    .select('creator_email, site_config')
+    .eq('id', siteUuid)
+    .maybeSingle();
+  const owner = String(
+    (site as { creator_email?: string; site_config?: { creator_email?: string } } | null)?.creator_email
+    ?? (site as { site_config?: { creator_email?: string } } | null)?.site_config?.creator_email
+    ?? '',
+  ).toLowerCase().trim();
+  if (!site || owner !== session.user.email.toLowerCase().trim()) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  const { error } = await supabase
+    .from('guestbook')
+    .delete()
+    .eq('id', id)
+    .eq('site_id', siteUuid);
+  if (error) {
+    console.error('[Guestbook] Delete error:', error);
+    return NextResponse.json({ error: 'Delete failed' }, { status: 500 });
+  }
+  return NextResponse.json({ success: true });
 }
 
 // Re-pick the most beautiful wish using Gemini
