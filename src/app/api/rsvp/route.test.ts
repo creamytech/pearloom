@@ -351,7 +351,7 @@ describe('POST /api/rsvp', () => {
     const res = await POST(makePost({ siteId: 'demo', guestName: 'Stranger' }));
     expect(res.status).toBe(403);
     const json = await res.json();
-    expect(json.error).toMatch(/enter the email/i);
+    expect(json.error).toMatch(/invitation/i);
   });
 
   it('admits an email that is already on the guest list', async () => {

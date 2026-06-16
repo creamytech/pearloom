@@ -122,9 +122,7 @@ export async function POST(req: NextRequest) {
       if (!invited) {
         return NextResponse.json(
           {
-            error: email
-              ? 'This celebration is replying by invitation — we couldn’t find that email on the guest list. Try the email your invitation was sent to, or reach out to your hosts.'
-              : 'This celebration is replying by invitation — enter the email your invitation was sent to.',
+            error: 'This celebration is replying by invitation — please find and pick your name on the guest list. If you can’t find it, reach out to your hosts.',
             guestListOnly: true,
           },
           { status: 403 },

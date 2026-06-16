@@ -2313,10 +2313,16 @@ function WhoCanReplyPanel({
               {guestCount} {guestCount === 1 ? 'person is' : 'people are'} on your list.
             </strong>{' '}
             Switch to <em>Invited only</em> so strangers with the link can&rsquo;t RSVP — only
-            guests whose email is on your list (or who use their personal link) get through.
+            guests who find their name on your list get through.
+          </>
+        ) : value && guestCount === 0 ? (
+          <>
+            <strong style={{ fontWeight: 700, color: PD.terra }}>Your guest list is empty.</strong>{' '}
+            With <em>Invited only</em> on and no guests, <strong>no one can reply yet</strong>. Add
+            guests (or import a list) so they can find their name — or switch back to <em>Anyone</em>.
           </>
         ) : value ? (
-          <>Only guests on your list — by email or personal link — can RSVP. Others see a gentle &ldquo;we couldn&rsquo;t find you&rdquo; note.</>
+          <>Only guests on your list can RSVP — they find and pick their name. Others see a gentle &ldquo;we couldn&rsquo;t find you&rdquo; note.</>
         ) : (
           <>Anyone with the link can RSVP. Good for casual or public events.</>
         )}
