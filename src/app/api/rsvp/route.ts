@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
       dietary_restrictions: dietaryRestrictions || null,
       song_request: songRequest || null,
       message: message || null,
-      event_ids: selectedEvents || [],
+      selected_events: selectedEvents || [],
       mailing_address: mailingAddress || null,
       // Preset-driven RSVP columns (20260422_rsvp_preset_answers.sql)
       rsvp_preset: preset || null,

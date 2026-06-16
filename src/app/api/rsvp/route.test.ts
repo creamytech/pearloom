@@ -208,6 +208,27 @@ describe('POST /api/rsvp', () => {
     expect(upsertOptions.onConflict).toBe('site_id,email');
   });
 
+  it('writes the guests.selected_events column (not event_ids)', async () => {
+    // Regression: the route wrote `event_ids`, which doesn't exist on
+    // the guests table, so every RSVP 500'd. The real column is
+    // `selected_events`.
+    h.queue('guests.single', { id: 'g1', name: 'Alice', status: 'attending' });
+    await POST(makePost({
+      siteId: 'demo',
+      guestName: 'Alice',
+      email: 'alice@example.test',
+      status: 'attending',
+      selectedEvents: ['ceremony', 'reception'],
+      plusOne: true,
+      plusOneName: 'Sam',
+    }));
+    const payload = h.calls.find((c) => c.method === 'upsert')!.args[0] as Record<string, unknown>;
+    expect(payload).not.toHaveProperty('event_ids');
+    expect(payload.selected_events).toEqual(['ceremony', 'reception']);
+    expect(payload.plus_one).toBe(true);
+    expect(payload.plus_one_name).toBe('Sam');
+  });
+
   it('declined RSVP returns the "you\'ll be missed" message', async () => {
     h.queue('guests.single', { id: 'g1', name: 'Bob', status: 'declined' });
     const res = await POST(makePost({

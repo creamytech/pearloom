@@ -58,6 +58,10 @@ interface GuestReply {
   attending: 'yes' | 'no';
   meal: string;
   dietary: string;
+  /** Guest is bringing a plus-one (only when the host allows it). */
+  plusOne?: boolean;
+  /** The plus-one's name, captured when plusOne is on. */
+  plusOneName?: string;
 }
 
 /* Reads a coarse guest list off the manifest. The prototype hard-codes
@@ -210,7 +214,6 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
       plusOne: cfg?.plusOne ?? false,
     };
   }, [manifest]);
-  void questionGates.plusOne; /* plusOne handled via existing guest-list passport flow upstream. */
 
   /* Invitation-only — when the host turns on "Invited only" in the
      editor / guests dashboard, a reply must land on a real guest-
@@ -470,12 +473,20 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
           status: reply.attending === 'yes' ? 'attending' : 'declined',
           mealPreference: reply.attending === 'yes' ? reply.meal || null : null,
           dietaryRestrictions: reply.attending === 'yes' ? reply.dietary || null : null,
+          plusOne: reply.attending === 'yes' && questionGates.plusOne ? !!reply.plusOne : false,
+          plusOneName:
+            reply.attending === 'yes' && questionGates.plusOne && reply.plusOne
+              ? (reply.plusOneName ?? '').trim() || null
+              : null,
           songRequest: i === 0 && anyYes ? song.trim() || null : null,
           message: i === 0 ? note.trim() || null : null,
           preset: rsvpPreset,
           answers: {
             meal: reply.attending === 'yes' ? reply.meal : undefined,
             dietary: reply.attending === 'yes' ? reply.dietary : undefined,
+            ...(reply.attending === 'yes' && questionGates.plusOne && reply.plusOne
+              ? { 'plus-one': (reply.plusOneName ?? '').trim() || 'Yes' }
+              : {}),
             ...(i === 0 ? { 'song-request': song.trim() || undefined, comments: note.trim() || undefined } : {}),
           },
         };
@@ -931,7 +942,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                         })}
                       </div>
                     </div>
-                    {r.attending === 'yes' && (questionGates.mealChoice || questionGates.dietary) && (
+                    {r.attending === 'yes' && (questionGates.mealChoice || questionGates.dietary || questionGates.plusOne) && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                         {questionGates.mealChoice && (
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -974,6 +985,43 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
                           placeholder="Allergies or dietary notes (optional)"
                           style={{ ...inputStyle(), padding: '9px 11px', fontSize: 13 }}
                         />
+                        )}
+                        {questionGates.plusOne && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            <label
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 9,
+                                fontSize: 13,
+                                fontWeight: 600,
+                                color: 'var(--ink-soft, var(--pl-ink-soft, #3A332C))',
+                                cursor: 'pointer',
+                                userSelect: 'none',
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={!!r.plusOne}
+                                onChange={(e) =>
+                                  setGuest(g, {
+                                    plusOne: e.target.checked,
+                                    ...(e.target.checked ? {} : { plusOneName: '' }),
+                                  })
+                                }
+                              />
+                              Bringing a guest?
+                            </label>
+                            {r.plusOne && (
+                              <input
+                                type="text"
+                                value={r.plusOneName ?? ''}
+                                onChange={(e) => setGuest(g, { plusOneName: e.target.value })}
+                                placeholder="Your guest’s name"
+                                style={{ ...inputStyle(), padding: '9px 11px', fontSize: 13 }}
+                              />
+                            )}
+                          </div>
                         )}
                       </div>
                     )}
