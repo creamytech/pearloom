@@ -100,6 +100,50 @@ export default async function GuestUploadPage({
     );
   }
 
+  // Invitation-only sites (rsvpConfig.guestListOnly) only let people
+  // already on the guest list add photos — resolved through their
+  // personal token. No valid token → a gentle "use your invite link"
+  // notice instead of a camera. /api/guest-photos enforces the same
+  // gate server-side.
+  const guestListOnly = Boolean(
+    (site.ai_manifest as unknown as { rsvpConfig?: { guestListOnly?: boolean } } | null)
+      ?.rsvpConfig?.guestListOnly,
+  );
+  if (guestListOnly) {
+    const { resolveGuestToken } = await import('@/lib/people');
+    const resolved = guestToken ? await resolveGuestToken(sb, guestToken) : null;
+    const onList = !!resolved && String(resolved.siteId) === String(site.id);
+    if (!onList) {
+      return (
+        <main
+          style={{
+            minHeight: '100dvh',
+            display: 'grid',
+            placeItems: 'center',
+            background: '#F5EFE2',
+            color: '#0E0D0B',
+            fontFamily: 'Georgia, serif',
+            padding: 24,
+            textAlign: 'center',
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.55, marginBottom: 12 }}>
+              {couple}
+            </div>
+            <h1 style={{ fontSize: 28, fontStyle: 'italic', margin: '0 0 10px' }}>
+              Photos are by invitation.
+            </h1>
+            <p style={{ fontSize: 14, opacity: 0.7, maxWidth: 400, margin: '0 auto', lineHeight: 1.55 }}>
+              Open the personal link the hosts sent you to add your photos. Can&rsquo;t
+              find it? Reach out to your hosts and they&rsquo;ll send it along.
+            </p>
+          </div>
+        </main>
+      );
+    }
+  }
+
   // Pre-fill the uploader name + email from the personalized guest
   // record when /upload?t=<guest_token> is used. The form stays
   // editable in case the guest's borrowing someone's phone.

@@ -2030,8 +2030,30 @@ function CalendarChipStrip({ ctx }: { ctx: SectionCtx }) {
    hide it via manifest.galleryUploads=false (GalleryPanel). */
 function GalleryShareStrip({ ctx }: { ctx: SectionCtx }) {
   const enabled = ((ctx.manifest as unknown as { galleryUploads?: boolean }).galleryUploads) !== false;
+  // Invitation-only sites only show the share affordance to guests
+  // who arrived through their personal link (?g= / ?guest=). The
+  // token rides into /upload?t=… so the server can confirm they're
+  // on the list — open sites keep the public button.
+  const guestListOnly = Boolean(
+    (ctx.manifest as unknown as { rsvpConfig?: { guestListOnly?: boolean } }).rsvpConfig?.guestListOnly,
+  );
+  const [guestToken, setGuestToken] = useState<string | null>(null);
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => {
+      try {
+        const sp = new URLSearchParams(window.location.search);
+        setGuestToken(sp.get('g') || sp.get('guest'));
+      } catch { /* no-op */ }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, []);
   if (!ctx.siteSlug || !enabled) return null;
-  const href = buildSitePath(ctx.siteSlug, '/upload', (ctx.manifest as unknown as { occasion?: string }).occasion);
+  // Hide the button for invitation-only sites until we know the
+  // visitor is a recognized guest (token in hand).
+  if (guestListOnly && !guestToken) return null;
+  const occasion = (ctx.manifest as unknown as { occasion?: string }).occasion;
+  const base = buildSitePath(ctx.siteSlug, '/upload', occasion);
+  const href = guestToken ? `${base}?t=${encodeURIComponent(guestToken)}` : base;
   return (
     <div style={{ background: 'var(--t-section)', padding: '0 24px 36px', textAlign: 'center' }}>
       <a
