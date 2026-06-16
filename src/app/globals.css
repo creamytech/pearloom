@@ -854,6 +854,82 @@ input:focus, textarea:focus, select:focus {
   border-radius: 4px;
 }
 
+/* ── Custom checkbox + radio — brand controls everywhere ──────────
+   appearance:none upgrade so every native box reads as Pearloom
+   (warm paper box, olive fill, drawn check / dot) instead of the OS
+   default. Applies site-wide — dashboard, editor, guest site, auth.
+   Opt out on a single control with class .pl-native-control. */
+input[type='checkbox']:not(.pl-native-control),
+input[type='radio']:not(.pl-native-control) {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-content: center;
+  vertical-align: middle;
+  border: 1.5px solid var(--pl-divider, rgba(14, 13, 11, 0.28));
+  background: var(--pl-cream-card, #fffdf7);
+  cursor: pointer;
+  transition:
+    background 140ms var(--pl-ease-out, ease),
+    border-color 140ms var(--pl-ease-out, ease),
+    box-shadow 140ms var(--pl-ease-out, ease);
+}
+input[type='checkbox']:not(.pl-native-control) {
+  border-radius: 5px;
+}
+input[type='radio']:not(.pl-native-control) {
+  border-radius: 50%;
+}
+input[type='checkbox']:not(.pl-native-control)::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  transform: scale(0);
+  transition: transform 140ms var(--pl-ease-spring, cubic-bezier(0.22, 1, 0.36, 1));
+  background: var(--pl-cream, #fdfaf0);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+input[type='radio']:not(.pl-native-control)::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transform: scale(0);
+  transition: transform 140ms var(--pl-ease-spring, cubic-bezier(0.22, 1, 0.36, 1));
+  background: var(--pl-cream, #fdfaf0);
+}
+input[type='checkbox']:not(.pl-native-control):checked,
+input[type='radio']:not(.pl-native-control):checked {
+  background: var(--pl-olive-deep, #4c5a26);
+  border-color: var(--pl-olive-deep, #4c5a26);
+}
+input[type='checkbox']:not(.pl-native-control):checked::before,
+input[type='radio']:not(.pl-native-control):checked::before {
+  transform: scale(1);
+}
+input[type='checkbox']:not(.pl-native-control):focus-visible,
+input[type='radio']:not(.pl-native-control):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--pl-gold-soft, rgba(193, 154, 75, 0.4));
+}
+input[type='checkbox']:not(.pl-native-control):disabled,
+input[type='radio']:not(.pl-native-control):disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+@media (prefers-reduced-motion: reduce) {
+  input[type='checkbox']:not(.pl-native-control)::before,
+  input[type='radio']:not(.pl-native-control)::before {
+    transition: none;
+  }
+}
+
 /* ─── Keyframes ─── */
 
 @keyframes accordion-down {

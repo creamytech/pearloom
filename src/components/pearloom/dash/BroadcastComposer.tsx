@@ -75,6 +75,30 @@ export function BroadcastComposer({ subdomain }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subdomain]);
 
+  async function remove(id: string) {
+    const ok = await dialog.confirm({
+      title: 'Remove this broadcast?',
+      message: 'It disappears from the guest banner and your history. This can’t be undone.',
+      confirmLabel: 'Remove',
+      cancelLabel: 'Keep',
+      variant: 'danger',
+    });
+    if (!ok) return;
+    // Optimistic — drop it locally, then reconcile with the server.
+    setUpdates((prev) => prev.filter((u) => u.id !== id));
+    try {
+      await fetch(
+        `/api/sites/live-updates?id=${encodeURIComponent(id)}&subdomain=${encodeURIComponent(subdomain)}`,
+        { method: 'DELETE' },
+      );
+      pingLive();
+    } catch {
+      /* put it back by refetching the source of truth */
+    } finally {
+      await refresh();
+    }
+  }
+
   async function send(message: string, type = 'misc') {
     if (!message.trim()) return;
     // Email broadcast is a real-money action — confirm before
@@ -316,8 +340,31 @@ export function BroadcastComposer({ subdomain }: Props) {
                     </span>
                   )}
                 </span>
-                <span style={{ fontSize: 11, color: 'var(--ink-muted)', flexShrink: 0 }}>
-                  {new Date(u.created_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                  <span style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
+                    {new Date(u.created_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => void remove(u.id)}
+                    aria-label="Remove broadcast"
+                    title="Remove"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 24,
+                      height: 24,
+                      borderRadius: 999,
+                      border: '1px solid var(--line)',
+                      background: 'transparent',
+                      color: 'var(--ink-muted)',
+                      cursor: 'pointer',
+                      padding: 0,
+                    }}
+                  >
+                    <Icon name="trash" size={12} />
+                  </button>
                 </span>
               </div>
             ))}
