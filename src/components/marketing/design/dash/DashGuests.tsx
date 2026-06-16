@@ -14,6 +14,7 @@ import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getEventType } from '@/lib/event-os/event-types';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { GuestImportDialog } from '@/components/dashboard/GuestImportDialog';
+import { findDuplicateGroups } from '@/lib/guest-dedupe';
 
 // Occasion-aware copy for the guests page. Falls back to wedding-y
 // defaults when an occasion isn't recognised.
@@ -838,7 +839,7 @@ export function DashGuests() {
   // 'stale' is a virtual filter — not on the row's RSVP status,
   // but on its lifecycle (invited >7d ago, no response). Lives
   // alongside the rsvp keys so the same pill UI handles both.
-  const [filter, setFilter] = useState<RsvpKey | 'all' | 'stale'>('all');
+  const [filter, setFilter] = useState<RsvpKey | 'all' | 'stale' | 'dupes'>('all');
   const [q, setQ] = useState('');
   const [importOpen, setImportOpen] = useState(false);
   const [copyOpen, setCopyOpen] = useState(false);
@@ -943,6 +944,18 @@ export function DashGuests() {
     return out;
   }, [rows, events, showPerEvent]);
 
+  // Possible-duplicate detection — a guest list assembled from a
+  // CSV + hand-adds + open RSVPs that minted their own row drifts
+  // into near-duplicates ("Jon" / "John Smith", an email entered
+  // twice). We GROUP them and flag — never auto-merge.
+  const duplicateIds = useMemo(() => {
+    if (!rows || rows.length < 2) return new Set<string>();
+    const groups = findDuplicateGroups(rows.map((g) => ({ id: g.id, name: g.n, email: g.em })));
+    const ids = new Set<string>();
+    for (const grp of groups) for (const id of grp) ids.add(id);
+    return ids;
+  }, [rows]);
+
   const filtered = useMemo(() => {
     if (!rows) return [];
     return rows.filter(
@@ -950,12 +963,13 @@ export function DashGuests() {
         const rsvpMatch =
           filter === 'all' ? true
           : filter === 'stale' ? g.stale
+          : filter === 'dupes' ? duplicateIds.has(g.id)
           : g.rsvp === filter;
-        const queryMatch = q === '' || (g.n + g.note + g.tags.join(' ')).toLowerCase().includes(q.toLowerCase());
+        const queryMatch = q === '' || (g.n + g.em + g.note + g.tags.join(' ')).toLowerCase().includes(q.toLowerCase());
         return rsvpMatch && queryMatch;
       }
     );
-  }, [rows, filter, q]);
+  }, [rows, filter, q, duplicateIds]);
 
   if (!siteLoading && (!sites || sites.length === 0)) {
     return (
@@ -1010,6 +1024,9 @@ export function DashGuests() {
   const capacity = Math.max(rows?.length ?? 0, counts.yes + counts.pending + counts.maybe, 1);
   const hasGuests = (rows?.length ?? 0) > 0;
   const copy = guestCopy(site?.occasion);
+  const guestListOnly = Boolean(
+    (site?.manifest as { rsvpConfig?: { guestListOnly?: boolean } } | null)?.rsvpConfig?.guestListOnly,
+  );
 
   return (
     <DashLayout
@@ -1258,6 +1275,46 @@ export function DashGuests() {
             return null;
           })()}
 
+          {/* POSSIBLE DUPLICATES — a quiet lavender strip when the
+              list has near-matches. Tapping filters the table to
+              just those rows so the host can compare + clean up. */}
+          {duplicateIds.size > 0 && filter !== 'dupes' && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px 14px',
+                background: 'var(--lavender-bg, rgba(232,224,240,0.6))',
+                border: '1px solid var(--lavender-ink, rgba(124,108,150,0.3))',
+                borderRadius: 12,
+              }}
+            >
+              <span aria-hidden style={{ fontSize: 15, fontWeight: 700, color: 'var(--lavender-ink, #6E5E86)' }}>≈</span>
+              <span style={{ fontSize: 12.5, color: 'var(--ink, #0E0D0B)', flex: 1 }}>
+                <strong style={{ fontWeight: 700 }}>{duplicateIds.size}</strong>{' '}
+                {duplicateIds.size === 1 ? 'guest looks' : 'guests look'} like possible duplicates — same email or a near-identical name.
+              </span>
+              <button
+                type="button"
+                onClick={() => setFilter('dupes')}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 999,
+                  background: 'var(--lavender-ink, #6E5E86)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  fontSize: 11.5,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Review them →
+              </button>
+            </div>
+          )}
+
           {/* TABLE */}
           <Panel bg={PD.paper} padding={0} style={{ overflow: 'hidden' }}>
             <div
@@ -1277,6 +1334,7 @@ export function DashGuests() {
                 { k: 'stale', l: `Stale · ${counts.stale}` },
                 { k: 'maybe', l: `Maybe · ${counts.maybe}` },
                 { k: 'no', l: `No · ${counts.no}` },
+                ...(duplicateIds.size > 0 ? [{ k: 'dupes' as const, l: `Duplicates · ${duplicateIds.size}` }] : []),
               ] as const).map((t) => (
                 <button
                   key={t.k}
@@ -1439,6 +1497,25 @@ export function DashGuests() {
                                 {g.n}
                               </a>
                             ) : g.n}
+                            {duplicateIds.has(g.id) && (
+                              <span
+                                title="A near-identical name or email is also on your list"
+                                style={{
+                                  flexShrink: 0,
+                                  fontSize: 9,
+                                  fontWeight: 700,
+                                  letterSpacing: '0.04em',
+                                  textTransform: 'uppercase',
+                                  color: 'var(--lavender-ink, #6E5E86)',
+                                  background: 'var(--lavender-bg, rgba(232,224,240,0.7))',
+                                  border: '1px solid var(--lavender-ink, rgba(124,108,150,0.3))',
+                                  borderRadius: 999,
+                                  padding: '1px 7px',
+                                }}
+                              >
+                                ≈ dup?
+                              </span>
+                            )}
                           </div>
                           <div
                             style={{
@@ -1613,6 +1690,19 @@ export function DashGuests() {
             top: 72,
           }}
         >
+          {/* Who can reply — surfaces the guest-list-only gate and,
+              when a list exists but replies are still open,
+              recommends locking it down. Keyed by site so it resets
+              when the host switches celebrations. */}
+          {site?.id && (
+            <WhoCanReplyPanel
+              key={site.id}
+              siteId={site.id}
+              initial={guestListOnly}
+              guestCount={counts.all}
+            />
+          )}
+
           <Panel
             bg={PD.ink}
             style={{
@@ -2104,6 +2194,142 @@ const inputStyle: CSSProperties = {
   outline: 'none',
   boxSizing: 'border-box',
 };
+
+// ── WhoCanReplyPanel ──────────────────────────────────────────
+// Surfaces (and lets the host change) manifest.rsvpConfig.
+// guestListOnly right from the guests dashboard — the same gate
+// the editor's RSVP panel sets. Two states:
+//   open           — anyone with the link can RSVP (default)
+//   guest-list only — /api/rsvp only accepts invited emails /
+//                     personal links
+// When a guest list exists but replies are still open, the panel
+// goes peach and recommends locking it down so strangers can't
+// reply. Persists via PATCH /api/sites/rsvp-access (owner-gated,
+// patches that one field — never races the editor autosave).
+function WhoCanReplyPanel({
+  siteId,
+  initial,
+  guestCount,
+}: {
+  siteId: string;
+  initial: boolean;
+  guestCount: number;
+}) {
+  const [value, setValue] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const recommend = guestCount > 0 && !value;
+
+  async function change(next: boolean) {
+    if (busy || next === value) return;
+    const prev = value;
+    setValue(next); // optimistic
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await fetch('/api/sites/rsvp-access', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId, guestListOnly: next }),
+      });
+      const data = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+      if (!r.ok || data.ok === false) throw new Error(data.error ?? `Failed (${r.status})`);
+    } catch (err) {
+      setValue(prev); // roll back
+      setError(err instanceof Error ? err.message : 'Could not save.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Panel
+      bg={recommend ? 'var(--peach-bg)' : PD.paperCard}
+      style={{ padding: 18, border: 'none', borderRadius: 16 }}
+    >
+      <div
+        style={{
+          fontSize: 10.5,
+          fontWeight: 700,
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+          color: recommend ? 'var(--peach-ink)' : 'var(--ink-muted)',
+          marginBottom: 8,
+        }}
+      >
+        Who can reply
+      </div>
+
+      {/* Segmented control — the two access modes. */}
+      <div
+        role="group"
+        aria-label="Who can reply to the RSVP"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 4,
+          padding: 4,
+          background: 'var(--card, var(--cream-2))',
+          borderRadius: 999,
+          border: '1px solid var(--line, rgba(14,13,11,0.12))',
+          opacity: busy ? 0.7 : 1,
+        }}
+      >
+        {([
+          { v: false, label: 'Anyone' },
+          { v: true, label: 'Invited only' },
+        ] as const).map((opt) => {
+          const active = value === opt.v;
+          return (
+            <button
+              key={String(opt.v)}
+              type="button"
+              aria-pressed={active}
+              disabled={busy}
+              onClick={() => change(opt.v)}
+              style={{
+                padding: '7px 10px',
+                borderRadius: 999,
+                border: 'none',
+                background: active ? PD.ink : 'transparent',
+                color: active ? PD.paper : PD.ink,
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: busy ? 'wait' : 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <p style={{ fontSize: 12, color: PD.inkSoft, lineHeight: 1.5, margin: '10px 0 0' }}>
+        {recommend ? (
+          <>
+            <strong style={{ fontWeight: 700, color: PD.ink }}>
+              {guestCount} {guestCount === 1 ? 'person is' : 'people are'} on your list.
+            </strong>{' '}
+            Switch to <em>Invited only</em> so strangers with the link can&rsquo;t RSVP — only
+            guests whose email is on your list (or who use their personal link) get through.
+          </>
+        ) : value ? (
+          <>Only guests on your list — by email or personal link — can RSVP. Others see a gentle &ldquo;we couldn&rsquo;t find you&rdquo; note.</>
+        ) : (
+          <>Anyone with the link can RSVP. Good for casual or public events.</>
+        )}
+      </p>
+
+      {error && (
+        <div role="alert" style={{ fontSize: 11.5, color: PD.terra, marginTop: 8 }}>
+          {error}
+        </div>
+      )}
+    </Panel>
+  );
+}
 
 function Insight({ label, n, total }: { label: string; n: number; total: string }) {
   return (
