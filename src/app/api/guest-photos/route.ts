@@ -83,10 +83,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `File too large (max ${MAX_SIZE_MB}MB)` }, { status: 413 });
     }
 
-    // Host's "Guest uploads" switch (GalleryPanel → manifest.guestUploads,
-    // default ON). Server-side enforcement of the same flag the
-    // /sites/[domain]/upload page checks — fails OPEN on lookup
-    // errors so a DB blip never blocks guests mid-reception.
+    // Host gates, enforced server-side (the /sites/[domain]/upload
+    // page checks the same flags). Both fail OPEN on lookup errors so
+    // a DB blip never blocks guests mid-reception:
+    //   • guestUploads !== false — the "Guest uploads" switch.
+    //   • rsvpConfig.guestListOnly — when on, only people already on
+    //     the guest list (resolved via their personal token) may post.
+    //     This is the same invitation gate the RSVP route enforces;
+    //     it keeps a public site from becoming an open photo dump.
     try {
       if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
         const { createClient } = await import('@supabase/supabase-js');
@@ -96,20 +100,39 @@ export async function POST(req: NextRequest) {
         );
         const { data: siteRow } = await gateDb
           .from('sites')
-          .select('ai_manifest')
+          .select('id, ai_manifest')
           .eq('subdomain', siteId)
           .maybeSingle();
-        const uploadsOpen =
-          ((siteRow?.ai_manifest as { guestUploads?: boolean } | null)?.guestUploads) !== false;
+        const manifest = siteRow?.ai_manifest as
+          | { guestUploads?: boolean; rsvpConfig?: { guestListOnly?: boolean } }
+          | null;
+        const uploadsOpen = (manifest?.guestUploads) !== false;
         if (siteRow && !uploadsOpen) {
           return NextResponse.json(
             { error: 'The hosts have closed photo uploads for this celebration.' },
             { status: 403 },
           );
         }
+        // Invitation-only: require a token that resolves to a guest
+        // ON this site. No valid token → warm 403, same copy shape as
+        // the RSVP gate.
+        if (siteRow && manifest?.rsvpConfig?.guestListOnly) {
+          const { resolveGuestToken } = await import('@/lib/people');
+          const resolved = guestToken ? await resolveGuestToken(gateDb, guestToken) : null;
+          const onList = !!resolved && String(resolved.siteId) === String((siteRow as { id: string }).id);
+          if (!onList) {
+            return NextResponse.json(
+              {
+                error: 'This celebration is sharing photos by invitation — please open your personal invite link to add yours. If you can’t find it, reach out to your hosts.',
+                guestListOnly: true,
+              },
+              { status: 403 },
+            );
+          }
+        }
       }
     } catch (gateErr) {
-      console.warn('[guest-photos] uploads-open gate failed (failing open):', gateErr);
+      console.warn('[guest-photos] uploads gate failed (failing open):', gateErr);
     }
 
     let ext = rawExt || 'jpg';
@@ -119,6 +142,27 @@ export async function POST(req: NextRequest) {
     const filename = `guest-photos/${Date.now()}_${uuid}.${ext}`;
 
     const plaintext = Buffer.from(await file.arrayBuffer());
+
+    // ── NSFW screen ──────────────────────────────────────────────
+    // Before the photo ever touches storage or the host's queue, run
+    // it past automated moderation. Confident sexual/explicit content
+    // is rejected outright; everything else flows on to the normal
+    // pending → host-approves path. Fails open (no key / API blip) so
+    // the host queue stays the backstop.
+    try {
+      const { moderateImageBuffer } = await import('@/lib/moderation/image-moderation');
+      const verdict = await moderateImageBuffer(plaintext, file.type || 'image/jpeg');
+      if (!verdict.allowed) {
+        console.warn(`[guest-photos] rejected by moderation (${verdict.reason ?? 'explicit'}) for site ${siteId}`);
+        return NextResponse.json(
+          { error: 'That photo can’t be shared here. Please choose a different one.' },
+          { status: 422 },
+        );
+      }
+    } catch (modErr) {
+      console.warn('[guest-photos] moderation step failed (failing open):', modErr);
+    }
+
     const body = isEncryptionEnabled() ? encryptBuffer(plaintext) : plaintext;
 
     const r2 = getR2Client();
