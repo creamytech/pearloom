@@ -85,12 +85,17 @@ export function KeepsakesPage() {
     preset === 'memorial'
       ? 'In-memoriam cards, donation letters, and anniversary remembrances — drafted with care.'
       : preset === 'bachelor'
-        ? "Thank-yous from the groom and a clean settle-up — close the weekend out right."
+        ? 'Thank-yous from the guest of honor and a clean settle-up — close the weekend out right.'
         : preset === 'shower'
           ? 'Thank-yous and a keepsake card of the advice guests left.'
           : preset === 'reunion'
             ? 'Thank-yous, the yearbook export, and a head start on next year.'
-            : 'Thank-you notes, anniversary nudges, and every after-the-day kindness — drafted by Pear.';
+            // Anniversary nudges only fit a wedding; everything else
+            // (birthday, graduation, retirement, cultural, casual…)
+            // gets a neutral after-the-day line.
+            : occasion === 'wedding'
+              ? 'Thank-you notes, anniversary nudges, and every after-the-day kindness — drafted by Pear.'
+              : 'Thank-you notes and every after-the-day kindness — drafted by Pear.';
 
   return (
     <PLChrome active="memory" maxWidth={1080}>

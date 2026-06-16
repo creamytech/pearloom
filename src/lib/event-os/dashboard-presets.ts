@@ -790,7 +790,7 @@ export function getKeepsakeTools(occasion?: string | null): KeepsakeTool[] {
       ];
     case 'bachelor':
       return [
-        { id: 'thanks',     title: 'Thanks from the crew', body: 'Short notes from the groom — one per guest.',                   actionLabel: 'Draft notes',    actionHref: '#thanks',              tone: 'peach' },
+        { id: 'thanks',     title: 'Thanks from the crew', body: 'Short notes from the guest of honor — one per guest.',          actionLabel: 'Draft notes',    actionHref: '#thanks',              tone: 'peach' },
         { id: 'settleup',   title: 'Final cost settle-up', body: 'A summary of who paid what, who owes what.',                    actionLabel: 'Settle up',      actionHref: '/editor',              tone: 'lavender' },
       ];
     case 'shower':

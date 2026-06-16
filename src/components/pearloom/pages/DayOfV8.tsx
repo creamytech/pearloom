@@ -311,6 +311,17 @@ function MomentTimeline({
   // pick which one they want before editing.
   const editHref = siteDomain ? `/editor/${encodeURIComponent(siteDomain)}` : '/dashboard/event';
 
+  // Occasion-appropriate sample rows for the empty state — never
+  // wedding cues ("Ceremony", "First dance") on a memorial or
+  // birthday. These are illustrative placeholders, clearly framed
+  // as examples, not real data.
+  const examples =
+    occasion === 'memorial' || occasion === 'funeral'
+      ? ['2:00 — Gathering begins', '2:30 — Words & remembrances', '3:30 — Reception']
+      : occasion === 'bachelor-party' || occasion === 'bachelorette-party' || occasion === 'reunion'
+        ? ['Fri 6:00 — Welcome dinner', 'Sat 11:00 — Main activity', 'Sat 9:00 — Night out']
+        : ['5:00 — Doors open', '6:00 — Dinner served', '8:00 — Toasts', '9:00 — Music & dancing'];
+
   if (items.length === 0) {
     return (
       <div className="card" style={{ padding: 24 }}>
@@ -323,10 +334,10 @@ function MomentTimeline({
           </div>
         </div>
         <DashEmpty
-          eyebrow="Today's rundown"
+          eyebrow={heading}
           title="No schedule yet."
           body="Add events in the editor — Pearloom will show them here in order on the day, with a live now-marker."
-          examples={['3:00 — Ceremony begins', '4:30 — Cocktail hour', '6:00 — Dinner served', '9:00 — First dance']}
+          examples={examples}
           actions={[{ label: 'Add events', href: editorDeepLink(siteDomain, 'schedule'), icon: 'brush', primary: true }]}
         />
       </div>
