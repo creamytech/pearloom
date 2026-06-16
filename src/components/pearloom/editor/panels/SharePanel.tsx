@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon } from '../../motifs';
-import { FGroup, FInput, SectionPanelShell } from './_section-atoms';
+import { FGroup, FInput, FToggleStandalone, SectionPanelShell } from './_section-atoms';
 import { buildSiteUrl, formatSiteDisplayUrl, type SiteOccasion } from '@/lib/site-urls';
 import { BrandedQR, useBrandedQrPng } from './BrandedQR';
 import { deriveInitials } from '../../site/Monogram';
@@ -455,6 +455,23 @@ export function SharePanel({
             <Icon name="arrow-down" size={11} color="var(--ink-soft)" />
             {downloading ? 'Exporting…' : 'Download as PNG'}
           </button>
+        </FGroup>
+
+        {/* Guestbook — opt-in section on the published site where
+            guests leave a wish. Writes manifest.features.guestbook;
+            the renderer mounts GuestbookSection before the footer. */}
+        <FGroup label="Guestbook" hint="Add a guestbook to your site — guests leave a wish, everyone reads the wall. You'll get a notification each time someone signs.">
+          <FToggleStandalone
+            label="Show a guestbook on the site"
+            def={((manifest as unknown as { features?: { guestbook?: boolean } }).features?.guestbook) === true}
+            onChange={(v) => {
+              const loose2 = manifest as unknown as { features?: Record<string, unknown> };
+              onChange({
+                ...(manifest as unknown as Record<string, unknown>),
+                features: { ...(loose2.features ?? {}), guestbook: v },
+              } as unknown as StoryManifest);
+            }}
+          />
         </FGroup>
 
         {/* Bulk invite handoff. */}

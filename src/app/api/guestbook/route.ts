@@ -16,15 +16,32 @@ function getSupabase() {
   return createClient(url, key);
 }
 
+const UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** guestbook.site_id stores the site UUID. Callers may pass the
+ *  uuid (dashboard) or the subdomain (the published site only knows
+ *  its slug) — resolve either to the canonical uuid so entries land
+ *  on one key. */
+async function resolveSiteUuid(
+  supabase: ReturnType<typeof getSupabase>,
+  idOrSlug: string,
+): Promise<string | null> {
+  if (UUID_RX.test(idOrSlug)) return idOrSlug;
+  const { data } = await supabase.from('sites').select('id').eq('subdomain', idOrSlug).maybeSingle();
+  return (data as { id?: string } | null)?.id ?? null;
+}
+
 export async function GET(req: NextRequest) {
   const siteId = req.nextUrl.searchParams.get('siteId');
   if (!siteId) return NextResponse.json({ wishes: [] });
 
   const supabase = getSupabase();
+  const siteUuid = await resolveSiteUuid(supabase, siteId);
+  if (!siteUuid) return NextResponse.json({ wishes: [] });
   const { data } = await supabase
     .from('guestbook')
     .select('*')
-    .eq('site_id', siteId)
+    .eq('site_id', siteUuid)
     .order('created_at', { ascending: false })
     .limit(50);
 
@@ -67,6 +84,10 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = getSupabase();
+    const siteUuid = await resolveSiteUuid(supabase, siteId);
+    if (!siteUuid) {
+      return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    }
 
     // Best-effort guest resolution. Bad/missing tokens fall through
     // silently — attribution is nice-to-have, not gating.
@@ -85,12 +106,12 @@ export async function POST(req: NextRequest) {
     const { count } = await supabase
       .from('guestbook')
       .select('id', { count: 'exact', head: true })
-      .eq('site_id', siteId);
+      .eq('site_id', siteUuid);
 
     const { data, error } = await supabase
       .from('guestbook')
       .insert({
-        site_id: siteId,
+        site_id: siteUuid,
         guest_name: guestName,
         message,
         guest_id: guestId,
@@ -107,7 +128,7 @@ export async function POST(req: NextRequest) {
 
     // Async: re-evaluate highlighted wish via Gemini after every 5th submission
     if (count && count % 5 === 4) {
-      void reHighlight(siteId);
+      void reHighlight(siteUuid);
     }
 
     // Tell the host someone signed the guestbook (category 'content').
@@ -120,7 +141,7 @@ export async function POST(req: NextRequest) {
         const { data: site } = await sb
           .from('sites')
           .select('id, subdomain, creator_email, site_config')
-          .eq('id', siteId)
+          .eq('id', siteUuid)
           .maybeSingle();
         const cfg = (site as { site_config?: { creator_email?: string; names?: [string, string] } } | null)?.site_config;
         const ownerEmail = String((site as { creator_email?: string } | null)?.creator_email ?? cfg?.creator_email ?? '');
@@ -130,7 +151,7 @@ export async function POST(req: NextRequest) {
         const who = String(guestName ?? '').split(/\s+/)[0] || 'A guest';
         const { notifyHost } = await import('@/lib/notifications/notify');
         await notifyHost(sb, {
-          siteId,
+          siteId: siteUuid,
           siteLabel,
           ownerEmail,
           category: 'content',
