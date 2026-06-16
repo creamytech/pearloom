@@ -803,6 +803,21 @@ export function getKeepsakeTools(occasion?: string | null): KeepsakeTool[] {
         { id: 'thanks',    title: 'Thanks + save-the-date',body: 'Thank this year’s group + save the date for next year.',       actionLabel: 'Draft both',     actionHref: '#thanks',              tone: 'peach' },
         { id: 'yearbook',  title: 'Yearbook export',      body: 'Print the who’s-who and then-and-now as a PDF booklet.',        actionLabel: 'Export',         actionHref: '#yearbook',            tone: 'sage' },
       ];
+    case 'milestone':
+      return [
+        { id: 'thanks',    title: 'Thank-you notes',      body: 'A warm note for everyone who came and everyone who gave.',      actionLabel: 'Draft notes',    actionHref: '#thanks',              tone: 'peach' },
+        { id: 'photobook', title: 'Photo book',           body: 'Gather the gallery + the notes guests left into a printable keepsake.', actionLabel: 'Build the book', actionHref: '/dashboard/memory-book', tone: 'lavender' },
+      ];
+    case 'casual':
+      return [
+        { id: 'thanks',    title: 'Thank-you notes',      body: 'A quick note for everyone who showed up.',                     actionLabel: 'Draft notes',    actionHref: '#thanks',              tone: 'peach' },
+        { id: 'photobook', title: 'Photo book',           body: 'Turn the photos + notes into a printable keepsake.',           actionLabel: 'Build the book', actionHref: '/dashboard/memory-book', tone: 'lavender' },
+      ];
+    case 'cultural':
+      return [
+        { id: 'thanks',    title: 'Thank-you notes',      body: 'One for each guest and each family who marked the day with you.', actionLabel: 'Draft notes',  actionHref: '#thanks',              tone: 'peach' },
+        { id: 'program',   title: 'Keepsake program',     body: 'Print the ceremony program as a memento of the day.',          actionLabel: 'Design it',      actionHref: '/dashboard/invite',    tone: 'lavender' },
+      ];
     case 'wedding':
     default:
       return [

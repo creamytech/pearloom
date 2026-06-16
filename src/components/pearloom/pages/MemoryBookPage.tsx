@@ -287,6 +287,11 @@ export function MemoryBookPage() {
   };
   const totalEntries =
     counts.memories + counts.whispers + counts.capsule + counts.tributes + counts.guestbook;
+  // Nothing to bind yet — show an occasion-aware empty state instead
+  // of a blank "0 entries" book (it read wedding-shaped + bare for
+  // birthdays, reunions, memorials with no collected memories yet).
+  const bookEmpty = totalEntries === 0 && counts.chapters === 0 && (photos?.length ?? 0) === 0 && counts.songs === 0;
+  const occLabel = data?.site?.occasion ? occasionLabel(data.site.occasion) : 'celebration';
 
   return (
     <PLChrome active="memory" maxWidth={1080}>
@@ -434,6 +439,21 @@ export function MemoryBookPage() {
               {counts.songs} song{counts.songs === 1 ? '' : 's'}
             </div>
           </header>
+
+          {/* Occasion-aware empty state — nothing collected yet. */}
+          {bookEmpty && (
+            <div style={{ textAlign: 'center', padding: '24px 0 8px', maxWidth: 520, margin: '0 auto' }}>
+              <ChapterRule glyph="✦" />
+              <p style={{ fontSize: 15.5, lineHeight: 1.7, color: 'var(--ink-soft)', fontStyle: 'italic', fontFamily: 'var(--font-display)' }}>
+                Nothing woven in yet.
+              </p>
+              <p style={{ fontSize: 14, lineHeight: 1.65, color: 'var(--ink-muted)', marginTop: 8 }}>
+                As guests leave notes, photos, and memories on your {occLabel.toLowerCase()} site —
+                and as you add story chapters in the editor — they gather here into a printable
+                keepsake.
+              </p>
+            </div>
+          )}
 
           {/* The story so far — chapters with hairline rules between */}
           {data.chapters.length > 0 && (
