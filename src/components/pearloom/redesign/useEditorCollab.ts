@@ -26,7 +26,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createClient, type RealtimeChannel } from '@supabase/supabase-js';
 import type { StoryManifest } from '@/types';
-import { stripArtForStorage } from '@/lib/editor-state';
 
 export interface CollabPeer {
   key: string;
@@ -51,14 +50,8 @@ function colorFor(email: string): string {
 /** How long after a local edit we hold off applying remote state,
  *  so a peer's broadcast never replaces text mid-keystroke. */
 const LOCAL_TYPING_GRACE_MS = 1600;
-/** Debounce for outgoing broadcasts — coalesces keystroke bursts. */
+/** Debounce for the outgoing change-pulse — coalesces keystroke bursts. */
 const BROADCAST_DEBOUNCE_MS = 700;
-/** Supabase Realtime drops broadcast payloads over ~256KB silently.
- *  A rich manifest (gallery URLs, chapters, theme bag) can exceed
- *  that — which is exactly why "live edits" looked dead while the
- *  tiny presence payload worked. Above this size we send a content-
- *  free pulse instead and the receiver refetches the saved manifest. */
-const MAX_BROADCAST_BYTES = 180_000;
 /** After a pulse, wait for the sender's autosave (~2s debounce) to
  *  land before refetching, so we pull their latest, not stale, work. */
 const PULSE_REFETCH_DELAY_MS = 2200;
@@ -133,18 +126,17 @@ export function useEditorCollab({
     if (sendTimer.current) clearTimeout(sendTimer.current);
     sendTimer.current = setTimeout(() => {
       try {
-        const stripped = stripArtForStorage(manifestRef.current);
-        let size = 0;
-        try { size = JSON.stringify(stripped).length; } catch { size = Infinity; }
-        const base = { from: clientIdRef.current, fromName: name || email || 'A co-host', at: Date.now() };
-        if (size <= MAX_BROADCAST_BYTES) {
-          // Small enough to ship inline — instant sync.
-          void ch.send({ type: 'broadcast', event: 'manifest', payload: { ...base, manifest: stripped } });
-        } else {
-          // Too large for a reliable Realtime broadcast — pulse and
-          // let the peer refetch the saved manifest instead.
-          void ch.send({ type: 'broadcast', event: 'pulse', payload: base });
-        }
+        // Always send a tiny "changed" pulse — never the manifest
+        // itself. The full-manifest broadcast was silently dropped by
+        // Realtime at size (presence is tiny and always landed, which
+        // is why peers showed up but edits never synced). The peer
+        // refetches the saved manifest on pulse — same size class as
+        // presence, so it always delivers.
+        void ch.send({
+          type: 'broadcast',
+          event: 'pulse',
+          payload: { from: clientIdRef.current, fromName: name || email || 'A co-host', at: Date.now() },
+        });
       } catch { /* collab must never break editing */ }
     }, BROADCAST_DEBOUNCE_MS);
   }, [manifest, name, email]);
@@ -195,15 +187,11 @@ export function useEditorCollab({
           setPeers(next);
         });
 
-        ch.on('broadcast', { event: 'manifest' }, ({ payload }) => {
-          const p = payload as { from?: string; fromName?: string; manifest?: StoryManifest };
-          if (!p?.manifest || p.from === clientIdRef.current) return;
-          pendingRemote.current = { m: p.manifest, from: p.fromName || 'A co-host' };
-        });
-
-        /* Pulse — a peer's edit was too large to ship inline. Refetch
-           the saved manifest (after their autosave lands) and queue it
-           through the same drain path so the typing-grace still holds. */
+        /* Pulse — a peer edited. Refetch the saved manifest (after
+           their autosave lands) and queue it through the same drain
+           path so the typing-grace still holds. This is the ONLY sync
+           path now: the manifest never rides the broadcast itself
+           (Realtime dropped it at size), only this tiny ping does. */
         ch.on('broadcast', { event: 'pulse' }, ({ payload }) => {
           const p = payload as { from?: string; fromName?: string };
           if (p.from === clientIdRef.current) return;
