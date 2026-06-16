@@ -2554,10 +2554,40 @@ function RegistryBlock({ ctx }: { ctx: SectionCtx }) {
 
 /* ─── GalleryBlock — handoff grid variant. ───────────────────── */
 
+/* Approved guest uploads (status='approved' from /api/guest-photos)
+   so photos a guest sent and the host approved actually appear in
+   the site's gallery — not just the Day-of moderation reel. Published
+   mode only; the editor canvas keeps showing just the host's set. */
+function useApprovedGuestPhotos(siteSlug: string | undefined, enabled: boolean): string[] {
+  const [urls, setUrls] = useState<string[]>([]);
+  useEffect(() => {
+    if (!enabled || !siteSlug) return;
+    let cancelled = false;
+    const t = setTimeout(() => {
+      fetch(`/api/guest-photos?siteId=${encodeURIComponent(siteSlug)}`, { cache: 'no-store' })
+        .then((r) => (r.ok ? r.json() : { photos: [] }))
+        .then((d: { photos?: Array<{ url?: string }> }) => {
+          if (cancelled) return;
+          const list = (d.photos ?? []).map((p) => p?.url).filter((u): u is string => !!u);
+          if (list.length) setUrls(list);
+        })
+        .catch(() => { /* gallery still shows host photos */ });
+    }, 0);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [siteSlug, enabled]);
+  return urls;
+}
+
 function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
   const { pad, C, editable, variants } = ctx;
+  const guestPhotos = useApprovedGuestPhotos(ctx.siteSlug, !editable);
+  const hostPhotos = C.gallery.photos ?? [];
+  const mergedPhotos = guestPhotos.length
+    ? [...hostPhotos, ...guestPhotos.filter((u) => !hostPhotos.includes(u))]
+    : hostPhotos;
+  const galleryC = mergedPhotos === hostPhotos ? C.gallery : { ...C.gallery, photos: mergedPhotos };
   const sub = {
-    C: C.gallery, pad, editable, cta: C.cta,
+    C: galleryC, pad, editable, cta: C.cta,
     onEditEyebrow: ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('galleryEyebrow', v) : undefined,
     onEditTitle:   ctx.edit?.copy ? (v: string) => ctx.edit?.copy?.('galleryTitle', v) : undefined,
     onEditCaption: ctx.edit?.galleryCaption,
@@ -2581,14 +2611,15 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
         divider={ctx.dividerLook}
       />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8, maxWidth: 920, marginInline: 'auto' }}>
-        {C.gallery.photos && C.gallery.photos.length > 0
-          /* Render the host's uploaded photos as cover-image
-             squares; the gradient placeholders fall away entirely
-             once any photo is set. Each tile carries an optional
-             caption line below — inline-editable in edit mode,
-             rendered only when authored on the published site. */
-          ? C.gallery.photos.map((url, i) => {
-              const caption = C.gallery.captions?.[i];
+        {galleryC.photos && galleryC.photos.length > 0
+          /* Render the host's uploaded photos + approved guest
+             uploads as cover-image squares; the gradient
+             placeholders fall away entirely once any photo is set.
+             Each tile carries an optional caption line below —
+             inline-editable in edit mode, rendered only when
+             authored on the published site. */
+          ? galleryC.photos.map((url, i) => {
+              const caption = galleryC.captions?.[i];
               return (
                 <div key={i}>
                   <FadeInImage src={url} style={{ aspectRatio: '1/1', borderRadius: 8 }} />
