@@ -64,6 +64,26 @@ export function SharePanel({
   const [coHostRole, setCoHostRole] = useState<'editor' | 'guest-manager' | 'viewer'>('editor');
   const [coHostBusy, setCoHostBusy] = useState(false);
   const [coHostMsg, setCoHostMsg] = useState<string | null>(null);
+  /* Account recognition — as the host types an invitee email, probe
+     whether it's already a Pearloom user. A match invites them
+     directly (in-app notification + dashboard banner); a miss emails
+     them to set up an account. Owner-gated server-side. */
+  const [coHostMatch, setCoHostMatch] = useState<{ exists: boolean; displayName?: string | null; self?: boolean } | null>(null);
+  useEffect(() => {
+    if (coHostChannel !== 'email') { setCoHostMatch(null); return; }
+    const e = coHostEmail.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { setCoHostMatch(null); return; }
+    const ctrl = new AbortController();
+    const t = setTimeout(() => {
+      fetch(`/api/co-host/lookup?email=${encodeURIComponent(e)}&siteSlug=${encodeURIComponent(siteSlug)}`, { signal: ctrl.signal })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d: { exists?: boolean; displayName?: string | null; self?: boolean } | null) => {
+          if (d) setCoHostMatch({ exists: !!d.exists, displayName: d.displayName ?? null, self: !!d.self });
+        })
+        .catch(() => { /* recognition is a nicety */ });
+    }, 450);
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [coHostEmail, coHostChannel, siteSlug]);
   /* Collaborator roster — active cohosts + pending invites for the
      manage list below the composer. Owner-gated server-side. */
   const [roster, setRoster] = useState<{
@@ -180,8 +200,14 @@ export function SharePanel({
         setKeyCard({ acceptUrl: j.acceptUrl, phone: coHostPhone.trim(), sent: !!j.sent });
         setCoHostPhone('');
       } else {
-        setCoHostMsg(`Invite sent to ${coHostEmail.trim()}.`);
+        const who = coHostMatch?.exists && coHostMatch.displayName ? coHostMatch.displayName : coHostEmail.trim();
+        setCoHostMsg(
+          coHostMatch?.exists
+            ? `Invited ${who} — they’ll see it on their dashboard.`
+            : `We emailed ${coHostEmail.trim()} an invite to join Pearloom.`,
+        );
         setCoHostEmail('');
+        setCoHostMatch(null);
       }
       void refreshRoster();
     } catch (e) {
@@ -469,13 +495,44 @@ export function SharePanel({
               ))}
             </div>
             {coHostChannel === 'email' ? (
-              <FInput
-                value={coHostEmail}
-                onChange={setCoHostEmail}
-                icon="mail"
-                type="email"
-                placeholder="partner@example.com"
-              />
+              <>
+                <FInput
+                  value={coHostEmail}
+                  onChange={setCoHostEmail}
+                  icon="mail"
+                  type="email"
+                  placeholder="partner@example.com"
+                />
+                {coHostMatch && !coHostMatch.self && (
+                  <div
+                    style={{
+                      fontSize: 11.5,
+                      lineHeight: 1.45,
+                      padding: '7px 10px',
+                      borderRadius: 9,
+                      background: coHostMatch.exists ? 'var(--sage-tint, rgba(122,138,79,0.12))' : 'var(--cream-2)',
+                      border: `1px solid ${coHostMatch.exists ? 'rgba(92,107,63,0.28)' : 'var(--line-soft)'}`,
+                      color: 'var(--ink-soft)',
+                    }}
+                  >
+                    {coHostMatch.exists ? (
+                      <>
+                        <span style={{ fontWeight: 700, color: 'var(--sage-deep, #5C6B3F)' }}>
+                          ✓ {coHostMatch.displayName || 'They’re'} on Pearloom.
+                        </span>{' '}
+                        Invite them directly — they’ll get a notification and a banner on their dashboard.
+                      </>
+                    ) : (
+                      <>New to Pearloom — we’ll email them an invite to set up an account and join.</>
+                    )}
+                  </div>
+                )}
+                {coHostMatch?.self && (
+                  <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', padding: '2px 2px' }}>
+                    That’s your own address — invite a different email.
+                  </div>
+                )}
+              </>
             ) : (
               <FInput
                 value={coHostPhone}

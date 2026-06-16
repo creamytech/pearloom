@@ -36,7 +36,7 @@ interface Props {
   /** Owner-only Publish — co-hosts can edit but not press. */
   canPublish?: boolean;
   /** Realtime presence — other people with this editor open now. */
-  peers?: Array<{ key: string; name: string; email: string; color: string }>;
+  peers?: Array<{ key: string; name: string; email: string; color: string; section?: string | null }>;
 }
 
 export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPublish, pearOpen, setPearOpen, onOpenSettings, displayNames, manifest, compact = false, canPublish = true, peers = [] }: Props) {
@@ -243,31 +243,47 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
             their edits re-weave the canvas as they type. */}
         {peers.length > 0 && (
           <div
-            aria-label={`Also here: ${peers.map((p) => p.name).join(', ')}`}
-            title={`Also here: ${peers.map((p) => p.name).join(', ')} — edits sync live`}
-            style={{ display: 'inline-flex', alignItems: 'center' }}
+            aria-label={`Editing together: ${peers.map((p) => p.name).join(', ')}`}
+            title={`Editing together: ${peers.map((p) => p.name).join(', ')} — changes sync live`}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 7,
+              padding: '3px 9px 3px 7px', borderRadius: 999,
+              background: 'var(--sage-tint, rgba(122,138,79,0.12))',
+              border: '1px solid rgba(92,107,63,0.22)',
+            }}
           >
-            {peers.slice(0, 4).map((p, i) => (
-              <span
-                key={p.key}
-                aria-hidden
-                style={{
-                  width: 22, height: 22, borderRadius: '50%',
-                  background: p.color, color: 'var(--cream, #F5EFE2)',
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 10.5, fontWeight: 700,
-                  border: '2px solid var(--card, #FBF7EE)',
-                  marginLeft: i === 0 ? 0 : -7,
-                }}
-              >
-                {(p.name || p.email).charAt(0).toUpperCase()}
-              </span>
-            ))}
+            {/* live pulse */}
+            <span aria-hidden style={{ position: 'relative', width: 7, height: 7, flexShrink: 0 }}>
+              <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'var(--sage-deep, #5C6B3F)' }} />
+              <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'var(--sage-deep, #5C6B3F)', animation: 'pl-collab-pulse 1.8s ease-out infinite' }} />
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+              {peers.slice(0, 4).map((p, i) => (
+                <span
+                  key={p.key}
+                  aria-hidden
+                  title={p.name + (p.section ? ` · editing ${p.section}` : '')}
+                  style={{
+                    width: 22, height: 22, borderRadius: '50%',
+                    background: p.color, color: 'var(--cream, #F5EFE2)',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 10.5, fontWeight: 700,
+                    border: '2px solid var(--card, #FBF7EE)',
+                    marginLeft: i === 0 ? 0 : -7,
+                  }}
+                >
+                  {(p.name || p.email).charAt(0).toUpperCase()}
+                </span>
+              ))}
+            </span>
             {!compact && (
-              <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 600, color: 'var(--ink-soft)' }}>
-                {peers.length === 1 ? `${(peers[0].name || '').split(' ')[0] || 'A co-host'} is here` : `${peers.length} here`}
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--sage-deep, #5C6B3F)' }}>
+                {peers.length === 1
+                  ? `${(peers[0].name || '').split(' ')[0] || 'A co-host'} is editing`
+                  : `${peers.length} editing`}
               </span>
             )}
+            <style>{`@keyframes pl-collab-pulse{0%{transform:scale(1);opacity:0.55}70%{transform:scale(2.6);opacity:0}100%{opacity:0}}`}</style>
           </div>
         )}
         <div

@@ -28,6 +28,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { DashLayout } from '../dash/DashShell';
 import { Icon, Pear } from '../motifs';
@@ -264,6 +265,10 @@ export function WelcomeHome() {
           </Link>
         </div>
       </div>
+
+      {/* Pending co-host invitations addressed to this signed-in
+          user — accept right here, no inbox dig required. */}
+      <CoHostInviteBanner />
 
       <div
         style={{
@@ -1719,4 +1724,149 @@ function relativeTime(iso?: string | null): string {
   if (d === 1) return 'yesterday';
   if (d < 7) return `${d} days ago`;
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// ─────────────────────────────────────────────────────────────
+// CoHostInviteBanner — the invitee side of co-hosting. When the
+// signed-in user has pending co-host invitations addressed to
+// their email, a warm banner offers one-tap accept (no inbox dig).
+// Reads /api/co-host/invitations; accepts via POST /api/sites/
+// co-host { acceptToken }; on success routes into the editor.
+// Renders nothing when there are no invitations.
+// ─────────────────────────────────────────────────────────────
+interface PendingInvite {
+  token: string;
+  role: string;
+  roleLabel: string;
+  invitedBy: string;
+  note: string | null;
+  siteName: string;
+  siteSlug: string | null;
+  occasion: string | null;
+}
+
+function CoHostInviteBanner() {
+  const router = useRouter();
+  const [invites, setInvites] = useState<PendingInvite[]>([]);
+  const [busyToken, setBusyToken] = useState<string | null>(null);
+  const [dismissed, setDismissed] = useState<Set<string>>(() => new Set());
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/co-host/invitations', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { invitations?: PendingInvite[] } | null) => {
+        if (!cancelled && d?.invitations) setInvites(d.invitations);
+      })
+      .catch(() => { /* banner is best-effort */ });
+    return () => { cancelled = true; };
+  }, []);
+
+  async function accept(inv: PendingInvite) {
+    if (busyToken) return;
+    setBusyToken(inv.token);
+    setError(null);
+    try {
+      const res = await fetch('/api/sites/co-host', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ acceptToken: inv.token }),
+      });
+      const d = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+      if (!res.ok || d.ok === false) throw new Error(d.error ?? `Failed (${res.status})`);
+      // Into the site they just joined — or the dashboard if no slug.
+      if (inv.siteSlug) router.push(`/editor/${encodeURIComponent(inv.siteSlug)}`);
+      else setInvites((xs) => xs.filter((x) => x.token !== inv.token));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not accept the invite.');
+    } finally {
+      setBusyToken(null);
+    }
+  }
+
+  const visible = invites.filter((i) => !dismissed.has(i.token));
+  if (visible.length === 0) return null;
+
+  return (
+    <div style={{ padding: '6px clamp(20px, 4vw, 40px) 0', maxWidth: 1240, margin: '0 auto' }}>
+      {visible.map((inv) => {
+        const inviter = inv.invitedBy ? inv.invitedBy.split('@')[0] : 'A host';
+        const busy = busyToken === inv.token;
+        return (
+          <div
+            key={inv.token}
+            role="status"
+            style={{
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+              flexWrap: 'wrap',
+              padding: '14px 18px',
+              marginBottom: 12,
+              borderRadius: 16,
+              overflow: 'hidden',
+              background: 'linear-gradient(120deg, var(--peach-bg, #FBE8D6) 0%, var(--lavender-bg, rgba(232,224,240,0.7)) 100%)',
+              border: '1px solid rgba(198,112,61,0.30)',
+              animation: 'pl-enter-fade-in 260ms ease both',
+            }}
+          >
+            {/* two-strand thread along the leading edge — the brand atom */}
+            <span aria-hidden style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: 'linear-gradient(var(--sage-deep, #5C6B3F), var(--gold, #C19A4B))' }} />
+            <span
+              aria-hidden
+              style={{
+                flexShrink: 0,
+                width: 38, height: 38, borderRadius: '50%',
+                display: 'grid', placeItems: 'center',
+                background: 'var(--peach-ink, #C6703D)', color: '#fff',
+                fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontStyle: 'italic', fontSize: 18,
+              }}
+            >
+              ✦
+            </span>
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--peach-ink, #C6703D)' }}>
+                You&rsquo;re invited to co-host
+              </div>
+              <div style={{ fontSize: 15, color: 'var(--ink, #0E0D0B)', marginTop: 2, lineHeight: 1.4 }}>
+                <strong style={{ fontWeight: 700 }}>{inviter}</strong> invited you to{' '}
+                <span style={{ fontFamily: 'var(--font-display, Fraunces, Georgia, serif)', fontStyle: 'italic' }}>{inv.siteName}</span>{' '}
+                as <strong style={{ fontWeight: 700 }}>{inv.roleLabel}</strong>.
+              </div>
+              {error && busyToken === null && (
+                <div role="alert" style={{ fontSize: 11.5, color: 'var(--pl-plum, #7A2D2D)', marginTop: 4 }}>{error}</div>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={() => setDismissed((s) => new Set(s).add(inv.token))}
+                style={{
+                  padding: '8px 12px', borderRadius: 999, border: 'none', background: 'transparent',
+                  color: 'var(--ink-soft, #3A332C)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                Not now
+              </button>
+              <button
+                type="button"
+                onClick={() => accept(inv)}
+                disabled={busy}
+                style={{
+                  padding: '8px 18px', borderRadius: 999, border: 'none',
+                  background: 'var(--ink, #0E0D0B)', color: 'var(--cream, #F5EFE2)',
+                  fontSize: 12.5, fontWeight: 700, cursor: busy ? 'wait' : 'pointer', fontFamily: 'inherit',
+                  opacity: busy ? 0.7 : 1,
+                }}
+              >
+                {busy ? 'Joining…' : 'Accept & open'}
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }

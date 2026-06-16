@@ -167,9 +167,12 @@ interface Props {
    *  all sections on one canvas. Owned by EditorRedesign. */
   canvasPage?: 'home' | SiteBlockKey | null;
   setCanvasPage?: (page: 'home' | SiteBlockKey | null) => void;
+  /** Live co-editors, for per-section presence ("Maya is editing
+   *  this section"). Each carries the section id they're focused on. */
+  peers?: Array<{ key: string; name: string; email: string; color: string; section?: string | null }>;
 }
 
-export function EditorRailLeft({ active, setActive, completion, title, slug, manifest, onChange, canvasPage = null, setCanvasPage }: Props) {
+export function EditorRailLeft({ active, setActive, completion, title, slug, manifest, onChange, canvasPage = null, setCanvasPage, peers = [] }: Props) {
   const [tab, setTab] = useState<'sections' | 'pages' | 'theme'>('sections');
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
@@ -659,6 +662,7 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {orderedSections.map((s, i) => {
           const on = s.id === active;
+          const sectionPeers = peers.filter((p) => p.section === s.id);
           const isHero = !!s.required;
           const isDragging = draggingIdx === i;
           const isHovered = hoverIdx === i && draggingIdx !== null && draggingIdx !== i;
@@ -754,6 +758,25 @@ export function EditorRailLeft({ active, setActive, completion, title, slug, man
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
                   {s.label}
+                  {/* Co-editor presence — a small colored avatar when a
+                      peer currently has THIS section open. */}
+                  {sectionPeers.slice(0, 2).map((p, pi) => (
+                    <span
+                      key={p.key}
+                      title={`${p.name} is editing this section`}
+                      aria-label={`${p.name} is editing this section`}
+                      style={{
+                        width: 16, height: 16, borderRadius: '50%',
+                        background: p.color, color: '#fff',
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 8.5, fontWeight: 700, flexShrink: 0,
+                        border: `1.5px solid ${on ? 'var(--ink)' : 'var(--cream)'}`,
+                        marginLeft: pi === 0 ? 0 : -5,
+                      }}
+                    >
+                      {(p.name || p.email).charAt(0).toUpperCase()}
+                    </span>
+                  ))}
                   {/* Quiet attention dot — this section is effectively
                       empty. Peach, 5px, no alarm. */}
                   {needsAttention(s.id, manifest) && (
