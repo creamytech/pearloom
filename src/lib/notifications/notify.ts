@@ -37,6 +37,10 @@ export interface NotifyHostArgs {
   href: string;
   /** Stable key per event so retries can't double-send. */
   dedupeKey: string;
+  /** Send the instant email even when the category defaults to
+   *  'digest' — for time-sensitive events (e.g. a guest photo
+   *  waiting for moderation). Still respects an explicit 'off'. */
+  forceInstantEmail?: boolean;
 }
 
 /** Claim a (channel, dedupeKey) slot. True exactly once. */
@@ -75,9 +79,12 @@ export async function notifyHost(
     const prefs = await getNotificationPrefs(supabase, ownerEmail);
     const pref = prefs[args.category];
 
-    // ── Email (instant mode only) ────────────────────────────
+    // ── Email (instant mode, or a forced time-sensitive send) ──
     const resendKey = process.env.RESEND_API_KEY;
-    if (pref.emailMode === 'instant' && resendKey) {
+    const sendInstant =
+      pref.emailMode === 'instant' ||
+      (Boolean(args.forceInstantEmail) && pref.emailMode !== 'off');
+    if (sendInstant && resendKey) {
       if (await claim(supabase, 'email', args)) {
         const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
         const fromEmail = process.env.EMAIL_FROM || 'Pearloom <noreply@pearloom.com>';

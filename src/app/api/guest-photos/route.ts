@@ -266,9 +266,14 @@ export async function POST(req: NextRequest) {
           siteLabel,
           ownerEmail,
           category: 'content',
-          title: `${who} added a photo`,
+          title: `${who} shared a photo`,
+          body: `A new photo is waiting for your review before it joins the wall. Approve or remove it from your Reel.`,
           href: '/dashboard/gallery',
           dedupeKey: `photo:${(photo as { id?: string }).id ?? Date.now()}`,
+          // Photos are time-sensitive (they want to reach the live
+          // wall during the event), so email the host right away even
+          // though guest content otherwise defaults to the digest.
+          forceInstantEmail: true,
         });
       } catch (e) { console.warn('[guest-photos] notifyHost failed (non-fatal):', e); }
     })();
