@@ -1556,15 +1556,17 @@ export function DashGuests() {
                             style={{
                               fontSize: 11,
                               color: '#6A6A56',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
                               display: 'flex',
                               alignItems: 'center',
                               gap: 6,
+                              // Wrap the action pills (Invite/Resend/Remove)
+                              // to a second line instead of clipping
+                              // "Remove" when the cell is narrow.
+                              flexWrap: 'wrap',
+                              rowGap: 4,
                             }}
                           >
-                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.em}</span>
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{g.em}</span>
                             {guestLink(g) && (
                               <button
                                 type="button"

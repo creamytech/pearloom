@@ -11,6 +11,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { DASH_SECTIONS, sectionForHref } from './DashShell';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
@@ -25,6 +26,7 @@ interface Props {
 export function DashSubNav({ section }: Props) {
   const pathname = usePathname();
   const { site } = useSelectedSite();
+  const [hovered, setHovered] = useState<string | null>(null);
   const sectionId = (section ?? sectionForHref(pathname || '')) as keyof typeof DASH_SECTIONS | null;
   if (!sectionId) return null;
   const meta = DASH_SECTIONS[sectionId];
@@ -39,103 +41,64 @@ export function DashSubNav({ section }: Props) {
     (tab) => pathname === tab.href || isDashSurfaceApplicable(tab.id, site?.occasion),
   );
 
+  // NB: inline styles, NOT styled-jsx — styled-jsx only attaches its
+  // scoping class to native DOM elements, never to <Link>, so a
+  // class-based stylesheet silently no-ops on these tabs (the cause
+  // of the jammed, unstyled sub-nav). Inline styles always apply.
   return (
-    <nav aria-label={`${meta.label} sub-navigation`} className="pl-subnav">
+    <nav
+      aria-label={`${meta.label} sub-navigation`}
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'flex-end',
+        gap: 'clamp(10px, 2.4vw, 26px)',
+        padding: '16px clamp(20px, 4vw, 40px) 0',
+        maxWidth: 1240,
+        margin: '0 auto 16px',
+        borderBottom: '1px solid var(--line-soft, rgba(14,13,11,0.08))',
+      }}
+    >
       {tabs.map((tab) => {
         const on = pathname === tab.href;
+        const isHover = hovered === tab.id;
         return (
           <Link
             key={tab.id}
             href={tab.href}
             prefetch
             aria-current={on ? 'page' : undefined}
-            className={`pl-subtab${on ? ' is-on' : ''}`}
+            onMouseEnter={() => setHovered(tab.id)}
+            onMouseLeave={() => setHovered((h) => (h === tab.id ? null : h))}
+            style={{
+              position: 'relative',
+              display: 'inline-block',
+              padding: '4px 1px 12px',
+              fontFamily: 'var(--font-ui)',
+              fontSize: 13.5,
+              fontWeight: on ? 700 : 500,
+              letterSpacing: '0.01em',
+              whiteSpace: 'nowrap',
+              textDecoration: 'none',
+              color: on || isHover ? 'var(--ink, #0e0d0b)' : 'var(--ink-muted, #8a8472)',
+              transition: 'color 160ms var(--pl-ease-out, ease)',
+            }}
           >
             {tab.label}
+            {/* Active: two-strand olive + gold thread on the baseline. */}
+            {on && (
+              <>
+                <span aria-hidden style={{ position: 'absolute', left: 0, right: 0, bottom: -1, height: 2, borderRadius: 2, background: 'var(--sage-deep, var(--pl-olive, #5c6b3f))' }} />
+                <span aria-hidden style={{ position: 'absolute', left: 2, right: 2, bottom: -4, height: 1, borderRadius: 2, background: 'var(--gold, #c19a4b)', opacity: 0.65 }} />
+              </>
+            )}
+            {/* Inactive hover: a faint olive underline grows in. */}
+            {!on && isHover && (
+              <span aria-hidden style={{ position: 'absolute', left: 0, right: 0, bottom: -1, height: 2, borderRadius: 2, background: 'var(--sage-deep, var(--pl-olive, #5c6b3f))', opacity: 0.22 }} />
+            )}
           </Link>
         );
       })}
-      <style jsx>{`
-        /* Editorial underline tabs. The active tab is anchored to the
-           baseline hairline by a two-strand olive + gold thread —
-           the brand's visual atom (BRAND §3/§5) — instead of a heavy
-           filled pill floating above a disconnected rule. */
-        .pl-subnav {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: flex-end;
-          gap: clamp(10px, 2.4vw, 26px);
-          padding: 16px clamp(20px, 4vw, 40px) 0;
-          max-width: 1240px;
-          margin: 0 auto 16px;
-          border-bottom: 1px solid var(--line-soft, rgba(14, 13, 11, 0.08));
-        }
-        .pl-subtab {
-          position: relative;
-          padding: 4px 1px 12px;
-          font-family: var(--font-ui);
-          font-size: 13.5px;
-          font-weight: 500;
-          letter-spacing: 0.01em;
-          color: var(--ink-muted, #8a8472);
-          text-decoration: none;
-          white-space: nowrap;
-          transition: color var(--pl-dur-fast, 160ms) var(--pl-ease-out);
-        }
-        .pl-subtab:hover {
-          color: var(--ink, #0e0d0b);
-        }
-        .pl-subtab.is-on {
-          color: var(--ink, #0e0d0b);
-          font-weight: 700;
-        }
-        /* Active: two strands riding the baseline — 2px olive over a
-           1px gold hairline. */
-        .pl-subtab.is-on::before,
-        .pl-subtab.is-on::after {
-          content: '';
-          position: absolute;
-          left: 0;
-          right: 0;
-          border-radius: 2px;
-          pointer-events: none;
-        }
-        .pl-subtab.is-on::before {
-          bottom: -1px;
-          height: 2px;
-          background: var(--sage-deep, var(--pl-olive, #5c6b3f));
-        }
-        .pl-subtab.is-on::after {
-          bottom: -4px;
-          left: 2px;
-          right: 2px;
-          height: 1px;
-          background: var(--gold, #c19a4b);
-          opacity: 0.65;
-        }
-        /* Inactive: a faint olive underline grows in on hover. */
-        .pl-subtab:not(.is-on)::after {
-          content: '';
-          position: absolute;
-          left: 0;
-          right: 0;
-          bottom: -1px;
-          height: 2px;
-          border-radius: 2px;
-          background: var(--sage-deep, var(--pl-olive, #5c6b3f));
-          opacity: 0;
-          transition: opacity var(--pl-dur-fast, 160ms) var(--pl-ease-out);
-        }
-        .pl-subtab:not(.is-on):hover::after {
-          opacity: 0.22;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .pl-subtab,
-          .pl-subtab::after {
-            transition: none;
-          }
-        }
-      `}</style>
     </nav>
   );
 }

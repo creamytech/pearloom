@@ -134,7 +134,10 @@ export function WelcomeHome() {
   // Greet by the celebration's honoree name; before a site exists,
   // fall back to the signed-in user's first name, then 'friend'.
   const sessionFirstName = (session?.user?.name ?? '').trim().split(/\s+/)[0] || null;
-  const firstName = namesArr[0] ?? sessionFirstName ?? 'friend';
+  // Greet the signed-in HOST (Scott), not the couple's first name —
+  // a co-host or solo planner isn't "Shaun". Fall back to the
+  // event name only when we don't know the user's name.
+  const firstName = sessionFirstName ?? namesArr[0] ?? 'friend';
   /* Time-of-day greeting — set after mount (client local time) so
      SSR can't hydration-mismatch against the server's clock. */
   const [greeting, setGreeting] = useState('Welcome back');
