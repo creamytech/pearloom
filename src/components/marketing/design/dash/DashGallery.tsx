@@ -149,6 +149,8 @@ export function DashGallery() {
           </Panel>
         )}
 
+        <PhotoModerationQueue />
+
         {/* Source filter */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
           {([
@@ -193,6 +195,159 @@ export function DashGallery() {
 
       {active && <Lightbox photo={active} onClose={() => setActive(null)} />}
     </DashLayout>
+  );
+}
+
+// ── Pending guest-photo moderation ──────────────────────────────
+// Guests upload through /sites/[domain]/upload; each lands as
+// `pending` and waits here for the host's nod before it can show on
+// the live wall. (Explicit content is auto-rejected upstream, so
+// this queue should never carry anything unpleasant.)
+interface PendingPhoto {
+  id: string;
+  siteSubdomain: string;
+  siteName: string;
+  uploaderName: string;
+  caption: string | null;
+  url: string;
+  createdAt: string;
+}
+
+function PhotoModerationQueue() {
+  const [photos, setPhotos] = useState<PendingPhoto[] | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/guest-photos/moderate?status=pending', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.resolve({ photos: [] })))
+      .then((data: { photos?: PendingPhoto[] }) => {
+        if (!cancelled) setPhotos(data.photos ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setPhotos([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const act = async (id: string, action: 'approved' | 'rejected') => {
+    if (busy) return;
+    setBusy(id);
+    try {
+      const r = await fetch('/api/guest-photos/moderate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photoId: id, action }),
+      });
+      if (r.ok) setPhotos((prev) => (prev ?? []).filter((p) => p.id !== id));
+    } catch {
+      /* leave the card; the host can retry */
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  // Nothing pending (or still loading) → render nothing. The queue
+  // only appears when the host actually has photos to review.
+  if (!photos || photos.length === 0) return null;
+
+  return (
+    <Panel bg={PD.paperCard} style={{ padding: 20, marginBottom: 24, border: `1px solid ${PD.gold}` }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+        <span style={{ ...MONO_STYLE, fontSize: 10, color: PD.olive }}>NEEDS YOUR NOD</span>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            background: PD.gold,
+            color: PD.ink,
+            borderRadius: 999,
+            padding: '1px 8px',
+          }}
+        >
+          {photos.length}
+        </span>
+        <span style={{ fontSize: 13, color: PD.inkSoft }}>
+          Guest photos waiting to join the wall.
+        </span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14 }}>
+        {photos.map((p) => (
+          <div
+            key={p.id}
+            style={{
+              borderRadius: 14,
+              overflow: 'hidden',
+              border: `1px solid ${PD.line ?? 'rgba(31,36,24,0.15)'}`,
+              background: PD.paper3,
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <div
+              style={{
+                aspectRatio: '4/5',
+                background: `url(${proxied(p.url, 480)}) center/cover`,
+              }}
+            />
+            <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div>
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: PD.ink }}>{p.uploaderName}</div>
+                <div style={{ fontSize: 11, color: PD.inkSoft }}>{p.siteName}</div>
+                {p.caption && (
+                  <div style={{ fontSize: 11.5, color: PD.inkSoft, marginTop: 2, fontStyle: 'italic' }}>
+                    “{p.caption}”
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button
+                  type="button"
+                  disabled={busy === p.id}
+                  onClick={() => void act(p.id, 'approved')}
+                  style={{
+                    flex: 1,
+                    padding: '7px 0',
+                    borderRadius: 999,
+                    background: PD.ink,
+                    color: PD.paper,
+                    border: 'none',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    opacity: busy === p.id ? 0.5 : 1,
+                  }}
+                >
+                  Approve
+                </button>
+                <button
+                  type="button"
+                  disabled={busy === p.id}
+                  onClick={() => void act(p.id, 'rejected')}
+                  style={{
+                    padding: '7px 12px',
+                    borderRadius: 999,
+                    background: 'transparent',
+                    color: PD.terra,
+                    border: `1px solid ${PD.terra}`,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    opacity: busy === p.id ? 0.5 : 1,
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Panel>
   );
 }
 

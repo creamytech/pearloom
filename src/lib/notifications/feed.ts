@@ -130,23 +130,39 @@ export async function fetchNotificationFeed(
   } catch { /* skip */ }
 
   // ── Guest photos ───────────────────────────────────────
+  // Unlike every other source here, guest_photos.site_id is the
+  // SUBDOMAIN string (see the 20260614 migration), while the bell
+  // passes the site uuid. Resolve the subdomain first so uploads
+  // actually reach the bell + digest. A pending photo is the
+  // host's cue to moderate, so we surface pending too (not just
+  // approved) and point the CTA at the moderation queue.
   try {
-    const { data: photos } = await supabase
-      .from('guest_photos')
-      .select('id, uploader_name, created_at')
-      .eq('site_id', siteId)
-      .gte('created_at', since)
-      .order('created_at', { ascending: false })
-      .limit(20);
-    for (const p of (photos ?? []) as Array<{ id: string; uploader_name: string | null; created_at: string }>) {
-      items.push({
-        id: `photo-${p.id}`,
-        kind: 'photo',
-        category: 'content',
-        label: `${p.uploader_name ?? 'A guest'} dropped a photo`,
-        href: `/dashboard/gallery`,
-        createdAt: p.created_at,
-      });
+    const { data: siteRow } = await supabase
+      .from('sites')
+      .select('subdomain')
+      .eq('id', siteId)
+      .maybeSingle();
+    const subdomain = (siteRow as { subdomain?: string } | null)?.subdomain;
+    if (subdomain) {
+      const { data: photos } = await supabase
+        .from('guest_photos')
+        .select('id, uploader_name, status, created_at')
+        .eq('site_id', subdomain)
+        .neq('status', 'rejected')
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      for (const p of (photos ?? []) as Array<{ id: string; uploader_name: string | null; status: string; created_at: string }>) {
+        const who = p.uploader_name ?? 'A guest';
+        items.push({
+          id: `photo-${p.id}`,
+          kind: 'photo',
+          category: 'content',
+          label: p.status === 'pending' ? `${who} shared a photo — review it` : `${who} dropped a photo`,
+          href: `/dashboard/gallery`,
+          createdAt: p.created_at,
+        });
+      }
     }
   } catch { /* skip */ }
 
