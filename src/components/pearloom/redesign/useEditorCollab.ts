@@ -199,8 +199,18 @@ export function useEditorCollab({
           pulseTimer.current = setTimeout(() => {
             fetch(`/api/sites/${encodeURIComponent(siteSlug)}`, { cache: 'no-store' })
               .then((r) => (r.ok ? r.json() : null))
-              .then((d: { manifest?: StoryManifest } | null) => {
-                if (d?.manifest) pendingRemote.current = { m: d.manifest, from: p.fromName || 'A co-host' };
+              .then((d: { manifest?: StoryManifest; names?: [string, string] } | null) => {
+                if (!d?.manifest) return;
+                // CRITICAL: the couple names live in site_config, NOT
+                // ai_manifest — the endpoint returns them separately.
+                // Merge them onto the manifest so applying it doesn't
+                // drop names (which then got re-saved stale, the
+                // "names reset on refresh" bug). Everything else the
+                // editor needs lives in ai_manifest already.
+                const merged = Array.isArray(d.names)
+                  ? ({ ...d.manifest, names: d.names } as StoryManifest)
+                  : d.manifest;
+                pendingRemote.current = { m: merged, from: p.fromName || 'A co-host' };
               })
               .catch(() => { /* next pulse retries */ });
           }, PULSE_REFETCH_DELAY_MS);
