@@ -1997,6 +1997,10 @@ function AddGuestDialog({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [plusOne, setPlusOne] = useState(false);
+  // Auto-invite by default — adding a guest with an email sends them
+  // their personal invite link right away. Uncheck to just add them
+  // to the list and invite later.
+  const [sendInvite, setSendInvite] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   /* Returning-guest recognition — once the email looks complete,
@@ -2053,6 +2057,7 @@ function AddGuestDialog({
           name: name.trim(),
           email: email.trim() || undefined,
           plusOne,
+          sendInvite: sendInvite && !!email.trim(),
         }),
       });
       if (!res.ok) {
@@ -2197,6 +2202,33 @@ function AddGuestDialog({
             style={{ width: 16, height: 16, accentColor: PD.olive }}
           />
           <span style={{ fontSize: 13, color: PD.ink }}>Allow a plus-one</span>
+        </label>
+
+        <label
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '10px 12px',
+            background: email.trim() ? 'rgba(92,107,63,0.08)' : 'rgba(31,36,24,0.04)',
+            borderRadius: 10,
+            cursor: email.trim() ? 'pointer' : 'default',
+            opacity: email.trim() ? 1 : 0.55,
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={sendInvite && !!email.trim()}
+            disabled={!email.trim()}
+            onChange={(e) => setSendInvite(e.target.checked)}
+            style={{ width: 16, height: 16, accentColor: PD.olive }}
+          />
+          <span style={{ fontSize: 13, color: PD.ink }}>
+            Email them their invite now
+            <span style={{ display: 'block', fontSize: 11, color: PD.inkSoft }}>
+              {email.trim() ? 'Sends their personal RSVP link right away.' : 'Add an email to enable.'}
+            </span>
+          </span>
         </label>
 
         {error && (

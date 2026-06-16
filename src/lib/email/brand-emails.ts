@@ -168,6 +168,27 @@ export function buildCoHostInviteEmail(opts: {
   return { subject: `${opts.coupleDisplay} invited you to co-host`, html };
 }
 
+/* ── Guest invite — sent when a host adds a guest (with email) and
+   opts to email them their personal link. ───────────────────── */
+
+export function buildGuestInviteEmail(opts: {
+  guestName?: string | null;
+  coupleDisplay: string;
+  personalUrl: string;
+}): { subject: string; html: string } {
+  const t = BRAND_EMAIL_THEME;
+  const couple = esc(opts.coupleDisplay);
+  const first = (opts.guestName ?? '').trim().split(/\s+/)[0];
+  const html = emailLayout(frame(`
+    ${eyebrow('You&rsquo;re invited', t)}
+    ${heading(`${couple} would love for you to join them.`, t)}
+    ${para(`${first ? esc(first) + ', everything' : 'Everything'} about the celebration lives here — and you can RSVP right from your page.`, t)}
+    ${ctaBlock('View the invitation &amp; RSVP', opts.personalUrl, t)}
+    ${fine('This link is yours — it opens your own page and remembers your reply.', t)}
+  `, t), t);
+  return { subject: `You're invited — ${opts.coupleDisplay}`, html };
+}
+
 /* ── 2b · Co-host welcome — sent right after they accept ────── */
 
 const COHOST_WELCOME_ROLE_COPY: Record<string, { label: string; line: string }> = {
