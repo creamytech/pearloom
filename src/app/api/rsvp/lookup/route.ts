@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
     const safe = q.replace(/[%_\\]/g, (c) => `\\${c}`);
     const { data: rows } = await supabase
       .from('guests')
-      .select('id, name, party_label')
+      .select('id, name, party_label, plus_one_allowed')
       .eq('site_id', String(site.id))
       .ilike('name', `%${safe}%`)
       .order('name')
@@ -68,6 +68,9 @@ export async function GET(req: NextRequest) {
         id: r.id as string,
         name: (r.name as string) ?? '',
         party: (r.party_label as string | null) ?? null,
+        // Host's per-guest plus-one grant — lets the RSVP form show
+        // the "Bringing a guest?" field for this guest specifically.
+        plusOneAllowed: Boolean(r.plus_one_allowed),
       })).filter((m) => m.name),
     });
   } catch (err) {

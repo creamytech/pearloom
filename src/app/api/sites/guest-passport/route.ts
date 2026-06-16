@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
   // invite flow). New rows carry the same value in both; we check
   // passport_token first, then fall back to guest_token, so any
   // link style addresses the envelope.
-  const cols = 'name, table_name, meal_preference, dietary_restrictions, attending';
+  const cols = 'name, table_name, meal_preference, dietary_restrictions, attending, plus_one_allowed';
   let { data: guest } = await sb
     .from('guests')
     .select(cols)
@@ -69,6 +69,7 @@ export async function GET(req: NextRequest) {
       meal: guest.meal_preference ?? null,
       dietary: guest.dietary_restrictions ?? null,
       attending: guest.attending ?? null,
+      plusOneAllowed: Boolean(guest.plus_one_allowed),
     },
   });
 }
