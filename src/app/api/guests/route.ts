@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getPlanWithLimitsForEmail, planLimitResponseBody, isSiteGriefExempt } from '@/lib/plan-gate';
 import { linkGuestRowToPerson } from '@/lib/people';
+import { guestTokenColumns } from '@/lib/guest-tokens';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,6 +66,26 @@ export async function GET(req: NextRequest) {
     if (error) {
       console.error('Guests fetch error:', error);
       return NextResponse.json({ guests: [] });
+    }
+
+    // Backfill personal-link tokens for rows that predate token
+    // minting, so every guest the host sees has a working ?g= link
+    // (envelope + auto-recognition + invitation gate). Owner-gated
+    // above; best-effort — a failed update just leaves that one row
+    // tokenless and it retries next load. After the first pass this
+    // is a no-op filter.
+    const needTokens = (data || []).filter((r) => !r.guest_token);
+    if (needTokens.length > 0) {
+      await Promise.all(
+        needTokens.map(async (r) => {
+          const cols = guestTokenColumns();
+          const { error: upErr } = await supabase.from('guests').update(cols).eq('id', r.id);
+          if (!upErr) {
+            r.guest_token = cols.guest_token;
+            r.passport_token = cols.passport_token;
+          }
+        }),
+      );
     }
 
     const guests = (data || []).map(row => ({
@@ -173,6 +194,8 @@ export async function POST(req: NextRequest) {
         email: email || null,
         status: 'pending',
         plus_one: plusOne || false,
+        // Personal-link token (envelope + auto-recognition + gate).
+        ...guestTokenColumns(),
         created_at: new Date().toISOString(),
       })
       .select()

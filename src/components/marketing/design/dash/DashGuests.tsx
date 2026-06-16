@@ -3,7 +3,7 @@
 // Guests — real /api/guests wiring + RSVP stats derived from
 // the guest list client-side.
 
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { PD, DISPLAY_STYLE, MONO_STYLE } from '../DesignAtoms';
 import { Panel, EmptyShell, btnInk, btnGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
@@ -15,6 +15,7 @@ import { getEventType } from '@/lib/event-os/event-types';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { GuestImportDialog } from '@/components/dashboard/GuestImportDialog';
 import { findDuplicateGroups } from '@/lib/guest-dedupe';
+import { BrandedQR } from '@/components/pearloom/editor/panels/BrandedQR';
 
 // Occasion-aware copy for the guests page. Falls back to wedding-y
 // defaults when an occasion isn't recognised.
@@ -850,6 +851,9 @@ export function DashGuests() {
   const [smsNote, setSmsNote] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  // Per-guest invite-link sharing (copy / email / text / QR).
+  const [shareGuest, setShareGuest] = useState<Guest | null>(null);
+  const [copyAllNote, setCopyAllNote] = useState<string | null>(null);
 
   useEffect(() => {
     if (!site?.id) return;
@@ -1012,14 +1016,28 @@ export function DashGuests() {
       setSmsState('idle');
     }
   };
-  /* "Text invite" — opens the host's own Messages with the guest's
-     personal link prewritten. No SMS provider needed; works the
-     moment a guest has a phone number on file. */
-  const textInviteHref = (g: Guest): string | null => {
-    if (!g.phone || !site?.domain) return null;
-    const url = buildSiteUrl(site.domain, '', undefined, site.occasion) + (g.token ? `?g=${encodeURIComponent(g.token)}` : '');
-    const body = `You're invited! ${siteName || 'Our celebration'} — everything's here, RSVP included: ${url}`;
-    return `sms:${g.phone.replace(/[^\d+]/g, '')}?&body=${encodeURIComponent(body)}`;
+  /* A guest's personal invite link — site URL + their ?g= token.
+     Opening it shows the addressed envelope, auto-recognizes them
+     in the RSVP modal, and passes the invitation-only gate. */
+  const guestLink = (g: Guest): string | null => {
+    if (!g.token || !site?.domain) return null;
+    return buildSiteUrl(site.domain, '', undefined, site.occasion) + `?g=${encodeURIComponent(g.token)}`;
+  };
+  const copyAllLinks = async () => {
+    const lines = (rows ?? [])
+      .map((g) => { const l = guestLink(g); return l ? `${g.n} — ${l}` : null; })
+      .filter((x): x is string => !!x);
+    if (lines.length === 0) {
+      setCopyAllNote('No personal links yet — add or import guests first.');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(lines.join('\n'));
+      setCopyAllNote(`✓ Copied ${lines.length} personal ${lines.length === 1 ? 'link' : 'links'}.`);
+    } catch {
+      setCopyAllNote('Couldn’t copy — your browser blocked clipboard access.');
+    }
+    window.setTimeout(() => setCopyAllNote(null), 4000);
   };
   const capacity = Math.max(rows?.length ?? 0, counts.yes + counts.pending + counts.maybe, 1);
   const hasGuests = (rows?.length ?? 0) > 0;
@@ -1088,6 +1106,9 @@ export function DashGuests() {
             <button style={btnGhost} onClick={() => setCopyOpen(true)} disabled={!site?.id}>
               Copy from another event
             </button>
+          )}
+          {hasGuests && (
+            <button style={btnGhost} onClick={copyAllLinks}>Copy links</button>
           )}
           <button style={btnGhost} onClick={() => setImportOpen(true)}>Import CSV</button>
           <button style={btnInk} onClick={() => setAddOpen(true)} disabled={!site?.id}>
@@ -1244,6 +1265,20 @@ export function DashGuests() {
               }}
             >
               {smsNote}
+            </div>
+          )}
+          {copyAllNote && (
+            <div
+              style={{
+                padding: '9px 14px',
+                borderRadius: 12,
+                background: 'var(--sage-tint, rgba(122,138,79,0.12))',
+                border: '1px solid rgba(92,107,63,0.25)',
+                fontSize: 12.5,
+                color: 'var(--ink, #0E0D0B)',
+              }}
+            >
+              {copyAllNote}
             </div>
           )}
           {rows && (() => {
@@ -1530,27 +1565,27 @@ export function DashGuests() {
                             }}
                           >
                             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.em}</span>
-                            {(() => {
-                              const href = textInviteHref(g);
-                              return href ? (
-                                <a
-                                  href={href}
-                                  title={`Text the invite to ${g.phone}`}
-                                  style={{
-                                    flexShrink: 0,
-                                    fontSize: 10,
-                                    fontWeight: 700,
-                                    color: 'var(--sage-deep, #5C6B3F)',
-                                    textDecoration: 'none',
-                                    border: '1px solid rgba(92,107,63,0.35)',
-                                    borderRadius: 999,
-                                    padding: '1px 8px',
-                                  }}
-                                >
-                                  Text invite
-                                </a>
-                              ) : null;
-                            })()}
+                            {guestLink(g) && (
+                              <button
+                                type="button"
+                                onClick={() => setShareGuest(g)}
+                                title="Share this guest's personal invite link"
+                                style={{
+                                  flexShrink: 0,
+                                  fontSize: 10,
+                                  fontWeight: 700,
+                                  color: 'var(--sage-deep, #5C6B3F)',
+                                  background: 'transparent',
+                                  cursor: 'pointer',
+                                  fontFamily: 'inherit',
+                                  border: '1px solid rgba(92,107,63,0.35)',
+                                  borderRadius: 999,
+                                  padding: '1px 8px',
+                                }}
+                              >
+                                Invite ↗
+                              </button>
+                            )}
                           </div>
                           {(g.invitedAt || g.respondedAt) && (
                             <div
@@ -1914,6 +1949,16 @@ export function DashGuests() {
           }}
         />
       )}
+      {shareGuest && guestLink(shareGuest) && (
+        <InviteShareDialog
+          name={shareGuest.n}
+          link={guestLink(shareGuest)!}
+          email={shareGuest.em && shareGuest.em !== '—' ? shareGuest.em : null}
+          phone={shareGuest.phone || null}
+          siteName={siteName}
+          onClose={() => setShareGuest(null)}
+        />
+      )}
       {copyOpen && site?.id && (
         <CopyGuestsDialog
           destId={site.id}
@@ -2178,6 +2223,175 @@ function AddGuestDialog({
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+// ── InviteShareDialog ─────────────────────────────────────────
+// One guest, four ways to get them their personal link: copy,
+// email (mailto), text (sms), and a scannable/printable QR. The
+// link is site URL + ?g=<token>; opening it shows the addressed
+// envelope, auto-recognizes them in the RSVP modal, and passes
+// the invitation-only gate. mailto:/sms: open the host's own
+// mail/messages app — no provider config needed, works anywhere.
+function InviteShareDialog({
+  name,
+  link,
+  email,
+  phone,
+  siteName,
+  onClose,
+}: {
+  name: string;
+  link: string;
+  email: string | null;
+  phone: string | null;
+  siteName: string;
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const qrRef = useRef<HTMLDivElement>(null);
+  const initials = name.split(' ').map((p) => p[0]).slice(0, 2).join('');
+  const celebration = siteName || 'our celebration';
+  const subject = `You're invited — ${celebration}`;
+  const body = `You're invited to ${celebration}! Everything's here, and you can RSVP from your personal link:\n\n${link}`;
+  const mailto = `mailto:${email ?? ''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const sms = `sms:${(phone ?? '').replace(/[^\d+]/g, '')}?&body=${encodeURIComponent(body)}`;
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose(); }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch { /* clipboard blocked — the field is still selectable */ }
+  }
+
+  // Serialize the on-screen QR <svg> to a PNG download. Colors are
+  // passed to BrandedQR as literal hex below so the export needs no
+  // CSS-var resolution.
+  function downloadQr() {
+    const svg = qrRef.current?.querySelector('svg');
+    if (!svg || typeof document === 'undefined') return;
+    const cloned = svg.cloneNode(true) as SVGSVGElement;
+    cloned.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    const xml = new XMLSerializer().serializeToString(cloned);
+    const src = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(xml)))}`;
+    const img = new Image();
+    img.onload = () => {
+      const scale = 4;
+      const vb = svg.viewBox.baseVal;
+      const w = (vb && vb.width) || 240;
+      const h = (vb && vb.height) || 240;
+      const canvas = document.createElement('canvas');
+      canvas.width = w * scale;
+      canvas.height = h * scale;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.fillStyle = '#FBF7EE';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase() || 'guest'}-invite-qr.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    };
+    img.src = src;
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Invite ${name}`}
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(14,13,11,0.46)',
+        backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)',
+        display: 'grid', placeItems: 'center', zIndex: 600, padding: 16,
+        animation: 'pl-enter-fade-in 200ms ease both',
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 'min(440px, 100%)',
+          background: PD.paperCard,
+          borderRadius: 18,
+          padding: '24px 24px 20px',
+          boxShadow: '0 28px 60px rgba(14,13,11,0.32)',
+          fontFamily: 'var(--pl-font-body)',
+          display: 'flex', flexDirection: 'column', gap: 14,
+          maxHeight: '90dvh', overflowY: 'auto',
+        }}
+      >
+        <div>
+          <div style={{ ...MONO_STYLE, fontSize: 10, letterSpacing: '0.22em', color: PD.terra, textTransform: 'uppercase', marginBottom: 6 }}>
+            Personal invite
+          </div>
+          <h2 style={{ ...DISPLAY_STYLE, fontSize: 23, margin: 0, fontWeight: 600, letterSpacing: '-0.01em' }}>
+            Invite {name.split(' ')[0]}.
+          </h2>
+          <p style={{ margin: '6px 0 0', fontSize: 12.5, color: PD.inkSoft, lineHeight: 1.5 }}>
+            Their link opens the addressed envelope and lets them RSVP without searching — they&rsquo;re recognized instantly.
+          </p>
+        </div>
+
+        {/* The link + copy */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input
+            readOnly
+            value={link}
+            onFocus={(e) => e.currentTarget.select()}
+            style={{ ...inputStyle, flex: 1, fontSize: 12 }}
+          />
+          <button type="button" onClick={copy} style={{ ...btnInk, whiteSpace: 'nowrap' }}>
+            {copied ? '✓ Copied' : 'Copy'}
+          </button>
+        </div>
+
+        {/* Channels */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <a href={mailto} style={{ ...btnGhost, textDecoration: 'none', flex: 1, textAlign: 'center', minWidth: 120 }}>
+            ✉ Email{email ? '' : ' (add address)'}
+          </a>
+          <a href={sms} style={{ ...btnGhost, textDecoration: 'none', flex: 1, textAlign: 'center', minWidth: 120 }}>
+            ✆ Text
+          </a>
+        </div>
+
+        {/* QR — scannable on screen + download for print / paper invites */}
+        <div
+          style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+            padding: 16, borderRadius: 14,
+            background: 'var(--paper, #FBF7EE)',
+            border: '1px solid var(--line, rgba(14,13,11,0.12))',
+          }}
+        >
+          <div ref={qrRef} style={{ lineHeight: 0 }}>
+            <BrandedQR value={link} size={168} initials={initials} dark="#0E0D0B" light="#FBF7EE" accent="#C6703D" />
+          </div>
+          <button type="button" onClick={downloadQr} style={{ ...btnGhost, fontSize: 12 }}>
+            Download QR for print
+          </button>
+        </div>
+
+        <button type="button" onClick={onClose} style={{ ...btnGhost, alignSelf: 'flex-end' }}>
+          Done
+        </button>
+      </div>
     </div>
   );
 }

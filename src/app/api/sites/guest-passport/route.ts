@@ -38,13 +38,27 @@ export async function GET(req: NextRequest) {
     .maybeSingle();
   if (!site) return NextResponse.json({ guest: null });
 
-  // Guests carry an opaque `passport_token` we mint in /api/invite.
-  const { data: guest } = await sb
+  // A personal link's `?g=<token>` may resolve via either column:
+  // guest_token (minted on add/import, used by the RSVP gate +
+  // dashboard links) or passport_token (minted by the plus-one /
+  // invite flow). New rows carry the same value in both; we check
+  // passport_token first, then fall back to guest_token, so any
+  // link style addresses the envelope.
+  const cols = 'name, table_name, meal_preference, dietary_restrictions, attending';
+  let { data: guest } = await sb
     .from('guests')
-    .select('name, table_name, meal_preference, dietary_restrictions, attending')
+    .select(cols)
     .eq('site_id', site.id)
     .eq('passport_token', token)
     .maybeSingle();
+  if (!guest) {
+    ({ data: guest } = await sb
+      .from('guests')
+      .select(cols)
+      .eq('site_id', site.id)
+      .eq('guest_token', token)
+      .maybeSingle());
+  }
 
   if (!guest) return NextResponse.json({ guest: null });
 

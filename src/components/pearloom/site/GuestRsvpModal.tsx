@@ -278,6 +278,38 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
     return () => { window.clearTimeout(t); ctl.abort(); };
   }, [open, step, query, siteSlug]);
 
+  /* Auto-recognition — a guest who arrived via their personal link
+     (?g=<token>) is resolved by name and dropped straight onto the
+     reply step, no searching. The token rides along at submit so the
+     server lands the reply on their exact row and passes the gate.
+     Best-effort: if the token doesn't resolve, the manual find step
+     stays. */
+  useEffect(() => {
+    if (!open || step !== 'find' || party) return;
+    let token: string | null = null;
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      token = sp.get('g') || sp.get('guest');
+    } catch { /* ignore */ }
+    if (!token) return;
+    const ctl = new AbortController();
+    fetch(`/api/sites/guest-passport?siteSlug=${encodeURIComponent(siteSlug)}&token=${encodeURIComponent(token)}`, { signal: ctl.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { guest?: { name?: string } } | null) => {
+        const name = d?.guest?.name;
+        if (typeof name === 'string' && name.trim()) {
+          const ad = makeAdHocParty(name.trim());
+          setQuery(name.trim());
+          setMatchedFromList(true);
+          setParty(ad);
+          setResp({ [ad.guests[0]]: { attending: 'yes', meal: mealOptions[0] ?? 'Chicken', dietary: '' } });
+          setStep('respond');
+        }
+      })
+      .catch(() => { /* fall back to the manual find step */ });
+    return () => ctl.abort();
+  }, [open, step, party, siteSlug, mealOptions]);
+
   // Listen for the open event globally. Also register with the
   // RSVP bus so the sticky pill / nav links can route here even
   // when the host hasn't placed an RSVP section (no #rsvp anchor):
