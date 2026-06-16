@@ -44,6 +44,7 @@ import { FirstPressing, shouldPlayFirstPressing } from './FirstPressing';
 import { MobileSheet, MobileBottomBar, type MobileSheetId } from './MobileSheet';
 import { useMobileViewport } from './use-mobile-viewport';
 import { useEditorCollab } from './useEditorCollab';
+import { CoEditHighlights } from './CoEditHighlights';
 import { useUserAvatar } from '../avatars';
 import './animations.css';
 
@@ -554,6 +555,11 @@ export default function EditorRedesign({
       {/* Pear's hands — thread-travel + weave-settle + dye-sweep
           overlay for every AI operation (pearloom:pear-working). */}
       <PearLoomFx />
+      {/* Co-edit highlights — "Maya is editing this section" boxes
+          over the canvas, driven by peers' broadcast section. */}
+      {!viewportMobile && mode !== 'preview' && peers.length > 0 && (
+        <CoEditHighlights peers={peers} />
+      )}
       {/* Pear's contact sheet — three live miniature canvases for
           "in 3 styles" asks (pearloom:pressings). Picks chain into
           the Fitting Room. */}
