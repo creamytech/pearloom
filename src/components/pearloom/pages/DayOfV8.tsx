@@ -482,8 +482,10 @@ function relativeTime(iso?: string): string {
   return `${d} d`;
 }
 
-function LiveReel({ siteDomain, siteId, occasion }: { siteDomain?: string | null; siteId?: string | null; occasion?: string | null }) {
-  const { items, loading } = useGuestPhotos(siteId);
+function LiveReel({ siteDomain, occasion }: { siteDomain?: string | null; siteId?: string | null; occasion?: string | null }) {
+  // guest_photos.site_id is the subdomain, not the uuid — fetch by
+  // domain so approved photos actually show here.
+  const { items, loading } = useGuestPhotos(siteDomain);
   // Path-based editor URL — /editor is route-grouped under
   // [siteSlug], so the legacy ?site=… form 404s. Without a site
   // selected we send the host to /dashboard/event so they can
@@ -505,7 +507,7 @@ function LiveReel({ siteDomain, siteId, occasion }: { siteDomain?: string | null
           )}
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          <Link href="/dashboard/submissions" className="btn btn-outline btn-sm">
+          <Link href="/dashboard/gallery" className="btn btn-outline btn-sm">
             <Icon name="eye" size={12} /> Moderate
           </Link>
           <Link href="/dashboard/gallery" className="btn btn-outline btn-sm">See all</Link>
