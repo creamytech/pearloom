@@ -68,33 +68,44 @@ export function CoEditHighlights({ peers }: { peers: CollabPeer[] }) {
       {active.map((p) => {
         const r = rects[p.key];
         if (!r) return null;
-        // Hide when the section is scrolled out of the canvas band.
-        if (r.bottom < TOPBAR_H + 8 || r.top > window.innerHeight - 8) return null;
-        const tagTop = Math.max(r.top, TOPBAR_H + 4);
+        // Clamp the box to the canvas band so it never paints over
+        // the topbar (top 56px). When a section runs off the top or
+        // bottom of the viewport we draw only the visible slice and
+        // square off the clipped edge.
+        const top = Math.max(r.top, TOPBAR_H);
+        const bottom = Math.min(r.bottom, window.innerHeight);
+        const height = bottom - top;
+        if (height <= 4) return null; // effectively out of view
+        const clippedTop = r.top < TOPBAR_H;
+        const clippedBottom = r.bottom > window.innerHeight;
         const first = (p.name || p.email || 'A co-host').split(' ')[0];
         return (
           <div key={p.key}>
-            {/* Section outline */}
+            {/* Section outline (clamped to the canvas band) */}
             <div
               style={{
                 position: 'fixed',
                 left: r.left,
-                top: r.top,
+                top,
                 width: r.width,
-                height: r.height,
+                height,
                 border: `2px solid ${p.color}`,
-                borderRadius: 14,
-                boxShadow: `0 0 0 4px ${p.color}1f`,
+                borderTopWidth: clippedTop ? 0 : 2,
+                borderBottomWidth: clippedBottom ? 0 : 2,
+                borderTopLeftRadius: clippedTop ? 0 : 14,
+                borderTopRightRadius: clippedTop ? 0 : 14,
+                borderBottomLeftRadius: clippedBottom ? 0 : 14,
+                borderBottomRightRadius: clippedBottom ? 0 : 14,
                 transition: 'all 120ms cubic-bezier(0.16,1,0.3,1)',
                 pointerEvents: 'none',
               }}
             />
-            {/* Name tag pinned to the section's top-left */}
+            {/* Name tag — pinned just inside the box's (clamped) top */}
             <div
               style={{
                 position: 'fixed',
                 left: r.left + 8,
-                top: tagTop - 11,
+                top: top + 6,
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 5,
