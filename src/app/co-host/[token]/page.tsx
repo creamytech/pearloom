@@ -57,13 +57,18 @@ export default async function CoHostAcceptPage({
   if (inv && supabase) {
     const { data: siteRow } = await supabase
       .from('sites')
-      .select('subdomain, site_config')
+      .select('subdomain, site_config, ai_manifest')
       .eq('id', inv.site_id as string)
       .maybeSingle();
     if (siteRow) {
       siteName = (siteRow.subdomain as string) || '';
       const siteConfig = siteRow.site_config as Record<string, unknown> | null;
-      coupleNames = (siteConfig?.names as [string, string]) || ['', ''];
+      const manifest = siteRow.ai_manifest as Record<string, unknown> | null;
+      coupleNames =
+        (siteConfig?.names as [string, string])
+        || (siteConfig?.coupleNames as [string, string])
+        || (manifest?.names as [string, string])
+        || ['', ''];
     }
   }
 

@@ -379,7 +379,11 @@ function Shell({ children }: { children: React.ReactNode }) {
           width: '100%',
           maxWidth: 560,
           padding: 'clamp(28px, 5vw, 48px)',
-          background: 'var(--pl-cream-card, #FBF7EE)',
+          /* Hardcoded light — this is a guest-facing invitation with
+             an editorial light look. Using the theme token made the
+             card flip to editorial-midnight when the visitor's device
+             was in dark mode, leaving the dark INK text invisible. */
+          background: '#FBF7EE',
           border: `1px solid ${GOLD_RULE}`,
           borderRadius: 'var(--pl-radius-xs)',
           boxShadow: '0 18px 48px rgba(40,28,12,0.08)',
