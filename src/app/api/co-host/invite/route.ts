@@ -54,10 +54,16 @@ export async function POST(req: NextRequest) {
       : 'editor';
 
     const supabase = getSupabase();
-    type SiteRow = { id: string; subdomain: string; site_config?: { creator_email?: string; coupleNames?: [string, string]; occasion?: string } | null; creator_email?: string };
+    type SiteRow = {
+      id: string;
+      subdomain: string;
+      site_config?: { creator_email?: string; names?: [string, string]; coupleNames?: [string, string]; occasion?: string } | null;
+      ai_manifest?: { names?: [string, string] } | null;
+      creator_email?: string;
+    };
     const { data: siteRow } = await supabase
       .from('sites')
-      .select('id, subdomain, site_config, creator_email')
+      .select('id, subdomain, site_config, creator_email, ai_manifest')
       .eq('subdomain', body.siteSlug)
       .maybeSingle() as { data: SiteRow | null };
     if (!siteRow) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
@@ -128,7 +134,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const [a, b] = siteRow.site_config?.coupleNames ?? ['', ''];
+    // Canonical names live in site_config.names (and ai_manifest.names);
+    // `coupleNames` is a legacy key that's usually empty — reading only
+    // it shipped "the site" instead of the couple's names.
+    const [a, b] = (
+      siteRow.site_config?.names
+      ?? siteRow.site_config?.coupleNames
+      ?? siteRow.ai_manifest?.names
+      ?? ['', '']
+    );
     const coupleDisplay = a && b ? `${a} & ${b}` : (a || b || 'the site');
     /* Accept page lives at the APP route /co-host/<token> — the
        previous buildSiteUrl(subdomain, '/co-host/accept?…') form
