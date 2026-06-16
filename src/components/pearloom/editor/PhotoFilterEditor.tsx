@@ -14,23 +14,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../motifs';
-
-export interface FilterPreset {
-  id: string;
-  label: string;
-  /** CSS/canvas filter string. Empty = original. */
-  filter: string;
-}
-
-// On-brand, restrained. These read as "made", not "Instagram".
-export const FILTER_PRESETS: FilterPreset[] = [
-  { id: 'none',        label: 'Original',    filter: '' },
-  { id: 'warm',        label: 'Warm',        filter: 'saturate(1.12) sepia(0.14) contrast(1.03) brightness(1.02)' },
-  { id: 'letterpress', label: 'Letterpress', filter: 'grayscale(0.18) contrast(1.12) brightness(1.02) sepia(0.08)' },
-  { id: 'film',        label: 'Film',        filter: 'contrast(1.08) saturate(0.92) sepia(0.2) brightness(1.02)' },
-  { id: 'bw',          label: 'B & W',       filter: 'grayscale(1) contrast(1.08)' },
-  { id: 'fade',        label: 'Fade',        filter: 'contrast(0.92) brightness(1.06) saturate(0.82)' },
-];
+import { FILTER_PRESETS, bakeToDataUrl, type FilterPreset } from '@/lib/photo-filters';
 
 export function PhotoFilterEditor({
   url,
@@ -75,7 +59,7 @@ export function PhotoFilterEditor({
     setBusy(true);
     setNote(null);
     try {
-      const dataUrl = await bakeFilter(url, preset.filter, intensity, rotation);
+      const dataUrl = await bakeToDataUrl(url, { filter: preset.filter, intensity, rotation });
       const r = await fetch('/api/photos/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -244,51 +228,6 @@ export function PhotoFilterEditor({
       </div>
     </div>
   );
-}
-
-/** Bake the filter (at `intensity`) + `rotation` onto a canvas and
- *  return a JPEG data URL. The filtered layer is drawn over the
- *  original at `intensity` alpha — matching the live preview.
- *  Throws if the source taints the canvas. */
-async function bakeFilter(src: string, filter: string, intensity: number, rotation: number): Promise<string> {
-  const img = await loadImage(src);
-  const MAX = 2000;
-  const scale = Math.min(1, MAX / Math.max(img.naturalWidth, img.naturalHeight));
-  const w = Math.round(img.naturalWidth * scale);
-  const h = Math.round(img.naturalHeight * scale);
-  const rot = ((rotation % 360) + 360) % 360;
-  const swap = rot === 90 || rot === 270;
-
-  const canvas = document.createElement('canvas');
-  canvas.width = swap ? h : w;
-  canvas.height = swap ? w : h;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('no 2d context');
-
-  ctx.save();
-  ctx.translate(canvas.width / 2, canvas.height / 2);
-  ctx.rotate((rot * Math.PI) / 180);
-  // Base — the unfiltered image.
-  ctx.filter = 'none';
-  ctx.drawImage(img, -w / 2, -h / 2, w, h);
-  // Filtered layer over the base at `intensity`.
-  if (filter && intensity > 0) {
-    ctx.globalAlpha = Math.min(1, Math.max(0, intensity));
-    ctx.filter = filter;
-    ctx.drawImage(img, -w / 2, -h / 2, w, h);
-  }
-  ctx.restore();
-  return canvas.toDataURL('image/jpeg', 0.9);
-}
-
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('image load failed'));
-    img.src = src;
-  });
 }
 
 export default PhotoFilterEditor;
