@@ -178,14 +178,14 @@ export function emailLayout(content: string, themeColors?: EmailThemeColors): st
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:${t.background};padding:36px 16px">
     <tr>
       <td align="center">
-        <!-- Masthead — the nav wordmark (Pear + italic loom), centered -->
+        <!-- Masthead — the nav logo lockup (pear glyph + Pear/loom
+             wordmark), a hosted PNG so it renders identically in every
+             client. -->
         <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:560px">
           <tr>
             <td align="center" style="padding:0 0 22px;text-align:center">
               <a href="${base}" style="text-decoration:none;display:inline-block">
-                <span style="font-family:${headingStack};font-size:30px;line-height:1;letter-spacing:-0.015em;color:${t.foreground};white-space:nowrap">
-                  <span style="font-weight:700">Pear</span><span style="font-weight:600;font-style:italic">loom</span>
-                </span>
+                <img src="${base}/email-logo.png" alt="Pearloom" width="150" height="37" style="display:block;width:150px;height:auto;border:0;outline:none" />
               </a>
             </td>
           </tr>
