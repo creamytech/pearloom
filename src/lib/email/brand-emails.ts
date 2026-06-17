@@ -73,16 +73,16 @@ function fine(text: string, t: EmailThemeColors): string {
   return `<p style="margin:18px 0 0;font-family:${bodys(t)};font-size:12px;line-height:1.6;color:${t.muted}">${text}</p>`;
 }
 
-/** 48px gold hairline — the thread. */
+/** 48px gold hairline — the thread. Centered. */
 function goldRule(): string {
-  return `<div style="width:48px;height:1px;background-color:${GOLD};margin:22px 0"></div>`;
+  return `<div style="width:48px;height:1px;background-color:${GOLD};margin:22px auto"></div>`;
 }
 
 /** Pulled note — italic display copy behind a gold left hairline.
  *  For quoting the host's own words (nudge body, broadcast,
  *  memory prompt) so the product chrome never competes with them. */
 function pull(text: string, t: EmailThemeColors): string {
-  return `<div style="margin:0 0 20px;padding:14px 18px;border-left:2px solid ${GOLD};background-color:${t.accentLight}40">
+  return `<div style="margin:0 0 20px;padding:14px 18px;border-left:2px solid ${GOLD};background-color:${t.accentLight}40;text-align:left">
     <p style="margin:0;font-family:${heads(t)};font-style:italic;font-size:17px;line-height:1.55;color:${t.foreground}">${text}</p>
   </div>`;
 }
@@ -90,16 +90,17 @@ function pull(text: string, t: EmailThemeColors): string {
 /** Key→value row for detail summaries. */
 function kvRow(label: string, value: string, t: EmailThemeColors): string {
   return `<tr>
-    <td style="padding:9px 0;border-bottom:1px solid ${t.accentLight};font-family:${bodys(t)};font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${t.muted};vertical-align:top;width:140px">${esc(label)}</td>
-    <td style="padding:9px 0 9px 16px;border-bottom:1px solid ${t.accentLight};font-family:${bodys(t)};font-size:14px;line-height:1.5;color:${t.foreground}">${value}</td>
+    <td style="padding:9px 0;border-bottom:1px solid ${t.accentLight};font-family:${bodys(t)};font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${t.muted};vertical-align:top;width:140px;text-align:left">${esc(label)}</td>
+    <td style="padding:9px 0 9px 16px;border-bottom:1px solid ${t.accentLight};font-family:${bodys(t)};font-size:14px;line-height:1.5;color:${t.foreground};text-align:left">${value}</td>
   </tr>`;
 }
 
-/** The standard inner frame: padded card cell with a wordmark
- *  strip up top. Every builder pipes its body through this. */
+/** The standard inner frame: a padded, centered card cell. The
+ *  wordmark now lives in the shared masthead (emailLayout), so the
+ *  frame just centers the body content. */
 function frame(body: string, t: EmailThemeColors): string {
-  return `<tr><td style="padding:36px 40px 34px">
-    <p style="margin:0 0 26px;font-family:${heads(t)};font-style:italic;font-size:15px;color:${t.accent}">Pearloom</p>
+  void t;
+  return `<tr><td style="padding:36px 30px 32px;text-align:center">
     ${body}
   </td></tr>`;
 }
