@@ -45,7 +45,7 @@ const TOP_LEVEL_DESTINATIONS: Array<{ id: string; label: string; icon: string; h
  *  They were always meant to live here in ⌘K — this list is the
  *  discovery surface. `gate` keys into dashboard-applicability so
  *  occasion-shaped tools hide for events they don't fit. */
-const DEPROMOTED_DESTINATIONS: Array<{
+export const DEPROMOTED_DESTINATIONS: Array<{
   id: string;
   label: string;
   hint: string;
