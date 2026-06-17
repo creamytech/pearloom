@@ -175,6 +175,105 @@ export const PL_AVATARS: readonly AvatarDef[] = [
       </g>
     ),
   },
+  {
+    id: 'heart', label: 'Woven heart', bg: TERRA_BG,
+    glyph: (
+      <g>
+        <path d="M24 34s-9.6-5.7-9.6-12.3c0-3.1 2.5-5.4 5.5-5.4 2 0 3.6 1.1 4.1 2.8.5-1.7 2.1-2.8 4.1-2.8 3 0 5.5 2.3 5.5 5.4C33.6 28.3 24 34 24 34z" fill={TERRA} />
+        <path d="M19.5 22c2.4 1.6 6.6 1.6 9 0" fill="none" stroke={CREAM} strokeWidth="1.1" strokeLinecap="round" opacity="0.8" />
+      </g>
+    ),
+  },
+  {
+    id: 'star', label: 'North star', bg: LAVENDER_BG,
+    glyph: (
+      <g>
+        <path d="M24 11l2.8 8.9 8.9 2.8-8.9 2.8L24 35l-2.8-9.5-8.9-2.8 8.9-2.8z" fill={GOLD} />
+        <circle cx="14" cy="32" r="1.3" fill={LAVENDER} />
+        <circle cx="34" cy="14" r="1.1" fill={LAVENDER} opacity="0.7" />
+      </g>
+    ),
+  },
+  {
+    id: 'sun', label: 'Little sun', bg: GOLD_BG,
+    glyph: (
+      <g stroke={TERRA} strokeWidth="1.8" strokeLinecap="round">
+        <circle cx="24" cy="24" r="7" fill={GOLD} stroke="none" />
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
+          <line key={a} x1="24" y1="9.5" x2="24" y2="13.5" transform={`rotate(${a} 24 24)`} />
+        ))}
+      </g>
+    ),
+  },
+  {
+    id: 'leaf', label: 'Single leaf', bg: SAGE_BG,
+    glyph: (
+      <g>
+        <path d="M24 12c8.5 4.5 9.5 17 0 24.5C14.5 29 15.5 16.5 24 12z" fill={SAGE} />
+        <path d="M24 14.5v20M24 21l5-3M24 27l-5-3M24 33l5-3" fill="none" stroke={CREAM} strokeWidth="1.1" strokeLinecap="round" opacity="0.75" />
+      </g>
+    ),
+  },
+  {
+    id: 'pearl', label: 'Pearl on thread', bg: GOLD_BG,
+    glyph: (
+      <g>
+        <path d="M11 18c7 5 19 5 26 0" fill="none" stroke={GOLD} strokeWidth="1.5" strokeDasharray="2.5 2.5" strokeLinecap="round" />
+        <circle cx="24" cy="28" r="6" fill={GOLD} />
+        <circle cx="21.8" cy="25.8" r="1.8" fill={CREAM} opacity="0.85" />
+      </g>
+    ),
+  },
+  {
+    id: 'mountain', label: 'The peaks', bg: MIDNIGHT_BG,
+    glyph: (
+      <g>
+        <circle cx="33" cy="15" r="3.4" fill={GOLD} opacity="0.9" />
+        <path d="M9 35l9-13.5 5.5 7 5.5-9L37 35z" fill={LAVENDER} />
+      </g>
+    ),
+  },
+  {
+    id: 'candle', label: 'Candlelight', bg: TERRA_BG,
+    glyph: (
+      <g>
+        <path d="M24 11c2.4 2.2 3.6 4.2 3.6 6.2a3.6 3.6 0 0 1-7.2 0c0-2 1.2-4 3.6-6.2z" fill={GOLD} />
+        <rect x="20.5" y="20" width="7" height="16" rx="1.6" fill={CREAM} stroke={TERRA} strokeWidth="1.4" />
+        <path d="M24 20.5v15" stroke={TERRA} strokeWidth="0.8" opacity="0.4" />
+      </g>
+    ),
+  },
+  {
+    id: 'ring', label: 'Gold ring', bg: GOLD_BG,
+    glyph: (
+      <g>
+        <circle cx="24" cy="28" r="8" fill="none" stroke={GOLD} strokeWidth="2.6" />
+        <path d="M20 19l4-5 4 5z" fill={CREAM} stroke={GOLD} strokeWidth="1.2" strokeLinejoin="round" />
+        <circle cx="24" cy="14.5" r="2.6" fill={CREAM} stroke={GOLD} strokeWidth="1.2" />
+      </g>
+    ),
+  },
+  {
+    id: 'book', label: 'Bound book', bg: PLUM_BG,
+    glyph: (
+      <g>
+        <path d="M24 17c-3.2-1.8-7.5-1.8-11-.6v17.4c3.5-1.2 7.8-1.2 11 .6 3.2-1.8 7.5-1.8 11-.6V16.4c-3.5-1.2-7.8-1.2-11 .6z" fill={PLUM} />
+        <path d="M24 17v17.4" stroke={CREAM} strokeWidth="1.2" />
+        <path d="M17 21.5c1.8-.5 3.6-.6 5-.3M17 25.5c1.8-.5 3.6-.6 5-.3" stroke={CREAM} strokeWidth="1" opacity="0.7" fill="none" strokeLinecap="round" />
+      </g>
+    ),
+  },
+  {
+    id: 'tulip', label: 'Tulip', bg: LAVENDER_BG,
+    glyph: (
+      <g>
+        <path d="M24 36V23" stroke={SAGE_DEEP} strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M17 23c0-5.5 3.2-9.8 7-12 3.8 2.2 7 6.5 7 12-2.3 1.4-4.7 1.4-7-.8-2.3 2.2-4.7 2.2-7 .8z" fill={LAVENDER} />
+        <path d="M24 11.5v11.5" stroke={CREAM} strokeWidth="1" opacity="0.6" />
+        <ellipse cx="29.5" cy="30.5" rx="3.6" ry="1.7" fill={SAGE} transform="rotate(20 29.5 30.5)" />
+      </g>
+    ),
+  },
 ] as const;
 
 export type AvatarId = (typeof PL_AVATARS)[number]['id'];
