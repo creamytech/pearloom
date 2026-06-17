@@ -281,17 +281,6 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
               >
                 A craft house for memory. We weave the days that matter.
               </p>
-              <p
-                style={{
-                  fontFamily: 'var(--pl-font-body)',
-                  fontSize: 13,
-                  opacity: 0.55,
-                  marginTop: 14,
-                  maxWidth: 320,
-                }}
-              >
-                Made with care in Lisbon and Brooklyn.
-              </p>
             </div>
 
             {FOOTER_COLS.map((col) => (
