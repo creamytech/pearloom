@@ -41,7 +41,7 @@ const ACTS: Act[] = [
     verb: 'Conduct',
     tag: 'THE DAY-OF',
     h: 'On the day, Pearloom becomes a room.',
-    p: 'Announcements push to guests in a breath. Voice toasts collect in one moderated stream. Vendor bookings sit beside the run-of-show. A live photo wall fills in as the night unfolds. Drag tables on a real floor plan with constraints like must sit together and avoid table seven.',
+    p: 'Announcements push to guests in a breath. Voice toasts collect in one moderated stream. Your vendors and contacts sit beside the run-of-show. A live photo wall fills in as the night unfolds. Drag tables on a real floor plan with constraints like must sit together and avoid table seven.',
     accent: PD.terra,
   },
   {

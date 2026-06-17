@@ -39,6 +39,20 @@ const NOTES = [
     bg: PD.sand,
     rot: 2,
   },
+  {
+    t: 'Snap or pick a photo, add a filter, send. Every upload is checked before it ever reaches the wall — the warmth, never the wrong thing.',
+    n: 'The photo wall',
+    role: 'Filters · auto-screened uploads',
+    bg: PD.mint,
+    rot: -1.5,
+  },
+  {
+    t: 'A quiet thread for the whole party, and a private line straight to the hosts. Everyone in the loop, no group-text chaos.',
+    n: 'Messages',
+    role: 'The party thread · host DMs',
+    bg: PD.stone,
+    rot: 1.5,
+  },
 ];
 
 export function DesignTestimonials() {
