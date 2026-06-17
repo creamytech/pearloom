@@ -44,13 +44,15 @@ type EventKind =
   | 'brunch';
 
 const EVENT_TEMPLATE: Record<EventKind, { template: string; occasion: string; sluffix: string }> = {
-  'engagement-party': { template: 'blush-bloom', occasion: 'engagement', sluffix: 'engagement' },
+  // Template ids must exist in wedding-templates.ts — a missing id makes
+  // applyTemplateToManifest a no-op (bare, unstyled site).
+  'engagement-party': { template: 'vintage-romance', occasion: 'engagement', sluffix: 'engagement' },
   'bridal-shower': { template: 'gentle-gathering', occasion: 'bridal-shower', sluffix: 'shower' },
   'bachelor-party': { template: 'last-weekend-in', occasion: 'bachelor-party', sluffix: 'bach' },
   'bachelorette-party': { template: 'last-weekend-in', occasion: 'bachelorette-party', sluffix: 'bach' },
   'rehearsal-dinner': { template: 'the-night-before', occasion: 'rehearsal-dinner', sluffix: 'rehearsal' },
   'welcome-party': { template: 'warm-threshold', occasion: 'welcome-party', sluffix: 'welcome' },
-  wedding: { template: 'ethereal-garden', occasion: 'wedding', sluffix: '' },
+  wedding: { template: 'lake-como', occasion: 'wedding', sluffix: '' },
   brunch: { template: 'one-more-round', occasion: 'brunch', sluffix: 'brunch' },
 };
 

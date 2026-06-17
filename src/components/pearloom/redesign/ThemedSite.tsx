@@ -74,6 +74,7 @@ import { AdviceWallSection } from './section-variants/blocks/advice-wall';
 import { ProgramSection } from './section-variants/blocks/program';
 import { LivestreamSection } from './section-variants/blocks/livestream';
 import { GuestbookSection } from './GuestbookSection';
+import { LinkedEventsStrip } from './LinkedEventsStrip';
 import { PhotoLightbox, type LightboxState } from './PhotoLightbox';
 import { ObituarySection } from './section-variants/blocks/obituary';
 import { PackingListSection } from './section-variants/blocks/packing-list';
@@ -541,15 +542,17 @@ export function ThemedSite({
     }
     return allSections.filter((s) => s === pageFilter);
   })();
-  /* Guestbook — opt-in (manifest.features.guestbook). A virtual
-     section appended after the real ones; on multi-page sites it
-     rides the home page only. Never mutate baseSections/allSections
-     in place (they back the nav). */
+  /* Virtual sections appended after the real ones (home/scroll only):
+     the guestbook (opt-in) and the linked-events strip (published
+     sites that belong to a celebration — self-hides when none).
+     Never mutate baseSections/allSections in place (they back the nav). */
+  const homePage = !pageFilter || pageFilter === 'home';
   const guestbookOn = ((manifest as unknown as { features?: { guestbook?: boolean } }).features?.guestbook) === true;
-  const sections: (SectionKind | 'guestbook')[] =
-    guestbookOn && (!pageFilter || pageFilter === 'home')
-      ? [...baseSections, 'guestbook']
-      : baseSections;
+  const virtualSections: ('guestbook' | 'linked')[] = [];
+  if (guestbookOn && homePage) virtualSections.push('guestbook');
+  if (siteSlug && homePage) virtualSections.push('linked');
+  const sections: (SectionKind | 'guestbook' | 'linked')[] =
+    virtualSections.length ? [...baseSections, ...virtualSections] : baseSections;
   /* navItems carry section id + label so the nav can render real
      anchors that scroll to the right block. Excludes 'hero' and
      'rsvp' from the link list (hero is the top of the page, rsvp
@@ -697,12 +700,18 @@ export function ThemedSite({
     </TSection>
   );
 
-  const sectionEl = (kind: SectionKind | 'guestbook') => {
+  const sectionEl = (kind: SectionKind | 'guestbook' | 'linked') => {
     /* Guestbook is a virtual section (not host-editable content) —
        render the live wall + sign form directly, no TSection chrome.
        In the editor canvas (no siteSlug) it shows a preview. */
     if (kind === 'guestbook') {
       return <GuestbookSection key="guestbook" siteSlug={siteSlug} preview={editable && !siteSlug} />;
+    }
+    /* Linked events — when this site is part of a celebration, the
+       other events show as a strip (published only; self-hides when
+       there are no siblings). */
+    if (kind === 'linked') {
+      return <LinkedEventsStrip key="linked" siteSlug={siteSlug} />;
     }
     /* Magazine (multi-page) mode in the editor — every section still
        renders on the canvas so it stays editable, but sections that
