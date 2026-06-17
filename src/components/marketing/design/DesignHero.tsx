@@ -9,7 +9,7 @@
 import { useEffect, useState } from 'react';
 import { EVENT_TYPES } from '@/lib/event-os/event-types';
 import { Bloom, Sparkle, Swirl } from '@/components/brand/groove';
-import { HeroPear, Leaf, Pear, Pearl, Pill, PLButton, PD, DISPLAY_STYLE, Squiggle, pdInkMix, pdShadowMix } from './DesignAtoms';
+import { HeroPear, Leaf, Pear, Pearl, PLButton, PD, DISPLAY_STYLE, Squiggle, pdInkMix, pdShadowMix } from './DesignAtoms';
 
 type Occasion = 'wedding' | 'milestone' | 'memorial';
 
@@ -160,15 +160,6 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
       >
         {/* ── Left column ────────────────────────────────── */}
         <div className="pd-hero-copy">
-          <div className="pd-hero-eyebrows" style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 32, flexWrap: 'wrap' }}>
-            <Pill color="transparent">
-              <Pearl size={7} /> A CRAFT HOUSE FOR MEMORY
-            </Pill>
-            <Pill color={PD.paper2} bordered={false}>
-              <Leaf size={11} color={PD.olive} /> NEW · THE DIRECTOR
-            </Pill>
-          </div>
-
           <h1
             className="pl-letterpress"
             style={{
