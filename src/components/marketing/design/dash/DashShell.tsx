@@ -898,16 +898,32 @@ export function SectionTitle({
 export function EmptyShell({ message, cta }: { message: string; cta?: { label: string; href: string } }) {
   const link = cta ?? { label: '← Back to Sites', href: '/dashboard' };
   return (
-    <main style={{ padding: '60px 40px 80px', maxWidth: 720 }}>
-      <Panel bg={PD.paper3} style={{ padding: 40, textAlign: 'center' }}>
-        <Pear size={48} color={PD.pear} stem={PD.oliveDeep} leaf={PD.olive} />
+    <main style={{ padding: '40px clamp(20px, 4vw, 40px) 80px', maxWidth: 760, margin: '0 auto' }}>
+      {/* Matches the DashEmpty visual language (cream dashed card, faint
+          pear, pearl CTA) so empty states read as one family. */}
+      <div
+        style={{
+          position: 'relative',
+          background: 'var(--cream-2)',
+          border: '1px dashed var(--line)',
+          borderRadius: 14,
+          padding: 'clamp(48px, 6vw, 72px) 32px',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 16,
+        }}
+      >
+        <Pear size={44} color={PD.pear} stem={PD.oliveDeep} leaf={PD.olive} />
         <div
           style={{
             ...DISPLAY_STYLE,
             fontStyle: 'italic',
-            fontSize: 22,
+            fontSize: 'clamp(22px, 3vw, 30px)',
+            lineHeight: 1.15,
             color: PD.olive,
-            marginTop: 14,
+            maxWidth: 480,
             fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
           }}
         >
@@ -915,24 +931,23 @@ export function EmptyShell({ message, cta }: { message: string; cta?: { label: s
         </div>
         <Link
           href={link.href}
+          className="pl-pearl-accent"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: 8,
-            marginTop: 20,
-            padding: '10px 16px',
-            background: PD.ink,
-            color: PD.paper,
+            marginTop: 4,
+            padding: '11px 20px',
             borderRadius: 999,
             fontSize: 13,
-            fontWeight: 500,
+            fontWeight: 700,
             textDecoration: 'none',
             fontFamily: 'var(--pl-font-body)',
           }}
         >
           {link.label}
         </Link>
-      </Panel>
+      </div>
     </main>
   );
 }
