@@ -26,7 +26,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { publishSite } from '@/lib/db';
+import { saveSiteDraft } from '@/lib/db';
 import { applyTemplateToManifest } from '@/lib/templates/apply-template';
 import type { StoryManifest } from '@/types';
 
@@ -150,16 +150,19 @@ export async function POST(req: NextRequest) {
     const themed = applyTemplateToManifest(baseManifest, meta.template);
 
     try {
-      const result = await publishSite(session.user.email, slug, themed, names);
+      // Create as a DRAFT (comingSoon) — the host reviews + publishes
+      // each from the editor. Drafts won't appear as public siblings
+      // until published, which is the intended flow.
+      const result = await saveSiteDraft(session.user.email, slug, themed, names);
       if (!result.success) {
-        console.warn('[celebrations/weekend] publish failed for', slug, result.error);
+        console.warn('[celebrations/weekend] draft create failed for', slug, result.error);
         continue;
       }
       created.push({
         slug,
         kind: ev.kind,
         date,
-        url: `/${meta.occasion}/${slug}`,
+        url: `/editor/${slug}`,
       });
     } catch (err) {
       console.warn('[celebrations/weekend] failed for', slug, err);

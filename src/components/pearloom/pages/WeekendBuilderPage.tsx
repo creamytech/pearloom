@@ -114,10 +114,10 @@ export function WeekendBuilderPage() {
           >
             <Pear size={64} tone="sage" sparkle />
             <h2 className="display" style={{ fontSize: 32, margin: '14px 0 6px' }}>
-              {created.length} sites <span className="display-italic">live.</span>
+              {created.length} drafts <span className="display-italic">ready.</span>
             </h2>
             <p style={{ fontSize: 14, color: 'var(--ink-soft)', maxWidth: 480, margin: '0 auto 18px', lineHeight: 1.55 }}>
-              Each one is linked — guests on any site see a strip pointing to the others. Open one to start editing.
+              Each one is a private draft, already linked. Open one to edit and publish when it&rsquo;s ready — once published, guests on any site see a strip pointing to the others.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, maxWidth: 720, margin: '0 auto' }}>
               {created.map((s) => (
