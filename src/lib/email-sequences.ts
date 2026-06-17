@@ -161,6 +161,9 @@ export function emailLayout(content: string, themeColors?: EmailThemeColors): st
     .join('&');
   const fontHref = `https://fonts.googleapis.com/css2?${fontFamilies}&display=swap`;
 
+  // Hosted brand mark (pear glyph + wordmark) for the masthead.
+  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -172,18 +175,34 @@ export function emailLayout(content: string, themeColors?: EmailThemeColors): st
   <link href="${fontHref}" rel="stylesheet">
 </head>
 <body style="margin:0;padding:0;background-color:${t.background};font-family:${bodyStack};-webkit-font-smoothing:antialiased">
-  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:${t.background};padding:40px 16px">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:${t.background};padding:36px 16px">
     <tr>
       <td align="center">
+        <!-- Masthead — the nav wordmark (Pear + italic loom), centered -->
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:560px">
+          <tr>
+            <td align="center" style="padding:0 0 22px;text-align:center">
+              <a href="${base}" style="text-decoration:none;display:inline-block">
+                <span style="font-family:${headingStack};font-size:30px;line-height:1;letter-spacing:-0.015em;color:${t.foreground};white-space:nowrap">
+                  <span style="font-weight:700">Pear</span><span style="font-weight:600;font-style:italic">loom</span>
+                </span>
+              </a>
+            </td>
+          </tr>
+        </table>
         <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:560px;background-color:${t.card};border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(43,30,20,0.07)">
           ${content}
         </table>
         <!-- Footer -->
-        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:560px;margin-top:16px">
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:560px;margin-top:18px">
           <tr>
             <td style="text-align:center;padding:8px 0">
-              <p style="font-size:11px;color:${t.muted};margin:0;font-family:${bodyStack}">
-                Sent with love by <a href="https://pearloom.com" style="color:${t.accent};text-decoration:none;font-weight:600">Pearloom</a>
+              <div style="width:40px;height:1px;background-color:${t.accentLight};margin:0 auto 14px"></div>
+              <p style="font-size:12px;color:${t.muted};margin:0;font-family:${bodyStack}">
+                Woven with care by <a href="${base}" style="color:${t.accent};text-decoration:none;font-weight:600">Pearloom</a>
+              </p>
+              <p style="font-size:10.5px;color:${t.muted};margin:6px 0 0;font-family:${bodyStack};letter-spacing:0.04em;opacity:0.85">
+                The operating system for the days that matter
               </p>
             </td>
           </tr>
