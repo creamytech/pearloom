@@ -233,6 +233,7 @@ export function WelcomeHome() {
           visited page had no notifications and no settings entry),
           and ~90px returns to the fold. */}
       <div
+        className="pl8-home-greet"
         style={{
           padding: '20px clamp(20px, 4vw, 40px) 8px',
           maxWidth: 1240,
