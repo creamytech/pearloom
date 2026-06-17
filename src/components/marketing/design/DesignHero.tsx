@@ -159,8 +159,8 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
         }}
       >
         {/* ── Left column ────────────────────────────────── */}
-        <div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 32, flexWrap: 'wrap' }}>
+        <div className="pd-hero-copy">
+          <div className="pd-hero-eyebrows" style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 32, flexWrap: 'wrap' }}>
             <Pill color="transparent">
               <Pearl size={7} /> A CRAFT HOUSE FOR MEMORY
             </Pill>
@@ -258,7 +258,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 44 }}>
+          <div className="pd-hero-cta" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 44 }}>
             <PLButton variant="pearl" size="lg" onClick={onGetStarted}>
               Start your loom <Pearl size={9} />
             </PLButton>
@@ -630,6 +630,23 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
           :global(.pd-hero-grid) {
             grid-template-columns: 1fr !important;
             gap: 80px !important;
+          }
+          /* Center the hero copy on mobile + trim badge clutter. */
+          :global(.pd-hero-copy) {
+            text-align: center;
+          }
+          :global(.pd-hero-copy) p {
+            margin-left: auto !important;
+            margin-right: auto !important;
+          }
+          :global(.pd-hero-eyebrows),
+          :global(.pd-hero-cta),
+          :global(.pd-hero-stats) {
+            justify-content: center !important;
+          }
+          /* One eyebrow is plenty on a phone — drop the announcement. */
+          :global(.pd-hero-eyebrows) > *:nth-child(2) {
+            display: none !important;
           }
         }
         @media (prefers-reduced-motion: reduce) {
