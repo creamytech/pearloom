@@ -271,7 +271,7 @@ export function SigninV8({
       >
         {/* LEFT — form */}
         <Reveal y={18}>
-          <div style={{ maxWidth: 420 }}>
+          <div className="pl8-signin-form" style={{ maxWidth: 420 }}>
             {/* Sparkle glyph — the prototype's understated eyebrow.
                 Replaces the earlier peach "SIGN IN" wordmark; the
                 page reads as personal letterhead, not marketing. */}

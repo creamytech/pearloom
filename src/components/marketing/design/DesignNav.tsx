@@ -15,12 +15,14 @@ interface DesignNavProps {
   onGetStarted: () => void;
 }
 
+// Absolute (/#…) so the nav works from any page (legal, etc.), not
+// just the landing — on the homepage these still just scroll.
 const LINKS: Array<[string, string]> = [
-  ['The three acts', '#acts'],
-  ['Occasions', '#occasions'],
-  ['The Director', '#director'],
-  ['Pricing', '#pricing'],
-  ['Journal', '#journal'],
+  ['The three acts', '/#acts'],
+  ['Occasions', '/#occasions'],
+  ['The Director', '/#director'],
+  ['Pricing', '/#pricing'],
+  ['Journal', '/#journal'],
 ];
 
 export function DesignNav({ onGetStarted }: DesignNavProps) {
