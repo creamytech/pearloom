@@ -1723,6 +1723,11 @@ button.pl8-mobile-only { display: none !important; }
 
 /* Sign-in: hide right collage on narrow screens */
 @media (max-width: 960px) {
+  /* Dashboard greeting row: stack + center on phones instead of
+     splitting greeting-left / buttons-right when it wraps. */
+  .pl8-home-greet { justify-content: center !important; text-align: center; }
+  .pl8-home-greet > * { justify-content: center; }
+
   .pl8-signin-collage { display: none !important; }
   .pl8-signin-root { padding: 80px 22px 40px !important; min-height: auto !important; justify-items: center; text-align: center; }
   /* Center the form column on mobile (collage is hidden) so the page
