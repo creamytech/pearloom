@@ -872,6 +872,24 @@ input:focus, textarea:focus, select:focus {
   flex: 0 0 auto;
 }
 
+/* ── Media detail modal — image + meta side by side on desktop,
+   stacked + scrollable on mobile so buttons never clip off-screen. */
+.pl-media-modal {
+  grid-template-columns: 2fr 1fr;
+  max-height: 90vh;
+  overflow: hidden;
+}
+@media (max-width: 640px) {
+  .pl-media-modal {
+    grid-template-columns: 1fr;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+  .pl-media-modal-img {
+    max-height: 42vh !important;
+  }
+}
+
 /* ── Custom checkbox + radio — brand controls everywhere ──────────
    appearance:none upgrade so every native box reads as Pearloom
    (warm paper box, olive fill, drawn check / dot) instead of the OS

@@ -457,6 +457,7 @@ export function LibraryPage() {
           >
             <div
               onClick={(e) => e.stopPropagation()}
+              className="pl-media-modal"
               style={{
                 background: 'var(--cream)',
                 borderRadius: 18,
@@ -464,12 +465,11 @@ export function LibraryPage() {
                 maxWidth: 900,
                 width: '100%',
                 display: 'grid',
-                gridTemplateColumns: '2fr 1fr',
                 gap: 0,
               }}
             >
               <div style={{ background: 'var(--ink, #000)', display: 'grid', placeItems: 'center' }}>
-                <img src={selected.url} alt="" style={{ maxWidth: '100%', maxHeight: '80vh', display: 'block' }} />
+                <img src={selected.url} alt="" className="pl-media-modal-img" style={{ maxWidth: '100%', maxHeight: '80vh', display: 'block' }} />
               </div>
               <div style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--peach-ink)', textTransform: 'uppercase' }}>
@@ -498,7 +498,7 @@ export function LibraryPage() {
                   Uploaded {new Date(selected.created_at).toLocaleDateString()}
                   {selected.width && selected.height && <> · {selected.width} × {selected.height}</>}
                 </div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
+                <div style={{ display: 'flex', gap: 8, marginTop: 'auto', flexWrap: 'wrap' }}>
                   <a href={selected.url} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm">
                     <Icon name="arrow-ur" size={12} /> Open
                   </a>
