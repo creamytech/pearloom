@@ -854,6 +854,24 @@ input:focus, textarea:focus, select:focus {
   border-radius: 4px;
 }
 
+/* ── Horizontal scroll strip — tab / chip rows that would otherwise
+   wrap into cramped multi-row stacks on mobile. Single row, swipe to
+   reveal the rest, no visible scrollbar. */
+.pl-hscroll {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.pl-hscroll::-webkit-scrollbar {
+  display: none;
+}
+.pl-hscroll > * {
+  flex: 0 0 auto;
+}
+
 /* ── Custom checkbox + radio — brand controls everywhere ──────────
    appearance:none upgrade so every native box reads as Pearloom
    (warm paper box, olive fill, drawn check / dot) instead of the OS

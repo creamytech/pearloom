@@ -152,7 +152,7 @@ export function DashGallery() {
         <PhotoModerationQueue />
 
         {/* Source filter */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+        <div className="pl-hscroll" style={{ gap: 8, marginBottom: 20, paddingBottom: 2 }}>
           {([
             { k: 'all', l: `All · ${counts.all}` },
             { k: 'cover', l: `Covers · ${counts.cover}` },

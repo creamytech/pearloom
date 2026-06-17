@@ -259,7 +259,7 @@ export function DashSubmissions() {
           </Panel>
         )}
 
-        <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+        <div className="pl-hscroll" style={{ gap: 8, marginBottom: 20, paddingBottom: 2 }}>
           {([
             { k: 'pending', l: `Pending · ${counts.pending}`, c: PD.gold },
             { k: 'approved', l: `Approved · ${counts.approved}`, c: PD.olive },
