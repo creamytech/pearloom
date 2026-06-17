@@ -118,7 +118,7 @@ export function DashMessages() {
 
       {!loading && !site ? (
         <div style={{ padding: '0 clamp(20px, 4vw, 40px) 60px', maxWidth: 1240, margin: '0 auto' }}>
-          <EmptyShell message="Create a site first — its guest thread starts the moment invites go out." />
+          <EmptyShell message="Create a site first — its guest thread starts the moment invites go out." cta={{ label: 'Create a site →', href: '/wizard/new' }} />
         </div>
       ) : (
         <main
