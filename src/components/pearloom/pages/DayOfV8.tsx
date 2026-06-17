@@ -954,6 +954,31 @@ function SongQueue({ siteDomain }: { siteDomain?: string | null }) {
   );
 }
 
+/* Quiet section label that gives the two columns a clear identity
+   ("Run the day" vs "The live room") so the page reads as two
+   intents instead of a flat stack of cards. */
+function DayOfBand({ label }: { label: string }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+        fontSize: 10.5,
+        fontWeight: 700,
+        letterSpacing: '0.2em',
+        textTransform: 'uppercase',
+        color: 'var(--ink-muted)',
+        margin: '2px 2px -4px',
+      }}
+    >
+      <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold, #C19A4B)' }} />
+      {label}
+    </div>
+  );
+}
+
 export function DayOfV8() {
   const { site } = useSelectedSite();
   const stats = useDashStats(site?.id);
@@ -1093,14 +1118,19 @@ export function DayOfV8() {
         />
 
         <div className="pl8-dayof-main" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1fr)', gap: 18, alignItems: 'start' }}>
+          {/* Left — run the day: the schedule anchors the page, the
+              broadcast pushes a note to guests, the reel fills in. */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            {site?.domain && <BroadcastComposer subdomain={site.domain} />}
+            <DayOfBand label="Run the day" />
             <MomentTimeline items={events} siteDomain={site?.domain} occasion={occasion} />
+            {site?.domain && <BroadcastComposer subdomain={site.domain} />}
             <LiveReel siteDomain={site?.domain} siteId={site?.id} occasion={occasion} />
           </div>
+          {/* Right — the live room: what guests are doing right now. */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <RequestsCard siteDomain={site?.domain} occasion={occasion} />
+            <DayOfBand label="The live room" />
             <AttendanceCard siteId={site?.id} occasion={occasion} siteDomain={site?.domain} />
+            <RequestsCard siteDomain={site?.domain} occasion={occasion} />
             {/* Song queue is wedding / birthday / bachelor-ish only — hide for solemn occasions */}
             {occasion !== 'memorial' && occasion !== 'funeral' && <SongQueue siteDomain={site?.domain} />}
             <GuestWall siteId={site?.id} siteDomain={site?.domain} occasion={occasion} />
