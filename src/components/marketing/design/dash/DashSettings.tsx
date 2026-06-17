@@ -896,8 +896,17 @@ export function DashSettings() {
             position: relative !important;
             top: auto !important;
             flex-direction: row !important;
-            flex-wrap: wrap !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
             gap: 6px !important;
+            margin: 0 -4px 4px !important;
+            padding: 0 4px 6px !important;
+            scrollbar-width: none;
+          }
+          :global(.pd-settings-nav)::-webkit-scrollbar { display: none; }
+          :global(.pd-settings-nav) button {
+            flex: 0 0 auto !important;
+            white-space: nowrap !important;
           }
           :global(.pd-settings-fields),
           :global(.pd-voice-grid) {

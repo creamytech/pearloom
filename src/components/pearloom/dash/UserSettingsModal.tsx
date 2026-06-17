@@ -533,8 +533,8 @@ export function UserSettingsModal({
   const plans = planList(planInfo.plan);
 
   return (
-    <div className="pl8" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(40,40,30,0.45)', backdropFilter: 'blur(6px)', display: 'grid', placeItems: 'center', padding: 24 }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: 'min(880px, 96vw)', height: isPhone ? 'min(700px, 94dvh)' : 'min(620px, 92vh)', background: 'var(--card)', borderRadius: 22, overflow: 'hidden', display: 'grid', gridTemplateColumns: isPhone ? '1fr' : '232px 1fr', gridTemplateRows: isPhone ? 'auto 1fr' : undefined, boxShadow: 'var(--shadow-lg)', animation: 'us-in 240ms cubic-bezier(0.16,1,0.3,1)' } as CSSProperties}>
+    <div className="pl8" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(40,40,30,0.45)', backdropFilter: 'blur(6px)', display: 'grid', placeItems: 'center', padding: isPhone ? 12 : 24, boxSizing: 'border-box' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: isPhone ? 'calc(100vw - 24px)' : 'min(880px, 96vw)', maxWidth: '100%', height: isPhone ? 'min(700px, 92dvh)' : 'min(620px, 92vh)', background: 'var(--card)', borderRadius: 22, overflow: 'hidden', display: 'grid', gridTemplateColumns: isPhone ? '1fr' : '232px 1fr', gridTemplateRows: isPhone ? 'auto 1fr' : undefined, boxShadow: 'var(--shadow-lg)', animation: 'us-in 240ms cubic-bezier(0.16,1,0.3,1)' } as CSSProperties}>
         <style>{`@keyframes us-in{from{transform:scale(0.97);opacity:0}to{transform:none;opacity:1}}`}</style>
         {/* left rail — horizontal tab strip on phones */}
         {isPhone ? (
