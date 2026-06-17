@@ -25,6 +25,7 @@ import { DesignHero } from '@/components/marketing/design/DesignHero';
 import { WovenDivider } from '@/components/marketing/design/WovenDivider';
 import { ThreeActsStage } from '@/components/marketing/design/ThreeActsStage';
 import { DesignOccasions } from '@/components/marketing/design/DesignOccasions';
+import { DesignTogether } from '@/components/marketing/design/DesignTogether';
 import { DesignPricing } from '@/components/marketing/design/DesignPricing';
 import { DesignTestimonials } from '@/components/marketing/design/DesignTestimonials';
 import { DesignFAQ } from '@/components/marketing/design/DesignFAQ';
@@ -79,6 +80,10 @@ export default function LandingPageWrapper() {
       </section>
       <section id="occasions" style={{ scrollMarginTop: 96 }}>
         <DesignOccasions onGetStarted={onGetStarted} />
+      </section>
+      <ThreadDivider />
+      <section id="together" style={{ scrollMarginTop: 96 }}>
+        <DesignTogether onGetStarted={onGetStarted} />
       </section>
       <ThreadDivider />
       <section id="pricing" style={{ scrollMarginTop: 96 }}>
