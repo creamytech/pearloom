@@ -203,7 +203,7 @@ export function DashSubmissions() {
   if (!siteLoading && (!sites || sites.length === 0)) {
     return (
       <DashLayout active="submissions" title="Submissions" subtitle="Create a site first — Pear needs somewhere for submissions to land.">
-        <EmptyShell message="Create a site first — Pear needs somewhere for submissions to land." />
+        <EmptyShell message="Create a site first — Pear needs somewhere for submissions to land." cta={{ label: 'Create a site →', href: '/wizard/new' }} />
       </DashLayout>
     );
   }

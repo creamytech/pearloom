@@ -79,14 +79,13 @@ function SiteCard({
         position: 'relative',
       }}
     >
-      {/* Hover-only quick actions menu (•••). Sits over the cover so
-          it doesn't take real estate when idle. */}
-      {hovered && (
-        <SiteCardMenu
-          site={site}
-          onDeleted={() => onDeleted(site.domain)}
-        />
-      )}
+      {/* Quick actions menu (•••) over the cover. Always rendered —
+          hover-only hid it entirely on touch/mobile, where the
+          duplicate / edit / delete actions were unreachable. */}
+      <SiteCardMenu
+        site={site}
+        onDeleted={() => onDeleted(site.domain)}
+      />
       <div style={{ position: 'relative' }}>
         <PhotoPlaceholder tone={tone} aspect="16/9" src={site.coverPhoto ?? undefined} />
         {/* Floating brand mark when there's no cover photo — keeps

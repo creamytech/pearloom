@@ -895,7 +895,8 @@ export function SectionTitle({
 }
 
 // ── Common empty / loading placeholders ──────────────────────
-export function EmptyShell({ message }: { message: string }) {
+export function EmptyShell({ message, cta }: { message: string; cta?: { label: string; href: string } }) {
+  const link = cta ?? { label: '← Back to Sites', href: '/dashboard' };
   return (
     <main style={{ padding: '60px 40px 80px', maxWidth: 720 }}>
       <Panel bg={PD.paper3} style={{ padding: 40, textAlign: 'center' }}>
@@ -913,7 +914,7 @@ export function EmptyShell({ message }: { message: string }) {
           {message}
         </div>
         <Link
-          href="/dashboard"
+          href={link.href}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -929,7 +930,7 @@ export function EmptyShell({ message }: { message: string }) {
             fontFamily: 'var(--pl-font-body)',
           }}
         >
-          ← Back to Sites
+          {link.label}
         </Link>
       </Panel>
     </main>
