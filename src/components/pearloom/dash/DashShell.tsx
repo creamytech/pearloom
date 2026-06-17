@@ -70,8 +70,9 @@ export const DASH_SECTIONS: Record<string, { label: string; tabs: Array<{ id: st
   site: {
     label: 'Site',
     tabs: [
-      { id: 'sites',       label: 'My sites', href: '/dashboard/event' },
-      { id: 'connections', label: 'Linked',   href: '/dashboard/connections' },
+      { id: 'sites',       label: 'My sites',     href: '/dashboard/event' },
+      { id: 'weekend',     label: 'Weekend',      href: '/dashboard/weekend' },
+      { id: 'connections', label: 'Linked events', href: '/dashboard/connections' },
     ],
   },
   guests: {
