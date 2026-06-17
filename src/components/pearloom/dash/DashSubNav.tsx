@@ -48,11 +48,10 @@ export function DashSubNav({ section }: Props) {
   return (
     <nav
       aria-label={`${meta.label} sub-navigation`}
+      className="pl-hscroll"
       style={{
-        display: 'flex',
-        flexWrap: 'wrap',
         alignItems: 'flex-end',
-        gap: 'clamp(10px, 2.4vw, 26px)',
+        gap: 'clamp(14px, 4vw, 26px)',
         padding: '16px clamp(20px, 4vw, 40px) 0',
         maxWidth: 1240,
         margin: '0 auto 16px',
