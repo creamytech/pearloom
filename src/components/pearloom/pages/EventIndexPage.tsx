@@ -9,6 +9,7 @@ import { parseLocalDate } from '@/lib/date-utils';
 import { DashEmpty } from '../dash/DashEmpty';
 import { DashSkeleton } from '../dash/DashSkeleton';
 import { Heart, Icon, Pear, PhotoPlaceholder, Sparkle } from '../motifs';
+import { Badge } from '@/components/shell';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
 import { useDialog } from '@/components/ui/confirm-dialog';
@@ -117,20 +118,10 @@ function SiteCard({
           >
             <Sparkle size={9} /> {occasionLabel(site.occasion)}
           </span>
-          {site.published && (
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: '0.08em',
-                color: 'var(--sage-deep)',
-                background: 'var(--sage-tint)',
-                padding: '3px 9px',
-                borderRadius: 999,
-              }}
-            >
-              ● Live
-            </span>
+          {site.published ? (
+            <Badge tone="olive" variant="pill" dot>Live</Badge>
+          ) : (
+            <Badge tone="neutral" variant="pill">Draft</Badge>
           )}
         </div>
         <div className="display" style={{ fontSize: 26, margin: 0, lineHeight: 1.05 }}>
