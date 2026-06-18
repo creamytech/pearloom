@@ -30,8 +30,12 @@
   --pl-olive-mist:   #E0DDC9;
   --pl-gold:         #C19A4B;   /* v8 peach-gold accent (warmer)       */
   --pl-gold-mist:    rgba(193,154,75,0.10);
+  --pl-gold-soft:    rgba(193,154,75,0.40);  /* gold hairline / pearl-CTA border    */
   --pl-plum:         #C6563D;   /* v8 peach-ink — destructive/state    */
   --pl-plum-mist:    rgba(198,86,61,0.10);
+  --pl-terra:        #C6703D;   /* warm marketing accent               */
+  --pl-rose:         #D9A89E;   /* specialty soft accent               */
+  --pl-stone:        #C8BFA5;   /* muted dots / inert markers          */
 
   /* ── Authoring/dark surfaces (editor chrome on dark canvas) ── */
   --pl-dark-bg:      #0D0B07;
@@ -297,8 +301,12 @@
   --pl-olive-mist:   #1F2014;
   --pl-gold:         #D4B373;
   --pl-gold-mist:    rgba(212,179,115,0.10);
+  --pl-gold-soft:    rgba(212,179,115,0.40);
   --pl-plum:         #C46A6A;
   --pl-plum-mist:    rgba(196,106,106,0.10);
+  --pl-terra:        #D67852;
+  --pl-rose:         #C08A7E;
+  --pl-stone:        #6E6553;
 
   --pl-warning:      #D67852;
   --pl-warning-mist: rgba(214,120,82,0.12);
