@@ -143,13 +143,13 @@ export default function LandingPageWrapper() {
            gold — never OLED black. Values mirror the product's
            [data-theme='dark'] tokens in globals.css. */
         main.pd-landing {
-          --pd-paper: #f5efe2;
-          --pd-paper2: #ebe3d2;
-          --pd-paper3: #ebe3d2;
+          --pd-paper: #FDFAF0;
+          --pd-paper2: #F7F0E0;
+          --pd-paper3: #F7F0E0;
           --pd-paperCard: #fbf7ee;
-          --pd-paperDeep: #ebe3d2;
-          --pd-ink: #0e0d0b;
-          --pd-inkSoft: #3a332c;
+          --pd-paperDeep: #F7F0E0;
+          --pd-ink: #18181B;
+          --pd-inkSoft: #4A5642;
           --pd-olive: #5c6b3f;
           --pd-oliveDeep: #363f22;
           --pd-gold: #c19a4b;
@@ -157,7 +157,7 @@ export default function LandingPageWrapper() {
           --pd-rose: #d9a89e;
           --pd-plum: #7a2d2d;
           --pd-stone: #c8bfa5;
-          --pd-line: #d8cfb8;
+          --pd-line: #E2D9C3;
           --pd-sand: #e8dcb4;
           --pd-wash: #e8d9d3;
           --pd-blush: #e3dcc0;

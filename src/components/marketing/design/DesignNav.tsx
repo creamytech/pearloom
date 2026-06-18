@@ -9,7 +9,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { Pearl, PLButton, PD, pdInkMix, pdShadowMix } from './DesignAtoms';
-import { PearloomGlyph } from '@/components/pearloom/motifs';
+import { PearloomGlyph, PearloomWordmark } from '@/components/pearloom/motifs';
 
 interface DesignNavProps {
   onGetStarted: () => void;
@@ -56,18 +56,10 @@ export function DesignNav({ onGetStarted }: DesignNavProps) {
       >
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', color: PD.ink }}>
           <PearloomGlyph size={32} color={PD.olive} gold={PD.gold} paper={PD.paper} />
-          <span
-            className="pd-nav-wordmark"
-            style={{
-              fontFamily: '"Fraunces", Georgia, serif',
-              fontSize: 24,
-              letterSpacing: '-0.015em',
-              color: PD.ink,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <span style={{ fontWeight: 640, fontVariationSettings: '"opsz" 60, "SOFT" 40, "WONK" 0' }}>Pear</span>
-            <span style={{ fontWeight: 560, fontStyle: 'italic', fontVariationSettings: '"opsz" 60, "SOFT" 80, "WONK" 1' }}>loom</span>
+          {/* Finalized vectorized wordmark (design system v2) — replaces
+              the old Fraunces type-set lockup (MIGRATION §2). */}
+          <span className="pd-nav-wordmark" style={{ display: 'inline-flex', color: PD.ink }}>
+            <PearloomWordmark size={20} color={PD.ink} />
           </span>
         </Link>
 
