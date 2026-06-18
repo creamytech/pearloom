@@ -137,11 +137,12 @@ export default function LandingPageWrapper() {
            The PD object in DesignAtoms reads every themed entry as
            var(--pd-*, <light hex>). The variables are defined here,
            scoped to the landing root, with editorial-midnight dark
-           values under prefers-color-scheme (no toggle — the landing
-           follows the system; it carries no theme state). BRAND.md
-           §10: warm dark paper, cream ink, brightened olive, warmed
-           gold — never OLED black. Values mirror the product's
-           [data-theme='dark'] tokens in globals.css. */
+           values under [data-theme='dark'] — set before paint by the
+           layout.tsx boot script (OS preference by default, or the nav's
+           theme toggle), so the landing honours the toggle like the rest
+           of the app. BRAND.md §10: warm dark paper, cream ink, brightened
+           olive, warmed gold — never OLED black. Values mirror the
+           product's [data-theme='dark'] tokens in globals.css. */
         main.pd-landing {
           --pd-paper: #FDFAF0;
           --pd-paper2: #F7F0E0;
@@ -185,8 +186,12 @@ export default function LandingPageWrapper() {
           --pd-btn-paper-hover: #eadfc4;
           color-scheme: light;
         }
-        @media (prefers-color-scheme: dark) {
-          main.pd-landing {
+        /* Dark = editorial midnight. Driven by [data-theme='dark'] on
+           <html> (set before paint by the boot script in layout.tsx —
+           from OS preference by default, or from the nav's theme toggle),
+           so the landing now honours the toggle like the rest of the app
+           instead of being locked to the OS color scheme. */
+        :global(html[data-theme='dark']) main.pd-landing {
             --pd-paper: #0d0b07;
             --pd-paper2: #15110a;
             --pd-paper3: #15110a;
@@ -219,23 +224,19 @@ export default function LandingPageWrapper() {
             --pd-btn-paper-fg: #f1ebdc;
             --pd-btn-paper-hover: #221c13;
             color-scheme: dark;
-          }
-          /* Grain: globals.css flips [data-theme='dark'] .pl-grain to
-             a screen blend, but the landing themes via media query —
-             mirror it here so the multiply grain doesn't go muddy on
-             midnight paper. */
-          main.pd-landing.pl-grain::before {
-            mix-blend-mode: screen;
-            opacity: 0.18;
-          }
-          /* Letterpress: mirror the [data-theme='dark'] variant —
-             press INTO the dark paper (deep top bevel, faint warm
-             under-light) instead of the light-mode emboss. */
-          main.pd-landing .pl-letterpress {
-            text-shadow:
-              0 -1px 0 rgba(0, 0, 0, 0.55),
-              0 1px 1px rgba(255, 248, 230, 0.04);
-          }
+        }
+        /* Grain: mirror the [data-theme='dark'] .pl-grain screen-blend
+           so the multiply grain doesn't go muddy on midnight paper. */
+        :global(html[data-theme='dark']) main.pd-landing.pl-grain::before {
+          mix-blend-mode: screen;
+          opacity: 0.18;
+        }
+        /* Letterpress: press INTO the dark paper (deep top bevel, faint
+           warm under-light) instead of the light-mode emboss. */
+        :global(html[data-theme='dark']) main.pd-landing .pl-letterpress {
+          text-shadow:
+            0 -1px 0 rgba(0, 0, 0, 0.55),
+            0 1px 1px rgba(255, 248, 230, 0.04);
         }
 
         /* The .pl-grain ::before ships at z-index 0, which the
