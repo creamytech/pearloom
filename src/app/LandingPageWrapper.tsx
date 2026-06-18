@@ -19,7 +19,7 @@
    ======================================================================== */
 
 import { useRouter } from 'next/navigation';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { DesignNav } from '@/components/marketing/design/DesignNav';
 import { DesignHero } from '@/components/marketing/design/DesignHero';
 import { WovenDivider } from '@/components/marketing/design/WovenDivider';
@@ -60,6 +60,14 @@ export default function LandingPageWrapper() {
     router.push('/wizard/new');
   }, [router]);
 
+  // Re-arm the scroll-reveal engine for the DOM mounted here. It
+  // auto-inits on first page load; this covers client-side navigation
+  // into the landing. Idempotent, and a no-op until the afterInteractive
+  // script has loaded (which then runs its own init). Reduced-motion safe.
+  useEffect(() => {
+    (window as Window & { PearloomMotion?: { init?: () => void } }).PearloomMotion?.init?.();
+  }, []);
+
   return (
     <main
       className="pl-grain pd-landing"
@@ -76,27 +84,36 @@ export default function LandingPageWrapper() {
       {/* The loom passes through the page — one continuous thread
           from the hero into the three acts. */}
       <WovenDivider />
-      <section id="acts" style={{ scrollMarginTop: 96 }}>
+      {/* Sections thread in on scroll via the motion engine
+          (public/pearloom-motion.js → data-reveal). The start-states
+          are progressive-enhancement gated (html.pl-motion-ready), so
+          content is always visible if JS never runs, and the whole
+          system honours prefers-reduced-motion. */}
+      <section id="acts" data-reveal="up" style={{ scrollMarginTop: 96 }}>
         <ThreeActsStage />
       </section>
-      <section id="occasions" style={{ scrollMarginTop: 96 }}>
+      <section id="occasions" data-reveal="up" style={{ scrollMarginTop: 96 }}>
         <DesignOccasions onGetStarted={onGetStarted} />
       </section>
       <ThreadDivider />
-      <section id="together" style={{ scrollMarginTop: 96 }}>
+      <section id="together" data-reveal="up" style={{ scrollMarginTop: 96 }}>
         <DesignTogether onGetStarted={onGetStarted} />
       </section>
       <ThreadDivider />
-      <section id="guests" style={{ scrollMarginTop: 96 }}>
+      <section id="guests" data-reveal="up" style={{ scrollMarginTop: 96 }}>
         <DesignGuests />
       </section>
       <ThreadDivider />
-      <section id="pricing" style={{ scrollMarginTop: 96 }}>
+      <section id="pricing" data-reveal="rise" style={{ scrollMarginTop: 96 }}>
         <DesignPricing onGetStarted={onGetStarted} />
       </section>
       <ThreadDivider />
-      <DesignTestimonials />
-      <DesignFAQ />
+      <div data-reveal="up">
+        <DesignTestimonials />
+      </div>
+      <div data-reveal="up">
+        <DesignFAQ />
+      </div>
       <DesignCTAFooter onGetStarted={onGetStarted} />
 
       <style jsx global>{`
