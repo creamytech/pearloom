@@ -2,15 +2,17 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/brand/PearloomMark.tsx
-// The Pearloom logo mark (rebrand 2026-06-10): the woven pear.
-// The fruit is ONE continuous thread, open at the top where the
-// loose end rises into the stem; a gold weft passes through the
-// waist (under the left edge, over the right); a single pearl
-// sits at the crossing. Pear · loom · pearl in one mark.
+// The Pearloom logo mark (final, signed off 2026-06-18): the solid
+// pear silhouette with a spiral core carved out as true negative
+// space, stem + angled leaf on top. One `color` paints the whole
+// mark (the spiral is a real hole), so it reverses to a cream
+// knockout and re-skins per theme.
 //
 // Canonical static version lives in pearloom/motifs.tsx
-// (PearloomGlyph) — this file is the framer-motion draw-in
-// variant used by ceremonial surfaces (PasswordGate).
+// (PearloomGlyph) — this file is the framer-motion variant used by
+// ceremonial surfaces (PasswordGate, sign-in). The old woven-pear
+// (olive thread + gold weft + pearl) was retired with this rebrand;
+// `color2` is still accepted for call-site compatibility but unused.
 // ─────────────────────────────────────────────────────────────
 
 import { motion } from 'framer-motion';
@@ -18,110 +20,69 @@ import { motion } from 'framer-motion';
 interface PearloomMarkProps {
   size?: number;
   color?: string;
-  color2?: string;    // weft + pearl color (defaults to brand gold)
-  animated?: boolean; // thread draw-in animation
+  color2?: string;    // retained for call-site compat; unused by the solid mark
+  animated?: boolean; // press-in reveal
   className?: string;
   style?: React.CSSProperties;
 }
 
+// viewBox 0 0 115.4 186 — body (with carved spiral) + leaf.
 const BODY =
-  'M 52 29 C 59 32, 63 39, 62 48 C 73 56, 79 69, 76 83 C 72 98, 61 106, 48 106 ' +
-  'C 35 106, 24 98, 20 83 C 17 69, 23 56, 34 48 C 33 39, 37 32, 44 29';
-const STEM = 'M 48 27 C 49 21, 52 15, 58 10';
-const LEAF = 'M 58 10 C 63 2.5, 74 2, 80 8 C 76 16.5, 64 17.5, 58 10 Z';
-const WEFT_L = 'M 4 67 C 9 63, 13 62.5, 17 64.5';
-const WEFT_R =
-  'M 26 68 C 35 71.5, 42 60, 55 62.5 C 64 64.5, 73 69, 80 69.5 C 85 70, 90 67, 93 63';
+  'm90 92c-4.4-9-5.7-15.4-7.1-25.2-1.6-10.9-8-19.3-15.9-23-2.5-1.3-6.7-1.2-8.6-1.4 0.2-6.7-0.4-12.5-2.2-20.4-1.1-3-2.9-2-4.3-1.1s-2.9 2.2-1.5 4.8 4.2 4.4 5 17c0.1 0.3-1.1-0.1-1.8 0-10.6 1.4-19.4 10.1-21.2 22.7-1.7 11.4-2.5 17.7-8.7 28.6-4.9 8.9-6.9 10.4-10.1 18-2.2 4.8-5.1 12.6-4.6 24.1 0.4 9.1 3.7 22.5 12.3 31.2 7.9 8.2 18.6 14.5 35.1 15.1 26.6 0 45.6-14.1 49.5-35.6 4.2-18.4-1.2-33.1-10.2-47.8l-5.7-7zm-31.4 77.5c-18.6 0-31.7-13.2-31.8-33.5-0.1-17.1 9-26.8 13.8-34.7 5.2-8.6 12.2-28.2 14.4-50.2h0.4c0.7 9.2-0.1 25.3-2.1 34.4-3.9 18.3-11.4 26.3-14.5 38.5-5.9 22.5 8.1 32.7 20.6 32.9 14.1 0.1 18.2-9.6 18.5-17 0.2-6.5-6-13.8-12.9-14.1-5.2-0.1-9.7 3.1-9.8 8.7-0.3 7 7.5 9.9 11.3 5.8-0.1 2.5-2.9 5.2-7.5 4.9-4-0.2-9.1-4-9.1-11.3 0.1-5.8 5.1-16.3 17.3-16.3 12.9-0.3 20.7 9.8 21.1 21 0.3 13.8-9.6 30.9-29.7 30.9zm6.3-137.2c0.5-8.1 5.7-25.3 24.5-25.7 11.5-0.5 15.5 1.3 16.3 1.8 0.5 0.2 1.6 0.6-0.6 3.4-3.4 4.8-8.8 22.1-27.5 23.3-7.9 0.3-9.7-2-13 1.5s-5.2 7.2 0.3-4.3zm0.5 1.6c3.2-4.3 13.3-16.5 25.1-17.9 9.7-1.2-12 1-23.6 17.9h-1.5z';
+const LEAF =
+  'm64.9 32.3c-0.1-4.7 3.1-24.3 22.4-25.5 9.7-0.9 14.7-0.2 18 1l0.2 0.1c0.7 0.2 1.3 0.6 0.6 1.5-5.1 7.7-9.4 22.2-25.6 25.4-9.1 1.3-12.3-2.7-15.6 1.2v-3.7z';
 
 export function PearloomMark({
   size = 40,
   color = 'var(--pl-olive, #5C6B3F)',
-  color2,
   animated = false,
   className,
   style,
 }: PearloomMarkProps) {
-  const gold = color2 || 'var(--pl-gold, #C19A4B)';
-  const body = { fill: 'none', stroke: color, strokeWidth: 5, strokeLinecap: 'round' as const };
-  const weft = { fill: 'none', stroke: gold, strokeWidth: 3.6, strokeLinecap: 'round' as const };
+  const width = size * (115.4 / 186);
 
   if (animated) {
     return (
-      <svg
-        width={size * (96 / 112)}
+      <motion.svg
+        width={width}
         height={size}
-        viewBox="0 0 96 112"
+        viewBox="0 0 115.4 186"
         className={className}
-        style={style}
+        style={{ transformOrigin: '50% 60%', ...style }}
         aria-hidden
+        initial={{ scale: 0.92, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
       >
         <motion.path
           d={BODY}
-          {...body}
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 1.4, ease: 'easeInOut' }}
-        />
-        <motion.path
-          d={STEM}
-          {...body}
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 0.4, ease: 'easeOut', delay: 1.3 }}
+          fill={color}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
         />
         <motion.path
           d={LEAF}
           fill={color}
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.4, ease: 'easeOut', delay: 1.6 }}
-          style={{ transformOrigin: '58px 11px' }}
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: 'easeOut', delay: 0.35 }}
         />
-        <motion.path
-          d={WEFT_L}
-          {...weft}
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 0.3, ease: 'easeInOut', delay: 0.7 }}
-        />
-        <motion.path
-          d={WEFT_R}
-          {...weft}
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 0.7, ease: 'easeInOut', delay: 1.0 }}
-        />
-        <motion.circle
-          cx={46}
-          cy={64}
-          r={5}
-          fill={gold}
-          stroke="var(--pl-cream, #FDFAF0)"
-          strokeWidth={2}
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.45, ease: [0.34, 1.56, 0.64, 1], delay: 1.8 }}
-          style={{ transformOrigin: '46px 64px' }}
-        />
-      </svg>
+      </motion.svg>
     );
   }
 
   return (
     <svg
-      width={size * (96 / 112)}
+      width={width}
       height={size}
-      viewBox="0 0 96 112"
+      viewBox="0 0 115.4 186"
       className={className}
       style={style}
       aria-hidden
     >
-      <path d={BODY} {...body} />
-      <path d={STEM} {...body} />
+      <path d={BODY} fill={color} />
       <path d={LEAF} fill={color} />
-      <path d={WEFT_L} {...weft} />
-      <path d={WEFT_R} {...weft} />
-      <circle cx={46} cy={64} r={5} fill={gold} stroke="var(--pl-cream, #FDFAF0)" strokeWidth={2} />
     </svg>
   );
 }

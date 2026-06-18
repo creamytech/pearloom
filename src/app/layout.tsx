@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import { validateEnv } from "@/lib/env";
 import "./globals.css";
 import "./pearloom.css";
+import "./animation.css";
 
 validateEnv();
 
@@ -104,6 +106,12 @@ export default function RootLayout({
             </ToastProvider>
           </AuthProvider>
         </ThemeProvider>
+        {/* The Pearloom motion engine: flips [data-revealed] on scroll
+            and plays the two-strand weave transition. Vanilla, dep-free,
+            reduced-motion aware. animation.css carries a progressive-
+            enhancement gate (html:not(.pl-motion-ready)) so content is
+            always visible even if this never loads. */}
+        <Script src="/pearloom-motion.js" strategy="afterInteractive" />
       </body>
     </html>
   );
