@@ -4,11 +4,15 @@
 // Button — the canonical action element. One source for all
 // dashboard, marketing, and editor surfaces. Replaces a half-
 // dozen ad-hoc <button> styles across the codebase.
+//
+// Design-system v2: pill-shaped, lift + spring on hover/press,
+// and a `pearl` variant — the iridescent gold surface reserved
+// for the single primary CTA on a surface (BRAND §3).
 // ─────────────────────────────────────────────────────────────
 
 import { ButtonHTMLAttributes, ReactNode, forwardRef } from 'react';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'destructive' | 'link';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'destructive' | 'link' | 'pearl';
 type Size = 'xs' | 'sm' | 'md' | 'lg';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -26,6 +30,10 @@ const sizes: Record<Size, { padX: number; padY: number; font: string; gap: numbe
   md: { padX: 18, padY: 11, font: '0.92rem', gap: 8 },
   lg: { padX: 24, padY: 14, font: '1rem',    gap: 10 },
 };
+
+// The iridescent gold-thread surface — pearl CTA only (BRAND §3).
+const PEARL_SURFACE =
+  'linear-gradient(135deg, #F4ECD8 0%, #E8C77A 32%, #D9A89E 58%, #B8C96B 82%, #F4ECD8 100%)';
 
 function variantStyles(variant: Variant): React.CSSProperties {
   switch (variant) {
@@ -68,6 +76,16 @@ function variantStyles(variant: Variant): React.CSSProperties {
         textDecoration: 'underline',
         textUnderlineOffset: 4,
       };
+    case 'pearl':
+      return {
+        background: PEARL_SURFACE,
+        backgroundSize: '180% 180%',
+        backgroundPosition: '0% 50%',
+        color: 'var(--pl-ink)',
+        border: '1px solid var(--pl-gold-soft)',
+        boxShadow:
+          'inset 0 1px 0 rgba(255,255,255,0.5), var(--pl-shadow-sm, 0 1px 3px rgba(40,28,12,0.10))',
+      };
   }
 }
 
@@ -98,7 +116,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         justifyContent: 'center',
         gap: sz.gap,
         padding: variant === 'link' ? 0 : `${sz.padY}px ${sz.padX}px`,
-        borderRadius: 'var(--pl-radius-md)',
+        borderRadius: 'var(--pl-radius-full)',
         font: 'inherit',
         fontFamily: 'var(--pl-font-body)',
         fontSize: sz.font,
@@ -108,7 +126,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         opacity: disabled || loading ? 0.55 : 1,
         width: fullWidth ? '100%' : 'auto',
         transition:
-          'transform var(--pl-dur-fast) var(--pl-ease-spring), background var(--pl-dur-fast) var(--pl-ease-out), box-shadow var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
+          'transform var(--pl-dur-fast) var(--pl-ease-spring), background var(--pl-dur-fast) var(--pl-ease-out), background-position var(--pl-dur-slow, 0.5s) var(--pl-ease-out), box-shadow var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
         ...varStyle,
         ...style,
       }}
@@ -116,10 +134,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         if (!disabled && !loading) e.currentTarget.style.transform = 'scale(0.97)';
       }}
       onMouseUp={(e) => {
-        e.currentTarget.style.transform = 'scale(1)';
+        if (!disabled && !loading && variant !== 'link')
+          e.currentTarget.style.transform = 'translateY(-1px)';
       }}
       onMouseEnter={(e) => {
         if (disabled || loading || variant === 'link') return;
+        e.currentTarget.style.transform = 'translateY(-1px)';
         if (variant === 'primary') {
           e.currentTarget.style.background = 'var(--pl-olive-hover)';
         } else if (variant === 'secondary' || variant === 'ghost' || variant === 'outline') {
@@ -127,6 +147,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
           e.currentTarget.style.borderColor = 'var(--pl-olive)';
         } else if (variant === 'destructive') {
           e.currentTarget.style.background = '#5C1F1F';
+        } else if (variant === 'pearl') {
+          e.currentTarget.style.backgroundPosition = '100% 50%';
         }
       }}
       onMouseLeave={(e) => {
@@ -135,7 +157,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
           background: v.background as string,
           borderColor: (v.border as string)?.split(' ').pop(),
         });
-        e.currentTarget.style.transform = 'scale(1)';
+        if (variant === 'pearl') e.currentTarget.style.backgroundPosition = '0% 50%';
+        e.currentTarget.style.transform = 'translateY(0)';
       }}
       {...rest}
     >
