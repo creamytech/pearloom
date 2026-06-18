@@ -11,6 +11,7 @@
 import { Sprout } from 'lucide-react';
 import { Bloom, Swirl, ThreadStrand } from '@/components/brand/groove';
 import { Pear, Pearl, Pill, PLButton, PD, DISPLAY_STYLE, MONO_STYLE } from './DesignAtoms';
+import { PearloomWordmark } from '@/components/pearloom/motifs';
 import { Fragment } from 'react';
 
 interface DesignCTAFooterProps {
@@ -336,29 +337,15 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
             </div>
           </div>
 
-          {/* Massive pearloom wordmark */}
-          <div
-            aria-hidden
-            style={{
-              ...DISPLAY_STYLE,
-              fontSize: 'clamp(90px, 19vw, 280px)',
-              lineHeight: 0.85,
-              fontWeight: 400,
-              marginTop: 40,
-              whiteSpace: 'nowrap',
-              textAlign: 'center',
-              // Barely-there olive-ink on the slab; the dark-mode
-              // value keeps the same whisper on the lifted slab.
-              color: 'var(--pd-wordmark, #2C3022)',
-              letterSpacing: '-0.035em',
-              userSelect: 'none',
-              fontVariationSettings: '"SOFT" 60, "opsz" 144',
-            }}
-          >
-            {/* The wordmark's signature: upright "pear", italic turn
-                on "loom" — same lockup as the nav, at mural scale. */}
-            <span style={{ fontVariationSettings: '"SOFT" 40, "opsz" 144, "WONK" 0' }}>pear</span>
-            <span style={{ fontStyle: 'italic', fontVariationSettings: '"SOFT" 80, "opsz" 144, "WONK" 1' }}>loom</span>
+          {/* Massive vectorized wordmark (design system v2) — the
+              finalized mark at mural scale, replacing the old Fraunces
+              type-set lockup (MIGRATION §2). Fluid width so it scales
+              across every viewport. */}
+          <div aria-hidden style={{ marginTop: 40, display: 'flex', justifyContent: 'center' }}>
+            <PearloomWordmark
+              color="var(--pd-wordmark, #2C3022)"
+              style={{ width: 'min(92vw, 1100px)', height: 'auto', userSelect: 'none' }}
+            />
           </div>
         </div>
       </footer>

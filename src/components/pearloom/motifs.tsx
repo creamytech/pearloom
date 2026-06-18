@@ -205,9 +205,11 @@ const WORDMARK_PATHS = [
 export function PearloomWordmark({
   size = 24,
   color = 'inherit',
+  style,
 }: {
   size?: number;
   color?: string;
+  style?: CSSProperties;
 }) {
   // 'inherit' is not a valid SVG paint — map it to currentColor so the
   // mark still inherits the surrounding text color and themes like text.
@@ -217,7 +219,7 @@ export function PearloomWordmark({
       viewBox="157 44.6 289 81"
       height={size}
       width={size * (289 / 81)}
-      style={{ display: 'inline-block', verticalAlign: 'middle' }}
+      style={{ display: 'inline-block', verticalAlign: 'middle', ...style }}
       role="img"
       aria-label="Pearloom"
     >
