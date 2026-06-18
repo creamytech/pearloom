@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Pearl, PLButton, PD, pdInkMix, pdShadowMix } from './DesignAtoms';
 import { PearloomGlyph, PearloomWordmark } from '@/components/pearloom/motifs';
+import { ThemeToggle } from '@/components/shell';
 
 interface DesignNavProps {
   onGetStarted: () => void;
@@ -99,6 +100,7 @@ export function DesignNav({ onGetStarted }: DesignNavProps) {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <ThemeToggle size="sm" />
           <button
             className="pd-nav-signin"
             onClick={onGetStarted}
@@ -220,6 +222,19 @@ export function DesignNav({ onGetStarted }: DesignNavProps) {
           >
             Begin a thread <Pearl size={8} />
           </PLButton>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginTop: 12,
+              paddingTop: 12,
+              borderTop: `1px solid ${PD.line}`,
+            }}
+          >
+            <span style={{ fontSize: 14, color: PD.ink, fontFamily: 'var(--pl-font-body)' }}>Theme</span>
+            <ThemeToggle size="sm" />
+          </div>
         </div>
       )}
 
