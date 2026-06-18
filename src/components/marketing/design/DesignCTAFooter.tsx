@@ -257,16 +257,9 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
                 <Pear size={40} color={PD.pear} stem={PD.slabInk} leaf={PD.olive} />
-                <span
-                  style={{
-                    ...DISPLAY_STYLE,
-                    fontSize: 32,
-                    fontWeight: 500,
-                    letterSpacing: '-0.02em',
-                  }}
-                >
-                  Pearloom
-                </span>
+                {/* Vectorized wordmark (design system v2) — was the old
+                    Fraunces type-set "Pearloom" serif lockup. */}
+                <PearloomWordmark size={26} color={PD.slabInk} />
               </div>
               <p
                 style={{

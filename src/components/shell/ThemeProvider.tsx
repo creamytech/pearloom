@@ -34,9 +34,10 @@ function readPreference(): ThemePreference {
 }
 
 function resolveTheme(pref: ThemePreference): Theme {
-  if (pref !== 'system') return pref;
-  if (typeof window === 'undefined') return 'light';
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  // Light-first: an explicit choice wins; otherwise default to the
+  // brand's primary "editorial paper" light. Dark is opt-in via the
+  // toggle (persisted to localStorage), not auto-followed from the OS.
+  return pref === 'dark' ? 'dark' : 'light';
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -47,18 +48,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [preference, setPrefState] = useState<ThemePreference>(() => readPreference());
   const [theme, setTheme] = useState<Theme>(() => resolveTheme(readPreference()));
 
+  // Keep <html data-theme> in sync with the resolved theme. The boot
+  // script in layout.tsx sets it before paint, but React hydration of
+  // <html> can drop the attribute — re-asserting here makes it
+  // deterministic and fixes the toggle-icon / page mismatch on load.
   useEffect(() => {
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = () => {
-      if (preference === 'system') {
-        const next = mql.matches ? 'dark' : 'light';
-        setTheme(next);
-        document.documentElement.dataset.theme = next;
-      }
-    };
-    mql.addEventListener('change', onChange);
-    return () => mql.removeEventListener('change', onChange);
-  }, [preference]);
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
 
   const setPreference = useCallback((p: ThemePreference) => {
     setPrefState(p);
