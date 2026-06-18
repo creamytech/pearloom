@@ -339,6 +339,18 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
   box-shadow: 0 4px 0 rgba(0,0,0,0.06);
 }
 .pl8 .btn-primary:hover { background: #2f3a15; }
+/* Pearl CTA — the brand's iridescent weft, the same gradient knotted
+   into the logo + the wizard's primary action (design system v2).
+   Dark ink reads on the warm shimmer; the gold-soft hairline frames
+   it. Pairs with a <Pearl /> bead. */
+.pl8 .btn-pearl {
+  background: linear-gradient(135deg, #F4ECD8 0%, #E8C77A 32%, #D9A89E 58%, #B8C96B 82%, #F4ECD8 100%);
+  background-size: 160% 160%;
+  color: var(--pl-ink, #2A2A2A);
+  border: 1px solid var(--pl-gold-soft, #EAD9B0);
+  box-shadow: 0 4px 0 rgba(120, 90, 30, 0.07);
+}
+.pl8 .btn-pearl:hover { background-position: 100% 0; }
 .pl8 .btn-outline {
   background: var(--card);
   border: 1.5px solid var(--line);
@@ -1715,6 +1727,10 @@ button.pl8-mobile-only { display: none !important; }
   .pl8-basics-grid { grid-template-columns: 1fr !important; }
   .pl8-palette-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   .pl8-layout-grid { grid-template-columns: 1fr !important; }
+  /* Live save-the-date preview: collapse the Look-step two-column layout
+     to one column and hide the preview on narrow screens. */
+  .pl8-wizard-canvas.is-look { display: block !important; max-width: 760px !important; }
+  .pl8-wizard-preview { display: none !important; }
 }
 
 @media (max-width: 640px) {

@@ -9,9 +9,13 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { Icon, Pear, PearloomLogo, PearlDot, Sparkle, Sprig } from '../motifs';
+import { Icon, Pear, PearloomLogo, Sparkle, Sprig } from '../motifs';
 import { OccasionGlyph } from '../icons/OccasionGlyph';
 import { Motif, type MotifKind } from '../site/MotifScatter';
+import { Motif as BrandMotif, type MotifName } from '@/components/brand/Motif';
+import { Monogram } from '@/components/brand/Monogram';
+import { Divider as BrandDivider } from '@/components/brand/Divider';
+import { Pearl } from '@/components/brand/Pearl';
 import { Reveal } from '../motion';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { parseLocalDate } from '@/lib/date-utils';
@@ -1716,13 +1720,6 @@ function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: St
   );
 }
 
-/**
- * WizardLiveVignette — slim "your site, live" preview ribbon rendered on the
- * Vibe + Palette steps. Mirrors the prototype's right-rail SiteVignette but
- * fits inline above the chip/palette grid so the single-column letterpress
- * flow stays intact. Updates as the host picks vibes + palettes — turning
- * the two Look steps into a live design feedback loop.
- */
 /* Relative luminance from a hex color (#rgb / #rrggbb). Returns
    null for anything unparseable (var() strings, named colors) so
    callers can keep their defaults. */
@@ -1742,141 +1739,6 @@ function contrastRatio(a: number, b: number): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-function WizardLiveVignette({ st }: { st: WizardState }) {
-  const names = st.names.filter(Boolean);
-  // Solo occasions preview ONE name — no '&', no phantom partner.
-  // Placeholders come from the occasion's name spec ('Sam',
-  // 'Valentina', 'Eleanor Rose Thompson'…) so a memorial never
-  // previews as 'Alex & Jamie'. Placeholders are preview-only —
-  // they never reach the saved manifest.
-  const nameSpec = nameModeFor(st.occasion);
-  const couple = nameSpec.mode === 'couple';
-  const a = names[0] || (couple ? 'Alex' : nameSpec.primaryPlaceholder);
-  const b = couple ? (names[1] || 'Jamie') : '';
-  const dateLabel = parseLocalDate(st.eventDate)?.toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  }) || 'Your date';
-  const placeLabel = st.location || 'Your place';
-  const firstVibe = st.vibes
-    .map((id) => VIBES.find((v) => v.id === id)?.label ?? id)
-    .filter(Boolean)[0];
-
-  // Pull live colours from the selected palette (smart or classic).
-  const paletteColors =
-    st.paletteColors && st.paletteColors.length > 0
-      ? st.paletteColors
-      : PALETTES.find((p) => p.id === st.palette)?.colors;
-  const accentRaw = paletteColors?.[1] || 'var(--sage-deep, #5C6B3F)';
-  const ground = paletteColors?.[2] || 'var(--cream-2, #F0E8D6)';
-  const inkRaw = paletteColors?.[3] || 'var(--ink, #2A2A2A)';
-
-  /* Contrast guard — palette colors carry no contrast guarantee
-     (a photo palette can hand us cream-on-peach), and the page's
-     own --ink/--ink-muted flip light in dark mode while the card's
-     ground stays a palette color. Every text color inside the card
-     is therefore derived FROM the ground: a warm dark or cream
-     base ink by luminance, the palette ink only when it actually
-     clears the ground, and the accent pulled toward the base ink
-     until it reads. */
-  const groundLum = hexLuminance(ground);
-  const baseInk = groundLum == null
-    ? 'var(--ink, #2A2A2A)'
-    : groundLum > 0.45 ? '#2A2418' : '#F5EFE2';
-  const inkLum = hexLuminance(inkRaw);
-  const ink = groundLum != null && inkLum != null && contrastRatio(inkLum, groundLum) >= 4.5
-    ? inkRaw
-    : baseInk;
-  const accentLum = hexLuminance(accentRaw);
-  const accent = groundLum == null || (accentLum != null && contrastRatio(accentLum, groundLum) >= 3)
-    ? accentRaw
-    : `color-mix(in srgb, ${accentRaw} 45%, ${baseInk})`;
-
-  return (
-    <div
-      style={{
-        position: 'relative',
-        marginBottom: 22,
-        padding: '20px 22px 22px',
-        borderRadius: 16,
-        background: ground,
-        border: '1px solid var(--line-soft)',
-        overflow: 'hidden',
-        textAlign: 'center',
-      }}
-    >
-      {/* eyebrow */}
-      <div
-        style={{
-          fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-          fontSize: 9.5,
-          fontWeight: 700,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: accent,
-          marginBottom: 8,
-        }}
-      >
-        {firstVibe ? `${firstVibe} • Your site, live` : 'Your site, live'}
-      </div>
-
-      {/* Names — letterpress display */}
-      <div
-        className="display"
-        style={{
-          fontFamily: 'var(--font-display, Fraunces, serif)',
-          fontSize: 32,
-          lineHeight: 1.02,
-          color: ink,
-          letterSpacing: '-0.01em',
-        }}
-      >
-        {a}
-        {b ? (
-          <>
-            <span
-              className="display-italic"
-              style={{ fontSize: '0.55em', color: accent, margin: '0 0.16em', fontStyle: 'italic', fontWeight: 400 }}
-            >
-              &amp;
-            </span>
-            {b}
-          </>
-        ) : null}
-      </div>
-
-      {/* Sprig-flanked rule */}
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, margin: '12px 0 6px' }}>
-        <span style={{ width: 50, height: 1, background: accent, opacity: 0.5 }} />
-        <Sparkle size={10} color={accent} />
-        <span style={{ width: 50, height: 1, background: accent, opacity: 0.5 }} />
-      </div>
-
-      {/* Date + place */}
-      <div style={{ fontSize: 12, letterSpacing: '0.04em', color: ink, opacity: 0.7 }}>
-        {dateLabel} · {placeLabel}
-      </div>
-
-      {/* Footer hint — derived from the card's own ground, not the
-          page's --ink-muted (which flips light in dark mode and
-          vanished against light palette grounds). */}
-      <div
-        style={{
-          marginTop: 14,
-          fontSize: 11,
-          color: ink,
-          opacity: 0.55,
-          fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-          letterSpacing: '0.06em',
-        }}
-      >
-        Updates as you pick.
-      </div>
-    </div>
-  );
-}
-
 // Inline tips per step — replaces the floating PearHelper sidebar.
 // Each step can opt in by reading STEP_TIPS[step] and rendering it
 // as a single low-key line under the question heading.
@@ -1890,6 +1752,120 @@ const STEP_TIPS: Record<StepKey, string> = {
   Palette: 'Pick what you love — Pear builds matching gradients + accents.',
   Review: 'Nothing is public until you publish. Keep editing as long as you like.',
 };
+
+// Occasion → brand-Motif name. Maps each of our occasions onto one
+// of the 14 line-ornaments so the live preview + occasion tiles wear
+// a motif in the brand's single hand (design system v2). Unknowns
+// fall back to 'sprig'.
+const OCCASION_MOTIF: Record<string, MotifName> = {
+  wedding: 'rings', engagement: 'rings', 'vow-renewal': 'rings',
+  anniversary: 'laurel', retirement: 'laurel',
+  'bridal-shower': 'bloom', 'bridal-luncheon': 'bloom', 'baby-shower': 'bloom',
+  'gender-reveal': 'bloom', 'sip-and-see': 'bloom', quinceanera: 'bloom',
+  'bachelor-party': 'star', 'bachelorette-party': 'star', graduation: 'star',
+  'rehearsal-dinner': 'candle', 'bar-mitzvah': 'candle', 'bat-mitzvah': 'candle',
+  'first-communion': 'candle', confirmation: 'candle',
+  'welcome-party': 'sun', brunch: 'sun', reunion: 'sun',
+  'first-birthday': 'cake', 'sweet-sixteen': 'cake', 'milestone-birthday': 'cake', birthday: 'cake',
+  baptism: 'dove', memorial: 'dove', funeral: 'dove',
+  housewarming: 'arch', story: 'feather',
+};
+function motifForOccasion(occasion: string): MotifName {
+  return OCCASION_MOTIF[occasion] ?? 'sprig';
+}
+
+// Live save-the-date preview shown beside the Look-phase steps (design
+// system v2). Mirrors the design kit's LivePreview: the real Monogram,
+// Motif, and Divider brand components, themed by the chosen palette so
+// it updates the instant the host types a name or picks colors. Colors
+// derive from the same robust ground/accent/ink chain as the inline
+// vignette, so any palette (smart, photo, or classic) reads cleanly.
+function WizardLivePreview({ st }: { st: WizardState }) {
+  const nameSpec = nameModeFor(st.occasion);
+  const couple = nameSpec.mode === 'couple';
+  const names = st.names.filter((n) => n.trim());
+  const a = names[0] || (couple ? 'Alex' : nameSpec.primaryPlaceholder);
+  const b = couple ? (names[1] || 'Jamie') : '';
+  const title = names.length ? names.join(couple ? ' & ' : ', ') : (couple ? `${a} & ${b}` : a);
+  const occLabel = OCCASIONS.find((o) => o.id === st.occasion)?.label ?? '';
+
+  const paletteColors =
+    st.paletteColors && st.paletteColors.length > 0
+      ? st.paletteColors
+      : PALETTES.find((p) => p.id === st.palette)?.colors;
+  const accentRaw = paletteColors?.[1] || 'var(--sage-deep, #5C6B3F)';
+  const ground = paletteColors?.[2] || 'var(--cream-2, #F0E8D6)';
+  const inkRaw = paletteColors?.[3] || 'var(--ink, #2A2A2A)';
+  // Same contrast guard the inline vignette uses — palettes carry no
+  // contrast guarantee, so every card color derives from the ground.
+  const groundLum = hexLuminance(ground);
+  const baseInk = groundLum == null ? 'var(--ink, #2A2A2A)' : groundLum > 0.45 ? '#2A2418' : '#F5EFE2';
+  const inkLum = hexLuminance(inkRaw);
+  const ink = groundLum != null && inkLum != null && contrastRatio(inkLum, groundLum) >= 4.5 ? inkRaw : baseInk;
+  const accentLum = hexLuminance(accentRaw);
+  const accent = groundLum == null || (accentLum != null && contrastRatio(accentLum, groundLum) >= 3)
+    ? accentRaw
+    : `color-mix(in srgb, ${accentRaw} 45%, ${baseInk})`;
+  const gold = 'var(--pl-gold, #C19A4B)';
+
+  const date = parseLocalDate(st.eventDate)?.toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric',
+  });
+
+  return (
+    <aside className="pl8-wizard-preview" style={{ position: 'sticky', top: 96, alignSelf: 'start', justifySelf: 'center' }}>
+      <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ink-muted)', textAlign: 'center', marginBottom: 10 }}>
+        Live · your site
+      </div>
+      <div
+        key={`${st.palette}${title}`}
+        className="pl-press-in"
+        style={{
+          width: 270,
+          borderRadius: 20,
+          overflow: 'hidden',
+          border: '1px solid var(--line)',
+          boxShadow: 'var(--pl-shadow-xl, 0 24px 60px -22px rgba(40,28,12,0.4))',
+          background: ground,
+        }}
+      >
+        <div style={{ padding: '30px 22px 22px', textAlign: 'center', position: 'relative' }}>
+          <div style={{ position: 'absolute', top: 12, right: 12, opacity: 0.5 }}>
+            <BrandMotif name={motifForOccasion(st.occasion)} size={26} color={accent} accent={gold} />
+          </div>
+          <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase', color: accent, marginBottom: 10, opacity: 0.85 }}>
+            Save the date
+          </div>
+          <Monogram
+            left={(a[0] || 'M').toUpperCase()}
+            right={(b[0] || 'J').toUpperCase()}
+            single={!couple}
+            frame="ring"
+            size={70}
+            ink={ink}
+            accent={accent}
+            paper={ground}
+          />
+          <div className="display" style={{ fontWeight: 600, fontSize: 22, lineHeight: 1.05, color: ink, marginTop: 10 }}>{title}</div>
+          {occLabel && (
+            <div style={{ fontFamily: 'var(--font-display, Fraunces, serif)', fontStyle: 'italic', fontSize: 13, color: accent, marginTop: 4 }}>{occLabel}</div>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
+            <BrandDivider ornament={getEventType(st.occasion)?.voice === 'solemn' ? 'cross' : 'sprig'} width="90px" ink={accent} accent={gold} color={`${accent}33`} />
+          </div>
+          <div style={{ fontSize: 10, color: ink, opacity: 0.6, fontFamily: 'var(--font-mono, ui-monospace, monospace)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+            {date || 'The date'}
+          </div>
+        </div>
+        <div style={{ padding: 12, borderTop: `1px solid ${accent}22` }}>
+          <div style={{ padding: '9px', borderRadius: 999, background: accent, color: ground, textAlign: 'center', fontSize: 11.5, fontWeight: 600 }}>
+            Press RSVP →
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
 
 export function WizardV8() {
   const router = useRouter();
@@ -2059,6 +2035,8 @@ export function WizardV8() {
   const [generatedTagline, setGeneratedTagline] = useState<string>('');
   const [taglineState, setTaglineState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
   const step = STEPS[stepIndex];
+  // Look-phase steps (Vibe/Palette) get the live save-the-date preview.
+  const isLook = step === 'Vibe' || step === 'Palette';
 
   // ── "From your photos" palette ──────────────────────────────
   // Client-side extraction from the host's first uploaded photo
@@ -2760,16 +2738,19 @@ export function WizardV8() {
       </header>
 
       <div
-        className="pl8-wizard-canvas"
+        className={`pl8-wizard-canvas${isLook ? ' is-look' : ''}`}
         style={{
-          // Centered single-column letterpress feel — generous left
-          // and right margins so each question reads like its own
-          // page, no sidebar to fight with.
-          maxWidth: 760,
+          // Single-column letterpress feel; on the Look steps it becomes
+          // a two-column layout with the live save-the-date preview
+          // beside the controls (collapses to one column on mobile).
+          maxWidth: isLook ? 1060 : 760,
           margin: '0 auto',
           padding: '40px 32px 80px',
           position: 'relative',
           zIndex: 2,
+          ...(isLook
+            ? { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: 48, alignItems: 'start' }
+            : {}),
         }}
       >
         <div>
@@ -2874,7 +2855,7 @@ export function WizardV8() {
                   voice with the iridescent pearl (design system v2),
                   replacing the pill chip. */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 18 }}>
-                <PearlDot size={11} />
+                <Pearl size={11} iridescent />
                 <span
                   className="display-italic"
                   style={{ fontSize: 14.5, color: 'var(--pl-olive, #5C6B3F)', lineHeight: 1.4 }}
@@ -3344,13 +3325,8 @@ export function WizardV8() {
                     Set the <span className="display-italic" style={{ color: 'var(--pl-olive, #5C6B3F)' }}>vibe.</span>
                   </h2>
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 18px' }}>
-                    Pick 2–4. Your vibes shape tone, language, and flow.
+                    Tap a few. The type and palette follow your mood.
                   </p>
-                  {/* Live "Your site" vignette — confirms the host's
-                      choices coalesce into something real. Mirrors the
-                      prototype's right-rail SiteVignette in a centered
-                      inline ribbon. */}
-                  <WizardLiveVignette st={st} />
                   {/* Live counter so the host knows how close to the
                       2-vibe floor they are. Plum when at 0–1 (can't
                       continue), sage when ≥2 (good to go). */}
@@ -3369,7 +3345,10 @@ export function WizardV8() {
                       ? 'Pick at least 2 to continue'
                       : `${st.vibes.length} of 4 selected${st.vibes.length === 1 ? ' — one more to continue' : ''}`}
                   </p>
-                  <div className="pl-cascade-row" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  {/* Each chip wears its own vibe — the typography IS the
+                      preview (design system v2). Picked = olive fill,
+                      cream ink; unpicked = paper card. */}
+                  <div className="pl-cascade-row" style={{ display: 'flex', gap: 9, flexWrap: 'wrap' }}>
                     {vibesForOccasion(st.occasion).map((v) => {
                       const on = st.vibes.includes(v.id);
                       return (
@@ -3377,17 +3356,19 @@ export function WizardV8() {
                           key={v.id}
                           type="button"
                           onClick={() => toggleVibe(v.id)}
-                          className="chip"
+                          className="wz-chip"
                           style={{
-                            background: on ? 'var(--sage-deep)' : TONE_BG[v.tone],
-                            color: on ? 'var(--cream)' : TONE_INK[v.tone],
-                            border: 'none',
-                            padding: '12px 20px',
-                            fontSize: 14,
-                            fontWeight: 600,
+                            background: on ? 'var(--pl-olive, #5C6B3F)' : 'var(--pl-cream-card, #FBF7EE)',
+                            color: on ? 'var(--pl-cream, #FBF7EE)' : 'var(--pl-ink, #2A2A2A)',
+                            border: `1px solid ${on ? 'var(--pl-olive, #5C6B3F)' : 'var(--line)'}`,
+                            padding: '9px 16px',
+                            borderRadius: 999,
+                            cursor: 'pointer',
+                            transform: `rotate(${VIBE_TILT[v.id] ?? 0}deg)`,
+                            ...VIBE_FACE[v.id],
                           }}
                         >
-                          <span>{v.icon}</span> {v.label}
+                          {v.label}
                         </button>
                       );
                     })}
@@ -3403,10 +3384,9 @@ export function WizardV8() {
                   <p style={{ color: 'var(--ink-soft)', fontSize: 15, margin: '0 0 18px' }}>
                     Pear read your venue and vibes and mixed three color sets just for you — or pick a classic below.
                   </p>
-                  {/* Live preview — re-renders the moment a palette is
-                      tapped so the host sees how their names land in
-                      the chosen colours before continuing. */}
-                  <WizardLiveVignette st={st} />
+                  {/* The live save-the-date preview in the right rail
+                      re-renders the moment a palette is tapped, so the
+                      host sees their names in the chosen colours. */}
 
                   {/* ── Smart palettes header ──────────────────── */}
                   <div
@@ -3735,7 +3715,7 @@ export function WizardV8() {
                   </div>
                   <div
                     className="pl8-palette-grid pl-cascade-row"
-                    style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}
+                    style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}
                   >
                     {PALETTES.map((p) => {
                       const on = st.palette === p.id;
@@ -3755,50 +3735,26 @@ export function WizardV8() {
                             autoAdvance();
                           }}
                           style={{
-                            padding: 14,
-                            borderRadius: 14,
-                            background: 'var(--card)',
-                            border: on ? '2px solid var(--ink)' : '1.5px solid var(--line)',
                             display: 'flex',
-                            flexDirection: 'column',
+                            alignItems: 'center',
                             gap: 10,
+                            padding: '10px 12px',
+                            borderRadius: 12,
+                            background: 'var(--card)',
+                            border: on ? '1px solid var(--pl-gold, #C19A4B)' : '1px solid var(--line)',
+                            boxShadow: on ? '0 0 0 2px var(--pl-gold-soft, #EAD9B0)' : 'none',
                             cursor: 'pointer',
-                            position: 'relative',
                             textAlign: 'left',
+                            transition: 'box-shadow 160ms ease, border-color 160ms ease',
                           }}
                         >
-                          {on && (
-                            <div
-                              style={{
-                                position: 'absolute',
-                                top: 8,
-                                right: 8,
-                                width: 20,
-                                height: 20,
-                                borderRadius: '50%',
-                                background: 'var(--ink)',
-                                display: 'grid',
-                                placeItems: 'center',
-                              }}
-                            >
-                              <Icon name="check" size={10} color="#fff" strokeWidth={3} />
-                            </div>
-                          )}
-                          <div style={{ display: 'flex', gap: 4 }}>
+                          {/* Continuous swatch strip (design system v2). */}
+                          <span style={{ display: 'flex', height: 30, borderRadius: 7, overflow: 'hidden', flex: 1 }}>
                             {p.colors.map((c, i) => (
-                              <div
-                                key={i}
-                                style={{
-                                  width: 30,
-                                  height: 30,
-                                  borderRadius: '50%',
-                                  background: c,
-                                  border: '1.5px solid rgba(255,255,255,0.4)',
-                                }}
-                              />
+                              <span key={i} style={{ flex: 1, background: c }} />
                             ))}
-                          </div>
-                          <div style={{ fontSize: 13, fontWeight: 600 }}>{p.name}</div>
+                          </span>
+                          <span style={{ fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap' }}>{p.name}</span>
                         </button>
                       );
                     })}
@@ -4284,22 +4240,23 @@ export function WizardV8() {
                 {step !== 'Review' ? (
                   <button
                     type="button"
-                    className="btn btn-primary"
+                    className="btn btn-pearl"
                     disabled={!canContinue}
                     onClick={() => setStepIndex((i) => nextStepIndex(i))}
                   >
-                    Continue <Icon name="arrow-right" size={14} />
+                    Continue <Pearl size={8} />
                   </button>
                 ) : (
-                  <button type="button" className="btn btn-primary btn-lg" disabled={!canContinue || busy} onClick={handleFinish}>
-                    {busy ? 'Weaving your site…' : 'Build my site'}
-                    <Pear size={14} tone="cream" shadow={false} />
+                  <button type="button" className="btn btn-pearl btn-lg" disabled={!canContinue || busy} onClick={handleFinish}>
+                    {busy ? 'Weaving your site…' : 'Weave my site'}
+                    <Pearl size={9} />
                   </button>
                 )}
               </div>
             </div>
           </Reveal>
         </div>
+        {isLook && <WizardLivePreview st={st} />}
       </div>
 
       {fittingOpen && (() => {
