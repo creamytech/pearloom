@@ -8,8 +8,8 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { Icon, Pear, PearloomLogo, Sparkle, Sprig } from '../motifs';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { Icon, Pear, PearloomLogo, PearlDot, Sparkle, Sprig } from '../motifs';
 import { OccasionGlyph } from '../icons/OccasionGlyph';
 import { Motif, type MotifKind } from '../site/MotifScatter';
 import { Reveal } from '../motion';
@@ -864,17 +864,21 @@ function OccasionPicker({
         // Hover host — bespoke glyph anims fire on parent hover.
         className="pl8-glyph-host"
         style={{
+          // Design system v2: card-style tile — glyph chip on top, label
+          // below (was a compact row). Matches the wizard prototype.
           position: 'relative',
-          padding: 14,
-          borderRadius: 14,
+          padding: 16,
+          borderRadius: 16,
           border: on
             ? '2px solid var(--pl-olive, #5C6B3F)'
             : '1px solid var(--line)',
           background: on ? 'var(--pl-olive-mist, #E0DDC9)' : 'var(--card)',
           boxShadow: on ? '0 0 0 4px var(--pl-olive-12, rgba(92,107,63,0.12))' : 'none',
           display: 'flex',
-          alignItems: 'center',
-          gap: 12,
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          gap: 10,
+          minHeight: 94,
           cursor: 'pointer',
           textAlign: 'left',
           fontFamily: 'var(--font-ui)',
@@ -889,19 +893,22 @@ function OccasionPicker({
       >
         <div
           style={{
-            width: 38,
-            height: 38,
+            width: 40,
+            height: 40,
             borderRadius: 12,
             flexShrink: 0,
-            background: TONE_BG[o.tone],
+            // Chip inverts to olive on select (cream glyph) — the
+            // prototype's selected-tile signature.
+            background: on ? 'var(--pl-olive, #5C6B3F)' : TONE_BG[o.tone],
             display: 'grid',
             placeItems: 'center',
-            color: glyphColor,
+            color: on ? 'var(--cream, #FDFAF0)' : glyphColor,
+            transition: 'background 160ms ease, color 160ms ease',
           }}
         >
-          <OccasionGlyph id={o.id} size={20} />
+          <OccasionGlyph id={o.id} size={24} />
         </div>
-        <div className="display" style={{ fontSize: 14.5 }}>
+        <div className="display" style={{ fontSize: 15.5, color: 'var(--ink)' }}>
           {o.label}
         </div>
         {isIntent && (
@@ -1008,7 +1015,7 @@ function OccasionPicker({
           </div>
           <div
             className="pl8-occasion-grid pl-cascade-row"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 16 }}
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10, marginBottom: 16 }}
           >
             {popular.map(tile)}
           </div>
@@ -1050,7 +1057,7 @@ function OccasionPicker({
                 >
                   {CATEGORY_LABELS[cat]}
                 </div>
-                <div className="pl8-occasion-grid pl-cascade-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+                <div className="pl8-occasion-grid pl-cascade-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
                   {items.map(tile)}
                 </div>
               </div>
@@ -1060,7 +1067,7 @@ function OccasionPicker({
       )}
 
       {filtered !== null && (
-        <div className="pl8-occasion-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+        <div className="pl8-occasion-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
           {filtered.length === 0 ? (
             <div
               style={{
@@ -1606,11 +1613,8 @@ function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: St
   // Map the 8 steps into 4 phases. Hidden-step ranges (template
   // skips Vibe/Palette/Layout) collapse the Look phase down so
   // the progress thread reads accurately.
-  const visibleSteps = STEPS.filter((s) => !(hiddenSteps ?? []).includes(s));
-  const totalVisible = visibleSteps.length;
-  const visibleIndex = visibleSteps.indexOf(STEPS[active]);
-  const completed = Math.max(0, visibleIndex);
-  const fraction = totalVisible > 1 ? completed / (totalVisible - 1) : 0;
+  const hidden = hiddenSteps ?? [];
+  const phases = PHASES.filter((p) => p.steps.some((s) => !hidden.includes(s)));
 
   const currentPhase = phaseFor(STEPS[active]);
   // Step number within the active phase (e.g. Story · 2 of 3).
@@ -1657,57 +1661,54 @@ function PhaseHeader({ active, hiddenSteps }: { active: number; hiddenSteps?: St
           {phasePosition} · {STEPS[active] === 'Palette' ? 'Colors' : STEPS[active]}
         </span>
       </div>
-      {/* Single thread fills as the user moves through every step
-          (not just phase transitions) so each click feels like
-          progress. Olive + gold gradient matches Pearloom's
-          loom-shuttle motion language. */}
-      <div
-        aria-hidden
-        style={{
-          height: 2,
-          width: '100%',
-          background: 'var(--line-soft)',
-          borderRadius: 999,
-          overflow: 'hidden',
-          position: 'relative',
-        }}
-      >
-        <div
-          style={{
-            height: '100%',
-            width: `${Math.round(fraction * 100)}%`,
-            background:
-              'linear-gradient(90deg, var(--ink-soft) 0%, var(--pl-olive, #5C6B3F) 70%, var(--gold, #C19A4B) 100%)',
-            borderRadius: 999,
-            transition: 'width 360ms cubic-bezier(0.22, 1, 0.36, 1)',
-          }}
-        />
-      </div>
-      {/* Phase track — small dots per phase showing which phases
-          are done, current, upcoming. Subtle so it doesn't compete
-          with the active phase header above. */}
-      <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginTop: 2 }}>
-        {PHASES.map((p) => {
-          const phaseStepsAll = p.steps.filter((s) => !(hiddenSteps ?? []).includes(s));
-          if (phaseStepsAll.length === 0) return null;
+      {/* Woven progress thread — a node per phase; the gold strand
+          draws in between completed phases (design system v2). */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginTop: 4 }} aria-hidden>
+        {phases.map((p, i) => {
+          const phaseStepsAll = p.steps.filter((s) => !hidden.includes(s));
           const phaseDone = phaseStepsAll.every((s) => STEPS.indexOf(s) < active);
           const phaseCur = p.key === currentPhase;
           return (
-            <div
-              key={p.key}
-              title={p.key}
-              style={{
-                flex: phaseStepsAll.length,
-                height: 4,
-                borderRadius: 999,
-                background: phaseDone
-                  ? 'var(--ink-soft)'
-                  : phaseCur
-                    ? 'var(--pl-olive, #5C6B3F)'
-                    : 'var(--line-soft)',
-                transition: 'background-color 280ms ease',
-              }}
-            />
+            <Fragment key={p.key}>
+              <div
+                title={p.key}
+                style={{
+                  width: phaseCur ? 11 : 9,
+                  height: phaseCur ? 11 : 9,
+                  borderRadius: '50%',
+                  flexShrink: 0,
+                  background: phaseDone || phaseCur ? 'var(--pl-olive, #5C6B3F)' : 'var(--cream-3, #EDE7DA)',
+                  border: phaseCur ? '2px solid var(--card, #fff)' : '1.5px solid var(--line-soft)',
+                  outline: phaseCur ? '2px solid var(--pl-olive, #5C6B3F)' : 'none',
+                  transition: 'all 280ms cubic-bezier(0.22,1,0.36,1)',
+                }}
+              />
+              {i < phases.length - 1 && (
+                <div
+                  style={{
+                    flex: 1,
+                    height: 2,
+                    margin: '0 6px',
+                    minWidth: 16,
+                    background: 'var(--line-soft)',
+                    borderRadius: 999,
+                    overflow: 'hidden',
+                    position: 'relative',
+                  }}
+                >
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'var(--gold, #C19A4B)',
+                      transform: `scaleX(${phaseDone ? 1 : 0})`,
+                      transformOrigin: 'left',
+                      transition: 'transform 360ms cubic-bezier(0.22,1,0.36,1)',
+                    }}
+                  />
+                </div>
+              )}
+            </Fragment>
           );
         })}
       </div>
@@ -2869,24 +2870,17 @@ export function WizardV8() {
                 padding: '8px 0 0',
               }}
             >
-              {/* One-line inline tip — replaces the floating PearHelper
-                  sidebar. Reads as a small note under the question, not
-                  a competing column of advice. */}
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  marginBottom: 18,
-                  padding: '6px 12px',
-                  borderRadius: 999,
-                  background: 'var(--pl-olive-mist, #E0DDC9)',
-                  color: 'var(--pl-ink-soft, #3A332C)',
-                  fontSize: 12,
-                }}
-              >
-                <Pear size={14} tone="sage" shadow={false} />
-                <span style={{ lineHeight: 1.4 }}>{STEP_TIPS[step]}</span>
+              {/* Pear's running commentary — a quiet italic line in Pear's
+                  voice with the iridescent pearl (design system v2),
+                  replacing the pill chip. */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 18 }}>
+                <PearlDot size={11} />
+                <span
+                  className="display-italic"
+                  style={{ fontSize: 14.5, color: 'var(--pl-olive, #5C6B3F)', lineHeight: 1.4 }}
+                >
+                  {STEP_TIPS[step]}
+                </span>
               </div>
 
               {step === 'Occasion' && (
