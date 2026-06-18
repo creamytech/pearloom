@@ -20,7 +20,10 @@ export default async function globalSetup(config: FullConfig) {
 
   mkdirSync(path.dirname(STORAGE_PATH), { recursive: true });
 
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({
+    // Match the config: allow a preinstalled Chromium via env.
+    executablePath: process.env.PW_EXECUTABLE_PATH || undefined,
+  });
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
 

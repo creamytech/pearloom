@@ -42,6 +42,12 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     actionTimeout: 10_000,
     navigationTimeout: 20_000,
+    // Point at a preinstalled Chromium when Playwright's own browser
+    // download is unavailable (sandboxed CI / container images). Unset
+    // → Playwright uses its managed browser as usual.
+    ...(process.env.PW_EXECUTABLE_PATH
+      ? { launchOptions: { executablePath: process.env.PW_EXECUTABLE_PATH } }
+      : {}),
   },
 
   globalSetup: './e2e/global-setup.ts',
