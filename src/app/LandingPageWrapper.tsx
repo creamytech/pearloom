@@ -57,6 +57,22 @@ function ThreadDivider() {
 export default function LandingPageWrapper() {
   const router = useRouter();
   const onGetStarted = useCallback(() => {
+    // The signature weave: two paper panels close, olive + gold threads
+    // draw the seam, and we navigate under the cover — the brand's
+    // momentous page-transition (BRAND §6), reserved for this one
+    // conversion moment (not per-step, which would be tedious).
+    // Reduced-motion or a missing engine falls straight through to an
+    // instant push, so the CTA always works.
+    const motion = (window as Window & {
+      PearloomMotion?: {
+        weave?: (onPeak: () => void, opts?: { duration?: number }) => void;
+        reduced?: boolean;
+      };
+    }).PearloomMotion;
+    if (motion?.weave && !motion.reduced) {
+      motion.weave(() => router.push('/wizard/new'), { duration: 520 });
+      return;
+    }
     router.push('/wizard/new');
   }, [router]);
 
