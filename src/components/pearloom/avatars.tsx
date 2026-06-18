@@ -1,13 +1,14 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// Pearloom / components/pearloom/avatars.tsx — the orchard marks.
+// Pearloom / components/pearloom/avatars.tsx — the account marks.
 //
-// Twelve hand-drawn SVG avatars users pick as their account mark
-// (Settings → Account → "Your mark"). Pear-house iconography —
-// pears, sprigs, thread, wax seals, lanterns — in the dashboard
-// tint families. No photos required, no generated faces, nothing
-// that reads "AI startup" (BRAND.md §10).
+// An animal-persona menagerie users pick as their account mark
+// (Settings → Account → "Your mark"). Eighteen creatures drawn in
+// the Pearloom single-stroke hand — round caps, fill:none, ink-dot
+// eyes, a single gold pearl on the nose/beak as the brand signature
+// — over the dashboard tint families. No photos, no generated
+// faces, nothing that reads "AI startup" (BRAND.md §10).
 //
 //   PL_AVATARS        — the registry (id, label, tint, glyph)
 //   <PlAvatar />      — renders one mark at any size
@@ -28,253 +29,90 @@ interface AvatarDef {
   glyph: ReactNode;
 }
 
-/* Tint families — dashboard palette hexes as fallbacks so the
-   marks read correctly outside the themed shell (emails later). */
-const SAGE = '#5C6B3F';
-const SAGE_DEEP = '#3D4A1F';
-const GOLD = '#C19A4B';
-const TERRA = '#C6703D';
-const LAVENDER = '#6B5A8C';
-const PLUM = '#7A2D2D';
-const CREAM = '#FDFAF0';
-const MIDNIGHT = '#2A2722';
+/* Tint families (design system v2 "Your Mark"): bg wash, stroke ink,
+   accent for the pearl. Hexes are fixed so the marks read correctly
+   anywhere — picker tiles, chrome, emails later. */
+const T = {
+  sage:  { bg: '#E7E5D3', ink: '#586A3C', acc: '#B8923F' },
+  cream: { bg: '#F3EAD6', ink: '#6F6557', acc: '#B8923F' },
+  peach: { bg: '#F1DECE', ink: '#BB6A39', acc: '#B8923F' },
+  rose:  { bg: '#F0DCD6', ink: '#C0543B', acc: '#B8923F' },
+  gold:  { bg: '#EFE4CB', ink: '#9A7838', acc: '#586A3C' },
+  night: { bg: '#292B21', ink: '#EFE9DA', acc: '#D4B373' },
+} as const;
+type Tint = keyof typeof T;
 
-const SAGE_BG = '#E4E2CC';
-const GOLD_BG = '#F2E6CC';
-const TERRA_BG = '#F4E3D3';
-const LAVENDER_BG = '#E8E0F0';
-const PLUM_BG = '#EDD9D9';
-const MIDNIGHT_BG = '#34302A';
+/* The menagerie, in the single-stroke hand. Each (ink, acc) → the
+   inner SVG content of a 48×48 mark (paths inherit the wrapper's
+   stroke; eyes/nose are ink/accent dots). Ported verbatim from the
+   design system's "Your Mark" card. */
+const G: Record<string, (k: string, a: string) => string> = {
+  fox: (k, a) =>
+    `<path d="M13 16 L15.5 4 L23 13"/><path d="M35 16 L32.5 4 L25 13"/><path d="M13 15 C 11 25 16 32 24 39 C 32 32 37 25 35 15"/><path d="M17.5 21 L24 27 L30.5 21"/><circle cx="18.5" cy="19.5" r="1.5" fill="${k}" stroke="none"/><circle cx="29.5" cy="19.5" r="1.5" fill="${k}" stroke="none"/><circle cx="24" cy="30" r="1.8" fill="${a}" stroke="none"/>`,
+  bear: (k, a) =>
+    `<circle cx="14" cy="13" r="5"/><circle cx="34" cy="13" r="5"/><path d="M11 20 C 9 30 15 39 24 39 C 33 39 39 30 37 20 C 35 14 29 11 24 11 C 19 11 13 14 11 20 Z"/><path d="M19 27 C 21 31 27 31 29 27"/><circle cx="18" cy="22" r="1.5" fill="${k}" stroke="none"/><circle cx="30" cy="22" r="1.5" fill="${k}" stroke="none"/><circle cx="24" cy="26" r="1.9" fill="${a}" stroke="none"/>`,
+  cat: (k, a) =>
+    `<path d="M13 18 L13 6 L23 13"/><path d="M35 18 L35 6 L25 13"/><path d="M13 16 C 11 26 16 34 24 38 C 32 34 37 26 35 16"/><circle cx="18" cy="22" r="1.4" fill="${k}" stroke="none"/><circle cx="30" cy="22" r="1.4" fill="${k}" stroke="none"/><circle cx="24" cy="27" r="1.5" fill="${a}" stroke="none"/><path d="M16 28 L7 26 M16 30.5 L7 31 M32 28 L41 26 M32 30.5 L41 31"/>`,
+  hare: (k, a) =>
+    `<path d="M18 21 C 14 12 14 4 17 3 C 20 4 20 13 20 21"/><path d="M30 21 C 34 12 34 4 31 3 C 28 4 28 13 28 21"/><path d="M15 23 C 13 31 17 39 24 39 C 31 39 35 31 33 23 C 31 18 28 17 24 17 C 20 17 17 18 15 23 Z"/><circle cx="19" cy="27" r="1.4" fill="${k}" stroke="none"/><circle cx="29" cy="27" r="1.4" fill="${k}" stroke="none"/><circle cx="24" cy="31" r="1.6" fill="${a}" stroke="none"/><path d="M24 32.5 L24 35"/>`,
+  deer: (k, a) =>
+    `<path d="M18 14 C 14 9 13 5 13 3 M18 13 C 14 11 11 11 9 12 M14 8.5 C 11.5 8 9.5 8.5 8.5 9.5"/><path d="M30 14 C 34 9 35 5 35 3 M30 13 C 34 11 37 11 39 12 M34 8.5 C 36.5 8 38.5 8.5 39.5 9.5"/><path d="M17 17 C 14 23 16 31 24 39 C 32 31 34 23 31 17 C 29 14 27 13 24 13 C 21 13 19 14 17 17 Z"/><circle cx="19.5" cy="22" r="1.4" fill="${k}" stroke="none"/><circle cx="28.5" cy="22" r="1.4" fill="${k}" stroke="none"/><circle cx="24" cy="31" r="1.7" fill="${a}" stroke="none"/>`,
+  owl: (k, a) =>
+    `<path d="M11 16 C 8 8 14 5 17 10"/><path d="M37 16 C 40 8 34 5 31 10"/><path d="M12 19 C 10 31 16 40 24 40 C 32 40 38 31 36 19 C 33 12 28 10 24 10 C 20 10 15 12 12 19 Z"/><circle cx="18" cy="22" r="4"/><circle cx="30" cy="22" r="4"/><circle cx="18" cy="22" r="1.5" fill="${k}" stroke="none"/><circle cx="30" cy="22" r="1.5" fill="${k}" stroke="none"/><path d="M24 25 L21 28.5 L24 30.5 L27 28.5 Z" fill="${a}" stroke="${a}"/><path d="M16 34 q 8 5 16 0"/>`,
+  mouse: (k, a) =>
+    `<circle cx="13" cy="14" r="7"/><circle cx="35" cy="14" r="7"/><path d="M14 22 C 12 31 17 39 24 39 C 31 39 36 31 34 22 C 32 17 28 16 24 16 C 20 16 16 17 14 22 Z"/><circle cx="19" cy="25" r="1.3" fill="${k}" stroke="none"/><circle cx="29" cy="25" r="1.3" fill="${k}" stroke="none"/><circle cx="24" cy="30" r="1.6" fill="${a}" stroke="none"/><path d="M24 31.5 L24 34"/>`,
+  dog: (k, a) =>
+    `<path d="M14 14 C 8 16 7 26 12 30 L14.5 18"/><path d="M34 14 C 40 16 41 26 36 30 L33.5 18"/><path d="M14 14 C 14 12 18 10 24 10 C 30 10 34 12 34 14 C 36 22 33 31 24 38 C 15 31 12 22 14 14 Z"/><circle cx="19" cy="21" r="1.4" fill="${k}" stroke="none"/><circle cx="29" cy="21" r="1.4" fill="${k}" stroke="none"/><path d="M20 29 q 4 4 8 0"/><circle cx="24" cy="27" r="1.9" fill="${a}" stroke="none"/>`,
+  frog: (k, a) =>
+    `<circle cx="16" cy="13" r="5"/><circle cx="32" cy="13" r="5"/><circle cx="16" cy="13" r="1.6" fill="${k}" stroke="none"/><circle cx="32" cy="13" r="1.6" fill="${k}" stroke="none"/><path d="M9 23 C 9 17 15 16 24 16 C 33 16 39 17 39 23 C 39 33 33 39 24 39 C 15 39 9 33 9 23 Z"/><path d="M16 31 q 8 6 16 0"/><circle cx="21.5" cy="23" r="1" fill="${a}" stroke="none"/><circle cx="26.5" cy="23" r="1" fill="${a}" stroke="none"/>`,
+  koala: (k, a) =>
+    `<circle cx="11" cy="15" r="6"/><circle cx="37" cy="15" r="6"/><path d="M12 18 C 11 28 16 37 24 37 C 32 37 37 28 36 18 C 34 13 29 12 24 12 C 19 12 14 13 12 18 Z"/><path d="M21 21 C 18.5 23 18.5 30 24 31.5 C 29.5 30 29.5 23 27 21 Z" fill="${a}" stroke="${a}"/><circle cx="17.5" cy="21" r="1.3" fill="${k}" stroke="none"/><circle cx="30.5" cy="21" r="1.3" fill="${k}" stroke="none"/>`,
+  panda: (k, a) =>
+    `<circle cx="13" cy="13" r="5" fill="${k}" stroke="${k}"/><circle cx="35" cy="13" r="5" fill="${k}" stroke="${k}"/><path d="M11 20 C 9 30 15 38 24 38 C 33 38 39 30 37 20 C 35 14 29 12 24 12 C 19 12 13 14 11 20 Z"/><ellipse cx="18" cy="22" rx="2.6" ry="3.6" transform="rotate(-18 18 22)" fill="${k}" stroke="${k}"/><ellipse cx="30" cy="22" rx="2.6" ry="3.6" transform="rotate(18 30 22)" fill="${k}" stroke="${k}"/><circle cx="18" cy="22" r="0.9" fill="${a}" stroke="none"/><circle cx="30" cy="22" r="0.9" fill="${a}" stroke="none"/><circle cx="24" cy="28" r="1.7" fill="${k}" stroke="none"/><path d="M21 31.5 q 3 2 6 0"/>`,
+  pig: (k, a) =>
+    `<path d="M13 16 L11 9 L18.5 13"/><path d="M35 16 L37 9 L29.5 13"/><path d="M12 18 C 10 28 16 37 24 37 C 32 37 38 28 36 18 C 33 13 28 12 24 12 C 20 12 15 13 12 18 Z"/><ellipse cx="24" cy="28" rx="6" ry="4"/><circle cx="22" cy="28" r="1" fill="${a}" stroke="none"/><circle cx="26" cy="28" r="1" fill="${a}" stroke="none"/><circle cx="18.5" cy="21" r="1.3" fill="${k}" stroke="none"/><circle cx="29.5" cy="21" r="1.3" fill="${k}" stroke="none"/>`,
+  bee: (k, a) =>
+    `<ellipse cx="24" cy="29" rx="9" ry="11"/><path d="M16.5 24 H31.5" stroke="${a}"/><path d="M15.5 30 H32.5"/><path d="M17.5 36 H30.5"/><ellipse cx="14" cy="17" rx="5" ry="7" transform="rotate(-22 14 17)"/><ellipse cx="34" cy="17" rx="5" ry="7" transform="rotate(22 34 17)"/><path d="M21 18 C 19 12 17 10 15 9"/><path d="M27 18 C 29 12 31 10 33 9"/><circle cx="15" cy="9" r="1.4" fill="${a}" stroke="none"/><circle cx="33" cy="9" r="1.4" fill="${a}" stroke="none"/>`,
+  fish: (k, a) =>
+    `<path d="M8 24 C 14 13 28 13 34 24 C 28 35 14 35 8 24 Z"/><path d="M34 24 L43 16 L41 24 L43 32 Z"/><path d="M20 16 C 18 21 18 27 20 32"/><path d="M16 34 q 5 4 10 0"/><circle cx="15" cy="21" r="1.5" fill="${k}" stroke="none"/><circle cx="27" cy="20" r="1.2" fill="${a}" stroke="none"/>`,
+  tortoise: (k, a) =>
+    `<path d="M8 31 C 8 20 15 15 24 15 C 33 15 40 20 40 31 Z"/><path d="M20 20 L28 20 L31 26 L28 31 L20 31 L17 26 Z"/><path d="M17 26 L9 27 M31 26 L39 27 M20 20 L18 16 M28 20 L30 16"/><path d="M8 29 C 3 29 1 25 3 22 C 4.5 20 8 21 8.5 24"/><circle cx="4.6" cy="24" r="0.9" fill="${k}" stroke="none"/><path d="M14 31 L12 35 M34 31 L36 35 M40 30 L43 31"/><circle cx="24" cy="25" r="1.3" fill="${a}" stroke="none"/>`,
+  snail: (k, a) =>
+    `<circle cx="29" cy="23" r="10"/><circle cx="29" cy="23" r="6"/><circle cx="29" cy="23" r="2.4"/><path d="M19 24 C 12 25 8 30 8 37 L20 37 C 22 37 22 35 22 33"/><path d="M8 37 C 6 36 5 33 6 30"/><path d="M7 30 C 6 26 5 24 4 23 M11 30 C 11 27 10 25 9 24"/><circle cx="4" cy="23" r="1.2" fill="${a}" stroke="none"/><circle cx="9" cy="24" r="1.2" fill="${a}" stroke="none"/>`,
+  robin: (k, a) =>
+    `<path d="M14 16 C 22 12 32 14 36 22 C 38 28 34 36 26 38 C 18 40 12 34 12 27 C 12 22 12 18 14 16 Z"/><path d="M12 30 L4 34 L12 37"/><path d="M20 25 q 8 1 12 7"/><circle cx="30" cy="21" r="1.4" fill="${k}" stroke="none"/><path d="M36 22 L43 23 L36 25 Z" fill="${a}" stroke="${a}"/><path d="M22 38 L22 43 M28 38 L28 43"/>`,
+  butterfly: (k, a) =>
+    `<path d="M24 13 L24 36"/><path d="M24 19 C 14 8 6 12 8 20 C 9 27 18 27 24 22 Z"/><path d="M24 19 C 34 8 42 12 40 20 C 39 27 30 27 24 22 Z"/><path d="M24 24 C 16 26 12 32 16 38 C 20 43 24 35 24 28 Z"/><path d="M24 24 C 32 26 36 32 32 38 C 28 43 24 35 24 28 Z"/><path d="M24 13 C 22 9 20 7 18 6.5"/><path d="M24 13 C 26 9 28 7 30 6.5"/><circle cx="14" cy="18" r="1.6" fill="${a}" stroke="none"/><circle cx="34" cy="18" r="1.6" fill="${a}" stroke="none"/>`,
+};
 
-/** The classic Pearloom pear silhouette + stem; leaf optional. */
-function PearGlyph({ body, leaf, x = 0, y = 0, scale = 1 }: { body: string; leaf?: string; x?: number; y?: number; scale?: number }) {
-  return (
-    <g transform={`translate(${x} ${y}) scale(${scale})`}>
-      <path
-        d="M24 14.5c-2.6 0-4.6 2-4.6 4.6 0 1.4.4 2.6 1 3.7-2.5 1.4-4.2 4-4.2 7 0 4.3 3.5 7.7 7.8 7.7s7.8-3.4 7.8-7.7c0-3-1.7-5.6-4.2-7 .6-1.1 1-2.3 1-3.7 0-2.6-2-4.6-4.6-4.6z"
-        fill={body}
+/* The menagerie in reading order (3 rows × 6): id, tint, label. */
+const MARKS: ReadonlyArray<readonly [string, Tint, string]> = [
+  ['fox', 'peach', 'Fox'], ['bear', 'sage', 'Bear'], ['cat', 'cream', 'Cat'],
+  ['hare', 'rose', 'Hare'], ['deer', 'sage', 'Deer'], ['owl', 'night', 'Owl'],
+  ['mouse', 'cream', 'Mouse'], ['dog', 'peach', 'Dog'], ['frog', 'sage', 'Frog'],
+  ['koala', 'cream', 'Koala'], ['panda', 'night', 'Panda'], ['pig', 'rose', 'Pig'],
+  ['bee', 'gold', 'Bee'], ['fish', 'cream', 'Fish'], ['tortoise', 'sage', 'Tortoise'],
+  ['snail', 'peach', 'Snail'], ['robin', 'rose', 'Robin'], ['butterfly', 'gold', 'Butterfly'],
+];
+
+export const PL_AVATARS: readonly AvatarDef[] = MARKS.map(([id, tint, label]) => {
+  const t = T[tint];
+  return {
+    id,
+    label,
+    bg: t.bg,
+    glyph: (
+      <g
+        fill="none"
+        stroke={t.ink}
+        strokeWidth={1.9}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        dangerouslySetInnerHTML={{ __html: G[id](t.ink, t.acc) }}
       />
-      <path d="M24 14.5c.2-2.2 1.6-3.8 3.6-4.5" fill="none" stroke={SAGE_DEEP} strokeWidth="1.8" strokeLinecap="round" />
-      {leaf && (
-        <ellipse cx="28.6" cy="11.6" rx="3.4" ry="1.8" fill={leaf} transform="rotate(-28 28.6 11.6)" />
-      )}
-    </g>
-  );
-}
-
-export const PL_AVATARS: readonly AvatarDef[] = [
-  {
-    id: 'pear-olive', label: 'The pear', bg: SAGE_BG,
-    glyph: <PearGlyph body={SAGE} leaf={GOLD} />,
-  },
-  {
-    id: 'pear-gold', label: 'Gilded pear', bg: LAVENDER_BG,
-    glyph: <PearGlyph body={GOLD} leaf={SAGE} />,
-  },
-  {
-    id: 'pear-terra', label: 'Sun pear', bg: TERRA_BG,
-    glyph: <PearGlyph body={TERRA} leaf={SAGE} />,
-  },
-  {
-    id: 'pear-pair', label: 'Two pears', bg: GOLD_BG,
-    glyph: (
-      <g>
-        <g transform="rotate(-10 18 28)"><PearGlyph body={SAGE} x={-7} y={4} scale={0.74} /></g>
-        <g transform="rotate(12 32 28)"><PearGlyph body={TERRA} x={9} y={4} scale={0.74} /></g>
-      </g>
     ),
-  },
-  {
-    id: 'sprig', label: 'Olive sprig', bg: SAGE_BG,
-    glyph: (
-      <g fill="none" stroke={SAGE_DEEP} strokeWidth="1.8" strokeLinecap="round">
-        <path d="M24 38c0-10 2-18 8-26" />
-        <ellipse cx="26.5" cy="20" rx="4.2" ry="2" fill={SAGE} stroke="none" transform="rotate(-38 26.5 20)" />
-        <ellipse cx="30.5" cy="15" rx="3.6" ry="1.7" fill={SAGE} stroke="none" transform="rotate(-30 30.5 15)" />
-        <ellipse cx="22.5" cy="28" rx="4.2" ry="2" fill={GOLD} stroke="none" transform="rotate(-52 22.5 28)" />
-        <circle cx="33.5" cy="11" r="1.6" fill={GOLD} stroke="none" />
-      </g>
-    ),
-  },
-  {
-    id: 'bloom', label: 'Bloom', bg: PLUM_BG,
-    glyph: (
-      <g>
-        {[0, 72, 144, 216, 288].map((a) => (
-          <ellipse key={a} cx="24" cy="17.5" rx="4" ry="6.5" fill={PLUM} opacity="0.85" transform={`rotate(${a} 24 24)`} />
-        ))}
-        <circle cx="24" cy="24" r="4.2" fill={GOLD} />
-      </g>
-    ),
-  },
-  {
-    id: 'thread', label: 'The spool', bg: GOLD_BG,
-    glyph: (
-      <g fill="none" strokeLinecap="round">
-        <rect x="17" y="14" width="14" height="20" rx="2.5" fill={CREAM} stroke={SAGE_DEEP} strokeWidth="1.6" />
-        <path d="M18 19h12M18 23h12M18 27h12" stroke={SAGE} strokeWidth="2.4" />
-        <path d="M30 23c6 0 8 4 6 8s-8 4-12 1" stroke={GOLD} strokeWidth="1.8" strokeDasharray="3 3" />
-      </g>
-    ),
-  },
-  {
-    id: 'seal', label: 'Wax seal', bg: SAGE_BG,
-    glyph: (
-      <g>
-        <path
-          d="M24 10.5c2 1.6 3.6 1 5.6.6 1 1.8 2.4 2.8 4.4 3.2-.2 2 .5 3.6 1.9 5-1 1.7-1.2 3.4-.6 5.3-1.7 1-2.7 2.5-3 4.5-2 .2-3.5 1-4.7 2.6-1.9-.7-3.7-.7-5.6 0-1.2-1.6-2.7-2.4-4.7-2.6-.3-2-1.3-3.5-3-4.5.6-1.9.4-3.6-.6-5.3 1.4-1.4 2.1-3 1.9-5 2-.4 3.4-1.4 4.4-3.2 2 .4 3.6 1 6-.6z"
-          fill={PLUM}
-        />
-        <circle cx="24" cy="24" r="9" fill="none" stroke={CREAM} strokeWidth="1.2" strokeDasharray="2 2.4" opacity="0.85" />
-        <text x="24" y="28.2" textAnchor="middle" fontSize="11" fontStyle="italic" fontFamily="Georgia, serif" fill={CREAM}>P</text>
-      </g>
-    ),
-  },
-  {
-    id: 'letter', label: 'The envelope', bg: LAVENDER_BG,
-    glyph: (
-      <g>
-        <rect x="12" y="17" width="24" height="16" rx="2" fill={CREAM} stroke={LAVENDER} strokeWidth="1.6" />
-        <path d="M12.5 18.5 24 27l11.5-8.5" fill="none" stroke={LAVENDER} strokeWidth="1.6" strokeLinecap="round" />
-        <circle cx="24" cy="25.5" r="3" fill={GOLD} />
-      </g>
-    ),
-  },
-  {
-    id: 'lantern', label: 'Paper lantern', bg: TERRA_BG,
-    glyph: (
-      <g fill="none" strokeLinecap="round">
-        <path d="M24 9v3" stroke={SAGE_DEEP} strokeWidth="1.6" />
-        <ellipse cx="24" cy="24" rx="9.5" ry="11.5" fill={TERRA} />
-        <path d="M19 13.6c-3 5.8-3 15 0 20.8M29 13.6c3 5.8 3 15 0 20.8M24 12.5v23" stroke={CREAM} strokeWidth="1.1" opacity="0.7" />
-        <rect x="20.5" y="10.5" width="7" height="3" rx="1.2" fill={SAGE_DEEP} />
-        <rect x="20.5" y="34.5" width="7" height="3" rx="1.2" fill={SAGE_DEEP} />
-        <path d="M24 38v2.5" stroke={GOLD} strokeWidth="1.6" />
-      </g>
-    ),
-  },
-  {
-    id: 'bunting', label: 'Bunting', bg: GOLD_BG,
-    glyph: (
-      <g>
-        <path d="M10 16c9 7 19 7 28 0" fill="none" stroke={SAGE_DEEP} strokeWidth="1.5" strokeLinecap="round" />
-        <path d="m14.5 19.4 3.4 7.4 2.5-6.1z" fill={TERRA} />
-        <path d="m21.5 21.6 2.6 7.8 2.6-7.8z" fill={SAGE} />
-        <path d="m28.7 20.7 2.4 6.1 3.4-7.4z" fill={LAVENDER} />
-        <circle cx="24" cy="35" r="2" fill={GOLD} />
-      </g>
-    ),
-  },
-  {
-    id: 'moon', label: 'Editorial midnight', bg: MIDNIGHT_BG,
-    glyph: (
-      <g>
-        <path d="M28 11a13 13 0 1 0 8.5 22.8A14.5 14.5 0 0 1 28 11z" fill={GOLD} opacity="0.92" />
-        <circle cx="15" cy="17" r="1.5" fill={CREAM} opacity="0.8" />
-        <circle cx="19" cy="31" r="1.1" fill={CREAM} opacity="0.6" />
-      </g>
-    ),
-  },
-  {
-    id: 'heart', label: 'Woven heart', bg: TERRA_BG,
-    glyph: (
-      <g>
-        <path d="M24 34s-9.6-5.7-9.6-12.3c0-3.1 2.5-5.4 5.5-5.4 2 0 3.6 1.1 4.1 2.8.5-1.7 2.1-2.8 4.1-2.8 3 0 5.5 2.3 5.5 5.4C33.6 28.3 24 34 24 34z" fill={TERRA} />
-        <path d="M19.5 22c2.4 1.6 6.6 1.6 9 0" fill="none" stroke={CREAM} strokeWidth="1.1" strokeLinecap="round" opacity="0.8" />
-      </g>
-    ),
-  },
-  {
-    id: 'star', label: 'North star', bg: LAVENDER_BG,
-    glyph: (
-      <g>
-        <path d="M24 11l2.8 8.9 8.9 2.8-8.9 2.8L24 35l-2.8-9.5-8.9-2.8 8.9-2.8z" fill={GOLD} />
-        <circle cx="14" cy="32" r="1.3" fill={LAVENDER} />
-        <circle cx="34" cy="14" r="1.1" fill={LAVENDER} opacity="0.7" />
-      </g>
-    ),
-  },
-  {
-    id: 'sun', label: 'Little sun', bg: GOLD_BG,
-    glyph: (
-      <g stroke={TERRA} strokeWidth="1.8" strokeLinecap="round">
-        <circle cx="24" cy="24" r="7" fill={GOLD} stroke="none" />
-        {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
-          <line key={a} x1="24" y1="9.5" x2="24" y2="13.5" transform={`rotate(${a} 24 24)`} />
-        ))}
-      </g>
-    ),
-  },
-  {
-    id: 'leaf', label: 'Single leaf', bg: SAGE_BG,
-    glyph: (
-      <g>
-        <path d="M24 12c8.5 4.5 9.5 17 0 24.5C14.5 29 15.5 16.5 24 12z" fill={SAGE} />
-        <path d="M24 14.5v20M24 21l5-3M24 27l-5-3M24 33l5-3" fill="none" stroke={CREAM} strokeWidth="1.1" strokeLinecap="round" opacity="0.75" />
-      </g>
-    ),
-  },
-  {
-    id: 'pearl', label: 'Pearl on thread', bg: GOLD_BG,
-    glyph: (
-      <g>
-        <path d="M11 18c7 5 19 5 26 0" fill="none" stroke={GOLD} strokeWidth="1.5" strokeDasharray="2.5 2.5" strokeLinecap="round" />
-        <circle cx="24" cy="28" r="6" fill={GOLD} />
-        <circle cx="21.8" cy="25.8" r="1.8" fill={CREAM} opacity="0.85" />
-      </g>
-    ),
-  },
-  {
-    id: 'mountain', label: 'The peaks', bg: MIDNIGHT_BG,
-    glyph: (
-      <g>
-        <circle cx="33" cy="15" r="3.4" fill={GOLD} opacity="0.9" />
-        <path d="M9 35l9-13.5 5.5 7 5.5-9L37 35z" fill={LAVENDER} />
-      </g>
-    ),
-  },
-  {
-    id: 'candle', label: 'Candlelight', bg: TERRA_BG,
-    glyph: (
-      <g>
-        <path d="M24 11c2.4 2.2 3.6 4.2 3.6 6.2a3.6 3.6 0 0 1-7.2 0c0-2 1.2-4 3.6-6.2z" fill={GOLD} />
-        <rect x="20.5" y="20" width="7" height="16" rx="1.6" fill={CREAM} stroke={TERRA} strokeWidth="1.4" />
-        <path d="M24 20.5v15" stroke={TERRA} strokeWidth="0.8" opacity="0.4" />
-      </g>
-    ),
-  },
-  {
-    id: 'ring', label: 'Gold ring', bg: GOLD_BG,
-    glyph: (
-      <g>
-        <circle cx="24" cy="28" r="8" fill="none" stroke={GOLD} strokeWidth="2.6" />
-        <path d="M20 19l4-5 4 5z" fill={CREAM} stroke={GOLD} strokeWidth="1.2" strokeLinejoin="round" />
-        <circle cx="24" cy="14.5" r="2.6" fill={CREAM} stroke={GOLD} strokeWidth="1.2" />
-      </g>
-    ),
-  },
-  {
-    id: 'book', label: 'Bound book', bg: PLUM_BG,
-    glyph: (
-      <g>
-        <path d="M24 17c-3.2-1.8-7.5-1.8-11-.6v17.4c3.5-1.2 7.8-1.2 11 .6 3.2-1.8 7.5-1.8 11-.6V16.4c-3.5-1.2-7.8-1.2-11 .6z" fill={PLUM} />
-        <path d="M24 17v17.4" stroke={CREAM} strokeWidth="1.2" />
-        <path d="M17 21.5c1.8-.5 3.6-.6 5-.3M17 25.5c1.8-.5 3.6-.6 5-.3" stroke={CREAM} strokeWidth="1" opacity="0.7" fill="none" strokeLinecap="round" />
-      </g>
-    ),
-  },
-  {
-    id: 'tulip', label: 'Tulip', bg: LAVENDER_BG,
-    glyph: (
-      <g>
-        <path d="M24 36V23" stroke={SAGE_DEEP} strokeWidth="1.8" strokeLinecap="round" />
-        <path d="M17 23c0-5.5 3.2-9.8 7-12 3.8 2.2 7 6.5 7 12-2.3 1.4-4.7 1.4-7-.8-2.3 2.2-4.7 2.2-7 .8z" fill={LAVENDER} />
-        <path d="M24 11.5v11.5" stroke={CREAM} strokeWidth="1" opacity="0.6" />
-        <ellipse cx="29.5" cy="30.5" rx="3.6" ry="1.7" fill={SAGE} transform="rotate(20 29.5 30.5)" />
-      </g>
-    ),
-  },
-] as const;
+  };
+});
 
 export type AvatarId = (typeof PL_AVATARS)[number]['id'];
 
