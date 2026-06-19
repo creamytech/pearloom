@@ -326,8 +326,30 @@ export interface StoryManifest {
    *    'none' (plain initials). */
   monogram?: {
     initials?: string;
-    frame?: 'ring' | 'diamond' | 'laurel' | 'none';
+    /** Frame treatment. The renderer (site/Monogram) supports the full
+     *  MonogramFrame union (ring, diamond, laurel, none, shield, oval,
+     *  arch, sprig, seal, wreath, halo, …); typed loose here to avoid a
+     *  component→types import cycle. The Theme panel's Ornaments picker
+     *  and the Decor Library both write it. */
+    frame?: string;
   };
+  /** Section-divider ornament (manifest-level override of the theme's
+   *  default). Read by ThemedSite as `dividerLook` → <KDivider>. Built-in
+   *  looks: sprig, thread, vine, wave, dot, diamond, brush, deckle,
+   *  arrow, seal, bow. Design-system v2 brand ornaments are prefixed
+   *  `pl-` (pl-fleuron, pl-pearl, pl-sprig, pl-diamond, pl-infinity,
+   *  pl-sun, pl-cross) and render via the brand <Divider>. Set by the
+   *  Theme panel's Ornaments picker. */
+  dividerLook?: string;
+  /** Section motif mark. Read by ThemedSite as `motifKind` → <MotifLayer>
+   *  / <MotifScatter>. Built-in botanical kinds (olive, bloom, laurel,
+   *  rose, dove, …) plus design-system v2 brand line-ornaments prefixed
+   *  `pl-` (pl-sprig, pl-rings, pl-laurel, pl-cake, …) which render via
+   *  the brand <Motif>. Set by the Theme panel's Ornaments picker. */
+  motifKind?: string;
+  /** Where motif marks live across sections — read by ThemedSite →
+   *  <MotifLayer>. Set by the Theme panel's Ornaments picker. */
+  motifLayout?: 'scattered' | 'corners' | 'margins' | 'dividers' | 'crest' | 'none';
   /** The Sealed Arrival — how the published site opens the first
    *  time a guest taps the link (ArrivalReveal, mounted by
    *  PublishedSiteShell; host control in the editor's Share panel).

@@ -38,6 +38,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { CSSProperties } from 'react';
+import { Motif as BrandMotif, MOTIF_NAMES } from '@/components/brand/Motif';
 
 export type MotifKind =
   | 'olive'
@@ -1058,6 +1059,24 @@ export function DiscoMotif({ size = 30, color = MOTIF_COLOR, gold = 'var(--t-gol
 }
 
 export function Motif({ kind, size, style }: { kind: MotifKind; size?: number; style?: CSSProperties }) {
+  /* Design-system v2 brand line-ornaments arrive prefixed `pl-`
+     (e.g. 'pl-rings'), set by the Theme panel's Ornaments picker.
+     Render them with the brand <Motif>, themed to the live site
+     accent + gold so they sit in the same hand as the botanicals. */
+  if (typeof kind === 'string' && kind.startsWith('pl-')) {
+    const name = kind.slice(3);
+    if ((MOTIF_NAMES as string[]).includes(name)) {
+      return (
+        <BrandMotif
+          name={name}
+          size={size ?? 48}
+          color="var(--t-accent, var(--pl-olive))"
+          accent="var(--t-gold, var(--pl-gold))"
+          style={style}
+        />
+      );
+    }
+  }
   switch (kind) {
     case 'olive':
       return <OliveSprig size={size} style={style} />;

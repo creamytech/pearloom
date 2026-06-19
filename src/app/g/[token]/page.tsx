@@ -35,6 +35,7 @@ import { DayOfBanner } from '@/components/pearloom/site/DayOfBanner';
 import { PassportSections } from '@/components/pearloom/passport/PassportSections';
 import { GuestPhaseStrip } from '@/components/pearloom/passport/GuestPhaseStrip';
 import { TextureFilters } from '@/components/pearloom/site/TextureFilters';
+import type { MonogramFrame } from '@/components/pearloom/site/Monogram';
 import { getTheme, themeRootStyle, type Density } from '@/components/pearloom/site/themes';
 import { familyFromStack, googleFontsHrefFor } from '@/lib/suite/theme';
 import { resolveEdition } from '@/lib/site-editions/resolve';
@@ -486,7 +487,7 @@ export default async function PersonalGuestPage({
             (isSoloSubject(manifest)
               ? deriveInitials(coupleNames.filter(Boolean)[0] ?? '', { solo: true }).initA
               : coupleNames.filter(Boolean).join(' & ')),
-          frame: manifest.monogram?.frame ?? 'ring',
+          frame: (manifest.monogram?.frame as MonogramFrame | undefined) ?? 'ring',
         }}
       />
 

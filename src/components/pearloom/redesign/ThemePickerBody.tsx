@@ -34,6 +34,10 @@ import { pearErrorMessage } from './PearAssist';
 import { fireUndoable } from './UndoToast';
 import { PlColorPicker } from './PlColorPicker';
 import { StoreFonts } from '@/lib/theme-store/fonts';
+import { Motif as BrandMotif, MOTIF_NAMES } from '@/components/brand/Motif';
+import { Divider as BrandDivider, DIVIDER_ORNAMENTS } from '@/components/brand/Divider';
+import { MOTIF_LAYOUTS } from '@/lib/site-look/motif-layouts';
+import { Monogram, type MonogramFrame } from '../site/Monogram';
 
 interface Props {
   manifest: StoryManifest;
@@ -91,6 +95,8 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor }:
       <ColorsPick theme={theme} manifest={manifest} onChange={onChange} />
       <FontsPick theme={theme} manifest={manifest} onChange={onChange} />
       <TexturePick theme={theme} manifest={manifest} onChange={onChange} />
+
+      <OrnamentsPick manifest={manifest} onChange={onChange} />
 
       <FineTune theme={theme} manifest={manifest} onChange={onChange} />
 
@@ -1140,6 +1146,212 @@ function TexturePick({ theme, manifest, onChange }: { theme: Theme; manifest: St
       </div>
       <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
         Strength lives under Fine-tune — slide Grain to 0 to turn any material off.
+      </div>
+    </div>
+  );
+}
+
+/* ─── OrnamentsPick — Monogram · Motif · Divider ────────────────
+   The brand ornament primitives (design system v2), surfaced as
+   live pickers right in the theme settings. Each writes the field
+   ThemedSite already reads, so picks render on the real site with
+   no new renderer path:
+     • Monogram → manifest.monogram { initials, frame }  (site/Monogram)
+     • Motif    → manifest.motifKind ('pl-<name>') + motifLayout
+                  + motifsEnabled                         (MotifLayer)
+     • Divider  → manifest.dividerLook ('pl-<ornament>')  (KDivider)
+   Preview tiles render the brand primitives directly (themed to the
+   chrome accent so they read in the rail); the `pl-` prefix keeps
+   them collision-free with the built-in botanical / divider sets. */
+
+const MONOGRAM_FRAME_PICKS: Array<{ id: MonogramFrame; l: string }> = [
+  { id: 'none', l: 'Plain' },
+  { id: 'ring', l: 'Ring' },
+  { id: 'diamond', l: 'Diamond' },
+  { id: 'wreath', l: 'Wreath' },
+  { id: 'shield', l: 'Crest' },
+  { id: 'sprig', l: 'Sprig' },
+  { id: 'seal', l: 'Seal' },
+  { id: 'arch', l: 'Arch' },
+  { id: 'laurel', l: 'Laurel' },
+  { id: 'halo', l: 'Halo' },
+];
+
+/* Friendlier labels for the 14 brand line-ornaments. */
+const MOTIF_LABEL: Record<string, string> = {
+  sprig: 'Sprig', laurel: 'Laurel', bloom: 'Bloom', rings: 'Rings', dove: 'Dove',
+  candle: 'Candle', star: 'Star', sun: 'Sun', wave: 'Wave', cake: 'Cake',
+  vine: 'Vine', cresset: 'Flame', arch: 'Arch', feather: 'Feather',
+};
+const DIVIDER_LABEL: Record<string, string> = {
+  fleuron: 'Fleuron', pearl: 'Pearl', diamond: 'Diamond', sprig: 'Sprig',
+  infinity: 'Infinity', sun: 'Sun', cross: 'Cross',
+};
+
+function OrnamentsPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const mono = manifest.monogram;
+  const motifKind = manifest.motifKind;
+  const motifLayout = manifest.motifLayout ?? 'scattered';
+  const motifsOn = (manifest as unknown as { motifsEnabled?: boolean }).motifsEnabled ?? true;
+  const dividerLook = manifest.dividerLook;
+
+  const names = (manifest as unknown as { names?: string[] }).names ?? [];
+  const initialsFallback =
+    names.filter(Boolean).map((n) => n.trim()[0]?.toUpperCase()).filter(Boolean).join(' & ') || 'A & B';
+
+  const set = (patch: Record<string, unknown>) =>
+    onChange({ ...(manifest as unknown as Record<string, unknown>), ...patch } as unknown as StoryManifest);
+  const setMono = (patch: Record<string, unknown>) =>
+    set({ monogram: { ...(mono ?? {}), ...patch } });
+
+  const subLabel: React.CSSProperties = {
+    fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
+    color: 'var(--ink-soft)', marginBottom: 9,
+  };
+
+  return (
+    <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+        Ornaments
+      </div>
+
+      {/* ── Monogram ── */}
+      <div>
+        <div style={subLabel}>Monogram</div>
+        <input
+          value={mono?.initials ?? ''}
+          onChange={(e) => setMono({ initials: e.target.value })}
+          placeholder={initialsFallback}
+          aria-label="Monogram initials"
+          style={{
+            width: '100%', padding: '9px 11px', borderRadius: 9, marginBottom: 10,
+            border: '1px solid var(--line)', background: 'var(--cream-2)',
+            fontSize: 13, color: 'var(--ink)', outline: 'none', fontFamily: 'inherit',
+          }}
+        />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
+          {MONOGRAM_FRAME_PICKS.map((f) => {
+            const on = (mono?.frame ?? 'none') === f.id;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setMono({ frame: f.id })}
+                title={f.l}
+                aria-pressed={on}
+                className="lift"
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+                  padding: '7px 3px 5px', borderRadius: 9, cursor: 'pointer',
+                  background: on ? 'var(--cream-2)' : 'var(--card)',
+                  border: on ? '1.5px solid var(--ink)' : '1px solid var(--line)',
+                }}
+              >
+                <Monogram
+                  initials={(mono?.initials?.trim() || initialsFallback)}
+                  frame={f.id}
+                  size={42}
+                  withCard={false}
+                  color="var(--sage-deep)"
+                  ariaHidden
+                />
+                <span style={{ fontSize: 8.5, fontWeight: 600, color: on ? 'var(--ink)' : 'var(--ink-muted)' }}>{f.l}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Motif ── */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
+          <span style={{ ...subLabel, marginBottom: 0 }}>Motif</span>
+          <Toggle on={motifsOn} set={(v) => set({ motifsEnabled: v })} />
+        </div>
+        {motifsOn && (
+          <>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 5, marginBottom: 10 }}>
+              {MOTIF_NAMES.map((name) => {
+                const id = `pl-${name}`;
+                const on = motifKind === id;
+                return (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => set({ motifKind: on ? undefined : id })}
+                    title={MOTIF_LABEL[name] ?? name}
+                    aria-pressed={on}
+                    className="lift"
+                    style={{
+                      display: 'grid', placeItems: 'center', aspectRatio: '1',
+                      borderRadius: 8, cursor: 'pointer',
+                      background: on ? 'var(--cream-2)' : 'var(--card)',
+                      border: on ? '1.5px solid var(--ink)' : '1px solid var(--line)',
+                    }}
+                  >
+                    <BrandMotif name={name} size={24} color="var(--sage-deep)" accent="var(--gold)" />
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 6 }}>
+              Placement
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+              {MOTIF_LAYOUTS.filter((l) => l.id !== 'none').map((l) => {
+                const on = motifLayout === l.id;
+                return (
+                  <button
+                    key={l.id}
+                    type="button"
+                    onClick={() => set({ motifLayout: l.id })}
+                    title={l.sub}
+                    aria-pressed={on}
+                    style={{
+                      padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                      border: on ? '1px solid var(--ink)' : '1px solid var(--line)',
+                      background: on ? 'var(--ink)' : 'transparent',
+                      color: on ? 'var(--cream)' : 'var(--ink-soft)',
+                      cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    {l.label}
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ── Divider ── */}
+      <div>
+        <div style={subLabel}>Section divider</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 7 }}>
+          {DIVIDER_ORNAMENTS.map((ornament) => {
+            const id = `pl-${ornament}`;
+            const on = dividerLook === id;
+            return (
+              <button
+                key={ornament}
+                type="button"
+                onClick={() => set({ dividerLook: id })}
+                title={DIVIDER_LABEL[ornament] ?? ornament}
+                aria-pressed={on}
+                className="lift"
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                  padding: '9px 8px 7px', borderRadius: 10, cursor: 'pointer',
+                  background: on ? 'var(--cream-2)' : 'var(--card)',
+                  border: on ? '1.5px solid var(--ink)' : '1px solid var(--line)',
+                }}
+              >
+                <BrandDivider ornament={ornament} width={92} ink="var(--sage-deep)" accent="var(--gold)" color="var(--line)" />
+                <span style={{ fontSize: 9, fontWeight: 600, color: on ? 'var(--ink)' : 'var(--ink-muted)' }}>{DIVIDER_LABEL[ornament] ?? ornament}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
