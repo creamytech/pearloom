@@ -27,6 +27,7 @@ import { getTheme, themeRootStyle, type Density, type Theme } from '../site/them
 import { isSoloOccasion } from '@/lib/event-os/solo-occasions';
 import { Motif, WatercolorBloom, OliveSprig, type MotifKind } from '../site/MotifScatter';
 import { MotifLayer, motifLayoutForKit, type MotifLayout } from './MotifLayer';
+import { Divider as BrandDivider } from '@/components/brand/Divider';
 import { TextureFilters } from '../site/TextureFilters';
 import { readVariant } from './layouts';
 import type { SectionId } from './EditorRedesign';
@@ -3900,6 +3901,22 @@ function TButton({
 
 export function KDivider({ look, width = 170, style = {} }: { look: string; width?: number; style?: CSSProperties }) {
   const wrap: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, margin: '0 auto', width, ...style };
+  /* Design-system v2 brand divider ornaments arrive prefixed `pl-`
+     (e.g. 'pl-fleuron'), set by the Theme panel's Ornaments picker.
+     Render via the brand <Divider>, themed to the live site accent +
+     gold + hairline. Built-in looks below are untouched. */
+  if (look.startsWith('pl-')) {
+    return (
+      <BrandDivider
+        ornament={look.slice(3)}
+        width={width}
+        ink="var(--t-accent)"
+        accent="var(--t-gold, var(--gold))"
+        color="var(--t-line)"
+        style={{ margin: '0 auto', ...style }}
+      />
+    );
+  }
   if (look === 'sprig') {
     /* Handoff/prototype design — two olive sprigs facing inward
        with a small accent dot between them. The previous version
