@@ -66,6 +66,8 @@ import {
   DiscoMotif,
 } from '../../site/MotifScatter';
 import { Monogram, deriveInitials, type MonogramFrame } from '../../site/Monogram';
+import { Motif as BrandMotif, MOTIF_NAMES } from '@/components/brand/Motif';
+import { Divider as BrandDivider, DIVIDER_ORNAMENTS } from '@/components/brand/Divider';
 import { isSoloSubject } from '@/lib/event-os/solo-occasions';
 import { AISource } from '../../ai-source';
 import { pearErrorMessage } from '../../redesign/PearAssist';
@@ -100,6 +102,23 @@ const DL_DIVIDERS = [
   { id: 'thread', label: 'Loom thread' }, { id: 'vine', label: 'Vine' },
   { id: 'stars', label: 'Stars' }, { id: 'scallop', label: 'Scallop' },
 ] as const;
+
+/* Design-system v2 brand line-ornaments (src/components/brand/Motif).
+   Surfaced here as the "Line ornaments" group; ids carry the `pl-`
+   prefix the renderer (MotifScatter / KDivider) routes to the brand
+   primitives — collision-free with the botanical / built-in sets. */
+const LINE_MOTIF_LABEL: Record<string, string> = {
+  sprig: 'Sprig', laurel: 'Laurel', bloom: 'Bloom', rings: 'Rings', dove: 'Dove',
+  candle: 'Candle', star: 'Star', sun: 'Sun', wave: 'Wave', cake: 'Cake',
+  vine: 'Vine', cresset: 'Flame', arch: 'Arch', feather: 'Feather',
+};
+const DL_LINE_MOTIFS = MOTIF_NAMES.map((name) => ({ id: `pl-${name}`, label: LINE_MOTIF_LABEL[name] ?? name }));
+
+const LINE_DIVIDER_LABEL: Record<string, string> = {
+  fleuron: 'Fleuron', pearl: 'Pearl', diamond: 'Diamond', sprig: 'Sprig',
+  infinity: 'Infinity', sun: 'Sun', cross: 'Cross',
+};
+const DL_LINE_DIVIDERS = DIVIDER_ORNAMENTS.map((o) => ({ id: `pl-${o}`, ornament: o, label: LINE_DIVIDER_LABEL[o] ?? o }));
 
 const DL_PATTERNS = [
   { id: 'gingham', label: 'Gingham' }, { id: 'stripe', label: 'Pinstripe' }, { id: 'cabana', label: 'Cabana' },
@@ -144,6 +163,15 @@ const DL_PRESETS: { label: string; d: DecorState }[] = [
 /* ─── Prototype-internal subcomponents (ported verbatim) ───────────── */
 
 function Motif({ kind, size }: { kind: string; size?: number }) {
+  /* Design-system v2 brand line-ornaments (pl-<name>) — the same set
+     the renderer routes through MotifScatter. Rendered here in chrome
+     olive + gold so the picker tiles read in the rail. */
+  if (kind.startsWith('pl-')) {
+    const name = kind.slice(3);
+    if ((MOTIF_NAMES as string[]).includes(name)) {
+      return <BrandMotif name={name} size={size} color="var(--sage-deep)" accent="var(--gold)" />;
+    }
+  }
   switch (kind) {
     case 'olive':   return <OliveSprig size={size} />;
     case 'bloom':   return <WatercolorBloom size={size} />;
@@ -1023,11 +1051,20 @@ export function DecorLibraryPanel({
         <div style={{ flex: 1, overflow: 'auto', padding: asDrawer ? '18px 18px calc(18px + env(safe-area-inset-bottom, 0px))' : 18 }}>
           {tab === 'motifs' && (
             <>
-              <GalleryLabel>Motif art — tap to place around your sections</GalleryLabel>
+              <GalleryLabel>Line ornaments — the Pearloom hand</GalleryLabel>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
                 <ThemedTile color={color} active={decor.motif === 'none'} onClick={() => setDecor({ motif: 'none' })}>
                   <span style={{ fontSize: 11.5, color: 'var(--t-ink-muted, var(--ink-muted, #6F6557))', fontWeight: 600 }}>None</span>
                 </ThemedTile>
+                {DL_LINE_MOTIFS.map((m) => (
+                  <ThemedTile key={m.id} color={color} active={decor.motif === m.id} onClick={() => setDecor({ motif: m.id })}>
+                    <Motif kind={m.id} size={48} />
+                  </ThemedTile>
+                ))}
+              </div>
+
+              <GalleryLabel>Garden &amp; seasonal — botanical art</GalleryLabel>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
                 {DL_MOTIFS.map((m) => (
                   <ThemedTile key={m.id} color={color} active={decor.motif === m.id} onClick={() => setDecor({ motif: m.id })}>
                     <Motif kind={m.id} size={52} />
@@ -1108,6 +1145,29 @@ export function DecorLibraryPanel({
 
           {tab === 'dividers' && (
             <>
+              <GalleryLabel>Fleurons — the Pearloom hand</GalleryLabel>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {DL_LINE_DIVIDERS.map((d) => (
+                  <ThemedTile
+                    key={d.id}
+                    color={color}
+                    active={decor.divider === d.id}
+                    onClick={() => setDecor({ divider: d.id })}
+                    style={{ minHeight: 64, background: 'var(--t-paper, var(--paper, var(--pl-cream, #F5EFE2)))' }}
+                    padding="16px 22px"
+                  >
+                    <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <span style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                        <BrandDivider ornament={d.ornament} width={150} ink="var(--sage-deep)" accent="var(--gold)" color="var(--pl-chrome-border)" />
+                      </span>
+                      <span style={{ position: 'absolute', left: 14, fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--t-ink-muted, var(--ink-muted, #6F6557))' }}>
+                        {d.label}
+                      </span>
+                    </div>
+                  </ThemedTile>
+                ))}
+              </div>
+
               <GalleryLabel>Section dividers — tap to apply everywhere</GalleryLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <button
