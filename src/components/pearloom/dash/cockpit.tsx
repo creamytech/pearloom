@@ -223,6 +223,150 @@ export interface StatTileData {
   href?: string;
 }
 
+// ── card helper ──────────────────────────────────────────────
+const cockpitCard: React.CSSProperties = {
+  background: 'var(--card)',
+  border: '1px solid var(--card-ring, var(--line))',
+  borderRadius: 16,
+  padding: 24,
+};
+
+// ── NeedsYouNow ──────────────────────────────────────────────
+// The phase-aware decision queue (was PearRecommendations). Each
+// row is a real Pear todo; the icon is derived from the title.
+
+export interface NeedRow {
+  title: string;
+  sub: string;
+  cta: string;
+  href: string;
+  urgency: 'now' | 'soon' | 'later';
+}
+
+function iconForNeed(title: string): string {
+  const t = title.toLowerCase();
+  if (/(rsvp|reply|guest|head\s?count|nudge|remind|chase)/.test(t)) return 'users';
+  if (/(photo|gallery|reel|image)/.test(t)) return 'image';
+  if (/(save.the.date|invite|stationery|studio)/.test(t)) return 'mail';
+  if (/(schedule|timeline|day-of|day of|run.of)/.test(t)) return 'clock';
+  if (/(song|music|playlist|dance)/.test(t)) return 'music';
+  if (/(budget|gift|registry)/.test(t)) return 'heart';
+  return 'sparkles';
+}
+
+export function NeedsYouNow({
+  rows,
+  phaseLabel,
+  phaseNote,
+}: {
+  rows: NeedRow[];
+  phaseLabel?: string;
+  phaseNote?: string;
+}) {
+  if (rows.length === 0) return null;
+  return (
+    <div style={cockpitCard}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+        <span aria-hidden style={{ width: 7, height: 7, borderRadius: 99, background: 'var(--peach-ink)' }} />
+        <span className="eyebrow" style={{ margin: 0 }}>Needs you now</span>
+        <span style={{ flex: 1 }} />
+        {phaseLabel ? (
+          <span
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6, padding: '3px 10px', borderRadius: 999,
+              background: 'var(--cream-3)', border: '1px solid var(--line)', fontFamily: 'var(--pl-font-mono, monospace)',
+              fontSize: 9.5, letterSpacing: '0.12em', color: 'var(--ink-soft)', textTransform: 'uppercase',
+            }}
+          >
+            {phaseLabel}{phaseNote ? ` · ${phaseNote}` : ''}
+          </span>
+        ) : null}
+      </div>
+      <div className="display" style={{ fontSize: 22, margin: '4px 0 14px', lineHeight: 1.15, color: 'var(--ink)' }}>
+        {rows.length} {rows.length === 1 ? 'thing only' : 'things only'}{' '}
+        <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>you can decide.</span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {rows.map((r, i) => {
+          const urgent = r.urgency === 'now';
+          return (
+            <div
+              key={i}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 14, padding: '13px 0',
+                borderBottom: i < rows.length - 1 ? '1px solid var(--line-soft)' : 'none',
+              }}
+            >
+              <span
+                style={{
+                  width: 34, height: 34, borderRadius: 10, flexShrink: 0, display: 'grid', placeItems: 'center',
+                  background: urgent ? 'var(--peach-bg)' : 'var(--cream-3)',
+                  color: urgent ? 'var(--peach-ink)' : 'var(--ink-soft)',
+                }}
+              >
+                <Icon name={iconForNeed(r.title)} size={16} />
+              </span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--ink)', lineHeight: 1.35 }}>{r.title}</span>
+                <span style={{ display: 'block', fontSize: 12, color: 'var(--ink-muted)', marginTop: 2 }}>{r.sub}</span>
+              </span>
+              <Link href={r.href} className={`btn ${urgent ? 'btn-primary' : 'btn-outline'} btn-sm`} style={{ textDecoration: 'none', flexShrink: 0 }}>
+                {r.cta}
+              </Link>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Lately ───────────────────────────────────────────────────
+// Compact recent-activity feed (was ActivityFeed).
+
+export interface LatelyItem {
+  name: string;
+  action: string;
+  when: string;
+  tone?: 'yes' | 'no' | 'maybe';
+}
+
+export function Lately({ items }: { items: LatelyItem[] }) {
+  return (
+    <div style={cockpitCard}>
+      <span className="eyebrow" style={{ margin: 0 }}>Lately</span>
+      {items.length === 0 ? (
+        <div style={{ padding: '20px 4px 4px', fontSize: 13, color: 'var(--ink-muted)', fontStyle: 'italic' }}>
+          Nothing yet. As guests reply, it&rsquo;ll show up here.
+        </div>
+      ) : (
+        <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column' }}>
+          {items.map((f, i) => {
+            const color = f.tone === 'no' ? 'var(--ink-muted)' : f.tone === 'maybe' ? 'var(--lavender-ink)' : 'var(--sage-deep)';
+            return (
+              <div
+                key={i}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0',
+                  borderBottom: i < items.length - 1 ? '1px solid var(--line-soft)' : 'none',
+                }}
+              >
+                <span style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, display: 'grid', placeItems: 'center', background: 'var(--cream-3)', color }}>
+                  <Icon name="check" size={13} />
+                </span>
+                <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: 'var(--ink)' }}>
+                  <strong style={{ fontWeight: 600 }}>{f.name}</strong> {f.action}
+                </span>
+                <span style={{ fontFamily: 'var(--pl-font-mono, monospace)', fontSize: 10, color: 'var(--ink-muted)', whiteSpace: 'nowrap' }}>{f.when}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function StatTiles({ tiles }: { tiles: StatTileData[] }) {
   return (
     <div className="pl8-cockpit-stats">
