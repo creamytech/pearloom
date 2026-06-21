@@ -426,11 +426,11 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
     >
       {/* Header — prototype L684-694. */}
       <div style={{ padding: '16px 20px 10px', borderBottom: '1px solid var(--line-soft)' }}>
-        <div className="eyebrow" style={{ color: 'var(--lavender-ink)', marginBottom: 4, fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-          EDITING SECTION
+        <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 4, fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+          Editing section
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 22, margin: 0, fontWeight: 600 }}>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, margin: 0, fontWeight: 600, color: 'var(--lavender-ink)' }}>
             {section.label}
           </h3>
           <div style={{ display: 'flex', gap: 6, position: 'relative' }} ref={optionsWrapRef}>
