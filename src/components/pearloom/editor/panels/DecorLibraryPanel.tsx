@@ -1140,6 +1140,24 @@ export function DecorLibraryPanel({
                   );
                 })}
               </div>
+
+              <GalleryLabel>Movement</GalleryLabel>
+              <div style={{ display: 'flex', gap: 6, padding: 3, background: 'var(--cream-2, #FBF7EE)', borderRadius: 9, width: 'fit-content' }}>
+                {([{ id: 'none', l: 'Still' }, { id: 'float', l: 'Float' }, { id: 'drift', l: 'Drift' }] as const).map((m) => {
+                  const cur = ((manifest as unknown as { motifAnimation?: string }).motifAnimation) || 'none';
+                  const on = cur === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => { const next = { ...manifest } as LooseManifest; (next as unknown as Record<string, unknown>).motifAnimation = m.id === 'none' ? undefined : m.id; onChange(next as unknown as StoryManifest); }}
+                      style={{ padding: '6px 16px', borderRadius: 7, fontSize: 12, fontWeight: 600, background: on ? 'var(--ink, var(--pl-ink, #0E0D0B))' : 'transparent', color: on ? 'var(--cream, #FBF7EE)' : 'var(--ink-soft, #3A332C)', border: 'none', cursor: 'pointer' }}
+                    >
+                      {m.l}
+                    </button>
+                  );
+                })}
+              </div>
             </>
           )}
 
