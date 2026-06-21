@@ -43,7 +43,7 @@ import { parseLocalDate } from '@/lib/date-utils';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { nextStepFor, rsvpMomentumFor, type RsvpMomentum } from '@/lib/next-step';
 import type { StoryManifest } from '@/types';
-import { CountdownHero, StatTiles, NeedsYouNow, Lately, type StatTileData, type LatelyItem } from '@/components/pearloom/dash/cockpit';
+import { CockpitHeader, CountdownHero, StatTiles, NeedsYouNow, Lately, TheLongView, type StatTileData, type LatelyItem } from '@/components/pearloom/dash/cockpit';
 import type { GuestInsight } from '@/app/api/guests/intelligence/route';
 
 interface Guest {
@@ -251,6 +251,9 @@ export function WelcomeHome() {
 
   return (
     <DashLayout active="home" title="Welcome back" subtitle={stageBlurb} hideTopbar>
+      <div style={{ padding: '20px clamp(20px, 4vw, 40px) 4px', maxWidth: 1240, margin: '0 auto' }}>
+        <CockpitHeader greeting={`${greeting}, ${firstName}`} subtitle={stageBlurb} />
+      </div>
 
       {/* Pending co-host invitations addressed to this signed-in
           user — accept right here, no inbox dig required. */}
@@ -267,7 +270,6 @@ export function WelcomeHome() {
         }}
       >
         <CountdownHero
-          greeting={`${greeting}, ${firstName}`}
           names={namesArr}
           eyebrow={heroEyebrow}
           daysUntil={daysUntil}
@@ -327,6 +329,8 @@ export function WelcomeHome() {
             <SiblingEventsCard occasion={occasion} sites={sites ?? []} origin={site ?? null} />
           </div>
         </div>
+
+        <TheLongView dateShort={eventDateShort} solemn={occasion === 'memorial' || occasion === 'funeral'} />
       </div>
 
     </DashLayout>
