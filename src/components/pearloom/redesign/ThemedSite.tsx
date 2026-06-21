@@ -355,6 +355,11 @@ export function ThemedSite({
     ? (decor.motif === 'none' ? 'none' : (decor.motif as MotifKind))
     : baseMotif;
   const dividerLook = decor.divider || theme.look.divider;
+  /* Motif movement — the design system ships ambient .pl-float /
+     .pl-drift keyframes (reduced-motion aware); host opts in via the
+     Decor Library. Off unless motifs are on AND a movement is set. */
+  const motifAnim: 'none' | 'float' | 'drift' =
+    motifsOn ? (((manifest as unknown as { motifAnimation?: 'none' | 'float' | 'drift' }).motifAnimation) ?? 'none') : 'none';
   const pad = { cozy: 0.74, comfortable: 1, spacious: 1.32 }[density] || 1;
   /* Theme Store packs write manifest.texture to override the base
      theme's static texture. Reading here so every TextureLayer
@@ -748,7 +753,7 @@ export function ThemedSite({
      Handoff themed-site.jsx L181-217 verbatim. */
   if (siteLayout === 'split') {
     return (
-      <div ref={revealRoot} onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-split">
+      <div ref={revealRoot} onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} className="pl8-guest pl8-guest-split">
         <TextureFilters />
         {glassPhotoAurora}
         {patternLayer}
@@ -789,7 +794,7 @@ export function ThemedSite({
         onMouseLeave={() => setHover(null)}
         style={{ ...rootStyle, background: 'color-mix(in oklab, var(--t-ink) 14%, var(--t-section))', padding: 'clamp(16px, 4vw, 40px) clamp(12px, 3vw, 26px)' }}
         data-pl-texture={effectiveTexture}
-        data-pl-kit={kitId}
+        data-pl-kit={kitId} data-pl-motif-anim={motifAnim}
         ref={revealRoot}
         className="pl8-guest pl8-guest-boxed"
       >
@@ -831,7 +836,7 @@ export function ThemedSite({
     const leftCol = rest.filter((_, i) => i % 2 === 0);
     const rightCol = rest.filter((_, i) => i % 2 === 1);
     return (
-      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-magazine">
+      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} className="pl8-guest pl8-guest-magazine">
         <TextureFilters />
         {glassPhotoAurora}
         {patternLayer}
@@ -861,7 +866,7 @@ export function ThemedSite({
          doesn't suffer in narrow viewports. ───────────────────────── */
   if (siteLayout === 'zine') {
     return (
-      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-zine">
+      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} className="pl8-guest pl8-guest-zine">
         <TextureFilters />
         {glassPhotoAurora}
         {patternLayer}
@@ -902,7 +907,7 @@ export function ThemedSite({
          inset feel. Mobile keeps the folio + tightens margins. ──── */
   if (siteLayout === 'storybook') {
     return (
-      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-storybook">
+      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} className="pl8-guest pl8-guest-storybook">
         <TextureFilters />
         {glassPhotoAurora}
         {patternLayer}
@@ -958,7 +963,7 @@ export function ThemedSite({
     const rest = sections.filter((s) => s !== 'hero');
     const heroEl = sections.includes('hero') ? sectionEl('hero') : null;
     return (
-      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest pl8-guest-gallery">
+      <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} className="pl8-guest pl8-guest-gallery">
         <TextureFilters />
         {glassPhotoAurora}
         {patternLayer}
@@ -1010,7 +1015,7 @@ export function ThemedSite({
         onMouseLeave={() => setHover(null)}
         style={{ ...rootStyle, background: 'color-mix(in oklab, var(--t-ink) 20%, var(--t-section))', padding: 'clamp(16px, 4vw, 56px) clamp(12px, 4vw, 40px)' }}
         data-pl-texture={effectiveTexture}
-        data-pl-kit={kitId}
+        data-pl-kit={kitId} data-pl-motif-anim={motifAnim}
         className="pl8-guest pl8-guest-postcard"
       >
         <TextureFilters />
@@ -1109,7 +1114,7 @@ export function ThemedSite({
 
   /* Classic stacked — default scroll. */
   return (
-    <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} className="pl8-guest">
+    <div onMouseLeave={() => setHover(null)} style={rootStyle} data-pl-texture={effectiveTexture} data-pl-kit={kitId} data-pl-motif-anim={motifAnim} className="pl8-guest">
       <TextureFilters />
         {glassPhotoAurora}
         {patternLayer}

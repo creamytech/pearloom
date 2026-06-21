@@ -7908,3 +7908,26 @@ html { scroll-behavior: smooth; }
 @media (max-width: 760px) {
   .pl8-cockpit-hero { grid-template-columns: 1fr; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   ANIMATED MOTIFS (design-system v2) — ambient movement on the
+   decorative motif layers when the host opts in (manifest
+   .motifAnimation → [data-pl-motif-anim] on the site root). The
+   float/drift keyframes live in animation.css; only the decorative
+   layouts move — the crest watermark + divider seam stay still.
+   Own reduced-motion guard (animation.css's guard targets the
+   .pl-float/.pl-drift CLASSES, not these attribute selectors).
+   ═══════════════════════════════════════════════════════════════ */
+.pl8-guest[data-pl-motif-anim="float"] [data-motif-layer="scattered"],
+.pl8-guest[data-pl-motif-anim="float"] [data-motif-layer="corners"],
+.pl8-guest[data-pl-motif-anim="float"] [data-motif-layer="margins"] {
+  animation: pl-float var(--pl-float-dur, 7s) var(--pl-ease-in-out, ease-in-out) infinite;
+}
+.pl8-guest[data-pl-motif-anim="drift"] [data-motif-layer="scattered"],
+.pl8-guest[data-pl-motif-anim="drift"] [data-motif-layer="corners"],
+.pl8-guest[data-pl-motif-anim="drift"] [data-motif-layer="margins"] {
+  animation: pl-drift 11s var(--pl-ease-in-out, ease-in-out) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl8-guest[data-pl-motif-anim] [data-motif-layer] { animation: none !important; }
+}
