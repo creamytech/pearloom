@@ -47,11 +47,11 @@ export function ThemeRail({ manifest, onChange, onOpenShop, onOpenDecor }: Props
     >
       {/* Header — prototype themes.jsx L811-818. */}
       <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid var(--line-soft)' }}>
-        <div className="eyebrow" style={{ color: 'var(--lavender-ink)', fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+        <div className="eyebrow" style={{ color: 'var(--peach-ink)', fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
           SITE LOOK
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 22, margin: '4px 0 2px', fontWeight: 600 }}>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, margin: '4px 0 2px', fontWeight: 600, color: 'var(--lavender-ink)' }}>
             Site look
           </h3>
           <button
