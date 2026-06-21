@@ -28,6 +28,44 @@ export function CountUpNum({ value, suffix }: { value: number; suffix?: string }
   return <>{n}{suffix ?? ''}</>;
 }
 
+// ── CockpitHeader ────────────────────────────────────────────
+// The letterpress page title — "Your loom, at a glance." Greeting
+// eyebrow + display title (one lavender-italic word + gold pearl) +
+// a one-line subtitle.
+
+export function CockpitHeader({
+  greeting,
+  title = 'Your loom,',
+  titleItalic = 'at a glance',
+  subtitle,
+}: {
+  greeting?: string;
+  title?: string;
+  titleItalic?: string;
+  subtitle?: string;
+}) {
+  return (
+    <header style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {greeting ? (
+        <span className="eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--peach-ink)', margin: 0 }}>
+          <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold)' }} />
+          {greeting}
+        </span>
+      ) : null}
+      <h1
+        className="display pl-letterpress"
+        style={{ fontSize: 'clamp(28px,3.6vw,40px)', margin: '4px 0 0', fontWeight: 500, lineHeight: 1.02, letterSpacing: '-0.02em', color: 'var(--ink)' }}
+      >
+        {title} <span className="display-italic" style={{ color: 'var(--lavender-ink)' }}>{titleItalic}</span>.{' '}
+        <Pearl size={9} />
+      </h1>
+      {subtitle ? (
+        <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 640, margin: '6px 0 0' }}>{subtitle}</p>
+      ) : null}
+    </header>
+  );
+}
+
 // ── CountdownHero ────────────────────────────────────────────
 // The dark "84 days" cockpit hero. Left: eyebrow · countdown ·
 // status · honoree marks · actions. Right: warm wash + laid
@@ -363,6 +401,58 @@ export function Lately({ items }: { items: LatelyItem[] }) {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+// ── TheLongView ──────────────────────────────────────────────
+// The forward-looking keepsake timeline. Occasion-aware (a solemn
+// variant for memorials); dates derive from the event date, copy is
+// branded.
+
+export function TheLongView({ dateShort, solemn = false }: { dateShort: string | null; solemn?: boolean }) {
+  const steps: { icon: string; when: string; what: string; color: string; now?: boolean }[] = solemn
+    ? [
+        { icon: 'heart', when: dateShort ?? 'The day', what: 'The gathering', color: 'var(--lavender-ink)', now: true },
+        { icon: 'image', when: 'That week', what: 'Tributes gather on the wall', color: 'var(--sage-deep)' },
+        { icon: 'gift', when: 'One year on', what: 'Pear sends a remembrance note', color: 'var(--gold)' },
+        { icon: 'sparkles', when: 'Always', what: 'The page stays — a place to return', color: 'var(--peach-ink)' },
+      ]
+    : [
+        { icon: 'heart', when: dateShort ?? 'The day', what: 'The day', color: 'var(--peach-ink)', now: true },
+        { icon: 'image', when: 'That week', what: 'The Reel fills with guest photos', color: 'var(--sage-deep)' },
+        { icon: 'gift', when: 'One year on', what: 'Pear sends a first-anniversary note', color: 'var(--gold)' },
+        { icon: 'sparkles', when: 'Forever', what: 'The site becomes a keepsake page', color: 'var(--lavender-ink)' },
+      ];
+  return (
+    <div style={{ ...cockpitCard, padding: 0, overflow: 'hidden' }}>
+      <div style={{ padding: '20px 26px 0' }}>
+        <span className="eyebrow" style={{ margin: 0 }}>The long view</span>
+        <div className="display" style={{ fontSize: 20, margin: '6px 0 2px', color: 'var(--ink)' }}>
+          {solemn
+            ? <>A thread that <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>stays woven.</span></>
+            : <>This day is the <span style={{ fontStyle: 'italic', color: 'var(--lavender-ink)' }}>first knot.</span></>}
+        </div>
+        <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 560, margin: '6px 0 0' }}>
+          {solemn
+            ? 'Pear keeps the weave going — the page becomes a place to return to, long after the day.'
+            : 'A day today is a keepsake in forty years. Pear keeps the weave going long after the last dance.'}
+        </p>
+      </div>
+      <div className="pl8-cockpit-timeline" style={{ padding: '20px 26px 24px' }}>
+        {steps.map((s, i) => (
+          <div key={s.when} style={{ position: 'relative', paddingRight: 16 }}>
+            {i < steps.length - 1 ? (
+              <div aria-hidden style={{ position: 'absolute', left: 16, right: 0, top: 16, height: 2, backgroundImage: 'linear-gradient(90deg, var(--line) 50%, transparent 50%)', backgroundSize: '8px 2px' }} />
+            ) : null}
+            <span style={{ position: 'relative', zIndex: 1, width: 34, height: 34, borderRadius: 999, display: 'grid', placeItems: 'center', background: s.now ? s.color : 'var(--card)', color: s.now ? 'var(--cream)' : s.color, border: `2px solid ${s.color}` }}>
+              <Icon name={s.icon} size={15} color={s.now ? 'var(--cream)' : s.color} />
+            </span>
+            <div className="eyebrow" style={{ margin: '12px 0 0', color: 'var(--ink-muted)' }}>{s.when}</div>
+            <div style={{ fontSize: 13, color: 'var(--ink)', marginTop: 3, lineHeight: 1.4 }}>{s.what}</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

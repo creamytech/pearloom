@@ -5,10 +5,12 @@
 // can be compared directly against the target screenshot.
 
 import {
+  CockpitHeader,
   CountdownHero,
   StatTiles,
   NeedsYouNow,
   Lately,
+  TheLongView,
   type StatTileData,
   type NeedRow,
   type LatelyItem,
@@ -37,8 +39,8 @@ export function DevDashboardClient() {
   return (
     <div className="pl8" style={{ minHeight: '100dvh', background: 'var(--cream)', padding: '32px clamp(16px,4vw,40px) 64px' }}>
       <div style={{ maxWidth: 1240, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <CockpitHeader greeting="Good evening, Scott" subtitle="Mid-planning. Replies are landing. Keep the schedule moving." />
         <CountdownHero
-          greeting="Good evening, Scott"
           names={['Mira', 'Jun']}
           eyebrow="A bright Saturday in Point Reyes"
           daysUntil={84}
@@ -54,6 +56,7 @@ export function DevDashboardClient() {
           <NeedsYouNow rows={NEEDS} phaseLabel="Planning" phaseNote="84 days out" />
           <Lately items={LATELY} />
         </div>
+        <TheLongView dateShort="Sept 6, 2026" />
       </div>
     </div>
   );

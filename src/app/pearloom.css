@@ -7900,8 +7900,10 @@ html { scroll-behavior: smooth; }
    ═══════════════════════════════════════════════════════════════ */
 .pl8-cockpit-hero { display: grid; grid-template-columns: 1.5fr 1fr; }
 .pl8-cockpit-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.pl8-cockpit-timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
 @media (max-width: 860px) {
   .pl8-cockpit-stats { grid-template-columns: repeat(2, 1fr); }
+  .pl8-cockpit-timeline { grid-template-columns: repeat(2, 1fr); gap: 18px 0; }
 }
 @media (max-width: 760px) {
   .pl8-cockpit-hero { grid-template-columns: 1fr; }
