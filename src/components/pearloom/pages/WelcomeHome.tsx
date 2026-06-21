@@ -11,16 +11,16 @@
 //                      (src/components/pearloom/dash/cockpit.tsx)
 //   2. StatTiles     — quick-glance count-ups (Coming / Awaiting /
 //                      Replied / Days), all backed by real data
-//   3. Pear todos    — Pear's "worth your minute" recommendations,
+//   3. NeedsYouNow   — Pear's phase-aware decision queue,
 //                      derived from /api/guests/intelligence
-//   4. ActivityFeed  — recent RSVPs on a timeline
+//   4. Lately        — recent RSVPs, compact feed
 //   5. GuestPulse    — % responded + stacked yes/no/maybe/pending bar
 //   6. Milestones    — vertical roadmap to the date
 //   + edge cards (co-host invites, remembering/anniversary, siblings)
 //
 // Data flow:
 //   - useSelectedSite() drives the active site
-//   - GET /api/guests?site= drives the tiles + GuestPulse + ActivityFeed
+//   - GET /api/guests?site= drives the tiles + GuestPulse + Lately
 //   - GET /api/guests/intelligence drives Pear's recommendations
 //   - GET /api/cadence?site= drives the milestone roadmap
 //   - Stage (early | mid | late) derives from daysUntil — under 30
@@ -36,14 +36,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { DashLayout } from '../dash/DashShell';
-import { Icon, Pear } from '../motifs';
+import { Icon } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { parseLocalDate } from '@/lib/date-utils';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { nextStepFor, rsvpMomentumFor, type RsvpMomentum } from '@/lib/next-step';
 import type { StoryManifest } from '@/types';
-import { CountdownHero, StatTiles, type StatTileData } from '@/components/pearloom/dash/cockpit';
+import { CountdownHero, StatTiles, NeedsYouNow, Lately, type StatTileData, type LatelyItem } from '@/components/pearloom/dash/cockpit';
 import type { GuestInsight } from '@/app/api/guests/intelligence/route';
 
 interface Guest {
@@ -241,6 +241,13 @@ export function WelcomeHome() {
     { key: 'replied', label: 'Replied', value: repliedCount, sub: guestCounts ? `of ${guestCounts.invited} · ${repliedPct}%` : '—', color: 'var(--gold)', icon: 'check', bar: repliedPct, href: '/dashboard/rsvp' },
     { key: 'days', label: 'Days to go', value: daysUntil ?? 0, sub: eventDateShort ?? 'Set a date', color: 'var(--lavender-ink)', icon: 'calendar' },
   ];
+  const phaseLabel = stage === 'late' ? 'Final stretch' : stage === 'early' ? 'Planning' : 'Mid-planning';
+  const phaseNote = daysUntil != null ? (daysUntil === 0 ? 'today' : `${daysUntil} days out`) : undefined;
+  const latelyItems: LatelyItem[] = recentActivity.map((g) => {
+    const tone: LatelyItem['tone'] = g.status === 'no' || g.status === 'declined' ? 'no' : g.status === 'maybe' ? 'maybe' : 'yes';
+    const action = tone === 'no' ? 'declined' : tone === 'maybe' ? 'said maybe' : g.plusOneName ? `said yes — +1 ${g.plusOneName}` : 'said yes';
+    return { name: g.name, action, when: relativeTime(g.respondedAt), tone };
+  });
 
   return (
     <DashLayout active="home" title="Welcome back" subtitle={stageBlurb} hideTopbar>
@@ -290,8 +297,8 @@ export function WelcomeHome() {
           }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <PearRecommendations todos={pearTodos} domain={site?.domain ?? null} />
-            <ActivityFeed activity={recentActivity} stage={stage} />
+            <NeedsYouNow rows={pearTodos} phaseLabel={phaseLabel} phaseNote={phaseNote} />
+            <Lately items={latelyItems} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <ResumeDraftCard />
@@ -468,160 +475,6 @@ function usePearTodos({
 
 function severityRank(s: GuestInsight['severity']): number {
   return s === 'urgent' ? 0 : s === 'attention' ? 1 : 2;
-}
-
-function PearRecommendations({ todos, domain }: { todos: PearTodo[]; domain: string | null }) {
-  void domain;
-  // On phones the trailing CTA squeezes the copy — drop the button
-  // to its own row under the text instead.
-  const isNarrow = useIsMobile(720);
-  if (todos.length === 0) {
-    return null;
-  }
-  return (
-    <div
-      className="card"
-      style={{
-        padding: 20,
-        background: 'var(--card, #FBF7EE)',
-        border: '1px solid var(--card-ring, rgba(14,13,11,0.08))',
-        borderRadius: 16,
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Pear size={28} tone="sage" sparkle shadow={false} />
-          <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, lineHeight: 1 }}>
-              From Pear
-            </div>
-            <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 2 }}>
-              {todos.length} {todos.length === 1 ? 'thing' : 'things'} worth your minute
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {todos.map((it, i) => {
-          const urgent = it.urgency === 'now';
-          const stripeColor =
-            it.urgency === 'now' ? 'var(--peach-ink)' :
-            it.urgency === 'soon' ? 'var(--lavender-2)' : 'var(--sage)';
-          return (
-            <div
-              key={i}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: isNarrow ? '6px 1fr' : '6px 1fr auto',
-                gap: isNarrow ? 12 : 14,
-                alignItems: 'center',
-                padding: '12px 14px',
-                borderRadius: 10,
-                background: 'var(--card)',
-                border: '1px solid var(--line-soft)',
-              }}
-            >
-              <span style={{ width: 6, height: 36, borderRadius: 999, background: stripeColor }} />
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{it.title}</div>
-                <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginTop: 2 }}>{it.sub}</div>
-              </div>
-              <Link
-                href={it.href}
-                className={`btn ${urgent ? 'btn-primary' : 'btn-outline'} btn-sm`}
-                style={{
-                  textDecoration: 'none',
-                  // Narrow: button drops to its own row, aligned
-                  // under the copy (past the stripe column).
-                  ...(isNarrow ? { gridColumn: '2', justifySelf: 'start' } : null),
-                }}
-              >
-                {it.cta}
-                {urgent && <Icon name="arrow-right" size={12} color="var(--cream)" />}
-              </Link>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// ActivityFeed — recent RSVPs as a vertical timeline
-// ─────────────────────────────────────────────────────────────
-function ActivityFeed({ activity, stage }: { activity: Guest[]; stage: Stage }) {
-  void stage;
-  return (
-    <div className="card" id="feed" style={{ padding: 20, borderRadius: 20 }}>
-      <SectionHeader icon="bell">Activity</SectionHeader>
-      {activity.length === 0 ? (
-        <div style={{ padding: '24px 8px', fontSize: 13, color: 'var(--ink-muted)', textAlign: 'center', fontStyle: 'italic' }}>
-          Nothing yet. As guests RSVP or leave notes, it&apos;ll show up here.
-        </div>
-      ) : (
-        <div style={{ position: 'relative' }}>
-          {/* The thread — the brand's visual atom (BRAND.md §3):
-              two strands, olive and gold, instead of a gray rule. */}
-          <div aria-hidden style={{ position: 'absolute', left: 16, top: 8, bottom: 8, width: 1, background: 'var(--sage, #7A8A4F)', opacity: 0.55 }} />
-          <div aria-hidden style={{ position: 'absolute', left: 18.5, top: 8, bottom: 8, width: 1, background: 'var(--gold, #C19A4B)', opacity: 0.5 }} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-            {activity.map((g) => {
-              const tone = g.status === 'no' || g.status === 'declined'
-                ? { bg: 'var(--cream-2)', fg: 'var(--ink-soft)' }
-                : { bg: 'var(--sage-tint)', fg: 'var(--sage-deep)' };
-              const verb = (g.status === 'yes' || g.status === 'attending')
-                ? 'said yes'
-                : (g.status === 'no' || g.status === 'declined') ? 'declined'
-                : 'said maybe';
-              return (
-                <div
-                  key={g.id}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '36px 1fr auto',
-                    gap: 12,
-                    alignItems: 'flex-start',
-                    padding: '10px 0',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 36, height: 36, borderRadius: '50%',
-                      background: tone.bg, color: tone.fg,
-                      display: 'grid', placeItems: 'center',
-                      position: 'relative', zIndex: 1,
-                      border: '2px solid var(--card)',
-                    }}
-                  >
-                    <Icon name="check" size={15} color={tone.fg} />
-                  </div>
-                  <div style={{ minWidth: 0, paddingTop: 6 }}>
-                    <div style={{ fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.4 }}>
-                      <strong style={{ fontWeight: 600 }}>{g.name}</strong>{' '}
-                      {verb}
-                      {g.plusOneName ? <> — bringing +1 (<em style={{ fontStyle: 'normal' }}>{g.plusOneName}</em>)</> : null}
-                    </div>
-                    {g.message && (
-                      <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 2, fontStyle: 'italic' }}>
-                        &ldquo;{g.message}&rdquo;
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', paddingTop: 8, whiteSpace: 'nowrap' }}>
-                    {relativeTime(g.respondedAt)}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  );
 }
 
 // ─────────────────────────────────────────────────────────────

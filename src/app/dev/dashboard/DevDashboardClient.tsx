@@ -4,13 +4,33 @@
 // the design-system prototype (Mira & Jun, 84 days) so the render
 // can be compared directly against the target screenshot.
 
-import { CountdownHero, StatTiles, type StatTileData } from '@/components/pearloom/dash/cockpit';
+import {
+  CountdownHero,
+  StatTiles,
+  NeedsYouNow,
+  Lately,
+  type StatTileData,
+  type NeedRow,
+  type LatelyItem,
+} from '@/components/pearloom/dash/cockpit';
 
 const TILES: StatTileData[] = [
   { key: 'coming', label: 'Coming', value: 38, sub: 'of 64 invited', color: 'var(--sage-deep)', icon: 'users' },
   { key: 'await', label: 'Awaiting reply', value: 21, sub: 'no reply yet', color: 'var(--peach-ink)', icon: 'clock' },
   { key: 'replied', label: 'Replied', value: 43, sub: 'of 64 · 67%', color: 'var(--gold)', icon: 'check', bar: 67 },
   { key: 'days', label: 'Days to go', value: 84, sub: 'Sept 6, 2026', color: 'var(--lavender-ink)', icon: 'calendar' },
+];
+
+const NEEDS: NeedRow[] = [
+  { title: '3 guest photos are waiting for the wall', sub: 'The Reel · Pear can approve', cta: 'Review', href: '#', urgency: 'now' },
+  { title: '2 parties opened the invite but never replied', sub: 'Guests · Pear can draft the nudge', cta: 'Nudge', href: '#', urgency: 'soon' },
+  { title: 'First-dance song is still open', sub: 'Studio', cta: 'Pick', href: '#', urgency: 'later' },
+];
+
+const LATELY: LatelyItem[] = [
+  { name: 'Amara', action: 'said yes — +1 Theo', when: '2h', tone: 'yes' },
+  { name: 'Jun', action: 'confirmed the florist', when: '4h', tone: 'yes' },
+  { name: 'Priya', action: 'declined', when: 'yesterday', tone: 'no' },
 ];
 
 export function DevDashboardClient() {
@@ -30,6 +50,10 @@ export function DevDashboardClient() {
           askHref="#"
         />
         <StatTiles tiles={TILES} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 1fr', gap: 16, alignItems: 'start' }}>
+          <NeedsYouNow rows={NEEDS} phaseLabel="Planning" phaseNote="84 days out" />
+          <Lately items={LATELY} />
+        </div>
       </div>
     </div>
   );
