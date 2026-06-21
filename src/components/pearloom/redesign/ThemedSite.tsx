@@ -3779,58 +3779,33 @@ function TSection({ id, label, children, active, hover, setActive, setHover, edi
       {children}
       {editable && (
         <>
-          {/* Selection chrome — the loom's vocabulary, not a generic
-              outline: a gold hairline with four corner STITCHES
-              (photo-mount ticks), like the section is tacked to the
-              board while you work on it. Hover is the faint dashed
-              basting line. */}
+          {/* Selection chrome (design-system v2): peach is the
+              active/working accent. A solid peach hairline when the
+              section is selected, a faint dashed basting line on
+              hover, and a peach "Editing ·" label tab. Peach is
+              pinned to a literal so the .pl8-guest theme scope can't
+              remap it. */}
           <div
             aria-hidden
             style={{
               position: 'absolute', inset: 4, borderRadius: 6,
-              outline: isActive ? '1.5px solid var(--pl-gold, #C19A4B)' : isHover ? '1.5px dashed rgba(193,154,75,0.55)' : 'none',
+              outline: isActive ? '2px solid #C6703D' : isHover ? '1.5px dashed rgba(198,112,61,0.5)' : 'none',
               outlineOffset: -2, pointerEvents: 'none', zIndex: 4,
               transition: 'outline var(--pl-dur-fast) var(--pl-ease-emphasis)',
             }}
           />
-          {isActive && (
-            <>
-              {([['nw', { top: 0, left: 0 }], ['ne', { top: 0, right: 0 }], ['se', { bottom: 0, right: 0 }], ['sw', { bottom: 0, left: 0 }]] as const).map(([k, pos]) => (
-                <span
-                  key={k}
-                  aria-hidden
-                  style={{
-                    position: 'absolute',
-                    width: 14,
-                    height: 14,
-                    pointerEvents: 'none',
-                    zIndex: 5,
-                    borderColor: 'var(--pl-gold, #C19A4B)',
-                    borderStyle: 'solid',
-                    borderWidth: 0,
-                    ...('top' in pos ? { borderTopWidth: 2.5 } : { borderBottomWidth: 2.5 }),
-                    ...('left' in pos ? { borderLeftWidth: 2.5 } : { borderRightWidth: 2.5 }),
-                    ...pos,
-                    margin: 2,
-                    borderRadius: 1,
-                  }}
-                />
-              ))}
-            </>
-          )}
           {(isActive || isHover) && !hideHandle && (
             <div style={{
-              position: 'absolute', top: 8, left: 12, padding: '4px 10px', borderRadius: 999,
-              background: 'var(--pl-cream-card, #FBF7EE)',
-              color: 'var(--pl-ink, #18181B)',
-              border: `1px solid ${isActive ? 'var(--pl-gold, #C19A4B)' : 'rgba(193,154,75,0.45)'}`,
-              fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
+              position: 'absolute', top: 8, left: 12, padding: '3px 9px', borderRadius: 8,
+              background: isActive ? '#C6703D' : 'var(--pl-cream-card, #FBF7EE)',
+              color: isActive ? 'var(--pl-cream, #FDFAF0)' : 'var(--pl-ink-soft, #3A332C)',
+              border: isActive ? 'none' : '1px solid rgba(198,112,61,0.4)',
+              fontSize: 9.5, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
               display: 'inline-flex', alignItems: 'center', gap: 6, zIndex: 6,
-              boxShadow: isActive ? '0 4px 12px rgba(61,74,31,0.12)' : 'none',
-              fontFamily: 'var(--font-ui, sans-serif)',
+              boxShadow: isActive ? '0 4px 12px rgba(198,112,61,0.22)' : 'none',
+              fontFamily: 'var(--pl-font-mono, monospace)',
             }}>
-              <span aria-hidden style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--pl-gold, #C19A4B)' }} />
-              {label}
+              {isActive ? `Editing · ${label}` : label}
             </div>
           )}
         </>
