@@ -1,29 +1,34 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// WelcomeHome — the dashboard "Welcome back" home page.
+// WelcomeHome — the dashboard "Welcome back" home (cockpit).
 //
-// Six blocks, top to bottom:
+// Top to bottom:
 //
-//   1. HeroBand    — couple names + days-until + stage pill +
-//                    next-milestone callout + planning progress
-//   2. QuickJumps  — 4 stage-aware tiles (early / mid / late) so
-//                    the most useful next action sits up front
-//   3. Pear todos  — Pear's 3 "worth your minute" recommendations,
-//                    derived from /api/guests/intelligence
-//   4. ActivityFeed — recent RSVPs + Pear actions on a timeline
-//   5. GuestPulse  — % responded + stacked yes/no/maybe/pending bar
-//   6. Milestones  — vertical roadmap to the date with done/urgent/
-//                    next/upcoming dot states
+//   1. CountdownHero — the dark "N days" hero (design-system v2):
+//                      greeting · venue/occasion eyebrow · countdown ·
+//                      decisions/tasks status · honoree marks · actions
+//                      (src/components/pearloom/dash/cockpit.tsx)
+//   2. StatTiles     — quick-glance count-ups (Coming / Awaiting /
+//                      Replied / Days), all backed by real data
+//   3. Pear todos    — Pear's "worth your minute" recommendations,
+//                      derived from /api/guests/intelligence
+//   4. ActivityFeed  — recent RSVPs on a timeline
+//   5. GuestPulse    — % responded + stacked yes/no/maybe/pending bar
+//   6. Milestones    — vertical roadmap to the date
+//   + edge cards (co-host invites, remembering/anniversary, siblings)
 //
 // Data flow:
 //   - useSelectedSite() drives the active site
-//   - GET /api/guests?siteId= drives GuestPulse + ActivityFeed
+//   - GET /api/guests?site= drives the tiles + GuestPulse + ActivityFeed
 //   - GET /api/guests/intelligence drives Pear's recommendations
-//   - Stage (early | mid | late) derives from daysUntil — anything
-//     under 30 days is "late", over 180 is "early", everything in
-//     between is "mid". The QuickJumps + Milestones change shape
-//     based on stage so the page is contextual, not a static slab.
+//   - GET /api/cadence?site= drives the milestone roadmap
+//   - Stage (early | mid | late) derives from daysUntil — under 30
+//     days is "late", over 180 "early", in between "mid".
+//
+// The cockpit pieces are prop-driven (cockpit.tsx) and verified in
+// the /dev/dashboard harness; this file feeds them real data only —
+// no invented numbers (budget/gifts have no backing store yet).
 // ─────────────────────────────────────────────────────────────
 
 import Link from 'next/link';
@@ -35,9 +40,10 @@ import { Icon, Pear } from '../motifs';
 import { useIsMobile } from '../redesign/use-nav-hooks';
 import { useSelectedSite } from '@/components/marketing/design/dash/hooks';
 import { parseLocalDate } from '@/lib/date-utils';
-import { buildSiteUrl, formatSiteDisplayUrl } from '@/lib/site-urls';
-import { nextStepFor, rsvpMomentumFor, type NextStep, type RsvpMomentum } from '@/lib/next-step';
+import { buildSiteUrl } from '@/lib/site-urls';
+import { nextStepFor, rsvpMomentumFor, type RsvpMomentum } from '@/lib/next-step';
 import type { StoryManifest } from '@/types';
+import { CountdownHero, StatTiles, type StatTileData } from '@/components/pearloom/dash/cockpit';
 import type { GuestInsight } from '@/app/api/guests/intelligence/route';
 
 interface Guest {
@@ -155,7 +161,6 @@ export function WelcomeHome() {
   const workZoneNarrow = useIsMobile(920);
   const editorHref = site?.domain ? `/editor/${site.domain}` : '/dashboard/event';
   const liveHref = site?.domain ? buildSiteUrl(site.domain, '', undefined, occasion) : '#';
-  const liveDisplay = site?.domain ? formatSiteDisplayUrl(site.domain, '', occasion) : '';
 
   // ── Guest counts ────────────────────────────────────────────
   const guestCounts = useMemo(() => {
@@ -194,7 +199,6 @@ export function WelcomeHome() {
       : null),
     [manifest, guestCounts, now],
   );
-  const nextStepHref = nextStep ? hrefForNextStep(nextStep, editorHref) : null;
 
   // ── Pear recommendations — after the golden thread so the same
   //    urgent task never renders twice (suppressNudge dedupe). ──
@@ -213,62 +217,33 @@ export function WelcomeHome() {
     () => buildMilestones({ stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence }),
     [stage, eventDate, eventDateShort, daysUntil, guestCounts, cadence],
   );
-  const nextMilestone = milestones.find((m) => m.status === 'urgent')
-    ?? milestones.find((m) => m.status === 'next')
-    ?? milestones.find((m) => m.status === 'upcoming')
-    ?? null;
 
   const stageBlurb =
     stage === 'early' ? 'Just getting started. Pear has a few ideas to get the ball rolling.'
     : stage === 'late' ? 'The home stretch — RSVPs are closing and the day-of room is open.'
     : 'Mid-planning. Replies are landing. Keep the schedule moving.';
 
+  // ── Cockpit-derived values (design-system v2 home) ──────────
+  // All real data: the eyebrow is the venue (or occasion), counts
+  // come from pearTodos / milestones / guestCounts. No invented
+  // numbers (budget/gifts have no backing store — omitted).
+  const heroEyebrow = (site?.venue ?? '').trim() || occasion.replace(/-/g, ' ');
+  const decisionsCount = pearTodos.length;
+  const tasksLeft = milestones.filter(
+    (m) => m.status === 'urgent' || m.status === 'next' || m.status === 'upcoming',
+  ).length;
+  const repliedCount = guestCounts ? guestCounts.yes + guestCounts.no + guestCounts.maybe : 0;
+  const repliedPct =
+    guestCounts && guestCounts.invited > 0 ? Math.round((repliedCount / guestCounts.invited) * 100) : 0;
+  const statTiles: StatTileData[] = [
+    { key: 'coming', label: 'Coming', value: guestCounts?.yes ?? 0, sub: guestCounts ? `of ${guestCounts.invited} invited` : 'No guests yet', color: 'var(--sage-deep)', icon: 'users', href: '/dashboard/rsvp' },
+    { key: 'await', label: 'Awaiting reply', value: guestCounts?.pending ?? 0, sub: 'no reply yet', color: 'var(--peach-ink)', icon: 'clock', href: '/dashboard/rsvp' },
+    { key: 'replied', label: 'Replied', value: repliedCount, sub: guestCounts ? `of ${guestCounts.invited} · ${repliedPct}%` : '—', color: 'var(--gold)', icon: 'check', bar: repliedPct, href: '/dashboard/rsvp' },
+    { key: 'days', label: 'Days to go', value: daysUntil ?? 0, sub: eventDateShort ?? 'Set a date', color: 'var(--lavender-ink)', icon: 'calendar' },
+  ];
+
   return (
     <DashLayout active="home" title="Welcome back" subtitle={stageBlurb} hideTopbar>
-      {/* Slim header — the old 36px "Good evening" display heading
-          stacked directly above the HeroBand's 48px name lockup, two
-          hero moments competing in the first 300px. The greeting is
-          now a quiet mono-caps eyebrow, the bell + avatar join the
-          action cluster (Home previously had NEITHER — the most-
-          visited page had no notifications and no settings entry),
-          and ~90px returns to the fold. */}
-      <div
-        className="pl8-home-greet"
-        style={{
-          padding: '20px clamp(20px, 4vw, 40px) 8px',
-          maxWidth: 1240,
-          margin: '0 auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 16,
-          flexWrap: 'wrap',
-        }}
-      >
-        <span className="eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--ink-soft)' }}>
-          <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold, #C19A4B)' }} />
-          {greeting}, {firstName}
-        </span>
-        {/* The global controls (theme · bell · account) moved to the
-            shell's persistent DashUtilityBar — this header keeps only
-            the home-specific actions. */}
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          {site?.domain && (
-            <a
-              href={liveHref}
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-outline btn-sm"
-              style={{ textDecoration: 'none' }}
-            >
-              <Icon name="eye" size={13} /> View live
-            </a>
-          )}
-          <Link href={editorHref} className="btn btn-primary btn-sm" style={{ textDecoration: 'none' }}>
-            <Icon name="brush" size={13} color="var(--cream)" /> Open editor
-          </Link>
-        </div>
-      </div>
 
       {/* Pending co-host invitations addressed to this signed-in
           user — accept right here, no inbox dig required. */}
@@ -284,24 +259,20 @@ export function WelcomeHome() {
           gap: 16,
         }}
       >
-        <HeroBand
-          firstName={firstName}
-          namesArr={namesArr}
-          eventDateLabel={eventDateLabel}
-          venue={site?.venue ?? null}
+        <CountdownHero
+          greeting={`${greeting}, ${firstName}`}
+          names={namesArr}
+          eyebrow={heroEyebrow}
           daysUntil={daysUntil}
-          stage={stage}
-          nextMilestone={nextMilestone}
-          nextStep={nextStep}
-          nextStepHref={nextStepHref}
-          hasManifest={manifest != null}
-          progressDone={milestones.filter((m) => m.status === 'done').length}
-          progressTotal={milestones.length}
-          newSinceVisit={recentActivity.length}
-          liveDisplay={liveDisplay}
+          dateLabel={eventDateLabel}
+          decisions={decisionsCount}
+          tasksLeft={tasksLeft}
+          liveHref={liveHref}
+          editorHref={editorHref}
+          askHref="/dashboard/director"
         />
 
-        <QuickJumps stage={stage} editorHref={editorHref} liveHref={liveHref} liveDisplay={liveDisplay} domain={site?.domain ?? null} />
+        <StatTiles tiles={statTiles} />
 
         {/* Two-column work zone — same shape as the design.
             Stacks below 920px so phones get a single column.
@@ -356,344 +327,6 @@ export function WelcomeHome() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// HeroBand — 3-column hero card. Names · Next milestone · Progress
-// ─────────────────────────────────────────────────────────────
-function HeroBand({
-  firstName,
-  namesArr,
-  eventDateLabel,
-  venue,
-  daysUntil,
-  stage,
-  nextMilestone,
-  nextStep,
-  nextStepHref,
-  hasManifest,
-  progressDone,
-  progressTotal,
-  newSinceVisit,
-  liveDisplay,
-}: {
-  firstName: string;
-  namesArr: string[];
-  eventDateLabel: string | null;
-  venue: string | null;
-  daysUntil: number | null;
-  stage: Stage;
-  nextMilestone: Milestone | null;
-  nextStep: NextStep | null;
-  nextStepHref: string | null;
-  hasManifest: boolean;
-  progressDone: number;
-  progressTotal: number;
-  newSinceVisit: number;
-  liveDisplay: string;
-}) {
-  const pct = progressTotal === 0 ? 0 : Math.round((progressDone / progressTotal) * 100);
-  const stagePill = STAGE_PILL[stage];
-  const urgencyTone = nextMilestone?.urgency === 'urgent' ? 'peach'
-    : nextMilestone?.urgency === 'soon' ? 'lavender' : 'sage';
-  const urgencyColor =
-    urgencyTone === 'peach' ? 'var(--peach-ink)' :
-    urgencyTone === 'lavender' ? 'var(--lavender-ink)' : 'var(--sage-deep)';
-  const urgencyBg =
-    urgencyTone === 'peach' ? 'var(--peach-bg)' :
-    urgencyTone === 'lavender' ? 'var(--lavender-bg)' : 'var(--sage-tint)';
-  // Golden-thread tone — the nudge step is time-boxed (reply-by
-  // inside 7 days), so it gets the urgent peach; publish gets
-  // lavender; everything else stays calm sage.
-  const stepTone = nextStep?.id === 'nudge' ? 'peach'
-    : nextStep?.id === 'publish' ? 'lavender' : 'sage';
-  const stepColor =
-    stepTone === 'peach' ? 'var(--peach-ink)' :
-    stepTone === 'lavender' ? 'var(--lavender-ink)' : 'var(--sage-deep)';
-  const stepBg =
-    stepTone === 'peach' ? 'var(--peach-bg)' :
-    stepTone === 'lavender' ? 'var(--lavender-bg)' : 'var(--sage-tint)';
-  void firstName; void liveDisplay;
-
-  // Phones: the 3-column band crushes every zone (clipped names,
-  // vertical-word milestone, overlapping PLANNING header). Stack
-  // the three zones as full-width rows instead. The inline style
-  // is the one that wins, so it has to be responsive itself — the
-  // styled-jsx 920px rule below stays as a backstop.
-  const isNarrow = useIsMobile(920);
-
-  return (
-    <div
-      className="hero-band"
-      style={{
-        background: 'linear-gradient(180deg, var(--card, #FBF7EE) 0%, var(--cream-2, #FBF6E8) 100%)',
-        border: '1px solid var(--card-ring, rgba(14,13,11,0.08))',
-        borderRadius: 16,
-        padding: 'clamp(20px, 3vw, 28px)',
-        display: 'grid',
-        gridTemplateColumns: isNarrow ? '1fr' : '1.4fr 1fr 1fr',
-        gap: isNarrow ? 18 : 28,
-        alignItems: isNarrow ? 'stretch' : 'center',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      {/* LEFT — names + meta */}
-      <div style={{ position: 'relative', zIndex: 1, minWidth: 0 }}>
-        {/* Atmosphere glyph — gold thread squiggle, decorative only.
-            Anchored INSIDE the left column so it can never drift
-            onto the middle column (the old right:220 magic number
-            collided with it around 960-1100px). */}
-        <svg
-          width="120"
-          height="30"
-          viewBox="0 0 160 40"
-          aria-hidden
-          style={{
-            display: isNarrow ? 'none' : undefined,
-            position: 'absolute',
-            top: -4,
-            right: 8,
-            opacity: 0.4,
-            transform: 'rotate(-10deg)',
-            pointerEvents: 'none',
-            color: 'var(--gold-line, #D4A95D)',
-          }}
-        >
-          <path d="M2 20 Q 20 4 38 20 T 74 20 T 110 20 T 146 20" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round"/>
-        </svg>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
-          <span className="eyebrow" style={{ color: 'var(--peach-ink)' }}>
-            {daysUntil == null ? 'Your celebration' : daysUntil === 0 ? 'Today' : `${daysUntil} days until`}
-          </span>
-          <span
-            style={{
-              display: 'inline-flex', alignItems: 'center',
-              padding: '4px 10px', borderRadius: 999,
-              fontSize: 11.5, fontWeight: 600,
-              background: stagePill.bg, color: stagePill.fg,
-            }}
-          >
-            {stagePill.label}
-          </span>
-        </div>
-        <h2
-          className="display pl-letterpress"
-          style={{
-            fontSize: 'clamp(32px, 4vw, 48px)',
-            margin: 0,
-            lineHeight: 0.98,
-            fontWeight: 500,
-            letterSpacing: '-0.02em',
-          }}
-        >
-          {namesArr.length >= 2 ? (
-            <>
-              {namesArr[0]}{' '}
-              <span className="display-italic" style={{ color: 'var(--ink)' }}>&amp;</span>
-              {' '}{namesArr[1]}
-            </>
-          ) : namesArr[0] ?? 'Your celebration'}
-        </h2>
-        <div
-          style={{
-            marginTop: 8,
-            fontSize: 14,
-            color: 'var(--ink-soft)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            flexWrap: 'wrap',
-          }}
-        >
-          {eventDateLabel ? (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <Icon name="calendar" size={13} /> {eventDateLabel}
-            </span>
-          ) : (
-            <span style={{ fontStyle: 'italic', color: 'var(--ink-muted)' }}>Set a date in the editor.</span>
-          )}
-          {venue && (
-            <>
-              <span style={{ width: 3, height: 3, background: 'var(--ink-muted)', borderRadius: '50%' }}/>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <Icon name="pin" size={13} /> {venue}
-              </span>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* MIDDLE — 'Next up' callout. Wired to the golden thread
-          (nextStepFor over the live manifest + guest counts) so
-          the dashboard names the same step as the editor's topbar
-          chip. Falls back to the milestone roadmap only when the
-          manifest hasn't loaded yet. */}
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        {nextStep && nextStepHref ? (
-          <Link
-            href={nextStepHref}
-            style={{
-              display: 'block',
-              padding: '14px 16px',
-              borderRadius: 10,
-              background: stepBg,
-              border: `1px solid ${stepTone === 'peach' ? 'color-mix(in oklab, var(--peach-ink, #C6703D) 18%, transparent)' : 'transparent'}`,
-              textDecoration: 'none',
-            }}
-          >
-            <div className="eyebrow" style={{ color: stepColor, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold, #C19A4B)' }} />
-              NEXT UP
-            </div>
-            <div
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 22,
-                fontWeight: 600,
-                color: stepColor,
-                lineHeight: 1.1,
-              }}
-            >
-              {nextStep.label}
-            </div>
-            <div style={{ fontSize: 13, color: stepColor, opacity: 0.85, marginTop: 4 }}>
-              {nextStep.hint}
-            </div>
-          </Link>
-        ) : hasManifest ? (
-          <div
-            style={{
-              padding: '14px 16px',
-              borderRadius: 10,
-              background: 'var(--cream-2)',
-              fontSize: 13,
-              color: 'var(--ink-muted)',
-              fontStyle: 'italic',
-            }}
-          >
-            All threaded. Pear&apos;s keeping watch.
-          </div>
-        ) : nextMilestone ? (
-          <div
-            style={{
-              padding: '14px 16px',
-              borderRadius: 10,
-              background: urgencyBg,
-              border: `1px solid ${urgencyTone === 'peach' ? 'color-mix(in oklab, var(--peach-ink, #C6703D) 18%, transparent)' : 'transparent'}`,
-            }}
-          >
-            <div className="eyebrow" style={{ color: urgencyColor, marginBottom: 4 }}>NEXT UP</div>
-            <div
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 22,
-                fontWeight: 600,
-                color: urgencyColor,
-                lineHeight: 1.1,
-              }}
-            >
-              {nextMilestone.label}
-            </div>
-            <div style={{ fontSize: 13, color: urgencyColor, opacity: 0.85, marginTop: 4 }}>
-              {nextMilestone.sub}
-            </div>
-          </div>
-        ) : (
-          <div
-            style={{
-              padding: '14px 16px',
-              borderRadius: 10,
-              background: 'var(--cream-2)',
-              fontSize: 13,
-              color: 'var(--ink-muted)',
-              fontStyle: 'italic',
-            }}
-          >
-            All quiet. Pear&apos;s keeping watch.
-          </div>
-        )}
-      </div>
-
-      {/* RIGHT — progress + activity */}
-      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <div>
-          {/* gap + nowrap so the label and the counter can never
-              overlap, no matter how narrow the column gets. */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6, gap: 12, flexWrap: 'nowrap' }}>
-            <span className="eyebrow" style={{ whiteSpace: 'nowrap' }}>PLANNING</span>
-            <span style={{ fontSize: 12.5, color: 'var(--ink-soft)', whiteSpace: 'nowrap', flexShrink: 0 }}>
-              <strong style={{ fontWeight: 700, color: 'var(--ink)' }}>{progressDone}</strong> of {progressTotal}
-            </span>
-          </div>
-          <div style={{ height: 8, background: 'var(--cream-2)', borderRadius: 999, overflow: 'hidden' }}>
-            <div
-              style={{
-                width: `${pct}%`,
-                height: '100%',
-                background: 'linear-gradient(90deg, var(--sage), var(--sage-deep))',
-                borderRadius: 999,
-                transition: 'width 600ms cubic-bezier(0.16, 1, 0.3, 1)',
-              }}
-            />
-          </div>
-        </div>
-
-        {newSinceVisit > 0 ? (
-          <a
-            href="#feed"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              fontSize: 13,
-              color: 'var(--ink)',
-              fontWeight: 500,
-              padding: '8px 12px',
-              borderRadius: 10,
-              background: 'var(--cream-2)',
-              textDecoration: 'none',
-            }}
-          >
-            <span
-              style={{ width: 7, height: 7, background: 'var(--peach-ink)', borderRadius: '50%' }}
-              className="pulse-dot"
-            />
-            <strong style={{ fontWeight: 700 }}>{newSinceVisit}</strong> recent {newSinceVisit === 1 ? 'reply' : 'replies'}
-            <Icon name="arrow-right" size={13} style={{ marginLeft: 'auto' }} />
-          </a>
-        ) : (
-          <div style={{ fontSize: 12.5, color: 'var(--ink-muted)', padding: '8px 12px' }}>
-            All quiet. Pear&apos;s keeping watch.
-          </div>
-        )}
-      </div>
-
-      <style jsx>{`
-        @media (max-width: 920px) {
-          .hero-band {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-/** Route the golden-thread step to the right dashboard surface.
- *  Editor rungs (cover/date/gallery/story) deep-link into the
- *  editor's matching property-rail panel via `?jump=` so "Add
- *  your cover photo" actually opens the Hero panel (and the
- *  props sheet on phones). Publish opens the editor plain — the
- *  topbar Publish button is the flow's entry point. Guest rungs
- *  land on /dashboard/rsvp (DashGuests): the roster with add /
- *  CSV import, and the NudgeStrip's composer for pending
- *  replies. (NOT /dashboard/invite — that's the stationery
- *  Studio, which confused guest-list clicks for months.) */
-function hrefForNextStep(step: NextStep, editorHref: string): string {
-  if (step.target === 'guests') return '/dashboard/rsvp';
-  if (step.target === 'publish') return editorHref;
-  return `${editorHref}?jump=${step.target}`;
-}
-
-// ─────────────────────────────────────────────────────────────
 // RsvpMomentumCard — pending replies + reply-by inside 7 days.
 // The CTA deep-links to /dashboard/rsvp, where the existing
 // NudgeStrip opens the Pear-drafted NudgeComposer — we never
@@ -739,103 +372,6 @@ function RsvpMomentumCard({ momentum }: { momentum: RsvpMomentum }) {
       >
         Nudge them with Pear <Icon name="sparkles" size={11} color="var(--cream)" />
       </Link>
-    </div>
-  );
-}
-
-const STAGE_PILL: Record<Stage, { label: string; bg: string; fg: string }> = {
-  early: { label: 'Just getting started', bg: 'var(--lavender-bg)', fg: 'var(--lavender-ink)' },
-  mid:   { label: 'Mid-planning',         bg: 'var(--sage-tint)',   fg: 'var(--sage-deep)' },
-  late:  { label: 'Final stretch',        bg: 'var(--peach-bg)',    fg: 'var(--peach-ink)' },
-};
-
-// ─────────────────────────────────────────────────────────────
-// QuickJumps — 4 stage-aware tiles
-// ─────────────────────────────────────────────────────────────
-interface JumpTile {
-  label: string;
-  sub: string;
-  icon: string;
-  href: string;
-  glow?: boolean;
-  dim?: boolean;
-}
-
-function QuickJumps({
-  stage, editorHref, liveHref, liveDisplay, domain,
-}: {
-  stage: Stage;
-  editorHref: string;
-  liveHref: string;
-  liveDisplay: string;
-  domain: string | null;
-}) {
-  const tiles: JumpTile[] = (() => {
-    if (stage === 'early') {
-      return [
-        { label: 'Open the editor',  sub: 'Edit your wedding site',                      icon: 'brush',   href: editorHref },
-        { label: 'Build guest list', sub: 'Import or draft with Pear',                   icon: 'users',   href: '/dashboard/rsvp' },
-        { label: 'Studio',           sub: 'Save-the-dates & invites',                    icon: 'palette', href: '/dashboard/invite' },
-        { label: 'Day-of room',      sub: 'Locked until 30 days out',                    icon: 'lock',    href: '/dashboard/day-of', dim: true },
-      ];
-    }
-    if (stage === 'late') {
-      return [
-        { label: 'Day-of room',      sub: 'Open now — timeline & vendors',                icon: 'calendar', href: '/dashboard/day-of', glow: true },
-        { label: 'Seating chart',    sub: 'Place guests at tables',                       icon: 'grid',     href: '/dashboard/seating' },
-        { label: 'Open the editor',  sub: 'Final tweaks to the site',                     icon: 'brush',    href: editorHref },
-        { label: 'Print orders',     sub: 'Programs ready to send',                       icon: 'send',     href: '/dashboard/print' },
-      ];
-    }
-    return [
-      { label: 'Open the editor',  sub: 'Edit your wedding site',                          icon: 'brush', href: editorHref },
-      { label: 'Send invitations', sub: 'Pear has cadences ready',                         icon: 'send',  href: '/dashboard/cadence' },
-      { label: 'Studio',           sub: 'Save-the-dates & invites',                        icon: 'palette', href: '/dashboard/invite' },
-      { label: 'View live site',   sub: domain ? liveDisplay : 'Publish to share',         icon: 'eye',   href: liveHref },
-    ];
-  })();
-
-  /* Inline grid for the same styled-jsx race reason as the work
-     zone above — 4-up desktop, 2-up under 760px. */
-  const twoCol = useIsMobile(760);
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: twoCol ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 12 }}>
-      {tiles.map((j) => (
-        <Link
-          key={j.label}
-          href={j.href}
-          className="lift"
-          style={{
-            padding: '14px 16px',
-            borderRadius: 16,
-            background: j.glow ? 'var(--ink)' : 'var(--card, #FBF7EE)',
-            color: j.glow ? 'var(--cream)' : 'var(--ink)',
-            border: j.glow ? 'none' : '1px solid var(--card-ring, rgba(14,13,11,0.08))',
-            opacity: j.dim ? 0.55 : 1,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 6,
-            minHeight: 78,
-            position: 'relative',
-            textDecoration: 'none',
-            fontFamily: 'var(--font-ui)',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <Icon name={j.icon} size={18} color={j.glow ? 'var(--cream)' : 'var(--gold)'} />
-            {j.glow && (
-              <span
-                style={{ width: 6, height: 6, background: 'var(--peach)', borderRadius: '50%' }}
-                className="pulse-dot"
-              />
-            )}
-          </div>
-          <div style={{ marginTop: 'auto' }}>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>{j.label}</div>
-            <div style={{ fontSize: 11.5, opacity: 0.7, marginTop: 2 }}>{j.sub}</div>
-          </div>
-        </Link>
-      ))}
     </div>
   );
 }

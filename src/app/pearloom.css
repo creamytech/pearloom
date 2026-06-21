@@ -7890,3 +7890,19 @@ html { scroll-behavior: smooth; }
   content: ''; position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(ellipse 120% 100% at 50% 0%, transparent 55%, var(--surface-page, var(--pl-cream)) 100%);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   DASHBOARD HOME COCKPIT (design-system v2) — responsive grids.
+   The dark countdown hero (1.5fr / 1fr) and the quick-glance stat
+   tiles (4-up). Inline styles own the look; these classes only
+   carry the breakpoints (kept here so they can't race the runtime
+   style injection, same rationale as the work-zone grid).
+   ═══════════════════════════════════════════════════════════════ */
+.pl8-cockpit-hero { display: grid; grid-template-columns: 1.5fr 1fr; }
+.pl8-cockpit-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+@media (max-width: 860px) {
+  .pl8-cockpit-stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 760px) {
+  .pl8-cockpit-hero { grid-template-columns: 1fr; }
+}
