@@ -12,7 +12,6 @@
 
 import { createContext, useContext, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
-import { Blob } from '../motifs';
 import { DashSidebar, DashMobileBar, DashUtilityBar } from './DashShell';
 import { DashSubNav } from './DashSubNav';
 import { DashCommandPalette } from './DashCommandPalette';
@@ -43,12 +42,13 @@ export function ShellPersistentLayout({ children }: { children: ReactNode }) {
               — mounted once here so every dashboard page has it,
               desktop-only (mobile uses DashMobileBar above). */}
           <DashUtilityBar />
-          {/* Paper grain — BRAND.md §3's fixed warm underlay, shared
-              with DashLayout's standalone shell. */}
-          <div aria-hidden className="pl-grain" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, opacity: 0.5 }} />
-          <div style={{ position: 'absolute', top: 0, right: 0, pointerEvents: 'none', zIndex: 0 }}>
-            <Blob tone="peach" size={380} opacity={0.35} style={{ position: 'absolute', top: -120, right: -120 }} />
-          </div>
+          {/* Linen paper texture — the v2 cockpit's default ground
+              (ui_kits/dashboard/index.html, texture: 'linen'). Rides at
+              0.55 over the warm --glow painted on the main, so the
+              atmosphere reads exactly like the zip: warm peach + sage
+              blooms, muted by a woven paper. Supersedes the old grain +
+              peach Blob — the glow now carries the warm corner. */}
+          <div aria-hidden className="pl-tx-linen" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, opacity: 0.55 }} />
           <div style={{ position: 'relative', zIndex: 1 }}>
             {/* Section sub-nav — mounted ABOVE the page-enter
                 wrapper so it stays put across tab swaps within

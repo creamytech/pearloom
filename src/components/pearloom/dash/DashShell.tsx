@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLinkStatus } from 'next/link';
-import { useEffect, useLayoutEffect, useRef, useState, useTransition, type ReactNode } from 'react';
+import { useEffect, useRef, useState, useTransition, type ReactNode } from 'react';
 import { parseLocalDate } from '@/lib/date-utils';
 import { Blob, Heart, Icon, Pear, PearloomLogo } from '../motifs';
 import { useIsInsideShell } from './ShellPersistentLayout';
@@ -36,19 +36,41 @@ interface DashNavGroup {
   items: DashNavItem[];
 }
 
+/* Grouped nav — ported 1:1 from the v2 dashboard ui_kit
+   (handoff-v2/ui_kits/dashboard/DashShell.jsx NAV). Static mono
+   group labels; every href is a real production route, so routing +
+   active-state wiring is untouched. */
 const DASH_NAV_GROUPS: DashNavGroup[] = [
   {
     id: 'main',
     label: '',
     items: [
-      { id: 'home',    label: 'Home',     icon: 'home',     href: '/dashboard' },
-      { id: 'site',    label: 'Site',     icon: 'layout',   href: '/dashboard/event' },
+      { id: 'home', label: 'Home', icon: 'home', href: '/dashboard' },
+    ],
+  },
+  {
+    id: 'loom',
+    label: 'Your loom',
+    items: [
+      { id: 'site', label: 'My sites', icon: 'layout', href: '/dashboard/event' },
+    ],
+  },
+  {
+    id: 'event',
+    label: 'This event',
+    items: [
       { id: 'guests',  label: 'Guests',   icon: 'users',    href: '/dashboard/rsvp' },
       { id: 'day',     label: 'Day',      icon: 'clock',    href: '/dashboard/day-of' },
       { id: 'studio',  label: 'Studio',   icon: 'sparkles', href: '/dashboard/invite' },
-      { id: 'gallery', label: 'Gallery',  icon: 'image',    href: '/dashboard/gallery' },
+      { id: 'gallery', label: 'The Reel',  icon: 'image',    href: '/dashboard/gallery' },
       { id: 'memory',  label: 'Memory',   icon: 'heart-icon', href: '/dashboard/keepsakes' },
-      { id: 'tools',   label: 'More',     icon: 'grid',     href: '/dashboard/tools' },
+    ],
+  },
+  {
+    id: 'house',
+    label: 'The house',
+    items: [
+      { id: 'tools',    label: 'More',     icon: 'grid',     href: '/dashboard/tools' },
       { id: 'settings', label: 'Settings', icon: 'settings', href: '/dashboard/profile' },
     ],
   },
@@ -933,145 +955,90 @@ function NavGroup({
   pathname: string | null;
   unread: number;
 }) {
-  const listRef = useRef<HTMLDivElement | null>(null);
-  const [pill, setPill] = useState<{ top: number; height: number; visible: boolean }>({
-    top: 0,
-    height: 0,
-    visible: false,
-  });
-
-  // Group is open if it contains the active route. User can manually
-  // expand/collapse via the header button; that override persists
-  // in localStorage under a per-group key.
-  const containsActive = group.items.some((item) => {
-    if (active) return item.id === active;
-    return pathname === item.href;
-  });
-  const storageKey = `pl-dash-nav-open:${group.id}`;
-  const [open, setOpen] = useState<boolean>(containsActive);
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    let stored: string | null = null;
-    try {
-      // Safari Private Mode + some enterprise policies throw on
-      // any localStorage access — treat that the same as missing.
-      stored = window.localStorage.getItem(storageKey);
-    } catch {
-      stored = null;
-    }
-    if (stored === '1') setOpen(true);
-    else if (stored === '0') setOpen(false);
-    else setOpen(containsActive);
-    // We only want to read storage on mount + when the active group
-    // changes, not on every pathname tick.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [containsActive]);
-  const toggleOpen = () => {
-    const next = !open;
-    setOpen(next);
-    if (typeof window !== 'undefined') {
-      try {
-        window.localStorage.setItem(storageKey, next ? '1' : '0');
-      } catch {}
-    }
-  };
-
-  // Measure the active item's offsetTop + height so the pill can
-  // snap into place. Skipped while collapsed.
-  useLayoutEffect(() => {
-    if (!listRef.current || !open) {
-      setPill((p) => ({ ...p, visible: false }));
-      return;
-    }
-    const activeEl = listRef.current.querySelector<HTMLAnchorElement>('[data-nav-active="1"]');
-    if (!activeEl) {
-      setPill((p) => ({ ...p, visible: false }));
-      return;
-    }
-    const listRect = listRef.current.getBoundingClientRect();
-    const itemRect = activeEl.getBoundingClientRect();
-    setPill({ top: itemRect.top - listRect.top, height: itemRect.height, visible: true });
-  }, [active, pathname, open]);
-
-  // Hide the collapsible group header entirely when label is empty.
-  // The new IA renders a single "main" group with no header so the
-  // sidebar reads as a flat 7-item list.
+  // v2 IA — static mono group label (no collapse), then the items.
+  // The active item carries its own ink pill (NavLink), so there's
+  // no measured sliding-pill machinery anymore.
   const headerless = !group.label || group.label.trim().length === 0;
-
   return (
-    <div>
+    <div className="dash-navgroup">
       {!headerless && (
-      <button
-        type="button"
-        onClick={toggleOpen}
-        aria-expanded={open}
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 6,
-          padding: '4px 12px 6px',
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
-          fontSize: 9.5,
-          fontWeight: 700,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: 'var(--ink-muted)',
-          textAlign: 'left',
-        }}
-      >
-        <span>{group.label}</span>
-        <span
-          aria-hidden
+        <div
+          className="dash-grouplabel"
           style={{
-            display: 'inline-flex',
-            transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
-            transition: 'transform 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+            padding: '4px 12px 6px',
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            fontSize: 9.5,
+            fontWeight: 700,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
             color: 'var(--ink-muted)',
           }}
         >
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </span>
-      </button>
-      )}
-      {(headerless || open) && (
-        <div ref={listRef} style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              top: pill.top,
-              height: pill.height,
-              background: 'var(--ink)',
-              borderRadius: 10,
-              opacity: pill.visible ? 1 : 0,
-              pointerEvents: 'none',
-              zIndex: 0,
-            }}
-          />
-          {group.items.map((item) => {
-            const isActive = active ? item.id === active : pathname === item.href;
-            const liveBadge = item.id === 'bridge' && unread > 0 ? String(unread) : item.badge;
-            return (
-              <NavLink
-                key={item.id}
-                item={item}
-                isActive={isActive}
-                liveBadge={liveBadge}
-              />
-            );
-          })}
+          {group.label}
         </div>
       )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {group.items.map((item) => {
+          const isActive = active ? item.id === active : pathname === item.href;
+          // Real unread-activity count rides the Guests badge (the
+          // v2 mock showed a static "5"); never fabricated.
+          const liveBadge = item.id === 'guests' && unread > 0 ? String(unread) : item.badge;
+          return (
+            <NavLink
+              key={item.id}
+              item={item}
+              isActive={isActive}
+              liveBadge={liveBadge}
+              badgeTone={item.id === 'gallery' ? 'gold' : 'peach'}
+            />
+          );
+        })}
+      </div>
     </div>
+  );
+}
+
+/* DashNavGlyph — the v2 in-house sidebar line-icon set
+   (handoff-v2/ui_kits/dashboard/Icons.jsx). 24×24, fill:none, 1.75px
+   round-cap strokes. Each glyph carries data-icon so the bespoke
+   per-icon hover motion in pearloom.css can target it
+   (.dash-navbtn:hover .dash-navicon svg[data-icon="…"]). Kept local to
+   the sidebar so the rest of the app's Icon usage is untouched. */
+const DASH_NAV_GLYPHS: Record<string, string> = {
+  home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/>',
+  layout: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M9 9v11"/>',
+  users: '<circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6.1"/><path d="M17.5 14.6A5.5 5.5 0 0 1 20.5 20"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  sparkles: '<path d="M12 3.5c.5 3.4 1.6 4.5 5 5-3.4.5-4.5 1.6-5 5-.5-3.4-1.6-4.5-5-5 3.4-.5 4.5-1.6 5-5Z"/><path d="M18.5 13.5c.3 1.6.8 2.1 2.4 2.4-1.6.3-2.1.8-2.4 2.4-.3-1.6-.8-2.1-2.4-2.4 1.6-.3 2.1-.8 2.4-2.4Z"/>',
+  image: '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4.5 17.5 9 13l3 2.5L15.5 11l4.5 5"/>',
+  gift: '<rect x="3.5" y="9" width="17" height="4" rx="1"/><path d="M5 13v6.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V13"/><path d="M12 9v11.5"/><path d="M12 9S10.8 4.5 8.5 4.5a2 2 0 0 0 0 4.5Z"/><path d="M12 9s1.2-4.5 3.5-4.5a2 2 0 0 1 0 4.5Z"/>',
+  bars: '<path d="M4 20V11"/><path d="M9.3 20V5"/><path d="M14.6 20v-6.5"/><path d="M20 20V8"/>',
+  grid: '<circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="7" cy="17" r="3"/><circle cx="17" cy="17" r="3"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v2.2M12 19.3v2.2M21.5 12h-2.2M4.7 12H2.5M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6M18.7 18.7l-1.6-1.6M6.9 6.9 5.3 5.3"/>',
+  heart: '<path d="M12 20S4 14.5 4 9a4.2 4.2 0 0 1 8-1.6A4.2 4.2 0 0 1 20 9c0 5.5-8 11-8 11Z"/>',
+};
+/* Production nav-item icon name → v2 glyph + the data-icon the CSS
+   animation targets. Unknown names fall back to the production <Icon>. */
+const DASH_NAV_GLYPH_ALIAS: Record<string, string> = { 'heart-icon': 'heart' };
+
+function DashNavGlyph({ name, size = 18 }: { name: string; size?: number }) {
+  const key = DASH_NAV_GLYPH_ALIAS[name] ?? name;
+  const body = DASH_NAV_GLYPHS[key];
+  if (!body) return <Icon name={name} size={size} />;
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      data-icon={key}
+      dangerouslySetInnerHTML={{ __html: body }}
+    />
   );
 }
 
@@ -1079,10 +1046,12 @@ function NavLink({
   item,
   isActive,
   liveBadge,
+  badgeTone = 'peach',
 }: {
   item: DashNavItem;
   isActive: boolean;
   liveBadge?: string;
+  badgeTone?: 'peach' | 'gold';
 }) {
   // Navigate via router.push wrapped in startTransition so the
   // OLD page stays painted while the new page streams in. This is
@@ -1101,13 +1070,18 @@ function NavLink({
       router.push(item.href);
     });
   };
+  // v2 NavLink — ink pill on the active item (data-on), a thread
+  // hover-rail (olive→gold) that draws in at the left edge of idle
+  // items, and the bespoke per-icon hover motion (CSS, keyed on the
+  // glyph's data-icon). Hover bg + all motion live in pearloom.css.
   return (
     <Link
       data-nav-active={isActive ? '1' : undefined}
+      data-on={isActive ? '1' : undefined}
       data-nav-pending={pending ? '1' : undefined}
       href={item.href}
       onClick={handleClick}
-      className="pl8-dash-navlink"
+      className="pl8-dash-navlink dash-navbtn"
       style={{
         position: 'relative',
         display: 'flex',
@@ -1116,37 +1090,18 @@ function NavLink({
         padding: '10px 12px',
         borderRadius: 10,
         fontSize: 14,
-        fontWeight: 500,
+        fontWeight: isActive ? 600 : 500,
         color: isActive ? 'var(--cream)' : 'var(--ink)',
+        backgroundColor: isActive ? 'var(--ink)' : 'transparent',
         textDecoration: 'none',
         zIndex: 1,
-        // No color transition — snap to active state. The 260ms
-        // color fade was firing on every link in the sidebar
-        // simultaneously when active row changed, contributing to
-        // the perceived 'whole sidebar fades' effect.
-      }}
-      onMouseEnter={(e) => {
-        if (isActive) return;
-        e.currentTarget.style.background = 'rgba(14,13,11,0.04)';
-        const svg = e.currentTarget.querySelector<SVGElement>('svg');
-        if (svg) svg.style.transform = 'scale(1.14)';
-      }}
-      onMouseLeave={(e) => {
-        if (isActive) return;
-        e.currentTarget.style.background = 'transparent';
-        const svg = e.currentTarget.querySelector<SVGElement>('svg');
-        if (svg) svg.style.transform = '';
       }}
     >
-      <span
-        style={{
-          display: 'inline-flex',
-          transition: 'transform 260ms cubic-bezier(0.22, 1, 0.36, 1)',
-        }}
-      >
-        <Icon name={item.icon} size={18} />
+      <span className="dash-navrail" aria-hidden="true" />
+      <span className="dash-navicon" style={{ display: 'inline-flex' }}>
+        <DashNavGlyph name={item.icon} />
       </span>
-      <span style={{ flex: 1 }}>{item.label}</span>
+      <span className="dash-navlabel" style={{ flex: 1 }}>{item.label}</span>
       {pending && (
         <span
           aria-hidden
@@ -1165,13 +1120,19 @@ function NavLink({
       <NavLinkPending isActive={isActive} />
       {liveBadge && (
         <span
+          className="dash-navbadge"
           style={{
             fontSize: 11,
             padding: '2px 8px',
             borderRadius: 999,
-            background: isActive ? 'color-mix(in oklab, var(--cream) 18%, transparent)' : 'var(--peach-bg)',
-            color: isActive ? 'var(--cream)' : 'var(--peach-ink)',
             fontWeight: 700,
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            background: isActive
+              ? 'color-mix(in oklab, var(--cream) 18%, transparent)'
+              : (badgeTone === 'gold' ? 'rgba(193,154,75,0.18)' : 'var(--peach-bg)'),
+            color: isActive
+              ? 'var(--cream)'
+              : (badgeTone === 'gold' ? '#8A6A2E' : 'var(--peach-ink)'),
           }}
         >
           {liveBadge}

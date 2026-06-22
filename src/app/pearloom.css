@@ -62,6 +62,15 @@
   --line:        var(--pl-divider, rgba(14, 13, 11, 0.14));
   --line-soft:   var(--pl-divider-soft, rgba(14, 13, 11, 0.06));
 
+  /* Dashboard glow — the warm atmosphere behind the cockpit, ported
+     1:1 from the v2 ui_kits/dashboard/index.html (--glow): a peach
+     bloom top-right + a sage bloom top-left over the sunk cream
+     ground. Painted on .pl8-dashshell > main. */
+  --pl-dash-glow:
+    radial-gradient(ellipse 70% 55% at 100% -5%, var(--peach-bg) 0%, transparent 60%),
+    radial-gradient(ellipse 48% 42% at -3% 6%, var(--sage-tint) 0%, transparent 55%),
+    var(--cream-3);
+
   /* Shadow */
   --shadow-sm:  0 2px 6px rgba(61, 74, 31, 0.05);
   --shadow:     0 6px 18px rgba(61, 74, 31, 0.08);
@@ -125,6 +134,13 @@
   --shadow:     0 6px 18px rgba(0, 0, 0, 0.45);
   --shadow-md:  0 12px 32px rgba(0, 0, 0, 0.50);
   --shadow-lg:  0 24px 56px rgba(0, 0, 0, 0.55);
+
+  /* Editorial-midnight glow — softer washes so the atmosphere reads
+     without glaring on #0D0B07 (v2 index.html dark --glow). */
+  --pl-dash-glow:
+    radial-gradient(ellipse 70% 55% at 100% -5%, rgba(214,120,82,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 48% 42% at -3% 6%, rgba(151,169,104,0.07) 0%, transparent 55%),
+    var(--cream-3);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1518,6 +1534,60 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 .pl8-dash-sidebar:hover::-webkit-scrollbar-thumb { background: var(--line); }
 .pl8-dash-sidebar { scrollbar-width: thin; scrollbar-color: var(--line-soft) transparent; }
 
+/* ═══════════════════════════════════════════════════════════════
+   DASHBOARD SIDEBAR NAV — port of v2 ui_kits/dashboard/index.html.
+   Thread hover-rail (olive→gold) on idle items, an ink active pill
+   (inline on the link), and the bespoke per-icon hover motion: each
+   glyph threads in its own way. The active item keeps its ink pill,
+   no rail. Honours prefers-reduced-motion.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Hover bg — beats the inline `transparent` on idle items via
+   !important + :not([data-on]); the active item's ink fill is left
+   untouched. */
+.dash-navbtn:not([data-on]):hover { background: rgba(14,13,11,0.05) !important; }
+[data-theme='dark'] .dash-navbtn:not([data-on]):hover { background: rgba(245,239,226,0.07) !important; }
+.dash-navbtn:focus-visible { outline: 2px solid var(--accent-ink, var(--peach-ink)); outline-offset: 2px; }
+
+/* Thread hover-rail — the brand's two-strand thread draws in at the
+   left edge of an idle item on hover. */
+.dash-navrail {
+  position: absolute; left: 3px; top: 50%; width: 3px; height: 22px;
+  border-radius: 9px;
+  background: linear-gradient(var(--pl-olive, var(--sage-deep)), var(--pl-gold));
+  transform: translateY(-50%) scaleY(0); transform-origin: center;
+  transition: transform .3s var(--pl-ease-emphasis); pointer-events: none;
+}
+.dash-navbtn:not([data-on]):hover .dash-navrail { transform: translateY(-50%) scaleY(1); }
+.dash-navbtn[data-on] .dash-navrail { display: none; }
+
+/* Bespoke per-tab icon motion — each glyph threads in its own way on
+   hover. Chrome, so a single play; sparkles keeps weaving while
+   hovered. */
+.dash-navicon svg { transform-origin: center; will-change: transform; }
+@media (prefers-reduced-motion: no-preference) {
+  .dash-navbtn:hover .dash-navicon svg[data-icon="home"]     { animation: pl-nav-bob .5s var(--pl-ease-spring); }
+  .dash-navbtn:hover .dash-navicon svg[data-icon="layout"]   { animation: pl-nav-pop .45s var(--pl-ease-spring); }
+  .dash-navbtn:hover .dash-navicon svg[data-icon="users"]    { animation: pl-nav-bob .5s var(--pl-ease-spring); }
+  .dash-navbtn:hover .dash-navicon svg[data-icon="clock"]    { animation: pl-nav-tick .6s var(--pl-ease-spring); transform-origin: 12px 12px; }
+  .dash-navbtn:hover .dash-navicon svg[data-icon="sparkles"] { animation: pl-nav-twinkle .9s var(--pl-ease-out) infinite; }
+  .dash-navbtn:hover .dash-navicon svg[data-icon="image"]    { animation: pl-nav-pan .6s var(--pl-ease-out); }
+  .dash-navbtn:hover .dash-navicon svg[data-icon="gift"]     { animation: pl-nav-wiggle .55s var(--pl-ease-out); }
+  .dash-navbtn:hover .dash-navicon svg[data-icon="bars"]     { animation: pl-nav-grow .5s var(--pl-ease-emphasis); transform-origin: bottom center; }
+  .dash-navbtn:hover .dash-navicon svg[data-icon="heart"]    { animation: pl-nav-beat .7s var(--pl-ease-spring); }
+  .dash-navbtn:hover .dash-navicon svg[data-icon="grid"]     { animation: pl-nav-pop .45s var(--pl-ease-spring); }
+  .dash-navbtn:hover .dash-navicon svg[data-icon="settings"] { animation: pl-nav-spin 1.2s var(--pl-ease-out); }
+}
+@keyframes pl-nav-bob     { 0%,100% { transform: translateY(0); } 42% { transform: translateY(-3px); } }
+@keyframes pl-nav-pop     { 0% { transform: scale(1); } 50% { transform: scale(1.18); } 100% { transform: scale(1); } }
+@keyframes pl-nav-twinkle { 0% { transform: rotate(0) scale(1); } 50% { transform: rotate(16deg) scale(1.16); } 100% { transform: rotate(0) scale(1); } }
+@keyframes pl-nav-pan     { 0%,100% { transform: translateX(0); } 50% { transform: translateX(2.5px); } }
+@keyframes pl-nav-wiggle  { 0%,100% { transform: rotate(0); } 28% { transform: rotate(-10deg); } 72% { transform: rotate(10deg); } }
+@keyframes pl-nav-grow    { 0% { transform: scaleY(0.62); } 60% { transform: scaleY(1.08); } 100% { transform: scaleY(1); } }
+@keyframes pl-nav-tick    { 0% { transform: rotate(0); } 60% { transform: rotate(22deg); } 100% { transform: rotate(0); } }
+@keyframes pl-nav-beat    { 0%,100% { transform: scale(1); } 30% { transform: scale(1.22); } 55% { transform: scale(0.96); } 75% { transform: scale(1.1); } }
+@keyframes pl-nav-spin    { 0% { transform: rotate(0); } 100% { transform: rotate(180deg); } }
+
 /* Editor outline + inspector — same elegant scrollbar treatment.
    Default Windows scrollbars are 17px chunky and visually clash
    with the editor's understated chrome. macOS auto-hides theirs
@@ -1617,9 +1687,12 @@ button.pl8-mobile-only { display: none !important; }
    set here) so the aside's `position: sticky; top: 0` resolves
    against the viewport. Long pages scroll the document; the
    sidebar stays put. */
-.pl8-dashshell { display: flex; min-height: 100dvh; background: var(--cream); position: relative; }
+.pl8-dashshell { display: flex; min-height: 100dvh; background: var(--cream-3); position: relative; }
 .pl8-dashshell > aside { width: 260px; flex-shrink: 0; }
-.pl8-dashshell > main { flex: 1; min-width: 0; position: relative; }
+/* v2 cockpit atmosphere — the warm --glow (peach + sage blooms on
+   sunk cream) rides the scroll column; the paper texture overlay +
+   content sit above it (zIndex in ShellPersistentLayout). */
+.pl8-dashshell > main { flex: 1; min-width: 0; position: relative; background: var(--pl-dash-glow); }
 /* Mobile-only — revealed inside the 960px drawer media block. */
 .pl8-dash-mobilebar { display: none; }
 
