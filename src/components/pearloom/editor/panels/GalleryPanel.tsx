@@ -10,6 +10,7 @@
    of the gradient placeholders. */
 
 import type { StoryManifest } from '@/types';
+import { Icon } from '../../motifs';
 import { FGroup, FInput, FToggleStandalone, SectionPanelShell, SectionVisibilityFooter, useCopyOverride, useSectionHidden } from './_section-atoms';
 import { PhotoUploadSlot, collectPhotoPool } from './_photo-upload';
 
@@ -85,9 +86,12 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
-          <FInput value={galleryEyebrow} onChange={setGalleryEyebrow} placeholder="Gallery" />
-        </FGroup>
+        {/* ── Zip GalleryEditor layout (section-fields.jsx L272-285):
+              a "Photos · N" group (3-col thumbnail grid + dashed add
+              tile) followed by the "Guest photo uploads" toggle. The
+              eyebrow override, the second guest-photo invite, and the
+              visibility footer are production-only — tucked under
+              "More" below so the default view is 1:1 with the zip. */}
         {photos.length === 0 ? (
           /* Empty state — instead of 6 visually-broken empty slots,
              one big inviting drop zone. Same drag-drop / click
@@ -149,15 +153,33 @@ export function GalleryPanel({ manifest, onChange }: { manifest: StoryManifest; 
           def={guestUploads}
           onChange={setGuestUploads}
         />
-        <FGroup label="Guest photos" hint="A 'Share your photos' link under the gallery — guests upload straight to your library.">
-          <FToggleStandalone
-            label="Invite guest photos"
-            sub="Links the upload page under the gallery"
-            def={((manifest as unknown as { galleryUploads?: boolean }).galleryUploads) !== false}
-            onChange={(v) => onChange({ ...(manifest as unknown as Record<string, unknown>), galleryUploads: v } as unknown as StoryManifest)}
-          />
-        </FGroup>
-        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Gallery" />
+
+        <details className="pl-panel-more">
+          <summary
+            style={{
+              cursor: 'pointer', listStyle: 'none',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em',
+              textTransform: 'uppercase', color: 'var(--ink-muted)',
+            }}
+          >
+            <Icon name="chev-down" size={12} /> More — eyebrow, guest invite, visibility
+          </summary>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
+            <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
+              <FInput value={galleryEyebrow} onChange={setGalleryEyebrow} placeholder="Gallery" />
+            </FGroup>
+            <FGroup label="Guest photos" hint="A 'Share your photos' link under the gallery — guests upload straight to your library.">
+              <FToggleStandalone
+                label="Invite guest photos"
+                sub="Links the upload page under the gallery"
+                def={((manifest as unknown as { galleryUploads?: boolean }).galleryUploads) !== false}
+                onChange={(v) => onChange({ ...(manifest as unknown as Record<string, unknown>), galleryUploads: v } as unknown as StoryManifest)}
+              />
+            </FGroup>
+            <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Gallery" />
+          </div>
+        </details>
       </div>
     </SectionPanelShell>
   );

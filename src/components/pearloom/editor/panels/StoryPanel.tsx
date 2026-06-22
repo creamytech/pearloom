@@ -315,9 +315,10 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
-          <FInput value={storyEyebrow} onChange={setStoryEyebrow} placeholder="Two threads, one weave" />
-        </FGroup>
+        {/* ── Zip StoryEditor layout (section-fields.jsx L188-207):
+              Headline · Your story · Highlight chips. The
+              production-only extras (eyebrow, chapter cards) live
+              tucked under "More" below so the default view is 1:1. */}
         <FGroup label="Headline">
           <FInput value={headline} onChange={(v) => patch({ headline: v })} placeholder="How we got here" />
         </FGroup>
@@ -359,64 +360,6 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
               {err}
             </div>
           )}
-        </FGroup>
-
-        <FGroup
-          label="Chapter cards"
-          hint="Each card on the canvas pulls its photo, headline, and body from one of these three slots. Empty fields fall back to the shared story above."
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                style={{
-                  borderRadius: 11, border: '1px solid var(--line)',
-                  background: 'var(--card)', padding: 10,
-                  display: 'flex', gap: 10, alignItems: 'flex-start',
-                }}
-              >
-                {/* Left column — photo slot. */}
-                <div style={{ flex: '0 0 88px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-muted)', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                    <span style={{
-                      width: 16, height: 16, borderRadius: 999,
-                      background: (chapterImage(i) || chapterTitle(i) || chapterBody(i)) ? 'var(--lavender-bg)' : 'var(--cream-2)',
-                      color: 'var(--lavender-ink)',
-                      display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700,
-                    }}>{i + 1}</span>
-                    Card
-                  </div>
-                  <PhotoUploadSlot
-                    url={chapterImage(i)}
-                    onChange={(url) => setChapterImage(i, url)}
-                    aspectRatio="4/5"
-                    size="sm"
-                    pool={photoPool}
-                  />
-                </div>
-                {/* Right column — title + body. */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
-                  <FInput
-                    value={chapterTitle(i)}
-                    onChange={(v) => setChapterTitle(i, v)}
-                    placeholder={`Chapter ${i + 1} title`}
-                  />
-                  <textarea
-                    value={chapterBody(i)}
-                    onChange={(e) => setChapterBody(i, e.target.value)}
-                    rows={3}
-                    placeholder={i === 0 ? 'How it began…' : i === 1 ? 'Then…' : 'And then…'}
-                    style={{
-                      width: '100%', padding: '9px 11px', borderRadius: 10,
-                      border: '1px solid var(--line)', background: 'var(--cream-2)',
-                      fontSize: 12.5, lineHeight: 1.45, color: 'var(--ink)',
-                      resize: 'vertical', fontFamily: 'inherit', outline: 'none',
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
         </FGroup>
 
         <FGroup
@@ -553,6 +496,82 @@ export function StoryPanel({ manifest, onChange }: { manifest: StoryManifest; on
             </div>
           )}
         </FGroup>
+
+        <details className="pl-panel-more">
+          <summary
+            style={{
+              cursor: 'pointer', listStyle: 'none',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em',
+              textTransform: 'uppercase', color: 'var(--ink-muted)',
+            }}
+          >
+            <Icon name="chev-down" size={12} /> More — eyebrow, chapter cards
+          </summary>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 14 }}>
+            <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
+              <FInput value={storyEyebrow} onChange={setStoryEyebrow} placeholder="Two threads, one weave" />
+            </FGroup>
+            <FGroup
+              label="Chapter cards"
+              hint="Each card on the canvas pulls its photo, headline, and body from one of these three slots. Empty fields fall back to the shared story above."
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {[0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    style={{
+                      borderRadius: 11, border: '1px solid var(--line)',
+                      background: 'var(--card)', padding: 10,
+                      display: 'flex', gap: 10, alignItems: 'flex-start',
+                    }}
+                  >
+                    {/* Left column — photo slot. */}
+                    <div style={{ flex: '0 0 88px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink-muted)', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                        <span style={{
+                          width: 16, height: 16, borderRadius: 999,
+                          background: (chapterImage(i) || chapterTitle(i) || chapterBody(i)) ? 'var(--lavender-bg)' : 'var(--cream-2)',
+                          color: 'var(--lavender-ink)',
+                          display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700,
+                        }}>{i + 1}</span>
+                        Card
+                      </div>
+                      <PhotoUploadSlot
+                        url={chapterImage(i)}
+                        onChange={(url) => setChapterImage(i, url)}
+                        aspectRatio="4/5"
+                        size="sm"
+                        pool={photoPool}
+                      />
+                    </div>
+                    {/* Right column — title + body. */}
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+                      <FInput
+                        value={chapterTitle(i)}
+                        onChange={(v) => setChapterTitle(i, v)}
+                        placeholder={`Chapter ${i + 1} title`}
+                      />
+                      <textarea
+                        value={chapterBody(i)}
+                        onChange={(e) => setChapterBody(i, e.target.value)}
+                        rows={3}
+                        placeholder={i === 0 ? 'How it began…' : i === 1 ? 'Then…' : 'And then…'}
+                        style={{
+                          width: '100%', padding: '9px 11px', borderRadius: 10,
+                          border: '1px solid var(--line)', background: 'var(--cream-2)',
+                          fontSize: 12.5, lineHeight: 1.45, color: 'var(--ink)',
+                          resize: 'vertical', fontFamily: 'inherit', outline: 'none',
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </FGroup>
+          </div>
+        </details>
+
         <SectionVisibilityFooter
           isHidden={isHidden}
           setHidden={setHidden}

@@ -134,9 +134,12 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
-          <FInput value={faqEyebrow} onChange={setFaqEyebrow} placeholder="Questions & answers" />
-        </FGroup>
+        {/* ── Zip FaqEditor layout (section-fields.jsx L305-323):
+              Questions · N (drag + text + chevron rows, "Add a
+              question", "Suggest from data" PearChip). The
+              production-only extras (eyebrow, quick-add common
+              questions, guest questions) live tucked under "More"
+              below so the default view is 1:1. */}
         <FGroup label={`Questions · ${faqs.length}`} action={<PearChip>Suggest from data</PearChip>}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {/* Bulk drafter — only worth surfacing when 2+ rows are
@@ -237,39 +240,58 @@ export function FaqPanel({ manifest, onChange }: { manifest: StoryManifest; onCh
             <AddCard label="Add a question" onClick={add} />
           </div>
         </FGroup>
-        {remainingQuickAdds.length > 0 && (
-          <FGroup label="Quick-add common questions" hint="Tap to add with an empty answer — fill it in below.">
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-              {remainingQuickAdds.slice(0, 8).map((q) => (
-                <button
-                  key={q}
-                  type="button"
-                  onClick={() => quickAdd(q)}
-                  style={{
-                    fontSize: 11.5, fontWeight: 600,
-                    padding: '5px 10px', borderRadius: 999,
-                    background: 'var(--cream-2)', color: 'var(--ink-soft)',
-                    border: '1px solid var(--line)', cursor: 'pointer',
-                    display: 'inline-flex', alignItems: 'center', gap: 4,
-                  }}
-                >
-                  + {q}
-                </button>
-              ))}
-            </div>
-          </FGroup>
-        )}
-        <FGroup label="Guest questions" hint="A small 'Ask us anything' box under the FAQ. Questions land in your Submissions dashboard — guests never see each other's.">
-          <FToggleStandalone
-            label="Let guests ask a question"
-            sub="Off by default — flip it on when you're ready"
-            def={((manifest as unknown as { faqConfig?: { allowQuestions?: boolean } }).faqConfig?.allowQuestions) === true}
-            onChange={(v) => onChange({
-              ...(manifest as unknown as Record<string, unknown>),
-              faqConfig: { ...((manifest as unknown as { faqConfig?: Record<string, unknown> }).faqConfig ?? {}), allowQuestions: v },
-            } as unknown as StoryManifest)}
-          />
-        </FGroup>
+
+        <details className="pl-panel-more">
+          <summary
+            style={{
+              cursor: 'pointer', listStyle: 'none',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em',
+              textTransform: 'uppercase', color: 'var(--ink-muted)',
+            }}
+          >
+            <Icon name="chev-down" size={12} /> More — eyebrow, quick-add, guest questions
+          </summary>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
+            <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
+              <FInput value={faqEyebrow} onChange={setFaqEyebrow} placeholder="Questions & answers" />
+            </FGroup>
+            {remainingQuickAdds.length > 0 && (
+              <FGroup label="Quick-add common questions" hint="Tap to add with an empty answer — fill it in below.">
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                  {remainingQuickAdds.slice(0, 8).map((q) => (
+                    <button
+                      key={q}
+                      type="button"
+                      onClick={() => quickAdd(q)}
+                      style={{
+                        fontSize: 11.5, fontWeight: 600,
+                        padding: '5px 10px', borderRadius: 999,
+                        background: 'var(--cream-2)', color: 'var(--ink-soft)',
+                        border: '1px solid var(--line)', cursor: 'pointer',
+                        display: 'inline-flex', alignItems: 'center', gap: 4,
+                      }}
+                    >
+                      + {q}
+                    </button>
+                  ))}
+                </div>
+              </FGroup>
+            )}
+            <FGroup label="Guest questions" hint="A small 'Ask us anything' box under the FAQ. Questions land in your Submissions dashboard — guests never see each other's.">
+              <FToggleStandalone
+                label="Let guests ask a question"
+                sub="Off by default — flip it on when you're ready"
+                def={((manifest as unknown as { faqConfig?: { allowQuestions?: boolean } }).faqConfig?.allowQuestions) === true}
+                onChange={(v) => onChange({
+                  ...(manifest as unknown as Record<string, unknown>),
+                  faqConfig: { ...((manifest as unknown as { faqConfig?: Record<string, unknown> }).faqConfig ?? {}), allowQuestions: v },
+                } as unknown as StoryManifest)}
+              />
+            </FGroup>
+          </div>
+        </details>
+
         <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="FAQ" />
       </div>
     </SectionPanelShell>

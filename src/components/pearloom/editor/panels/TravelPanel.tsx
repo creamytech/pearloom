@@ -277,10 +277,13 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {/* ── Zip VenueSearch layout (section-fields.jsx L76-160):
+              map-style search · Your hotel block · N · Getting there.
+              Production keeps the REAL Google Places search in the
+              search slot (never the faux map). The production-only
+              eyebrow override lives tucked under "More" below so the
+              default order is 1:1. */}
         {/* Real Places search */}
-        <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
-          <FInput value={travelEyebrow} onChange={setTravelEyebrow} placeholder="Getting there" />
-        </FGroup>
         <FGroup label="Find hotels & venues" action={<PearChip>Powered by Google</PearChip>}>
           {showHotelFinder && (
             <button
@@ -484,6 +487,25 @@ export function TravelPanel({ manifest, onChange }: { manifest: StoryManifest; o
           <div style={{ height: 8 }} />
           <ShuttleToggle manifest={manifest} onChange={onChange} />
         </FGroup>
+
+        <details className="pl-panel-more">
+          <summary
+            style={{
+              cursor: 'pointer', listStyle: 'none',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em',
+              textTransform: 'uppercase', color: 'var(--ink-muted)',
+            }}
+          >
+            <Icon name="chev-down" size={12} /> More — eyebrow
+          </summary>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
+            <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
+              <FInput value={travelEyebrow} onChange={setTravelEyebrow} placeholder="Getting there" />
+            </FGroup>
+          </div>
+        </details>
+
         <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Travel" />
       </div>
     </SectionPanelShell>

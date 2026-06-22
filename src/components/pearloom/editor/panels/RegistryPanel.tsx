@@ -122,23 +122,11 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <FGroup label="What kind of registry" hint="Re-skins the whole section for your event's tone.">
-          <FSelect
-            value={mode}
-            onChange={(v) => setMode(v as RegistryMode)}
-            options={[
-              { value: 'gifts',    label: 'Gift registry',     hint: 'Store-linked physical gifts' },
-              { value: 'fund',     label: 'Honeymoon / event fund', hint: 'Pool money toward something' },
-              { value: 'donation', label: 'In lieu of flowers / donations', hint: 'Charitable causes' },
-              { value: 'wishlist', label: 'Wishlist',          hint: 'Personal-wishlist links' },
-              { value: 'tip-jar',  label: 'Tip jar',           hint: 'Venmo / Zelle / Cash App' },
-            ]}
-            icon="gift"
-          />
-        </FGroup>
-        <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
-          <FInput value={registryEyebrow} onChange={setRegistryEyebrow} placeholder={modeCopy.section} />
-        </FGroup>
+        {/* ── Zip RegistryEditor layout (section-fields.jsx L252-271):
+              Intro line · Linked registries · N (store rows + AddCard).
+              The production-only extras (registry mode, eyebrow, and
+              the layout-driven progress controls) live tucked under
+              "More" below so the default view is 1:1. */}
         <FGroup label="Intro line">
           <FInput value={intro} onChange={setIntro} />
           {intro.trim().length >= 2 && (
@@ -214,71 +202,103 @@ export function RegistryPanel({ manifest, onChange }: { manifest: StoryManifest;
           </div>
         </FGroup>
 
-        {/* Layout-aware: the Progress variant renders a fund
-            progress bar. Surface its inputs ONLY when that
-            variant is active — keeps the panel uncluttered for
-            the other 3 layouts. */}
-        {isProgress && (
-          <FGroup label="Progress bar" hint="Shown on the Progress layout only.">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
-              <div style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 26, fontWeight: 700,
-                color: 'var(--peach-ink)',
-                lineHeight: 1, minWidth: 50,
-                fontVariantNumeric: 'tabular-nums',
-              }}>
-                {fundPct}%
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={fundPct}
-                onChange={(e) => setFundPct(Number(e.target.value))}
-                style={{
-                  flex: 1,
-                  accentColor: 'var(--peach-ink)',
-                  height: 4,
-                }}
-              />
-            </div>
-            <div style={{ height: 6 }} />
-            <FInput
-              value={fundSub}
-              onChange={setFundSub}
-              placeholder={`${fundPct}% funded`}
-            />
-            <div style={{ marginTop: 5, fontSize: 10.5, color: 'var(--ink-muted)' }}>
-              Subtitle below the fund name. Defaults to “{fundPct}% funded” if blank.
-            </div>
-          </FGroup>
-        )}
-
-        {!isProgress && (mode === 'fund' || mode === 'tip-jar') && (
-          /* Discoverability hint for the Progress layout. Hosts on
-             cards/chips/logo-wall layouts don't realize the fund
-             modes have a dedicated visual with a real progress bar.
-             Only surfaced for fund/tip-jar modes since the bar
-             makes no sense for gifts/wishlist. */
-          <div
+        <details className="pl-panel-more">
+          <summary
             style={{
-              display: 'flex', gap: 10, alignItems: 'flex-start',
-              padding: 10, borderRadius: 10,
-              background: 'var(--peach-bg)',
-              border: '1px solid rgba(198,112,61,0.18)',
+              cursor: 'pointer', listStyle: 'none',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em',
+              textTransform: 'uppercase', color: 'var(--ink-muted)',
             }}
           >
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--peach-ink)', marginBottom: 2 }}>
-                Show a progress bar?
+            <Icon name="chev-down" size={12} /> More — registry kind, eyebrow, progress
+          </summary>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
+            <FGroup label="What kind of registry" hint="Re-skins the whole section for your event's tone.">
+              <FSelect
+                value={mode}
+                onChange={(v) => setMode(v as RegistryMode)}
+                options={[
+                  { value: 'gifts',    label: 'Gift registry',     hint: 'Store-linked physical gifts' },
+                  { value: 'fund',     label: 'Honeymoon / event fund', hint: 'Pool money toward something' },
+                  { value: 'donation', label: 'In lieu of flowers / donations', hint: 'Charitable causes' },
+                  { value: 'wishlist', label: 'Wishlist',          hint: 'Personal-wishlist links' },
+                  { value: 'tip-jar',  label: 'Tip jar',           hint: 'Venmo / Zelle / Cash App' },
+                ]}
+                icon="gift"
+              />
+            </FGroup>
+            <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
+              <FInput value={registryEyebrow} onChange={setRegistryEyebrow} placeholder={modeCopy.section} />
+            </FGroup>
+
+            {/* Layout-aware: the Progress variant renders a fund
+                progress bar. Surface its inputs ONLY when that
+                variant is active — keeps the panel uncluttered for
+                the other 3 layouts. */}
+            {isProgress && (
+              <FGroup label="Progress bar" hint="Shown on the Progress layout only.">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
+                  <div style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 26, fontWeight: 700,
+                    color: 'var(--peach-ink)',
+                    lineHeight: 1, minWidth: 50,
+                    fontVariantNumeric: 'tabular-nums',
+                  }}>
+                    {fundPct}%
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={fundPct}
+                    onChange={(e) => setFundPct(Number(e.target.value))}
+                    style={{
+                      flex: 1,
+                      accentColor: 'var(--peach-ink)',
+                      height: 4,
+                    }}
+                  />
+                </div>
+                <div style={{ height: 6 }} />
+                <FInput
+                  value={fundSub}
+                  onChange={setFundSub}
+                  placeholder={`${fundPct}% funded`}
+                />
+                <div style={{ marginTop: 5, fontSize: 10.5, color: 'var(--ink-muted)' }}>
+                  Subtitle below the fund name. Defaults to “{fundPct}% funded” if blank.
+                </div>
+              </FGroup>
+            )}
+
+            {!isProgress && (mode === 'fund' || mode === 'tip-jar') && (
+              /* Discoverability hint for the Progress layout. Hosts on
+                 cards/chips/logo-wall layouts don't realize the fund
+                 modes have a dedicated visual with a real progress bar.
+                 Only surfaced for fund/tip-jar modes since the bar
+                 makes no sense for gifts/wishlist. */
+              <div
+                style={{
+                  display: 'flex', gap: 10, alignItems: 'flex-start',
+                  padding: 10, borderRadius: 10,
+                  background: 'var(--peach-bg)',
+                  border: '1px solid rgba(198,112,61,0.18)',
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--peach-ink)', marginBottom: 2 }}>
+                    Show a progress bar?
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
+                    The <strong>Progress</strong> layout adds a fund-funded percentage and a peach bar to this section. Switch in the Layout tab to enable it.
+                  </div>
+                </div>
               </div>
-              <div style={{ fontSize: 11, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
-                The <strong>Progress</strong> layout adds a fund-funded percentage and a peach bar to this section. Switch in the Layout tab to enable it.
-              </div>
-            </div>
+            )}
           </div>
-        )}
+        </details>
 
         <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Registry" />
       </div>
