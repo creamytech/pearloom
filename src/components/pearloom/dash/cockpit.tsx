@@ -16,6 +16,7 @@
 // interior cream/peach text is intentionally literal.
 // ─────────────────────────────────────────────────────────────
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Icon, PearloomGlyph, Sprig } from '../motifs';
 import { Pearl } from '@/components/brand/Pearl';
@@ -401,6 +402,129 @@ export function Lately({ items }: { items: LatelyItem[] }) {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+// ── BudgetBreakdown ──────────────────────────────────────────
+// The host-entered budget, ported from the v2 cockpit. Every figure
+// is something the host typed (a real plan they keep) — never an
+// invented number. Display mode shows per-category bars (over-budget
+// in plum) + committed/left totals; the inline editor adds/edits/
+// removes lines and persists via onSave (→ /api/sites/budget).
+export interface BudgetLine { cat: string; used: number; cap: number }
+
+const fmtMoney = (n: number) => '$' + (n >= 1000 ? (n / 1000).toFixed(n % 1000 >= 100 ? 1 : 0) + 'k' : String(Math.round(n)));
+
+export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave: (next: BudgetLine[]) => void | Promise<void> }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<BudgetLine[]>(lines);
+  const [saving, setSaving] = useState(false);
+  // Keep the draft in sync when the saved budget changes underneath
+  // us (e.g. switching the active site) — but not while editing.
+  useEffect(() => { if (!editing) setDraft(lines); }, [lines, editing]);
+
+  const totalUsed = lines.reduce((a, b) => a + b.used, 0);
+  const totalCap = lines.reduce((a, b) => a + b.cap, 0);
+
+  const setLine = (i: number, patch: Partial<BudgetLine>) =>
+    setDraft((d) => d.map((l, j) => (j === i ? { ...l, ...patch } : l)));
+  const addLine = () => setDraft((d) => [...d, { cat: '', used: 0, cap: 0 }]);
+  const removeLine = (i: number) => setDraft((d) => d.filter((_, j) => j !== i));
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const cleaned = draft.map((l) => ({ cat: l.cat.trim(), used: Number(l.used) || 0, cap: Number(l.cap) || 0 })).filter((l) => l.cat);
+      await onSave(cleaned);
+      setEditing(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const field: React.CSSProperties = { border: '1px solid var(--line)', background: 'var(--cream)', borderRadius: 8, padding: '6px 9px', fontSize: 12.5, color: 'var(--ink)', fontFamily: 'var(--font-ui, inherit)', outline: 'none', width: '100%', boxSizing: 'border-box' };
+
+  // ── Empty state ──
+  if (!editing && lines.length === 0) {
+    return (
+      <div style={cockpitCard}>
+        <span className="eyebrow" style={{ margin: 0 }}>Budget</span>
+        <div style={{ marginTop: 10, fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
+          Track what you&rsquo;re spending against what you&rsquo;ve set aside — Pear keeps the running total.
+        </div>
+        <button
+          type="button"
+          onClick={() => { setDraft([{ cat: '', used: 0, cap: 0 }]); setEditing(true); }}
+          className="btn btn-outline btn-sm"
+          style={{ marginTop: 14 }}
+        >
+          <Icon name="plus" size={12} /> Set a budget
+        </button>
+      </div>
+    );
+  }
+
+  // ── Editing ──
+  if (editing) {
+    return (
+      <div style={cockpitCard}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span className="eyebrow" style={{ margin: 0 }}>Budget</span>
+          <span style={{ fontFamily: 'var(--pl-font-mono, monospace)', fontSize: 11, color: 'var(--ink-muted)' }}>edit</span>
+        </div>
+        <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 72px 72px 24px', gap: 8, fontFamily: 'var(--pl-font-mono, monospace)', fontSize: 8.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+            <span>Category</span><span>Spent</span><span>Budget</span><span />
+          </div>
+          {draft.map((l, i) => (
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 72px 72px 24px', gap: 8, alignItems: 'center' }}>
+              <input value={l.cat} placeholder="Venue" onChange={(e) => setLine(i, { cat: e.target.value })} style={field} />
+              <input value={l.used || ''} type="number" min={0} placeholder="0" onChange={(e) => setLine(i, { used: Number(e.target.value) })} style={field} />
+              <input value={l.cap || ''} type="number" min={0} placeholder="0" onChange={(e) => setLine(i, { cap: Number(e.target.value) })} style={field} />
+              <button type="button" onClick={() => removeLine(i)} aria-label="Remove" style={{ border: 'none', background: 'transparent', color: 'var(--plum, #C6563D)', cursor: 'pointer', fontSize: 15, lineHeight: 1 }}>×</button>
+            </div>
+          ))}
+        </div>
+        <button type="button" onClick={addLine} style={{ marginTop: 10, width: '100%', padding: 9, borderRadius: 9, border: '1px dashed var(--line)', background: 'transparent', color: 'var(--ink-soft)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>+ Add category</button>
+        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+          <button type="button" disabled={saving} onClick={save} className="btn btn-primary btn-sm" style={{ flex: 1 }}>{saving ? 'Saving…' : 'Save budget'}</button>
+          <button type="button" disabled={saving} onClick={() => { setDraft(lines); setEditing(false); }} className="btn btn-outline btn-sm">Cancel</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Display ──
+  return (
+    <div style={cockpitCard}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+        <span className="eyebrow" style={{ margin: 0 }}>Budget</span>
+        <span style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
+          <strong style={{ color: 'var(--ink)' }}>{fmtMoney(totalUsed)}</strong> of {fmtMoney(totalCap)}
+          {totalCap > 0 && <span style={{ color: 'var(--sage-deep)' }}> · {fmtMoney(Math.max(0, totalCap - totalUsed))} left</span>}
+        </span>
+      </div>
+      <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 11 }}>
+        {lines.map((b) => {
+          const over = b.used > b.cap && b.cap > 0;
+          const pct = b.cap > 0 ? Math.min(100, (b.used / b.cap) * 100) : 0;
+          return (
+            <div key={b.cat}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 5 }}>
+                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)' }}>{b.cat}</span>
+                <span style={{ fontFamily: 'var(--pl-font-mono, monospace)', fontSize: 11, color: over ? 'var(--plum, #C6563D)' : 'var(--ink-muted)' }}>{fmtMoney(b.used)} / {fmtMoney(b.cap)}{over ? ' ⚠' : ''}</span>
+              </div>
+              <div style={{ height: 7, background: 'var(--cream-3)', borderRadius: 99, overflow: 'hidden' }}>
+                <div style={{ width: pct + '%', height: '100%', background: over ? 'var(--plum, #C6563D)' : 'var(--sage)', borderRadius: 99 }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <button type="button" onClick={() => setEditing(true)} className="btn btn-outline btn-sm" style={{ marginTop: 14 }}>
+        <Icon name="brush" size={12} /> Edit budget
+      </button>
     </div>
   );
 }

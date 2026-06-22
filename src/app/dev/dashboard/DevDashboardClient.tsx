@@ -13,10 +13,12 @@ import {
   TheLongView,
   HomeSitePreview,
   QuickJumps,
+  BudgetBreakdown,
   type StatTileData,
   type NeedRow,
   type LatelyItem,
   type QuickJump,
+  type BudgetLine,
 } from '@/components/pearloom/dash/cockpit';
 import { getTheme, themeRootStyle } from '@/components/pearloom/site/themes';
 
@@ -44,6 +46,13 @@ const JUMPS: QuickJump[] = [
   { label: 'Guests', sub: '38 coming · 21 pending', icon: 'users', href: '#' },
   { label: 'Studio', sub: 'Save-the-dates & invites', icon: 'mail', href: '#' },
   { label: 'Day-of room', sub: 'Opens closer to the day', icon: 'clock', href: '#', dim: true },
+];
+
+const BUDGET: BudgetLine[] = [
+  { cat: 'Venue', used: 14000, cap: 14000 },
+  { cat: 'Catering', used: 11000, cap: 13000 },
+  { cat: 'Florals', used: 4400, cap: 4000 },
+  { cat: 'Music & sound', used: 3000, cap: 3500 },
 ];
 
 export function DevDashboardClient() {
@@ -78,6 +87,7 @@ export function DevDashboardClient() {
               themeHref="#"
             />
             <Lately items={LATELY} />
+            <BudgetBreakdown lines={BUDGET} onSave={() => {}} />
           </div>
         </div>
         <TheLongView dateShort="Sept 6, 2026" />

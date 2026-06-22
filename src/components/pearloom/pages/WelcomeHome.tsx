@@ -43,7 +43,7 @@ import { parseLocalDate } from '@/lib/date-utils';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { nextStepFor, rsvpMomentumFor, type RsvpMomentum } from '@/lib/next-step';
 import type { StoryManifest } from '@/types';
-import { CockpitHeader, CountdownHero, StatTiles, NeedsYouNow, Lately, TheLongView, HomeSitePreview, QuickJumps, type StatTileData, type LatelyItem, type QuickJump } from '@/components/pearloom/dash/cockpit';
+import { CockpitHeader, CountdownHero, StatTiles, NeedsYouNow, Lately, TheLongView, HomeSitePreview, QuickJumps, BudgetBreakdown, type StatTileData, type LatelyItem, type QuickJump, type BudgetLine } from '@/components/pearloom/dash/cockpit';
 import { getTheme, themeRootStyle } from '@/components/pearloom/site/themes';
 import type { GuestInsight } from '@/app/api/guests/intelligence/route';
 
@@ -190,6 +190,26 @@ export function WelcomeHome() {
   // the dashboard and the editor always name the same step.
   // Counts come from the /api/guests fetch this page already does.
   const manifest = (site?.manifest ?? null) as StoryManifest | null;
+  // Host-entered budget (manifest.budget) — drives the cockpit
+  // BudgetBreakdown. Optimistic local state synced to the saved
+  // manifest; saves scope to one key via PATCH /api/sites/budget.
+  const savedBudget = useMemo<BudgetLine[]>(() => {
+    const raw = (manifest as { budget?: unknown } | null)?.budget;
+    return Array.isArray(raw) ? (raw as BudgetLine[]) : [];
+  }, [manifest]);
+  const [budget, setBudget] = useState<BudgetLine[]>(savedBudget);
+  useEffect(() => { setBudget(savedBudget); }, [savedBudget]);
+  const saveBudget = async (next: BudgetLine[]) => {
+    setBudget(next);
+    if (!site?.id) return;
+    try {
+      await fetch('/api/sites/budget', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId: site.id, budget: next }),
+      });
+    } catch {}
+  };
   const nextStep = useMemo(
     () => (manifest
       ? nextStepFor(
@@ -360,6 +380,11 @@ export function WelcomeHome() {
               />
             )}
             <ResumeDraftCard />
+            {/* Budget — host-entered, planning surface. Hidden for
+                solemn occasions and after the event has passed. */}
+            {occasion !== 'memorial' && occasion !== 'funeral' && !(rawDaysUntil != null && rawDaysUntil < 0) && site?.id && (
+              <BudgetBreakdown lines={budget} onSave={saveBudget} />
+            )}
             {rawDaysUntil != null && rawDaysUntil < 0 && site?.domain && (
               <RememberingCard domain={site.domain} occasion={occasion} daysSince={-rawDaysUntil} />
             )}
