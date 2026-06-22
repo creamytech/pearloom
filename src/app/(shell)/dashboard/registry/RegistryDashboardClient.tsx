@@ -96,59 +96,77 @@ export function RegistryDashboardClient() {
             </div>
           </PLCard>
         ) : (
-          <>
-            {/* Recent claims feed — same component the editor's
-                Registry panel uses, just wrapped in PLCard chrome so
-                it inherits the warmth of the rest of the dash.
-                Hides itself when there are no claims. */}
-            {claimsCount > 0 && (
-              <PLCard
-                tone="peach"
-                title="Recent claims"
-                icon="gift"
-                extra={
-                  <span
-                    style={{
-                      fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
-                      fontSize: 10.5,
-                      fontWeight: 700,
-                      letterSpacing: '0.18em',
-                      textTransform: 'uppercase',
-                      color: 'var(--peach-ink, #C6703D)',
-                      padding: '4px 10px',
-                      borderRadius: 999,
-                      background: 'rgba(255,255,255,0.55)',
-                    }}
-                  >
-                    {claimsCount} · new
-                  </span>
-                }
-              >
-                <div
-                  style={{
-                    fontSize: 13.5,
-                    color: 'var(--ink-soft)',
-                    lineHeight: 1.55,
-                    marginBottom: 14,
-                  }}
-                >
-                  Guests who tapped &ldquo;I got this&rdquo; on your registry. Tap{' '}
-                  <strong style={{ color: 'var(--peach-ink, #C6703D)' }}>Draft thank-you</strong>{' '}
-                  to have Pear write a personal note.
-                </div>
-                <RegistryClaimsFeed
-                  subdomain={subdomain}
-                  items={entries}
-                  manifest={manifest}
-                />
-              </PLCard>
-            )}
+          /* v2 Registry — gift manager (left) + a sticky sidebar:
+             registry stats (real counts) over the thank-yous /
+             claims feed. Collapses to one column on narrow widths. */
+          <div className="pd-registry" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 22, alignItems: 'flex-start' }}>
             <PLCard tone="paper" noPadding style={{ padding: 22 }}>
               <RegistryItemsManager siteId={site.id} />
             </PLCard>
-          </>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 86 }}>
+              {/* Registry stats — real listed / claimed / still-open. */}
+              <PLCard tone="paper" title="The registry">
+                {([['Listed', entries.length], ['Claimed', claimsCount], ['Still open', Math.max(0, entries.length - claimsCount)]] as const).map(([l, v]) => (
+                  <div key={l} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '5px 0' }}>
+                    <span style={{ fontSize: 13, color: 'var(--ink)' }}>{l}</span>
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'var(--ink)' }}>{v}</span>
+                  </div>
+                ))}
+                <div style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.5, marginTop: 6 }}>
+                  Cash funds settle straight to your account. No fees on gifts.
+                </div>
+              </PLCard>
+              {/* Thank-yous / recent claims — the editor's component,
+                  in the sidebar. Hides itself when there are none. */}
+              {claimsCount > 0 && (
+                <PLCard
+                  tone="peach"
+                  title="Thank-yous"
+                  icon="gift"
+                  extra={
+                    <span
+                      style={{
+                        fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        letterSpacing: '0.18em',
+                        textTransform: 'uppercase',
+                        color: 'var(--peach-ink, #C6703D)',
+                        padding: '4px 10px',
+                        borderRadius: 999,
+                        background: 'rgba(255,255,255,0.55)',
+                      }}
+                    >
+                      {claimsCount} · new
+                    </span>
+                  }
+                >
+                  <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.55, marginBottom: 14 }}>
+                    Guests who tapped &ldquo;I got this.&rdquo; Tap{' '}
+                    <strong style={{ color: 'var(--peach-ink, #C6703D)' }}>Draft thank-you</strong>{' '}
+                    and Pear writes a personal note.
+                  </div>
+                  <RegistryClaimsFeed
+                    subdomain={subdomain}
+                    items={entries}
+                    manifest={manifest}
+                  />
+                </PLCard>
+              )}
+            </div>
+          </div>
         )}
       </div>
+      <style jsx>{`
+        @media (max-width: 1000px) {
+          :global(.pd-registry) {
+            grid-template-columns: 1fr !important;
+          }
+          :global(.pd-registry > div:last-child) {
+            position: static !important;
+          }
+        }
+      `}</style>
     </DashLayout>
   );
 }
