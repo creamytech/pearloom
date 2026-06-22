@@ -9,8 +9,8 @@ import { parseLocalDate } from '@/lib/date-utils';
 import { DashEmpty } from '../dash/DashEmpty';
 import { DashSkeleton } from '../dash/DashSkeleton';
 import { Heart, Icon, Pear, PhotoPlaceholder, Sparkle } from '../motifs';
-import { Badge } from '@/components/shell';
 import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
+import { getTheme } from '../site/themes';
 import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
 import { useDialog } from '@/components/ui/confirm-dialog';
 
@@ -60,6 +60,11 @@ function SiteCard({
     : null;
   const accent = accentFor(site.occasion);
   const [hovered, setHovered] = useState(false);
+  // Real theme name for the "occasion · theme" line (zip SiteCard).
+  // Resolved from the manifest's themeId; falls back to occasion only.
+  const themeId = (site.manifest as { themeId?: string } | undefined)?.themeId;
+  const themeName = themeId ? getTheme(themeId).name : null;
+  const isMemorial = site.occasion === 'memorial' || site.occasion === 'funeral';
 
   return (
     <div
@@ -93,55 +98,64 @@ function SiteCard({
             the card from feeling empty before the host uploads. */}
         {!site.coverPhoto && (
           <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}>
-            {site.occasion === 'memorial' || site.occasion === 'funeral'
+            {isMemorial
               ? <Heart size={48} color={accent.ribbon} />
               : <Pear size={56} tone="sage" shadow={false} />}
           </div>
         )}
+        {/* Glass Live/Draft chip on the cover (zip SiteCard) — replaces
+            the badge that used to sit below the title. */}
+        <span
+          className="pl-glass-surface"
+          style={{
+            position: 'absolute', top: 12, left: 12,
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '4px 10px', borderRadius: 999,
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase',
+            color: 'var(--ink)',
+          }}
+        >
+          <span style={{ width: 7, height: 7, borderRadius: 99, background: site.published ? 'var(--sage)' : 'var(--pl-gold)' }} />
+          {site.published ? 'Live' : 'Draft'}
+        </span>
       </div>
-      <div style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              color: accent.ribbon,
-              background: accent.tint,
-              padding: '3px 9px',
-              borderRadius: 999,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
-          >
-            <Sparkle size={9} /> {occasionLabel(site.occasion)}
-          </span>
-          {site.published ? (
-            <Badge tone="olive" variant="pill" dot>Live</Badge>
-          ) : (
-            <Badge tone="neutral" variant="pill">Draft</Badge>
-          )}
+      <div style={{ padding: '16px 20px 18px', display: 'flex', flexDirection: 'column', gap: 0, flex: 1 }}>
+        {/* Title + date baseline row (zip SiteCard) */}
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+          <div className="display" style={{ fontSize: 22, lineHeight: 1.05, minWidth: 0 }}>{siteTitle(site)}</div>
+          <span style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10.5, color: 'var(--ink-muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>{dateLabel}</span>
         </div>
-        <div className="display" style={{ fontSize: 26, margin: 0, lineHeight: 1.05 }}>
-          {siteTitle(site)}
+        {/* Occasion · theme, in italic lavender (zip SiteCard) */}
+        <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--lavender-ink)', marginTop: 3 }}>
+          {occasionLabel(site.occasion)}{themeName ? ` · ${themeName}` : ''}
         </div>
-        <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>{dateLabel}</div>
         {site.venue && (
-          <div style={{ fontSize: 12, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div style={{ fontSize: 12, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 8 }}>
             <Icon name="pin" size={12} /> {site.venue}
           </div>
         )}
-        <div style={{ fontSize: 11, color: 'var(--ink-muted)', fontFamily: 'var(--font-ui)' }}>{url}</div>
+        {/* URL with a live/idle status dot (zip SiteCard domain row) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, paddingTop: 12, borderTop: '1px solid var(--line-soft)', fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10.5, color: site.published ? 'var(--sage-deep)' : 'var(--ink-muted)' }}>
+          <span style={{ width: 6, height: 6, borderRadius: 99, background: site.published ? 'var(--sage)' : 'var(--line)' }} />
+          {url}
+        </div>
+        {/* Draft nudge — the zip's peach "next thing" row, shown only
+            where we have something honest to say (an unpublished draft). */}
+        {!site.published && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 12px', borderRadius: 10, background: 'var(--peach-bg)', marginTop: 12 }}>
+            <span style={{ color: 'var(--peach-ink)', display: 'inline-flex' }}><Sparkle size={12} /></span>
+            <span style={{ fontSize: 12.5, color: 'var(--ink)', fontFamily: 'var(--font-ui)' }}>Pear has a draft ready</span>
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 14 }}>
           {pickHref ? (
-            <Link href={pickHref} className="btn btn-primary btn-sm">
+            <Link href={pickHref} className="btn btn-primary btn-sm" style={{ flex: 1 }}>
               <Icon name="check" size={12} /> Use this site
             </Link>
           ) : (
-            <Link href={`/editor/${encodeURIComponent(site.domain)}`} className="btn btn-primary btn-sm">
-              <Icon name="brush" size={12} /> Edit
+            <Link href={`/editor/${encodeURIComponent(site.domain)}`} className="btn btn-primary btn-sm" style={{ flex: 1 }}>
+              <Icon name="brush" size={12} /> Open editor
             </Link>
           )}
           <a
@@ -149,11 +163,10 @@ function SiteCard({
             target="_blank"
             rel="noreferrer"
             className="btn btn-outline btn-sm"
-            style={{ marginLeft: 'auto' }}
-            aria-label={`View ${siteTitle(site)} live`}
-            title="View live"
+            aria-label={`Preview ${siteTitle(site)}`}
+            title="Preview"
           >
-            <Icon name="arrow-ur" size={12} />
+            Preview
           </a>
         </div>
       </div>
