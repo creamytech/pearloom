@@ -29,6 +29,7 @@ import { useState, useRef, type ReactNode } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import { getTheme, type Theme } from '../site/themes';
+import { WALLPAPERS } from '@/lib/site-look/wallpapers';
 import { ThemePackPicker } from '../editor/panels/ThemePackPicker';
 import { pearErrorMessage } from './PearAssist';
 import { fireUndoable } from './UndoToast';
@@ -91,6 +92,7 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor }:
       <ColorsPick theme={theme} manifest={manifest} onChange={onChange} />
       <FontsPick theme={theme} manifest={manifest} onChange={onChange} />
       <TexturePick theme={theme} manifest={manifest} onChange={onChange} />
+      <LivingBackgroundPick manifest={manifest} onChange={onChange} />
 
       <FineTune theme={theme} manifest={manifest} onChange={onChange} />
 
@@ -558,6 +560,48 @@ function KitPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m
             </button>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+/* LivingBackgroundPick — the v2 interactive shader wallpapers. Writes
+   manifest.background (a WallpaperId, or undefined for None); the
+   renderer mounts <LivingBackground /> behind the site when set. */
+function LivingBackgroundPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const value = ((manifest as unknown as { background?: string }).background) ?? 'none';
+  const set = (id: string) => onChange({
+    ...(manifest as unknown as Record<string, unknown>),
+    background: id === 'none' ? undefined : id,
+  } as unknown as StoryManifest);
+  const tile = (key: string, label: string, grad: string | null, on: boolean) => (
+    <button
+      key={key}
+      type="button"
+      onClick={() => set(key)}
+      className="lift"
+      style={{
+        display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left',
+        padding: '7px 9px', borderRadius: 9, cursor: 'pointer',
+        background: on ? 'var(--ink)' : 'var(--card)',
+        border: on ? '2px solid var(--ink)' : '1px solid var(--line)',
+      }}
+    >
+      <span aria-hidden style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: grad ?? 'var(--cream-3)', border: grad ? 'none' : '1px dashed var(--line)' }} />
+      <span style={{ fontSize: 11.5, fontWeight: 600, color: on ? 'var(--cream)' : 'var(--ink)' }}>{label}</span>
+    </button>
+  );
+  return (
+    <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 4 }}>
+        Living background
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginBottom: 9 }}>
+        An animated shader ground that drifts behind your site and leans toward a guest&rsquo;s cursor.
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7 }}>
+        {tile('none', 'None', null, value === 'none')}
+        {WALLPAPERS.map((w) => tile(w.id, w.name, w.grad, value === w.id))}
       </div>
     </div>
   );

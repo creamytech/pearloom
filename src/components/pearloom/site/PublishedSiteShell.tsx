@@ -30,6 +30,7 @@ import { BroadcastBar } from '@/components/pearloom/site/BroadcastBar';
 import { SiteToast } from '@/components/pearloom/site/SiteToast';
 import { StoreFonts } from '@/lib/theme-store/fonts';
 import { getTheme } from '@/components/pearloom/site/themes';
+import { LivingBackground } from '@/components/pearloom/site/LivingBackground';
 
 interface Props {
   manifest: StoryManifest;
@@ -136,6 +137,17 @@ export function PublishedSiteShell(props: Props) {
           here (not just on /g/[token]) so EVERY guest sees it, which
           is what the composer promises. */}
       <BroadcastBar subdomain={props.siteSlug} />
+      {/* Living background (v2 shader wallpaper) — a fixed animated
+          ground behind the whole site; ThemedSite's root goes
+          transparent when manifest.background is set so it shows
+          through. Degrades to nothing without WebGL. */}
+      {(hydrated as unknown as { background?: string }).background && (
+        <LivingBackground
+          id={(hydrated as unknown as { background?: string }).background as string}
+          fixed
+          style={{ zIndex: 0 }}
+        />
+      )}
       <ThemedSite
         manifest={hydrated}
         names={props.names}

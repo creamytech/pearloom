@@ -578,12 +578,18 @@ export function ThemedSite({
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  /* Living background (v2 shader wallpaper) — when set, the site root
+     goes transparent so the animated ground (mounted by the shell /
+     editor canvas behind this tree) shows through the gaps; opaque
+     section surfaces keep text legible over it. */
+  const livingBg = (manifest as unknown as { background?: string }).background;
   const rootStyle: CSSProperties = {
     ...themeRootStyle(theme, density, themeVarsOverride ?? null),
     position: 'relative',
     /* Decor color override → --t-motif scope var that the motif
        SVGs read for their fill (handoff L176). */
     ...(decor.color ? { ['--t-motif' as string]: `var(${decor.color})` } : {}),
+    ...(livingBg ? { background: 'transparent', zIndex: 1 } : {}),
   };
 
   /* Viewport detection + active-section tracking for the nav variant

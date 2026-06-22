@@ -1,0 +1,263 @@
+/* Pearloom — Interactive shader wallpapers engine.
+   One WebGL canvas, five fragment shaders, pointer + tap reactive.
+   No deps. GLSL ES 1.00 (WebGL1) for broad device support. */
+(function () {
+  'use strict';
+
+  // ── Shared GLSL header: precision, uniforms, noise, ripple field ──
+  var HEAD = [
+    'precision highp float;',
+    'uniform vec2 u_res;',
+    'uniform float u_time;',
+    'uniform vec2 u_mouse;',      // 0..1, y up, smoothed
+    'uniform vec2 u_mvel;',       // pointer velocity
+    'uniform float u_down;',      // 0..1 press amount (smoothed)
+    'uniform vec3 u_rip[6];',     // x,y (0..1), start-time ; z<0 = empty
+    'uniform float u_dark;',      // 0 light, 1 dark
+    'float hash21(vec2 p){ p=fract(p*vec2(123.34,345.45)); p+=dot(p,p+34.345); return fract(p.x*p.y); }',
+    'vec2 hash22(vec2 p){ float n=sin(dot(p,vec2(41.0,289.0))); return fract(vec2(262144.0,32768.0)*n); }',
+    'float vnoise(vec2 p){ vec2 i=floor(p),f=fract(p); vec2 u=f*f*(3.0-2.0*f);',
+    '  float a=hash21(i),b=hash21(i+vec2(1.,0.)),c=hash21(i+vec2(0.,1.)),d=hash21(i+vec2(1.,1.));',
+    '  return mix(mix(a,b,u.x),mix(c,d,u.x),u.y); }',
+    'float fbm(vec2 p){ float s=0.0,a=0.5; mat2 m=mat2(1.6,1.2,-1.2,1.6); for(int i=0;i<5;i++){ s+=a*vnoise(p); p=m*p; a*=0.5;} return s; }',
+    // ripple field: sum of decaying concentric waves from recent taps
+    'float ripple(vec2 uv){ float s=0.0; for(int i=0;i<6;i++){ vec3 r=u_rip[i]; if(r.z<0.0) continue;',
+    '  float age=u_time-r.z; if(age<0.0||age>3.0) continue; float d=distance(uv,r.xy);',
+    '  s += sin(d*42.0 - age*15.0)*exp(-d*5.5)*exp(-age*2.0); } return s; }',
+    'vec3 toLin(vec3 c){ return pow(c,vec3(2.2)); }',
+    'vec3 toSRGB(vec3 c){ return pow(max(c,0.0),vec3(1.0/2.2)); }'
+  ].join('\n');
+
+  var VERT = 'attribute vec2 p; void main(){ gl_Position=vec4(p,0.0,1.0); }';
+
+  // Palette (sRGB 0..1) — Pearloom tokens
+  var PAL = [
+    'vec3 CREAM=vec3(0.992,0.980,0.941);',
+    'vec3 CREAMD=vec3(0.969,0.941,0.878);',
+    'vec3 INK=vec3(0.094,0.094,0.106);',
+    'vec3 INKW=vec3(0.082,0.067,0.043);',
+    'vec3 OLIVE=vec3(0.361,0.420,0.247);',
+    'vec3 OLIVED=vec3(0.212,0.247,0.133);',
+    'vec3 GOLD=vec3(0.757,0.604,0.294);',
+    'vec3 TERRA=vec3(0.776,0.439,0.239);',
+    'vec3 LAV=vec3(0.420,0.353,0.549);',
+    'vec3 SAGE=vec3(0.545,0.612,0.353);',
+    'vec3 ROSE=vec3(0.851,0.659,0.620);'
+  ].join('\n');
+
+  // ── The five shaders. Each defines main(); uses helpers above. ──
+  var SHADERS = {};
+
+  // 1 · WOVEN SILK — the brand weave. Olive + gold threads over cream.
+  SHADERS.silk = PAL + [
+    'void main(){',
+    ' vec2 asp=vec2(u_res.x/u_res.y,1.0);',
+    ' vec2 uv=gl_FragCoord.xy/u_res; vec2 q=uv*asp; vec2 m=u_mouse*asp;',
+    ' float md=distance(q,m);',
+    ' q += normalize(q-m+1e-4)*0.03*exp(-md*3.5)*(0.6+u_down);',   // bulge near pointer
+    ' q += 0.012*ripple(uv);',
+    ' float freq=44.0; vec2 cell=q*freq; vec2 id=floor(cell); vec2 f=fract(cell);',
+    ' float checker=mod(id.x+id.y,2.0);',
+    ' float hor=smoothstep(0.5,0.06,abs(f.y-0.5)); float ver=smoothstep(0.5,0.06,abs(f.x-0.5));',
+    ' float thread=mix(hor,ver,checker);',
+    ' float round=mix(abs(f.y-0.5),abs(f.x-0.5),checker);',
+    ' float sheen=0.5+0.5*sin((q.x+q.y)*freq*0.5+u_time*0.4);',
+    ' vec3 tcol=mix(OLIVE,GOLD,step(1.5,mod(id.x+id.y*2.0,3.0)));',
+    ' tcol*= (0.78+0.42*(1.0-round*1.6))*(0.85+0.3*sheen);',
+    ' vec3 base=mix(CREAMD,CREAM,0.5+0.5*sin(uv.y*3.0));',
+    ' if(u_dark>0.5){ base=mix(INKW,vec3(0.10,0.09,0.06),uv.y); tcol*=1.15; }',
+    ' vec3 col=mix(base,tcol,thread);',
+    ' float glow=exp(-md*2.6)*(0.12+0.5*u_down);',
+    ' col += GOLD*glow*0.6;',
+    ' col += GOLD*max(0.0,ripple(uv))*0.25;',
+    ' col*=1.0-0.18*length(uv-0.5);',
+    ' gl_FragColor=vec4(col,1.0);',
+    '}'
+  ].join('\n');
+
+  // 2 · AURORA LINEN — soft warm flowing bands; pointer bends the flow.
+  SHADERS.aurora = PAL + [
+    'void main(){',
+    ' vec2 asp=vec2(u_res.x/u_res.y,1.0); vec2 uv=gl_FragCoord.xy/u_res; vec2 q=uv*asp;',
+    ' vec2 mo=(u_mouse-0.5);',
+    ' q += mo*0.35 + 0.05*u_mvel;',
+    ' float t=u_time*0.06;',
+    ' float n=fbm(q*1.8+vec2(t,t*0.7));',
+    ' float n2=fbm(q*3.1-vec2(t*0.8,t));',
+    ' float bands=0.5+0.5*sin((q.y*2.6+n*2.6+t*1.4)*3.14159);',
+    ' bands += 0.18*ripple(uv);',
+    ' vec3 a=mix(CREAM,vec3(0.984,0.910,0.839),bands);',          // cream→peach
+    ' a=mix(a,SAGE,smoothstep(0.3,0.9,n2)*0.45);',
+    ' a=mix(a,GOLD,smoothstep(0.7,1.0,bands)*0.35);',
+    ' if(u_dark>0.5){ a=mix(INKW,LAV*0.6+INKW,bands); a=mix(a,SAGE*0.5,smoothstep(0.3,0.9,n2)*0.4); a=mix(a,GOLD*0.7,smoothstep(0.75,1.0,bands)*0.4);} ',
+    ' float md=distance(q,u_mouse*asp);',
+    ' a += GOLD*exp(-md*3.0)*(0.10+0.45*u_down);',
+    ' a*=1.0-0.16*length(uv-0.5);',
+    ' gl_FragColor=vec4(a,1.0);',
+    '}'
+  ].join('\n');
+
+  // 3 · STILL WATER — calm caustic ripples, lavender/sage. Memorials.
+  SHADERS.water = PAL + [
+    'void main(){',
+    ' vec2 asp=vec2(u_res.x/u_res.y,1.0); vec2 uv=gl_FragCoord.xy/u_res; vec2 q=uv*asp; vec2 m=u_mouse*asp;',
+    ' float md=distance(q,m);',
+    ' float emit=sin(md*26.0-u_time*2.2)*exp(-md*3.2)*0.5;',       // gentle source at pointer
+    ' float h=ripple(uv)*0.8 + emit*0.5;',
+    ' float caustic=fbm(q*2.2+vec2(0.0,u_time*0.05)+h*0.4);',
+    ' caustic=pow(0.5+0.5*sin((caustic*3.0+h*3.0)*3.14159),2.0);',
+    ' vec3 deep=mix(INKW,vec3(0.16,0.15,0.20),uv.y);',             // warm midnight→lavender shadow
+    ' vec3 lo=mix(deep,LAV*0.55,0.5);',
+    ' vec3 col=mix(lo,mix(LAV,SAGE,0.4),caustic*0.8);',
+    ' col += vec3(0.85,0.78,0.55)*pow(caustic,3.0)*0.25;',         // faint gold glint
+    ' if(u_dark<0.5){ vec3 lcol=mix(CREAMD,vec3(0.81,0.78,0.86),caustic*0.7); lcol=mix(lcol,SAGE,caustic*0.15); col=lcol; col+=GOLD*pow(caustic,3.0)*0.12; }',
+    ' col += (LAV+0.2)*max(0.0,h)*0.18;',
+    ' col*=1.0-0.2*length(uv-0.5);',
+    ' gl_FragColor=vec4(col,1.0);',
+    '}'
+  ].join('\n');
+
+  // 4 · GILDED DUST — drifting gold motes on warm dark; pointer parallax + bloom.
+  SHADERS.dust = PAL + [
+    'float layer(vec2 q,float sc,float tw){',
+    ' q*=sc; vec2 id=floor(q); vec2 f=fract(q)-0.5; float h=hash21(id);',
+    ' vec2 off=(hash22(id)-0.5)*0.7; float d=length(f-off);',
+    ' float tw2=0.5+0.5*sin(u_time*tw+h*6.2831);',
+    ' return smoothstep(0.16,0.0,d)*tw2*step(0.45,h);',
+    '}',
+    'void main(){',
+    ' vec2 asp=vec2(u_res.x/u_res.y,1.0); vec2 uv=gl_FragCoord.xy/u_res; vec2 q=uv*asp;',
+    ' vec2 par=(u_mouse-0.5);',
+    ' float m=0.0;',
+    ' m+=layer(q+par*0.10+vec2(u_time*0.01,0.0),7.0,2.0)*0.6;',
+    ' m+=layer(q+par*0.22+vec2(0.0,u_time*0.015),12.0,3.0)*0.9;',
+    ' m+=layer(q+par*0.40-vec2(u_time*0.02,0.0),20.0,4.5)*1.2;',
+    ' m+=max(0.0,ripple(uv))*1.2;',
+    ' vec3 bg=mix(INKW,vec3(0.16,0.12,0.07),uv.y);',               // warm ember ground
+    ' if(u_dark<0.5){ bg=mix(vec3(0.20,0.16,0.10),vec3(0.28,0.22,0.13),uv.y);} ',
+    ' float md=distance(q,u_mouse*asp);',
+    ' float halo=exp(-md*2.4)*(0.18+0.7*u_down);',
+    ' vec3 col=bg + GOLD*m*(1.3+halo*2.0) + TERRA*m*0.3;',
+    ' col += GOLD*halo*0.5;',
+    ' col*=1.0-0.26*length(uv-0.5);',
+    ' gl_FragColor=vec4(col,1.0);',
+    '}'
+  ].join('\n');
+
+  // 5 · MARBLED PAPER — the craft-house signature; pointer stirs the ink.
+  SHADERS.marble = PAL + [
+    'void main(){',
+    ' vec2 asp=vec2(u_res.x/u_res.y,1.0); vec2 uv=gl_FragCoord.xy/u_res; vec2 q=uv*asp*1.5;',
+    ' q += (u_mouse-0.5)*0.5;',
+    ' vec2 m=u_mouse*asp*1.5; vec2 rel=q-m;',
+    ' float swirl=exp(-dot(rel,rel)*2.2)*(2.2+3.0*u_down);',        // stir near pointer
+    ' float a=swirl + ripple(uv)*2.0; float c=cos(a),s=sin(a);',
+    ' q=m+mat2(c,-s,s,c)*rel;',
+    ' float t=u_time*0.03;',
+    ' vec2 warp=vec2(fbm(q*1.3+t),fbm(q*1.3+vec2(5.2,1.3)-t));',
+    ' float w=fbm(q*1.6+warp*1.6);',
+    ' float veins=abs(sin(w*6.2831*2.5));',
+    ' vec3 col=mix(CREAM,ROSE,smoothstep(0.25,0.65,w));',
+    ' col=mix(col,SAGE,smoothstep(0.5,0.95,fbm(q*2.0-warp)));',
+    ' col=mix(col,LAV*0.85+0.15,smoothstep(0.6,0.9,w)*0.5);',
+    ' col=mix(col,GOLD,smoothstep(0.12,0.0,veins)*0.9);',          // thin gold veins
+    ' if(u_dark>0.5){ col=mix(INKW,col*0.6+INKW*0.4,0.7); col=mix(col,GOLD*0.9,smoothstep(0.12,0.0,veins)*0.8);} ',
+    ' col*=1.0-0.16*length(uv-0.5);',
+    ' gl_FragColor=vec4(col,1.0);',
+    '}'
+  ].join('\n');
+
+  // ── WebGL plumbing ──
+  function compile(gl, type, src){
+    var s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){ console.error('shader error:', gl.getShaderInfoLog(s), '\n', src); return null; }
+    return s;
+  }
+  function program(gl, frag){
+    var vs=compile(gl,gl.VERTEX_SHADER,VERT); var fs=compile(gl,gl.FRAGMENT_SHADER,HEAD+'\n'+frag);
+    if(!vs||!fs) return null;
+    var p=gl.createProgram(); gl.attachShader(p,vs); gl.attachShader(p,fs); gl.linkProgram(p);
+    if(!gl.getProgramParameter(p,gl.LINK_STATUS)){ console.error('link error:', gl.getProgramInfoLog(p)); return null; }
+    return p;
+  }
+
+  function Wallpaper(canvas){
+    var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    if(!gl){ console.error('WebGL unavailable'); return null; }
+    var buf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+
+    var progs={}, keys=Object.keys(SHADERS);
+    keys.forEach(function(k){ progs[k]=program(gl,SHADERS[k]); });
+
+    var current='silk';
+    var mouse=[0.5,0.6], target=[0.5,0.6], vel=[0,0], down=0, downT=0;
+    var rips=[], maxR=6; for(var i=0;i<maxR;i++) rips.push([0,0,-1]);
+    var ripHead=0;
+    var dpr=Math.min(window.devicePixelRatio||1, 2);
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var t0=performance.now();
+
+    function resize(){
+      var w=canvas.clientWidth, h=canvas.clientHeight;
+      canvas.width=Math.max(1,Math.floor(w*dpr)); canvas.height=Math.max(1,Math.floor(h*dpr));
+      gl.viewport(0,0,canvas.width,canvas.height);
+    }
+    window.addEventListener('resize', resize);
+
+    function setPointer(cx,cy){
+      var r=canvas.getBoundingClientRect();
+      target[0]=(cx-r.left)/r.width;
+      target[1]=1.0-(cy-r.top)/r.height;
+    }
+    canvas.addEventListener('pointermove', function(e){ setPointer(e.clientX,e.clientY); poke(); });
+    canvas.addEventListener('pointerdown', function(e){
+      setPointer(e.clientX,e.clientY); down=1; downT=performance.now();
+      var r=canvas.getBoundingClientRect();
+      rips[ripHead]=[(e.clientX-r.left)/r.width, 1.0-(e.clientY-r.top)/r.height, (performance.now()-t0)/1000];
+      ripHead=(ripHead+1)%maxR; poke();
+    });
+    var onUp=function(){ down=0; };
+    window.addEventListener('pointerup', onUp);
+    canvas.style.touchAction='none';
+
+    function frame(now){
+      var time=(now-t0)/1000 * (reduce?0.35:1.0);
+      // smooth pointer
+      var sm=reduce?0.18:0.12;
+      var nx=mouse[0]+(target[0]-mouse[0])*sm, ny=mouse[1]+(target[1]-mouse[1])*sm;
+      vel[0]=(nx-mouse[0]); vel[1]=(ny-mouse[1]); mouse[0]=nx; mouse[1]=ny;
+      var downAmt=down?1:Math.max(0,1-(now-downT)/450); if(down)downAmt=1;
+      var p=progs[current]; if(p){
+        gl.useProgram(p);
+        var loc=gl.getAttribLocation(p,'p'); gl.enableVertexAttribArray(loc);
+        gl.bindBuffer(gl.ARRAY_BUFFER,buf); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+        gl.uniform2f(gl.getUniformLocation(p,'u_res'),canvas.width,canvas.height);
+        gl.uniform1f(gl.getUniformLocation(p,'u_time'),time);
+        gl.uniform2f(gl.getUniformLocation(p,'u_mouse'),mouse[0],mouse[1]);
+        gl.uniform2f(gl.getUniformLocation(p,'u_mvel'),vel[0]*60,vel[1]*60);
+        gl.uniform1f(gl.getUniformLocation(p,'u_down'),downAmt);
+        gl.uniform1f(gl.getUniformLocation(p,'u_dark'), document.documentElement.getAttribute('data-theme')==='dark'?1:0);
+        var flat=[]; for(var i=0;i<maxR;i++){ flat.push(rips[i][0],rips[i][1],rips[i][2]); }
+        gl.uniform3fv(gl.getUniformLocation(p,'u_rip'),new Float32Array(flat));
+        gl.drawArrays(gl.TRIANGLES,0,3);
+      }
+    }
+    function loop(now){ frame(now); raf=requestAnimationFrame(loop); }
+    var raf=0;
+    // Immediate first paint, then animate. The immediate paint guarantees a
+    // visible frame even if rAF is throttled (e.g. background/preview frames).
+    resize(); frame(performance.now()); raf=requestAnimationFrame(loop);
+
+    // Pointer also nudges a repaint, so movement responds even between rAF ticks.
+    function poke(){ frame(performance.now()); }
+
+    // destroy() — React-safe teardown (the showcase/editor remount on
+    // background change + route nav). Stops the rAF loop and removes
+    // the window-level listeners; canvas-level listeners die with it.
+    function destroy(){ if(raf) cancelAnimationFrame(raf); window.removeEventListener('resize', resize); window.removeEventListener('pointerup', onUp); }
+    return { set:function(k){ if(progs[k]){ current=k; poke(); } }, get:function(){ return current; }, resize:function(){ resize(); poke(); }, poke:poke, destroy:destroy };
+  }
+
+  window.PearloomWallpaper = Wallpaper;
+})();
