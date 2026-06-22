@@ -1,0 +1,24 @@
+<!-- @dsCard group="Spacing" viewport="700x180" name="Shadows" subtitle="Warm, ink-tinted, paper-soft — never gray" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--pl-cream); font-family: var(--pl-font-body); }
+  .strip { display: flex; gap: 26px; padding: 34px 28px; align-items: center; }
+  .cell { text-align: center; }
+  .box { width: 84px; height: 64px; background: var(--pl-cream-card); border-radius: var(--pl-radius-lg); border: 1px solid var(--pl-divider); }
+  .lab { font-family: var(--pl-font-mono); font-size: 10px; color: var(--pl-muted); margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="strip" id="s"></div>
+<script>
+  const sh = ['xs','sm','md','lg','xl'];
+  document.getElementById('s').innerHTML = sh.map(k =>
+    `<div class="cell"><div class="box" style="box-shadow:var(--pl-shadow-${k})"></div><div class="lab">${k}</div></div>`
+  ).join('');
+</script>
+</body>
+</html>

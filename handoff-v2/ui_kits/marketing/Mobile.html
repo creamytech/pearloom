@@ -1,0 +1,50 @@
+<!-- @dsCard group="Mobile" viewport="1280x900" name="Mobile surfaces" subtitle="Landing, dashboard & editor at phone width (390×844)" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pearloom — Mobile</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  body { margin: 0; background: var(--pl-cream-deep); min-height: 100vh; }
+  .wrap { width: max-content; min-width: 100%; box-sizing: border-box; padding: 48px; }
+  .head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 8px; }
+  .head h1 { font-family: var(--pl-font-display); font-weight: 400; font-size: 30px; letter-spacing: -0.02em; color: var(--pl-ink); margin: 0; }
+  .head h1 em { font-style: italic; color: var(--pl-olive); }
+  .head .sub { font-family: var(--pl-font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pl-muted); }
+  .row { display: flex; gap: 56px; align-items: flex-start; padding: 24px 0 8px; }
+  .frame { flex: none; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+  .label { font-family: var(--pl-font-mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--pl-ink-soft); }
+  /* iPhone-ish bezel */
+  .phone { width: 390px; height: 844px; border-radius: 52px; background: #0d0b07; padding: 13px; box-shadow: 0 40px 80px -20px rgba(40,28,12,0.4), 0 0 0 2px rgba(0,0,0,0.06); position: relative; }
+  .phone::before { content: ''; position: absolute; top: 22px; left: 50%; transform: translateX(-50%); width: 110px; height: 30px; background: #0d0b07; border-radius: 0 0 18px 18px; z-index: 3; }
+  .screen { width: 100%; height: 100%; border-radius: 40px; overflow: hidden; background: var(--pl-cream); position: relative; }
+  .screen iframe { width: 390px; height: 844px; border: 0; display: block; }
+  .note { font-family: var(--pl-font-body); font-size: 12px; color: var(--pl-muted); max-width: 360px; text-align: center; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <h1>Pearloom on <em>mobile</em></h1>
+    <span class="sub">390 × 844 · drag inside each screen</span>
+  </div>
+  <div class="row">
+    <div class="frame">
+      <span class="label">Landing</span>
+      <div class="phone"><div class="screen"><iframe src="index.html" title="Landing mobile" scrolling="yes"></iframe></div></div>
+    </div>
+    <div class="frame">
+      <span class="label">Dashboard · The Director</span>
+      <div class="phone"><div class="screen"><iframe src="../dashboard/index.html" title="Dashboard mobile" scrolling="yes"></iframe></div></div>
+    </div>
+    <div class="frame">
+      <span class="label">Site editor</span>
+      <div class="phone"><div class="screen"><iframe src="../editor/index.html" title="Editor mobile" scrolling="yes"></iframe></div></div>
+      <p class="note">On phones the editor collapses to the live canvas with the section list and properties as bottom sheets.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!-- @dsCard group="Brand" viewport="700x200" name="Paper grain" subtitle="The warm fixed underlay beneath everything (layer 1)" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--pl-cream); }
+  .stage { position: relative; height: 200px; overflow: hidden; }
+  .grain { position: absolute; inset: 0; background-image: var(--pl-grain); opacity: 0.55; mix-blend-mode: multiply; }
+  .content { position: relative; z-index: 1; padding: 30px 34px; }
+  .lab { font-family: var(--pl-font-mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--pl-muted); }
+  .h { font-family: var(--pl-font-display); font-style: italic; font-size: 40px; color: var(--pl-olive); margin: 8px 0 0; font-variation-settings: "opsz" 144, "SOFT" 80, "WONK" 1; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="grain"></div>
+  <div class="content">
+    <div class="lab">Quiet enough to read through · loud enough to feel</div>
+    <p class="h">paper, under everything</p>
+  </div>
+</div>
+</body>
+</html>

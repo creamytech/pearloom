@@ -1,0 +1,95 @@
+/* ═══════════════════════════════════════════════════════════════
+   BASE — light reset + element defaults
+   ───────────────────────────────────────────────────────────────
+   Optional but recommended. Sets the warm paper ground, body type,
+   editorial headings, branded selection + focus, custom controls.
+   Consumers who only want tokens can skip importing styles.css's
+   base by editing the manifest — but most should keep this.
+   ═══════════════════════════════════════════════════════════════ */
+
+html { color-scheme: light dark; -webkit-text-size-adjust: 100%; }
+[data-theme='light'] { color-scheme: light; }
+[data-theme='dark']  { color-scheme: dark; }
+
+body {
+  background: var(--pl-cream);
+  color: var(--pl-ink);
+  font-family: var(--pl-font-body);
+  font-size: 1rem;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--pl-dur-base) var(--pl-ease-out),
+              color var(--pl-dur-base) var(--pl-ease-out);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--pl-font-heading);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--pl-ink-soft);
+}
+
+::selection { background: var(--pl-plum-mist); color: var(--pl-plum); }
+
+a { color: var(--pl-olive); transition: color var(--pl-dur-fast) var(--pl-ease-out), opacity var(--pl-dur-fast) var(--pl-ease-out); }
+
+/* Keyboard focus — warm olive ring */
+*:focus-visible {
+  outline: 2px solid var(--pl-olive);
+  outline-offset: 2px;
+  border-radius: var(--pl-radius-xs);
+}
+
+/* ─── Branded checkbox + radio (opt out with .pl-native-control) ─── */
+input[type='checkbox']:not(.pl-native-control),
+input[type='radio']:not(.pl-native-control) {
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  width: 18px; height: 18px; margin: 0;
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-content: center;
+  vertical-align: middle;
+  border: 1.5px solid var(--pl-divider);
+  background: var(--pl-cream-card);
+  cursor: pointer;
+  transition: background var(--pl-dur-quick) var(--pl-ease-out),
+              border-color var(--pl-dur-quick) var(--pl-ease-out),
+              box-shadow var(--pl-dur-quick) var(--pl-ease-out);
+}
+input[type='checkbox']:not(.pl-native-control) { border-radius: 5px; }
+input[type='radio']:not(.pl-native-control)    { border-radius: 50%; }
+input[type='checkbox']:not(.pl-native-control)::before {
+  content: ''; width: 10px; height: 10px;
+  transform: scale(0);
+  transition: transform var(--pl-dur-quick) var(--pl-ease-spring);
+  background: var(--pl-cream);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+input[type='radio']:not(.pl-native-control)::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  transform: scale(0);
+  transition: transform var(--pl-dur-quick) var(--pl-ease-spring);
+  background: var(--pl-cream);
+}
+input[type='checkbox']:not(.pl-native-control):checked,
+input[type='radio']:not(.pl-native-control):checked {
+  background: var(--pl-olive-deep);
+  border-color: var(--pl-olive-deep);
+}
+input[type='checkbox']:not(.pl-native-control):checked::before,
+input[type='radio']:not(.pl-native-control):checked::before { transform: scale(1); }
+input[type='checkbox']:not(.pl-native-control):focus-visible,
+input[type='radio']:not(.pl-native-control):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--pl-gold-soft);
+}
+
+/* Scrollbar — quiet olive */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--pl-olive-20); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--pl-olive-40); }

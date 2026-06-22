@@ -1,0 +1,23 @@
+<!-- @dsCard group="Type" viewport="700x250" name="Heading scale" subtitle="Fraunces headings — perfect fourth" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--pl-cream); }
+  .wrap { padding: 24px 32px; display: flex; flex-direction: column; gap: 12px; }
+  .line { display: flex; align-items: baseline; gap: 16px; }
+  .h { font-family: var(--pl-font-heading); font-weight: 600; color: var(--pl-ink-soft); letter-spacing: -0.02em; line-height: 1.1; }
+  .tag { font-family: var(--pl-font-mono); font-size: 10px; color: var(--pl-muted); letter-spacing: 0.06em; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="line"><span class="h" style="font-size:41px">Page title</span><span class="tag">2xl · 26px → 41px clamp</span></div>
+  <div class="line"><span class="h" style="font-size:25.6px">Section header</span><span class="tag">2xl · 25.6px</span></div>
+  <div class="line"><span class="h" style="font-size:21px">Panel title</span><span class="tag">xl · 21px</span></div>
+  <div class="line"><span class="h" style="font-size:18px">Card title</span><span class="tag">lg · 18px</span></div>
+</div>
+</body>
+</html>

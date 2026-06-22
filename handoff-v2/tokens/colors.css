@@ -1,0 +1,149 @@
+/* ═══════════════════════════════════════════════════════════════
+   COLORS — Pearloom palette
+   ───────────────────────────────────────────────────────────────
+   Cream paper ground · ink for type · olive is the brand voice ·
+   gold is the punctuation (hairlines + single glyphs, never a
+   background) · plum/terra is destructive only.
+   Light = "Editorial Paper". Dark = "Editorial Midnight" — warm
+   #0D0B07 family, never OLED black (BRAND §10).
+   ═══════════════════════════════════════════════════════════════ */
+
+:root,
+[data-theme='light'] {
+  /* ── Core surfaces ── */
+  --pl-cream:        #FDFAF0;   /* page paper                          */
+  --pl-cream-deep:   #F7F0E0;   /* alternating / sunk sections         */
+  --pl-cream-card:   #FBF7EE;   /* elevated cards on cream             */
+  --pl-ink:          #18181B;   /* type                                */
+  --pl-ink-soft:     #4A5642;   /* soft headings / secondary type      */
+  --pl-muted:        #6F6557;   /* secondary text (AA on cream)        */
+  --pl-divider:      #E2D9C3;   /* warm tan border                     */
+  --pl-divider-soft: #ECE4CF;   /* near-invisible separators           */
+
+  /* ── Brand voice ── */
+  --pl-olive:        #5C6B3F;   /* sage-deep — primary                 */
+  --pl-olive-hover:  #4A5731;
+  --pl-olive-deep:   #363F22;
+  --pl-olive-mist:   #E0DDC9;
+  --pl-gold:         #C19A4B;   /* peach-gold accent / punctuation     */
+  --pl-gold-mist:    rgba(193,154,75,0.10);
+  --pl-gold-soft:    rgba(193,154,75,0.40);
+  --pl-plum:         #C6563D;   /* peach-ink — destructive / state     */
+  --pl-plum-mist:    rgba(198,86,61,0.10);
+  --pl-terra:        #C6703D;   /* warm accent used on marketing       */
+  --pl-rose:         #D9A89E;   /* specialty soft accent               */
+  --pl-stone:        #C8BFA5;   /* muted dots / inert markers          */
+
+  /* ── Semantic states ── */
+  --pl-warning:      #A14A2C;
+  --pl-warning-mist: rgba(161,74,44,0.10);
+  --pl-success:      #5C6B3F;   /* calm success = olive                */
+  --pl-success-mist: rgba(92,107,63,0.10);
+
+  /* ── Olive opacity wash (true brand tint) ── */
+  --pl-olive-5:   rgba(92,107,63,0.05);
+  --pl-olive-8:   rgba(92,107,63,0.08);
+  --pl-olive-10:  rgba(92,107,63,0.10);
+  --pl-olive-12:  rgba(92,107,63,0.12);
+  --pl-olive-15:  rgba(92,107,63,0.15);
+  --pl-olive-20:  rgba(92,107,63,0.20);
+  --pl-olive-30:  rgba(92,107,63,0.30);
+  --pl-olive-40:  rgba(92,107,63,0.40);
+  --pl-olive-50:  rgba(92,107,63,0.50);
+
+  /* ── Glass — material of FLOATING chrome only (BRAND §9) ── */
+  --pl-glass:              rgba(252,248,238,0.62);
+  --pl-glass-border:       rgba(255,252,242,0.55);
+  --pl-glass-light:        rgba(252,248,238,0.48);
+  --pl-glass-light-border: rgba(255,252,242,0.40);
+  --pl-glass-blur:         blur(16px) saturate(1.7) brightness(1.04);  /* @kind other */
+  --pl-glass-sheen:        linear-gradient(115deg,
+                             rgba(255,255,255,0.36) 0%,
+                             rgba(255,255,255,0.10) 26%,
+                             transparent 44%, transparent 72%,
+                             rgba(255,255,255,0.14) 100%);  /* @kind other */
+  --pl-glass-shadow:       inset 0 1px 0 rgba(255,255,255,0.55),
+                           inset 0 -1px 0 rgba(255,255,255,0.14),
+                           0 8px 24px -8px rgba(40,28,12,0.18);
+
+  /* ── Paper-shadow gradients ── */
+  --pl-gradient-page:    linear-gradient(180deg, var(--pl-cream-deep) 0%, var(--pl-cream) 38%);  /* @kind other */
+  --pl-gradient-warm:    linear-gradient(135deg, var(--pl-cream-deep) 0%, var(--pl-cream) 50%, var(--pl-cream-deep) 100%);  /* @kind other */
+  --pl-gradient-hero:    radial-gradient(ellipse at 50% 0%, var(--pl-cream-deep) 0%, var(--pl-cream) 55%);  /* @kind other */
+  --pl-gradient-olive:   linear-gradient(135deg, var(--pl-olive) 0%, var(--pl-olive-deep) 100%);  /* @kind other */
+  --pl-gradient-gold:    linear-gradient(135deg, var(--pl-gold) 0%, #8C6E3D 100%);  /* @kind other */
+  /* Real warm paper grain — the fixed underlay beneath everything. */
+  --pl-grain:            url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.24 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");  /* @kind other */
+
+  /* ── Semantic aliases (use these in product code) ── */
+  --surface-page:    var(--pl-cream);
+  --surface-sunk:    var(--pl-cream-deep);
+  --surface-card:    var(--pl-cream-card);
+  --text-body:       var(--pl-ink);
+  --text-heading:    var(--pl-ink-soft);
+  --text-muted:      var(--pl-muted);
+  --border-hairline: var(--pl-divider);
+  --accent-primary:  var(--pl-olive);
+  --accent-punct:    var(--pl-gold);
+  --accent-danger:   var(--pl-plum);
+}
+
+/* ─── DARK · Editorial Midnight ─── */
+[data-theme='dark'] {
+  --pl-cream:        #0D0B07;
+  --pl-cream-deep:   #15110A;
+  --pl-cream-card:   #1A1610;
+  --pl-ink:          #F1EBDC;
+  --pl-ink-soft:     #D4CDBC;
+  --pl-muted:        #8A8275;
+  --pl-divider:      #2A241A;
+  --pl-divider-soft: #1F1A12;
+
+  --pl-olive:        #A4B57A;
+  --pl-olive-hover:  #B8C98F;
+  --pl-olive-deep:   #8A9A60;
+  --pl-olive-mist:   #1F2014;
+  --pl-gold:         #D4B373;
+  --pl-gold-mist:    rgba(212,179,115,0.10);
+  --pl-gold-soft:    rgba(212,179,115,0.40);
+  --pl-plum:         #C46A6A;
+  --pl-plum-mist:    rgba(196,106,106,0.10);
+  --pl-terra:        #D67852;
+  --pl-rose:         #C08A7E;
+  --pl-stone:        #6E6553;
+
+  --pl-warning:      #D67852;
+  --pl-warning-mist: rgba(214,120,82,0.12);
+  --pl-success:      #A4B57A;
+  --pl-success-mist: rgba(164,181,122,0.12);
+
+  --pl-olive-5:   rgba(164,181,122,0.05);
+  --pl-olive-8:   rgba(164,181,122,0.08);
+  --pl-olive-10:  rgba(164,181,122,0.10);
+  --pl-olive-12:  rgba(164,181,122,0.12);
+  --pl-olive-15:  rgba(164,181,122,0.15);
+  --pl-olive-20:  rgba(164,181,122,0.20);
+  --pl-olive-30:  rgba(164,181,122,0.30);
+  --pl-olive-40:  rgba(164,181,122,0.40);
+  --pl-olive-50:  rgba(164,181,122,0.50);
+
+  --pl-glass:              rgba(24,20,14,0.55);
+  --pl-glass-border:       rgba(245,239,226,0.22);
+  --pl-glass-light:        rgba(24,20,14,0.45);
+  --pl-glass-light-border: rgba(245,239,226,0.16);
+  --pl-glass-blur:         blur(16px) saturate(1.5) brightness(1.10);  /* @kind other */
+  --pl-glass-sheen:        linear-gradient(115deg,
+                             rgba(245,239,226,0.14) 0%,
+                             rgba(245,239,226,0.04) 28%,
+                             transparent 46%, transparent 74%,
+                             rgba(245,239,226,0.08) 100%);  /* @kind other */
+  --pl-glass-shadow:       inset 0 1px 0 rgba(245,239,226,0.20),
+                           inset 0 -1px 0 rgba(245,239,226,0.06),
+                           0 8px 24px -8px rgba(0,0,0,0.55);
+
+  --pl-gradient-page:    linear-gradient(180deg, #15110A 0%, #0D0B07 38%);  /* @kind other */
+  --pl-gradient-warm:    linear-gradient(135deg, #15110A 0%, #0D0B07 50%, #15110A 100%);  /* @kind other */
+  --pl-gradient-hero:    radial-gradient(ellipse at 50% 0%, #1A1610 0%, #0D0B07 55%);  /* @kind other */
+  --pl-gradient-olive:   linear-gradient(135deg, var(--pl-olive) 0%, #6E8050 100%);  /* @kind other */
+  --pl-gradient-gold:    linear-gradient(135deg, var(--pl-gold) 0%, #A88456 100%);  /* @kind other */
+}

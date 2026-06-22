@@ -1,0 +1,209 @@
+<!-- @dsCard group="Dashboard" viewport="1320x860" name="Host dashboard" subtitle="Ten-plus routes on the production IA — Home, sites, guests, the day, studio & more" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pearloom — Dashboard</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  body { margin: 0; background: var(--cream-3); overflow-x: hidden; }
+  :root { --glow: radial-gradient(ellipse 70% 55% at 100% -5%, var(--peach-bg) 0%, transparent 60%), radial-gradient(ellipse 48% 42% at -3% 6%, var(--sage-tint) 0%, transparent 55%), var(--cream-3); }
+  [data-theme='dark'] { --glow: radial-gradient(ellipse 70% 55% at 100% -5%, rgba(214,120,82,0.10) 0%, transparent 60%), radial-gradient(ellipse 48% 42% at -3% 6%, rgba(151,169,104,0.07) 0%, transparent 55%), var(--cream-3); }
+  .pl-hscroll { overflow-x: auto; scrollbar-width: none; }
+  .pl-hscroll::-webkit-scrollbar { display: none; }
+  .dash-nav::-webkit-scrollbar { width: 6px; }
+  .dash-nav::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
+  /* Hover only — active/inactive colours are React-controlled inline.
+     !important + :not([data-on]) so it beats the inline transparent on
+     idle items without touching the active item's ink fill. */
+  .dash-navbtn:not([data-on]):hover { background: rgba(14,13,11,0.05) !important; }
+  [data-theme='dark'] .dash-navbtn:not([data-on]):hover { background: rgba(245,239,226,0.07) !important; }
+
+  /* Thread hover-rail — the brand's two-strand thread draws in at the
+     left edge of an idle item on hover. The active item keeps its ink
+     pill, no rail needed. */
+  .dash-navrail { position: absolute; left: 3px; top: 50%; width: 3px; height: 22px; border-radius: 9px; background: linear-gradient(var(--pl-olive), var(--pl-gold)); transform: translateY(-50%) scaleY(0); transform-origin: center; transition: transform .3s var(--pl-ease-emphasis); pointer-events: none; }
+  .dash-navbtn:not([data-on]):hover .dash-navrail { transform: translateY(-50%) scaleY(1); }
+  .dash-navbtn[data-on] .dash-navrail { display: none; }
+  .dash-navbtn:focus-visible { outline: 2px solid var(--accent-ink, var(--peach-ink)); outline-offset: 2px; }
+
+  /* Cards weave in on every tab change — content threads up in a soft
+     stagger instead of snapping. Reduced-motion shows it instantly. */
+  @media (prefers-reduced-motion: no-preference) {
+    .pl-weave-in > * { animation: pl-weave-up .5s var(--pl-ease-emphasis) both; }
+    .pl-weave-in main > * { animation: pl-weave-up .55s var(--pl-ease-emphasis) both; }
+    .pl-weave-in main > *:nth-child(1) { animation-delay: .04s; }
+    .pl-weave-in main > *:nth-child(2) { animation-delay: .10s; }
+    .pl-weave-in main > *:nth-child(3) { animation-delay: .16s; }
+    .pl-weave-in main > *:nth-child(4) { animation-delay: .22s; }
+    .pl-weave-in main > *:nth-child(n+5) { animation-delay: .26s; }
+  }
+  @keyframes pl-weave-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes pl-fade-q { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes pl-cmd-in { from { opacity: 0; transform: translateY(-10px) scale(0.985); } to { opacity: 1; transform: none; } }
+  @keyframes pl-drawer-in { from { transform: translateX(100%); } to { transform: none; } }
+
+  /* Bespoke per-tab icon motion — each glyph threads in its own way on
+     hover. Chrome, so a single play; sparkles & analytics keep weaving
+     while hovered. Honours reduced-motion. */
+  .dash-navicon svg { transform-origin: center; will-change: transform; }
+  @media (prefers-reduced-motion: no-preference) {
+    .dash-navbtn:hover .dash-navicon svg[data-icon="home"]    { animation: pl-nav-bob .5s var(--pl-ease-spring); }
+    .dash-navbtn:hover .dash-navicon svg[data-icon="layout"]  { animation: pl-nav-pop .45s var(--pl-ease-spring); }
+    .dash-navbtn:hover .dash-navicon svg[data-icon="users"]   { animation: pl-nav-bob .5s var(--pl-ease-spring); }
+    .dash-navbtn:hover .dash-navicon svg[data-icon="sparkles"]{ animation: pl-nav-twinkle .9s var(--pl-ease-out) infinite; }
+    .dash-navbtn:hover .dash-navicon svg[data-icon="image"]   { animation: pl-nav-pan .6s var(--pl-ease-out); }
+    .dash-navbtn:hover .dash-navicon svg[data-icon="gift"]    { animation: pl-nav-wiggle .55s var(--pl-ease-out); }
+    .dash-navbtn:hover .dash-navicon svg[data-icon="bars"]    { animation: pl-nav-grow .5s var(--pl-ease-emphasis); transform-origin: bottom center; }
+  }
+  @keyframes pl-nav-bob   { 0%,100% { transform: translateY(0); } 42% { transform: translateY(-3px); } }
+  @keyframes pl-nav-pop   { 0% { transform: scale(1); } 50% { transform: scale(1.18); } 100% { transform: scale(1); } }
+  @keyframes pl-nav-twinkle { 0% { transform: rotate(0) scale(1); } 50% { transform: rotate(16deg) scale(1.16); } 100% { transform: rotate(0) scale(1); } }
+  @keyframes pl-nav-pan   { 0%,100% { transform: translateX(0); } 50% { transform: translateX(2.5px); } }
+  @keyframes pl-nav-wiggle{ 0%,100% { transform: rotate(0); } 28% { transform: rotate(-10deg); } 72% { transform: rotate(10deg); } }
+  @keyframes pl-nav-grow  { 0% { transform: scaleY(0.62); } 60% { transform: scaleY(1.08); } 100% { transform: scaleY(1); } }
+
+  @media (max-width: 1100px) {
+    .pd-director, .pd-guests, .pd-msgs, .pd-conn, .pd-dayof, .pd-studio-grid, .pd-an-charts, .pd-an-scroll, .pd-home-cols { grid-template-columns: 1fr !important; }
+    .pd-chat { position: relative !important; top: auto !important; }
+    .pd-home-hero { grid-template-columns: 1fr !important; }
+  }
+  @media (max-width: 900px) {
+    .pd-home-stats, .pd-an-kpi { grid-template-columns: repeat(2,1fr) !important; }
+    .pd-reel { grid-template-columns: repeat(2,1fr) !important; }
+    .pd-budget { grid-template-columns: 1fr !important; }
+    .pl-cmd { width: 94vw !important; }
+  }
+  @media (max-width: 760px) {
+    .pl-plan-grid { grid-template-columns: 1fr !important; }
+    .dash-side { position: fixed !important; left: 0 !important; right: 0 !important; bottom: 0 !important; top: auto !important; width: auto !important; height: auto !important; max-height: none !important; flex-direction: row !important; gap: 0 !important; padding: 6px 4px calc(6px + env(safe-area-inset-bottom)) !important; border-right: none !important; border-top: 1px solid var(--line) !important; overflow-x: auto !important; z-index: 80 !important; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); background: var(--pl-glass) !important; }
+    .dash-side > div:first-child, .dash-grouplabel, .dash-side > div:last-child { display: none !important; }
+    .dash-nav { flex-direction: row !important; overflow-y: hidden !important; gap: 4px !important; padding: 0 !important; }
+    .dash-navgroup { display: flex !important; gap: 4px; }
+    .dash-navbtn { flex-direction: column !important; gap: 3px !important; padding: 7px 11px !important; white-space: nowrap; }
+    .dash-navlabel { font-size: 9.5px !important; }
+    body { padding-bottom: 72px; }
+    .dash-topbar { padding: 10px 14px !important; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+  (function () {
+    var root = document.documentElement;
+    var saved = localStorage.getItem('pl-theme') || 'light';
+    root.setAttribute('data-theme', saved);
+  })();
+</script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" data-presets="react" src="tweaks-panel.jsx"></script>
+<script type="text/babel" data-presets="react" src="Icons.jsx"></script>
+<script type="text/babel" data-presets="react" src="Enhance.jsx"></script>
+<script type="text/babel" data-presets="react" src="Premium.jsx"></script>
+<script type="text/babel" data-presets="react" src="GuestLink.jsx"></script>
+<script type="text/babel" data-presets="react" src="DashShell.jsx"></script>
+<script type="text/babel" data-presets="react" src="ScreensHome.jsx"></script>
+<script type="text/babel" data-presets="react" src="ScreensSite.jsx"></script>
+<script type="text/babel" data-presets="react" src="ScreensGuests.jsx"></script>
+<script type="text/babel" data-presets="react" src="ScreensStudio.jsx"></script>
+<script type="text/babel" data-presets="react" src="ScreensExtra.jsx"></script>
+<script type="text/babel" data-presets="react">
+  const { Button, Pearl } = window.PearloomDesignSystem_55118c;
+  const W = window;
+
+  const HEADS = {
+    home:        { pre: 'Welcome back', title: 'Your loom,', italic: 'at a glance.', sub: 'Mira & Jun — a bright Saturday in Point Reyes. Everything Pear is holding for you, and the few things that want a moment this week.' },
+    sites:       { pre: 'Your loom', title: 'Two sites,', italic: 'both woven.', sub: 'Every celebration you\u2019re hosting, in one place. Open one to edit, preview, or watch the RSVPs come in.' },
+    connections: { pre: 'Linked events', title: 'One weekend,', italic: 'many threads.', sub: 'Pearloom celebrations group sibling sites together — each with its own host and guests, woven into one story.' },
+    guests:      { pre: 'Guests', title: '38 coming,', italic: '5 still quiet.', sub: 'The roster, the room, and every word between you and your guests — RSVPs, dietary notes, broadcasts, and the seating chart, in one place.' },
+    submissions: { pre: 'Submissions', title: 'Friends are', italic: 'weaving the reel.', sub: 'Photos, toasts, and tribute notes come here first. Approve what fits, tuck away what doesn\u2019t.' },
+    messages:    { pre: 'Messages', title: 'A word with', italic: 'everyone.', sub: 'Post once to the whole party, or answer a guest one-to-one. Pear keeps every thread tidy.' },
+    registry:    { pre: 'Registry', title: 'Gifts, kept', italic: 'in good taste.', sub: 'A short, considered list — cash funds and real things. No fees on gifts; funds settle straight to you.' },
+    dayof:       { pre: 'Day-of room', title: 'Everything,', italic: 'in its hour.', sub: 'The live run of the day — what\u2019s next, who to call, and one line to every guest if plans shift.' },
+    seating:     { pre: 'Seating', title: 'Who sits', italic: 'with whom.', sub: 'Set the rules that matter and let Pear seat the rest. Drag any party to a table to override.' },
+    studio:      { pre: 'Studio', title: 'Design the', italic: 'invitation.', sub: 'Start from the occasion and Pear drafts a card in your voice. Edit the words, palette, type and photo, then send.' },
+    gallery:     { pre: 'The Reel', title: 'Every frame,', italic: 'in one place.', sub: 'Every photograph across every site you\u2019ve made — covers, heroes, chapters, guest submissions.' },
+    director:    { pre: 'The Director', title: '84 days to the', italic: 'day.', sub: 'Pear holds your budget, city, guest count, timeline, and every conversation so far. Ask, plan, or just think out loud.' },
+    analytics:   { pre: 'Analytics', title: 'Quietly', italic: 'read.', sub: 'How guests find and move through your site. No vanity numbers — just what helps you tend it.' },
+  };
+  const VIEWS = { home: 'Home', sites: 'MySites', guests: 'Guests', registry: 'Registry', studio: 'Studio', gallery: 'Gallery', analytics: 'Analytics' };
+
+  function actionsFor(view) {
+    switch (view) {
+      case 'home': return <Button variant="ink" size="sm">✦ Ask Pear what's next</Button>;
+      case 'sites': return <Button variant="pearl" size="sm">New site <Pearl size={8} /></Button>;
+      case 'guests': return <><Button variant="paper" size="sm">Import CSV</Button><Button variant="ink" size="sm">✦ Add a guest</Button></>;
+      case 'registry': return <><Button variant="paper" size="sm">Share registry</Button><Button variant="ink" size="sm">✦ Add a gift</Button></>;
+      case 'studio': return <Button variant="ink" size="sm">✦ Start from occasion</Button>;
+      case 'gallery': return <><Button variant="paper" size="sm">Download all</Button><Button variant="paper" size="sm">Slideshow</Button></>;
+      case 'analytics': return <><Button variant="paper" size="sm">Export CSV</Button><Button variant="ink" size="sm">✦ Summarize</Button></>;
+      default: return null;
+    }
+  }
+
+  const ACCENTS = {
+    peach:    { '--accent': 'var(--peach)', '--accent-bg': 'var(--peach-bg)', '--accent-ink': 'var(--peach-ink)' },
+    sage:     { '--accent': 'var(--sage)', '--accent-bg': 'var(--sage-tint)', '--accent-ink': 'var(--sage-deep)' },
+    lavender: { '--accent': 'var(--lavender)', '--accent-bg': 'var(--lavender-bg)', '--accent-ink': 'var(--lavender-ink)' },
+    gold:     { '--accent': 'var(--pl-gold)', '--accent-bg': 'rgba(193,154,75,0.16)', '--accent-ink': '#8A6A2E' },
+  };
+  const OCC_ACCENT = { wedding: 'peach', birthday: 'gold', memorial: 'lavender' };
+
+  const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+    "dark": false,
+    "accent": "lavender",
+    "texture": "linen",
+    "occasion": "wedding",
+    "density": "comfortable"
+  }/*EDITMODE-END*/;
+
+  const { DashShell, PageHead } = window;
+  const CommandPalette = window.CommandPalette;
+  const PlanModal = window.PlanModal;
+  const GuestView = window.GuestView;
+
+  function App() {
+    const Panel = window.TweaksPanel, Section = window.TweakSection, Radio = window.TweakRadio, Toggle = window.TweakToggle;
+    const [t, setTweak] = window.useTweaks(TWEAK_DEFAULTS);
+    const [view, setView] = React.useState('home');
+    React.useEffect(() => {
+      const tm = t.dark ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', tm);
+      try { localStorage.setItem('pl-theme', tm); } catch (e) {}
+    }, [t.dark]);
+    const head = HEADS[view];
+    const Comp = W[VIEWS[view]];
+    const accentVars = ACCENTS[t.accent] || ACCENTS.peach;
+    return (
+      <div style={accentVars}>
+        <DashShell active={view} onNav={setView} texture={t.texture} density={t.density}>
+          <div key={view} className="pl-weave-in">
+            {head ? <PageHead {...head} actions={actionsFor(view)} pearl={t.occasion !== 'memorial'} /> : null}
+            {Comp ? <Comp /> : null}
+          </div>
+        </DashShell>
+        <CommandPalette onNav={setView} />
+        <PlanModal />
+        <GuestView />
+        <Panel>
+          <Section label="Surface" />
+          <Toggle label="Editorial midnight" value={t.dark} onChange={(v) => setTweak('dark', v)} />
+          <Radio label="Paper" value={t.texture} options={['none', 'laid', 'linen']} onChange={(v) => setTweak('texture', v)} />
+          <Radio label="Density" value={t.density} options={['compact', 'comfortable', 'spacious']} onChange={(v) => setTweak('density', v)} />
+          <Section label="Accent" />
+          <Radio label="Working accent" value={t.accent} options={['peach', 'sage', 'lavender', 'gold']} onChange={(v) => setTweak('accent', v)} />
+          <Section label="Occasion" />
+          <Radio label="Tone" value={t.occasion} options={['wedding', 'birthday', 'memorial']} onChange={(v) => { setTweak('occasion', v); setTweak('accent', OCC_ACCENT[v] || t.accent); }} />
+        </Panel>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
