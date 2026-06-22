@@ -488,13 +488,18 @@ function Thumb({ p, onOpen, fixedHeight }: { p: ReelPhoto; onOpen: (p: ReelPhoto
         padding: 0,
         position: 'relative',
         overflow: 'hidden',
-        transition: 'transform var(--pl-dur-fast) var(--pl-ease-out)',
+        boxShadow: '0 2px 8px rgba(40,28,12,0.06)',
+        transition: 'transform 360ms cubic-bezier(0.16,1,0.3,1), box-shadow 360ms cubic-bezier(0.16,1,0.3,1)',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'scale(1.02)';
+        e.currentTarget.style.transform = 'translateY(-3px)';
+        // 1px gold ring (BRAND: gold is the punctuation hairline) +
+        // a deeper lift shadow — matches the templates card language.
+        e.currentTarget.style.boxShadow = `0 0 0 1px ${PD.gold}, 0 18px 40px rgba(40,28,12,0.16)`;
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'scale(1)';
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = '0 2px 8px rgba(40,28,12,0.06)';
       }}
     >
       <div

@@ -6897,10 +6897,13 @@ html { scroll-behavior: smooth; }
    ────────────────────────────────────────────────────────── */
 .pl-store-card {
   transform: translateZ(0);
+  /* base float so cards read as premium objects on the page, then a
+     deeper lift on hover (the design's editorial card language). */
+  box-shadow: 0 4px 14px rgba(40, 28, 12, 0.06);
 }
 .pl-store-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(40, 28, 12, 0.10);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px rgba(40, 28, 12, 0.13);
 }
 .pl-store-card:focus-visible {
   outline: 2px solid var(--pl-olive, #5C6B3F);
