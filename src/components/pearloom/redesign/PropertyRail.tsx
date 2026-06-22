@@ -315,12 +315,16 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
     if (/3 styles/i.test(label)) { void runPressings(label); return; }
     const target = rewriteTarget(active, label);
     if (label === ASK_PEAR_CHIP || !target) {
-      /* No single-field rewrite target — open Pear with the section
-         already on the table instead of silently doing nothing. */
+      /* No single-field rewrite target — open the Pear copilot with
+         the section on the table. A specific draft/suggest chip
+         carries its exact ask as the prefill (so Pear drafts that one
+         thing and can propose a manifest patch); the generic chip
+         asks broadly. Every chip opens a real Pear conversation. */
+      const prefill = label === ASK_PEAR_CHIP
+        ? `Help me improve the ${section.label} section — what would you change?`
+        : `${label} — for the ${section.label} section.`;
       try {
-        window.dispatchEvent(new CustomEvent('pearloom:open-pear', {
-          detail: { prefill: `Help me improve the ${section.label} section — what would you change?` },
-        }));
+        window.dispatchEvent(new CustomEvent('pearloom:open-pear', { detail: { prefill } }));
       } catch { /* never break the rail */ }
       return;
     }
@@ -747,22 +751,34 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
   );
 }
 
-/* Every chip here maps to an IMPLEMENTED action. The previous list
-   was prototype copy — 'Suggest a cover photo from gallery' secretly
-   rewrote the tagline, and the RSVP chips ('Draft the reminder
-   cadence', 'Add allergy field'…) mapped to nothing and died
-   silently on click. Sections with a rewrite target get rewrite +
-   pressings chips; everything else gets a real conversation with
-   Pear, prefilled with the section context. */
+/* Every chip maps to a REAL action: hero/story/registry chips run an
+   inline rewrite (or the 3-styles contact sheet); every other chip
+   opens the Pear copilot prefilled with that exact, section-specific
+   ask — where Pear drafts it and can propose a manifest patch. This
+   mirrors the v2 design system's per-section AI ("Draft the run of
+   show", "Suggest stays near the venue") without the prototype's
+   dead chips that wrote to phantom fields. */
 export const ASK_PEAR_CHIP = 'Ask Pear about this section';
 function pearSuggestions(active: Exclude<SectionId, null>): string[] {
   switch (active) {
     case 'hero':
       return ['Rewrite tagline in 3 styles', 'Warmer tagline', 'Shorter tagline'];
     case 'story':
-      return ['Rewrite story in 3 styles', 'Make it 30% shorter', 'Warmer telling'];
+      return ['Rewrite story in 3 styles', 'Draft my story from our facts', 'Make it 30% shorter'];
+    case 'details':
+      return ['Draft the good-to-know cards', 'Suggest a dress-code line'];
+    case 'schedule':
+      return ['Draft the run of show', 'Suggest timings for the day'];
+    case 'travel':
+      return ['Suggest places to stay near the venue', 'Draft getting-there notes'];
     case 'registry':
-      return ['Rewrite intro in 3 styles', 'Warmer intro', 'Shorter intro'];
+      return ['Rewrite intro in 3 styles', 'Warmer intro', 'Suggest registry ideas'];
+    case 'gallery':
+      return ['Write captions for my photos', 'Suggest a photo arrangement'];
+    case 'rsvp':
+      return ['Suggest questions to ask guests', 'Draft a reminder cadence'];
+    case 'faq':
+      return ['Draft common questions', 'Suggest answers from our details'];
     default:
       return [ASK_PEAR_CHIP];
   }
