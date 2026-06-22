@@ -132,6 +132,7 @@ export function DashAnalytics() {
   return (
     <DashLayout
       active="analytics"
+      eyebrow="Analytics"
       title={
         <span>
           <i style={{ color: PD.olive, fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1' }}>

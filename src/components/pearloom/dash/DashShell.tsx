@@ -1303,6 +1303,7 @@ export function TopbarAvatarButton() {
 }
 
 export function DashTopbar({
+  eyebrow,
   title = 'Welcome back',
   subtitle,
   ctaText,
@@ -1310,6 +1311,9 @@ export function DashTopbar({
   actions,
   showHeart = true,
 }: {
+  /** Mono eyebrow above the title — the v2 PageHead 'pre' line
+   *  (uppercase, accent-ink, 0.18em). Optional per page. */
+  eyebrow?: ReactNode;
   title?: ReactNode;
   subtitle?: ReactNode;
   ctaText?: string;
@@ -1351,6 +1355,20 @@ export function DashTopbar({
       }}
     >
       <div style={{ minWidth: 0, flex: 1 }}>
+      {eyebrow && (
+        <div
+          style={{
+            fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)',
+            fontSize: 11,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'var(--accent-ink, var(--peach-ink))',
+            marginBottom: 8,
+          }}
+        >
+          {eyebrow}
+        </div>
+      )}
       <h1
         className="display pl-letterpress"
         style={{
@@ -1421,6 +1439,7 @@ export function DashTopbar({
 
 export function DashLayout({
   active,
+  eyebrow,
   title,
   subtitle,
   ctaText,
@@ -1431,6 +1450,7 @@ export function DashLayout({
   hideTopbar = false,
 }: {
   active?: string;
+  eyebrow?: ReactNode;
   title?: ReactNode;
   subtitle?: ReactNode;
   ctaText?: string;
@@ -1464,6 +1484,7 @@ export function DashLayout({
       <>
         {!hideTopbar && (
           <DashTopbar
+            eyebrow={eyebrow}
             title={title}
             subtitle={subtitle}
             ctaText={ctaText}
@@ -1496,6 +1517,7 @@ export function DashLayout({
         <div style={{ position: 'relative', zIndex: 1 }}>
           {!hideTopbar && (
             <DashTopbar
+              eyebrow={eyebrow}
               title={title}
               subtitle={subtitle}
               ctaText={ctaText}

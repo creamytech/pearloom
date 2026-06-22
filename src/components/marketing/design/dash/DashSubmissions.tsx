@@ -220,6 +220,7 @@ export function DashSubmissions() {
   return (
     <DashLayout
       active="submissions"
+      eyebrow="Submissions"
       title={
         subs.length > 0 ? (
           <span>

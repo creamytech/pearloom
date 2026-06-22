@@ -1054,6 +1054,7 @@ export function DashGuests() {
   return (
     <DashLayout
       active="guests"
+      eyebrow="Guests"
       title={
         hasGuests ? (
           <span>

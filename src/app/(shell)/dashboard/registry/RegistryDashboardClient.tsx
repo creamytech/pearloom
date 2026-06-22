@@ -33,6 +33,7 @@ export function RegistryDashboardClient() {
   return (
     <DashLayout
       active="registry"
+      eyebrow="Registry"
       title={
         <span>
           A list of{' '}
