@@ -136,7 +136,9 @@ export function PackCard({ pack, idx, owned, inCart, onOpen, onAdd, onGetFree, o
         cursor: 'pointer',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '0 1px 2px rgba(61,74,31,0.04)',
+        // Shadow is owned by .pl-store-card (base float + hover deepen)
+        // in pearloom.css — an inline box-shadow here would override the
+        // :hover swap and the cards would never lift their shadow.
         transition: 'transform 220ms cubic-bezier(0.22,1,0.36,1), box-shadow 220ms ease',
       }}
     >
