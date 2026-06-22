@@ -94,6 +94,7 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor }:
       <FontsPick theme={theme} manifest={manifest} onChange={onChange} />
       <TexturePick theme={theme} manifest={manifest} onChange={onChange} />
       <LivingBackgroundPick manifest={manifest} onChange={onChange} />
+      <FooterPick manifest={manifest} onChange={onChange} />
 
       <FineTune theme={theme} manifest={manifest} onChange={onChange} />
 
@@ -698,6 +699,52 @@ function LivingBackgroundPick({ manifest, onChange }: { manifest: StoryManifest;
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7 }}>
         {tile('none', 'None', null, value === 'none')}
         {WALLPAPERS.map((w) => tile(w.id, w.name, w.grad, value === w.id))}
+      </div>
+    </div>
+  );
+}
+
+/* ─── FooterPick — the v2 site-renderer Footer treatment
+   (signature / columns / minimal). Writes manifest.footerVariant;
+   ThemedSite's <SiteFooter> reads it. ──────────────────────────── */
+
+const FOOTERS = [
+  { id: 'signature', label: 'Signature', blurb: 'Sprig · names · date · place' },
+  { id: 'columns',   label: 'Columns',   blurb: 'Names left · nav links right' },
+  { id: 'minimal',   label: 'Minimal',   blurb: 'One quiet centered line' },
+];
+
+function FooterPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const value = (manifest as unknown as { footerVariant?: string }).footerVariant ?? 'signature';
+  const set = (id: string) => onChange({ ...(manifest as unknown as Record<string, unknown>), footerVariant: id } as unknown as StoryManifest);
+  return (
+    <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 4 }}>
+        Footer
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginBottom: 9 }}>
+        How your site signs off at the bottom of every page.
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 7 }}>
+        {FOOTERS.map((f) => {
+          const on = value === f.id;
+          return (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => set(f.id)}
+              className="lift"
+              style={{
+                textAlign: 'left', padding: '8px 9px', borderRadius: 9, cursor: 'pointer',
+                background: on ? 'var(--ink)' : 'var(--card)',
+                border: on ? '2px solid var(--ink)' : '1px solid var(--line)',
+              }}
+            >
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: on ? 'var(--cream)' : 'var(--ink)' }}>{f.label}</div>
+              <div style={{ fontSize: 9, lineHeight: 1.3, color: on ? 'rgba(248,241,228,0.72)' : 'var(--ink-muted)', marginTop: 1 }}>{f.blurb}</div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

@@ -13,10 +13,10 @@ export const dynamic = 'force-dynamic';
 export default async function SiteDevPreview({
   searchParams,
 }: {
-  searchParams: Promise<{ motifLayout?: string; motifKind?: string; kit?: string; atelier?: string }>;
+  searchParams: Promise<{ motifLayout?: string; motifKind?: string; kit?: string; atelier?: string; divider?: string; footer?: string }>;
 }) {
   if (process.env.NODE_ENV === 'production') notFound();
-  const { motifLayout, motifKind, kit, atelier } = await searchParams;
+  const { motifLayout, motifKind, kit, atelier, divider, footer } = await searchParams;
 
   const manifest = {
     ...(DEMO_MANIFEST as unknown as Record<string, unknown>),
@@ -24,6 +24,8 @@ export default async function SiteDevPreview({
     ...(motifKind ? { motifKind } : {}),
     ...(kit ? { kitId: kit } : {}),
     ...(atelier === '1' ? { atelier: true } : {}),
+    ...(divider ? { dividerLook: divider } : {}),
+    ...(footer ? { footerVariant: footer } : {}),
   } as unknown as StoryManifest;
 
   return (

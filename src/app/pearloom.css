@@ -8171,6 +8171,26 @@ html { scroll-behavior: smooth; }
 /* Atelier upsell-banner sheen (editor Motion panel + upgrade modals). */
 @keyframes pl-sheen { 0%{background-position:150% 0} 100%{background-position:-50% 0} }
 
+/* ═══════════════════════════════════════════════════════════════
+   ATELIER · ANIMATED DIVIDERS — port of v2 site-renderer. The
+   KDivider 'flow'/'grow-vine'/'tide'/'twinkle' looks paint a clean
+   static base always; the signature motion plays ONLY when the
+   .pl8-guest root carries data-pl-premium="on" (manifest.atelier)
+   AND motion is allowed. (Animated MOTIFS already ship via the
+   production data-pl-motif-anim float/drift system below — the
+   behavioral superset of v2's per-kind animated motifs.)
+   ═══════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: no-preference) {
+  .pl8-guest[data-pl-premium="on"] .pl-da-flow .pl-da-gleam { animation: pl-gleam 2.6s linear infinite; }
+  .pl8-guest[data-pl-premium="on"] .pl-da-vine svg path { stroke-dasharray: 64; stroke-dashoffset: 64; animation: pl-vinedraw 3.4s ease-in-out infinite; }
+  .pl8-guest[data-pl-premium="on"] .pl-da-tide svg { animation: pl-tideflow 3.2s ease-in-out infinite; }
+  .pl8-guest[data-pl-premium="on"] .pl-da-twinkle .pl-da-star { animation: pl-twinkle 1.9s ease-in-out infinite; }
+}
+@keyframes pl-gleam { 0% { transform: translateX(-130%); } 100% { transform: translateX(360%); } }
+@keyframes pl-vinedraw { 0% { stroke-dashoffset: 64; } 55%,100% { stroke-dashoffset: 0; } }
+@keyframes pl-tideflow { 0%,100% { transform: translateX(-3px); } 50% { transform: translateX(3px); } }
+@keyframes pl-twinkle { 0%,100% { transform: rotate(45deg) scale(0.85); opacity: .65; } 50% { transform: rotate(45deg) scale(1.35); opacity: 1; } }
+
 
 /* ═══════════════════════════════════════════════════════════════
    PACK-EXCLUSIVE TEXTURES + PATTERNS (2026-06-13)

@@ -760,6 +760,15 @@ export function ThemedSite({
     );
   };
 
+  /* Site footer — port of v2 site-renderer Footer (signature /
+     columns / minimal). Brand chrome closing every page; reads
+     manifest.footerVariant. Rendered once at the foot of each
+     layout below. */
+  const footerVariant = (manifest as unknown as { footerVariant?: 'signature' | 'columns' | 'minimal' }).footerVariant || 'signature';
+  const footerEl = (
+    <SiteFooter variant={footerVariant} headline={headline} meta={C.meta} navItems={navItems} scrollToSection={scrollToSection} />
+  );
+
   /* kitId hoisted above ctx for motifLayout. */
 
   /* siteLayout — Classic stacked (default) / Invitation boxed
@@ -798,6 +807,7 @@ export function ThemedSite({
             {sections.filter((s) => s !== 'hero').map(sectionEl)}
           </div>
         </div>
+        <div style={{ position: 'relative', zIndex: 1 }}>{footerEl}</div>
       </div>
     );
   }
@@ -834,6 +844,7 @@ export function ThemedSite({
             {C.isPostEvent && <PostEventBanner />}
             {navEl}
             {sections.map(sectionEl)}
+            {footerEl}
           </div>
         </div>
       </div>
@@ -869,6 +880,7 @@ export function ThemedSite({
               {rightCol.map(sectionEl)}
             </div>
           </div>
+          {footerEl}
         </div>
       </div>
     );
@@ -911,6 +923,7 @@ export function ThemedSite({
               {sectionEl(kind)}
             </div>
           ))}
+          {footerEl}
         </div>
       </div>
     );
@@ -963,6 +976,7 @@ export function ThemedSite({
               {sectionEl(kind)}
             </div>
           ))}
+          {footerEl}
         </div>
       </div>
     );
@@ -1014,6 +1028,7 @@ export function ThemedSite({
               {rest.map(sectionEl)}
             </div>
           </div>
+          {footerEl}
         </div>
       </div>
     );
@@ -1097,6 +1112,7 @@ export function ThemedSite({
               {C.isPostEvent && <PostEventBanner />}
               {navEl}
               {sections.map(sectionEl)}
+              {footerEl}
             </div>
           </div>
           {/* Caption strip — bottom edge of the postcard, holds
@@ -1139,6 +1155,7 @@ export function ThemedSite({
         {C.isPostEvent && <PostEventBanner />}
         {navEl}
         {sections.map(sectionEl)}
+        {footerEl}
       </div>
     </div>
   );
@@ -1175,6 +1192,71 @@ function PostEventBanner() {
         Thank you for joining us — every part of the day felt like family because of you.
       </div>
     </div>
+  );
+}
+
+/* SiteFooter — port of v2 site-renderer Footer. Brand chrome that
+   closes every page; three variants (signature / columns / minimal)
+   keyed on manifest.footerVariant. Themed entirely off the live
+   --t-* bag so it reads under any theme/pack. */
+function SiteFooter({
+  variant, headline, meta, navItems, scrollToSection,
+}: {
+  variant: 'signature' | 'columns' | 'minimal';
+  headline: string;
+  meta: { date: string; place: string };
+  navItems: { id: string; label: string }[];
+  scrollToSection: (id: string) => void;
+}) {
+  if (variant === 'minimal') {
+    return (
+      <footer style={{ padding: '26px 24px', textAlign: 'center', background: 'var(--t-paper)', borderTop: '1px solid var(--t-line-soft)', fontSize: 12, color: 'var(--t-ink-muted)' }}>
+        <span style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', color: 'var(--t-ink)', fontSize: 15 }}>{headline}</span>
+        {meta.date ? ` · ${meta.date}` : ''} · Made with Pearloom
+      </footer>
+    );
+  }
+  if (variant === 'columns') {
+    return (
+      <footer style={{ padding: '36px 40px', background: 'var(--t-paper)', borderTop: '1px solid var(--t-line-soft)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 18 }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <OliveSprig size={26} />
+            <span style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', fontSize: 20, color: 'var(--t-ink)' }}>{headline}</span>
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--t-ink-muted)', marginTop: 6, letterSpacing: '0.06em' }}>
+            {[meta.date, meta.place].filter(Boolean).join(' · ')}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
+          {navItems.map((it) => (
+            <a
+              key={it.id}
+              href={`#${it.id}`}
+              onClick={(e) => { e.preventDefault(); scrollToSection(it.id); }}
+              style={{ fontSize: 12, color: 'var(--t-ink-soft)', textDecoration: 'none', fontFamily: 'var(--t-body)' }}
+            >
+              {it.label}
+            </a>
+          ))}
+        </div>
+      </footer>
+    );
+  }
+  /* signature (default) */
+  return (
+    <footer style={{ padding: '40px 24px 48px', textAlign: 'center', background: 'var(--t-paper)', borderTop: '1px solid var(--t-line-soft)' }}>
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+        <OliveSprig size={28} />
+      </div>
+      <div style={{ fontFamily: 'var(--t-display)', fontStyle: 'italic', fontSize: 20, color: 'var(--t-ink)' }}>{headline}</div>
+      <div style={{ fontSize: 12, color: 'var(--t-ink-muted)', marginTop: 8, letterSpacing: '0.08em' }}>
+        {[meta.date, meta.place].filter(Boolean).join(' · ')}
+      </div>
+      <div style={{ fontSize: 10.5, color: 'var(--t-ink-muted)', marginTop: 18, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.7 }}>
+        Made with Pearloom
+      </div>
+    </footer>
   );
 }
 
@@ -4222,6 +4304,54 @@ export function KDivider({ look, width = 170, style = {} }: { look: string; widt
             );
           })}
         </svg>
+      </div>
+    );
+  }
+  /* ── Animated dividers (Atelier) — port of v2 site.jsx KDivider.
+     Each carries a signature motion that plays ONLY when the site
+     root has data-pl-premium="on" (manifest.atelier) + motion is
+     allowed; otherwise the markup paints as a clean static divider.
+     The pl-da / pl-da-* classes are the animation hooks (pearloom.css). */
+  if (look === 'flow') {
+    const rail = (key: string) => (
+      <div key={key} style={{ position: 'relative', flex: 1, height: 2, background: 'var(--t-line)', overflow: 'hidden', borderRadius: 2 }}>
+        <span className="pl-da-gleam" aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: '38%', background: 'linear-gradient(90deg, transparent, var(--t-gold, var(--gold)), transparent)' }} />
+      </div>
+    );
+    return (
+      <div className="pl-divider pl-da pl-da-flow" style={wrap}>
+        {rail('a')}
+        <span aria-hidden style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--t-gold, var(--gold))', flexShrink: 0 }} />
+        {rail('b')}
+      </div>
+    );
+  }
+  if (look === 'grow-vine') {
+    return (
+      <div className="pl-divider pl-da pl-da-vine" style={wrap}>
+        <span style={{ display: 'inline-flex', transform: 'scaleX(-1)' }}><OliveSprig size={46} /></span>
+        <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--t-accent)', flexShrink: 0 }} />
+        <OliveSprig size={46} />
+      </div>
+    );
+  }
+  if (look === 'tide') {
+    const seg = 22; const n = Math.max(4, Math.round(width / seg)); const w = n * seg;
+    let d = 'M0 5'; for (let i = 0; i < n; i++) { const x = i * seg; d += ` Q ${x + seg / 4} 0 ${x + seg / 2} 5 T ${x + seg} 5`; }
+    return (
+      <div className="pl-divider pl-da pl-da-tide" style={wrap}>
+        <svg width={w} height="10" viewBox={`0 0 ${w} 10`} aria-hidden>
+          <path d={d} fill="none" stroke="var(--t-accent)" strokeWidth="1.5" strokeLinecap="round" opacity="0.7" />
+        </svg>
+      </div>
+    );
+  }
+  if (look === 'twinkle') {
+    return (
+      <div className="pl-divider pl-da pl-da-twinkle" style={{ ...wrap, gap: 9 }}>
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
+        <span className="pl-da-star" aria-hidden style={{ width: 9, height: 9, background: 'var(--t-gold, var(--gold))', transform: 'rotate(45deg)', flexShrink: 0 }} />
+        <div style={{ flex: 1, height: 1, background: 'var(--t-line)' }} />
       </div>
     );
   }

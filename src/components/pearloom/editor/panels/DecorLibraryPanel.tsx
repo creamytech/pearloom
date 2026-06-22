@@ -101,6 +101,10 @@ const DL_DIVIDERS = [
   /* 2026-06-09 collection. */
   { id: 'thread', label: 'Loom thread' }, { id: 'vine', label: 'Vine' },
   { id: 'stars', label: 'Stars' }, { id: 'scallop', label: 'Scallop' },
+  /* Atelier · animated dividers — paint static until the site unlocks
+     Atelier (manifest.atelier → data-pl-premium), then they move. */
+  { id: 'flow', label: '✦ Flow' }, { id: 'grow-vine', label: '✦ Grow vine' },
+  { id: 'tide', label: '✦ Tide' }, { id: 'twinkle', label: '✦ Twinkle' },
 ] as const;
 
 /* Design-system v2 brand line-ornaments (src/components/brand/Motif).
@@ -347,6 +351,61 @@ function TDivider({ look, width = 150 }: { look: string; width?: number }) {
             <circle key={i} cx={x + 1} cy="3" r="1.4" fill={accent} opacity="0.75" />
           );
         })}
+      </svg>
+    );
+  }
+  /* ── Atelier animated dividers — static previews (the motion plays
+     on the live canvas when Atelier is unlocked). ── */
+  if (look === 'flow') {
+    const mid = width / 2;
+    return (
+      <svg width={width} height="8" viewBox={`0 0 ${width} 8`} aria-hidden="true">
+        <defs>
+          <linearGradient id="tdflow" x1="0" x2="1">
+            <stop offset="0" stopColor={gold} stopOpacity="0" />
+            <stop offset="0.5" stopColor={gold} stopOpacity="0.9" />
+            <stop offset="1" stopColor={gold} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <line x1="0" y1="4" x2={mid - 7} y2="4" stroke={ink} strokeOpacity="0.4" strokeWidth="2" strokeLinecap="round" />
+        <line x1={mid - 7} y1="4" x2={mid - 30} y2="4" stroke="url(#tdflow)" strokeWidth="2.4" strokeLinecap="round" />
+        <circle cx={mid} cy="4" r="3" fill={gold} />
+        <line x1={mid + 7} y1="4" x2={width} y2="4" stroke={ink} strokeOpacity="0.4" strokeWidth="2" strokeLinecap="round" />
+        <line x1={mid + 30} y1="4" x2={mid + 7} y2="4" stroke="url(#tdflow)" strokeWidth="2.4" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (look === 'grow-vine') {
+    const mid = width / 2;
+    return (
+      <svg width={width} height="22" viewBox={`0 0 ${width} 22`} aria-hidden="true">
+        <g transform={`translate(${mid - 23}, 0) scale(-1,1) translate(-23,0)`}><LaurelMotif size={22} color={accent} /></g>
+        <circle cx={mid} cy="11" r="2" fill={accent} />
+        <g transform={`translate(${mid + 1}, 0)`}><LaurelMotif size={22} color={accent} /></g>
+      </svg>
+    );
+  }
+  if (look === 'tide') {
+    const cycles = 5;
+    const len = width / cycles;
+    let d = `M 0 7 `;
+    for (let i = 0; i < cycles; i++) {
+      const x = i * len;
+      d += `C ${x + len * 0.25} 1, ${x + len * 0.75} 13, ${x + len} 7 `;
+    }
+    return (
+      <svg width={width} height="14" viewBox={`0 0 ${width} 14`} aria-hidden="true">
+        <path d={d} stroke={accent} strokeWidth="1.3" fill="none" opacity="0.75" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (look === 'twinkle') {
+    const mid = width / 2;
+    return (
+      <svg width={width} height="12" viewBox={`0 0 ${width} 12`} aria-hidden="true">
+        <line x1="0" y1="6" x2={mid - 9} y2="6" stroke={ink} strokeOpacity="0.4" strokeWidth="0.8" />
+        <path d={`M ${mid} 1 L ${mid + 3.5} 6 L ${mid} 11 L ${mid - 3.5} 6 Z`} fill={gold} />
+        <line x1={mid + 9} y1="6" x2={width} y2="6" stroke={ink} strokeOpacity="0.4" strokeWidth="0.8" />
       </svg>
     );
   }

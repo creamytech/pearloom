@@ -694,6 +694,13 @@ export interface StoryManifest {
    *  (row treatments). Collapses to 'stacked' on viewports <= 720px
    *  (split + boxed both fold to the scroll layout on phones). */
   siteLayout?: 'stacked' | 'boxed' | 'split' | 'magazine' | 'zine' | 'storybook' | 'gallery' | 'postcard';
+  /** Site footer treatment — port of v2 site-renderer Footer.
+   *    'signature' — centered sprig + names + date·place + "Made
+   *                  with Pearloom" (default)
+   *    'columns'   — names + date·place left, nav links right
+   *    'minimal'   — single centered line
+   *  Read by ThemedSite's <SiteFooter>. */
+  footerVariant?: 'signature' | 'columns' | 'minimal';
   /** Motifs on/off — binary toggle the prototype's Fine-tune
    *  section exposes. When false, the renderer suppresses
    *  MotifScatter and per-Edition decor flourishes. */
