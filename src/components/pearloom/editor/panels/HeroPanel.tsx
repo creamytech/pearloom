@@ -189,20 +189,10 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <FGroup label="Lead / eyebrow" hint="The tiny ALL-CAPS line above the names.">
-          {(() => {
-            const sug = heroLeadSuggestions(smartContext(manifest));
-            return (
-              <FSuggest
-                value={heroLead}
-                onChange={(v) => setCopy('heroLead', v)}
-                placeholder={v.hero.leadPlaceholder}
-                options={sug.options}
-                hint={sug.hint}
-              />
-            );
-          })()}
-        </FGroup>
+        {/* ── Zip HeroEditor layout (section-fields.jsx L164-187):
+              Tagline · Names · Date & venue · Cover photo. The
+              production-only extras (eyebrow, milestone, CTAs) live
+              tucked under "More" below so the default view is 1:1. */}
         <FGroup label="Tagline" hint={tagline.trim().length >= 2 ? undefined : 'Type a line, then Pear can rewrite it in different tones.'}>
           <FInput value={tagline} onChange={setTagline} placeholder={v.hero.taglinePlaceholder} />
           {tagline.trim().length >= 2 && (
@@ -239,26 +229,55 @@ export function HeroPanel({ manifest, onChange }: { manifest: StoryManifest; onC
           <div style={{ height: 8 }} />
           <FInput value={venue} onChange={setVenue} icon="pin" placeholder="Where the gathering happens" />
         </FGroup>
-        <MilestoneDisclosure milestone={milestone} setMilestone={setMilestone} />
         <CoverPhotoField url={coverPhoto} onChange={setCoverPhoto} pool={photoPool} hint={v.hero.coverGroupHint} />
-        <FGroup label="Primary button" hint="The first CTA — pick where it goes, then optionally rename it.">
-          <CtaLinkEditor
-            href={heroCtaHref}
-            label={heroCta}
-            defaultHref="#rsvp"
-            onHrefChange={(v) => setCopy('heroCtaHref', v)}
-            onLabelChange={(v) => setCopy('heroCta', v)}
-          />
-        </FGroup>
-        <FGroup label="Secondary button" hint="Optional — the smaller outline button next to the primary.">
-          <CtaLinkEditor
-            href={heroCtaSecondaryHref}
-            label={heroCtaSecondary}
-            defaultHref="#story"
-            onHrefChange={(v) => setCopy('heroCtaSecondaryHref', v)}
-            onLabelChange={(v) => setCopy('heroCtaSecondary', v)}
-          />
-        </FGroup>
+
+        <details className="pl-panel-more">
+          <summary
+            style={{
+              cursor: 'pointer', listStyle: 'none',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em',
+              textTransform: 'uppercase', color: 'var(--ink-muted)',
+            }}
+          >
+            <Icon name="chev-down" size={12} /> More — eyebrow, milestone, buttons
+          </summary>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 14 }}>
+            <FGroup label="Lead / eyebrow" hint="The tiny ALL-CAPS line above the names.">
+              {(() => {
+                const sug = heroLeadSuggestions(smartContext(manifest));
+                return (
+                  <FSuggest
+                    value={heroLead}
+                    onChange={(val) => setCopy('heroLead', val)}
+                    placeholder={v.hero.leadPlaceholder}
+                    options={sug.options}
+                    hint={sug.hint}
+                  />
+                );
+              })()}
+            </FGroup>
+            <MilestoneDisclosure milestone={milestone} setMilestone={setMilestone} />
+            <FGroup label="Primary button" hint="The first CTA — pick where it goes, then optionally rename it.">
+              <CtaLinkEditor
+                href={heroCtaHref}
+                label={heroCta}
+                defaultHref="#rsvp"
+                onHrefChange={(val) => setCopy('heroCtaHref', val)}
+                onLabelChange={(val) => setCopy('heroCta', val)}
+              />
+            </FGroup>
+            <FGroup label="Secondary button" hint="Optional — the smaller outline button next to the primary.">
+              <CtaLinkEditor
+                href={heroCtaSecondaryHref}
+                label={heroCtaSecondary}
+                defaultHref="#story"
+                onHrefChange={(val) => setCopy('heroCtaSecondaryHref', val)}
+                onLabelChange={(val) => setCopy('heroCtaSecondary', val)}
+              />
+            </FGroup>
+          </div>
+        </details>
       </div>
     </SectionPanelShell>
   );
