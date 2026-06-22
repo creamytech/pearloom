@@ -78,7 +78,8 @@ export function DashCommandPalette() {
   const [query, setQuery] = useState('');
   const [activeIdx, setActiveIdx] = useState(0);
 
-  // Global Cmd+K / Ctrl+K hotkey.
+  // Global Cmd+K / Ctrl+K hotkey + the topbar search button
+  // (dispatches `pl-open-command`).
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const meta = e.metaKey || e.ctrlKey;
@@ -94,8 +95,17 @@ export function DashCommandPalette() {
         setOpen(false);
       }
     }
+    function onOpenEvent() {
+      setOpen(true);
+      setQuery('');
+      setActiveIdx(0);
+    }
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('pl-open-command', onOpenEvent);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('pl-open-command', onOpenEvent);
+    };
   }, [open]);
 
   // Build the full item list. Memoised so search filtering is fast.
