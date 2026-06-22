@@ -82,9 +82,11 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
   return (
     <SectionPanelShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
-          <FInput value={detailsEyebrow} onChange={setDetailsEyebrow} placeholder="The fine print" />
-        </FGroup>
+        {/* ── Zip DetailsEditor layout (section-fields.jsx L231-251):
+              Dress code · Kids-welcome toggle · second welcome toggle
+              · Good-to-know cards. The production-only extras
+              (eyebrow, contact-a-host) live tucked under "More"
+              below so the default view is 1:1. */}
         <FGroup label="Dress code">
           <FSuggest
             value={cards[0]?.[1] ?? ''}
@@ -132,21 +134,18 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
             </div>
           )}
         </FGroup>
-        <FGroup label="Who's welcome" hint="Two simple toggles guests scan in seconds.">
-          <FToggleStandalone
-            label="Kids welcome"
-            sub={kidsWelcome ? 'Family-friendly — bring the little ones.' : 'No kids — grown-ups only.'}
-            def={kidsWelcome}
-            onChange={setKidsWelcome}
-          />
-          <div style={{ height: 6 }} />
-          <FToggleStandalone
-            label="Plus-ones welcome"
-            sub={plusOnesWelcome ? 'Guests can bring a partner.' : 'Single invites only.'}
-            def={plusOnesWelcome}
-            onChange={setPlusOnesWelcome}
-          />
-        </FGroup>
+        <FToggleStandalone
+          label="Kids welcome"
+          sub={kidsWelcome ? 'Family-friendly — bring the little ones.' : 'No kids — grown-ups only.'}
+          def={kidsWelcome}
+          onChange={setKidsWelcome}
+        />
+        <FToggleStandalone
+          label="Plus-ones welcome"
+          sub={plusOnesWelcome ? 'Guests can bring a partner.' : 'Single invites only.'}
+          def={plusOnesWelcome}
+          onChange={setPlusOnesWelcome}
+        />
         <FGroup label="Good-to-know cards" hint="Up to three quick facts.">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {cards.map(([l, v], i) => (
@@ -175,27 +174,46 @@ export function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; 
             {cards.length < 3 && <AddCard label="Add a detail" onClick={addCard} />}
           </div>
         </FGroup>
-        <FGroup label="Contact a host" hint="Adds a 'Questions? Text us' button under the details — guests tap it and their Messages opens with your number.">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <FInput
-              value={((manifest as unknown as { hostContact?: { name?: string } }).hostContact?.name) ?? ''}
-              onChange={(v) => onChange({
-                ...(manifest as unknown as Record<string, unknown>),
-                hostContact: { ...((manifest as unknown as { hostContact?: Record<string, unknown> }).hostContact ?? {}), name: v || undefined },
-              } as unknown as StoryManifest)}
-              placeholder="Who answers — 'Emma', 'the best man'…"
-            />
-            <FInput
-              value={((manifest as unknown as { hostContact?: { phone?: string } }).hostContact?.phone) ?? ''}
-              onChange={(v) => onChange({
-                ...(manifest as unknown as Record<string, unknown>),
-                hostContact: { ...((manifest as unknown as { hostContact?: Record<string, unknown> }).hostContact ?? {}), phone: v || undefined },
-              } as unknown as StoryManifest)}
-              type="tel"
-              placeholder="(555) 010-1234 — leave empty to hide the button"
-            />
+
+        <details className="pl-panel-more">
+          <summary
+            style={{
+              cursor: 'pointer', listStyle: 'none',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em',
+              textTransform: 'uppercase', color: 'var(--ink-muted)',
+            }}
+          >
+            <Icon name="chev-down" size={12} /> More — eyebrow, contact a host
+          </summary>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
+            <FGroup label="Eyebrow" hint="The tiny ALL-CAPS line above the section title.">
+              <FInput value={detailsEyebrow} onChange={setDetailsEyebrow} placeholder="The fine print" />
+            </FGroup>
+            <FGroup label="Contact a host" hint="Adds a 'Questions? Text us' button under the details — guests tap it and their Messages opens with your number.">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <FInput
+                  value={((manifest as unknown as { hostContact?: { name?: string } }).hostContact?.name) ?? ''}
+                  onChange={(v) => onChange({
+                    ...(manifest as unknown as Record<string, unknown>),
+                    hostContact: { ...((manifest as unknown as { hostContact?: Record<string, unknown> }).hostContact ?? {}), name: v || undefined },
+                  } as unknown as StoryManifest)}
+                  placeholder="Who answers — 'Emma', 'the best man'…"
+                />
+                <FInput
+                  value={((manifest as unknown as { hostContact?: { phone?: string } }).hostContact?.phone) ?? ''}
+                  onChange={(v) => onChange({
+                    ...(manifest as unknown as Record<string, unknown>),
+                    hostContact: { ...((manifest as unknown as { hostContact?: Record<string, unknown> }).hostContact ?? {}), phone: v || undefined },
+                  } as unknown as StoryManifest)}
+                  type="tel"
+                  placeholder="(555) 010-1234 — leave empty to hide the button"
+                />
+              </div>
+            </FGroup>
           </div>
-        </FGroup>
+        </details>
+
         <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Details" />
       </div>
     </SectionPanelShell>
