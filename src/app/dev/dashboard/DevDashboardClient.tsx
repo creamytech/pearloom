@@ -11,10 +11,14 @@ import {
   NeedsYouNow,
   Lately,
   TheLongView,
+  HomeSitePreview,
+  QuickJumps,
   type StatTileData,
   type NeedRow,
   type LatelyItem,
+  type QuickJump,
 } from '@/components/pearloom/dash/cockpit';
+import { getTheme, themeRootStyle } from '@/components/pearloom/site/themes';
 
 const TILES: StatTileData[] = [
   { key: 'coming', label: 'Coming', value: 38, sub: 'of 64 invited', color: 'var(--sage-deep)', icon: 'users' },
@@ -35,6 +39,13 @@ const LATELY: LatelyItem[] = [
   { name: 'Priya', action: 'declined', when: 'yesterday', tone: 'no' },
 ];
 
+const JUMPS: QuickJump[] = [
+  { label: 'Open the editor', sub: 'Shape your site', icon: 'brush', href: '#' },
+  { label: 'Guests', sub: '38 coming · 21 pending', icon: 'users', href: '#' },
+  { label: 'Studio', sub: 'Save-the-dates & invites', icon: 'mail', href: '#' },
+  { label: 'Day-of room', sub: 'Opens closer to the day', icon: 'clock', href: '#', dim: true },
+];
+
 export function DevDashboardClient() {
   return (
     <div className="pl8" style={{ minHeight: '100dvh', background: 'var(--cream)', padding: '32px clamp(16px,4vw,40px) 64px' }}>
@@ -52,9 +63,22 @@ export function DevDashboardClient() {
           askHref="#"
         />
         <StatTiles tiles={TILES} />
+        <QuickJumps jumps={JUMPS} />
         <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 1fr', gap: 16, alignItems: 'start' }}>
           <NeedsYouNow rows={NEEDS} phaseLabel="Planning" phaseNote="84 days out" />
-          <Lately items={LATELY} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <HomeSitePreview
+              names={['Mira', 'Jun']}
+              dateLabel="Sept 6"
+              locationLabel="Point Reyes"
+              themeName={getTheme('santorini').name}
+              rootStyle={themeRootStyle(getTheme('santorini'), 'comfortable')}
+              liveHref="#"
+              editorHref="#"
+              themeHref="#"
+            />
+            <Lately items={LATELY} />
+          </div>
         </div>
         <TheLongView dateShort="Sept 6, 2026" />
       </div>

@@ -43,7 +43,8 @@ import { parseLocalDate } from '@/lib/date-utils';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { nextStepFor, rsvpMomentumFor, type RsvpMomentum } from '@/lib/next-step';
 import type { StoryManifest } from '@/types';
-import { CockpitHeader, CountdownHero, StatTiles, NeedsYouNow, Lately, TheLongView, type StatTileData, type LatelyItem } from '@/components/pearloom/dash/cockpit';
+import { CockpitHeader, CountdownHero, StatTiles, NeedsYouNow, Lately, TheLongView, HomeSitePreview, QuickJumps, type StatTileData, type LatelyItem, type QuickJump } from '@/components/pearloom/dash/cockpit';
+import { getTheme, themeRootStyle } from '@/components/pearloom/site/themes';
 import type { GuestInsight } from '@/app/api/guests/intelligence/route';
 
 interface Guest {
@@ -249,6 +250,46 @@ export function WelcomeHome() {
     return { name: g.name, action, when: relativeTime(g.respondedAt), tone };
   });
 
+  // Themed mini-preview of the live site — resolve the site's own
+  // --t-* bag (the same chain ThemedSite uses) so the card paints in
+  // the couple's theme, not the dashboard chrome.
+  const sitePreview = useMemo(() => {
+    const m = (site?.manifest ?? null) as { themeId?: string; themeVars?: Record<string, string> } | null;
+    const theme = getTheme(m?.themeId);
+    return { name: theme.name, rootStyle: themeRootStyle(theme, 'comfortable', m?.themeVars ?? null) };
+  }, [site?.manifest]);
+  const venueLabel = ((site?.manifest as { logistics?: { venue?: string } } | null)?.logistics?.venue) ?? null;
+  const previewEyebrow = occasion === 'memorial' || occasion === 'funeral' ? 'In loving memory' : 'Save the date';
+
+  // Stage-contextual quick jumps — real routes, glow on the moment's
+  // primary, dim what isn't open yet.
+  const quickJumps: QuickJump[] = useMemo(() => {
+    const editor: QuickJump = { label: 'Open the editor', sub: 'Shape your site', icon: 'brush', href: editorHref };
+    const studio: QuickJump = { label: 'Studio', sub: 'Save-the-dates & invites', icon: 'mail', href: '/dashboard/invite' };
+    if (stage === 'early') {
+      return [
+        editor,
+        { label: 'Build the guest list', sub: 'Add or import guests', icon: 'users', href: '/dashboard/rsvp' },
+        studio,
+        { label: 'Day-of room', sub: 'Opens closer to the day', icon: 'clock', href: '/dashboard/day-of', dim: true },
+      ];
+    }
+    if (stage === 'late') {
+      return [
+        { label: 'Day-of room', sub: 'Open now — timeline & vendors', icon: 'clock', href: '/dashboard/day-of', glow: true },
+        { label: 'Guests', sub: guestCounts ? `${guestCounts.pending} still pending` : 'Track replies', icon: 'users', href: '/dashboard/rsvp' },
+        editor,
+        studio,
+      ];
+    }
+    return [
+      editor,
+      { label: 'Guests', sub: guestCounts ? `${guestCounts.yes} coming · ${guestCounts.pending} pending` : 'Track replies', icon: 'users', href: '/dashboard/rsvp' },
+      studio,
+      { label: 'View live site', sub: 'See what guests see', icon: 'eye', href: liveHref },
+    ];
+  }, [stage, editorHref, liveHref, guestCounts]);
+
   return (
     <DashLayout active="home" title="Welcome back" subtitle={stageBlurb} hideTopbar>
       <div style={{ padding: '20px clamp(20px, 4vw, 40px) 4px', maxWidth: 1240, margin: '0 auto' }}>
@@ -283,6 +324,8 @@ export function WelcomeHome() {
 
         <StatTiles tiles={statTiles} />
 
+        <QuickJumps jumps={quickJumps} />
+
         {/* Two-column work zone — same shape as the design.
             Stacks below 920px so phones get a single column.
             INLINE grid, not styled-jsx: the runtime style injection
@@ -303,6 +346,19 @@ export function WelcomeHome() {
             <Lately items={latelyItems} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {site?.domain && (
+              <HomeSitePreview
+                names={namesArr}
+                dateLabel={eventDateShort}
+                locationLabel={venueLabel}
+                themeName={sitePreview.name}
+                rootStyle={sitePreview.rootStyle}
+                eyebrow={previewEyebrow}
+                liveHref={liveHref}
+                editorHref={editorHref}
+                themeHref="/store"
+              />
+            )}
             <ResumeDraftCard />
             {rawDaysUntil != null && rawDaysUntil < 0 && site?.domain && (
               <RememberingCard domain={site.domain} occasion={occasion} daysSince={-rawDaysUntil} />

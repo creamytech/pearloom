@@ -17,7 +17,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import Link from 'next/link';
-import { Icon, PearloomGlyph } from '../motifs';
+import { Icon, PearloomGlyph, Sprig } from '../motifs';
 import { Pearl } from '@/components/brand/Pearl';
 import { useCountUp } from '../motion';
 
@@ -493,6 +493,194 @@ export function StatTiles({ tiles }: { tiles: StatTileData[] }) {
           <Link key={t.key} href={t.href} className="lift" style={cardStyle}>{inner}</Link>
         ) : (
           <div key={t.key} style={cardStyle}>{inner}</div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── HomeSitePreview ──────────────────────────────────────────
+// A live, textured mini-render of the celebration's themed site —
+// ties the dashboard back to the generated-site vibe (the design's
+// "Your site" card). Prop-driven: the caller resolves the theme's
+// --t-* bag (rootStyle) + the display facts, so this stays pure.
+
+export interface HomeSitePreviewProps {
+  names: string[];
+  dateLabel: string | null;
+  locationLabel: string | null;
+  themeName: string;
+  /** The resolved `--t-*` bag, spread onto the preview surface so
+   *  every `var(--t-*)` inside paints in the site's own theme. */
+  rootStyle: React.CSSProperties;
+  eyebrow?: string;
+  /** External site URL (opens in a new tab). */
+  liveHref: string;
+  editorHref: string;
+  themeHref: string;
+}
+
+export function HomeSitePreview({
+  names,
+  dateLabel,
+  locationLabel,
+  themeName,
+  rootStyle,
+  eyebrow = 'Save the date',
+  liveHref,
+  editorHref,
+  themeHref,
+}: HomeSitePreviewProps) {
+  const a = names[0];
+  const b = names[1];
+  const meta = [dateLabel, locationLabel].filter(Boolean).join(' · ');
+  return (
+    <div style={cockpitCard}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 8 }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <Icon name="eye" size={15} color="var(--gold)" />
+          <span style={{ fontFamily: 'var(--pl-font-display, serif)', fontSize: 16, fontWeight: 600, color: 'var(--ink)' }}>Your site</span>
+          <span
+            style={{
+              fontSize: 10, fontWeight: 700, color: 'var(--sage-deep)', background: 'var(--sage-tint)',
+              padding: '2px 8px', borderRadius: 999, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}
+          >
+            {themeName}
+          </span>
+        </span>
+        <a href={liveHref} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: 'var(--ink-soft)', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+          View live
+        </a>
+      </div>
+
+      {/* the themed surface — emits the site's own --t-* bag */}
+      <div
+        style={{
+          ...rootStyle,
+          position: 'relative',
+          height: 188,
+          borderRadius: 14,
+          overflow: 'hidden',
+          background: 'var(--t-section, var(--cream-2))',
+          border: '1px solid var(--t-line, var(--line-soft))',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+          padding: '22px 18px',
+        }}
+      >
+        <span className="pl-tx-laid" aria-hidden style={{ position: 'absolute', inset: 0, opacity: 0.32, pointerEvents: 'none' }} />
+        <span aria-hidden style={{ position: 'absolute', top: 10, left: 12, opacity: 0.5, transform: 'scaleX(-1)' }}>
+          <Sprig size={44} color="var(--t-accent, var(--sage-deep))" />
+        </span>
+        <span aria-hidden style={{ position: 'absolute', top: 10, right: 12, opacity: 0.5 }}>
+          <Sprig size={44} color="var(--t-accent, var(--sage-deep))" />
+        </span>
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          <div
+            style={{
+              fontSize: 9.5,
+              fontWeight: 700,
+              letterSpacing: 'var(--t-eyebrow-ls, 0.18em)',
+              textTransform: 'uppercase',
+              color: 'var(--t-accent-ink, var(--t-accent))',
+              marginBottom: 7,
+            }}
+          >
+            {eyebrow}
+          </div>
+          <div
+            style={{
+              fontFamily: 'var(--t-display, serif)',
+              fontWeight: 'var(--t-display-wght)' as React.CSSProperties['fontWeight'],
+              fontSize: 30,
+              lineHeight: 0.98,
+              color: 'var(--t-ink)',
+            }}
+          >
+            {b ? (
+              <>
+                {a}
+                <span style={{ fontStyle: 'italic', fontSize: '0.6em', color: 'var(--t-ink-soft)', margin: '0 0.16em', fontWeight: 400 }}>&amp;</span>
+                {b}
+              </>
+            ) : (
+              a ?? 'Your celebration'
+            )}
+          </div>
+          <div aria-hidden style={{ width: 110, height: 1, background: 'var(--t-gold, var(--gold))', opacity: 0.75, margin: '11px auto' }} />
+          <div style={{ fontSize: 11, color: 'var(--t-ink-soft)' }}>{meta || 'Add a date in the editor'}</div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+        <Link href={editorHref} className="btn btn-outline btn-sm" style={{ flex: 1, justifyContent: 'center', textDecoration: 'none' }}>
+          <Icon name="brush" size={12} /> Edit
+        </Link>
+        <Link href={themeHref} className="btn btn-outline btn-sm" style={{ flex: 1, justifyContent: 'center', textDecoration: 'none' }}>
+          <Icon name="sparkles" size={12} /> Themes
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+// ── QuickJumps ───────────────────────────────────────────────
+// Contextual jump tiles (the design's "Quick jumps"). Stage-aware
+// — the caller decides which four, glows the one that matters now,
+// and dims any that aren't open yet. Auto-fit grid so phones reflow
+// without a media query.
+
+export interface QuickJump {
+  label: string;
+  sub: string;
+  icon: string;
+  href: string;
+  /** Highlight as the moment's primary jump (dark, pulse dot). */
+  glow?: boolean;
+  /** Not open yet — shown muted + non-interactive. */
+  dim?: boolean;
+}
+
+export function QuickJumps({ jumps }: { jumps: QuickJump[] }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+      {jumps.map((j, i) => {
+        const style: React.CSSProperties = {
+          padding: '14px 16px',
+          borderRadius: 14,
+          background: j.glow ? 'var(--ink)' : 'var(--card)',
+          color: j.glow ? 'var(--cream)' : 'var(--ink)',
+          border: j.glow ? 'none' : '1px solid var(--card-ring, var(--line))',
+          opacity: j.dim ? 0.55 : 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+          minHeight: 78,
+          textDecoration: 'none',
+        };
+        const inner = (
+          <>
+            <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <Icon name={j.icon} size={18} color={j.glow ? 'var(--cream)' : 'var(--gold)'} />
+              {j.glow ? <span aria-hidden style={{ width: 6, height: 6, background: 'var(--peach)', borderRadius: 999 }} /> : null}
+            </span>
+            <span style={{ marginTop: 'auto' }}>
+              <span style={{ display: 'block', fontSize: 14, fontWeight: 600 }}>{j.label}</span>
+              <span style={{ display: 'block', fontSize: 11.5, opacity: 0.7, marginTop: 2 }}>{j.sub}</span>
+            </span>
+          </>
+        );
+        if (j.dim) return <div key={i} style={style}>{inner}</div>;
+        // External (published-site) links open in a new tab; internal
+        // dashboard/editor routes use the client router.
+        return j.href.startsWith('http') ? (
+          <a key={i} href={j.href} target="_blank" rel="noreferrer" className="lift" style={style}>{inner}</a>
+        ) : (
+          <Link key={i} href={j.href} className="lift" style={style}>{inner}</Link>
         );
       })}
     </div>
