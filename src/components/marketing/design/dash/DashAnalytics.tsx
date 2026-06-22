@@ -37,10 +37,14 @@ export function DashAnalytics() {
   // Single state object tagged with the siteId it came from.
   // `loading` is derived (no setLoading-in-effect cascade) and
   // a tagged null result models the "no site selected" branch.
+  type Funnel = { invited: number; replied: number; coming: number };
+  type Source = { label: string; count: number; pct: number };
   type Result = {
     siteId: string | null;
     visit: VisitStats | null;
     sections: SectionStat[] | null;
+    funnel: Funnel | null;
+    sources: Source[] | null;
     error: string | null;
   };
   const [result, setResult] = useState<Result | null>(null);
@@ -58,9 +62,25 @@ export function DashAnalytics() {
       fetch(`/api/analytics/section?siteId=${encodeURIComponent(site.id)}`, { cache: 'no-store' })
         .then((r) => r.json())
         .catch(() => ({ sections: [] })),
+      fetch(`/api/analytics/sources?siteId=${encodeURIComponent(site.id)}`, { cache: 'no-store' })
+        .then((r) => r.json())
+        .catch(() => ({ sources: [] })),
+      // Guest roster drives the real RSVP funnel + conversion. Owner-
+      // gated; falls back to an empty roster on any error.
+      fetch(`/api/guests?siteId=${encodeURIComponent(site.id)}`, { cache: 'no-store' })
+        .then((r) => (r.ok ? r.json() : { guests: [] }))
+        .catch(() => ({ guests: [] })),
     ])
-      .then(([v, s]) => {
+      .then(([v, s, src, g]) => {
         if (cancelled) return;
+        const guests = (g?.guests ?? []) as { status?: string }[];
+        const invited = guests.length;
+        let replied = 0; let coming = 0;
+        for (const gu of guests) {
+          const st = String(gu.status ?? '').toLowerCase();
+          if (st === 'yes' || st === 'attending') { coming += 1; replied += 1; }
+          else if (st === 'no' || st === 'declined' || st === 'maybe') replied += 1;
+        }
         setResult({
           siteId: site.id,
           visit: {
@@ -70,6 +90,8 @@ export function DashAnalytics() {
             desktop: Number(v?.desktop ?? 0),
           },
           sections: (s?.sections ?? []) as SectionStat[],
+          funnel: { invited, replied, coming },
+          sources: (src?.sources ?? []) as Source[],
           error: null,
         });
       })
@@ -79,6 +101,8 @@ export function DashAnalytics() {
             siteId: site.id,
             visit: null,
             sections: null,
+            funnel: null,
+            sources: null,
             error: e instanceof Error ? e.message : String(e),
           });
         }
@@ -91,7 +115,10 @@ export function DashAnalytics() {
   const loading = site?.id ? (result?.siteId !== site.id) : false;
   const visit = result?.visit ?? null;
   const sections = result?.sections ?? null;
+  const funnel = result?.funnel ?? null;
+  const sources = result?.sources ?? null;
   const error = result?.error ?? null;
+  const conversionPct = funnel && funnel.invited > 0 ? Math.round((funnel.replied / funnel.invited) * 100) : 0;
 
   const mobileShare = useMemo(() => {
     if (!visit || visit.visits === 0) return 0;
@@ -187,9 +214,9 @@ export function DashAnalytics() {
               c: PD.plum,
             },
             {
-              l: 'Sections tracked',
-              v: loading ? '—' : (sections?.length ?? 0).toLocaleString(),
-              delta: sections && sections.length > 0 ? 'On the live site' : 'Nothing yet',
+              l: 'RSVP conversion',
+              v: loading ? '—' : (funnel && funnel.invited > 0 ? `${conversionPct}%` : '—'),
+              delta: funnel && funnel.invited > 0 ? `${funnel.replied} of ${funnel.invited} invited` : 'No guests yet',
               c: PD.terra,
             },
           ].map((k) => (
@@ -215,92 +242,91 @@ export function DashAnalytics() {
           ))}
         </div>
 
-        {/* Two panels */}
+        {/* RSVP funnel + (still quiet · how they arrived) — v2
+            Analytics row, all from real guest + referrer data. */}
         <div
           className="pd-analytics-charts"
-          style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 20, marginBottom: 20 }}
+          style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 20, marginBottom: 20 }}
         >
           <Panel bg={PD.paper3} style={{ padding: 28 }}>
             <SectionTitle
-              eyebrow="DEVICES"
-              title="Where they&rsquo;re"
-              italic="reading from."
+              eyebrow="FROM SENT TO REPLIED"
+              title="The RSVP"
+              italic="funnel."
               accent={PD.olive}
             />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <DeviceBar label="Mobile" n={visit?.mobile ?? 0} total={visit?.visits ?? 0} c={PD.olive} />
-              <DeviceBar label="Desktop" n={visit?.desktop ?? 0} total={visit?.visits ?? 0} c={PD.gold} />
-            </div>
-            <div
-              style={{
-                marginTop: 20,
-                padding: '12px 14px',
-                background: PD.paperCard,
-                borderRadius: 12,
-                fontSize: 13,
-                color: PD.inkSoft,
-                lineHeight: 1.5,
-                display: 'flex',
-                gap: 10,
-                alignItems: 'flex-start',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 16,
-                  color: PD.terra,
-                  fontFamily: '"Fraunces", Georgia, serif',
-                }}
-              >
-                ✦
-              </span>
-              <span>
-                <b>Pear&rsquo;s take.</b>{' '}
-                {visit && visit.visits > 0
-                  ? mobileShare >= 60
-                    ? 'Most guests are on their phones. Keep headlines short and photos full-bleed.'
-                    : mobileShare <= 30
-                    ? 'Desktop-heavy — your long story sections are working.'
-                    : 'An even split. Layouts that read both ways will carry you.'
-                  : 'Nothing to read yet. Analytics fill in as guests visit.'}
-              </span>
-            </div>
+            {funnel && funnel.invited > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {([
+                  { s: 'Invited', n: funnel.invited, c: PD.ink },
+                  { s: 'Replied', n: funnel.replied, c: PD.gold },
+                  { s: 'Coming', n: funnel.coming, c: PD.olive },
+                ] as const).map((f, i, arr) => {
+                  const pct = Math.round((f.n / funnel.invited) * 100);
+                  return (
+                    <div key={f.s}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 5 }}>
+                        <span style={{ fontSize: 13, fontWeight: 500 }}>{f.s}</span>
+                        <span style={{ ...MONO_STYLE, fontSize: 11.5, opacity: 0.7 }}>{f.n} · {pct}%</span>
+                      </div>
+                      <div style={{ height: 14, background: PD.paperCard, borderRadius: 8, overflow: 'hidden' }}>
+                        <div style={{ width: `${pct}%`, height: '100%', background: f.c, borderRadius: 8, transition: 'width var(--pl-dur-slow) var(--pl-ease-out)' }} />
+                      </div>
+                      {i < arr.length - 1 && (
+                        <div style={{ ...MONO_STYLE, fontSize: 9.5, opacity: 0.55, marginTop: 4, textAlign: 'right' }}>
+                          ↓ {arr[i].n - arr[i + 1].n} dropped
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ fontSize: 13.5, color: PD.inkSoft, lineHeight: 1.55, maxWidth: 520 }}>
+                No guests yet — the funnel fills in as you add guests and replies land.
+              </div>
+            )}
           </Panel>
 
-          <Panel bg={PD.paperDeep} style={{ padding: 28 }}>
-            <SectionTitle
-              eyebrow="TODAY"
-              title="Visits"
-              italic="in the last 24h."
-              accent={PD.gold}
-            />
-            <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div
-                style={{
-                  ...DISPLAY_STYLE,
-                  fontSize: 120,
-                  lineHeight: 1,
-                  letterSpacing: '-0.04em',
-                  color: PD.ink,
-                }}
-              >
-                {loading ? '…' : (visit?.today ?? 0).toLocaleString()}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <Panel bg={PD.paperCard} style={{ padding: 24, border: `1px solid ${PD.gold}` }}>
+              <div style={{ ...MONO_STYLE, fontSize: 9, color: PD.terra, marginBottom: 8 }}>STILL QUIET</div>
+              <div style={{ ...DISPLAY_STYLE, fontSize: 38, lineHeight: 1 }}>
+                {funnel ? Math.max(0, funnel.invited - funnel.replied) : 0} {funnel && (funnel.invited - funnel.replied) === 1 ? 'guest' : 'guests'}
               </div>
-            </div>
-            <div
-              style={{
-                marginTop: 20,
-                fontSize: 13,
-                color: PD.inkSoft,
-                lineHeight: 1.5,
-                fontFamily: 'var(--pl-font-body)',
-              }}
-            >
-              {visit && visit.visits > 0
-                ? `${((visit.today / visit.visits) * 100).toFixed(1)}% of your all-time visits happened today.`
-                : 'Pearloom records a visit the first time each visitor opens the site — no repeat inflation.'}
-            </div>
-          </Panel>
+              <div style={{ fontSize: 12.5, color: PD.inkSoft, margin: '8px 0 14px', lineHeight: 1.5 }}>
+                haven&rsquo;t replied yet.
+              </div>
+              <a href="/dashboard/rsvp" style={{ ...btnInk, width: '100%', textAlign: 'center', display: 'block', textDecoration: 'none', boxSizing: 'border-box' }}>
+                See who in Guests →
+              </a>
+            </Panel>
+            <Panel bg={PD.paper3} style={{ padding: 24 }}>
+              <SectionTitle eyebrow="HOW THEY ARRIVED" title="Where" italic="they came from." accent={PD.gold} />
+              {sources && sources.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {sources.map((s) => {
+                    const c = s.label === 'Direct' ? PD.olive : s.label === 'Email' ? PD.gold : s.label === 'Social' ? PD.plum : PD.terra;
+                    return (
+                      <div key={s.label}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
+                          <span style={{ fontSize: 12.5 }}>{s.label}</span>
+                          <span style={{ ...MONO_STYLE, fontSize: 11, color: c }}>{s.pct}%</span>
+                        </div>
+                        <div style={{ height: 8, background: PD.paperCard, borderRadius: 99, overflow: 'hidden' }}>
+                          <div style={{ width: `${s.pct}%`, height: '100%', background: c, borderRadius: 99 }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ fontSize: 12.5, color: PD.inkSoft, lineHeight: 1.5 }}>
+                  No visits with a known source yet.
+                </div>
+              )}
+            </Panel>
+          </div>
         </div>
 
         {/* Scroll depth */}
@@ -440,30 +466,5 @@ export function DashAnalytics() {
         }
       `}</style>
     </DashLayout>
-  );
-}
-
-function DeviceBar({ label, n, total, c }: { label: string; n: number; total: number; c: string }) {
-  const pct = total > 0 ? Math.round((n / total) * 100) : 0;
-  return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 6 }}>
-        <span style={{ ...DISPLAY_STYLE, fontSize: 28, color: PD.ink }}>{n.toLocaleString()}</span>
-        <span style={{ ...MONO_STYLE, fontSize: 10, color: c }}>{pct}%</span>
-      </div>
-      <div style={{ height: 6, background: PD.paperCard, borderRadius: 99, overflow: 'hidden' }}>
-        <div style={{ width: `${pct}%`, height: '100%', background: c, borderRadius: 99 }} />
-      </div>
-      <div
-        style={{
-          ...MONO_STYLE,
-          fontSize: 10,
-          opacity: 0.55,
-          marginTop: 6,
-        }}
-      >
-        {label.toUpperCase()}
-      </div>
-    </div>
   );
 }
