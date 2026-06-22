@@ -13,6 +13,31 @@ import { formatSiteDisplayUrl, normalizeOccasion } from '@/lib/site-urls';
 import { getTheme } from '../site/themes';
 import { isDashSurfaceApplicable } from '@/lib/event-os/dashboard-applicability';
 import { useDialog } from '@/components/ui/confirm-dialog';
+import type { SiteStat } from '@/app/api/dashboard/sites-stats/route';
+
+// Real per-site stats (coming / invited / visits) for the v2 SiteCard
+// stat row. Module-cached so flipping between dashboard tabs doesn't
+// refetch. Fails soft — a card with no stat just omits the row.
+let _statsCache: Record<string, SiteStat> | null = null;
+function useSitesStats(): Record<string, SiteStat> {
+  const [stats, setStats] = useState<Record<string, SiteStat>>(_statsCache ?? {});
+  useEffect(() => {
+    if (_statsCache) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch('/api/dashboard/sites-stats', { cache: 'no-store' });
+        if (!r.ok) return;
+        const d = await r.json();
+        if (!cancelled && d?.stats) { _statsCache = d.stats; setStats(d.stats); }
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, []);
+  return stats;
+}
+
+const fmtVisits = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(n % 1000 >= 100 ? 1 : 0)}k` : String(n));
 
 function occasionLabel(o?: string) {
   if (!o) return 'Event';
@@ -43,11 +68,13 @@ function SiteCard({
   site,
   tone,
   nextPath,
+  stat,
   onDeleted,
 }: {
   site: SiteSummary;
   tone: 'sage' | 'peach' | 'lavender' | 'cream';
   nextPath: string | null;
+  stat?: SiteStat;
   onDeleted: (domain: string) => void;
 }) {
   const date = parseLocalDate(site.eventDate);
@@ -130,13 +157,27 @@ function SiteCard({
         <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--lavender-ink)', marginTop: 3 }}>
           {occasionLabel(site.occasion)}{themeName ? ` · ${themeName}` : ''}
         </div>
+        {/* Stat row — real coming/invited + lifetime visits (zip
+            SiteCard). Rendered only once stats have loaded; never a
+            placeholder number. */}
+        {stat && (
+          <div style={{ display: 'flex', gap: 24, marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--line-soft)' }}>
+            {([['RSVPs', `${stat.coming} / ${stat.invited}`], ['Visits', fmtVisits(stat.visits)]] as const).map(([l, v]) => (
+              <div key={l}>
+                <div style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 9, letterSpacing: '0.12em', color: 'var(--ink-muted)' }}>{l.toUpperCase()}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'var(--ink)', marginTop: 2 }}>{v}</div>
+              </div>
+            ))}
+          </div>
+        )}
         {site.venue && (
           <div style={{ fontSize: 12, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 8 }}>
             <Icon name="pin" size={12} /> {site.venue}
           </div>
         )}
-        {/* URL with a live/idle status dot (zip SiteCard domain row) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, paddingTop: 12, borderTop: '1px solid var(--line-soft)', fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10.5, color: site.published ? 'var(--sage-deep)' : 'var(--ink-muted)' }}>
+        {/* URL with a live/idle status dot (zip SiteCard domain row).
+            Own divider only when no stat row sits above it. */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: stat ? 12 : 10, paddingTop: stat ? 0 : 12, borderTop: stat ? 'none' : '1px solid var(--line-soft)', fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10.5, color: site.published ? 'var(--sage-deep)' : 'var(--ink-muted)' }}>
           <span style={{ width: 6, height: 6, borderRadius: 99, background: site.published ? 'var(--sage)' : 'var(--line)' }} />
           {url}
         </div>
@@ -357,6 +398,7 @@ const menuItemStyle: React.CSSProperties = {
 
 export function EventIndexPage() {
   const { sites, loading, refresh } = useUserSites();
+  const siteStats = useSitesStats();
   const params = useSearchParams();
   const nextPath = params?.get('next') ?? null;
   const tones = ['sage', 'peach', 'lavender', 'cream'] as const;
@@ -420,6 +462,7 @@ export function EventIndexPage() {
                 site={s}
                 tone={tones[i % tones.length]}
                 nextPath={nextPath}
+                stat={siteStats[s.id]}
                 onDeleted={handleDeleted}
               />
             ))}
