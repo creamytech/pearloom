@@ -92,6 +92,29 @@ const KIT_TO_MOTIF: Record<KitId, string> = {
   menu: 'monogram',
   /* Glass panes carry no paper motif — light is the ornament. */
   glass: 'none',
+  /* Extended event-tuned static kits (v2 site-renderer port) —
+     each maps to its nearest Studio motif sibling. */
+  'boarding-pass': 'stamp',     // pass stub / ticket lineage → stamp
+  marquee: 'stamp',             // bulb frame reads festive → stamp
+  chalkboard: 'none',           // slate board, chalk ink, no paper motif
+  nursery: 'tape',              // soft pastel scrapbook feel → tape
+  kraft: 'tape',                // field-notes / taped kraft → tape
+  memoriam: 'none',             // quiet mourning keyline, no ornament
+  certificate: 'monogram',      // gold engraved frame + seal → monogram
+  'luggage-tag': 'stamp',       // manila travel tag → stamp
+  'linen-press': 'none',        // woven inset, material is the ornament
+  'wax-seal': 'monogram',       // literal wax seal → monogram cartouche
+  pennant: 'stamp',             // festive banner → stamp
+  embossed: 'monogram',         // raised relief crest → monogram
+  /* Atelier · Motion kits — coarse motif map to nearest sibling. */
+  neon: 'none',                 // light is the ornament
+  'marquee-live': 'stamp',      // animated bulb frame → stamp
+  'aurora-glass': 'none',       // frosted light, no paper motif
+  'gold-foil': 'monogram',      // foil sheen / deco lineage → monogram
+  confetti: 'stamp',            // festive flecks → stamp
+  candlelight: 'none',          // gentle flame, no ornament
+  'pressed-bloom': 'tape',      // pressed flower / scrapbook → tape
+  vinyl: 'stamp',               // record label disc → stamp
 };
 
 /* ── Voice override → Studio CopyTone ──

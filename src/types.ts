@@ -804,7 +804,38 @@ export interface StoryManifest {
     | 'atelier'
     | 'cabinet'
     | 'scallop'
-    | 'noir';
+    | 'noir'
+    /* Extended event-tuned static kits (v2 site-renderer port). */
+    | 'boarding-pass'
+    | 'marquee'
+    | 'chalkboard'
+    | 'nursery'
+    | 'kraft'
+    | 'memoriam'
+    | 'certificate'
+    | 'luggage-tag'
+    | 'linen-press'
+    | 'wax-seal'
+    | 'pennant'
+    | 'embossed'
+    /* Atelier · Motion kits — animated finishes. Each paints a full
+     *  STATIC base unconditionally; the motion layer (pearloom.css)
+     *  only animates when manifest.atelier unlocks data-pl-premium. */
+    | 'neon'
+    | 'marquee-live'
+    | 'aurora-glass'
+    | 'gold-foil'
+    | 'confetti'
+    | 'candlelight'
+    | 'pressed-bloom'
+    | 'vinyl';
+  /** Atelier premium unlock for THIS site — when true the renderer
+   *  emits data-pl-premium="on" on the .pl8-guest root, bringing the
+   *  motion kits + animated dividers/motifs to life. Per-site,
+   *  manifest-backed so published sites honour the unlock without
+   *  the editor's localStorage. Static bases always paint regardless,
+   *  so the free-tier teaser still reads. */
+  atelier?: boolean;
   /** Toggles for the public RSVP form. Both default ON if absent
    *  (legacy behaviour). plusOnes hides the "+1?" field on the
    *  passport invite link; songRequests hides the SongCard on

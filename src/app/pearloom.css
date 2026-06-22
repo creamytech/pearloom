@@ -7726,6 +7726,453 @@ html { scroll-behavior: smooth; }
 
 
 /* ═══════════════════════════════════════════════════════════════
+   EXTENDED COMPONENT KITS (event-tuned, static) — port of v2
+   site-renderer/index.html. Each is a per-card material identity
+   keyed on [data-pl-kit]; the chrome inherits the active theme's
+   --t-* bag so the kit reads correctly under any palette.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* BOARDING-PASS — destination weddings · bachelor/ette weekends · reunions.
+   A pass stub: bold accent band left, dashed tear line right, asymmetric radius. */
+.pl8-guest[data-pl-kit="boarding-pass"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="boarding-pass"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="boarding-pass"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="boarding-pass"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="boarding-pass"] .pl8-countdown-cell {
+  background: var(--t-card) !important; color: var(--t-ink) !important;
+  border: none !important;
+  border-left: 5px solid var(--t-accent) !important;
+  border-right: 2px dashed var(--t-line) !important;
+  border-radius: 4px 13px 13px 4px !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.10) !important;
+}
+
+/* MARQUEE — birthday parties · New Year · sweet sixteens · quinceañeras.
+   Dotted gold bulb border with a warm glow. */
+.pl8-guest[data-pl-kit="marquee"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="marquee"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="marquee"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="marquee"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="marquee"] .pl8-countdown-cell {
+  background: var(--t-card) !important; color: var(--t-ink) !important;
+  border: 2px dotted var(--t-gold) !important; border-radius: 12px !important;
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--t-gold) 28%, transparent), 0 0 24px -3px color-mix(in oklab, var(--t-gold) 55%, transparent) !important;
+}
+
+/* CHALKBOARD — block parties · garden parties · casual.
+   Slate board with chalk ink + a chalky dashed edge (fixed palette). */
+.pl8-guest[data-pl-kit="chalkboard"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="chalkboard"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="chalkboard"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="chalkboard"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="chalkboard"] .pl8-countdown-cell {
+  background: #26271F !important; color: #F2EFE6 !important;
+  --t-ink: #F2EFE6; --t-ink-soft: #CFCBBE; --t-ink-muted: #A8A496; --t-line: rgba(242,239,230,0.3);
+  border: 1.5px dashed rgba(242,239,230,0.42) !important; border-radius: 5px !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 20px rgba(0,0,0,0.28) !important;
+}
+
+/* NURSERY — baby showers · gender reveals · first birthdays · naming · adoptions.
+   Soft pillow card: big radius, pastel wash, gentle shadow. */
+.pl8-guest[data-pl-kit="nursery"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="nursery"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="nursery"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="nursery"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="nursery"] .pl8-countdown-cell {
+  background: color-mix(in oklab, var(--t-card) 80%, #FBE3EC) !important; color: var(--t-ink) !important;
+  border: 1px solid color-mix(in oklab, var(--t-accent) 16%, transparent) !important;
+  border-radius: 26px !important;
+  box-shadow: 0 14px 32px -12px rgba(0,0,0,0.10) !important;
+}
+
+/* KRAFT — bachelor weekends · outdoorsy · camp reunions.
+   Field-notes kraft board with a stitched dashed edge (fixed palette). */
+.pl8-guest[data-pl-kit="kraft"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="kraft"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="kraft"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="kraft"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="kraft"] .pl8-countdown-cell {
+  background: #C3A876 !important; color: #3A2E1C !important;
+  --t-ink: #3A2E1C; --t-ink-soft: #5E4E33; --t-ink-muted: #7C6B4C;
+  border: 1.5px dashed #5C4A2C !important; border-radius: 4px !important;
+  box-shadow: inset 0 0 0 4px #C3A876, inset 0 0 0 5px rgba(92,74,44,0.3), 0 6px 16px rgba(58,46,28,0.18) !important;
+}
+
+/* MEMORIAM — memorials · celebrations of life.
+   The classic mourning keyline: a quiet ink-edged card. */
+.pl8-guest[data-pl-kit="memoriam"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="memoriam"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="memoriam"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="memoriam"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="memoriam"] .pl8-countdown-cell {
+  background: var(--t-card) !important; color: var(--t-ink) !important;
+  border: 1px solid var(--t-ink) !important; border-radius: 1px !important;
+  box-shadow: inset 0 0 0 3px var(--t-card), inset 0 0 0 4px color-mix(in oklab, var(--t-ink) 24%, transparent) !important;
+}
+
+/* CERTIFICATE — graduations · retirements · anniversaries · mitzvahs.
+   Gold engraved frame + a wax-seal at the top. */
+.pl8-guest[data-pl-kit="certificate"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="certificate"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="certificate"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="certificate"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="certificate"] .pl8-countdown-cell {
+  background: var(--t-card) !important; color: var(--t-ink) !important;
+  border: none !important; border-radius: 2px !important;
+  box-shadow: inset 0 0 0 2px var(--t-gold), inset 0 0 0 5px var(--t-card), inset 0 0 0 6px color-mix(in oklab, var(--t-gold) 45%, transparent), 0 4px 14px rgba(0,0,0,0.06) !important;
+}
+.pl8-guest[data-pl-kit="certificate"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="certificate"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="certificate"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="certificate"] .pl8-countdown-cell { position: relative; padding-top: 26px !important; }
+.pl8-guest[data-pl-kit="certificate"] .pl8-schedule-row::before,
+.pl8-guest[data-pl-kit="certificate"] .pl8-faq-row::before,
+.pl8-guest[data-pl-kit="certificate"] .pl8-detail-card::before,
+.pl8-guest[data-pl-kit="certificate"] .pl8-countdown-cell::before {
+  content: ''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+  width: 15px; height: 15px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, color-mix(in oklab, var(--t-gold) 78%, #fff) 0%, var(--t-gold) 62%);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--t-gold) 38%, transparent); z-index: 3;
+}
+
+/* LUGGAGE-TAG — farewells · send-offs · departures.
+   Manila tag with a punched, reinforced hole at the top (fixed palette). */
+.pl8-guest[data-pl-kit="luggage-tag"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="luggage-tag"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="luggage-tag"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="luggage-tag"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="luggage-tag"] .pl8-countdown-cell {
+  background: #EADFC2 !important; color: #46381F !important;
+  --t-ink: #46381F; --t-ink-soft: #6B5A38; --t-ink-muted: #8A795A;
+  border: 1px solid rgba(70,56,31,0.3) !important; border-radius: 7px !important;
+  box-shadow: 0 8px 18px rgba(70,56,31,0.15) !important;
+}
+.pl8-guest[data-pl-kit="luggage-tag"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="luggage-tag"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="luggage-tag"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="luggage-tag"] .pl8-countdown-cell { position: relative; padding-top: 26px !important; }
+.pl8-guest[data-pl-kit="luggage-tag"] .pl8-schedule-row::before,
+.pl8-guest[data-pl-kit="luggage-tag"] .pl8-faq-row::before,
+.pl8-guest[data-pl-kit="luggage-tag"] .pl8-detail-card::before,
+.pl8-guest[data-pl-kit="luggage-tag"] .pl8-countdown-cell::before {
+  content: ''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #FBF7EE; box-shadow: 0 0 0 2px rgba(70,56,31,0.4); z-index: 3;
+}
+
+/* LINEN-PRESS — rustic · garden · farmhouse. Woven inset press. */
+.pl8-guest[data-pl-kit="linen-press"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="linen-press"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="linen-press"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="linen-press"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="linen-press"] .pl8-countdown-cell {
+  background: var(--t-card) !important; color: var(--t-ink) !important;
+  border: 1px solid var(--t-line) !important; border-radius: var(--t-radius) !important;
+  background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.022) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(0,0,0,0.018) 0 1px, transparent 1px 3px) !important;
+  background-size: 3px 3px !important;
+  box-shadow: inset 0 0 22px rgba(0,0,0,0.045), 0 2px 8px rgba(0,0,0,0.05) !important;
+}
+
+/* WAX-SEAL — formal invites · vow renewals. Card stamped with a wax seal. */
+.pl8-guest[data-pl-kit="wax-seal"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="wax-seal"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="wax-seal"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="wax-seal"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="wax-seal"] .pl8-countdown-cell {
+  background: var(--t-card) !important; color: var(--t-ink) !important;
+  border: 1px solid var(--t-line) !important; border-radius: var(--t-radius) !important;
+  box-shadow: var(--t-shadow) !important; position: relative; padding-top: 27px !important;
+}
+.pl8-guest[data-pl-kit="wax-seal"] .pl8-schedule-row::before,
+.pl8-guest[data-pl-kit="wax-seal"] .pl8-faq-row::before,
+.pl8-guest[data-pl-kit="wax-seal"] .pl8-detail-card::before,
+.pl8-guest[data-pl-kit="wax-seal"] .pl8-countdown-cell::before {
+  content: ''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 16px; height: 16px; border-radius: 50%; z-index: 3;
+  background: radial-gradient(circle at 38% 32%, color-mix(in oklab, var(--t-accent) 72%, #fff) 0%, var(--t-accent) 60%);
+  box-shadow: 0 0 0 1.5px color-mix(in oklab, var(--t-accent) 45%, transparent), 0 2px 4px rgba(0,0,0,0.18);
+}
+
+/* PENNANT — birthdays · graduations · pep events. Notched banner foot. */
+.pl8-guest[data-pl-kit="pennant"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="pennant"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="pennant"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="pennant"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="pennant"] .pl8-countdown-cell {
+  background: var(--t-card) !important; color: var(--t-ink) !important; border: none !important; border-radius: 5px 5px 0 0 !important;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08) !important; position: relative; padding-bottom: 28px !important;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
+  border-top: 3px solid var(--t-accent) !important;
+}
+
+/* EMBOSSED — classic · formal · borderless. Raised paper relief. */
+.pl8-guest[data-pl-kit="embossed"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="embossed"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="embossed"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="embossed"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="embossed"] .pl8-countdown-cell {
+  background: var(--t-card) !important; color: var(--t-ink) !important; border: none !important; border-radius: var(--t-radius) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -1px 0 rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05), 0 10px 22px -12px rgba(0,0,0,0.14) !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   ATELIER · MOTION KITS (premium) — port of v2 site-renderer.
+   Each has a complete STATIC base (shown at rest, on reduced-motion,
+   and as the free-tier teaser). Motion layers on only when the
+   .pl8-guest root carries data-pl-premium="on" (host unlocked
+   Atelier for this site, manifest.atelier) AND motion is allowed.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* NEON — nightlife: bachelor/ette · sweet 16 · NYE · galas. */
+.pl8-guest[data-pl-kit="neon"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="neon"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="neon"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="neon"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="neon"] .pl8-countdown-cell {
+  background: #15131C !important; color: #F6F2FF !important;
+  --t-ink: #F6F2FF; --t-ink-soft: #C9BEDD; --t-ink-muted: #9A8FB0;
+  border: 2px solid var(--t-accent) !important; border-radius: 12px !important;
+  box-shadow: 0 0 7px color-mix(in oklab, var(--t-accent) 80%, transparent), 0 0 20px -2px var(--t-accent), inset 0 0 12px -5px var(--t-accent) !important;
+  text-shadow: 0 0 8px color-mix(in oklab, var(--t-accent) 55%, transparent);
+  position: relative;
+}
+
+/* MARQUEE LIVE — birthdays · theatre galas. */
+.pl8-guest[data-pl-kit="marquee-live"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="marquee-live"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="marquee-live"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="marquee-live"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="marquee-live"] .pl8-countdown-cell {
+  background: var(--t-card) !important; color: var(--t-ink) !important;
+  border: 2px dotted var(--t-gold) !important; border-radius: 12px !important;
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--t-gold) 28%, transparent), 0 0 18px -4px color-mix(in oklab, var(--t-gold) 55%, transparent) !important;
+  position: relative;
+}
+
+/* AURORA GLASS — evening weddings · Midnight theme. */
+.pl8-guest[data-pl-kit="aurora-glass"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="aurora-glass"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="aurora-glass"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="aurora-glass"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="aurora-glass"] .pl8-countdown-cell {
+  background: color-mix(in oklab, var(--t-card) 48%, transparent) !important; color: var(--t-ink) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.5); backdrop-filter: blur(12px) saturate(1.5);
+  border: 1px solid color-mix(in oklab, #ffffff 28%, transparent) !important; border-radius: 18px !important;
+  box-shadow: 0 12px 32px -14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.22) !important;
+  position: relative; overflow: hidden;
+}
+.pl8-guest[data-pl-kit="aurora-glass"] .pl8-schedule-row > *,
+.pl8-guest[data-pl-kit="aurora-glass"] .pl8-hotel-row > *,
+.pl8-guest[data-pl-kit="aurora-glass"] .pl8-faq-row > *,
+.pl8-guest[data-pl-kit="aurora-glass"] .pl8-detail-card > *,
+.pl8-guest[data-pl-kit="aurora-glass"] .pl8-countdown-cell > * { position: relative; z-index: 1; }
+.pl8-guest[data-pl-kit="aurora-glass"] .pl8-schedule-row::before,
+.pl8-guest[data-pl-kit="aurora-glass"] .pl8-hotel-row::before,
+.pl8-guest[data-pl-kit="aurora-glass"] .pl8-faq-row::before,
+.pl8-guest[data-pl-kit="aurora-glass"] .pl8-detail-card::before,
+.pl8-guest[data-pl-kit="aurora-glass"] .pl8-countdown-cell::before {
+  content: ''; position: absolute; inset: -35%; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(40% 40% at 25% 30%, color-mix(in oklab, var(--t-accent) 75%, transparent), transparent 70%),
+    radial-gradient(45% 45% at 78% 32%, color-mix(in oklab, var(--t-gold) 60%, transparent), transparent 72%),
+    radial-gradient(52% 52% at 55% 82%, color-mix(in oklab, var(--t-accent-2) 70%, transparent), transparent 70%);
+  filter: blur(28px); opacity: 0.85;
+}
+
+/* GOLD FOIL — Deco · anniversaries · NYE. */
+.pl8-guest[data-pl-kit="gold-foil"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="gold-foil"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="gold-foil"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="gold-foil"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="gold-foil"] .pl8-countdown-cell {
+  background: color-mix(in oklab, var(--t-card) 86%, var(--t-gold)) !important; color: var(--t-ink) !important;
+  border: 1px solid color-mix(in oklab, var(--t-gold) 50%, transparent) !important; border-radius: 6px !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.10) !important; position: relative; overflow: hidden;
+}
+.pl8-guest[data-pl-kit="gold-foil"] .pl8-schedule-row > *,
+.pl8-guest[data-pl-kit="gold-foil"] .pl8-hotel-row > *,
+.pl8-guest[data-pl-kit="gold-foil"] .pl8-faq-row > *,
+.pl8-guest[data-pl-kit="gold-foil"] .pl8-detail-card > *,
+.pl8-guest[data-pl-kit="gold-foil"] .pl8-countdown-cell > * { position: relative; z-index: 1; }
+.pl8-guest[data-pl-kit="gold-foil"] .pl8-schedule-row::after,
+.pl8-guest[data-pl-kit="gold-foil"] .pl8-hotel-row::after,
+.pl8-guest[data-pl-kit="gold-foil"] .pl8-faq-row::after,
+.pl8-guest[data-pl-kit="gold-foil"] .pl8-detail-card::after,
+.pl8-guest[data-pl-kit="gold-foil"] .pl8-countdown-cell::after {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; mix-blend-mode: soft-light;
+  background: linear-gradient(115deg, transparent 34%, color-mix(in oklab, #fff 70%, transparent) 47%, color-mix(in oklab, var(--t-gold) 60%, transparent) 52%, transparent 66%);
+  background-size: 260% 100%; background-position: 150% 0;
+}
+
+/* CONFETTI — parties · gender reveals. */
+.pl8-guest[data-pl-kit="confetti"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="confetti"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="confetti"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="confetti"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="confetti"] .pl8-countdown-cell {
+  background: var(--t-card) !important; color: var(--t-ink) !important;
+  border: 1px solid var(--t-line-soft) !important; border-radius: 14px !important;
+  position: relative; overflow: hidden;
+}
+.pl8-guest[data-pl-kit="confetti"] .pl8-schedule-row > *,
+.pl8-guest[data-pl-kit="confetti"] .pl8-hotel-row > *,
+.pl8-guest[data-pl-kit="confetti"] .pl8-faq-row > *,
+.pl8-guest[data-pl-kit="confetti"] .pl8-detail-card > *,
+.pl8-guest[data-pl-kit="confetti"] .pl8-countdown-cell > * { position: relative; z-index: 1; }
+.pl8-guest[data-pl-kit="confetti"] .pl8-schedule-row::before,
+.pl8-guest[data-pl-kit="confetti"] .pl8-hotel-row::before,
+.pl8-guest[data-pl-kit="confetti"] .pl8-faq-row::before,
+.pl8-guest[data-pl-kit="confetti"] .pl8-detail-card::before,
+.pl8-guest[data-pl-kit="confetti"] .pl8-countdown-cell::before {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0.45;
+  background-image:
+    radial-gradient(circle 3px at 20% 30%, var(--t-accent) 0 3px, transparent 4px),
+    radial-gradient(circle 2.5px at 65% 62%, var(--t-gold) 0 2.5px, transparent 3.5px),
+    radial-gradient(circle 2px at 42% 84%, var(--t-accent-2) 0 2px, transparent 3px),
+    radial-gradient(circle 3px at 86% 16%, color-mix(in oklab, var(--t-accent) 55%, #fff) 0 3px, transparent 4px);
+  background-size: 96px 96px, 76px 76px, 120px 120px, 88px 88px;
+  background-position: 0 0, 0 0, 0 0, 0 0;
+  background-repeat: repeat;
+}
+
+/* CANDLELIGHT — memorials · celebrations of life (gentle). */
+.pl8-guest[data-pl-kit="candlelight"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="candlelight"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="candlelight"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="candlelight"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="candlelight"] .pl8-countdown-cell {
+  background: color-mix(in oklab, var(--t-card) 90%, #FFE4B5) !important; color: var(--t-ink) !important;
+  border: 1px solid color-mix(in oklab, var(--t-gold) 30%, transparent) !important; border-radius: 10px !important;
+  box-shadow: 0 6px 20px -8px rgba(120,80,20,0.25) !important; position: relative; overflow: hidden;
+}
+.pl8-guest[data-pl-kit="candlelight"] .pl8-schedule-row > *,
+.pl8-guest[data-pl-kit="candlelight"] .pl8-hotel-row > *,
+.pl8-guest[data-pl-kit="candlelight"] .pl8-faq-row > *,
+.pl8-guest[data-pl-kit="candlelight"] .pl8-detail-card > *,
+.pl8-guest[data-pl-kit="candlelight"] .pl8-countdown-cell > * { position: relative; z-index: 1; }
+.pl8-guest[data-pl-kit="candlelight"] .pl8-schedule-row::after,
+.pl8-guest[data-pl-kit="candlelight"] .pl8-hotel-row::after,
+.pl8-guest[data-pl-kit="candlelight"] .pl8-faq-row::after,
+.pl8-guest[data-pl-kit="candlelight"] .pl8-detail-card::after,
+.pl8-guest[data-pl-kit="candlelight"] .pl8-countdown-cell::after {
+  content: ''; position: absolute; left: 50%; top: -28%; width: 120%; height: 88%; transform: translateX(-50%);
+  z-index: 0; pointer-events: none; filter: blur(14px); opacity: 0.65;
+  background: radial-gradient(50% 60% at 50% 50%, color-mix(in oklab, var(--t-gold) 55%, transparent), transparent 70%);
+}
+
+/* PRESSED BLOOM — garden · baby · bridal. */
+.pl8-guest[data-pl-kit="pressed-bloom"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="pressed-bloom"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="pressed-bloom"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="pressed-bloom"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="pressed-bloom"] .pl8-countdown-cell {
+  background: var(--t-card) !important; color: var(--t-ink) !important;
+  border: 1px solid var(--t-line-soft) !important; border-radius: 18px !important;
+  box-shadow: var(--t-shadow) !important; position: relative; padding-top: 24px !important;
+}
+.pl8-guest[data-pl-kit="pressed-bloom"] .pl8-schedule-row::before,
+.pl8-guest[data-pl-kit="pressed-bloom"] .pl8-hotel-row::before,
+.pl8-guest[data-pl-kit="pressed-bloom"] .pl8-faq-row::before,
+.pl8-guest[data-pl-kit="pressed-bloom"] .pl8-detail-card::before,
+.pl8-guest[data-pl-kit="pressed-bloom"] .pl8-countdown-cell::before {
+  content: ''; position: absolute; top: 13px; left: 50%; margin-left: -3px; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--t-gold); z-index: 3; transform-origin: center;
+  box-shadow:
+    0 -10px 0 -0.5px var(--t-accent), 0 10px 0 -0.5px var(--t-accent),
+    -10px 0 0 -0.5px var(--t-accent), 10px 0 0 -0.5px var(--t-accent),
+    -7px -7px 0 -0.5px var(--t-accent), 7px -7px 0 -0.5px var(--t-accent),
+    -7px 7px 0 -0.5px var(--t-accent), 7px 7px 0 -0.5px var(--t-accent);
+}
+
+/* VINYL — milestone birthdays · music nights. */
+.pl8-guest[data-pl-kit="vinyl"] .pl8-schedule-row,
+.pl8-guest[data-pl-kit="vinyl"] .pl8-hotel-row,
+.pl8-guest[data-pl-kit="vinyl"] .pl8-faq-row,
+.pl8-guest[data-pl-kit="vinyl"] .pl8-detail-card,
+.pl8-guest[data-pl-kit="vinyl"] .pl8-countdown-cell {
+  background: var(--t-card) !important; color: var(--t-ink) !important;
+  border: 1px solid var(--t-line-soft) !important; border-radius: 8px !important;
+  box-shadow: var(--t-shadow) !important; position: relative; padding-top: 36px !important;
+}
+.pl8-guest[data-pl-kit="vinyl"] .pl8-schedule-row::before,
+.pl8-guest[data-pl-kit="vinyl"] .pl8-hotel-row::before,
+.pl8-guest[data-pl-kit="vinyl"] .pl8-faq-row::before,
+.pl8-guest[data-pl-kit="vinyl"] .pl8-detail-card::before,
+.pl8-guest[data-pl-kit="vinyl"] .pl8-countdown-cell::before {
+  content: ''; position: absolute; top: 8px; left: 50%; margin-left: -13px; width: 26px; height: 26px; border-radius: 50%;
+  z-index: 3; pointer-events: none; transform-origin: center;
+  background:
+    conic-gradient(from 0deg, rgba(255,255,255,0.24), transparent 34%, transparent 62%, rgba(255,255,255,0.12) 100%),
+    radial-gradient(circle at 50% 50%, var(--t-accent) 0 6px, transparent 6.5px),
+    repeating-radial-gradient(circle at 50% 50%, #15151a 0 2px, #2d2d33 2px 3px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(0,0,0,0.55);
+}
+.pl8-guest[data-pl-kit="vinyl"] .pl8-schedule-row::after,
+.pl8-guest[data-pl-kit="vinyl"] .pl8-hotel-row::after,
+.pl8-guest[data-pl-kit="vinyl"] .pl8-faq-row::after,
+.pl8-guest[data-pl-kit="vinyl"] .pl8-detail-card::after,
+.pl8-guest[data-pl-kit="vinyl"] .pl8-countdown-cell::after {
+  content: ''; position: absolute; top: 19.5px; left: 50%; margin-left: -1.5px; width: 3px; height: 3px; border-radius: 50%;
+  background: var(--t-card); z-index: 4; pointer-events: none;
+}
+
+/* ── Motion layer — only when Atelier is unlocked (data-pl-premium="on")
+      + motion allowed. The static bases above always show. ── */
+@media (prefers-reduced-motion: no-preference) {
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="neon"] .pl8-schedule-row,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="neon"] .pl8-hotel-row,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="neon"] .pl8-faq-row,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="neon"] .pl8-detail-card,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="neon"] .pl8-countdown-cell { animation: pl-neon 5s linear infinite; }
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="marquee-live"] .pl8-schedule-row,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="marquee-live"] .pl8-hotel-row,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="marquee-live"] .pl8-faq-row,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="marquee-live"] .pl8-detail-card,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="marquee-live"] .pl8-countdown-cell { animation: pl-marquee 1.8s ease-in-out infinite; }
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="aurora-glass"] .pl8-schedule-row::before,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="aurora-glass"] .pl8-hotel-row::before,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="aurora-glass"] .pl8-faq-row::before,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="aurora-glass"] .pl8-detail-card::before,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="aurora-glass"] .pl8-countdown-cell::before { animation: pl-aurora 18s ease-in-out infinite; }
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="gold-foil"] .pl8-schedule-row::after,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="gold-foil"] .pl8-hotel-row::after,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="gold-foil"] .pl8-faq-row::after,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="gold-foil"] .pl8-detail-card::after,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="gold-foil"] .pl8-countdown-cell::after { animation: pl-foil 4.5s ease-in-out infinite; }
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="confetti"] .pl8-schedule-row::before,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="confetti"] .pl8-hotel-row::before,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="confetti"] .pl8-faq-row::before,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="confetti"] .pl8-detail-card::before,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="confetti"] .pl8-countdown-cell::before { animation: pl-confetti 6s linear infinite; }
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="candlelight"] .pl8-schedule-row::after,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="candlelight"] .pl8-hotel-row::after,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="candlelight"] .pl8-faq-row::after,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="candlelight"] .pl8-detail-card::after,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="candlelight"] .pl8-countdown-cell::after { animation: pl-candle 4.5s ease-in-out infinite; }
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="pressed-bloom"] .pl8-schedule-row::before,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="pressed-bloom"] .pl8-hotel-row::before,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="pressed-bloom"] .pl8-faq-row::before,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="pressed-bloom"] .pl8-detail-card::before,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="pressed-bloom"] .pl8-countdown-cell::before { animation: pl-bloom 7s ease-in-out infinite; }
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="vinyl"] .pl8-schedule-row::before,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="vinyl"] .pl8-hotel-row::before,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="vinyl"] .pl8-faq-row::before,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="vinyl"] .pl8-detail-card::before,
+  .pl8-guest[data-pl-premium="on"][data-pl-kit="vinyl"] .pl8-countdown-cell::before { animation: pl-spin 5s linear infinite; }
+}
+@keyframes pl-neon { 0%,100%{filter:brightness(1)} 41%{filter:brightness(1)} 42%{filter:brightness(.5)} 43.5%{filter:brightness(1)} 62%{filter:brightness(1)} 63%{filter:brightness(.7)} 64%{filter:brightness(1.05)} 86%{filter:brightness(1.1)} 88%{filter:brightness(1)} }
+@keyframes pl-marquee { 0%,100%{box-shadow:0 0 0 1px color-mix(in oklab,var(--t-gold) 28%,transparent), 0 0 12px -5px color-mix(in oklab,var(--t-gold) 50%,transparent)} 50%{box-shadow:0 0 0 1px color-mix(in oklab,var(--t-gold) 45%,transparent), 0 0 30px 0 color-mix(in oklab,var(--t-gold) 70%,transparent)} }
+@keyframes pl-aurora { 0%,100%{transform:translate(0,0) rotate(0deg)} 50%{transform:translate(6%,-4%) rotate(9deg)} }
+@keyframes pl-foil { 0%{background-position:150% 0} 55%,100%{background-position:-70% 0} }
+@keyframes pl-confetti { from{background-position:0 0,0 0,0 0,0 0} to{background-position:0 96px, 0 76px, 0 120px, 0 88px} }
+@keyframes pl-candle { 0%,100%{opacity:.58; transform:translateX(-50%) scale(1)} 45%{opacity:.85; transform:translateX(-50%) scale(1.05)} 72%{opacity:.68; transform:translateX(-51%) scale(1.02)} }
+@keyframes pl-bloom { 0%,100%{transform:rotate(-8deg)} 50%{transform:rotate(8deg)} }
+@keyframes pl-spin { to{transform:rotate(360deg)} }
+/* Atelier upsell-banner sheen (editor Motion panel + upgrade modals). */
+@keyframes pl-sheen { 0%{background-position:150% 0} 100%{background-position:-50% 0} }
+
+
+/* ═══════════════════════════════════════════════════════════════
    PACK-EXCLUSIVE TEXTURES + PATTERNS (2026-06-13)
    ═══════════════════════════════════════════════════════════════
    Materials and surface patterns no picker offers — they apply

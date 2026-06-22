@@ -88,6 +88,7 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor }:
 
       <SiteLayoutPick manifest={manifest} onChange={onChange} />
       <KitPick manifest={manifest} onChange={onChange} />
+      <MotionKitPick manifest={manifest} onChange={onChange} />
 
       <ColorsPick theme={theme} manifest={manifest} onChange={onChange} />
       <FontsPick theme={theme} manifest={manifest} onChange={onChange} />
@@ -523,6 +524,18 @@ const KITS = [
   { id: 'gallery',   label: 'Gallery',   blurb: 'Museum mats · exhibit numbers' },
   { id: 'menu',      label: 'Tasting Menu', blurb: 'Gold rules · dotted leaders' },
   { id: 'glass',     label: 'Glass',     blurb: 'Liquid panes · aurora light' },
+  { id: 'boarding-pass', label: 'Boarding pass', blurb: 'Accent band · dashed tear line' },
+  { id: 'marquee',   label: 'Marquee',   blurb: 'Dotted gold bulbs · glow' },
+  { id: 'chalkboard', label: 'Chalkboard', blurb: 'Slate board · chalk ink' },
+  { id: 'nursery',   label: 'Nursery',   blurb: 'Soft pillow · pastel wash' },
+  { id: 'kraft',     label: 'Kraft',     blurb: 'Field-notes · stitched edge' },
+  { id: 'memoriam',  label: 'Memoriam',  blurb: 'Mourning keyline · ink edge' },
+  { id: 'certificate', label: 'Certificate', blurb: 'Gold frame · wax seal' },
+  { id: 'luggage-tag', label: 'Luggage tag', blurb: 'Manila tag · punched hole' },
+  { id: 'linen-press', label: 'Linen press', blurb: 'Woven inset · rustic press' },
+  { id: 'wax-seal',  label: 'Wax seal',  blurb: 'Stamped seal · formal invites' },
+  { id: 'pennant',   label: 'Pennant',   blurb: 'Notched banner foot' },
+  { id: 'embossed',  label: 'Embossed',  blurb: 'Raised relief · borderless' },
 ];
 
 function KitPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
@@ -561,6 +574,89 @@ function KitPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m
           );
         })}
       </div>
+    </div>
+  );
+}
+
+/* ─── MotionKitPick — the Atelier · Motion panel (v2 editor.jsx
+   MotionTab L395-230). Eight animated finishes that share the
+   kitId field with the static kits; the motion layer only comes
+   alive when Atelier is unlocked for this site (manifest.atelier
+   → data-pl-premium on the renderer root). Selecting a motion kit
+   always paints its STATIC base on the canvas; unlocking sets it
+   in motion. ────────────────────────────────────────────────── */
+
+const MOTION_KITS = [
+  { id: 'neon',          name: 'Neon',          desc: 'Tube flicker + buzz glow',                for: 'Bachelor/ette · NYE · galas',         sw: ['#15131C', '#B9A6E0'] },
+  { id: 'marquee-live',  name: 'Marquee Live',  desc: 'Bulb lights, pulsing',                    for: 'Birthdays · theatre',                 sw: ['#FFFEF7', '#C19A4B'] },
+  { id: 'aurora-glass',  name: 'Aurora Glass',  desc: 'Light drifting behind frosted glass',     for: 'Evening weddings',                    sw: ['#1A1B2E', '#B9A6E0'] },
+  { id: 'gold-foil',     name: 'Gold Foil',     desc: 'A sheen sweeping the edges',              for: 'Deco · anniversaries',                sw: ['#14110C', '#C9A24B'] },
+  { id: 'confetti',      name: 'Confetti',      desc: 'Slow falling flecks',                     for: 'Parties · reveals',                   sw: ['#FFFEF7', '#D9A89E'] },
+  { id: 'candlelight',   name: 'Candlelight',   desc: 'A gentle warm flame',                     for: 'Memorials · vigils',                  sw: ['#FCF4EE', '#C19A4B'] },
+  { id: 'pressed-bloom', name: 'Pressed Bloom', desc: 'A swaying pressed flower',                for: 'Garden · baby · bridal',              sw: ['#FDFAF0', '#B7A4D0'] },
+  { id: 'vinyl',         name: 'Vinyl',         desc: 'A spinning record',                       for: 'Milestone birthdays · music',         sw: ['#FFFEF7', '#5C6B3F'] },
+];
+
+function MotionKitPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const premium = !!(manifest as unknown as { atelier?: boolean }).atelier;
+  const value = manifest.kitId ?? 'classic';
+  const setKit = (id: string) => onChange({ ...manifest, kitId: id } as StoryManifest);
+  const setPremium = (v: boolean) => onChange({ ...(manifest as unknown as Record<string, unknown>), atelier: v } as unknown as StoryManifest);
+  return (
+    <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 9 }}>
+        ✦ Motion · Atelier
+      </div>
+      {/* Hero upsell banner */}
+      <div style={{ borderRadius: 14, overflow: 'hidden', marginBottom: 14, background: 'linear-gradient(135deg, #2A2416, #4A3A1C)', padding: '16px 14px', position: 'relative' }}>
+        <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'linear-gradient(115deg, transparent 30%, rgba(255,240,200,0.18) 47%, transparent 64%)', backgroundSize: '250% 100%', animation: 'pl-sheen 4.5s ease-in-out infinite', pointerEvents: 'none' }} />
+        <div style={{ position: 'relative' }}>
+          <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E6C877', marginBottom: 7 }}>✦ Atelier · Motion</div>
+          <div className="display" style={{ fontSize: 20, color: '#FBF1DC', lineHeight: 1.1, marginBottom: 6 }}>{premium ? 'Your site is alive.' : 'Bring your site to life.'}</div>
+          <div style={{ fontSize: 11.5, color: 'rgba(243,236,217,0.75)', lineHeight: 1.5, marginBottom: 13 }}>
+            {premium ? 'Every motion kit is unlocked for this site. Tap one to apply it.' : 'Eight living finishes — neon, foil, candlelight and more. One unlock, this site forever.'}
+          </div>
+          <button
+            type="button"
+            onClick={() => setPremium(!premium)}
+            className="lift"
+            style={{ padding: '9px 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 800, background: premium ? 'rgba(251,241,220,0.16)' : '#E6C877', color: premium ? '#FBF1DC' : '#241a08' }}
+          >
+            {premium ? 'Unlocked ✓ · Manage' : 'Unlock Atelier — $19'}
+          </button>
+        </div>
+      </div>
+      {/* Motion kit cards */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {MOTION_KITS.map((k) => {
+          const on = value === k.id;
+          return (
+            <div key={k.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 9, borderRadius: 11, border: on ? '1px solid var(--gold)' : '1px solid var(--line)', background: on ? 'color-mix(in srgb, var(--gold) 12%, var(--card))' : 'var(--card)' }}>
+              <span aria-hidden style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, background: `linear-gradient(135deg, ${k.sw[0]}, ${k.sw[1]})`, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)', position: 'relative' }}>
+                {!premium && <span style={{ position: 'absolute', right: -3, bottom: -3, width: 14, height: 14, borderRadius: '50%', background: 'var(--gold)', color: '#241a08', fontSize: 8, display: 'grid', placeItems: 'center', fontWeight: 800 }}>✦</span>}
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>{k.name}</div>
+                <div style={{ fontSize: 10.5, color: 'var(--ink-muted)', lineHeight: 1.3 }}>{k.desc}</div>
+                <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 8, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginTop: 3 }}>{k.for}</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setKit(k.id)}
+                className="lift"
+                style={{ padding: '6px 11px', borderRadius: 8, cursor: 'pointer', fontSize: 11, fontWeight: 700, flexShrink: 0, border: on ? '1px solid var(--gold)' : '1px solid var(--line)', background: on ? 'var(--gold)' : 'transparent', color: on ? '#241a08' : 'var(--ink)' }}
+              >
+                {on ? (premium ? 'On' : 'Preview') : 'Apply'}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+      {!premium && (
+        <div style={{ fontSize: 10.5, color: 'var(--gold-ink, var(--ink-muted))', fontStyle: 'italic', textAlign: 'center', marginTop: 12, lineHeight: 1.5 }}>
+          Applying shows the still preview on your canvas. Unlock to set it in motion.
+        </div>
+      )}
     </div>
   );
 }
