@@ -21,20 +21,39 @@ import { Pear } from '../motifs';
 import { dressCodeSuggestions } from '../editor/panels/_suggestions';
 import type { OccasionKey } from '../editor/panels/_suggestions';
 
-export type PicksKind = 'faq' | 'travel' | 'details';
+export type PicksKind = 'faq' | 'travel' | 'details' | 'schedule' | 'registry' | 'gallery';
 
 const META: Record<PicksKind, { title: string; sub: string }> = {
   faq: { title: 'The questions guests ask', sub: 'Answered in your voice, from your details — keep the ones that fit.' },
   travel: { title: 'Stays near your venue', sub: 'Pear pulled these for your guests — tap Add and they drop into Travel as cards.' },
   details: { title: 'The details guests need', sub: 'Dress code, kids, gifts — common starting points for your celebration.' },
+  schedule: { title: 'Your day, in moments', sub: 'A timeline Pear shaped for your celebration — Add the moments that fit.' },
+  registry: { title: 'A few registry ideas', sub: 'Funds and shops that suit your celebration — Add what fits, then drop in your links.' },
+  gallery: { title: 'Captions for your photos', sub: 'Pear writes a quiet line for each of your photos — Add the ones you like.' },
 };
 
 interface FaqItem { kind: 'faq'; id?: string; question: string; answer: string; category?: string }
 interface HotelItem { kind: 'travel'; name: string; address?: string; distance?: string; priceTier?: string; description?: string; groupRateTip?: string; bookingUrl?: string; amenities?: string[] }
 interface DetailItem { kind: 'details'; label: string; value: string }
-type PickItem = FaqItem | HotelItem | DetailItem;
+interface ScheduleItem { kind: 'schedule'; name: string; time?: string; venue?: string; type?: string }
+interface RegistryItem { kind: 'registry'; label: string; description?: string; regKind: 'fund' | 'registry' | 'link'; url?: string }
+interface GalleryItem { kind: 'gallery'; index: number; photoUrl: string; caption: string }
+type PickItem = FaqItem | HotelItem | DetailItem | ScheduleItem | RegistryItem | GalleryItem;
 
 const PRICE_TIER_TO_LEVEL: Record<string, string> = { budget: '$', mid: '$$', luxury: '$$$' };
+
+/* The schedule drafter stores `time` as an ISO datetime (or a bare
+   HH:mm) which the renderer formats; the card shows the friendly form. */
+function prettyTime(raw?: string): string {
+  if (!raw) return '';
+  const m = raw.match(/T(\d{2}):(\d{2})/) || raw.match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return raw; // already human ("4:30 pm")
+  let h = parseInt(m[1], 10);
+  const min = m[2];
+  const ampm = h >= 12 ? 'pm' : 'am';
+  h = h % 12 || 12;
+  return `${h}:${min} ${ampm}`;
+}
 
 export function CanvasPearBlocks({
   kind,
@@ -240,6 +259,48 @@ function PickCard({ item, added, onAdd }: { item: PickItem; added: boolean; onAd
     );
   }
 
+  if (item.kind === 'schedule') {
+    return (
+      <div style={{ ...base, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+        <div style={{ minWidth: 0 }}>
+          <div className="display" style={{ fontSize: 15, color: 'var(--ink)' }}>
+            {item.time ? `${prettyTime(item.time)} · ` : ''}{item.name}
+          </div>
+          {item.venue && <div style={{ fontSize: 11.5, color: 'var(--ink-muted)', marginTop: 1 }}>{item.venue}</div>}
+        </div>
+        {addBtn}
+      </div>
+    );
+  }
+
+  if (item.kind === 'registry') {
+    const badge = item.regKind === 'fund' ? 'Fund' : item.regKind === 'registry' ? 'Registry' : 'Link';
+    return (
+      <div style={base}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--olive, #5C6B3F)', background: 'var(--cream-2, #F5EFE2)', padding: '2px 7px', borderRadius: 999 }}>{badge}</span>
+            </div>
+            <div className="display" style={{ fontSize: 16, color: 'var(--ink)', marginTop: 4 }}>{item.label}</div>
+            {item.description && <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.45, marginTop: 3 }}>{item.description}</div>}
+          </div>
+          {addBtn}
+        </div>
+      </div>
+    );
+  }
+
+  if (item.kind === 'gallery') {
+    return (
+      <div style={{ ...base, display: 'flex', gap: 11, alignItems: 'center' }}>
+        <img src={item.photoUrl} alt="" style={{ width: 56, height: 56, borderRadius: 9, objectFit: 'cover', flexShrink: 0, border: '1px solid var(--line, #E2D9C3)' }} />
+        <div className="display" style={{ flex: 1, minWidth: 0, fontStyle: 'italic', fontSize: 14.5, color: 'var(--ink)', lineHeight: 1.35 }}>{item.caption}</div>
+        {addBtn}
+      </div>
+    );
+  }
+
   // details
   return (
     <div style={{ ...base, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
@@ -293,6 +354,68 @@ async function fetchSuggestions(kind: PicksKind, manifest: StoryManifest): Promi
       }));
   }
 
+  if (kind === 'schedule') {
+    // auto-draft returns the manifest with an occasion-appropriate
+    // timeline drafted (template-based, honest); we surface each
+    // moment as a card to Add individually.
+    const r = await fetch('/api/auto-draft', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ manifest, section: 'schedule' }),
+    });
+    if (!r.ok) throw new Error(await errorOf(r, 'Pear couldn’t draft the timeline — try again.'));
+    const d = await r.json();
+    const events = Array.isArray((d?.manifest as { events?: unknown[] })?.events) ? (d.manifest.events as Array<Record<string, unknown>>) : [];
+    if (events.length === 0) throw new Error('Pear needs your occasion + date set first — then it can shape a timeline.');
+    return events
+      .filter((ev) => typeof ev?.name === 'string')
+      .map((ev): ScheduleItem => ({
+        kind: 'schedule',
+        name: String(ev.name),
+        time: typeof ev.time === 'string' ? ev.time : undefined,
+        venue: typeof ev.venue === 'string' ? ev.venue : undefined,
+        type: typeof ev.type === 'string' ? ev.type : undefined,
+      }));
+  }
+
+  if (kind === 'registry') {
+    const names = Array.isArray(loose.names) ? (loose.names as string[]) : undefined;
+    const occ = typeof loose.occasion === 'string' ? loose.occasion : undefined;
+    const r = await fetch('/api/draft-registry', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ names, occasion: occ }),
+    });
+    if (!r.ok) throw new Error(await errorOf(r, 'Pear couldn’t draft registry ideas — try again.'));
+    const d = await r.json();
+    const items = Array.isArray(d?.items) ? d.items : [];
+    return items
+      .filter((it: { label?: string }) => !!it?.label)
+      .map((it: { label: string; description?: string; kind?: string; url?: string }): RegistryItem => ({
+        kind: 'registry',
+        label: it.label,
+        description: it.description,
+        regKind: (it.kind === 'fund' || it.kind === 'link' || it.kind === 'registry') ? it.kind : 'link',
+        url: it.url || undefined,
+      }));
+  }
+
+  if (kind === 'gallery') {
+    const photos = Array.isArray(loose.galleryImages) ? (loose.galleryImages as string[]).filter(Boolean) : [];
+    if (photos.length === 0) throw new Error('Add photos to your gallery first — then Pear can caption them.');
+    const slice = photos.slice(0, 6);
+    const results = await Promise.all(slice.map(async (photoUrl, index): Promise<GalleryItem | null> => {
+      try {
+        const r = await fetch('/api/pear-caption', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ photoUrl }),
+        });
+        if (!r.ok) return null;
+        const d = await r.json();
+        const caption = typeof d?.caption === 'string' ? d.caption : '';
+        return caption ? { kind: 'gallery', index, photoUrl, caption } : null;
+      } catch { return null; }
+    }));
+    const items = results.filter((x): x is GalleryItem => x != null);
+    if (items.length === 0) throw new Error('Pear couldn’t caption those — try again.');
+    return items;
+  }
+
   // details — Pear's curated, occasion-appropriate starting points
   // (the same non-AI defaults the zip hard-codes, surfaced as
   // suggestions the host accepts + edits).
@@ -340,6 +463,31 @@ function applyPick(m: StoryManifest, item: PickItem): StoryManifest {
       amenities: item.amenities && item.amenities.length ? item.amenities.join(' · ') : undefined,
     });
     return { ...loose, travelInfo: { ...ti, hotels } } as unknown as StoryManifest;
+  }
+  if (item.kind === 'schedule') {
+    const events = Array.isArray(loose.events) ? [...(loose.events as unknown[])] : [];
+    events.push({
+      id: `e-${Date.now()}-${events.length}`,
+      name: item.name,
+      type: item.type ?? 'other',
+      date: '',
+      time: item.time ?? '',
+      venue: item.venue ?? '',
+      address: '',
+    });
+    return { ...loose, events } as unknown as StoryManifest;
+  }
+  if (item.kind === 'registry') {
+    const stores = Array.isArray(loose.registryStores) ? [...(loose.registryStores as unknown[])] : [];
+    stores.push({ name: item.label, url: item.url, note: item.description });
+    return { ...loose, registryStores: stores } as unknown as StoryManifest;
+  }
+  if (item.kind === 'gallery') {
+    const captions = (loose.galleryCaptions && typeof loose.galleryCaptions === 'object')
+      ? { ...(loose.galleryCaptions as Record<string, string>) }
+      : {};
+    captions[String(item.index)] = item.caption;
+    return { ...loose, galleryCaptions: captions } as unknown as StoryManifest;
   }
   // details — append [label, value] tuple (capped at 3 like DetailsPanel)
   const cards = Array.isArray(loose.detailsCards) ? [...(loose.detailsCards as unknown[])] : [];

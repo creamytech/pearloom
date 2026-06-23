@@ -667,7 +667,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
             "✦ Show me" card). Opens the CanvasPearBlocks modal, which
             calls real AI grounded in this site (FAQ + Travel) or
             offers curated occasion starting points (Details). */}
-        {effectiveTab === 'content' && (active === 'faq' || active === 'travel' || active === 'details') && (
+        {effectiveTab === 'content' && active != null && POPULATE_KINDS.has(active) && (
           <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--gold, #C8B98C)' }}>
             <div style={{ background: 'linear-gradient(135deg, rgba(193,154,75,0.16), rgba(193,154,75,0.06))', padding: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
@@ -792,7 +792,12 @@ const POPULATE_TITLE: Record<string, string> = {
   faq: 'The questions guests ask',
   travel: 'Stays near your venue',
   details: 'The details guests need',
+  schedule: 'Your day, in moments',
+  registry: 'A few registry ideas',
+  gallery: 'Captions for your photos',
 };
+/* Sections that can summon the Pear Picks rich-card modal. */
+const POPULATE_KINDS = new Set(['faq', 'travel', 'details', 'schedule', 'registry', 'gallery']);
 
 /* Every chip maps to a REAL inline action: a single-field rewrite
    (Warmer / Shorter intro) or the 3-styles contact sheet — both run
