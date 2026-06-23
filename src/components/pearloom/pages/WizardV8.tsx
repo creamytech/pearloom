@@ -2037,6 +2037,10 @@ export function WizardV8() {
   const step = STEPS[stepIndex];
   // Look-phase steps (Vibe/Palette) get the live save-the-date preview.
   const isLook = step === 'Vibe' || step === 'Palette';
+  // The two-column live preview also rides the Review step — a final,
+  // fully-formed look before "Weave my site" (zip parity: the v2
+  // wizard keeps the phone preview through the closing step).
+  const showPreview = isLook || step === 'Review';
 
   // ── "From your photos" palette ──────────────────────────────
   // Client-side extraction from the host's first uploaded photo
@@ -2738,17 +2742,17 @@ export function WizardV8() {
       </header>
 
       <div
-        className={`pl8-wizard-canvas${isLook ? ' is-look' : ''}`}
+        className={`pl8-wizard-canvas${showPreview ? ' is-look' : ''}`}
         style={{
-          // Single-column letterpress feel; on the Look steps it becomes
-          // a two-column layout with the live save-the-date preview
-          // beside the controls (collapses to one column on mobile).
-          maxWidth: isLook ? 1060 : 760,
+          // Single-column letterpress feel; on the Look + Review steps
+          // it becomes a two-column layout with the live save-the-date
+          // preview beside the controls (collapses to one column on mobile).
+          maxWidth: showPreview ? 1060 : 760,
           margin: '0 auto',
           padding: '40px 32px 80px',
           position: 'relative',
           zIndex: 2,
-          ...(isLook
+          ...(showPreview
             ? { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: 48, alignItems: 'start' }
             : {}),
         }}
@@ -4256,7 +4260,7 @@ export function WizardV8() {
             </div>
           </Reveal>
         </div>
-        {isLook && <WizardLivePreview st={st} />}
+        {showPreview && <WizardLivePreview st={st} />}
       </div>
 
       {fittingOpen && (() => {
