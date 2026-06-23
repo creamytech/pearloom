@@ -109,6 +109,7 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor, m
       <FontsPick theme={theme} manifest={manifest} onChange={onChange} />
       <TexturePick theme={theme} manifest={manifest} onChange={onChange} />
       <LivingBackgroundPick manifest={manifest} onChange={onChange} />
+      <NavPick manifest={manifest} onChange={onChange} />
       <FooterPick manifest={manifest} onChange={onChange} />
 
       <FineTune theme={theme} manifest={manifest} onChange={onChange} />
@@ -761,6 +762,65 @@ function FooterPick({ manifest, onChange }: { manifest: StoryManifest; onChange:
           );
         })}
       </div>
+    </div>
+  );
+}
+
+/* ─── NavPick — the site menu (desktop + phone). The v2 DesignTab
+   exposes both nav axes; production reads manifest.layouts.nav /
+   .navMobile. "Menu" is the brand-plain label (BRAND §7). ───────── */
+
+const NAV_DESKTOP = [
+  { id: 'centered', label: 'Centered' },
+  { id: 'split', label: 'Split' },
+  { id: 'serif-block', label: 'Serif block' },
+  { id: 'minimal-text', label: 'Minimal' },
+  { id: 'iconic', label: 'Iconic' },
+];
+const NAV_PHONE = [
+  { id: 'overlay', label: 'Overlay' },
+  { id: 'slide-in', label: 'Slide-in' },
+  { id: 'bottom-sheet', label: 'Bottom sheet' },
+  { id: 'pill', label: 'Pill' },
+];
+
+function NavPick({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const layouts = ((manifest as unknown as { layouts?: Record<string, string> }).layouts) ?? {};
+  const desktop = layouts.nav ?? 'split';
+  const phone = layouts.navMobile ?? 'slide-in';
+  const set = (key: 'nav' | 'navMobile', id: string) => onChange({
+    ...(manifest as unknown as Record<string, unknown>),
+    layouts: { ...layouts, [key]: id },
+  } as unknown as StoryManifest);
+  const labelStyle: React.CSSProperties = { fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: 7 };
+  const chipRow = (opts: { id: string; label: string }[], value: string, key: 'nav' | 'navMobile') => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+      {opts.map((o) => {
+        const on = value === o.id;
+        return (
+          <button
+            key={o.id}
+            type="button"
+            onClick={() => set(key, o.id)}
+            className="lift"
+            style={{
+              padding: '6px 12px', borderRadius: 999, cursor: 'pointer', fontSize: 11.5, fontWeight: 600,
+              border: on ? '1px solid var(--ink)' : '1px solid var(--line)',
+              background: on ? 'var(--ink)' : 'var(--card)', color: on ? 'var(--cream)' : 'var(--ink-soft)',
+            }}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+  return (
+    <div style={{ borderTop: '1px solid var(--line-soft)', paddingTop: 14 }}>
+      <div style={labelStyle}>Menu — desktop</div>
+      {chipRow(NAV_DESKTOP, desktop, 'nav')}
+      <div style={{ ...labelStyle, marginTop: 14 }}>Menu — phone</div>
+      {chipRow(NAV_PHONE, phone, 'navMobile')}
     </div>
   );
 }

@@ -3949,8 +3949,36 @@ function TSection({ id, label, children, active, hover, setActive, setHover, edi
       },
     } as unknown as StoryManifest));
   };
+  /* Keep the inline Layout bar on screen as the host scrolls through a
+     tall section (the v2 bar tracks the section instead of sitting at a
+     fixed top that scrolls away). barTop is the bar's offset within the
+     section, pinned just below the canvas's visible top edge. */
+  const secRef = useRef<HTMLDivElement | null>(null);
+  const [barTop, setBarTop] = useState(8);
+  useEffect(() => {
+    if (!showLayoutBar) return;
+    const el = secRef.current;
+    if (!el) return;
+    const scroller = el.closest('[data-pl-canvas-scroll]') as HTMLElement | null;
+    const update = () => {
+      const sr = el.getBoundingClientRect();
+      const top0 = scroller ? scroller.getBoundingClientRect().top : 0;
+      const above = top0 - sr.top; // px the section top is scrolled above the visible edge
+      setBarTop(Math.max(8, Math.min(above + 8, el.offsetHeight - 48)));
+    };
+    const raf = requestAnimationFrame(update);
+    const target: HTMLElement | Window = scroller ?? window;
+    target.addEventListener('scroll', update, { passive: true } as AddEventListenerOptions);
+    window.addEventListener('resize', update);
+    return () => {
+      cancelAnimationFrame(raf);
+      target.removeEventListener('scroll', update as EventListener);
+      window.removeEventListener('resize', update);
+    };
+  }, [showLayoutBar]);
   return (
     <div
+      ref={secRef}
       id={id}
       data-section-id={id}
       onMouseEnter={() => setHover(id)}
@@ -4003,7 +4031,7 @@ function TSection({ id, label, children, active, hover, setActive, setHover, edi
             <div
               onClick={(e) => e.stopPropagation()}
               style={{
-                position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 7,
+                position: 'absolute', top: barTop, left: '50%', transform: 'translateX(-50%)', zIndex: 7,
                 display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 999,
                 background: 'rgba(255,253,247,0.97)', WebkitBackdropFilter: 'blur(10px)', backdropFilter: 'blur(10px)',
                 border: '1px solid var(--pl-line, #E2D9C3)', boxShadow: '0 10px 28px -8px rgba(40,28,12,0.4)',

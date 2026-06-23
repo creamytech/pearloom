@@ -44,6 +44,48 @@ type PickItem = FaqItem | HotelItem | DetailItem | ScheduleItem | RegistryItem |
 
 const PRICE_TIER_TO_LEVEL: Record<string, string> = { budget: '$', mid: '$$', luxury: '$$$' };
 
+/* Sections whose source actually varies on re-roll (AI). Template /
+   curated sections (details, schedule) are deterministic — no Regen. */
+const REGEN_KINDS = new Set<PicksKind>(['faq', 'travel', 'registry', 'gallery', 'story']);
+
+const norm = (s?: string) => (s ?? '').trim().toLowerCase();
+
+/* Already on the site? Drives the card's "Added ✓" state + the
+   applyPick dedupe so reopening or re-adding never duplicates. */
+function isPresent(item: PickItem, manifest: StoryManifest): boolean {
+  const loose = manifest as unknown as Record<string, unknown>;
+  switch (item.kind) {
+    case 'faq': {
+      const faqs = (Array.isArray(loose.faqs) ? loose.faqs : []) as Array<{ question?: string }>;
+      return faqs.some((f) => norm(f.question) === norm(item.question));
+    }
+    case 'travel': {
+      const hotels = ((loose.travelInfo as { hotels?: unknown[] })?.hotels ?? []) as Array<{ name?: string }>;
+      return hotels.some((h) => norm(h.name) === norm(item.name));
+    }
+    case 'schedule': {
+      const events = (Array.isArray(loose.events) ? loose.events : []) as Array<{ name?: string }>;
+      return events.some((e) => norm(e.name) === norm(item.name));
+    }
+    case 'registry': {
+      const stores = (Array.isArray(loose.registryStores) ? loose.registryStores : []) as Array<{ name?: string }>;
+      return stores.some((s) => norm(s.name) === norm(item.label));
+    }
+    case 'details': {
+      const cards = (Array.isArray(loose.detailsCards) ? loose.detailsCards : []) as Array<[string, string]>;
+      return cards.some((c) => norm(c?.[0]) === norm(item.label));
+    }
+    case 'gallery': {
+      const caps = (loose.galleryCaptions ?? {}) as Record<string, string>;
+      return norm(caps[String(item.index)]) === norm(item.caption);
+    }
+    case 'story': {
+      const story = (loose.storySection ?? {}) as { body?: string };
+      return norm(story.body) === norm(item.body);
+    }
+  }
+}
+
 /* The schedule drafter stores `time` as an ISO datetime (or a bare
    HH:mm) which the renderer formats; the card shows the friendly form. */
 function prettyTime(raw?: string): string {
@@ -184,20 +226,24 @@ export function CanvasPearBlocks({
           )}
 
           {!loading && !err && items.map((item, i) => (
-            <PickCard key={i} item={item} added={!!added[i]} onAdd={() => addItem(i, item)} />
+            <PickCard key={i} item={item} added={added[i] || isPresent(item, manifest)} onAdd={() => addItem(i, item)} />
           ))}
         </div>
 
-        {/* Footer */}
+        {/* Footer — Regenerate only where re-rolling actually varies
+            the result (the AI sections); template sections (Details,
+            Schedule) are deterministic, so it's hidden there. */}
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button
-            type="button"
-            onClick={() => { if (!loading) setNonce((n) => n + 1); }}
-            disabled={loading}
-            style={{ fontSize: 12, color: 'var(--olive, #5C6B3F)', fontWeight: 600, background: 'transparent', border: 'none', cursor: loading ? 'wait' : 'pointer' }}
-          >
-            ↺ Regenerate
-          </button>
+          {REGEN_KINDS.has(kind) ? (
+            <button
+              type="button"
+              onClick={() => { if (!loading) setNonce((n) => n + 1); }}
+              disabled={loading}
+              style={{ fontSize: 12, color: 'var(--olive, #5C6B3F)', fontWeight: 600, background: 'transparent', border: 'none', cursor: loading ? 'wait' : 'pointer' }}
+            >
+              ↺ Regenerate
+            </button>
+          ) : <span />}
           <button type="button" onClick={onClose} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: 'var(--olive, #5C6B3F)', color: 'var(--cream, #FBF7EE)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>Done</button>
         </div>
       </div>
@@ -479,6 +525,9 @@ async function errorOf(r: Response, fallback: string): Promise<string> {
 // ── Add → manifest ──────────────────────────────────────────────
 
 function applyPick(m: StoryManifest, item: PickItem): StoryManifest {
+  // Never duplicate — if it's already on the site, no-op (gallery /
+  // story compare by value, so a re-roll still applies the new one).
+  if (isPresent(item, m)) return m;
   const loose = m as unknown as Record<string, unknown>;
   if (item.kind === 'faq') {
     const faqs = Array.isArray(loose.faqs) ? [...(loose.faqs as unknown[])] : [];

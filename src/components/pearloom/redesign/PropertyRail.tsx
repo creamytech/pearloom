@@ -680,7 +680,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
                 {POPULATE_TITLE[active]}
               </div>
               <div style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.5, marginBottom: 11 }}>
-                Pear returns rich, ready-to-place cards — not just text. Review and Add what fits.
+                {POPULATE_BLURB[active] ?? 'Pear returns rich, ready-to-place cards — review and Add what fits.'}
               </div>
               <button
                 type="button"
@@ -796,6 +796,18 @@ const POPULATE_TITLE: Record<string, string> = {
   registry: 'A few registry ideas',
   gallery: 'Captions for your photos',
   story: 'A first draft of your story',
+};
+/* Per-section blurb for the "Pear can populate this" card — tailored
+   so the copy fits what each section actually returns (Story is prose,
+   not cards). */
+const POPULATE_BLURB: Record<string, string> = {
+  faq: 'Real answers drawn from your venue, date, dress code & registry — keep the ones that fit.',
+  travel: 'Real stays near your venue — distance, price & amenities. Add the ones you like.',
+  details: 'Common starting points for your celebration — Add what fits, then edit.',
+  schedule: 'A timeline shaped for your occasion — Add the moments that fit.',
+  registry: 'Funds & shops that suit your celebration — Add what fits, then drop in your links.',
+  gallery: 'A quiet caption for each of your photos — Add the ones you like.',
+  story: 'A first draft in your voice, from your details — use it as a start, then edit anything.',
 };
 /* Sections that can summon the Pear Picks rich-card modal. */
 const POPULATE_KINDS = new Set(['faq', 'travel', 'details', 'schedule', 'registry', 'gallery', 'story']);

@@ -658,6 +658,7 @@ function EditorCanvas({
 
   return (
     <div
+      data-pl-canvas-scroll
       style={{
         gridArea: 'canvas',
         background: 'var(--cream-3)',
