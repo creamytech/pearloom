@@ -708,9 +708,18 @@ test.describe('Studio (stationery editor)', () => {
     // Trigger an AI asset gen and wait for the autosave to fire
     // (1500ms debounce + buffer).
     await page.getByRole('button', { name: /Pear\s*·\s*stamp/i }).click();
-    await expect.poll(async () => savedManifestStudio, { timeout: 5_000 }).not.toBeNull();
-    const studio = savedManifestStudio as unknown as { assets?: Array<{ url?: string }> };
-    expect(studio.assets?.[0]?.url).toBe(SENTINEL_URL);
+    // Poll for the save that actually carries the new stamp — not
+    // merely the first POST we see. In dev's React StrictMode the
+    // autosave effect's mount run is double-invoked, so an early
+    // asset-less save can land first; latching that would be a
+    // false negative. The product persists the asset on a
+    // subsequent save, and that's the contract we assert.
+    await expect
+      .poll(async () => {
+        const s = savedManifestStudio as unknown as { assets?: Array<{ url?: string }> } | null;
+        return s?.assets?.[0]?.url ?? null;
+      }, { timeout: 8_000 })
+      .toBe(SENTINEL_URL);
 
     // Now flip the site fetch mock to replay the captured studio
     // slice and reload. The asset palette should rehydrate with
