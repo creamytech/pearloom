@@ -8,7 +8,7 @@
 
    Two modes:
 
-   MODAL (sections / Pear) — backdrop, body lock, full height.
+   MODAL (sections) — backdrop, body lock, full height.
 
    SEE-THROUGH (props / theme) — the host's complaint, 2026-06-12:
    "you can't see your changes till you put the drawer away." The
@@ -25,7 +25,7 @@
    ───────────────────────────────────────────────────────────── */
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { Icon, Pear } from '../motifs';
+import { Icon } from '../motifs';
 
 const SHEET_MS = 360;
 const PEEK_BAR = 54;
@@ -235,20 +235,18 @@ export function MobileSheet({
   );
 }
 
-/* ─── Bottom bar — Sections · Theme · Pear ───────────────────── */
+/* ─── Bottom bar — Sections · Theme ──────────────────────────── */
 
-export type MobileSheetId = 'sections' | 'theme' | 'props' | 'pear';
+export type MobileSheetId = 'sections' | 'theme' | 'props';
 
 export function MobileBottomBar({
   activeSheet,
   onSections,
   onTheme,
-  onPear,
 }: {
   activeSheet: MobileSheetId | null;
   onSections: () => void;
   onTheme: () => void;
-  onPear: () => void;
 }) {
   return (
     <nav
@@ -269,7 +267,6 @@ export function MobileBottomBar({
     >
       <BottomBarButton label="Sections" icon="list" on={activeSheet === 'sections' || activeSheet === 'props'} onClick={onSections} />
       <BottomBarButton label="Theme" icon="palette" on={activeSheet === 'theme'} onClick={onTheme} />
-      <BottomBarButton label="Pear" icon="pear" on={activeSheet === 'pear'} onClick={onPear} />
     </nav>
   );
 }
@@ -301,9 +298,7 @@ function BottomBarButton({
         fontFamily: 'var(--font-ui)',
       }}
     >
-      {icon === 'pear'
-        ? <Pear size={20} tone="sage" shadow={false} sparkle={on} />
-        : <Icon name={icon} size={17} color={on ? 'var(--ink)' : 'var(--ink-soft)'} />}
+      <Icon name={icon} size={17} color={on ? 'var(--ink)' : 'var(--ink-soft)'} />
       <span style={{ fontSize: 10, fontWeight: on ? 700 : 600, letterSpacing: '0.02em' }}>{label}</span>
     </button>
   );

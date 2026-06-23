@@ -1553,12 +1553,22 @@ function HeroPhotos({ ctx }: { ctx: SectionCtx }) {
     );
   }
   if (!ctx.editable) return null;
+  /* Empty editor state — the placeholder strip doubles as "press a
+     square to add a photo": the first tile fills the cover, the rest
+     seed the first gallery slots. */
   return (
     <div style={{ marginTop: 40, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 14, maxWidth: 940, marginInline: 'auto' }}>
       {(['warm', 'lavender', 'peach', 'sage'] as PhotoTone[]).map((t, i) => (
-        <div key={i} style={{ aspectRatio: '3 / 4', borderRadius: 4, overflow: 'hidden', boxShadow: '0 8px 22px rgba(0,0,0,0.18)' }}>
+        <EditPhotoTarget
+          key={i}
+          editable
+          slot={i === 0
+            ? { kind: 'cover', label: 'the cover' }
+            : { kind: 'gallery', index: i - 1, label: 'this tile' }}
+          style={{ aspectRatio: '3 / 4', borderRadius: 4, overflow: 'hidden', boxShadow: '0 8px 22px rgba(0,0,0,0.18)' }}
+        >
           <PhotoPlaceholder tone={t} aspect="3/4" />
-        </div>
+        </EditPhotoTarget>
       ))}
     </div>
   );
@@ -1662,6 +1672,9 @@ function HeroFullbleed({ ctx }: { ctx: SectionCtx }) {
           <PhotoPlaceholder tone="dusk" aspect="auto" style={{ height: '100%' }} />
         )}
       </div>
+      {/* Scrim + centered text sit over the photo, so the cover gets a
+          corner "Change photo" chip rather than a click-through wrap. */}
+      <EditPhotoCorner editable={editable} slot={{ kind: 'cover', label: 'the cover', current: coverPhoto }} />
       <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.5))' }} />
       <div style={{ position: 'relative', color: '#fff', padding: '40px 24px' }}>
         <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase', opacity: 0.9, marginBottom: 8 }} />
@@ -1799,11 +1812,13 @@ function StorySideBySide({ ctx }: { ctx: SectionCtx }) {
   return (
     <div className="pl8-story-sbs" style={{ position: 'relative', padding: `${48 * pad}px clamp(20px, 6vw, 72px)`, display: 'grid', gridTemplateColumns: '0.85fr 1fr', gap: 'clamp(24px, 5vw, 44px)', alignItems: 'center', background: 'var(--t-paper)' }}>
       <div style={{ position: 'relative' }}>
-        {heroPhoto ? (
-          <FadeInImage src={heroPhoto} style={{ aspectRatio: '4/5', borderRadius: 'var(--t-radius)' }} />
-        ) : (
-          <PhotoPlaceholder tone="warm" aspect="4/5" />
-        )}
+        <EditPhotoTarget editable={editable} slot={{ kind: 'chapter', index: 0, label: 'the story photo', current: heroPhoto }}>
+          {heroPhoto ? (
+            <FadeInImage src={heroPhoto} style={{ aspectRatio: '4/5', borderRadius: 'var(--t-radius)' }} />
+          ) : (
+            <PhotoPlaceholder tone="warm" aspect="4/5" />
+          )}
+        </EditPhotoTarget>
         {motif !== 'none' && (
           <div style={{ position: 'absolute', bottom: -18, right: -14, zIndex: 2 }} aria-hidden>
             <Motif kind={motif} size={70} />
@@ -1859,11 +1874,13 @@ function StoryStacked({ ctx }: { ctx: SectionCtx }) {
   return (
     <div style={{ padding: `${48 * pad}px clamp(20px, 6vw, 72px)`, textAlign: 'center', maxWidth: 760, marginInline: 'auto', background: 'var(--t-paper)' }}>
       <div style={{ marginInline: 'auto', maxWidth: 520, marginBottom: 26 }}>
-        {heroPhoto ? (
-          <FadeInImage src={heroPhoto} style={{ aspectRatio: '16/9', borderRadius: 'var(--t-radius)' }} />
-        ) : (
-          <PhotoPlaceholder tone="warm" aspect="16/9" style={{ borderRadius: 'var(--t-radius)' }} />
-        )}
+        <EditPhotoTarget editable={editable} slot={{ kind: 'chapter', index: 0, label: 'the story photo', current: heroPhoto }}>
+          {heroPhoto ? (
+            <FadeInImage src={heroPhoto} style={{ aspectRatio: '16/9', borderRadius: 'var(--t-radius)' }} />
+          ) : (
+            <PhotoPlaceholder tone="warm" aspect="16/9" style={{ borderRadius: 'var(--t-radius)' }} />
+          )}
+        </EditPhotoTarget>
       </div>
       <InlineEdit
         as="div"
@@ -1915,10 +1932,16 @@ function StoryQuote({ ctx }: { ctx: SectionCtx }) {
   const heroPhoto = C.story.chapterImages?.[0];
   return (
     <div style={{ position: 'relative', padding: `${56 * pad}px clamp(20px, 6vw, 72px)`, textAlign: 'center', maxWidth: 880, marginInline: 'auto', background: 'var(--t-paper)' }}>
-      {heroPhoto && (
+      {(heroPhoto || editable) && (
         /* Decorative cover above the quote — small + centered so it
            sits as a deckle motif rather than dominating the pull. */
-        <FadeInImage src={heroPhoto} style={{ marginInline: 'auto', marginBottom: 24, maxWidth: 320, aspectRatio: '4/3', borderRadius: 'var(--t-radius)' }} />
+        <EditPhotoTarget editable={editable} slot={{ kind: 'chapter', index: 0, label: 'the story photo', current: heroPhoto }} style={{ marginInline: 'auto', marginBottom: 24, maxWidth: 320 }}>
+          {heroPhoto ? (
+            <FadeInImage src={heroPhoto} style={{ aspectRatio: '4/3', borderRadius: 'var(--t-radius)' }} />
+          ) : (
+            <PhotoPlaceholder tone="warm" aspect="4/3" style={{ borderRadius: 'var(--t-radius)' }} />
+          )}
+        </EditPhotoTarget>
       )}
       <div style={{ position: 'relative' }}>
         <InlineEdit
@@ -2003,8 +2026,14 @@ function StoryTimeline({ ctx }: { ctx: SectionCtx }) {
               ) : chapterTitle ? (
                 <div style={titleStyle}>{chapterTitle}</div>
               ) : null}
-              {photo && (
-                <FadeInImage src={photo} style={{ marginTop: chapterTitle ? 10 : 8, aspectRatio: '16/9', maxWidth: 480, borderRadius: 'var(--t-radius)' }} />
+              {(photo || canEditChapter) && (
+                <EditPhotoTarget editable={canEditChapter} slot={{ kind: 'chapter', index: i, label: 'this chapter photo', current: photo }} style={{ marginTop: chapterTitle ? 10 : 8, maxWidth: 480 }}>
+                  {photo ? (
+                    <FadeInImage src={photo} style={{ aspectRatio: '16/9', borderRadius: 'var(--t-radius)' }} />
+                  ) : (
+                    <PhotoPlaceholder tone="warm" aspect="16/9" style={{ borderRadius: 'var(--t-radius)' }} />
+                  )}
+                </EditPhotoTarget>
               )}
               {canEditChapter && edit?.chapterBody ? (
                 /* Value falls back to the shared story body; an edit
@@ -2046,11 +2075,17 @@ function StoryLetter({ ctx }: { ctx: SectionCtx }) {
           placeholder="Two threads, one weave"
           style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 14 }}
         />
-        {heroPhoto && (
+        {(heroPhoto || editable) && (
           /* Small framed photo as a "stamp" at the top of the letter
              card — keeps the editorial-letter feel while warming the
              card with a real image. */
-          <FadeInImage src={heroPhoto} style={{ marginInline: 'auto', marginBottom: 16, width: 96, height: 96, borderRadius: '50%', border: '3px solid var(--t-paper)', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} />
+          <EditPhotoTarget editable={editable} slot={{ kind: 'chapter', index: 0, label: 'the story photo', current: heroPhoto }} style={{ marginInline: 'auto', marginBottom: 16, width: 96, height: 96 }}>
+            {heroPhoto ? (
+              <FadeInImage src={heroPhoto} style={{ width: 96, height: 96, borderRadius: '50%', border: '3px solid var(--t-paper)', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} />
+            ) : (
+              <PhotoPlaceholder tone="warm" aspect="1/1" style={{ width: 96, height: 96, borderRadius: '50%' }} />
+            )}
+          </EditPhotoTarget>
         )}
         {editable && edit?.storyBody ? (
           <InlineEdit
@@ -4511,6 +4546,36 @@ function EditPhotoTarget({
         Change photo
       </span>
     </div>
+  );
+}
+
+/* ─── EditPhotoCorner — for full-bleed photo surfaces where a scrim +
+   centered text overlay sits ON TOP of the image, so a click-through
+   wrapper (EditPhotoTarget) can't catch the tap. Renders a floating
+   "Change photo" chip in the corner instead. Editable-only; same
+   `pearloom:open-photo` dispatch + slot contract. ──────────────── */
+function EditPhotoCorner({ editable, slot }: { editable: boolean; slot: CanvasPhotoSlotDetail }) {
+  if (!editable) return null;
+  const open = () => {
+    try { window.dispatchEvent(new CustomEvent('pearloom:open-photo', { detail: slot })); } catch { /* */ }
+  };
+  return (
+    <button
+      type="button"
+      title="Change photo"
+      onClick={(e) => { e.stopPropagation(); open(); }}
+      style={{
+        position: 'absolute', top: 14, right: 14, zIndex: 6,
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        padding: '7px 12px', borderRadius: 999, border: 'none',
+        background: 'rgba(20,14,8,0.62)', color: '#FBF7EE',
+        fontFamily: 'var(--pl-font-body, system-ui, sans-serif)', fontSize: 11.5, fontWeight: 700,
+        cursor: 'pointer', WebkitBackdropFilter: 'blur(4px)', backdropFilter: 'blur(4px)',
+      }}
+    >
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4.5 17.5 9 13l3 2.5L15.5 11l4.5 5"/></svg>
+      Change photo
+    </button>
   );
 }
 

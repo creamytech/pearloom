@@ -2,9 +2,9 @@
 // /dev/editor — dev-only harness for the redesign editor shell.
 //
 // Mounts EditorRedesign against the frozen REFERENCE_MANIFEST
-// fixture so the mobile chrome (bottom bar + sheets), the
-// one-Pear entry pill, and the desktop three-column grid can be
-// exercised without auth or a database. Autosave will POST to
+// fixture so the mobile chrome (bottom bar + sheets) and the
+// desktop three-column grid can be exercised without auth or a
+// database. Autosave will POST to
 // /api/sites and fail (no session / no DB) — the bridge's retry
 // + saveState machinery absorbs that ("Save failed" pill, no
 // thrown UI error), which is itself part of what this route

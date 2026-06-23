@@ -11,11 +11,9 @@
    thin bridge.
 
    Shape (prototype L1148-1257):
-     gridTemplateColumns: pearOpen ? '256px 1fr 360px 320px' : '256px 1fr 360px'
+     gridTemplateColumns: '256px 1fr 360px'   (left rail · canvas · property rail)
      gridTemplateRows: '56px 1fr'
-     gridTemplateAreas:
-       pearOpen → '"top top top top" "left canvas right pear"'
-       else     → '"top top top" "left canvas right"'
+     gridTemplateAreas: '"top top top" "left canvas right"'
 
    Mounted by /editor/[siteSlug]. Production state hooks (autosave, undo
    stack, publish flow) live in a bridge module — this file stays focused
@@ -26,12 +24,11 @@ import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useRef, useS
 import type { StoryManifest } from '@/types';
 import { getEventType } from '@/lib/event-os/event-types';
 import { readSiteMode, type SiteBlockKey } from '@/lib/site-mode';
-import { Icon, Pear } from '../motifs';
+import { Icon } from '../motifs';
 import { useEditorRedesignBridge } from './bridge';
 import { EditorRailLeft } from './SectionRail';
 import { PropertyRail } from './PropertyRail';
 import { ThemeRail } from './ThemeRail';
-import { FloatingPearBubble } from './FloatingPearBubble';
 import { EditorTopbar } from './EditorTopbar';
 import { FullSite } from './FullSite';
 import { ThemedSite } from './ThemedSite';
@@ -210,19 +207,13 @@ export default function EditorRedesign({
      Pages tab; ignored entirely in scroll mode. */
   const [canvasPage, setCanvasPage] = useState<'home' | SiteBlockKey | null>(null);
   const [hover, setHover] = useState<SectionId>(null);
-  const [pearOpen, setPearOpen] = useState(false);
-  const [pearPrefill, setPearPrefill] = useState<string>('');
-  /* One Pear at a time — while the BastedIn card is visible the
-     floating "Ask Pear" pill stays hidden so the host never sees
-     two Pear popups competing from opposite corners. */
-  const [bastedOpen, setBastedOpen] = useState(false);
 
   /* ── Viewport-mobile chrome ──────────────────────────────────
      viewportMobile (real phone-sized browser) is NOT the canvas's
      "Mobile" preview pill (mode === 'mobile'). Below 768px the
      three-column grid collapses: the canvas goes full-width and
      the rails re-mount inside bottom sheets driven by a fixed
-     bottom bar (Sections · Theme · Pear). Desktop behavior is
+     bottom bar (Sections · Theme). Desktop behavior is
      untouched — every mobile branch gates on this flag. */
   const viewportMobile = useMobileViewport();
   const [mobileSheet, setMobileSheet] = useState<MobileSheetId | null>(null);
@@ -250,15 +241,11 @@ export default function EditorRedesign({
     setJumpSheetPending(false);
     setMobileSheet('props');
   }
-  /* Crossing the breakpoint: hand the open Pear pane to the
-     matching chrome on the other side. Render-time adjustment
-     (the React-docs pattern, not an effect) — converges in one
-     extra render and never shows a frame with both chromes. */
-  if (viewportMobile && pearOpen) {
-    setPearOpen(false);
-    setMobileSheet('pear');
-  } else if (!viewportMobile && mobileSheet) {
-    if (mobileSheet === 'pear') setPearOpen(true);
+  /* Crossing the breakpoint to desktop: the rails live in columns,
+     not sheets, so close any open mobile sheet. Render-time
+     adjustment (the React-docs pattern, not an effect) — converges
+     in one extra render. */
+  if (!viewportMobile && mobileSheet) {
     setMobileSheet(null);
   }
 
@@ -303,19 +290,14 @@ export default function EditorRedesign({
     if (shouldPlayFirstPressing(siteSlug)) setPressing(true);
   }, [siteSlug]);
 
-  /* FloatingPearBubble + DesignAdvisor entry points fire window
-     events; the shell mounts one listener that owns the state. */
+  /* Deep surfaces (SharePanel writes, PublishChecklist jumps, the
+     topbar Theme button) fire window events; the shell mounts one
+     listener that owns the state. __plPearApply is the manifest-
+     apply hook SharePanel writes through. */
   useEffect(() => {
     if (typeof window === 'undefined') return;
     /* eslint-disable @typescript-eslint/no-explicit-any */
     (window as any).__plPearApply = (next: StoryManifest) => bridge.setManifest(next);
-    const onOpenPear = (e: Event) => {
-      const detail = (e as CustomEvent).detail as { prefill?: string } | undefined;
-      if (detail?.prefill) setPearPrefill(detail.prefill);
-      /* Phone → the Pear bottom sheet; desktop → 4th column. */
-      if (viewportMobileRef.current) setMobileSheet('pear');
-      else setPearOpen(true);
-    };
     /* design-jump — dispatched by PublishChecklist + GoLiveBadge +
        Pear advisor when something needs to flip the active panel
        (e.g. "Cover photo · jump to Hero"). detail.block carries a
@@ -334,28 +316,22 @@ export default function EditorRedesign({
       setActive(null);
       if (viewportMobileRef.current) setMobileSheet('theme');
     };
-    window.addEventListener('pearloom:open-pear', onOpenPear);
     window.addEventListener('pearloom:design-jump', onJump);
     window.addEventListener('pearloom:open-theme-rail', onOpenTheme);
     return () => {
-      window.removeEventListener('pearloom:open-pear', onOpenPear);
       window.removeEventListener('pearloom:design-jump', onJump);
       window.removeEventListener('pearloom:open-theme-rail', onOpenTheme);
       (window as any).__plPearApply = undefined;
     };
   }, [bridge]);
 
-  // Prototype L1148-1160 — four-pane grid shell. On phone-sized
+  // Prototype L1148-1160 — three-pane grid shell. On phone-sized
   // viewports the grid collapses to topbar + canvas; rails live
   // in bottom sheets instead of columns.
-  const gridColumns = viewportMobile
-    ? '1fr'
-    : pearOpen ? '256px 1fr 360px 320px' : '256px 1fr 360px';
+  const gridColumns = viewportMobile ? '1fr' : '256px 1fr 360px';
   const gridAreas = viewportMobile
     ? '"top" "canvas"'
-    : pearOpen
-      ? '"top top top top" "left canvas right pear"'
-      : '"top top top" "left canvas right"';
+    : '"top top top" "left canvas right"';
   /* Which sheet's content to render — falls back to the last open
      sheet while the exit slide plays so it doesn't empty mid-air. */
   const displaySheet = mobileSheet ?? lastSheet;
@@ -392,8 +368,6 @@ export default function EditorRedesign({
         onPublish={bridge.openPublish}
         canPublish={viewerRole === 'owner'}
         peers={peers}
-        pearOpen={pearOpen}
-        setPearOpen={setPearOpen}
         onOpenSettings={bridge.openSettings}
         displayNames={bridge.displayNames}
         compact={viewportMobile}
@@ -429,7 +403,6 @@ export default function EditorRedesign({
         siteSlug={siteSlug}
         onEditField={bridge.editField}
         onEditNames={bridge.setNames}
-        pearOpen={pearOpen || mobileSheet === 'pear' || bastedOpen}
         viewportMobile={viewportMobile}
         usePrototypeCanvas={false}
         canvasPage={canvasPage}
@@ -452,29 +425,16 @@ export default function EditorRedesign({
             />
       )}
 
-      {!viewportMobile && pearOpen && (
-        <PearAside
-          onClose={() => setPearOpen(false)}
-          manifest={bridge.manifest}
-          names={bridge.names}
-          siteSlug={siteSlug}
-          prefill={pearPrefill}
-          currentBlock={active ?? undefined}
-          onApplyPatch={(next) => bridge.setManifest(next)}
-        />
-      )}
-
       {/* ── Phone chrome — fixed bottom bar + bottom sheets. The
           bar mirrors the desktop rails: Sections (left rail),
-          Theme (theme rail), Pear (advisor). Activating a section
-          opens the PropertyRail sheet. Hidden in Preview mode,
-          matching how the desktop rails unmount there. */}
+          Theme (theme rail). Activating a section opens the
+          PropertyRail sheet. Hidden in Preview mode, matching how
+          the desktop rails unmount there. */}
       {viewportMobile && mode !== 'preview' && (
         <MobileBottomBar
           activeSheet={mobileSheet}
           onSections={() => setMobileSheet('sections')}
           onTheme={() => setMobileSheet('theme')}
-          onPear={() => setMobileSheet('pear')}
         />
       )}
       {viewportMobile && (
@@ -484,7 +444,7 @@ export default function EditorRedesign({
           /* Props + Theme are SEE-THROUGH half sheets — their whole
              point is watching the canvas repaint as you change
              things ("you can't see your changes till you put the
-             drawer away", 2026-06-12). Sections + Pear stay modal. */
+             drawer away", 2026-06-12). Sections stays modal. */
           seeThrough={displaySheet === 'props' || displaySheet === 'theme'}
           height={
             displaySheet === 'props' || displaySheet === 'theme'
@@ -494,7 +454,6 @@ export default function EditorRedesign({
           label={
             displaySheet === 'sections' ? 'Page sections'
               : displaySheet === 'theme' ? 'Theme'
-              : displaySheet === 'pear' ? 'Pear, your design advisor'
               : 'Edit section'
           }
         >
@@ -529,18 +488,6 @@ export default function EditorRedesign({
               siteSlug={siteSlug}
             />
           )}
-          {displaySheet === 'pear' && (
-            <PearAside
-              mobile
-              onClose={() => setMobileSheet(null)}
-              manifest={bridge.manifest}
-              names={bridge.names}
-              siteSlug={siteSlug}
-              prefill={pearPrefill}
-              currentBlock={active ?? undefined}
-              onApplyPatch={(next) => bridge.setManifest(next)}
-            />
-          )}
         </MobileSheet>
       )}
 
@@ -573,7 +520,6 @@ export default function EditorRedesign({
           manifest={bridge.manifest}
           siteSlug={siteSlug}
           onApply={(next) => bridge.editField(() => next)}
-          onOpenChange={setBastedOpen}
         />
       )}
 
@@ -590,11 +536,11 @@ export default function EditorRedesign({
 
 /* ─── Canvas ─── literal port of editor-redesign.jsx L236-312 ──────────
    The prototype wraps a 1100px (390px mobile) device frame on a cream-3
-   paper backdrop with a radial-grid dot pattern + FloatingPearBubble. */
+   paper backdrop with a radial-grid dot pattern. */
 
 function EditorCanvas({
   active, setActive, onSectionFocus, hover, setHover,
-  mode, manifest, names, siteSlug, onEditField, onEditNames, pearOpen,
+  mode, manifest, names, siteSlug, onEditField, onEditNames,
   viewportMobile = false,
   usePrototypeCanvas = false,
   canvasPage = null,
@@ -615,10 +561,6 @@ function EditorCanvas({
   siteSlug: string;
   onEditField: (patch: (m: StoryManifest) => StoryManifest) => void;
   onEditNames: (next: [string, string]) => void;
-  /** True when another Pear surface owns the screen (advisor
-   *  column, Pear bottom sheet, or the BastedIn card) — hides the
-   *  floating "Ask Pear" pill so only one Pear shows at a time. */
-  pearOpen: boolean;
   /** Real phone-sized browser viewport (NOT the Mobile preview
    *  pill). Canvas goes edge-to-edge, the device frame drops its
    *  chrome, and ThemedSite is forced into its mobile variants
@@ -833,17 +775,6 @@ function EditorCanvas({
         <EditorCanvasRsvpModal siteSlug={siteSlug} manifest={manifest} />
       </div>
 
-      {/* One Pear, one entry point — the pill only OPENS the
-          advisor (desktop column or mobile sheet, routed through
-          pearloom:open-pear). Its old nudge/chat UI moved into the
-          advisor itself. Hidden while the advisor is open so there
-          are never two Pears on screen (audit 2026-06-09). */}
-      {!isPreview && !pearOpen && (
-        <FloatingPearBubble
-          bottomOffset={viewportMobile ? 'calc(72px + env(safe-area-inset-bottom))' : 24}
-        />
-      )}
-
       {isPreview && (
         <div
           style={{
@@ -859,62 +790,6 @@ function EditorCanvas({
           Preview — chrome hidden
         </div>
       )}
-    </div>
-  );
-}
-
-/* ─── Pear aside (4th column) ──────────────────────────────────────── */
-
-function PearAside({
-  onClose, manifest, names, siteSlug, prefill, onApplyPatch, currentBlock, mobile = false,
-}: {
-  onClose: () => void;
-  manifest: StoryManifest;
-  names: [string, string];
-  siteSlug: string;
-  prefill?: string;
-  onApplyPatch: (next: StoryManifest) => void;
-  /** Section the host is editing — lets the advisor open with the
-   *  matching "Pear noticed…" nudge + answer "polish this". */
-  currentBlock?: string;
-  /** Mount inside the mobile bottom sheet instead of the 4th grid
-   *  column — drops the gridArea so the sheet's grid cell sizes it. */
-  mobile?: boolean;
-}) {
-  /* Lazy-load DesignAdvisor — 48 KB module. Renders as an inline
-     <aside> in the 4th grid column via inline={true}. */
-  // eslint-disable-next-line @typescript-eslint/no-require-imports -- deliberate lazy require, keeps the module out of the initial editor bundle
-  const DesignAdvisor = require('../editor/DesignAdvisor').DesignAdvisor as React.ComponentType<{
-    manifest: StoryManifest;
-    names: [string, string];
-    siteSlug: string;
-    open: boolean;
-    onClose: () => void;
-    onApplyPatch?: (next: StoryManifest) => void;
-    intent?: { pass: string; key: number } | null;
-    inline?: boolean;
-    currentBlock?: string;
-  }>;
-  return (
-    <div
-      style={
-        mobile
-          ? { minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }
-          : { gridArea: 'pear', minWidth: 0, display: 'flex', flexDirection: 'column' }
-      }
-    >
-      <DesignAdvisor
-        manifest={manifest}
-        names={names}
-        siteSlug={siteSlug}
-        open
-        onClose={onClose}
-        onApplyPatch={onApplyPatch}
-        // eslint-disable-next-line react-hooks/purity -- pre-dates this lint; the key only needs to differ per prefill instance and the advisor dedupes via lastIntentKeyRef
-        intent={prefill ? { pass: prefill, key: Date.now() } : null}
-        inline
-        currentBlock={currentBlock}
-      />
     </div>
   );
 }

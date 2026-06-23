@@ -20,8 +20,6 @@ interface Props {
   savedAt: string;
   saveState?: SaveState;
   onPublish: () => void;
-  pearOpen: boolean;
-  setPearOpen: (next: boolean) => void;
   onOpenSettings: () => void;
   displayNames: string;
   /** Manifest passed through to PublishChecklist so the pill can
@@ -39,7 +37,7 @@ interface Props {
   peers?: Array<{ key: string; name: string; email: string; color: string; avatar?: string | null; section?: string | null }>;
 }
 
-export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPublish, pearOpen, setPearOpen, onOpenSettings, displayNames, manifest, compact = false, canPublish = true, peers = [] }: Props) {
+export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPublish, onOpenSettings, displayNames, manifest, compact = false, canPublish = true, peers = [] }: Props) {
   const { data: session } = useSession();
   /* Profile pic was rendering initials from `displayNames` (the
      COUPLE'S names), so the avatar text changed on every keystroke
@@ -239,7 +237,7 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         </button>
       )}
 
-      {/* Right zone — save state · | · Ask Pear · Share · Publish · | · avatar.
+      {/* Right zone — save state · | · Share · Theme · Decor · Publish · | · avatar.
           Prototype L108-132. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 8 : 10 }}>
         {/* Realtime presence — one initial-dot per collaborator
@@ -392,19 +390,6 @@ export function EditorTopbar({ mode, setMode, savedAt, saveState = 'saved', onPu
         ) : (
           <>
         <div style={{ width: 1, height: 18, background: 'var(--line-soft)' }} />
-        <button
-          type="button"
-          onClick={() => setPearOpen(!pearOpen)}
-          className="btn btn-outline btn-sm"
-          style={{
-            background: pearOpen ? 'var(--peach-bg)' : 'var(--card)',
-            borderColor: pearOpen ? 'transparent' : 'var(--line)',
-            color: pearOpen ? 'var(--peach-ink)' : 'var(--ink)',
-          }}
-        >
-          <Pear size={14} tone="sage" shadow={false} />
-          Ask Pear
-        </button>
         <button
           type="button"
           className="btn btn-outline btn-sm"
