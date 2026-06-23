@@ -127,6 +127,9 @@ interface Guest {
   party: string;
   rsvp: RsvpKey;
   meal: string;
+  /** Clean dietary restriction text (separate from the merged note),
+   *  so the caterer summary can tally it. */
+  dietary: string;
   note: string;
   tags: string[];
   /** ISO timestamp the guest was invited (or imported). */
@@ -813,6 +816,7 @@ function shapeGuest(g: ApiGuest): Guest {
     party: g.plusOne ? `${g.name.split(' ')[0]} + 1${g.plusOneName ? ` (${g.plusOneName})` : ''}` : g.name,
     rsvp: status,
     meal: g.mealPreference || '—',
+    dietary: (g.dietaryRestrictions ?? '').trim(),
     note:
       (g.dietaryRestrictions ? `${g.dietaryRestrictions}. ` : '') + (g.message ?? ''),
     tags,
@@ -963,6 +967,34 @@ export function DashGuests() {
     const ids = new Set<string>();
     for (const grp of groups) for (const id of grp) ids.add(id);
     return ids;
+  }, [rows]);
+
+  /* Caterer summary — meal choices + dietary notes tallied across
+     everyone who's coming (the v2 "The count" sidebar). Real data
+     only; the panel hides when no one has picked a meal or flagged a
+     dietary need yet (honesty rule). */
+  const cater = useMemo(() => {
+    const meals = new Map<string, number>();
+    const diets = new Map<string, number>();
+    for (const g of rows ?? []) {
+      if (g.rsvp !== 'yes') continue;
+      if (g.meal && g.meal !== '—') meals.set(g.meal, (meals.get(g.meal) ?? 0) + 1);
+      if (g.dietary) {
+        // Split "tree nuts, shellfish" into individual flags.
+        for (const raw of g.dietary.split(/[,;·]/)) {
+          const d = raw.trim();
+          if (d) {
+            const key = d.charAt(0).toUpperCase() + d.slice(1);
+            diets.set(key, (diets.get(key) ?? 0) + 1);
+          }
+        }
+      }
+    }
+    const byCount = (a: [string, number], b: [string, number]) => b[1] - a[1];
+    return {
+      meals: [...meals.entries()].sort(byCount),
+      diets: [...diets.entries()].sort(byCount),
+    };
   }, [rows]);
 
   const filtered = useMemo(() => {
@@ -1250,6 +1282,43 @@ export function DashGuests() {
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {/* FOR THE CATERER — meal choices + dietary/allergy notes
+              tallied across everyone coming (the v2 "The count"
+              sidebar). Real data only; hidden until guests have
+              actually picked meals or flagged dietary needs. */}
+          {(cater.meals.length > 0 || cater.diets.length > 0) && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.6, padding: '0 4px' }}>
+                FOR THE CATERER
+              </div>
+              <Panel bg={PD.paperCard} style={{ padding: '14px 16px' }}>
+                {cater.meals.length > 0 && (
+                  <div>
+                    <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.7, marginBottom: 9 }}>MEALS CHOSEN</div>
+                    {cater.meals.map(([m, n]) => (
+                      <div key={m} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                        <span style={{ flex: 1, fontSize: 12.5, color: PD.ink }}>{m}</span>
+                        <span style={{ ...MONO_STYLE, fontSize: 12, opacity: 1, color: PD.ink }}>{n}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {cater.diets.length > 0 && (
+                  <div style={{ marginTop: cater.meals.length > 0 ? 13 : 0 }}>
+                    <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.7, marginBottom: 9 }}>DIETARY &amp; ALLERGIES</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {cater.diets.map(([d, n]) => (
+                        <span key={d} style={{ fontSize: 11.5, padding: '3px 9px', borderRadius: 999, background: 'var(--pl-plum-mist, #EFE2E6)', color: 'var(--pl-plum, #7A2D40)' }}>
+                          {d}{n > 1 ? ` · ${n}` : ''}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </Panel>
             </div>
           )}
 
