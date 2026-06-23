@@ -1588,6 +1588,31 @@ hr.divider { border: 0; height: 1px; background: var(--line-soft); margin: 24px 
 @keyframes pl-nav-beat    { 0%,100% { transform: scale(1); } 30% { transform: scale(1.22); } 55% { transform: scale(0.96); } 75% { transform: scale(1.1); } }
 @keyframes pl-nav-spin    { 0% { transform: rotate(0); } 100% { transform: rotate(180deg); } }
 
+/* ═══════════════════════════════════════════════════════════════
+   EDITOR CANVAS — click-to-edit photo squares (v2). Each photo
+   surface in the editable ThemedSite wraps in .pl-photo-edit; on
+   hover it lifts a "Change photo" hint and rings the square, so the
+   host knows any photo is a one-tap swap (→ the gallery drawer).
+   Published sites never carry .pl-photo-edit (editable=false).
+   ═══════════════════════════════════════════════════════════════ */
+.pl-photo-edit { position: relative; border-radius: 8px; transition: outline-color .14s ease; outline: 2px solid transparent; outline-offset: 2px; }
+.pl-photo-edit:hover, .pl-photo-edit:focus-visible { outline-color: var(--pl-olive, #5C6B3F); }
+.pl-photo-edit > .pl-photo-edit-hint {
+  position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%) translateY(4px);
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 999px;
+  background: rgba(20,14,8,0.72); color: #FBF7EE;
+  font-family: var(--pl-font-body, system-ui, sans-serif); font-size: 11.5px; font-weight: 700; white-space: nowrap;
+  opacity: 0; pointer-events: none; z-index: 5;
+  transition: opacity .16s ease, transform .16s ease;
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+.pl-photo-edit:hover > .pl-photo-edit-hint,
+.pl-photo-edit:focus-visible > .pl-photo-edit-hint { opacity: 1; transform: translateX(-50%) translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  .pl-photo-edit > .pl-photo-edit-hint { transition: opacity .16s ease; transform: translateX(-50%); }
+}
+
 /* Editor outline + inspector — same elegant scrollbar treatment.
    Default Windows scrollbars are 17px chunky and visually clash
    with the editor's understated chrome. macOS auto-hides theirs

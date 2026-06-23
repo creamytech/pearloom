@@ -1598,13 +1598,15 @@ function HeroSplit({ ctx }: { ctx: SectionCtx }) {
         </div>
       </div>
       <div style={{ position: 'relative' }}>
-        {ctx.coverPhoto ? (
-          /* Real cover photo from manifest.coverPhoto wins over the
-             tone placeholder when the host has uploaded one. */
-          <FadeInImage src={ctx.coverPhoto} eager style={{ aspectRatio: '3/4', borderRadius: 'var(--t-radius)' }} />
-        ) : (
-          <PhotoPlaceholder tone="warm" aspect="3/4" style={{ borderRadius: 'var(--t-radius)' }} />
-        )}
+        <EditPhotoTarget editable={ctx.editable} slot={{ kind: 'cover', label: 'the cover', current: ctx.coverPhoto }}>
+          {ctx.coverPhoto ? (
+            /* Real cover photo from manifest.coverPhoto wins over the
+               tone placeholder when the host has uploaded one. */
+            <FadeInImage src={ctx.coverPhoto} eager style={{ aspectRatio: '3/4', borderRadius: 'var(--t-radius)' }} />
+          ) : (
+            <PhotoPlaceholder tone="warm" aspect="3/4" style={{ borderRadius: 'var(--t-radius)' }} />
+          )}
+        </EditPhotoTarget>
       </div>
     </div>
   );
@@ -1726,8 +1728,14 @@ function HeroPostcard({ ctx }: { ctx: SectionCtx }) {
           {/* The postcard's photograph — the host's cover photo
               inside the frame (it previously ignored photos and
               rendered as a bare card on a tinted mat). */}
-          {ctx.coverPhoto && (
-            <FadeInImage src={ctx.coverPhoto} eager style={{ aspectRatio: '16/10', borderRadius: 'calc(var(--t-radius) * 0.75)', marginBottom: 18 }} />
+          {(ctx.coverPhoto || editable) && (
+            <EditPhotoTarget editable={editable} slot={{ kind: 'cover', label: 'the cover', current: ctx.coverPhoto }} style={{ marginBottom: 18 }}>
+              {ctx.coverPhoto ? (
+                <FadeInImage src={ctx.coverPhoto} eager style={{ aspectRatio: '16/10', borderRadius: 'calc(var(--t-radius) * 0.75)' }} />
+              ) : (
+                <PhotoPlaceholder tone="warm" aspect="16/10" style={{ borderRadius: 'calc(var(--t-radius) * 0.75)' }} />
+              )}
+            </EditPhotoTarget>
           )}
           <InlineEdit as="div" value={C.lead} onChange={edit?.copy ? (v) => edit.copy?.('heroLead', v) : undefined} editable={editable && !!edit?.copy} placeholder="A small forever" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 'var(--t-eyebrow-ls)', textTransform: 'uppercase', color: 'color-mix(in oklab, var(--t-accent-ink) 65%, var(--t-ink) 35%)', marginBottom: 8 }} />
           {(C.tagline || editable) && (
@@ -2758,14 +2766,20 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
               const caption = galleryC.captions?.[i];
               return (
                 <div key={i}>
-                  <div
-                    onClick={!editable ? () => setLightbox({ photos: galleryC.photos ?? [], captions: galleryC.captions, index: i }) : undefined}
-                    style={{ cursor: !editable ? 'zoom-in' : 'default' }}
-                    role={!editable ? 'button' : undefined}
-                    aria-label={!editable ? 'Open photo' : undefined}
-                  >
-                    <FadeInImage src={url} style={{ aspectRatio: '1/1', borderRadius: 8 }} />
-                  </div>
+                  {editable ? (
+                    <EditPhotoTarget editable slot={{ kind: 'gallery', index: i, label: 'this tile', current: url }}>
+                      <FadeInImage src={url} style={{ aspectRatio: '1/1', borderRadius: 8 }} />
+                    </EditPhotoTarget>
+                  ) : (
+                    <div
+                      onClick={() => setLightbox({ photos: galleryC.photos ?? [], captions: galleryC.captions, index: i })}
+                      style={{ cursor: 'zoom-in' }}
+                      role="button"
+                      aria-label="Open photo"
+                    >
+                      <FadeInImage src={url} style={{ aspectRatio: '1/1', borderRadius: 8 }} />
+                    </div>
+                  )}
                   {editable && ctx.edit?.galleryCaption ? (
                     <InlineEdit
                       as="div"
@@ -2783,8 +2797,26 @@ function GalleryBlock({ ctx }: { ctx: SectionCtx }) {
               );
             })
           : C.gallery.tones.map((t, i) => (
-              <PhotoPlaceholder key={i} tone={t} aspect="1/1" style={{ borderRadius: 8 }} />
+              editable ? (
+                <EditPhotoTarget key={i} editable slot={{ kind: 'gallery', index: i, label: 'this tile' }}>
+                  <PhotoPlaceholder tone={t} aspect="1/1" style={{ borderRadius: 8 }} />
+                </EditPhotoTarget>
+              ) : (
+                <PhotoPlaceholder key={i} tone={t} aspect="1/1" style={{ borderRadius: 8 }} />
+              )
             ))}
+        {/* v2 — a trailing "add a photo" square in edit mode so the
+            host can grow the gallery straight from the canvas. */}
+        {editable && (galleryC.photos?.length ?? 0) > 0 && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); try { window.dispatchEvent(new CustomEvent('pearloom:open-photo', { detail: { kind: 'gallery', index: galleryC.photos?.length ?? 0, label: 'a new tile' } })); } catch { /* */ } }}
+            style={{ aspectRatio: '1/1', borderRadius: 8, border: '1.5px dashed var(--t-line)', background: 'transparent', color: 'var(--t-ink-soft)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+          >
+            <span style={{ fontSize: 24, lineHeight: 1, fontWeight: 300 }}>+</span>
+            <span style={{ fontSize: 11, fontWeight: 700 }}>Add a photo</span>
+          </button>
+        )}
       </div>
       <PhotoLightbox state={lightbox} onClose={() => setLightbox(null)} />
     </div>
@@ -4430,6 +4462,55 @@ function Star({ size, fill }: { size: number; fill: number }) {
         </svg>
       )}
     </span>
+  );
+}
+
+/* ─── EditPhotoTarget — v2 canvas photo editing. When editable,
+   wraps a photo surface so clicking it opens the canvas gallery
+   drawer (EditorRedesign listens for `pearloom:open-photo`). A hover
+   hint names the action. On the published site (editable=false) it's
+   a pure passthrough — no overlay, no listener. ─────────────────── */
+
+interface CanvasPhotoSlotDetail {
+  kind: 'cover' | 'gallery' | 'chapter';
+  index?: number;
+  label?: string;
+  current?: string | null;
+}
+
+function EditPhotoTarget({
+  editable, slot, children, style,
+}: {
+  editable: boolean;
+  slot: CanvasPhotoSlotDetail;
+  children: ReactNode;
+  style?: CSSProperties;
+}) {
+  if (!editable) return <>{children}</>;
+  return (
+    <div
+      className="pl-photo-edit"
+      role="button"
+      tabIndex={0}
+      title="Change photo"
+      onClick={(e) => {
+        e.stopPropagation();
+        try { window.dispatchEvent(new CustomEvent('pearloom:open-photo', { detail: slot })); } catch { /* */ }
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          try { window.dispatchEvent(new CustomEvent('pearloom:open-photo', { detail: slot })); } catch { /* */ }
+        }
+      }}
+      style={{ position: 'relative', cursor: 'pointer', ...style }}
+    >
+      {children}
+      <span aria-hidden className="pl-photo-edit-hint">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4.5 17.5 9 13l3 2.5L15.5 11l4.5 5"/></svg>
+        Change photo
+      </span>
+    </div>
   );
 }
 

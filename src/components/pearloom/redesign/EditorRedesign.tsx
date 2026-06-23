@@ -35,6 +35,7 @@ import { FloatingPearBubble } from './FloatingPearBubble';
 import { EditorTopbar } from './EditorTopbar';
 import { FullSite } from './FullSite';
 import { ThemedSite } from './ThemedSite';
+import { CanvasPhotoDrawer, type PhotoSlot } from './CanvasPhotoDrawer';
 import { EditorDrawers } from './EditorDrawers';
 import { PearLoomFx } from './PearLoomFx';
 import { FittingRoom } from './FittingRoom';
@@ -633,6 +634,49 @@ function EditorCanvas({
      their own phone's layout. */
   const isMobile = mode === 'mobile' || viewportMobile;
   const isPreview = mode === 'preview';
+
+  /* Canvas photo drawer (v2) — clicking a photo square on the canvas
+     dispatches `pearloom:open-photo` with a PhotoSlot; we open the
+     bottom gallery tray and write the picked URL back to the manifest
+     field that slot names. Edit mode only. */
+  const [photoSlot, setPhotoSlot] = useState<PhotoSlot | null>(null);
+  useEffect(() => {
+    if (isPreview) return;
+    const onOpen = (e: Event) => {
+      const detail = (e as CustomEvent).detail as PhotoSlot | undefined;
+      if (detail && detail.kind) setPhotoSlot(detail);
+    };
+    window.addEventListener('pearloom:open-photo', onOpen as EventListener);
+    return () => window.removeEventListener('pearloom:open-photo', onOpen as EventListener);
+  }, [isPreview]);
+  const writePhoto = (url: string | null) => {
+    const s = photoSlot;
+    if (!s) return;
+    onEditField((m) => {
+      const loose = m as unknown as Record<string, unknown>;
+      if (s.kind === 'cover') {
+        return { ...loose, coverPhoto: url || undefined } as unknown as StoryManifest;
+      }
+      if (s.kind === 'gallery' && typeof s.index === 'number') {
+        const arr = Array.isArray(loose.galleryImages) ? [...(loose.galleryImages as string[])] : [];
+        if (url) arr[s.index] = url;
+        else arr.splice(s.index, 1);
+        return { ...loose, galleryImages: arr } as unknown as StoryManifest;
+      }
+      if (s.kind === 'chapter' && typeof s.index === 'number') {
+        const chapters = Array.isArray(loose.chapters) ? [...(loose.chapters as Record<string, unknown>[])] : [];
+        const ch = { ...(chapters[s.index] ?? {}) };
+        const imgs = Array.isArray(ch.images) ? [...(ch.images as Record<string, unknown>[])] : [];
+        if (url) imgs[0] = { ...(imgs[0] ?? {}), url };
+        else imgs.shift();
+        ch.images = imgs;
+        ch.heroImage = url || undefined;
+        chapters[s.index] = ch;
+        return { ...loose, chapters } as unknown as StoryManifest;
+      }
+      return m;
+    });
+  };
   /* Keystroke responsiveness — every panel input writes a fresh
      manifest object, and the 4,400-line ThemedSite tree re-renders
      on each one. useDeferredValue lets React commit the cheap panel
@@ -766,6 +810,18 @@ function EditorCanvas({
           forceMobile={isMobile}
           onApply={(next) => onEditField(() => next)}
         />
+        {/* Canvas photo drawer — the v2 "press a square → your gallery"
+            tray. Writes the picked/uploaded URL to the slot's manifest
+            field, then closes. */}
+        {!isPreview && (
+          <CanvasPhotoDrawer
+            slot={photoSlot}
+            manifest={manifest}
+            onPick={(url) => { writePhoto(url); setPhotoSlot(null); }}
+            onClear={() => { writePhoto(null); setPhotoSlot(null); }}
+            onClose={() => setPhotoSlot(null)}
+          />
+        )}
         {/* GuestRsvpModal mount — same modal PublishedSiteShell
             shows guests, so the host can TEST the real RSVP flow.
             Mounted in ALL modes: in Edit, the canvas CTA selects
