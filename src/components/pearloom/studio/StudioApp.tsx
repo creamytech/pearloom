@@ -32,6 +32,7 @@ import { useStudioState } from './useStudioState';
 import { CardFront, CardBack, CardEnvelope } from './StudioCard';
 import { StudioTopbar, DraftsRail, RemixRail } from './StudioRails';
 import { StudioMobileBar, useViewportSize, type StudioSheetId } from './StudioMobileChrome';
+import { StudioLanding } from './StudioLanding';
 import { MobileSheet } from '../redesign/MobileSheet';
 import { useMobileViewport } from '../redesign/use-mobile-viewport';
 import { StudioSendOverlay } from './StudioSendOverlay';
@@ -118,6 +119,17 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
 
   const { state, setField, setMany, savedAt, saving, saveError, retrySave } = useStudioState({ siteSlug, manifest });
   const [aiBusy, setAiBusy] = useState(false);
+  // The v2 "Design the invitation" welcome (studio.png). Shown once
+  // per site on first open; picking a stationery type sets it and
+  // opens the editor. Returning hosts skip straight to the editor.
+  const [showLanding, setShowLanding] = useState<boolean>(() => {
+    try { return !localStorage.getItem(`pl-studio-entered-${siteSlug}`); } catch { return false; }
+  });
+  const enterStudio = (t: StationeryType) => {
+    setField('type', t);
+    try { localStorage.setItem(`pl-studio-entered-${siteSlug}`, '1'); } catch { /* private mode — just proceed */ }
+    setShowLanding(false);
+  };
   // Print-pair overlay — card front + matching envelope, side by
   // side, drawn from the same palette + motif as the canvas. The
   // prototype's stationery.jsx surfaces this as the entire page;
@@ -520,6 +532,11 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
       },
     });
     setShowProofSheet(false);
+  }
+
+  // First open per site → the welcoming "Design the invitation" entry.
+  if (showLanding) {
+    return <StudioLanding onPick={enterStudio} />;
   }
 
   return (
