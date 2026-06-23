@@ -7,18 +7,16 @@
    Eyebrow + title + hide/more icons + Content/Layout/Style sub-tabs +
    body (SectionEditor + Pear assist card). */
 
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { StoryManifest } from '@/types';
 import { Icon, Pear } from '../motifs';
 import type { SectionId } from './EditorRedesign';
-import { LAYOUTS, readVariant, type LayoutVariant } from './layouts';
-import { VariantGlyph } from './variant-glyphs';
-import { getTheme } from '../site/themes';
 import { pearErrorMessage } from './PearAssist';
 import { fireUndoable } from './UndoToast';
 import { pearWorking } from './PearLoomFx';
 import { showPressings, type Pressing } from './ThreePressings';
 import { useMobileViewport } from './use-mobile-viewport';
+import { ThemePickerBody } from './ThemePickerBody';
 
 /* useSectionHidden — read/write manifest.hiddenSections from
    inside the rail. Mirrors the same hook in _section-atoms.tsx
@@ -193,34 +191,62 @@ const SECTIONS: Record<Exclude<SectionId, null>, SectionInfo> = {
 };
 
 interface Props {
-  active: Exclude<SectionId, null>;
+  /** The selected canvas section / tool panel, or null when nothing
+   *  is selected — in which case the Content tab shows a "Pick a
+   *  section" empty state while Design + Motion stay available. */
+  active: SectionId;
   setActive: (id: SectionId) => void;
   manifest: StoryManifest;
   onChange: (next: StoryManifest) => void;
   /** Threaded through for tool panels (Guests, Save-the-date,
    *  Share, Day-of) that fetch live data via the public API. */
   siteSlug?: string;
+  /** Opens the global Theme Shop / Decor drawers — the Design tab's
+   *  CTAs (the v2 rail folds the whole site look in here). */
+  onOpenShop?: () => void;
+  onOpenDecor?: () => void;
 }
 
-export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }: Props) {
+export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, onOpenShop, onOpenDecor }: Props) {
   /* True when mounted inside the phone bottom sheet (the desktop
      grid only renders this rail above the breakpoint). */
   const isMobileViewport = useMobileViewport();
-  const section = SECTIONS[active];
-  const [tab, setTab] = useState<'content' | 'layout' | 'style'>('content');
+  const section = active ? SECTIONS[active] : null;
+  const [tab, setTab] = useState<'content' | 'design' | 'motion'>('content');
   /* Tool panels (Guests / Share / Day-of / etc.) are host-only
-     workspaces — they don't render a canvas section, so Layout +
-     Style tabs would be meaningless there. Hide the tab strip
-     and force content-mode on tools. */
+     workspaces — they don't render a canvas section, so the global
+     Design + Motion tabs would be confusing there. Force content-
+     mode on tools (the tab strip still shows, but tool panels stay
+     on their own workspace). */
   const TOOL_PANEL_KEYS = ['guests', 'savetheDate', 'share', 'cohost', 'dayof', 'memorial', 'bachelor', 'toasts'] as const;
-  const isToolPanel = (TOOL_PANEL_KEYS as readonly string[]).includes(active);
+  const isToolPanel = active != null && (TOOL_PANEL_KEYS as readonly string[]).includes(active);
   const effectiveTab = isToolPanel ? 'content' : tab;
+
+  /* Selecting a section jumps the rail to Content (v2 editor.jsx
+     onSelect → setTab('content')); deselecting leaves the tab where
+     it is so Design / Motion stay put. Render-time adjustment (React
+     docs "store info from prior renders") — not an effect, converges
+     in one extra render. */
+  const [prevActive, setPrevActive] = useState(active);
+  if (active !== prevActive) {
+    setPrevActive(active);
+    if (active != null) setTab('content');
+  }
+
+  /* The topbar Theme button + any "open the look" deep link flips
+     the rail to its Design tab (the v2 rail folds the whole site
+     look in here, so there's no separate theme rail to open). */
+  useEffect(() => {
+    const toDesign = () => setTab('design');
+    window.addEventListener('pearloom:open-theme-rail', toDesign);
+    return () => window.removeEventListener('pearloom:open-theme-rail', toDesign);
+  }, []);
   const [pearBusy, setPearBusy] = useState<string | null>(null);
   const [pearErr, setPearErr] = useState<string | null>(null);
   /* Hero is the one section that can never be hidden — a site
      without a hero is broken. Disable the eye-off button there. */
-  const canHide = active !== 'hero';
-  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, active);
+  const canHide = active != null && active !== 'hero';
+  const [isHidden, setHidden] = useSectionHidden(manifest, onChange, active ?? '');
 
   /* TRY-ANYTHING-SAFELY — hiding a section is destructive enough to
      deserve a way back, but never an "are you sure?" gate. Hide
@@ -236,7 +262,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
     onChangeRef.current = onChange;
   }, [manifest, onChange]);
   const toggleHidden = () => {
-    if (!canHide) return;
+    if (!canHide || active == null || !section) return;
     if (isHidden) { setHidden(false); return; }
     const sectionId = active;
     const label = section.label;
@@ -268,6 +294,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
      the editor + canvas both read. The options popover surfaces
      "Move up" / "Move down" using these. */
   function moveSection(direction: -1 | 1) {
+    if (active == null) return;
     const loose = manifest as unknown as Record<string, unknown>;
     const coreReorderable = ['story', 'details', 'schedule', 'travel', 'registry', 'gallery', 'rsvp', 'faq'];
     const optionalReorderable = [
@@ -312,6 +339,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
      value + tone context, then patch the manifest with the rewrite. */
   async function runSuggestion(label: string) {
     setPearErr(null);
+    if (active == null) return;
     if (/3 styles/i.test(label)) { void runPressings(label); return; }
     const target = rewriteTarget(active, label);
     /* Defensive: pearSuggestions() only ever offers chips that map to
@@ -357,6 +385,7 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
      laid out as live miniatures (ThreePressings). The pick drapes
      in the Fitting Room; nothing applies until Keep. */
   async function runPressings(label: string) {
+    if (active == null) return;
     const target = rewriteTarget(active, label);
     if (!target) return;
     const current = readPath(manifest, target.fieldPath);
@@ -402,9 +431,22 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
     }
   }
 
+  /* Contextual header — the v2 inspector keeps Content · Design ·
+     Motion tabs always present; only Content is per-section, so the
+     eyebrow / title / blurb adapt to the active tab. */
+  const headEyebrow = effectiveTab === 'content'
+    ? (section ? 'Editing section' : 'Your site')
+    : effectiveTab === 'design' ? 'Site look' : '✦ Atelier';
+  const headTitle = effectiveTab === 'content'
+    ? (section ? section.label : 'Pick a section')
+    : effectiveTab === 'design' ? 'Design' : 'Motion';
+  const headDesc = effectiveTab === 'content'
+    ? (section ? (liveSectionDesc(section.id, manifest) ?? section.desc) : 'Click any section on the canvas — or in the list on the left — to edit it.')
+    : effectiveTab === 'design' ? 'Theme, type, texture & navigation — for the whole site.'
+    : 'Living finishes that bring your site to life.';
+
   return (
     <aside
-      key={active}
       className="pl-rd-rail-right"
       style={{
         /* Desktop grid placement only — inside the phone bottom
@@ -423,12 +465,13 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
       {/* Header — prototype L684-694. */}
       <div style={{ padding: '16px 20px 10px', borderBottom: '1px solid var(--line-soft)' }}>
         <div className="eyebrow" style={{ color: 'var(--peach-ink)', marginBottom: 4, fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-          Editing section
+          {headEyebrow}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h3 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, margin: 0, fontWeight: 600, color: 'var(--lavender-ink)' }}>
-            {section.label}
+            {headTitle}
           </h3>
+          {effectiveTab === 'content' && section && (
           <div style={{ display: 'flex', gap: 6, position: 'relative' }} ref={optionsWrapRef}>
             <button
               type="button"
@@ -519,12 +562,13 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
               </div>
             )}
           </div>
+          )}
         </div>
-        <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 4 }}>{liveSectionDesc(section.id, manifest) ?? section.desc}</div>
+        <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 4 }}>{headDesc}</div>
 
-        {/* Tabs — Content / Layout / Style. Hidden on tool panels
-            (Guests / Share / Day-of / etc.) since they aren't
-            canvas sections with layout + style overrides. */}
+        {/* Tabs — Content · Design · ✦ Motion (the v2 inspector).
+            Hidden on tool panels (Guests / Share / Day-of / etc.)
+            which own the whole rail with their own workspace. */}
         {!isToolPanel && (
         <div
           style={{
@@ -538,8 +582,8 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
         >
           {([
             { id: 'content', label: 'Content', icon: 'text' },
-            { id: 'layout', label: 'Layout', icon: 'layout' },
-            { id: 'style', label: 'Style', icon: 'palette' },
+            { id: 'design', label: 'Design', icon: 'palette' },
+            { id: 'motion', label: '✦ Motion', icon: 'sparkles' },
           ] as const).map((t) => {
             const on = tab === t.id;
             return (
@@ -581,7 +625,18 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
       <div
         key={tab}
         className="pl-rd-tab-body"
-        style={{ flex: 1, overflow: 'auto', minHeight: 0, padding: 20, display: 'flex', flexDirection: 'column', gap: 18 }}
+        style={{
+          flex: 1,
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          /* Content owns its padding + scroll; Design / Motion render
+             ThemePickerBody, which brings its own flex:1 overflow:auto
+             padded container — so the wrapper gets out of its way. */
+          overflow: effectiveTab === 'content' ? 'auto' : 'hidden',
+          padding: effectiveTab === 'content' ? 20 : 0,
+          gap: effectiveTab === 'content' ? 18 : 0,
+        }}
       >
         {/* RSVP "Preview as a guest" — fires the same `pl-open-rsvp`
             window event every published-site RSVP CTA dispatches.
@@ -602,94 +657,51 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug }
           </button>
         )}
 
-        {effectiveTab === 'content' && renderSectionEditor(active, manifest, onChange, siteSlug)}
+        {effectiveTab === 'content' && active && renderSectionEditor(active, manifest, onChange, siteSlug)}
 
-        {effectiveTab === 'layout' && (() => {
-          /* Site nav has two independent variant axes — the desktop
-             bar (manifest.layouts.nav) and the mobile drawer
-             (manifest.layouts.navMobile). Render both pickers stacked
-             so a host can pick one of each in one place. */
-          if (active === 'nav') {
-            return (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                <LayoutPickerGroup
-                  manifest={manifest}
-                  onChange={onChange}
-                  section="nav"
-                  heading="Desktop menu"
-                  sub="Shown at tablet width and up."
-                />
-                <LayoutPickerGroup
-                  manifest={manifest}
-                  onChange={onChange}
-                  section="navMobile"
-                  heading="Phone menu"
-                  sub="Shown on phones — pick the open/close motion."
-                />
-              </div>
-            );
-          }
-          const variants = LAYOUTS[active];
-          if (!variants) {
-            return (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>
-                  {section.label} layout
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.5 }}>
-                  This section has one refined layout in every theme. Try a different theme
-                  pack for a fresh treatment.
-                </div>
-              </div>
-            );
-          }
-          return (
-            <LayoutPickerGroup
-              manifest={manifest}
-              onChange={onChange}
-              section={active}
-              heading={`${section.label} layout`}
-            />
-          );
-        })()}
+        {/* Layout is NOT a rail control — it lives inline on the
+            canvas (the floating "Layout" bar over the selected
+            section, ThemedSite's InlineLayoutBar). */}
 
-        {/* STYLE TAB — deliberately ships NO per-section override
-            controls. Audited 2026-06-10 against redesign/ThemedSite:
-            the renderer has zero per-section style read-paths —
-            backgrounds are hardcoded per variant (var(--t-section) /
-            var(--t-paper) inline), vertical padding is one GLOBAL
-            density multiplier (manifest.density → ctx.pad), and
-            section-head dividers are per-call-site constants
-            (TSectionHead divider='sprig' + global dividerLook).
-            The legacy manifest.blockStyles[*] shape (13 fields) is
-            only consumed by site/ThemedSiteRenderer's
-            BlockStyleWrapper — never by redesign/ThemedSite, which
-            is what BOTH the canvas and PublishedSiteShell mount.
-            Shipping paper-tint / padding-scale / divider toggles
-            here would be write-only orphans the guest never sees.
-            When ThemedSite grows a per-section style read (e.g.
-            manifest.sectionStyles[id]), add the controls then. */}
-        {effectiveTab === 'style' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>Styling is theme-wide</div>
-            <p style={{ margin: 0 }}>
-              Colors, type, texture and component looks come from your <b>theme pack</b> so
-              every section stays consistent.
-            </p>
-            <button
-              type="button"
-              onClick={() => setActive(null)}
-              className="btn btn-outline btn-sm"
-              style={{ justifyContent: 'center' }}
-            >
-              <Icon name="palette" size={13} /> Open theme packs
-            </button>
+        {/* Empty Content state — nothing selected. Design + Motion
+            stay available in their own tabs. */}
+        {effectiveTab === 'content' && !active && (
+          <div style={{ textAlign: 'center', padding: '34px 12px', color: 'var(--ink-muted)' }}>
+            <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>
+              <Pear size={30} tone="sage" shadow={false} />
+            </div>
+            <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 18, color: 'var(--ink)', marginBottom: 6 }}>Pick a section</div>
+            <div style={{ fontSize: 12.5, lineHeight: 1.5 }}>Click any section on the canvas, or in the list on the left, to edit its content.</div>
           </div>
+        )}
+
+        {/* DESIGN TAB — the whole site look: theme · type · texture ·
+            kit · navigation · footer · decor. The v2 inspector folds
+            the former standalone theme rail in here. */}
+        {effectiveTab === 'design' && (
+          <ThemePickerBody
+            manifest={manifest}
+            onChange={onChange}
+            onOpenShop={onOpenShop ?? (() => {})}
+            onOpenDecor={onOpenDecor ?? (() => {})}
+            motion="hidden"
+          />
+        )}
+
+        {/* MOTION TAB — Atelier living finishes (the 8 animated kits). */}
+        {effectiveTab === 'motion' && (
+          <ThemePickerBody
+            manifest={manifest}
+            onChange={onChange}
+            onOpenShop={onOpenShop ?? (() => {})}
+            onOpenDecor={onOpenDecor ?? (() => {})}
+            motion="only"
+          />
         )}
 
         {/* Pear assist — prototype L758-789. Only shown where Pear
             has a real inline action (see pearSuggestions). */}
-        {effectiveTab === 'content' && !isToolPanel && pearSuggestions(active).length > 0 && (
+        {effectiveTab === 'content' && active && !isToolPanel && pearSuggestions(active).length > 0 && (
           <div style={{ padding: 14, background: 'var(--peach-bg)', borderRadius: 12, marginTop: 6 }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
               <Pear size={22} tone="sage" sparkle shadow={false} />
@@ -761,110 +773,6 @@ function pearSuggestions(active: Exclude<SectionId, null>): string[] {
     default:
       return [];
   }
-}
-
-/* ─── LayoutPickerGroup — one labelled stack of VariantTiles.
-   Renders the section's heading + (optional) sub copy + a column of
-   tiles. Click on a tile writes manifest.layouts[section] = tile.id
-   via onChange. Used twice on the nav section (desktop + mobile);
-   once everywhere else. */
-function LayoutPickerGroup({
-  manifest,
-  onChange,
-  section,
-  heading,
-  sub,
-}: {
-  manifest: StoryManifest;
-  onChange: (next: StoryManifest) => void;
-  section: Exclude<SectionId, null>;
-  heading: string;
-  sub?: string;
-}) {
-  const variants = LAYOUTS[section];
-  const current = readVariant(manifest, section);
-  const pick = (id: string) => onChange({
-    ...(manifest as unknown as Record<string, unknown>),
-    layouts: {
-      ...((manifest as unknown as { layouts?: Record<string, string> }).layouts ?? {}),
-      [section]: id,
-    },
-  } as unknown as StoryManifest);
-  /* LIVE-THEME variant previews — resolve the same theme-var bag
-     ThemedSite paints on the canvas root (base theme by id, then
-     the Theme Store pack's manifest.themeVars override) and scope
-     it onto the tile column. Every <VariantGlyph /> sketch inside
-     reads var(--t-accent) / var(--t-gold) / var(--t-line) /
-     var(--t-paper) / currentColor(--t-ink), so the previews
-     re-color the moment the host switches theme or applies a
-     pack — no static editor-chrome greys. */
-  const themeId = ((manifest as unknown as { themeId?: string }).themeId)
-    ?? ((manifest as unknown as { theme?: { id?: string } }).theme?.id);
-  const themeVarsOverride = (manifest as unknown as { themeVars?: Record<string, string> }).themeVars;
-  const liveThemeVars = {
-    ...getTheme(themeId).vars,
-    ...(themeVarsOverride ?? {}),
-  } as unknown as CSSProperties;
-  if (!variants) return null;
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <div>
-        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{heading}</div>
-        {sub && (
-          <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 2, lineHeight: 1.5 }}>
-            {sub}
-          </div>
-        )}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, ...liveThemeVars }}>
-        {variants.map((v) => (
-          <VariantTile
-            key={v.id}
-            variant={v}
-            section={section}
-            on={v.id === current}
-            onPick={() => pick(v.id)}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ─── VariantTile — handoff editor-redesign.jsx L725-739, upgraded.
-   A row-per-variant with a THEME-AWARE mini-preview (VariantGlyph,
-   see variant-glyphs.tsx) + label + check indicator when active.
-   The tile chrome (background / border / labels) stays editor
-   tokens; only the glyph inside previews in the live site theme. */
-
-function VariantTile({ variant, section, on, onPick }: { variant: LayoutVariant; section: Exclude<SectionId, null>; on: boolean; onPick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onPick}
-      className="lift"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '10px 12px',
-        borderRadius: 10,
-        textAlign: 'left',
-        background: on ? 'var(--cream-2)' : 'var(--card)',
-        border: on ? '2px solid var(--ink)' : '1px solid var(--line)',
-        cursor: 'pointer',
-        width: '100%',
-        fontFamily: 'inherit',
-      }}
-    >
-      <VariantGlyph section={section} variant={variant.id} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink)' }}>{variant.label}</div>
-        {variant.sub && <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 1 }}>{variant.sub}</div>}
-      </div>
-      {on && <Icon name="check" size={14} color="var(--ink)" />}
-    </button>
-  );
 }
 
 function renderSectionEditor(

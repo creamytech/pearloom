@@ -408,21 +408,20 @@ export default function EditorRedesign({
         canvasPage={canvasPage}
       />
 
+      {/* The unified inspector — Content · Design · ✦ Motion. Always
+          mounted; the Content tab shows a "Pick a section" empty
+          state when nothing's selected, while Design + Motion stay
+          available (the v2 rail folds the old theme rail in). */}
       {!viewportMobile && mode !== 'preview' && (
-        active
-          ? <PropertyRail
-              active={active}
-              setActive={setActive}
-              manifest={bridge.manifest}
-              onChange={bridge.setManifest}
-              siteSlug={siteSlug}
-            />
-          : <ThemeRail
-              manifest={bridge.manifest}
-              onChange={bridge.setManifest}
-              onOpenShop={bridge.openThemeShop}
-              onOpenDecor={bridge.openDecor}
-            />
+        <PropertyRail
+          active={active}
+          setActive={setActive}
+          manifest={bridge.manifest}
+          onChange={bridge.setManifest}
+          siteSlug={siteSlug}
+          onOpenShop={bridge.openThemeShop}
+          onOpenDecor={bridge.openDecor}
+        />
       )}
 
       {/* ── Phone chrome — fixed bottom bar + bottom sheets. The
@@ -486,6 +485,8 @@ export default function EditorRedesign({
               manifest={bridge.manifest}
               onChange={bridge.setManifest}
               siteSlug={siteSlug}
+              onOpenShop={bridge.openThemeShop}
+              onOpenDecor={bridge.openDecor}
             />
           )}
         </MobileSheet>

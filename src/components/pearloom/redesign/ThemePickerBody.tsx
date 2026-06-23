@@ -41,6 +41,11 @@ interface Props {
   onChange: (next: StoryManifest) => void;
   onOpenShop: () => void;
   onOpenDecor: () => void;
+  /** Which slice of the look to render. The v2 editor splits the
+   *  right rail into a Design tab (everything but motion) and a
+   *  Motion tab (Atelier kits only). 'inline' (default) keeps the
+   *  motion picker in the flow — used by the mobile Theme sheet. */
+  motion?: 'inline' | 'hidden' | 'only';
 }
 
 /* Texture → 6-theme catalog id mapping. /api/look/from-story
@@ -59,10 +64,20 @@ const TEXTURE_TO_THEME_ID: Record<string, string> = {
   gilded: 'midnight',
 };
 
-export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor }: Props) {
+export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor, motion = 'inline' }: Props) {
   const themeId = ((manifest as unknown as { themeId?: string }).themeId)
     ?? ((manifest as unknown as { theme?: { id?: string } }).theme?.id);
   const theme = getTheme(themeId);
+
+  /* Motion tab — render ONLY the Atelier kit panel (the v2 editor's
+     dedicated ✦ Motion tab). */
+  if (motion === 'only') {
+    return (
+      <div style={{ flex: 1, overflow: 'auto', padding: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <MotionKitPick manifest={manifest} onChange={onChange} />
+      </div>
+    );
+  }
 
   /* TRY-ANYTHING-SAFELY — ThemePackPicker calls onChange exactly
      once per pack apply (it rewrites themeId + clears every
@@ -88,7 +103,7 @@ export function ThemePickerBody({ manifest, onChange, onOpenShop, onOpenDecor }:
 
       <SiteLayoutPick manifest={manifest} onChange={onChange} />
       <KitPick manifest={manifest} onChange={onChange} />
-      <MotionKitPick manifest={manifest} onChange={onChange} />
+      {motion === 'inline' && <MotionKitPick manifest={manifest} onChange={onChange} />}
 
       <ColorsPick theme={theme} manifest={manifest} onChange={onChange} />
       <FontsPick theme={theme} manifest={manifest} onChange={onChange} />

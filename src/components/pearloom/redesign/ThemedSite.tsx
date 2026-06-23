@@ -29,7 +29,7 @@ import { Motif, WatercolorBloom, OliveSprig, type MotifKind } from '../site/Moti
 import { MotifLayer, motifLayoutForKit, type MotifLayout } from './MotifLayer';
 import { Divider as BrandDivider } from '@/components/brand/Divider';
 import { TextureFilters } from '../site/TextureFilters';
-import { readVariant } from './layouts';
+import { readVariant, LAYOUTS } from './layouts';
 import type { SectionId } from './EditorRedesign';
 /* Occasion gating for the nine core sections — leaf module shared
    with EditorRedesign / SectionRail (importing from EditorRedesign
@@ -463,7 +463,7 @@ export function ThemedSite({
   const icsHref = siteSlug && manifest.logistics?.date
     ? buildSitePath(siteSlug, '/event.ics', (manifest as unknown as { occasion?: string }).occasion)
     : undefined;
-  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, motifLayout, textureIntensity, showWashHero, dividerLook, variants, C, manifest, coverPhoto, edit, icsHref, siteSlug };
+  const ctx: SectionCtx = { theme, pad, editable, motif, motifsOn, motifLayout, textureIntensity, showWashHero, dividerLook, variants, C, manifest, onEditField, coverPhoto, edit, icsHref, siteSlug };
   /* Edit-mode-only <style> for empty-value InlineEdit ghosts —
      mounted next to <TextureFilters />
         {glassPhotoAurora}
@@ -754,6 +754,8 @@ export function ThemedSite({
         onSectionFocus={onSectionFocus}
         motifLayout={ctx.motifLayout}
         motif={ctx.motif}
+        manifest={manifest}
+        onEditField={onEditField}
       >
         {renderKind(kind, ctx)}
       </TSection>
@@ -1283,7 +1285,7 @@ function SidebarHero({
   const isCouple = C.subject.type === 'couple';
   const isEditorial = theme.id === 'editorial';
   return (
-    <TSection id="hero" label="Hero" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable} onSectionFocus={onSectionFocus} motifLayout={ctx.motifLayout} motif={ctx.motif}>
+    <TSection id="hero" label="Hero" active={active} hover={hover} setActive={setActive} setHover={setHover} editable={editable} onSectionFocus={onSectionFocus} motifLayout={ctx.motifLayout} motif={ctx.motif} manifest={ctx.manifest} onEditField={ctx.onEditField}>
       <div style={{ position: 'relative', minHeight: 520, background: 'var(--t-section)', padding: '44px 36px', display: 'flex', flexDirection: 'column', gap: 18, overflow: 'hidden' }}>
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 9 }}>
           <Pear size={24} tone="sage" shadow={false} />
@@ -3905,7 +3907,7 @@ function TSectionHead({ eyebrow, title, italic, editable, onEditEyebrow, onEditT
 
 /* ─── TSection — handoff L29-56 verbatim (selection chrome). ── */
 
-function TSection({ id, label, children, active, hover, setActive, setHover, editable, onSectionFocus, hideHandle, motifLayout = 'none', motif = 'none' }: {
+function TSection({ id, label, children, active, hover, setActive, setHover, editable, onSectionFocus, hideHandle, motifLayout = 'none', motif = 'none', manifest, onEditField }: {
   id: Exclude<SectionId, null>;
   label: string;
   children: ReactNode;
@@ -3923,9 +3925,30 @@ function TSection({ id, label, children, active, hover, setActive, setHover, edi
   /** Motif placement — every section participates by construction. */
   motifLayout?: MotifLayout;
   motif?: MotifKind;
+  /** Manifest + write hook for the inline Layout bar (the v2
+   *  on-canvas "≡ Layout" switcher over the selected section).
+   *  Absent on the published site — no bar there. */
+  manifest?: StoryManifest;
+  onEditField?: (patch: (m: StoryManifest) => StoryManifest) => void;
 }) {
   const isActive = active === id;
   const isHover = hover === id && !isActive;
+  /* Inline Layout bar — the v2 on-canvas section-layout switcher
+     (editor.jsx InlineLayoutBar). Shows over the SELECTED section
+     when it has more than one layout, writing manifest.layouts[id]. */
+  const layoutVariants = LAYOUTS[id];
+  const showLayoutBar = editable && isActive && !!onEditField && !!manifest
+    && Array.isArray(layoutVariants) && layoutVariants.length > 1;
+  const currentVariant = manifest ? readVariant(manifest, id) : undefined;
+  const pickLayout = (vid: string) => {
+    onEditField?.((m) => ({
+      ...(m as unknown as Record<string, unknown>),
+      layouts: {
+        ...((m as unknown as { layouts?: Record<string, string> }).layouts ?? {}),
+        [id]: vid,
+      },
+    } as unknown as StoryManifest));
+  };
   return (
     <div
       id={id}
@@ -3974,6 +3997,43 @@ function TSection({ id, label, children, active, hover, setActive, setHover, edi
               fontFamily: 'var(--pl-font-mono, monospace)',
             }}>
               {isActive ? `Editing · ${label}` : label}
+            </div>
+          )}
+          {showLayoutBar && layoutVariants && (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 7,
+                display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 999,
+                background: 'rgba(255,253,247,0.97)', WebkitBackdropFilter: 'blur(10px)', backdropFilter: 'blur(10px)',
+                border: '1px solid var(--pl-line, #E2D9C3)', boxShadow: '0 10px 28px -8px rgba(40,28,12,0.4)',
+                maxWidth: 'calc(100% - 24px)', overflowX: 'auto',
+                fontFamily: 'var(--pl-font-body, system-ui, sans-serif)',
+              }}
+            >
+              <span aria-hidden style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-ink-muted, #9B9384)', padding: '0 7px 0 9px', whiteSpace: 'nowrap' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 5h18M3 12h18M3 19h10" /></svg>
+                Layout
+              </span>
+              {layoutVariants.map((v) => {
+                const on = v.id === currentVariant;
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    title={v.sub ? `${v.label} — ${v.sub}` : v.label}
+                    onClick={(e) => { e.stopPropagation(); pickLayout(v.id); }}
+                    style={{
+                      padding: '6px 12px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                      fontSize: 11.5, fontWeight: 700, whiteSpace: 'nowrap', fontFamily: 'inherit',
+                      background: on ? 'var(--pl-olive, #5C6B3F)' : 'transparent',
+                      color: on ? 'var(--pl-cream, #FBF7EE)' : 'var(--pl-ink-soft, #3A332C)',
+                    }}
+                  >
+                    {v.label}
+                  </button>
+                );
+              })}
             </div>
           )}
         </>
@@ -4745,6 +4805,10 @@ interface SectionCtx {
    *  need direct access to fresh manifest fields that aren't
    *  worth threading through Copy. */
   manifest: StoryManifest;
+  /** Raw manifest patch hook (editor only) — powers the inline
+   *  Layout bar on sections rendered outside the generic loop (hero).
+   *  Undefined on the published site. */
+  onEditField?: (patch: (m: StoryManifest) => StoryManifest) => void;
   /** Host-uploaded cover photo URL (manifest.coverPhoto). When set,
    *  hero variants render it instead of the gradient placeholder. */
   coverPhoto?: string;
