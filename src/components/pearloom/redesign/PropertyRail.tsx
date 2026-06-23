@@ -663,6 +663,36 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
             canvas (the floating "Layout" bar over the selected
             section, ThemedSite's InlineLayoutBar). */}
 
+        {/* Pear can populate this — rich AI suggestion cards (the v2
+            "✦ Show me" card). Opens the CanvasPearBlocks modal, which
+            calls real AI grounded in this site (FAQ + Travel) or
+            offers curated occasion starting points (Details). */}
+        {effectiveTab === 'content' && (active === 'faq' || active === 'travel' || active === 'details') && (
+          <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--gold, #C8B98C)' }}>
+            <div style={{ background: 'linear-gradient(135deg, rgba(193,154,75,0.16), rgba(193,154,75,0.06))', padding: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
+                <Pear size={20} tone="sage" sparkle shadow={false} />
+                <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--peach-ink, #8C6E3D)' }}>
+                  Pear can populate this
+                </span>
+              </div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, color: 'var(--ink)', marginBottom: 4 }}>
+                {POPULATE_TITLE[active]}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--ink-muted)', lineHeight: 1.5, marginBottom: 11 }}>
+                Pear returns rich, ready-to-place cards — not just text. Review and Add what fits.
+              </div>
+              <button
+                type="button"
+                onClick={() => { try { window.dispatchEvent(new CustomEvent('pearloom:open-picks', { detail: { kind: active } })); } catch { /* */ } }}
+                style={{ padding: '9px 16px', borderRadius: 8, border: 'none', background: 'var(--olive, #5C6B3F)', color: 'var(--cream)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}
+              >
+                ✦ Show me
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Empty Content state — nothing selected. Design + Motion
             stay available in their own tabs. */}
         {effectiveTab === 'content' && !active && (
@@ -755,6 +785,14 @@ export function PropertyRail({ active, setActive, manifest, onChange, siteSlug, 
     </aside>
   );
 }
+
+/* Titles for the "Pear can populate this" card (the CanvasPearBlocks
+   trigger). Keyed by the sections that have a rich-card populator. */
+const POPULATE_TITLE: Record<string, string> = {
+  faq: 'The questions guests ask',
+  travel: 'Stays near your venue',
+  details: 'The details guests need',
+};
 
 /* Every chip maps to a REAL inline action: a single-field rewrite
    (Warmer / Shorter intro) or the 3-styles contact sheet — both run

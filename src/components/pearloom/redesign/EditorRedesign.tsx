@@ -33,6 +33,7 @@ import { EditorTopbar } from './EditorTopbar';
 import { FullSite } from './FullSite';
 import { ThemedSite } from './ThemedSite';
 import { CanvasPhotoDrawer, type PhotoSlot } from './CanvasPhotoDrawer';
+import { CanvasPearBlocks, type PicksKind } from './CanvasPearBlocks';
 import { EditorDrawers } from './EditorDrawers';
 import { PearLoomFx } from './PearLoomFx';
 import { FittingRoom } from './FittingRoom';
@@ -207,6 +208,9 @@ export default function EditorRedesign({
      Pages tab; ignored entirely in scroll mode. */
   const [canvasPage, setCanvasPage] = useState<'home' | SiteBlockKey | null>(null);
   const [hover, setHover] = useState<SectionId>(null);
+  /* Pear Picks modal — which section Pear is populating with rich
+     suggestion cards (FAQ / Travel / Details), or null when closed. */
+  const [picksKind, setPicksKind] = useState<PicksKind | null>(null);
 
   /* ── Viewport-mobile chrome ──────────────────────────────────
      viewportMobile (real phone-sized browser) is NOT the canvas's
@@ -308,19 +312,27 @@ export default function EditorRedesign({
       setActive(detail.block as SectionId);
       if (viewportMobileRef.current) setMobileSheet('props');
     };
-    /* Theme-rail shortcut — fired from the topbar Theme button.
-       Switches the property rail to ThemeRail by clearing the
-       active section (the conditional in the grid below renders
-       ThemeRail when active is null). Phone: the Theme sheet. */
+    /* Theme shortcut — fired from the topbar Theme button. Clears
+       the active section; the unified rail listens for the same
+       event and flips to its Design tab. Phone: the Theme sheet. */
     const onOpenTheme = () => {
       setActive(null);
       if (viewportMobileRef.current) setMobileSheet('theme');
     };
+    /* Pear Picks — a section's Content tab asks Pear to populate it
+       with rich, ready-to-place suggestion cards (FAQ / Travel /
+       Details). Opens the modal. */
+    const onOpenPicks = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { kind?: PicksKind } | undefined;
+      if (detail?.kind) setPicksKind(detail.kind);
+    };
     window.addEventListener('pearloom:design-jump', onJump);
     window.addEventListener('pearloom:open-theme-rail', onOpenTheme);
+    window.addEventListener('pearloom:open-picks', onOpenPicks);
     return () => {
       window.removeEventListener('pearloom:design-jump', onJump);
       window.removeEventListener('pearloom:open-theme-rail', onOpenTheme);
+      window.removeEventListener('pearloom:open-picks', onOpenPicks);
       (window as any).__plPearApply = undefined;
     };
   }, [bridge]);
@@ -500,6 +512,15 @@ export default function EditorRedesign({
         manifest={bridge.manifest}
         onChange={bridge.setManifest}
         siteSlug={siteSlug}
+      />
+      {/* Pear Picks — rich AI suggestion cards a section's Content tab
+          can summon (FAQ / Travel / Details). Each Add drops a real
+          record into the manifest. */}
+      <CanvasPearBlocks
+        kind={picksKind}
+        manifest={bridge.manifest}
+        onAdd={bridge.editField}
+        onClose={() => setPicksKind(null)}
       />
       {/* Pear's hands — thread-travel + weave-settle + dye-sweep
           overlay for every AI operation (pearloom:pear-working). */}
