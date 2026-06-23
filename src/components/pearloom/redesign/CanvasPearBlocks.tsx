@@ -21,7 +21,7 @@ import { Pear } from '../motifs';
 import { dressCodeSuggestions } from '../editor/panels/_suggestions';
 import type { OccasionKey } from '../editor/panels/_suggestions';
 
-export type PicksKind = 'faq' | 'travel' | 'details' | 'schedule' | 'registry' | 'gallery';
+export type PicksKind = 'faq' | 'travel' | 'details' | 'schedule' | 'registry' | 'gallery' | 'story';
 
 const META: Record<PicksKind, { title: string; sub: string }> = {
   faq: { title: 'The questions guests ask', sub: 'Answered in your voice, from your details — keep the ones that fit.' },
@@ -30,6 +30,7 @@ const META: Record<PicksKind, { title: string; sub: string }> = {
   schedule: { title: 'Your day, in moments', sub: 'A timeline Pear shaped for your celebration — Add the moments that fit.' },
   registry: { title: 'A few registry ideas', sub: 'Funds and shops that suit your celebration — Add what fits, then drop in your links.' },
   gallery: { title: 'Captions for your photos', sub: 'Pear writes a quiet line for each of your photos — Add the ones you like.' },
+  story: { title: 'A first draft of your story', sub: 'In your voice, from your details — use it as a start, then edit anything.' },
 };
 
 interface FaqItem { kind: 'faq'; id?: string; question: string; answer: string; category?: string }
@@ -38,7 +39,8 @@ interface DetailItem { kind: 'details'; label: string; value: string }
 interface ScheduleItem { kind: 'schedule'; name: string; time?: string; venue?: string; type?: string }
 interface RegistryItem { kind: 'registry'; label: string; description?: string; regKind: 'fund' | 'registry' | 'link'; url?: string }
 interface GalleryItem { kind: 'gallery'; index: number; photoUrl: string; caption: string }
-type PickItem = FaqItem | HotelItem | DetailItem | ScheduleItem | RegistryItem | GalleryItem;
+interface StoryItem { kind: 'story'; body: string }
+type PickItem = FaqItem | HotelItem | DetailItem | ScheduleItem | RegistryItem | GalleryItem | StoryItem;
 
 const PRICE_TIER_TO_LEVEL: Record<string, string> = { budget: '$', mid: '$$', luxury: '$$$' };
 
@@ -215,7 +217,7 @@ function PickCard({ item, added, onAdd }: { item: PickItem; added: boolean; onAd
         color: added ? 'var(--cream, #FBF7EE)' : 'var(--olive, #5C6B3F)',
       }}
     >
-      {added ? 'Added ✓' : '+ Add'}
+      {added ? 'Added ✓' : (item.kind === 'story' ? 'Use this draft' : '+ Add')}
     </button>
   );
   const base: CSSProperties = {
@@ -287,6 +289,17 @@ function PickCard({ item, added, onAdd }: { item: PickItem; added: boolean; onAd
           </div>
           {addBtn}
         </div>
+      </div>
+    );
+  }
+
+  if (item.kind === 'story') {
+    return (
+      <div style={base}>
+        <div className="display" style={{ fontStyle: 'italic', fontSize: 14.5, color: 'var(--ink)', lineHeight: 1.6, whiteSpace: 'pre-wrap', marginBottom: 12 }}>
+          {item.body}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>{addBtn}</div>
       </div>
     );
   }
@@ -396,6 +409,30 @@ async function fetchSuggestions(kind: PicksKind, manifest: StoryManifest): Promi
       }));
   }
 
+  if (kind === 'story') {
+    const logistics = (loose.logistics ?? {}) as Record<string, unknown>;
+    const storySection = (loose.storySection ?? {}) as Record<string, unknown>;
+    const r = await fetch('/api/story-draft', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        names: loose.names,
+        occasion: loose.occasion,
+        venue: logistics.venue,
+        place: logistics.place,
+        date: logistics.date,
+        chips: Array.isArray(storySection.chips) ? storySection.chips : undefined,
+        factSheet: loose.factSheet,
+        photoCaptions: Object.values((loose.galleryCaptions ?? {}) as Record<string, string>),
+        existing: typeof storySection.body === 'string' ? storySection.body : undefined,
+      }),
+    });
+    if (!r.ok) throw new Error(await errorOf(r, 'Pear couldn’t draft your story — try again.'));
+    const d = await r.json();
+    const draft = typeof d?.draft === 'string' ? d.draft.trim() : '';
+    if (!draft) throw new Error('Pear needs a few details first — add how you met (in the Story panel) and try again.');
+    return [{ kind: 'story', body: draft }];
+  }
+
   if (kind === 'gallery') {
     const photos = Array.isArray(loose.galleryImages) ? (loose.galleryImages as string[]).filter(Boolean) : [];
     if (photos.length === 0) throw new Error('Add photos to your gallery first — then Pear can caption them.');
@@ -481,6 +518,13 @@ function applyPick(m: StoryManifest, item: PickItem): StoryManifest {
     const stores = Array.isArray(loose.registryStores) ? [...(loose.registryStores as unknown[])] : [];
     stores.push({ name: item.label, url: item.url, note: item.description });
     return { ...loose, registryStores: stores } as unknown as StoryManifest;
+  }
+  if (item.kind === 'story') {
+    const story = (loose.storySection && typeof loose.storySection === 'object')
+      ? { ...(loose.storySection as Record<string, unknown>) }
+      : {};
+    story.body = item.body;
+    return { ...loose, storySection: story } as unknown as StoryManifest;
   }
   if (item.kind === 'gallery') {
     const captions = (loose.galleryCaptions && typeof loose.galleryCaptions === 'object')

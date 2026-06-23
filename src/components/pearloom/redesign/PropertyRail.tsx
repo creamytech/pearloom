@@ -795,9 +795,10 @@ const POPULATE_TITLE: Record<string, string> = {
   schedule: 'Your day, in moments',
   registry: 'A few registry ideas',
   gallery: 'Captions for your photos',
+  story: 'A first draft of your story',
 };
 /* Sections that can summon the Pear Picks rich-card modal. */
-const POPULATE_KINDS = new Set(['faq', 'travel', 'details', 'schedule', 'registry', 'gallery']);
+const POPULATE_KINDS = new Set(['faq', 'travel', 'details', 'schedule', 'registry', 'gallery', 'story']);
 
 /* Every chip maps to a REAL inline action: a single-field rewrite
    (Warmer / Shorter intro) or the 3-styles contact sheet — both run
