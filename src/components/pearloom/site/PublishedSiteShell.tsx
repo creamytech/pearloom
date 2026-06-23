@@ -31,6 +31,7 @@ import { SiteToast } from '@/components/pearloom/site/SiteToast';
 import { StoreFonts } from '@/lib/theme-store/fonts';
 import { getTheme } from '@/components/pearloom/site/themes';
 import { LivingBackground } from '@/components/pearloom/site/LivingBackground';
+import { trackGuestFunnel } from '@/lib/guest-track';
 
 interface Props {
   manifest: StoryManifest;
@@ -216,6 +217,10 @@ function SiteGate({
     } catch { /* stay locked */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [siteSlug]);
+
+  /* RSVP funnel — a guest arriving via their personal link (?g=)
+     stamps invite_opened_at once. Fire-and-forget; no token → no-op. */
+  useEffect(() => { trackGuestFunnel('opened'); }, []);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();

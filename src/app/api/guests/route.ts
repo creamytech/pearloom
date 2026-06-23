@@ -108,6 +108,10 @@ export async function GET(req: NextRequest) {
       // an invite cadence; respondedAt is set on RSVP submit; the
       // email_* timestamps come from the Resend webhook.
       invitedAt: row.invited_at,
+      // RSVP-funnel timestamps (20260628) — feed the Analytics funnel's
+      // Opened + Started stages.
+      inviteOpenedAt: row.invite_opened_at ?? null,
+      replyStartedAt: row.reply_started_at ?? null,
       createdAt: row.created_at,
       guestToken: row.guest_token,
       emailSentAt: row.email_sent_at,

@@ -37,7 +37,7 @@ export function DashAnalytics() {
   // Single state object tagged with the siteId it came from.
   // `loading` is derived (no setLoading-in-effect cascade) and
   // a tagged null result models the "no site selected" branch.
-  type Funnel = { invited: number; replied: number; coming: number };
+  type Funnel = { invited: number; opened: number; started: number; replied: number; coming: number };
   type Source = { label: string; count: number; pct: number };
   type Result = {
     siteId: string | null;
@@ -73,13 +73,18 @@ export function DashAnalytics() {
     ])
       .then(([v, s, src, g]) => {
         if (cancelled) return;
-        const guests = (g?.guests ?? []) as { status?: string }[];
+        const guests = (g?.guests ?? []) as { status?: string; inviteOpenedAt?: string | null; replyStartedAt?: string | null }[];
         const invited = guests.length;
-        let replied = 0; let coming = 0;
+        let opened = 0; let started = 0; let replied = 0; let coming = 0;
         for (const gu of guests) {
           const st = String(gu.status ?? '').toLowerCase();
-          if (st === 'yes' || st === 'attending') { coming += 1; replied += 1; }
-          else if (st === 'no' || st === 'declined' || st === 'maybe') replied += 1;
+          const isReplied = st === 'yes' || st === 'attending' || st === 'no' || st === 'declined' || st === 'maybe';
+          if (st === 'yes' || st === 'attending') coming += 1;
+          if (isReplied) replied += 1;
+          // A reply implies the earlier stages even if the ping was
+          // missed; keeps the funnel monotonic + honest.
+          if (gu.inviteOpenedAt || gu.replyStartedAt || isReplied) opened += 1;
+          if (gu.replyStartedAt || isReplied) started += 1;
         }
         setResult({
           siteId: site.id,
@@ -90,7 +95,7 @@ export function DashAnalytics() {
             desktop: Number(v?.desktop ?? 0),
           },
           sections: (s?.sections ?? []) as SectionStat[],
-          funnel: { invited, replied, coming },
+          funnel: { invited, opened, started, replied, coming },
           sources: (src?.sources ?? []) as Source[],
           error: null,
         });
@@ -259,8 +264,9 @@ export function DashAnalytics() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {([
                   { s: 'Invited', n: funnel.invited, c: PD.ink },
-                  { s: 'Replied', n: funnel.replied, c: PD.gold },
-                  { s: 'Coming', n: funnel.coming, c: PD.olive },
+                  { s: 'Opened', n: funnel.opened, c: PD.olive },
+                  { s: 'Started a reply', n: funnel.started, c: PD.gold },
+                  { s: 'Replied', n: funnel.replied, c: PD.terra },
                 ] as const).map((f, i, arr) => {
                   const pct = Math.round((f.n / funnel.invited) * 100);
                   return (

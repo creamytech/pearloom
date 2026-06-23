@@ -14,6 +14,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useFocusTrap } from '@/lib/use-focus-trap';
 import { useDialog } from '@/components/ui/confirm-dialog';
+import { Icon } from '@/components/pearloom/motifs';
 
 interface Item {
   id: string;
@@ -165,8 +166,28 @@ function ItemCard({ item, onEdit, onDelete }: { item: Item; onEdit: () => void; 
         <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
           ${formatPrice(item.price ?? 0)} · {item.quantityClaimed} of {item.quantity} claimed
         </div>
+        {/* Group-gift / fund progress (zip Registry) — a real bar from
+            quantityClaimed / quantity for any multi-unit item. Single
+            items keep the plain claimed line above. */}
+        {item.quantity > 1 && (
+          <div style={{ marginTop: 8 }}>
+            <div style={{ height: 6, background: 'var(--cream-3)', borderRadius: 99, overflow: 'hidden' }}>
+              <div style={{ width: `${Math.min(100, Math.round((item.quantityClaimed / item.quantity) * 100))}%`, height: '100%', background: remaining === 0 ? 'var(--peach-ink)' : 'var(--sage)', borderRadius: 99 }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 5 }}>
+              <span style={{ fontFamily: 'var(--pl-font-mono, ui-monospace, monospace)', fontSize: 10, color: 'var(--ink-muted)' }}>
+                {Math.min(100, Math.round((item.quantityClaimed / item.quantity) * 100))}% there
+              </span>
+              {item.quantityClaimed > 0 && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--sage-deep)' }}>
+                  <Icon name="users" size={11} /> {item.quantityClaimed} chipping in
+                </span>
+              )}
+            </div>
+          </div>
+        )}
         {item.claimedByName && (
-          <div style={{ fontSize: 11, color: 'var(--peach-ink)', marginTop: 2 }}>
+          <div style={{ fontSize: 11, color: 'var(--peach-ink)', marginTop: 6 }}>
             Last claimed by {item.claimedByName}
           </div>
         )}

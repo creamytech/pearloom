@@ -27,6 +27,7 @@ export interface SiteStat {
   coming: number;
   invited: number;
   visits: number;
+  cohosts: { email: string; role: string }[];
 }
 
 export async function GET(_req: NextRequest) {
@@ -51,7 +52,18 @@ export async function GET(_req: NextRequest) {
     if (ids.length === 0) return NextResponse.json({ stats: {} });
 
     const stats: Record<string, SiteStat> = {};
-    for (const id of ids) stats[id] = { coming: 0, invited: 0, visits: 0 };
+    for (const id of ids) stats[id] = { coming: 0, invited: 0, visits: 0, cohosts: [] };
+
+    // Co-hosts — collaborators per site (cohosts table). One batched
+    // query; the owner is implied (this is their dashboard).
+    const { data: cohostRows } = await supabase
+      .from('cohosts')
+      .select('site_id, email, role')
+      .in('site_id', ids);
+    for (const c of cohostRows ?? []) {
+      const s = stats[String(c.site_id)];
+      if (s) s.cohosts.push({ email: String(c.email ?? ''), role: String(c.role ?? '') });
+    }
 
     // Guests — one batched query, tallied per site. Bounded (a few
     // hundred rows across a host's sites).

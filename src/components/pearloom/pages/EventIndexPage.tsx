@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { invalidateSitesCache, useUserSites, type SiteSummary } from '@/components/marketing/design/dash/hooks';
@@ -92,6 +93,13 @@ function SiteCard({
   const themeId = (site.manifest as { themeId?: string } | undefined)?.themeId;
   const themeName = themeId ? getTheme(themeId).name : null;
   const isMemorial = site.occasion === 'memorial' || site.occasion === 'funeral';
+  const { data: session } = useSession();
+  // Host avatars (zip SiteCard) — the owner (this dashboard's user)
+  // first, then real co-hosts from the cohosts table. Initials only;
+  // no invented people.
+  const ownerInitial = ((session?.user?.name ?? session?.user?.email ?? 'You').trim()[0] ?? 'Y').toUpperCase();
+  const cohostInitials = (stat?.cohosts ?? []).map((c) => (c.email.trim()[0] ?? '?').toUpperCase());
+  const avatarTints = ['var(--sage-deep)', 'var(--lavender-ink)', 'var(--peach-ink)', 'var(--gold, #C19A4B)'];
 
   return (
     <div
@@ -189,6 +197,19 @@ function SiteCard({
             <span style={{ fontSize: 12.5, color: 'var(--ink)', fontFamily: 'var(--font-ui)' }}>Pear has a draft ready</span>
           </div>
         )}
+        {/* Host avatars — owner + real co-hosts, with an invite + that
+            opens the editor's co-host flow (zip SiteCard). */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 12 }}>
+          <div style={{ display: 'flex' }}>
+            <span style={{ width: 24, height: 24, borderRadius: 999, background: avatarTints[0], border: '2px solid var(--card)', display: 'grid', placeItems: 'center', color: 'var(--cream)', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 11 }}>{ownerInitial}</span>
+            {cohostInitials.map((ch, i) => (
+              <span key={i} title={(stat?.cohosts ?? [])[i]?.email} style={{ width: 24, height: 24, borderRadius: 999, background: avatarTints[(i + 1) % avatarTints.length], border: '2px solid var(--card)', marginLeft: -7, display: 'grid', placeItems: 'center', color: 'var(--cream)', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 11 }}>{ch}</span>
+            ))}
+          </div>
+          <Link href={`/editor/${encodeURIComponent(site.domain)}?cohosts=1`} title="Invite a co-host" style={{ width: 24, height: 24, borderRadius: 999, border: '1px dashed var(--line)', background: 'transparent', color: 'var(--ink-muted)', display: 'grid', placeItems: 'center', textDecoration: 'none' }}>
+            <Icon name="plus" size={12} />
+          </Link>
+        </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 14 }}>
           {pickHref ? (
             <Link href={pickHref} className="btn btn-primary btn-sm" style={{ flex: 1 }}>

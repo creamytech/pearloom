@@ -30,6 +30,7 @@
    ========================================================================= */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { trackGuestFunnel } from '@/lib/guest-track';
 import type { StoryManifest } from '@/types';
 import { getEventType, type RsvpPreset } from '@/lib/event-os/event-types';
 import { RsvpCeremony } from './RsvpCeremony';
@@ -332,6 +333,9 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
     const handler = () => {
       resetState();
       setOpen(true);
+      // RSVP funnel — opening the reply flow stamps reply_started_at
+      // once (idempotent server-side). No personal token → no-op.
+      trackGuestFunnel('started');
     };
     window.addEventListener('pl-open-rsvp', handler);
     if (markRsvpReady()) handler();
