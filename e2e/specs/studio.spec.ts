@@ -88,6 +88,13 @@ async function installStudioMocks(page: Page) {
 test.describe('Studio (stationery editor)', () => {
   test.beforeEach(async ({ page }) => {
     await installStudioMocks(page);
+    // The Studio opens on the "Design the invitation" landing for
+    // first-time hosts; mark this site as already entered so these
+    // editor specs land straight in the card editor. The landing has
+    // its own spec below.
+    await page.addInitScript(() => {
+      try { window.localStorage.setItem('pl-studio-entered-playwright-test', '1'); } catch { /* private mode */ }
+    });
     await page.goto(`/dashboard/invite?site=${TEST_SLUG}`);
     // Wait for StudioApp to mount — the topbar shows "Studio · A & B".
     await expect(page.getByText(/Studio · /)).toBeVisible({ timeout: 20_000 });
@@ -1042,5 +1049,31 @@ test.describe('Studio (stationery editor)', () => {
     await expect(page.locator('aside button').filter({ hasText: 'Aurora' })).toBeVisible({ timeout: 10_000 });
     await expect(page.locator('aside button').filter({ hasText: 'Meadow' })).toBeVisible();
     await expect(page.locator('aside button').filter({ hasText: 'Amber' })).toBeVisible();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────
+// Studio landing — the "Design the invitation" picker that gates
+// the editor on a host's first open. This describe deliberately
+// does NOT set the entered-flag, so the landing is shown.
+// ─────────────────────────────────────────────────────────────
+test.describe('Studio landing (first open)', () => {
+  test.beforeEach(async ({ page }) => {
+    await installStudioMocks(page);
+    await page.goto(`/dashboard/invite?site=${TEST_SLUG}`);
+  });
+
+  test('shows the stationery picker before the editor', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: /Design the/ })).toBeVisible({ timeout: 20_000 });
+    // The card editor topbar ("Studio · A & B") is not mounted yet.
+    await expect(page.getByText(/Studio · /)).toHaveCount(0);
+  });
+
+  test('picking a stationery card drops into the editor', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: /Design the/ })).toBeVisible({ timeout: 20_000 });
+    // Each card is a button whose label includes the stationery name.
+    await page.getByRole('button').filter({ hasText: 'Save the Date' }).click();
+    // The editor mounts — topbar shows "Studio · Emma & James".
+    await expect(page.getByText(/Studio · /)).toBeVisible({ timeout: 20_000 });
   });
 });
