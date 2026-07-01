@@ -13,14 +13,26 @@
    consumers). */
 
 import type { StoryManifest } from '@/types';
+import { getEventType } from '@/lib/event-os/event-types';
 import { Icon } from '../../../motifs';
 import { FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
-import { FTextArea, type BlockPanelProps } from './_shared';
+import { FTextArea, readOccasion, type BlockPanelProps } from './_shared';
 
 interface LivestreamData { url?: string; startsAt?: string; note?: string; buttonLabel?: string }
 
+/* Note example routed by the occasion's voice — solemn events have
+   a service, ceremonial ones a ceremony, everything else (a
+   graduation party, a milestone) just starts. */
+function notePlaceholderFor(occasion?: string): string {
+  const voice = getEventType(occasion)?.voice;
+  if (voice === 'solemn') return "We'll start the stream ten minutes before the service.";
+  if (voice === 'ceremonial') return "We'll start the stream ten minutes before the ceremony.";
+  return "We'll go live ten minutes before it starts.";
+}
+
 export function LivestreamPanel({ manifest, onChange }: BlockPanelProps) {
   const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'livestream');
+  const notePlaceholder = notePlaceholderFor(readOccasion(manifest));
   const loose = manifest as unknown as { livestream?: LivestreamData };
   const data = loose.livestream ?? {};
 
@@ -81,7 +93,7 @@ export function LivestreamPanel({ manifest, onChange }: BlockPanelProps) {
             value={data.note ?? ''}
             onChange={(v) => patch({ note: v })}
             rows={2}
-            placeholder="We'll start the stream ten minutes before the ceremony."
+            placeholder={notePlaceholder}
           />
         </FGroup>
 

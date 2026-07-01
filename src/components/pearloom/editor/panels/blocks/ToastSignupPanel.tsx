@@ -15,12 +15,24 @@
 
 import type { StoryManifest } from '@/types';
 import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
-import { mkId, RemoveButton, RowCard, type BlockPanelProps } from './_shared';
+import { isMemorialOccasion, mkId, readOccasion, RemoveButton, RowCard, type BlockPanelProps } from './_shared';
 
 interface ToastSlotRow { id: string; label: string; assigned?: string; note?: string }
 
+/* Slot example routed by occasion — the registry mounts this
+   section on rehearsal dinners (wedding-shaped) but also milestone
+   birthdays and retirements, where nobody is anyone's bride. */
+function slotPlaceholderFor(occasion?: string): string {
+  if (isMemorialOccasion(occasion)) return 'A family member';
+  if (occasion === 'retirement' || occasion === 'graduation' || occasion === 'milestone-birthday') {
+    return 'A longtime friend';
+  }
+  return 'Father of the bride';
+}
+
 export function ToastSignupPanel({ manifest, onChange }: BlockPanelProps) {
   const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'toastSignup');
+  const slotPlaceholder = slotPlaceholderFor(readOccasion(manifest));
   const loose = manifest as unknown as { toastSlots?: ToastSlotRow[] };
   const slots = Array.isArray(loose.toastSlots) ? loose.toastSlots : [];
 
@@ -67,7 +79,7 @@ export function ToastSignupPanel({ manifest, onChange }: BlockPanelProps) {
               <RowCard key={slot.id}>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <FInput value={slot.label} onChange={(v) => patchSlot(i, { label: v })} icon="mic" placeholder="Father of the bride" />
+                    <FInput value={slot.label} onChange={(v) => patchSlot(i, { label: v })} icon="mic" placeholder={slotPlaceholder} />
                     <FInput value={slot.assigned ?? ''} onChange={(v) => patchSlot(i, { assigned: v })} icon="user" placeholder="Pre-assigned name (leave blank for an open slot)" />
                     <FInput value={slot.note ?? ''} onChange={(v) => patchSlot(i, { note: v })} placeholder="Keep it under 90 seconds." />
                   </div>

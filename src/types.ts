@@ -1782,13 +1782,18 @@ export interface StickerItem {
   italic?: boolean;
 }
 
-// ── Wedding Party ─────────────────────────────────────────────
+// ── Wedding Party / Honor List ────────────────────────────────
+// The generalized honor-list roster: wedding party, quinceañera
+// court of honor (dama / chambelan), bar/bat-mitzvah candle
+// lighters. Field name stays weddingParty for zero-migration
+// compat with legacy wedding sites.
 
 export interface WeddingPartyMember {
   id: string;
   name: string;
   role: 'bride' | 'groom' | 'maid-of-honor' | 'best-man' | 'bridesmaid' | 'groomsman'
-    | 'flower-girl' | 'ring-bearer' | 'officiant' | 'parent' | 'grandparent' | 'other';
+    | 'flower-girl' | 'ring-bearer' | 'officiant' | 'parent' | 'grandparent'
+    | 'dama' | 'chambelan' | 'candle-lighter' | 'other';
   customRole?: string;
   bio?: string;
   photo?: string;

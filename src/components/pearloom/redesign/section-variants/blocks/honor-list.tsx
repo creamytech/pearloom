@@ -39,6 +39,11 @@ const ROLE_LABEL: Record<string, string> = {
   'officiant': 'Officiant',
   'parent': 'Parent',
   'grandparent': 'Grandparent',
+  /* Court of honor (quinceañera) + candle lighters (bar/bat
+     mitzvah) — neutral roles, so they never trip the side split. */
+  'dama': 'Dama',
+  'chambelan': 'Chambelán',
+  'candle-lighter': 'Candle lighter',
   'other': '',
 };
 

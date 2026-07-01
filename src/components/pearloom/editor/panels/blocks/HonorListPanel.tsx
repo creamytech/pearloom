@@ -17,9 +17,15 @@ import type { StoryManifest, WeddingPartyMember } from '@/types';
 import { AddCard, FGroup, FInput, SectionPanelShell, SectionVisibilityFooter, useSectionHidden } from '../_section-atoms';
 import { FSelect } from '../_form-atoms';
 import { PhotoUploadSlot, collectPhotoPool } from '../_photo-upload';
-import { mkId, RemoveButton, RowCard, type BlockPanelProps } from './_shared';
+import { mkId, readOccasion, RemoveButton, RowCard, type BlockPanelProps } from './_shared';
 
-const ROLE_OPTIONS: Array<{ value: WeddingPartyMember['role']; label: string }> = [
+type RoleOption = { value: WeddingPartyMember['role']; label: string };
+
+/* Role presets route by occasion — the registry mounts this section
+   on wedding-shaped events (wedding party), quinceañeras (court of
+   honor) and bar/bat mitzvahs (candle lighters). Same typed field,
+   different vocabulary. */
+const WEDDING_ROLE_OPTIONS: RoleOption[] = [
   { value: 'other', label: 'No set role' },
   { value: 'maid-of-honor', label: 'Maid of honor' },
   { value: 'best-man', label: 'Best man' },
@@ -34,14 +40,67 @@ const ROLE_OPTIONS: Array<{ value: WeddingPartyMember['role']; label: string }> 
   { value: 'grandparent', label: 'Grandparent' },
 ];
 
+const COURT_ROLE_OPTIONS: RoleOption[] = [
+  { value: 'other', label: 'No set role' },
+  { value: 'dama', label: 'Dama' },
+  { value: 'chambelan', label: 'Chambelán' },
+  { value: 'parent', label: 'Parent' },
+  { value: 'grandparent', label: 'Grandparent' },
+];
+
+const CANDLE_ROLE_OPTIONS: RoleOption[] = [
+  { value: 'other', label: 'No set role' },
+  { value: 'candle-lighter', label: 'Candle lighter' },
+  { value: 'parent', label: 'Parent' },
+  { value: 'grandparent', label: 'Grandparent' },
+];
+
+interface OccasionCopy {
+  roleOptions: RoleOption[];
+  hint: string;
+  relationshipPlaceholder: string;
+}
+
+function copyFor(occasion?: string): OccasionCopy {
+  if (occasion === 'quinceanera') {
+    return {
+      roleOptions: COURT_ROLE_OPTIONS,
+      hint: 'The court of honor — damas, chambelanes, and the family beside her.',
+      relationshipPlaceholder: 'Relationship — “Her cousin”',
+    };
+  }
+  if (occasion === 'bar-mitzvah' || occasion === 'bat-mitzvah') {
+    return {
+      roleOptions: CANDLE_ROLE_OPTIONS,
+      hint: 'Candle lighters and honored family — they appear on the site in this order.',
+      relationshipPlaceholder: 'Relationship — “Grandmother”',
+    };
+  }
+  return {
+    roleOptions: WEDDING_ROLE_OPTIONS,
+    hint: 'Wedding party, court of honor, candle-lighters — whoever stands beside the honoree. Bride-side + groom-side roles split into two columns on the site.',
+    relationshipPlaceholder: "Relationship — “Bride's sister”",
+  };
+}
+
 /* Custom dropdown (was a native <select> — banned). FSelect is the
-   house dropdown used by every other panel. */
-function RoleSelect({ value, onChange }: { value: WeddingPartyMember['role']; onChange: (v: WeddingPartyMember['role']) => void }) {
+   house dropdown used by every other panel. A row whose saved role
+   isn't in the occasion's preset list (e.g. a legacy wedding role on
+   a quinceañera site) keeps its option appended so it never reads
+   blank. */
+function RoleSelect({ value, onChange, options }: {
+  value: WeddingPartyMember['role'];
+  onChange: (v: WeddingPartyMember['role']) => void;
+  options: RoleOption[];
+}) {
+  const opts = options.some((o) => o.value === value)
+    ? options
+    : [...options, ...WEDDING_ROLE_OPTIONS.filter((o) => o.value === value)];
   return (
     <FSelect
       value={value}
       onChange={(v) => onChange(v as WeddingPartyMember['role'])}
-      options={ROLE_OPTIONS}
+      options={opts}
       placeholder="Pick a role"
     />
   );
@@ -49,6 +108,7 @@ function RoleSelect({ value, onChange }: { value: WeddingPartyMember['role']; on
 
 export function HonorListPanel({ manifest, onChange }: BlockPanelProps) {
   const [isHidden, setHidden] = useSectionHidden(manifest, onChange, 'honorList');
+  const copy = copyFor(readOccasion(manifest));
   const members: WeddingPartyMember[] = Array.isArray(manifest.weddingParty)
     ? [...manifest.weddingParty].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     : [];
@@ -69,7 +129,7 @@ export function HonorListPanel({ manifest, onChange }: BlockPanelProps) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <FGroup
           label={`People · ${members.length}`}
-          hint="Wedding party, court of honor, candle-lighters — whoever stands beside the honoree. Bride-side + groom-side roles split into two columns on the site."
+          hint={copy.hint}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {members.map((m, i) => (
@@ -88,7 +148,7 @@ export function HonorListPanel({ manifest, onChange }: BlockPanelProps) {
                   </div>
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <FInput value={m.name ?? ''} onChange={(v) => patchMember(i, { name: v })} icon="user" placeholder="Maya Patel" />
-                    <RoleSelect value={m.role ?? 'other'} onChange={(v) => patchMember(i, { role: v })} />
+                    <RoleSelect value={m.role ?? 'other'} onChange={(v) => patchMember(i, { role: v })} options={copy.roleOptions} />
                   </div>
                   <RemoveButton label={`Remove ${m.name || 'person'}`} onClick={() => write(members.filter((_, idx) => idx !== i))} />
                 </div>
@@ -105,7 +165,7 @@ export function HonorListPanel({ manifest, onChange }: BlockPanelProps) {
                 <FInput
                   value={m.relationship ?? ''}
                   onChange={(v) => patchMember(i, { relationship: v })}
-                  placeholder="Relationship — “Bride's sister”"
+                  placeholder={copy.relationshipPlaceholder}
                 />
               </RowCard>
             ))}

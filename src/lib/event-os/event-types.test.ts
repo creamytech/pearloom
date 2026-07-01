@@ -77,6 +77,13 @@ describe('EVENT_TYPES registry', () => {
     }
   });
 
+  it('honor-list occasions can mount weddingParty (court of honor / candle lighters)', () => {
+    for (const id of ['quinceanera', 'bar-mitzvah', 'bat-mitzvah'] as const) {
+      expect(getAllowedBlocksFor(id)).toContain('weddingParty');
+      expect(getHiddenBlocksFor(id)).not.toContain('weddingParty');
+    }
+  });
+
   it('each currently-shipping occasion is in the registry', () => {
     const shippingIds = new Set(
       ['wedding', 'anniversary', 'engagement', 'birthday', 'story'],
