@@ -2,7 +2,13 @@
    wallpapers (handoff-v2/ui_kits/wallpapers). The runtime lives at
    public/wallpaper-engine.js (window.PearloomWallpaper); this is the
    catalog the picker + store + renderer share. Prices/occasions match
-   the v2 showcase; "Still Water" is always free for memorials. */
+   the v2 showcase; "Still Water" is always free for memorials.
+
+   NOTE the price labels are catalog metadata for the future store
+   listing — nothing charges for a wallpaper yet, and the editor
+   picker deliberately shows no price. Wire through the theme-pack
+   checkout (pl-store-owned + publish paywall) when wallpapers get
+   their SKUs. */
 
 export type WallpaperId = 'silk' | 'aurora' | 'water' | 'dust' | 'marble';
 

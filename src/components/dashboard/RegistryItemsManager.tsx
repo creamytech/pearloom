@@ -179,8 +179,10 @@ function ItemCard({ item, onEdit, onDelete }: { item: Item; onEdit: () => void; 
                 {Math.min(100, Math.round((item.quantityClaimed / item.quantity) * 100))}% there
               </span>
               {item.quantityClaimed > 0 && (
+                /* quantityClaimed counts UNITS, not people — one guest
+                   can claim several — so the copy states units. */
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--sage-deep)' }}>
-                  <Icon name="users" size={11} /> {item.quantityClaimed} chipping in
+                  <Icon name="gift" size={11} /> {item.quantityClaimed} of {item.quantity} claimed
                 </span>
               )}
             </div>

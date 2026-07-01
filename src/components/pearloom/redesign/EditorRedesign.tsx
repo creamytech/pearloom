@@ -32,6 +32,7 @@ import { ThemeRail } from './ThemeRail';
 import { EditorTopbar } from './EditorTopbar';
 import { FullSite } from './FullSite';
 import { ThemedSite } from './ThemedSite';
+import { LivingBackground } from '../site/LivingBackground';
 import { CanvasPhotoDrawer, type PhotoSlot } from './CanvasPhotoDrawer';
 import { CanvasPearBlocks, type PicksKind } from './CanvasPearBlocks';
 import { EditorDrawers } from './EditorDrawers';
@@ -779,6 +780,19 @@ function EditorCanvas({
           flexShrink: 0,
         }}
       >
+        {/* Living background (v2 shader wallpaper) — ThemedSite's root
+            goes transparent when manifest.background is set, expecting
+            an animated ground behind it. The published shell mounts
+            one; without this the canvas previewed a wallpaper pick as
+            flat editor paper. Absolute (fixed={false}) so the device
+            frame contains it; the site root carries zIndex 1 and
+            paints above. LivingBackground self-validates the id. */}
+        {Boolean((canvasManifest as unknown as { background?: string }).background) && (
+          <LivingBackground
+            id={(canvasManifest as unknown as { background?: string }).background as string}
+            fixed={false}
+          />
+        )}
         <ThemedSite
           active={active}
           setActive={setActive}

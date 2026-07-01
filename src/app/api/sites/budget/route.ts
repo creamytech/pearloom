@@ -3,12 +3,11 @@
 //
 // PATCH — owner-only save of the host-entered budget to the site
 // manifest (manifest.budget). The cockpit budget breakdown is the
-// only writer. NOTE: this is a read-modify-write of the whole
-// ai_manifest (same shape as /api/sites/seating) — if the editor's
-// full-manifest autosave lands between our read and write, its
-// changes lose. The window is milliseconds and the cockpit + editor
-// are rarely open together; a jsonb_set RPC is the real fix if that
-// ever changes.
+// only writer. The write is guarded with optimistic concurrency on
+// sites.updated_at (bumped by the tg_set_updated_at trigger on every
+// update), so an editor full-manifest autosave landing between our
+// read and write is detected and retried on the fresh manifest —
+// never silently clobbered. (/api/sites/seating predates this guard.)
 //
 //   budget = [{ cat: string, used: number, cap: number }, …]
 //
@@ -30,7 +29,7 @@ function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;
-  return createClient(url, key, { auth: { persistSession: false } });
+  return createClient(url, key);
 }
 
 interface BudgetLine { cat: string; used: number; cap: number }
@@ -73,7 +72,7 @@ export async function PATCH(req: NextRequest) {
   const supabase = getSupabase();
   if (!supabase) return NextResponse.json({ ok: true, stored: false });
 
-  const lookup = supabase.from('sites').select('subdomain, ai_manifest, site_config, creator_email');
+  const lookup = supabase.from('sites').select('subdomain, ai_manifest, site_config, creator_email, updated_at');
   const { data: site, error: fetchErr } = await (UUID_RX.test(siteId)
     ? lookup.eq('id', siteId)
     : lookup.eq('subdomain', siteId)
@@ -87,18 +86,39 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Forbidden' }, { status: 403 });
   }
 
-  const manifest = (site.ai_manifest as Record<string, unknown>) ?? {};
-  const updatedManifest = { ...manifest, budget };
+  // Optimistic-concurrency write: only update if updated_at still
+  // matches what we read; a miss means another writer (the editor's
+  // autosave) landed in between — re-read and retry on ITS manifest
+  // so neither write is lost.
+  let manifest = (site.ai_manifest as Record<string, unknown>) ?? {};
+  let seenUpdatedAt = (site.updated_at as string | null) ?? null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const updatedManifest = { ...manifest, budget };
+    let write = supabase
+      .from('sites')
+      .update({ ai_manifest: updatedManifest })
+      .eq('subdomain', site.subdomain);
+    write = seenUpdatedAt === null ? write.is('updated_at', null) : write.eq('updated_at', seenUpdatedAt);
+    const { data: touched, error: updateErr } = await write.select('subdomain');
 
-  const { error: updateErr } = await supabase
-    .from('sites')
-    .update({ ai_manifest: updatedManifest })
-    .eq('subdomain', site.subdomain);
+    if (updateErr) {
+      console.error('[sites/budget] update failed:', updateErr);
+      return NextResponse.json({ ok: false, error: 'Could not save budget.' }, { status: 500 });
+    }
+    if ((touched ?? []).length > 0) {
+      return NextResponse.json({ ok: true, stored: true, budget });
+    }
 
-  if (updateErr) {
-    console.error('[sites/budget] update failed:', updateErr);
-    return NextResponse.json({ ok: false, error: 'Could not save budget.' }, { status: 500 });
+    const { data: fresh } = await supabase
+      .from('sites')
+      .select('ai_manifest, updated_at')
+      .eq('subdomain', site.subdomain)
+      .maybeSingle();
+    if (!fresh) return NextResponse.json({ ok: false, error: 'Site not found' }, { status: 404 });
+    manifest = (fresh.ai_manifest as Record<string, unknown>) ?? {};
+    seenUpdatedAt = (fresh.updated_at as string | null) ?? null;
   }
 
-  return NextResponse.json({ ok: true, stored: true, budget });
+  console.error('[sites/budget] gave up after 3 optimistic-concurrency retries');
+  return NextResponse.json({ ok: false, error: 'The editor saved at the same moment — try again.' }, { status: 409 });
 }

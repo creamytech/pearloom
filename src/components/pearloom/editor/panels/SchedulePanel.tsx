@@ -357,10 +357,13 @@ export function SchedulePanel({ manifest, onChange }: { manifest: StoryManifest;
                 }} />
               </button>
             </div>
-
-            <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Schedule" />
           </div>
         </details>
+
+        {/* Outside the More disclosure — the other seven section
+            panels keep the hide-this-section affordance always
+            visible; burying it here made Schedule the odd one out. */}
+        <SectionVisibilityFooter isHidden={isHidden} setHidden={setHidden} sectionLabel="Schedule" />
       </div>
     </SectionPanelShell>
   );

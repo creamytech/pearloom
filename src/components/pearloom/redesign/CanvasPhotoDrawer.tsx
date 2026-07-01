@@ -45,6 +45,10 @@ export function CanvasPhotoDrawer({
   const [vis, setVis] = useState(false);
   const [library, setLibrary] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  // Latch the last non-null slot: EditorRedesign nulls `slot`
+  // synchronously on close, and rendering from the prop would unmount
+  // in one frame — the 280ms exit slide below would never play.
+  // Render-time adjustment, not a setState-in-effect.
 
   // The parent nulls `slot` immediately on close; keep the last real
   // slot so the .28s exit slide has something to render.

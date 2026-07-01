@@ -199,27 +199,35 @@ export function WelcomeHome() {
     return Array.isArray(raw) ? (raw as BudgetLine[]) : [];
   }, [manifest]);
   const [budget, setBudget] = useState<BudgetLine[]>(savedBudget);
-  useEffect(() => { setBudget(savedBudget); }, [savedBudget]);
+  // Render-time adjustment (not a setState-in-effect): resync the
+  // optimistic copy when the saved manifest changes underneath us
+  // (site switch / refetch).
+  const [prevSavedBudget, setPrevSavedBudget] = useState(savedBudget);
+  if (prevSavedBudget !== savedBudget) {
+    setPrevSavedBudget(savedBudget);
+    setBudget(savedBudget);
+  }
+  // Throws on failure so BudgetBreakdown keeps the editor open and
+  // shows the error — a swallowed failure here read as "saved" while
+  // the numbers silently reverted on reload.
   const saveBudget = async (next: BudgetLine[]) => {
-    setBudget(next);
-    if (!site?.id) return;
+    if (!site?.id) throw new Error('No site selected');
+    const prev = budget;
+    setBudget(next); // optimistic — reverted below if the save fails
     try {
       const res = await fetch('/api/sites/budget', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ siteId: site.id, budget: next }),
       });
-      if (!res.ok) throw new Error(`budget save ${res.status}`);
+      if (!res.ok) throw new Error(`Budget save failed (${res.status})`);
       // Sync the cached manifest — otherwise navigating away and back
-      // within the cache TTL re-syncs `budget` from the stale cached
-      // manifest and the just-saved lines visually disappear.
+      // within the sites-cache TTL re-syncs `budget` from the stale
+      // cached copy and the just-saved lines visually disappear.
       patchSiteManifestInCache(site.id, { budget: next });
-    } catch (e) {
-      // Roll back the optimistic state and let BudgetBreakdown keep
-      // the editor open + show the error, instead of silently
-      // "saving" a budget that never landed.
-      setBudget(savedBudget);
-      throw e;
+    } catch (err) {
+      setBudget(prev);
+      throw err;
     }
   };
   const nextStep = useMemo(

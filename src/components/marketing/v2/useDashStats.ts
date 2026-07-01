@@ -60,7 +60,7 @@ const EMPTY_STATS: Omit<DashStats, 'loading' | 'error'> = {
   series: [0, 0, 0, 0, 0, 0, 0],
 };
 
-export function useDashStats(siteId?: string | null): DashStats {
+export function useDashStats(siteId?: string | null, siteSlug?: string | null): DashStats {
   // Tagged result so loading + error all derive from a single
   // state value. Same pattern as useLinkedCelebrations.
   type Result = {
@@ -75,15 +75,20 @@ export function useDashStats(siteId?: string | null): DashStats {
     if (!siteId) return;
     const id = ++reqRef.current;
     const currentSiteId = siteId;
+    // site_analytics/section_analytics rows are keyed by the site's
+    // SUBDOMAIN (what the published-site beacon writes); the RSVP
+    // roster is id-keyed. Callers that have the slug should pass it —
+    // falling back to the id keeps old callers compiling but reads 0.
+    const analyticsKey = siteSlug || siteId;
     let cancelled = false;
 
     (async () => {
       try {
         const [visitsRes, rsvpRes, regRes] = await Promise.all([
-          fetch(`/api/analytics/visit?siteId=${encodeURIComponent(currentSiteId)}`),
+          fetch(`/api/analytics/visit?siteId=${encodeURIComponent(analyticsKey)}`),
           fetch(`/api/rsvp?siteId=${encodeURIComponent(currentSiteId)}`),
           fetch(
-            `/api/analytics/section?siteId=${encodeURIComponent(currentSiteId)}&section=registry`,
+            `/api/analytics/section?siteId=${encodeURIComponent(analyticsKey)}&section=registry`,
           ).catch(() => null),
         ]);
         if (cancelled || id !== reqRef.current) return;
@@ -143,7 +148,7 @@ export function useDashStats(siteId?: string | null): DashStats {
     return () => {
       cancelled = true;
     };
-  }, [siteId]);
+  }, [siteId, siteSlug]);
 
   // Loading derived: hook is loading until result.siteId
   // matches the current siteId. Empty siteId reads as not-loading.

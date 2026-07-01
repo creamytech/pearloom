@@ -91,10 +91,12 @@ test.describe('Studio (stationery editor)', () => {
     // The Studio opens on the "Design the invitation" landing for
     // first-time hosts; mark this site as already entered so these
     // editor specs land straight in the card editor. The landing has
-    // its own spec below.
-    await page.addInitScript(() => {
-      try { window.localStorage.setItem('pl-studio-entered-playwright-test', '1'); } catch { /* private mode */ }
-    });
+    // its own spec below. TEST_SLUG rides in as the init-script arg
+    // so the key can't silently drift from the app's
+    // `pl-studio-entered-${siteSlug}` pattern.
+    await page.addInitScript((slug) => {
+      try { window.localStorage.setItem(`pl-studio-entered-${slug}`, '1'); } catch { /* private mode */ }
+    }, TEST_SLUG);
     await page.goto(`/dashboard/invite?site=${TEST_SLUG}`);
     // Wait for StudioApp to mount — the topbar shows "Studio · A & B".
     await expect(page.getByText(/Studio · /)).toBeVisible({ timeout: 20_000 });

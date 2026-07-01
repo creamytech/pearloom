@@ -121,8 +121,14 @@ export function StudioApp({ siteSlug, manifest, names }: Props) {
   const [aiBusy, setAiBusy] = useState(false);
   // The v2 "Design the invitation" welcome (studio.png). Shown once
   // per site on first open; picking a stationery type sets it and
-  // opens the editor. Returning hosts skip straight to the editor.
+  // opens the editor. "Entered before" is judged by the persisted
+  // suite FIRST (manifest.studio carries state on any device) and
+  // the localStorage flag second — a returning host on a new
+  // browser must not land on first-run and have the forced type
+  // pick overwrite their saved stationery type via autosave.
   const [showLanding, setShowLanding] = useState<boolean>(() => {
+    const persisted = (manifest as unknown as { studio?: Record<string, unknown> }).studio;
+    if (persisted && Object.keys(persisted).length > 0) return false;
     try { return !localStorage.getItem(`pl-studio-entered-${siteSlug}`); } catch { return false; }
   });
   const enterStudio = (t: StationeryType) => {

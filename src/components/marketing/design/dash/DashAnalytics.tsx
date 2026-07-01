@@ -11,6 +11,7 @@ import { Panel, SectionTitle, EmptyShell, btnInk, btnGhost } from './DashShell';
 import { DashLayout } from '@/components/pearloom/dash/DashShell';
 import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getAnalyticsCopy, getAnalyticsSectionsToWatch } from '@/lib/event-os/dashboard-presets';
+import { normaliseRsvpStatus } from '@/lib/rsvp-status';
 
 interface VisitStats {
   visits: number;
@@ -54,68 +55,61 @@ export function DashAnalytics() {
     // `loading` below already handles undefined site.id as
     // "not loading" (empty state UI is owned by the caller).
     if (!site?.id) return;
-    let cancelled = false;
-    // site_analytics / section_analytics are keyed by the site SLUG
-    // (what AnalyticsBeacon writes from the published page), not the
-    // uuid — querying by uuid reads 0 forever. Guests stay uuid-keyed.
+    // site_analytics + section_analytics rows are keyed by the
+    // site's SUBDOMAIN (what the published-site beacon writes), so
+    // the three analytics endpoints get the domain; the guest
+    // roster stays id-keyed.
     const slug = site.domain;
+    let cancelled = false;
+    // A failed fetch resolves to null — NOT a zeroed shape — so a
+    // broken read renders as '—' + a soft banner instead of a
+    // real-looking 0 (honesty rule).
+    const grab = (url: string) =>
+      fetch(url, { cache: 'no-store' })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null);
     Promise.all([
-      fetch(`/api/analytics/visit?siteId=${encodeURIComponent(slug)}`, { cache: 'no-store' })
-        .then((r) => r.json())
-        .catch(() => ({ visits: 0, today: 0, mobile: 0, desktop: 0 })),
-      fetch(`/api/analytics/section?siteId=${encodeURIComponent(slug)}`, { cache: 'no-store' })
-        .then((r) => r.json())
-        .catch(() => ({ sections: [] })),
-      fetch(`/api/analytics/sources?siteId=${encodeURIComponent(slug)}`, { cache: 'no-store' })
-        .then((r) => r.json())
-        .catch(() => ({ sources: [] })),
-      // Guest roster drives the real RSVP funnel + conversion. Owner-
-      // gated; falls back to an empty roster on any error.
-      fetch(`/api/guests?siteId=${encodeURIComponent(site.id)}`, { cache: 'no-store' })
-        .then((r) => (r.ok ? r.json() : { guests: [] }))
-        .catch(() => ({ guests: [] })),
-    ])
-      .then(([v, s, src, g]) => {
-        if (cancelled) return;
-        const guests = (g?.guests ?? []) as { status?: string; inviteOpenedAt?: string | null; replyStartedAt?: string | null }[];
+      grab(`/api/analytics/visit?siteId=${encodeURIComponent(slug)}`),
+      grab(`/api/analytics/section?siteId=${encodeURIComponent(slug)}`),
+      grab(`/api/analytics/sources?siteId=${encodeURIComponent(slug)}`),
+      // Guest roster drives the real RSVP funnel + conversion (owner-gated).
+      grab(`/api/guests?siteId=${encodeURIComponent(site.id)}`),
+    ]).then(([v, s, src, g]) => {
+      if (cancelled) return;
+      let funnel: Funnel | null = null;
+      if (g) {
+        const guests = (g.guests ?? []) as { status?: string; inviteOpenedAt?: string | null; replyStartedAt?: string | null }[];
         const invited = guests.length;
         let opened = 0; let started = 0; let replied = 0; let coming = 0;
         for (const gu of guests) {
-          const st = String(gu.status ?? '').toLowerCase();
-          const isReplied = st === 'yes' || st === 'attending' || st === 'no' || st === 'declined' || st === 'maybe';
-          if (st === 'yes' || st === 'attending') coming += 1;
+          const key = normaliseRsvpStatus(gu.status);
+          const isReplied = key !== 'pending';
+          if (key === 'yes') coming += 1;
           if (isReplied) replied += 1;
           // A reply implies the earlier stages even if the ping was
           // missed; keeps the funnel monotonic + honest.
           if (gu.inviteOpenedAt || gu.replyStartedAt || isReplied) opened += 1;
           if (gu.replyStartedAt || isReplied) started += 1;
         }
-        setResult({
-          siteId: site.id,
-          visit: {
-            visits: Number(v?.visits ?? 0),
-            today: Number(v?.today ?? 0),
-            mobile: Number(v?.mobile ?? 0),
-            desktop: Number(v?.desktop ?? 0),
-          },
-          sections: (s?.sections ?? []) as SectionStat[],
-          funnel: { invited, opened, started, replied, coming },
-          sources: (src?.sources ?? []) as Source[],
-          error: null,
-        });
-      })
-      .catch((e) => {
-        if (!cancelled) {
-          setResult({
-            siteId: site.id,
-            visit: null,
-            sections: null,
-            funnel: null,
-            sources: null,
-            error: e instanceof Error ? e.message : String(e),
-          });
-        }
+        funnel = { invited, opened, started, replied, coming };
+      }
+      const failed = v === null || s === null || src === null || g === null;
+      setResult({
+        siteId: site.id,
+        visit: v
+          ? {
+              visits: Number(v.visits ?? 0),
+              today: Number(v.today ?? 0),
+              mobile: Number(v.mobile ?? 0),
+              desktop: Number(v.desktop ?? 0),
+            }
+          : null,
+        sections: s ? ((s.sections ?? []) as SectionStat[]) : null,
+        funnel,
+        sources: src ? ((src.sources ?? []) as Source[]) : null,
+        error: failed ? 'Some numbers couldn’t load just now — showing what we have. Refresh to retry.' : null,
       });
+    });
     return () => {
       cancelled = true;
     };
@@ -204,19 +198,19 @@ export function DashAnalytics() {
           {[
             {
               l: 'Site visits · all time',
-              v: loading ? '—' : (visit?.visits ?? 0).toLocaleString(),
+              v: loading || !visit ? '—' : visit.visits.toLocaleString(),
               delta: visit?.today ? `${visit.today} today` : 'Since launch',
               c: PD.olive,
             },
             {
               l: 'Today',
-              v: loading ? '—' : (visit?.today ?? 0).toLocaleString(),
+              v: loading || !visit ? '—' : visit.today.toLocaleString(),
               delta: 'Since midnight',
               c: PD.gold,
             },
             {
               l: 'Mobile share',
-              v: loading ? '—' : `${mobileShare}%`,
+              v: loading || !visit ? '—' : `${mobileShare}%`,
               delta: visit
                 ? `${visit.mobile} mobile · ${visit.desktop} desktop`
                 : '',
@@ -224,8 +218,10 @@ export function DashAnalytics() {
             },
             {
               l: 'RSVP conversion',
-              v: loading ? '—' : (funnel && funnel.invited > 0 ? `${conversionPct}%` : '—'),
-              delta: funnel && funnel.invited > 0 ? `${funnel.replied} of ${funnel.invited} invited` : 'No guests yet',
+              v: loading || !funnel ? '—' : (funnel.invited > 0 ? `${conversionPct}%` : '—'),
+              delta: funnel && funnel.invited > 0
+                ? `${funnel.replied} of ${funnel.invited} invited`
+                : funnel ? 'No guests yet' : '',
               c: PD.terra,
             },
           ].map((k) => (
@@ -297,11 +293,11 @@ export function DashAnalytics() {
               </div>
             ) : (
               <div style={{ fontSize: 13.5, color: PD.inkSoft, lineHeight: 1.55, maxWidth: 520 }}>
-                {/* Never claim "no guests" while the roster is still in
-                    flight — same honesty rule as the KPI tiles' em dash. */}
                 {loading
                   ? 'Threading…'
-                  : 'No guests yet — the funnel fills in as you add guests and replies land.'}
+                  : funnel
+                    ? 'No guests yet — the funnel fills in as you add guests and replies land.'
+                    : 'The guest list couldn’t be read just now — refresh to retry.'}
               </div>
             )}
           </Panel>
@@ -342,7 +338,11 @@ export function DashAnalytics() {
                 </div>
               ) : (
                 <div style={{ fontSize: 12.5, color: PD.inkSoft, lineHeight: 1.5 }}>
-                  No visits with a known source yet.
+                  {loading
+                    ? 'Threading…'
+                    : sources
+                      ? 'No visits with a known source yet.'
+                      : 'Sources couldn’t be read just now — refresh to retry.'}
                 </div>
               )}
             </Panel>

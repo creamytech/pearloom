@@ -742,7 +742,11 @@ export function ThemedSite({
      layout below. */
   const footerVariant = (manifest as unknown as { footerVariant?: 'signature' | 'columns' | 'minimal' }).footerVariant || 'signature';
   const footerEl = (
-    <SiteFooter variant={footerVariant} headline={headline} meta={C.meta} navItems={navItems} scrollToSection={scrollToSection} />
+    /* onNavClick, not raw scrollToSection — on multi-page sites the
+       columns footer links to sections living on other pages; the
+       page-aware handler navigates there (same path as the header
+       nav) instead of preventDefault-ing into a dead anchor. */
+    <SiteFooter variant={footerVariant} headline={headline} meta={C.meta} navItems={navItems} scrollToSection={onNavClick} />
   );
 
   /* kitId hoisted above ctx for motifLayout. */
@@ -3978,7 +3982,13 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
     const el = secRef.current;
     if (!el) return;
     const scroller = el.closest('[data-pl-canvas-scroll]') as HTMLElement | null;
+    /* rAF-coalesced: the raw handler did two getBoundingClientRect
+       reads + offsetHeight + a setState per scroll EVENT (several can
+       land per frame on trackpads) inside the selected section's hot
+       path. One measurement per frame is enough for a tracking bar. */
+    let rafId = 0;
     const update = () => {
+      rafId = 0;
       const bar = barRef.current;
       if (!bar) return;
       const sr = el.getBoundingClientRect();
@@ -3989,14 +3999,17 @@ function TSection({ id, label, children, active, setActive, editable, onSectionF
       // per frame is exactly the jank the bar is meant to avoid.
       bar.style.top = `${Math.max(8, Math.min(above + 8, el.offsetHeight - 48))}px`;
     };
-    const raf = requestAnimationFrame(update);
+    const schedule = () => {
+      if (!rafId) rafId = requestAnimationFrame(update);
+    };
+    schedule();
     const target: HTMLElement | Window = scroller ?? window;
-    target.addEventListener('scroll', update, { passive: true } as AddEventListenerOptions);
-    window.addEventListener('resize', update);
+    target.addEventListener('scroll', schedule, { passive: true } as AddEventListenerOptions);
+    window.addEventListener('resize', schedule);
     return () => {
-      cancelAnimationFrame(raf);
-      target.removeEventListener('scroll', update as EventListener);
-      window.removeEventListener('resize', update);
+      if (rafId) cancelAnimationFrame(rafId);
+      target.removeEventListener('scroll', schedule as EventListener);
+      window.removeEventListener('resize', schedule);
     };
   }, [showLayoutBar]);
   return (

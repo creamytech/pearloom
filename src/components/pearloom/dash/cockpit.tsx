@@ -16,7 +16,7 @@
 // interior cream/peach text is intentionally literal.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Icon, PearloomGlyph, Sprig } from '../motifs';
 import { Pearl } from '@/components/brand/Pearl';
@@ -423,7 +423,12 @@ export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave
   const [saveError, setSaveError] = useState(false);
   // Keep the draft in sync when the saved budget changes underneath
   // us (e.g. switching the active site) — but not while editing.
-  useEffect(() => { if (!editing) setDraft(lines); }, [lines, editing]);
+  // Render-time adjustment, not a setState-in-effect.
+  const [prevLines, setPrevLines] = useState(lines);
+  if (prevLines !== lines) {
+    setPrevLines(lines);
+    if (!editing) setDraft(lines);
+  }
 
   const totalUsed = lines.reduce((a, b) => a + b.used, 0);
   const totalCap = lines.reduce((a, b) => a + b.cap, 0);
@@ -443,8 +448,8 @@ export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave
       await onSave(cleaned);
       setEditing(false);
     } catch {
-      // Keep the editor open with the host's draft — closing here
-      // would claim a save that never landed.
+      // Stay in edit mode with the host's draft intact — closing
+      // here would present a failed save as saved.
       setSaveError(true);
     } finally {
       setSaving(false);
@@ -496,13 +501,13 @@ export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave
         </div>
         <button type="button" onClick={addLine} style={{ marginTop: 10, width: '100%', padding: 9, borderRadius: 9, border: '1px dashed var(--line)', background: 'transparent', color: 'var(--ink-soft)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>+ Add category</button>
         {saveError && (
-          <div style={{ marginTop: 10, fontSize: 12, color: 'var(--plum, #C6563D)' }}>
-            That didn&rsquo;t save — check your connection and try again.
+          <div role="alert" style={{ marginTop: 10, fontSize: 12, color: 'var(--plum, #C6563D)', lineHeight: 1.45 }}>
+            That didn&rsquo;t save — check your connection and try again. Your lines are still here.
           </div>
         )}
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
           <button type="button" disabled={saving} onClick={save} className="btn btn-primary btn-sm" style={{ flex: 1 }}>{saving ? 'Saving…' : 'Save budget'}</button>
-          <button type="button" disabled={saving} onClick={() => { setDraft(lines); setEditing(false); setSaveError(false); }} className="btn btn-outline btn-sm">Cancel</button>
+          <button type="button" disabled={saving} onClick={() => { setDraft(lines); setSaveError(false); setEditing(false); }} className="btn btn-outline btn-sm">Cancel</button>
         </div>
       </div>
     );
@@ -519,11 +524,13 @@ export function BudgetBreakdown({ lines, onSave }: { lines: BudgetLine[]; onSave
         </span>
       </div>
       <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 11 }}>
+        {/* Keyed by index — the editor allows duplicate category
+            names ("Venue" twice saves fine) and the list isn't
+            reorderable, so cat-keys would collide. */}
         {lines.map((b, i) => {
           const over = b.used > b.cap && b.cap > 0;
           const pct = b.cap > 0 ? Math.min(100, (b.used / b.cap) * 100) : 0;
           return (
-            // Index key — category names are host-typed and can repeat.
             <div key={i}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 5 }}>
                 <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)' }}>{b.cat}</span>
