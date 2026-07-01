@@ -41,28 +41,40 @@ export async function POST(req: NextRequest) {
 
   const token = String(body.token ?? '').trim().slice(0, 64);
   const column = COLUMN[String(body.event ?? '')];
-  if (!token || !column) return NextResponse.json({ ok: false });
+  if (!token || !column) return NextResponse.json({ ok: false }, { status: 400 });
 
   const supabase = sb();
   if (!supabase) return NextResponse.json({ ok: true, stored: false });
 
   try {
-    // Resolve the guest by passport_token; stamp the column once.
-    const { data } = await supabase
+    // Resolve the guest — `?g=` links carry either token column
+    // (passport_token from the plus-one/invite flow, guest_token from
+    // add/import + dashboard links; new rows mint both). Same
+    // fallback order as /api/sites/guest-passport.
+    let { data: guest } = await supabase
       .from('guests')
-      .select('id, invite_opened_at, reply_started_at')
+      .select('id')
       .eq('passport_token', token)
       .maybeSingle();
-    const guest = data as unknown as { id: string; invite_opened_at: string | null; reply_started_at: string | null } | null;
-    if (!guest) return NextResponse.json({ ok: true, stored: false });
-    if ((guest as unknown as Record<string, unknown>)[column]) {
-      return NextResponse.json({ ok: true, stored: false }); // already stamped
+    if (!guest) {
+      ({ data: guest } = await supabase
+        .from('guests')
+        .select('id')
+        .eq('guest_token', token)
+        .maybeSingle());
     }
-    await supabase
+    if (!guest) return NextResponse.json({ ok: true, stored: false });
+
+    // First-write-wins: `.is(column, null)` makes the stamp atomic, so
+    // concurrent pings (two tabs, double mount) can't overwrite the
+    // true first-touch timestamp.
+    const { data: updated } = await supabase
       .from('guests')
       .update({ [column]: new Date().toISOString() })
-      .eq('id', guest.id);
-    return NextResponse.json({ ok: true, stored: true });
+      .eq('id', guest.id)
+      .is(column, null)
+      .select('id');
+    return NextResponse.json({ ok: true, stored: (updated ?? []).length > 0 });
   } catch (err) {
     console.error('[guests/track]', err);
     return NextResponse.json({ ok: false });

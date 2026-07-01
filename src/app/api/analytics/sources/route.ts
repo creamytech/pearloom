@@ -4,11 +4,19 @@
 // Traffic-source breakdown for the Analytics page (v2 "How they
 // arrived"). Buckets the REAL site_analytics.referrer column —
 // Direct / Email / Social / Web — so the panel never shows an
-// invented split. Matches the unauthed + rate-limited shape of
-// /api/analytics/visit (referrer counts aren't sensitive).
+// invented split.
+//
+// Owner-gated: referrer mixes + traffic totals are host data, and
+// this reads with the service role (which bypasses the table's
+// "owner read" RLS policy) — so the route enforces ownership
+// itself. Accepts the site's UUID or subdomain in ?siteId= and
+// counts by SUBDOMAIN, which is what site_analytics.site_id
+// actually holds (see 20260606_tighten_anon_inserts.sql).
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
@@ -22,6 +30,8 @@ function sb() {
 }
 
 const EMPTY = { sources: [] as { label: string; count: number; pct: number }[], total: 0 };
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function bucket(ref: string | null): string {
   if (!ref) return 'Direct';
@@ -37,15 +47,37 @@ export async function GET(req: NextRequest) {
   const rl = checkRateLimit(`analytics-sources:${ip}`, { max: 60, windowMs: 60 * 1000 });
   if (!rl.allowed) return NextResponse.json(EMPTY, { status: 429 });
 
+  const session = await getServerSession(authOptions);
+  const rawEmail = session?.user?.email;
+  if (!rawEmail) return NextResponse.json(EMPTY, { status: 401 });
+  const email = rawEmail.toLowerCase().trim();
+
   const siteId = req.nextUrl.searchParams.get('siteId');
-  if (!siteId) return NextResponse.json(EMPTY);
+  if (!siteId) return NextResponse.json(EMPTY, { status: 400 });
 
   try {
     const supabase = sb();
+
+    // Resolve the site row (UUID or subdomain) + verify ownership.
+    const select = 'id, subdomain, creator_email, site_config';
+    let { data: site } = UUID_RE.test(siteId)
+      ? await supabase.from('sites').select(select).eq('id', siteId).maybeSingle()
+      : { data: null };
+    if (!site) {
+      ({ data: site } = await supabase.from('sites').select(select).eq('subdomain', siteId).maybeSingle());
+    }
+    if (!site) return NextResponse.json(EMPTY, { status: 404 });
+    const cfg = site.site_config as { creator_email?: string } | null;
+    const owner = String(site.creator_email ?? cfg?.creator_email ?? '').toLowerCase().trim();
+    if (owner !== email) return NextResponse.json(EMPTY, { status: 403 });
+
+    const slug = String(site.subdomain ?? '');
+    if (!slug) return NextResponse.json(EMPTY);
+
     const { data } = await supabase
       .from('site_analytics')
       .select('referrer')
-      .eq('site_id', siteId)
+      .eq('site_id', slug)
       .limit(5000);
 
     const tally: Record<string, number> = {};

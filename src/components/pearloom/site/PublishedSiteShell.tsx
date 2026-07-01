@@ -102,6 +102,12 @@ export function PublishedSiteShell(props: Props) {
      for returning visitors. */
   const [unlocked, setUnlocked] = useState<boolean>(!gatePassword);
 
+  /* RSVP funnel — a guest arriving via their personal link (?g=)
+     stamps invite_opened_at once. Lives HERE (not in SiteGate) so
+     un-gated sites — the vast majority — count opens too; the
+     helper self-dedupes per load and no-ops without a token. */
+  useEffect(() => { trackGuestFunnel('opened'); }, []);
+
   /* RSVP-preset-aware label for the sticky pill (memorials don't
      say "RSVP", etc.). */
   const rsvpPreset = ((hydrated as unknown as { rsvpConfig?: { preset?: string } }).rsvpConfig?.preset) ?? undefined;
@@ -217,10 +223,6 @@ function SiteGate({
     } catch { /* stay locked */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [siteSlug]);
-
-  /* RSVP funnel — a guest arriving via their personal link (?g=)
-     stamps invite_opened_at once. Fire-and-forget; no token → no-op. */
-  useEffect(() => { trackGuestFunnel('opened'); }, []);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();

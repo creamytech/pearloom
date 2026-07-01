@@ -981,7 +981,7 @@ function DayOfBand({ label }: { label: string }) {
 
 export function DayOfV8() {
   const { site } = useSelectedSite();
-  const stats = useDashStats(site?.id);
+  const stats = useDashStats(site?.id, site?.domain);
   const siteName = site ? siteDisplayName(site) : 'Your celebration';
   const occasion = site?.occasion ?? null;
   const [shared, setShared] = useState(false);

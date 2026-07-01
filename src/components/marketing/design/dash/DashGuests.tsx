@@ -15,6 +15,7 @@ import { getEventType } from '@/lib/event-os/event-types';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { GuestImportDialog } from '@/components/dashboard/GuestImportDialog';
 import { findDuplicateGroups } from '@/lib/guest-dedupe';
+import { normaliseRsvpStatus } from '@/lib/rsvp-status';
 import { BrandedQR } from '@/components/pearloom/editor/panels/BrandedQR';
 
 // Occasion-aware copy for the guests page. Falls back to wedding-y
@@ -791,12 +792,11 @@ const rsvpMap: Record<RsvpKey, { bg: string; fg: string; label: string }> = {
   pending: { bg: '#E6DFC9', fg: '#6A6A56', label: 'Pending' },
 };
 
+/* Delegates to the shared normaliser so this page, the Analytics
+   funnel and /api/dashboard/sites-stats can never disagree on what
+   counts as "coming". */
 function normaliseStatus(s: string): RsvpKey {
-  const v = s.toLowerCase();
-  if (v === 'attending' || v === 'yes' || v === 'confirmed') return 'yes';
-  if (v === 'declined' || v === 'no') return 'no';
-  if (v === 'maybe' || v === 'tentative') return 'maybe';
-  return 'pending';
+  return normaliseRsvpStatus(s);
 }
 
 function shapeGuest(g: ApiGuest): Guest {
