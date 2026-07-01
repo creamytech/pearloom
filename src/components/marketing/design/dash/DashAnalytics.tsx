@@ -55,14 +55,18 @@ export function DashAnalytics() {
     // "not loading" (empty state UI is owned by the caller).
     if (!site?.id) return;
     let cancelled = false;
+    // site_analytics / section_analytics are keyed by the site SLUG
+    // (what AnalyticsBeacon writes from the published page), not the
+    // uuid — querying by uuid reads 0 forever. Guests stay uuid-keyed.
+    const slug = site.domain;
     Promise.all([
-      fetch(`/api/analytics/visit?siteId=${encodeURIComponent(site.id)}`, { cache: 'no-store' })
+      fetch(`/api/analytics/visit?siteId=${encodeURIComponent(slug)}`, { cache: 'no-store' })
         .then((r) => r.json())
         .catch(() => ({ visits: 0, today: 0, mobile: 0, desktop: 0 })),
-      fetch(`/api/analytics/section?siteId=${encodeURIComponent(site.id)}`, { cache: 'no-store' })
+      fetch(`/api/analytics/section?siteId=${encodeURIComponent(slug)}`, { cache: 'no-store' })
         .then((r) => r.json())
         .catch(() => ({ sections: [] })),
-      fetch(`/api/analytics/sources?siteId=${encodeURIComponent(site.id)}`, { cache: 'no-store' })
+      fetch(`/api/analytics/sources?siteId=${encodeURIComponent(slug)}`, { cache: 'no-store' })
         .then((r) => r.json())
         .catch(() => ({ sources: [] })),
       // Guest roster drives the real RSVP funnel + conversion. Owner-
@@ -115,7 +119,7 @@ export function DashAnalytics() {
     return () => {
       cancelled = true;
     };
-  }, [site?.id]);
+  }, [site?.id, site?.domain]);
 
   const loading = site?.id ? (result?.siteId !== site.id) : false;
   const visit = result?.visit ?? null;
@@ -289,7 +293,11 @@ export function DashAnalytics() {
               </div>
             ) : (
               <div style={{ fontSize: 13.5, color: PD.inkSoft, lineHeight: 1.55, maxWidth: 520 }}>
-                No guests yet — the funnel fills in as you add guests and replies land.
+                {/* Never claim "no guests" while the roster is still in
+                    flight — same honesty rule as the KPI tiles' em dash. */}
+                {loading
+                  ? 'Threading…'
+                  : 'No guests yet — the funnel fills in as you add guests and replies land.'}
               </div>
             )}
           </Panel>
@@ -298,7 +306,9 @@ export function DashAnalytics() {
             <Panel bg={PD.paperCard} style={{ padding: 24, border: `1px solid ${PD.gold}` }}>
               <div style={{ ...MONO_STYLE, fontSize: 9, color: PD.terra, marginBottom: 8 }}>STILL QUIET</div>
               <div style={{ ...DISPLAY_STYLE, fontSize: 38, lineHeight: 1 }}>
-                {funnel ? Math.max(0, funnel.invited - funnel.replied) : 0} {funnel && (funnel.invited - funnel.replied) === 1 ? 'guest' : 'guests'}
+                {loading || !funnel
+                  ? '—'
+                  : `${Math.max(0, funnel.invited - funnel.replied)} ${(funnel.invited - funnel.replied) === 1 ? 'guest' : 'guests'}`}
               </div>
               <div style={{ fontSize: 12.5, color: PD.inkSoft, margin: '8px 0 14px', lineHeight: 1.5 }}>
                 haven&rsquo;t replied yet.

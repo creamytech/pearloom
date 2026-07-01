@@ -41,30 +41,38 @@ export async function POST(req: NextRequest) {
 
   const token = String(body.token ?? '').trim().slice(0, 64);
   const column = COLUMN[String(body.event ?? '')];
-  if (!token || !column) return NextResponse.json({ ok: false });
+  if (!token || !column) return NextResponse.json({ ok: false }, { status: 400 });
 
   const supabase = sb();
   if (!supabase) return NextResponse.json({ ok: true, stored: false });
 
   try {
-    // Resolve the guest by passport_token; stamp the column once.
-    const { data } = await supabase
+    // A personal link's `?g=<token>` may resolve via either column —
+    // passport_token first, then legacy guest_token (same fallback as
+    // /api/sites/guest-passport; older links only carry guest_token,
+    // and dropping them silently undercounts the funnel forever).
+    // The stamp itself is one conditional UPDATE: `.is(column, null)`
+    // keeps it idempotent without a read-then-write round trip.
+    const stamp = { [column]: new Date().toISOString() };
+    const { data: viaPassport } = await supabase
       .from('guests')
-      .select('id, invite_opened_at, reply_started_at')
+      .update(stamp)
       .eq('passport_token', token)
-      .maybeSingle();
-    const guest = data as unknown as { id: string; invite_opened_at: string | null; reply_started_at: string | null } | null;
-    if (!guest) return NextResponse.json({ ok: true, stored: false });
-    if ((guest as unknown as Record<string, unknown>)[column]) {
-      return NextResponse.json({ ok: true, stored: false }); // already stamped
+      .is(column, null)
+      .select('id');
+    let stored = (viaPassport ?? []).length > 0;
+    if (!stored) {
+      const { data: viaLegacy } = await supabase
+        .from('guests')
+        .update(stamp)
+        .eq('guest_token', token)
+        .is(column, null)
+        .select('id');
+      stored = (viaLegacy ?? []).length > 0;
     }
-    await supabase
-      .from('guests')
-      .update({ [column]: new Date().toISOString() })
-      .eq('id', guest.id);
-    return NextResponse.json({ ok: true, stored: true });
+    return NextResponse.json({ ok: true, stored });
   } catch (err) {
     console.error('[guests/track]', err);
-    return NextResponse.json({ ok: false });
+    return NextResponse.json({ ok: false }, { status: 500 });
   }
 }

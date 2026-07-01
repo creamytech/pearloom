@@ -5,14 +5,17 @@
 // stat row). Returns, per owned site id: guests coming (yes) +
 // total invited, and lifetime site visits. Real data only —
 // guests.status + site_analytics — so the card never shows an
-// invented number. Mirrors the owner-sites pattern in
-// /api/dashboard/reel.
+// invented number. Ownership is filtered in SQL (indexed on
+// site_config->>creator_email), never by scanning the table.
+// NOTE: site_analytics.site_id is the site SLUG (subdomain),
+// not the uuid — visits must be counted by subdomain.
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,24 +33,40 @@ export interface SiteStat {
   cohosts: { email: string; role: string }[];
 }
 
-export async function GET(_req: NextRequest) {
+/** Escape ilike wildcards so `a_b@x.com` can't match `aXb@x.com`. */
+function escapeLike(s: string): string {
+  return s.replace(/[\\%_]/g, (m) => `\\${m}`);
+}
+
+export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
   const rawEmail = session?.user?.email;
   if (!rawEmail) return NextResponse.json({ stats: {} }, { status: 401 });
   const email = rawEmail.toLowerCase().trim();
 
+  const rl = checkRateLimit(`sites-stats:${getClientIp(req)}`, { max: 30, windowMs: 60 * 1000 });
+  if (!rl.allowed) return NextResponse.json({ stats: {} }, { status: 429 });
+
   try {
     const supabase = sb();
-    const { data: rows, error } = await supabase
+    // Ownership in SQL — either the column or the config field.
+    // Exact match first (the normal case); case-drift fallback via
+    // ilike, mirroring /api/sites GET.
+    const primary = await supabase
       .from('sites')
-      .select('id, creator_email, site_config');
-    if (error) throw error;
+      .select('id, subdomain')
+      .or(`creator_email.eq.${email},site_config->>creator_email.eq.${email}`);
+    if (primary.error) throw primary.error;
+    let rows = primary.data ?? [];
+    if (rows.length === 0) {
+      const fallback = await supabase
+        .from('sites')
+        .select('id, subdomain')
+        .ilike('site_config->>creator_email', escapeLike(email));
+      rows = fallback.data ?? [];
+    }
 
-    const owned = (rows ?? []).filter((r) => {
-      const cfg = r.site_config as { creator_email?: string } | null;
-      const owner = String(r.creator_email ?? cfg?.creator_email ?? '').toLowerCase().trim();
-      return owner === email;
-    });
+    const owned = rows;
     const ids = owned.map((r) => String(r.id));
     if (ids.length === 0) return NextResponse.json({ stats: {} });
 
@@ -80,18 +99,20 @@ export async function GET(_req: NextRequest) {
     }
 
     // Visits — per-site head count (no row transfer; analytics can be
-    // large). N sites is small, so parallel head counts are cheap.
-    await Promise.all(ids.map(async (id) => {
+    // large). Keyed by SUBDOMAIN — that's what the visit beacon writes.
+    await Promise.all(owned.map(async (site) => {
+      const slug = String(site.subdomain ?? '');
+      if (!slug) return;
       const { count } = await supabase
         .from('site_analytics')
         .select('id', { count: 'exact', head: true })
-        .eq('site_id', id);
-      stats[id].visits = count || 0;
+        .eq('site_id', slug);
+      stats[String(site.id)].visits = count || 0;
     }));
 
     return NextResponse.json({ stats });
   } catch (err) {
     console.error('[dashboard/sites-stats]', err);
-    return NextResponse.json({ stats: {} });
+    return NextResponse.json({ stats: {} }, { status: 500 });
   }
 }

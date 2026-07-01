@@ -4,11 +4,15 @@
 // Traffic-source breakdown for the Analytics page (v2 "How they
 // arrived"). Buckets the REAL site_analytics.referrer column —
 // Direct / Email / Social / Web — so the panel never shows an
-// invented split. Matches the unauthed + rate-limited shape of
-// /api/analytics/visit (referrer counts aren't sensitive).
+// invented split. Owner-gated: referrer data is per-site host
+// data, and site_analytics is keyed by the PUBLIC slug, so an
+// unauthenticated read would hand any visitor any site's
+// breakdown. `siteId` is the site slug (subdomain).
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
@@ -33,19 +37,37 @@ function bucket(ref: string | null): string {
 }
 
 export async function GET(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  const rawEmail = session?.user?.email;
+  if (!rawEmail) return NextResponse.json(EMPTY, { status: 401 });
+  const email = rawEmail.toLowerCase().trim();
+
   const ip = getClientIp(req);
   const rl = checkRateLimit(`analytics-sources:${ip}`, { max: 60, windowMs: 60 * 1000 });
   if (!rl.allowed) return NextResponse.json(EMPTY, { status: 429 });
 
   const siteId = req.nextUrl.searchParams.get('siteId');
-  if (!siteId) return NextResponse.json(EMPTY);
+  if (!siteId) return NextResponse.json(EMPTY, { status: 400 });
 
   try {
     const supabase = sb();
+
+    // Ownership — the slug is public, the referrer data isn't.
+    const { data: site } = await supabase
+      .from('sites')
+      .select('creator_email, site_config')
+      .eq('subdomain', siteId)
+      .maybeSingle();
+    if (!site) return NextResponse.json(EMPTY, { status: 404 });
+    const cfg = site.site_config as { creator_email?: string } | null;
+    const owner = String(site.creator_email ?? cfg?.creator_email ?? '').toLowerCase().trim();
+    if (owner !== email) return NextResponse.json(EMPTY, { status: 403 });
+
     const { data } = await supabase
       .from('site_analytics')
       .select('referrer')
       .eq('site_id', siteId)
+      .order('visited_at', { ascending: false })
       .limit(5000);
 
     const tally: Record<string, number> = {};
@@ -61,6 +83,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ sources, total });
   } catch (err) {
     console.error('[analytics/sources]', err);
-    return NextResponse.json(EMPTY);
+    return NextResponse.json(EMPTY, { status: 500 });
   }
 }
