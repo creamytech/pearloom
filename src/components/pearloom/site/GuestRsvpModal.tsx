@@ -155,6 +155,24 @@ function inputStyle(): React.CSSProperties {
 
 export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
   const [open, setOpen] = useState(false);
+  /* Two-state mount so close eases out — the modal used to animate
+     in over 240ms and vanish in one frame. `render` keeps it mounted
+     through the exit; `vis` drives the transitions. The immediate
+     halves (mount on open, start fading on close) are render-time
+     adjustments; only the DELAYED halves live in the effect's timers
+     (react-hooks/set-state-in-effect). */
+  const [render, setRender] = useState(open);
+  const [vis, setVis] = useState(false);
+  if (open && !render) setRender(true);
+  if (!open && vis) setVis(false);
+  useEffect(() => {
+    if (open) {
+      const t = setTimeout(() => setVis(true), 10);
+      return () => clearTimeout(t);
+    }
+    const t = setTimeout(() => setRender(false), 200);
+    return () => clearTimeout(t);
+  }, [open]);
   const [step, setStep] = useState<Step>('find');
   const [query, setQuery] = useState('');
   const [email, setEmail] = useState('');
@@ -373,7 +391,7 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
     [party, resp],
   );
 
-  if (!open) return null;
+  if (!render) return null;
 
   /* A tapped suggestion proceeds immediately as that guest. */
   const pickMatch = (m: { id: string; name: string; plusOneAllowed?: boolean }) => {
@@ -551,9 +569,15 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
         position: 'fixed',
         inset: 0,
         zIndex: 1000,
-        background: overlayBg,
+        /* The scrim COLOR fades; the backdrop blur is constant for
+           the mount's lifetime. Animating opacity on an element that
+           carries backdrop-filter forces the blur to resample every
+           frame — the most expensive way to fade a scrim. */
+        background: vis ? overlayBg : 'rgba(40,40,30,0)',
+        transition: 'background 200ms ease',
         backdropFilter: 'blur(6px)',
         WebkitBackdropFilter: 'blur(6px)',
+        pointerEvents: vis ? 'auto' : 'none',
         display: 'grid',
         placeItems: 'center',
         /* Centering contract: the card's width below is
@@ -584,11 +608,14 @@ export function GuestRsvpModal({ siteSlug, manifest }: GuestRsvpModalProps) {
           borderRadius: 22,
           position: 'relative',
           boxShadow: 'var(--shadow-lg, 0 24px 64px rgba(0,0,0,0.25))',
-          animation: 'pl-rsvp-in 240ms cubic-bezier(0.16,1,0.3,1)',
+          /* vis-driven so the card eases BOTH ways (the old keyframe
+             only animated the mount). */
+          transform: vis ? 'none' : 'scale(0.97)',
+          opacity: vis ? 1 : 0,
+          transition: 'transform 220ms cubic-bezier(0.16,1,0.3,1), opacity 200ms ease',
           color: 'var(--ink, var(--pl-ink, #0E0D0B))',
         }}
       >
-        <style>{`@keyframes pl-rsvp-in{from{transform:scale(0.97);opacity:0}to{transform:none;opacity:1}}`}</style>
         <button
           onClick={close}
           aria-label="Close RSVP"

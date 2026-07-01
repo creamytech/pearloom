@@ -26,14 +26,38 @@ export function PhotoLightbox({
   const [i, setI] = useState(state?.index ?? 0);
   // Re-seat the index when a new open request arrives (a different
   // `state` object). Render-time adjustment — the React-recommended
-  // alternative to a setState-in-effect.
+  // alternative to a setState-in-effect. `shown` also retains the
+  // last non-null state so the exit fade has content to render
+  // after the parent nulls `state`.
   const [seen, setSeen] = useState(state);
+  const [shown, setShown] = useState(state);
   if (state !== seen) {
     setSeen(state);
-    setI(state?.index ?? 0);
+    if (state) {
+      setShown(state);
+      setI(state.index ?? 0);
+    }
   }
 
-  const count = state?.photos.length ?? 0;
+  /* Two-state mount — the viewer used to fade in over 220ms and cut
+     to nothing on close. Immediate halves are render-time
+     adjustments; only the delayed halves live in the effect's timers
+     (react-hooks/set-state-in-effect). */
+  const openNow = state != null;
+  const [render, setRender] = useState(openNow);
+  const [vis, setVis] = useState(false);
+  if (openNow && !render) setRender(true);
+  if (!openNow && vis) setVis(false);
+  useEffect(() => {
+    if (openNow) {
+      const t = setTimeout(() => setVis(true), 10);
+      return () => clearTimeout(t);
+    }
+    const t = setTimeout(() => setRender(false), 200);
+    return () => clearTimeout(t);
+  }, [openNow]);
+
+  const count = (state ?? shown)?.photos.length ?? 0;
   const go = useCallback(
     (dir: 1 | -1) => setI((cur) => (count === 0 ? 0 : (cur + dir + count) % count)),
     [count],
@@ -55,9 +79,10 @@ export function PhotoLightbox({
     };
   }, [state, go, onClose]);
 
-  if (!state) return null;
-  const src = state.photos[i];
-  const caption = state.captions?.[i];
+  const shownState = state ?? shown;
+  if (!render || !shownState) return null;
+  const src = shownState.photos[i];
+  const caption = shownState.captions?.[i];
 
   return (
     <div
@@ -69,15 +94,18 @@ export function PhotoLightbox({
         position: 'fixed',
         inset: 0,
         zIndex: 200,
+        /* No backdrop-filter: behind a 92%-opaque scrim the blur was
+           invisible but still made the browser resample the whole
+           page every frame of the fade. The solid fade is free. */
         background: 'rgba(12,10,7,0.92)',
-        backdropFilter: 'blur(6px)',
-        WebkitBackdropFilter: 'blur(6px)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         padding: 'clamp(16px, 4vw, 48px)',
-        animation: 'pl-lightbox-in 220ms ease',
+        opacity: vis ? 1 : 0,
+        transition: 'opacity 200ms ease',
+        pointerEvents: vis ? 'auto' : 'none',
       }}
     >
       <button
@@ -142,12 +170,6 @@ export function PhotoLightbox({
         )}
       </div>
 
-      <style>{`
-        @keyframes pl-lightbox-in { from { opacity: 0; } to { opacity: 1; } }
-        @media (prefers-reduced-motion: reduce) {
-          @keyframes pl-lightbox-in { from { opacity: 1; } to { opacity: 1; } }
-        }
-      `}</style>
     </div>
   );
 }

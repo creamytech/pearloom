@@ -73,8 +73,12 @@ function stickyStyle(sticky: boolean | undefined): CSSProperties {
     top: 0,
     zIndex: 'var(--z-sticky)',
     background: 'var(--t-paper)',
-    backdropFilter: 'saturate(140%) blur(6px)',
-    WebkitBackdropFilter: 'saturate(140%) blur(6px)',
+    /* No backdrop-filter here — every theme + pack paper is an
+       OPAQUE hex, so the old saturate(140%) blur(6px) never showed
+       through the background yet made the browser resample a
+       viewport-wide strip on every scroll frame (a real cost on
+       low-end phones). If a translucent paper ever ships, reintroduce
+       the blur alongside an alpha background — together, on purpose. */
   };
 }
 

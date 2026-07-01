@@ -5003,6 +5003,28 @@ interface Copy {
        Uses SVG filter ids from TextureFilters (t-weave / t-grain /
        t-mottle / t-wash). */
 
+/* Viewport-sized noise layer. The feTurbulence filters (t-weave /
+   t-grain / t-mottle) used to paint absolute inset-0 divs spanning
+   the WHOLE document (5–15k px on long sites) — filter + blend
+   output computed over the full area, defeating cheap scroll
+   compositing on low-end devices. The noise is position-independent,
+   so pinning it to a 100dvh sticky box (the glassPhotoAurora
+   pattern) is visually identical at a fraction of the paint cost.
+   Positional layers (marble veins, watercolor washes, the gilded
+   sweep) stay document-anchored — pinning those WOULD read as the
+   pattern sliding against the paper. */
+function StickyNoise({ filter, opacity, blend }: {
+  filter: string;
+  opacity: number;
+  blend: CSSProperties['mixBlendMode'];
+}) {
+  return (
+    <div aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+      <div style={{ position: 'sticky', top: 0, height: '100dvh', filter: `url(#${filter})`, opacity, mixBlendMode: blend }} />
+    </div>
+  );
+}
+
 function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?: number }) {
   if (!texture || texture === 'none') return null;
   const base: CSSProperties = { position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 6 };
@@ -5015,25 +5037,25 @@ function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?:
           backgroundImage: `repeating-linear-gradient(0deg, rgba(0,0,0,0.13) 0 1px, transparent 1px 2px), repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 1px, transparent 1px 2px)`,
           backgroundSize: '2px 2px, 2px 2px',
         }} />
-        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-weave)', opacity: 0.4 * intensity, mixBlendMode: 'soft-light' }} />
+        <StickyNoise filter="t-weave" opacity={0.4 * intensity} blend="soft-light" />
       </div>
     );
   }
   if (texture === 'paper') {
     return (
       <div aria-hidden style={base}>
-        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-weave)', opacity: 0.3 * intensity, mixBlendMode: 'soft-light' }} />
-        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-mottle)', opacity: 0.16 * intensity, mixBlendMode: 'soft-light' }} />
-        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-grain)', opacity: 0.1 * intensity, mixBlendMode: 'multiply' }} />
+        <StickyNoise filter="t-weave" opacity={0.3 * intensity} blend="soft-light" />
+        <StickyNoise filter="t-mottle" opacity={0.16 * intensity} blend="soft-light" />
+        <StickyNoise filter="t-grain" opacity={0.1 * intensity} blend="multiply" />
       </div>
     );
   }
   if (texture === 'cotton') {
     return (
       <div aria-hidden style={base}>
-        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-mottle)', opacity: 0.34 * intensity, mixBlendMode: 'soft-light' }} />
-        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-weave)', opacity: 0.42 * intensity, mixBlendMode: 'soft-light' }} />
-        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-grain)', opacity: 0.16 * intensity, mixBlendMode: 'multiply' }} />
+        <StickyNoise filter="t-mottle" opacity={0.34 * intensity} blend="soft-light" />
+        <StickyNoise filter="t-weave" opacity={0.42 * intensity} blend="soft-light" />
+        <StickyNoise filter="t-grain" opacity={0.16 * intensity} blend="multiply" />
       </div>
     );
   }
@@ -5048,7 +5070,7 @@ function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?:
           position: 'absolute', inset: 0, mixBlendMode: 'screen', opacity: 0.16 * intensity,
           background: 'linear-gradient(118deg, transparent 28%, rgba(255,255,255,0.12) 50%, transparent 72%)',
         }} />
-        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-mottle)', opacity: 0.3 * intensity, mixBlendMode: 'soft-light' }} />
+        <StickyNoise filter="t-mottle" opacity={0.3 * intensity} blend="soft-light" />
       </div>
     );
   }
@@ -5059,17 +5081,17 @@ function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?:
         <WatercolorWash tone="rgba(138,154,107,0.34)" style={{ top: '30%', right: '-14%', width: 640, height: 540, mixBlendMode: 'multiply' }} seed={1} opacity={0.7 * intensity} />
         <WatercolorWash tone="rgba(217,154,106,0.30)" style={{ bottom: '-8%', left: '24%', width: 600, height: 500, mixBlendMode: 'multiply' }} seed={2} opacity={0.6 * intensity} />
         <WatercolorWash tone="rgba(201,154,78,0.26)" style={{ top: '52%', left: '-8%', width: 460, height: 420, mixBlendMode: 'multiply' }} seed={1} opacity={0.55 * intensity} />
-        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-weave)', opacity: 0.2 * intensity, mixBlendMode: 'soft-light' }} />
-        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-grain)', opacity: 0.08 * intensity, mixBlendMode: 'multiply' }} />
+        <StickyNoise filter="t-weave" opacity={0.2 * intensity} blend="soft-light" />
+        <StickyNoise filter="t-grain" opacity={0.08 * intensity} blend="multiply" />
       </div>
     );
   }
   if (texture === 'kraft') {
     return (
       <div aria-hidden style={base}>
-        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-mottle)', opacity: 0.28 * intensity, mixBlendMode: 'multiply' }} />
-        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-weave)', opacity: 0.3 * intensity, mixBlendMode: 'soft-light' }} />
-        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-grain)', opacity: 0.2 * intensity, mixBlendMode: 'multiply' }} />
+        <StickyNoise filter="t-mottle" opacity={0.28 * intensity} blend="multiply" />
+        <StickyNoise filter="t-weave" opacity={0.3 * intensity} blend="soft-light" />
+        <StickyNoise filter="t-grain" opacity={0.2 * intensity} blend="multiply" />
       </div>
     );
   }
@@ -5081,7 +5103,7 @@ function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?:
           backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,0.10) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 1px, transparent 1px 3px)',
           backgroundSize: '3px 3px, 3px 3px',
         }} />
-        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-weave)', opacity: 0.35 * intensity, mixBlendMode: 'soft-light' }} />
+        <StickyNoise filter="t-weave" opacity={0.35 * intensity} blend="soft-light" />
       </div>
     );
   }
@@ -5106,8 +5128,8 @@ function TextureLayer({ texture, intensity = 1 }: { texture: string; intensity?:
           position: 'absolute', inset: 0, mixBlendMode: 'overlay', opacity: 0.5 * intensity,
           background: 'linear-gradient(120deg, transparent 22%, color-mix(in oklab, var(--t-gold) 62%, transparent) 48%, transparent 64%)',
         }} />
-        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-mottle)', opacity: 0.18 * intensity, mixBlendMode: 'soft-light' }} />
-        <div style={{ position: 'absolute', inset: 0, filter: 'url(#t-grain)', opacity: 0.12 * intensity, mixBlendMode: 'multiply' }} />
+        <StickyNoise filter="t-mottle" opacity={0.18 * intensity} blend="soft-light" />
+        <StickyNoise filter="t-grain" opacity={0.12 * intensity} blend="multiply" />
       </div>
     );
   }

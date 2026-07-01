@@ -66,19 +66,58 @@ export function StickyRsvpPill({
   const [dockOpen, setDockOpen] = useState(false);
   const [smallViewport, setSmallViewport] = useState(false);
 
-  // Scroll-based visibility: show once past 30% of the document.
+  // ONE merged scroll handler for the three scroll-derived signals
+  // (30%-scrolled show, near-bottom footer fallback, mobile FAB
+  // hide-while-reading). These used to be three separate listeners,
+  // each doing its own layout reads per scroll event on phones.
+  // States only update on boolean transitions.
   useEffect(() => {
     if (dismissed) return;
+    const fabMq = window.matchMedia('(max-width: 640px)');
+    // The footer occlusion guard prefers the IntersectionObserver in
+    // the effect below; the scroll fallback only runs when the
+    // renderer ships no <footer>.
+    const hasFooterIO = typeof IntersectionObserver !== 'undefined' && !!document.querySelector('footer');
+    let lastY = window.scrollY;
+    let lastShow: boolean | null = null;
+    let lastNear: boolean | null = null;
+    let idleTimer: number | undefined;
     const onScroll = () => {
       const h = document.documentElement;
-      const scrolled = h.scrollTop + window.innerHeight;
+      const y = h.scrollTop;
+      const viewBottom = y + window.innerHeight;
       const total = h.scrollHeight;
-      const ratio = total > 0 ? scrolled / total : 0;
-      setShow(ratio > 0.3);
+      const nextShow = total > 0 && viewBottom / total > 0.3;
+      if (nextShow !== lastShow) {
+        lastShow = nextShow;
+        setShow(nextShow);
+      }
+      if (!hasFooterIO) {
+        const nextNear = total - viewBottom < 160;
+        if (nextNear !== lastNear) {
+          lastNear = nextNear;
+          setNearFooter(nextNear);
+        }
+      }
+      // Mid-page occlusion guard (phones): hide on scroll-DOWN,
+      // return on scroll-up or after 900ms idle — the standard FAB
+      // pattern. Desktop keeps the pill steady.
+      if (fabMq.matches) {
+        const goingDown = y > lastY + 4;
+        const goingUp = y < lastY - 4;
+        if (goingDown) setScrollingDown(true);
+        else if (goingUp) setScrollingDown(false);
+        window.clearTimeout(idleTimer);
+        idleTimer = window.setTimeout(() => setScrollingDown(false), 900);
+      }
+      lastY = y;
     };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.clearTimeout(idleTimer);
+    };
   }, [dismissed]);
 
   // Hide when the RSVP section itself is on screen — no point showing
@@ -96,26 +135,17 @@ export function StickyRsvpPill({
 
   // Occlusion guard: fade out when the footer scrolls into view so
   // the pill never covers the page's last tappable content (registry
-  // chips, FAQ rows). ThemedSiteRenderer ships a real <footer>; the
-  // redesign renderer doesn't, so we fall back to "within 160px of
-  // the document bottom" via the same scroll-listener pattern.
+  // chips, FAQ rows). Renderers without a <footer> are covered by
+  // the near-bottom fallback in the merged scroll handler above.
   useEffect(() => {
     const footer = typeof IntersectionObserver === 'undefined' ? null : document.querySelector('footer');
-    if (footer) {
-      const observer = new IntersectionObserver(
-        ([entry]) => setNearFooter(entry.isIntersecting),
-        { threshold: 0 },
-      );
-      observer.observe(footer);
-      return () => observer.disconnect();
-    }
-    const onScroll = () => {
-      const h = document.documentElement;
-      setNearFooter(h.scrollHeight - (h.scrollTop + window.innerHeight) < 160);
-    };
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    if (!footer) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setNearFooter(entry.isIntersecting),
+      { threshold: 0 },
+    );
+    observer.observe(footer);
+    return () => observer.disconnect();
   }, []);
 
   // Corner coordination (see stacking-policy comment above): the
@@ -135,30 +165,8 @@ export function StickyRsvpPill({
     return () => mq.removeEventListener('change', update);
   }, []);
 
-  // Mid-page occlusion guard (phones): the pill covers card text
-  // while a guest is actively reading downward, so hide on
-  // scroll-DOWN and return on scroll-up or after 900ms idle —
-  // the standard FAB pattern. Desktop keeps the pill steady.
-  useEffect(() => {
-    if (!window.matchMedia('(max-width: 640px)').matches) return;
-    let lastY = window.scrollY;
-    let idleTimer: number | undefined;
-    const onScroll = () => {
-      const y = window.scrollY;
-      const goingDown = y > lastY + 4;
-      const goingUp = y < lastY - 4;
-      lastY = y;
-      if (goingDown) setScrollingDown(true);
-      else if (goingUp) setScrollingDown(false);
-      window.clearTimeout(idleTimer);
-      idleTimer = window.setTimeout(() => setScrollingDown(false), 900);
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.clearTimeout(idleTimer);
-    };
-  }, []);
+  // (Mobile scroll-direction hiding lives in the merged scroll
+  // handler above.)
 
   function handleDismiss(e: React.MouseEvent) {
     e.preventDefault();
