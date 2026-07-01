@@ -116,6 +116,12 @@ export function PublishedSiteShell(props: Props) {
   const pillAccent = themeBag['--t-rsvp'] ?? themeBag['--t-accent'];
   const pillAccentInk = themeBag['--t-rsvp-ink'] ?? themeBag['--t-paper'];
 
+  /* RSVP funnel — a guest arriving via their personal link (?g=)
+     stamps invite_opened_at once. Lives here (not in SiteGate) so it
+     fires on EVERY site, gated or not — most sites have no password.
+     Fire-and-forget; no token → no-op. */
+  useEffect(() => { trackGuestFunnel('opened'); }, []);
+
   if (!unlocked) {
     return (
       <SiteGate
@@ -141,8 +147,11 @@ export function PublishedSiteShell(props: Props) {
       {/* Living background (v2 shader wallpaper) — a fixed animated
           ground behind the whole site; ThemedSite's root goes
           transparent when manifest.background is set so it shows
-          through. Degrades to nothing without WebGL. */}
-      {(hydrated as unknown as { background?: string }).background && (
+          through. Degrades to nothing without WebGL. Boxed + postcard
+          layouts paint their own opaque ground over the root, so the
+          wallpaper would be 100% occluded — skip the GPU work there. */}
+      {(hydrated as unknown as { background?: string }).background &&
+        !['boxed', 'postcard'].includes((hydrated as unknown as { siteLayout?: string }).siteLayout ?? '') && (
         <LivingBackground
           id={(hydrated as unknown as { background?: string }).background as string}
           fixed
@@ -217,10 +226,6 @@ function SiteGate({
     } catch { /* stay locked */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [siteSlug]);
-
-  /* RSVP funnel — a guest arriving via their personal link (?g=)
-     stamps invite_opened_at once. Fire-and-forget; no token → no-op. */
-  useEffect(() => { trackGuestFunnel('opened'); }, []);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();

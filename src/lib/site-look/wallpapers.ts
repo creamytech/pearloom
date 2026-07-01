@@ -34,8 +34,3 @@ const WALLPAPER_IDS = new Set(WALLPAPERS.map((w) => w.id));
 export function isWallpaperId(v: unknown): v is WallpaperId {
   return typeof v === 'string' && WALLPAPER_IDS.has(v as WallpaperId);
 }
-
-export function getWallpaper(id?: string | null): WallpaperDef | null {
-  if (!id) return null;
-  return WALLPAPERS.find((w) => w.id === id) ?? null;
-}

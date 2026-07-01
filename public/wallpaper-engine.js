@@ -1,6 +1,18 @@
 /* Pearloom — Interactive shader wallpapers engine.
    One WebGL canvas, five fragment shaders, pointer + tap reactive.
-   No deps. GLSL ES 1.00 (WebGL1) for broad device support. */
+   No deps. GLSL ES 1.00 (WebGL1) for broad device support.
+
+   Guest-device etiquette (this runs on phones for a whole visit):
+   - prefers-reduced-motion → a single still frame, repainted only on
+     resize / theme / shader change. No animation loop at all.
+   - Pointer input listens on window (the canvas sits UNDER the site
+     content and never hit-tests), so interactivity works everywhere
+     without stealing scroll.
+   - Uniform/attrib locations cached per program; zero per-frame
+     allocations; shaders compile lazily (a site uses exactly one).
+   - The loop drops to half rate when the pointer has been idle and
+     no ripples are alive; full rate resumes on the next touch.
+   - destroy() releases GL programs/buffer and the context itself. */
 (function () {
   'use strict';
 
@@ -167,17 +179,21 @@
     '}'
   ].join('\n');
 
+  var UNIFORMS = ['u_res', 'u_time', 'u_mouse', 'u_mvel', 'u_down', 'u_rip', 'u_dark'];
+
   // ── WebGL plumbing ──
   function compile(gl, type, src){
     var s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
-    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){ console.error('shader error:', gl.getShaderInfoLog(s), '\n', src); return null; }
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){ console.error('shader error:', gl.getShaderInfoLog(s), '\n', src); gl.deleteShader(s); return null; }
     return s;
   }
   function program(gl, frag){
     var vs=compile(gl,gl.VERTEX_SHADER,VERT); var fs=compile(gl,gl.FRAGMENT_SHADER,HEAD+'\n'+frag);
     if(!vs||!fs) return null;
     var p=gl.createProgram(); gl.attachShader(p,vs); gl.attachShader(p,fs); gl.linkProgram(p);
-    if(!gl.getProgramParameter(p,gl.LINK_STATUS)){ console.error('link error:', gl.getProgramInfoLog(p)); return null; }
+    // Shaders can be flagged for deletion now; they die with the program.
+    gl.deleteShader(vs); gl.deleteShader(fs);
+    if(!gl.getProgramParameter(p,gl.LINK_STATUS)){ console.error('link error:', gl.getProgramInfoLog(p)); gl.deleteProgram(p); return null; }
     return p;
   }
 
@@ -187,76 +203,169 @@
     var buf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,buf);
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
 
-    var progs={}, keys=Object.keys(SHADERS);
-    keys.forEach(function(k){ progs[k]=program(gl,SHADERS[k]); });
+    // Programs compile lazily — a published site uses exactly one of
+    // the five, and eager compile is main-thread jank at page load.
+    // Cache {prog, aPos, u:{name:loc}} per key; null = failed compile.
+    var progs={};
+    function build(k){
+      if(k in progs) return progs[k];
+      if(!SHADERS[k]){ progs[k]=null; return null; }
+      var p=program(gl,SHADERS[k]);
+      if(!p){ progs[k]=null; return null; }
+      var entry={ prog:p, aPos:gl.getAttribLocation(p,'p'), u:{} };
+      for(var i=0;i<UNIFORMS.length;i++) entry.u[UNIFORMS[i]]=gl.getUniformLocation(p,UNIFORMS[i]);
+      progs[k]=entry;
+      return entry;
+    }
 
     var current='silk';
     var mouse=[0.5,0.6], target=[0.5,0.6], vel=[0,0], down=0, downT=0;
     var rips=[], maxR=6; for(var i=0;i<maxR;i++) rips.push([0,0,-1]);
     var ripHead=0;
-    var dpr=Math.min(window.devicePixelRatio||1, 2);
-    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var ripFlat=new Float32Array(maxR*3);
     var t0=performance.now();
+    var lastRipT=-1e9;           // engine-seconds of the newest tap
+    var lastActive=t0;           // wall-clock ms of last pointer activity
+    var lastDraw=0;
+    var lost=false, destroyed=false;
+
+    // Reduced motion = a still frame, not a slower loop (BRAND §6).
+    var mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+    var reduce = !!(mq && mq.matches);
+    function onMotionPref(){ reduce = !!(mq && mq.matches); if(reduce) stop(); else start(); poke(); }
+    if(mq && mq.addEventListener) mq.addEventListener('change', onMotionPref);
+
+    // data-theme is read once and watched — not queried per frame.
+    var dark = document.documentElement.getAttribute('data-theme')==='dark' ? 1 : 0;
+    var themeObserver = new MutationObserver(function(){
+      var d = document.documentElement.getAttribute('data-theme')==='dark' ? 1 : 0;
+      if(d!==dark){ dark=d; poke(); }
+    });
+    themeObserver.observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
 
     function resize(){
+      var dpr=Math.min(window.devicePixelRatio||1, 2);   // re-read: zoom / monitor moves
       var w=canvas.clientWidth, h=canvas.clientHeight;
       canvas.width=Math.max(1,Math.floor(w*dpr)); canvas.height=Math.max(1,Math.floor(h*dpr));
       gl.viewport(0,0,canvas.width,canvas.height);
     }
     window.addEventListener('resize', resize);
+    // Non-fixed mounts (framed previews) resize with their container,
+    // not the window. RO also covers window resizes, but the listener
+    // above stays as the no-RO fallback.
+    var ro = typeof ResizeObserver!=='undefined' ? new ResizeObserver(function(){ resize(); poke(); }) : null;
+    if(ro) ro.observe(canvas);
 
+    // Pointer input lives on window: the canvas renders BEHIND the site
+    // content (which hit-tests everywhere), so canvas-level listeners
+    // would never fire on a real site — and this way we never need
+    // touch-action hacks that could eat scrolling.
     function setPointer(cx,cy){
       var r=canvas.getBoundingClientRect();
+      if(r.width<1||r.height<1) return;
       target[0]=(cx-r.left)/r.width;
       target[1]=1.0-(cy-r.top)/r.height;
+      lastActive=performance.now();
     }
-    canvas.addEventListener('pointermove', function(e){ setPointer(e.clientX,e.clientY); poke(); });
-    canvas.addEventListener('pointerdown', function(e){
+    var onMove=function(e){ setPointer(e.clientX,e.clientY); };
+    var onDown=function(e){
       setPointer(e.clientX,e.clientY); down=1; downT=performance.now();
       var r=canvas.getBoundingClientRect();
-      rips[ripHead]=[(e.clientX-r.left)/r.width, 1.0-(e.clientY-r.top)/r.height, (performance.now()-t0)/1000];
-      ripHead=(ripHead+1)%maxR; poke();
-    });
-    var onUp=function(){ down=0; };
-    window.addEventListener('pointerup', onUp);
-    canvas.style.touchAction='none';
+      if(r.width<1||r.height<1) return;
+      lastRipT=(performance.now()-t0)/1000;
+      rips[ripHead]=[(e.clientX-r.left)/r.width, 1.0-(e.clientY-r.top)/r.height, lastRipT];
+      ripHead=(ripHead+1)%maxR;
+      poke();
+    };
+    var onUp=function(){ down=0; lastActive=performance.now(); };
+    window.addEventListener('pointermove', onMove, { passive:true });
+    window.addEventListener('pointerdown', onDown, { passive:true });
+    window.addEventListener('pointerup', onUp, { passive:true });
 
     function frame(now){
-      var time=(now-t0)/1000 * (reduce?0.35:1.0);
+      if(lost) return;
+      var time=(now-t0)/1000;
       // smooth pointer
-      var sm=reduce?0.18:0.12;
+      var sm=0.12;
       var nx=mouse[0]+(target[0]-mouse[0])*sm, ny=mouse[1]+(target[1]-mouse[1])*sm;
       vel[0]=(nx-mouse[0]); vel[1]=(ny-mouse[1]); mouse[0]=nx; mouse[1]=ny;
-      var downAmt=down?1:Math.max(0,1-(now-downT)/450); if(down)downAmt=1;
-      var p=progs[current]; if(p){
-        gl.useProgram(p);
-        var loc=gl.getAttribLocation(p,'p'); gl.enableVertexAttribArray(loc);
-        gl.bindBuffer(gl.ARRAY_BUFFER,buf); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-        gl.uniform2f(gl.getUniformLocation(p,'u_res'),canvas.width,canvas.height);
-        gl.uniform1f(gl.getUniformLocation(p,'u_time'),time);
-        gl.uniform2f(gl.getUniformLocation(p,'u_mouse'),mouse[0],mouse[1]);
-        gl.uniform2f(gl.getUniformLocation(p,'u_mvel'),vel[0]*60,vel[1]*60);
-        gl.uniform1f(gl.getUniformLocation(p,'u_down'),downAmt);
-        gl.uniform1f(gl.getUniformLocation(p,'u_dark'), document.documentElement.getAttribute('data-theme')==='dark'?1:0);
-        var flat=[]; for(var i=0;i<maxR;i++){ flat.push(rips[i][0],rips[i][1],rips[i][2]); }
-        gl.uniform3fv(gl.getUniformLocation(p,'u_rip'),new Float32Array(flat));
+      var downAmt=down?1:Math.max(0,1-(now-downT)/450);
+      var p=build(current); if(p){
+        gl.useProgram(p.prog);
+        gl.enableVertexAttribArray(p.aPos);
+        gl.bindBuffer(gl.ARRAY_BUFFER,buf); gl.vertexAttribPointer(p.aPos,2,gl.FLOAT,false,0,0);
+        gl.uniform2f(p.u.u_res,canvas.width,canvas.height);
+        gl.uniform1f(p.u.u_time,time);
+        gl.uniform2f(p.u.u_mouse,mouse[0],mouse[1]);
+        gl.uniform2f(p.u.u_mvel,vel[0]*60,vel[1]*60);
+        gl.uniform1f(p.u.u_down,downAmt);
+        gl.uniform1f(p.u.u_dark,dark);
+        for(var i=0;i<maxR;i++){ ripFlat[i*3]=rips[i][0]; ripFlat[i*3+1]=rips[i][1]; ripFlat[i*3+2]=rips[i][2]; }
+        gl.uniform3fv(p.u.u_rip,ripFlat);
         gl.drawArrays(gl.TRIANGLES,0,3);
       }
+      lastDraw=now;
     }
-    function loop(now){ frame(now); raf=requestAnimationFrame(loop); }
     var raf=0;
-    // Immediate first paint, then animate. The immediate paint guarantees a
-    // visible frame even if rAF is throttled (e.g. background/preview frames).
-    resize(); frame(performance.now()); raf=requestAnimationFrame(loop);
+    function loop(now){
+      raf=requestAnimationFrame(loop);
+      // Ambient throttle: full rate while the guest interacts (pointer
+      // in the last 2s, press, or a live ripple <3s old); half rate
+      // for the slow ambient drift after that. Saves real battery on
+      // a site left open, invisibly for slow-moving shaders.
+      var engaged = down===1 || (now-lastActive)<2000 || ((now-t0)/1000-lastRipT)<3.0;
+      if(!engaged && (now-lastDraw)<28) return;
+      frame(now);
+    }
+    function start(){ if(!raf && !reduce && !lost && !destroyed) raf=requestAnimationFrame(loop); }
+    function stop(){ if(raf){ cancelAnimationFrame(raf); raf=0; } }
 
-    // Pointer also nudges a repaint, so movement responds even between rAF ticks.
-    function poke(){ frame(performance.now()); }
+    // A dead context throws no errors, it just eats GL calls forever —
+    // stop the loop instead (iOS reclaims contexts under memory
+    // pressure), and pick back up if the browser restores it.
+    var onLost=function(e){ e.preventDefault(); lost=true; stop(); };
+    var onRestored=function(){
+      lost=false; progs={};
+      buf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+      gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+      resize(); poke(); start();
+    };
+    canvas.addEventListener('webglcontextlost', onLost);
+    canvas.addEventListener('webglcontextrestored', onRestored);
+
+    // Immediate first paint (guaranteed frame even if rAF is
+    // throttled), then animate — unless reduced motion asked us not to.
+    resize(); frame(performance.now()); start();
+
+    // Repaint once, outside the loop — reduced-motion still frames and
+    // pointer nudges between rAF ticks both come through here.
+    function poke(){ if(!destroyed) frame(performance.now()); }
 
     // destroy() — React-safe teardown (the showcase/editor remount on
-    // background change + route nav). Stops the rAF loop and removes
-    // the window-level listeners; canvas-level listeners die with it.
-    function destroy(){ if(raf) cancelAnimationFrame(raf); window.removeEventListener('resize', resize); window.removeEventListener('pointerup', onUp); }
-    return { set:function(k){ if(progs[k]){ current=k; poke(); } }, get:function(){ return current; }, resize:function(){ resize(); poke(); }, poke:poke, destroy:destroy };
+    // background change + route nav). Stops the loop, removes every
+    // listener/observer, and releases the GL resources + context so
+    // remounts can't accumulate live contexts.
+    function destroy(){
+      if(destroyed) return;
+      destroyed=true;
+      stop();
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointerup', onUp);
+      if(ro) ro.disconnect();
+      themeObserver.disconnect();
+      if(mq && mq.removeEventListener) mq.removeEventListener('change', onMotionPref);
+      canvas.removeEventListener('webglcontextlost', onLost);
+      canvas.removeEventListener('webglcontextrestored', onRestored);
+      try{
+        Object.keys(progs).forEach(function(k){ if(progs[k]) gl.deleteProgram(progs[k].prog); });
+        gl.deleteBuffer(buf);
+        var ext=gl.getExtension('WEBGL_lose_context');
+        if(ext) ext.loseContext();
+      }catch(e){ /* context already gone */ }
+    }
+    return { set:function(k){ if(SHADERS[k]){ current=k; poke(); } }, get:function(){ return current; }, resize:function(){ resize(); poke(); }, poke:poke, destroy:destroy };
   }
 
   window.PearloomWallpaper = Wallpaper;

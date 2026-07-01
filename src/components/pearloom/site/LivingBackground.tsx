@@ -2,9 +2,10 @@
 
 /* LivingBackground — mounts the v2 interactive shader wallpaper
    (public/wallpaper-engine.js) on a canvas behind the site/editor
-   content. WebGL, pointer-reactive, theme-aware, reduced-motion aware
-   (the engine slows itself). Loads the engine script once, lazily;
-   degrades to nothing if WebGL is unavailable. */
+   content. WebGL, pointer-reactive, theme-aware; under
+   prefers-reduced-motion the engine paints a single still frame.
+   Loads the engine script once, lazily; degrades to nothing if
+   WebGL is unavailable. */
 
 import { useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
@@ -60,7 +61,14 @@ export function LivingBackground({
 
   useEffect(() => {
     let cancelled = false;
-    if (!isWallpaperId(id)) return;
+    if (!isWallpaperId(id)) {
+      // id went valid → invalid while mounted: the canvas is about to
+      // unmount (render returns null) — stop the engine now, or the
+      // rAF loop keeps drawing to a detached canvas.
+      wpRef.current?.destroy();
+      wpRef.current = null;
+      return;
+    }
     loadEngine()
       .then(() => {
         if (cancelled || !canvasRef.current || !window.PearloomWallpaper) return;
@@ -101,6 +109,10 @@ export function LivingBackground({
         width: '100%',
         height: '100%',
         display: 'block',
+        // The engine listens on window; the canvas itself must never
+        // hit-test (it sits under the site content — grabbing touches
+        // here would eat scrolling wherever it peeked through).
+        pointerEvents: 'none',
         ...style,
       }}
     />
