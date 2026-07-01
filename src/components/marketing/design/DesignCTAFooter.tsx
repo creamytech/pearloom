@@ -294,9 +294,9 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
                     <a
                       key={label}
                       href={href}
+                      className="pd-footer-link"
                       style={{
                         fontSize: 14,
-                        opacity: 0.8,
                         textDecoration: 'none',
                         color: PD.slabInk,
                         fontFamily: 'var(--pl-font-body)',
@@ -325,8 +325,8 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
           >
             <div>© 2026 Pearloom, Inc. · Set, like type.</div>
             <div style={{ display: 'flex', gap: 18 }}>
-              <a href="/privacy" style={{ color: PD.slabInk, textDecoration: 'none' }}>Privacy</a>
-              <a href="/terms" style={{ color: PD.slabInk, textDecoration: 'none' }}>Terms</a>
+              <a href="/privacy" className="pd-footer-link" style={{ color: PD.slabInk, textDecoration: 'none' }}>Privacy</a>
+              <a href="/terms" className="pd-footer-link" style={{ color: PD.slabInk, textDecoration: 'none' }}>Terms</a>
             </div>
           </div>
 
@@ -344,6 +344,15 @@ export function DesignCTAFooter({ onGetStarted }: DesignCTAFooterProps) {
       </footer>
 
       <style jsx>{`
+        /* Footer links warm from quiet to full ink on hover — the
+           only hover the slab needs. */
+        :global(.pd-footer-link) {
+          opacity: 0.8;
+          transition: opacity var(--pl-dur-fast) var(--pl-ease-out);
+        }
+        :global(.pd-footer-link:hover) {
+          opacity: 1;
+        }
         @media (max-width: 900px) {
           :global(.pd-promise-grid) {
             grid-template-columns: 1fr !important;

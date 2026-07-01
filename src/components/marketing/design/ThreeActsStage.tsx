@@ -138,6 +138,7 @@ export function ThreeActsStage() {
               <button
                 key={x.key}
                 onClick={() => setAct(i)}
+                aria-pressed={act === i}
                 style={{
                   flex: 1,
                   border: 'none',
@@ -149,6 +150,7 @@ export function ThreeActsStage() {
                   fontFamily: 'inherit',
                   position: 'relative',
                   borderRight: i < 2 ? `1px solid ${pdInkMix(10)}` : 'none',
+                  transition: 'color var(--pl-dur-fast) var(--pl-ease-out)',
                 }}
               >
                 <div style={{ ...MONO_STYLE, fontSize: 10, opacity: 0.7, marginBottom: 8 }}>
@@ -163,25 +165,31 @@ export function ThreeActsStage() {
                     letterSpacing: '-0.02em',
                     color: act === i ? uiAccent(x.accent) : 'inherit',
                     fontVariationSettings: '"opsz" 144, "SOFT" 80, "WONK" 1',
+                    transition: 'color var(--pl-dur-fast) var(--pl-ease-out)',
                   }}
                 >
                   {x.verb}
                 </div>
-                {act === i && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      bottom: -1,
-                      left: 0,
-                      right: 0,
-                      height: 3,
-                      background: uiAccent(x.accent),
-                      borderRadius: 2,
-                    }}
-                  />
-                )}
               </button>
             ))}
+            {/* One persistent underline that SLIDES between acts (the
+                per-tab conditional bar used to pop in/out). Each tab is
+                flex:1, so thirds position it exactly. */}
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                bottom: -1,
+                left: 0,
+                width: `${100 / ACTS.length}%`,
+                height: 3,
+                background: uiAccent(a.accent),
+                borderRadius: 2,
+                transform: `translateX(${act * 100}%)`,
+                transition:
+                  'transform var(--pl-dur-base) var(--pl-ease-emphasis), background var(--pl-dur-base) var(--pl-ease-out)',
+              }}
+            />
           </div>
 
           <div
@@ -196,7 +204,9 @@ export function ThreeActsStage() {
               zIndex: 1,
             }}
           >
-            <div>
+            {/* key={act} remounts the copy + stage per act so the
+                pd-act-xfade entrance crossfades them (was a hard swap). */}
+            <div key={act} className="pd-act-xfade">
               <h3
                 style={{
                   ...DISPLAY_STYLE,
@@ -234,7 +244,7 @@ export function ThreeActsStage() {
               </PLButton>
             </div>
 
-            <div style={{ position: 'relative' }}>
+            <div key={`stage-${act}`} className="pd-act-xfade" style={{ position: 'relative' }}>
               {act === 0 && <ComposeStage accent={a.accent} />}
               {act === 1 && <ConductStage accent={a.accent} />}
               {act === 2 && <RememberStage accent={a.accent} />}
@@ -244,6 +254,8 @@ export function ThreeActsStage() {
       </div>
 
       <style jsx>{`
+        /* .pd-act-xfade lives in animation.css (scoped styled-jsx
+           keyframes get hash-renamed and would never match). */
         @media (max-width: 900px) {
           :global(.pd-acts-grid) {
             grid-template-columns: 1fr !important;

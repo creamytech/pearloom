@@ -283,6 +283,10 @@ export function DesignOccasions({ onGetStarted }: DesignOccasionsProps) {
 
         <div
           className="pd-occasions-grid"
+          /* Cards thread in one after another instead of arriving as a
+             single slab — the motion engine stamps per-child delays. */
+          data-reveal-stagger="50"
+          data-reveal-as="rise"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(6, 1fr)',

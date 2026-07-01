@@ -138,6 +138,8 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
 
         <div
           className="pd-pricing-grid"
+          data-reveal-stagger="90"
+          data-reveal-as="rise"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
@@ -150,13 +152,17 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
           {TIERS.map((t) => (
             <div
               key={t.name}
+              className="pl-lift"
               style={{
                 background: t.bg,
                 color: t.fg ?? PD.ink,
                 border: `1px solid ${t.featured ? t.accent : pdInkMix(14)}`,
                 borderRadius: 20,
                 padding: '36px 32px 32px',
-                transform: t.featured ? 'translateY(-14px)' : 'none',
+                // Featured offset via `top`, not transform — an inline
+                // transform would defeat both the reveal rise and the
+                // .pl-lift hover (inline beats stylesheet).
+                top: t.featured ? -14 : 0,
                 boxShadow: t.featured
                   ? `0 30px 60px -20px ${pdShadowMix(35)}`
                   : `0 1px 3px ${pdShadowMix(6)}`,
@@ -280,7 +286,7 @@ export function DesignPricing({ onGetStarted }: DesignPricingProps) {
           }}
         >
           Memorials are always free on every tier.{' '}
-          <a href="#journal" style={{ color: PD.olive, fontWeight: 500, textDecoration: 'underline' }}>
+          <a href="#journal" className="pl-link" style={{ color: PD.olive, fontWeight: 500 }}>
             Pear&rsquo;s promise →
           </a>
         </div>

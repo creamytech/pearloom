@@ -159,9 +159,14 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
         }}
       >
         {/* ── Left column ────────────────────────────────── */}
+        {/* Entrance choreography: the H1 presses into the paper, then
+            the copy, indicator, CTAs and stats thread up in sequence.
+            data-reveal is progressive-enhancement gated (visible with
+            no JS) and reduced-motion safe (animation.css). */}
         <div className="pd-hero-copy">
           <h1
             className="pl-letterpress"
+            data-reveal="press"
             style={{
               ...DISPLAY_STYLE,
               fontSize: 'clamp(54px, 7.8vw, 120px)',
@@ -193,6 +198,8 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
           </h1>
 
           <p
+            data-reveal="up"
+            data-reveal-delay="120"
             style={{
               fontFamily: 'var(--pl-font-body)',
               fontSize: 'clamp(16px, 1.15vw, 19px)',
@@ -210,6 +217,8 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
           {/* Pear is threading indicator */}
           <div
             aria-live="polite"
+            data-reveal="up"
+            data-reveal-delay="200"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -245,11 +254,14 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
                 display: 'inline-block',
               }}
             >
-              {THREADING_STEPS[draftStep]}...
+              {/* keyed so each step fades in rather than snapping */}
+              <span key={draftStep} className="pd-hero-word" style={{ display: 'inline-block' }}>
+                {THREADING_STEPS[draftStep]}...
+              </span>
             </span>
           </div>
 
-          <div className="pd-hero-cta" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 44 }}>
+          <div className="pd-hero-cta" data-reveal="up" data-reveal-delay="280" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 44 }}>
             <PLButton variant="pearl" size="lg" onClick={onGetStarted}>
               Start your loom <Pearl size={9} />
             </PLButton>
@@ -283,6 +295,8 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
 
           <div
             className="pd-hero-stats"
+            data-reveal="up"
+            data-reveal-delay="360"
             style={{
               display: 'flex',
               gap: 32,
@@ -375,7 +389,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
             <Swirl size={80} color={PD.gold} strokeWidth={1.5} />
           </div>
 
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative' }} data-reveal="rise" data-reveal-delay="180">
             {/* Preview site card */}
             <div
               style={{
@@ -416,7 +430,10 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
                 </div>
               </div>
 
-              <div style={{ padding: '36px 32px 28px', position: 'relative' }}>
+              {/* key={occasion} re-mounts the card body per switch so the
+                  pd-hero-xfade entrance crossfades the new copy instead
+                  of the old hard swap. */}
+              <div key={occasion} className="pd-hero-xfade" style={{ padding: '36px 32px 28px', position: 'relative' }}>
                 <div style={{ position: 'absolute', top: 24, right: 24 }}>
                   <Pear size={36} color={data.pear} stem={PD.oliveDeep} leaf={PD.olive} animated />
                 </div>
@@ -494,6 +511,8 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
                   }}
                 >
                   <div
+                    key={occasion}
+                    className="pd-hero-xfade"
                     style={{
                       position: 'absolute',
                       inset: '0 42% 0 0',
@@ -553,6 +572,7 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
                 </div>
                 <button
                   onClick={onGetStarted}
+                  className="pd-rsvp-mock"
                   style={{
                     background: data.accent,
                     color: PD.paperCard,
@@ -640,6 +660,9 @@ export function DesignHero({ onGetStarted }: DesignHeroProps) {
             display: none !important;
           }
         }
+        /* .pd-hero-xfade / .pd-hero-word / .pd-rsvp-mock live in
+           animation.css — keyframes in a scoped styled-jsx block get
+           hash-renamed and would never match. */
         @media (prefers-reduced-motion: reduce) {
           :global(.pd-anim),
           :global(.pd-anim *) {

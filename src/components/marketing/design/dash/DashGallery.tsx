@@ -579,7 +579,7 @@ function EmptyReel({ sitesCount }: { sitesCount: number }) {
           ? "Create your first site and upload some photos — they'll collect here."
           : "Your sites have no photos yet. Open any site to add a cover, hero, or chapter images."}
       </p>
-      <Link href="/dashboard" style={{ ...btnInk, textDecoration: 'none' }}>
+      <Link href="/dashboard" className="pl8-btnfx" style={{ ...btnInk, textDecoration: 'none' }}>
         ← Back to Sites
       </Link>
     </Panel>

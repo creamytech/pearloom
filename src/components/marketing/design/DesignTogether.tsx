@@ -77,6 +77,7 @@ export function DesignTogether({ onGetStarted }: Props) {
             {ROLES.map((r) => (
               <div
                 key={r.label}
+                className="pl-lift"
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
@@ -148,7 +149,15 @@ export function DesignTogether({ onGetStarted }: Props) {
                     boxShadow: `0 4px 10px ${pdInkMix(20)}`,
                   }}
                 >
-                  <span aria-hidden style={{ width: 6, height: 6, borderRadius: '50%', background: '#fff' }} />
+                  {/* The presence pip breathes — a live-collab pitch
+                      shouldn't be frozen. .pd-anim gates it under
+                      prefers-reduced-motion (LandingPageWrapper rule);
+                      pl-dot-pulse is the global presence keyframe. */}
+                  <span
+                    aria-hidden
+                    className="pd-anim"
+                    style={{ width: 6, height: 6, borderRadius: '50%', background: '#fff', animation: 'pl-dot-pulse 2s ease-in-out infinite' }}
+                  />
                   Maya is editing
                 </div>
                 <SectionBar label="Schedule" active toneActive={PD.terra} />
@@ -235,7 +244,11 @@ function SectionBar({ label, active, toneActive }: { label: string; active?: boo
         gap: 12,
         padding: '13px 14px',
         borderRadius: 12,
-        background: active ? `${(toneActive ?? PD.terra)}14` : 'var(--pd-paper, #F5EFE2)',
+        // color-mix, not hex-alpha concat — the PD entries are var()
+        // strings, so `${tone}14` produced invalid CSS (no tint at all).
+        background: active
+          ? `color-mix(in oklab, ${toneActive ?? PD.terra} 8%, transparent)`
+          : 'var(--pd-paper, #F5EFE2)',
         border: active ? `1.5px solid ${toneActive ?? PD.terra}` : `1px solid ${pdInkMix(8)}`,
       }}
     >

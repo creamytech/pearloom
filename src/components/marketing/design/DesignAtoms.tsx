@@ -283,33 +283,36 @@ export function PLButton({
   const isPearl = variant === 'pearl';
   const p = PL_PALETTES[isPearl ? 'ink' : variant];
   const s = PL_SIZES[size];
-  const classes = [className, isPearl ? 'pl-pearl-accent' : undefined]
+  const classes = [className, 'pd-plbtn', isPearl ? 'pl-pearl-accent' : undefined]
     .filter(Boolean)
     .join(' ');
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className={classes || undefined}
+      className={classes}
       style={{
-        // Pearl buttons take bg / color / border from the global
-        // .pl-pearl-accent utility — no inline paint to fight it.
+        // Hover / press / focus live in CSS (.pd-plbtn, animation.css)
+        // driven by these two variables — inline handlers can't express
+        // :active or :focus-visible, and BRAND §6 wants the spring on
+        // tap states. Pearl buttons take bg / color / border from the
+        // global .pl-pearl-accent utility — no inline paint to fight it.
         ...(isPearl
           ? {}
-          : {
-              background: p.bg,
+          : ({
+              '--pd-btn-bg': p.bg,
+              '--pd-btn-bg-hover': p.hover,
               color: p.fg,
               border:
                 variant === 'ghost'
                   ? '1px solid color-mix(in oklab, var(--pd-ink, #1F2418) 20%, transparent)'
                   : 'none',
-            }),
+            } as CSSProperties)),
         padding: s.pad,
         fontSize: s.fs,
         fontWeight: 500,
         borderRadius: 999,
         cursor: disabled ? 'not-allowed' : 'pointer',
-        transition: 'background var(--pl-dur-fast) var(--pl-ease-out), transform var(--pl-dur-fast) var(--pl-ease-out)',
         fontFamily: 'var(--pl-font-body)',
         display: 'inline-flex',
         alignItems: 'center',
@@ -318,15 +321,6 @@ export function PLButton({
         opacity: disabled ? 0.55 : 1,
         whiteSpace: 'nowrap',
         ...style,
-      }}
-      onMouseEnter={(e) => {
-        if (disabled) return;
-        if (!isPearl) e.currentTarget.style.background = p.hover;
-        e.currentTarget.style.transform = 'translateY(-1px)';
-      }}
-      onMouseLeave={(e) => {
-        if (!isPearl) e.currentTarget.style.background = p.bg;
-        e.currentTarget.style.transform = 'translateY(0)';
       }}
     >
       {children}

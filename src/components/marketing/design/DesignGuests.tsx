@@ -86,14 +86,17 @@ export function DesignGuests() {
           </p>
         </div>
 
-        {/* Four moments */}
+        {/* Four moments — staggered reveal via the motion engine */}
         <div
           className="pd-guests-grid"
+          data-reveal-stagger="80"
+          data-reveal-as="rise"
           style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}
         >
           {moments.map((m) => (
             <div
               key={m.title}
+              className="pl-lift"
               style={{
                 display: 'flex',
                 flexDirection: 'column',

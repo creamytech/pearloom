@@ -33,6 +33,7 @@ import { DesignFAQ } from '@/components/marketing/design/DesignFAQ';
 import { DesignCTAFooter } from '@/components/marketing/design/DesignCTAFooter';
 import { PD } from '@/components/marketing/design/DesignAtoms';
 import { Thread } from '@/components/brand/Thread';
+import { GrooveMotion } from '@/components/brand/groove';
 
 /** Quiet two-strand thread rule between major sections (BRAND.md §3).
  *  Strand colors route through the landing's --pd-* variables so the
@@ -85,6 +86,11 @@ export default function LandingPageWrapper() {
   }, []);
 
   return (
+    // Lenis smooth-wheel scrolling for the marketing surface only
+    // (published sites + editor keep native scroll per the
+    // GrooveMotion contract). Renders no DOM; reduced-motion and
+    // import-failure both fall back to native scroll.
+    <GrooveMotion>
     <main
       className="pl-grain pd-landing"
       style={{
@@ -130,7 +136,11 @@ export default function LandingPageWrapper() {
       <div data-reveal="up">
         <DesignFAQ />
       </div>
-      <DesignCTAFooter onGetStarted={onGetStarted} />
+      {/* The conversion moment + footer thread in like every other
+          section (they were the only unrevealed stretch of the page). */}
+      <div data-reveal="up">
+        <DesignCTAFooter onGetStarted={onGetStarted} />
+      </div>
 
       <style jsx global>{`
         /* ── Landing palette variables ─────────────────────────────
@@ -263,5 +273,6 @@ export default function LandingPageWrapper() {
         }
       `}</style>
     </main>
+    </GrooveMotion>
   );
 }

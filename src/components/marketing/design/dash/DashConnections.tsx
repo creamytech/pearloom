@@ -149,7 +149,7 @@ export function DashConnections() {
           italic="many threads."
           sub="Pearloom celebrations group sibling sites together. A wedding weekend with a rehearsal dinner + brunch. A memorial with a family directory. A reunion split across three days. Each site still has its own host, its own guests, its own voice — but they link into one story."
           actions={
-            <Link href="/wizard/new" style={{ ...btnInk, textDecoration: 'none' }}>
+            <Link href="/wizard/new" className="pl8-btnfx" style={{ ...btnInk, textDecoration: 'none' }}>
               ✦ New site
             </Link>
           }
@@ -426,8 +426,8 @@ export function DashConnections() {
 
       <div aria-hidden style={{ display: 'none' }}>
         <button style={btnMiniGhost}>x</button>
-        <button style={btnMini}>x</button>
-        <button style={btnGhost}>x</button>
+        <button className="pl8-btnfx" style={btnMini}>x</button>
+        <button className="pl8-btnfx" style={btnGhost}>x</button>
       </div>
     </DashLayout>
   );

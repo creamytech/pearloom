@@ -183,8 +183,8 @@ export function DashAnalytics() {
       subtitle={copy.body}
       actions={
         <>
-          <button style={btnGhost}>Export CSV</button>
-          <button style={btnInk}>✦ Ask Pear to summarize</button>
+          <button className="pl8-btnfx" style={btnGhost}>Export CSV</button>
+          <button className="pl8-btnfx" style={btnInk}>✦ Ask Pear to summarize</button>
         </>
       }
     >
@@ -233,7 +233,11 @@ export function DashAnalytics() {
               <div style={{ ...MONO_STYLE, fontSize: 9, opacity: 0.55, marginBottom: 8 }}>
                 {k.l.toUpperCase()}
               </div>
+              {/* keyed remount when the real number lands so it fades
+                  in over the '—' instead of snapping. */}
               <div
+                key={loading ? 'loading' : 'loaded'}
+                className={loading ? undefined : 'pl8-content-fade-in'}
                 style={{
                   ...DISPLAY_STYLE,
                   fontSize: 40,
@@ -313,7 +317,7 @@ export function DashAnalytics() {
               <div style={{ fontSize: 12.5, color: PD.inkSoft, margin: '8px 0 14px', lineHeight: 1.5 }}>
                 haven&rsquo;t replied yet.
               </div>
-              <a href="/dashboard/rsvp" style={{ ...btnInk, width: '100%', textAlign: 'center', display: 'block', textDecoration: 'none', boxSizing: 'border-box' }}>
+              <a href="/dashboard/rsvp" className="pl8-btnfx" style={{ ...btnInk, width: '100%', textAlign: 'center', display: 'block', textDecoration: 'none', boxSizing: 'border-box' }}>
                 See who in Guests →
               </a>
             </Panel>
@@ -459,9 +463,9 @@ export function DashAnalytics() {
                 : '"Your top sections are holding attention. Keep the thread going."'}
             </div>
             <div style={{ display: 'flex', gap: 8, position: 'relative', flexWrap: 'wrap' }}>
-              <button style={{ ...btnInk, background: PD.paper, color: PD.ink }}>Ask Pear why</button>
+              <button className="pl8-btnfx" style={{ ...btnInk, background: PD.paper, color: PD.ink }}>Ask Pear why</button>
               <button
-                style={{ ...btnGhost, color: PD.paper, borderColor: 'rgba(244,236,216,0.22)' }}
+                className="pl8-btnfx" style={{ ...btnGhost, color: PD.paper, borderColor: 'rgba(244,236,216,0.22)' }}
               >
                 Dismiss
               </button>

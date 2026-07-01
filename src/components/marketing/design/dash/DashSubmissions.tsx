@@ -242,8 +242,8 @@ export function DashSubmissions() {
       subtitle={submissionsBody}
       actions={
         <>
-          <button style={btnGhost}>Submission link</button>
-          <button style={btnInk} onClick={() => void loadAll(site.domain)}>
+          <button className="pl8-btnfx" style={btnGhost}>Submission link</button>
+          <button className="pl8-btnfx" style={btnInk} onClick={() => void loadAll(site.domain)}>
             ↻ Refresh
           </button>
         </>
@@ -412,7 +412,7 @@ export function DashSubmissions() {
                     <button
                       disabled={pendingId === s.id}
                       onClick={() => void moderate(s.id, 'approved')}
-                      style={{ ...btnMini, background: PD.ink, color: PD.paper, flex: 1, opacity: pendingId === s.id ? 0.5 : 1 }}
+                      className="pl8-btnfx" style={{ ...btnMini, background: PD.ink, color: PD.paper, flex: 1, opacity: pendingId === s.id ? 0.5 : 1 }}
                     >
                       Approve
                     </button>
@@ -421,7 +421,7 @@ export function DashSubmissions() {
                     <button
                       disabled={pendingId === s.id}
                       onClick={() => void moderate(s.id, 'hidden')}
-                      style={{ ...btnMiniGhost, opacity: pendingId === s.id ? 0.5 : 1 }}
+                      className="pl8-btnfx" style={{ ...btnMiniGhost, opacity: pendingId === s.id ? 0.5 : 1 }}
                     >
                       Hide
                     </button>
@@ -430,7 +430,7 @@ export function DashSubmissions() {
                     <button
                       disabled={pendingId === s.id}
                       onClick={() => void moderate(s.id, 'flagged')}
-                      style={{ ...btnMiniGhost, opacity: pendingId === s.id ? 0.5 : 1 }}
+                      className="pl8-btnfx" style={{ ...btnMiniGhost, opacity: pendingId === s.id ? 0.5 : 1 }}
                     >
                       Flag
                     </button>
@@ -511,7 +511,7 @@ function GuestbookModeration({ siteId }: { siteId: string }) {
                 type="button"
                 disabled={busy === w.id}
                 onClick={() => void remove(w.id)}
-                style={{ ...btnMiniGhost, opacity: busy === w.id ? 0.5 : 1 }}
+                className="pl8-btnfx" style={{ ...btnMiniGhost, opacity: busy === w.id ? 0.5 : 1 }}
               >
                 Remove
               </button>

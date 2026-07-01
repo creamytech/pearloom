@@ -138,6 +138,8 @@ export function DesignTestimonials() {
 
         <div
           className="pd-testimonials-grid"
+          data-reveal-stagger="70"
+          data-reveal-as="fade"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(2, 1fr)',

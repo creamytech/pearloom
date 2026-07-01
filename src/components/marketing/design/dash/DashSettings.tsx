@@ -147,7 +147,7 @@ export function DashSettings() {
           {saveState === 'saved' && (
             <span style={{ ...MONO_STYLE, fontSize: 10, color: PD.olive }}>SAVED ✓</span>
           )}
-          <button style={btnGhost} onClick={() => void signOut({ callbackUrl: '/' })}>
+          <button className="pl8-btnfx" style={btnGhost} onClick={() => void signOut({ callbackUrl: '/' })}>
             Sign out
           </button>
         </>
@@ -765,7 +765,7 @@ export function DashSettings() {
                     type="button"
                     onClick={r.onClick}
                     // r.c is a var(--pd-*) string now — no alpha suffix.
-                    style={{ ...btnGhost, color: r.c, borderColor: `color-mix(in oklab, ${r.c} 27%, transparent)` }}
+                    className="pl8-btnfx" style={{ ...btnGhost, color: r.c, borderColor: `color-mix(in oklab, ${r.c} 27%, transparent)` }}
                   >
                     {r.cta}
                   </button>
@@ -862,7 +862,7 @@ export function DashSettings() {
                         type="button"
                         onClick={() => setDeleteOpen(false)}
                         disabled={deleteState === 'working'}
-                        style={btnGhost}
+                        className="pl8-btnfx" style={btnGhost}
                       >
                         Cancel
                       </button>
@@ -917,7 +917,7 @@ export function DashSettings() {
 
       {/* keep btnMini in the import graph */}
       <div aria-hidden style={{ display: 'none' }}>
-        <span style={btnMini}>x</span>
+        <span className="pl8-btnfx" style={btnMini}>x</span>
         <Pear size={10} />
       </div>
     </DashLayout>
@@ -973,7 +973,7 @@ function Field({
         {onSave && changed && (
           <button
             onClick={() => onSave(v)}
-            style={{ ...btnMini, background: PD.ink, color: PD.paper }}
+            className="pl8-btnfx" style={{ ...btnMini, background: PD.ink, color: PD.paper }}
           >
             Save
           </button>
@@ -1105,7 +1105,7 @@ function PlanUpgradeButtons({ plan }: { plan: 'free' | 'pro' | 'premium' }) {
             type="button"
             onClick={() => { void buy('atelier'); }}
             disabled={busy != null}
-            style={{ ...btnInk, background: PD.paper, color: PD.ink, cursor: busy ? 'wait' : 'pointer', border: 'none', fontFamily: 'inherit' }}
+            className="pl8-btnfx" style={{ ...btnInk, background: PD.paper, color: PD.ink, cursor: busy ? 'wait' : 'pointer', border: 'none', fontFamily: 'inherit' }}
           >
             {busy === 'atelier' ? 'Threading…' : 'Upgrade to Atelier — $19'}
           </button>
@@ -1114,7 +1114,7 @@ function PlanUpgradeButtons({ plan }: { plan: 'free' | 'pro' | 'premium' }) {
           type="button"
           onClick={() => { void buy('legacy'); }}
           disabled={busy != null}
-          style={{ ...btnInk, background: PD.paper, color: PD.ink, cursor: busy ? 'wait' : 'pointer', border: 'none', fontFamily: 'inherit' }}
+          className="pl8-btnfx" style={{ ...btnInk, background: PD.paper, color: PD.ink, cursor: busy ? 'wait' : 'pointer', border: 'none', fontFamily: 'inherit' }}
         >
           {busy === 'legacy' ? 'Threading…' : 'Go Legacy — $129 for life'}
         </button>

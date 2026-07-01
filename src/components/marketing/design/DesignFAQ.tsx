@@ -99,10 +99,23 @@ export function DesignFAQ() {
           {QS.map((x, i) => {
             const isOpen = open === i;
             return (
-              <div
+              // A real <button> (was a clickable div) — keyboard +
+              // screen-reader operable, and the row hover tint reads
+              // as an affordance.
+              <button
+                type="button"
                 key={x.q}
                 onClick={() => setOpen(isOpen ? -1 : i)}
+                aria-expanded={isOpen}
+                className="pd-faq-row"
                 style={{
+                  display: 'block',
+                  width: '100%',
+                  textAlign: 'left',
+                  background: 'transparent',
+                  font: 'inherit',
+                  color: 'inherit',
+                  border: 'none',
                   borderTop: `1px solid ${pdInkMix(15)}`,
                   padding: isOpen ? '24px 4px 24px 16px' : '24px 4px',
                   cursor: 'pointer',
@@ -110,7 +123,7 @@ export function DesignFAQ() {
                   // Gold hairline on the open item — gold as 1px
                   // punctuation (BRAND.md §5), never a background.
                   borderLeft: isOpen ? `2px solid ${PD.gold}` : '2px solid transparent',
-                  transition: 'padding var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out)',
+                  transition: 'padding var(--pl-dur-fast) var(--pl-ease-out), border-color var(--pl-dur-fast) var(--pl-ease-out), background var(--pl-dur-quick) var(--pl-ease-out)',
                 }}
               >
                 <div
@@ -155,25 +168,49 @@ export function DesignFAQ() {
                     +
                   </div>
                 </div>
-                {isOpen && (
-                  <div
-                    style={{
-                      marginTop: 14,
-                      fontSize: 16,
-                      lineHeight: 1.6,
-                      color: PD.inkSoft,
-                      maxWidth: 780,
-                      fontFamily: 'var(--pl-font-body)',
-                    }}
-                  >
-                    {x.a}
+                {/* Always mounted; grid-template-rows 0fr→1fr eases the
+                    answer open/closed instead of the old instant mount. */}
+                <div
+                  aria-hidden={!isOpen}
+                  style={{
+                    display: 'grid',
+                    gridTemplateRows: isOpen ? '1fr' : '0fr',
+                    transition: 'grid-template-rows var(--pl-dur-base) var(--pl-ease-emphasis)',
+                  }}
+                >
+                  <div style={{ overflow: 'hidden', minHeight: 0 }}>
+                    <div
+                      style={{
+                        marginTop: 14,
+                        fontSize: 16,
+                        lineHeight: 1.6,
+                        color: PD.inkSoft,
+                        maxWidth: 780,
+                        fontFamily: 'var(--pl-font-body)',
+                        opacity: isOpen ? 1 : 0,
+                        transition: 'opacity var(--pl-dur-base) var(--pl-ease-out)',
+                      }}
+                    >
+                      {x.a}
+                    </div>
                   </div>
-                )}
-              </div>
+                </div>
+              </button>
             );
           })}
         </div>
       </div>
+      <style jsx>{`
+        :global(.pd-faq-row:hover) {
+          background: ${pdInkMix(4)};
+        }
+        @media (prefers-reduced-motion: reduce) {
+          :global(.pd-faq-row),
+          :global(.pd-faq-row *) {
+            transition: none !important;
+          }
+        }
+      `}</style>
     </section>
   );
 }

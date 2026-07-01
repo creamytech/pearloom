@@ -14,6 +14,7 @@ import { siteDisplayName, useSelectedSite, useUserSites } from './hooks';
 import { getEventType } from '@/lib/event-os/event-types';
 import { buildSiteUrl } from '@/lib/site-urls';
 import { GuestImportDialog } from '@/components/dashboard/GuestImportDialog';
+import { DashSkeleton } from '@/components/pearloom/dash/DashSkeleton';
 import { findDuplicateGroups } from '@/lib/guest-dedupe';
 import { BrandedQR } from '@/components/pearloom/editor/panels/BrandedQR';
 
@@ -1123,12 +1124,12 @@ export function DashGuests() {
       }
       actions={
         <>
-          <Link href="/dashboard/guest-review" style={{ ...btnGhost, textDecoration: 'none' }}>
+          <Link href="/dashboard/guest-review" className="pl8-btnfx" style={{ ...btnGhost, textDecoration: 'none' }}>
             Pear&rsquo;s review
           </Link>
           {phoneCount > 0 && (
             <button
-              style={btnGhost}
+              className="pl8-btnfx" style={btnGhost}
               disabled={smsState === 'sending'}
               onClick={() => {
                 if (smsState === 'armed') { setSmsState('idle'); void sendTextInvites(); }
@@ -1141,15 +1142,15 @@ export function DashGuests() {
             </button>
           )}
           {(sites?.length ?? 0) >= 2 && (
-            <button style={btnGhost} onClick={() => setCopyOpen(true)} disabled={!site?.id}>
+            <button className="pl8-btnfx" style={btnGhost} onClick={() => setCopyOpen(true)} disabled={!site?.id}>
               Copy from another event
             </button>
           )}
           {hasGuests && (
-            <button style={btnGhost} onClick={copyAllLinks}>Copy links</button>
+            <button className="pl8-btnfx" style={btnGhost} onClick={copyAllLinks}>Copy links</button>
           )}
-          <button style={btnGhost} onClick={() => setImportOpen(true)}>Import CSV</button>
-          <button style={btnInk} onClick={() => setAddOpen(true)} disabled={!site?.id}>
+          <button className="pl8-btnfx" style={btnGhost} onClick={() => setImportOpen(true)}>Import CSV</button>
+          <button className="pl8-btnfx" style={btnInk} onClick={() => setAddOpen(true)} disabled={!site?.id}>
             ✦ Add a guest
           </button>
         </>
@@ -1497,8 +1498,8 @@ export function DashGuests() {
             </div>
 
             {loading ? (
-              <div style={{ padding: 60, textAlign: 'center', color: PD.inkSoft, fontSize: 13 }}>
-                Threading your guest list…
+              <div style={{ padding: '28px 24px' }}>
+                <DashSkeleton kind="list" count={6} label="Threading your guest list" />
               </div>
             ) : error ? (
               <div style={{ padding: 40, color: PD.terra, fontSize: 13 }}>
@@ -1532,7 +1533,7 @@ export function DashGuests() {
                 </div>
               </div>
             ) : (
-              <div>
+              <div className="pl8-content-fade-in">
                 <div
                   className="pd-guests-head"
                   style={{
@@ -2457,10 +2458,10 @@ function AddGuestDialog({
         )}
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}>
-          <button type="button" onClick={onClose} style={btnGhost}>
+          <button type="button" onClick={onClose} className="pl8-btnfx" style={btnGhost}>
             Cancel
           </button>
-          <button type="submit" disabled={busy} style={{ ...btnInk, opacity: busy ? 0.6 : 1 }}>
+          <button type="submit" disabled={busy} className="pl8-btnfx" style={{ ...btnInk, opacity: busy ? 0.6 : 1 }}>
             {busy ? 'Adding…' : 'Add guest'}
           </button>
         </div>
@@ -2598,17 +2599,17 @@ function InviteShareDialog({
             onFocus={(e) => e.currentTarget.select()}
             style={{ ...inputStyle, flex: 1, fontSize: 12 }}
           />
-          <button type="button" onClick={copy} style={{ ...btnInk, whiteSpace: 'nowrap' }}>
+          <button type="button" onClick={copy} className="pl8-btnfx" style={{ ...btnInk, whiteSpace: 'nowrap' }}>
             {copied ? '✓ Copied' : 'Copy'}
           </button>
         </div>
 
         {/* Channels */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <a href={mailto} style={{ ...btnGhost, textDecoration: 'none', flex: 1, textAlign: 'center', minWidth: 120 }}>
+          <a href={mailto} className="pl8-btnfx" style={{ ...btnGhost, textDecoration: 'none', flex: 1, textAlign: 'center', minWidth: 120 }}>
             ✉ Email{email ? '' : ' (add address)'}
           </a>
-          <a href={sms} style={{ ...btnGhost, textDecoration: 'none', flex: 1, textAlign: 'center', minWidth: 120 }}>
+          <a href={sms} className="pl8-btnfx" style={{ ...btnGhost, textDecoration: 'none', flex: 1, textAlign: 'center', minWidth: 120 }}>
             ✆ Text
           </a>
         </div>
@@ -2625,12 +2626,12 @@ function InviteShareDialog({
           <div ref={qrRef} style={{ lineHeight: 0 }}>
             <BrandedQR value={link} size={168} initials={initials} dark="#0E0D0B" light="#FBF7EE" accent="#C6703D" />
           </div>
-          <button type="button" onClick={downloadQr} style={{ ...btnGhost, fontSize: 12 }}>
+          <button type="button" onClick={downloadQr} className="pl8-btnfx" style={{ ...btnGhost, fontSize: 12 }}>
             Download QR for print
           </button>
         </div>
 
-        <button type="button" onClick={onClose} style={{ ...btnGhost, alignSelf: 'flex-end' }}>
+        <button type="button" onClick={onClose} className="pl8-btnfx" style={{ ...btnGhost, alignSelf: 'flex-end' }}>
           Done
         </button>
       </div>

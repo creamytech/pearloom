@@ -298,10 +298,10 @@ export function DashDirector() {
           sub="Pear holds your budget, city, guest count, timeline, and every conversation so far. Ask, plan, or just think out loud."
           actions={
             <>
-              <Link href={`/editor/${site.domain}`} style={{ ...btnGhost, textDecoration: 'none' }}>
+              <Link href={`/editor/${site.domain}`} className="pl8-btnfx" style={{ ...btnGhost, textDecoration: 'none' }}>
                 Open site →
               </Link>
-              <button style={btnInk} onClick={() => send('Give me this week at a glance.')}>
+              <button className="pl8-btnfx" style={btnInk} onClick={() => send('Give me this week at a glance.')}>
                 ✦ Ask Pear
               </button>
             </>
@@ -849,7 +849,7 @@ export function DashDirector() {
 
       {/* Silence btn import */}
       <div aria-hidden style={{ display: 'none' }}>
-        <span style={{ ...btnMini, ...btnMiniGhost }}>x</span>
+        <span className="pl8-btnfx" style={{ ...btnMini, ...btnMiniGhost }}>x</span>
       </div>
 
       <style jsx>{`

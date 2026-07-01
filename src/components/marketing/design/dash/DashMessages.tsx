@@ -192,7 +192,7 @@ export function DashMessages() {
                   fontSize: 13, fontFamily: 'inherit', color: PD.ink, outline: 'none',
                 }}
               />
-              <button type="submit" disabled={!draft.trim() || busy} style={{ ...btnInk, opacity: draft.trim() && !busy ? 1 : 0.5 }}>
+              <button type="submit" disabled={!draft.trim() || busy} className="pl8-btnfx" style={{ ...btnInk, opacity: draft.trim() && !busy ? 1 : 0.5 }}>
                 {busy ? 'Sending…' : 'Post'}
               </button>
             </form>
@@ -269,7 +269,7 @@ export function DashMessages() {
                             <button
                               type="submit"
                               disabled={!dmDraft.trim() || busy}
-                              style={{ ...btnInk, padding: '8px 14px', fontSize: 12, opacity: dmDraft.trim() && !busy ? 1 : 0.5 }}
+                              className="pl8-btnfx" style={{ ...btnInk, padding: '8px 14px', fontSize: 12, opacity: dmDraft.trim() && !busy ? 1 : 0.5 }}
                             >
                               Send
                             </button>
